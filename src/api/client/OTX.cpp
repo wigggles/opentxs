@@ -126,9 +126,14 @@
         if (running_) {                                                        \
             started = op.a(__VA_ARGS__);                                       \
         } else {                                                               \
-                                                                               \
+            op.Shutdown();                                                     \
             return false;                                                      \
         }                                                                      \
+    }                                                                          \
+                                                                               \
+    if (!running_) {                                                           \
+        op.Shutdown();                                                         \
+        return false;                                                          \
     }                                                                          \
                                                                                \
     Result result = op.GetFuture().get();                                      \
@@ -147,9 +152,14 @@
         if (running_) {                                                        \
             started = op.a(__VA_ARGS__);                                       \
         } else {                                                               \
-                                                                               \
+            op.Shutdown();                                                     \
             return task_done(false);                                           \
         }                                                                      \
+    }                                                                          \
+                                                                               \
+    if (!running_) {                                                           \
+        op.Shutdown();                                                         \
+        return task_done(false);                                               \
     }                                                                          \
                                                                                \
     Result result = op.GetFuture().get();                                      \
@@ -3475,6 +3485,9 @@ OTX::~OTX()
         const auto& notUsed [[maybe_unused]] = id;
 
         OT_ASSERT(thread)
+
+        auto& opQueue = operations_.at(id);
+        opQueue.op_->Shutdown();
 
         if (thread->joinable()) { thread->join(); }
     }

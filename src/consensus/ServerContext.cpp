@@ -977,7 +977,7 @@ void ServerContext::deliver_message(const zmq::Message& in)
 
     if (false == more) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Delivery complete").Flush();
-    } else if (false == retry) {
+    } else if (false == retry && running_.get()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error limit exceeded").Flush();
         Lock lock(lock_);
         resolve_queue(

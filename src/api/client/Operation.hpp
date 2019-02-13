@@ -64,6 +64,7 @@ public:
         const Amount amount,
         const String& memo) override;
     void SetPush(const bool on) override { enable_otx_push_.store(on); }
+    void Shutdown() override;
     bool Start(const Type type, const ServerContext::ExtraArgs& args) override;
     bool Start(
         const Type type,
@@ -166,6 +167,7 @@ private:
     bool evaluate_transaction_reply(
         const Identifier& accountID,
         const Message& reply) const;
+    bool hasContext() const;
     void update_workflow(
         const Message& request,
         const ServerContext::DeliveryResult& result) const;
