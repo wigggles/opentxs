@@ -116,6 +116,7 @@ struct Operation {
         const Amount amount,
         const String& memo) = 0;
     virtual void SetPush(const bool enabled) = 0;
+    virtual void Shutdown() = 0;
     virtual bool Start(
         const Type type,
         const ServerContext::ExtraArgs& args = {}) = 0;

@@ -1888,6 +1888,10 @@ bool Operation::get_receipts(
     return count == good;
 }
 
+bool Operation::hasContext() const {
+	const auto context = api_.Wallet().ServerContext(nym_id_, server_id_);
+	return bool(context);
+}
 Operation::Future Operation::GetFuture() { return result_.get_future(); }
 
 void Operation::init()
@@ -2448,6 +2452,8 @@ void Operation::set_result(ServerContext::DeliveryResult&& result)
     result_.set_value(std::move(result));
 }
 
+void Operation::Shutdown() { shutdown_->On(); }
+
 bool Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
 {
     START()
@@ -2578,7 +2584,9 @@ void Operation::state_machine()
     Lock lock(shutdown_lock_);
     const auto error = error_count_ > MAX_ERROR_COUNT;
 
-    if (error) { set_result({proto::LASTREPLYSTATUS_UNKNOWN, nullptr}); }
+    if (error || shutdown_.get()) {
+        set_result({proto::LASTREPLYSTATUS_UNKNOWN, nullptr});
+    }
 
     const bool run = (false == shutdown_.get()) &&
                      (State::Idle != state_.load()) && (false == error);
@@ -2641,7 +2649,8 @@ void Operation::transaction_numbers()
     if (proto::LASTREPLYSTATUS_MESSAGESUCCESS == std::get<0>(result->get())) {
         auto nymbox = context.RefreshNymbox(api_);
 
-        if (false == bool(nymbox)) {
+        while (false == bool(nymbox)) {
+            if (shutdown_.get()) { return; }
             LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
             Log::Sleep(std::chrono::milliseconds(OPERATION_POLL_MILLISECONDS));
             nymbox = context.RefreshNymbox(api_);
@@ -2759,6 +2768,8 @@ Operation::~Operation()
     lock.unlock();
     push_->Close();
     pull_->Close();
-    context().It().Join();
+    if (hasContext()) {
+    	context().It().Join();
+    }
 }
 }  // namespace opentxs::api::client::implementation
