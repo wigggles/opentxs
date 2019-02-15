@@ -66,7 +66,7 @@ if(WIN32)
   add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
-    util/OTWindowsRegistryTools.cpp
+    ../core/util/OTWindowsRegistryTools.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
