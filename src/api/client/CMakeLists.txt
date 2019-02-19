@@ -63,7 +63,7 @@ if(WIN32)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
 
   configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/windll.rc.in
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
     @ONLY
   )
@@ -72,7 +72,7 @@ if(WIN32)
   add_library(${MODULE_NAME} OBJECT
     ${cxx-sources}
     ${cxx-headers}
-    util/OTWindowsRegistryTools.cpp
+    ../../core/util/OTWindowsRegistryTools.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/module.rc
   )
 else()
