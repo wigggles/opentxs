@@ -6,7 +6,7 @@
 set(name unittests-opentxs-core-crypto)
 
 set(cxx-sources
-        main.cpp
+        ${PROJECT_SOURCE_DIR}/tests/main.cpp
         Test_PaymentCode.cpp
         ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
         )

@@ -186,7 +186,8 @@ TEST_F(Test_PaymentCode, paycode_equals)
 {
     OTPaymentCode payment_code = client_.Factory().PaymentCode(paycode_0);
     PaymentCode& rep1 = payment_code.get();
-    proto::PaymentCode& rep2 = *(payment_code->Serialize());
+    auto serializedPaymentcode = payment_code->Serialize();
+    proto::PaymentCode& rep2 = *serializedPaymentcode;
     ASSERT_TRUE(rep1 == rep2);
 }
 

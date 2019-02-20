@@ -3669,12 +3669,6 @@ public:
         const auto found = String::Factory(xml->getAttributeValue("found"));
         m.m_bBool = found->Compare("true");
 
-        try {
-            m.enum_ = std::stoi(xml->getAttributeValue("type"));
-        } catch (...) {
-            m.enum_ = 0;
-        }
-
         auto ascTextExpected = Armored::Factory();
 
         if (false == m.m_bSuccess) {

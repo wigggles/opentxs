@@ -2,7 +2,7 @@
 set(name unittests-opentxs-ui)
 
 set(cxx-sources
-        main.cpp
+        ${PROJECT_SOURCE_DIR}/tests/main.cpp
         Test_ContactList.cpp
         ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
         )
