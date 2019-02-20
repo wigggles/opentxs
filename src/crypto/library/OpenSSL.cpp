@@ -2430,6 +2430,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
 // or a memory leak will occur.
 //
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
+    const char* szFunc = "OpenSSL::VerifySignature";
     EVP_MD_CTX md_ctx;
     _OTCont_SignCont1 theInstance(szFunc, md_ctx);
 #else
@@ -2460,7 +2461,11 @@ bool OpenSSL::OpenSSLdp::SignContract(
 
     std::int32_t sig_len = sizeof(sig_buf);
     std::int32_t err = EVP_SignFinal(
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        &md_ctx,
+#else
         context,
+#endif
         sig_buf,
         reinterpret_cast<std::uint32_t*>(&sig_len),
         const_cast<EVP_PKEY*>(pkey));
@@ -2915,6 +2920,9 @@ bool OpenSSL::EncryptSessionKey(
         }
     };  // class _OTEnv_Seal
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    const char* szFunc = "OpenSSL::VerifySignature";
+#endif
     // INSTANTIATE IT (This does all our setup on construction here, AND cleanup
     // on destruction, whenever exiting this function.)
     _OTEnv_Seal local_RAII(
@@ -3278,6 +3286,7 @@ bool OpenSSL::DecryptSessionKey(
 // INSTANTIATE the clean-up object.
 //
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
+    const char* szFunc = "OpenSSL::VerifySignature";
     _OTEnv_Open theNestedInstance(szFunc, ctx, *pPrivateKey, bFinalized);
 #else
     _OTEnv_Open theNestedInstance(*pPrivateKey, bFinalized);

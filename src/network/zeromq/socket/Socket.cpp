@@ -50,6 +50,11 @@ Socket::Socket(
     , running_(Flag::Factory(true))
     , type_(type)
 {
+    if (nullptr == socket_) {
+        std::cerr << OT_METHOD << __FUNCTION__ << ": "
+                  << zmq_strerror(zmq_errno()) << std::endl;
+    }
+
     OT_ASSERT(nullptr != socket_);
 }
 

@@ -8,8 +8,14 @@
 
 int main(int argc, char** argv)
 {
-    system("rm -r $HOME/.ot/");
     ::testing::AddGlobalTestEnvironment(new OTTestEnvironment());
     ::testing::InitGoogleTest(&argc, argv);
+
+    auto home = OTTestEnvironment::Home();
+    std::string command("rm -r \"");
+    command.append(home);
+    command.append("\"");
+    system(command.c_str());
+
     return RUN_ALL_TESTS();
 }
