@@ -21,6 +21,8 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PullSocket.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
@@ -43,6 +45,8 @@ template class std::
     tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
 
 #define OT_METHOD "opentxs::ui::implementation::ActivityThread::"
+
+namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
@@ -75,8 +79,15 @@ ActivityThread::ActivityThread(
     , draft_tasks_()
     , contact_(nullptr)
     , contact_thread_(nullptr)
+    , queue_callback_(zmq::ListenCallback::Factory(
+          [=](const zmq::Message& in) -> void { this->process_draft(in); }))
+    , queue_pull_(api.ZeroMQ().PullSocket(
+          queue_callback_,
+          zmq::Socket::Direction::Bind))
+    , queue_push_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
 {
     init();
+    init_sockets();
     setup_listeners(listeners_);
     startup_.reset(new std::thread(&ActivityThread::startup, this));
 
@@ -87,56 +98,11 @@ ActivityThread::ActivityThread(
     OT_ASSERT(contact_thread_)
 }
 
-bool ActivityThread::check_draft(const ActivityThreadRowID& id) const
+void ActivityThread::can_message() const
 {
-    const auto& taskID = std::get<3>(id);
-    [[maybe_unused]] const auto [status, messageID] =
-        api_.OTX().MessageStatus(taskID);
-
-    switch (status) {
-        case ThreadStatus::RUNNING:
-        case ThreadStatus::FINISHED_SUCCESS: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Message sent successfully.")
-                .Flush();
-
-            return true;
-        } break;
-        case ThreadStatus::FINISHED_FAILED: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to send message.")
-                .Flush();
-        } break;
-        case ThreadStatus::ERROR:
-        case ThreadStatus::SHUTDOWN:
-        default: {
-        }
+    for (const auto& id : participants_) {
+        api_.OTX().CanMessage(nym_id_, id, true);
     }
-
-    return false;
-}
-
-void ActivityThread::check_drafts() const
-{
-    eLock lock(draft_lock_);
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Checking ")(draft_tasks_.size())(
-        " pending sends.")
-        .Flush();
-    std::set<ActivityThreadRowID> deleted{};
-
-    for (const auto& draftID : draft_tasks_) {
-        if (check_draft(draftID)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Removing successfully sent draft.")
-                .Flush();
-            Lock lock(lock_);
-            delete_item(lock, draftID);
-            deleted.emplace(draftID);
-        } else {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Keeping pending send.")
-                .Flush();
-        }
-    }
-
-    for (const auto& id : deleted) { draft_tasks_.erase(id); }
 }
 
 std::string ActivityThread::comma(const std::set<std::string>& list) const
@@ -254,6 +220,29 @@ void ActivityThread::init_contact()
     UpdateNotify();
 }
 
+void ActivityThread::init_sockets()
+{
+    const auto endpoint =
+        std::string("inproc://") + Identifier::Random()->str();
+    auto started = queue_pull_->Start(endpoint);
+
+    if (false == started) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start pull socket ")
+            .Flush();
+
+        OT_FAIL;
+    }
+
+    started = queue_push_->Start(endpoint);
+
+    if (false == started) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start push socket ")
+            .Flush();
+
+        OT_FAIL;
+    }
+}
+
 void ActivityThread::load_thread(const proto::StorageThread& thread)
 {
     for (const auto& id : thread.participant()) {
@@ -296,6 +285,43 @@ std::string ActivityThread::PaymentCode(
     return {};
 }
 
+void ActivityThread::process_draft(const network::zeromq::Message&)
+{
+    eLock lock(draft_lock_, std::defer_lock);
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Checking ")(draft_tasks_.size())(
+        " pending sends.")
+        .Flush();
+    std::vector<ActivityThreadRowID> deleted{};
+
+    for (auto i = draft_tasks_.begin(); i != draft_tasks_.end();) {
+        lock.lock();
+        auto& [rowID, backgroundTask] = *i;
+        auto& future = std::get<1>(backgroundTask);
+        const auto status = future.wait_for(std::chrono::milliseconds(1));
+
+        if (std::future_status::ready == status) {
+            // TODO maybe keep failed sends
+            deleted.emplace_back(rowID);
+            i = draft_tasks_.erase(i);
+        } else {
+            ++i;
+        }
+
+        lock.unlock();
+    }
+
+    for (const auto& id : deleted) {
+        Lock widgetLock(lock_);
+        delete_item(widgetLock, id);
+    }
+
+    if (0 < deleted.size()) { UpdateNotify(); }
+
+    lock.lock();
+
+    if (0 < draft_tasks_.size()) { queue_push_->Push(""); }
+}
+
 ActivityThreadRowID ActivityThread::process_item(
     const proto::StorageThreadItem& item)
 {
@@ -314,7 +340,6 @@ ActivityThreadRowID ActivityThread::process_item(
 void ActivityThread::process_thread(const network::zeromq::Message& message)
 {
     wait_for_startup();
-    check_drafts();
 
     OT_ASSERT(1 == message.Body().size());
 
@@ -378,9 +403,10 @@ bool ActivityThread::SendDraft() const
         return false;
     }
 
-    const auto task =
-        api_.OTX().MessageContact(nym_id_, *participants_.begin(), draft_);
-    const auto taskID = std::get<0>(task);
+    auto task = make_blank<DraftTask>::value();
+    auto& [id, otx] = task;
+    otx = api_.OTX().MessageContact(nym_id_, *participants_.begin(), draft_);
+    const auto taskID = std::get<0>(otx);
 
     if (0 == taskID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -390,21 +416,28 @@ bool ActivityThread::SendDraft() const
         return false;
     }
 
-    const ActivityThreadRowID id{Identifier::Factory(std::to_string(taskID)),
-                                 StorageBox::DRAFT,
-                                 Identifier::Factory(),
-                                 taskID};
+    auto fakeItemID = Identifier::Factory();
+    fakeItemID->CalculateDigest(String::Factory(std::to_string(taskID)));
+    id = ActivityThreadRowID{
+        fakeItemID, StorageBox::DRAFT, Identifier::Factory(), taskID};
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
-    draft_tasks_.insert(id);
     const CustomData custom{new std::string(draft_)};
-    draft_.clear();
     const_cast<ActivityThread&>(*this).add_item(id, key, custom);
+
+    OT_ASSERT(1 == items_.count(key));
+    OT_ASSERT(1 == names_.count(id));
+
+    draft_tasks_.emplace_back(std::move(task));
+    draft_.clear();
+    queue_push_->Push("");
 
     return true;
 }
 
 bool ActivityThread::SetDraft(const std::string& draft) const
 {
+    can_message();
+
     if (draft.empty()) { return false; }
 
     eLock lock(draft_lock_);

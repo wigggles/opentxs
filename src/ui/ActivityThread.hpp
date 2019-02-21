@@ -9,23 +9,28 @@
 
 namespace std
 {
-using STORAGEID = std::
-    tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
+using STORAGEID = std::tuple<
+    opentxs::OTIdentifier,
+    opentxs::StorageBox,
+    opentxs::OTIdentifier,
+    int>;
 
 template <>
 struct less<STORAGEID> {
     bool operator()(const STORAGEID& lhs, const STORAGEID& rhs) const
     {
         /* TODO: these lines will cause a segfault in the clang-5 ast parser.
-                const auto & [ lID, lBox, lAccount ] = lhs;
-                const auto & [ rID, rBox, rAccount ] = rhs;
+                const auto & [ lID, lBox, lAccount, lTask ] = lhs;
+                const auto & [ rID, rBox, rAccount, rTask ] = rhs;
         */
         const auto& lID = std::get<0>(lhs);
         const auto& lBox = std::get<1>(lhs);
         const auto& lAccount = std::get<2>(lhs);
+        const auto& lTask = std::get<2>(lhs);
         const auto& rID = std::get<0>(rhs);
         const auto& rBox = std::get<1>(rhs);
         const auto& rAccount = std::get<2>(rhs);
+        const auto& rTask = std::get<2>(rhs);
 
         if (lID->str() < rID->str()) { return true; }
 
@@ -37,6 +42,10 @@ struct less<STORAGEID> {
 
         if (lAccount->str() < rAccount->str()) { return true; }
 
+        if (rAccount->str() < lAccount->str()) { return false; }
+
+        if (lTask->str() < rTask->str()) { return true; }
+
         return false;
     }
 };
@@ -44,11 +53,26 @@ struct less<STORAGEID> {
 
 namespace opentxs::ui::implementation
 {
+using DraftTask =
+    std::pair<ActivityThreadRowID, api::client::OTX::BackgroundTask>;
+
 template <>
 struct make_blank<ActivityThreadRowID> {
     static ActivityThreadRowID value()
     {
         return {Identifier::Factory(), {}, Identifier::Factory(), 0};
+    }
+};
+template <>
+struct make_blank<opentxs::api::client::OTX::BackgroundTask> {
+    static opentxs::api::client::OTX::BackgroundTask value() { return {}; }
+};
+template <>
+struct make_blank<DraftTask> {
+    static DraftTask value()
+    {
+        return {make_blank<ActivityThreadRowID>::value(),
+                make_blank<api::client::OTX::BackgroundTask>::value()};
     }
 };
 
@@ -86,22 +110,26 @@ private:
     mutable std::mutex contact_lock_;
     mutable std::shared_mutex draft_lock_;
     mutable std::string draft_{""};
-    mutable std::set<ActivityThreadRowID> draft_tasks_;
+    mutable std::vector<DraftTask> draft_tasks_;
     std::shared_ptr<const opentxs::Contact> contact_;
     std::unique_ptr<std::thread> contact_thread_{nullptr};
+    OTZMQListenCallback queue_callback_;
+    OTZMQPullSocket queue_pull_;
+    OTZMQPushSocket queue_push_;
 
-    bool check_draft(const ActivityThreadRowID& id) const;
-    void check_drafts() const;
     std::string comma(const std::set<std::string>& list) const;
+    void can_message() const;
     void construct_row(
         const ActivityThreadRowID& id,
         const ActivityThreadSortKey& index,
         const CustomData& custom) const override;
 
     void init_contact();
+    void init_sockets();
     void load_thread(const proto::StorageThread& thread);
     void new_thread();
     ActivityThreadRowID process_item(const proto::StorageThreadItem& item);
+    void process_draft(const network::zeromq::Message& message);
     void process_thread(const network::zeromq::Message& message);
     void startup();
 

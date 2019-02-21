@@ -75,11 +75,12 @@ ActivitySummaryItem::ActivitySummaryItem(
     , thread_()
     , display_name_{std::get<1>(key_)}
     , text_("")
-    , type_(StorageBox::UNKNOWN)
+    , type_(extract_custom<StorageBox>(custom, 1))
     , time_()
     , newest_item_thread_(nullptr)
     , newest_item_()
     , next_task_id_(0)
+    , break_(false)
 {
     startup(custom, newest_item_);
     newest_item_thread_.reset(
@@ -143,6 +144,8 @@ void ActivitySummaryItem::get_text()
     ItemLocator locator{};
 
     while (running_) {
+        if (break_.load()) { return; }
+
         int taskID{0};
 
         if (newest_item_.Pop(taskID, locator)) {
@@ -179,9 +182,8 @@ void ActivitySummaryItem::startup(
     UniqueQueue<ItemLocator>& queue)
 {
     const auto id = extract_custom<std::string>(custom, 0);
-    const auto box = extract_custom<StorageBox>(custom, 1);
     const auto account = extract_custom<std::string>(custom, 2);
-    ItemLocator locator{id, box, account};
+    ItemLocator locator{id, type_, account};
     queue.Push(++next_task_id_, locator);
 }
 
@@ -210,6 +212,8 @@ StorageBox ActivitySummaryItem::Type() const
 
 ActivitySummaryItem::~ActivitySummaryItem()
 {
+    break_.store(true);
+
     if (newest_item_thread_ && newest_item_thread_->joinable()) {
         newest_item_thread_->join();
         newest_item_thread_.reset();

@@ -45,6 +45,7 @@ private:
     std::unique_ptr<std::thread> newest_item_thread_{nullptr};
     UniqueQueue<ItemLocator> newest_item_;
     std::atomic<int> next_task_id_;
+    std::atomic<bool> break_;
 
     std::string find_text(const ItemLocator& locator) const;
 
