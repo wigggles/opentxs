@@ -285,7 +285,8 @@ private:
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<OTIdentifier, OTIdentifier>;
     /** MessageTask: recipientID, message */
-    using MessageTask = std::tuple<OTNymID, std::string, SetID>;
+    using MessageTask =
+        std::tuple<OTNymID, std::string, std::shared_ptr<SetID>>;
     /** PaymentTask: recipientID, payment */
     using PaymentTask = std::pair<OTNymID, std::shared_ptr<const OTPayment>>;
 #if OT_CASH

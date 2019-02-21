@@ -7,7 +7,13 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/contact/Contact.hpp"
+#include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -77,6 +83,21 @@ ContactList::ContactList(
     startup_.reset(new std::thread(&ContactList::startup, this));
 
     OT_ASSERT(startup_)
+}
+
+std::string ContactList::AddContact(
+    const std::string& label,
+    const std::string& paymentCode,
+    const std::string& nymID) const
+{
+    const auto contact = api_.Contacts().NewContact(
+        label,
+        identifier::Nym::Factory(nymID),
+        api_.Factory().PaymentCode(paymentCode));
+    const auto& id = contact->ID();
+    api_.OTX().CanMessage(nym_id_, id, true);
+
+    return id.str();
 }
 
 void ContactList::add_item(

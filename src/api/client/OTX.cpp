@@ -1820,9 +1820,13 @@ bool OTX::message_nym(
     auto messageID = Identifier::Factory();
     auto updateID = [&](const Identifier& in) -> void {
         messageID = in;
-        auto& id = std::get<2>(task);
+        auto& pID = std::get<2>(task);
 
-        if (id) { id(in); }
+        if (pID) {
+            auto& id = *pID;
+
+            if (id) { id(in); }
+        }
     };
 
     OT_ASSERT(false == recipient->empty())
@@ -1863,10 +1867,9 @@ OTX::BackgroundTask OTX::MessageContact(
 
     auto& queue = get_operations({senderNymID, serverID});
     const auto taskID{++next_task_id_};
+    MessageTask task{recipientNymID, message, std::make_shared<SetID>(setID)};
 
-    return start_task(
-        taskID,
-        queue.send_message_.Push(taskID, {recipientNymID, message, setID}));
+    return start_task(taskID, queue.send_message_.Push(taskID, task));
 }
 
 std::pair<ThreadStatus, OTX::MessageID> OTX::MessageStatus(
@@ -2722,7 +2725,7 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
     auto nullID = Identifier::Factory();
     auto unitID = identifier::UnitDefinition::Factory();
     OTPassword serverPassword;
-    MessageTask message{identifier::Nym::Factory(), "", {}};
+    MessageTask message{identifier::Nym::Factory(), "", nullptr};
     PaymentTask payment{identifier::Nym::Factory(), {}};
     SendChequeTask sendCheque{Identifier::Factory(),
                               identifier::Nym::Factory(),

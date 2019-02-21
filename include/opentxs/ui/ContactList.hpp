@@ -23,6 +23,10 @@ namespace ui
 class ContactList : virtual public Widget
 {
 public:
+    EXPORT virtual std::string AddContact(
+        const std::string& label,
+        const std::string& paymentCode = "",
+        const std::string& nymID = "") const = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> First()
         const = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()

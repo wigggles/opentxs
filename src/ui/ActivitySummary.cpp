@@ -62,9 +62,8 @@ ActivitySummary::ActivitySummary(
     const Identifier& nymID)
     : ActivitySummaryList(api, publisher, nymID)
     , listeners_{{api_.Activity().ThreadPublisher(nymID),
-        new MessageProcessor<ActivitySummary>(
-            &ActivitySummary::process_thread)},
-}
+                  new MessageProcessor<ActivitySummary>(
+                      &ActivitySummary::process_thread)}}
     , running_(running)
 {
     init();
@@ -170,9 +169,14 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
 
     OT_ASSERT(false == threadID->empty())
 
-    auto existing = names_.count(threadID);
+    if (0 < names_.count(threadID)) {
+        Lock lock(lock_);
+        delete_item(lock, threadID);
+    }
 
-    if (0 == existing) { process_thread(id); }
+    OT_ASSERT(0 == names_.count(threadID));
+
+    process_thread(id);
 }
 
 void ActivitySummary::startup()

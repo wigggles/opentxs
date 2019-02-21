@@ -384,31 +384,6 @@ protected:
         insert_outer(id, index, custom);
     }
     void init() { outer_ = outer_first(); }
-    void insert_outer(
-        const RowID& id,
-        const SortKey& index,
-        const CustomData& custom)
-    {
-        Lock lock(lock_);
-
-        if (0 == names_.count(id)) {
-            construct_row(id, index, custom);
-
-            OT_ASSERT(1 == items_.count(index))
-            OT_ASSERT(1 == names_.count(id))
-
-            UpdateNotify();
-
-            return;
-        }
-
-        const auto& oldIndex = names_.at(id);
-
-        if (oldIndex == index) { return; }
-
-        reindex_item(lock, id, oldIndex, index, custom);
-        UpdateNotify();
-    }
 
     List(
         const api::client::Manager& api,
@@ -440,6 +415,32 @@ protected:
     }
 
 private:
+    void insert_outer(
+        const RowID& id,
+        const SortKey& index,
+        const CustomData& custom)
+    {
+        Lock lock(lock_);
+
+        if (0 == names_.count(id)) {
+            construct_row(id, index, custom);
+
+            OT_ASSERT(1 == items_.count(index))
+            OT_ASSERT(1 == names_.count(id))
+
+            UpdateNotify();
+
+            return;
+        }
+
+        const auto& oldIndex = names_.at(id);
+
+        if (oldIndex == index) { return; }
+
+        reindex_item(lock, id, oldIndex, index, custom);
+        UpdateNotify();
+    }
+
     List() = delete;
     List(const List&) = delete;
     List(List&&) = delete;

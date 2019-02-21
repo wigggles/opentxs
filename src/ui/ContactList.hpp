@@ -21,6 +21,10 @@ using ContactListList = List<
 class ContactList final : public ContactListList
 {
 public:
+    std::string AddContact(
+        const std::string& label,
+        const std::string& paymentCode,
+        const std::string& nymID) const override;
     const Identifier& ID() const override { return owner_contact_id_; }
 
     ~ContactList();
