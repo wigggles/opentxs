@@ -356,7 +356,9 @@ Operation::Operation(
     , payment_()
     , inbox_()
     , outbox_()
+#if OT_CASH
     , purse_()
+#endif
     , affected_accounts_()
     , redownload_accounts_()
     , numbers_()
@@ -1888,10 +1890,13 @@ bool Operation::get_receipts(
     return count == good;
 }
 
-bool Operation::hasContext() const {
-	const auto context = api_.Wallet().ServerContext(nym_id_, server_id_);
-	return bool(context);
+bool Operation::hasContext() const
+{
+    const auto context = api_.Wallet().ServerContext(nym_id_, server_id_);
+
+    return bool(context);
 }
+
 Operation::Future Operation::GetFuture() { return result_.get_future(); }
 
 void Operation::init()
@@ -2287,7 +2292,9 @@ void Operation::reset()
     payment_.reset();
     inbox_.reset();
     outbox_.reset();
+#if OT_CASH
     purse_.reset();
+#endif
     affected_accounts_.clear();
     redownload_accounts_.clear();
     numbers_.clear();
@@ -2297,6 +2304,7 @@ void Operation::reset()
     set_id_ = {};
 }
 
+#if OT_CASH
 bool Operation::SendCash(
     const identifier::Nym& recipientID,
     const Identifier& workflowID)
@@ -2369,6 +2377,7 @@ bool Operation::SendCash(
 
     return start(Type::SendCash, {});
 }
+#endif
 
 bool Operation::SendMessage(
     const identifier::Nym& recipient,
@@ -2768,8 +2777,7 @@ Operation::~Operation()
     lock.unlock();
     push_->Close();
     pull_->Close();
-    if (hasContext()) {
-    	context().It().Join();
-    }
+
+    if (hasContext()) { context().It().Join(); }
 }
 }  // namespace opentxs::api::client::implementation
