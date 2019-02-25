@@ -1,5 +1,6 @@
 # build noise
 build/*
+compile_commands.json
 
 # osx noise
 .DS_Store
@@ -35,3 +36,5 @@ opentxs.kdev4
 .classpath
 .project
 .settings
+
+
