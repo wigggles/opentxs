@@ -20,7 +20,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "Row.hpp"
 
 #include <memory>

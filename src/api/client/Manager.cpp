@@ -30,10 +30,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
-#include "api/storage/StorageInternal.hpp"
 #include "api/Core.hpp"
-#include "internal/api/Internal.hpp"
-#include "InternalClient.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/storage/Storage.hpp"
+#include "internal/api/Api.hpp"
 
 #include <set>
 #include <map>

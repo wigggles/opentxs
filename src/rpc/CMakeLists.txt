@@ -14,7 +14,7 @@ set(cxx-install-headers "")
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../internal/rpc/Internal.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../internal/rpc/RPC.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/RPC.hpp
 )
 

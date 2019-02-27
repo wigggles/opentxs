@@ -17,7 +17,7 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
-#include "internal/api/Internal.hpp"
+#include "internal/api/Api.hpp"
 #include "SymmetricNull.hpp"
 
 #include <cstddef>

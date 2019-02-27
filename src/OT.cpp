@@ -11,7 +11,7 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Log.hpp"
 
-#include "internal/api/Internal.hpp"
+#include "internal/api/Api.hpp"
 
 #include "opentxs/OT.hpp"
 

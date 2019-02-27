@@ -23,7 +23,7 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../src/internal/consensus/Internal.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../src/internal/consensus/Consensus.hpp"
   ClientContext.hpp
   Context.hpp
   ManagedNumber.hpp

@@ -28,8 +28,8 @@
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/ui/UI.hpp"
 #include "ActivityThreadItemBlank.hpp"
-#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>

@@ -19,7 +19,7 @@
 
 #include <locale>
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "Row.hpp"
 
 #include "ContactListItem.hpp"

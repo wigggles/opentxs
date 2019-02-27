@@ -6,7 +6,7 @@
 #include "opentxs/opentxs.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "api/client/InternalClient.hpp"
+#include "internal/api/client/Client.hpp"
 #include "server/Server.hpp"
 #include "server/Transactor.hpp"
 

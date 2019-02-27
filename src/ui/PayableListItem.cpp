@@ -17,7 +17,7 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "Row.hpp"
 
 #include "PayableListItem.hpp"

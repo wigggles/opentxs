@@ -22,8 +22,8 @@
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
+#include "internal/ui/UI.hpp"
 #include "ActivitySummaryItemBlank.hpp"
-#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>

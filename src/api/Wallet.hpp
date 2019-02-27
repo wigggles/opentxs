@@ -16,7 +16,7 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 
-#include "internal/consensus/Internal.hpp"
+#include "internal/consensus/Consensus.hpp"
 
 #include <map>
 #include <tuple>

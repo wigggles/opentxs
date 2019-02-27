@@ -7,7 +7,7 @@
 
 #include "Internal.hpp"
 
-#include "internal/consensus/Internal.hpp"
+#include "internal/consensus/Consensus.hpp"
 
 #include <atomic>
 #include <cstdint>

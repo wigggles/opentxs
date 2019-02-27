@@ -24,9 +24,9 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
-#include "api/storage/StorageInternal.hpp"
 #include "api/Core.hpp"
-#include "internal/api/Internal.hpp"
+#include "internal/api/storage/Storage.hpp"
+#include "internal/api/Api.hpp"
 #include "server/MessageProcessor.hpp"
 #include "server/Server.hpp"
 #include "server/ServerSettings.hpp"

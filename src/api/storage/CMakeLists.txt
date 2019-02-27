@@ -15,7 +15,8 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Storage.hpp
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../internal/api/storage/Storage.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Storage.hpp"
 )
 
 if(WIN32)

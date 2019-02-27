@@ -10,7 +10,7 @@
 #include "opentxs/ui/IssuerItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 
 #include "AccountSummaryItemBlank.hpp"
 

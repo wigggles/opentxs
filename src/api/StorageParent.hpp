@@ -7,7 +7,7 @@
 
 #include "opentxs/crypto/key/Symmetric.hpp"
 
-#include "api/storage/StorageInternal.hpp"
+#include "internal/api/storage/Storage.hpp"
 #include "storage/StorageConfig.hpp"
 
 #include <chrono>

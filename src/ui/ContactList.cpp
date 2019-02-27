@@ -28,8 +28,8 @@
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 
+#include "internal/ui/UI.hpp"
 #include "ContactListItemBlank.hpp"
-#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>

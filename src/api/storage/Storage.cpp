@@ -17,6 +17,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/OTStorage.hpp"
 
+#include "internal/api/storage/Storage.hpp"
 #include "storage/tree/Accounts.hpp"
 #include "storage/tree/Bip47Channels.hpp"
 #include "storage/tree/BlockchainTransactions.hpp"
@@ -40,7 +41,6 @@
 #include "storage/tree/Units.hpp"
 #include "storage/StorageConfig.hpp"
 #include "Factory.hpp"
-#include "StorageInternal.hpp"
 
 #include <cassert>
 #include <atomic>

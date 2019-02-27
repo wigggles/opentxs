@@ -16,7 +16,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "Row.hpp"
 
 #include <memory>

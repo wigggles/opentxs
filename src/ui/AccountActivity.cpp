@@ -27,8 +27,8 @@
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 
+#include "internal/ui/UI.hpp"
 #include "BalanceItemBlank.hpp"
-#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <atomic>

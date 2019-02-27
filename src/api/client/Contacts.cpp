@@ -20,7 +20,7 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.hpp"
 
-#include "InternalClient.hpp"
+#include "internal/api/client/Client.hpp"
 
 #include <functional>
 #include <map>

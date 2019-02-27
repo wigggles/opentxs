@@ -46,7 +46,7 @@
 #include "opentxs/ui/BalanceItem.hpp"
 #include "opentxs/Proto.hpp"
 
-#include "internal/rpc/Internal.hpp"
+#include "internal/rpc/RPC.hpp"
 
 #include <algorithm>
 #include <functional>

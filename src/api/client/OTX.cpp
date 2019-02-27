@@ -56,7 +56,7 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/otx/Reply.hpp"
 
-#include "api/client/InternalClient.hpp"
+#include "internal/api/client/Client.hpp"
 
 #include <atomic>
 #include <chrono>

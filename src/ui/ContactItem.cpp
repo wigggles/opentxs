@@ -11,7 +11,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ContactItem.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "Row.hpp"
 
 #include "ContactItem.hpp"

@@ -19,7 +19,7 @@
 #include "opentxs/ui/ProfileSection.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "List.hpp"
 #include "ProfileSubsectionBlank.hpp"
 #include "RowType.hpp"

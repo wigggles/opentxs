@@ -20,7 +20,7 @@
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "List.hpp"
 #include "ProfileItemBlank.hpp"
 #include "RowType.hpp"
