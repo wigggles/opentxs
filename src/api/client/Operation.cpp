@@ -43,7 +43,7 @@
 #include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
 
-#include "InternalClient.hpp"
+#include "internal/api/client/Client.hpp"
 
 #include <atomic>
 #include <future>

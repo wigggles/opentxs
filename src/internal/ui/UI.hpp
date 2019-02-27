@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 #include "opentxs/ui/AccountSummaryItem.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
@@ -21,6 +22,33 @@
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/ProfileSection.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
+
+namespace opentxs
+{
+template <>
+struct make_blank<ui::implementation::AccountActivityRowID> {
+    static ui::implementation::AccountActivityRowID value()
+    {
+        return {Identifier::Factory(), proto::PAYMENTEVENTTYPE_ERROR};
+    }
+};
+
+template <>
+struct make_blank<ui::implementation::IssuerItemRowID> {
+    static ui::implementation::IssuerItemRowID value()
+    {
+        return {Identifier::Factory(), proto::CITEMTYPE_ERROR};
+    }
+};
+
+template <>
+struct make_blank<ui::implementation::ActivityThreadRowID> {
+    static ui::implementation::ActivityThreadRowID value()
+    {
+        return {Identifier::Factory(), {}, Identifier::Factory(), 0};
+    }
+};
+}  // namespace opentxs
 
 namespace opentxs::ui::internal
 {

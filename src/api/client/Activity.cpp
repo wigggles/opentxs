@@ -26,7 +26,7 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Types.hpp"
 
-#include "InternalClient.hpp"
+#include "internal/api/client/Client.hpp"
 
 #include <map>
 #include <mutex>

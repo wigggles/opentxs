@@ -41,8 +41,8 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Types.hpp"
 
-#include "api/client/InternalClient.hpp"
-#include "core/InternalCore.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/core/Core.hpp"
 #include "Exclusive.tpp"
 #include "Shared.tpp"
 

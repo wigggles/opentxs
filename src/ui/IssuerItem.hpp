@@ -9,14 +9,6 @@
 
 namespace opentxs::ui::implementation
 {
-template <>
-struct make_blank<IssuerItemRowID> {
-    static IssuerItemRowID value()
-    {
-        return {Identifier::Factory(), proto::CITEMTYPE_ERROR};
-    }
-};
-
 using IssuerItemList = List<
     IssuerItemExternalInterface,
     IssuerItemInternalInterface,

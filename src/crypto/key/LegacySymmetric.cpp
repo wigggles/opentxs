@@ -26,7 +26,7 @@
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
-#include "internal/api/Internal.hpp"
+#include "internal/api/Api.hpp"
 #include "LegacySymmetricNull.hpp"
 
 extern "C" {

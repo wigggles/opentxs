@@ -23,8 +23,8 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/IssuerItem.hpp"
 
+#include "internal/ui/UI.hpp"
 #include "AccountSummaryItemBlank.hpp"
-#include "InternalUI.hpp"
 #include "List.hpp"
 #include "Row.hpp"
 

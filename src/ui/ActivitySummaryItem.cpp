@@ -21,7 +21,7 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "Row.hpp"
 
 #include <atomic>

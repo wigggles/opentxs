@@ -79,6 +79,8 @@ set(cxx-install-headers
 set(cxx-headers
   "${cxx-install-headers}"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/UniqueQueue.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../internal/core/identifier/Identifier.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../internal/core/Core.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Armored.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Data.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Flag.hpp"

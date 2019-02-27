@@ -7,7 +7,16 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NymFile.hpp"
+
+namespace opentxs
+{
+template <>
+struct make_blank<OTIdentifier> {
+    static OTIdentifier value() { return Identifier::Factory(); }
+};
+}  // namespace opentxs
 
 namespace opentxs::internal
 {

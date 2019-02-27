@@ -25,8 +25,8 @@
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactSection.hpp"
 
+#include "internal/ui/UI.hpp"
 #include "ContactSectionBlank.hpp"
-#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>

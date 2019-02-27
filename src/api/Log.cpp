@@ -14,7 +14,7 @@
 #include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 
-#include "internal/api/Internal.hpp"
+#include "internal/api/Api.hpp"
 
 #ifdef ANDROID
 #include <android/log.h>

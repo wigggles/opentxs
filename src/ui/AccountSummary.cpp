@@ -27,7 +27,7 @@
 #include "opentxs/ui/IssuerItem.hpp"
 #include "opentxs/Types.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "IssuerItemBlank.hpp"
 #include "List.hpp"
 

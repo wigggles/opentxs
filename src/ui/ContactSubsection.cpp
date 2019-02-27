@@ -19,8 +19,8 @@
 #include "opentxs/ui/ContactItem.hpp"
 #include "opentxs/ui/ContactSubsection.hpp"
 
+#include "internal/ui/UI.hpp"
 #include "ContactItemBlank.hpp"
-#include "InternalUI.hpp"
 #include "List.hpp"
 #include "RowType.hpp"
 

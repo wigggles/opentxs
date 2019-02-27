@@ -27,7 +27,7 @@
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/ui/ProfileSection.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 #include "List.hpp"
 #include "ProfileSectionBlank.hpp"
 

@@ -62,6 +62,7 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../internal/ui/UI.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountActivity.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummaryItem.hpp"
@@ -84,7 +85,6 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactSectionBlank.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactSubsection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactSubsectionBlank.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/InternalUI.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/IssuerItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/IssuerItemBlank.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/List.hpp"

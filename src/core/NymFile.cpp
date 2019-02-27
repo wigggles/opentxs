@@ -45,7 +45,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
-#include "core/InternalCore.hpp"
+#include "internal/core/Core.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <sodium/crypto_box.h>

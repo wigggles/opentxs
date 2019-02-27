@@ -37,12 +37,12 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ../../internal/api/client/Client.hpp
   Activity.hpp
   Blockchain.hpp
   Contacts.hpp
   Factory.hpp
   Issuer.hpp
-  InternalClient.hpp
   Manager.hpp
   Operation.hpp
   OTX.hpp

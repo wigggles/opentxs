@@ -281,59 +281,50 @@ private:
 
     using TaskStatusMap =
         std::map<TaskID, std::pair<ThreadStatus, std::promise<Result>>>;
-
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<OTIdentifier, OTIdentifier>;
-    /** MessageTask: recipientID, message */
-    using MessageTask =
-        std::tuple<OTNymID, std::string, std::shared_ptr<SetID>>;
-    /** PaymentTask: recipientID, payment */
-    using PaymentTask = std::pair<OTNymID, std::shared_ptr<const OTPayment>>;
-#if OT_CASH
-    /** PayCashTask: recipientID, workflow ID */
-    using PayCashTask = std::pair<OTNymID, OTIdentifier>;
-    /** WithdrawCashTask: Account ID, amount*/
-    using WithdrawCashTask = std::pair<OTIdentifier, Amount>;
-#endif  // OT_CASH
-    /** DepositPaymentTask: accountID, payment */
-    using DepositPaymentTask =
-        std::pair<OTIdentifier, std::shared_ptr<const OTPayment>>;
-    /** SendTransferTask: localNymID, serverID, sourceAccountID, targetAccountID
-     */
-    using SendTransferTask =
-        std::tuple<OTIdentifier, OTIdentifier, uint64_t, std::string>;
-    /** SendChequeTask: sourceAccountID, targetNymID, value, memo, validFrom,
-     * validTo
-     */
-    using SendChequeTask =
-        std::tuple<OTIdentifier, OTNymID, Amount, std::string, Time, Time>;
-    /** RegisterAccountTask: unit definition id, account label */
-    using RegisterAccountTask = std::pair<OTIdentifier, std::string>;
-    /** IssueUnitDefinitionTask: unit definition id, account label */
-    using IssueUnitDefinitionTask = std::pair<OTIdentifier, std::string>;
-    using DownloadMintTask = OTUnitID;
-    /** PeerReplyTask: targetNymID, peer reply, peer request */
-    using PeerReplyTask = std::tuple<
-        OTNymID,
-        std::shared_ptr<const PeerReply>,
-        std::shared_ptr<const PeerRequest>>;
-    /** PeerRequestTask: targetNymID, peer request */
-    using PeerRequestTask =
-        std::pair<OTNymID, std::shared_ptr<const PeerRequest>>;
+
     struct OperationQueue {
         using RefreshTask = std::pair<int, std::promise<void>>;
         using Thread = std::function<void()>;
 
+        union Params {
+            CheckNymTask check_nym_;
+            DepositPaymentTask deposit_payment_;
+            DownloadContractTask download_contract_;
+            DownloadMintTask download_mint_;
+            DownloadNymboxTask download_nymbox_;
+            GetTransactionNumbersTask get_transaction_numbers_;
+            IssueUnitDefinitionTask issue_unit_definition_;
+            RegisterAccountTask register_account_;
+            RegisterNymTask register_nym_;
+            MessageTask send_message_;
+            PaymentTask send_payment_;
+#if OT_CASH
+            PayCashTask send_cash_;
+            WithdrawCashTask withdraw_cash_;
+#endif
+            SendTransferTask send_transfer_;
+            PublishServerContractTask publish_server_contract_;
+            ProcessInboxTask process_inbox_;
+            SendChequeTask send_cheque_;
+            PeerReplyTask peer_reply_;
+            PeerRequestTask peer_request_;
+
+            Params() { memset(this, 0, sizeof(Params)); }
+            ~Params() {}
+        };
+
         std::unique_ptr<api::client::internal::Operation> op_;
-        UniqueQueue<OTNymID> check_nym_;
+        UniqueQueue<CheckNymTask> check_nym_;
         UniqueQueue<DepositPaymentTask> deposit_payment_;
-        UniqueQueue<OTIdentifier> download_contract_;
+        UniqueQueue<DownloadContractTask> download_contract_;
         UniqueQueue<DownloadMintTask> download_mint_;
-        UniqueQueue<bool> download_nymbox_;
-        UniqueQueue<bool> get_transaction_numbers_;
+        UniqueQueue<DownloadNymboxTask> download_nymbox_;
+        UniqueQueue<GetTransactionNumbersTask> get_transaction_numbers_;
         UniqueQueue<IssueUnitDefinitionTask> issue_unit_definition_;
         UniqueQueue<RegisterAccountTask> register_account_;
-        UniqueQueue<bool> register_nym_;
+        UniqueQueue<RegisterNymTask> register_nym_;
         UniqueQueue<MessageTask> send_message_;
         UniqueQueue<PaymentTask> send_payment_;
 #if OT_CASH
@@ -341,8 +332,8 @@ private:
         UniqueQueue<WithdrawCashTask> withdraw_cash_;
 #endif  // OT_CASH
         UniqueQueue<SendTransferTask> send_transfer_;
-        UniqueQueue<OTServerID> publish_server_contract_;
-        UniqueQueue<OTIdentifier> process_inbox_;
+        UniqueQueue<PublishServerContractTask> publish_server_contract_;
+        UniqueQueue<ProcessInboxTask> process_inbox_;
         UniqueQueue<SendChequeTask> send_cheque_;
         UniqueQueue<PeerReplyTask> peer_reply_;
         UniqueQueue<PeerRequestTask> peer_request_;
@@ -356,12 +347,223 @@ private:
             Thread task,
             std::unique_ptr<std::thread>& thread);
         void cleanup(Lock& lock);
+        template <typename T>
+        T& get_param()
+        {
+            throw;
+        }
+        template <>
+        CheckNymTask& get_param()
+        {
+            return param_.check_nym_;
+        }
+        template <>
+        DepositPaymentTask& get_param()
+        {
+            return param_.deposit_payment_;
+        }
+        template <>
+        DownloadContractTask& get_param()
+        {
+            return param_.download_contract_;
+        }
+        template <>
+        DownloadMintTask& get_param()
+        {
+            return param_.download_mint_;
+        }
+        template <>
+        DownloadNymboxTask& get_param()
+        {
+            return param_.download_nymbox_;
+        }
+        template <>
+        GetTransactionNumbersTask& get_param()
+        {
+            return param_.get_transaction_numbers_;
+        }
+        template <>
+        IssueUnitDefinitionTask& get_param()
+        {
+            return param_.issue_unit_definition_;
+        }
+        template <>
+        RegisterAccountTask& get_param()
+        {
+            return param_.register_account_;
+        }
+        template <>
+        RegisterNymTask& get_param()
+        {
+            return param_.register_nym_;
+        }
+        template <>
+        MessageTask& get_param()
+        {
+            return param_.send_message_;
+        }
+        template <>
+        PaymentTask& get_param()
+        {
+            return param_.send_payment_;
+        }
+#if OT_CASH
+        template <>
+        PayCashTask& get_param()
+        {
+            return param_.send_cash_;
+        }
+        template <>
+        WithdrawCashTask& get_param()
+        {
+            return param_.withdraw_cash_;
+        }
+#endif
+        template <>
+        SendTransferTask& get_param()
+        {
+            return param_.send_transfer_;
+        }
+        template <>
+        PublishServerContractTask& get_param()
+        {
+            return param_.publish_server_contract_;
+        }
+        template <>
+        SendChequeTask& get_param()
+        {
+            return param_.send_cheque_;
+        }
+        template <>
+        PeerReplyTask& get_param()
+        {
+            return param_.peer_reply_;
+        }
+        template <>
+        PeerRequestTask& get_param()
+        {
+            return param_.peer_request_;
+        }
+        template <typename T>
+        UniqueQueue<T>& get_task()
+        {
+            throw;
+        }
+        template <>
+        UniqueQueue<CheckNymTask>& get_task()
+        {
+            return check_nym_;
+        }
+        template <>
+        UniqueQueue<DepositPaymentTask>& get_task()
+        {
+            return deposit_payment_;
+        }
+        template <>
+        UniqueQueue<DownloadContractTask>& get_task()
+        {
+            return download_contract_;
+        }
+        template <>
+        UniqueQueue<DownloadMintTask>& get_task()
+        {
+            return download_mint_;
+        }
+        template <>
+        UniqueQueue<DownloadNymboxTask>& get_task()
+        {
+            return download_nymbox_;
+        }
+        template <>
+        UniqueQueue<GetTransactionNumbersTask>& get_task()
+        {
+            return get_transaction_numbers_;
+        }
+        template <>
+        UniqueQueue<IssueUnitDefinitionTask>& get_task()
+        {
+            return issue_unit_definition_;
+        }
+        template <>
+        UniqueQueue<RegisterAccountTask>& get_task()
+        {
+            return register_account_;
+        }
+        template <>
+        UniqueQueue<RegisterNymTask>& get_task()
+        {
+            return register_nym_;
+        }
+        template <>
+        UniqueQueue<MessageTask>& get_task()
+        {
+            return send_message_;
+        }
+        template <>
+        UniqueQueue<PaymentTask>& get_task()
+        {
+            return send_payment_;
+        }
+#if OT_CASH
+        template <>
+        UniqueQueue<PayCashTask>& get_task()
+        {
+            return send_cash_;
+        }
+        template <>
+        UniqueQueue<WithdrawCashTask>& get_task()
+        {
+            return withdraw_cash_;
+        }
+#endif
+        template <>
+        UniqueQueue<SendTransferTask>& get_task()
+        {
+            return send_transfer_;
+        }
+        template <>
+        UniqueQueue<PublishServerContractTask>& get_task()
+        {
+            return publish_server_contract_;
+        }
+        template <>
+        UniqueQueue<SendChequeTask>& get_task()
+        {
+            return send_cheque_;
+        }
+        template <>
+        UniqueQueue<PeerReplyTask>& get_task()
+        {
+            return peer_reply_;
+        }
+        template <>
+        UniqueQueue<PeerRequestTask>& get_task()
+        {
+            return peer_request_;
+        }
         void increment_counter(const bool missing, Lock& lock, bool& run);
+        template <typename T>
+        void run_task(
+            UniqueQueue<T>& queue,
+            std::function<
+                bool(const TaskID, api::client::internal::Operation&, const T&)>
+                func);
+        template <typename T>
+        void run_task(
+            std::function<
+                bool(const TaskID, api::client::internal::Operation&, const T&)>
+                func);
 
-        OperationQueue(const api::client::Manager& api, const ContextID& id);
+        OperationQueue(
+            const Flag& running,
+            const api::client::Manager& api,
+            const ContextID& id);
         OperationQueue() = delete;
 
     private:
+        const Flag& running_;
+        Params param_;
+        TaskID task_id_{};
         std::atomic<int> counter_;
         mutable std::mutex lock_;
         bool thread_;
@@ -391,7 +593,7 @@ private:
     mutable std::atomic<std::uint64_t> refresh_counter_{0};
     mutable std::map<ContextID, OperationQueue> operations_;
     mutable std::map<OTIdentifier, UniqueQueue<OTNymID>> server_nym_fetch_;
-    UniqueQueue<OTNymID> missing_nyms_;
+    UniqueQueue<CheckNymTask> missing_nyms_;
     UniqueQueue<OTIdentifier> missing_servers_;
     mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
     mutable std::unique_ptr<OTIdentifier> introduction_server_id_;
@@ -436,9 +638,7 @@ private:
     bool deposit_cheque(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        const Identifier& accountID,
-        const std::shared_ptr<const OTPayment>& cheque,
-        UniqueQueue<DepositPaymentTask>& retry) const;
+        const DepositPaymentTask& task) const;
     bool download_contract(
         const TaskID taskID,
         api::client::internal::Operation& op,
@@ -460,7 +660,7 @@ private:
         const OTPayment& payment,
         OTIdentifier& nymID,
         OTIdentifier& serverID,
-        OTIdentifier& unitID) const;
+        identifier::UnitDefinition& unitID) const;
     bool find_nym(
         api::client::internal::Operation& op,
         const identifier::Nym& targetNymID) const;
@@ -477,7 +677,7 @@ private:
     OTIdentifier get_introduction_server(const Lock& lock) const;
     UniqueQueue<OTNymID>& get_nym_fetch(const Identifier& serverID) const;
     OperationQueue& get_operations(const ContextID& id) const;
-    OperationQueue& get_queue(const ContextID& id) const;
+    OperationQueue& get_task(const ContextID& id) const;
     bool get_transaction_numbers(
         const TaskID taskID,
         api::client::internal::Operation& op) const;
@@ -485,32 +685,30 @@ private:
     bool initiate_peer_reply(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        PeerReplyTask& task) const;
+        const PeerReplyTask& task) const;
     bool initiate_peer_request(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        PeerRequestTask& task) const;
+        const PeerRequestTask& task) const;
     bool issue_unit_definition(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        const Identifier& unitID,
-        const std::string& label) const;
+        const IssueUnitDefinitionTask& task) const;
     void load_introduction_server(const Lock& lock) const;
     bool message_nym(
         const TaskID taskID,
         api::client::internal::Operation& op,
         const MessageTask& task) const;
+    TaskID next_task_id() const { return ++next_task_id_; }
     bool pay_nym(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        const identifier::Nym& recipient,
-        std::shared_ptr<const OTPayment>& payment) const;
+        const PaymentTask& task) const;
 #if OT_CASH
     bool pay_nym_cash(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        const identifier::Nym& recipient,
-        const Identifier& workflowID) const;
+        const PayCashTask& Task) const;
 #endif  // OT_CASH
     void process_account(
         const opentxs::network::zeromq::Message& message) const;
@@ -535,8 +733,7 @@ private:
     bool register_account(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        const Identifier& unitID,
-        const std::string& label) const;
+        const RegisterAccountTask& task) const;
     bool register_nym(
         const TaskID taskID,
         api::client::internal::Operation& op,
@@ -547,15 +744,12 @@ private:
     BackgroundTask schedule_register_account(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         const std::string& label) const;
     bool send_transfer(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        const Identifier& sourceAccountID,
-        const Identifier& targetAccountID,
-        const Amount value,
-        const std::string& memo) const;
+        const SendTransferTask& task) const;
     void set_contact(const Identifier& nymID, const Identifier& serverID) const;
     OTIdentifier set_introduction_server(
         const Lock& lock,
@@ -590,12 +784,7 @@ private:
     TaskDone write_and_send_cheque(
         const TaskID taskID,
         api::client::internal::Operation& op,
-        const Identifier& accountID,
-        const identifier::Nym& recipient,
-        const Amount value,
-        const std::string& memo,
-        const Time validFrom,
-        const Time validTo) const;
+        const SendChequeTask& task) const;
 
     OTX(const Flag& running,
         const api::client::Manager& client,

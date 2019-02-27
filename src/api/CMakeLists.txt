@@ -33,7 +33,7 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../internal/api/Internal.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../internal/api/Api.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Core.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Endpoints.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp

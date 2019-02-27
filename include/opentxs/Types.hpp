@@ -6,6 +6,7 @@
 #ifndef OPENTXS_TYPES_HPP
 #define OPENTXS_TYPES_HPP
 
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <list>
@@ -47,6 +48,9 @@ class String;
 #define MESSAGE_SUCCESS_TRUE 1
 #define FIRST_REQUEST_NUMBER 1
 #define SERVER_CONTRACT_CREATE_VERSION 1
+
+using Clock = std::chrono::system_clock;
+using Time = Clock::time_point;
 
 typedef std::map<std::string, std::set<std::string>> ArgList;
 

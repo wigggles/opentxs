@@ -10,7 +10,7 @@
 #include "opentxs/ui/ContactSubsection.hpp"
 #include "opentxs/ui/Widget.hpp"
 
-#include "InternalUI.hpp"
+#include "internal/ui/UI.hpp"
 
 namespace opentxs::ui::implementation
 {

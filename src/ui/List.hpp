@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#include "internal/core/Core.hpp"
 #include "Widget.hpp"
 
 #include <type_traits>
@@ -18,14 +19,6 @@
 
 namespace opentxs::ui::implementation
 {
-template <typename T>
-struct make_blank {
-    static T value() { return T{}; }
-};
-template <>
-struct make_blank<OTIdentifier> {
-    static OTIdentifier value() { return Identifier::Factory(); }
-};
 template <typename T>
 struct reverse_display {
     static const bool value{false};

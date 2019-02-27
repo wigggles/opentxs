@@ -352,6 +352,11 @@ class StorageConfig;
 #if OT_CRYPTO_USING_TREZOR
 class TrezorCrypto;
 #endif
+
+template <typename T>
+struct make_blank {
+    static T value() { return T{}; }
+};
 }  // namespace opentxs
 
 #include "Factory.hpp"
