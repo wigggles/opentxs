@@ -51,31 +51,24 @@ struct less<STORAGEID> {
 };
 }  // namespace std
 
-namespace opentxs::ui::implementation
+namespace opentxs
 {
-using DraftTask =
-    std::pair<ActivityThreadRowID, api::client::OTX::BackgroundTask>;
+using DraftTask = std::pair<
+    ui::implementation::ActivityThreadRowID,
+    api::client::OTX::BackgroundTask>;
 
-template <>
-struct make_blank<ActivityThreadRowID> {
-    static ActivityThreadRowID value()
-    {
-        return {Identifier::Factory(), {}, Identifier::Factory(), 0};
-    }
-};
-template <>
-struct make_blank<opentxs::api::client::OTX::BackgroundTask> {
-    static opentxs::api::client::OTX::BackgroundTask value() { return {}; }
-};
 template <>
 struct make_blank<DraftTask> {
     static DraftTask value()
     {
-        return {make_blank<ActivityThreadRowID>::value(),
+        return {make_blank<ui::implementation::ActivityThreadRowID>::value(),
                 make_blank<api::client::OTX::BackgroundTask>::value()};
     }
 };
+}  // namespace opentxs
 
+namespace opentxs::ui::implementation
+{
 using ActivityThreadList = List<
     ActivityThreadExternalInterface,
     ActivityThreadInternalInterface,

@@ -31,8 +31,6 @@ namespace client
 class OTX
 {
 public:
-    using Clock = std::chrono::system_clock;
-    using Time = Clock::time_point;
     using TaskID = int;
     using MessageID = OTIdentifier;
     using Result = std::pair<proto::LastReplyStatus, std::shared_ptr<Message>>;

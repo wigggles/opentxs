@@ -9,14 +9,6 @@
 
 namespace opentxs::ui::implementation
 {
-template <>
-struct make_blank<AccountActivityRowID> {
-    static AccountActivityRowID value()
-    {
-        return {Identifier::Factory(), proto::PAYMENTEVENTTYPE_ERROR};
-    }
-};
-
 using AccountActivityList = List<
     AccountActivityExternalInterface,
     AccountActivityInternalInterface,

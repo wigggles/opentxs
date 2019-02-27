@@ -295,6 +295,7 @@ OTX::OTX(
 }
 
 OTX::OperationQueue::OperationQueue(
+    const Flag& running,
     const api::client::Manager& api,
     const ContextID& id)
     : op_(opentxs::Factory::Operation(
@@ -322,6 +323,9 @@ OTX::OperationQueue::OperationQueue(
     , send_cheque_()
     , peer_reply_()
     , peer_request_()
+    , running_(running)
+    , param_()
+    , task_id_()
     , counter_(0)
     , lock_()
     , thread_(false)
@@ -429,6 +433,32 @@ void OTX::OperationQueue::increment_counter(
     if (run) { lock.unlock(); }
 }
 
+template <typename T>
+void OTX::OperationQueue::run_task(
+    std::function<
+        bool(const TaskID, api::client::internal::Operation&, const T&)> func)
+{
+    return run_task<T>(get_task<T>(), func);
+}
+
+template <typename T>
+void OTX::OperationQueue::run_task(
+    UniqueQueue<T>& queue,
+    std::function<
+        bool(const TaskID, api::client::internal::Operation&, const T&)> func)
+{
+    auto& param = get_param<T>();
+    new (&param) T(make_blank<T>::value());
+
+    while (queue.Pop(task_id_, param)) {
+        SHUTDOWN()
+
+        func(task_id_, *op_, param);
+    }
+
+    param.~T();
+}
+
 OTX::BackgroundTask OTX::AcknowledgeBailment(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
@@ -480,11 +510,11 @@ OTX::BackgroundTask OTX::AcknowledgeBailment(
     }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.peer_reply_.Push(
+        queue.get_task<PeerReplyTask>().Push(
             taskID, {targetNymID, peerreply, instantiatedRequest}));
 }
 
@@ -569,11 +599,11 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
     }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.peer_reply_.Push(
+        queue.get_task<PeerReplyTask>().Push(
             taskID, {recipientID, peerreply, instantiatedRequest}));
 }
 
@@ -623,11 +653,11 @@ OTX::BackgroundTask OTX::AcknowledgeNotice(
     }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.peer_reply_.Push(
+        queue.get_task<PeerReplyTask>().Push(
             taskID, {recipientID, peerreply, instantiatedRequest}));
 }
 
@@ -682,11 +712,11 @@ OTX::BackgroundTask OTX::AcknowledgeOutbailment(
     }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.peer_reply_.Push(
+        queue.get_task<PeerReplyTask>().Push(
             taskID, {recipientID, peerreply, instantiatedRequest}));
 }
 
@@ -723,7 +753,7 @@ Depositability OTX::can_deposit(
     OTIdentifier& depositServer,
     OTIdentifier& depositAccount) const
 {
-    auto unitID = Identifier::Factory();
+    auto unitID = identifier::UnitDefinition::Factory();
     auto nymID = Identifier::Factory();
 
     if (false == extract_payment_data(payment, nymID, depositServer, unitID)) {
@@ -849,7 +879,7 @@ Messagability OTX::can_message(
         for (const auto& id : nyms) {
             // TODO convert nym id type
             const auto nymID = identifier::Nym::Factory(id->str());
-            missing_nyms_.Push(++next_task_id_, nymID);
+            missing_nyms_.Push(next_task_id(), nymID);
         }
 
         LogDetail(OT_METHOD)(__FUNCTION__)(": Recipient contact ")(
@@ -870,7 +900,7 @@ Messagability OTX::can_message(
             recipientContactID)(", nym ")(recipientNymID)(
             ": credentials do not specify a server.")
             .Flush();
-        missing_nyms_.Push(++next_task_id_, recipientNymID);
+        missing_nyms_.Push(next_task_id(), recipientNymID);
 
         return Messagability::NO_SERVER_CLAIM;
     }
@@ -946,7 +976,7 @@ void OTX::check_nym_revision(
             " has is newer than version last registered version on server ")(
             context.Server())(".")
             .Flush();
-        queue.register_nym_.Push(++next_task_id_, true);
+        queue.get_task<RegisterNymTask>().Push(next_task_id(), true);
     }
 }
 
@@ -976,7 +1006,7 @@ bool OTX::check_registration(
         return true;
     }
 
-    const auto output = register_nym(++next_task_id_, op, false);
+    const auto output = register_nym(next_task_id(), op, false);
 
     if (output) {
         context = client_.Wallet().ServerContext(nymID, serverID);
@@ -998,7 +1028,7 @@ bool OTX::check_server_contract(const Identifier& serverID) const
     LogDetail(OT_METHOD)(__FUNCTION__)(": Server contract for ")(serverID)(
         " is not in the wallet.")
         .Flush();
-    missing_servers_.Push(++next_task_id_, serverID);
+    missing_servers_.Push(next_task_id(), serverID);
 
     return false;
 }
@@ -1025,8 +1055,8 @@ bool OTX::check_server_name(OperationQueue& queue, const ServerContext& context)
 
     if (success) {
         // TODO nym id type
-        queue.check_nym_.Push(
-            ++next_task_id_,
+        queue.get_task<CheckNymTask>().Push(
+            next_task_id(),
             identifier::Nym::Factory(context.RemoteNym().ID().str()));
     }
 
@@ -1053,8 +1083,9 @@ bool OTX::CheckTransactionNumbers(
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Asking server for more numbers.")
         .Flush();
     auto& queue = get_operations({nym, serverID});
-    const auto taskID{++next_task_id_};
-    start_task(taskID, queue.get_transaction_numbers_.Push(taskID, true));
+    const auto taskID{next_task_id()};
+    start_task(
+        taskID, queue.get_task<GetTransactionNumbersTask>().Push(taskID, {}));
     auto status = Status(taskID);
 
     while (ThreadStatus::RUNNING == status) {
@@ -1079,12 +1110,12 @@ OTX::Finished OTX::ContextIdle(
 bool OTX::deposit_cheque(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    const Identifier& accountID,
-    const std::shared_ptr<const OTPayment>& payment,
-    UniqueQueue<DepositPaymentTask>& retry) const
+    const DepositPaymentTask& task) const
 {
-    OT_ASSERT(false == accountID.empty())
-    OT_ASSERT(payment)
+    const auto& [accountID, payment] = task;
+
+    OT_ASSERT(false == accountID->empty());
+    OT_ASSERT(payment);
 
     if ((false == payment->IsCheque()) && (false == payment->IsVoucher())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unhandled payment type.").Flush();
@@ -1106,11 +1137,7 @@ bool OTX::deposit_cheque(
 
     DO_OPERATION(DepositCheque, accountID, cheque);
 
-    if (success) {
-        finish_task(taskID, success, std::move(result));
-    } else {
-        retry.Push(taskID, {accountID, payment});
-    }
+    if (success) { finish_task(taskID, success, std::move(result)); }
 
     return false;
 }
@@ -1193,11 +1220,12 @@ OTX::BackgroundTask OTX::DepositPayment(
         case Depositability::NO_ACCOUNT: {
             start_introduction_server(recipientNymID);
             auto& queue = get_operations({recipientNymID, serverID});
-            const auto taskID{++next_task_id_};
+            const auto taskID{next_task_id()};
 
             return start_task(
                 taskID,
-                queue.deposit_payment_.Push(taskID, {accountIDHint, payment}));
+                queue.get_task<DepositPaymentTask>().Push(
+                    taskID, {accountIDHint, payment}));
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1282,10 +1310,11 @@ OTX::BackgroundTask OTX::DownloadContract(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.download_contract_.Push(taskID, contractID));
+        taskID,
+        queue.get_task<DownloadContractTask>().Push(taskID, contractID));
 }
 
 #if OT_CASH
@@ -1298,9 +1327,10 @@ OTX::BackgroundTask OTX::DownloadMint(
 
     start_introduction_server(nym);
     auto& queue = get_operations({nym, server});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
-    return start_task(taskID, queue.download_mint_.Push(taskID, unit));
+    return start_task(
+        taskID, queue.get_task<DownloadMintTask>().Push(taskID, unit));
 }
 #endif
 
@@ -1313,12 +1343,12 @@ OTX::BackgroundTask OTX::DownloadNym(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
     // TODO convert nymid type
 
     return start_task(
         taskID,
-        queue.check_nym_.Push(
+        queue.get_task<CheckNymTask>().Push(
             taskID, identifier::Nym::Factory(targetNymID.str())));
 }
 
@@ -1333,7 +1363,7 @@ bool OTX::extract_payment_data(
     const OTPayment& payment,
     OTIdentifier& nymID,
     OTIdentifier& serverID,
-    OTIdentifier& unitID) const
+    identifier::UnitDefinition& unitID) const
 {
     if (false == payment.GetRecipientNymID(nymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1361,7 +1391,7 @@ bool OTX::extract_payment_data(
         return false;
     }
 
-    OT_ASSERT(false == unitID->empty())
+    OT_ASSERT(false == unitID.empty())
 
     return true;
 }
@@ -1394,7 +1424,7 @@ bool OTX::find_nym(
         return true;
     }
 
-    if (download_nym(++next_task_id_, op, targetNymID)) {
+    if (download_nym(next_task_id(), op, targetNymID)) {
         missing_nyms_.CancelByValue(targetNymID);
 
         return true;
@@ -1417,7 +1447,7 @@ bool OTX::find_server(
         return true;
     }
 
-    if (download_contract(++next_task_id_, op, targetID)) {
+    if (download_contract(next_task_id(), op, targetID)) {
         missing_servers_.CancelByValue(targetID);
 
         return true;
@@ -1430,7 +1460,7 @@ OTX::BackgroundTask OTX::FindNym(const Identifier& nymID) const
 {
     CHECK_NYM(nymID)
 
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
     // TODO convert nym id type
     const auto id = identifier::Nym::Factory(nymID.str());
 
@@ -1444,7 +1474,7 @@ OTX::BackgroundTask OTX::FindNym(
     CHECK_NYM(nymID)
 
     auto& serverQueue = get_nym_fetch(serverIDHint);
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
     // TODO convert nym ID type
 
     return start_task(
@@ -1456,7 +1486,7 @@ OTX::BackgroundTask OTX::FindServer(const Identifier& serverID) const
 {
     CHECK_NYM(serverID)
 
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(taskID, missing_servers_.Push(taskID, serverID));
 }
@@ -1485,7 +1515,7 @@ bool OTX::get_admin(
 
 std::future<void> OTX::get_future(const ContextID& id) const
 {
-    auto& queue = get_queue(id);
+    auto& queue = get_task(id);
 
     return queue.check_future(
         [id, &queue, this]() { state_machine(id, queue); },
@@ -1521,7 +1551,7 @@ UniqueQueue<OTNymID>& OTX::get_nym_fetch(const Identifier& serverID) const
 
 OTX::OperationQueue& OTX::get_operations(const ContextID& id) const
 {
-    auto& queue = get_queue(id);
+    auto& queue = get_task(id);
     queue.check_thread(
         [id, &queue, this]() { state_machine(id, queue); },
         state_machines_[id]);
@@ -1529,7 +1559,7 @@ OTX::OperationQueue& OTX::get_operations(const ContextID& id) const
     return queue;
 }
 
-OTX::OperationQueue& OTX::get_queue(const ContextID& id) const
+OTX::OperationQueue& OTX::get_task(const ContextID& id) const
 {
     Lock lock(lock_);
     auto it = operations_.find(id);
@@ -1538,7 +1568,7 @@ OTX::OperationQueue& OTX::get_queue(const ContextID& id) const
         auto added = operations_.emplace(
             std::piecewise_construct,
             std::forward_as_tuple(id),
-            std::forward_as_tuple(client_, id));
+            std::forward_as_tuple(running_, client_, id));
         it = std::get<0>(added);
     }
 
@@ -1572,7 +1602,7 @@ OTIdentifier OTX::import_default_introduction_server(const Lock& lock) const
 bool OTX::initiate_peer_reply(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    PeerReplyTask& task) const
+    const PeerReplyTask& task) const
 {
     const auto [targetNymID, peerReply, peerRequest] = task;
 
@@ -1583,7 +1613,7 @@ bool OTX::initiate_peer_reply(
 bool OTX::initiate_peer_request(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    PeerRequestTask& task) const
+    const PeerRequestTask& task) const
 {
     const auto& [targetNymID, peerRequest] = task;
 
@@ -1619,10 +1649,12 @@ OTX::BackgroundTask OTX::InitiateBailment(
     if (setID) { setID(peerrequest->ID()); }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.peer_request_.Push(taskID, {targetNymID, peerrequest}));
+        taskID,
+        queue.get_task<PeerRequestTask>().Push(
+            taskID, {targetNymID, peerrequest}));
 }
 
 OTX::BackgroundTask OTX::InitiateOutbailment(
@@ -1657,10 +1689,12 @@ OTX::BackgroundTask OTX::InitiateOutbailment(
     if (setID) { setID(peerrequest->ID()); }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.peer_request_.Push(taskID, {targetNymID, peerrequest}));
+        taskID,
+        queue.get_task<PeerRequestTask>().Push(
+            taskID, {targetNymID, peerrequest}));
 }
 
 OTX::BackgroundTask OTX::InitiateRequestConnection(
@@ -1692,10 +1726,12 @@ OTX::BackgroundTask OTX::InitiateRequestConnection(
     if (setID) { setID(peerrequest->ID()); }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.peer_request_.Push(taskID, {targetNymID, peerrequest}));
+        taskID,
+        queue.get_task<PeerRequestTask>().Push(
+            taskID, {targetNymID, peerrequest}));
 }
 
 OTX::BackgroundTask OTX::InitiateStoreSecret(
@@ -1741,10 +1777,12 @@ OTX::BackgroundTask OTX::InitiateStoreSecret(
     if (setID) { setID(peerrequest->ID()); }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.peer_request_.Push(taskID, {targetNymID, peerrequest}));
+        taskID,
+        queue.get_task<PeerRequestTask>().Push(
+            taskID, {targetNymID, peerrequest}));
 }
 
 const Identifier& OTX::IntroductionServer() const
@@ -1763,9 +1801,9 @@ const Identifier& OTX::IntroductionServer() const
 bool OTX::issue_unit_definition(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    const Identifier& unitID,
-    const std::string& label) const
+    const IssueUnitDefinitionTask& task) const
 {
+    const auto& [unitID, label] = task;
     auto unitDefinition = client_.Wallet().UnitDefinition(unitID);
 
     if (false == bool(unitDefinition)) {
@@ -1797,10 +1835,14 @@ OTX::BackgroundTask OTX::IssueUnitDefinition(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
+    // TODO unit ID type
 
     return start_task(
-        taskID, queue.issue_unit_definition_.Push(taskID, {unitID, label}));
+        taskID,
+        queue.get_task<IssueUnitDefinitionTask>().Push(
+            taskID,
+            {identifier::UnitDefinition::Factory(unitID.str()), label}));
 }
 
 void OTX::load_introduction_server(const Lock& lock) const
@@ -1866,10 +1908,10 @@ OTX::BackgroundTask OTX::MessageContact(
     OT_ASSERT(false == recipientNymID->empty())
 
     auto& queue = get_operations({senderNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
     MessageTask task{recipientNymID, message, std::make_shared<SetID>(setID)};
 
-    return start_task(taskID, queue.send_message_.Push(taskID, task));
+    return start_task(taskID, queue.get_task<MessageTask>().Push(taskID, task));
 }
 
 std::pair<ThreadStatus, OTX::MessageID> OTX::MessageStatus(
@@ -1928,19 +1970,22 @@ OTX::BackgroundTask OTX::NotifyBailment(
     if (setID) { setID(peerrequest->ID()); }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.peer_request_.Push(taskID, {targetNymID, peerrequest}));
+        taskID,
+        queue.get_task<PeerRequestTask>().Push(
+            taskID, {targetNymID, peerrequest}));
 }
 
 bool OTX::pay_nym(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    const identifier::Nym& recipient,
-    std::shared_ptr<const OTPayment>& payment) const
+    const PaymentTask& task) const
 {
-    OT_ASSERT(false == recipient.empty())
+    const auto& [recipient, payment] = task;
+
+    OT_ASSERT(false == recipient->empty())
 
     DO_OPERATION(ConveyPayment, recipient, payment);
 
@@ -1951,10 +1996,11 @@ bool OTX::pay_nym(
 bool OTX::pay_nym_cash(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    const identifier::Nym& recipient,
-    const Identifier& workflowID) const
+    const PayCashTask& task) const
 {
-    OT_ASSERT(false == recipient.empty())
+    const auto& [recipient, workflowID] = task;
+
+    OT_ASSERT(false == recipient->empty())
 
     DO_OPERATION(SendCash, recipient, workflowID);
 
@@ -1981,11 +2027,11 @@ OTX::BackgroundTask OTX::PayContact(
     OT_ASSERT(false == recipientNymID->empty())
 
     auto& queue = get_operations({senderNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.send_payment_.Push(
+        queue.get_task<PaymentTask>().Push(
             taskID,
             {recipientNymID, std::shared_ptr<const OTPayment>(payment)}));
 }
@@ -2010,10 +2056,12 @@ OTX::BackgroundTask OTX::PayContactCash(
     OT_ASSERT(false == recipientNymID->empty())
 
     auto& queue = get_operations({senderNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.send_cash_.Push(taskID, {recipientNymID, workflowID}));
+        taskID,
+        queue.get_task<PayCashTask>().Push(
+            taskID, {recipientNymID, workflowID}));
 }
 #endif  // OT_CASH
 
@@ -2025,7 +2073,7 @@ OTX::BackgroundTask OTX::ProcessInbox(
     CHECK_ARGS(localNymID, serverID, accountID)
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(taskID, queue.process_inbox_.Push(taskID, accountID));
 }
@@ -2123,12 +2171,12 @@ OTX::BackgroundTask OTX::PublishServerContract(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     // TODO update server id type
     return start_task(
         taskID,
-        queue.publish_server_contract_.Push(
+        queue.get_task<PublishServerContractTask>().Push(
             taskID, identifier::Server::Factory(contractID.str())));
 }
 
@@ -2188,8 +2236,8 @@ void OTX::refresh_accounts() const
             if (registered) {
                 logStr->Concatenate(" %s ", "is");
                 auto& queue = get_operations({nymID, serverID});
-                const auto taskID{++next_task_id_};
-                queue.download_nymbox_.Push(taskID, true);
+                const auto taskID{next_task_id()};
+                queue.get_task<DownloadNymboxTask>().Push(taskID, {});
             } else {
                 logStr->Concatenate(" %s ", "is not");
             }
@@ -2210,7 +2258,7 @@ void OTX::refresh_accounts() const
             "  * Owned by nym: ")(nymID)("  * On server: ")(serverID)
             .Flush();
         auto& queue = get_operations({nymID, serverID});
-        const auto taskID{++next_task_id_};
+        const auto taskID{next_task_id()};
         queue.process_inbox_.Push(taskID, accountID);
     }
 
@@ -2260,7 +2308,7 @@ void OTX::refresh_contacts() const
                     ": We don't have credentials for this nym. "
                     " Will search on all servers.")
                     .Flush();
-                const auto taskID{++next_task_id_};
+                const auto taskID{next_task_id()};
                 missing_nyms_.Push(taskID, nymID);
 
                 continue;
@@ -2283,7 +2331,7 @@ void OTX::refresh_contacts() const
 
                 if (false == bool(serverGroup)) {
 
-                    const auto taskID{++next_task_id_};
+                    const auto taskID{next_task_id()};
                     missing_nyms_.Push(taskID, nymID);
                     continue;
                 }
@@ -2302,7 +2350,7 @@ void OTX::refresh_contacts() const
                         nymID)(" from server ")(serverID)
                         .Flush();
                     auto& serverQueue = get_nym_fetch(serverID);
-                    const auto taskID{++next_task_id_};
+                    const auto taskID{next_task_id()};
                     serverQueue.Push(taskID, nymID);
                 }
             } else {
@@ -2317,10 +2365,11 @@ void OTX::refresh_contacts() const
 bool OTX::register_account(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    const Identifier& unitID,
-    const std::string& label) const
+    const RegisterAccountTask& task) const
 {
-    OT_ASSERT(false == unitID.empty())
+    const auto& [label, unitID] = task;
+
+    OT_ASSERT(false == unitID->empty())
 
     auto contract = client_.Wallet().UnitDefinition(unitID);
 
@@ -2334,11 +2383,10 @@ bool OTX::register_account(
 
     ServerContext::ExtraArgs args{label, false};
 
-    // TODO unit id type
     DO_OPERATION(
         Start,
         internal::Operation::Type::RegisterAccount,
-        identifier::UnitDefinition::Factory(unitID.str()),
+        unitID,
         {label, false});
 
     finish_task(taskID, success, std::move(result));
@@ -2368,7 +2416,13 @@ OTX::BackgroundTask OTX::RegisterAccount(
     const Identifier& unitID,
     const std::string& label) const
 {
-    return schedule_register_account(localNymID, serverID, unitID, label);
+    // TODO unit ID type
+
+    return schedule_register_account(
+        localNymID,
+        serverID,
+        identifier::UnitDefinition::Factory(unitID.str()),
+        label);
 }
 
 OTX::BackgroundTask OTX::RegisterNym(
@@ -2380,9 +2434,10 @@ OTX::BackgroundTask OTX::RegisterNym(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
-    return start_task(taskID, queue.register_nym_.Push(taskID, resync));
+    return start_task(
+        taskID, queue.get_task<RegisterNymTask>().Push(taskID, resync));
 }
 
 OTX::BackgroundTask OTX::RegisterNymPublic(
@@ -2418,35 +2473,36 @@ OTX::BackgroundTask OTX::schedule_download_nymbox(
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
-    return start_task(taskID, queue.download_nymbox_.Push(taskID, true));
+    return start_task(
+        taskID, queue.get_task<DownloadNymboxTask>().Push(taskID, {}));
 }
 
 OTX::BackgroundTask OTX::schedule_register_account(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const Identifier& unitID,
+    const identifier::UnitDefinition& unitID,
     const std::string& label) const
 {
     CHECK_ARGS(localNymID, serverID, unitID)
 
     start_introduction_server(localNymID);
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.register_account_.Push(taskID, {unitID, label}));
+        taskID,
+        queue.get_task<RegisterAccountTask>().Push(taskID, {label, unitID}));
 }
 
 bool OTX::send_transfer(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    const Identifier& sourceAccountID,
-    const Identifier& targetAccountID,
-    const Amount value,
-    const std::string& memo) const
+    const SendTransferTask& task) const
 {
+    const auto& [sourceAccountID, targetAccountID, value, memo] = task;
+
     DO_OPERATION(
         SendTransfer,
         sourceAccountID,
@@ -2491,11 +2547,11 @@ OTX::BackgroundTask OTX::SendCheque(
     }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.send_cheque_.Push(
+        queue.get_task<SendChequeTask>().Push(
             taskID,
             {sourceAccountID,
              recipientNymID,
@@ -2539,11 +2595,11 @@ OTX::BackgroundTask OTX::SendExternalTransfer(
     }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.send_transfer_.Push(
+        queue.get_task<SendTransferTask>().Push(
             taskID, {sourceAccountID, targetAccountID, value, memo}));
 }
 
@@ -2581,11 +2637,11 @@ OTX::BackgroundTask OTX::SendTransfer(
     }
 
     auto& queue = get_operations({localNymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
         taskID,
-        queue.send_transfer_.Push(
+        queue.get_task<SendTransferTask>().Push(
             taskID, {sourceAccountID, targetAccountID, value, memo}));
 }
 
@@ -2633,8 +2689,8 @@ void OTX::start_introduction_server(const Identifier& nymID) const
     if (serverID.empty()) { return; }
 
     auto& queue = get_operations({nymID, serverID});
-    const auto taskID{++next_task_id_};
-    start_task(taskID, queue.download_nymbox_.Push(taskID, true));
+    const auto taskID{next_task_id()};
+    start_task(taskID, queue.get_task<DownloadNymboxTask>().Push(taskID, {}));
 }
 
 OTX::BackgroundTask OTX::start_task(const TaskID taskID, bool success) const
@@ -2712,42 +2768,8 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
     OT_ASSERT(context)
 
     bool run{true};
-    bool resync{false};
     bool needAdmin{false};
-    bool registerNymQueued{false};
-    bool downloadNymbox{false};
-    bool getTransactionNumbers{false};
-    TaskID taskID{0};
-    auto accountID = Identifier::Factory();
-    auto contractID = Identifier::Factory();
-    auto targetNymID = identifier::Nym::Factory();
-    auto targetServerID = identifier::Server::Factory();
-    auto nullID = Identifier::Factory();
-    auto unitID = identifier::UnitDefinition::Factory();
     OTPassword serverPassword;
-    MessageTask message{identifier::Nym::Factory(), "", nullptr};
-    PaymentTask payment{identifier::Nym::Factory(), {}};
-    SendChequeTask sendCheque{Identifier::Factory(),
-                              identifier::Nym::Factory(),
-                              0,
-                              "",
-                              Clock::now(),
-                              Clock::now()};
-    IssueUnitDefinitionTask issueUnit{Identifier::Factory(), ""};
-    RegisterAccountTask registerAccount{Identifier::Factory(), ""};
-#if OT_CASH
-    PayCashTask cash_payment{identifier::Nym::Factory(), Identifier::Factory()};
-    WithdrawCashTask cash_withdrawal{Identifier::Factory(), {}};
-#endif  // OT_CASH
-    DepositPaymentTask deposit{Identifier::Factory(), {}};
-    UniqueQueue<DepositPaymentTask> depositPaymentRetry;
-    SendTransferTask transfer{
-        Identifier::Factory(), Identifier::Factory(), {}, {}};
-#if OT_CASH
-    WithdrawCashTask withdrawCash{accountID, 0};
-#endif
-    PeerReplyTask peerReply{identifier::Nym::Factory(), {}, {}};
-    PeerRequestTask peerRequest{identifier::Nym::Factory(), {}};
 
     // Primary loop
     while (run) {
@@ -2760,13 +2782,20 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
         SHUTDOWN()
 
         // Register the nym, if scheduled. Keep trying until success
-        registerNymQueued = queue.register_nym_.Pop(taskID, resync);
+        queue.run_task<RegisterNymTask>(
+            [this, &queue](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const RegisterNymTask& param) -> bool {
+                const auto output = register_nym(task, op, param);
 
-        if (registerNymQueued) {
-            if (false == register_nym(taskID, *queue.op_, resync)) {
-                queue.register_nym_.Push(++next_task_id_, resync);
-            }
-        }
+                if (false == output) {
+                    queue.get_task<RegisterNymTask>().Push(
+                        next_task_id(), param);
+                }
+
+                return output;
+            });
 
         SHUTDOWN()
 
@@ -2777,7 +2806,7 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
 
         if (needAdmin) {
             serverPassword.setPassword(context->AdminPassword());
-            get_admin(++next_task_id_, *queue.op_, serverPassword);
+            get_admin(next_task_id(), *queue.op_, serverPassword);
         }
 
         SHUTDOWN()
@@ -2789,8 +2818,8 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
         if (0 == queue.counter() % 100) {
             // download server nym in case it has been renamed
             // TODO convert nym id type
-            queue.check_nym_.Push(
-                ++next_task_id_,
+            queue.get_task<CheckNymTask>().Push(
+                next_task_id(),
                 identifier::Nym::Factory(context->RemoteNym().ID().str()));
         }
 
@@ -2822,23 +2851,16 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
 
         // This is a list of contracts (server and unit definition) which a
         // user of this class has requested we download from this server.
-        while (queue.download_contract_.Pop(taskID, contractID)) {
-            SHUTDOWN()
+        queue.run_task<DownloadContractTask>(
+            queue.get_task<DownloadContractTask>(),
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const DownloadContractTask& param) -> bool {
+                return download_contract(task, op, param);
+            });
 
-            if (contractID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty contract ID get in here?")
-                    .Flush();
-
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(
-                    ": Searching for unit definition contract for ")(contractID)
-                    .Flush();
-            }
-
-            download_contract(taskID, *queue.op_, contractID);
-        }
+        SHUTDOWN();
 
         // This is a list of nyms for which we do not have credentials..
         // We ask all known servers on which we are registered to try to find
@@ -2864,343 +2886,255 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
             find_nym(*queue.op_, targetID);
         }
 
-        // This is a list of nyms which haven't been updated in a while and
-        // are known or suspected to be available on this server
-        auto& nymQueue = get_nym_fetch(serverID);
+        SHUTDOWN()
 
-        while (nymQueue.Pop(taskID, targetNymID)) {
-            SHUTDOWN()
+        queue.run_task<CheckNymTask>(
+            get_nym_fetch(serverID),
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const CheckNymTask& param) -> bool {
+                return download_nym(task, op, param);
+            });
 
-            if (targetNymID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty nymID get in here?")
-                    .Flush();
+        SHUTDOWN()
 
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(": Refreshing nym ")(
-                    targetNymID)
-                    .Flush();
-            }
+        queue.run_task<CheckNymTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const CheckNymTask& param) -> bool {
+                return download_nym(task, op, param);
+            });
 
-            download_nym(taskID, *queue.op_, targetNymID);
-        }
+        SHUTDOWN()
 
-        // This is a list of nyms which a user of this class has requested we
-        // download from this server.
-        while (queue.check_nym_.Pop(taskID, targetNymID)) {
-            SHUTDOWN()
+        queue.run_task<MessageTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const MessageTask& param) -> bool {
+                return message_nym(task, op, param);
+            });
 
-            if (targetNymID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty nymID get in here?")
-                    .Flush();
+        SHUTDOWN()
 
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(": Searching for nym ")(
-                    targetNymID)
-                    .Flush();
-            }
+        queue.run_task<PeerReplyTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const PeerReplyTask& param) -> bool {
+                return initiate_peer_reply(task, op, param);
+            });
 
-            download_nym(taskID, *queue.op_, targetNymID);
-        }
+        SHUTDOWN()
 
-        // This is a list of messages which need to be delivered to a nym
-        // on this server
-        while (queue.send_message_.Pop(taskID, message)) {
-            SHUTDOWN()
-
-            message_nym(taskID, *queue.op_, message);
-        }
-
-        while (queue.peer_reply_.Pop(taskID, peerReply)) {
-            SHUTDOWN()
-
-            initiate_peer_reply(taskID, *queue.op_, peerReply);
-        }
-
-        while (queue.peer_request_.Pop(taskID, peerRequest)) {
-            SHUTDOWN()
-
-            initiate_peer_request(taskID, *queue.op_, peerRequest);
-        }
+        queue.run_task<PeerRequestTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const PeerRequestTask& param) -> bool {
+                return initiate_peer_request(task, op, param);
+            });
 
         SHUTDOWN();
 
-        // Download the nymbox, if this operation has been scheduled
-        if (queue.download_nymbox_.Pop(taskID, downloadNymbox)) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading nymbox for ")(
-                nymID)(" on ")(serverID)
-                .Flush();
-            if (false == download_nymbox(taskID, *queue.op_)) {
-                queue.register_nym_.Push(++next_task_id_, resync);
-            }
-        }
+        queue.run_task<DownloadNymboxTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const DownloadNymboxTask&) -> bool {
+                return download_nymbox(task, op);
+            });
 
         SHUTDOWN()
 
-        // Get transaction numbers, if this operation has been scheduled
-        if (queue.get_transaction_numbers_.Pop(taskID, getTransactionNumbers)) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Getting transaction numbers for ")(nymID)(" on ")(serverID)
-                .Flush();
-            get_transaction_numbers(taskID, *queue.op_);
-        }
+        queue.run_task<GetTransactionNumbersTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const GetTransactionNumbersTask&) -> bool {
+                return get_transaction_numbers(task, op);
+            });
 
         SHUTDOWN()
 
-        // This is a list of cheques which need to be written and delivered to
-        // a nym on this server
-        while (queue.send_cheque_.Pop(taskID, sendCheque)) {
-            SHUTDOWN()
+        queue.run_task<SendChequeTask>(
+            [this, &queue](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const SendChequeTask& param) -> bool {
+                const auto done = write_and_send_cheque(task, op, param);
 
-            auto& [accountID, recipientID, amount, memo, start, end] =
-                sendCheque;
+                if (TaskDone::retry == done) {
+                    const auto numbersTaskID{next_task_id()};
+                    start_task(
+                        numbersTaskID,
+                        queue.get_task<GetTransactionNumbersTask>().Push(
+                            numbersTaskID, {}));
 
-            if (accountID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty account ID get in here?")
-                    .Flush();
+                    queue.get_task<SendChequeTask>().Push(task, param);
+                }
 
-                continue;
-            }
-
-            if (recipientID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty recipient nymID get in here?")
-                    .Flush();
-
-                continue;
-            }
-
-            auto task_done = write_and_send_cheque(
-                taskID,
-                *queue.op_,
-                accountID,
-                recipientID,
-                amount,
-                memo,
-                start,
-                end);
-
-            if (TaskDone::retry == task_done) {
-                const auto numbersTaskID{++next_task_id_};
-                start_task(
-                    numbersTaskID,
-                    queue.get_transaction_numbers_.Push(numbersTaskID, true));
-
-                queue.send_cheque_.Push(taskID, sendCheque);
-                break;
-            }
-        }
+                return TaskDone::yes == done;
+            });
 
         SHUTDOWN()
 
-        // This is a list of payments which need to be delivered to a nym
-        // on this server
-        while (queue.send_payment_.Pop(taskID, payment)) {
-            SHUTDOWN()
-
-            auto& [recipientID, pPayment] = payment;
-
-            if (recipientID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty recipient nymID get in here?")
-                    .Flush();
-
-                continue;
-            }
-
-            pay_nym(taskID, *queue.op_, recipientID, pPayment);
-        }
+        queue.run_task<PaymentTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const PaymentTask& param) -> bool {
+                return pay_nym(task, op, param);
+            });
 
         SHUTDOWN()
 
 #if OT_CASH
-        while (queue.download_mint_.Pop(taskID, unitID)) {
-            SHUTDOWN()
+        queue.run_task<DownloadMintTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const DownloadMintTask& param) -> bool {
+                return download_mint(task, op, param);
+            });
 
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading mint for ")(
-                unitID)
-                .Flush();
+        SHUTDOWN()
 
-            download_mint(taskID, *queue.op_, unitID);
-        }
+        queue.run_task<WithdrawCashTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const WithdrawCashTask& param) -> bool {
+                return withdraw_cash(task, op, param);
+            });
 
-        while (queue.withdraw_cash_.Pop(taskID, cash_withdrawal)) {
-            SHUTDOWN()
+        SHUTDOWN()
 
-            withdraw_cash(taskID, *queue.op_, cash_withdrawal);
-        }
+        queue.run_task<PayCashTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const PayCashTask& param) -> bool {
+                return pay_nym_cash(task, op, param);
+            });
 
-        // This is a list of cash payments which need to be delivered to a nym
-        // on this server
-        while (queue.send_cash_.Pop(taskID, cash_payment)) {
-            SHUTDOWN()
-
-            auto& [recipientID, workflowID] = cash_payment;
-
-            if (recipientID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty recipient nymID get in here?")
-                    .Flush();
-
-                continue;
-            }
-
-            pay_nym_cash(taskID, *queue.op_, recipientID, workflowID);
-        }
+        SHUTDOWN()
 #endif
 
-        SHUTDOWN()
+        queue.run_task<RegisterAccountTask>(
+            [this, &queue](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const RegisterAccountTask& param) -> bool {
+                const auto done = register_account(task, op, param);
 
-        // Register any accounts which have been scheduled for creation
-        while (queue.register_account_.Pop(taskID, registerAccount)) {
-            SHUTDOWN()
-
-            const auto& [unitID, label] = registerAccount;
-
-            if (unitID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty unit ID get in here?")
-                    .Flush();
-
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(": Creating account for ")(
-                    unitID)(" on ")(serverID)
-                    .Flush();
-            }
-
-            if (false == register_account(taskID, *queue.op_, unitID, label)) {
-                queue.register_nym_.Push(++next_task_id_, resync);
-            }
-        }
-
-        SHUTDOWN()
-
-        // Issue unit definitions which have been scheduled
-        while (queue.issue_unit_definition_.Pop(taskID, issueUnit)) {
-            SHUTDOWN()
-
-            const auto& [unitID, label] = issueUnit;
-
-            if (unitID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty unit ID get in here?")
-                    .Flush();
-
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(
-                    ": Issuing unit definition for ")(unitID)(" on ")(serverID)
-                    .Flush();
-            }
-
-            if (false ==
-                issue_unit_definition(taskID, *queue.op_, unitID, label)) {
-                queue.register_nym_.Push(++next_task_id_, resync);
-            }
-        }
-
-        SHUTDOWN()
-
-        // Deposit any queued payments
-        while (queue.deposit_payment_.Pop(taskID, deposit)) {
-            auto& [accountIDHint, payment] = deposit;
-
-            SHUTDOWN()
-            OT_ASSERT(payment)
-
-            const auto status =
-                can_deposit(*payment, nymID, accountIDHint, nullID, accountID);
-
-            switch (status) {
-                case Depositability::READY: {
-                    if (false == deposit_cheque(
-                                     taskID,
-                                     *queue.op_,
-                                     accountID,
-                                     payment,
-                                     depositPaymentRetry)) {
-                        queue.register_nym_.Push(++next_task_id_, resync);
-                    }
-                } break;
-                case Depositability::NOT_REGISTERED:
-                case Depositability::NO_ACCOUNT: {
-                    LogDetail(OT_METHOD)(__FUNCTION__)(
-                        ": Temporary failure trying to deposit payment")
-                        .Flush();
-                    depositPaymentRetry.Push(taskID, deposit);
-                } break;
-                default: {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Permanent failure trying to deposit payment.")
-                        .Flush();
+                if (false == done) {
+                    queue.get_task<RegisterNymTask>().Push(
+                        next_task_id(), false);
                 }
-            }
-        }
 
-        // Requeue all payments which will be retried
-        while (depositPaymentRetry.Pop(taskID, deposit)) {
-            SHUTDOWN()
-
-            queue.deposit_payment_.Push(taskID, deposit);
-        }
+                return done;
+            });
 
         SHUTDOWN()
 
-        // This is a list of transfers which need to be delivered to a nym
-        // on this server
-        while (queue.send_transfer_.Pop(taskID, transfer)) {
-            SHUTDOWN()
+        queue.run_task<IssueUnitDefinitionTask>(
+            [this, &queue](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const IssueUnitDefinitionTask& param) -> bool {
+                const auto output = issue_unit_definition(task, op, param);
 
-            const auto& [sourceAccountID, targetAccountID, value, memo] =
-                transfer;
-            send_transfer(
-                taskID,
-                *queue.op_,
-                sourceAccountID,
-                targetAccountID,
-                value,
-                memo);
-        }
+                if (false == output) {
+                    queue.get_task<RegisterNymTask>().Push(
+                        next_task_id(), false);
+                }
 
-        while (queue.publish_server_contract_.Pop(taskID, targetServerID)) {
-            SHUTDOWN()
+                return output;
+            });
 
-            if (contractID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Empty targetServerID?")
-                    .Flush();
+        SHUTDOWN()
 
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(
-                    ": Uploading server contract ")(targetServerID)
-                    .Flush();
-            }
+        queue.run_task<DepositPaymentTask>(
+            [this, &queue](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const DepositPaymentTask& param) -> bool {
+                bool output{false};
+                const auto& [accountIDHint, payment] = param;
 
-            publish_server_contract(taskID, *queue.op_, targetServerID);
-        }
+                OT_ASSERT(payment);
 
-        while (queue.process_inbox_.Pop(taskID, accountID)) {
-            SHUTDOWN()
+                auto depositServer = Identifier::Factory();
+                auto depositAccount = Identifier::Factory();
 
-            if (accountID->empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": How did an empty account ID get in here?")
-                    .Flush();
+                const auto status = can_deposit(
+                    *payment,
+                    op.NymID(),
+                    accountIDHint,
+                    depositServer,
+                    depositAccount);
 
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(": Processing inbox ")(
-                    accountID)
-                    .Flush();
-            }
+                switch (status) {
+                    case Depositability::READY: {
+                        output = deposit_cheque(task, op, param);
 
-            process_inbox(taskID, *queue.op_, accountID);
-        }
+                        if (false == output) {
+                            queue.get_task<RegisterNymTask>().Push(
+                                next_task_id(), false);
+                            queue.get_task<DepositPaymentTask>().Push(
+                                task, param);
+                        }
+                    } break;
+                    case Depositability::NOT_REGISTERED:
+                    case Depositability::NO_ACCOUNT: {
+                        LogDetail(OT_METHOD)(__FUNCTION__)(
+                            ": Temporary failure trying to deposit payment")
+                            .Flush();
+                        queue.get_task<DepositPaymentTask>().Push(task, param);
+                    } break;
+                    default: {
+                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                            ": Permanent failure trying to deposit payment.")
+                            .Flush();
+                    }
+                }
+
+                return output;
+            });
+
+        SHUTDOWN()
+
+        queue.run_task<SendTransferTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const SendTransferTask& param) -> bool {
+                return send_transfer(task, op, param);
+            });
+
+        SHUTDOWN()
+
+        queue.run_task<PublishServerContractTask>(
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const PublishServerContractTask& param) -> bool {
+                return publish_server_contract(task, op, param);
+            });
+
+        SHUTDOWN()
+
+        queue.run_task<ProcessInboxTask>(
+            queue.process_inbox_,
+            [this](
+                const TaskID task,
+                api::client::internal::Operation& op,
+                const ProcessInboxTask& param) -> bool {
+                return process_inbox(task, op, param);
+            });
 
         const bool missing =
             !(missing_nyms_.empty() && missing_servers_.empty());
@@ -3413,25 +3347,23 @@ OTX::BackgroundTask OTX::WithdrawCash(
 
     start_introduction_server(nymID);
     auto& queue = get_operations({nymID, serverID});
-    const auto taskID{++next_task_id_};
+    const auto taskID{next_task_id()};
 
     return start_task(
-        taskID, queue.withdraw_cash_.Push(taskID, {account, amount}));
+        taskID,
+        queue.get_task<WithdrawCashTask>().Push(taskID, {account, amount}));
 }
 #endif
 
 OTX::TaskDone OTX::write_and_send_cheque(
     const TaskID taskID,
     api::client::internal::Operation& op,
-    const Identifier& accountID,
-    const identifier::Nym& recipient,
-    const Amount value,
-    const std::string& memo,
-    const Time validFrom,
-    const Time validTo) const
+    const SendChequeTask& task) const
 {
-    OT_ASSERT(false == accountID.empty())
-    OT_ASSERT(false == recipient.empty())
+    const auto& [accountID, recipient, value, memo, validFrom, validTo] = task;
+
+    OT_ASSERT(false == accountID->empty())
+    OT_ASSERT(false == recipient->empty())
 
     if (0 >= value) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid amount.").Flush();

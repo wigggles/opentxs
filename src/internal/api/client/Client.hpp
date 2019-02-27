@@ -11,8 +11,183 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/Identifier.hpp"
+
+#include "internal/core/identifier/Identifier.hpp"
+#include "internal/core/Core.hpp"
 
 #include <future>
+#include <string>
+#include <tuple>
+
+namespace
+{
+struct OT_DownloadNymboxType {
+};
+struct OT_GetTransactionNumbersType {
+};
+}  // namespace
+
+namespace std
+{
+template <>
+struct less<OT_DownloadNymboxType> {
+    bool operator()(const OT_DownloadNymboxType&, const OT_DownloadNymboxType&)
+        const
+    {
+        return false;
+    }
+};
+template <>
+struct less<OT_GetTransactionNumbersType> {
+    bool operator()(
+        const OT_GetTransactionNumbersType&,
+        const OT_GetTransactionNumbersType&) const
+    {
+        return false;
+    }
+};
+}  // namespace std
+
+namespace opentxs::api::client
+{
+using CheckNymTask = OTNymID;
+/** DepositPaymentTask: accountID, payment */
+using DepositPaymentTask =
+    std::pair<OTIdentifier, std::shared_ptr<const OTPayment>>;
+using DownloadContractTask = OTIdentifier;
+using DownloadMintTask = OTUnitID;
+using DownloadNymboxTask = OT_DownloadNymboxType;
+using GetTransactionNumbersTask = OT_GetTransactionNumbersType;
+/** IssueUnitDefinitionTask: unit definition id, account label */
+using IssueUnitDefinitionTask = std::pair<OTUnitID, std::string>;
+/** RegisterAccountTask: account label, unit definition id */
+using RegisterAccountTask = std::pair<std::string, OTUnitID>;
+using RegisterNymTask = bool;
+/** MessageTask: recipientID, message */
+using MessageTask = std::tuple<OTNymID, std::string, std::shared_ptr<SetID>>;
+/** PaymentTask: recipientID, payment */
+using PaymentTask = std::pair<OTNymID, std::shared_ptr<const OTPayment>>;
+#if OT_CASH
+/** PayCashTask: recipientID, workflow ID */
+using PayCashTask = std::pair<OTNymID, OTIdentifier>;
+/** WithdrawCashTask: Account ID, amount*/
+using WithdrawCashTask = std::pair<OTIdentifier, Amount>;
+#endif  // OT_CASH
+/** SendTransferTask: source account, destination account, amount, memo
+ */
+using SendTransferTask =
+    std::tuple<OTIdentifier, OTIdentifier, Amount, std::string>;
+using PublishServerContractTask = OTServerID;
+using ProcessInboxTask = DownloadContractTask;  // TODO
+/** SendChequeTask: sourceAccountID, targetNymID, value, memo, validFrom,
+ * validTo
+ */
+using SendChequeTask =
+    std::tuple<OTIdentifier, OTNymID, Amount, std::string, Time, Time>;
+/** PeerReplyTask: targetNymID, peer reply, peer request */
+using PeerReplyTask = std::tuple<
+    OTNymID,
+    std::shared_ptr<const PeerReply>,
+    std::shared_ptr<const PeerRequest>>;
+/** PeerRequestTask: targetNymID, peer request */
+using PeerRequestTask = std::pair<OTNymID, std::shared_ptr<const PeerRequest>>;
+}  // namespace opentxs::api::client
+
+namespace opentxs
+{
+template <>
+struct make_blank<api::client::DepositPaymentTask> {
+    static api::client::DepositPaymentTask value()
+    {
+        return {make_blank<OTIdentifier>::value(), nullptr};
+    }
+};
+template <>
+struct make_blank<api::client::IssueUnitDefinitionTask> {
+    static api::client::IssueUnitDefinitionTask value()
+    {
+        return {make_blank<OTUnitID>::value(), ""};
+    }
+};
+template <>
+struct make_blank<api::client::RegisterAccountTask> {
+    static api::client::RegisterAccountTask value()
+    {
+        return {"", make_blank<OTUnitID>::value()};
+    }
+};
+template <>
+struct make_blank<api::client::MessageTask> {
+    static api::client::MessageTask value()
+    {
+        return {make_blank<OTNymID>::value(), "", nullptr};
+    }
+};
+template <>
+struct make_blank<api::client::PaymentTask> {
+    static api::client::PaymentTask value()
+    {
+        return {make_blank<OTNymID>::value(), nullptr};
+    }
+};
+#if OT_CASH
+template <>
+struct make_blank<api::client::PayCashTask> {
+    static api::client::PayCashTask value()
+    {
+        return {make_blank<OTNymID>::value(),
+                make_blank<OTIdentifier>::value()};
+    }
+};
+template <>
+struct make_blank<api::client::WithdrawCashTask> {
+    static api::client::WithdrawCashTask value()
+    {
+        return {make_blank<OTIdentifier>::value(), 0};
+    }
+};
+#endif  // OT_CASH
+template <>
+struct make_blank<api::client::SendTransferTask> {
+    static api::client::SendTransferTask value()
+    {
+        return {make_blank<OTIdentifier>::value(),
+                make_blank<OTIdentifier>::value(),
+                0,
+                ""};
+    }
+};
+template <>
+struct make_blank<api::client::SendChequeTask> {
+    static api::client::SendChequeTask value()
+    {
+        return {make_blank<OTIdentifier>::value(),
+                make_blank<OTNymID>::value(),
+                0,
+                "",
+                Clock::now(),
+                Clock::now()};
+    }
+};
+template <>
+struct make_blank<api::client::PeerReplyTask> {
+    static api::client::PeerReplyTask value()
+    {
+        return {make_blank<OTNymID>::value(), nullptr, nullptr};
+    }
+};
+template <>
+struct make_blank<api::client::PeerRequestTask> {
+    static api::client::PeerRequestTask value()
+    {
+        return {make_blank<OTNymID>::value(), nullptr};
+    }
+};
+}  // namespace opentxs
 
 namespace opentxs::api::client::internal
 {
