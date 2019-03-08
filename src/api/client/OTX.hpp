@@ -352,194 +352,10 @@ private:
         {
             throw;
         }
-        template <>
-        CheckNymTask& get_param()
-        {
-            return param_.check_nym_;
-        }
-        template <>
-        DepositPaymentTask& get_param()
-        {
-            return param_.deposit_payment_;
-        }
-        template <>
-        DownloadContractTask& get_param()
-        {
-            return param_.download_contract_;
-        }
-        template <>
-        DownloadMintTask& get_param()
-        {
-            return param_.download_mint_;
-        }
-        template <>
-        DownloadNymboxTask& get_param()
-        {
-            return param_.download_nymbox_;
-        }
-        template <>
-        GetTransactionNumbersTask& get_param()
-        {
-            return param_.get_transaction_numbers_;
-        }
-        template <>
-        IssueUnitDefinitionTask& get_param()
-        {
-            return param_.issue_unit_definition_;
-        }
-        template <>
-        RegisterAccountTask& get_param()
-        {
-            return param_.register_account_;
-        }
-        template <>
-        RegisterNymTask& get_param()
-        {
-            return param_.register_nym_;
-        }
-        template <>
-        MessageTask& get_param()
-        {
-            return param_.send_message_;
-        }
-        template <>
-        PaymentTask& get_param()
-        {
-            return param_.send_payment_;
-        }
-#if OT_CASH
-        template <>
-        PayCashTask& get_param()
-        {
-            return param_.send_cash_;
-        }
-        template <>
-        WithdrawCashTask& get_param()
-        {
-            return param_.withdraw_cash_;
-        }
-#endif
-        template <>
-        SendTransferTask& get_param()
-        {
-            return param_.send_transfer_;
-        }
-        template <>
-        PublishServerContractTask& get_param()
-        {
-            return param_.publish_server_contract_;
-        }
-        template <>
-        SendChequeTask& get_param()
-        {
-            return param_.send_cheque_;
-        }
-        template <>
-        PeerReplyTask& get_param()
-        {
-            return param_.peer_reply_;
-        }
-        template <>
-        PeerRequestTask& get_param()
-        {
-            return param_.peer_request_;
-        }
         template <typename T>
         UniqueQueue<T>& get_task()
         {
             throw;
-        }
-        template <>
-        UniqueQueue<CheckNymTask>& get_task()
-        {
-            return check_nym_;
-        }
-        template <>
-        UniqueQueue<DepositPaymentTask>& get_task()
-        {
-            return deposit_payment_;
-        }
-        template <>
-        UniqueQueue<DownloadContractTask>& get_task()
-        {
-            return download_contract_;
-        }
-        template <>
-        UniqueQueue<DownloadMintTask>& get_task()
-        {
-            return download_mint_;
-        }
-        template <>
-        UniqueQueue<DownloadNymboxTask>& get_task()
-        {
-            return download_nymbox_;
-        }
-        template <>
-        UniqueQueue<GetTransactionNumbersTask>& get_task()
-        {
-            return get_transaction_numbers_;
-        }
-        template <>
-        UniqueQueue<IssueUnitDefinitionTask>& get_task()
-        {
-            return issue_unit_definition_;
-        }
-        template <>
-        UniqueQueue<RegisterAccountTask>& get_task()
-        {
-            return register_account_;
-        }
-        template <>
-        UniqueQueue<RegisterNymTask>& get_task()
-        {
-            return register_nym_;
-        }
-        template <>
-        UniqueQueue<MessageTask>& get_task()
-        {
-            return send_message_;
-        }
-        template <>
-        UniqueQueue<PaymentTask>& get_task()
-        {
-            return send_payment_;
-        }
-#if OT_CASH
-        template <>
-        UniqueQueue<PayCashTask>& get_task()
-        {
-            return send_cash_;
-        }
-        template <>
-        UniqueQueue<WithdrawCashTask>& get_task()
-        {
-            return withdraw_cash_;
-        }
-#endif
-        template <>
-        UniqueQueue<SendTransferTask>& get_task()
-        {
-            return send_transfer_;
-        }
-        template <>
-        UniqueQueue<PublishServerContractTask>& get_task()
-        {
-            return publish_server_contract_;
-        }
-        template <>
-        UniqueQueue<SendChequeTask>& get_task()
-        {
-            return send_cheque_;
-        }
-        template <>
-        UniqueQueue<PeerReplyTask>& get_task()
-        {
-            return peer_reply_;
-        }
-        template <>
-        UniqueQueue<PeerRequestTask>& get_task()
-        {
-            return peer_request_;
         }
         void increment_counter(const bool missing, Lock& lock, bool& run);
         template <typename T>
@@ -796,4 +612,190 @@ private:
     OTX& operator=(const OTX&) = delete;
     OTX& operator=(OTX&&) = delete;
 };
+
+template <>
+CheckNymTask& OTX::OperationQueue::get_param()
+{
+    return param_.check_nym_;
+}
+template <>
+DepositPaymentTask& OTX::OperationQueue::get_param()
+{
+    return param_.deposit_payment_;
+}
+template <>
+DownloadContractTask& OTX::OperationQueue::get_param()
+{
+    return param_.download_contract_;
+}
+template <>
+DownloadMintTask& OTX::OperationQueue::get_param()
+{
+    return param_.download_mint_;
+}
+template <>
+DownloadNymboxTask& OTX::OperationQueue::get_param()
+{
+    return param_.download_nymbox_;
+}
+template <>
+GetTransactionNumbersTask& OTX::OperationQueue::get_param()
+{
+    return param_.get_transaction_numbers_;
+}
+template <>
+IssueUnitDefinitionTask& OTX::OperationQueue::get_param()
+{
+    return param_.issue_unit_definition_;
+}
+template <>
+RegisterAccountTask& OTX::OperationQueue::get_param()
+{
+    return param_.register_account_;
+}
+template <>
+RegisterNymTask& OTX::OperationQueue::get_param()
+{
+    return param_.register_nym_;
+}
+template <>
+MessageTask& OTX::OperationQueue::get_param()
+{
+    return param_.send_message_;
+}
+template <>
+PaymentTask& OTX::OperationQueue::get_param()
+{
+    return param_.send_payment_;
+}
+#if OT_CASH
+template <>
+PayCashTask& OTX::OperationQueue::get_param()
+{
+    return param_.send_cash_;
+}
+template <>
+WithdrawCashTask& OTX::OperationQueue::get_param()
+{
+    return param_.withdraw_cash_;
+}
+#endif
+template <>
+SendTransferTask& OTX::OperationQueue::get_param()
+{
+    return param_.send_transfer_;
+}
+template <>
+PublishServerContractTask& OTX::OperationQueue::get_param()
+{
+    return param_.publish_server_contract_;
+}
+template <>
+SendChequeTask& OTX::OperationQueue::get_param()
+{
+    return param_.send_cheque_;
+}
+template <>
+PeerReplyTask& OTX::OperationQueue::get_param()
+{
+    return param_.peer_reply_;
+}
+template <>
+PeerRequestTask& OTX::OperationQueue::get_param()
+{
+    return param_.peer_request_;
+}
+template <>
+UniqueQueue<CheckNymTask>& OTX::OperationQueue::get_task()
+{
+    return check_nym_;
+}
+template <>
+UniqueQueue<DepositPaymentTask>& OTX::OperationQueue::get_task()
+{
+    return deposit_payment_;
+}
+template <>
+UniqueQueue<DownloadContractTask>& OTX::OperationQueue::get_task()
+{
+    return download_contract_;
+}
+template <>
+UniqueQueue<DownloadMintTask>& OTX::OperationQueue::get_task()
+{
+    return download_mint_;
+}
+template <>
+UniqueQueue<DownloadNymboxTask>& OTX::OperationQueue::get_task()
+{
+    return download_nymbox_;
+}
+template <>
+UniqueQueue<GetTransactionNumbersTask>& OTX::OperationQueue::get_task()
+{
+    return get_transaction_numbers_;
+}
+template <>
+UniqueQueue<IssueUnitDefinitionTask>& OTX::OperationQueue::get_task()
+{
+    return issue_unit_definition_;
+}
+template <>
+UniqueQueue<RegisterAccountTask>& OTX::OperationQueue::get_task()
+{
+    return register_account_;
+}
+template <>
+UniqueQueue<RegisterNymTask>& OTX::OperationQueue::get_task()
+{
+    return register_nym_;
+}
+template <>
+UniqueQueue<MessageTask>& OTX::OperationQueue::get_task()
+{
+    return send_message_;
+}
+template <>
+UniqueQueue<PaymentTask>& OTX::OperationQueue::get_task()
+{
+    return send_payment_;
+}
+#if OT_CASH
+template <>
+UniqueQueue<PayCashTask>& OTX::OperationQueue::get_task()
+{
+    return send_cash_;
+}
+template <>
+UniqueQueue<WithdrawCashTask>& OTX::OperationQueue::get_task()
+{
+    return withdraw_cash_;
+}
+#endif
+template <>
+UniqueQueue<SendTransferTask>& OTX::OperationQueue::get_task()
+{
+    return send_transfer_;
+}
+template <>
+UniqueQueue<PublishServerContractTask>& OTX::OperationQueue::get_task()
+{
+    return publish_server_contract_;
+}
+template <>
+UniqueQueue<SendChequeTask>& OTX::OperationQueue::get_task()
+{
+    return send_cheque_;
+}
+template <>
+UniqueQueue<PeerReplyTask>& OTX::OperationQueue::get_task()
+{
+    return peer_reply_;
+}
+template <>
+UniqueQueue<PeerRequestTask>& OTX::OperationQueue::get_task()
+{
+    return peer_request_;
+}
+
 }  // namespace opentxs::api::client::implementation
