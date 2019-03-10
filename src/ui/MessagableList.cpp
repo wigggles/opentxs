@@ -43,9 +43,22 @@ namespace opentxs
 ui::implementation::MessagableExternalInterface* Factory::MessagableList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
-    return new ui::implementation::MessagableList(api, publisher, nymID);
+    return new ui::implementation::MessagableList(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -54,8 +67,21 @@ namespace opentxs::ui::implementation
 MessagableList::MessagableList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
-    : MessagableListList(api, publisher, nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : MessagableListList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt
+#endif
+          )
     , listeners_({
           {api_.Endpoints().ContactUpdate(),
            new MessageProcessor<MessagableList>(
@@ -81,6 +107,37 @@ void MessagableList::construct_row(
     items_[index].emplace(
         id, Factory::ContactListItem(*this, api_, publisher_, id, index));
 }
+
+#if OT_QT
+QVariant MessagableList::data(const QModelIndex& index, int role) const
+{
+    const auto [valid, pRow] = check_index(index);
+
+    if (false == valid) { return {}; }
+
+    const auto& row = *pRow;
+
+    switch (role) {
+        case IDRole: {
+            return row.ContactID().c_str();
+        }
+        case NameRole: {
+            return row.DisplayName().c_str();
+        }
+        case ImageRole: {
+            return row.ImageURI().c_str();
+        }
+        case SectionRole: {
+            return row.Section().c_str();
+        }
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
 
 const Identifier& MessagableList::ID() const { return owner_contact_id_; }
 

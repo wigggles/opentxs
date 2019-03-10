@@ -60,7 +60,12 @@ private:
         const network::zeromq::PublishSocket& publisher,
         const ContactSectionRowID& rowID,
         const ContactSectionSortKey& key,
-        const CustomData& custom);
+        const CustomData& custom
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     ContactSubsection() = delete;
     ContactSubsection(const ContactSubsection&) = delete;
     ContactSubsection(ContactSubsection&&) = delete;

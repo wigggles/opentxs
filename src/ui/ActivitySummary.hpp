@@ -7,6 +7,13 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/ui/ActivitySummary.hpp"
+
+#include "internal/ui/UI.hpp"
+#include "List.hpp"
+
 namespace opentxs::ui::implementation
 {
 using ActivitySummaryList = List<
@@ -21,7 +28,15 @@ using ActivitySummaryList = List<
 
 class ActivitySummary final : public ActivitySummaryList
 {
+#if OT_QT
+    Q_OBJECT
+#endif
+
 public:
+#if OT_QT
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+#endif
     ~ActivitySummary();
 
 private:
@@ -48,7 +63,12 @@ private:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
         const Flag& running,
-        const identifier::Nym& nymID);
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     ActivitySummary() = delete;
     ActivitySummary(const ActivitySummary&) = delete;
     ActivitySummary(ActivitySummary&&) = delete;

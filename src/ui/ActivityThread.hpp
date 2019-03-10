@@ -7,6 +7,12 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
+
+#include "internal/ui/UI.hpp"
+#include "List.hpp"
+
 namespace std
 {
 using STORAGEID = std::
@@ -72,7 +78,15 @@ using ActivityThreadList = List<
 
 class ActivityThread final : public ActivityThreadList
 {
+#if OT_QT
+    Q_OBJECT
+#endif
+
 public:
+#if OT_QT
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+#endif
     std::string DisplayName() const override;
     std::string GetDraft() const override;
     std::string Participants() const override;
@@ -132,7 +146,12 @@ private:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
         const identifier::Nym& nymID,
-        const Identifier& threadID);
+        const Identifier& threadID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
 
     ActivityThread() = delete;
     ActivityThread(const ActivityThread&) = delete;

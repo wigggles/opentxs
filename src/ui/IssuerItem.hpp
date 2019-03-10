@@ -63,7 +63,12 @@ private:
         const AccountSummaryRowID& rowID,
         const AccountSummarySortKey& sortKey,
         const CustomData& custom,
-        const proto::ContactItemType currency);
+        const proto::ContactItemType currency
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;
     IssuerItem(IssuerItem&&) = delete;

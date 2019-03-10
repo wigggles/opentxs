@@ -89,7 +89,12 @@ private:
     Profile(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const identifier::Nym& nymID);
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     Profile() = delete;
     Profile(const Profile&) = delete;
     Profile(Profile&&) = delete;

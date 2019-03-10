@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include "opentxs/ui/List.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <string>
@@ -31,8 +31,24 @@ namespace opentxs
 {
 namespace ui
 {
-class ActivityThread : virtual public Widget
+class ActivityThread : virtual public List
 {
+#if OT_QT
+    Q_OBJECT
+
+public:
+    enum ActivityThreadRoles {
+        AmountRole = Qt::UserRole + 1,
+        MemoRole = Qt::UserRole + 2,
+        TextRole = Qt::UserRole + 3,
+        TimestampRole = Qt::UserRole + 4,
+        TypeRole = Qt::UserRole + 5,
+        DepositRole = Qt::UserRole + 6,
+        LoadingRole = Qt::UserRole + 7,
+        PendingRole = Qt::UserRole + 8,
+    };
+#endif
+
 public:
     EXPORT virtual std::string DisplayName() const = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem> First()

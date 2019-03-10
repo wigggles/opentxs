@@ -45,10 +45,25 @@ ui::implementation::ContactSectionRowInternal* Factory::ContactSubsectionWidget(
     const network::zeromq::PublishSocket& publisher,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::ContactSubsection(
-        parent, api, publisher, rowID, key, custom);
+        parent,
+        api,
+        publisher,
+        rowID,
+        key,
+        custom
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -60,12 +75,22 @@ ContactSubsection::ContactSubsection(
     const network::zeromq::PublishSocket& publisher,
     const ContactSectionRowID& rowID,
     const ContactSectionSortKey& key,
-    const CustomData& custom)
+    const CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
     : ContactSubsectionList(
           api,
           publisher,
           Identifier::Factory(parent.ContactID()),
-          parent.WidgetID())
+          parent.WidgetID()
+#if OT_QT
+              ,
+          qt
+#endif
+          )
     , ContactSubsectionRow(parent, rowID, true)
 {
     init();

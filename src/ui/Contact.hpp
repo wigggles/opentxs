@@ -59,7 +59,12 @@ private:
     Contact(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& contactID);
+        const Identifier& contactID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;

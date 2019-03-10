@@ -7,6 +7,11 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/ui/PayableList.hpp"
+
+#include "internal/ui/UI.hpp"
+#include "List.hpp"
+
 namespace opentxs::ui::implementation
 {
 using PayableListList = List<
@@ -21,9 +26,17 @@ using PayableListList = List<
 
 class PayableList final : public PayableListList
 {
+#if OT_QT
+    Q_OBJECT
+#endif
+
 public:
     const Identifier& ID() const override;
 
+#if OT_QT
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+#endif
     ~PayableList();
 
 private:
@@ -53,7 +66,12 @@ private:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
         const identifier::Nym& nymID,
-        const proto::ContactItemType& currency);
+        const proto::ContactItemType& currency
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     PayableList() = delete;
     PayableList(const PayableList&) = delete;
     PayableList(PayableList&&) = delete;

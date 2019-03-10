@@ -46,10 +46,25 @@ ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
     const network::zeromq::PublishSocket& publisher,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::ProfileSubsection(
-        parent, api, publisher, rowID, key, custom);
+        parent,
+        api,
+        publisher,
+        rowID,
+        key,
+        custom
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -61,8 +76,22 @@ ProfileSubsection::ProfileSubsection(
     const network::zeromq::PublishSocket& publisher,
     const ProfileSectionRowID& rowID,
     const ProfileSectionSortKey& key,
-    const CustomData& custom)
-    : ProfileSubsectionList(api, publisher, parent.NymID(), parent.WidgetID())
+    const CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : ProfileSubsectionList(
+          api,
+          publisher,
+          parent.NymID(),
+          parent.WidgetID()
+#if OT_QT
+              ,
+          qt
+#endif
+          )
     , ProfileSubsectionRow(parent, rowID, true)
 {
     init();

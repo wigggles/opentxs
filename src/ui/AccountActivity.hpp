@@ -7,6 +7,11 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/ui/AccountActivity.hpp"
+
+#include "internal/ui/UI.hpp"
+#include "List.hpp"
+
 namespace opentxs::ui::implementation
 {
 using AccountActivityList = List<
@@ -29,11 +34,18 @@ using AccountActivityList = List<
  */
 class AccountActivity final : public AccountActivityList
 {
+#if OT_QT
+    Q_OBJECT
+#endif
+
 public:
     const Identifier& AccountID() const override { return account_id_.get(); }
     Amount Balance() const override { return balance_.load(); }
+#if OT_QT
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+#endif
     std::string DisplayBalance() const override;
-
     ~AccountActivity();
 
 private:
@@ -70,7 +82,12 @@ private:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
         const identifier::Nym& nymID,
-        const Identifier& accountID);
+        const Identifier& accountID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     AccountActivity() = delete;
     AccountActivity(const AccountActivity&) = delete;
     AccountActivity(AccountActivity&&) = delete;

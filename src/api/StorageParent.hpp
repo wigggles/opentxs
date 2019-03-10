@@ -24,6 +24,9 @@ protected:
     const ArgList args_;
     const std::chrono::seconds gc_interval_{0};
     const std::string data_folder_;
+#if OT_QT
+    const bool enable_qt_;
+#endif
     StorageConfig storage_config_;
     bool migrate_storage_{false};
     OTString migrate_from_;
@@ -34,7 +37,6 @@ protected:
 #if OT_CRYPTO_WITH_BIP39
     OTSymmetricKey storage_encryption_key_;
 #endif
-
     void init(const api::HDSeed& seeds);
     void start();
 
@@ -52,6 +54,9 @@ private:
     static OTString extract_archive_directory(const ArgList& args);
     static OTString extract_encrypted_directory(const ArgList& args);
     static OTString extract_primary_storage_plugin(const ArgList& args);
+#if OT_QT
+    static bool extract_qt(const ArgList& args);
+#endif
     static OTString get_primary_storage_plugin(
         const api::Settings& config,
         const StorageConfig& storageConfig,

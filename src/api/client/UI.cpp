@@ -44,17 +44,39 @@ namespace opentxs
 {
 api::client::UI* Factory::UI(
     const api::client::Manager& api,
-    const Flag& running)
+    const Flag& running
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
-    return new api::client::implementation::UI(api, running);
+    return new api::client::implementation::UI(
+        api,
+        running
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-UI::UI(const api::client::Manager& api, const Flag& running)
+UI::UI(
+    const api::client::Manager& api,
+    const Flag& running
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
     : api_(api)
     , running_(running)
+#if OT_QT
+    , enable_qt_(qt)
+#endif
     , accounts_()
     , account_lists_()
     , accounts_summaries_()
@@ -78,7 +100,15 @@ const ui::AccountActivity& UI::AccountActivity(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::AccountActivity(
-            api_, widget_update_publisher_, nymID, accountID));
+            api_,
+            widget_update_publisher_,
+            nymID,
+            accountID
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -92,8 +122,15 @@ const ui::AccountList& UI::AccountList(const identifier::Nym& nym) const
     auto& output = account_lists_[nym];
 
     if (false == bool(output)) {
-        output.reset(
-            opentxs::Factory::AccountList(api_, widget_update_publisher_, nym));
+        output.reset(opentxs::Factory::AccountList(
+            api_,
+            widget_update_publisher_,
+            nym
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -111,7 +148,15 @@ const ui::AccountSummary& UI::AccountSummary(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::AccountSummary(
-            api_, widget_update_publisher_, nymID, currency));
+            api_,
+            widget_update_publisher_,
+            nymID,
+            currency
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -127,7 +172,15 @@ const ui::ActivitySummary& UI::ActivitySummary(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::ActivitySummary(
-            api_, widget_update_publisher_, running_, nymID));
+            api_,
+            widget_update_publisher_,
+            running_,
+            nymID
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -144,7 +197,15 @@ const ui::ActivityThread& UI::ActivityThread(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::ActivityThread(
-            api_, widget_update_publisher_, nymID, threadID));
+            api_,
+            widget_update_publisher_,
+            nymID,
+            threadID
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -163,7 +224,14 @@ const ui::Contact& UI::Contact(const Identifier& contactID) const
                  .emplace(
                      std::move(id),
                      opentxs::Factory::ContactWidget(
-                         api_, widget_update_publisher_, contactID))
+                         api_,
+                         widget_update_publisher_,
+                         contactID
+#if OT_QT
+                         ,
+                         enable_qt_
+#endif
+                         ))
                  .first;
     }
 
@@ -179,7 +247,14 @@ const ui::ContactList& UI::ContactList(const identifier::Nym& nymID) const
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::ContactList(
-            api_, widget_update_publisher_, nymID));
+            api_,
+            widget_update_publisher_,
+            nymID
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -194,7 +269,14 @@ const ui::MessagableList& UI::MessagableList(const identifier::Nym& nymID) const
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::MessagableList(
-            api_, widget_update_publisher_, nymID));
+            api_,
+            widget_update_publisher_,
+            nymID
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -212,7 +294,15 @@ const ui::PayableList& UI::PayableList(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::PayableList(
-            api_, widget_update_publisher_, nymID, currency));
+            api_,
+            widget_update_publisher_,
+            nymID,
+            currency
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     }
 
     OT_ASSERT(output)
@@ -230,7 +320,14 @@ const ui::Profile& UI::Profile(const identifier::Nym& nymID) const
                  .emplace(
                      nymID,
                      opentxs::Factory::ProfileWidget(
-                         api_, widget_update_publisher_, nymID))
+                         api_,
+                         widget_update_publisher_,
+                         nymID
+#if OT_QT
+                         ,
+                         enable_qt_
+#endif
+                         ))
                  .first;
     }
 

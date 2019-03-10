@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include "opentxs/ui/List.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -20,8 +20,20 @@ namespace opentxs
 {
 namespace ui
 {
-class ContactList : virtual public Widget
+class ContactList : virtual public List
 {
+#if OT_QT
+    Q_OBJECT
+
+public:
+    enum ContactListRoles {
+        IDRole = Qt::UserRole + 1,
+        NameRole = Qt::UserRole + 2,
+        ImageRole = Qt::UserRole + 3,
+        SectionRole = Qt::UserRole + 4,
+    };
+#endif
+
 public:
     EXPORT virtual std::string AddContact(
         const std::string& label,

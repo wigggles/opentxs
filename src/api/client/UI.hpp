@@ -67,6 +67,9 @@ private:
 
     const api::client::Manager& api_;
     const Flag& running_;
+#if OT_QT
+    const bool enable_qt_;
+#endif
     mutable AccountActivityMap accounts_{};
     mutable AccountListMap account_lists_{};
     mutable AccountSummaryMap accounts_summaries_{};
@@ -79,7 +82,13 @@ private:
     mutable ProfileMap profiles_{};
     OTZMQPublishSocket widget_update_publisher_;
 
-    UI(const api::client::Manager& api, const Flag& running);
+    UI(const api::client::Manager& api,
+       const Flag& running
+#if OT_QT
+       ,
+       const bool qt
+#endif
+    );
     UI() = delete;
     UI(const UI&) = delete;
     UI(UI&&) = delete;

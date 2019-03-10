@@ -53,10 +53,23 @@ ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency)
+    const proto::ContactItemType currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::AccountSummary(
-        api, publisher, nymID, currency);
+        api,
+        publisher,
+        nymID,
+        currency
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -66,8 +79,21 @@ AccountSummary::AccountSummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType currency)
-    : AccountSummaryList(api, publisher, nymID)
+    const proto::ContactItemType currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : AccountSummaryList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt
+#endif
+          )
     , listeners_({
           {api_.Endpoints().IssuerUpdate(),
            new MessageProcessor<AccountSummary>(
@@ -101,7 +127,18 @@ void AccountSummary::construct_row(
     items_[index].emplace(
         id,
         Factory::IssuerItem(
-            *this, api_, publisher_, id, index, custom, currency_));
+            *this,
+            api_,
+            publisher_,
+            id,
+            index,
+            custom,
+            currency_
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
     names_.emplace(id, index);
 }
 

@@ -45,10 +45,25 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
     const network::zeromq::PublishSocket& publisher,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::ProfileSection(
-        parent, api, publisher, rowID, key, custom);
+        parent,
+        api,
+        publisher,
+        rowID,
+        key,
+        custom
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -158,8 +173,22 @@ ProfileSection::ProfileSection(
     const network::zeromq::PublishSocket& publisher,
     const ProfileRowID& rowID,
     const ProfileSortKey& key,
-    const CustomData& custom)
-    : ProfileSectionList(api, publisher, parent.NymID(), parent.WidgetID())
+    const CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : ProfileSectionList(
+          api,
+          publisher,
+          parent.NymID(),
+          parent.WidgetID()
+#if OT_QT
+              ,
+          qt
+#endif
+          )
     , ProfileSectionRow(parent, rowID, true)
 {
     init();
@@ -196,7 +225,17 @@ void ProfileSection::construct_row(
     items_[index].emplace(
         id,
         Factory::ProfileSubsectionWidget(
-            *this, api_, publisher_, id, index, custom));
+            *this,
+            api_,
+            publisher_,
+            id,
+            index,
+            custom
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
 }
 
 bool ProfileSection::Delete(const int type, const std::string& claimID) const

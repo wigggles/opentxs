@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include "opentxs/ui/List.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -20,8 +20,21 @@ namespace opentxs
 {
 namespace ui
 {
-class PayableList : virtual public Widget
+class PayableList : virtual public List
 {
+#if OT_QT
+    Q_OBJECT
+
+public:
+    enum PayableListRoles {
+        IDRole = Qt::UserRole + 1,
+        NameRole = Qt::UserRole + 2,
+        ImageRole = Qt::UserRole + 3,
+        SectionRole = Qt::UserRole + 4,
+		PaymentCodeRole = Qt::UserRole + 5,
+    };
+#endif
+
 public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem> First()
         const = 0;

@@ -46,9 +46,23 @@ ui::PayableList* Factory::PayableList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType& currency)
+    const proto::ContactItemType& currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
-    return new ui::implementation::PayableList(api, publisher, nymID, currency);
+    return new ui::implementation::PayableList(
+        api,
+        publisher,
+        nymID,
+        currency
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -58,8 +72,21 @@ PayableList::PayableList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const proto::ContactItemType& currency)
-    : PayableListList(api, publisher, nymID)
+    const proto::ContactItemType& currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : PayableListList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt
+#endif
+          )
     , listeners_({
           {api_.Endpoints().ContactUpdate(),
            new MessageProcessor<PayableList>(&PayableList::process_contact)},
@@ -95,6 +122,40 @@ void PayableList::construct_row(
         Factory::PayableListItem(
             *this, api_, publisher_, id, index, *paymentCode, currency_));
 }
+
+#if OT_QT
+QVariant PayableList::data(const QModelIndex& index, int role) const
+{
+    const auto [valid, pRow] = check_index(index);
+
+    if (false == valid) { return {}; }
+
+    const auto& row = *pRow;
+
+    switch (role) {
+        case IDRole: {
+            return row.ContactID().c_str();
+        }
+        case NameRole: {
+            return row.DisplayName().c_str();
+        }
+        case ImageRole: {
+            return row.ImageURI().c_str();
+        }
+        case SectionRole: {
+            return row.Section().c_str();
+        }
+        case PaymentCodeRole: {
+            return row.PaymentCode().c_str();
+        }
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
 
 const Identifier& PayableList::ID() const { return owner_contact_id_; }
 

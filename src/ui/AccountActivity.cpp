@@ -12,9 +12,7 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -24,12 +22,9 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
-#include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 
-#include "internal/ui/UI.hpp"
 #include "BalanceItemBlank.hpp"
-#include "List.hpp"
 
 #include <atomic>
 #include <map>
@@ -51,10 +46,23 @@ ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const Identifier& accountID)
+    const Identifier& accountID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::AccountActivity(
-        api, publisher, nymID, accountID);
+        api,
+        publisher,
+        nymID,
+        accountID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -64,8 +72,30 @@ AccountActivity::AccountActivity(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const Identifier& accountID)
-    : AccountActivityList(api, publisher, nymID)
+    const Identifier& accountID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : AccountActivityList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt,
+          Roles{{IDRole, "id"},
+                {AmountRole, "amount"},
+                {ContactsRole, "contacts"},
+                {MemoRole, "memo"},
+                {WorkflowRole, "workflow"},
+                {TextRole, "text"},
+                {TimestampRole, "timestamp"},
+                {TypeRole, "type"}},
+          1
+#endif
+          )
     , listeners_({
           {api_.Endpoints().WorkflowAccountUpdate(),
            new MessageProcessor<AccountActivity>(
@@ -105,6 +135,60 @@ void AccountActivity::construct_row(
             account_id_));
     names_.emplace(id, index);
 }
+
+#if OT_QT
+QVariant AccountActivity::data(const QModelIndex& index, int role) const
+{
+    const auto [valid, pRow] = check_index(index);
+
+    if (false == valid) { return {}; }
+
+    const auto& row = *pRow;
+
+    switch (role) {
+        case IDRole: {
+            return row.UUID().c_str();
+        }
+        case AmountRole: {
+            return row.DisplayAmount().c_str();
+        }
+        case ContactsRole: {
+            std::string contacts;
+            auto contact = row.Contacts().cbegin();
+            if (contact != row.Contacts().cend()) {
+                contacts = *contact;
+                while (++contact != row.Contacts().cend()) {
+                    contacts += ", " + *contact;
+                }
+            }
+            return contacts.c_str();
+        }
+        case MemoRole: {
+            return row.Memo().c_str();
+        }
+        case WorkflowRole: {
+            return row.Workflow().c_str();
+        }
+        case TextRole: {
+            return row.Text().c_str();
+        }
+        case TimestampRole: {
+            QDateTime qdatetime;
+            qdatetime.setSecsSinceEpoch(
+                std::chrono::system_clock::to_time_t(row.Timestamp()));
+            return qdatetime;
+        }
+        case TypeRole: {
+            return storage_box_name(row.Type()).c_str();
+        }
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
 
 std::string AccountActivity::DisplayBalance() const
 {

@@ -49,9 +49,22 @@ namespace opentxs
 ui::Profile* Factory::ProfileWidget(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
-    return new ui::implementation::Profile(api, publisher, nymID);
+    return new ui::implementation::Profile(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -68,8 +81,21 @@ const std::map<proto::ContactSectionName, int> Profile::sort_keys_{
 Profile::Profile(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
-    : ProfileList(api, publisher, nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : ProfileList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt
+#endif
+          )
     , listeners_({
           {api_.Endpoints().NymDownload(),
            new MessageProcessor<Profile>(&Profile::process_nym)},
@@ -182,7 +208,17 @@ void Profile::construct_row(
     items_[index].emplace(
         id,
         Factory::ProfileSectionWidget(
-            *this, api_, publisher_, id, index, custom));
+            *this,
+            api_,
+            publisher_,
+            id,
+            index,
+            custom
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
 }
 
 bool Profile::Delete(
