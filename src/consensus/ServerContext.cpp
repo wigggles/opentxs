@@ -15,6 +15,7 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
@@ -160,6 +161,10 @@ ServerContext::ServerContext(
           queue_callback_,
           zmq::Socket::Direction::Bind))
     , queue_push_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_nym_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_server_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_unit_definition_(
+          api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , running_(Flag::Factory(true))
 {
     init_sockets();
@@ -215,6 +220,10 @@ ServerContext::ServerContext(
           queue_callback_,
           zmq::Socket::Direction::Bind))
     , queue_push_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_nym_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_server_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_unit_definition_(
+          api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , running_(Flag::Factory(true))
 {
     for (const auto& it : serialized.servercontext().tentativerequestnumber()) {
@@ -627,16 +636,23 @@ bool ServerContext::add_item_to_workflow(
 
     if (payment->IsCancelledCheque()) { return false; }
 
-    auto cheque = api_.Factory().Cheque();
+    auto pCheque = api_.Factory().Cheque();
 
-    OT_ASSERT((cheque));
+    OT_ASSERT(pCheque);
 
-    cheque->LoadContractFromString(payment->Payment());
+    auto& cheque = *pCheque;
+    cheque.LoadContractFromString(payment->Payment());
+    // The sender nym and notary of the cheque may not match the sender nym and
+    // notary of the message which conveyed the cheque.
+    find_nym_->Push(cheque.GetSenderNymID().str());
+    find_server_->Push(cheque.GetNotaryID().str());
+    find_unit_definition_->Push(cheque.GetInstrumentDefinitionID().str());
+
     // We already made sure a contact exists for the sender of the message, but
     // it's possible the sender of the cheque is a different nym
-    client.Contacts().NymToContact(cheque->GetSenderNymID());
+    client.Contacts().NymToContact(cheque.GetSenderNymID());
     const auto workflow =
-        client.Workflow().ReceiveCheque(nym.ID(), *cheque, transportItem);
+        client.Workflow().ReceiveCheque(nym.ID(), cheque, transportItem);
 
     if (workflow->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create workflow.")
@@ -1679,6 +1695,36 @@ void ServerContext::init_sockets()
 
     if (false == started) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start push socket ")
+            .Flush();
+
+        OT_FAIL;
+    }
+
+    started = find_nym_->Start(api_.Endpoints().FindNym());
+
+    if (false == started) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start find nym socket ")
+            .Flush();
+
+        OT_FAIL;
+    }
+
+    started = find_server_->Start(api_.Endpoints().FindServer());
+
+    if (false == started) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to start find server socket ")
+            .Flush();
+
+        OT_FAIL;
+    }
+
+    started =
+        find_unit_definition_->Start(api_.Endpoints().FindUnitDefinition());
+
+    if (false == started) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to start find unit socket ")
             .Flush();
 
         OT_FAIL;

@@ -15,6 +15,7 @@ class PaymentItem final : public ActivityThreadItem
 {
 public:
     opentxs::Amount Amount() const override;
+    bool Deposit() const override;
     std::string DisplayAmount() const override;
     std::string Memo() const override;
 
@@ -23,10 +24,11 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::string display_amount_{};
-    std::string memo_{};
-    opentxs::Amount amount_{0};
-    std::unique_ptr<std::thread> load_{nullptr};
+    std::string display_amount_;
+    std::string memo_;
+    opentxs::Amount amount_;
+    std::unique_ptr<std::thread> load_;
+    std::shared_ptr<const OTPayment> payment_;
 
     void load();
 

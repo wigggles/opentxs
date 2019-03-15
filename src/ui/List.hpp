@@ -161,23 +161,29 @@ protected:
     {
         OT_ASSERT(verify_lock(lock))
 
-        auto& key = names_.at(id);
-        auto& inner = items_.at(key);
-        auto item = inner.find(id);
+        try {
+            auto& key = names_.at(id);
+            auto& inner = items_.at(key);
 
-        // I'm about to delete this row. Make sure iterators are not pointing
-        // to it
-        if (inner_ == item) { increment_inner(lock); }
+            auto item = inner.find(id);
 
-        const auto itemDeleted = inner.erase(id);
+            // I'm about to delete this row. Make sure iterators are not
+            // pointing to it
+            if (inner_ == item) { increment_inner(lock); }
 
-        OT_ASSERT(1 == itemDeleted)
+            const auto itemDeleted = inner.erase(id);
 
-        if (0 == inner.size()) { items_.erase(key); }
+            OT_ASSERT(1 == itemDeleted)
 
-        const auto indexDeleted = names_.erase(id);
+            if (0 == inner.size()) { items_.erase(key); }
 
-        OT_ASSERT(1 == indexDeleted)
+            const auto indexDeleted = names_.erase(id);
+
+            OT_ASSERT(1 == indexDeleted)
+        } catch (...) {
+            // TODO this should never happen. Troubleshoot
+            // ActivityThread::process_draft
+        }
     }
     /** Returns first contact, or blank if none exists. Sets up iterators for
      *  next row

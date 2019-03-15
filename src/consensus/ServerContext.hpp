@@ -169,6 +169,9 @@ private:
     OTZMQListenCallback queue_callback_;
     OTZMQPullSocket queue_pull_;
     OTZMQPushSocket queue_push_;
+    OTZMQPushSocket find_nym_;
+    OTZMQPushSocket find_server_;
+    OTZMQPushSocket find_unit_definition_;
     OTFlag running_;
 
     static const api::client::Manager& client(const api::Core& api);

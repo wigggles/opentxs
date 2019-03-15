@@ -18,6 +18,7 @@ class ActivityThreadItemBlank final : public ActivityThreadRowInternal
 {
 public:
     opentxs::Amount Amount() const override { return 0; }
+    bool Deposit() const override { return false; }
     std::string DisplayAmount() const override { return {}; }
     bool Last() const override { return true; }
     bool Loading() const override { return false; }

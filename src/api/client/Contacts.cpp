@@ -709,17 +709,19 @@ std::shared_ptr<const class Contact> Contacts::Update(
     rLock lock(lock_);
     const auto contactIdentifier = api_.Storage().ContactOwnerNym(nymID.str());
     const auto contactID = Identifier::Factory(contactIdentifier);
+    const auto label = Contact::ExtractLabel(*nym);
 
     if (contactIdentifier.empty()) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(
-            " is not associated with a contact. Creating a new contact.")
+            " is not associated with a contact. Creating a new contact named ")(
+            label)
             .Flush();
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         auto code = api_.Factory().PaymentCode(nym->PaymentCode());
 #endif
         return new_contact(
             lock,
-            Contact::ExtractLabel(*nym),
+            label,
             nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
             ,

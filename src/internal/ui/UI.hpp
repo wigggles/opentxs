@@ -8,6 +8,8 @@
 #include "Internal.hpp"
 
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/ui/AccountList.hpp"
+#include "opentxs/ui/AccountListItem.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 #include "opentxs/ui/AccountSummaryItem.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
@@ -58,6 +60,19 @@ struct AccountActivity {
     virtual OTIdentifier WidgetID() const = 0;
 
     virtual ~AccountActivity() = default;
+};
+struct AccountList {
+    virtual bool last(const implementation::AccountListRowID& id) const = 0;
+    virtual OTIdentifier WidgetID() const = 0;
+
+    virtual ~AccountList() = default;
+};
+struct AccountListItem : virtual public ui::AccountListItem {
+    virtual void reindex(
+        const implementation::AccountListSortKey& key,
+        const implementation::CustomData& custom) = 0;
+
+    virtual ~AccountListItem() = default;
 };
 struct AccountSummary {
     virtual bool last(const implementation::AccountSummaryRowID& id) const = 0;

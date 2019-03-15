@@ -63,7 +63,7 @@ MessagableList::MessagableList(
           {api_.Endpoints().NymDownload(),
            new MessageProcessor<MessagableList>(&MessagableList::process_nym)},
       })
-    , owner_contact_id_(Identifier::Factory(last_id_))
+    , owner_contact_id_(api_.Contacts().ContactID(nymID))
 {
     init();
     setup_listeners(listeners_);
@@ -88,12 +88,25 @@ void MessagableList::process_contact(
     const MessagableListRowID& id,
     const MessagableListSortKey& key)
 {
-    if (owner_contact_id_ == id) { return; }
+    if (owner_contact_id_ == id) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Skipping owner contact ")(id)(
+            " (")(key)(")")
+            .Flush();
+
+        return;
+    } else {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Incoming contact ")(id)(" (")(
+            key)(") is not owner contact: (")(owner_contact_id_)(")")
+            .Flush();
+    }
 
     switch (api_.OTX().CanMessage(nym_id_, id, false)) {
         case Messagability::READY:
         case Messagability::MISSING_RECIPIENT:
         case Messagability::UNREGISTERED: {
+            LogDetail(OT_METHOD)(__FUNCTION__)(": Messagable contact ")(id)(
+                " (")(key)(")")
+                .Flush();
             add_item(id, key, {});
         } break;
         case Messagability::MISSING_SENDER:
@@ -103,8 +116,13 @@ void MessagableList::process_contact(
         case Messagability::MISSING_CONTACT:
         default: {
             LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Skipping unmessagable contact ")(id)
+                ": Skipping non-messagable contact ")(id)(" (")(key)(")")
                 .Flush();
+
+            if (0 < names_.count(id)) {
+                Lock lock(lock_);
+                delete_item(lock, id);
+            }
         }
     }
 }

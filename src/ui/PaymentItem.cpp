@@ -7,6 +7,8 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -14,6 +16,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -23,6 +26,8 @@
 #include <thread>
 
 #include "PaymentItem.hpp"
+
+#define OT_METHOD "opentxs::ui::implementation::PaymentItem::"
 
 namespace opentxs
 {
@@ -64,6 +69,7 @@ PaymentItem::PaymentItem(
     , memo_()
     , amount_(0)
     , load_(nullptr)
+    , payment_()
 {
     OT_ASSERT(false == nym_id_.empty())
     OT_ASSERT(false == item_id_.empty())
@@ -101,6 +107,52 @@ opentxs::Amount PaymentItem::Amount() const
     return amount_;
 }
 
+bool PaymentItem::Deposit() const
+{
+    switch (box_) {
+        case StorageBox::INCOMINGCHEQUE: {
+        } break;
+        case StorageBox::OUTGOINGCHEQUE:
+        case StorageBox::SENTPEERREQUEST:
+        case StorageBox::INCOMINGPEERREQUEST:
+        case StorageBox::SENTPEERREPLY:
+        case StorageBox::INCOMINGPEERREPLY:
+        case StorageBox::FINISHEDPEERREQUEST:
+        case StorageBox::FINISHEDPEERREPLY:
+        case StorageBox::PROCESSEDPEERREQUEST:
+        case StorageBox::PROCESSEDPEERREPLY:
+        case StorageBox::MAILINBOX:
+        case StorageBox::MAILOUTBOX:
+        case StorageBox::INCOMINGBLOCKCHAIN:
+        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::DRAFT:
+        case StorageBox::UNKNOWN:
+        default: {
+
+            return false;
+        }
+    }
+
+    sLock lock(shared_lock_);
+
+    if (false == bool(payment_)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Payment not loaded.").Flush();
+
+        return false;
+    }
+
+    auto task = api_.OTX().DepositPayment(nym_id_, payment_);
+
+    if (0 == task.first) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to queue deposit.")
+            .Flush();
+
+        return false;
+    }
+
+    return true;
+}
+
 std::string PaymentItem::DisplayAmount() const
 {
     sLock lock(shared_lock_);
@@ -114,6 +166,7 @@ void PaymentItem::load()
     std::string displayAmount{};
     std::string memo{};
     opentxs::Amount amount{0};
+    std::shared_ptr<OTPayment> payment{};
 
     switch (box_) {
         case StorageBox::INCOMINGCHEQUE:
@@ -131,6 +184,12 @@ void PaymentItem::load()
                     contract->FormatAmountLocale(
                         amount, displayAmount, ",", ".");
                 }
+
+                payment = api_.Factory().Payment(String::Factory(*cheque));
+
+                OT_ASSERT(payment);
+
+                payment->SetTempValues();
             }
         } break;
         case StorageBox::SENTPEERREQUEST:
@@ -161,6 +220,7 @@ void PaymentItem::load()
     amount_ = amount;
     loading_->Off();
     pending_->Off();
+    payment_ = payment;
     UpdateNotify();
 }
 

@@ -695,5 +695,11 @@ enum class RemoteBoxType : std::int8_t {
     Inbox = 1,
     Outbox = 2,
 };
+
+enum class AccountType : std::int8_t {
+    Error = 0,
+    Blockchain = 1,
+    Custodial = 2,
+};
 }  // namespace opentxs
 #endif

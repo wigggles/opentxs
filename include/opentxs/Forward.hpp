@@ -193,6 +193,8 @@ class Root;
 
 namespace ui
 {
+class AccountList;
+class AccountListItem;
 class AccountActivity;
 class AccountSummary;
 class AccountSummaryItem;
@@ -364,6 +366,7 @@ using ExclusiveAccount = Exclusive<Account>;
 
 using SharedAccount = Shared<Account>;
 
+using OTUIAccountListItem = SharedPimpl<ui::AccountListItem>;
 using OTUIAccountSummaryItem = SharedPimpl<ui::AccountSummaryItem>;
 using OTUIActivitySummaryItem = SharedPimpl<ui::ActivitySummaryItem>;
 using OTUIActivityThreadItem = SharedPimpl<ui::ActivityThreadItem>;

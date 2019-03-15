@@ -255,6 +255,7 @@ OTX::OTX(
     , server_nym_fetch_()
     , missing_nyms_()
     , missing_servers_()
+    , missing_unit_definitions_()
     , state_machines_()
     , introduction_server_id_()
     , task_status_()
@@ -271,6 +272,27 @@ OTX::OTX(
           }))
     , notification_listener_(client_.ZeroMQ().PullSocket(
           notification_listener_callback_,
+          zmq::Socket::Direction::Bind))
+    , find_nym_callback_(zmq::ListenCallback::Factory(
+          [this](const zmq::Message& message) -> void {
+              this->find_nym(message);
+          }))
+    , find_nym_listener_(client_.ZeroMQ().PullSocket(
+          find_nym_callback_,
+          zmq::Socket::Direction::Bind))
+    , find_server_callback_(zmq::ListenCallback::Factory(
+          [this](const zmq::Message& message) -> void {
+              this->find_server(message);
+          }))
+    , find_server_listener_(client_.ZeroMQ().PullSocket(
+          find_server_callback_,
+          zmq::Socket::Direction::Bind))
+    , find_unit_callback_(zmq::ListenCallback::Factory(
+          [this](const zmq::Message& message) -> void {
+              this->find_unit(message);
+          }))
+    , find_unit_listener_(client_.ZeroMQ().PullSocket(
+          find_unit_callback_,
           zmq::Socket::Direction::Bind))
     , task_finished_(client_.ZeroMQ().PublishSocket())
     , auto_process_inbox_(Flag::Factory(true))
@@ -292,6 +314,19 @@ OTX::OTX(
         task_finished_->Start(client_.Endpoints().TaskComplete());
 
     OT_ASSERT(publishing)
+
+    listening = find_nym_listener_->Start(client_.Endpoints().FindNym());
+
+    OT_ASSERT(listening)
+
+    listening = find_server_listener_->Start(client_.Endpoints().FindServer());
+
+    OT_ASSERT(listening)
+
+    listening =
+        find_unit_listener_->Start(client_.Endpoints().FindUnitDefinition());
+
+    OT_ASSERT(listening)
 }
 
 OTX::OperationQueue::OperationQueue(
@@ -770,7 +805,7 @@ Depositability OTX::can_deposit(
 
     if (false == registered) {
         schedule_download_nymbox(recipient, depositServer);
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Recipient nym ")(recipient)(
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Recipient nym ")(recipient)(
             " not registered on server ")(depositServer)(".")
             .Flush();
 
@@ -793,13 +828,13 @@ Depositability OTX::can_deposit(
                 .Flush();
         } break;
         case Depositability::WRONG_ACCOUNT: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
+            LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": The specified account is not valid for this payment.")
                 .Flush();
         } break;
         case Depositability::NO_ACCOUNT: {
 
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Recipient ")(recipient)(
+            LogDetail(OT_METHOD)(__FUNCTION__)(": Recipient ")(recipient)(
                 " needs an account for ")(unitID)(" on server ")(depositServer)(
                 ".")
                 .Flush();
@@ -1137,7 +1172,7 @@ bool OTX::deposit_cheque(
 
     DO_OPERATION(DepositCheque, accountID, cheque);
 
-    if (success) { finish_task(taskID, success, std::move(result)); }
+    if (success) { return finish_task(taskID, success, std::move(result)); }
 
     return false;
 }
@@ -1433,6 +1468,29 @@ bool OTX::find_nym(
     return false;
 }
 
+void OTX::find_nym(const opentxs::network::zeromq::Message& message) const
+{
+    const auto body = message.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        return;
+    }
+
+    auto id = identifier::Nym::Factory();
+    id->SetString(body.at(0));
+
+    if (id->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid id").Flush();
+
+        return;
+    }
+
+    const auto taskID{next_task_id()};
+    missing_nyms_.Push(taskID, id);
+}
+
 bool OTX::find_server(
     api::client::internal::Operation& op,
     const Identifier& targetID) const
@@ -1454,6 +1512,60 @@ bool OTX::find_server(
     }
 
     return false;
+}
+
+void OTX::find_server(const opentxs::network::zeromq::Message& message) const
+{
+    const auto body = message.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        return;
+    }
+
+    auto id = Identifier::Factory();
+    id->SetString(body.at(0));
+
+    if (id->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid id").Flush();
+
+        return;
+    }
+
+    const auto server = client_.Wallet().Server(id);
+
+    if (server) { return; }
+
+    const auto taskID{next_task_id()};
+    missing_servers_.Push(taskID, id);
+}
+
+void OTX::find_unit(const opentxs::network::zeromq::Message& message) const
+{
+    const auto body = message.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        return;
+    }
+
+    auto id = identifier::UnitDefinition::Factory();
+    id->SetString(body.at(0));
+
+    if (id->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid id").Flush();
+
+        return;
+    }
+
+    const auto unit = client_.Wallet().UnitDefinition(id);
+
+    if (unit) { return; }
+
+    const auto taskID{next_task_id()};
+    missing_unit_definitions_.Push(taskID, id);
 }
 
 OTX::BackgroundTask OTX::FindNym(const Identifier& nymID) const
@@ -1489,6 +1601,16 @@ OTX::BackgroundTask OTX::FindServer(const Identifier& serverID) const
     const auto taskID{next_task_id()};
 
     return start_task(taskID, missing_servers_.Push(taskID, serverID));
+}
+
+OTX::BackgroundTask OTX::FindUnitDefinition(
+    const identifier::UnitDefinition& unit) const
+{
+    CHECK_NYM(unit)
+
+    const auto taskID{next_task_id()};
+
+    return start_task(taskID, missing_servers_.Push(taskID, unit));
 }
 
 bool OTX::finish_task(const TaskID taskID, const bool success, Result&& result)
@@ -2849,6 +2971,17 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
             find_server(*queue.op_, targetID);
         }
 
+        // This is a list of unit definitions for which we do not have a
+        // contract. We ask all known servers on which we are registered to try
+        // to find the contracts.
+        const auto units = missing_unit_definitions_.Copy();
+
+        for (const auto& [targetID, taskID] : units) {
+            SHUTDOWN()
+
+            download_contract(taskID, *queue.op_, targetID);
+        }
+
         // This is a list of contracts (server and unit definition) which a
         // user of this class has requested we download from this server.
         queue.run_task<DownloadContractTask>(
@@ -3079,13 +3212,15 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
 
                 switch (status) {
                     case Depositability::READY: {
-                        output = deposit_cheque(task, op, param);
+                        auto revised{param};
+                        revised.first = depositAccount;
+                        output = deposit_cheque(task, op, revised);
 
                         if (false == output) {
                             queue.get_task<RegisterNymTask>().Push(
                                 next_task_id(), false);
                             queue.get_task<DepositPaymentTask>().Push(
-                                task, param);
+                                task, revised);
                         }
                     } break;
                     case Depositability::NOT_REGISTERED:
@@ -3418,6 +3553,10 @@ OTX::TaskDone OTX::write_and_send_cheque(
 
 OTX::~OTX()
 {
+    find_unit_listener_->Close();
+    find_server_listener_->Close();
+    find_nym_listener_->Close();
+
     for (auto& [id, thread] : state_machines_) {
         const auto& notUsed [[maybe_unused]] = id;
 

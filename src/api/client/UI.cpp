@@ -17,9 +17,11 @@
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
+#include "opentxs/ui/AccountList.hpp"
 #include "opentxs/ui/AccountSummary.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
@@ -54,6 +56,7 @@ UI::UI(const api::client::Manager& api, const Flag& running)
     : api_(api)
     , running_(running)
     , accounts_()
+    , account_lists_()
     , accounts_summaries_()
     , activity_summaries_()
     , contacts_()
@@ -77,6 +80,21 @@ const ui::AccountActivity& UI::AccountActivity(
     if (false == bool(output)) {
         output.reset(opentxs::Factory::AccountActivity(
             api_, widget_update_publisher_, nymID, accountID));
+    }
+
+    OT_ASSERT(output)
+
+    return *output;
+}
+
+const ui::AccountList& UI::AccountList(const identifier::Nym& nym) const
+{
+    Lock lock(lock_);
+    auto& output = account_lists_[nym];
+
+    if (false == bool(output)) {
+        output.reset(
+            opentxs::Factory::AccountList(api_, widget_update_publisher_, nym));
     }
 
     OT_ASSERT(output)
