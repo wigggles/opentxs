@@ -136,6 +136,8 @@ public:
         const Identifier& serverIDHint) const = 0;
     EXPORT virtual BackgroundTask FindServer(
         const Identifier& serverID) const = 0;
+    EXPORT virtual BackgroundTask FindUnitDefinition(
+        const identifier::UnitDefinition& unit) const = 0;
     EXPORT virtual BackgroundTask InitiateBailment(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,

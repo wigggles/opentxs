@@ -153,6 +153,8 @@ public:
         const Identifier& nymID,
         const Identifier& serverIDHint) const override;
     BackgroundTask FindServer(const Identifier& serverID) const override;
+    BackgroundTask FindUnitDefinition(
+        const identifier::UnitDefinition& unit) const override;
     BackgroundTask InitiateBailment(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
@@ -411,6 +413,7 @@ private:
     mutable std::map<OTIdentifier, UniqueQueue<OTNymID>> server_nym_fetch_;
     UniqueQueue<CheckNymTask> missing_nyms_;
     UniqueQueue<OTIdentifier> missing_servers_;
+    UniqueQueue<OTUnitID> missing_unit_definitions_;
     mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
     mutable std::unique_ptr<OTIdentifier> introduction_server_id_;
     mutable TaskStatusMap task_status_;
@@ -419,6 +422,12 @@ private:
     OTZMQSubscribeSocket account_subscriber_;
     OTZMQListenCallback notification_listener_callback_;
     OTZMQPullSocket notification_listener_;
+    OTZMQListenCallback find_nym_callback_;
+    OTZMQPullSocket find_nym_listener_;
+    OTZMQListenCallback find_server_callback_;
+    OTZMQPullSocket find_server_listener_;
+    OTZMQListenCallback find_unit_callback_;
+    OTZMQPullSocket find_unit_listener_;
     OTZMQPublishSocket task_finished_;
     mutable OTFlag auto_process_inbox_;
     mutable std::atomic<TaskID> next_task_id_;
@@ -480,9 +489,12 @@ private:
     bool find_nym(
         api::client::internal::Operation& op,
         const identifier::Nym& targetNymID) const;
+    void find_nym(const opentxs::network::zeromq::Message& message) const;
     bool find_server(
         api::client::internal::Operation& op,
         const Identifier& targetNymID) const;
+    void find_server(const opentxs::network::zeromq::Message& message) const;
+    void find_unit(const opentxs::network::zeromq::Message& message) const;
     bool finish_task(const TaskID taskID, const bool success, Result&& result)
         const;
     bool get_admin(

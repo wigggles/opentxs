@@ -155,6 +155,8 @@
 #include <opentxs/network/zeromq/SubscribeSocket.hpp>
 #include <opentxs/network/ServerConnection.hpp>
 #include <opentxs/ui/AccountActivity.hpp>
+#include <opentxs/ui/AccountList.hpp>
+#include <opentxs/ui/AccountListItem.hpp>
 #include <opentxs/ui/AccountSummary.hpp>
 #include <opentxs/ui/AccountSummaryItem.hpp>
 #include <opentxs/ui/ActivitySummary.hpp>

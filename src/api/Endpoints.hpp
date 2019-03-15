@@ -16,6 +16,9 @@ public:
     std::string DhtRequestNym() const override;
     std::string DhtRequestServer() const override;
     std::string DhtRequestUnit() const override;
+    std::string FindNym() const override;
+    std::string FindServer() const override;
+    std::string FindUnitDefinition() const override;
     std::string InternalProcessPushNotification() const override;
     std::string InternalPushNotification() const override;
     std::string IssuerUpdate() const override;

@@ -157,6 +157,8 @@ namespace ui
 namespace internal
 {
 struct AccountActivity;
+struct AccountList;
+struct AccountListItem;
 struct AccountSummary;
 struct AccountSummaryItem;
 struct ActivityThread;
@@ -181,6 +183,7 @@ struct ProfileSubsection;
 namespace implementation
 {
 class AccountActivity;
+class AccountListItemBlank;
 class AccountSummary;
 class AccountSummaryItemBlank;
 class ActivitySummary;
@@ -211,12 +214,22 @@ using CustomData = std::vector<const void*>;
 // Account activity
 using AccountActivityExternalInterface = ui::AccountActivity;
 using AccountActivityInternalInterface = ui::internal::AccountActivity;
+/** WorkflowID, state */
 using AccountActivityRowID = std::pair<OTIdentifier, proto::PaymentEventType>;
 using AccountActivityRowInterface = ui::BalanceItem;
 using AccountActivityRowInternal = ui::internal::BalanceItem;
 using AccountActivityRowBlank = BalanceItemBlank;
-/** WorkflowID, state */
 using AccountActivitySortKey = std::chrono::system_clock::time_point;
+
+// Account list
+using AccountListExternalInterface = ui::AccountList;
+using AccountListInternalInterface = ui::internal::AccountList;
+using AccountListRowID = OTIdentifier;
+using AccountListRowInterface = ui::AccountListItem;
+using AccountListRowInternal = ui::internal::AccountListItem;
+using AccountListRowBlank = AccountListItemBlank;
+// type, notary ID
+using AccountListSortKey = std::pair<proto::ContactItemType, std::string>;
 
 // Account summary
 using AccountSummaryExternalInterface = ui::AccountSummary;

@@ -20,6 +20,9 @@
 #define DHT_NYM_REQUEST_ENDPOINT "dht/requestnym"
 #define DHT_SERVER_REQUEST_ENDPOINT "dht/requestserver"
 #define DHT_UNIT_REQUEST_ENDPOINT "dht/requestunit"
+#define FIND_NYM_ENDPOINT "otx/search/nym"
+#define FIND_SERVER_ENDPOINT "otx/search/server"
+#define FIND_UNIT_ENDPOINT "otx/search/unit"
 #define INTERNAL_PROCESS_PUSH_NOTIFICATION_ENDPOINT "client/receivenotification"
 #define INTERNAL_PUSH_NOTIFICATION_ENDPOINT "server/sendnotification"
 #define ISSUER_UPDATE_ENDPOINT "issuerupdate"
@@ -101,6 +104,21 @@ std::string Endpoints::DhtRequestServer() const
 std::string Endpoints::DhtRequestUnit() const
 {
     return build_inproc_path(DHT_UNIT_REQUEST_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+std::string Endpoints::FindNym() const
+{
+    return build_inproc_path(FIND_NYM_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+std::string Endpoints::FindServer() const
+{
+    return build_inproc_path(FIND_SERVER_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+std::string Endpoints::FindUnitDefinition() const
+{
+    return build_inproc_path(FIND_UNIT_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
 std::string Endpoints::InternalProcessPushNotification() const

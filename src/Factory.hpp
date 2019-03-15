@@ -16,6 +16,17 @@ public:
         const network::zeromq::PublishSocket& publisher,
         const Identifier& nymID,
         const Identifier& accountID);
+    static ui::implementation::AccountListExternalInterface* AccountList(
+        const api::client::Manager& api,
+        const network::zeromq::PublishSocket& publisher,
+        const identifier::Nym& nymID);
+    static ui::implementation::AccountListRowInternal* AccountListItem(
+        const ui::implementation::AccountListInternalInterface& parent,
+        const api::client::Manager& api,
+        const network::zeromq::PublishSocket& publisher,
+        const ui::implementation::AccountListRowID& rowID,
+        const ui::implementation::AccountListSortKey& sortKey,
+        const ui::implementation::CustomData& custom);
     static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,

@@ -15,6 +15,8 @@ public:
     const ui::AccountActivity& AccountActivity(
         const Identifier& nymID,
         const Identifier& accountID) const override;
+    const ui::AccountList& AccountList(
+        const identifier::Nym& nym) const override;
     const ui::AccountSummary& AccountSummary(
         const Identifier& nymID,
         const proto::ContactItemType currency) const override;
@@ -41,6 +43,9 @@ private:
     using AccountKey = std::pair<OTIdentifier, OTIdentifier>;
     using AccountActivityMap =
         std::map<AccountKey, std::unique_ptr<ui::AccountActivity>>;
+    using AccountListKey = OTNymID;
+    using AccountListMap =
+        std::map<AccountListKey, std::unique_ptr<ui::AccountList>>;
     /** NymID, currency*/
     using AccountSummaryKey = std::pair<OTIdentifier, proto::ContactItemType>;
     using AccountSummaryMap =
@@ -63,6 +68,7 @@ private:
     const api::client::Manager& api_;
     const Flag& running_;
     mutable AccountActivityMap accounts_{};
+    mutable AccountListMap account_lists_{};
     mutable AccountSummaryMap accounts_summaries_{};
     mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactMap contacts_{};

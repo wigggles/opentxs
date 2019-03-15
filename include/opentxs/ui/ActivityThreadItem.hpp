@@ -38,6 +38,7 @@ class ActivityThreadItem : virtual public ListRow
 {
 public:
     EXPORT virtual opentxs::Amount Amount() const = 0;
+    EXPORT virtual bool Deposit() const = 0;
     EXPORT virtual std::string DisplayAmount() const = 0;
     EXPORT virtual bool Loading() const = 0;
     EXPORT virtual bool MarkRead() const = 0;

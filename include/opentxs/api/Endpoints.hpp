@@ -123,6 +123,48 @@ public:
      */
     EXPORT virtual std::string DhtRequestUnit() const = 0;
 
+    /** Search for a nym on known notaries
+     *
+     *  A push socket can connect to this endpoint to trigger an OTX search for
+     * a nym.
+     *
+     *  Request messages bodies consist of one frame.
+     *
+     *   * The frame should contains the nym ID being requested as a serialized
+     *     string
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    EXPORT virtual std::string FindNym() const = 0;
+
+    /** Search for a notary contract on known notaries
+     *
+     *  A push socket can connect to this endpoint to trigger an OTX search for
+     * a notary contract.
+     *
+     *  Request messages bodies consist of one frame.
+     *
+     *   * The frame should contains the notary ID being requested as a
+     * serialized string
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    EXPORT virtual std::string FindServer() const = 0;
+
+    /** Search for a unit definition on known notaries
+     *
+     *  A push socket can connect to this endpoint to trigger an OTX search for
+     * a unit definition contract.
+     *
+     *  Request messages bodies consist of one frame.
+     *
+     *   * The frame should contains the unit definition ID being requested as a
+     * serialized string
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    EXPORT virtual std::string FindUnitDefinition() const = 0;
+
     /** Push notification processing
      *
      *  This socket is for use by the Sync and ServerConnection classes only

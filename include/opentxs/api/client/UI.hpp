@@ -47,6 +47,8 @@ public:
     EXPORT virtual const ui::AccountActivity& AccountActivity(
         const Identifier& nymID,
         const Identifier& accountID) const = 0;
+    EXPORT virtual const ui::AccountList& AccountList(
+        const identifier::Nym& nym) const = 0;
     EXPORT virtual const ui::AccountSummary& AccountSummary(
         const Identifier& nymID,
         const proto::ContactItemType currency) const = 0;

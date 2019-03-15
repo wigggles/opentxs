@@ -5,6 +5,8 @@
 
 set(cxx-sources
   AccountActivity.cpp
+  AccountList.cpp
+  AccountListItem.cpp
   AccountSummary.cpp
   AccountSummaryItem.cpp
   ActivitySummary.cpp
@@ -35,6 +37,8 @@ set(cxx-sources
 
 set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountActivity.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountListItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummary.hpp"
@@ -64,6 +68,9 @@ set(cxx-headers
   ${cxx-install-headers}
   "${CMAKE_CURRENT_SOURCE_DIR}/../internal/ui/UI.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountActivity.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountListItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountListItemBlank.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummaryItemBlank.hpp"

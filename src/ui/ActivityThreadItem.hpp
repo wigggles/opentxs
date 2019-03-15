@@ -18,6 +18,7 @@ class ActivityThreadItem : public ActivityThreadItemRow
 {
 public:
     opentxs::Amount Amount() const override { return 0; }
+    bool Deposit() const override { return false; }
     std::string DisplayAmount() const override { return {}; }
     bool Loading() const override { return loading_.get(); }
     bool MarkRead() const override;
