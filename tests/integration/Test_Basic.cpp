@@ -14,18 +14,21 @@ using namespace opentxs;
 #define ALICE "Alice"
 #define BOB "Bob"
 #define ISSUER "Issuer"
+#define ACCOUNT_ACTIVITY_USD "ACCOUNT_ACTIVITY_USD"
 #define ACCOUNT_LIST "ACCOUNT_LIST"
 #define ACCOUNT_SUMMARY_BTC "ACCOUNT_SUMMARY_BTC"
 #define ACCOUNT_SUMMARY_BCH "ACCOUNT_SUMMARY_BCH"
+#define ACCOUNT_SUMMARY_USD "ACCOUNT_SUMMARY_USD"
 #define ACTIVITY_SUMMARY "ACTIVITY_SUMMARY"
-#define ACTIVITY_THREAD_ISSUER "ACTIVITY_THREAD_ISSUER"
-#define CONTACTS_LIST "CONTACTS_LIST"
+#define ACTIVITY_THREAD_ALICE_BOB "ACTIVITY_THREAD_ALICE_BOB"
+#define ACTIVITY_THREAD_ALICE_ISSUER "ACTIVITY_THREAD_ALICE_ISSUER"
+#define ACTIVITY_THREAD_BOB_ALICE "ACTIVITY_THREAD_BOB_ALICE"
+#define CONTACT_LIST "CONTACT_LIST"
 #define MESSAGABLE_LIST "MESSAGAGABLE_LIST"
 #define PAYABLE_LIST_BTC "PAYABLE_LIST_BTC"
 #define PAYABLE_LIST_BCH "PAYABLE_LIST_BCH"
 #define PROFILE "PROFILE"
-#define ACTIVITY_THREAD_ALICE_BOB "ACTIVITY_THREAD_ALICE_BOB"
-#define ACTIVITY_THREAD_BOB_ALICE "ACTIVITY_THREAD_BOB_ALICE"
+
 #define UNIT_DEFINITION_CONTRACT_NAME "Mt Gox USD"
 #define UNIT_DEFINITION_TERMS "YOLO"
 #define UNIT_DEFINITION_PRIMARY_UNIT_NAME "dollars"
@@ -53,9 +56,8 @@ public:
     using WidgetData = std::tuple<std::string, int, WidgetCallbackData>;
     using WidgetMap = std::map<OTIdentifier, WidgetData>;
     using WidgetNameMap = std::map<std::string, OTIdentifier>;
-    // message type, counter
-    using ServerReplyMap = std::map<std::string, int>;
-    using UIChecker = std::function<bool()>;
+    using StateMap = std::
+        map<std::string, std::map<std::string, std::map<int, WidgetCallback>>>;
 
     static const opentxs::ArgList args_;
     static const std::string SeedA_;
@@ -72,6 +74,8 @@ public:
     static OTIdentifier contact_id_bob_alice_;
     static OTIdentifier contact_id_issuer_alice_;
     static const std::shared_ptr<const ServerContract> server_contract_;
+    static const OTServerID server_1_id_;
+    static const StateMap state_;
 
     static WidgetMap alice_widget_map_;
     static WidgetNameMap alice_ui_names_;
@@ -85,14 +89,6 @@ public:
     static const opentxs::api::client::Manager* bob_;
     static std::mutex callback_lock_;
 
-    const opentxs::api::client::Manager& alice_client_;
-    const opentxs::api::client::Manager& bob_client_;
-    const opentxs::api::server::Manager& server_1_;
-    const opentxs::api::client::Manager& issuer_client_;
-    const OTServerID server_1_id_;
-    OTZMQSubscribeSocket alice_ui_update_listener_;
-    OTZMQSubscribeSocket bob_ui_update_listener_;
-
     static std::string alice_payment_code_;
     static std::string bob_payment_code_;
 
@@ -103,12 +99,18 @@ public:
     static OTIdentifier alice_account_id_;
     static OTIdentifier issuer_account_id_;
 
+    const opentxs::api::client::Manager& alice_client_;
+    const opentxs::api::client::Manager& bob_client_;
+    const opentxs::api::server::Manager& server_1_;
+    const opentxs::api::client::Manager& issuer_client_;
+    OTZMQSubscribeSocket alice_ui_update_listener_;
+    OTZMQSubscribeSocket bob_ui_update_listener_;
+
     Test_Basic()
         : alice_client_(OT::App().StartClient(args_, 0))
         , bob_client_(OT::App().StartClient(args_, 1))
         , server_1_(OT::App().StartServer(args_, 0, true))
         , issuer_client_(OT::App().StartClient(args_, 2))
-        , server_1_id_(identifier::Server::Factory(server_1_.ID().str()))
         , alice_ui_update_listener_(
               alice_client_.ZeroMQ().SubscribeSocket(alice_ui_update_callback_))
         , bob_ui_update_listener_(
@@ -141,6 +143,26 @@ public:
         nameMap.emplace(name, id);
 
         return output;
+    }
+
+    std::future<bool> add_ui_widget_alice(
+        const std::string& name,
+        const Identifier& id,
+        int counter = 0,
+        WidgetCallback callback = {})
+    {
+        return add_ui_widget(
+            name, id, alice_widget_map_, alice_ui_names_, counter, callback);
+    }
+
+    std::future<bool> add_ui_widget_bob(
+        const std::string& name,
+        const Identifier& id,
+        int counter = 0,
+        WidgetCallback callback = {})
+    {
+        return add_ui_widget(
+            name, id, bob_widget_map_, bob_ui_names_, counter, callback);
     }
 
     void import_server_contract(
@@ -182,6 +204,8 @@ public:
         const_cast<OTNymID&>(bob_nym_id_) = identifier::Nym::Factory(Bob_);
         const_cast<OTNymID&>(issuer_nym_id_) =
             identifier::Nym::Factory(Issuer_);
+        const_cast<OTServerID&>(server_1_id_) =
+            identifier::Server::Factory(server_1_.ID().str());
         const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
             server_1_.Wallet().Server(server_1_id_);
 
@@ -307,6 +331,7 @@ OTIdentifier Test_Basic::contact_id_bob_alice_{Identifier::Factory()};
 OTIdentifier Test_Basic::contact_id_issuer_alice_{Identifier::Factory()};
 const std::shared_ptr<const ServerContract> Test_Basic::server_contract_{
     nullptr};
+const OTServerID Test_Basic::server_1_id_{identifier::Server::Factory()};
 Test_Basic::WidgetMap Test_Basic::alice_widget_map_{};
 Test_Basic::WidgetNameMap Test_Basic::alice_ui_names_{};
 Test_Basic::WidgetMap Test_Basic::bob_widget_map_{};
@@ -331,221 +356,976 @@ std::map<int, std::string> Test_Basic::message_{};
 OTUnitID Test_Basic::unit_id_{identifier::UnitDefinition::Factory()};
 OTIdentifier Test_Basic::alice_account_id_{Identifier::Factory()};
 OTIdentifier Test_Basic::issuer_account_id_{Identifier::Factory()};
+const Test_Basic::StateMap Test_Basic::state_{
+    {ALICE,
+     {
+         {PROFILE,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().Profile(alice_nym_id_);
+                   auto paymentCode =
+                       alice_->Factory().PaymentCode(SeedA_, 0, 1);
+
+                   EXPECT_EQ(paymentCode->asBase58(), widget.PaymentCode());
+                   EXPECT_STREQ(ALICE, widget.DisplayName().c_str());
+
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {CONTACT_LIST,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().ContactList(alice_nym_id_);
+                   const auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_TRUE(
+                       row->DisplayName() == ALICE ||
+                       row->DisplayName() == "Owner");
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("ME", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = alice_->UI().ContactList(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("ME", row->Section().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), BOB);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("B", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   // We need this later
+                   contact_id_alice_bob_->SetString(row->ContactID());
+
+                   EXPECT_FALSE(contact_id_alice_bob_->empty());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   const auto& widget = alice_->UI().ContactList(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("ME", row->Section().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), BOB);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("B", row->Section().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), ISSUER);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("I", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   contact_id_alice_issuer_->SetString(row->ContactID());
+
+                   EXPECT_FALSE(contact_id_alice_issuer_->empty());
+
+                   return true;
+               }},
+          }},
+         {MESSAGABLE_LIST,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget =
+                       alice_->UI().MessagableList(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget =
+                       alice_->UI().MessagableList(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), BOB);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("B", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   const auto& widget =
+                       alice_->UI().MessagableList(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), BOB);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("B", row->Section().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), ISSUER);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("I", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {PAYABLE_LIST_BTC,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().PayableList(
+                       alice_nym_id_, proto::CITEMTYPE_BTC);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(ALICE, row->DisplayName().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = alice_->UI().PayableList(
+                       alice_nym_id_, proto::CITEMTYPE_BTC);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(ALICE, row->DisplayName().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(BOB, row->DisplayName().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {PAYABLE_LIST_BCH,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().PayableList(
+                       alice_nym_id_, proto::CITEMTYPE_BCH);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = alice_->UI().PayableList(
+                       alice_nym_id_, proto::CITEMTYPE_BCH);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(BOB, row->DisplayName().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   const auto& widget = alice_->UI().PayableList(
+                       alice_nym_id_, proto::CITEMTYPE_BCH);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(ALICE, row->DisplayName().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(BOB, row->DisplayName().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {ACTIVITY_SUMMARY,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget =
+                       alice_->UI().ActivitySummary(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& firstMessage = message_[msg_count_];
+                   const auto& widget =
+                       alice_->UI().ActivitySummary(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_EQ(row->DisplayName(), BOB);
+                   EXPECT_EQ(row->ImageURI(), "");
+                   EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   const auto& secondMessage = message_[msg_count_];
+                   const auto& widget =
+                       alice_->UI().ActivitySummary(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_EQ(row->DisplayName(), BOB);
+                   EXPECT_EQ(row->ImageURI(), "");
+                   EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {3,
+               []() -> bool {
+                   const auto& widget =
+                       alice_->UI().ActivitySummary(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(ISSUER, row->DisplayName().c_str());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("Received cheque", row->Text().c_str());
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
+
+                   return true;
+               }},
+          }},
+         {ACTIVITY_THREAD_ALICE_BOB,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().ActivityThread(
+                       alice_nym_id_, contact_id_alice_bob_);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& firstMessage = message_[msg_count_];
+                   const auto& widget = alice_->UI().ActivityThread(
+                       alice_nym_id_, contact_id_alice_bob_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   const auto& firstMessage = message_[msg_count_ - 1];
+                   const auto& secondMessage = message_[msg_count_];
+                   const auto& widget = alice_->UI().ActivityThread(
+                       alice_nym_id_, contact_id_alice_bob_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {ACTIVITY_THREAD_ALICE_ISSUER,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().ActivityThread(
+                       alice_nym_id_, contact_id_alice_issuer_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   bool loading{true};
+
+                   // This allows the test to work correctly in valgrind when
+                   // loading is unusually slow
+                   while (loading) {
+                       row = widget.First();
+                       loading = row->Loading();
+                   }
+
+                   EXPECT_EQ(CHEQUE_AMOUNT_1, row->Amount());
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_STREQ(CHEQUE_MEMO, row->Memo().c_str());
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_STREQ(
+                       "Received cheque for dollars 1.00", row->Text().c_str());
+                   EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_SUMMARY_BTC,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().AccountSummary(
+                       alice_nym_id_, proto::CITEMTYPE_BTC);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_SUMMARY_BCH,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().AccountSummary(
+                       alice_nym_id_, proto::CITEMTYPE_BCH);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_SUMMARY_USD,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().AccountSummary(
+                       alice_nym_id_, proto::CITEMTYPE_USD);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_ACTIVITY_USD,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().AccountActivity(
+                       alice_nym_id_, alice_account_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_EQ(CHEQUE_AMOUNT_1, row->Amount());
+                   EXPECT_EQ(1, row->Contacts().size());
+
+                   if (0 < row->Contacts().size()) {
+                       EXPECT_EQ(
+                           contact_id_alice_issuer_->str(),
+                           *row->Contacts().begin());
+                   }
+
+                   EXPECT_EQ("dollars 1.00", row->DisplayAmount());
+                   EXPECT_EQ(CHEQUE_MEMO, row->Memo());
+                   EXPECT_FALSE(row->Workflow().empty());
+                   EXPECT_EQ("Received cheque #510 from Issuer", row->Text());
+                   EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
+                   EXPECT_FALSE(row->UUID().empty());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_LIST,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = alice_->UI().AccountList(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = alice_->UI().AccountList(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_TRUE(alice_account_id_->empty());
+
+                   alice_account_id_->SetString(row->AccountID());
+
+                   EXPECT_FALSE(alice_account_id_->empty());
+                   EXPECT_EQ(unit_id_->str(), row->ContractID());
+                   EXPECT_STREQ("dollars 1.00", row->DisplayBalance().c_str());
+                   EXPECT_STREQ("", row->Name().c_str());
+                   EXPECT_EQ(server_1_id_->str(), row->NotaryID());
+                   EXPECT_EQ(
+                       server_contract_->EffectiveName(), row->NotaryName());
+                   EXPECT_EQ(AccountType::Custodial, row->Type());
+                   EXPECT_EQ(proto::CITEMTYPE_USD, row->Unit());
+
+                   return true;
+               }},
+          }},
+     }},
+    {BOB,
+     {
+         {PROFILE,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().Profile(bob_nym_id_);
+                   auto paymentCode = bob_->Factory().PaymentCode(SeedB_, 0, 1);
+
+                   EXPECT_EQ(paymentCode->asBase58(), widget.PaymentCode());
+                   EXPECT_STREQ(BOB, widget.DisplayName().c_str());
+
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {CONTACT_LIST,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().ContactList(bob_nym_id_);
+                   const auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_TRUE(
+                       row->DisplayName() == BOB ||
+                       row->DisplayName() == "Owner");
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("ME", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = bob_->UI().ContactList(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), BOB);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("ME", row->Section().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("A", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   contact_id_bob_alice_->SetString(row->ContactID());
+
+                   EXPECT_FALSE(contact_id_bob_alice_->empty());
+
+                   return true;
+               }},
+          }},
+         {MESSAGABLE_LIST,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().MessagableList(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = bob_->UI().MessagableList(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("A", row->Section().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {PAYABLE_LIST_BTC,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().PayableList(
+                       bob_nym_id_, proto::CITEMTYPE_BTC);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(BOB, row->DisplayName().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = bob_->UI().PayableList(
+                       bob_nym_id_, proto::CITEMTYPE_BTC);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(ALICE, row->DisplayName().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(BOB, row->DisplayName().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {PAYABLE_LIST_BCH,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().PayableList(
+                       bob_nym_id_, proto::CITEMTYPE_BCH);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = bob_->UI().PayableList(
+                       bob_nym_id_, proto::CITEMTYPE_BCH);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(ALICE, row->DisplayName().c_str());
+                   EXPECT_TRUE(row->Last());
+
+                   // TODO why isn't Bob in this list?
+
+                   return true;
+               }},
+          }},
+         {ACTIVITY_SUMMARY,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().ActivitySummary(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& firstMessage = message_[msg_count_];
+                   const auto& widget = bob_->UI().ActivitySummary(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_EQ(row->DisplayName(), ALICE);
+                   EXPECT_EQ(row->ImageURI(), "");
+                   EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   const auto& secondMessage = message_[msg_count_];
+                   const auto& widget = bob_->UI().ActivitySummary(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_EQ(row->DisplayName(), ALICE);
+                   EXPECT_EQ(row->ImageURI(), "");
+                   EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {ACTIVITY_THREAD_BOB_ALICE,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().ActivityThread(
+                       bob_nym_id_, contact_id_bob_alice_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), message_.at(msg_count_));
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& firstMessage = message_[msg_count_ - 1];
+                   const auto& secondMessage = message_[msg_count_];
+                   const auto& widget = bob_->UI().ActivityThread(
+                       bob_nym_id_, contact_id_bob_alice_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   bool loading{true};
+
+                   // This allows the test to work correctly in valgrind when
+                   // loading is unusually slow
+                   while (loading) {
+                       row = widget.First();
+                       row = widget.Next();
+                       loading = row->Loading();
+                   }
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_SUMMARY_BTC,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().AccountSummary(
+                       bob_nym_id_, proto::CITEMTYPE_BTC);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_SUMMARY_BCH,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().AccountSummary(
+                       bob_nym_id_, proto::CITEMTYPE_BCH);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_SUMMARY_USD,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().AccountSummary(
+                       bob_nym_id_, proto::CITEMTYPE_USD);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+         {ACCOUNT_LIST,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget = bob_->UI().AccountList(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_FALSE(row->Valid());
+
+                   return true;
+               }},
+          }},
+     }},
+};
 
 TEST_F(Test_Basic, instantiate_ui_objects)
 {
-    auto cb1 = [&]() -> bool {
-        const auto& profile = alice_->UI().Profile(alice_nym_id_);
-        auto paymentCode = alice_->Factory().PaymentCode(SeedA_, 0, 1);
-
-        EXPECT_EQ(paymentCode->asBase58(), profile.PaymentCode());
-        EXPECT_STREQ(ALICE, profile.DisplayName().c_str());
-
-        auto row = profile.First();
-
-        EXPECT_FALSE(row->Valid());
-
-        return true;
-    };
-    auto cb2 = [&]() -> bool {
-        const auto& profile = bob_->UI().Profile(bob_nym_id_);
-        auto paymentCode = bob_->Factory().PaymentCode(SeedB_, 0, 1);
-
-        EXPECT_EQ(paymentCode->asBase58(), profile.PaymentCode());
-        EXPECT_STREQ(BOB, profile.DisplayName().c_str());
-
-        auto row = profile.First();
-
-        EXPECT_FALSE(row->Valid());
-
-        return true;
-    };
-    auto cb3 = [&]() -> bool {
-        const auto& contacts = alice_->UI().ContactList(alice_nym_id_);
-        const auto row = contacts.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_TRUE(
-            row->DisplayName() == ALICE || row->DisplayName() == "Owner");
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("ME", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto cb4 = [&]() -> bool {
-        const auto& contacts = bob_->UI().ContactList(bob_nym_id_);
-        const auto row = contacts.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_TRUE(row->DisplayName() == BOB || row->DisplayName() == "Owner");
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("ME", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto cb5 = [&]() -> bool {
-        const auto& list =
-            alice_->UI().PayableList(alice_nym_id_, proto::CITEMTYPE_BTC);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(ALICE, row->DisplayName().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto cb6 = [&]() -> bool {
-        const auto& list =
-            bob_->UI().PayableList(bob_nym_id_, proto::CITEMTYPE_BTC);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(BOB, row->DisplayName().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-
     Lock lock(callback_lock_);
-    auto future1 = add_ui_widget(
+    auto future1 = add_ui_widget_alice(
         PROFILE,
         alice_client_.UI().Profile(alice_nym_id_).WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_,
         2,
-        cb1);
-    auto future2 = add_ui_widget(
+        state_.at(ALICE).at(PROFILE).at(0));
+    auto future2 = add_ui_widget_bob(
         PROFILE,
         bob_client_.UI().Profile(bob_nym_id_).WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_,
         2,
-        cb2);
-    add_ui_widget(
+        state_.at(BOB).at(PROFILE).at(0));
+    add_ui_widget_alice(
         ACTIVITY_SUMMARY,
-        alice_client_.UI().ActivitySummary(alice_nym_id_).WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_);
-    add_ui_widget(
+        alice_client_.UI().ActivitySummary(alice_nym_id_).WidgetID());
+    add_ui_widget_bob(
         ACTIVITY_SUMMARY,
-        bob_client_.UI().ActivitySummary(bob_nym_id_).WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_);
-    auto future3 = add_ui_widget(
-        CONTACTS_LIST,
+        bob_client_.UI().ActivitySummary(bob_nym_id_).WidgetID());
+    auto future3 = add_ui_widget_alice(
+        CONTACT_LIST,
         alice_client_.UI().ContactList(alice_nym_id_).WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_,
         1,
-        cb3);
-    auto future4 = add_ui_widget(
-        CONTACTS_LIST,
+        state_.at(ALICE).at(CONTACT_LIST).at(0));
+    auto future4 = add_ui_widget_bob(
+        CONTACT_LIST,
         bob_client_.UI().ContactList(bob_nym_id_).WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_,
         1,
-        cb4);
-    add_ui_widget(
+        state_.at(BOB).at(CONTACT_LIST).at(0));
+    add_ui_widget_alice(
         PAYABLE_LIST_BCH,
         alice_client_.UI()
             .PayableList(alice_nym_id_, proto::CITEMTYPE_BCH)
-            .WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_);
-    add_ui_widget(
+            .WidgetID());
+    add_ui_widget_bob(
         PAYABLE_LIST_BCH,
         bob_client_.UI()
             .PayableList(bob_nym_id_, proto::CITEMTYPE_BCH)
-            .WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_);
-    auto future5 = add_ui_widget(
+            .WidgetID());
+    auto future5 = add_ui_widget_alice(
         PAYABLE_LIST_BTC,
         alice_client_.UI()
             .PayableList(alice_nym_id_, proto::CITEMTYPE_BTC)
             .WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_,
         1,
-        cb5);
-    auto future6 = add_ui_widget(
+        state_.at(ALICE).at(PAYABLE_LIST_BTC).at(0));
+    auto future6 = add_ui_widget_bob(
         PAYABLE_LIST_BTC,
         bob_client_.UI()
             .PayableList(bob_nym_id_, proto::CITEMTYPE_BTC)
             .WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_,
         1,
-        cb6);
-    add_ui_widget(
+        state_.at(BOB).at(PAYABLE_LIST_BTC).at(0));
+    add_ui_widget_alice(
         ACCOUNT_SUMMARY_BTC,
         alice_client_.UI()
             .AccountSummary(alice_nym_id_, proto::CITEMTYPE_BTC)
-            .WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_);
-    add_ui_widget(
+            .WidgetID());
+    add_ui_widget_bob(
         ACCOUNT_SUMMARY_BTC,
         bob_client_.UI()
             .AccountSummary(bob_nym_id_, proto::CITEMTYPE_BTC)
-            .WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_);
-    add_ui_widget(
+            .WidgetID());
+    add_ui_widget_alice(
         ACCOUNT_SUMMARY_BCH,
         alice_client_.UI()
             .AccountSummary(alice_nym_id_, proto::CITEMTYPE_BCH)
-            .WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_);
-    add_ui_widget(
+            .WidgetID());
+    add_ui_widget_bob(
         ACCOUNT_SUMMARY_BCH,
         bob_client_.UI()
             .AccountSummary(bob_nym_id_, proto::CITEMTYPE_BCH)
-            .WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_);
-    add_ui_widget(
+            .WidgetID());
+    add_ui_widget_alice(
+        ACCOUNT_SUMMARY_USD,
+        alice_client_.UI()
+            .AccountSummary(alice_nym_id_, proto::CITEMTYPE_USD)
+            .WidgetID());
+    add_ui_widget_bob(
+        ACCOUNT_SUMMARY_USD,
+        bob_client_.UI()
+            .AccountSummary(bob_nym_id_, proto::CITEMTYPE_USD)
+            .WidgetID());
+    add_ui_widget_alice(
         MESSAGABLE_LIST,
-        alice_client_.UI().MessagableList(alice_nym_id_).WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_);
-    add_ui_widget(
+        alice_client_.UI().MessagableList(alice_nym_id_).WidgetID());
+    add_ui_widget_bob(
         MESSAGABLE_LIST,
-        bob_client_.UI().MessagableList(bob_nym_id_).WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_);
-    add_ui_widget(
-        ACCOUNT_LIST,
-        alice_client_.UI().AccountList(alice_nym_id_).WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_);
-    add_ui_widget(
-        ACCOUNT_LIST,
-        bob_client_.UI().AccountList(bob_nym_id_).WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_);
+        bob_client_.UI().MessagableList(bob_nym_id_).WidgetID());
+    add_ui_widget_alice(
+        ACCOUNT_LIST, alice_client_.UI().AccountList(alice_nym_id_).WidgetID());
+    add_ui_widget_bob(
+        ACCOUNT_LIST, bob_client_.UI().AccountList(bob_nym_id_).WidgetID());
 
-    EXPECT_EQ(9, alice_widget_map_.size());
-    EXPECT_EQ(9, alice_ui_names_.size());
-    EXPECT_EQ(9, bob_widget_map_.size());
-    EXPECT_EQ(9, bob_ui_names_.size());
+    EXPECT_EQ(10, alice_widget_map_.size());
+    EXPECT_EQ(10, alice_ui_names_.size());
+    EXPECT_EQ(10, bob_widget_map_.size());
+    EXPECT_EQ(10, bob_ui_names_.size());
 
     lock.unlock();
 
@@ -557,82 +1337,23 @@ TEST_F(Test_Basic, instantiate_ui_objects)
     EXPECT_TRUE(future6.get());
 }
 
-TEST_F(Test_Basic, initial_messagable_list_alice)
+TEST_F(Test_Basic, initial_state)
 {
-    const auto& list = alice_->UI().MessagableList(alice_nym_id_);
-    auto row = list.First();
+    EXPECT_TRUE(state_.at(ALICE).at(ACTIVITY_SUMMARY).at(0)());
+    EXPECT_TRUE(state_.at(ALICE).at(MESSAGABLE_LIST).at(0)());
+    EXPECT_TRUE(state_.at(ALICE).at(PAYABLE_LIST_BCH).at(0)());
+    EXPECT_TRUE(state_.at(ALICE).at(ACCOUNT_SUMMARY_BTC).at(0)());
+    EXPECT_TRUE(state_.at(ALICE).at(ACCOUNT_SUMMARY_BCH).at(0)());
+    EXPECT_TRUE(state_.at(ALICE).at(ACCOUNT_SUMMARY_USD).at(0)());
+    EXPECT_TRUE(state_.at(ALICE).at(ACCOUNT_LIST).at(0)());
 
-    EXPECT_FALSE(row->Valid());
-}
-
-TEST_F(Test_Basic, initial_messagable_list_bob)
-{
-    const auto& list = bob_->UI().MessagableList(bob_nym_id_);
-    auto row = list.First();
-
-    EXPECT_FALSE(row->Valid());
-}
-
-TEST_F(Test_Basic, initial_activity_summary_alice)
-{
-    const auto& summary = alice_->UI().ActivitySummary(alice_nym_id_);
-    auto row = summary.First();
-
-    EXPECT_FALSE(row->Valid());
-}
-
-TEST_F(Test_Basic, initial_activity_summary_bob)
-{
-    const auto& summary = bob_->UI().ActivitySummary(bob_nym_id_);
-    auto row = summary.First();
-
-    EXPECT_FALSE(row->Valid());
-}
-
-TEST_F(Test_Basic, initial_account_summary_alice)
-{
-    const auto& btc =
-        alice_->UI().AccountSummary(alice_nym_id_, proto::CITEMTYPE_BTC);
-    auto row = btc.First();
-
-    EXPECT_FALSE(row->Valid());
-
-    const auto& bch =
-        alice_->UI().AccountSummary(alice_nym_id_, proto::CITEMTYPE_BCH);
-    row = bch.First();
-
-    EXPECT_FALSE(row->Valid());
-}
-
-TEST_F(Test_Basic, initial_account_summary_bob)
-{
-    const auto& btc =
-        bob_->UI().AccountSummary(bob_nym_id_, proto::CITEMTYPE_BTC);
-    auto row = btc.First();
-
-    EXPECT_FALSE(row->Valid());
-
-    const auto& bch =
-        bob_->UI().AccountSummary(bob_nym_id_, proto::CITEMTYPE_BCH);
-    row = bch.First();
-
-    EXPECT_FALSE(row->Valid());
-}
-
-TEST_F(Test_Basic, initial_account_list_alice)
-{
-    const auto& list = alice_->UI().AccountList(alice_nym_id_);
-    auto row = list.First();
-
-    EXPECT_FALSE(row->Valid());
-}
-
-TEST_F(Test_Basic, initial_account_list_bob)
-{
-    const auto& list = bob_->UI().AccountList(bob_nym_id_);
-    auto row = list.First();
-
-    EXPECT_FALSE(row->Valid());
+    EXPECT_TRUE(state_.at(BOB).at(ACTIVITY_SUMMARY).at(0)());
+    EXPECT_TRUE(state_.at(BOB).at(MESSAGABLE_LIST).at(0)());
+    EXPECT_TRUE(state_.at(BOB).at(PAYABLE_LIST_BCH).at(0)());
+    EXPECT_TRUE(state_.at(BOB).at(ACCOUNT_SUMMARY_BTC).at(0)());
+    EXPECT_TRUE(state_.at(BOB).at(ACCOUNT_SUMMARY_BCH).at(0)());
+    EXPECT_TRUE(state_.at(BOB).at(ACCOUNT_SUMMARY_USD).at(0)());
+    EXPECT_TRUE(state_.at(BOB).at(ACCOUNT_LIST).at(0)());
 }
 
 TEST_F(Test_Basic, payment_codes)
@@ -706,98 +1427,14 @@ TEST_F(Test_Basic, add_contact_preconditions)
 
 TEST_F(Test_Basic, add_contact_Bob_To_Alice)
 {
-    auto contactListCallback = [&]() -> bool {
-        const auto& contacts = alice_->UI().ContactList(alice_nym_id_);
-        auto row = contacts.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("ME", row->Section().c_str());
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = contacts.Next();
-
-        EXPECT_STREQ(row->DisplayName().c_str(), BOB);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("B", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        // We need this later
-        contact_id_alice_bob_->SetString(row->ContactID());
-
-        EXPECT_FALSE(contact_id_alice_bob_->empty());
-
-        return true;
-    };
-    auto payableListBTCCallback = [&]() -> bool {
-        const auto& list =
-            alice_->UI().PayableList(alice_nym_id_, proto::CITEMTYPE_BTC);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(ALICE, row->DisplayName().c_str());
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = list.Next();
-
-        EXPECT_STREQ(BOB, row->DisplayName().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto payableListBCHCallback = [&]() -> bool {
-        const auto& list =
-            alice_->UI().PayableList(alice_nym_id_, proto::CITEMTYPE_BCH);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(BOB, row->DisplayName().c_str());
-        EXPECT_TRUE(row->Last());
-
-        // TODO why isn't Alice in this list?
-
-        return true;
-    };
-    auto messagableListCallback = [&]() -> bool {
-        const auto& list = alice_->UI().MessagableList(alice_nym_id_);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(row->DisplayName().c_str(), BOB);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("B", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto contactListDone =
-        set_callback_alice(CONTACTS_LIST, 2, contactListCallback);
-    auto payableBTCListDone =
-        set_callback_alice(PAYABLE_LIST_BTC, 2, payableListBTCCallback);
-    auto payableBCHListDone =
-        set_callback_alice(PAYABLE_LIST_BCH, 1, payableListBCHCallback);
-    auto messagableListDone =
-        set_callback_alice(MESSAGABLE_LIST, 1, messagableListCallback);
+    auto contactListDone = set_callback_alice(
+        CONTACT_LIST, 2, state_.at(ALICE).at(CONTACT_LIST).at(1));
+    auto payableBTCListDone = set_callback_alice(
+        PAYABLE_LIST_BTC, 2, state_.at(ALICE).at(PAYABLE_LIST_BTC).at(1));
+    auto payableBCHListDone = set_callback_alice(
+        PAYABLE_LIST_BCH, 1, state_.at(ALICE).at(PAYABLE_LIST_BCH).at(1));
+    auto messagableListDone = set_callback_alice(
+        MESSAGABLE_LIST, 1, state_.at(ALICE).at(MESSAGABLE_LIST).at(1));
 
     // Add the contact
     alice_->UI()
@@ -812,29 +1449,17 @@ TEST_F(Test_Basic, add_contact_Bob_To_Alice)
 
 TEST_F(Test_Basic, activity_thread_alice_bob)
 {
-    auto callback = [&]() -> bool {
-        const auto& thread =
-            alice_->UI().ActivityThread(alice_nym_id_, contact_id_alice_bob_);
-        auto row = thread.First();
-
-        EXPECT_FALSE(row->Valid());
-
-        return true;
-    };
-
     Lock lock(callback_lock_);
-    auto done = add_ui_widget(
+    auto done = add_ui_widget_alice(
         ACTIVITY_THREAD_ALICE_BOB,
         alice_client_.UI()
             .ActivityThread(alice_nym_id_, contact_id_alice_bob_)
             .WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_,
         2,
-        callback);
+        state_.at(ALICE).at(ACTIVITY_THREAD_ALICE_BOB).at(0));
 
-    EXPECT_EQ(10, alice_widget_map_.size());
-    EXPECT_EQ(10, alice_ui_names_.size());
+    EXPECT_EQ(11, alice_widget_map_.size());
+    EXPECT_EQ(11, alice_ui_names_.size());
 
     lock.unlock();
 
@@ -852,146 +1477,22 @@ TEST_F(Test_Basic, send_message_from_Alice_to_Bob_1)
     auto& firstMessage = message_[messageID];
     firstMessage = text.str();
 
-    auto aliceActivitySummaryCallback = [&]() -> bool {
-        const auto& summary = alice_->UI().ActivitySummary(alice_nym_id_);
-        auto row = summary.First();
-
-        EXPECT_TRUE(row->Valid());
-        EXPECT_EQ(row->DisplayName(), BOB);
-        EXPECT_EQ(row->ImageURI(), "");
-        EXPECT_EQ(row->Text(), firstMessage);
-        EXPECT_FALSE(row->ThreadID().empty());
-        EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto bobActivitySummaryCallback = [&]() -> bool {
-        const auto& summary = bob_->UI().ActivitySummary(bob_nym_id_);
-        auto row = summary.First();
-
-        EXPECT_TRUE(row->Valid());
-        EXPECT_EQ(row->DisplayName(), ALICE);
-        EXPECT_EQ(row->ImageURI(), "");
-        EXPECT_EQ(row->Text(), firstMessage);
-        EXPECT_FALSE(row->ThreadID().empty());
-        EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto aliceActivityThreadCallback = [&]() -> bool {
-        const auto& thread =
-            alice_->UI().ActivityThread(alice_nym_id_, contact_id_alice_bob_);
-        auto row = thread.First();
-
-        EXPECT_TRUE(row->Valid());
-        EXPECT_EQ(row->Amount(), 0);
-        EXPECT_EQ(row->DisplayAmount(), "");
-        EXPECT_FALSE(row->Loading());
-        EXPECT_EQ(row->Memo(), "");
-        EXPECT_FALSE(row->Pending());
-        EXPECT_EQ(row->Text(), firstMessage);
-        EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto bobContactListCallback = [&]() -> bool {
-        const auto& contacts = bob_->UI().ContactList(bob_nym_id_);
-        auto row = contacts.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(row->DisplayName().c_str(), BOB);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("ME", row->Section().c_str());
-        EXPECT_FALSE(row->Last());
-
-        row = contacts.Next();
-
-        EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("A", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        contact_id_bob_alice_->SetString(row->ContactID());
-
-        EXPECT_FALSE(contact_id_bob_alice_->empty());
-
-        return true;
-    };
-    auto bobMessagableListCallback = [&]() -> bool {
-        const auto& list = bob_->UI().MessagableList(bob_nym_id_);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("A", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto bobPayableListBTCCallback = [&]() -> bool {
-        const auto& list =
-            bob_->UI().PayableList(bob_nym_id_, proto::CITEMTYPE_BTC);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(ALICE, row->DisplayName().c_str());
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = list.Next();
-
-        EXPECT_STREQ(BOB, row->DisplayName().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto bobPayableListBCHCallback = [&]() -> bool {
-        const auto& list =
-            bob_->UI().PayableList(bob_nym_id_, proto::CITEMTYPE_BCH);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(ALICE, row->DisplayName().c_str());
-        EXPECT_TRUE(row->Last());
-
-        // TODO why isn't Bob in this list?
-
-        return true;
-    };
-    auto aliceActivitySummaryDone =
-        set_callback_alice(ACTIVITY_SUMMARY, 2, aliceActivitySummaryCallback);
-    auto bobActivitySummaryDone =
-        set_callback_bob(ACTIVITY_SUMMARY, 2, bobActivitySummaryCallback);
+    auto aliceActivitySummaryDone = set_callback_alice(
+        ACTIVITY_SUMMARY, 2, state_.at(ALICE).at(ACTIVITY_SUMMARY).at(1));
+    auto bobActivitySummaryDone = set_callback_bob(
+        ACTIVITY_SUMMARY, 2, state_.at(BOB).at(ACTIVITY_SUMMARY).at(1));
     auto aliceActivityThreadDone = set_callback_alice(
-        ACTIVITY_THREAD_ALICE_BOB, 7, aliceActivityThreadCallback);
-    auto bobContactListDone =
-        set_callback_bob(CONTACTS_LIST, 3, bobContactListCallback);
-    auto bobMessagableListDone =
-        set_callback_bob(MESSAGABLE_LIST, 2, bobMessagableListCallback);
-    auto bobPayableListBTCDone =
-        set_callback_bob(PAYABLE_LIST_BTC, 1, bobPayableListBTCCallback);
-    auto bobPayableListBCHDone =
-        set_callback_bob(PAYABLE_LIST_BCH, 1, bobPayableListBCHCallback);
+        ACTIVITY_THREAD_ALICE_BOB,
+        7,
+        state_.at(ALICE).at(ACTIVITY_THREAD_ALICE_BOB).at(1));
+    auto bobContactListDone = set_callback_bob(
+        CONTACT_LIST, 3, state_.at(BOB).at(CONTACT_LIST).at(1));
+    auto bobMessagableListDone = set_callback_bob(
+        MESSAGABLE_LIST, 2, state_.at(BOB).at(MESSAGABLE_LIST).at(1));
+    auto bobPayableListBTCDone = set_callback_bob(
+        PAYABLE_LIST_BTC, 1, state_.at(BOB).at(PAYABLE_LIST_BTC).at(1));
+    auto bobPayableListBCHDone = set_callback_bob(
+        PAYABLE_LIST_BCH, 1, state_.at(BOB).at(PAYABLE_LIST_BCH).at(1));
 
     const auto& conversation =
         from_client.UI().ActivityThread(alice_nym_id_, contact_id_alice_bob_);
@@ -1013,36 +1514,17 @@ TEST_F(Test_Basic, send_message_from_Alice_to_Bob_1)
 
 TEST_F(Test_Basic, activity_thread_bob_alice)
 {
-    auto callback = [&]() -> bool {
-        const auto& thread =
-            bob_->UI().ActivityThread(bob_nym_id_, contact_id_bob_alice_);
-        auto row = thread.First();
-
-        EXPECT_TRUE(row->Valid());
-        EXPECT_EQ(row->Amount(), 0);
-        EXPECT_EQ(row->DisplayAmount(), "");
-        EXPECT_FALSE(row->Loading());
-        EXPECT_EQ(row->Memo(), "");
-        EXPECT_FALSE(row->Pending());
-        EXPECT_EQ(row->Text(), message_.at(msg_count_));
-        EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
-
-        return true;
-    };
-
     Lock lock(callback_lock_);
-    auto done = add_ui_widget(
+    auto done = add_ui_widget_bob(
         ACTIVITY_THREAD_BOB_ALICE,
         bob_client_.UI()
             .ActivityThread(bob_nym_id_, contact_id_bob_alice_)
             .WidgetID(),
-        bob_widget_map_,
-        bob_ui_names_,
         2,
-        callback);
+        state_.at(BOB).at(ACTIVITY_THREAD_BOB_ALICE).at(0));
 
-    EXPECT_EQ(10, bob_widget_map_.size());
-    EXPECT_EQ(10, bob_ui_names_.size());
+    EXPECT_EQ(11, bob_widget_map_.size());
+    EXPECT_EQ(11, bob_ui_names_.size());
 
     lock.unlock();
 
@@ -1061,118 +1543,18 @@ TEST_F(Test_Basic, send_message_from_Bob_to_Alice_2)
     auto& secondMessage = message_[messageID];
     secondMessage = text.str();
 
-    auto aliceActivitySummaryCallback = [&]() -> bool {
-        const auto& summary = alice_->UI().ActivitySummary(alice_nym_id_);
-        auto row = summary.First();
-
-        EXPECT_TRUE(row->Valid());
-        EXPECT_EQ(row->DisplayName(), BOB);
-        EXPECT_EQ(row->ImageURI(), "");
-        EXPECT_EQ(row->Text(), secondMessage);
-        EXPECT_FALSE(row->ThreadID().empty());
-        EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto bobActivitySummaryCallback = [&]() -> bool {
-        const auto& summary = bob_->UI().ActivitySummary(bob_nym_id_);
-        auto row = summary.First();
-
-        EXPECT_TRUE(row->Valid());
-        EXPECT_EQ(row->DisplayName(), ALICE);
-        EXPECT_EQ(row->ImageURI(), "");
-        EXPECT_EQ(row->Text(), secondMessage);
-        EXPECT_FALSE(row->ThreadID().empty());
-        EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto aliceActivityThreadCallback = [&]() -> bool {
-        const auto& thread =
-            alice_->UI().ActivityThread(alice_nym_id_, contact_id_alice_bob_);
-        auto row = thread.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_EQ(row->Amount(), 0);
-        EXPECT_EQ(row->DisplayAmount(), "");
-        EXPECT_FALSE(row->Loading());
-        EXPECT_EQ(row->Memo(), "");
-        EXPECT_FALSE(row->Pending());
-        EXPECT_EQ(row->Text(), firstMessage);
-        EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = thread.Next();
-
-        EXPECT_EQ(row->Amount(), 0);
-        EXPECT_EQ(row->DisplayAmount(), "");
-        EXPECT_FALSE(row->Loading());
-        EXPECT_EQ(row->Memo(), "");
-        EXPECT_FALSE(row->Pending());
-        EXPECT_EQ(row->Text(), secondMessage);
-        EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto bobActivityThreadCallback = [&]() -> bool {
-        const auto& thread =
-            bob_->UI().ActivityThread(bob_nym_id_, contact_id_bob_alice_);
-        auto row = thread.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_EQ(row->Amount(), 0);
-        EXPECT_EQ(row->DisplayAmount(), "");
-        EXPECT_FALSE(row->Loading());
-        EXPECT_EQ(row->Memo(), "");
-        EXPECT_FALSE(row->Pending());
-        EXPECT_EQ(row->Text(), firstMessage);
-        EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = thread.Next();
-
-        bool loading{true};
-
-        // This allows the test to work correctly in valgrind when loading
-        // is unusually slow
-        while (loading) {
-            row = thread.First();
-            row = thread.Next();
-            loading = row->Loading();
-        }
-
-        EXPECT_EQ(row->Amount(), 0);
-        EXPECT_EQ(row->DisplayAmount(), "");
-        EXPECT_FALSE(row->Loading());
-        EXPECT_EQ(row->Memo(), "");
-        EXPECT_FALSE(row->Pending());
-        EXPECT_EQ(row->Text(), secondMessage);
-        EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto aliceActivitySummaryDone =
-        set_callback_alice(ACTIVITY_SUMMARY, 4, aliceActivitySummaryCallback);
+    auto aliceActivitySummaryDone = set_callback_alice(
+        ACTIVITY_SUMMARY, 4, state_.at(ALICE).at(ACTIVITY_SUMMARY).at(2));
     auto aliceActivityThreadDone = set_callback_alice(
-        ACTIVITY_THREAD_ALICE_BOB, 10, aliceActivityThreadCallback);
-    auto bobActivitySummaryDone =
-        set_callback_bob(ACTIVITY_SUMMARY, 4, bobActivitySummaryCallback);
+        ACTIVITY_THREAD_ALICE_BOB,
+        10,
+        state_.at(ALICE).at(ACTIVITY_THREAD_ALICE_BOB).at(2));
+    auto bobActivitySummaryDone = set_callback_bob(
+        ACTIVITY_SUMMARY, 4, state_.at(BOB).at(ACTIVITY_SUMMARY).at(2));
     auto bobActivityThreadDone = set_callback_bob(
-        ACTIVITY_THREAD_BOB_ALICE, 7, bobActivityThreadCallback);
+        ACTIVITY_THREAD_BOB_ALICE,
+        7,
+        state_.at(BOB).at(ACTIVITY_THREAD_BOB_ALICE).at(1));
 
     const auto& conversation =
         from_client.UI().ActivityThread(bob_nym_id_, contact_id_bob_alice_);
@@ -1252,95 +1634,14 @@ TEST_F(Test_Basic, add_alice_contact_to_issuer)
 
 TEST_F(Test_Basic, pay_alice)
 {
-    auto contactListCallback = [&]() -> bool {
-        const auto& contacts = alice_->UI().ContactList(alice_nym_id_);
-        auto row = contacts.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(row->DisplayName().c_str(), ALICE);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("ME", row->Section().c_str());
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = contacts.Next();
-
-        EXPECT_STREQ(row->DisplayName().c_str(), BOB);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("B", row->Section().c_str());
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = contacts.Next();
-
-        EXPECT_STREQ(row->DisplayName().c_str(), ISSUER);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("I", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        contact_id_alice_issuer_->SetString(row->ContactID());
-
-        EXPECT_FALSE(contact_id_alice_issuer_->empty());
-
-        return true;
-    };
-    auto messagableListCallback = [&]() -> bool {
-        const auto& list = alice_->UI().MessagableList(alice_nym_id_);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(row->DisplayName().c_str(), BOB);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("B", row->Section().c_str());
-        EXPECT_FALSE(row->Last());
-
-        if (row->Last()) { return false; }
-
-        row = list.Next();
-
-        EXPECT_STREQ(row->DisplayName().c_str(), ISSUER);
-        EXPECT_TRUE(row->Valid());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("I", row->Section().c_str());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto activitySummaryCallback = [&]() -> bool {
-        const auto& list = alice_->UI().ActivitySummary(alice_nym_id_);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_STREQ(ISSUER, row->DisplayName().c_str());
-        EXPECT_STREQ("", row->ImageURI().c_str());
-        EXPECT_STREQ("Received cheque", row->Text().c_str());
-        EXPECT_FALSE(row->ThreadID().empty());
-        EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
-
-        return true;
-    };
-
-    auto contactListDone =
-        set_callback_alice(CONTACTS_LIST, 6, contactListCallback);
-    auto messagableListDone =
-        set_callback_alice(MESSAGABLE_LIST, 3, messagableListCallback);
-    auto activitySummaryDone =
-        set_callback_alice(ACTIVITY_SUMMARY, 6, activitySummaryCallback);
+    auto contactListDone = set_callback_alice(
+        CONTACT_LIST, 6, state_.at(ALICE).at(CONTACT_LIST).at(2));
+    auto messagableListDone = set_callback_alice(
+        MESSAGABLE_LIST, 3, state_.at(ALICE).at(MESSAGABLE_LIST).at(2));
+    auto activitySummaryDone = set_callback_alice(
+        ACTIVITY_SUMMARY, 6, state_.at(ALICE).at(ACTIVITY_SUMMARY).at(3));
+    auto payableBCHListDone = set_callback_alice(
+        PAYABLE_LIST_BCH, 1, state_.at(ALICE).at(PAYABLE_LIST_BCH).at(2));
 
     auto task = issuer_client_.OTX().SendCheque(
         issuer_nym_id_,
@@ -1359,72 +1660,24 @@ TEST_F(Test_Basic, pay_alice)
     EXPECT_TRUE(contactListDone.get());
     EXPECT_TRUE(messagableListDone.get());
     EXPECT_TRUE(activitySummaryDone.get());
+    EXPECT_TRUE(payableBCHListDone.get());
 }
 
 TEST_F(Test_Basic, deposit_cheque_alice)
 {
-    auto activityThreadCallback = [&]() -> bool {
-        const auto& thread = alice_->UI().ActivityThread(
-            alice_nym_id_, contact_id_alice_issuer_);
-        auto row = thread.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        bool loading{true};
-
-        // This allows the test to work correctly in valgrind when loading
-        // is unusually slow
-        while (loading) {
-            row = thread.First();
-            loading = row->Loading();
-        }
-
-        EXPECT_EQ(CHEQUE_AMOUNT_1, row->Amount());
-        EXPECT_FALSE(row->Loading());
-        EXPECT_STREQ(CHEQUE_MEMO, row->Memo().c_str());
-        EXPECT_FALSE(row->Pending());
-        EXPECT_STREQ("Received cheque for dollars 1.00", row->Text().c_str());
-        EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
-        EXPECT_TRUE(row->Last());
-
-        return true;
-    };
-    auto accoutListCallback = [&]() -> bool {
-        const auto& list = alice_->UI().AccountList(alice_nym_id_);
-        auto row = list.First();
-
-        EXPECT_TRUE(row->Valid());
-
-        if (false == row->Valid()) { return false; }
-
-        EXPECT_TRUE(alice_account_id_->empty());
-
-        alice_account_id_->SetString(row->AccountID());
-
-        EXPECT_FALSE(alice_account_id_->empty());
-        EXPECT_EQ(unit_id_->str(), row->ContractID());
-        EXPECT_STREQ("dollars 1.00", row->DisplayBalance().c_str());
-        EXPECT_STREQ("", row->Name().c_str());
-        EXPECT_EQ(server_1_id_->str(), row->NotaryID());
-        EXPECT_EQ(server_contract_->EffectiveName(), row->NotaryName());
-        EXPECT_EQ(AccountType::Custodial, row->Type());
-        EXPECT_EQ(proto::CITEMTYPE_USD, row->Unit());
-
-        return true;
-    };
-    auto activityThreadDone = add_ui_widget(
-        ACTIVITY_THREAD_ISSUER,
+    auto activityThreadDone = add_ui_widget_alice(
+        ACTIVITY_THREAD_ALICE_ISSUER,
         alice_client_.UI()
             .ActivityThread(alice_nym_id_, contact_id_alice_issuer_)
             .WidgetID(),
-        alice_widget_map_,
-        alice_ui_names_,
-        2,
-        activityThreadCallback);
-    auto accountListDone =
-        set_callback_alice(ACCOUNT_LIST, 4, accoutListCallback);
+        3,
+        state_.at(ALICE).at(ACTIVITY_THREAD_ALICE_ISSUER).at(0));
+
+    EXPECT_EQ(12, alice_widget_map_.size());
+    EXPECT_EQ(12, alice_ui_names_.size());
+
+    auto accountListDone = set_callback_alice(
+        ACCOUNT_LIST, 4, state_.at(ALICE).at(ACCOUNT_LIST).at(1));
 
     EXPECT_TRUE(activityThreadDone.get());
 
@@ -1437,6 +1690,22 @@ TEST_F(Test_Basic, deposit_cheque_alice)
     EXPECT_TRUE(accountListDone.get());
 
     alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
+}
+
+TEST_F(Test_Basic, account_activity_alice)
+{
+    auto accountActivityDone = add_ui_widget_alice(
+        ACCOUNT_ACTIVITY_USD,
+        alice_client_.UI()
+            .AccountActivity(alice_nym_id_, alice_account_id_)
+            .WidgetID(),
+        4,
+        state_.at(ALICE).at(ACCOUNT_ACTIVITY_USD).at(0));
+
+    EXPECT_EQ(13, alice_widget_map_.size());
+    EXPECT_EQ(13, alice_ui_names_.size());
+
+    EXPECT_TRUE(accountActivityDone.get());
 }
 
 TEST_F(Test_Basic, shutdown)
