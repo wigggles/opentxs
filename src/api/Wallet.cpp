@@ -39,6 +39,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/Types.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -113,6 +114,8 @@ Wallet::Wallet(const api::Core& core)
     , dht_nym_requester_{api_.ZeroMQ().RequestSocket()}
     , dht_server_requester_{api_.ZeroMQ().RequestSocket()}
     , dht_unit_requester_{api_.ZeroMQ().RequestSocket()}
+    , find_nym_(api_.ZeroMQ().PushSocket(
+          opentxs::network::zeromq::Socket::Direction::Connect))
 {
     account_publisher_->Start(api_.Endpoints().AccountUpdate());
     issuer_publisher_->Start(api_.Endpoints().IssuerUpdate());
@@ -123,6 +126,7 @@ Wallet::Wallet(const api::Core& core)
     dht_nym_requester_->Start(api_.Endpoints().DhtRequestNym());
     dht_server_requester_->Start(api_.Endpoints().DhtRequestServer());
     dht_unit_requester_->Start(api_.Endpoints().DhtRequestUnit());
+    find_nym_->Start(api_.Endpoints().FindNym());
 }
 
 Wallet::AccountLock& Wallet::account(
@@ -2306,8 +2310,10 @@ ConstUnitDefinition Wallet::UnitDefinition(
 ConstUnitDefinition Wallet::UnitDefinition(
     const proto::UnitDefinition& contract) const
 {
-    std::string unit = contract.id();
-    auto nym = Nym(Identifier::Factory(contract.nymid()));
+    const std::string unit = contract.id();
+    const auto nymID = identifier::Nym::Factory(contract.nymid());
+    find_nym_->Push(nymID->str());
+    auto nym = Nym(nymID);
 
     if (!nym && contract.has_publicnym()) { nym = Nym(contract.publicnym()); }
 

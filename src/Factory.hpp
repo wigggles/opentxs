@@ -308,6 +308,14 @@ public:
         const api::Core& api,
         const ConstNym& recipientNym,
         const Armored& encrypted);
+    static ui::implementation::ActivityThreadRowInternal* PendingSend(
+        const ui::implementation::ActivityThreadInternalInterface& parent,
+        const api::client::Manager& api,
+        const network::zeromq::PublishSocket& publisher,
+        const Identifier& nymID,
+        const ui::implementation::ActivityThreadRowID& rowID,
+        const ui::implementation::ActivityThreadSortKey& sortKey,
+        const ui::implementation::CustomData& custom);
     static opentxs::PIDFile* PIDFile(const std::string& path);
     static ui::implementation::ProfileExternalInterface* ProfileWidget(
         const api::client::Manager& api,

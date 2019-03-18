@@ -9,8 +9,11 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -158,6 +161,12 @@ void ActivityThread::construct_row(
                 Factory::PaymentItem(
                     *this, api_, publisher_, nym_id_, id, index, custom));
         } break;
+        case StorageBox::PENDING_SEND: {
+            items_[index].emplace(
+                id,
+                Factory::PendingSend(
+                    *this, api_, publisher_, nym_id_, id, index, custom));
+        } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
         case StorageBox::SENTPEERREPLY:
@@ -275,6 +284,33 @@ std::string ActivityThread::Participants() const
     return comma(ids);
 }
 
+bool ActivityThread::Pay(
+    const Amount amount,
+    const Identifier& sourceAccount,
+    const std::string& memo,
+    const PaymentType type) const
+{
+    if (0 >= amount) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid amount: (")(amount)(")")
+            .Flush();
+
+        return false;
+    }
+
+    switch (type) {
+        case PaymentType::Cheque: {
+            return send_cheque(amount, sourceAccount, memo);
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported payment type: (")(
+                static_cast<int>(type))(")")
+                .Flush();
+
+            return false;
+        }
+    }
+}
+
 std::string ActivityThread::PaymentCode(
     const proto::ContactItemType currency) const
 {
@@ -287,14 +323,13 @@ std::string ActivityThread::PaymentCode(
 
 void ActivityThread::process_draft(const network::zeromq::Message&)
 {
-    eLock lock(draft_lock_, std::defer_lock);
+    eLock lock(draft_lock_);
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Checking ")(draft_tasks_.size())(
         " pending sends.")
         .Flush();
     std::vector<ActivityThreadRowID> deleted{};
 
     for (auto i = draft_tasks_.begin(); i != draft_tasks_.end();) {
-        lock.lock();
         auto& [rowID, backgroundTask] = *i;
         auto& future = std::get<1>(backgroundTask);
         const auto status = future.wait_for(std::chrono::milliseconds(1));
@@ -306,18 +341,13 @@ void ActivityThread::process_draft(const network::zeromq::Message&)
         } else {
             ++i;
         }
-
-        lock.unlock();
     }
 
-    for (const auto& id : deleted) {
-        Lock widgetLock(lock_);
-        delete_item(widgetLock, id);
-    }
+    Lock widgetLock(lock_);
+
+    for (const auto& id : deleted) { delete_item(widgetLock, id); }
 
     if (0 < deleted.size()) { UpdateNotify(); }
-
-    lock.lock();
 
     if (0 < draft_tasks_.size()) { queue_push_->Push(""); }
 }
@@ -327,8 +357,7 @@ ActivityThreadRowID ActivityThread::process_item(
 {
     const ActivityThreadRowID id{Identifier::Factory(item.id()),
                                  static_cast<StorageBox>(item.box()),
-                                 Identifier::Factory(item.account()),
-                                 0};
+                                 Identifier::Factory(item.account())};
     const ActivityThreadSortKey key{std::chrono::seconds(item.time()),
                                     item.index()};
     const CustomData custom{new std::string};
@@ -368,14 +397,79 @@ bool ActivityThread::same(
     const ActivityThreadRowID& lhs,
     const ActivityThreadRowID& rhs) const
 {
-    const auto& [lID, lBox, lAccount, lTask] = lhs;
-    const auto& [rID, rBox, rAccount, rTask] = rhs;
+    const auto& [lID, lBox, lAccount] = lhs;
+    const auto& [rID, rBox, rAccount] = rhs;
     const bool sameID = (lID->str() == rID->str());
     const bool sameBox = (lBox == rBox);
     const bool sameAccount = (lAccount->str() == rAccount->str());
-    const bool sametask = (lTask == rTask);
 
-    return sameID && sameBox && sameAccount && sametask;
+    return sameID && sameBox && sameAccount;
+}
+
+bool ActivityThread::send_cheque(
+    const Amount amount,
+    const Identifier& sourceAccount,
+    const std::string& memo) const
+{
+    if (false == validate_account(sourceAccount)) { return false; }
+
+    if (participants_.empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No recipients.").Flush();
+
+        return false;
+    }
+
+    if (1 < participants_.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Sending to multiple recipient not yet supported.")
+            .Flush();
+
+        return false;
+    }
+
+    const auto contract = api_.Wallet().UnitDefinition(
+        api_.Storage().AccountContract(sourceAccount));
+
+    if (false == bool(contract)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to load unit definition contract")
+            .Flush();
+
+        return false;
+    }
+
+    std::string displayAmount{};
+    contract->FormatAmountLocale(amount, displayAmount, ",", ".");
+    auto task = make_blank<DraftTask>::value();
+    auto& [id, otx] = task;
+    otx = api_.OTX().SendCheque(
+        nym_id_, sourceAccount, *participants_.begin(), amount, memo);
+    const auto taskID = std::get<0>(otx);
+
+    if (0 == taskID) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to queue payment for sending.")
+            .Flush();
+
+        return false;
+    }
+
+    id = ActivityThreadRowID{
+        Identifier::Random(), StorageBox::PENDING_SEND, Identifier::Factory()};
+    const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
+    const CustomData custom{new std::string{"Sending cheque"},
+                            new Amount{amount},
+                            new std::string{displayAmount},
+                            new std::string{memo}};
+    const_cast<ActivityThread&>(*this).add_item(id, key, custom);
+
+    OT_ASSERT(1 == items_.count(key));
+    OT_ASSERT(1 == names_.count(id));
+
+    draft_tasks_.emplace_back(std::move(task));
+    queue_push_->Push("");
+
+    return true;
 }
 
 bool ActivityThread::SendDraft() const
@@ -416,10 +510,8 @@ bool ActivityThread::SendDraft() const
         return false;
     }
 
-    auto fakeItemID = Identifier::Factory();
-    fakeItemID->CalculateDigest(String::Factory(std::to_string(taskID)));
     id = ActivityThreadRowID{
-        fakeItemID, StorageBox::DRAFT, Identifier::Factory(), taskID};
+        Identifier::Random(), StorageBox::DRAFT, Identifier::Factory()};
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
     const CustomData custom{new std::string(draft_)};
     const_cast<ActivityThread&>(*this).add_item(id, key, custom);
@@ -462,6 +554,29 @@ std::string ActivityThread::ThreadID() const
     Lock lock(lock_);
 
     return threadID_->str();
+}
+
+bool ActivityThread::validate_account(const Identifier& sourceAccount) const
+{
+    const auto owner = api_.Storage().AccountOwner(sourceAccount);
+
+    if (owner->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account id: (")(
+            sourceAccount)(")")
+            .Flush();
+
+        return false;
+    }
+
+    if (nym_id_ != owner) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Account ")(sourceAccount)(
+            " is not owned by nym ")(nym_id_)
+            .Flush();
+
+        return false;
+    }
+
+    return true;
 }
 
 ActivityThread::~ActivityThread()

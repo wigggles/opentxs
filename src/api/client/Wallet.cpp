@@ -14,6 +14,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 
 #include "api/Wallet.hpp"
 

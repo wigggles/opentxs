@@ -37,6 +37,7 @@ using namespace opentxs;
 #define UNIT_DEFINITION_POWER 2
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME "cents"
 #define CHEQUE_AMOUNT_1 100
+#define CHEQUE_AMOUNT_2 75
 #define CHEQUE_MEMO "memo"
 
 #define OT_METHOD "::Test_Basic::"
@@ -669,6 +670,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                }},
               {3,
                []() -> bool {
+                   const auto& secondMessage = message_[msg_count_];
                    const auto& widget =
                        alice_->UI().ActivitySummary(alice_nym_id_);
                    auto row = widget.First();
@@ -676,6 +678,47 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_TRUE(row->Valid());
 
                    if (false == row->Valid()) { return false; }
+
+                   EXPECT_STREQ(ISSUER, row->DisplayName().c_str());
+                   EXPECT_STREQ("", row->ImageURI().c_str());
+                   EXPECT_STREQ("Received cheque", row->Text().c_str());
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_EQ(row->DisplayName(), BOB);
+                   EXPECT_EQ(row->ImageURI(), "");
+                   EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {4,
+               []() -> bool {
+                   const auto& widget =
+                       alice_->UI().ActivitySummary(alice_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_EQ(row->DisplayName(), BOB);
+                   EXPECT_EQ(row->ImageURI(), "");
+                   EXPECT_EQ(row->Text(), "Sent cheque for dollars 0.75");
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(row->Type(), StorageBox::OUTGOINGCHEQUE);
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
 
                    EXPECT_STREQ(ISSUER, row->DisplayName().c_str());
                    EXPECT_STREQ("", row->ImageURI().c_str());
@@ -749,6 +792,55 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), secondMessage);
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {3,
+               []() -> bool {
+                   const auto& firstMessage = message_[msg_count_ - 1];
+                   const auto& secondMessage = message_[msg_count_];
+                   const auto& widget = alice_->UI().ActivityThread(
+                       alice_nym_id_, contact_id_alice_bob_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_EQ(row->Amount(), CHEQUE_AMOUNT_2);
+                   EXPECT_EQ(row->DisplayAmount(), "dollars 0.75");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), CHEQUE_MEMO);
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), "Sent cheque for dollars 0.75");
+                   EXPECT_EQ(row->Type(), StorageBox::OUTGOINGCHEQUE);
                    EXPECT_TRUE(row->Last());
 
                    return true;
@@ -853,6 +945,57 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ("Received cheque #510 from Issuer", row->Text());
                    EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
                    EXPECT_FALSE(row->UUID().empty());
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {1,
+               []() -> bool {
+                   const auto& widget = alice_->UI().AccountActivity(
+                       alice_nym_id_, alice_account_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_EQ(-1 * CHEQUE_AMOUNT_2, row->Amount());
+                   EXPECT_EQ(1, row->Contacts().size());
+
+                   if (0 < row->Contacts().size()) {
+                       EXPECT_EQ(
+                           contact_id_alice_bob_->str(),
+                           *row->Contacts().begin());
+                   }
+
+                   EXPECT_EQ("-dollars 0.75", row->DisplayAmount());
+                   EXPECT_EQ(CHEQUE_MEMO, row->Memo());
+                   EXPECT_FALSE(row->Workflow().empty());
+                   EXPECT_EQ("Wrote cheque #618 for Bob", row->Text());
+                   EXPECT_EQ(StorageBox::OUTGOINGCHEQUE, row->Type());
+                   EXPECT_FALSE(row->UUID().empty());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_EQ(CHEQUE_AMOUNT_1, row->Amount());
+                   EXPECT_EQ(1, row->Contacts().size());
+
+                   if (0 < row->Contacts().size()) {
+                       EXPECT_EQ(
+                           contact_id_alice_issuer_->str(),
+                           *row->Contacts().begin());
+                   }
+
+                   EXPECT_EQ("dollars 1.00", row->DisplayAmount());
+                   EXPECT_EQ(CHEQUE_MEMO, row->Memo());
+                   EXPECT_FALSE(row->Workflow().empty());
+                   EXPECT_EQ("Received cheque #510 from Issuer", row->Text());
+                   EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
+                   EXPECT_FALSE(row->UUID().empty());
+                   EXPECT_TRUE(row->Last());
 
                    return true;
                }},
@@ -1107,6 +1250,21 @@ const Test_Basic::StateMap Test_Basic::state_{
 
                    return true;
                }},
+              {3,
+               []() -> bool {
+                   const auto& widget = bob_->UI().ActivitySummary(bob_nym_id_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+                   EXPECT_EQ(row->DisplayName(), ALICE);
+                   EXPECT_EQ(row->ImageURI(), "");
+                   EXPECT_EQ(row->Text(), "Received cheque");
+                   EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_EQ(row->Type(), StorageBox::INCOMINGCHEQUE);
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
           }},
          {ACTIVITY_THREAD_BOB_ALICE,
           {
@@ -1170,6 +1328,12 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Text(), secondMessage);
                    EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
                    EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   // FIXME
 
                    return true;
                }},
@@ -1610,14 +1774,7 @@ TEST_F(Test_Basic, issue_dollars)
 
     EXPECT_FALSE(issuer_account_id_->empty());
 
-    auto numbers = issuer_client_.OTX().CheckTransactionNumbers(
-        issuer_nym_id_, server_1_id_, 1);
-
     issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_id_).get();
-    numbers = issuer_client_.OTX().CheckTransactionNumbers(
-        issuer_nym_id_, server_1_id_, 1);
-
-    EXPECT_TRUE(numbers);
 }
 
 TEST_F(Test_Basic, add_alice_contact_to_issuer)
@@ -1706,6 +1863,41 @@ TEST_F(Test_Basic, account_activity_alice)
     EXPECT_EQ(13, alice_ui_names_.size());
 
     EXPECT_TRUE(accountActivityDone.get());
+}
+
+TEST_F(Test_Basic, pay_bob)
+{
+    auto aliceActivityThreadDone = set_callback_alice(
+        ACTIVITY_THREAD_ALICE_BOB,
+        15,
+        state_.at(ALICE).at(ACTIVITY_THREAD_ALICE_BOB).at(3));
+    auto aliceAccountActivityDone = set_callback_alice(
+        ACCOUNT_ACTIVITY_USD,
+        8,
+        state_.at(ALICE).at(ACCOUNT_ACTIVITY_USD).at(1));
+    auto aliceActivitySummaryDone = set_callback_alice(
+        ACTIVITY_SUMMARY, 8, state_.at(ALICE).at(ACTIVITY_SUMMARY).at(4));
+    auto bobActivityThreadDone = set_callback_bob(
+        ACTIVITY_THREAD_BOB_ALICE,
+        10,
+        state_.at(BOB).at(ACTIVITY_THREAD_BOB_ALICE).at(2));
+    auto bobActivitySummaryDone = set_callback_bob(
+        ACTIVITY_SUMMARY, 6, state_.at(BOB).at(ACTIVITY_SUMMARY).at(3));
+
+    auto& thread =
+        alice_client_.UI().ActivityThread(alice_nym_id_, contact_id_alice_bob_);
+    const auto sent = thread.Pay(
+        CHEQUE_AMOUNT_2, alice_account_id_, CHEQUE_MEMO, PaymentType::Cheque);
+
+    EXPECT_TRUE(sent);
+    EXPECT_TRUE(aliceActivityThreadDone.get());
+    EXPECT_TRUE(aliceAccountActivityDone.get());
+    EXPECT_TRUE(aliceActivitySummaryDone.get());
+    EXPECT_TRUE(bobActivityThreadDone.get());
+    EXPECT_TRUE(bobActivitySummaryDone.get());
+
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
+    bob_client_.OTX().ContextIdle(bob_nym_id_, server_1_id_).get();
 }
 
 TEST_F(Test_Basic, shutdown)

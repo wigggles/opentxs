@@ -65,8 +65,10 @@
 
 #include "Context.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <cstring>
+#include <iterator>
 
 #include "ServerContext.hpp"
 
@@ -553,6 +555,21 @@ bool ServerContext::AcceptIssuedNumbers(const TransactionStatement& statement)
     Lock lock(lock_);
 
     return accept_issued_number(lock, statement);
+}
+
+std::vector<OTIdentifier> ServerContext::Accounts() const
+{
+    std::vector<OTIdentifier> output{};
+    const auto serverSet = api_.Storage().AccountsByServer(server_id_);
+    const auto nymSet = api_.Storage().AccountsByOwner(nym_->ID());
+    std::set_intersection(
+        serverSet.begin(),
+        serverSet.end(),
+        nymSet.begin(),
+        nymSet.end(),
+        std::back_inserter(output));
+
+    return output;
 }
 
 bool ServerContext::add_item_to_payment_inbox(

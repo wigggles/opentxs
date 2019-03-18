@@ -12,6 +12,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 
 #include "api/Wallet.hpp"
 

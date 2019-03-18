@@ -460,6 +460,9 @@ private:
     bool check_server_contract(const Identifier& serverID) const;
     bool check_server_name(OperationQueue& queue, const ServerContext& context)
         const;
+    void check_transaction_numbers(
+        const ServerContext& context,
+        OperationQueue& queue) const;
     bool deposit_cheque(
         const TaskID taskID,
         api::client::internal::Operation& op,

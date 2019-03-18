@@ -9,28 +9,23 @@
 
 namespace std
 {
-using STORAGEID = std::tuple<
-    opentxs::OTIdentifier,
-    opentxs::StorageBox,
-    opentxs::OTIdentifier,
-    int>;
+using STORAGEID = std::
+    tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
 
 template <>
 struct less<STORAGEID> {
     bool operator()(const STORAGEID& lhs, const STORAGEID& rhs) const
     {
         /* TODO: these lines will cause a segfault in the clang-5 ast parser.
-                const auto & [ lID, lBox, lAccount, lTask ] = lhs;
-                const auto & [ rID, rBox, rAccount, rTask ] = rhs;
+                const auto & [ lID, lBox, lAccount ] = lhs;
+                const auto & [ rID, rBox, rAccount ] = rhs;
         */
         const auto& lID = std::get<0>(lhs);
         const auto& lBox = std::get<1>(lhs);
         const auto& lAccount = std::get<2>(lhs);
-        const auto& lTask = std::get<2>(lhs);
         const auto& rID = std::get<0>(rhs);
         const auto& rBox = std::get<1>(rhs);
         const auto& rAccount = std::get<2>(rhs);
-        const auto& rTask = std::get<2>(rhs);
 
         if (lID->str() < rID->str()) { return true; }
 
@@ -41,10 +36,6 @@ struct less<STORAGEID> {
         if (rBox < lBox) { return false; }
 
         if (lAccount->str() < rAccount->str()) { return true; }
-
-        if (rAccount->str() < lAccount->str()) { return false; }
-
-        if (lTask->str() < rTask->str()) { return true; }
 
         return false;
     }
@@ -84,6 +75,11 @@ public:
     std::string DisplayName() const override;
     std::string GetDraft() const override;
     std::string Participants() const override;
+    bool Pay(
+        const Amount amount,
+        const Identifier& sourceAccount,
+        const std::string& memo,
+        const PaymentType type) const override;
     std::string PaymentCode(
         const proto::ContactItemType currency) const override;
     bool same(const ActivityThreadRowID& lhs, const ActivityThreadRowID& rhs)
@@ -116,6 +112,11 @@ private:
         const ActivityThreadRowID& id,
         const ActivityThreadSortKey& index,
         const CustomData& custom) const override;
+    bool send_cheque(
+        const Amount amount,
+        const Identifier& sourceAccount,
+        const std::string& memo) const;
+    bool validate_account(const Identifier& sourceAccount) const;
 
     void init_contact();
     void init_sockets();

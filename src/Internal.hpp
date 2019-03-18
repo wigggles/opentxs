@@ -262,8 +262,7 @@ using ActivitySummarySortKey =
 using ActivityThreadExternalInterface = ui::ActivityThread;
 using ActivityThreadInternalInterface = ui::internal::ActivityThread;
 /** item id, box, accountID, taskID */
-using ActivityThreadRowID =
-    std::tuple<OTIdentifier, StorageBox, OTIdentifier, int>;
+using ActivityThreadRowID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
 using ActivityThreadRowInterface = ui::ActivityThreadItem;
 using ActivityThreadRowInternal = ui::internal::ActivityThreadItem;
 using ActivityThreadRowBlank = ActivityThreadItemBlank;

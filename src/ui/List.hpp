@@ -181,8 +181,6 @@ protected:
 
             OT_ASSERT(1 == indexDeleted)
         } catch (...) {
-            // TODO this should never happen. Troubleshoot
-            // ActivityThread::process_draft
         }
     }
     /** Returns first contact, or blank if none exists. Sets up iterators for
