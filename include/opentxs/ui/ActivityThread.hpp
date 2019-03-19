@@ -41,6 +41,11 @@ public:
         const = 0;
     EXPORT virtual std::string GetDraft() const = 0;
     EXPORT virtual std::string Participants() const = 0;
+    EXPORT virtual bool Pay(
+        const Amount amount,
+        const Identifier& sourceAccount,
+        const std::string& memo = "",
+        const PaymentType type = PaymentType::Cheque) const = 0;
     EXPORT virtual std::string PaymentCode(
         const proto::ContactItemType currency) const = 0;
     EXPORT virtual bool SendDraft() const = 0;

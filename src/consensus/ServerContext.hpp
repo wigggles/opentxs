@@ -13,6 +13,7 @@ class ServerContext final : virtual public internal::ServerContext,
                             public Context
 {
 public:
+    std::vector<OTIdentifier> Accounts() const override;
     const std::string& AdminPassword() const override;
     bool AdminAttempted() const override;
     bool FinalizeServerCommand(Message& command) const override;

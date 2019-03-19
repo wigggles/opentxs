@@ -27,6 +27,7 @@ set(cxx-sources
   PayableList.cpp
   PayableListItem.cpp
   PaymentItem.cpp
+  PendingSend.cpp
   Profile.cpp
   ProfileItem.cpp
   ProfileSection.cpp
@@ -100,6 +101,7 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableListItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PayableListItemBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/PendingSend.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Profile.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ProfileItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ProfileItemBlank.hpp"

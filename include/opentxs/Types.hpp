@@ -165,6 +165,7 @@ enum class StorageBox : std::uint8_t {
     OUTGOINGTRANSFER = 14,
     INCOMINGTRANSFER = 15,
     INTERNALTRANSFER = 16,
+    PENDING_SEND = 253,
     DRAFT = 254,
     UNKNOWN = 255,
 };
@@ -700,6 +701,14 @@ enum class AccountType : std::int8_t {
     Error = 0,
     Blockchain = 1,
     Custodial = 2,
+};
+
+enum class PaymentType : int {
+    Error = 0,
+    Cheque = 1,
+    Voucher = 2,
+    Transfer = 3,
+    Blinded = 4,
 };
 }  // namespace opentxs
 #endif

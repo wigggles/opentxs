@@ -1098,6 +1098,17 @@ bool OTX::check_server_name(OperationQueue& queue, const ServerContext& context)
     return success;
 }
 
+void OTX::check_transaction_numbers(
+    const ServerContext& context,
+    OperationQueue& queue) const
+{
+    if (0 == context.Accounts().size()) { return; }
+
+    if (0 < context.AvailableNumbers()) { return; }
+
+    queue.get_task<GetTransactionNumbersTask>().Push(next_task_id(), {});
+}
+
 bool OTX::CheckTransactionNumbers(
     const identifier::Nym& nym,
     const Identifier& serverID,
@@ -2903,6 +2914,11 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
 
         SHUTDOWN()
 
+        // Ensure transactions numbers are requested if necessary
+        check_transaction_numbers(*context, queue);
+
+        SHUTDOWN()
+
         // Register the nym, if scheduled. Keep trying until success
         queue.run_task<RegisterNymTask>(
             [this, &queue](
@@ -3274,6 +3290,11 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
         const bool missing =
             !(missing_nyms_.empty() && missing_servers_.empty());
         queue.increment_counter(missing, lock, run);
+
+        // Ensure transactions numbers are requested if necessary
+        check_transaction_numbers(*context, queue);
+
+        SHUTDOWN()
     }
 }
 

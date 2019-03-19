@@ -47,7 +47,7 @@ template <>
 struct make_blank<ui::implementation::ActivityThreadRowID> {
     static ui::implementation::ActivityThreadRowID value()
     {
-        return {Identifier::Factory(), {}, Identifier::Factory(), 0};
+        return {Identifier::Factory(), {}, Identifier::Factory()};
     }
 };
 }  // namespace opentxs

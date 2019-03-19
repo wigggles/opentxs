@@ -272,6 +272,7 @@ private:
     OTZMQRequestSocket dht_nym_requester_;
     OTZMQRequestSocket dht_server_requester_;
     OTZMQRequestSocket dht_unit_requester_;
+    OTZMQPushSocket find_nym_;
 
     std::string account_alias(
         const std::string& accountID,

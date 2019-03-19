@@ -25,6 +25,7 @@ public:
     // account label, resync nym
     using ExtraArgs = std::pair<std::string, bool>;
 
+    EXPORT virtual std::vector<OTIdentifier> Accounts() const = 0;
     EXPORT virtual const std::string& AdminPassword() const = 0;
     EXPORT virtual bool AdminAttempted() const = 0;
     EXPORT virtual bool FinalizeServerCommand(Message& command) const = 0;
