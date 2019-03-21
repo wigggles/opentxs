@@ -560,47 +560,29 @@ TEST_F(Test_Rpc_Async, Get_Pending_Payments)
     ASSERT_TRUE(!workflow_id_->empty());
 }
 
-//  TODO it might not be possible to queue this command any more
 TEST_F(Test_Rpc_Async, Create_Compatible_Account)
 {
-    /* TODO
-    auto callback = [](const opentxs::proto::RPCPush& push) -> bool {
-        if (false == proto::Validate(push, VERBOSE)) { return false; }
-
-        if (proto::RPCPUSH_TASK != push.type()) { return false; }
-
-        auto& task = push.taskcomplete();
-
-        if (false == task.result()) { return false; }
-
-        if (proto::RPCRESPONSE_SUCCESS != task.code()) { return false; }
-
-        destination_account_id_ = Identifier::Factory(task.identifier());
-
-        EXPECT_TRUE(!destination_account_id_->empty());
-
-        return true;
-    };
-    */
-
     auto command = init(proto::RPCCOMMAND_CREATECOMPATIBLEACCOUNT);
 
     command.set_session(receiver_session_);
     command.set_owner(receiver_nym_id_->str());
     command.add_identifier(workflow_id_->str());
 
-    // TODO auto future = set_push_checker(callback);
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
     EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
-    // TODO EXPECT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
-    // TODO EXPECT_TRUE(check_push_results(future.get()));
+
+    destination_account_id_ =
+    		Identifier::Factory(response.identifier(0).c_str());
+
+    EXPECT_TRUE(!destination_account_id_->empty());
 }
 
 TEST_F(Test_Rpc_Async, Get_Compatible_Account_Bad_Workflow)
