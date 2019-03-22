@@ -23,29 +23,30 @@
 #include <string>
 #include <tuple>
 
-namespace
+namespace opentxs
 {
 struct OT_DownloadNymboxType {
 };
 struct OT_GetTransactionNumbersType {
 };
-}  // namespace
+}  // namespace opentxs
 
 namespace std
 {
 template <>
-struct less<OT_DownloadNymboxType> {
-    bool operator()(const OT_DownloadNymboxType&, const OT_DownloadNymboxType&)
-        const
+struct less<opentxs::OT_DownloadNymboxType> {
+    bool operator()(
+        const opentxs::OT_DownloadNymboxType&,
+        const opentxs::OT_DownloadNymboxType&) const
     {
         return false;
     }
 };
 template <>
-struct less<OT_GetTransactionNumbersType> {
+struct less<opentxs::OT_GetTransactionNumbersType> {
     bool operator()(
-        const OT_GetTransactionNumbersType&,
-        const OT_GetTransactionNumbersType&) const
+        const opentxs::OT_GetTransactionNumbersType&,
+        const opentxs::OT_GetTransactionNumbersType&) const
     {
         return false;
     }
