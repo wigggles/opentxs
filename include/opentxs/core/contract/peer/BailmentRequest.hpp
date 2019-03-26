@@ -9,6 +9,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 
 namespace opentxs
 {
@@ -22,21 +24,21 @@ private:
     using ot_super = PeerRequest;
     friend class PeerRequest;
 
-    OTIdentifier unit_;
-    OTIdentifier server_;
+    OTUnitID unit_;
+    OTServerID server_;
 
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     BailmentRequest(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const ConstNym& nym,
         const proto::PeerRequest& serialized);
     BailmentRequest(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const ConstNym& nym,
-        const Identifier& recipientID,
-        const Identifier& unitID,
-        const Identifier& serverID);
+        const identifier::Nym& recipientID,
+        const identifier::UnitDefinition& unitID,
+        const identifier::Server& serverID);
     BailmentRequest() = delete;
 };
 }  // namespace opentxs

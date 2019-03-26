@@ -9,6 +9,8 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -18,8 +20,8 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
@@ -33,14 +35,14 @@
 
 namespace opentxs
 {
-Contact::Contact(const api::Wallet& wallet, const proto::Contact& serialized)
-    : wallet_(wallet)
+Contact::Contact(const api::Core& api, const proto::Contact& serialized)
+    : api_(api)
     , version_(check_version(serialized.version(), OT_CONTACT_VERSION))
     , label_(serialized.label())
     , lock_()
-    , id_(Identifier::Factory(Identifier::Factory(serialized.id())))
-    , parent_(Identifier::Factory(serialized.mergedto()))
-    , primary_nym_(Identifier::Factory())
+    , id_(api_.Factory().Identifier(serialized.id()))
+    , parent_(api_.Factory().Identifier(serialized.mergedto()))
+    , primary_nym_(api_.Factory().NymID())
     , nyms_()
     , merged_children_()
     , contact_data_(new ContactData(
@@ -61,20 +63,20 @@ Contact::Contact(const api::Wallet& wallet, const proto::Contact& serialized)
     OT_ASSERT(contact_data_);
 
     for (const auto& child : serialized.merged()) {
-        merged_children_.emplace(Identifier::Factory(child));
+        merged_children_.emplace(api_.Factory().Identifier(child));
     }
 
     init_nyms();
 }
 
-Contact::Contact(const api::Wallet& wallet, const std::string& label)
-    : wallet_(wallet)
+Contact::Contact(const api::Core& api, const std::string& label)
+    : api_(api)
     , version_(OT_CONTACT_VERSION)
     , label_(label)
     , lock_()
-    , id_(Identifier::Factory(generate_id()))
-    , parent_(Identifier::Factory())
-    , primary_nym_(Identifier::Factory())
+    , id_(generate_id())
+    , parent_(api_.Factory().Identifier())
+    , primary_nym_(api_.Factory().NymID())
     , nyms_()
     , merged_children_()
     , contact_data_(nullptr)
@@ -226,7 +228,7 @@ bool Contact::add_nym(
 
 void Contact::add_nym_claim(
     const Lock& lock,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const bool primary)
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -314,7 +316,7 @@ bool Contact::AddNym(const std::shared_ptr<const Nym>& nym, const bool primary)
     return add_nym(lock, nym, primary);
 }
 
-bool Contact::AddNym(const Identifier& nymID, const bool primary)
+bool Contact::AddNym(const identifier::Nym& nymID, const bool primary)
 {
     Lock lock(lock_);
 
@@ -517,7 +519,7 @@ OTIdentifier Contact::generate_id() const
     auto& crypto = OT::App().Crypto().Encode();
     auto random = Data::Factory();
     crypto.Nonce(ID_BYTES, random);
-    auto output = Identifier::Factory();
+    auto output = api_.Factory().Identifier();
     output->CalculateDigest(random);
 
     return output;
@@ -555,16 +557,17 @@ void Contact::init_nyms()
 
     if (false == bool(nyms)) { return; }
 
-    primary_nym_ = nyms->Primary();
+    // TODO conversion
+    primary_nym_ = api_.Factory().NymID(nyms->Primary().str());
 
     for (const auto& it : *nyms) {
         const auto& item = it.second;
 
         OT_ASSERT(item);
 
-        const auto nymID = Identifier::Factory(item->Value());
+        const auto nymID = api_.Factory().NymID(item->Value());
         auto& nym = nyms_[nymID];
-        nym = wallet_.Nym(nymID);
+        nym = api_.Wallet().Nym(nymID);
 
         if (false == bool(nym)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load nym ")(nymID)(
@@ -649,7 +652,7 @@ std::shared_ptr<ContactData> Contact::merged_data(const Lock& lock) const
     return output;
 }
 
-std::vector<opentxs::OTIdentifier> opentxs::Contact::Nyms(
+std::vector<opentxs::OTNymID> opentxs::Contact::Nyms(
     const bool includeInactive) const
 {
     Lock lock(lock_);
@@ -663,7 +666,7 @@ std::vector<opentxs::OTIdentifier> opentxs::Contact::Nyms(
 
     if (false == bool(group)) { return {}; }
 
-    std::vector<OTIdentifier> output{};
+    std::vector<OTNymID> output{};
     const auto& primaryID = group->Primary();
 
     for (const auto& it : *group) {
@@ -676,9 +679,9 @@ std::vector<opentxs::OTIdentifier> opentxs::Contact::Nyms(
         if (false == (includeInactive || item->isActive())) { continue; }
 
         if (primaryID == itemID) {
-            output.emplace(output.begin(), Identifier::Factory(item->Value()));
+            output.emplace(output.begin(), api_.Factory().NymID(item->Value()));
         } else {
-            output.emplace(output.end(), Identifier::Factory(item->Value()));
+            output.emplace(output.end(), api_.Factory().NymID(item->Value()));
         }
     }
 
@@ -796,13 +799,13 @@ std::string Contact::Print() const
     return out.str();
 }
 
-bool Contact::RemoveNym(const Identifier& nymID)
+bool Contact::RemoveNym(const identifier::Nym& nymID)
 {
     Lock lock(lock_);
 
     auto result = nyms_.erase(nymID);
 
-    if (primary_nym_ == nymID) { primary_nym_ = Identifier::Factory(); }
+    if (primary_nym_ == nymID) { primary_nym_ = api_.Factory().NymID(); }
 
     return (0 < result);
 }
@@ -815,7 +818,7 @@ void Contact::SetLabel(const std::string& label)
 
     for (const auto& it : nyms_) {
         const auto& nymID = it.first;
-        wallet_.SetNymAlias(nymID, label);
+        api_.Wallet().SetNymAlias(nymID, label);
     }
 }
 
@@ -861,7 +864,7 @@ proto::ContactItemType Contact::Type() const
 
 void Contact::Update(const proto::CredentialIndex& serialized)
 {
-    auto nym = wallet_.Nym(serialized);
+    auto nym = api_.Wallet().Nym(serialized);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid serialized nym.").Flush();

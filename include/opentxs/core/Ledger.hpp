@@ -18,22 +18,11 @@
 
 namespace opentxs
 {
-
-class Account;
-class Cheque;
-class Identifier;
-class Item;
-class Nym;
-class ServerContext;
-class String;
-
 namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
 }  // namespace api
 
@@ -204,13 +193,13 @@ public:
 
     EXPORT [[deprecated]] bool GenerateLedger(
         const Identifier& theAcctID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         ledgerType theType,
         bool bCreateFile = false);
     EXPORT bool CreateLedger(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Identifier& theAcctID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         ledgerType theType,
         bool bCreateFile = false);
 
@@ -238,21 +227,13 @@ private:  // Private prevents erroneous use by other classes.
     mapOfTransactions m_mapTransactions;  // a ledger contains a map of
                                           // transactions.
 
-    Ledger(const api::Core& core);
-    EXPORT Ledger(
-        const api::Core& core,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID);
-    EXPORT Ledger(
-        const api::Core& core,
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID);
+    std::tuple<bool, std::string, std::string, std::string> make_filename(
+        const ledgerType theType);
 
     bool generate_ledger(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Identifier& theAcctID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         ledgerType theType,
         bool bCreateFile);
     bool save_box(
@@ -260,6 +241,16 @@ private:  // Private prevents erroneous use by other classes.
         Identifier& hash,
         bool (Ledger::*calc)(Identifier&) const);
 
+    Ledger(const api::Core& core);
+    Ledger(
+        const api::Core& core,
+        const Identifier& theAccountID,
+        const identifier::Server& theNotaryID);
+    Ledger(
+        const api::Core& core,
+        const identifier::Nym& theNymID,
+        const Identifier& theAccountID,
+        const identifier::Server& theNotaryID);
     Ledger() = delete;
 };
 }  // namespace opentxs

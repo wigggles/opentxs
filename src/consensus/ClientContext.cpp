@@ -8,6 +8,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -26,7 +27,7 @@ internal::ClientContext* Factory::ClientContext(
     const api::Core& api,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const identifier::Server& server)
 {
     return new implementation::ClientContext(api, local, remote, server);
 }
@@ -36,7 +37,7 @@ internal::ClientContext* Factory::ClientContext(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const identifier::Server& server)
 {
     return new implementation::ClientContext(
         api, serialized, local, remote, server);
@@ -49,7 +50,7 @@ ClientContext::ClientContext(
     const api::Core& api,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const identifier::Server& server)
     : Signable(local, CURRENT_VERSION)
     , implementation::Context(api, CURRENT_VERSION, local, remote, server)
 {
@@ -60,7 +61,7 @@ ClientContext::ClientContext(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const identifier::Server& server)
     : Signable(local, CURRENT_VERSION)
     , implementation::Context(
           api,
@@ -101,7 +102,7 @@ bool ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
     return (added == offered);
 }
 
-const Identifier& ClientContext::client_nym_id(const Lock& lock) const
+const identifier::Nym& ClientContext::client_nym_id(const Lock& lock) const
 {
     OT_ASSERT(remote_nym_);
 
@@ -186,7 +187,7 @@ proto::Context ClientContext::serialize(const Lock& lock) const
     return output;
 }
 
-const Identifier& ClientContext::server_nym_id(const Lock& lock) const
+const identifier::Nym& ClientContext::server_nym_id(const Lock& lock) const
 {
     OT_ASSERT(nym_);
 

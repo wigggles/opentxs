@@ -24,15 +24,15 @@ private:
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     ConnectionRequest(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const ConstNym& nym,
         const proto::PeerRequest& serialized);
     ConnectionRequest(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const ConstNym& nym,
-        const Identifier& recipientID,
+        const identifier::Nym& recipientID,
         const proto::ConnectionInfoType type,
-        const Identifier& serverID);
+        const identifier::Server& serverID);
     ConnectionRequest() = delete;
 
 public:

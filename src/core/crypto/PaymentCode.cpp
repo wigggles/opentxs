@@ -17,9 +17,9 @@
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
@@ -357,7 +357,7 @@ void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
     }
 }
 
-const OTIdentifier PaymentCode::ID() const
+const OTNymID PaymentCode::ID() const
 {
     std::uint8_t core[XPUB_BYTES]{};
 
@@ -381,9 +381,7 @@ const OTIdentifier PaymentCode::ID() const
     }
 
     auto dataVersion = Data::Factory(core, sizeof(core));
-
-    auto paymentCodeID = Identifier::Factory();
-
+    auto paymentCodeID = identifier::Nym::Factory();
     paymentCodeID->CalculateDigest(dataVersion);
 
     return paymentCodeID;

@@ -23,8 +23,8 @@ class Reply : virtual public Signable
 public:
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
         const std::shared_ptr<const opentxs::Nym> signer,
-        const Identifier& recipient,
-        const Identifier& server,
+        const identifier::Nym& recipient,
+        const identifier::Server& server,
         const proto::ServerReplyType type,
         const bool success);
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
@@ -34,8 +34,8 @@ public:
     EXPORT virtual proto::ServerReply Contract() const = 0;
     EXPORT virtual RequestNumber Number() const = 0;
     EXPORT virtual std::shared_ptr<proto::OTXPush> Push() const = 0;
-    EXPORT virtual const Identifier& Recipient() const = 0;
-    EXPORT virtual const Identifier& Server() const = 0;
+    EXPORT virtual const identifier::Nym& Recipient() const = 0;
+    EXPORT virtual const identifier::Server& Server() const = 0;
     EXPORT virtual bool Success() const = 0;
     EXPORT virtual proto::ServerReplyType Type() const = 0;
 

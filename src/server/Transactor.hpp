@@ -45,14 +45,14 @@ public:
         const Identifier& basketContractId);
     bool lookupBasketAccountID(
         const Identifier& basketId,
-        OTIdentifier& basketAccountId);
+        Identifier& basketAccountId);
 
     bool lookupBasketAccountIDByContractID(
         const Identifier& basketContractId,
-        OTIdentifier& basketAccountId);
+        Identifier& basketAccountId);
     bool lookupBasketContractIDByAccountID(
         const Identifier& basketAccountId,
-        OTIdentifier& basketContractId);
+        Identifier& basketContractId);
 
     // Whenever the server issues a voucher (like a cashier's cheque), it puts
     // the funds in one of these voucher accounts (one for each instrument
@@ -64,7 +64,7 @@ public:
     // free to remove that total from the Voucher Account once the cheque has
     // expired: it is his money now.
     ExclusiveAccount getVoucherAccount(
-        const Identifier& instrumentDefinitionID);
+        const identifier::UnitDefinition& instrumentDefinitionID);
 
 private:
     typedef std::map<std::string, std::string> BasketsMap;

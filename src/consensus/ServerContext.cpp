@@ -100,7 +100,7 @@ internal::ServerContext* Factory::ServerContext(
     const network::zeromq::PublishSocket& replyReceived,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server,
+    const identifier::Server& server,
     network::ServerConnection& connection)
 {
     return new implementation::ServerContext(
@@ -131,7 +131,7 @@ ServerContext::ServerContext(
     const network::zeromq::PublishSocket& replyReceived,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server,
+    const identifier::Server& server,
     network::ServerConnection& connection)
     : Signable(local, CURRENT_VERSION)
     , implementation::Context(api, CURRENT_VERSION, local, remote, server)
@@ -187,7 +187,7 @@ ServerContext::ServerContext(
           serialized,
           local,
           remote,
-          Identifier::Factory(serialized.servercontext().serverid()))
+          api_.Factory().ServerID(serialized.servercontext().serverid()))
     , request_sent_(requestSent)
     , reply_received_(replyReceived)
     , client_(nullptr)
@@ -264,7 +264,8 @@ bool ServerContext::accept_entire_nymbox(
         return false;
     }
 
-    if (nymbox.GetNymID() != nymID) {
+    // TODO ambiguous overload
+    if (nymbox.GetNymID().str() != nymID.str()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong nymbox").Flush();
 
         return false;
@@ -892,7 +893,7 @@ NetworkReplyMessage ServerContext::attempt_delivery(
     return output;
 }
 
-const Identifier& ServerContext::client_nym_id(const Lock& lock) const
+const identifier::Nym& ServerContext::client_nym_id(const Lock& lock) const
 {
     OT_ASSERT(nym_);
 
@@ -1076,7 +1077,8 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
         return {};
     }
 
-    if (receipt->GetNymID() != owner) {
+    // TODO ambiguous overload
+    if (receipt->GetNymID().str() != owner.str()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym").Flush();
 
         return {};
@@ -1515,7 +1517,7 @@ bool ServerContext::harvest_unused(
     // Loop through workflows to determine which issued numbers should not be
     // harvested
     for (const auto& [id, alias] : workflows) {
-        const auto workflowID = Identifier::Factory(id);
+        const auto workflowID = api_.Factory().Identifier(id);
         const auto workflow = client.Workflow().LoadWorkflow(nymID, workflowID);
 
         if (false == bool(workflow)) {
@@ -1650,8 +1652,8 @@ bool ServerContext::init_new_account(const Identifier& accountID)
         return false;
     }
 
-    auto inboxHash = Identifier::Factory();
-    auto outboxHash = Identifier::Factory();
+    auto inboxHash = api_.Factory().Identifier();
+    auto outboxHash = api_.Factory().Identifier();
     auto haveHash = account.get().GetInboxHash(inboxHash);
 
     if (false == haveHash) {
@@ -1850,7 +1852,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
 std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     InitializeServerCommand(
         const MessageType type,
-        const Identifier& recipientNymID,
+        const identifier::Nym& recipientNymID,
         const RequestNumber provided,
         const bool withAcknowledgments,
         const bool withNymboxHash)
@@ -1937,8 +1939,8 @@ const Item& ServerContext::make_accept_item(
     OTTransaction& acceptTransaction,
     const TransactionNumbers& accept)
 {
-    std::shared_ptr<Item> acceptItem{
-        api_.Factory().Item(acceptTransaction, type, Identifier::Factory())};
+    std::shared_ptr<Item> acceptItem{api_.Factory().Item(
+        acceptTransaction, type, api_.Factory().Identifier())};
 
     OT_ASSERT(acceptItem);
 
@@ -2086,10 +2088,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox() const
 Editor<blind::Purse> ServerContext::mutable_Purse(
     const identifier::UnitDefinition& id)
 {
-    return api_.Wallet().mutable_Purse(
-        identifier::Nym::Factory(nym_->ID().str()),      // TODO nym id type
-        identifier::Server::Factory(server_id_->str()),  // TODO server id type
-        id);
+    return api_.Wallet().mutable_Purse(nym_->ID(), server_id_, id);
 }
 #endif
 
@@ -2634,12 +2633,14 @@ void ServerContext::process_accept_cron_receipt_reply(
 
         OT_ASSERT(account)
 
+        // TODO ambiguous overload
         bool bIsAsset =
-            (theTrade->GetInstrumentDefinitionID() ==
-             account.get().GetInstrumentDefinitionID());
+            (theTrade->GetInstrumentDefinitionID().str() ==
+             account.get().GetInstrumentDefinitionID().str());
+        // TODO ambiguous overload
         bool bIsCurrency =
-            (theTrade->GetCurrencyID() ==
-             account.get().GetInstrumentDefinitionID());
+            (theTrade->GetCurrencyID().str() ==
+             account.get().GetInstrumentDefinitionID().str());
         const auto strAcctID = String::Factory(accountID);
         const auto strServerTransaction = String::Factory(inboxTransaction);
 
@@ -3095,7 +3096,7 @@ bool ServerContext::process_account_data(
     inbox_->ReleaseSignatures();
     inbox_->SignContract(*nym_);
     inbox_->SaveContract();
-    inbox_->SaveInbox(Identifier::Factory());
+    inbox_->SaveInbox(api_.Factory().Identifier());
 
     if (false == bool(outbox_)) {
         outbox_.reset(
@@ -3136,7 +3137,7 @@ bool ServerContext::process_account_data(
     outbox_->ReleaseSignatures();
     outbox_->SignContract(*nym_);
     outbox_->SaveContract();
-    outbox_->SaveOutbox(Identifier::Factory());
+    outbox_->SaveOutbox(api_.Factory().Identifier());
 
     return true;
 }
@@ -3146,9 +3147,9 @@ bool ServerContext::process_account_push(
     const api::client::Manager& client,
     const proto::OTXPush& push)
 {
-    const auto accountID = Identifier::Factory(push.accountid());
-    const auto inboxHash = Identifier::Factory(push.inboxhash());
-    const auto outboxHash = Identifier::Factory(push.outboxhash());
+    const auto accountID = api_.Factory().Identifier(push.accountid());
+    const auto inboxHash = api_.Factory().Identifier(push.inboxhash());
+    const auto outboxHash = api_.Factory().Identifier(push.outboxhash());
     const auto account = String::Factory(push.account());
     const auto inbox = String::Factory(push.inbox());
     const auto outbox = String::Factory(push.outbox());
@@ -3226,7 +3227,8 @@ bool ServerContext::process_box_item(
         return false;
     }
 
-    if (receipt->GetNymID() != nymID) {
+    // TODO ambiguous overload
+    if (receipt->GetNymID().str() != nymID.str()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong nym id on box receipt")
             .Flush();
 
@@ -3273,7 +3275,7 @@ bool ServerContext::process_get_nymbox_response(
         return false;
     }
 
-    auto nymboxHash = Identifier::Factory();
+    auto nymboxHash = api_.Factory().Identifier();
     nymbox->ReleaseSignatures();
     nymbox->SignContract(*nym_);
     nymbox->SaveContract();
@@ -3321,7 +3323,7 @@ bool ServerContext::process_get_account_data(
     const Lock& lock,
     const Message& reply)
 {
-    const auto accountID = Identifier::Factory(reply.m_strAcctID);
+    const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
     auto serializedAccount = String::Factory();
     auto serializedInbox = String::Factory();
     auto serializedOutbox = String::Factory();
@@ -3357,9 +3359,9 @@ bool ServerContext::process_get_account_data(
         lock,
         accountID,
         serializedAccount,
-        Identifier::Factory(reply.m_strInboxHash),
+        api_.Factory().Identifier(reply.m_strInboxHash),
         serializedInbox,
-        Identifier::Factory(reply.m_strOutboxHash),
+        api_.Factory().Identifier(reply.m_strOutboxHash),
         serializedOutbox);
 }
 
@@ -3373,8 +3375,7 @@ bool ServerContext::process_get_box_receipt_response(
 
     update_nymbox_hash(lock, reply);
     const auto& nym = *nym_;
-    // TODO nymID type
-    const auto nymID = identifier::Nym::Factory(nym.ID().str());
+    const auto& nymID = nym.ID();
     const auto& serverNym = *remote_nym_;
     const auto type = get_type(reply.m_lDepth);
 
@@ -3389,7 +3390,7 @@ bool ServerContext::process_get_box_receipt_response(
     return process_get_box_receipt_response(
         lock,
         client,
-        Identifier::Factory(reply.m_strAcctID),
+        api_.Factory().Identifier(reply.m_strAcctID),
         boxReceipt,
         serialized,
         type);
@@ -3407,8 +3408,7 @@ bool ServerContext::process_get_box_receipt_response(
     OT_ASSERT(receipt);
 
     const auto& nym = *nym_;
-    // TODO nymID type
-    const auto nymID = identifier::Nym::Factory(nym.ID().str());
+    const auto& nymID = nym.ID();
     bool processInbox{false};
 
     switch (receipt->GetType()) {
@@ -3456,7 +3456,10 @@ bool ServerContext::process_get_box_receipt_response(
                         .Flush();
                     client.Workflow().ConveyTransfer(
                         nymID, server_id_, *receipt);
-                } else if (transfer.GetNymID() != nymID) {
+                } else if (
+                    transfer.GetNymID().str() !=
+                    nymID.str()) {  // TODO ambiguous overload
+
                     LogDetail(OT_METHOD)(__FUNCTION__)(
                         ": Conveying incoming transfer")
                         .Flush();
@@ -3916,9 +3919,7 @@ void ServerContext::process_incoming_message(
 {
     OT_ASSERT(nym_);
 
-    // TODO nymID type
-    const auto nymID = identifier::Nym::Factory(nym_->ID().str());
-
+    const auto& nymID = nym_->ID();
     auto serialized = String::Factory();
     receipt.GetReferenceString(serialized);
     auto message = api_.Factory().Message();
@@ -4009,7 +4010,8 @@ bool ServerContext::process_get_unit_definition_response(
     const Message& reply)
 {
     update_nymbox_hash(lock, reply);
-    const auto unitID = Identifier::Factory(reply.m_strInstrumentDefinitionID);
+    const auto unitID =
+        api_.Factory().UnitID(reply.m_strInstrumentDefinitionID);
 
     if (reply.m_ascPayload->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4072,7 +4074,7 @@ bool ServerContext::process_issue_unit_definition_response(
     const Message& reply)
 {
     update_nymbox_hash(lock, reply);
-    const auto accountID = Identifier::Factory(reply.m_strAcctID);
+    const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
 
     if (reply.m_ascPayload->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4107,7 +4109,7 @@ bool ServerContext::process_notarize_transaction_response(
     OT_ASSERT(remote_nym_);
 
     update_nymbox_hash(lock, reply);
-    const auto accountID = Identifier::Factory(reply.m_strAcctID);
+    const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
     const auto& nym = *nym_;
     const auto& nymID = nym.ID();
     const auto& serverNym = *remote_nym_;
@@ -4294,7 +4296,7 @@ bool ServerContext::process_process_inbox_response(
     OT_ASSERT(nym_);
 
     const auto& nym = *nym_;
-    const auto accountID = Identifier::Factory(reply.m_strAcctID);
+    const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
     transaction = ledger.GetTransaction(transactionType::processInbox);
     replyTransaction =
         responseLedger.GetTransaction(transactionType::atProcessInbox);
@@ -4484,7 +4486,7 @@ bool ServerContext::process_process_inbox_response(
     inbox->ReleaseSignatures();
     inbox->SignContract(nym);
     inbox->SaveContract();
-    inbox->SaveInbox(Identifier::Factory());
+    inbox->SaveInbox(api_.Factory().Identifier());
 
     return true;
 }
@@ -4527,7 +4529,7 @@ bool ServerContext::process_process_nymbox_response(
     nymbox->ReleaseSignatures();
     nymbox->SignContract(nym);
     nymbox->SaveContract();
-    auto nymboxHash = Identifier::Factory();
+    auto nymboxHash = api_.Factory().Identifier();
     nymbox->SaveNymbox(nymboxHash);
     set_local_nymbox_hash(lock, nymboxHash);
 
@@ -4539,7 +4541,7 @@ bool ServerContext::process_register_account_response(
     const Message& reply)
 {
     update_nymbox_hash(lock, reply);
-    const auto accountID = Identifier::Factory(reply.m_strAcctID);
+    const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
 
     if (reply.m_ascPayload->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4618,7 +4620,7 @@ bool ServerContext::process_reply(
 
     const auto& nym = *nym_;
     const auto& nymID = nym.ID();
-    const auto accountID = Identifier::Factory(reply.m_strAcctID);
+    const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
     const auto& serverNym = *remote_nym_;
 
     LogVerbose(OT_METHOD)(__FUNCTION__)("Received ")(reply.m_strCommand)("(")(
@@ -4693,7 +4695,7 @@ bool ServerContext::process_reply(
                 client,
                 reply,
                 BoxType::Inbox,
-                Identifier::Factory(reply.m_strAcctID));
+                api_.Factory().Identifier(reply.m_strAcctID));
         }
         case MessageType::processNymboxResponse: {
             return process_process_box_response(
@@ -5515,7 +5517,7 @@ void ServerContext::process_response_transaction_cron(
                     auto pNewItem = api_.Factory().Item(
                         *pNewTransaction,
                         itemType::notice,
-                        Identifier::Factory());
+                        api_.Factory().Identifier());
                     OT_ASSERT((pNewItem));
                     // This may be unnecessary, I'll have to check
                     // CreateItemFromTransaction.
@@ -5816,11 +5818,6 @@ void ServerContext::process_response_transaction_withdrawal(
 {
     OT_ASSERT(nym_);
 
-    const auto& nym = *nym_;
-    // TODO nym id type
-    const auto nymID = identifier::Nym::Factory(nym.ID().str());
-    const auto strNotaryID = String::Factory(server_id_);
-
     // loop through the ALL items that make up this transaction and check to
     // see if a response to withdrawal.
 
@@ -5881,8 +5878,7 @@ bool ServerContext::process_incoming_cash(
     }
 
     const auto& nym = *nym_;
-    // TODO nym id type
-    const auto nymID = identifier::Nym::Factory(nym.ID().str());
+    const auto& nymID = nym.ID();
     const auto& serverID = server_id_.get();
     const auto strNotaryID = String::Factory(serverID);
     const auto strNymID = String::Factory(nymID);
@@ -5918,8 +5914,7 @@ void ServerContext::process_incoming_cash_withdrawal(const Item& item) const
 
     const auto& nym = *nym_;
     const auto& serverNym = *remote_nym_;
-    // TODO nym id type
-    const auto nymID = identifier::Nym::Factory(nym.ID().str());
+    const auto& nymID = nym.ID();
     auto rawPurse = Data::Factory();
     item.GetAttachment(rawPurse);
     const auto serializedPurse = proto::DataToProto<proto::Purse>(rawPurse);
@@ -6020,7 +6015,7 @@ bool ServerContext::process_unregister_account_response(
         originalMessage->m_strAcctID->Compare(reply.m_strAcctID) &&
         originalMessage->m_strCommand->Compare("unregisterAccount")) {
 
-        const auto theAccountID = Identifier::Factory(reply.m_strAcctID);
+        const auto theAccountID = api_.Factory().Identifier(reply.m_strAcctID);
         auto account = api_.Wallet().mutable_Account(theAccountID);
 
         if (account) {
@@ -6130,10 +6125,7 @@ void ServerContext::process_unseen_reply(
 std::shared_ptr<const blind::Purse> ServerContext::Purse(
     const identifier::UnitDefinition& id) const
 {
-    return api_.Wallet().Purse(
-        identifier::Nym::Factory(nym_->ID().str()),      // TODO nym id type
-        identifier::Server::Factory(server_id_->str()),  // TODO server id type
-        id);
+    return api_.Wallet().Purse(nym_->ID(), server_id_, id);
 }
 #endif
 
@@ -6362,14 +6354,15 @@ bool ServerContext::remove_nymbox_item(
                 return false;
             }
 
-            auto theCancelerNymID = Identifier::Factory();
+            auto theCancelerNymID = api_.Factory().NymID();
             const TransactionNumber openingNumber =
                 pOriginalCronItem->GetOpeningNumber(nymID);
             const bool bCancelling =
                 (pCronItem->IsCanceled() &&
                  pCronItem->GetCancelerID(theCancelerNymID));
+            // TODO ambiguous overload
             const bool bIsCancelerNym =
-                (bCancelling && (nymID == theCancelerNymID));
+                (bCancelling && (nymID.str() == theCancelerNymID->str()));
             const bool bIsActivatingNym =
                 (pCronItem->GetOpeningNum() == openingNumber);
 
@@ -6581,7 +6574,7 @@ bool ServerContext::remove_nymbox_item(
                             std::shared_ptr<Item> newItem{api_.Factory().Item(
                                 *newTransaction,
                                 itemType::notice,
-                                Identifier::Factory())};
+                                api_.Factory().Identifier())};
 
                             OT_ASSERT(newItem);
 
@@ -6900,7 +6893,7 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     return output;
 }
 
-const Identifier& ServerContext::server_nym_id(const Lock& lock) const
+const identifier::Nym& ServerContext::server_nym_id(const Lock& lock) const
 {
     OT_ASSERT(remote_nym_);
 
@@ -6972,7 +6965,8 @@ std::unique_ptr<Item> ServerContext::statement(
 
     OT_ASSERT(nym_);
 
-    if ((transaction.GetNymID() != nym_->ID())) {
+    // TODO ambiguous overload
+    if ((transaction.GetNymID().str() != nym_->ID().str())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Transaction has wrong owner.")
             .Flush();
 
@@ -6984,7 +6978,9 @@ std::unique_ptr<Item> ServerContext::statement(
     // Since it uses up a transaction number, I will be sure to remove that one
     // from my list before signing the list.
     output = api_.Factory().Item(
-        transaction, itemType::transactionStatement, Identifier::Factory());
+        transaction,
+        itemType::transactionStatement,
+        api_.Factory().Identifier());
 
     if (false == bool(output)) { return output; }
 
@@ -7149,12 +7145,12 @@ OTIdentifier ServerContext::update_remote_hash(
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    auto output = Identifier::Factory();
+    auto output = api_.Factory().Identifier();
     const auto& input = reply.m_strNymboxHash;
 
     if (input->Exists()) {
         output->SetString(input);
-        remote_nymbox_hash_ = Identifier::Factory(output);
+        remote_nymbox_hash_ = output;
     }
 
     return output;
@@ -7172,7 +7168,7 @@ bool ServerContext::update_nymbox_hash(
         return false;
     }
 
-    const auto hash = Identifier::Factory(reply.m_strNymboxHash);
+    const auto hash = api_.Factory().Identifier(reply.m_strNymboxHash);
     set_remote_nymbox_hash(lock, hash);
 
     if (UpdateHash::Both == which) { set_local_nymbox_hash(lock, hash); }

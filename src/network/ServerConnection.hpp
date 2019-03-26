@@ -43,7 +43,7 @@ private:
     OTFlag status_;
     OTFlag use_proxy_;
     mutable std::mutex registration_lock_;
-    std::map<OTIdentifier, bool> registered_for_push_;
+    std::map<OTNymID, bool> registered_for_push_;
 
     static std::pair<bool, proto::ServerReply> check_for_protobuf(
         const zeromq::Frame& frame);
@@ -63,7 +63,7 @@ private:
     OTZMQRequestSocket sync_socket(const Lock& lock) const;
 
     void activity_timer();
-    void disable_push(const Identifier& nymID);
+    void disable_push(const identifier::Nym& nymID);
     zeromq::DealerSocket& get_async(const Lock& lock);
     zeromq::RequestSocket& get_sync(const Lock& lock);
     void process_incoming(const zeromq::Message& in);

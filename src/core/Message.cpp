@@ -317,11 +317,10 @@ bool Message::HarvestTransactionNumbers(
     bool bTransactionWasFailure) const  // false until positively asserted.
 {
 
-    const auto MSG_NYM_ID = Identifier::Factory(m_strNymID),
-               NOTARY_ID = Identifier::Factory(m_strNotaryID),
-               ACCOUNT_ID = Identifier::Factory(
-                   m_strAcctID->Exists() ? m_strAcctID
-                                         : m_strNymID);  // This may be
+    const auto MSG_NYM_ID = identifier::Nym::Factory(m_strNymID);
+    const auto NOTARY_ID = identifier::Server::Factory(m_strNotaryID);
+    const auto ACCOUNT_ID = Identifier::Factory(
+        m_strAcctID->Exists() ? m_strAcctID : m_strNymID);  // This may be
     // unnecessary, but just
     // in case.
 

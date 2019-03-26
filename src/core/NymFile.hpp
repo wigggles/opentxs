@@ -15,7 +15,7 @@ typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 class NymFile final : public opentxs::internal::NymFile, Lockable
 {
 public:
-    bool CompareID(const Identifier& rhs) const override;
+    bool CompareID(const identifier::Nym& rhs) const override;
     void DisplayStatistics(String& strOutput) const override;
     bool GetInboxHash(
         const std::string& acct_id,
@@ -36,7 +36,7 @@ public:
 
         return m_lUsageCredits;
     }
-    const Identifier& ID() const override { return target_nym_->ID(); }
+    const identifier::Nym& ID() const override { return target_nym_->ID(); }
     std::string PaymentCode() const override
     {
         return target_nym_->PaymentCode();

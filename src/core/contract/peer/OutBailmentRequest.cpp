@@ -7,7 +7,8 @@
 
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/String.hpp"
 
 #define CURRENT_VERSION 4
@@ -15,34 +16,34 @@
 namespace opentxs
 {
 OutBailmentRequest::OutBailmentRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(wallet, nym, serialized, serialized.outbailment().instructions())
-    , unit_(Identifier::Factory(serialized.outbailment().unitid()))
-    , server_(Identifier::Factory(serialized.outbailment().serverid()))
+    : ot_super(api, nym, serialized, serialized.outbailment().instructions())
+    , unit_(api_.Factory().UnitID(serialized.outbailment().unitid()))
+    , server_(api_.Factory().ServerID(serialized.outbailment().serverid()))
     , amount_(serialized.outbailment().amount())
 {
 }
 
 OutBailmentRequest::OutBailmentRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
-    const Identifier& recipientID,
-    const Identifier& unitID,
-    const Identifier& serverID,
+    const identifier::Nym& recipientID,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID,
     const std::uint64_t& amount,
     const std::string& terms)
     : ot_super(
-          wallet,
+          api,
           nym,
           CURRENT_VERSION,
           recipientID,
           serverID,
           terms,
           proto::PEERREQUEST_OUTBAILMENT)
-    , unit_(Identifier::Factory(unitID))
-    , server_(Identifier::Factory(serverID))
+    , unit_(unitID)
+    , server_(serverID)
     , amount_(amount)
 {
 }

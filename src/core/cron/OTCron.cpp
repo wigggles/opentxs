@@ -62,7 +62,7 @@ OTCron::OTCron(const api::Core& server)
     , m_mapMarkets()
     , m_mapCronItems()
     , m_multimapCronItems()
-    , m_NOTARY_ID(Identifier::Factory())
+    , m_NOTARY_ID(api_.Factory().ServerID())
     , m_listTransactionNumbers()
     , m_bIsActivated(false)
     , m_pServerNym(nullptr)  // just here for convenience, not responsible to
@@ -116,7 +116,7 @@ bool OTCron::SaveCron()
 //
 bool OTCron::GetNym_OfferList(
     Armored& ascOutput,
-    const Identifier& NYM_ID,
+    const identifier::Nym& NYM_ID,
     std::int32_t& nOfferCount)
 {
     nOfferCount = 0;  // Outputs the number of offers on this nym.
@@ -480,9 +480,9 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const std::int64_t lScale =
             String::StringToLong(xml->getAttributeValue("marketScale"));
 
-        const OTIdentifier INSTRUMENT_DEFINITION_ID =
-                               Identifier::Factory(strInstrumentDefinitionID),
-                           CURRENCY_ID = Identifier::Factory(strCurrencyID);
+        const auto INSTRUMENT_DEFINITION_ID =
+                       api_.Factory().UnitID(strInstrumentDefinitionID),
+                   CURRENCY_ID = api_.Factory().UnitID(strCurrencyID);
 
         LogDetail(OT_METHOD)(__FUNCTION__)(": Loaded cron entry for Market: ")(
             strMarketID)(".")
@@ -1035,8 +1035,8 @@ bool OTCron::AddMarket(
 
 // Create it if it's not there.
 std::shared_ptr<OTMarket> OTCron::GetOrCreateMarket(
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& CURRENCY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+    const identifier::UnitDefinition& CURRENCY_ID,
     const std::int64_t& lScale)
 {
     auto pMarket{api_.Factory().Market(

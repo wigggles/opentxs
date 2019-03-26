@@ -23,6 +23,8 @@ template <class C>
 class Pimpl
 {
 public:
+    using interface_type = C;
+
     explicit Pimpl(C* in) noexcept
         : pimpl_(in)
     {

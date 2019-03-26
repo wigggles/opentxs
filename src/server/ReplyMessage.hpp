@@ -23,7 +23,7 @@ public:
     ReplyMessage(
         const UserCommandProcessor& parent,
         const opentxs::api::Wallet& wallet,
-        const Identifier& notaryID,
+        const identifier::Server& notaryID,
         const Nym& signer,
         const Message& input,
         Server& server,
@@ -67,7 +67,7 @@ private:
     const opentxs::api::Wallet& wallet_;
     const Nym& signer_;
     const Message& original_;
-    const OTIdentifier notary_id_;
+    const OTServerID notary_id_;
     Message& message_;
     Server& server_;
     bool init_{false};

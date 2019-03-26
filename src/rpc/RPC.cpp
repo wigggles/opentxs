@@ -176,9 +176,7 @@ proto::RPCResponse RPC::accept_pending_payments(
             Identifier::Factory(acceptpendingpayment.destinationaccount());
         const auto workflowID =
             Identifier::Factory(acceptpendingpayment.workflow());
-        // TODO nym id type
-        const auto nymID = identifier::Nym::Factory(
-            client.Storage().AccountOwner(destinationaccountID)->str());
+        const auto nymID = client.Storage().AccountOwner(destinationaccountID);
         const auto paymentWorkflow =
             client.Workflow().LoadWorkflow(nymID, workflowID);
 
@@ -266,7 +264,7 @@ proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
     CHECK_INPUT(claim, proto::RPCRESPONSE_INVALID);
 
     auto nymdata =
-        session.Wallet().mutable_Nym(Identifier::Factory(command.owner()));
+        session.Wallet().mutable_Nym(identifier::Nym::Factory(command.owner()));
 
     for (const auto& addclaim : command.claim()) {
         const auto& contactitem = addclaim.item();
@@ -299,7 +297,7 @@ proto::RPCResponse RPC::add_contact(const proto::RPCCommand& command) const
     for (const auto& addContact : command.addcontact()) {
         const auto contact = client.Contacts().NewContact(
             addContact.label(),
-            Identifier::Factory(addContact.nymid()),
+            identifier::Nym::Factory(addContact.nymid()),
             client.Factory().PaymentCode(addContact.paymentcode()));
 
         if (false == bool(contact)) {
@@ -473,7 +471,6 @@ proto::RPCResponse RPC::create_issuer_account(
     if (0 < command.identifier_size()) { label = command.identifier(0); }
 
     if (false == bool(unitdefinition) ||
-        // TODO nym id type
         ownerID->str() != unitdefinition->Nym()->ID().str()) {
         add_output_status(output, proto::RPCRESPONSE_UNITDEFINITION_NOT_FOUND);
 
@@ -531,7 +528,7 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
 
     if (0 < createnym.claims_size()) {
         auto nymdata =
-            client.Wallet().mutable_Nym(Identifier::Factory(identifier));
+            client.Wallet().mutable_Nym(identifier::Nym::Factory(identifier));
 
         for (const auto& addclaim : createnym.claims()) {
             const auto& contactitem = addclaim.item();
@@ -590,7 +587,7 @@ proto::RPCResponse RPC::delete_claim(const proto::RPCCommand& command) const
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
     auto nymdata =
-        session.Wallet().mutable_Nym(Identifier::Factory(command.owner()));
+        session.Wallet().mutable_Nym(identifier::Nym::Factory(command.owner()));
 
     for (const auto& id : command.identifier()) {
         auto deleted = nymdata.DeleteClaim(Identifier::Factory(id));
@@ -920,7 +917,7 @@ proto::RPCResponse RPC::get_nyms(const proto::RPCCommand& command) const
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
     for (const auto& id : command.identifier()) {
-        auto pNym = session.Wallet().Nym(Identifier::Factory(id));
+        auto pNym = session.Wallet().Nym(identifier::Nym::Factory(id));
 
         if (pNym) {
             const auto& nym = *pNym;
@@ -1073,7 +1070,8 @@ proto::RPCResponse RPC::get_server_contracts(
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
     for (const auto& id : command.identifier()) {
-        const auto pContract = session.Wallet().Server(Identifier::Factory(id));
+        const auto pContract =
+            session.Wallet().Server(identifier::Server::Factory(id));
 
         if (pContract) {
             const auto& contract = *pContract;
@@ -1133,8 +1131,8 @@ proto::RPCResponse RPC::get_unit_definitions(
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
     for (const auto& id : command.identifier()) {
-        const auto contract =
-            session.Wallet().UnitDefinition(Identifier::Factory(id));
+        const auto contract = session.Wallet().UnitDefinition(
+            identifier::UnitDefinition::Factory(id));
 
         if (contract) {
             *output.add_unit() = contract->PublicContract();
@@ -1154,7 +1152,7 @@ proto::RPCResponse RPC::get_workflow(const proto::RPCCommand& command) const
 
     for (const auto& getworkflow : command.getworkflow()) {
         const auto workflow = client.Workflow().LoadWorkflow(
-            Identifier::Factory(getworkflow.nymid()),
+            identifier::Nym::Factory(getworkflow.nymid()),
             Identifier::Factory(getworkflow.workflowid()));
 
         if (workflow) {
@@ -1734,9 +1732,7 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
         return output;
     }
 
-    // TODO nym id type
-    const auto sender = identifier::Nym::Factory(
-        client.Storage().AccountOwner(sourceaccountid)->str());
+    const auto sender = client.Storage().AccountOwner(sourceaccountid);
 
     if (sender->empty()) {
         add_output_status(output, proto::RPCRESPONSE_ACCOUNT_OWNER_NOT_FOUND);

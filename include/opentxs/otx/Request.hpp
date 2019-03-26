@@ -23,16 +23,16 @@ class Request : virtual public Signable
 public:
     EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const std::shared_ptr<const opentxs::Nym> signer,
-        const Identifier& server,
+        const identifier::Server& server,
         const proto::ServerRequestType type);
     EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const api::Core& api,
         const proto::ServerRequest serialized);
 
     EXPORT virtual proto::ServerRequest Contract() const = 0;
-    EXPORT virtual const Identifier& Initiator() const = 0;
+    EXPORT virtual const identifier::Nym& Initiator() const = 0;
     EXPORT virtual RequestNumber Number() const = 0;
-    EXPORT virtual const Identifier& Server() const = 0;
+    EXPORT virtual const identifier::Server& Server() const = 0;
     EXPORT virtual proto::ServerRequestType Type() const = 0;
 
     EXPORT virtual bool SetIncludeNym(const bool include) = 0;

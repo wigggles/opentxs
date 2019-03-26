@@ -19,13 +19,14 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -137,7 +138,7 @@ void OTWallet::DisplayStatistics(String& strOutput) const
     strOutput.Concatenate("\nNYM(s):\n\n");
 
     for (auto& it : api_.Storage().LocalNyms()) {
-        const auto& nymId = Identifier::Factory(it);
+        const auto& nymId = identifier::Nym::Factory(it);
         const auto& pNym = api_.Wallet().Nym(nymId);
 
         OT_ASSERT(pNym);
@@ -446,8 +447,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         LogVerbose(OT_METHOD)(__FUNCTION__)("     Notary ID: ")(
                             NotaryID)
                             .Flush();
-                        const auto ACCOUNT_ID = Identifier::Factory(AcctID),
-                                   NOTARY_ID = Identifier::Factory(NotaryID);
+                        const auto ACCOUNT_ID = Identifier::Factory(AcctID);
+                        const auto NOTARY_ID =
+                            identifier::Server::Factory(NotaryID);
                         std::unique_ptr<Account> pAccount(
                             Account::LoadExistingAccount(
                                 api_, ACCOUNT_ID, NOTARY_ID));

@@ -7,6 +7,8 @@
 
 #include "opentxs/core/Cheque.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -38,10 +40,10 @@ Cheque::Cheque(const api::Core& core)
     : ot_super(core)
     , m_lAmount(0)
     , m_strMemo(String::Factory())
-    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(api_.Factory().NymID())
     , m_bHasRecipient(false)
-    , m_REMITTER_NYM_ID(Identifier::Factory())
-    , m_REMITTER_ACCT_ID(Identifier::Factory())
+    , m_REMITTER_NYM_ID(api_.Factory().NymID())
+    , m_REMITTER_ACCT_ID(api_.Factory().Identifier())
     , m_bHasRemitter(false)
 {
     InitCheque();
@@ -49,15 +51,15 @@ Cheque::Cheque(const api::Core& core)
 
 Cheque::Cheque(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
     , m_strMemo(String::Factory())
-    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(api_.Factory().NymID())
     , m_bHasRecipient(false)
-    , m_REMITTER_NYM_ID(Identifier::Factory())
-    , m_REMITTER_ACCT_ID(Identifier::Factory())
+    , m_REMITTER_NYM_ID(api_.Factory().NymID())
+    , m_REMITTER_ACCT_ID(api_.Factory().Identifier())
     , m_bHasRemitter(false)
 {
     InitCheque();
@@ -164,11 +166,11 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
              strRemitterAcctID =
                  String::Factory(xml->getAttributeValue("remitterAcctID"));
 
-        auto INSTRUMENT_DEFINITION_ID =
-                 Identifier::Factory(strInstrumentDefinitionID),
-             NOTARY_ID = Identifier::Factory(strNotaryID),
-             SENDER_ACCT_ID = Identifier::Factory(strSenderAcctID),
-             SENDER_NYM_ID = Identifier::Factory(strSenderNymID);
+        const auto INSTRUMENT_DEFINITION_ID =
+            api_.Factory().UnitID(strInstrumentDefinitionID);
+        const auto NOTARY_ID = api_.Factory().ServerID(strNotaryID);
+        const auto SENDER_ACCT_ID = api_.Factory().Identifier(strSenderAcctID);
+        const auto SENDER_NYM_ID = api_.Factory().NymID(strSenderNymID);
 
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetNotaryID(NOTARY_ID);
@@ -254,13 +256,13 @@ bool Cheque::IssueCheque(
                                // the cheque
     const Identifier& SENDER_ACCT_ID,  // The asset account the cheque is drawn
                                        // on.
-    const Identifier& SENDER_NYM_ID,   // This ID must match the user ID on the
-                                       // asset account,
+    const identifier::Nym& SENDER_NYM_ID,  // This ID must match the user ID on
+                                           // the asset account,
     // AND must verify the cheque signature with that user's key.
-    const String& strMemo,                // Optional memo field.
-    const Identifier& pRECIPIENT_NYM_ID)  // Recipient optional.
-                                          // (Might be a blank
-                                          // cheque.)
+    const String& strMemo,                     // Optional memo field.
+    const identifier::Nym& pRECIPIENT_NYM_ID)  // Recipient optional.
+                                               // (Might be a blank
+                                               // cheque.)
 {
     m_lAmount = lAmount;
     m_strMemo->Set(strMemo);
@@ -278,7 +280,7 @@ bool Cheque::IssueCheque(
         m_RECIPIENT_NYM_ID->Release();
     } else {
         m_bHasRecipient = true;
-        m_RECIPIENT_NYM_ID = Identifier::Factory(pRECIPIENT_NYM_ID);
+        m_RECIPIENT_NYM_ID = pRECIPIENT_NYM_ID;
     }
 
     m_bHasRemitter = false;  // OTCheque::SetAsVoucher() will set this to true.

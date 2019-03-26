@@ -152,7 +152,7 @@ public:
     // numbers back
     EXPORT void HarvestClosingNumbers(
         ServerContext& context,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         bool bSave = true);
 
 protected:

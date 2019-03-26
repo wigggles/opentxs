@@ -98,8 +98,8 @@ Pair::Pair(const Flag& running, const api::client::Manager& client)
 }
 
 bool Pair::AddIssuer(
-    const Identifier& localNymID,
-    const Identifier& issuerNymID,
+    const identifier::Nym& localNymID,
+    const identifier::Nym& issuerNymID,
     const std::string& pairingCode) const
 {
     if (localNymID.empty()) {
@@ -135,8 +135,8 @@ bool Pair::AddIssuer(
 }
 
 bool Pair::CheckIssuer(
-    const Identifier& localNymID,
-    const Identifier& unitDefinitionID) const
+    const identifier::Nym& localNymID,
+    const identifier::UnitDefinition& unitDefinitionID) const
 {
     const auto contract = client_.Wallet().UnitDefinition(unitDefinitionID);
 
@@ -183,9 +183,9 @@ void Pair::check_refresh() const
     }
 }
 
-std::map<OTIdentifier, std::set<OTIdentifier>> Pair::create_issuer_map() const
+std::map<OTNymID, std::set<OTNymID>> Pair::create_issuer_map() const
 {
-    std::map<OTIdentifier, std::set<OTIdentifier>> output;
+    std::map<OTNymID, std::set<OTNymID>> output;
     const auto nymList = client_.OTAPI().LocalNymList();
 
     for (const auto& nymID : nymList) {
@@ -196,9 +196,9 @@ std::map<OTIdentifier, std::set<OTIdentifier>> Pair::create_issuer_map() const
 }
 
 std::pair<bool, OTIdentifier> Pair::get_connection(
-    const Identifier& localNymID,
-    const Identifier& issuerNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Nym& issuerNymID,
+    const identifier::Server& serverID,
     const proto::ConnectionInfoType type) const
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
@@ -206,11 +206,7 @@ std::pair<bool, OTIdentifier> Pair::get_connection(
 
     auto setID = [&](const Identifier& in) -> void { output.second = in; };
     auto [taskID, future] = client_.OTX().InitiateRequestConnection(
-        identifier::Nym::Factory(localNymID.str()),   // TODO nym id type
-        identifier::Server::Factory(serverID.str()),  // TODO server id type
-        identifier::Nym::Factory(issuerNymID.str()),  // TODO nym id type
-        type,
-        setID);
+        localNymID, serverID, issuerNymID, type, setID);
 
     if (0 == taskID) { return output; }
 
@@ -221,10 +217,10 @@ std::pair<bool, OTIdentifier> Pair::get_connection(
 }
 
 std::pair<bool, OTIdentifier> Pair::initiate_bailment(
-    const Identifier& nymID,
-    const Identifier& serverID,
-    const Identifier& issuerID,
-    const Identifier& unitID) const
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID,
+    const identifier::Nym& issuerID,
+    const identifier::UnitDefinition& unitID) const
 {
     std::pair<bool, OTIdentifier> output(false, Identifier::Factory());
     auto& success = std::get<0>(output);
@@ -238,11 +234,7 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
 
     auto setID = [&](const Identifier& in) -> void { output.second = in; };
     auto [taskID, future] = client_.OTX().InitiateBailment(
-        identifier::Nym::Factory(nymID.str()),        // TODO nym id type
-        identifier::Server::Factory(serverID.str()),  // TODO server id type
-        identifier::Nym::Factory(issuerID.str()),     // TODO nym id type
-        identifier::UnitDefinition::Factory(unitID.str()),  // TODO unit id type
-        setID);
+        nymID, serverID, issuerID, unitID, setID);
 
     if (0 == taskID) { return output; }
 
@@ -253,8 +245,8 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
 }
 
 std::string Pair::IssuerDetails(
-    const Identifier& localNymID,
-    const Identifier& issuerNymID) const
+    const identifier::Nym& localNymID,
+    const identifier::Nym& issuerNymID) const
 {
     auto issuer = client_.Wallet().Issuer(localNymID, issuerNymID);
 
@@ -263,8 +255,8 @@ std::string Pair::IssuerDetails(
     return *issuer;
 }
 
-std::set<OTIdentifier> Pair::IssuerList(
-    const Identifier& localNymID,
+std::set<OTNymID> Pair::IssuerList(
+    const identifier::Nym& localNymID,
     const bool onlyTrusted) const
 {
     Lock lock(status_lock_);
@@ -275,7 +267,7 @@ std::set<OTIdentifier> Pair::IssuerList(
         return {};
     }
 
-    std::set<OTIdentifier> output{};
+    std::set<OTNymID> output{};
 
     for (const auto& [key, value] : pair_status_) {
         const auto& issuerID = std::get<1>(key);
@@ -288,8 +280,8 @@ std::set<OTIdentifier> Pair::IssuerList(
 }
 
 bool Pair::need_registration(
-    const Identifier& localNymID,
-    const Identifier& serverID) const
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID) const
 {
     auto context = client_.Wallet().ServerContext(localNymID, serverID);
 
@@ -300,7 +292,7 @@ bool Pair::need_registration(
 
 void Pair::process_connection_info(
     const Lock& lock,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
@@ -309,7 +301,7 @@ void Pair::process_connection_info(
 
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
-    const auto issuerNymID = Identifier::Factory(reply.recipient());
+    const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -323,7 +315,8 @@ void Pair::process_connection_info(
     }
 }
 
-void Pair::process_peer_replies(const Lock& lock, const Identifier& nymID) const
+void Pair::process_peer_replies(const Lock& lock, const identifier::Nym& nymID)
+    const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_));
 
@@ -379,7 +372,7 @@ void Pair::process_peer_replies(const Lock& lock, const Identifier& nymID) const
     }
 }
 
-void Pair::process_peer_requests(const Lock& lock, const Identifier& nymID)
+void Pair::process_peer_requests(const Lock& lock, const identifier::Nym& nymID)
     const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_));
@@ -426,7 +419,7 @@ void Pair::process_peer_requests(const Lock& lock, const Identifier& nymID)
 
 void Pair::process_pending_bailment(
     const Lock& lock,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::PeerRequest& request) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
@@ -454,11 +447,7 @@ void Pair::process_pending_bailment(
         }
 
         auto [taskID, future] = client_.OTX().AcknowledgeNotice(
-            identifier::Nym::Factory(nymID.str()),  // TODO nym id type
-            serverID,
-            issuerNymID,
-            requestID,
-            true);
+            nymID, serverID, issuerNymID, requestID, true);
 
         if (0 == taskID) {
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -485,7 +474,7 @@ void Pair::process_pending_bailment(
 
 void Pair::process_request_bailment(
     const Lock& lock,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
@@ -494,7 +483,7 @@ void Pair::process_request_bailment(
 
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
-    const auto issuerNymID = Identifier::Factory(reply.recipient());
+    const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -510,7 +499,7 @@ void Pair::process_request_bailment(
 
 void Pair::process_request_outbailment(
     const Lock& lock,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
@@ -519,7 +508,7 @@ void Pair::process_request_outbailment(
 
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
-    const auto issuerNymID = Identifier::Factory(reply.recipient());
+    const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -535,7 +524,7 @@ void Pair::process_request_outbailment(
 
 void Pair::process_store_secret(
     const Lock& lock,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::PeerReply& reply) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_))
@@ -544,7 +533,7 @@ void Pair::process_store_secret(
 
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
-    const auto issuerNymID = Identifier::Factory(reply.recipient());
+    const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
@@ -575,33 +564,33 @@ void Pair::process_store_secret(
 }
 
 void Pair::queue_nym_download(
-    const Identifier& localNymID,
-    const Identifier& targetNymID) const
+    const identifier::Nym& localNymID,
+    const identifier::Nym& targetNymID) const
 {
     client_.OTX().StartIntroductionServer(localNymID);
     client_.OTX().FindNym(targetNymID);
 }
 
 void Pair::queue_nym_registration(
-    const Identifier& nymID,
-    const Identifier& serverID,
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID,
     const bool setData) const
 {
     client_.OTX().RegisterNym(nymID, serverID, setData);
 }
 
 void Pair::queue_server_contract(
-    const Identifier& nymID,
-    const Identifier& serverID) const
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID) const
 {
     client_.OTX().StartIntroductionServer(nymID);
     client_.OTX().FindServer(serverID);
 }
 
 void Pair::queue_unit_definition(
-    const Identifier& nymID,
-    const Identifier& serverID,
-    const Identifier& unitID) const
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID,
+    const identifier::UnitDefinition& unitID) const
 {
     client_.OTX().DownloadContract(nymID, serverID, unitID);
 }
@@ -613,9 +602,9 @@ void Pair::refresh() const
 }
 
 std::pair<bool, OTIdentifier> Pair::register_account(
-    const Identifier& nymID,
-    const Identifier& serverID,
-    const Identifier& unitID) const
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID,
+    const identifier::UnitDefinition& unitID) const
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, accountID] = output;
@@ -646,8 +635,8 @@ std::pair<bool, OTIdentifier> Pair::register_account(
 }
 
 void Pair::state_machine(
-    const Identifier& localNymID,
-    const Identifier& issuerNymID) const
+    const identifier::Nym& localNymID,
+    const identifier::Nym& issuerNymID) const
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Local nym: ")(localNymID)(
         " Issuer Nym: ")(issuerNymID)
@@ -835,8 +824,8 @@ void Pair::state_machine(
 
                         const auto& notUsed [[maybe_unused]] = id;
                         const auto& claim = *pClaim;
-                        const OTIdentifier unitID =
-                            Identifier::Factory(claim.Value());
+                        const auto unitID =
+                            identifier::UnitDefinition::Factory(claim.Value());
                         const auto accountList =
                             issuer.AccountList(type, unitID);
 
@@ -889,18 +878,18 @@ void Pair::state_machine(
 }
 
 std::pair<bool, OTIdentifier> Pair::store_secret(
-    const Identifier& localNymID,
-    const Identifier& issuerNymID,
-    const Identifier& serverID) const
+    const identifier::Nym& localNymID,
+    const identifier::Nym& issuerNymID,
+    const identifier::Server& serverID) const
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, requestID] = output;
 
     auto setID = [&](const Identifier& in) -> void { output.second = in; };
     auto [taskID, future] = client_.OTX().InitiateStoreSecret(
-        identifier::Nym::Factory(localNymID.str()),   // TODO nym id type
-        identifier::Server::Factory(serverID.str()),  // TODO server id type
-        identifier::Nym::Factory(issuerNymID.str()),  // TODO nym id type
+        localNymID,
+        serverID,
+        issuerNymID,
         proto::SECRETTYPE_BIP39,
         client_.Exec().Wallet_GetWords(),
         client_.Exec().Wallet_GetPassphrase(),

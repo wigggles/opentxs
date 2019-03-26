@@ -27,6 +27,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -71,7 +72,7 @@ bool session_key_from_iv(
 
 Nym::Nym(
     const api::Core& api,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::CredentialIndexMode mode)
     : api_(api)
     , version_(NYM_CREATE_VERSION)
@@ -81,7 +82,7 @@ Nym::Nym(
     , mode_(mode)
     , m_strVersion(String::Factory(NYMFILE_VERSION))
     , m_strDescription(String::Factory())
-    , m_nymID(Identifier::Factory(nymID))
+    , m_nymID(nymID)
     , source_(nullptr)
     , contact_data_(nullptr)
     , m_mapCredentialSets()
@@ -91,7 +92,7 @@ Nym::Nym(
 }
 
 Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
-    : Nym(api, Identifier::Factory(), proto::CREDINDEX_PRIVATE)
+    : Nym(api, api.Factory().NymID(), proto::CREDINDEX_PRIVATE)
 {
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -125,7 +126,7 @@ Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
     OT_ASSERT(nullptr != pNewCredentialSet);
 
     source_ = std::make_shared<NymIDSource>(pNewCredentialSet->Source());
-    const_cast<OTIdentifier&>(m_nymID) = source_->NymID();
+    const_cast<OTNymID&>(m_nymID) = source_->NymID();
 
     SetDescription(source_->Description());
 
@@ -213,7 +214,7 @@ bool Nym::AddClaim(const Claim& claim)
 }
 
 bool Nym::AddContract(
-    const Identifier& instrumentDefinitionID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const bool primary,
     const bool active)
@@ -435,11 +436,11 @@ bool Nym::CompareID(const Nym& rhs) const
     return rhs.CompareID(m_nymID);
 }
 
-bool Nym::CompareID(const Identifier& rhs) const
+bool Nym::CompareID(const identifier::Nym& rhs) const
 {
     sLock lock(shared_lock_);
 
-    return rhs == m_nymID;
+    return m_nymID == rhs;
 }
 
 std::set<OTIdentifier> Nym::Contracts(
@@ -517,7 +518,7 @@ const std::vector<OTIdentifier> Nym::GetChildCredentialIDs(
     return ids;
 }
 
-void Nym::GetIdentifier(Identifier& theIdentifier) const
+void Nym::GetIdentifier(identifier::Nym& theIdentifier) const
 {
     sLock lock(shared_lock_);
 
@@ -923,7 +924,7 @@ bool Nym::load_credential_index(
 
     OT_ASSERT(verify_lock(lock));
 
-    const auto nymID = Identifier::Factory(index.nymid());
+    const auto nymID = api_.Factory().NymID(index.nymid());
 
     if (m_nymID != nymID) { return false; }
 
@@ -1869,8 +1870,9 @@ bool Nym::verify_pseudonym(const eLock& lock) const
             const CredentialSet* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
-            const OTIdentifier theCredentialNymID =
-                Identifier::Factory(pCredential->GetNymID());
+            const auto theCredentialNymID =
+                api_.Factory().NymID(pCredential->GetNymID());
+
             if (m_nymID != theCredentialNymID) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Credential NymID (")(
                     pCredential->GetNymID())(") doesn't match actual NymID: ")(

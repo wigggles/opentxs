@@ -36,7 +36,7 @@
         const bool active) const
     {
         return $self->HaveContract(
-            opentxs::Identifier::Factory(id),
+            opentxs::identifier::UnitDefinition::Factory(id),
             static_cast<opentxs::proto::ContactItemType>(currency),
             primary,
             active);
@@ -165,7 +165,7 @@ public:
     bool DeleteClaim(const Identifier& id);
     std::string EmailAddresses(bool active = true) const;
     bool HaveContract(
-        const Identifier& id,
+        const identifier::UnitDefinition& id,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active) const;

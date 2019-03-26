@@ -8,15 +8,16 @@
 #include "opentxs/core/Contract.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -71,7 +72,7 @@ Contract::Contract(
     , m_strName(name)
     , m_strFoldername(foldername)
     , m_strFilename(filename)
-    , m_ID(Identifier::Factory(strID))
+    , m_ID(api_.Factory().Identifier(strID))
     , m_xmlUnsigned(StringXML::Factory())
     , m_strRawFile(String::Factory())
     , m_strSigHashType(proto::HASHTYPE_ERROR)
@@ -150,10 +151,7 @@ bool Contract::DearmorAndTrim(
     return true;
 }
 
-void Contract::SetIdentifier(const Identifier& theID)
-{
-    m_ID = Identifier::Factory(theID);
-}
+void Contract::SetIdentifier(const Identifier& theID) { m_ID = theID; }
 
 // The name, filename, version, and ID loaded by the wallet
 // are NOT released here, since they are used immediately after
@@ -241,7 +239,7 @@ bool Contract::VerifyContract() const
     }
 
     if (!VerifySignature(*pNym)) {
-        const auto theNymID = Identifier::Factory(*pNym);
+        const auto& theNymID = pNym->ID();
         const auto strNymID = String::Factory(theNymID);
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying the contract's signature "
@@ -283,7 +281,7 @@ void Contract::CalculateAndSetContractID(Identifier& newID)
 
 bool Contract::VerifyContractID() const
 {
-    auto newID = Identifier::Factory();
+    auto newID = api_.Factory().Identifier();
     CalculateContractID(newID);
 
     // newID now contains the Hash aka Message Digest aka Fingerprint
@@ -1992,9 +1990,9 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         if (LoadContractFromString(strTemp))  // The ultimate test is, once
         {                                     // we've created the serialized
             auto NEW_ID =
-                Identifier::Factory();    // string for this contract, is
-            CalculateContractID(NEW_ID);  // to then load it up from that
-                                          // string.
+                api_.Factory().Identifier();  // string for this contract, is
+            CalculateContractID(NEW_ID);      // to then load it up from that
+                                              // string.
             m_ID = NEW_ID;
 
             return true;
@@ -2147,8 +2145,8 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        auto nymId = Identifier::Factory(strSignerNymID);
-        auto pNym = api_.Wallet().Nym(nymId);
+        const auto nymId = api_.Factory().NymID(strSignerNymID);
+        const auto pNym = api_.Wallet().Nym(nymId);
 
         if (nullptr == pNym) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failure loading signing nym.")

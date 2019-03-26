@@ -11,9 +11,10 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -183,7 +184,7 @@ bool ServerConnection::EnableProxy()
     return true;
 }
 
-void ServerConnection::disable_push(const Identifier& nymID)
+void ServerConnection::disable_push(const identifier::Nym& nymID)
 {
     Lock registrationLock(registration_lock_);
     registered_for_push_[nymID] = true;

@@ -7,6 +7,8 @@
 
 #include "opentxs/core/OTTrackable.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Instrument.hpp"
 #include "opentxs/core/NumList.hpp"
@@ -19,34 +21,34 @@ namespace opentxs
 OTTrackable::OTTrackable(const api::Core& core)
     : Instrument(core)
     , m_lTransactionNum(0)
-    , m_SENDER_ACCT_ID(Identifier::Factory())
-    , m_SENDER_NYM_ID(Identifier::Factory())
+    , m_SENDER_ACCT_ID(api_.Factory().Identifier())
+    , m_SENDER_NYM_ID(api_.Factory().NymID())
 {
     InitTrackable();
 }
 
 OTTrackable::OTTrackable(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
-    , m_SENDER_ACCT_ID(Identifier::Factory())
-    , m_SENDER_NYM_ID(Identifier::Factory())
+    , m_SENDER_ACCT_ID(api_.Factory().Identifier())
+    , m_SENDER_NYM_ID(api_.Factory().NymID())
 {
     InitTrackable();
 }
 
 OTTrackable::OTTrackable(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const Identifier& ACCT_ID,
-    const Identifier& NYM_ID)
+    const identifier::Nym& NYM_ID)
     : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
-    , m_SENDER_ACCT_ID(Identifier::Factory())
-    , m_SENDER_NYM_ID(Identifier::Factory())
+    , m_SENDER_ACCT_ID(api_.Factory().Identifier())
+    , m_SENDER_NYM_ID(api_.Factory().NymID())
 {
     InitTrackable();
 
@@ -88,12 +90,12 @@ void OTTrackable::Release()
 
 void OTTrackable::SetSenderAcctID(const Identifier& ACCT_ID)
 {
-    m_SENDER_ACCT_ID = Identifier::Factory(ACCT_ID);
+    m_SENDER_ACCT_ID = ACCT_ID;
 }
 
-void OTTrackable::SetSenderNymID(const Identifier& NYM_ID)
+void OTTrackable::SetSenderNymID(const identifier::Nym& NYM_ID)
 {
-    m_SENDER_NYM_ID = Identifier::Factory(NYM_ID);
+    m_SENDER_NYM_ID = NYM_ID;
 }
 
 void OTTrackable::UpdateContents() {}

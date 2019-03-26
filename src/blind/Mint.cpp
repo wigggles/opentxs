@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -14,7 +15,6 @@
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -41,18 +41,19 @@ Mint::Mint(
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
     : blind::Mint()
+    , api_(core)
     , m_mapPrivate()
     , m_mapPublic()
-    , m_NotaryID(Identifier::Factory(strNotaryID))
-    , m_ServerNymID(Identifier::Factory(strServerNymID))
-    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
+    , m_NotaryID(api_.Factory().ServerID(strNotaryID))
+    , m_ServerNymID(api_.Factory().NymID(strServerNymID))
+    , m_InstrumentDefinitionID(api_.Factory().UnitID(strInstrumentDefinitionID))
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
-    , m_CashAccountID(Identifier::Factory())
+    , m_CashAccountID(api_.Factory().Identifier())
 {
     m_strFoldername->Set(OTFolders::Mint().Get());
     m_strFilename->Format(
@@ -69,18 +70,19 @@ Mint::Mint(
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
     : blind::Mint()
+    , api_(core)
     , m_mapPrivate()
     , m_mapPublic()
-    , m_NotaryID(Identifier::Factory(strNotaryID))
-    , m_ServerNymID(Identifier::Factory())
-    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
+    , m_NotaryID(api_.Factory().ServerID(strNotaryID))
+    , m_ServerNymID(api_.Factory().NymID())
+    , m_InstrumentDefinitionID(api_.Factory().UnitID(strInstrumentDefinitionID))
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
-    , m_CashAccountID(Identifier::Factory())
+    , m_CashAccountID(api_.Factory().Identifier())
 {
     m_strFoldername->Set(OTFolders::Mint().Get());
     m_strFilename->Format(
@@ -94,18 +96,19 @@ Mint::Mint(
 
 Mint::Mint(const api::Core& core)
     : blind::Mint()
+    , api_(core)
     , m_mapPrivate()
     , m_mapPublic()
-    , m_NotaryID(Identifier::Factory())
-    , m_ServerNymID(Identifier::Factory())
-    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_NotaryID(api_.Factory().ServerID())
+    , m_ServerNymID(api_.Factory().NymID())
+    , m_InstrumentDefinitionID(api_.Factory().UnitID())
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
     , m_EXPIRATION(OT_TIME_ZERO)
-    , m_CashAccountID(Identifier::Factory())
+    , m_CashAccountID(api_.Factory().Identifier())
 {
     InitMint();
 }
@@ -635,7 +638,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
  // static method (call it without an instance, using notation:
  OTAccount::GenerateNewAccount)
  OTAccount * OTAccount::GenerateNewAccount(    const Identifier& theNymID,
- const Identifier& theNotaryID,
+ const identifier::Server& theNotaryID,
                                             const Nym & theServerNym,
  const OTMessage & theMessage,
                                             const OTAccount::AccountType
@@ -664,8 +667,8 @@ void Mint::GenerateNewMint(
     time64_t VALID_FROM,
     time64_t VALID_TO,
     time64_t MINT_EXPIRATION,
-    const Identifier& theInstrumentDefinitionID,
-    const Identifier& theNotaryID,
+    const identifier::UnitDefinition& theInstrumentDefinitionID,
+    const identifier::Server& theNotaryID,
     const Nym& theNotary,
     const std::int64_t nDenom1,
     const std::int64_t nDenom2,
@@ -682,7 +685,7 @@ void Mint::GenerateNewMint(
     Release();
     m_InstrumentDefinitionID = theInstrumentDefinitionID;
     m_NotaryID = theNotaryID;
-    auto NOTARY_NYM_ID = Identifier::Factory(theNotary);
+    const auto& NOTARY_NYM_ID = theNotary.ID();
     m_ServerNymID = NOTARY_NYM_ID;
     m_nSeries = nSeries;
     m_VALID_FROM = VALID_FROM;

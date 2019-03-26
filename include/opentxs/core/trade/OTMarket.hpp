@@ -16,6 +16,8 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -71,7 +73,7 @@ public:
 
     // Returns more detailed information about offers for a specific Nym.
     bool GetNym_OfferList(
-        const Identifier& NYM_ID,
+        const identifier::Nym& NYM_ID,
         OTDB::OfferListNym& theOutputList,
         std::int32_t& nNymOfferCount);
 
@@ -96,25 +98,29 @@ public:
 
     mapOfOffers::size_type GetBidCount() { return m_mapBids.size(); }
     mapOfOffers::size_type GetAskCount() { return m_mapAsks.size(); }
-    void SetInstrumentDefinitionID(const Identifier& INSTRUMENT_DEFINITION_ID)
+    void SetInstrumentDefinitionID(
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     {
         m_INSTRUMENT_DEFINITION_ID = INSTRUMENT_DEFINITION_ID;
     }
-    void SetCurrencyID(const Identifier& CURRENCY_ID)
+    void SetCurrencyID(const identifier::UnitDefinition& CURRENCY_ID)
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
-    void SetNotaryID(const Identifier& NOTARY_ID) { m_NOTARY_ID = NOTARY_ID; }
+    void SetNotaryID(const identifier::Server& NOTARY_ID)
+    {
+        m_NOTARY_ID = NOTARY_ID;
+    }
 
-    inline const Identifier& GetInstrumentDefinitionID() const
+    inline const identifier::UnitDefinition& GetInstrumentDefinitionID() const
     {
         return m_INSTRUMENT_DEFINITION_ID;
     }
-    inline const Identifier& GetCurrencyID() const
+    inline const identifier::UnitDefinition& GetCurrencyID() const
     {
         return m_CURRENCY_TYPE_ID;
     }
-    inline const Identifier& GetNotaryID() const { return m_NOTARY_ID; }
+    inline const identifier::Server& GetNotaryID() const { return m_NOTARY_ID; }
 
     inline const std::int64_t& GetScale() const { return m_lScale; }
     inline void SetScale(const std::int64_t& lScale)
@@ -173,17 +179,17 @@ private:
     mapOfOffersTrnsNum m_mapOffers;  // All of the offers on a single list,
                                      // ordered by transaction number.
 
-    OTIdentifier m_NOTARY_ID;  // Always store this in any object that's
-                               // associated with a specific server.
+    OTServerID m_NOTARY_ID;  // Always store this in any object that's
+                             // associated with a specific server.
 
     // Every market involves a certain instrument definition being traded in a
     // certain
     // currency.
-    OTIdentifier m_INSTRUMENT_DEFINITION_ID;  // This is the GOLD market. (Say.)
-                                              // | (GOLD
-                                              // for
-    OTIdentifier m_CURRENCY_TYPE_ID;  // Gold is trading for DOLLARS.        |
-                                      // DOLLARS, for example.)
+    OTUnitID m_INSTRUMENT_DEFINITION_ID;  // This is the GOLD market. (Say.)
+                                          // | (GOLD
+                                          // for
+    OTUnitID m_CURRENCY_TYPE_ID;  // Gold is trading for DOLLARS.        |
+                                  // DOLLARS, for example.)
 
     // Each Offer on the market must have a minimum increment that this divides
     // equally into.
@@ -209,9 +215,9 @@ private:
     OTMarket(const api::Core& core, const char* szFilename);
     OTMarket(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_TYPE_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& CURRENCY_TYPE_ID,
         const std::int64_t& lScale);
 
     void rollback_four_accounts(

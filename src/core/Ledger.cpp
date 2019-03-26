@@ -72,9 +72,9 @@ char const* const __TypeStringsLedger[] = {
 // specific file, then I've decided to restrict ledgers to a single account.
 Ledger::Ledger(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAccountID,
-    const Identifier& theNotaryID)
+    const identifier::Server& theNotaryID)
     : OTTransactionType(core, theNymID, theAccountID, theNotaryID)
     , m_Type(ledgerType::message)
     , m_bLoadedLegacyData(false)
@@ -90,7 +90,7 @@ Ledger::Ledger(
 Ledger::Ledger(
     const api::Core& core,
     const Identifier& theAccountID,
-    const Identifier& theNotaryID)
+    const identifier::Server& theNotaryID)
     : OTTransactionType(core)
     , m_Type(ledgerType::message)
     , m_bLoadedLegacyData(false)
@@ -467,108 +467,54 @@ bool Ledger::LoadExpiredBoxFromString(const String& strBox)
  */
 bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
 {
-    m_Type = theType;
+    const auto pszType = GetTypeString();
+    const auto [valid, path1, path2, path3] = make_filename(theType);
 
-    const char* pszType = GetTypeString();
-    const char* pszFolder = nullptr;
+    if (false == valid) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set filename").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Path1: ")(path1).Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Path2: ")(path2).Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Path3: ")(path2).Flush();
 
-    switch (theType) {
-        case ledgerType::nymbox:
-            pszFolder = OTFolders::Nymbox().Get();
-            break;
-        case ledgerType::inbox:
-            pszFolder = OTFolders::Inbox().Get();
-            break;
-        case ledgerType::outbox:
-            pszFolder = OTFolders::Outbox().Get();
-            break;
-        case ledgerType::paymentInbox:
-            pszFolder = OTFolders::PaymentInbox().Get();
-            break;
-        case ledgerType::recordBox:
-            pszFolder = OTFolders::RecordBox().Get();
-            break;
-        case ledgerType::expiredBox:
-            pszFolder = OTFolders::ExpiredBox().Get();
-            break;
-        /* --- BREAK --- */
-        default:
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error: unknown box type. (This "
-                "should "
-                "never happen).")
-                .Flush();
-            return false;
+        return false;
     }
-    m_strFoldername = String::Factory(pszFolder);
-
-    auto strID = String::Factory();
-    GetIdentifier(strID);
-
-    const auto strNotaryID = String::Factory(GetRealNotaryID());
-
-    if (!m_strFilename->Exists())
-        m_strFilename->Format(
-            "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
-
-    auto strFilename = String::Factory();
-    strFilename = String::Factory(strID->Get());
-
-    const char* szFolder1name =
-        m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
-    const char* szFolder2name = strNotaryID->Get();  // "nymbox/NOTARY_ID"
-    const char* szFilename = strFilename->Get();  // "nymbox/NOTARY_ID/NYM_ID"
-    // (or "inbox/NOTARY_ID/ACCT_ID"
-    // or
-    // "outbox/NOTARY_ID/ACCT_ID")
 
     auto strRawFile = String::Factory();
 
-    if (pString.Exists())  // Loading FROM A STRING.
+    if (pString.Exists()) {  // Loading FROM A STRING.
         strRawFile->Set(pString.Get());
-    else  // Loading FROM A FILE.
-    {
-        if (!OTDB::Exists(
-                api_.DataFolder(),
-                szFolder1name,
-                szFolder2name,
-                szFilename,
-                "")) {
+    } else {  // Loading FROM A FILE.
+        if (!OTDB::Exists(api_.DataFolder(), path1, path2, path3, "")) {
             LogDebug(OT_METHOD)(__FUNCTION__)(
-                ": does not exist in OTLedger::Load")(pszType)(": ")(
-                szFolder1name)(Log::PathSeparator())(szFolder2name)(
-                Log::PathSeparator())(szFilename)
+                ": does not exist in OTLedger::Load")(pszType)(": ")(path1)(
+                Log::PathSeparator())(m_strFilename)
                 .Flush();
             return false;
         }
 
         // Try to load the ledger from local storage.
-        //
         std::string strFileContents(OTDB::QueryPlainString(
             api_.DataFolder(),
-            szFolder1name,
-            szFolder2name,
-            szFilename,
-            ""));  // <=== LOADING
-                   // FROM DATA STORE.
+            path1,
+            path2,
+            path3,
+            ""));  // <=== LOADING FROM DATA STORE.
 
         if (strFileContents.length() < 2) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
-                szFolder1name)(Log::PathSeparator())(szFolder2name)(
-                Log::PathSeparator())(szFilename)(".")
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(path1)(
+                Log::PathSeparator())(m_strFilename)
                 .Flush();
             return false;
         }
 
         strRawFile->Set(strFileContents.c_str());
     }
+
     // NOTE: No need to deal with OT ARMORED INBOX file format here, since
     //       LoadContractFromString already handles that automatically.
-
     if (!strRawFile->Exists()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load box (")(
-            szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(") from empty string.")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load box (")(path1)(
+            Log::PathSeparator())(m_strFilename)(") from empty string.")
             .Flush();
         return false;
     }
@@ -579,16 +525,14 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading ")(pszType)(" ")(
             (pString.Exists()) ? "from string"
                                : "from file")(" in OTLedger::Load")(pszType)(
-            ": ")(szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(".")
+            ": ")(path1)(Log::PathSeparator())(m_strFilename)
             .Flush();
         return false;
     } else {
         LogVerbose(OT_METHOD)(__FUNCTION__)("Successfully loaded ")(pszType)(
             " ")((pString.Exists()) ? "from string" : "from file")(
-            " in OTLedger::Load")(pszType)(": ")(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)
+            " in OTLedger::Load")(pszType)(": ")(path1)(Log::PathSeparator())(
+            m_strFilename)
             .Flush();
     }
 
@@ -597,70 +541,23 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
 
 bool Ledger::SaveGeneric(ledgerType theType)
 {
-    m_Type = theType;
+    const auto pszType = GetTypeString();
+    const auto [valid, path1, path2, path3] = make_filename(theType);
 
-    const char* pszFolder = nullptr;
-    const char* pszType = GetTypeString();
+    if (false == valid) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set filename").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Path1: ")(path1).Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Path2: ")(path2).Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Path3: ")(path2).Flush();
 
-    switch (theType) {
-        case ledgerType::nymbox:
-            pszFolder = OTFolders::Nymbox().Get();
-            break;
-        case ledgerType::inbox:
-            pszFolder = OTFolders::Inbox().Get();
-            break;
-        case ledgerType::outbox:
-            pszFolder = OTFolders::Outbox().Get();
-            break;
-        case ledgerType::paymentInbox:
-            pszFolder = OTFolders::PaymentInbox().Get();
-            break;
-        case ledgerType::recordBox:
-            pszFolder = OTFolders::RecordBox().Get();
-            break;
-        case ledgerType::expiredBox:
-            pszFolder = OTFolders::ExpiredBox().Get();
-            break;
-        /* --- BREAK --- */
-        default:
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error: unknown box type. (This "
-                "should "
-                "never happen).")
-                .Flush();
-            return false;
+        return false;
     }
-
-    m_strFoldername = String::Factory(pszFolder);  // <=======
-
-    auto strID = String::Factory();
-    GetIdentifier(strID);
-    const auto strNotaryID = String::Factory(GetRealNotaryID());
-
-    if (!m_strFilename->Exists())
-        m_strFilename->Format(
-            "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
-
-    auto strFilename = String::Factory();
-    strFilename = String::Factory(strID->Get());
-
-    const char* szFolder1name =
-        m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
-    const char* szFolder2name = strNotaryID->Get();  // "nymbox/NOTARY_ID"
-    const char* szFilename = strFilename->Get();  // "nymbox/NOTARY_ID/NYM_ID"
-    // (or "inbox/NOTARY_ID/ACCT_ID"
-    // or
-    // "outbox/NOTARY_ID/ACCT_ID")
-
-    OT_ASSERT(m_strFoldername->GetLength() > 2);
-    OT_ASSERT(m_strFilename->GetLength() > 2);
 
     auto strRawFile = String::Factory();
 
     if (!SaveContractRaw(strRawFile)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving ")(pszType)(
-            " (to string): ")(szFolder1name)(Log::PathSeparator())(
-            szFolder2name)(Log::PathSeparator())(szFilename)(".")
+            m_strFilename)
             .Flush();
         return false;
     }
@@ -671,9 +568,8 @@ bool Ledger::SaveGeneric(ledgerType theType)
     if (false ==
         ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving ")(pszType)(
-            " (failed writing armored string): ")(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)(".")
+            " (failed writing armored string): ")(path1)(Log::PathSeparator())(
+            m_strFilename)
             .Flush();
         return false;
     }
@@ -681,20 +577,18 @@ bool Ledger::SaveGeneric(ledgerType theType)
     bool bSaved = OTDB::StorePlainString(
         strFinal->Get(),
         api_.DataFolder(),
-        szFolder1name,
-        szFolder2name,
-        szFilename,
+        path1,
+        path2,
+        path3,
         "");  // <=== SAVING TO DATA STORE.
     if (!bSaved) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error writing ")(pszType)(
-            " to file: ")(szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(".")
+            " to file: ")(path1)(Log::PathSeparator())(m_strFilename)
             .Flush();
         return false;
     } else
         LogVerbose(OT_METHOD)(__FUNCTION__)("Successfully saved ")(pszType)(
-            ": ")(szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)
+            ": ")(path1)(Log::PathSeparator())(m_strFilename)
             .Flush();
 
     return bSaved;
@@ -753,6 +647,80 @@ bool Ledger::CalculateNymboxHash(Identifier& theOutput) const
     }
 
     return CalculateHash(theOutput);
+}
+
+std::tuple<bool, std::string, std::string, std::string> Ledger::make_filename(
+    const ledgerType theType)
+{
+    std::tuple<bool, std::string, std::string, std::string> output{
+        false, "", "", ""};
+    auto& [valid, one, two, three] = output;
+    m_Type = theType;
+    const char* pszFolder = nullptr;
+
+    switch (theType) {
+        case ledgerType::nymbox: {
+            pszFolder = OTFolders::Nymbox().Get();
+        } break;
+        case ledgerType::inbox: {
+            pszFolder = OTFolders::Inbox().Get();
+        } break;
+        case ledgerType::outbox: {
+            pszFolder = OTFolders::Outbox().Get();
+        } break;
+        case ledgerType::paymentInbox: {
+            pszFolder = OTFolders::PaymentInbox().Get();
+        } break;
+        case ledgerType::recordBox: {
+            pszFolder = OTFolders::RecordBox().Get();
+        } break;
+        case ledgerType::expiredBox: {
+            pszFolder = OTFolders::ExpiredBox().Get();
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Error: unknown box type. (This should never happen).")
+                .Flush();
+
+            return output;
+        }
+    }
+
+    m_strFoldername = String::Factory(pszFolder);
+    one = m_strFoldername->Get();
+
+    if (GetRealNotaryID().empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Notary ID not set").Flush();
+
+        return output;
+    }
+
+    two = GetRealNotaryID().str();
+    auto ledgerID = String::Factory();
+    GetIdentifier(ledgerID);
+
+    if (ledgerID->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ID not set").Flush();
+
+        return output;
+    }
+
+    three = ledgerID->Get();
+
+    if (false == m_strFilename->Exists()) {
+        m_strFilename->Format(
+            "%s%s%s", two.c_str(), Log::PathSeparator(), three.c_str());
+    }
+
+    if (2 > one.size()) { return output; }
+
+    if (2 > two.size()) { return output; }
+
+    if (2 > three.size()) { return output; }
+
+    valid = true;
+
+    return output;
 }
 
 bool Ledger::save_box(
@@ -862,9 +830,9 @@ bool Ledger::SaveExpiredBox()
 }
 
 bool Ledger::generate_ledger(
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAcctID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     ledgerType theType,
     bool bCreateFile)
 {
@@ -1000,11 +968,11 @@ bool Ledger::generate_ledger(
 
 bool Ledger::GenerateLedger(
     const Identifier& theAcctID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     ledgerType theType,
     bool bCreateFile)
 {
-    auto nymID = Identifier::Factory();
+    auto nymID = api_.Factory().NymID();
 
     if ((ledgerType::inbox == theType) || (ledgerType::outbox == theType)) {
         // Have to look up the NymID here. No way around it. We need that ID.
@@ -1012,7 +980,7 @@ bool Ledger::GenerateLedger(
         auto account = api_.Wallet().Account(theAcctID);
 
         if (account) {
-            nymID = Identifier::Factory(account.get().GetNymID());
+            nymID = account.get().GetNymID();
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed in "
@@ -1025,11 +993,11 @@ bool Ledger::GenerateLedger(
         auto account = api_.Wallet().Account(theAcctID);
 
         if (account) {
-            nymID = Identifier::Factory(account.get().GetNymID());
+            nymID = account.get().GetNymID();
         } else {
             // Must be based on NymID, not AcctID (like Nymbox. But RecordBox
             // can go either way.)
-            nymID = Identifier::Factory(theAcctID);
+            nymID = api_.Factory().NymID(theAcctID.str());  // TODO conversion
             // In the case of nymbox, and sometimes with recordBox, the acct ID
             // IS the user ID.
         }
@@ -1037,16 +1005,16 @@ bool Ledger::GenerateLedger(
         // In the case of paymentInbox, expired box, and nymbox, the acct ID IS
         // the user ID. (Should change it to "owner ID" to make it sound right
         // either way.)
-        nymID = Identifier::Factory(theAcctID);
+        nymID = api_.Factory().NymID(theAcctID.str());  // TODO conversion
     }
 
     return generate_ledger(nymID, theAcctID, theNotaryID, theType, bCreateFile);
 }
 
 bool Ledger::CreateLedger(
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAcctID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     ledgerType theType,
     bool bCreateFile)
 {
@@ -1466,8 +1434,10 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     }
 
     if ((theAccount.GetPurportedAccountID() != GetPurportedAccountID()) ||
-        (theAccount.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
-        (theAccount.GetNymID() != GetNymID())) {
+        (theAccount.GetPurportedNotaryID().str() !=
+         GetPurportedNotaryID().str()) ||
+        (theAccount.GetNymID().str() != GetNymID().str())) {  // TODO ambiguous
+                                                              // overload
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong Account passed in.")
             .Flush();
 
@@ -1475,14 +1445,17 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     }
 
     if ((theOutbox.GetPurportedAccountID() != GetPurportedAccountID()) ||
-        (theOutbox.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
-        (theOutbox.GetNymID() != GetNymID())) {
+        (theOutbox.GetPurportedNotaryID().str() !=
+         GetPurportedNotaryID().str()) ||
+        (theOutbox.GetNymID().str() != GetNymID().str())) {  // TODO ambiguous
+                                                             // overload
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong Outbox passed in.").Flush();
 
         return nullptr;
     }
 
-    if ((context.Nym()->ID() != GetNymID())) {
+    if ((context.Nym()->ID().str() != GetNymID().str())) {  // TODO ambiguous
+                                                            // overload
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong Nym passed in.").Flush();
 
         return nullptr;
@@ -1897,9 +1870,9 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        auto ACCOUNT_ID = Identifier::Factory(strLedgerAcctID),
-             NOTARY_ID = Identifier::Factory(strLedgerAcctNotaryID),
-             NYM_ID = Identifier::Factory(strNymID);
+        const auto ACCOUNT_ID = api_.Factory().Identifier(strLedgerAcctID);
+        const auto NOTARY_ID = api_.Factory().ServerID(strLedgerAcctNotaryID);
+        const auto NYM_ID = api_.Factory().NymID(strNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedNotaryID(NOTARY_ID);
@@ -1908,11 +1881,6 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (!m_bLoadSecurely) {
             SetRealAccountID(ACCOUNT_ID);
             SetRealNotaryID(NOTARY_ID);
-            //            OTString str1(GetRealAccountID()),
-            // str2(GetRealNotaryID());
-            //            otErr << "DEBUGGING:\nReal Acct ID: %s\nReal Server
-            // ID: %s\n",
-            //                          str1.Get(), str2.Get());
         }
 
         // Load up the partial records, based on the expected count...

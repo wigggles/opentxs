@@ -13,6 +13,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
@@ -26,10 +27,10 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -95,7 +96,7 @@ Server::Server(const opentxs::api::server::Manager& manager)
     , m_strWalletFilename(String::Factory())
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
-    , m_notaryID(Identifier::Factory())
+    , m_notaryID(manager_.Factory().ServerID())
     , m_strServerNymID()
     , m_nymServer(nullptr)
     , m_Cron(manager.Factory().Cron(manager))
@@ -156,7 +157,7 @@ void Server::ProcessCron()
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
-const Identifier& Server::GetServerID() const { return m_notaryID; }
+const identifier::Server& Server::GetServerID() const { return m_notaryID; }
 
 const Nym& Server::GetServerNym() const { return *m_nymServer; }
 
@@ -226,8 +227,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     if (!m_nymServer->VerifyPseudonym()) { OT_FAIL; }
 
-    const OTIdentifier nymID = m_nymServer->ID();
-
+    const auto& nymID = m_nymServer->ID();
     const std::string defaultTerms = "This is an example server contract.";
     const std::string& userTerms = manager_.GetUserTerms();
     std::string terms = userTerms;
@@ -393,7 +393,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     if (existing->empty()) {
         pContract = wallet.Server(
-            nymID->str(),
+            nymID.str(),
             name,
             terms,
             endpoints,
@@ -497,7 +497,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         json, manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
 
     mainFileExists = mainFile_.CreateMainFile(
-        strBookended->Get(), strNotaryID, "", nymID->str(), strCachedKey);
+        strBookended->Get(), strNotaryID, "", nymID.str(), strCachedKey);
 
     manager_.Config().Save();
 }
@@ -565,7 +565,7 @@ void Server::Init(bool readOnly)
     // ready for operation!
 }
 
-bool Server::LoadServerNym(const Identifier& nymID)
+bool Server::LoadServerNym(const identifier::Nym& nymID)
 {
     auto nym = manager_.Wallet().Nym(nymID);
 
@@ -589,9 +589,9 @@ bool Server::LoadServerNym(const Identifier& nymID)
 // szCommand for passing payDividend (as the message command instead of
 // sendNymInstrument, the default.)
 bool Server::SendInstrumentToNym(
-    const Identifier& NOTARY_ID,
-    const Identifier& SENDER_NYM_ID,
-    const Identifier& RECIPIENT_NYM_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::Nym& SENDER_NYM_ID,
+    const identifier::Nym& RECIPIENT_NYM_ID,
     const OTPayment& pPayment,
     const char* szCommand)
 {
@@ -621,9 +621,9 @@ bool Server::SendInstrumentToNym(
 }
 
 bool Server::SendInstrumentToNym(
-    const Identifier& NOTARY_ID,
-    const Identifier& SENDER_NYM_ID,
-    const Identifier& RECIPIENT_NYM_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::Nym& SENDER_NYM_ID,
+    const identifier::Nym& RECIPIENT_NYM_ID,
     const Message& pMsg)
 {
     return DropMessageToNymbox(
@@ -635,9 +635,9 @@ bool Server::SendInstrumentToNym(
 }
 
 bool Server::DropMessageToNymbox(
-    const Identifier& notaryID,
-    const Identifier& senderNymID,
-    const Identifier& recipientNymID,
+    const identifier::Server& notaryID,
+    const identifier::Nym& senderNymID,
+    const identifier::Nym& recipientNymID,
     transactionType transactionType,
     const Message& msg)
 {
@@ -707,9 +707,9 @@ bool Server::DropMessageToNymbox(
 // the voucher memo.
 //
 bool Server::DropMessageToNymbox(
-    const Identifier& NOTARY_ID,
-    const Identifier& SENDER_NYM_ID,
-    const Identifier& RECIPIENT_NYM_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::Nym& SENDER_NYM_ID,
+    const identifier::Nym& RECIPIENT_NYM_ID,
     transactionType theType,
     const Message* pMsg,
     const String& pstrMessage,
@@ -877,9 +877,10 @@ bool Server::DropMessageToNymbox(
             theLedger->ReleaseSignatures();
             theLedger->SignContract(*m_nymServer);
             theLedger->SaveContract();
-            theLedger->SaveNymbox(Identifier::Factory());  // We don't grab the
-                                                           // Nymbox hash here,
-                                                           // since
+            theLedger->SaveNymbox(
+                manager_.Factory().Identifier());  // We don't grab the
+                                                   // Nymbox hash here,
+                                                   // since
             // nothing important changed (just a message
             // was sent.)
 
@@ -960,7 +961,7 @@ bool Server::GetConnectInfo(
 }
 
 OTZMQMessage Server::nymbox_push(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const OTTransaction& item) const
 {
     auto output = zmq::Message::Factory();

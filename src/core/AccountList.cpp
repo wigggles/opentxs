@@ -162,9 +162,9 @@ void AccountList::Release() { Release_AcctList(); }
 
 ExclusiveAccount AccountList::GetOrRegisterAccount(
     const Nym& serverNym,
-    const Identifier& accountOwnerId,
-    const Identifier& instrumentDefinitionID,
-    const Identifier& notaryID,
+    const identifier::Nym& accountOwnerId,
+    const identifier::UnitDefinition& instrumentDefinitionID,
+    const identifier::Server& notaryID,
     bool& wasAcctCreated,
     std::int64_t stashTransNum)
 {

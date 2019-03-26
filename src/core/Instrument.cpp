@@ -7,10 +7,11 @@
 
 #include "opentxs/core/Instrument.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <cstdint>
@@ -19,8 +20,8 @@ namespace opentxs
 {
 Instrument::Instrument(const api::Core& core)
     : OTScriptable(core)
-    , m_InstrumentDefinitionID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory())
+    , m_InstrumentDefinitionID(api_.Factory().UnitID())
+    , m_NotaryID(api_.Factory().ServerID())
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {
@@ -29,11 +30,11 @@ Instrument::Instrument(const api::Core& core)
 
 Instrument::Instrument(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : OTScriptable(core)
-    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
-    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
+    , m_NotaryID(NOTARY_ID)
     , m_VALID_FROM(OT_TIME_ZERO)
     , m_VALID_TO(OT_TIME_ZERO)
 {

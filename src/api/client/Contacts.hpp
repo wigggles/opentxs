@@ -18,7 +18,7 @@ public:
             proto::CITEMTYPE_BTC) const override;
     std::shared_ptr<const class Contact> Contact(
         const Identifier& id) const override;
-    OTIdentifier ContactID(const Identifier& nymID) const override;
+    OTIdentifier ContactID(const identifier::Nym& nymID) const override;
     ObjectList ContactList() const override;
     std::string ContactName(const Identifier& contactID) const override;
     std::shared_ptr<const class Contact> Merge(
@@ -30,7 +30,7 @@ public:
         const std::string& label) const override;
     std::shared_ptr<const class Contact> NewContact(
         const std::string& label,
-        const Identifier& nymID
+        const identifier::Nym& nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         ,
         const PaymentCode& paymentCode
@@ -41,7 +41,7 @@ public:
         const std::string& label,
         const proto::ContactItemType currency =
             proto::CITEMTYPE_BTC) const override;
-    OTIdentifier NymToContact(const Identifier& nymID) const override;
+    OTIdentifier NymToContact(const identifier::Nym& nymID) const override;
     std::shared_ptr<const class Contact> Update(
         const proto::CredentialIndex& nym) const override;
 
@@ -98,7 +98,7 @@ private:
     std::shared_ptr<const class Contact> new_contact(
         const rLock& lock,
         const std::string& label,
-        const Identifier& nymID
+        const identifier::Nym& nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         ,
         const PaymentCode& paymentCode
@@ -116,7 +116,7 @@ private:
         const Identifier& contactID) const;
     void update_nym_map(
         const rLock& lock,
-        const OTIdentifier nymID,
+        const identifier::Nym& nymID,
         class Contact& contact,
         const bool replace = false) const;
 

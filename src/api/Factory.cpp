@@ -19,6 +19,9 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
@@ -27,6 +30,7 @@
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Message.hpp"
@@ -109,8 +113,8 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque() const
 }
 
 std::unique_ptr<opentxs::Cheque> Factory::Cheque(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const
 {
     std::unique_ptr<opentxs::Cheque> cheque;
     cheque.reset(
@@ -268,6 +272,28 @@ std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
     return nullptr;
 }
 
+OTIdentifier Factory::Identifier() const { return Identifier::Factory(); }
+
+OTIdentifier Factory::Identifier(const std::string& serialized) const
+{
+    return Identifier::Factory(serialized);
+}
+
+OTIdentifier Factory::Identifier(const opentxs::String& serialized) const
+{
+    return Identifier::Factory(serialized);
+}
+
+OTIdentifier Factory::Identifier(const opentxs::Contract& contract) const
+{
+    return Identifier::Factory(contract);
+}
+
+OTIdentifier Factory::Identifier(const opentxs::Item& item) const
+{
+    return Identifier::Factory(item);
+}
+
 std::unique_ptr<opentxs::Item> Factory::Item(
     const std::string& serialized) const
 {
@@ -294,7 +320,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(const String& serialized) const
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const opentxs::Item& theOwner) const
 {
     std::unique_ptr<opentxs::Item> item;
@@ -304,7 +330,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const OTTransaction& theOwner) const
 {
     std::unique_ptr<opentxs::Item> item;
@@ -314,10 +340,10 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const OTTransaction& theOwner,
     itemType theType,
-    const Identifier& pDestinationAcctID) const
+    const opentxs::Identifier& pDestinationAcctID) const
 {
     std::unique_ptr<opentxs::Item> item;
     item.reset(new opentxs::Item(
@@ -335,7 +361,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 // to verify that the user ID is actually the owner of the AccountID. TOdo that.
 std::unique_ptr<opentxs::Item> Factory::Item(
     const String& strItem,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     std::int64_t lTransactionNumber) const
 {
     if (!strItem.Exists()) {
@@ -352,7 +378,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 
     // This loads up the purported account ID and the user ID.
     if (pItem->LoadContractFromString(strItem)) {
-        const Identifier& ACCOUNT_ID = pItem->GetPurportedAccountID();
+        const opentxs::Identifier& ACCOUNT_ID = pItem->GetPurportedAccountID();
         pItem->SetRealAccountID(ACCOUNT_ID);  // I do this because it's all
                                               // we've got in this case. It's
                                               // what's in the
@@ -384,7 +410,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 std::unique_ptr<opentxs::Item> Factory::Item(
     const OTTransaction& theOwner,
     itemType theType,
-    const Identifier& pDestinationAcctID) const
+    const opentxs::Identifier& pDestinationAcctID) const
 {
     std::unique_ptr<opentxs::Item> pItem{new opentxs::Item(
         theOwner.API(),
@@ -402,8 +428,8 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 }
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID) const
+    const opentxs::Identifier& theAccountID,
+    const identifier::Server& theNotaryID) const
 {
     std::unique_ptr<opentxs::Ledger> ledger;
     ledger.reset(new opentxs::Ledger(api_, theAccountID, theNotaryID));
@@ -412,9 +438,9 @@ std::unique_ptr<opentxs::Ledger> Factory::Ledger(
 }
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID) const
+    const identifier::Nym& theNymID,
+    const opentxs::Identifier& theAccountID,
+    const identifier::Server& theNotaryID) const
 {
     std::unique_ptr<opentxs::Ledger> ledger;
     ledger.reset(
@@ -424,9 +450,9 @@ std::unique_ptr<opentxs::Ledger> Factory::Ledger(
 }
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
-    const Identifier& theNymID,
-    const Identifier& theAcctID,
-    const Identifier& theNotaryID,
+    const identifier::Nym& theNymID,
+    const opentxs::Identifier& theAcctID,
+    const identifier::Server& theNotaryID,
     ledgerType theType,
     bool bCreateFile) const
 {
@@ -456,9 +482,9 @@ std::unique_ptr<OTMarket> Factory::Market(const char* szFilename) const
 }
 
 std::unique_ptr<OTMarket> Factory::Market(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& CURRENCY_TYPE_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+    const identifier::UnitDefinition& CURRENCY_TYPE_ID,
     const std::int64_t& lScale) const
 {
     std::unique_ptr<opentxs::OTMarket> market;
@@ -539,6 +565,19 @@ std::unique_ptr<blind::Mint> Factory::Mint(
     return pMint;
 }
 #endif
+
+OTNymID Factory::NymID() const { return identifier::Nym::Factory(); }
+
+OTNymID Factory::NymID(const std::string& serialized) const
+{
+    return identifier::Nym::Factory(serialized);
+}
+
+OTNymID Factory::NymID(const opentxs::String& serialized) const
+{
+    return identifier::Nym::Factory(serialized);
+}
+
 std::unique_ptr<OTOffer> Factory::Offer() const
 {
     std::unique_ptr<OTOffer> offer;
@@ -548,9 +587,9 @@ std::unique_ptr<OTOffer> Factory::Offer() const
 }
 
 std::unique_ptr<OTOffer> Factory::Offer(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& CURRENCY_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+    const identifier::UnitDefinition& CURRENCY_ID,
     const std::int64_t& MARKET_SCALE) const
 {
     std::unique_ptr<OTOffer> offer;
@@ -627,8 +666,8 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan() const
 }
 
 std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(
@@ -638,12 +677,12 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
 }
 
 std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& SENDER_ACCT_ID,
-    const Identifier& SENDER_NYM_ID,
-    const Identifier& RECIPIENT_ACCT_ID,
-    const Identifier& RECIPIENT_NYM_ID) const
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+    const opentxs::Identifier& SENDER_ACCT_ID,
+    const identifier::Nym& SENDER_NYM_ID,
+    const opentxs::Identifier& RECIPIENT_ACCT_ID,
+    const identifier::Nym& RECIPIENT_NYM_ID) const
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(new OTPaymentPlan(
@@ -833,6 +872,18 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
     return nullptr;
 }
 
+OTServerID Factory::ServerID() const { return identifier::Server::Factory(); }
+
+OTServerID Factory::ServerID(const std::string& serialized) const
+{
+    return identifier::Server::Factory(serialized);
+}
+
+OTServerID Factory::ServerID(const opentxs::String& serialized) const
+{
+    return identifier::Server::Factory(serialized);
+}
+
 std::unique_ptr<OTSignedFile> Factory::SignedFile() const
 {
     std::unique_ptr<OTSignedFile> signedfile;
@@ -879,7 +930,7 @@ std::unique_ptr<OTSmartContract> Factory::SmartContract() const
 }
 
 std::unique_ptr<OTSmartContract> Factory::SmartContract(
-    const Identifier& NOTARY_ID) const
+    const identifier::Server& NOTARY_ID) const
 {
     std::unique_ptr<OTSmartContract> smartcontract;
     smartcontract.reset(new OTSmartContract(api_, NOTARY_ID));
@@ -896,12 +947,12 @@ std::unique_ptr<OTTrade> Factory::Trade() const
 }
 
 std::unique_ptr<OTTrade> Factory::Trade(
-    const Identifier& notaryID,
-    const Identifier& instrumentDefinitionID,
-    const Identifier& assetAcctId,
-    const Identifier& nymID,
-    const Identifier& currencyId,
-    const Identifier& currencyAcctId) const
+    const identifier::Server& notaryID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
+    const opentxs::Identifier& assetAcctId,
+    const identifier::Nym& nymID,
+    const identifier::UnitDefinition& currencyId,
+    const opentxs::Identifier& currencyAcctId) const
 {
     std::unique_ptr<OTTrade> trade;
     trade.reset(new OTTrade(
@@ -1009,9 +1060,9 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Nym& theNymID,
+    const opentxs::Identifier& theAccountID,
+    const identifier::Server& theNotaryID,
     originType theOriginType) const
 {
     std::unique_ptr<OTTransaction> transaction;
@@ -1022,9 +1073,9 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Nym& theNymID,
+    const opentxs::Identifier& theAccountID,
+    const identifier::Server& theNotaryID,
     std::int64_t lTransactionNum,
     originType theOriginType) const
 {
@@ -1044,9 +1095,9 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 // The full receipt is loaded only after the abbreviated ones are loaded,
 // and verified against them.
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Nym& theNymID,
+    const opentxs::Identifier& theAccountID,
+    const identifier::Server& theNotaryID,
     const std::int64_t& lNumberOfOrigin,
     originType theOriginType,
     const std::int64_t& lTransactionNum,
@@ -1105,9 +1156,9 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Nym& theNymID,
+    const opentxs::Identifier& theAccountID,
+    const identifier::Server& theNotaryID,
     transactionType theType,
     originType theOriginType /*=originType::not_applicable*/,
     std::int64_t lTransactionNum /*=0*/) const
@@ -1133,5 +1184,20 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     transaction->SetPurportedNotaryID(theNotaryID);
 
     return transaction;
+}
+
+OTUnitID Factory::UnitID() const
+{
+    return identifier::UnitDefinition::Factory();
+}
+
+OTUnitID Factory::UnitID(const std::string& serialized) const
+{
+    return identifier::UnitDefinition::Factory(serialized);
+}
+
+OTUnitID Factory::UnitID(const opentxs::String& serialized) const
+{
+    return identifier::UnitDefinition::Factory(serialized);
 }
 }  // namespace opentxs::api::implementation

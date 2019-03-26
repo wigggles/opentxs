@@ -9,10 +9,14 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -20,7 +24,6 @@
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
@@ -80,8 +83,9 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         auto strBasketID = String::Factory(it.first.c_str());
         auto strBasketAcctID = String::Factory(it.second.c_str());
 
-        const auto BASKET_ACCOUNT_ID = Identifier::Factory(strBasketAcctID);
-        auto BASKET_CONTRACT_ID = Identifier::Factory();
+        const auto BASKET_ACCOUNT_ID =
+            server_.API().Factory().Identifier(strBasketAcctID);
+        auto BASKET_CONTRACT_ID = server_.API().Factory().UnitID();
 
         bool bContractID =
             server_.GetTransactor().lookupBasketContractIDByAccountID(
@@ -257,7 +261,8 @@ bool MainFile::CreateMainFile(
     // notaryServer.xml file
     // is saved. All we have left is the Nymfile, which we'll create.
 
-    auto loaded = server_.LoadServerNym(Identifier::Factory(strNymID));
+    auto loaded =
+        server_.LoadServerNym(server_.API().Factory().NymID(strNymID));
     if (false == loaded) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Error loading server nym.")
             .Flush();
@@ -334,8 +339,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 case irr::io::EXN_ELEMENT: {
                     if (strNodeName->Compare("notaryServer")) {
                         version_ = xml->getAttributeValue("version");
-                        server_.SetNotaryID(Identifier::Factory(String::Factory(
-                            xml->getAttributeValue("notaryID"))));
+                        server_.SetNotaryID(
+                            server_.API().Factory().ServerID(String::Factory(
+                                xml->getAttributeValue("notaryID"))));
                         server_.SetServerNymID(
                             xml->getAttributeValue("serverNymID"));
 
@@ -404,11 +410,12 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             xml->getAttributeValue("basketAcctID"));
                         auto strBasketContractID = String::Factory(
                             xml->getAttributeValue("basketContractID"));
-                        const auto BASKET_ID = Identifier::Factory(strBasketID),
-                                   BASKET_ACCT_ID =
-                                       Identifier::Factory(strBasketAcctID),
-                                   BASKET_CONTRACT_ID =
-                                       Identifier::Factory(strBasketContractID);
+                        const auto BASKET_ID =
+                            server_.API().Factory().Identifier(strBasketID);
+                        const auto BASKET_ACCT_ID =
+                            server_.API().Factory().Identifier(strBasketAcctID);
+                        const auto BASKET_CONTRACT_ID =
+                            server_.API().Factory().UnitID(strBasketContractID);
 
                         if (server_.GetTransactor().addBasketAccountID(
                                 BASKET_ID,
@@ -450,8 +457,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
     }
 
     if (false == bFailure) {
-        const auto loaded =
-            server_.LoadServerNym(Identifier::Factory(server_.ServerNymID()));
+        const auto loaded = server_.LoadServerNym(
+            server_.API().Factory().NymID(server_.ServerNymID()));
 
         if (false == loaded) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load server nym.")
@@ -485,8 +492,8 @@ bool MainFile::LoadServerUserAndContract()
     OT_ASSERT(!server_.GetServerID().str().empty());
     OT_ASSERT(!server_.ServerNymID().empty());
 
-    serverNym =
-        server_.API().Wallet().Nym(Identifier::Factory(server_.ServerNymID()));
+    serverNym = server_.API().Wallet().Nym(
+        server_.API().Factory().NymID(server_.ServerNymID()));
 
     if (serverNym->HasCapability(NymCapability::SIGN_MESSAGE)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Server nym is viable.").Flush();
@@ -501,7 +508,7 @@ bool MainFile::LoadServerUserAndContract()
     // (I WAS loading this erroneously in Server.Init(), before
     // the Nym had actually been loaded from disk. That didn't work.)
     //
-    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
+    const auto& NOTARY_ID = server_.GetServerID();
 
     // Make sure the Cron object has a pointer to the server's Nym.
     // (For signing stuff...)

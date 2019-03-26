@@ -19,8 +19,9 @@ public:
         const OTTransaction& receipt) const override;
     std::unique_ptr<opentxs::Cheque> Cheque() const override;
     std::unique_ptr<opentxs::Cheque> Cheque(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const override;
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
+        const override;
 
     std::unique_ptr<opentxs::Contract> Contract(
         const String& strCronItem) const override;
@@ -30,54 +31,60 @@ public:
     std::unique_ptr<OTCronItem> CronItem(
         const String& strCronItem) const override;
 
+    OTIdentifier Identifier() const override;
+    OTIdentifier Identifier(const std::string& serialized) const override;
+    OTIdentifier Identifier(const opentxs::String& serialized) const override;
+    OTIdentifier Identifier(const opentxs::Contract& contract) const override;
+    OTIdentifier Identifier(const opentxs::Item& item) const override;
+
     std::unique_ptr<opentxs::Item> Item(
         const String& serialized) const override;
     std::unique_ptr<opentxs::Item> Item(
         const std::string& serialized) const override;
     std::unique_ptr<opentxs::Item> Item(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const opentxs::Item& theOwner) const override;  // From owner we can get
                                                         // acct ID, server ID,
                                                         // and transaction Num
     std::unique_ptr<opentxs::Item> Item(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const OTTransaction& theOwner) const override;  // From owner we can get
                                                         // acct ID, server ID,
                                                         // and transaction Num
     std::unique_ptr<opentxs::Item> Item(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const OTTransaction& theOwner,
         itemType theType,
-        const Identifier& pDestinationAcctID) const override;
+        const opentxs::Identifier& pDestinationAcctID) const override;
     std::unique_ptr<opentxs::Item> Item(
         const String& strItem,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         std::int64_t lTransactionNumber) const override;
     std::unique_ptr<opentxs::Item> Item(
         const OTTransaction& theOwner,
         itemType theType,
-        const Identifier& pDestinationAcctID) const override;
+        const opentxs::Identifier& pDestinationAcctID) const override;
 
     std::unique_ptr<opentxs::Ledger> Ledger(
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID) const override;
+        const opentxs::Identifier& theAccountID,
+        const identifier::Server& theNotaryID) const override;
     std::unique_ptr<opentxs::Ledger> Ledger(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID) const override;
+        const identifier::Nym& theNymID,
+        const opentxs::Identifier& theAccountID,
+        const identifier::Server& theNotaryID) const override;
     std::unique_ptr<opentxs::Ledger> Ledger(
-        const Identifier& theNymID,
-        const Identifier& theAcctID,
-        const Identifier& theNotaryID,
+        const identifier::Nym& theNymID,
+        const opentxs::Identifier& theAcctID,
+        const identifier::Server& theNotaryID,
         ledgerType theType,
         bool bCreateFile = false) const override;
 
     std::unique_ptr<OTMarket> Market() const override;
     std::unique_ptr<OTMarket> Market(const char* szFilename) const override;
     virtual std::unique_ptr<OTMarket> Market(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_TYPE_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& CURRENCY_TYPE_ID,
         const std::int64_t& lScale) const override;
 
     std::unique_ptr<opentxs::Message> Message() const override;
@@ -93,14 +100,18 @@ public:
         const String& strInstrumentDefinitionID) const override;
 #endif
 
+    OTNymID NymID() const override;
+    OTNymID NymID(const std::string& serialized) const override;
+    OTNymID NymID(const opentxs::String& serialized) const override;
+
     std::unique_ptr<OTOffer> Offer() const override;  // The constructor
                                                       // contains the 3
                                                       // variables needed to
                                                       // identify any market.
     std::unique_ptr<OTOffer> Offer(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& CURRENCY_ID,
         const std::int64_t& MARKET_SCALE) const override;
 
     std::unique_ptr<OTPayment> Payment() const override;
@@ -123,15 +134,16 @@ public:
 
     std::unique_ptr<OTPaymentPlan> PaymentPlan() const override;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const override;
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
+        const override;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& SENDER_ACCT_ID,
-        const Identifier& SENDER_NYM_ID,
-        const Identifier& RECIPIENT_ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID) const override;
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+        const opentxs::Identifier& SENDER_ACCT_ID,
+        const identifier::Nym& SENDER_NYM_ID,
+        const opentxs::Identifier& RECIPIENT_ACCT_ID,
+        const identifier::Nym& RECIPIENT_NYM_ID) const override;
 
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const ConstNym& senderNym,
@@ -178,6 +190,10 @@ public:
     std::unique_ptr<OTScriptable> Scriptable(
         const String& strCronItem) const override;
 
+    OTServerID ServerID() const override;
+    OTServerID ServerID(const std::string& serialized) const override;
+    OTServerID ServerID(const opentxs::String& serialized) const override;
+
     std::unique_ptr<OTSignedFile> SignedFile() const override;
     std::unique_ptr<OTSignedFile> SignedFile(
         const String& LOCAL_SUBDIR,
@@ -191,16 +207,16 @@ public:
 
     std::unique_ptr<OTSmartContract> SmartContract() const override;
     std::unique_ptr<OTSmartContract> SmartContract(
-        const Identifier& NOTARY_ID) const override;
+        const identifier::Server& NOTARY_ID) const override;
 
     std::unique_ptr<OTTrade> Trade() const override;
     std::unique_ptr<OTTrade> Trade(
-        const Identifier& notaryID,
-        const Identifier& instrumentDefinitionID,
-        const Identifier& assetAcctId,
-        const Identifier& nymID,
-        const Identifier& currencyId,
-        const Identifier& currencyAcctId) const override;
+        const identifier::Server& notaryID,
+        const identifier::UnitDefinition& instrumentDefinitionID,
+        const opentxs::Identifier& assetAcctId,
+        const identifier::Nym& nymID,
+        const identifier::UnitDefinition& currencyId,
+        const opentxs::Identifier& currencyAcctId) const override;
 
     std::unique_ptr<OTTransactionType> Transaction(
         const String& strCronItem) const override;
@@ -208,14 +224,14 @@ public:
     std::unique_ptr<OTTransaction> Transaction(
         const opentxs::Ledger& theOwner) const override;
     std::unique_ptr<OTTransaction> Transaction(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Nym& theNymID,
+        const opentxs::Identifier& theAccountID,
+        const identifier::Server& theNotaryID,
         originType theOriginType = originType::not_applicable) const override;
     std::unique_ptr<OTTransaction> Transaction(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Nym& theNymID,
+        const opentxs::Identifier& theAccountID,
+        const identifier::Server& theNotaryID,
         std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable) const override;
     // THIS factory only used when loading an abbreviated box receipt
@@ -223,9 +239,9 @@ public:
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
     std::unique_ptr<OTTransaction> Transaction(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Nym& theNymID,
+        const opentxs::Identifier& theAccountID,
+        const identifier::Server& theNotaryID,
         const std::int64_t& lNumberOfOrigin,
         originType theOriginType,
         const std::int64_t& lTransactionNum,
@@ -241,9 +257,9 @@ public:
         bool bReplyTransSuccess,
         NumList* pNumList = nullptr) const override;
     std::unique_ptr<OTTransaction> Transaction(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Nym& theNymID,
+        const opentxs::Identifier& theAccountID,
+        const identifier::Server& theNotaryID,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
         std::int64_t lTransactionNum = 0) const override;
@@ -252,6 +268,10 @@ public:
         transactionType theType,
         originType theOriginType = originType::not_applicable,
         std::int64_t lTransactionNum = 0) const override;
+
+    OTUnitID UnitID() const override;
+    OTUnitID UnitID(const std::string& serialized) const override;
+    OTUnitID UnitID(const opentxs::String& serialized) const override;
 
     ~Factory() override = default;
 

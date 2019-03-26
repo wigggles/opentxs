@@ -12,6 +12,8 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -21,7 +23,6 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Helpers.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -64,17 +65,17 @@ char const* const __TypeStringsAccount[] = {
 // Used for generating accounts, thus no accountID needed.
 Account::Account(
     const api::Core& core,
-    const Identifier& nymID,
-    const Identifier& notaryID)
+    const identifier::Nym& nymID,
+    const identifier::Server& notaryID)
     : OTTransactionType(core)
     , acctType_(err_acct)
-    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , acctInstrumentDefinitionID_(api_.Factory().UnitID())
     , balanceDate_(String::Factory())
     , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
-    , inboxHash_(Identifier::Factory())
-    , outboxHash_(Identifier::Factory())
+    , inboxHash_(api_.Factory().Identifier())
+    , outboxHash_(api_.Factory().Identifier())
     , alias_()
 {
     InitAccount();
@@ -86,13 +87,13 @@ Account::Account(
 Account::Account(const api::Core& core)
     : OTTransactionType(core)
     , acctType_(err_acct)
-    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , acctInstrumentDefinitionID_(api_.Factory().UnitID())
     , balanceDate_(String::Factory())
     , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
-    , inboxHash_(Identifier::Factory())
-    , outboxHash_(Identifier::Factory())
+    , inboxHash_(api_.Factory().Identifier())
+    , outboxHash_(api_.Factory().Identifier())
     , alias_()
 {
     InitAccount();
@@ -100,19 +101,19 @@ Account::Account(const api::Core& core)
 
 Account::Account(
     const api::Core& core,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountId,
-    const Identifier& notaryID,
+    const identifier::Server& notaryID,
     const String& name)
     : OTTransactionType(core, nymID, accountId, notaryID)
     , acctType_(err_acct)
-    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , acctInstrumentDefinitionID_(api_.Factory().UnitID())
     , balanceDate_(String::Factory())
     , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
-    , inboxHash_(Identifier::Factory())
-    , outboxHash_(Identifier::Factory())
+    , inboxHash_(api_.Factory().Identifier())
+    , outboxHash_(api_.Factory().Identifier())
     , alias_(name.Get())
 {
     InitAccount();
@@ -121,18 +122,18 @@ Account::Account(
 
 Account::Account(
     const api::Core& core,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountId,
-    const Identifier& notaryID)
+    const identifier::Server& notaryID)
     : OTTransactionType(core, nymID, accountId, notaryID)
     , acctType_(err_acct)
-    , acctInstrumentDefinitionID_(Identifier::Factory())
+    , acctInstrumentDefinitionID_(api_.Factory().UnitID())
     , balanceDate_(String::Factory())
     , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
-    , inboxHash_(Identifier::Factory())
-    , outboxHash_(Identifier::Factory())
+    , inboxHash_(api_.Factory().Identifier())
+    , outboxHash_(api_.Factory().Identifier())
     , alias_()
 {
     InitAccount();
@@ -164,7 +165,7 @@ bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing server id.").Flush();
     }
 
-    auto accountid{Identifier::Factory()};
+    auto accountid{api_.Factory().Identifier()};
     GetIdentifier(accountid);
     if (false == accountid->empty()) {
         preimage->Concatenate(accountid->data(), accountid->size());
@@ -181,7 +182,7 @@ bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
 
     const auto nymfile = context.Nymfile(__FUNCTION__);
 
-    auto inboxhash{Identifier::Factory()};
+    auto inboxhash{api_.Factory().Identifier()};
     auto loaded = nymfile->GetInboxHash(accountid->str(), inboxhash);
     if (false == loaded) {
         const_cast<Account&>(*this).GetInboxHash(inboxhash);
@@ -192,7 +193,7 @@ bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
         LogOutput(OT_METHOD)(__FUNCTION__)(": Empty inbox hash.").Flush();
     }
 
-    auto outboxhash{Identifier::Factory()};
+    auto outboxhash{api_.Factory().Identifier()};
     loaded = nymfile->GetOutboxHash(accountid->str(), outboxhash);
     if (false == loaded) {
         const_cast<Account&>(*this).GetOutboxHash(outboxhash);
@@ -339,7 +340,7 @@ bool Account::save_box(
 
 bool Account::SaveInbox(Ledger& box)
 {
-    auto hash = Identifier::Factory();
+    auto hash = api_.Factory().Identifier();
 
     return SaveInbox(box, hash);
 }
@@ -351,7 +352,7 @@ bool Account::SaveInbox(Ledger& box, Identifier& hash)
 
 bool Account::SaveOutbox(Ledger& box)
 {
-    auto hash = Identifier::Factory();
+    auto hash = api_.Factory().Identifier();
 
     return SaveOutbox(box, hash);
 }
@@ -556,7 +557,7 @@ bool Account::Credit(const Amount amount)
     }
 }
 
-const Identifier& Account::GetInstrumentDefinitionID() const
+const identifier::UnitDefinition& Account::GetInstrumentDefinitionID() const
 {
     return acctInstrumentDefinitionID_;
 }
@@ -572,22 +573,23 @@ void Account::InitAccount()
 // before calling this.
 bool Account::VerifyOwner(const Nym& candidate) const
 {
-    auto ID_CANDIDATE = Identifier::Factory();
-    // ID_CANDIDATE now contains the ID of the Nym we're testing.
+    auto ID_CANDIDATE = api_.Factory().NymID();
     candidate.GetIdentifier(ID_CANDIDATE);
+
     return m_AcctNymID == ID_CANDIDATE;
 }
 
 // TODO: when entities and roles are added, probably more will go here.
-bool Account::VerifyOwnerByID(const Identifier& nymId) const
+bool Account::VerifyOwnerByID(const identifier::Nym& nymId) const
 {
-    return nymId == m_AcctNymID;
+    // TODO ambiguous overload
+    return nymId.str() == m_AcctNymID->str();
 }
 
 Account* Account::LoadExistingAccount(
     const api::Core& core,
     const Identifier& accountId,
-    const Identifier& notaryID)
+    const identifier::Server& notaryID)
 {
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
@@ -643,11 +645,11 @@ Account* Account::LoadExistingAccount(
 
 Account* Account::GenerateNewAccount(
     const api::Core& core,
-    const Identifier& nymID,
-    const Identifier& notaryID,
+    const identifier::Nym& nymID,
+    const identifier::Server& notaryID,
     const Nym& serverNym,
     const Identifier& userNymID,
-    const Identifier& instrumentDefinitionID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
     Account::AccountType acctType,
     std::int64_t stashTransNum)
 {
@@ -677,8 +679,8 @@ message.m_strNotaryID;
 bool Account::GenerateNewAccount(
     const Nym& server,
     const Identifier& userNymID,
-    const Identifier& notaryID,
-    const Identifier& instrumentDefinitionID,
+    const identifier::Server& notaryID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
     Account::AccountType acctType,
     std::int64_t stashTransNum)
 {
@@ -694,7 +696,7 @@ bool Account::GenerateNewAccount(
 
     // Next we calculate that binary object into a message digest (an
     // OTIdentifier).
-    auto newID = Identifier::Factory();
+    auto newID = api_.Factory().Identifier();
     if (!newID->CalculateDigest(payload)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error generating new account ID.")
             .Flush();
@@ -992,9 +994,9 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         auto strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         auto strAcctNymID = String::Factory(xml->getAttributeValue("nymID"));
 
-        auto ACCOUNT_ID = Identifier::Factory(strAccountID);
-        auto NOTARY_ID = Identifier::Factory(strNotaryID);
-        auto NYM_ID = Identifier::Factory(strAcctNymID);
+        auto ACCOUNT_ID = api_.Factory().Identifier(strAccountID);
+        auto NOTARY_ID = api_.Factory().ServerID(strNotaryID);
+        auto NYM_ID = api_.Factory().NymID(strAcctNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);
         SetPurportedNotaryID(NOTARY_ID);

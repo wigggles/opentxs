@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/Server.hpp"
+
 #include <map>
 #include <string>
 
@@ -18,7 +20,7 @@ class AccountVisitor
 public:
     using mapOfAccounts = std::map<std::string, const Account*>;
 
-    OTIdentifier GetNotaryID() const { return notaryID_; }
+    const identifier::Server& GetNotaryID() const { return notaryID_; }
 
     virtual bool Trigger(const Account& account) = 0;
 
@@ -28,10 +30,12 @@ public:
 
 protected:
     const api::Wallet& wallet_;
-    const OTIdentifier notaryID_;
+    const OTServerID notaryID_;
     mapOfAccounts* loadedAccounts_;
 
-    AccountVisitor(const api::Wallet& wallet, const Identifier& notaryID);
+    AccountVisitor(
+        const api::Wallet& wallet,
+        const identifier::Server& notaryID);
 
 private:
     AccountVisitor() = delete;

@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
@@ -34,7 +35,7 @@ public:
         proto::AddressType& type,
         std::string& hostname,
         std::uint32_t& port) const;
-    const Identifier& GetServerID() const;
+    const identifier::Server& GetServerID() const;
     const Nym& GetServerNym() const;
     std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     bool IsFlaggedForShutdown() const;
@@ -44,21 +45,21 @@ public:
     std::int64_t ComputeTimeout() { return m_Cron->computeTimeout(); }
     OTCron& Cron() { return *m_Cron; }
     bool DropMessageToNymbox(
-        const Identifier& notaryID,
-        const Identifier& senderNymID,
-        const Identifier& recipientNymID,
+        const identifier::Server& notaryID,
+        const identifier::Nym& senderNymID,
+        const identifier::Nym& recipientNymID,
         transactionType transactionType,
         const Message& msg);
     MainFile& GetMainFile() { return mainFile_; }
     Notary& GetNotary() { return notary_; }
     Transactor& GetTransactor() { return transactor_; }
     void Init(bool readOnly = false);
-    bool LoadServerNym(const Identifier& nymID);
+    bool LoadServerNym(const identifier::Nym& nymID);
     void ProcessCron();
     bool SendInstrumentToNym(
-        const Identifier& notaryID,
-        const Identifier& senderNymID,
-        const Identifier& recipientNymID,
+        const identifier::Server& notaryID,
+        const identifier::Nym& senderNymID,
+        const identifier::Nym& recipientNymID,
         const OTPayment& payment,
         const char* command);
     String& WalletFilename() { return m_strWalletFilename; }
@@ -89,7 +90,7 @@ private:
     // this flag so the caller knows to do so.
     bool m_bShutdownFlag{false};
     // A hash of the server contract
-    OTIdentifier m_notaryID;
+    OTServerID m_notaryID;
     // A hash of the public key that signed the server contract
     std::string m_strServerNymID;
     // This is the server's own contract, containing its public key and
@@ -99,16 +100,17 @@ private:
                                      // tasks go.
     OTZMQPushSocket notification_socket_;
 
-    OTZMQMessage nymbox_push(const Identifier& nymID, const OTTransaction& item)
-        const;
+    OTZMQMessage nymbox_push(
+        const identifier::Nym& nymID,
+        const OTTransaction& item) const;
 
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.
     bool DropMessageToNymbox(
-        const Identifier& notaryID,
-        const Identifier& senderNymID,
-        const Identifier& recipientNymID,
+        const identifier::Server& notaryID,
+        const identifier::Nym& senderNymID,
+        const identifier::Nym& recipientNymID,
         transactionType transactionType,
         const Message* msg = nullptr,
         const String& messageString = String::Factory(),
@@ -116,13 +118,16 @@ private:
     std::pair<std::string, std::string> parse_seed_backup(
         const std::string& input) const;
     const std::string& ServerNymID() const { return m_strServerNymID; }
-    void SetNotaryID(const Identifier& notaryID) { m_notaryID = notaryID; }
+    void SetNotaryID(const identifier::Server& notaryID)
+    {
+        m_notaryID = notaryID;
+    }
     void SetServerNymID(const char* strNymID) { m_strServerNymID = strNymID; }
 
     bool SendInstrumentToNym(
-        const Identifier& notaryID,
-        const Identifier& senderNymID,
-        const Identifier& recipientNymID,
+        const identifier::Server& notaryID,
+        const identifier::Nym& senderNymID,
+        const identifier::Nym& recipientNymID,
         const Message& msg);
 
     Server(const opentxs::api::server::Manager& manager);

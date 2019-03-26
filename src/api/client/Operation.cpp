@@ -263,7 +263,7 @@ namespace opentxs
 api::client::internal::Operation* Factory::Operation(
     const api::client::Manager& api,
     const identifier::Nym& nym,
-    const Identifier& server)
+    const identifier::Server& server)
 {
     return new api::client::implementation::Operation(api, nym, server);
 }
@@ -324,7 +324,7 @@ const std::map<Operation::Type, std::size_t> Operation::transaction_numbers_{
 Operation::Operation(
     const api::client::Manager& api,
     const identifier::Nym& nym,
-    const Identifier& server)
+    const identifier::Server& server)
     : api_(api)
     , nym_id_(nym)
     , server_id_(server)
@@ -640,7 +640,8 @@ std::shared_ptr<Message> Operation::construct_deposit_cash()
 
     const auto& unitID = account.get().GetInstrumentDefinitionID();
 
-    if (unitID != purse.Unit()) {
+    // TODO ambiguous overload
+    if (unitID.str() != purse.Unit().str()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect account type").Flush();
 
         return {};
@@ -670,7 +671,8 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
         Identifier::Factory(),
         amount);
 
-    if (cheque.GetNotaryID() != serverID) {
+    // TODO ambiguous overload
+    if (cheque.GetNotaryID().str() != serverID.str()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": NotaryID on cheque (")(
             cheque.GetNotaryID())(
             ") doesn't match notaryID where it's being deposited to (")(
@@ -686,14 +688,15 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
     auto copy{api_.Factory().Cheque(
         serverID, account.get().GetInstrumentDefinitionID())};
 
+    // TODO ambiguous overload
     if (cheque.HasRemitter()) {
         cancellingCheque =
             ((cheque.GetRemitterAcctID() == account_id_) &&
-             (cheque.GetRemitterNymID() == nymID));
+             (cheque.GetRemitterNymID().str() == nymID.str()));
     } else {
         cancellingCheque =
             ((cheque.GetSenderAcctID() == account_id_) &&
-             (cheque.GetSenderNymID() == nymID));
+             (cheque.GetSenderNymID().str() == nymID.str()));
         if (cancellingCheque) cancellingCheque = cheque.VerifySignature(nym);
     }
 
@@ -1293,14 +1296,12 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
         Identifier::Factory(),
         totalAmount * (-1));
 
-    // TODO unit id type
-    const auto unitID = identifier::UnitDefinition::Factory(
-        account.get().GetInstrumentDefinitionID().str());
+    const auto& unitID = account.get().GetInstrumentDefinitionID();
     const bool exists = OTDB::Exists(
         api_.DataFolder(),
         OTFolders::Mint().Get(),
         serverID.str(),
-        unitID->str(),
+        unitID.str(),
         "");
 
     if (false == exists) {

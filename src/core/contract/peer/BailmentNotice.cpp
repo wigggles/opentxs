@@ -7,7 +7,8 @@
 
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/String.hpp"
 
 #define CURRENT_VERSION 6
@@ -15,12 +16,12 @@
 namespace opentxs
 {
 BailmentNotice::BailmentNotice(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(wallet, nym, serialized)
-    , unit_(Identifier::Factory(serialized.pendingbailment().unitid()))
-    , server_(Identifier::Factory(serialized.pendingbailment().serverid()))
+    : ot_super(api, nym, serialized)
+    , unit_(api_.Factory().UnitID(serialized.pendingbailment().unitid()))
+    , server_(api_.Factory().ServerID(serialized.pendingbailment().serverid()))
     , requestID_(Identifier::Factory(serialized.pendingbailment().requestid()))
     , txid_(serialized.pendingbailment().txid())
     , amount_(serialized.pendingbailment().amount())
@@ -28,24 +29,24 @@ BailmentNotice::BailmentNotice(
 }
 
 BailmentNotice::BailmentNotice(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
-    const Identifier& recipientID,
-    const Identifier& unitID,
-    const Identifier& serverID,
+    const identifier::Nym& recipientID,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID,
     const Identifier& requestID,
     const std::string& txid,
     const Amount& amount)
     : ot_super(
-          wallet,
+          api,
           nym,
           CURRENT_VERSION,
           recipientID,
           serverID,
           proto::PEERREQUEST_PENDINGBAILMENT)
-    , unit_(Identifier::Factory(unitID))
-    , server_(Identifier::Factory(serverID))
-    , requestID_(Identifier::Factory(requestID))
+    , unit_(unitID)
+    , server_(serverID)
+    , requestID_(requestID)
     , txid_(txid)
     , amount_(amount)
 {

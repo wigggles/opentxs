@@ -41,9 +41,9 @@ public:
     void SetType(Account::AccountType acctType) { acctType_ = acctType; }
     ExclusiveAccount GetOrRegisterAccount(
         const Nym& serverNym,
-        const Identifier& ACCOUNT_OWNER_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& NOTARY_ID,
+        const identifier::Nym& ACCOUNT_OWNER_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+        const identifier::Server& NOTARY_ID,
         bool& wasAcctCreated,  // this will be set to true if the acct is
                                // created here. Otherwise set to false;
         std::int64_t stashTransNum = 0);

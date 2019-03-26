@@ -13,8 +13,9 @@
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -29,9 +30,9 @@ PeerReply::PeerReply(
     const ConstNym& nym,
     const proto::PeerReply& serialized)
     : ot_super(nym)
-    , initiator_(Identifier::Factory(serialized.initiator()))
-    , recipient_(Identifier::Factory(serialized.recipient()))
-    , server_(Identifier::Factory(serialized.server()))
+    , initiator_(identifier::Nym::Factory(serialized.initiator()))
+    , recipient_(identifier::Nym::Factory(serialized.recipient()))
+    , server_(identifier::Server::Factory(serialized.server()))
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
     , wallet_{wallet}
@@ -46,14 +47,14 @@ PeerReply::PeerReply(
     const api::Wallet& wallet,
     const ConstNym& nym,
     const std::uint32_t version,
-    const Identifier& initiator,
-    const Identifier& server,
+    const identifier::Nym& initiator,
+    const identifier::Server& server,
     const proto::PeerRequestType& type,
     const Identifier& request)
     : ot_super(nym, version)
-    , initiator_(Identifier::Factory(initiator))
-    , recipient_(Identifier::Factory(nym->ID()))
-    , server_(Identifier::Factory(server))
+    , initiator_(initiator)
+    , recipient_(nym->ID())
+    , server_(server)
     , cookie_(Identifier::Factory(request))
     , type_(type)
     , wallet_{wallet}
@@ -80,7 +81,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& requestID,
-    const Identifier& server,
+    const identifier::Server& server,
     const std::string& terms)
 {
     auto peerRequest = LoadRequest(wallet, nym, requestID);
@@ -94,7 +95,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
             contract.reset(new BailmentReply(
                 wallet,
                 nym,
-                Identifier::Factory(peerRequest->initiator()),
+                identifier::Nym::Factory(peerRequest->initiator()),
                 requestID,
                 server,
                 terms));
@@ -103,7 +104,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
             contract.reset(new OutBailmentReply(
                 wallet,
                 nym,
-                Identifier::Factory(peerRequest->initiator()),
+                identifier::Nym::Factory(peerRequest->initiator()),
                 requestID,
                 server,
                 terms));
@@ -123,7 +124,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& requestID,
-    const Identifier& server,
+    const identifier::Server& server,
     const bool& ack)
 {
     auto peerRequest = LoadRequest(wallet, nym, requestID);
@@ -139,7 +140,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
             contract.reset(new NoticeAcknowledgement(
                 wallet,
                 nym,
-                Identifier::Factory(peerRequest->initiator()),
+                identifier::Nym::Factory(peerRequest->initiator()),
                 requestID,
                 server,
                 type,
@@ -160,7 +161,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& request,
-    const Identifier& server,
+    const identifier::Server& server,
     const bool& ack,
     const std::string& url,
     const std::string& login,
@@ -179,7 +180,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
             contract.reset(new ConnectionReply(
                 wallet,
                 nym,
-                Identifier::Factory(peerRequest->initiator()),
+                identifier::Nym::Factory(peerRequest->initiator()),
                 request,
                 server,
                 ack,

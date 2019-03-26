@@ -16,7 +16,8 @@ using MessagableListList = List<
     MessagableListRowInterface,
     MessagableListRowInternal,
     MessagableListRowBlank,
-    MessagableListSortKey>;
+    MessagableListSortKey,
+    MessagableListPrimaryID>;
 
 class MessagableList final : public MessagableListList
 {
@@ -50,7 +51,7 @@ private:
     MessagableList(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID);
+        const identifier::Nym& nymID);
     MessagableList() = delete;
     MessagableList(const MessagableList&) = delete;
     MessagableList(MessagableList&&) = delete;

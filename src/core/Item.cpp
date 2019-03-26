@@ -52,7 +52,7 @@ Item::Item(const api::Core& core)
     : OTTransactionType(core)
     , m_ascNote(Armored::Factory())
     , m_ascAttachment(Armored::Factory())
-    , m_AcctToID(Identifier::Factory())
+    , m_AcctToID(api_.Factory().Identifier())
     , m_lAmount(0)
     , m_listItems()
     , m_Type(itemType::error_state)
@@ -66,7 +66,7 @@ Item::Item(const api::Core& core)
 // From owner we can get acct ID, server ID, and transaction Num
 Item::Item(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const OTTransaction& theOwner)
     : OTTransactionType(
           core,
@@ -77,7 +77,7 @@ Item::Item(
           theOwner.GetOriginType())
     , m_ascNote(Armored::Factory())
     , m_ascAttachment(Armored::Factory())
-    , m_AcctToID(Identifier::Factory())
+    , m_AcctToID(api_.Factory().Identifier())
     , m_lAmount(0)
     , m_listItems()
     , m_Type(itemType::error_state)
@@ -91,7 +91,7 @@ Item::Item(
 // From owner we can get acct ID, server ID, and transaction Num
 Item::Item(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Item& theOwner)
     : OTTransactionType(
           core,
@@ -102,7 +102,7 @@ Item::Item(
           theOwner.GetOriginType())
     , m_ascNote(Armored::Factory())
     , m_ascAttachment(Armored::Factory())
-    , m_AcctToID(Identifier::Factory())
+    , m_AcctToID(api_.Factory().Identifier())
     , m_lAmount(0)
     , m_listItems()
     , m_Type(itemType::error_state)
@@ -115,7 +115,7 @@ Item::Item(
 
 Item::Item(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const OTTransaction& theOwner,
     itemType theType,
     const Identifier& pDestinationAcctID)
@@ -128,7 +128,7 @@ Item::Item(
           theOwner.GetOriginType())
     , m_ascNote(Armored::Factory())
     , m_ascAttachment(Armored::Factory())
-    , m_AcctToID(Identifier::Factory())
+    , m_AcctToID(api_.Factory().Identifier())
     , m_lAmount(0)
     , m_listItems()
     , m_Type(itemType::error_state)
@@ -146,9 +146,7 @@ Item::Item(
     // (If you deposit, or withdraw, you don't need a "to" account.)
     // But for the ones that do, you can pass the "to" account's ID in
     // as a pointer, and we'll set that too....
-    if (!pDestinationAcctID.empty()) {
-        m_AcctToID = Identifier::Factory(pDestinationAcctID);
-    }
+    if (!pDestinationAcctID.empty()) { m_AcctToID = pDestinationAcctID; }
 }
 
 // Server-side.
@@ -621,7 +619,7 @@ bool Item::VerifyBalanceStatement(
     // 3) Also need to verify the transactions on the Nym, against the
     // transactions stored on this (in a message Nym attached to this.) Check
     // for presence of each, then compare count, like above.
-    const auto notaryID = Identifier::Factory(GetPurportedNotaryID());
+    const auto& notaryID = GetPurportedNotaryID();
     const auto notary = String::Factory(notaryID);
     const auto targetNumber = GetTransactionNum();
 
@@ -1424,10 +1422,10 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                               // std::set<std::int64_t>.)
         }
 
-        auto ACCOUNT_ID = Identifier::Factory(strAcctFromID),
-             NOTARY_ID = Identifier::Factory(strNotaryID),
-             DESTINATION_ACCOUNT = Identifier::Factory(strAcctToID),
-             NYM_ID = Identifier::Factory(strNymID);
+        const auto ACCOUNT_ID = api_.Factory().Identifier(strAcctFromID);
+        const auto NOTARY_ID = api_.Factory().ServerID(strNotaryID);
+        const auto DESTINATION_ACCOUNT = api_.Factory().Identifier(strAcctToID);
+        auto NYM_ID = api_.Factory().NymID(strNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);  // OTTransactionType::m_AcctID  the
                                             // PURPORTED Account ID
@@ -1547,9 +1545,9 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
             strNymID = String::Factory(xml->getAttributeValue("nymID"));
 
-            auto ACCOUNT_ID = Identifier::Factory(strAccountID),
-                 NOTARY_ID = Identifier::Factory(strNotaryID),
-                 NYM_ID = Identifier::Factory(strNymID);
+            const auto ACCOUNT_ID = api_.Factory().Identifier(strAccountID);
+            const auto NOTARY_ID = api_.Factory().ServerID(strNotaryID);
+            const auto NYM_ID = api_.Factory().NymID(strNymID);
 
             pItem->SetPurportedAccountID(
                 ACCOUNT_ID);  // OTTransactionType::m_AcctID

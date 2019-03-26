@@ -305,7 +305,7 @@ public:
         const api::Core& api,
         bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
         const Nym& theServerNym,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lInReferenceTo,
         const String& strReference,

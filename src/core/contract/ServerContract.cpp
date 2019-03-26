@@ -10,9 +10,10 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -233,7 +234,8 @@ void ServerContract::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    wallet_.SetServerAlias(id_, alias);
+    wallet_.SetServerAlias(
+        identifier::Server::Factory(id_->str()), alias);  // TODO conversion
 }
 
 proto::ServerContract ServerContract::SigVersion(const Lock& lock) const

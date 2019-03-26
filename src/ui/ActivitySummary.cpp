@@ -45,7 +45,7 @@ ui::implementation::ActivitySummaryExternalInterface* Factory::ActivitySummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Flag& running,
-    const Identifier& nymID)
+    const identifier::Nym& nymID)
 {
     return new ui::implementation::ActivitySummary(
         api, publisher, running, nymID);
@@ -59,7 +59,7 @@ ActivitySummary::ActivitySummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Flag& running,
-    const Identifier& nymID)
+    const identifier::Nym& nymID)
     : ActivitySummaryList(api, publisher, nymID)
     , listeners_{{api_.Activity().ThreadPublisher(nymID),
                   new MessageProcessor<ActivitySummary>(
@@ -81,7 +81,7 @@ void ActivitySummary::construct_row(
     items_[index].emplace(
         id,
         Factory::ActivitySummaryItem(
-            *this, api_, publisher_, nym_id_, id, index, custom, running_));
+            *this, api_, publisher_, primary_id_, id, index, custom, running_));
     names_.emplace(id, index);
 }
 
@@ -146,7 +146,7 @@ const proto::StorageThreadItem& ActivitySummary::newest_item(
 void ActivitySummary::process_thread(const std::string& id)
 {
     const auto threadID = Identifier::Factory(id);
-    const auto thread = api_.Activity().Thread(nym_id_, threadID);
+    const auto thread = api_.Activity().Thread(primary_id_, threadID);
 
     OT_ASSERT(thread);
 
@@ -181,7 +181,7 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
 
 void ActivitySummary::startup()
 {
-    const auto threads = api_.Activity().Threads(nym_id_, false);
+    const auto threads = api_.Activity().Threads(primary_id_, false);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(threads.size())(
         " threads.")
         .Flush();

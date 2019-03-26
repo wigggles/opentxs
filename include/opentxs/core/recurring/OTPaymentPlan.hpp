@@ -16,16 +16,11 @@
 
 namespace opentxs
 {
-
-class Nym;
-
 namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
 }  // namespace api
 
@@ -228,16 +223,16 @@ private:
     OTPaymentPlan(const api::Core& core);
     OTPaymentPlan(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTPaymentPlan(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,
-        const Identifier& SENDER_NYM_ID,
+        const identifier::Nym& SENDER_NYM_ID,
         const Identifier& RECIPIENT_ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID);
+        const identifier::Nym& RECIPIENT_NYM_ID);
 
 protected:
     // "INITIAL PAYMENT" protected SET METHODS

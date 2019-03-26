@@ -380,7 +380,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
 
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
-        Identifier::Factory(),
+        identifier::Nym::Factory(),
         client_a.Factory().PaymentCode(""));
 
     auto sendpayment = command.mutable_sendpayment();
@@ -420,7 +420,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
 
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
-        Identifier::Factory(),
+        identifier::Nym::Factory(),
         client_a.Factory().PaymentCode(""));
 
     auto sendpayment = command.mutable_sendpayment();
@@ -580,7 +580,7 @@ TEST_F(Test_Rpc_Async, Create_Compatible_Account)
     EXPECT_EQ(command.type(), response.type());
 
     destination_account_id_ =
-    		Identifier::Factory(response.identifier(0).c_str());
+        Identifier::Factory(response.identifier(0).c_str());
 
     EXPECT_TRUE(!destination_account_id_->empty());
 }

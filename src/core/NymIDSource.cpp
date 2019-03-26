@@ -16,6 +16,7 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
@@ -133,9 +134,9 @@ std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
     return output;
 }
 
-OTIdentifier NymIDSource::NymID() const
+OTNymID NymIDSource::NymID() const
 {
-    auto nymID = Identifier::Factory();
+    auto nymID = factory_.NymID();
     auto dataVersion = Data::Factory();
 
     switch (type_) {
@@ -304,7 +305,7 @@ serializedNymIDSource NymIDSource::ExtractArmoredSource(
 OTString NymIDSource::Description() const
 {
     auto description = String::Factory();
-    auto keyID = Identifier::Factory();
+    auto keyID = factory_.Identifier();
 
     switch (type_) {
         case (proto::SOURCETYPE_PUBKEY):

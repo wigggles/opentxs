@@ -56,7 +56,7 @@ namespace opentxs
 ui::ActivityThread* Factory::ActivityThread(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& threadID)
 {
     return new ui::implementation::ActivityThread(
@@ -69,7 +69,7 @@ namespace opentxs::ui::implementation
 ActivityThread::ActivityThread(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& threadID)
     : ActivityThreadList(api, publisher, nymID)
     , listeners_{{api_.Activity().ThreadPublisher(nymID),
@@ -104,7 +104,7 @@ ActivityThread::ActivityThread(
 void ActivityThread::can_message() const
 {
     for (const auto& id : participants_) {
-        api_.OTX().CanMessage(nym_id_, id, true);
+        api_.OTX().CanMessage(primary_id_, id, true);
     }
 }
 
@@ -138,7 +138,7 @@ void ActivityThread::construct_row(
             items_[index].emplace(
                 id,
                 Factory::MailItem(
-                    *this, api_, publisher_, nym_id_, id, index, custom));
+                    *this, api_, publisher_, primary_id_, id, index, custom));
         } break;
         case StorageBox::DRAFT: {
             items_[index].emplace(
@@ -147,7 +147,7 @@ void ActivityThread::construct_row(
                     *this,
                     api_,
                     publisher_,
-                    nym_id_,
+                    primary_id_,
                     id,
                     index,
                     custom,
@@ -159,13 +159,13 @@ void ActivityThread::construct_row(
             items_[index].emplace(
                 id,
                 Factory::PaymentItem(
-                    *this, api_, publisher_, nym_id_, id, index, custom));
+                    *this, api_, publisher_, primary_id_, id, index, custom));
         } break;
         case StorageBox::PENDING_SEND: {
             items_[index].emplace(
                 id,
                 Factory::PendingSend(
-                    *this, api_, publisher_, nym_id_, id, index, custom));
+                    *this, api_, publisher_, primary_id_, id, index, custom));
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
@@ -379,7 +379,7 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
 
     if (threadID_ != threadID) { return; }
 
-    const auto thread = api_.Activity().Thread(nym_id_, threadID_);
+    const auto thread = api_.Activity().Thread(primary_id_, threadID_);
 
     OT_ASSERT(thread)
 
@@ -443,7 +443,7 @@ bool ActivityThread::send_cheque(
     auto task = make_blank<DraftTask>::value();
     auto& [id, otx] = task;
     otx = api_.OTX().SendCheque(
-        nym_id_, sourceAccount, *participants_.begin(), amount, memo);
+        primary_id_, sourceAccount, *participants_.begin(), amount, memo);
     const auto taskID = std::get<0>(otx);
 
     if (0 == taskID) {
@@ -499,7 +499,8 @@ bool ActivityThread::SendDraft() const
 
     auto task = make_blank<DraftTask>::value();
     auto& [id, otx] = task;
-    otx = api_.OTX().MessageContact(nym_id_, *participants_.begin(), draft_);
+    otx =
+        api_.OTX().MessageContact(primary_id_, *participants_.begin(), draft_);
     const auto taskID = std::get<0>(otx);
 
     if (0 == taskID) {
@@ -540,7 +541,7 @@ bool ActivityThread::SetDraft(const std::string& draft) const
 
 void ActivityThread::startup()
 {
-    const auto thread = api_.Activity().Thread(nym_id_, threadID_);
+    const auto thread = api_.Activity().Thread(primary_id_, threadID_);
 
     if (thread) {
         load_thread(*thread);
@@ -568,9 +569,9 @@ bool ActivityThread::validate_account(const Identifier& sourceAccount) const
         return false;
     }
 
-    if (nym_id_ != owner) {
+    if (primary_id_ != owner) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Account ")(sourceAccount)(
-            " is not owned by nym ")(nym_id_)
+            " is not owned by nym ")(primary_id_)
             .Flush();
 
         return false;

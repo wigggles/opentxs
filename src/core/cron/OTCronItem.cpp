@@ -61,12 +61,12 @@ namespace opentxs
 OTCronItem::OTCronItem(const api::Core& core)
     : ot_super(core)
     , m_dequeClosingNumbers{}
-    , m_pCancelerNymID(Identifier::Factory())
+    , m_pCancelerNymID(api_.Factory().NymID())
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , notaryID_(Identifier::Factory())
+    , notaryID_(api_.Factory().Identifier())
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -76,16 +76,16 @@ OTCronItem::OTCronItem(const api::Core& core)
 
 OTCronItem::OTCronItem(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_dequeClosingNumbers{}
-    , m_pCancelerNymID(Identifier::Factory())
+    , m_pCancelerNymID(api_.Factory().NymID())
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , notaryID_(Identifier::Factory())
+    , notaryID_(api_.Factory().Identifier())
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -95,18 +95,18 @@ OTCronItem::OTCronItem(
 
 OTCronItem::OTCronItem(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const Identifier& ACCT_ID,
-    const Identifier& NYM_ID)
+    const identifier::Nym& NYM_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, NYM_ID)
     , m_dequeClosingNumbers{}
-    , m_pCancelerNymID(Identifier::Factory())
+    , m_pCancelerNymID(api_.Factory().NymID())
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
-    , notaryID_(Identifier::Factory())
+    , notaryID_(api_.Factory().Identifier())
     , m_CREATION_DATE(OT_TIME_ZERO)
     , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
     , m_PROCESS_INTERVAL(1)
@@ -157,7 +157,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
 std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
     const api::Core& core,
     const TransactionNumber& lTransactionNum,
-    const Identifier& notaryID)  // Client-side only.
+    const identifier::Server& notaryID)  // Client-side only.
 {
     auto strFilename = String::Factory(),
          strNotaryID = String::Factory(notaryID);
@@ -208,8 +208,8 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
 bool OTCronItem::GetActiveCronTransNums(
     NumList& output,
     const std::string& dataFolder,
-    const Identifier& nymID,
-    const Identifier& notaryID)
+    const identifier::Nym& nymID,
+    const identifier::Server& notaryID)
 {
     const char* szFoldername = OTFolders::Cron().Get();
 
@@ -260,8 +260,8 @@ bool OTCronItem::GetActiveCronTransNums(
 bool OTCronItem::EraseActiveCronReceipt(
     const std::string& dataFolder,
     const TransactionNumber& lTransactionNum,
-    const Identifier& nymID,
-    const Identifier& notaryID)
+    const identifier::Nym& nymID,
+    const identifier::Server& notaryID)
 {
     auto strFilename = String::Factory(),
          strNotaryID = String::Factory(notaryID);
@@ -387,8 +387,8 @@ bool OTCronItem::EraseActiveCronReceipt(
 }
 
 bool OTCronItem::SaveActiveCronReceipt(
-    const Identifier& theNymID)  // Client-side
-                                 // only.
+    const identifier::Nym& theNymID)  // Client-side
+                                      // only.
 {
     const std::int64_t lOpeningNum = GetOpeningNumber(theNymID);
 
@@ -895,9 +895,7 @@ void OTCronItem::HookRemovalFromCron(
             // but for whatever reason, I'm checking the nymID on the original
             // version. Sue me.
             //
-            const OTIdentifier NYM_ID =
-                Identifier::Factory(pOrigCronItem->GetSenderNymID());
-
+            const OTNymID NYM_ID = pOrigCronItem->GetSenderNymID();
             pOriginator = api_.Wallet().Nym(NYM_ID);
         }
 
@@ -942,8 +940,7 @@ void OTCronItem::onFinalReceipt(
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    auto context = api_.Wallet().mutable_ClientContext(
-        serverNym_->ID(), theOriginator->ID());
+    auto context = api_.Wallet().mutable_ClientContext(theOriginator->ID());
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
@@ -1054,7 +1051,7 @@ void OTCronItem::onFinalReceipt(
 // transaction number.
 //
 bool OTCronItem::DropFinalReceiptToInbox(
-    const Identifier& NYM_ID,
+    const identifier::Nym& NYM_ID,
     const Identifier& ACCOUNT_ID,
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lClosingNumber,
@@ -1110,7 +1107,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
         auto pItem1{api_.Factory().Item(
-            *pTrans1, itemType::finalReceipt, Identifier::Factory())};
+            *pTrans1, itemType::finalReceipt, api_.Factory().Identifier())};
 
         OT_ASSERT(false != bool(pItem1));
 
@@ -1193,7 +1190,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
         if (account) {
             OT_ASSERT(ACCOUNT_ID == account.get().GetPurportedAccountID());
 
-            if (account.get().SaveInbox(*theInbox, Identifier::Factory())) {
+            if (account.get().SaveInbox(
+                    *theInbox, api_.Factory().Identifier())) {
                 account.Release();  // inbox hash has changed here, so we save
                                     // the account to reflect that change.
             } else {
@@ -1205,7 +1203,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         } else  // todo: would the account EVER be null here? Should never be.
                 // Therefore should we save the inbox here?
         {
-            theInbox->SaveInbox(Identifier::Factory());
+            theInbox->SaveInbox(api_.Factory().Identifier());
         }
 
         // Notice above, if the account loads but fails to verify, then we do
@@ -1234,7 +1232,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 // from your issued list (so your balance agreements will work :P)
 //
 bool OTCronItem::DropFinalReceiptToNymbox(
-    const Identifier& NYM_ID,
+    const identifier::Nym& NYM_ID,
     const TransactionNumber& lNewTransactionNumber,
     const String& strOrigCronItem,
     const originType theOriginType,
@@ -1286,7 +1284,9 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
         auto pItem1{api_.Factory().Item(
-            *pTransaction, itemType::finalReceipt, Identifier::Factory())};
+            *pTransaction,
+            itemType::finalReceipt,
+            api_.Factory().Identifier())};
 
         OT_ASSERT(false != bool(pItem1));
 
@@ -1371,7 +1371,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // TODO: Better rollback capabilities in case of failures here:
 
-        auto theNymboxHash = Identifier::Factory();
+        auto theNymboxHash = api_.Factory().Identifier();
 
         // Save nymbox to storage. (File, DB, wherever it goes.)
         theLedger->SaveNymbox(theNymboxHash);
@@ -1383,10 +1383,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // Update the NymboxHash (in the nymfile.)
         //
-
-        const auto ACTUAL_NYM_ID = Identifier::Factory(NYM_ID);
-        auto context =
-            api_.Wallet().mutable_ClientContext(pServerNym->ID(), NYM_ID);
+        auto context = api_.Wallet().mutable_ClientContext(NYM_ID);
         context.It().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions
@@ -1417,18 +1414,19 @@ bool OTCronItem::IsValidOpeningNumber(const std::int64_t& lOpeningNum) const
     return false;
 }
 
-std::int64_t OTCronItem::GetOpeningNumber(const Identifier& theNymID) const
+std::int64_t OTCronItem::GetOpeningNumber(const identifier::Nym& theNymID) const
 {
-    const Identifier& theSenderNymID = GetSenderNymID();
+    const auto& theSenderNymID = GetSenderNymID();
 
-    if (theNymID == theSenderNymID) return GetOpeningNum();
+    // TODO ambiguous overload
+    if (theSenderNymID.str() == theNymID.str()) return GetOpeningNum();
 
     return 0;
 }
 
 std::int64_t OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
 {
-    const Identifier& theSenderAcctID = GetSenderAcctID();
+    const auto& theSenderAcctID = GetSenderAcctID();
 
     if (theAcctID == theSenderAcctID) return GetClosingNum();
 
@@ -1482,7 +1480,7 @@ void OTCronItem::HarvestClosingNumbers(ServerContext& context)
     }
 }
 
-bool OTCronItem::GetCancelerID(Identifier& theOutput) const
+bool OTCronItem::GetCancelerID(identifier::Nym& theOutput) const
 {
     if (!IsCanceled()) {
         theOutput.Release();
@@ -1584,9 +1582,9 @@ std::int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-void OTCronItem::setNotaryID(const Identifier& notaryID)
+void OTCronItem::setNotaryID(const identifier::Server& notaryID)
 {
-    notaryID_ = Identifier::Factory(notaryID);
+    notaryID_ = notaryID;
 }
 
 OTCronItem::~OTCronItem() { Release_CronItem(); }

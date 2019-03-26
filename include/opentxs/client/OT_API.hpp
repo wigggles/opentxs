@@ -75,16 +75,16 @@ public:
     // Reading data about the local wallet.. presumably already loaded.
 
     EXPORT std::int32_t GetNymCount() const;
-    EXPORT std::set<OTIdentifier> LocalNymList() const;
+    EXPORT std::set<OTNymID> LocalNymList() const;
 
     EXPORT bool GetNym(
         std::int32_t iIndex,
-        Identifier& NYM_ID,
+        identifier::Nym& NYM_ID,
         String& NYM_NAME) const;
     // In this case, the ID is input, the pointer is output.
     // Gets the data from Wallet.
     EXPORT const BasketContract* GetBasketContract(
-        const Identifier& THE_ID,
+        const identifier::UnitDefinition& THE_ID,
         const char* szFuncName = nullptr) const;
 
     EXPORT std::string NymIDFromPaymentCode(
@@ -114,19 +114,19 @@ public:
     // The name is basically just a client-side label.
     // This function lets you change it.
     EXPORT bool SetNym_Alias(
-        const Identifier& targetNymID,
-        const Identifier& walletNymID,
+        const identifier::Nym& targetNymID,
+        const identifier::Nym& walletNymID,
         const String& name) const;
 
     EXPORT bool Rename_Nym(
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const std::string& name,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const bool primary = true) const;
 
     EXPORT bool SetAccount_Name(
         const Identifier& ACCT_ID,
-        const Identifier& SIGNER_NYM_ID,
+        const identifier::Nym& SIGNER_NYM_ID,
         const String& ACCT_NEW_NAME) const;
 
     // This works by checking to see if the Nym has a request number for the
@@ -137,8 +137,8 @@ public:
     // able to tell
     // that it's registered there.
     EXPORT bool IsNym_RegisteredAtServer(
-        const Identifier& NYM_ID,
-        const Identifier& NOTARY_ID) const;
+        const identifier::Nym& NYM_ID,
+        const identifier::Server& NOTARY_ID) const;
     EXPORT bool Wallet_ChangePassphrase() const;
     EXPORT std::string Wallet_GetPhrase() const;
     EXPORT std::string Wallet_GetSeed() const;
@@ -146,18 +146,20 @@ public:
     EXPORT std::string Wallet_ImportSeed(
         const OTPassword& words,
         const OTPassword& passphrase) const;
-    EXPORT bool Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const;
+    EXPORT bool Wallet_CanRemoveServer(
+        const identifier::Server& NOTARY_ID) const;
     EXPORT bool Wallet_CanRemoveAssetType(
-        const Identifier& INSTRUMENT_DEFINITION_ID) const;
-    EXPORT bool Wallet_CanRemoveNym(const Identifier& NYM_ID) const;
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const;
+    EXPORT bool Wallet_CanRemoveNym(const identifier::Nym& NYM_ID) const;
     EXPORT bool Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const;
     // OT has the capability to export a Nym (normally stored in several files)
     // as an encoded
     // object (in base64-encoded form) and then import it again.
     //
     // Returns bool on success, and strOutput will contain the exported data.
-    EXPORT bool Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput)
-        const;
+    EXPORT bool Wallet_ExportNym(
+        const identifier::Nym& NYM_ID,
+        String& strOutput) const;
 
     // OT has the capability to export a Nym (normally stored in several files)
     // as an encoded object (in base64-encoded form) and then import it again.
@@ -169,7 +171,7 @@ public:
     EXPORT bool Wallet_ImportNym(const String& FILE_CONTENTS) const;
     EXPORT bool Wallet_ImportNym(
         const String& FILE_CONTENTS,
-        Identifier& pNymID) const;
+        identifier::Nym& pNymID) const;
 
     // ENCODE, DECODE, SIGN, VERIFY, ENCRYPT, DECRYPT
 
@@ -194,7 +196,7 @@ public:
     Returns the base64-encoded ciphertext, or nullptr.
     */
     EXPORT bool Encrypt(
-        const Identifier& theRecipientNymID,
+        const identifier::Nym& theRecipientNymID,
         const String& strPlaintext,
         String& strOutput) const;
     /** OT-DECRYPT an OT-encrypted string back to plaintext.
@@ -202,7 +204,7 @@ public:
     Returns the plaintext string, or nullptr.
     */
     EXPORT bool Decrypt(
-        const Identifier& theRecipientNymID,
+        const identifier::Nym& theRecipientNymID,
         const String& strCiphertext,
         String& strOutput) const;
     /** OT-Sign a piece of flat text. (With no discernible bookends around it.)
@@ -212,7 +214,7 @@ public:
         pass LEDGER for strType, resulting in -----BEGIN OT SIGNED LEDGER-----
      */
     bool FlatSign(
-        const Identifier& theSignerNymID,
+        const identifier::Nym& theSignerNymID,
         const String& strInput,
         const String& strContractType,
         String& strOutput) const;
@@ -222,7 +224,7 @@ public:
     Returns the signed contract, or nullptr if failure.
     */
     EXPORT bool SignContract(
-        const Identifier& theSignerNymID,
+        const identifier::Nym& theSignerNymID,
         const String& strContract,
         String& strOutput) const;
     /** OT-Sign a CONTRACT.  (Add a signature)
@@ -231,7 +233,7 @@ public:
     Returns the signed contract, or nullptr if failure.
     */
     EXPORT bool AddSignature(
-        const Identifier& theSignerNymID,
+        const identifier::Nym& theSignerNymID,
         const String& strContract,
         String& strOutput) const;
     /** OT-Verify the signature on a CONTRACT.
@@ -239,13 +241,13 @@ public:
      */
     EXPORT bool VerifySignature(
         const String& strContract,
-        const Identifier& theSignerNymID,
+        const identifier::Nym& theSignerNymID,
         std::unique_ptr<Contract>* ppContract = nullptr) const;
 
     /// Verify and Retrieve XML Contents.
     EXPORT bool VerifyAndRetrieveXMLContents(
         const String& strContract,
-        const Identifier& theSignerNymID,
+        const identifier::Nym& theSignerNymID,
         String& strOutput) const;
     /// === Verify Account Receipt ===
     /// Returns bool. Verifies any asset account (intermediary files) against
@@ -253,27 +255,27 @@ public:
     /// Obviously this will fail for any new account that hasn't done any
     /// transactions yet, and thus has no receipts.
     EXPORT bool VerifyAccountReceipt(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
     // Returns an OTCheque pointer, or nullptr.
     // (Caller responsible to delete.)
     EXPORT Cheque* WriteCheque(
-        const Identifier& NOTARY_ID,
+        const identifier::Server& NOTARY_ID,
         const std::int64_t& CHEQUE_AMOUNT,
         const time64_t& VALID_FROM,
         const time64_t& VALID_TO,
         const Identifier& SENDER_accountID,
-        const Identifier& SENDER_NYM_ID,
+        const identifier::Nym& SENDER_NYM_ID,
         const String& CHEQUE_MEMO,
-        const Identifier& pRECIPIENT_NYM_ID) const;
+        const identifier::Nym& pRECIPIENT_NYM_ID) const;
 
     // DISCARD CHEQUE (recover the transaction number for re-use, so the
     // cheque itself can be discarded.)
     EXPORT bool DiscardCheque(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCT_ID,
         const String& THE_CHEQUE) const;
 
@@ -290,7 +292,7 @@ public:
     // which means
     // no maximum length and no maximum number of payments.
     EXPORT OTPaymentPlan* ProposePaymentPlan(
-        const Identifier& NOTARY_ID,
+        const identifier::Server& NOTARY_ID,
         const time64_t& VALID_FROM,  // 0 defaults to the current time in
                                      // seconds
                                      // since Jan 1970.
@@ -298,10 +300,10 @@ public:
                                    // value is ADDED to VALID_FROM. (It's a
                                    // length.)
         const Identifier& pSENDER_ACCT_ID,
-        const Identifier& SENDER_NYM_ID,
+        const identifier::Nym& SENDER_NYM_ID,
         const String& PLAN_CONSIDERATION,  // like a memo.
         const Identifier& RECIPIENT_ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID,
+        const identifier::Nym& RECIPIENT_NYM_ID,
         // ----------------------------------------  // If it's above zero, the
         // initial
         const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // amount will be processed
@@ -323,93 +325,95 @@ public:
 
     // CONFIRM PAYMENT PLAN (called by Customer)
     EXPORT bool ConfirmPaymentPlan(
-        const Identifier& NOTARY_ID,
-        const Identifier& SENDER_NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& SENDER_NYM_ID,
         const Identifier& SENDER_ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID,
+        const identifier::Nym& RECIPIENT_NYM_ID,
         OTPaymentPlan& thePlan) const;
-    EXPORT bool IsBasketCurrency(
-        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
+    EXPORT bool IsBasketCurrency(const identifier::UnitDefinition&
+                                     BASKET_INSTRUMENT_DEFINITION_ID) const;
 
     EXPORT std::int64_t GetBasketMinimumTransferAmount(
-        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
+        const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID)
+        const;
 
     EXPORT std::int32_t GetBasketMemberCount(
-        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
+        const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID)
+        const;
 
     EXPORT bool GetBasketMemberType(
-        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
         std::int32_t nIndex,
-        Identifier& theOutputMemberType) const;
+        identifier::UnitDefinition& theOutputMemberType) const;
 
     EXPORT std::int64_t GetBasketMemberMinimumTransferAmount(
-        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
         std::int32_t nIndex) const;
     EXPORT std::unique_ptr<Ledger> LoadNymbox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadNymboxNoVerify(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadInbox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadInboxNoVerify(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadOutbox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadOutboxNoVerify(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
     EXPORT std::unique_ptr<Ledger> LoadPaymentInbox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadPaymentInboxNoVerify(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
     // LoadRecordBox
     // Note: depending on the record type, the Account ID may contain the User
     // ID.
     EXPORT std::unique_ptr<Ledger> LoadRecordBox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadRecordBoxNoVerify(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
     EXPORT bool ClearRecord(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID,  // NYM_ID can be passed here as well.
         std::int32_t nIndex,
         bool bClearAll = false  // if true, nIndex is ignored.
         ) const;
     EXPORT std::unique_ptr<Ledger> LoadExpiredBox(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
 
     EXPORT std::unique_ptr<Ledger> LoadExpiredBoxNoVerify(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
 
     EXPORT bool ClearExpired(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         std::int32_t nIndex,
         bool bClearAll = false  // if true, nIndex is
                                 // ignored.
@@ -420,21 +424,21 @@ public:
         const Ledger& theLedger) const;
 
     EXPORT ProcessInbox Ledger_CreateResponse(
-        const Identifier& theNotaryID,
-        const Identifier& theNymID,
+        const identifier::Server& theNotaryID,
+        const identifier::Nym& theNymID,
         const Identifier& theAccountID) const;
 
     EXPORT bool Transaction_CreateResponse(
-        const Identifier& theNotaryID,
-        const Identifier& theNymID,
+        const identifier::Server& theNotaryID,
+        const identifier::Nym& theNymID,
         const Identifier& theAcctID,
         Ledger& responseLedger,
         OTTransaction& originalTransaction,  // Responding to
         const bool& BOOL_DO_I_ACCEPT) const;
 
     EXPORT bool Ledger_FinalizeResponse(
-        const Identifier& theNotaryID,
-        const Identifier& theNymID,
+        const identifier::Server& theNotaryID,
+        const identifier::Nym& theNymID,
         const Identifier& theAcctID,
         Ledger& responseLedger) const;
 
@@ -447,18 +451,18 @@ public:
         const std::int64_t& TRANSACTION_NUMBER) const;
 
     EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrument(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Ledger& theLedger,
         const std::int32_t& nIndex) const;
     // The functions immediately above and blow this comment
     // have good reason for having their parameters in a different order.
     EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
         const Ledger& theLedger,
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const std::int64_t& lReceiptId) const;
 
     EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Ledger& theLedger,
         const std::int64_t& lReceiptId) const;
 
@@ -467,7 +471,7 @@ public:
         const std::int32_t& nIndex) const;
 
     EXPORT bool Ledger_AddTransaction(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         Ledger& theLedger,  // theLedger takes ownership of pTransaction.
         std::unique_ptr<OTTransaction>& pTransaction) const;
 
@@ -503,8 +507,8 @@ public:
     // Note: if instrument is expired BEFORE being recorded, it will go into the
     // expired box instead of the record box.
     EXPORT bool RecordPayment(
-        const Identifier& TRANSPORT_NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& TRANSPORT_NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         bool bIsInbox,  // true == payments inbox. false == payments outbox.
         std::int32_t nIndex,  // removes payment instrument (from payments in or
                               // out
@@ -514,31 +518,31 @@ public:
     // So the client side knows which ones he has in storage, vs which ones he
     // still needs to download.
     EXPORT bool DoesBoxReceiptExist(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,      // Unused here for now, but still
-                                       // convention.
-        const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then
-                                       // pass NYM_ID in this field also.
-        std::int32_t nBoxType,         // 0/nymbox, 1/inbox, 2/outbox
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,  // Unused here for now, but still
+                                        // convention.
+        const Identifier& ACCOUNT_ID,   // If for Nymbox (vs inbox/outbox) then
+                                        // pass NYM_ID in this field also.
+        std::int32_t nBoxType,          // 0/nymbox, 1/inbox, 2/outbox
         const TransactionNumber& lTransactionNum) const;
     // Outgoing
     EXPORT Message* GetSentMessage(
         const std::int64_t& lRequestNumber,
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
     EXPORT bool RemoveSentMessage(
         const std::int64_t& lRequestNumber,
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID) const;
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID) const;
     EXPORT void FlushSentMessages(
         bool bHarvestingForRetry,
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const Ledger& THE_NYMBOX) const;
 
     EXPORT bool HaveAlreadySeenReply(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const RequestNumber& lRequestNumber) const;
 
     // These commands below send messages to the server:
@@ -547,13 +551,13 @@ public:
 
     EXPORT CommandResult usageCredits(
         ServerContext& context,
-        const Identifier& NYM_ID_CHECK,
+        const identifier::Nym& NYM_ID_CHECK,
         std::int64_t lAdjustment = 0) const;
 
     EXPORT CommandResult sendNymObject(
         ServerContext& context,
         std::unique_ptr<Message>& request,
-        const Identifier& recipientNymID,
+        const identifier::Nym& recipientNymID,
         const PeerObject& object,
         const RequestNumber provided) const;
 
@@ -576,23 +580,23 @@ public:
         const std::string& label) const;
 
     EXPORT Basket* GenerateBasketExchange(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
+        const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
         const Identifier& BASKET_ASSET_ACCT_ID,
         std::int32_t TRANSFER_MULTIPLE) const;  // 1            2             3
     // 5=2,3,4  OR  10=4,6,8  OR 15=6,9,12
 
     EXPORT bool AddBasketExchangeItem(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         Basket& theBasket,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& ASSET_ACCT_ID) const;
 
     EXPORT CommandResult exchangeBasket(
         ServerContext& context,
-        const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
         const String& BASKET_INFO,
         bool bExchangeInOrOut) const;
 
@@ -602,7 +606,7 @@ public:
     EXPORT CommandResult withdrawVoucher(
         ServerContext& context,
         const Identifier& ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID,
+        const identifier::Nym& RECIPIENT_NYM_ID,
         const String& CHEQUE_MEMO,
         const Amount amount) const;
 
@@ -611,9 +615,10 @@ public:
         const Identifier& DIVIDEND_FROM_ACCT_ID,  // if dollars paid for pepsi
                                                   // shares, then this is the
                                                   // issuer's dollars account.
-        const Identifier& SHARES_INSTRUMENT_DEFINITION_ID,  // if dollars paid
-                                                            // for pepsi
-                                                            // shares,
+        const identifier::UnitDefinition&
+            SHARES_INSTRUMENT_DEFINITION_ID,  // if dollars paid
+                                              // for pepsi
+                                              // shares,
         // then this is the pepsi shares
         // instrument definition id.
         const String& DIVIDEND_MEMO,  // user-configurable note that's added to
@@ -631,10 +636,10 @@ public:
         const String& pStrParam = String::Factory()) const;
 
     EXPORT bool Create_SmartContract(
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
-        time64_t VALID_FROM,              // Default (0 or nullptr) == NOW
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
+        time64_t VALID_FROM,                   // Default (0 or nullptr) == NOW
         time64_t VALID_TO,     // Default (0 or nullptr) == no expiry / cancel
                                // anytime
         bool SPECIFY_ASSETS,   // This means asset type IDs must be provided for
@@ -646,10 +651,10 @@ public:
     EXPORT bool SmartContract_SetDates(
         const String& THE_CONTRACT,  // The contract, about to have the dates
                                      // changed on it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
-        time64_t VALID_FROM,              // Default (0 or nullptr) == NOW
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
+        time64_t VALID_FROM,                   // Default (0 or nullptr) == NOW
         time64_t VALID_TO,  // Default (0 or nullptr) == no expiry / cancel
                             // anytime.
         String& strOutput) const;
@@ -661,9 +666,9 @@ public:
     EXPORT bool SmartContract_AddBylaw(
         const String& THE_CONTRACT,  // The contract, about to have the bylaw
                                      // added to it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // The Bylaw's NAME as referenced in the
                                    // smart contract. (And the scripts...)
         String& strOutput) const;
@@ -671,9 +676,9 @@ public:
     EXPORT bool SmartContract_RemoveBylaw(
         const String& THE_CONTRACT,  // The contract, about to have the bylaw
                                      // removed from it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // The Bylaw's NAME as referenced in the
                                    // smart contract. (And the scripts...)
         String& strOutput) const;
@@ -681,9 +686,9 @@ public:
     EXPORT bool SmartContract_AddClause(
         const String& THE_CONTRACT,  // The contract, about to have the clause
                                      // added to it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,   // Should already be on the contract. (This
                                     // way we can find it.)
         const String& CLAUSE_NAME,  // The Clause's name as referenced in the
@@ -694,9 +699,9 @@ public:
     EXPORT bool SmartContract_UpdateClause(
         const String& THE_CONTRACT,  // The contract, about to have the clause
                                      // updated on it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,   // Should already be on the contract. (This
                                     // way we can find it.)
         const String& CLAUSE_NAME,  // The Clause's name as referenced in the
@@ -707,9 +712,9 @@ public:
     EXPORT bool SmartContract_RemoveClause(
         const String& THE_CONTRACT,  // The contract, about to have the clause
                                      // removed from it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,   // Should already be on the contract. (This
                                     // way we can find it.)
         const String& CLAUSE_NAME,  // The Clause's name as referenced in the
@@ -719,9 +724,9 @@ public:
     EXPORT bool SmartContract_AddVariable(
         const String& THE_CONTRACT,  // The contract, about to have the variable
                                      // added to it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // Should already be on the contract. (This
                                    // way we can find it.)
         const String& VAR_NAME,    // The Variable's name as referenced in the
@@ -738,9 +743,9 @@ public:
     EXPORT bool SmartContract_RemoveVariable(
         const String& THE_CONTRACT,  // The contract, about to have the variable
                                      // removed from it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // Should already be on the contract. (This
                                    // way we can find it.)
         const String& VAR_NAME,    // The Variable's name as referenced in the
@@ -750,9 +755,9 @@ public:
     EXPORT bool SmartContract_AddCallback(
         const String& THE_CONTRACT,  // The contract, about to have the callback
                                      // added to it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // Should already be on the contract. (This
                                    // way we can find it.)
         const String& CALLBACK_NAME,  // The Callback's name as referenced in
@@ -765,9 +770,9 @@ public:
     EXPORT bool SmartContract_RemoveCallback(
         const String& THE_CONTRACT,  // The contract, about to have the callback
                                      // removed from it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // Should already be on the contract. (This
                                    // way we can find it.)
         const String& CALLBACK_NAME,  // The Callback's name as referenced in
@@ -778,9 +783,9 @@ public:
     EXPORT bool SmartContract_AddHook(
         const String& THE_CONTRACT,  // The contract, about to have the hook
                                      // added to it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // Should already be on the contract. (This
                                    // way we can find it.)
         const String& HOOK_NAME,   // The Hook's name as referenced in the smart
@@ -794,9 +799,9 @@ public:
     EXPORT bool SmartContract_RemoveHook(
         const String& THE_CONTRACT,  // The contract, about to have the hook
                                      // removed from it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& BYLAW_NAME,  // Should already be on the contract. (This
                                    // way we can find it.)
         const String& HOOK_NAME,   // The Hook's name as referenced in the smart
@@ -810,9 +815,9 @@ public:
     EXPORT bool SmartContract_AddParty(
         const String& THE_CONTRACT,  // The contract, about to have the party
                                      // added to it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& PARTY_NYM_ID,  // Optional. Some smart contracts require
                                      // the party's Nym to be specified in
                                      // advance.
@@ -825,9 +830,9 @@ public:
     EXPORT bool SmartContract_RemoveParty(
         const String& THE_CONTRACT,  // The contract, about to have the party
                                      // removed from it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& PARTY_NAME,  // The Party's NAME as referenced in the
                                    // smart contract. (And the scripts...)
         String& strOutput) const;
@@ -835,9 +840,9 @@ public:
     EXPORT bool SmartContract_AddAccount(
         const String& THE_CONTRACT,  // The contract, about to have the account
                                      // added to it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& PARTY_NAME,  // The Party's NAME as referenced in the
                                    // smart contract. (And the scripts...)
         const String& ACCT_NAME,   // The Account's name as referenced in the
@@ -850,9 +855,9 @@ public:
     EXPORT bool SmartContract_RemoveAccount(
         const String& THE_CONTRACT,  // The contract, about to have the account
                                      // removed from it.
-        const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
-                                          // signing at this point is only to
-                                          // cause a save.)
+        const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
+                                               // (The signing at this point is
+                                               // only to cause a save.)
         const String& PARTY_NAME,  // The Party's NAME as referenced in the
                                    // smart contract. (And the scripts...)
         const String& ACCT_NAME,   // The Account's name as referenced in the
@@ -868,7 +873,7 @@ public:
 
     EXPORT bool SmartContract_ConfirmAccount(
         const String& THE_CONTRACT,
-        const Identifier& SIGNER_NYM_ID,
+        const identifier::Nym& SIGNER_NYM_ID,
         const String& PARTY_NAME,
         const String& ACCT_NAME,
         const String& AGENT_NAME,
@@ -880,14 +885,15 @@ public:
                                      // by this function.
         const String& PARTY_NAME,    // Should already be on the contract. This
                                      // way we can find it.
-        const Identifier& NYM_ID,    // Nym ID for the party, the actual owner,
-        const Identifier& NOTARY_ID,
+        const identifier::Nym& NYM_ID,  // Nym ID for the party, the actual
+                                        // owner,
+        const identifier::Server& NOTARY_ID,
         String& strOutput) const;  // ===> AS WELL AS for the default AGENT of
                                    // that
                                    // party. (For now, until I code entities)
     EXPORT bool Msg_HarvestTransactionNumbers(
         const Message& theMsg,
-        const Identifier& NYM_ID,
+        const identifier::Nym& NYM_ID,
         bool bHarvestingForRetry,
         bool bReplyWasSuccess,
         bool bReplyWasFailure,
@@ -895,13 +901,13 @@ public:
         bool bTransactionWasFailure) const;
 
     EXPORT bool HarvestClosingNumbers(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const String& THE_CRON_ITEM) const;
 
     EXPORT bool HarvestAllNumbers(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const String& THE_CRON_ITEM) const;
 
     EXPORT CommandResult activateSmartContract(
@@ -951,30 +957,30 @@ public:
 
     EXPORT CommandResult initiatePeerRequest(
         ServerContext& context,
-        const Identifier& recipient,
+        const identifier::Nym& recipient,
         const std::shared_ptr<PeerRequest>& request) const;
 
     EXPORT CommandResult initiatePeerReply(
         ServerContext& context,
-        const Identifier& recipient,
+        const identifier::Nym& recipient,
         const Identifier& request,
         const std::shared_ptr<PeerReply>& reply) const;
 
     EXPORT ConnectionState CheckConnection(const std::string& server) const;
 
     EXPORT std::string AddChildKeyCredential(
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& masterID,
         const NymParameters& nymParameters) const;
 
     EXPORT std::unique_ptr<proto::ContactData> GetContactData(
-        const Identifier& nymID) const;
+        const identifier::Nym& nymID) const;
 
     EXPORT std::list<std::string> BoxItemCount(
-        const Identifier& NYM_ID,
+        const identifier::Nym& NYM_ID,
         const StorageBox box) const;
     EXPORT std::string BoxContents(
-        const Identifier& NYM_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& nIndex,
         const StorageBox box) const;
 
@@ -998,15 +1004,15 @@ private:
     std::unique_ptr<OTClient> m_pClient;
     ContextLockCallback lock_callback_;
 
-    static void AddHashesToTransaction(
+    void AddHashesToTransaction(
         OTTransaction& transaction,
         const Context& context,
-        const Account& account);
+        const Account& account) const;
 
-    static void AddHashesToTransaction(
+    void AddHashesToTransaction(
         OTTransaction& transaction,
         const Context& context,
-        const Identifier& accountid);
+        const Identifier& accountid) const;
 
     bool add_accept_item(
         const itemType type,
@@ -1038,16 +1044,16 @@ private:
         ServerContext& context,
         Ledger& response) const;
     TransactionNumber get_origin(
-        const Identifier& notaryID,
+        const identifier::Server& notaryID,
         const OTTransaction& source,
         String& note) const;
     itemType response_type(const transactionType sourceType, const bool success)
         const;
 
     std::set<std::unique_ptr<Cheque>> extract_cheques(
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& accountID,
-        const Identifier& serverID,
+        const identifier::Server& serverID,
         const String& serializedProcessInbox,
         Ledger& inbox) const;
 

@@ -27,6 +27,7 @@
 #include "opentxs/ui/IssuerItem.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/core/identifier/Identifier.hpp"
 #include "internal/ui/UI.hpp"
 #include "IssuerItemBlank.hpp"
 #include "List.hpp"
@@ -51,7 +52,7 @@ namespace opentxs
 ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::AccountSummary(
@@ -64,7 +65,7 @@ namespace opentxs::ui::implementation
 AccountSummary::AccountSummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::ContactItemType currency)
     : AccountSummaryList(api, publisher, nymID)
     , listeners_({
@@ -105,8 +106,8 @@ void AccountSummary::construct_row(
 }
 
 AccountSummarySortKey AccountSummary::extract_key(
-    const Identifier& nymID,
-    const Identifier& issuerID)
+    const identifier::Nym& nymID,
+    const identifier::Nym& issuerID)
 {
     AccountSummarySortKey output{false, DEFAULT_ISSUER_NAME};
     auto& [state, name] = output;
@@ -126,7 +127,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     const auto& serverNymID = server->Nym()->ID();
     eLock lock(shared_lock_);
     nym_server_map_.emplace(serverNymID, serverID);
-    server_issuer_map_.emplace(serverID, Identifier::Factory(issuerID));
+    server_issuer_map_.emplace(serverID, issuerID);
     lock.unlock();
 
     switch (api_.ZMQ().Status(serverID->str())) {
@@ -150,16 +151,15 @@ void AccountSummary::process_connection(const network::zeromq::Message& message)
 
     OT_ASSERT(2 == message.Body().size());
 
-    const auto serverID = Identifier::Factory(message.Body().at(0));
-
-    return process_server(serverID);
+    const auto serverID = identifier::Server::Factory(message.Body().at(0));
+    process_server(serverID);
 }
 
-void AccountSummary::process_issuer(const Identifier& issuerID)
+void AccountSummary::process_issuer(const identifier::Nym& issuerID)
 {
-    issuers_.emplace(Identifier::Factory(issuerID));
+    issuers_.emplace(issuerID);
     const CustomData custom{};
-    add_item(issuerID, extract_key(nym_id_, issuerID), custom);
+    add_item(issuerID, extract_key(primary_id_, issuerID), custom);
 }
 
 void AccountSummary::process_issuer(const network::zeromq::Message& message)
@@ -168,13 +168,14 @@ void AccountSummary::process_issuer(const network::zeromq::Message& message)
 
     OT_ASSERT(2 == message.Body().size());
 
-    const auto nymID = Identifier::Factory(message.Body().at(0));
-    const auto issuerID = Identifier::Factory(message.Body().at(1));
+    const auto nymID = identifier::Nym::Factory(message.Body().at(0));
+    const auto issuerID = identifier::Nym::Factory(message.Body().at(1));
 
     OT_ASSERT(false == nymID->empty())
     OT_ASSERT(false == issuerID->empty())
 
-    if (nymID.get() != nym_id_) { return; }
+    // TODO ambiguous overload
+    if (nymID.get().str() != primary_id_->str()) { return; }
 
     auto existing = names_.count(issuerID);
 
@@ -188,7 +189,7 @@ void AccountSummary::process_nym(const network::zeromq::Message& message)
     OT_ASSERT(1 == message.Body().size());
 
     const auto nymID =
-        Identifier::Factory(std::string(*message.Body().begin()));
+        identifier::Nym::Factory(std::string(*message.Body().begin()));
 
     sLock lock(shared_lock_);
     const auto it = nym_server_map_.find(nymID);
@@ -208,14 +209,14 @@ void AccountSummary::process_server(const network::zeromq::Message& message)
     OT_ASSERT(1 == message.Body().size());
 
     const auto serverID =
-        Identifier::Factory(std::string(*message.Body().begin()));
+        identifier::Server::Factory(std::string(*message.Body().begin()));
 
     OT_ASSERT(false == serverID->empty())
 
     process_server(serverID);
 }
 
-void AccountSummary::process_server(const OTIdentifier& serverID)
+void AccountSummary::process_server(const identifier::Server& serverID)
 {
     sLock lock(shared_lock_);
     const auto it = server_issuer_map_.find(serverID);
@@ -225,12 +226,12 @@ void AccountSummary::process_server(const OTIdentifier& serverID)
     const auto issuerID = it->second;
     lock.unlock();
     const CustomData custom{};
-    add_item(issuerID, extract_key(nym_id_, issuerID), custom);
+    add_item(issuerID, extract_key(primary_id_, issuerID), custom);
 }
 
 void AccountSummary::startup()
 {
-    const auto issuers = api_.Wallet().IssuerList(nym_id_);
+    const auto issuers = api_.Wallet().IssuerList(primary_id_);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(issuers.size())(
         " issuers.")
         .Flush();

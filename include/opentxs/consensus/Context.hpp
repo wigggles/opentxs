@@ -39,7 +39,7 @@ public:
     EXPORT virtual OTIdentifier RemoteNymboxHash() const = 0;
     EXPORT virtual RequestNumber Request() const = 0;
     EXPORT virtual proto::Context Serialized() const = 0;
-    EXPORT virtual const Identifier& Server() const = 0;
+    EXPORT virtual const identifier::Server& Server() const = 0;
     EXPORT virtual proto::ConsensusType Type() const = 0;
     EXPORT virtual bool VerifyAcknowledgedNumber(
         const RequestNumber& req) const = 0;

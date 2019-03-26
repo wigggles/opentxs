@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Instrument.hpp"
 #include "opentxs/Types.hpp"
 
@@ -44,7 +45,10 @@ public:
         return m_SENDER_ACCT_ID;
     }
 
-    inline const Identifier& GetSenderNymID() const { return m_SENDER_NYM_ID; }
+    inline const identifier::Nym& GetSenderNymID() const
+    {
+        return m_SENDER_NYM_ID;
+    }
 
     virtual ~OTTrackable();
 
@@ -54,22 +58,22 @@ protected:
     OTIdentifier m_SENDER_ACCT_ID;
     // This ID must match the user ID on that asset account,
     // AND must verify the instrument's signature with that user's key.
-    OTIdentifier m_SENDER_NYM_ID;
+    OTNymID m_SENDER_NYM_ID;
 
     void SetSenderAcctID(const Identifier& ACCT_ID);
-    void SetSenderNymID(const Identifier& NYM_ID);
+    void SetSenderNymID(const identifier::Nym& NYM_ID);
 
     OTTrackable(const api::Core& core);
     OTTrackable(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTTrackable(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& ACCT_ID,
-        const Identifier& NYM_ID);
+        const identifier::Nym& NYM_ID);
 
 private:
     OTTrackable() = delete;

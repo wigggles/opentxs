@@ -646,7 +646,7 @@ bool OTScriptable::ExecuteCallback(
 bool OTScriptable::SendNoticeToAllParties(
     bool bSuccessMsg,
     const Nym& theServerNym,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     // const std::int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
@@ -827,7 +827,7 @@ OTPartyAccount* OTScriptable::GetPartyAccountByID(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     OTAgent** ppAgent) const
 {
     for (const auto& it : m_mapParties) {
@@ -840,7 +840,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymIDAsAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymIDAsAuthAgent(
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
@@ -2207,15 +2207,10 @@ bool OTScriptable::Compare(OTScriptable& rhs) const
 }
 
 // Most contracts calculate their ID by hashing the Raw File (signatures and
-// all).
-// The scriptable only hashes the unsigned contents, and only with specific data
-// removed.
-// This way, the smart contract will produce a consistent ID even when asset
-// account IDs
-// or Nym IDs have been added to it (which would alter the hash of any normal
-// contract
-// such as an OTUnitDefinition.)
-//
+// all). The scriptable only hashes the unsigned contents, and only with
+// specific data removed. This way, the smart contract will produce a consistent
+// ID even when asset account IDs or Nym IDs have been added to it (which would
+// alter the hash of any normal contract such as an OTUnitDefinition.)
 void OTScriptable::CalculateContractID(Identifier& newID) const
 {
     // Produce a template version of the scriptable.

@@ -15,10 +15,10 @@
 namespace opentxs
 {
 StoreSecret::StoreSecret(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(wallet, nym, serialized)
+    : ot_super(api, nym, serialized)
     , secret_type_(serialized.storesecret().type())
     , primary_(serialized.storesecret().primary())
     , secondary_(serialized.storesecret().secondary())
@@ -26,15 +26,15 @@ StoreSecret::StoreSecret(
 }
 
 StoreSecret::StoreSecret(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
-    const Identifier& recipientID,
+    const identifier::Nym& recipientID,
     const proto::SecretType type,
     const std::string& primary,
     const std::string& secondary,
-    const Identifier& serverID)
+    const identifier::Server& serverID)
     : ot_super(
-          wallet,
+          api,
           nym,
           CURRENT_VERSION,
           recipientID,

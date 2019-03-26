@@ -16,7 +16,8 @@ using ProfileSectionList = List<
     ProfileSectionRowInterface,
     ProfileSectionRowInternal,
     ProfileSectionRowBlank,
-    ProfileSectionSortKey>;
+    ProfileSectionSortKey,
+    ProfileSectionPrimaryID>;
 using ProfileSectionRow =
     RowType<ProfileRowInternal, ProfileInternalInterface, ProfileRowID>;
 
@@ -31,7 +32,7 @@ public:
     bool Delete(const int type, const std::string& claimID) const override;
     ItemTypeList Items(const std::string& lang) const override;
     std::string Name(const std::string& lang) const override;
-    const Identifier& NymID() const override { return nym_id_; }
+    const identifier::Nym& NymID() const override { return primary_id_; }
     bool SetActive(
         const int type,
         const std::string& claimID,

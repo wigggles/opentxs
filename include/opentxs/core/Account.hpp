@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
@@ -60,7 +61,7 @@ public:
         const;
     EXPORT bool DisplayStatistics(String& contents) const override;
     EXPORT Amount GetBalance() const;
-    EXPORT const Identifier& GetInstrumentDefinitionID() const;
+    EXPORT const identifier::UnitDefinition& GetInstrumentDefinitionID() const;
     EXPORT TransactionNumber GetStashTransNum() const { return stashTransNum_; }
     EXPORT char const* GetTypeString() const
     {
@@ -78,7 +79,7 @@ public:
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
     EXPORT bool VerifyOwner(const Nym& candidate) const;
-    EXPORT bool VerifyOwnerByID(const Identifier& nymId) const;
+    EXPORT bool VerifyOwnerByID(const identifier::Nym& nymId) const;
 
     // Debit a certain amount from the account (presumably the same amount is
     // being added somewhere)
@@ -112,7 +113,7 @@ private:
 
     AccountType acctType_{err_acct};
     // These are all the variables from the account file itself.
-    OTIdentifier acctInstrumentDefinitionID_;
+    OTUnitID acctInstrumentDefinitionID_;
     OTString balanceDate_;
     OTString balanceAmount_;
     // the Transaction Number of a smart contract running on cron, if this is a
@@ -131,11 +132,11 @@ private:
 
     static Account* GenerateNewAccount(
         const api::Core& core,
-        const Identifier& nymID,
-        const Identifier& notaryID,
+        const identifier::Nym& nymID,
+        const identifier::Server& notaryID,
         const Nym& serverNym,
         const Identifier& userNymID,
-        const Identifier& instrumentDefinitionID,
+        const identifier::UnitDefinition& instrumentDefinitionID,
         AccountType acctType = user,
         TransactionNumber stashTransNum = 0);
     // Let's say you don't have or know the NymID, and you just want to load
@@ -143,7 +144,7 @@ private:
     static Account* LoadExistingAccount(
         const api::Core& core,
         const Identifier& accountId,
-        const Identifier& notaryID);
+        const identifier::Server& notaryID);
 
     bool SaveContractWallet(Tag& parent) const override;
 
@@ -154,8 +155,8 @@ private:
     bool GenerateNewAccount(
         const Nym& server,
         const Identifier& userNymID,
-        const Identifier& notaryID,
-        const Identifier& instrumentDefinitionID,
+        const identifier::Server& notaryID,
+        const identifier::UnitDefinition& instrumentDefinitionID,
         AccountType acctType = user,
         std::int64_t stashTransNum = 0);
     void InitAccount();
@@ -180,19 +181,19 @@ private:
 
     Account(
         const api::Core& core,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& accountId,
-        const Identifier& notaryID,
+        const identifier::Server& notaryID,
         const String& name);
     Account(
         const api::Core& core,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& accountId,
-        const Identifier& notaryID);
+        const identifier::Server& notaryID);
     Account(
         const api::Core& core,
-        const Identifier& nymID,
-        const Identifier& notaryID);
+        const identifier::Nym& nymID,
+        const identifier::Server& notaryID);
     Account(const api::Core& core);
     Account() = delete;
 };

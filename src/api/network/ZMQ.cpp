@@ -184,7 +184,7 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
 
     if (server_connections_.end() != existing) { return existing->second; }
 
-    auto contract = api_.Wallet().Server(Identifier::Factory(id));
+    auto contract = api_.Wallet().Server(identifier::Server::Factory(id));
 
     OT_ASSERT(contract)
 

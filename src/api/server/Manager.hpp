@@ -26,15 +26,15 @@ public:
     std::string GetOnion() const override;
 #if OT_CASH
     std::shared_ptr<blind::Mint> GetPrivateMint(
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         std::uint32_t series) const override;
     std::shared_ptr<const blind::Mint> GetPublicMint(
-        const Identifier& unitID) const override;
+        const identifier::UnitDefinition& unitID) const override;
 #endif  // OT_CASH
     std::string GetUserName() const override;
     std::string GetUserTerms() const override;
-    const Identifier& ID() const override;
-    const Identifier& NymID() const override;
+    const identifier::Server& ID() const override;
+    const identifier::Nym& NymID() const override;
 #if OT_CASH
     void ScanMints() const override;
 #endif  // OT_CASH
@@ -44,7 +44,7 @@ public:
     {
         mint_key_size_.store(size);
     }
-    void UpdateMint(const Identifier& unitID) const override;
+    void UpdateMint(const identifier::UnitDefinition& unitID) const override;
 #endif  // OT_CASH
 
     ~Manager();

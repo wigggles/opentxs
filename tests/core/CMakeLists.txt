@@ -10,6 +10,7 @@ set(name unittests-opentxs-core)
 set(cxx-sources
   ${PROJECT_SOURCE_DIR}/tests/main.cpp
   Test_Data.cpp
+  Test_Ledger.cpp
   Test_Nym.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )

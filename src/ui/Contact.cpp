@@ -98,7 +98,7 @@ void Contact::construct_row(
             *this, api_, publisher_, id, index, custom));
 }
 
-std::string Contact::ContactID() const { return nym_id_->str(); }
+std::string Contact::ContactID() const { return primary_id_->str(); }
 
 std::string Contact::DisplayName() const
 {
@@ -152,7 +152,7 @@ void Contact::process_contact(const network::zeromq::Message& message)
 
     OT_ASSERT(false == contactID->empty())
 
-    if (contactID != nym_id_) { return; }
+    if (contactID != primary_id_) { return; }
 
     const auto contact = api_.Contacts().Contact(contactID);
 
@@ -168,9 +168,9 @@ int Contact::sort_key(const proto::ContactSectionName type)
 
 void Contact::startup()
 {
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Loading contact ")(nym_id_)(".")
+    LogOutput(OT_METHOD)(__FUNCTION__)(": Loading contact ")(primary_id_)
         .Flush();
-    const auto contact = api_.Contacts().Contact(nym_id_);
+    const auto contact = api_.Contacts().Contact(primary_id_);
 
     OT_ASSERT(contact)
 

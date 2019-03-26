@@ -9,6 +9,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <string>
@@ -20,9 +22,9 @@ class PeerReply : public Signable
 private:
     typedef Signable ot_super;
 
-    OTIdentifier initiator_;
-    OTIdentifier recipient_;
-    OTIdentifier server_;
+    OTNymID initiator_;
+    OTNymID recipient_;
+    OTServerID server_;
     OTIdentifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
@@ -59,8 +61,8 @@ protected:
         const api::Wallet& wallet,
         const ConstNym& nym,
         const std::uint32_t version,
-        const Identifier& initiator,
-        const Identifier& server,
+        const identifier::Nym& initiator,
+        const identifier::Server& server,
         const proto::PeerRequestType& type,
         const Identifier& request);
 
@@ -70,19 +72,19 @@ public:
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& request,
-        const Identifier& server,
+        const identifier::Server& server,
         const std::string& terms);
     static std::unique_ptr<PeerReply> Create(
         const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& request,
-        const Identifier& server,
+        const identifier::Server& server,
         const bool& ack);
     static std::unique_ptr<PeerReply> Create(
         const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& request,
-        const Identifier& server,
+        const identifier::Server& server,
         const bool& ack,
         const std::string& url,
         const std::string& login,

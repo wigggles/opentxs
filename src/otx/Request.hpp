@@ -13,9 +13,9 @@ class Request final : otx::Request
 {
 public:
     proto::ServerRequest Contract() const override;
-    const Identifier& Initiator() const override { return initiator_; }
+    const identifier::Nym& Initiator() const override { return initiator_; }
     RequestNumber Number() const override;
-    const Identifier& Server() const override { return server_; }
+    const identifier::Server& Server() const override { return server_; }
     proto::ServerRequestType Type() const override { return type_; }
 
     bool SetIncludeNym(const bool include) override;
@@ -26,8 +26,8 @@ public:
 private:
     friend otx::Request;
 
-    const OTIdentifier initiator_;
-    const OTIdentifier server_;
+    const OTNymID initiator_;
+    const OTServerID server_;
     const proto::ServerRequestType type_{proto::SERVERREQUEST_ERROR};
     RequestNumber number_{0};
     OTFlag include_nym_;
@@ -50,8 +50,8 @@ private:
 
     Request(
         const std::shared_ptr<const opentxs::Nym> signer,
-        const Identifier& initiator,
-        const Identifier& server,
+        const identifier::Nym& initiator,
+        const identifier::Server& server,
         const proto::ServerRequestType type);
     Request(const api::Core& api, const proto::ServerRequest serialized);
     Request() = delete;

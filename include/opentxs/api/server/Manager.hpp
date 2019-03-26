@@ -42,22 +42,23 @@ public:
     EXPORT virtual std::string GetOnion() const = 0;
 #if OT_CASH
     EXPORT virtual std::shared_ptr<blind::Mint> GetPrivateMint(
-        const Identifier& unitid,
+        const identifier::UnitDefinition& unitid,
         std::uint32_t series) const = 0;
     EXPORT virtual std::shared_ptr<const blind::Mint> GetPublicMint(
-        const Identifier& unitID) const = 0;
+        const identifier::UnitDefinition& unitID) const = 0;
 #endif  // OT_CASH
     EXPORT virtual std::string GetUserName() const = 0;
     EXPORT virtual std::string GetUserTerms() const = 0;
-    EXPORT virtual const Identifier& ID() const = 0;
-    EXPORT virtual const Identifier& NymID() const = 0;
+    EXPORT virtual const identifier::Server& ID() const = 0;
+    EXPORT virtual const identifier::Nym& NymID() const = 0;
 #if OT_CASH
     EXPORT virtual void ScanMints() const = 0;
 #endif  // OT_CASH
     EXPORT virtual opentxs::server::Server& Server() const = 0;
 #if OT_CASH
     EXPORT virtual void SetMintKeySize(const std::size_t size) const = 0;
-    EXPORT virtual void UpdateMint(const Identifier& unitID) const = 0;
+    EXPORT virtual void UpdateMint(
+        const identifier::UnitDefinition& unitID) const = 0;
 #endif  // OT_CASH
 
     EXPORT virtual void Start() = 0;

@@ -42,8 +42,8 @@ enum { TradeProcessIntervalSeconds = 10 };
 
 OTTrade::OTTrade(const api::Core& core)
     : ot_super(core)
-    , currencyTypeID_(Identifier::Factory())
-    , currencyAcctID_(Identifier::Factory())
+    , currencyTypeID_(api_.Factory().UnitID())
+    , currencyAcctID_(api_.Factory().Identifier())
     , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)
@@ -57,15 +57,15 @@ OTTrade::OTTrade(const api::Core& core)
 
 OTTrade::OTTrade(
     const api::Core& core,
-    const Identifier& notaryID,
-    const Identifier& instrumentDefinitionID,
+    const identifier::Server& notaryID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
     const Identifier& assetAcctId,
-    const Identifier& nymID,
-    const Identifier& currencyId,
+    const identifier::Nym& nymID,
+    const identifier::UnitDefinition& currencyId,
     const Identifier& currencyAcctId)
     : ot_super(core, notaryID, instrumentDefinitionID, assetAcctId, nymID)
-    , currencyTypeID_(Identifier::Factory(currencyId))
-    , currencyAcctID_(Identifier::Factory(currencyAcctId))
+    , currencyTypeID_(currencyId)
+    , currencyAcctID_(currencyAcctId)
     , offer_(nullptr)
     , hasTradeActivated_(false)
     , stopPrice_(0)
@@ -159,13 +159,13 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                    currencyAcctID = String::Factory(
                        xml->getAttributeValue("currencyAcctID"));
 
-        const auto NOTARY_ID = Identifier::Factory(notaryID),
-                   NYM_ID = Identifier::Factory(nymID),
-                   INSTRUMENT_DEFINITION_ID =
-                       Identifier::Factory(instrumentDefinitionID),
-                   ASSET_ACCT_ID = Identifier::Factory(assetAcctID),
-                   CURRENCY_TYPE_ID = Identifier::Factory(currencyTypeID),
-                   CURRENCY_ACCT_ID = Identifier::Factory(currencyAcctID);
+        const auto NOTARY_ID = api_.Factory().ServerID(notaryID);
+        const auto INSTRUMENT_DEFINITION_ID =
+                       api_.Factory().UnitID(instrumentDefinitionID),
+                   CURRENCY_TYPE_ID = api_.Factory().UnitID(currencyTypeID);
+        const auto ASSET_ACCT_ID = api_.Factory().Identifier(assetAcctID),
+                   CURRENCY_ACCT_ID = api_.Factory().Identifier(currencyAcctID);
+        const auto NYM_ID = api_.Factory().NymID(nymID);
 
         SetNotaryID(NOTARY_ID);
         SetSenderNymID(NYM_ID);
@@ -332,13 +332,16 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
             ": While verifying offer, failed matching transaction number.")
             .Flush();
         return false;
-    } else if (GetNotaryID() != offer.GetNotaryID()) {
+    } else if (GetNotaryID().str() != offer.GetNotaryID().str()) {  // TODO
+                                                                    // ambiguous
+                                                                    // overload
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": While verifying offer, failed matching Notary ID.")
             .Flush();
         return false;
     } else if (
-        GetInstrumentDefinitionID() != offer.GetInstrumentDefinitionID()) {
+        GetInstrumentDefinitionID().str() !=
+        offer.GetInstrumentDefinitionID().str()) {  // TODO ambiguous
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": While verifying offer, failed matching instrument definition "
             "ID.")
@@ -363,7 +366,7 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
 
 OTOffer* OTTrade::GetOffer(OTMarket** market)
 {
-    auto id = Identifier::Factory();
+    auto id = api_.Factory().Identifier();
 
     return GetOffer(id, market);
 }
@@ -383,7 +386,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
 
         // It loaded. Let's get the Market ID off of it so we can locate the
         // market.
-        const auto OFFER_MARKET_ID = Identifier::Factory(*offer_);
+        const auto OFFER_MARKET_ID = api_.Factory().Identifier(*offer_);
 
         if (market != nullptr) {
             auto pMarket = GetCron()->GetMarket(OFFER_MARKET_ID);
@@ -436,7 +439,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
     // *Also remember we saved a copy of the original in the cron folder.
 
     // It loaded. Let's get the Market ID off of it so we can locate the market.
-    const auto OFFER_MARKET_ID = Identifier::Factory(*offer);
+    const auto OFFER_MARKET_ID = api_.Factory().Identifier(*offer);
     offerMarketId.Assign(OFFER_MARKET_ID);
 
     // Previously if a user tried to use a market that didn't exist, I'd just
@@ -835,8 +838,7 @@ void OTTrade::onFinalReceipt(
     auto serverNym = cron->GetServerNym();
     OT_ASSERT(serverNym);
 
-    auto context =
-        api_.Wallet().mutable_ClientContext(serverNym->ID(), originator->ID());
+    auto context = api_.Wallet().mutable_ClientContext(originator->ID());
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -1045,7 +1047,7 @@ bool OTTrade::ProcessCron()
     bool bStayOnMarket =
         true;  // by default stay on the market (until some rule expires me.)
 
-    auto OFFER_MARKET_ID = Identifier::Factory();
+    auto OFFER_MARKET_ID = api_.Factory().Identifier();
     OTMarket* market = nullptr;
 
     // If the Offer is already active on a market, then I already have a pointer
@@ -1153,9 +1155,11 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
 
     // Validate the Notary ID, Instrument Definition ID, Currency Type ID, and
     // Date Range.
-    if ((GetNotaryID() != offer.GetNotaryID()) ||
-        (GetCurrencyID() != offer.GetCurrencyID()) ||
-        (GetInstrumentDefinitionID() != offer.GetInstrumentDefinitionID()) ||
+    // TODO ambiguous overload
+    if ((GetNotaryID().str() != offer.GetNotaryID().str()) ||
+        (GetCurrencyID().str() != offer.GetCurrencyID().str()) ||
+        (GetInstrumentDefinitionID().str() !=
+         offer.GetInstrumentDefinitionID().str()) ||
         (offer.GetValidFrom() < OT_TIME_ZERO) ||
         (offer.GetValidTo() < offer.GetValidFrom())) {
         return false;

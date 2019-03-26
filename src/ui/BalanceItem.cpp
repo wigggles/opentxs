@@ -48,7 +48,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID)
 {
     const auto type =
@@ -103,10 +103,10 @@ BalanceItem::BalanceItem(
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID)
     : BalanceItemRow(parent, api, publisher, rowID, true)
-    , nym_id_(Identifier::Factory(nymID))
+    , nym_id_(nymID)
     , workflow_(recover_workflow(custom).id())
     , type_(extract_type(recover_workflow(custom)))
     , text_("")
@@ -144,7 +144,7 @@ std::vector<std::string> BalanceItem::extract_contacts(
 
     for (const auto& party : workflow.party()) {
         const auto contactID =
-            api.Contacts().NymToContact(Identifier::Factory(party));
+            api.Contacts().NymToContact(identifier::Nym::Factory(party));
         output.emplace_back(contactID->str());
     }
 
@@ -184,7 +184,7 @@ StorageBox BalanceItem::extract_type(const proto::PaymentWorkflow& workflow)
     }
 }
 
-std::string BalanceItem::get_contact_name(const Identifier& nymID) const
+std::string BalanceItem::get_contact_name(const identifier::Nym& nymID) const
 {
     if (nymID.empty()) { return {}; }
 

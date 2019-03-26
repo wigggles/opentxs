@@ -16,7 +16,8 @@ using ProfileList = List<
     ProfileRowInterface,
     ProfileRowInternal,
     ProfileRowBlank,
-    ProfileSortKey>;
+    ProfileSortKey,
+    ProfilePrimaryID>;
 
 class Profile final : public ProfileList
 {
@@ -34,8 +35,8 @@ public:
     bool Delete(const int section, const int type, const std::string& claimID)
         const override;
     std::string DisplayName() const override;
-    const Identifier& NymID() const override;
-    std::string ID() const override { return nym_id_->str(); }
+    const identifier::Nym& NymID() const override { return primary_id_; }
+    std::string ID() const override { return primary_id_->str(); }
     std::string PaymentCode() const override;
     bool SetActive(
         const int section,
@@ -69,7 +70,7 @@ private:
     static bool check_type(const proto::ContactSectionName type);
     static std::string nym_name(
         const api::Wallet& wallet,
-        const Identifier& nymID);
+        const identifier::Nym& nymID);
 
     void construct_row(
         const ProfileRowID& id,
@@ -88,7 +89,7 @@ private:
     Profile(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID);
+        const identifier::Nym& nymID);
     Profile() = delete;
     Profile(const Profile&) = delete;
     Profile(Profile&&) = delete;

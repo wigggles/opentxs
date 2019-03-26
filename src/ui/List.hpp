@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/identifier/Nym.hpp"
+
 #include "internal/core/Core.hpp"
 #include "Widget.hpp"
 
@@ -54,7 +56,8 @@ template <
     typename RowInterface,
     typename RowInternal,
     typename RowBlank,
-    typename SortKey>
+    typename SortKey,
+    typename PrimaryID>
 class List : virtual public ExternalInterface,
              virtual public InternalInterface,
              public Widget,
@@ -102,7 +105,7 @@ public:
 protected:
     using ReverseType = std::map<RowID, SortKey>;
 
-    const OTIdentifier nym_id_;
+    const PrimaryID primary_id_;
     mutable Outer items_;
     mutable OuterIterator outer_;
     mutable typename Inner::const_iterator inner_;
@@ -385,10 +388,10 @@ protected:
     List(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID,
+        const typename PrimaryID::interface_type& primaryID,
         const Identifier& widgetID)
         : Widget(api, publisher, widgetID)
-        , nym_id_(Identifier::Factory(nymID))
+        , primary_id_(primaryID)
         , items_()
         , outer_(items_.begin())
         , inner_(items_.begin()->second.begin())
@@ -406,8 +409,8 @@ protected:
     List(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID)
-        : List(api, publisher, nymID, Identifier::Random())
+        const typename PrimaryID::interface_type& primaryID)
+        : List(api, publisher, primaryID, Identifier::Random())
     {
     }
 

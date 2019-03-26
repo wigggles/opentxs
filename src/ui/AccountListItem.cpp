@@ -71,7 +71,7 @@ AccountListItem::AccountListItem(
     , unit_(sortKey.first)
     , balance_(extract_custom<Amount>(custom, 0))
     , contract_(
-          api_.Wallet().UnitDefinition(extract_custom<OTIdentifier>(custom, 1)))
+          api_.Wallet().UnitDefinition(extract_custom<OTUnitID>(custom, 1)))
     , notary_(api_.Wallet().Server(identifier::Server::Factory(sortKey.second)))
     , name_(extract_custom<std::string>(custom, 2))
 {

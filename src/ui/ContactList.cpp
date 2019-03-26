@@ -49,7 +49,7 @@ namespace opentxs
 ui::implementation::ContactListExternalInterface* Factory::ContactList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID)
+    const identifier::Nym& nymID)
 {
     return new ui::implementation::ContactList(api, publisher, nymID);
 }
@@ -60,7 +60,7 @@ namespace opentxs::ui::implementation
 ContactList::ContactList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID)
+    const identifier::Nym& nymID)
     : ContactListList(api, publisher, nymID)
     , listeners_({
           {api_.Endpoints().ContactUpdate(),
@@ -95,7 +95,7 @@ std::string ContactList::AddContact(
         identifier::Nym::Factory(nymID),
         api_.Factory().PaymentCode(paymentCode));
     const auto& id = contact->ID();
-    api_.OTX().CanMessage(nym_id_, id, true);
+    api_.OTX().CanMessage(primary_id_, id, true);
 
     return id.str();
 }

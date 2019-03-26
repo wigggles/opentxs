@@ -15,8 +15,8 @@ public:
     proto::ServerReply Contract() const override;
     RequestNumber Number() const override;
     std::shared_ptr<proto::OTXPush> Push() const override;
-    const Identifier& Recipient() const override { return recipient_; }
-    const Identifier& Server() const override { return server_; }
+    const identifier::Nym& Recipient() const override { return recipient_; }
+    const identifier::Server& Server() const override { return server_; }
     bool Success() const override { return success_; }
     proto::ServerReplyType Type() const override { return type_; }
 
@@ -28,8 +28,8 @@ public:
 private:
     friend otx::Reply;
 
-    const OTIdentifier recipient_;
-    const OTIdentifier server_;
+    const OTNymID recipient_;
+    const OTServerID server_;
     const proto::ServerReplyType type_{proto::SERVERREPLY_ERROR};
     const bool success_{false};
     RequestNumber number_{0};
@@ -53,8 +53,8 @@ private:
 
     Reply(
         const std::shared_ptr<const opentxs::Nym> signer,
-        const Identifier& recipient,
-        const Identifier& server,
+        const identifier::Nym& recipient,
+        const identifier::Server& server,
         const proto::ServerReplyType type,
         const bool success);
     Reply(const api::Core& api, const proto::ServerReply serialized);

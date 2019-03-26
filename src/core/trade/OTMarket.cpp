@@ -21,7 +21,6 @@
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -53,9 +52,9 @@ OTMarket::OTMarket(const api::Core& core, const char* szFilename)
     , m_mapBids()
     , m_mapAsks()
     , m_mapOffers()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
-    , m_CURRENCY_TYPE_ID(Identifier::Factory())
+    , m_NOTARY_ID(identifier::Server::Factory())
+    , m_INSTRUMENT_DEFINITION_ID(identifier::UnitDefinition::Factory())
+    , m_CURRENCY_TYPE_ID(identifier::UnitDefinition::Factory())
     , m_lScale(1)
     , m_lLastSalePrice(0)
     , m_strLastSaleDate()
@@ -74,9 +73,9 @@ OTMarket::OTMarket(const api::Core& core)
     , m_mapBids()
     , m_mapAsks()
     , m_mapOffers()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
-    , m_CURRENCY_TYPE_ID(Identifier::Factory())
+    , m_NOTARY_ID(identifier::Server::Factory())
+    , m_INSTRUMENT_DEFINITION_ID(identifier::UnitDefinition::Factory())
+    , m_CURRENCY_TYPE_ID(identifier::UnitDefinition::Factory())
     , m_lScale(1)
     , m_lLastSalePrice(0)
     , m_strLastSaleDate()
@@ -86,9 +85,9 @@ OTMarket::OTMarket(const api::Core& core)
 
 OTMarket::OTMarket(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& CURRENCY_TYPE_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+    const identifier::UnitDefinition& CURRENCY_TYPE_ID,
     const std::int64_t& lScale)
     : Contract(core)
     , m_pCron(nullptr)
@@ -96,9 +95,9 @@ OTMarket::OTMarket(
     , m_mapBids()
     , m_mapAsks()
     , m_mapOffers()
-    , m_NOTARY_ID(Identifier::Factory(NOTARY_ID))
-    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
-    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_TYPE_ID))
+    , m_NOTARY_ID(NOTARY_ID)
+    , m_INSTRUMENT_DEFINITION_ID(INSTRUMENT_DEFINITION_ID)
+    , m_CURRENCY_TYPE_ID(CURRENCY_TYPE_ID)
     , m_lScale(1)
     , m_lLastSalePrice(0)
     , m_strLastSaleDate()
@@ -274,7 +273,7 @@ std::int64_t OTMarket::GetTotalAvailableAssets()
 // Get list of offers for a particular Nym, to send that Nym
 //
 bool OTMarket::GetNym_OfferList(
-    const Identifier& NYM_ID,
+    const identifier::Nym& NYM_ID,
     OTDB::OfferListNym& theOutputList,
     std::int32_t& nNymOfferCount)
 {
@@ -293,7 +292,8 @@ bool OTMarket::GetNym_OfferList(
         // We only return offers for a specific Nym ID, since this is private
         // info only for that Nym.
         //
-        if ((nullptr == pTrade) || (pTrade->GetSenderNymID() != NYM_ID))
+        if ((nullptr == pTrade) || (pTrade->GetSenderNymID().str() !=
+                                    NYM_ID.str()))  // TODO ambiguous overload
             continue;
 
         // Below this point, I KNOW pTrade and pOffer are both good pointers.
@@ -315,7 +315,7 @@ bool OTMarket::GetNym_OfferList(
 
         const time64_t tDateAddedToMarket = pOffer->GetDateAddedToMarket();
 
-        const Identifier& theNotaryID = pOffer->GetNotaryID();
+        const auto& theNotaryID = pOffer->GetNotaryID();
         const auto strNotaryID = String::Factory(theNotaryID);
         const Identifier& theInstrumentDefinitionID =
             pOffer->GetInstrumentDefinitionID();
@@ -1064,7 +1064,7 @@ void OTMarket::ProcessTrade(
         "there is no Server Nym on the Cron "
         "object authorizing the trades.");
 
-    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
+    const auto& NOTARY_ID = pCron->GetNotaryID();
 
     if (pCron->GetTransactionCount() < 1) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -1122,29 +1122,33 @@ void OTMarket::ProcessTrade(
     // the pointers accordingly, and then operate
     // using the pointers from there.
 
-    const auto FIRST_NYM_ID = Identifier::Factory(
-                   theTrade.GetSenderNymID()),  // The newest trade's
-                                                // Nym.
-        OTHER_NYM_ID = Identifier::Factory(
-            pOtherTrade->GetSenderNymID()),  // The Nym of the trade
-                                             // that was already on the
-                                             // market. (Could be same
-                                             // Nym.)
-        NOTARY_NYM_ID =
-            Identifier::Factory(*pServerNym);  // The Server Nym (could be one
-                                               // or both of the above.)
+    const auto& FIRST_NYM_ID = theTrade.GetSenderNymID();  // The newest trade's
+                                                           // Nym.
+    const auto& OTHER_NYM_ID =
+        pOtherTrade->GetSenderNymID();             // The Nym of the trade
+                                                   // that was already on the
+                                                   // market. (Could be same
+                                                   // Nym.)
+    const auto& NOTARY_NYM_ID = pServerNym->ID();  // The Server Nym (could be
+                                                   // one or both of the above.)
 
     // We MIGHT use ONE, OR BOTH, of these, or none.
 
     // Find out if either Nym is actually also the server.
     bool bFirstNymIsServerNym =
-        ((FIRST_NYM_ID == NOTARY_NYM_ID) ? true : false);
+        ((FIRST_NYM_ID.str() == NOTARY_NYM_ID.str())
+             ? true
+             : false);  // TODO ambiguous overload
     bool bOtherNymIsServerNym =
-        ((OTHER_NYM_ID == NOTARY_NYM_ID) ? true : false);
+        ((OTHER_NYM_ID.str() == NOTARY_NYM_ID.str())
+             ? true
+             : false);  // TODO ambiguous overload
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity. We'll want to know that later.
-    bool bTradersAreSameNym = ((FIRST_NYM_ID == OTHER_NYM_ID) ? true : false);
+    bool bTradersAreSameNym =
+        ((FIRST_NYM_ID.str() == OTHER_NYM_ID.str()) ? true
+                                                    : false);  // TODO ambiguous
 
     // Initially both nym pointers are set to their own blank objects
     ConstNym pFirstNym = nullptr;
@@ -1253,13 +1257,15 @@ void OTMarket::ProcessTrade(
     // But only once the accounts themselves have been loaded can we VERIFY this
     // to be true.
     else if (
-        (pFirstAssetAcct.get().GetInstrumentDefinitionID() !=
-         GetInstrumentDefinitionID()) ||  // the trader's asset accts have
-                                          // same instrument definition
-                                          // as the market.
-        (pFirstCurrencyAcct.get().GetInstrumentDefinitionID() !=
-         GetCurrencyID())  // the trader's currency accts have same asset
-                           // type as the market.
+        (pFirstAssetAcct.get().GetInstrumentDefinitionID().str() !=
+         GetInstrumentDefinitionID().str()) ||  // TODO ambiguous overload
+                                                // the trader's asset accts have
+                                                // same instrument definition
+                                                // as the market.
+        (pFirstCurrencyAcct.get().GetInstrumentDefinitionID().str() !=
+         GetCurrencyID().str())  // TODO ambiguous overload
+        // the trader's currency accts have same asset
+        // type as the market.
     ) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR: First Trader has accounts of wrong "
@@ -1268,13 +1274,15 @@ void OTMarket::ProcessTrade(
         theTrade.FlagForRemoval();  // Removes from Cron.
         return;
     } else if (
-        (pOtherAssetAcct.get().GetInstrumentDefinitionID() !=
-         GetInstrumentDefinitionID()) ||  // the trader's asset accts have
-                                          // same asset
-                                          // type as the market.
-        (pOtherCurrencyAcct.get().GetInstrumentDefinitionID() !=
-         GetCurrencyID()))  // the trader's currency accts have same asset
-                            // type as market.
+        (pOtherAssetAcct.get().GetInstrumentDefinitionID().str() !=
+         GetInstrumentDefinitionID().str()) ||  // TODO ambiguous overload
+                                                // the trader's asset accts have
+                                                // same asset
+                                                // type as the market.
+        (pOtherCurrencyAcct.get().GetInstrumentDefinitionID().str() !=
+         GetCurrencyID().str()))  // TODO ambiguous overload
+    // the trader's currency accts have same asset
+    // type as market.
     {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR: Other Trader has accounts of wrong "
@@ -1470,7 +1478,6 @@ void OTMarket::ProcessTrade(
             // Start generating the receipts (for all four inboxes.)
 
             auto pTrans1{api_.Factory().Transaction(
-
                 *theFirstAssetInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -1479,7 +1486,6 @@ void OTMarket::ProcessTrade(
             OT_ASSERT(false != bool(pTrans1));
 
             auto pTrans2{api_.Factory().Transaction(
-
                 *theFirstCurrencyInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -1488,7 +1494,6 @@ void OTMarket::ProcessTrade(
             OT_ASSERT(false != bool(pTrans2));
 
             auto pTrans3{api_.Factory().Transaction(
-
                 *theOtherAssetInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -1497,7 +1502,6 @@ void OTMarket::ProcessTrade(
             OT_ASSERT(false != bool(pTrans3));
 
             auto pTrans4{api_.Factory().Transaction(
-
                 *theOtherCurrencyInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -2628,7 +2632,8 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
     bool bValidOffer = true;
     auto strReason = String::Factory();
 
-    if (GetNotaryID() != theOffer.GetNotaryID()) {
+    if (GetNotaryID().str() !=
+        theOffer.GetNotaryID().str()) {  // TODO ambiguous overload
         bValidOffer = false;
         const auto strID = String::Factory(GetNotaryID()),
                    strOtherID = String::Factory(theOffer.GetNotaryID());
@@ -2637,7 +2642,9 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
             strID->Get(),
             strOtherID->Get());
     } else if (
-        GetInstrumentDefinitionID() != theOffer.GetInstrumentDefinitionID()) {
+        GetInstrumentDefinitionID().str() !=
+        theOffer.GetInstrumentDefinitionID().str()) {  // TODO ambiguous
+                                                       // overload
         bValidOffer = false;
         const auto strID = String::Factory(GetInstrumentDefinitionID()),
                    strOtherID =

@@ -25,8 +25,7 @@
 namespace opentxs
 {
 /** AccountInfo: accountID, nymID, serverID, unitID*/
-using AccountInfo =
-    std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
+using AccountInfo = std::tuple<OTIdentifier, OTNymID, OTServerID, OTUnitID>;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
 typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 
@@ -51,15 +50,15 @@ public:
     EXPORT virtual OTIdentifier AccountPartialMatch(
         const std::string& hint) const = 0;
     EXPORT virtual ExclusiveAccount CreateAccount(
-        const Identifier& ownerNymID,
-        const Identifier& notaryID,
-        const Identifier& instrumentDefinitionID,
+        const identifier::Nym& ownerNymID,
+        const identifier::Server& notaryID,
+        const identifier::UnitDefinition& instrumentDefinitionID,
         const class Nym& signer,
         Account::AccountType type,
         TransactionNumber stash) const = 0;
     EXPORT virtual bool DeleteAccount(const Identifier& accountID) const = 0;
     EXPORT virtual SharedAccount IssuerAccount(
-        const Identifier& unitID) const = 0;
+        const identifier::UnitDefinition& unitID) const = 0;
     EXPORT virtual ExclusiveAccount mutable_Account(
         const Identifier& accountID,
         const AccountCallback callback = nullptr) const = 0;
@@ -87,20 +86,18 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     EXPORT virtual std::shared_ptr<const opentxs::Context> Context(
-        const Identifier& notaryID,
-        const Identifier& clientNymID) const = 0;
+        const identifier::Server& notaryID,
+        const identifier::Nym& clientNymID) const = 0;
 
     /**   Load a read-only copy of a ClientContext object
      *
-     *    \param[in] localNymID the identifier of the nym who owns the context
      *    \param[in] remoteNymID context identifier (usually the other party's
      *                           nym id)
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
     EXPORT virtual std::shared_ptr<const opentxs::ClientContext> ClientContext(
-        const Identifier& localNymID,
-        const Identifier& remoteNymID) const = 0;
+        const identifier::Nym& remoteNymID) const = 0;
 
     /**   Load a read-only copy of a ServerContext object
      *
@@ -111,7 +108,7 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     EXPORT virtual std::shared_ptr<const opentxs::ServerContext> ServerContext(
-        const Identifier& localNymID,
+        const identifier::Nym& localNymID,
         const Identifier& remoteID) const = 0;
 
     /**   Load an existing Context object
@@ -128,18 +125,16 @@ public:
      *                           nym id)
      */
     EXPORT virtual Editor<opentxs::Context> mutable_Context(
-        const Identifier& notaryID,
-        const Identifier& clientNymID) const = 0;
+        const identifier::Server& notaryID,
+        const identifier::Nym& clientNymID) const = 0;
 
     /**   Load or create a ClientContext object
      *
-     *    \param[in] localNymID the identifier of the nym who owns the context
      *    \param[in] remoteNymID context identifier (usually the other party's
      *                           nym id)
      */
     EXPORT virtual Editor<opentxs::ClientContext> mutable_ClientContext(
-        const Identifier& localNymID,
-        const Identifier& remoteNymID) const = 0;
+        const identifier::Nym& remoteNymID) const = 0;
 
     /**   Load or create a ServerContext object
      *
@@ -148,12 +143,12 @@ public:
      *                        id)
      */
     EXPORT virtual Editor<opentxs::ServerContext> mutable_ServerContext(
-        const Identifier& localNymID,
+        const identifier::Nym& localNymID,
         const Identifier& remoteID) const = 0;
 
     /**   Returns a list of all issuers associated with a local nym */
-    EXPORT virtual std::set<OTIdentifier> IssuerList(
-        const Identifier& nymID) const = 0;
+    EXPORT virtual std::set<OTNymID> IssuerList(
+        const identifier::Nym& nymID) const = 0;
 
     /**   Load a read-only copy of an Issuer object
      *
@@ -163,8 +158,8 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     EXPORT virtual std::shared_ptr<const client::Issuer> Issuer(
-        const Identifier& nymID,
-        const Identifier& issuerID) const = 0;
+        const identifier::Nym& nymID,
+        const identifier::Nym& issuerID) const = 0;
 
     /**   Load or create an Issuer object
      *
@@ -172,14 +167,14 @@ public:
      *    \param[in] issuerID the identifier of the issuer nym
      */
     EXPORT virtual Editor<client::Issuer> mutable_Issuer(
-        const Identifier& nymID,
-        const Identifier& issuerID) const = 0;
+        const identifier::Nym& nymID,
+        const identifier::Nym& issuerID) const = 0;
 
     EXPORT virtual bool IsLocalNym(const std::string& id) const = 0;
 
     EXPORT virtual std::size_t LocalNymCount() const = 0;
 
-    EXPORT virtual std::set<OTIdentifier> LocalNyms() const = 0;
+    EXPORT virtual std::set<OTNymID> LocalNyms() const = 0;
 
     /**   Obtain a smart pointer to an instantiated nym.
      *
@@ -201,7 +196,7 @@ public:
      *                       value of 0 will return immediately.
      */
     EXPORT virtual ConstNym Nym(
-        const Identifier& id,
+        const identifier::Nym& id,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
 
@@ -219,14 +214,14 @@ public:
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const = 0;
 
-    EXPORT virtual NymData mutable_Nym(const Identifier& id) const = 0;
+    EXPORT virtual NymData mutable_Nym(const identifier::Nym& id) const = 0;
 
     EXPORT virtual std::unique_ptr<const class NymFile> Nymfile(
-        const Identifier& id,
+        const identifier::Nym& id,
         const OTPasswordData& reason) const = 0;
 
     EXPORT virtual Editor<class NymFile> mutable_Nymfile(
-        const Identifier& id,
+        const identifier::Nym& id,
         const OTPasswordData& reason) const = 0;
 
     EXPORT virtual ConstNym NymByIDPartialMatch(
@@ -248,7 +243,7 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     EXPORT virtual std::shared_ptr<proto::PeerReply> PeerReply(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& reply,
         const StorageBox& box) const = 0;
 
@@ -263,7 +258,7 @@ public:
      *    \returns true if the request is successfully stored
      */
     EXPORT virtual bool PeerReplyComplete(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& replyOrRequest) const = 0;
 
     /**   Store the recipient's copy of a peer reply
@@ -280,7 +275,7 @@ public:
      *    \returns true if the request is successfully stored
      */
     EXPORT virtual bool PeerReplyCreate(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const proto::PeerRequest& request,
         const proto::PeerReply& reply) const = 0;
 
@@ -294,7 +289,7 @@ public:
      *    \returns true if the rollback is successful
      */
     EXPORT virtual bool PeerReplyCreateRollback(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& request,
         const Identifier& reply) const = 0;
 
@@ -302,28 +297,29 @@ public:
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerReplySent(const Identifier& nym) const = 0;
+    EXPORT virtual ObjectList PeerReplySent(
+        const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of incoming peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     EXPORT virtual ObjectList PeerReplyIncoming(
-        const Identifier& nym) const = 0;
+        const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of finished peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     EXPORT virtual ObjectList PeerReplyFinished(
-        const Identifier& nym) const = 0;
+        const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of processed peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     EXPORT virtual ObjectList PeerReplyProcessed(
-        const Identifier& nym) const = 0;
+        const identifier::Nym& nym) const = 0;
 
     /**   Store the senders's copy of a peer reply
      *
@@ -339,7 +335,7 @@ public:
      *    \returns true if the request is successfully stored
      */
     EXPORT virtual bool PeerReplyReceive(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const PeerObject& reply) const = 0;
 
     /**   Load a peer reply object
@@ -351,7 +347,7 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     EXPORT virtual std::shared_ptr<proto::PeerRequest> PeerRequest(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box,
         std::time_t& time) const = 0;
@@ -366,7 +362,7 @@ public:
      *    \returns true if the request is successfully moved
      */
     EXPORT virtual bool PeerRequestComplete(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& reply) const = 0;
 
     /**   Store the initiator's copy of a peer request
@@ -379,7 +375,7 @@ public:
      *    \returns true if the request is successfully stored
      */
     EXPORT virtual bool PeerRequestCreate(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const proto::PeerRequest& request) const = 0;
 
     /**   Rollback a PeerRequestCreate call
@@ -391,7 +387,7 @@ public:
      *    \returns true if the rollback is successful
      */
     EXPORT virtual bool PeerRequestCreateRollback(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& request) const = 0;
 
     /**   Delete a peer reply object
@@ -401,7 +397,7 @@ public:
      *    \param[in] box the box from which the peer object will be deleted
      */
     EXPORT virtual bool PeerRequestDelete(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box) const = 0;
 
@@ -409,28 +405,29 @@ public:
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerRequestSent(const Identifier& nym) const = 0;
+    EXPORT virtual ObjectList PeerRequestSent(
+        const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of incoming peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     EXPORT virtual ObjectList PeerRequestIncoming(
-        const Identifier& nym) const = 0;
+        const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of finished peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     EXPORT virtual ObjectList PeerRequestFinished(
-        const Identifier& nym) const = 0;
+        const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of processed peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
     EXPORT virtual ObjectList PeerRequestProcessed(
-        const Identifier& nym) const = 0;
+        const identifier::Nym& nym) const = 0;
 
     /**   Store the recipient's copy of a peer request
      *
@@ -442,7 +439,7 @@ public:
      *    \returns true if the request is successfully stored
      */
     EXPORT virtual bool PeerRequestReceive(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const PeerObject& request) const = 0;
 
     /**   Update the timestamp of a peer request object
@@ -452,7 +449,7 @@ public:
      *    \param[in] box the box from which the peer object will be deleted
      */
     EXPORT virtual bool PeerRequestUpdate(
-        const Identifier& nym,
+        const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box) const = 0;
 
@@ -477,7 +474,7 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    EXPORT virtual bool RemoveServer(const Identifier& id) const = 0;
+    EXPORT virtual bool RemoveServer(const identifier::Server& id) const = 0;
 
     /**   Unload and delete a unit definition contract
      *
@@ -487,7 +484,8 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    EXPORT virtual bool RemoveUnitDefinition(const Identifier& id) const = 0;
+    EXPORT virtual bool RemoveUnitDefinition(
+        const identifier::UnitDefinition& id) const = 0;
 
     /**   Obtain a smart pointer to an instantiated server contract.
      *
@@ -509,7 +507,7 @@ public:
      *                       value of 0 will return immediately.
      */
     EXPORT virtual ConstServerContract Server(
-        const Identifier& id,
+        const identifier::Server& id,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
 
@@ -555,7 +553,7 @@ public:
      *    \returns true if successful, false if the nym can not be located
      */
     EXPORT virtual bool SetNymAlias(
-        const Identifier& id,
+        const identifier::Nym& id,
         const std::string& alias) const = 0;
 
     /**   Updates the alias for the specified server contract.
@@ -568,7 +566,7 @@ public:
      *    \returns true if successful, false if the contract can not be located
      */
     EXPORT virtual bool SetServerAlias(
-        const Identifier& id,
+        const identifier::Server& id,
         const std::string& alias) const = 0;
 
     /**   Updates the alias for the specified unit definition contract.
@@ -581,7 +579,7 @@ public:
      *    \returns true if successful, false if the contract can not be located
      */
     EXPORT virtual bool SetUnitDefinitionAlias(
-        const Identifier& id,
+        const identifier::UnitDefinition& id,
         const std::string& alias) const = 0;
 
     /**   Obtain a list of all available unit definition contracts and their
@@ -609,7 +607,7 @@ public:
      *                     value of 0 will return immediately.
      */
     EXPORT virtual const ConstUnitDefinition UnitDefinition(
-        const Identifier& id,
+        const identifier::UnitDefinition& id,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
 
@@ -670,7 +668,7 @@ public:
         const std::string& terms) const = 0;
 
     EXPORT virtual proto::ContactItemType CurrencyTypeBasedOnUnitType(
-        const Identifier& contractID) const = 0;
+        const identifier::UnitDefinition& contractID) const = 0;
 
     EXPORT virtual bool LoadCredential(
         const std::string& id,

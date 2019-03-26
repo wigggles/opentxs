@@ -141,7 +141,7 @@ bool Transactor::addBasketAccountID(
 /// this server.)
 bool Transactor::lookupBasketAccountIDByContractID(
     const Identifier& BASKET_CONTRACT_ID,
-    OTIdentifier& BASKET_ACCOUNT_ID)
+    Identifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -156,7 +156,7 @@ bool Transactor::lookupBasketAccountIDByContractID(
                                                        // ID passed in matches
                                                        // this one...
         {
-            BASKET_ACCOUNT_ID = Identifier::Factory(id_BASKET_ACCT);
+            BASKET_ACCOUNT_ID.Assign(id_BASKET_ACCT);
             return true;
         }
     }
@@ -169,7 +169,7 @@ bool Transactor::lookupBasketAccountIDByContractID(
 /// this server.)
 bool Transactor::lookupBasketContractIDByAccountID(
     const Identifier& BASKET_ACCOUNT_ID,
-    OTIdentifier& BASKET_CONTRACT_ID)
+    Identifier& BASKET_CONTRACT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -184,7 +184,7 @@ bool Transactor::lookupBasketContractIDByAccountID(
                                                   // passed in matches this
                                                   // one...
         {
-            BASKET_CONTRACT_ID = Identifier::Factory(id_BASKET_CONTRACT);
+            BASKET_CONTRACT_ID.Assign(id_BASKET_CONTRACT);
             return true;
         }
     }
@@ -197,7 +197,7 @@ bool Transactor::lookupBasketContractIDByAccountID(
 /// servers)
 bool Transactor::lookupBasketAccountID(
     const Identifier& BASKET_ID,
-    OTIdentifier& BASKET_ACCOUNT_ID)
+    Identifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -211,7 +211,7 @@ bool Transactor::lookupBasketAccountID(
         if (BASKET_ID == id_BASKET)  // if the basket ID passed in matches this
                                      // one...
         {
-            BASKET_ACCOUNT_ID = Identifier::Factory(id_BASKET_ACCT);
+            BASKET_ACCOUNT_ID.Assign(id_BASKET_ACCT);
             return true;
         }
     }
@@ -224,10 +224,10 @@ bool Transactor::lookupBasketAccountID(
 /// exist, and since it's being requested, also will GENERATE it if it cannot
 /// be found, add it to the list, and return the pointer. Should always succeed.
 ExclusiveAccount Transactor::getVoucherAccount(
-    const Identifier& INSTRUMENT_DEFINITION_ID)
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
 {
-    const auto NOTARY_NYM_ID = Identifier::Factory(server_.GetServerNym()),
-               NOTARY_ID = Identifier::Factory(server_.GetServerID());
+    const auto& NOTARY_NYM_ID = server_.GetServerNym().ID();
+    const auto& NOTARY_ID = server_.GetServerID();
     bool bWasAcctCreated = false;
     auto pAccount = voucherAccounts_.GetOrRegisterAccount(
         server_.GetServerNym(),

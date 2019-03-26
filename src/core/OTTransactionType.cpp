@@ -7,6 +7,8 @@
 
 #include "opentxs/core/OTTransactionType.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Account.hpp"
@@ -32,10 +34,10 @@ namespace opentxs
 // constructors and therefore provide the requisite IDs.
 OTTransactionType::OTTransactionType(const api::Core& core)
     : Contract(core)
-    , m_AcctID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory())
-    , m_AcctNotaryID(Identifier::Factory())
-    , m_AcctNymID(Identifier::Factory())
+    , m_AcctID(core.Factory().Identifier())
+    , m_NotaryID(core.Factory().ServerID())
+    , m_AcctNotaryID(core.Factory().ServerID())
+    , m_AcctNymID(core.Factory().NymID())
     , m_lTransactionNum(0)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
@@ -52,15 +54,15 @@ OTTransactionType::OTTransactionType(const api::Core& core)
 
 OTTransactionType::OTTransactionType(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     originType theOriginType)
     : Contract(core, theAccountID)
-    , m_AcctID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory(theNotaryID))
-    , m_AcctNotaryID(Identifier::Factory())
-    , m_AcctNymID(Identifier::Factory(theNymID))
+    , m_AcctID(core.Factory().Identifier())
+    , m_NotaryID(theNotaryID)
+    , m_AcctNotaryID(core.Factory().ServerID())
+    , m_AcctNymID(theNymID)
     , m_lTransactionNum(0)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
@@ -75,16 +77,16 @@ OTTransactionType::OTTransactionType(
 
 OTTransactionType::OTTransactionType(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     std::int64_t lTransactionNum,
     originType theOriginType)
     : Contract(core, theAccountID)
-    , m_AcctID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory(theNotaryID))
-    , m_AcctNotaryID(Identifier::Factory())
-    , m_AcctNymID(Identifier::Factory(theNymID))
+    , m_AcctID(core.Factory().Identifier())
+    , m_NotaryID(theNotaryID)
+    , m_AcctNotaryID(core.Factory().ServerID())
+    , m_AcctNymID(theNymID)
     , m_lTransactionNum(lTransactionNum)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
@@ -207,9 +209,12 @@ void OTTransactionType::Release()
 //
 bool OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
 {
-    if ((GetNymID() != rhs.GetNymID()) ||
+    if ((GetNymID().str() != rhs.GetNymID().str()) ||  // TODO ambiguous
+                                                       // overload
         (GetRealAccountID() != rhs.GetRealAccountID()) ||
-        (GetRealNotaryID() != rhs.GetRealNotaryID()))
+        (GetRealNotaryID().str() != rhs.GetRealNotaryID().str()))  // TODO
+                                                                   // ambiguous
+                                                                   // overload
         return false;
     return true;
 }

@@ -16,7 +16,8 @@ using AccountListList = List<
     AccountListRowInterface,
     AccountListRowInternal,
     AccountListRowBlank,
-    AccountListSortKey>;
+    AccountListSortKey,
+    AccountListPrimaryID>;
 
 class AccountList final : public AccountListList
 {

@@ -97,7 +97,7 @@ public:
         const std::string& value) const;
     std::string Name() const;
     std::string PhoneNumbers(bool active = true) const;
-    OTIdentifier PreferredOTServer() const;
+    OTServerID PreferredOTServer() const;
     std::shared_ptr<ContactSection> Section(
         const proto::ContactSectionName& section) const;
     proto::ContactData Serialize(const bool withID = false) const;

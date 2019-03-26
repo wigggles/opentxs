@@ -248,7 +248,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     // client message... If we add any acknowledged replies to the server-side
     // list, we will want to save (at the end.)
     auto numlist_ack_reply = reply.Acknowledged();
-    const auto nymID = Identifier::Factory(context.RemoteNym().ID());
+    const auto& nymID = context.RemoteNym().ID();
     auto nymbox{manager_.Factory().Ledger(nymID, nymID, context.Server())};
 
     OT_ASSERT(false != bool(nymbox));
@@ -311,11 +311,12 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
 }
 
 bool UserCommandProcessor::check_client_isnt_server(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Nym& serverNym)
 {
     const auto& serverNymID = serverNym.ID();
-    const bool bNymIsServerNym = serverNymID == nymID;
+    const bool bNymIsServerNym =
+        serverNymID.str() == nymID.str();  // TODO ambiguous overload
 
     if (bNymIsServerNym) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -349,7 +350,7 @@ bool UserCommandProcessor::check_client_nym(ReplyMessage& reply) const
 }
 
 bool UserCommandProcessor::check_message_notary(
-    const Identifier& notaryID,
+    const identifier::Server& notaryID,
     const Identifier& realNotaryID)
 {
     // Validate the server ID, to keep users from intercepting a valid requst
@@ -420,7 +421,7 @@ bool UserCommandProcessor::check_request_number(
     return true;
 }
 
-bool UserCommandProcessor::check_server_lock(const Identifier& nymID)
+bool UserCommandProcessor::check_server_lock(const identifier::Nym& nymID)
 {
     if (false == ServerSettings::__admin_server_locked) { return true; }
 
@@ -513,7 +514,7 @@ bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
     reply.SetSuccess(true);
-    auto nym = server_.API().Wallet().Nym(Identifier::Factory(targetNym));
+    auto nym = server_.API().Wallet().Nym(identifier::Nym::Factory(targetNym));
 
     if (nym) {
         reply.SetPayload(proto::ProtoAsData(nym->asPublicNym()));
@@ -733,7 +734,8 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
         return false;
     }
 
-    if (account.get().GetNymID() != nymID) {
+    if (account.get().GetNymID().str() != nymID.str()) {  // TODO ambiguous
+                                                          // overload
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(
             " does not own account ")(accountID)
             .Flush();
@@ -885,16 +887,20 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
     reply.SetSuccess(true);
     reply.SetBool(false);
     reply.SetEnum(msgIn.enum_);
-    const auto contractID =
-        Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
+    const auto nymID =
+        identifier::Nym::Factory(msgIn.m_strInstrumentDefinitionID);
+    const auto serverID =
+        identifier::Server::Factory(msgIn.m_strInstrumentDefinitionID);
+    const auto unitID =
+        identifier::UnitDefinition::Factory(msgIn.m_strInstrumentDefinitionID);
     auto serialized = Data::Factory();
 
     if (0 == msgIn.enum_) {
         // try everything
-        auto unitDefiniton = server_.API().Wallet().UnitDefinition(contractID);
+        auto unitDefiniton = server_.API().Wallet().UnitDefinition(unitID);
         // Perhaps the provided ID is actually a server contract, not an
         // instrument definition?
-        auto server = server_.API().Wallet().Server(contractID);
+        auto server = server_.API().Wallet().Server(serverID);
 
         if (unitDefiniton) {
             serialized = proto::ProtoAsData(unitDefiniton->PublicContract());
@@ -906,7 +912,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
             reply.SetBool(true);
         }
     } else if (ContractType::NYM == static_cast<ContractType>(msgIn.enum_)) {
-        auto contract = server_.API().Wallet().Nym(contractID);
+        auto contract = server_.API().Wallet().Nym(nymID);
 
         if (contract) {
             serialized = proto::ProtoAsData(contract->asPublicNym());
@@ -914,7 +920,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
             reply.SetBool(true);
         }
     } else if (ContractType::SERVER == static_cast<ContractType>(msgIn.enum_)) {
-        auto contract = server_.API().Wallet().Server(contractID);
+        auto contract = server_.API().Wallet().Server(serverID);
 
         if (contract) {
             serialized = proto::ProtoAsData(contract->PublicContract());
@@ -922,7 +928,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
             reply.SetBool(true);
         }
     } else if (ContractType::UNIT == static_cast<ContractType>(msgIn.enum_)) {
-        auto contract = server_.API().Wallet().UnitDefinition(contractID);
+        auto contract = server_.API().Wallet().UnitDefinition(unitID);
 
         if (contract) {
             serialized = proto::ProtoAsData(contract->PublicContract());
@@ -975,7 +981,7 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
     if (depth < 0) { depth = 0; }
 
     const auto market =
-        server_.Cron().GetMarket(Identifier::Factory(msgIn.m_strNymID2));
+        server_.Cron().GetMarket(identifier::Nym::Factory(msgIn.m_strNymID2));
 
     if (false == bool(market)) { return false; }
 
@@ -1005,7 +1011,7 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_recent_trades);
 
     const auto market =
-        server_.Cron().GetMarket(Identifier::Factory(msgIn.m_strNymID2));
+        server_.Cron().GetMarket(identifier::Nym::Factory(msgIn.m_strNymID2));
 
     if (false == bool(market)) { return false; }
 
@@ -1036,7 +1042,8 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
     reply.SetSuccess(true);
     reply.SetBool(false);
     const auto& unitID = msgIn.m_strInstrumentDefinitionID;
-    auto mint = manager_.GetPublicMint(Identifier::Factory(unitID));
+    auto mint =
+        manager_.GetPublicMint(identifier::UnitDefinition::Factory(unitID));
 
     if (mint) {
         reply.SetBool(true);
@@ -1121,7 +1128,7 @@ bool UserCommandProcessor::cmd_get_request_number(ReplyMessage& reply) const
     }
 
     reply.SetRequestNumber(number);
-    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
+    const auto& NOTARY_ID = server_.GetServerID();
     auto EXISTING_NYMBOX_HASH = context.LocalNymboxHash();
 
     if (String::Factory(EXISTING_NYMBOX_HASH)->Exists()) {
@@ -1292,7 +1299,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     for (auto& it : serialized.basket().item()) {
         const auto& subcontractID = it.unit();
         auto contract = server_.API().Wallet().UnitDefinition(
-            Identifier::Factory(subcontractID));
+            identifier::UnitDefinition::Factory(subcontractID));
 
         if (!contract) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Missing subcurrency ")(
@@ -1316,7 +1323,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         auto newAccount = server_.API().Wallet().CreateAccount(
             serverNymID,
             serverID,
-            Identifier::Factory(it.unit()),
+            identifier::UnitDefinition::Factory(it.unit()),
             *serverNym,
             Account::basketsub,
             0);
@@ -1359,7 +1366,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         return false;
     }
 
-    const auto contractID = contract->ID();
+    const auto contractID = identifier::UnitDefinition::Factory(
+        contract->ID()->str());  // TODO conversion
     reply.SetInstrumentDefinitionID(String::Factory(contractID));
 
     // I don't save this here. Instead, I wait for AddBasketAccountID and then I
@@ -1404,7 +1412,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         BASKET_ID, basketAccountID, contractID);
     server_.GetMainFile().SaveMainFile();
 #if OT_CASH
-    manager_.UpdateMint(basketAccountID);
+    manager_.UpdateMint(contractID);
 #endif  // OT_CASH
     basketAccount.Release();
 
@@ -1781,7 +1789,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         // might include "issue", "audit", "contract", etc.
         if (0 == status.compare("exists")) {
             auto pContract = server_.API().Wallet().UnitDefinition(
-                Identifier::Factory(unitID));
+                identifier::UnitDefinition::Factory(unitID));
 
             if (pContract) {
                 newMap[unitID] = "true";
@@ -1814,7 +1822,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     const auto contractID =
-        Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
+        identifier::UnitDefinition::Factory(msgIn.m_strInstrumentDefinitionID);
     auto account = server_.API().Wallet().CreateAccount(
         nymID, serverID, contractID, serverNym, Account::user, 0);
 
@@ -1972,7 +1980,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     const auto& msgIn = reply.Original();
     reply.SetInstrumentDefinitionID(msgIn.m_strInstrumentDefinitionID);
     const auto contractID =
-        Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
+        identifier::UnitDefinition::Factory(msgIn.m_strInstrumentDefinitionID);
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
@@ -2201,7 +2209,7 @@ bool UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
     const auto& server = context.Server();
     const auto& msgIn = reply.Original();
     const auto& targetNym = msgIn.m_strNymID2;
-    const auto recipient = Identifier::Factory(targetNym);
+    const auto recipient = identifier::Nym::Factory(targetNym);
     reply.SetTargetNym(targetNym);
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_send_message);
@@ -2221,9 +2229,9 @@ bool UserCommandProcessor::cmd_send_nym_message(ReplyMessage& reply) const
 // or pass pPayment instead: we will create our own msg here (with payment
 // inside) to be attached to the receipt.
 bool UserCommandProcessor::send_message_to_nym(
-    const Identifier& NOTARY_ID,
-    const Identifier& SENDER_NYM_ID,
-    const Identifier& RECIPIENT_NYM_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::Nym& SENDER_NYM_ID,
+    const identifier::Nym& RECIPIENT_NYM_ID,
     const Message& pMsg) const
 {
     return server_.DropMessageToNymbox(
@@ -2355,8 +2363,8 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
 
     if (false == admin) { adjustment = 0; }
 
-    const auto targetNymID = Identifier::Factory(msgIn.m_strNymID2);
-    OTIdentifier nymID = Identifier::Factory();
+    const auto targetNymID = identifier::Nym::Factory(msgIn.m_strNymID2);
+    auto nymID = identifier::Nym::Factory();
 
     if (targetNymID == adminNymID) {
         nymID = adminNymID;
@@ -2406,8 +2414,8 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
 }
 
 std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
-    const Identifier& nymID,
-    const Identifier& server,
+    const identifier::Nym& nymID,
+    const identifier::Server& server,
     const Nym& serverNym) const
 {
     auto nymbox{manager_.Factory().Ledger(nymID, nymID, server)};
@@ -2581,7 +2589,7 @@ RequestNumber UserCommandProcessor::initialize_request_number(
     return requestNumber;
 }
 
-bool UserCommandProcessor::isAdmin(const Identifier& nymID)
+bool UserCommandProcessor::isAdmin(const identifier::Nym& nymID)
 {
     const auto adminNym = ServerSettings::GetOverrideNymID();
 
@@ -2591,9 +2599,9 @@ bool UserCommandProcessor::isAdmin(const Identifier& nymID)
 }
 
 std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID,
-    const Identifier& serverID,
+    const identifier::Server& serverID,
     const Nym& serverNym,
     const bool verifyAccount) const
 {
@@ -2639,8 +2647,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
 }
 
 std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
-    const Identifier& nymID,
-    const Identifier& serverID,
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID,
     const Nym& serverNym,
     const bool verifyAccount) const
 {
@@ -2680,9 +2688,9 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
 }
 
 std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID,
-    const Identifier& serverID,
+    const identifier::Server& serverID,
     const Nym& serverNym,
     const bool verifyAccount) const
 {

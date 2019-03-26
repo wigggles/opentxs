@@ -240,7 +240,7 @@ struct Operation {
     };
 
     virtual const identifier::Nym& NymID() const = 0;
-    virtual const Identifier& ServerID() const = 0;
+    virtual const identifier::Server& ServerID() const = 0;
 
     virtual bool AddClaim(
         const proto::ContactSectionName section,

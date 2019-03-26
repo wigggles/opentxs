@@ -10,8 +10,9 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -26,7 +27,7 @@ namespace opentxs::server
 ReplyMessage::ReplyMessage(
     const UserCommandProcessor& parent,
     const opentxs::api::Wallet& wallet,
-    const Identifier& notaryID,
+    const identifier::Server& notaryID,
     const Nym& signer,
     const Message& input,
     Server& server,
@@ -36,7 +37,7 @@ ReplyMessage::ReplyMessage(
     , wallet_(wallet)
     , signer_(signer)
     , original_(input)
-    , notary_id_(Identifier::Factory(notaryID))
+    , notary_id_(notaryID)
     , message_(output)
     , server_(server)
     , init_(false)
@@ -176,8 +177,9 @@ bool ReplyMessage::HaveContext() const { return bool(context_); }
 
 bool ReplyMessage::init()
 {
-    const auto senderNymID = Identifier::Factory(original_.m_strNymID);
-    const auto purportedServerID = Identifier::Factory(original_.m_strNotaryID);
+    const auto senderNymID = identifier::Nym::Factory(original_.m_strNymID);
+    const auto purportedServerID =
+        identifier::Server::Factory(original_.m_strNotaryID);
 
     bool out = UserCommandProcessor::check_server_lock(senderNymID);
 
@@ -198,7 +200,7 @@ const bool& ReplyMessage::Init() const { return init_; }
 
 bool ReplyMessage::init_nym()
 {
-    sender_nym_ = wallet_.Nym(Identifier::Factory(original_.m_strNymID));
+    sender_nym_ = wallet_.Nym(identifier::Nym::Factory(original_.m_strNymID));
 
     return bool(sender_nym_);
 }
@@ -214,7 +216,7 @@ bool ReplyMessage::LoadContext()
     }
 
     context_.reset(new Editor<ClientContext>(
-        wallet_.mutable_ClientContext(signer_.ID(), sender_nym_->ID())));
+        wallet_.mutable_ClientContext(sender_nym_->ID())));
 
     return bool(context_);
 }

@@ -16,14 +16,15 @@ using ContactSectionList = List<
     ContactSectionRowInterface,
     ContactSectionRowInternal,
     ContactSectionRowBlank,
-    ContactSectionSortKey>;
+    ContactSectionSortKey,
+    ContactSectionPrimaryID>;
 using ContactSectionRow =
     RowType<ContactRowInternal, ContactInternalInterface, ContactRowID>;
 
 class ContactSection final : public ContactSectionList, public ContactSectionRow
 {
 public:
-    std::string ContactID() const override { return nym_id_->str(); }
+    std::string ContactID() const override { return primary_id_->str(); }
     std::string Name(const std::string& lang) const override
     {
         return proto::TranslateSectionName(row_id_, lang);

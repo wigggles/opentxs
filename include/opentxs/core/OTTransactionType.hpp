@@ -8,9 +8,10 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/Types.hpp"
 
@@ -51,8 +52,8 @@ public:
     // Someday I'll add EntityID and RoleID here (in lieu of NymID,
     // in cases when the account is owned by an Entity and not a Nym.)
     //
-    inline const Identifier& GetNymID() const { return m_AcctNymID; }
-    inline void SetNymID(const Identifier& theID) { m_AcctNymID = theID; }
+    inline const identifier::Nym& GetNymID() const { return m_AcctNymID; }
+    inline void SetNymID(const identifier::Nym& theID) { m_AcctNymID = theID; }
 
     // Used for: Load an account based on this ID
     inline const Identifier& GetRealAccountID() const { return m_ID; }
@@ -67,15 +68,21 @@ public:
     }
 
     // Used for: Load or save a filename based on this ID.
-    inline const Identifier& GetRealNotaryID() const { return m_NotaryID; }
-    inline void SetRealNotaryID(const Identifier& theID) { m_NotaryID = theID; }
+    inline const identifier::Server& GetRealNotaryID() const
+    {
+        return m_NotaryID;
+    }
+    inline void SetRealNotaryID(const identifier::Server& theID)
+    {
+        m_NotaryID = theID;
+    }
 
     // Used for: Load or save the ID in the file contents into/out of this ID.
-    inline const Identifier& GetPurportedNotaryID() const
+    inline const identifier::Server& GetPurportedNotaryID() const
     {
         return m_AcctNotaryID;
     }
-    inline void SetPurportedNotaryID(const Identifier& theID)
+    inline void SetPurportedNotaryID(const identifier::Server& theID)
     {
         m_AcctNotaryID = theID;
     }
@@ -621,10 +628,10 @@ protected:
     OTIdentifier m_AcctID;
     // Notary ID as used to instantiate the transaction, based on expected
     // NotaryID.
-    OTIdentifier m_NotaryID;
+    OTServerID m_NotaryID;
     // Actual NotaryID within the signed portion. (Compare to m_NotaryID upon
     // loading.)
-    OTIdentifier m_AcctNotaryID;
+    OTServerID m_AcctNotaryID;
 
     // Update: instead of in the child classes, like OTLedger, OTTransaction,
     // Item, etc, I put the "purported acct ID" and "purported server ID" here
@@ -634,7 +641,7 @@ protected:
     // might be the only reference someone has. They'll want my NymID.)
     // I put this in protected because there are now Get/Set methods...so use
     // them!
-    OTIdentifier m_AcctNymID;
+    OTNymID m_AcctNymID;
     // The server issues this and it must be sent with transaction request.
     TransactionNumber m_lTransactionNum{0};
     TransactionNumber m_lInReferenceToTransaction{0};
@@ -699,15 +706,15 @@ protected:
     // both the Account ID and the NotaryID.
     explicit OTTransactionType(
         const api::Core& core,
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         originType theOriginType = originType::not_applicable);
     explicit OTTransactionType(
         const api::Core& core,
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable);
     explicit OTTransactionType(const api::Core& core);
