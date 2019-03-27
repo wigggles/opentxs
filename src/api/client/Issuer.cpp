@@ -29,7 +29,7 @@ namespace opentxs
 {
 api::client::Issuer* Factory::Issuer(
     const api::Wallet& wallet,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::Issuer& serialized)
 {
     return new api::client::implementation::Issuer(wallet, nymID, serialized);
@@ -37,8 +37,8 @@ api::client::Issuer* Factory::Issuer(
 
 api::client::Issuer* Factory::Issuer(
     const api::Wallet& wallet,
-    const Identifier& nymID,
-    const Identifier& issuerID)
+    const identifier::Nym& nymID,
+    const identifier::Nym& issuerID)
 {
     return new api::client::implementation::Issuer(wallet, nymID, issuerID);
 }
@@ -48,14 +48,14 @@ namespace opentxs::api::client::implementation
 {
 Issuer::Issuer(
     const api::Wallet& wallet,
-    const Identifier& nymID,
-    const Identifier& issuerID)
+    const identifier::Nym& nymID,
+    const identifier::Nym& issuerID)
     : wallet_(wallet)
     , version_(CURRENT_VERSION)
     , pairing_code_("")
     , paired_(Flag::Factory(false))
-    , nym_id_(Identifier::Factory(nymID))
-    , issuer_id_(Identifier::Factory(issuerID))
+    , nym_id_(nymID)
+    , issuer_id_(issuerID)
     , account_map_()
     , peer_requests_()
 {
@@ -63,14 +63,14 @@ Issuer::Issuer(
 
 Issuer::Issuer(
     const api::Wallet& wallet,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::Issuer& serialized)
     : wallet_(wallet)
     , version_(serialized.version())
     , pairing_code_(serialized.pairingcode())
     , paired_(Flag::Factory(serialized.paired()))
-    , nym_id_(Identifier::Factory(nymID))
-    , issuer_id_(Identifier::Factory(serialized.id()))
+    , nym_id_(nymID)
+    , issuer_id_(identifier::Nym::Factory(serialized.id()))
     , account_map_()
     , peer_requests_()
 {
@@ -81,7 +81,8 @@ Issuer::Issuer(
         const auto& unitID = it.unitdefinitionid();
         const auto& accountID = it.accountid();
         account_map_[type].emplace(
-            Identifier::Factory(unitID), Identifier::Factory(accountID));
+            identifier::UnitDefinition::Factory(unitID),
+            Identifier::Factory(accountID));
     }
 
     for (const auto& history : serialized.peerrequests()) {
@@ -149,7 +150,8 @@ Issuer::operator std::string() const
 
             const auto& notUsed [[maybe_unused]] = id;
             const auto& claim = *pClaim;
-            const auto unitID = Identifier::Factory(claim.Value());
+            const auto unitID =
+                identifier::UnitDefinition::Factory(claim.Value());
             output << " * "
                    << proto::TranslateItemType(
                           static_cast<std::uint32_t>(claim.Type()))
@@ -159,7 +161,7 @@ Issuer::operator std::string() const
             if (account_map_.end() == accountSet) { continue; }
 
             for (const auto& [unit, accountID] : accountSet->second) {
-                if (unit == unitID) {
+                if (unit->str() == unitID->str()) {  // TODO ambiguous overload
                     output << "  * Account ID: " << accountID->str() << "\n";
                 }
             }
@@ -220,7 +222,7 @@ Issuer::operator std::string() const
 
 std::set<OTIdentifier> Issuer::AccountList(
     const proto::ContactItemType type,
-    const Identifier& unitID) const
+    const identifier::UnitDefinition& unitID) const
 {
     Lock lock(lock_);
     std::set<OTIdentifier> output;
@@ -238,7 +240,7 @@ std::set<OTIdentifier> Issuer::AccountList(
 
 void Issuer::AddAccount(
     const proto::ContactItemType type,
-    const Identifier& unitID,
+    const identifier::UnitDefinition& unitID,
     const Identifier& accountID)
 {
     Lock lock(lock_);
@@ -304,7 +306,7 @@ bool Issuer::AddRequest(
     return add_request(lock, type, requestID, replyID);
 }
 
-bool Issuer::BailmentInitiated(const Identifier& unitID) const
+bool Issuer::BailmentInitiated(const identifier::UnitDefinition& unitID) const
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(
         ": Searching for initiated bailment requests for unit ")(unitID)
@@ -347,7 +349,7 @@ bool Issuer::BailmentInitiated(const Identifier& unitID) const
 }
 
 std::vector<Issuer::BailmentDetails> Issuer::BailmentInstructions(
-    const Identifier& unitID,
+    const identifier::UnitDefinition& unitID,
     const bool onlyUnused) const
 {
     Lock lock(lock_);
@@ -550,38 +552,32 @@ std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> Issuer::get_requests(
     return output;
 }
 
-const Identifier& Issuer::IssuerID() const { return issuer_id_; }
-
-const Identifier& Issuer::LocalNymID() const { return nym_id_; }
-
 bool Issuer::Paired() const { return paired_.get(); }
 
 const std::string& Issuer::PairingCode() const { return pairing_code_; }
 
-OTIdentifier Issuer::PrimaryServer() const
+OTServerID Issuer::PrimaryServer() const
 {
     Lock lock(lock_);
 
     auto nym = wallet_.Nym(issuer_id_);
 
-    if (false == bool(nym)) { return Identifier::Factory(); }
+    if (false == bool(nym)) { return identifier::Server::Factory(); }
 
     return nym->Claims().PreferredOTServer();
 }
 
 bool Issuer::RemoveAccount(
     const proto::ContactItemType type,
-    const Identifier& unitID,
+    const identifier::UnitDefinition& unitID,
     const Identifier& accountID)
 {
     Lock lock(lock_);
     auto accountSet = account_map_.find(type);
 
     if (account_map_.end() == accountSet) { return false; }
-    const auto unitId = Identifier::Factory(unitID);
-    const auto accountId = Identifier::Factory(accountID);
     auto& accounts = accountSet->second;
-    auto it = accounts.find({unitId, accountId});
+    auto it = accounts.find({unitID, accountID});
 
     if (accounts.end() == it) { return false; }
 

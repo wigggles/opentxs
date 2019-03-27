@@ -6,8 +6,10 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/otx/Request.hpp"
@@ -26,7 +28,7 @@ namespace opentxs::otx
 {
 OTXRequest Request::Factory(
     const std::shared_ptr<const opentxs::Nym> signer,
-    const Identifier& server,
+    const identifier::Server& server,
     const proto::ServerRequestType type)
 {
     OT_ASSERT(signer);
@@ -57,8 +59,8 @@ namespace opentxs::otx::implementation
 {
 Request::Request(
     const std::shared_ptr<const opentxs::Nym> signer,
-    const Identifier& initiator,
-    const Identifier& server,
+    const identifier::Nym& initiator,
+    const identifier::Server& server,
     const proto::ServerRequestType type)
     : Signable(signer, OTX_REQUEST_CREATE_VERSION, "")
     , initiator_(initiator)
@@ -71,13 +73,13 @@ Request::Request(
 
 Request::Request(const api::Core& api, const proto::ServerRequest serialized)
     : Signable(extract_nym(api, serialized), serialized.version(), "")
-    , initiator_((nym_) ? nym_->ID() : Identifier::Factory().get())
-    , server_(Identifier::Factory(serialized.server()))
+    , initiator_((nym_) ? nym_->ID() : api.Factory().NymID().get())
+    , server_(api.Factory().ServerID(serialized.server()))
     , type_(serialized.type())
     , number_(serialized.request())
     , include_nym_(Flag::Factory(false))
 {
-    id_ = Identifier::Factory(serialized.id());
+    id_ = api.Factory().Identifier(serialized.id());
     signatures_.push_front(SerializedSignature(
         std::make_shared<proto::Signature>(serialized.signature())));
 }
@@ -110,7 +112,7 @@ std::shared_ptr<const opentxs::Nym> Request::extract_nym(
         return api.Wallet().Nym(serialized.credentials());
     } else if (false == serialized.nym().empty()) {
 
-        return api.Wallet().Nym(Identifier::Factory(serialized.nym()));
+        return api.Wallet().Nym(api.Factory().NymID(serialized.nym()));
     }
 
     return nullptr;

@@ -212,6 +212,7 @@ class ProfileSubsectionBlank;
 using CustomData = std::vector<const void*>;
 
 // Account activity
+using AccountActivityPrimaryID = OTNymID;
 using AccountActivityExternalInterface = ui::AccountActivity;
 using AccountActivityInternalInterface = ui::internal::AccountActivity;
 /** WorkflowID, state */
@@ -222,6 +223,7 @@ using AccountActivityRowBlank = BalanceItemBlank;
 using AccountActivitySortKey = std::chrono::system_clock::time_point;
 
 // Account list
+using AccountListPrimaryID = OTNymID;
 using AccountListExternalInterface = ui::AccountList;
 using AccountListInternalInterface = ui::internal::AccountList;
 using AccountListRowID = OTIdentifier;
@@ -232,14 +234,16 @@ using AccountListRowBlank = AccountListItemBlank;
 using AccountListSortKey = std::pair<proto::ContactItemType, std::string>;
 
 // Account summary
+using AccountSummaryPrimaryID = OTNymID;
 using AccountSummaryExternalInterface = ui::AccountSummary;
 using AccountSummaryInternalInterface = ui::internal::AccountSummary;
-using AccountSummaryRowID = OTIdentifier;
+using AccountSummaryRowID = OTNymID;
 using AccountSummaryRowInterface = ui::IssuerItem;
 using AccountSummaryRowInternal = ui::internal::IssuerItem;
 using AccountSummaryRowBlank = IssuerItemBlank;
 using AccountSummarySortKey = std::pair<bool, std::string>;
 
+using IssuerItemPrimaryID = OTNymID;
 using IssuerItemExternalInterface = AccountSummaryRowInterface;
 using IssuerItemInternalInterface = ui::internal::IssuerItem;
 using IssuerItemRowID = std::pair<OTIdentifier, proto::ContactItemType>;
@@ -249,6 +253,7 @@ using IssuerItemRowBlank = AccountSummaryItemBlank;
 using IssuerItemSortKey = std::string;
 
 // Activity summary
+using ActivitySummaryPrimaryID = OTNymID;
 using ActivitySummaryExternalInterface = ui::ActivitySummary;
 using ActivitySummaryInternalInterface = ui::internal::ActivitySummary;
 using ActivitySummaryRowID = OTIdentifier;
@@ -259,6 +264,7 @@ using ActivitySummarySortKey =
     std::pair<std::chrono::system_clock::time_point, std::string>;
 
 // Activity thread
+using ActivityThreadPrimaryID = OTNymID;
 using ActivityThreadExternalInterface = ui::ActivityThread;
 using ActivityThreadInternalInterface = ui::internal::ActivityThread;
 /** item id, box, accountID, taskID */
@@ -271,6 +277,7 @@ using ActivityThreadSortKey =
     std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
 
 // Contact
+using ContactPrimaryID = OTIdentifier;
 using ContactExternalInterface = ui::Contact;
 using ContactInternalInterface = ui::internal::Contact;
 using ContactRowID = proto::ContactSectionName;
@@ -279,6 +286,7 @@ using ContactRowInternal = ui::internal::ContactSection;
 using ContactRowBlank = ContactSectionBlank;
 using ContactSortKey = int;
 
+using ContactSectionPrimaryID = ContactPrimaryID;
 using ContactSectionExternalInterface = ContactRowInterface;
 using ContactSectionInternalInterface = ui::internal::ContactSection;
 using ContactSectionRowID =
@@ -288,6 +296,7 @@ using ContactSectionRowInternal = ui::internal::ContactSubsection;
 using ContactSectionRowBlank = ContactSubsectionBlank;
 using ContactSectionSortKey = int;
 
+using ContactSubsectionPrimaryID = ContactSectionPrimaryID;
 using ContactSubsectionExternalInterface = ContactSectionRowInterface;
 using ContactSubsectionInternalInterface = ui::internal::ContactSubsection;
 using ContactSubsectionRowID = OTIdentifier;
@@ -297,6 +306,7 @@ using ContactSubsectionRowBlank = ContactItemBlank;
 using ContactSubsectionSortKey = int;
 
 // Contact list
+using ContactListPrimaryID = OTNymID;
 using ContactListExternalInterface = ui::ContactList;
 using ContactListInternalInterface = ui::internal::ContactList;
 using ContactListRowID = OTIdentifier;
@@ -306,6 +316,7 @@ using ContactListRowBlank = ContactListItemBlank;
 using ContactListSortKey = std::string;
 
 // Messagable list
+using MessagableListPrimaryID = OTNymID;
 using MessagableExternalInterface = ui::MessagableList;
 using MessagableInternalInterface = ContactListInternalInterface;
 using MessagableListRowID = ContactListRowID;
@@ -315,6 +326,7 @@ using MessagableListRowBlank = ContactListRowBlank;
 using MessagableListSortKey = std::string;
 
 // Payable list
+using PayablePrimaryID = OTNymID;
 using PayableExternalInterface = ui::PayableList;
 using PayableInternalInterface = ContactListInternalInterface;
 using PayableListRowID = ContactListRowID;
@@ -324,6 +336,7 @@ using PayableListRowBlank = PayableListItemBlank;
 using PayableListSortKey = std::string;
 
 // Profile
+using ProfilePrimaryID = OTNymID;
 using ProfileExternalInterface = ui::Profile;
 using ProfileInternalInterface = ui::internal::Profile;
 using ProfileRowID = proto::ContactSectionName;
@@ -332,6 +345,7 @@ using ProfileRowInternal = ui::internal::ProfileSection;
 using ProfileRowBlank = ProfileSectionBlank;
 using ProfileSortKey = int;
 
+using ProfileSectionPrimaryID = ProfilePrimaryID;
 using ProfileSectionExternalInterface = ProfileRowInterface;
 using ProfileSectionInternalInterface = ui::internal::ProfileSection;
 using ProfileSectionRowID =
@@ -341,6 +355,7 @@ using ProfileSectionRowInternal = ui::internal::ProfileSubsection;
 using ProfileSectionRowBlank = ProfileSubsectionBlank;
 using ProfileSectionSortKey = int;
 
+using ProfileSubsectionPrimaryID = ProfileSectionPrimaryID;
 using ProfileSubsectionExternalInterface = ProfileSectionRowInterface;
 using ProfileSubsectionInternalInterface = ui::internal::ProfileSubsection;
 using ProfileSubsectionRowID = OTIdentifier;

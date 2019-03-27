@@ -67,7 +67,8 @@ using ActivityThreadList = List<
     ActivityThreadRowInterface,
     ActivityThreadRowInternal,
     ActivityThreadRowBlank,
-    ActivityThreadSortKey>;
+    ActivityThreadSortKey,
+    ActivityThreadPrimaryID>;
 
 class ActivityThread final : public ActivityThreadList
 {
@@ -130,7 +131,7 @@ private:
     ActivityThread(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& threadID);
 
     ActivityThread() = delete;

@@ -19,7 +19,7 @@ public:
     Test_NymData()
         : client_(opentxs::OT::App().StartClient({}, 0))
         , nymData_(client_.Wallet().mutable_Nym(
-              opentxs::Identifier::Factory(client_.Exec().CreateNymHD(
+              opentxs::identifier::Nym::Factory(client_.Exec().CreateNymHD(
                   opentxs::proto::CITEMTYPE_INDIVIDUAL,
                   "testNym",
                   "",
@@ -73,17 +73,17 @@ TEST_F(Test_NymData, AddClaim)
         std::set<std::uint32_t>{opentxs::proto::CITEMATTR_ACTIVE});
 
     auto added = nymData_.AddClaim(claim);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 }
 
 TEST_F(Test_NymData, AddContract)
 {
     auto added =
         nymData_.AddContract("", opentxs::proto::CITEMTYPE_USD, false, false);
-    ASSERT_FALSE(added);
+    EXPECT_FALSE(added);
 
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const auto identifier1(opentxs::identifier::UnitDefinition::Factory(
+        opentxs::ContactCredential::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -93,23 +93,23 @@ TEST_F(Test_NymData, AddContract)
 
     added = nymData_.AddContract(
         identifier1->str(), opentxs::proto::CITEMTYPE_USD, false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 }
 
 TEST_F(Test_NymData, AddEmail)
 {
     auto added = nymData_.AddEmail("email1", false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddEmail("", false, false);
-    ASSERT_FALSE(added);
+    EXPECT_FALSE(added);
 }
 
 TEST_F(Test_NymData, asPublicNym)
 {
     auto credentialIndex = nymData_.asPublicNym();
 
-    ASSERT_TRUE(credentialIndex.IsInitialized());
+    EXPECT_TRUE(credentialIndex.IsInitialized());
 }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -117,27 +117,27 @@ TEST_F(Test_NymData, AddPaymentCode)
 {
     auto added = nymData_.AddPaymentCode(
         "", opentxs::proto::CITEMTYPE_USD, false, false);
-    ASSERT_FALSE(added);
+    EXPECT_FALSE(added);
 
     added = nymData_.AddPaymentCode(
         paymentCode, opentxs::proto::CITEMTYPE_USD, false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 }
 #endif
 
 TEST_F(Test_NymData, AddPhoneNumber)
 {
     auto added = nymData_.AddPhoneNumber("phone1", false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddPhoneNumber("", false, false);
-    ASSERT_FALSE(added);
+    EXPECT_FALSE(added);
 }
 
 TEST_F(Test_NymData, AddPreferredOTServer)
 {
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const auto identifier(opentxs::identifier::Server::Factory(
+        opentxs::ContactCredential::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -146,63 +146,63 @@ TEST_F(Test_NymData, AddPreferredOTServer)
             "localhost")));
 
     auto added = nymData_.AddPreferredOTServer(identifier->str(), false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddPreferredOTServer("", false);
-    ASSERT_FALSE(added);
+    EXPECT_FALSE(added);
 }
 
 TEST_F(Test_NymData, AddSocialMediaProfile)
 {
     auto added = nymData_.AddSocialMediaProfile(
         "profile1", opentxs::proto::CITEMTYPE_TWITTER, false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddSocialMediaProfile(
         "", opentxs::proto::CITEMTYPE_TWITTER, false, false);
-    ASSERT_FALSE(added);
+    EXPECT_FALSE(added);
 }
 
 TEST_F(Test_NymData, BestEmail)
 {
     auto added = nymData_.AddEmail("email1", false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddEmail("email2", false, true);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     std::string email = nymData_.BestEmail();
     // First email added is made primary.
-    ASSERT_STREQ("email1", email.c_str());
+    EXPECT_STREQ("email1", email.c_str());
 }
 
 TEST_F(Test_NymData, BestPhoneNumber)
 {
     auto added = nymData_.AddPhoneNumber("phone1", false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddPhoneNumber("phone2", false, true);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     std::string phone = nymData_.BestPhoneNumber();
     // First phone number added is made primary.
-    ASSERT_STREQ("phone1", phone.c_str());
+    EXPECT_STREQ("phone1", phone.c_str());
 }
 
 TEST_F(Test_NymData, BestSocialMediaProfile)
 {
     auto added = nymData_.AddSocialMediaProfile(
         "profile1", opentxs::proto::CITEMTYPE_YAHOO, false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddSocialMediaProfile(
         "profile2", opentxs::proto::CITEMTYPE_YAHOO, false, true);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     std::string profile =
         nymData_.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_YAHOO);
     // First profile added is made primary.
-    ASSERT_STREQ("profile1", profile.c_str());
+    EXPECT_STREQ("profile1", profile.c_str());
 }
 
 TEST_F(Test_NymData, Claims)
@@ -210,8 +210,8 @@ TEST_F(Test_NymData, Claims)
     auto contactData = nymData_.Claims();
 
     std::string output = contactData;
-    ASSERT_TRUE(!output.empty());
-    ASSERT_STREQ(expectedStringOutput.c_str(), output.c_str());
+    EXPECT_TRUE(!output.empty());
+    EXPECT_STREQ(expectedStringOutput.c_str(), output.c_str());
 }
 
 TEST_F(Test_NymData, DeleteClaim)
@@ -228,8 +228,8 @@ TEST_F(Test_NymData, DeleteClaim)
     auto added = nymData_.AddClaim(claim);
     ASSERT_TRUE(added);
 
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const auto identifier(opentxs::identifier::UnitDefinition::Factory(
+        opentxs::ContactCredential::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -237,38 +237,38 @@ TEST_F(Test_NymData, DeleteClaim)
             NULL_END,
             "claimValue")));
     auto deleted = nymData_.DeleteClaim(identifier);
-    ASSERT_TRUE(deleted);
+    EXPECT_TRUE(deleted);
 }
 
 TEST_F(Test_NymData, EmailAddresses)
 {
     auto added = nymData_.AddEmail("email1", false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddEmail("email2", false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddEmail("email3", true, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     auto emails = nymData_.EmailAddresses(false);
-    ASSERT_TRUE(
+    EXPECT_TRUE(
         emails.find("email1") != std::string::npos &&
         emails.find("email2") != std::string::npos &&
         emails.find("email3") != std::string::npos);
 
     emails = nymData_.EmailAddresses();
     // First email added is made primary and active.
-    ASSERT_TRUE(
+    EXPECT_TRUE(
         emails.find("email1") != std::string::npos &&
         emails.find("email3") != std::string::npos);
-    ASSERT_TRUE(emails.find("email2") == std::string::npos);
+    EXPECT_TRUE(emails.find("email2") == std::string::npos);
 }
 
 TEST_F(Test_NymData, HaveContract)
 {
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const auto identifier1(opentxs::identifier::UnitDefinition::Factory(
+        opentxs::ContactCredential::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -282,22 +282,22 @@ TEST_F(Test_NymData, HaveContract)
 
     auto haveContract = nymData_.HaveContract(
         identifier1, opentxs::proto::CITEMTYPE_USD, true, true);
-    ASSERT_TRUE(haveContract);
+    EXPECT_TRUE(haveContract);
 
     haveContract = nymData_.HaveContract(
         identifier1, opentxs::proto::CITEMTYPE_USD, true, false);
-    ASSERT_TRUE(haveContract);
+    EXPECT_TRUE(haveContract);
 
     haveContract = nymData_.HaveContract(
         identifier1, opentxs::proto::CITEMTYPE_USD, false, true);
-    ASSERT_TRUE(haveContract);
+    EXPECT_TRUE(haveContract);
 
     haveContract = nymData_.HaveContract(
         identifier1, opentxs::proto::CITEMTYPE_USD, false, false);
-    ASSERT_TRUE(haveContract);
+    EXPECT_TRUE(haveContract);
 
-    const opentxs::OTIdentifier identifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const auto identifier2(opentxs::identifier::UnitDefinition::Factory(
+        opentxs::ContactCredential::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -311,26 +311,26 @@ TEST_F(Test_NymData, HaveContract)
 
     haveContract = nymData_.HaveContract(
         identifier2, opentxs::proto::CITEMTYPE_USD, false, false);
-    ASSERT_TRUE(haveContract);
+    EXPECT_TRUE(haveContract);
 
     haveContract = nymData_.HaveContract(
         identifier2, opentxs::proto::CITEMTYPE_USD, true, false);
-    ASSERT_FALSE(haveContract);
+    EXPECT_FALSE(haveContract);
 
     haveContract = nymData_.HaveContract(
         identifier2, opentxs::proto::CITEMTYPE_USD, false, true);
-    ASSERT_FALSE(haveContract);
+    EXPECT_FALSE(haveContract);
 
     haveContract = nymData_.HaveContract(
         identifier2, opentxs::proto::CITEMTYPE_USD, true, true);
-    ASSERT_FALSE(haveContract);
+    EXPECT_FALSE(haveContract);
 }
 
-TEST_F(Test_NymData, Name) { ASSERT_STREQ("testNym", nymData_.Name().c_str()); }
+TEST_F(Test_NymData, Name) { EXPECT_STREQ("testNym", nymData_.Name().c_str()); }
 
 TEST_F(Test_NymData, Nym)
 {
-    ASSERT_STREQ("testNym", nymData_.Nym().Name().c_str());
+    EXPECT_STREQ("testNym", nymData_.Nym().Name().c_str());
 }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -341,11 +341,11 @@ TEST_F(Test_NymData, PaymentCode)
     ASSERT_TRUE(added);
 
     auto paymentcode = nymData_.PaymentCode(opentxs::proto::CITEMTYPE_BTC);
-    ASSERT_TRUE(!paymentcode.empty());
-    ASSERT_STREQ(paymentCode.c_str(), paymentcode.c_str());
+    EXPECT_TRUE(!paymentcode.empty());
+    EXPECT_STREQ(paymentCode.c_str(), paymentcode.c_str());
 
     paymentcode = nymData_.PaymentCode(opentxs::proto::CITEMTYPE_USD);
-    ASSERT_TRUE(paymentcode.empty());
+    EXPECT_TRUE(paymentcode.empty());
 }
 #endif
 
@@ -361,26 +361,26 @@ TEST_F(Test_NymData, PhoneNumbers)
     ASSERT_TRUE(added);
 
     auto phones = nymData_.PhoneNumbers(false);
-    ASSERT_TRUE(
+    EXPECT_TRUE(
         phones.find("phone1") != std::string::npos &&
         phones.find("phone2") != std::string::npos &&
         phones.find("phone3") != std::string::npos);
 
     phones = nymData_.PhoneNumbers();
     // First phone number added is made primary and active.
-    ASSERT_TRUE(
+    EXPECT_TRUE(
         phones.find("phone1") != std::string::npos &&
         phones.find("phone3") != std::string::npos);
-    ASSERT_TRUE(phones.find("phone2") == std::string::npos);
+    EXPECT_TRUE(phones.find("phone2") == std::string::npos);
 }
 
 TEST_F(Test_NymData, PreferredOTServer)
 {
     auto preferred = nymData_.PreferredOTServer();
-    ASSERT_TRUE(preferred.empty());
+    EXPECT_TRUE(preferred.empty());
 
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const auto identifier(opentxs::identifier::Server::Factory(
+        opentxs::ContactCredential::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -388,17 +388,17 @@ TEST_F(Test_NymData, PreferredOTServer)
             NULL_END,
             "localhost")));
     auto added = nymData_.AddPreferredOTServer(identifier->str(), true);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     preferred = nymData_.PreferredOTServer();
-    ASSERT_TRUE(!preferred.empty());
-    ASSERT_STREQ(identifier->str().c_str(), preferred.c_str());
+    EXPECT_TRUE(!preferred.empty());
+    EXPECT_STREQ(identifier->str().c_str(), preferred.c_str());
 }
 
 TEST_F(Test_NymData, PrintContactData)
 {
     const auto& dataString = nymData_.PrintContactData();
-    ASSERT_STREQ(expectedStringOutput.c_str(), dataString.c_str());
+    EXPECT_STREQ(expectedStringOutput.c_str(), dataString.c_str());
 }
 
 TEST_F(Test_NymData, SetContactData)
@@ -411,18 +411,18 @@ TEST_F(Test_NymData, SetContactData)
 
     auto data = contactData.Serialize(true);
     auto set = nymData_.SetContactData(data);
-    ASSERT_TRUE(set);
+    EXPECT_TRUE(set);
 }
 
 TEST_F(Test_NymData, SetScope)
 {
     auto set = nymData_.SetScope(
         opentxs::proto::CITEMTYPE_ORGANIZATION, "organizationScope", true);
-    ASSERT_TRUE(set);
+    EXPECT_TRUE(set);
 
     set = nymData_.SetScope(
         opentxs::proto::CITEMTYPE_BUSINESS, "businessScope", false);
-    ASSERT_TRUE(set);
+    EXPECT_TRUE(set);
 }
 
 TEST_F(Test_NymData, SetVerificationSet)
@@ -431,36 +431,36 @@ TEST_F(Test_NymData, SetVerificationSet)
     // verification classes.
     opentxs::proto::VerificationSet verificationSet;
     auto added = nymData_.SetVerificationSet(verificationSet);
-    ASSERT_FALSE(added);
+    EXPECT_FALSE(added);
 }
 
 TEST_F(Test_NymData, SocialMediaProfiles)
 {
     auto added = nymData_.AddSocialMediaProfile(
         "profile1", opentxs::proto::CITEMTYPE_FACEBOOK, false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddSocialMediaProfile(
         "profile2", opentxs::proto::CITEMTYPE_FACEBOOK, false, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = nymData_.AddSocialMediaProfile(
         "profile3", opentxs::proto::CITEMTYPE_FACEBOOK, true, false);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     auto profiles =
         nymData_.SocialMediaProfiles(opentxs::proto::CITEMTYPE_FACEBOOK, false);
-    ASSERT_TRUE(
+    EXPECT_TRUE(
         profiles.find("profile1") != std::string::npos &&
         profiles.find("profile2") != std::string::npos &&
         profiles.find("profile3") != std::string::npos);
 
     profiles = nymData_.SocialMediaProfiles(opentxs::proto::CITEMTYPE_FACEBOOK);
     // First profile added is made primary and active.
-    ASSERT_TRUE(
+    EXPECT_TRUE(
         profiles.find("profile1") != std::string::npos &&
         profiles.find("profile3") != std::string::npos);
-    ASSERT_TRUE(profiles.find("profile2") == std::string::npos);
+    EXPECT_TRUE(profiles.find("profile2") == std::string::npos);
 }
 
 TEST_F(Test_NymData, SocialMediaProfileTypes)
@@ -471,15 +471,15 @@ TEST_F(Test_NymData, SocialMediaProfileTypes)
                 CONTACT_CONTACT_DATA_VERSION,
                 opentxs::proto::CONTACTSECTION_PROFILE));
 
-    ASSERT_EQ(profileTypes, nymData_.SocialMediaProfileTypes());
+    EXPECT_EQ(profileTypes, nymData_.SocialMediaProfileTypes());
 }
 
 TEST_F(Test_NymData, Type)
 {
-    ASSERT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, nymData_.Type());
+    EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, nymData_.Type());
 }
 
-TEST_F(Test_NymData, Valid) { ASSERT_TRUE(nymData_.Valid()); }
+TEST_F(Test_NymData, Valid) { EXPECT_TRUE(nymData_.Valid()); }
 
 TEST_F(Test_NymData, VerificationSet)
 {
@@ -487,5 +487,5 @@ TEST_F(Test_NymData, VerificationSet)
     // verification classes.
     std::unique_ptr<opentxs::proto::VerificationSet> verificationSet =
         nymData_.VerificationSet();
-    ASSERT_TRUE(nullptr == verificationSet);
+    EXPECT_TRUE(nullptr == verificationSet);
 }

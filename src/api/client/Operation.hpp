@@ -13,7 +13,7 @@ class Operation final : virtual public client::internal::Operation
 {
 public:
     const identifier::Nym& NymID() const override { return nym_id_; }
-    const Identifier& ServerID() const override { return server_id_; }
+    const identifier::Server& ServerID() const override { return server_id_; }
 
     bool AddClaim(
         const proto::ContactSectionName section,
@@ -116,7 +116,7 @@ private:
 
     const api::client::Manager& api_;
     const OTNymID nym_id_;
-    const OTIdentifier server_id_;
+    const OTServerID server_id_;
     std::mutex shutdown_lock_;
     std::atomic<bool> running_;
     std::atomic<Type> type_;
@@ -267,7 +267,7 @@ private:
     Operation(
         const api::client::Manager& api,
         const identifier::Nym& nym,
-        const Identifier& server);
+        const identifier::Server& server);
     Operation() = delete;
     Operation(const Operation&) = delete;
     Operation(Operation&&) = delete;

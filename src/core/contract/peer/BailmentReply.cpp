@@ -25,9 +25,9 @@ BailmentReply::BailmentReply(
 BailmentReply::BailmentReply(
     const api::Wallet& wallet,
     const ConstNym& nym,
-    const Identifier& initiator,
+    const identifier::Nym& initiator,
     const Identifier& request,
-    const Identifier& server,
+    const identifier::Server& server,
     const std::string& terms)
     : ot_super(
           wallet,

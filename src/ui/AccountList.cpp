@@ -14,6 +14,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -109,7 +110,7 @@ void AccountList::process_account(
     const auto contract = api_.Storage().AccountContract(id);
     CustomData custom{};
     custom.emplace_back(new Amount{balance});
-    custom.emplace_back(new OTIdentifier{contract});
+    custom.emplace_back(new OTUnitID{contract});
     custom.emplace_back(new std::string{name});
     add_item(id, index, custom);
 }
@@ -141,7 +142,7 @@ void AccountList::process_account(const network::zeromq::Message& message)
 
 void AccountList::startup()
 {
-    const auto accounts = api_.Storage().AccountsByOwner(nym_id_);
+    const auto accounts = api_.Storage().AccountsByOwner(primary_id_);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(accounts.size())(
         " accounts.")
         .Flush();

@@ -7,6 +7,8 @@
 
 #include "opentxs/core/trade/OTOffer.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -37,7 +39,7 @@ namespace opentxs
 OTOffer::OTOffer(const api::Core& core)
     : Instrument(core)
     , m_pTrade(nullptr)
-    , m_CURRENCY_TYPE_ID(Identifier::Factory())
+    , m_CURRENCY_TYPE_ID(api_.Factory().Identifier())
     , m_bSelling(false)
     , m_lPriceLimit(0)
     , m_lTransactionNum(0)
@@ -52,13 +54,13 @@ OTOffer::OTOffer(const api::Core& core)
 
 OTOffer::OTOffer(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& CURRENCY_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+    const identifier::UnitDefinition& CURRENCY_ID,
     const std::int64_t& lScale)
     : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_pTrade(nullptr)
-    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_ID))
+    , m_CURRENCY_TYPE_ID(CURRENCY_ID)
     , m_bSelling(false)
     , m_lPriceLimit(0)
     , m_lTransactionNum(0)
@@ -187,10 +189,10 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                    strCurrencyTypeID = String::Factory(
                        xml->getAttributeValue("currencyTypeID"));
 
-        const auto NOTARY_ID = Identifier::Factory(strNotaryID),
-                   INSTRUMENT_DEFINITION_ID =
-                       Identifier::Factory(strInstrumentDefinitionID),
-                   CURRENCY_TYPE_ID = Identifier::Factory(strCurrencyTypeID);
+        const auto NOTARY_ID = api_.Factory().ServerID(strNotaryID);
+        const auto INSTRUMENT_DEFINITION_ID =
+                       api_.Factory().UnitID(strInstrumentDefinitionID),
+                   CURRENCY_TYPE_ID = api_.Factory().UnitID(strCurrencyTypeID);
 
         SetNotaryID(NOTARY_ID);
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);

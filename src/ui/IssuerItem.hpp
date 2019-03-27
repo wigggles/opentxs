@@ -16,7 +16,8 @@ using IssuerItemList = List<
     IssuerItemRowInterface,
     IssuerItemRowInternal,
     IssuerItemRowBlank,
-    IssuerItemSortKey>;
+    IssuerItemSortKey,
+    IssuerItemPrimaryID>;
 using IssuerItemRow = RowType<
     AccountSummaryRowInternal,
     AccountSummaryInternalInterface,

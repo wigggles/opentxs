@@ -16,7 +16,8 @@ using AccountActivityList = List<
     AccountActivityRowInterface,
     AccountActivityRowInternal,
     AccountActivityRowBlank,
-    AccountActivitySortKey>;
+    AccountActivitySortKey,
+    AccountActivityPrimaryID>;
 
 /** Show the list of Workflows applicable to this account
 
@@ -68,7 +69,7 @@ private:
     AccountActivity(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& accountID);
     AccountActivity() = delete;
     AccountActivity(const AccountActivity&) = delete;

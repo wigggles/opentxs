@@ -109,9 +109,12 @@ public:
     // optionally returns the offer's market ID and a pointer to the market.
     OTOffer* GetOffer(Identifier& offerMarketId, OTMarket** market = nullptr);
 
-    inline const Identifier& GetCurrencyID() const { return currencyTypeID_; }
+    inline const identifier::UnitDefinition& GetCurrencyID() const
+    {
+        return currencyTypeID_;
+    }
 
-    inline void SetCurrencyID(const Identifier& currencyId)
+    inline void SetCurrencyID(const identifier::UnitDefinition& currencyId)
     {
         currencyTypeID_ = currencyId;
     }
@@ -178,7 +181,7 @@ private:
 
     typedef OTCronItem ot_super;
 
-    OTIdentifier currencyTypeID_;  // GOLD (Asset) is trading for DOLLARS
+    OTUnitID currencyTypeID_;      // GOLD (Asset) is trading for DOLLARS
                                    // (Currency).
     OTIdentifier currencyAcctID_;  // My Dollar account, used for paying for
                                    // my Gold (say) trades.
@@ -206,11 +209,11 @@ private:
     EXPORT OTTrade(const api::Core& core);
     EXPORT OTTrade(
         const api::Core& core,
-        const Identifier& notaryID,
-        const Identifier& instrumentDefinitionID,
+        const identifier::Server& notaryID,
+        const identifier::UnitDefinition& instrumentDefinitionID,
         const Identifier& assetAcctId,
-        const Identifier& nymID,
-        const Identifier& currencyId,
+        const identifier::Nym& nymID,
+        const identifier::UnitDefinition& currencyId,
         const Identifier& currencyAcctId);
 
     OTTrade() = delete;

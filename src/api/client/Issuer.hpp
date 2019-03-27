@@ -16,10 +16,11 @@ public:
 
     std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,
-        const Identifier& unitID) const override;
-    bool BailmentInitiated(const Identifier& unitID) const override;
+        const identifier::UnitDefinition& unitID) const override;
+    bool BailmentInitiated(
+        const identifier::UnitDefinition& unitID) const override;
     std::vector<BailmentDetails> BailmentInstructions(
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         const bool onlyUnused = true) const override;
     std::vector<ConnectionDetails> ConnectionInfo(
         const proto::ConnectionInfoType type) const override;
@@ -28,11 +29,11 @@ public:
     std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> GetRequests(
         const proto::PeerRequestType type,
         const RequestStatus state = RequestStatus::All) const override;
-    const Identifier& IssuerID() const override;
-    const Identifier& LocalNymID() const override;
+    const identifier::Nym& IssuerID() const override { return issuer_id_; }
+    const identifier::Nym& LocalNymID() const override { return nym_id_; }
     bool Paired() const override;
     const std::string& PairingCode() const override;
-    OTIdentifier PrimaryServer() const override;
+    OTServerID PrimaryServer() const override;
     std::set<proto::PeerRequestType> RequestTypes() const override;
     proto::Issuer Serialize() const override;
     bool StoreSecretComplete() const override;
@@ -40,7 +41,7 @@ public:
 
     void AddAccount(
         const proto::ContactItemType type,
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         const Identifier& accountID) override;
     bool AddReply(
         const proto::PeerRequestType type,
@@ -51,7 +52,7 @@ public:
         const Identifier& requestID) override;
     bool RemoveAccount(
         const proto::ContactItemType type,
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         const Identifier& accountID) override;
     void SetPaired(const bool paired) override;
     void SetPairingCode(const std::string& code) override;
@@ -65,15 +66,15 @@ public:
 private:
     typedef std::map<OTIdentifier, std::pair<OTIdentifier, bool>> Workflow;
     typedef std::map<proto::PeerRequestType, Workflow> WorkflowMap;
-    typedef std::pair<OTIdentifier, OTIdentifier> UnitAccountPair;
+    typedef std::pair<OTUnitID, OTIdentifier> UnitAccountPair;
 
     friend opentxs::Factory;
     const api::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string pairing_code_{""};
     mutable OTFlag paired_;
-    const OTIdentifier nym_id_;
-    const OTIdentifier issuer_id_;
+    const OTNymID nym_id_;
+    const OTNymID issuer_id_;
     std::map<proto::ContactItemType, std::set<UnitAccountPair>> account_map_;
     WorkflowMap peer_requests_;
 
@@ -94,12 +95,12 @@ private:
 
     Issuer(
         const api::Wallet& wallet,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const proto::Issuer& serialized);
     Issuer(
         const api::Wallet& wallet,
-        const Identifier& nymID,
-        const Identifier& issuerID);
+        const identifier::Nym& nymID,
+        const identifier::Nym& issuerID);
     Issuer() = delete;
     Issuer(const Issuer&) = delete;
     Issuer(Issuer&&) = delete;

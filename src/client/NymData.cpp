@@ -14,7 +14,8 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -72,7 +73,7 @@ bool NymData::AddContract(
     const bool primary,
     const bool active)
 {
-    auto id = Identifier::Factory(instrumentDefinitionID);
+    auto id = factory_.UnitID(instrumentDefinitionID);
 
     if (id->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -130,7 +131,7 @@ bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
         return false;
     }
 
-    return nym().AddPreferredOTServer(Identifier::Factory(id), primary);
+    return nym().AddPreferredOTServer(factory_.ServerID(id), primary);
 }
 
 bool NymData::AddSocialMediaProfile(
@@ -167,7 +168,7 @@ std::string NymData::EmailAddresses(bool active) const
 }
 
 bool NymData::HaveContract(
-    const Identifier& instrumentDefinitionID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const bool primary,
     const bool active) const
@@ -185,9 +186,12 @@ bool NymData::HaveContract(
 
         OT_ASSERT(claim);
 
-        const auto value = Identifier::Factory(claim->Value());
+        const auto value = factory_.UnitID(claim->Value());
 
-        if (false == (instrumentDefinitionID == value)) { continue; }
+        // TODO ambiguous overload
+        if (false == (instrumentDefinitionID.str() == value->str())) {
+            continue;
+        }
 
         if ((false == primary) || claim->isPrimary()) { return true; }
     }

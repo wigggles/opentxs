@@ -10,6 +10,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/Context.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -33,9 +34,9 @@ Context::Context(
     const std::uint32_t targetVersion,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const identifier::Server& server)
     : api_(api)
-    , server_id_(Identifier::Factory(server))
+    , server_id_(server)
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
@@ -53,9 +54,9 @@ Context::Context(
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server)
+    const identifier::Server& server)
     : api_(api)
-    , server_id_(Identifier::Factory(server))
+    , server_id_(server)
     , remote_nym_(remote)
     , available_transaction_numbers_()
     , issued_transaction_numbers_()
@@ -221,13 +222,9 @@ proto::Context Context::IDVersion(const Lock& lock) const
 
     switch (Type()) {
         case proto::CONSENSUSTYPE_SERVER: {
-            if (nym_) {
-                output.set_localnym(String::Factory(nym_->ID())->Get());
-            }
+            if (nym_) { output.set_localnym(nym_->ID().str()); }
 
-            if (remote_nym_) {
-                output.set_remotenym(String::Factory(remote_nym_->ID())->Get());
-            }
+            if (remote_nym_) { output.set_remotenym(remote_nym_->ID().str()); }
 
             output.set_localnymboxhash(
                 String::Factory(local_nymbox_hash_)->Get());
@@ -235,13 +232,9 @@ proto::Context Context::IDVersion(const Lock& lock) const
                 String::Factory(remote_nymbox_hash_)->Get());
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
-            if (nym_) {
-                output.set_remotenym(String::Factory(nym_->ID())->Get());
-            }
+            if (nym_) { output.set_remotenym(nym_->ID().str()); }
 
-            if (remote_nym_) {
-                output.set_localnym(String::Factory(remote_nym_->ID())->Get());
-            }
+            if (remote_nym_) { output.set_localnym(remote_nym_->ID().str()); }
 
             output.set_remotenymboxhash(
                 String::Factory(local_nymbox_hash_)->Get());
@@ -510,11 +503,9 @@ proto::Context Context::serialize(
     output.set_version(version_);
     output.set_type(type);
 
-    if (nym_) { output.set_localnym(String::Factory(nym_->ID())->Get()); }
+    if (nym_) { output.set_localnym(nym_->ID().str()); }
 
-    if (remote_nym_) {
-        output.set_remotenym(String::Factory(remote_nym_->ID())->Get());
-    }
+    if (remote_nym_) { output.set_remotenym(remote_nym_->ID().str()); }
 
     output.set_localnymboxhash(String::Factory(local_nymbox_hash_)->Get());
     output.set_remotenymboxhash(String::Factory(remote_nymbox_hash_)->Get());
@@ -543,8 +534,6 @@ proto::Context Context::Serialized() const
 
     return contract(lock);
 }
-
-const Identifier& Context::Server() const { return server_id_; }
 
 void Context::set_local_nymbox_hash(const Lock& lock, const Identifier& hash)
 {

@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -30,18 +32,18 @@ public:
     inline time64_t GetValidFrom() const { return m_VALID_FROM; }
     inline time64_t GetValidTo() const { return m_VALID_TO; }
 
-    inline const Identifier& GetInstrumentDefinitionID() const
+    inline const identifier::UnitDefinition& GetInstrumentDefinitionID() const
     {
         return m_InstrumentDefinitionID;
     }
-    inline const Identifier& GetNotaryID() const { return m_NotaryID; }
+    inline const identifier::Server& GetNotaryID() const { return m_NotaryID; }
     void InitInstrument();
 
     EXPORT virtual ~Instrument();
 
 protected:
-    OTIdentifier m_InstrumentDefinitionID;
-    OTIdentifier m_NotaryID;
+    OTUnitID m_InstrumentDefinitionID;
+    OTServerID m_NotaryID;
     // Expiration Date (valid from/to date)
     // The date, in seconds, when the instrument is valid FROM.
     time64_t m_VALID_FROM{0};
@@ -53,11 +55,11 @@ protected:
     inline void SetValidFrom(time64_t TIME_FROM) { m_VALID_FROM = TIME_FROM; }
     inline void SetValidTo(time64_t TIME_TO) { m_VALID_TO = TIME_TO; }
     inline void SetInstrumentDefinitionID(
-        const Identifier& INSTRUMENT_DEFINITION_ID)
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     {
         m_InstrumentDefinitionID = INSTRUMENT_DEFINITION_ID;
     }
-    inline void SetNotaryID(const Identifier& NOTARY_ID)
+    inline void SetNotaryID(const identifier::Server& NOTARY_ID)
     {
         m_NotaryID = NOTARY_ID;
     }
@@ -65,8 +67,8 @@ protected:
     Instrument(const api::Core& core);
     Instrument(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
 
 private:
     Instrument() = delete;

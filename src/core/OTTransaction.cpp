@@ -122,9 +122,9 @@ OTTransaction::OTTransaction(const api::Core& core, const Ledger& theOwner)
 // similar in Item
 OTTransaction::OTTransaction(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(
           core,
@@ -159,9 +159,9 @@ OTTransaction::OTTransaction(
 
 OTTransaction::OTTransaction(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     std::int64_t lTransactionNum,
     originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(
@@ -205,9 +205,9 @@ OTTransaction::OTTransaction(
 //
 OTTransaction::OTTransaction(
     const api::Core& core,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAccountID,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     const std::int64_t& lNumberOfOrigin,
     originType theOriginType,
     const std::int64_t& lTransactionNum,
@@ -871,7 +871,8 @@ bool OTTransaction::HarvestOpeningNumber(
                 // this assumption is merely for deciding which logic to use
                 // about which harvest functions to call.
                 //
-                if (nym->ID() == GetNymID())  // theNym is SENDER / PAYER
+                if (nym->ID().str() == GetNymID().str())  // TODO ambiguous
+                                                          // overload
                 {
                     // If the server reply message was unambiguously a FAIL,
                     // that means the opening number is STILL GOOD. (Because the
@@ -4064,9 +4065,9 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
              outboxHash = xml->getAttributeValue("outboxHash"),
              accountHash = xml->getAttributeValue("accountHash");
 
-        auto ACCOUNT_ID = Identifier::Factory(strAcctID),
-             NOTARY_ID = Identifier::Factory(strNotaryID),
-             NYM_ID = Identifier::Factory(strNymID);
+        const auto ACCOUNT_ID = Identifier::Factory(strAcctID);
+        const auto NOTARY_ID = api_.Factory().ServerID(strNotaryID);
+        const auto NYM_ID = api_.Factory().NymID(strNymID);
 
         SetPurportedAccountID(ACCOUNT_ID);  // GetPurportedAccountID() const {
                                             // return m_AcctID; }

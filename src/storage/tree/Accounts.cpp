@@ -25,15 +25,14 @@
 
 #define EXTRACT_SET_BY_ID(index, id)                                           \
     {                                                                          \
-        EXTRACT_SET_BY_VALUE(index, Identifier::Factory(id))                   \
+        EXTRACT_SET_BY_VALUE(index, id)                                        \
     }
 
 #define EXTRACT_FIELD(field)                                                   \
     {                                                                          \
         Lock lock(write_lock_);                                                \
                                                                                \
-        return std::get<field>(                                                \
-            get_account_data(lock, Identifier::Factory(id)));                  \
+        return std::get<field>(get_account_data(lock, id));                    \
     }
 
 #define SERIALIZE_INDEX(index, field)                                          \
@@ -57,10 +56,10 @@
         }                                                                      \
     }
 
-#define DESERIALIZE_INDEX(field, index, position)                              \
+#define DESERIALIZE_INDEX(field, index, position, factory)                     \
     {                                                                          \
         for (const auto& it : serialized->field()) {                           \
-            const auto id = Identifier::Factory(it.id());                      \
+            const auto id = factory(it.id());                                  \
                                                                                \
             auto& map = index[id];                                             \
                                                                                \
@@ -94,27 +93,24 @@ Accounts::Accounts(
     }
 }
 
-OTIdentifier Accounts::AccountContract(const Identifier& id) const
+OTUnitID Accounts::AccountContract(const Identifier& id) const
 {
     EXTRACT_FIELD(4);
 }
 
-OTIdentifier Accounts::AccountIssuer(const Identifier& id) const
+OTNymID Accounts::AccountIssuer(const Identifier& id) const
 {
     EXTRACT_FIELD(2);
 }
 
-OTIdentifier Accounts::AccountOwner(const Identifier& id) const
-{
-    EXTRACT_FIELD(0);
-}
+OTNymID Accounts::AccountOwner(const Identifier& id) const { EXTRACT_FIELD(0); }
 
-OTIdentifier Accounts::AccountServer(const Identifier& id) const
+OTServerID Accounts::AccountServer(const Identifier& id) const
 {
     EXTRACT_FIELD(3);
 }
 
-OTIdentifier Accounts::AccountSigner(const Identifier& id) const
+OTNymID Accounts::AccountSigner(const Identifier& id) const
 {
     EXTRACT_FIELD(1);
 }
@@ -125,25 +121,25 @@ proto::ContactItemType Accounts::AccountUnit(const Identifier& id) const
 }
 
 std::set<OTIdentifier> Accounts::AccountsByContract(
-    const Identifier& contract) const
+    const identifier::UnitDefinition& contract) const
 {
     EXTRACT_SET_BY_ID(contract_index_, contract);
 }
 
 std::set<OTIdentifier> Accounts::AccountsByIssuer(
-    const Identifier& issuerNym) const
+    const identifier::Nym& issuerNym) const
 {
     EXTRACT_SET_BY_ID(issuer_index_, issuerNym);
 }
 
 std::set<OTIdentifier> Accounts::AccountsByOwner(
-    const Identifier& ownerNym) const
+    const identifier::Nym& ownerNym) const
 {
     EXTRACT_SET_BY_ID(owner_index_, ownerNym);
 }
 
 std::set<OTIdentifier> Accounts::AccountsByServer(
-    const Identifier& server) const
+    const identifier::Server& server) const
 {
     EXTRACT_SET_BY_ID(server_index_, server);
 }
@@ -154,20 +150,21 @@ std::set<OTIdentifier> Accounts::AccountsByUnit(
     EXTRACT_SET_BY_VALUE(unit_index_, unit);
 }
 
+template <typename A, typename M, typename I>
 bool Accounts::add_set_index(
     const Identifier& accountID,
-    const Identifier& argID,
-    Identifier& mapID,
-    Index& index)
+    const A& argID,
+    M& mapID,
+    I& index)
 {
-    if (mapID.empty()) {
+    if (mapID->empty()) {
         index[argID].emplace(accountID);
-        mapID.SetString(argID.str());
+        mapID->SetString(argID.str());
     } else {
         if (mapID != argID) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Provided index id (")(argID)(
                 ") for account ")(accountID)(
-                " does not match existing index id ")(mapID)(".")
+                " does not match existing index id ")(mapID)
                 .Flush();
 
             return false;
@@ -187,11 +184,11 @@ std::string Accounts::Alias(const std::string& id) const
 bool Accounts::check_update_account(
     const Lock& lock,
     const OTIdentifier& accountID,
-    const Identifier& ownerNym,
-    const Identifier& signerNym,
-    const Identifier& issuerNym,
-    const Identifier& server,
-    const Identifier& contract,
+    const identifier::Nym& ownerNym,
+    const identifier::Nym& signerNym,
+    const identifier::Nym& issuerNym,
+    const identifier::Server& server,
+    const identifier::UnitDefinition& contract,
     const proto::ContactItemType unit)
 {
     if (accountID->empty()) {
@@ -297,11 +294,11 @@ Accounts::AccountData& Accounts::get_account_data(
     auto data = account_data_.find(accountID);
 
     if (account_data_.end() == data) {
-        AccountData blank{Identifier::Factory(),
-                          Identifier::Factory(),
-                          Identifier::Factory(),
-                          Identifier::Factory(),
-                          Identifier::Factory(),
+        AccountData blank{identifier::Nym::Factory(),
+                          identifier::Nym::Factory(),
+                          identifier::Nym::Factory(),
+                          identifier::Server::Factory(),
+                          identifier::UnitDefinition::Factory(),
                           proto::CITEMTYPE_UNKNOWN};
         auto [output, added] =
             account_data_.emplace(accountID, std::move(blank));
@@ -337,11 +334,12 @@ void Accounts::init(const std::string& hash)
             it.itemid(), Metadata{it.hash(), it.alias(), 0, false});
     }
 
-    DESERIALIZE_INDEX(owner, owner_index_, 0)
-    DESERIALIZE_INDEX(signer, signer_index_, 1)
-    DESERIALIZE_INDEX(issuer, issuer_index_, 2)
-    DESERIALIZE_INDEX(server, server_index_, 3)
-    DESERIALIZE_INDEX(unit, contract_index_, 4)
+    DESERIALIZE_INDEX(owner, owner_index_, 0, identifier::Nym::Factory)
+    DESERIALIZE_INDEX(signer, signer_index_, 1, identifier::Nym::Factory)
+    DESERIALIZE_INDEX(issuer, issuer_index_, 2, identifier::Nym::Factory)
+    DESERIALIZE_INDEX(server, server_index_, 3, identifier::Server::Factory)
+    DESERIALIZE_INDEX(
+        unit, contract_index_, 4, identifier::UnitDefinition::Factory)
 
     for (const auto& it : serialized->index()) {
         const auto unit = it.type();
@@ -433,11 +431,11 @@ bool Accounts::Store(
     const std::string& id,
     const std::string& data,
     const std::string& alias,
-    const Identifier& owner,
-    const Identifier& signer,
-    const Identifier& issuer,
-    const Identifier& server,
-    const Identifier& contract,
+    const identifier::Nym& owner,
+    const identifier::Nym& signer,
+    const identifier::Nym& issuer,
+    const identifier::Server& server,
+    const identifier::UnitDefinition& contract,
     const proto::ContactItemType unit)
 {
     Lock lock(write_lock_);

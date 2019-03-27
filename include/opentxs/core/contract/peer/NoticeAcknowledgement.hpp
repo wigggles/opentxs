@@ -32,9 +32,9 @@ private:
     NoticeAcknowledgement(
         const api::Wallet& wallet,
         const ConstNym& nym,
-        const Identifier& initiator,
+        const identifier::Nym& initiator,
         const Identifier& request,
-        const Identifier& server,
+        const identifier::Server& server,
         const proto::PeerRequestType type,
         const bool& ack);
     NoticeAcknowledgement() = delete;

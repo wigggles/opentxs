@@ -53,7 +53,7 @@ private:  // Private prevents erroneous use by other classes.
 
 private:
     OTIdentifier m_RECIPIENT_ACCT_ID;
-    OTIdentifier m_RECIPIENT_NYM_ID;
+    OTNymID m_RECIPIENT_NYM_ID;
 
 protected:
     OTString m_strConsideration;  // Presumably an agreement is in return for
@@ -84,7 +84,7 @@ public:
         return originType::origin_payment_plan;
     }
 
-    void setCustomerNymId(const Identifier& NYM_ID);
+    void setCustomerNymId(const identifier::Nym& NYM_ID);
 
     const String& GetConsideration() const { return m_strConsideration; }
     void SetMerchantSignedCopy(const String& strMerchantCopy)
@@ -115,7 +115,7 @@ public:
     EXPORT bool Confirm(
         ServerContext& context,
         const Account& PAYER_ACCT,
-        const Identifier& p_id_MERCHANT_NYM,
+        const identifier::Nym& p_id_MERCHANT_NYM,
         const Nym* pMERCHANT_NYM = nullptr);
 
     // What should be the process here?
@@ -123,10 +123,10 @@ public:
     /*
         FIRST: (Construction)
 
-     OTAgreement(const Identifier& NOTARY_ID,
-                 const Identifier& INSTRUMENT_DEFINITION_ID);
+     OTAgreement(const identifier::Server& NOTARY_ID,
+                 const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
        OR:
-     OTAgreement(const Identifier& NOTARY_ID, const Identifier&
+     OTAgreement(const identifier::Server& NOTARY_ID, const Identifier&
     INSTRUMENT_DEFINITION_ID,
                  const Identifier& SENDER_ACCT_ID, const Identifier&
     SENDER_NYM_ID,
@@ -241,7 +241,7 @@ public:
     {
         return m_RECIPIENT_ACCT_ID;
     }
-    inline const Identifier& GetRecipientNymID() const
+    inline const identifier::Nym& GetRecipientNymID() const
     {
         return m_RECIPIENT_NYM_ID;
     }
@@ -249,7 +249,7 @@ public:
     {
         m_RECIPIENT_ACCT_ID = ACCT_ID;
     }
-    inline void SetRecipientNymID(const Identifier& NYM_ID)
+    inline void SetRecipientNymID(const identifier::Nym& NYM_ID)
     {
         m_RECIPIENT_NYM_ID = NYM_ID;
     }
@@ -312,7 +312,7 @@ public:
      m_SENDER_NYM_ID; }
      inline void            SetSenderAcctID(const Identifier& ACCT_ID)
      { m_SENDER_ACCT_ID = ACCT_ID; }
-     inline void            SetSenderNymID(const Identifier& NYM_ID)
+     inline void            SetSenderNymID(const identifier::Nym& NYM_ID)
      { m_SENDER_NYM_ID = NYM_ID; }
      */
 
@@ -322,7 +322,7 @@ public:
     // From OTInstrument (parent class of OTTrackable, parent class of
     // OTCronItem, parent class of this)
     /*
-     OTInstrument(const Identifier& NOTARY_ID, const Identifier&
+     OTInstrument(const identifier::Server& NOTARY_ID, const Identifier&
      INSTRUMENT_DEFINITION_ID)
      : Contract()
 
@@ -334,7 +334,7 @@ public:
      INSTRUMENT_DEFINITION_ID)  {
      m_InstrumentDefinitionID    =
      INSTRUMENT_DEFINITION_ID; }
-     inline void SetNotaryID(const Identifier& NOTARY_ID) { m_NotaryID    =
+     inline void SetNotaryID(const identifier::Server& NOTARY_ID) { m_NotaryID =
      NOTARY_ID; }
 
      inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
@@ -374,7 +374,7 @@ public:
         const api::Core& core,
         bool bSuccessMsg,
         const Nym& theServerNym,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
@@ -388,15 +388,15 @@ public:
         const api::Core& core,
         bool bSuccessMsg,
         const Nym& theServerNym,
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::Nym& NYM_ID,
         const TransactionNumber& lNewTransactionNumber,
         const TransactionNumber& lInReferenceTo,
         const String& strReference,
         originType theOriginType,
         OTString pstrNote,
         OTString pstrAttachment,
-        const Identifier& actualNymID);
+        const identifier::Nym& actualNymID);
 
     virtual ~OTAgreement();
 
@@ -406,7 +406,7 @@ public:
     void Release_Agreement();
     bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const override;
     EXPORT std::int64_t GetOpeningNumber(
-        const Identifier& theNymID) const override;
+        const identifier::Nym& theNymID) const override;
     std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
@@ -418,16 +418,16 @@ protected:
     OTAgreement(const api::Core& core);
     OTAgreement(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTAgreement(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,
-        const Identifier& SENDER_NYM_ID,
+        const identifier::Nym& SENDER_NYM_ID,
         const Identifier& RECIPIENT_ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID);
+        const identifier::Nym& RECIPIENT_NYM_ID);
 
     OTAgreement() = delete;
 };

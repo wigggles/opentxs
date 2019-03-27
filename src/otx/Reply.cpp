@@ -7,7 +7,8 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/otx/Reply.hpp"
@@ -26,8 +27,8 @@ namespace opentxs::otx
 {
 OTXReply Reply::Factory(
     const std::shared_ptr<const opentxs::Nym> signer,
-    const Identifier& recipient,
-    const Identifier& server,
+    const identifier::Nym& recipient,
+    const identifier::Server& server,
     const proto::ServerReplyType type,
     const bool success)
 {
@@ -59,8 +60,8 @@ namespace opentxs::otx::implementation
 {
 Reply::Reply(
     const std::shared_ptr<const opentxs::Nym> signer,
-    const Identifier& recipient,
-    const Identifier& server,
+    const identifier::Nym& recipient,
+    const identifier::Server& server,
     const proto::ServerReplyType type,
     const bool success)
     : Signable(signer, OTX_REPLY_CREATE_VERSION, "")
@@ -75,8 +76,8 @@ Reply::Reply(
 
 Reply::Reply(const api::Core& api, const proto::ServerReply serialized)
     : Signable(extract_nym(api, serialized), serialized.version(), "")
-    , recipient_(Identifier::Factory(serialized.nym()))
-    , server_(Identifier::Factory(serialized.server()))
+    , recipient_(identifier::Nym::Factory(serialized.nym()))
+    , server_(identifier::Server::Factory(serialized.server()))
     , type_(serialized.type())
     , success_(serialized.success())
     , number_(serialized.request())
@@ -111,7 +112,7 @@ std::shared_ptr<const opentxs::Nym> Reply::extract_nym(
     const api::Core& api,
     const proto::ServerReply serialized)
 {
-    const auto serverID = Identifier::Factory(serialized.server());
+    const auto serverID = identifier::Server::Factory(serialized.server());
     const auto server = api.Wallet().Server(serverID);
 
     if (false == bool(server)) {

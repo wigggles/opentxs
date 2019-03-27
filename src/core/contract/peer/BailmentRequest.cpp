@@ -7,7 +7,8 @@
 
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
 
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/String.hpp"
 
 #define CURRENT_VERSION 4
@@ -15,30 +16,30 @@
 namespace opentxs
 {
 BailmentRequest::BailmentRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(wallet, nym, serialized)
-    , unit_(Identifier::Factory(serialized.bailment().unitid()))
-    , server_(Identifier::Factory(serialized.bailment().serverid()))
+    : ot_super(api, nym, serialized)
+    , unit_(api_.Factory().UnitID(serialized.bailment().unitid()))
+    , server_(api_.Factory().ServerID(serialized.bailment().serverid()))
 {
 }
 
 BailmentRequest::BailmentRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
-    const Identifier& recipientID,
-    const Identifier& unitID,
-    const Identifier& serverID)
+    const identifier::Nym& recipientID,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID)
     : ot_super(
-          wallet,
+          api,
           nym,
           CURRENT_VERSION,
           recipientID,
           serverID,
           proto::PEERREQUEST_BAILMENT)
-    , unit_(Identifier::Factory(unitID))
-    , server_(Identifier::Factory(serverID))
+    , unit_(unitID)
+    , server_(serverID)
 {
 }
 

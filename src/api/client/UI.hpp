@@ -13,57 +13,57 @@ class UI : virtual public opentxs::api::client::UI, Lockable
 {
 public:
     const ui::AccountActivity& AccountActivity(
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& accountID) const override;
     const ui::AccountList& AccountList(
         const identifier::Nym& nym) const override;
     const ui::AccountSummary& AccountSummary(
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const proto::ContactItemType currency) const override;
     const ui::ActivitySummary& ActivitySummary(
-        const Identifier& nymID) const override;
+        const identifier::Nym& nymID) const override;
     const ui::ActivityThread& ActivityThread(
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const Identifier& threadID) const override;
     const ui::Contact& Contact(const Identifier& contactID) const override;
-    const ui::ContactList& ContactList(const Identifier& nymID) const override;
+    const ui::ContactList& ContactList(
+        const identifier::Nym& nymID) const override;
     const ui::MessagableList& MessagableList(
-        const Identifier& nymID) const override;
+        const identifier::Nym& nymID) const override;
     const ui::PayableList& PayableList(
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         proto::ContactItemType currency) const override;
-    const ui::Profile& Profile(const Identifier& contactID) const override;
+    const ui::Profile& Profile(const identifier::Nym& nymID) const override;
 
-    ~UI();
+    ~UI() override = default;
 
 private:
     friend opentxs::Factory;
 
     /** NymID, AccountID */
-    using AccountKey = std::pair<OTIdentifier, OTIdentifier>;
+    using AccountKey = std::pair<OTNymID, OTIdentifier>;
     using AccountActivityMap =
         std::map<AccountKey, std::unique_ptr<ui::AccountActivity>>;
     using AccountListKey = OTNymID;
     using AccountListMap =
         std::map<AccountListKey, std::unique_ptr<ui::AccountList>>;
     /** NymID, currency*/
-    using AccountSummaryKey = std::pair<OTIdentifier, proto::ContactItemType>;
+    using AccountSummaryKey = std::pair<OTNymID, proto::ContactItemType>;
     using AccountSummaryMap =
         std::map<AccountSummaryKey, std::unique_ptr<ui::AccountSummary>>;
     using ActivitySummaryMap =
-        std::map<OTIdentifier, std::unique_ptr<ui::ActivitySummary>>;
-    using ActivityThreadID = std::pair<OTIdentifier, OTIdentifier>;
+        std::map<OTNymID, std::unique_ptr<ui::ActivitySummary>>;
+    using ActivityThreadID = std::pair<OTNymID, OTIdentifier>;
     using ActivityThreadMap =
         std::map<ActivityThreadID, std::unique_ptr<ui::ActivityThread>>;
     using ContactMap = std::map<OTIdentifier, std::unique_ptr<ui::Contact>>;
-    using ContactListMap =
-        std::map<OTIdentifier, std::unique_ptr<ui::ContactList>>;
+    using ContactListMap = std::map<OTNymID, std::unique_ptr<ui::ContactList>>;
     using MessagableListMap =
-        std::map<OTIdentifier, std::unique_ptr<ui::MessagableList>>;
+        std::map<OTNymID, std::unique_ptr<ui::MessagableList>>;
     using PayableListMap = std::map<
-        std::pair<OTIdentifier, proto::ContactItemType>,
+        std::pair<OTNymID, proto::ContactItemType>,
         std::unique_ptr<ui::PayableList>>;
-    using ProfileMap = std::map<OTIdentifier, std::unique_ptr<ui::Profile>>;
+    using ProfileMap = std::map<OTNymID, std::unique_ptr<ui::Profile>>;
 
     const api::client::Manager& api_;
     const Flag& running_;

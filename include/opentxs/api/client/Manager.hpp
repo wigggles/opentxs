@@ -29,8 +29,8 @@ public:
     EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;
     EXPORT virtual std::recursive_mutex& Lock(
-        const Identifier& nymID,
-        const Identifier& serverID) const = 0;
+        const identifier::Nym& nymID,
+        const identifier::Server& serverID) const = 0;
     EXPORT virtual const OT_API& OTAPI(
         const std::string& wallet = "") const = 0;
     EXPORT virtual const client::OTX& OTX() const = 0;

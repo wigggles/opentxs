@@ -26,7 +26,7 @@ public:
 
     // To force the Nym to close out the closing number on the receipt.
     bool DropFinalReceiptToInbox(
-        const Identifier& NYM_ID,
+        const identifier::Nym& NYM_ID,
         const Identifier& ACCOUNT_ID,
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lClosingNumber,
@@ -38,7 +38,7 @@ public:
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
     bool DropFinalReceiptToNymbox(
-        const Identifier& NYM_ID,
+        const identifier::Nym& NYM_ID,
         const TransactionNumber& lNewTransactionNumber,
         const String& strOrigCronItem,
         const originType theOriginType,
@@ -74,18 +74,18 @@ public:
     EXPORT static std::unique_ptr<OTCronItem> LoadActiveCronReceipt(
         const api::Core& core,
         const TransactionNumber& lTransactionNum,
-        const Identifier& notaryID);  // Client-side only.
+        const identifier::Server& notaryID);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
         const std::string& dataFolder,
         const TransactionNumber& lTransactionNum,
-        const Identifier& nymID,
-        const Identifier& notaryID);  // Client-side only.
+        const identifier::Nym& nymID,
+        const identifier::Server& notaryID);  // Client-side only.
     EXPORT static bool GetActiveCronTransNums(
         NumList& output,  // Client-side
                           // only.
         const std::string& dataFolder,
-        const Identifier& nymID,
-        const Identifier& notaryID);
+        const identifier::Nym& nymID,
+        const identifier::Server& notaryID);
     inline void SetCreationDate(const time64_t& CREATION_DATE)
     {
         m_CREATION_DATE = CREATION_DATE;
@@ -115,13 +115,14 @@ public:
 
     inline OTCron* GetCron() const { return m_pCron; }
     void setServerNym(ConstNym serverNym) { serverNym_ = serverNym; }
-    void setNotaryID(const Identifier& notaryID);
+    void setNotaryID(const identifier::Server& notaryID);
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.
     EXPORT bool SaveCronReceipt();  // server side only
-    EXPORT bool SaveActiveCronReceipt(const Identifier& theNymID);  // client
-                                                                    // side
-                                                                    // only
+    EXPORT bool SaveActiveCronReceipt(
+        const identifier::Nym& theNymID);  // client
+                                           // side
+                                           // only
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -134,7 +135,7 @@ public:
 
     void Release() override;
     void Release_CronItem();
-    EXPORT bool GetCancelerID(Identifier& theOutput) const;
+    EXPORT bool GetCancelerID(identifier::Nym& theOutput) const;
     EXPORT bool IsCanceled() const { return m_bCanceled; }
 
     // When canceling a cron item before it
@@ -154,7 +155,8 @@ public:
     EXPORT std::int64_t GetClosingNum() const;
     virtual bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const;
 
-    virtual std::int64_t GetOpeningNumber(const Identifier& theNymID) const;
+    virtual std::int64_t GetOpeningNumber(
+        const identifier::Nym& theNymID) const;
     virtual std::int64_t GetClosingNumber(const Identifier& theAcctID) const;
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
@@ -162,7 +164,7 @@ protected:
     std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING
                                                      // a transaction.
                                                      // (finalReceipt.)
-    OTIdentifier m_pCancelerNymID;
+    OTNymID m_pCancelerNymID;
 
     bool m_bCanceled{false};  // This defaults to false. But if someone cancels
                               // it (BEFORE it is ever activated, just to nip it
@@ -190,14 +192,14 @@ protected:
 
     OTCronItem(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTCronItem(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& ACCT_ID,
-        const Identifier& NYM_ID);
+        const identifier::Nym& NYM_ID);
     OTCronItem(const api::Core& core);
 
 private:

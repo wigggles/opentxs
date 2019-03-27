@@ -12,6 +12,9 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
@@ -45,8 +48,8 @@ Wallet::Wallet(const api::client::Manager& client)
 }
 
 std::shared_ptr<const opentxs::Context> Wallet::Context(
-    const Identifier& notaryID,
-    const Identifier& clientNymID) const
+    const identifier::Server& notaryID,
+    const identifier::Nym& clientNymID) const
 {
     auto serverID = Identifier::Factory(notaryID);
 
@@ -73,8 +76,8 @@ void Wallet::instantiate_server_context(
 }
 
 Editor<opentxs::Context> Wallet::mutable_Context(
-    const Identifier& notaryID,
-    const Identifier& clientNymID) const
+    const identifier::Server& notaryID,
+    const identifier::Nym& clientNymID) const
 {
     auto serverID = Identifier::Factory(notaryID);
     auto base = context(clientNymID, server_to_nym(serverID));
@@ -89,13 +92,13 @@ Editor<opentxs::Context> Wallet::mutable_Context(
 }
 
 Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
-    const Identifier& localNymID,
+    const identifier::Nym& localNymID,
     const Identifier& remoteID) const
 {
     Lock lock(context_map_lock_);
 
-    auto serverID = Identifier::Factory(remoteID);
-    auto remoteNymID = Identifier::Factory(server_to_nym(serverID));
+    auto serverID = Identifier::Factory(remoteID.str());
+    const auto remoteNymID = server_to_nym(serverID);
 
     auto base = context(localNymID, remoteNymID);
 
@@ -127,7 +130,7 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
             reply_received_,
             localNym,
             remoteNym,
-            serverID,
+            identifier::Server::Factory(serverID->str()),  // TODO conversion
             connection));
         base = entry;
     }
@@ -142,7 +145,7 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
 }
 
 std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
-    const Identifier& localNymID,
+    const identifier::Nym& localNymID,
     const Identifier& remoteID) const
 {
     auto serverID = Identifier::Factory(remoteID);
@@ -155,7 +158,7 @@ std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
 }
 
 std::shared_ptr<const opentxs::Nym> Wallet::signer_nym(
-    const Identifier& id) const
+    const identifier::Nym& id) const
 {
     return Nym(id);
 }

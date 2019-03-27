@@ -9,6 +9,7 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Purse.hpp"
@@ -18,9 +19,9 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -208,18 +209,17 @@ Object::Object(
             message_.reset(new std::string(serialized.otmessage()));
         } break;
         case (proto::PEEROBJECT_REQUEST): {
-            request_ = PeerRequest::Factory(
-                api_.Wallet(), nym_, serialized.otrequest());
+            request_ = PeerRequest::Factory(api_, nym_, serialized.otrequest());
         } break;
         case (proto::PEEROBJECT_RESPONSE): {
             auto senderNym = api_.Wallet().Nym(
-                Identifier::Factory(serialized.otrequest().initiator()));
-            request_ = PeerRequest::Factory(
-                api_.Wallet(), senderNym, serialized.otrequest());
+                api_.Factory().NymID(serialized.otrequest().initiator()));
+            request_ =
+                PeerRequest::Factory(api_, senderNym, serialized.otrequest());
 
             if (false == bool(nym_)) {
                 nym_ = api_.Wallet().Nym(
-                    Identifier::Factory(serialized.otrequest().recipient()));
+                    api_.Factory().NymID(serialized.otrequest().recipient()));
             }
 
             reply_ =

@@ -20,8 +20,8 @@ public:
     const api::client::Contacts& Contacts() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     std::recursive_mutex& Lock(
-        const Identifier& nymID,
-        const Identifier& serverID) const override;
+        const identifier::Nym& nymID,
+        const identifier::Server& serverID) const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
     const client::OTX& OTX() const override;
     const api::client::Pair& Pair() const override;

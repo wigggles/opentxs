@@ -120,11 +120,12 @@ void NymFile::ClearAll()
     m_dequeOutpayments.clear();
 }
 
-bool NymFile::CompareID(const Identifier& rhs) const
+bool NymFile::CompareID(const identifier::Nym& rhs) const
 {
     sLock lock(shared_lock_);
 
-    return rhs == target_nym_->ID();
+    // TODO ambiguous overload
+    return rhs.str() == target_nym_->ID().str();
 }
 
 bool NymFile::DeserializeNymFile(

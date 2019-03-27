@@ -102,7 +102,7 @@ public:
     {
         return m_CURRENCY_TYPE_ID;
     }
-    inline void SetCurrencyID(const Identifier& CURRENCY_ID)
+    inline void SetCurrencyID(const identifier::UnitDefinition& CURRENCY_ID)
     {
         m_CURRENCY_TYPE_ID = CURRENCY_ID;
     }
@@ -219,9 +219,9 @@ private:
                                             // identify any market.
     EXPORT OTOffer(
         const api::Core& core,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_ID,
+        const identifier::Server& NOTARY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& CURRENCY_ID,
         const std::int64_t& MARKET_SCALE);
 
     OTOffer() = delete;

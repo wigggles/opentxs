@@ -695,16 +695,16 @@ private:
 
     OTTransaction(
         const api::Core& core,
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         originType theOriginType = originType::not_applicable);
 
     OTTransaction(
         const api::Core& core,
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable);
 
@@ -714,9 +714,9 @@ private:
     // and verified against them.
     OTTransaction(
         const api::Core& core,
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         const Identifier& theAccountID,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         const std::int64_t& lNumberOfOrigin,
         originType theOriginType,
         const std::int64_t& lTransactionNum,

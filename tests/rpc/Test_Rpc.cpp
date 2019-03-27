@@ -159,8 +159,8 @@ protected:
 
     void wait_for_state_machine(
         const opentxs::api::client::Manager& api,
-        const Identifier& nymID,
-        const Identifier& serverID)
+        const identifier::Nym& nymID,
+        const identifier::Server& serverID)
     {
         auto task = api.OTX().DownloadNym(nymID, serverID, nymID);
         ThreadStatus status{ThreadStatus::RUNNING};
@@ -180,8 +180,8 @@ protected:
 
     void receive_payment(
         const opentxs::api::client::Manager& api,
-        const Identifier& nymID,
-        const Identifier& serverID,
+        const identifier::Nym& nymID,
+        const identifier::Server& serverID,
         const Identifier& accountID)
     {
         auto task = api.OTX().ProcessInbox(nymID, serverID, accountID);
@@ -713,7 +713,7 @@ TEST_F(Test_Rpc, Add_Contact)
     auto& addcontact3 = *command.add_addcontact();
     addcontact3.set_version(ADDCONTACT_VERSION);
     addcontact3.set_paymentcode(
-        client.Wallet().Nym(Identifier::Factory(nym3_id_))->PaymentCode());
+        client.Wallet().Nym(identifier::Nym::Factory(nym3_id_))->PaymentCode());
 
     response = ot_.RPC(command);
 
@@ -856,7 +856,7 @@ TEST_F(Test_Rpc, Delete_Claim_No_Nym)
     command.set_owner(unit_definition_id_->str());
 
     auto& client = ot_.Client(0);
-    auto nym = client.Wallet().Nym(opentxs::Identifier::Factory(nym1_id_));
+    auto nym = client.Wallet().Nym(opentxs::identifier::Nym::Factory(nym1_id_));
     auto& claims = nym->Claims();
     auto group = claims.Group(
         proto::CONTACTSECTION_RELATIONSHIP, proto::CITEMTYPE_ALIAS);
@@ -1054,7 +1054,7 @@ TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
     ASSERT_EQ(
         account.get().GetInstrumentDefinitionID().str(), accountdata.unit());
     ASSERT_TRUE(account.get().VerifyOwnerByID(
-        Identifier::Factory(accountdata.owner())));
+        identifier::Nym::Factory(accountdata.owner())));
 
     auto issuerid = manager.Storage().AccountIssuer(
         Identifier::Factory(issuer_account_id_));
@@ -1188,7 +1188,8 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     sendpayment->set_version(SENDPAYMENT_VERSION);
     sendpayment->set_type(proto::RPCPAYMENTTYPE_TRANSFER);
     auto& contacts = client.Contacts();
-    const auto contactid = contacts.ContactID(Identifier::Factory(nym3_id_));
+    const auto contactid =
+        contacts.ContactID(identifier::Nym::Factory(nym3_id_));
     sendpayment->set_contact(contactid->str());
     sendpayment->set_sourceaccount(issuer_account_id_);
     sendpayment->set_destinationaccount(nym3_account1_id_);
@@ -1203,7 +1204,8 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
-    wait_for_state_machine(client, nym1id, Identifier::Factory(server_id_));
+    wait_for_state_machine(
+        client, nym1id, identifier::Server::Factory(server_id_));
 
     {
         const auto account =
@@ -1217,7 +1219,7 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     receive_payment(
         client,
         nym3id,
-        Identifier::Factory(server_id_),
+        identifier::Server::Factory(server_id_),
         Identifier::Factory(nym3_account1_id_));
 
     {
@@ -1257,7 +1259,8 @@ TEST_F(Test_Rpc, Move_Funds)
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
-    wait_for_state_machine(manager, nym3id, Identifier::Factory(server_id_));
+    wait_for_state_machine(
+        manager, nym3id, identifier::Server::Factory(server_id_));
 
     {
         const auto account =
@@ -1270,7 +1273,7 @@ TEST_F(Test_Rpc, Move_Funds)
     receive_payment(
         manager,
         nym3id,
-        Identifier::Factory(server_id_),
+        identifier::Server::Factory(server_id_),
         Identifier::Factory(nym3_account2_id_));
 
     {
@@ -1289,7 +1292,7 @@ TEST_F(Test_Rpc, Get_Workflow)
     // Make sure the workflows on the client are up-to-date.
     client.OTX().Refresh();
 
-    auto nym3id = Identifier::Factory(nym3_id_);
+    auto nym3id = identifier::Nym::Factory(nym3_id_);
 
     const auto& workflow = client.Workflow();
     auto workflows = workflow.List(
@@ -1450,7 +1453,7 @@ TEST_F(Test_Rpc, Get_Account_Balance)
         account.get().GetInstrumentDefinitionID().str(), accountdata.unit());
 
     ASSERT_TRUE(account.get().VerifyOwnerByID(
-        Identifier::Factory(accountdata.owner())));
+        identifier::Nym::Factory(accountdata.owner())));
 
     auto issuerid =
         manager.Storage().AccountIssuer(Identifier::Factory(nym3_account2_id_));

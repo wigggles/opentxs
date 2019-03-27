@@ -54,7 +54,7 @@ Contacts::Contacts(const api::Core& api)
 
 Contacts::ContactMap::iterator Contacts::add_contact(
     const rLock& lock,
-    class Contact* contact) const
+    opentxs::Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
 
@@ -132,7 +132,7 @@ void Contacts::check_identifiers(
 #endif
 }
 
-std::shared_ptr<const class Contact> Contacts::contact(
+std::shared_ptr<const opentxs::Contact> Contacts::contact(
     const rLock& lock,
     const Identifier& id) const
 {
@@ -147,12 +147,12 @@ std::shared_ptr<const class Contact> Contacts::contact(
     return {};
 }
 
-std::shared_ptr<const class Contact> Contacts::contact(
+std::shared_ptr<const opentxs::Contact> Contacts::contact(
     const rLock& lock,
     const std::string& label) const
 {
-    std::unique_ptr<class Contact> contact(
-        new class Contact(api_.Wallet(), label));
+    std::unique_ptr<opentxs::Contact> contact(
+        new opentxs::Contact(api_, label));
 
     if (false == bool(contact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to create new contact.")
@@ -183,7 +183,7 @@ std::shared_ptr<const class Contact> Contacts::contact(
     return output;
 }
 
-std::shared_ptr<const class Contact> Contacts::Contact(
+std::shared_ptr<const opentxs::Contact> Contacts::Contact(
     const Identifier& id) const
 {
     rLock lock(lock_);
@@ -191,7 +191,7 @@ std::shared_ptr<const class Contact> Contacts::Contact(
     return contact(lock, id);
 }
 
-OTIdentifier Contacts::ContactID(const Identifier& nymID) const
+OTIdentifier Contacts::ContactID(const identifier::Nym& nymID) const
 {
     return Identifier::Factory(api_.Storage().ContactOwnerNym(nymID.str()));
 }
@@ -216,7 +216,7 @@ void Contacts::import_contacts(const rLock& lock)
     auto nyms = api_.Wallet().NymList();
 
     for (const auto& it : nyms) {
-        const auto nymID = Identifier::Factory(it.first);
+        const auto nymID = identifier::Nym::Factory(it.first);
         const auto contactID = api_.Storage().ContactOwnerNym(nymID->str());
 
         if (contactID.empty()) {
@@ -310,8 +310,8 @@ Contacts::ContactMap::iterator Contacts::load_contact(
 
     OT_ASSERT(serialized);
 
-    std::unique_ptr<class Contact> contact(
-        new class Contact(api_.Wallet(), *serialized));
+    std::unique_ptr<opentxs::Contact> contact(
+        new opentxs::Contact(api_, *serialized));
 
     if (false == bool(contact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -324,7 +324,7 @@ Contacts::ContactMap::iterator Contacts::load_contact(
     return add_contact(lock, contact.release());
 }
 
-std::shared_ptr<const class Contact> Contacts::Merge(
+std::shared_ptr<const opentxs::Contact> Contacts::Merge(
     const Identifier& parent,
     const Identifier& child) const
 {
@@ -372,8 +372,8 @@ std::shared_ptr<const class Contact> Contacts::Merge(
     OT_ASSERT(childContact);
     OT_ASSERT(parentContact);
 
-    auto& lhs = const_cast<class Contact&>(*parentContact);
-    auto& rhs = const_cast<class Contact&>(*childContact);
+    auto& lhs = const_cast<opentxs::Contact&>(*parentContact);
+    auto& rhs = const_cast<opentxs::Contact&>(*childContact);
     lhs += rhs;
 
     if (false == api_.Storage().Store(rhs)) {
@@ -397,7 +397,7 @@ std::shared_ptr<const class Contact> Contacts::Merge(
     return parentContact;
 }
 
-std::unique_ptr<Editor<class Contact>> Contacts::mutable_contact(
+std::unique_ptr<Editor<opentxs::Contact>> Contacts::mutable_contact(
     const rLock& lock,
     const Identifier& id) const
 {
@@ -405,7 +405,7 @@ std::unique_ptr<Editor<class Contact>> Contacts::mutable_contact(
         throw std::runtime_error("lock error");
     }
 
-    std::unique_ptr<Editor<class Contact>> output{nullptr};
+    std::unique_ptr<Editor<opentxs::Contact>> output{nullptr};
 
     auto it = contact_map_.find(id);
 
@@ -413,14 +413,15 @@ std::unique_ptr<Editor<class Contact>> Contacts::mutable_contact(
 
     if (contact_map_.end() == it) { return {}; }
 
-    std::function<void(class Contact*)> callback =
-        [&](class Contact* in) -> void { this->save(in); };
-    output.reset(new Editor<class Contact>(it->second.second.get(), callback));
+    std::function<void(opentxs::Contact*)> callback =
+        [&](opentxs::Contact* in) -> void { this->save(in); };
+    output.reset(
+        new Editor<opentxs::Contact>(it->second.second.get(), callback));
 
     return output;
 }
 
-std::unique_ptr<Editor<class Contact>> Contacts::mutable_Contact(
+std::unique_ptr<Editor<opentxs::Contact>> Contacts::mutable_Contact(
     const Identifier& id) const
 {
     rLock lock(lock_);
@@ -430,10 +431,10 @@ std::unique_ptr<Editor<class Contact>> Contacts::mutable_Contact(
     return output;
 }
 
-std::shared_ptr<const class Contact> Contacts::new_contact(
+std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
     const rLock& lock,
     const std::string& label,
-    const Identifier& nymID
+    const identifier::Nym& nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     ,
     const PaymentCode& code
@@ -504,7 +505,7 @@ std::shared_ptr<const class Contact> Contacts::new_contact(
     return contact(lock, contactID);
 }
 
-std::shared_ptr<const class Contact> Contacts::NewContact(
+std::shared_ptr<const opentxs::Contact> Contacts::NewContact(
     const std::string& label) const
 {
     rLock lock(lock_);
@@ -512,9 +513,9 @@ std::shared_ptr<const class Contact> Contacts::NewContact(
     return contact(lock, label);
 }
 
-std::shared_ptr<const class Contact> Contacts::NewContact(
+std::shared_ptr<const opentxs::Contact> Contacts::NewContact(
     const std::string& label,
-    const Identifier& nymID
+    const identifier::Nym& nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     ,
     const PaymentCode& paymentCode
@@ -534,7 +535,7 @@ std::shared_ptr<const class Contact> Contacts::NewContact(
     );
 }
 
-std::shared_ptr<const class Contact> Contacts::NewContactFromAddress(
+std::shared_ptr<const opentxs::Contact> Contacts::NewContactFromAddress(
     const std::string& address,
     const std::string& label,
     const proto::ContactItemType currency) const
@@ -570,7 +571,7 @@ std::shared_ptr<const class Contact> Contacts::NewContactFromAddress(
     return newContact;
 }
 
-OTIdentifier Contacts::NymToContact(const Identifier& nymID) const
+OTIdentifier Contacts::NymToContact(const identifier::Nym& nymID) const
 {
     const auto contactID = ContactID(nymID);
 
@@ -619,7 +620,8 @@ Contacts::ContactMap::iterator Contacts::obtain_contact(
     return load_contact(lock, id);
 }
 
-void Contacts::refresh_indices(const rLock& lock, class Contact& contact) const
+void Contacts::refresh_indices(const rLock& lock, opentxs::Contact& contact)
+    const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -637,7 +639,7 @@ void Contacts::refresh_indices(const rLock& lock, class Contact& contact) const
     publisher_->Publish(rawID);
 }
 
-void Contacts::save(class Contact* contact) const
+void Contacts::save(opentxs::Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
 
@@ -680,7 +682,7 @@ void Contacts::start()
     }
 }
 
-std::shared_ptr<const class Contact> Contacts::Update(
+std::shared_ptr<const opentxs::Contact> Contacts::Update(
     const proto::CredentialIndex& serialized) const
 {
     auto nym = api_.Wallet().Nym(serialized);
@@ -749,7 +751,7 @@ std::shared_ptr<const class Contact> Contacts::Update(
     return output;
 }
 
-std::shared_ptr<const class Contact> Contacts::update_existing_contact(
+std::shared_ptr<const opentxs::Contact> Contacts::update_existing_contact(
     const rLock& lock,
     const std::string& label,
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -787,15 +789,15 @@ std::shared_ptr<const class Contact> Contacts::update_existing_contact(
 
 void Contacts::update_nym_map(
     const rLock& lock,
-    const OTIdentifier nymID,
-    class Contact& contact,
+    const identifier::Nym& nymID,
+    opentxs::Contact& contact,
     const bool replace) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
     }
 
-    const auto contactIdentifier = api_.Storage().ContactOwnerNym(nymID->str());
+    const auto contactIdentifier = api_.Storage().ContactOwnerNym(nymID.str());
     const bool exists = (false == contactIdentifier.empty());
     const auto& incomingID = contact.ID();
     const auto contactID = Identifier::Factory(contactIdentifier);

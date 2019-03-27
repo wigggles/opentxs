@@ -55,23 +55,23 @@ private:
 
     std::set<TransactionNumber> open_cron_items_{};
 
-    const Identifier& client_nym_id(const Lock& lock) const override;
+    const identifier::Nym& client_nym_id(const Lock& lock) const override;
     using implementation::Context::serialize;
     proto::Context serialize(const Lock& lock) const override;
-    const Identifier& server_nym_id(const Lock& lock) const override;
+    const identifier::Nym& server_nym_id(const Lock& lock) const override;
     std::string type() const override { return "client"; }
 
     ClientContext(
         const api::Core& api,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const identifier::Server& server);
     ClientContext(
         const api::Core& api,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const identifier::Server& server);
     ClientContext() = delete;
     ClientContext(const ClientContext&) = delete;
     ClientContext(ClientContext&&) = delete;

@@ -49,7 +49,7 @@ namespace opentxs
 ui::Profile* Factory::ProfileWidget(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID)
+    const identifier::Nym& nymID)
 {
     return new ui::implementation::Profile(api, publisher, nymID);
 }
@@ -68,7 +68,7 @@ const std::map<proto::ContactSectionName, int> Profile::sort_keys_{
 Profile::Profile(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID)
+    const identifier::Nym& nymID)
     : ProfileList(api, publisher, nymID)
     , listeners_({
           {api_.Endpoints().NymDownload(),
@@ -91,7 +91,7 @@ bool Profile::AddClaim(
     const bool primary,
     const bool active) const
 {
-    auto nym = api_.Wallet().mutable_Nym(nym_id_);
+    auto nym = api_.Wallet().mutable_Nym(primary_id_);
 
     switch (section) {
         case proto::CONTACTSECTION_SCOPE: {
@@ -198,8 +198,6 @@ bool Profile::Delete(
     return section.Delete(type, claimID);
 }
 
-const Identifier& Profile::NymID() const { return nym_id_; }
-
 std::string Profile::DisplayName() const
 {
     Lock lock(lock_);
@@ -209,7 +207,7 @@ std::string Profile::DisplayName() const
 
 std::string Profile::nym_name(
     const api::Wallet& wallet,
-    const Identifier& nymID)
+    const identifier::Nym& nymID)
 {
     for (const auto& [id, name] : wallet.NymList()) {
         if (nymID.str() == id) { return name; }
@@ -254,11 +252,11 @@ void Profile::process_nym(const network::zeromq::Message& message)
     OT_ASSERT(1 == message.Body().size());
 
     const std::string id(*message.Body().begin());
-    const auto nymID = Identifier::Factory(id);
+    const auto nymID = identifier::Nym::Factory(id);
 
     OT_ASSERT(false == nymID->empty())
 
-    if (nymID != nym_id_) { return; }
+    if (nymID != primary_id_) { return; }
 
     const auto nym = api_.Wallet().Nym(nymID);
 
@@ -316,8 +314,8 @@ int Profile::sort_key(const proto::ContactSectionName type)
 
 void Profile::startup()
 {
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading nym ")(nym_id_).Flush();
-    const auto nym = api_.Wallet().Nym(nym_id_);
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading nym ")(primary_id_).Flush();
+    const auto nym = api_.Wallet().Nym(primary_id_);
 
     OT_ASSERT(nym)
 

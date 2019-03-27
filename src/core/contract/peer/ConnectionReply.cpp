@@ -29,9 +29,9 @@ ConnectionReply::ConnectionReply(
 ConnectionReply::ConnectionReply(
     const api::Wallet& wallet,
     const ConstNym& nym,
-    const Identifier& initiator,
+    const identifier::Nym& initiator,
     const Identifier& request,
-    const Identifier& server,
+    const identifier::Server& server,
     const bool ack,
     const std::string& url,
     const std::string& login,

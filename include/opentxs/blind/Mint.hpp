@@ -36,7 +36,8 @@ public:
     EXPORT virtual std::int32_t GetSeries() const = 0;
     EXPORT virtual time64_t GetValidFrom() const = 0;
     EXPORT virtual time64_t GetValidTo() const = 0;
-    EXPORT virtual const Identifier& InstrumentDefinitionID() const = 0;
+    EXPORT virtual const identifier::UnitDefinition& InstrumentDefinitionID()
+        const = 0;
 
     EXPORT virtual bool AddDenomination(
         const Nym& theNotary,
@@ -48,8 +49,8 @@ public:
         time64_t VALID_FROM,
         time64_t VALID_TO,
         time64_t MINT_EXPIRATION,
-        const Identifier& theInstrumentDefinitionID,
-        const Identifier& theNotaryID,
+        const identifier::UnitDefinition& theInstrumentDefinitionID,
+        const identifier::Server& theNotaryID,
         const Nym& theNotary,
         const std::int64_t nDenom1,
         const std::int64_t nDenom2,
@@ -66,7 +67,8 @@ public:
     EXPORT virtual void Release_Mint() = 0;
     EXPORT virtual void ReleaseDenominations() = 0;
     EXPORT virtual bool SaveMint(const char* szAppend = nullptr) = 0;
-    EXPORT virtual void SetInstrumentDefinitionID(const Identifier& newID) = 0;
+    EXPORT virtual void SetInstrumentDefinitionID(
+        const identifier::UnitDefinition& newID) = 0;
     EXPORT virtual void SetSavePrivateKeys(bool bDoIt = true) = 0;
     EXPORT virtual bool SignToken(const Nym& notary, blind::Token& token) = 0;
     EXPORT virtual bool VerifyMint(const Nym& theOperator) = 0;

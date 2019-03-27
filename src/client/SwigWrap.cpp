@@ -29,9 +29,10 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
@@ -2172,6 +2173,22 @@ std::string SwigWrap::comma(const std::set<OTIdentifier>& list)
     return output;
 }
 
+std::string SwigWrap::comma(const std::set<OTNymID>& list)
+{
+    std::ostringstream stream;
+
+    for (const auto& item : list) {
+        stream << item->str();
+        stream << ",";
+    }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) { output.erase(output.size() - 1, 1); }
+
+    return output;
+}
+
 std::int32_t SwigWrap::completePeerReply(
     const std::string& nymID,
     const std::string& replyID)
@@ -2572,7 +2589,7 @@ std::uint32_t SwigWrap::GetReciprocalRelationship(
 
 NymData SwigWrap::Wallet_GetNym(const std::string& nymID)
 {
-    return client_->Wallet().mutable_Nym(Identifier::Factory(nymID));
+    return client_->Wallet().mutable_Nym(client_->Factory().NymID(nymID));
 }
 
 std::string SwigWrap::Wallet_GetSeed()
@@ -2611,7 +2628,7 @@ bool SwigWrap::ChangeConnectionType(
     const std::string& server,
     const std::uint32_t type)
 {
-    auto serverID = Identifier::Factory(server);
+    auto serverID = client_->Factory().ServerID(server);
 
     if (serverID->empty()) { return false; }
 
@@ -2622,7 +2639,7 @@ bool SwigWrap::ChangeConnectionType(
 
 bool SwigWrap::ClearProxy(const std::string& server)
 {
-    auto serverID = Identifier::Factory(server);
+    auto serverID = client_->Factory().ServerID(server);
 
     if (serverID->empty()) { return false; }
 
@@ -2641,7 +2658,8 @@ std::string SwigWrap::AddChildEd25519Credential(
     const std::string& masterID)
 {
     return client_->Exec().AddChildEd25519Credential(
-        Identifier::Factory(nymID), Identifier::Factory(masterID));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(masterID));
 }
 
 std::string SwigWrap::AddChildSecp256k1Credential(
@@ -2649,7 +2667,8 @@ std::string SwigWrap::AddChildSecp256k1Credential(
     const std::string& masterID)
 {
     return client_->Exec().AddChildSecp256k1Credential(
-        Identifier::Factory(nymID), Identifier::Factory(masterID));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(masterID));
 }
 
 std::string SwigWrap::AddChildRSACredential(
@@ -2658,7 +2677,9 @@ std::string SwigWrap::AddChildRSACredential(
     const std::uint32_t keysize)
 {
     return client_->Exec().AddChildRSACredential(
-        Identifier::Factory(nymID), Identifier::Factory(masterID), keysize);
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(masterID),
+        keysize);
 }
 
 //-----------------------------------------------------------------------------
@@ -2667,7 +2688,7 @@ void SwigWrap::Activity_Preload(
     const std::string& nymID,
     const std::uint32_t& items)
 {
-    client_->Activity().PreloadActivity(Identifier::Factory(nymID), items);
+    client_->Activity().PreloadActivity(client_->Factory().NymID(nymID), items);
 }
 
 bool SwigWrap::Activity_Mark_Read(
@@ -2676,9 +2697,9 @@ bool SwigWrap::Activity_Mark_Read(
     const std::string& itemID)
 {
     return client_->Activity().MarkRead(
-        Identifier::Factory(nymID),
-        Identifier::Factory(threadID),
-        Identifier::Factory(itemID));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(threadID),
+        client_->Factory().Identifier(itemID));
 }
 
 bool SwigWrap::Activity_Mark_Unread(
@@ -2687,18 +2708,19 @@ bool SwigWrap::Activity_Mark_Unread(
     const std::string& itemID)
 {
     return client_->Activity().MarkUnread(
-        Identifier::Factory(nymID),
-        Identifier::Factory(threadID),
-        Identifier::Factory(itemID));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(threadID),
+        client_->Factory().Identifier(itemID));
 }
 
 std::string SwigWrap::Activity_Thread_base64(
-    const std::string& nymId,
+    const std::string& nymID,
     const std::string& threadId)
 {
     std::string output{};
     const auto thread = client_->Activity().Thread(
-        Identifier::Factory(nymId), Identifier::Factory(threadId));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(threadId));
 
     if (thread) {
 
@@ -2718,7 +2740,7 @@ std::string SwigWrap::Activity_Threads(
 
 std::uint64_t SwigWrap::Activity_Unread_Count(const std::string& nymID)
 {
-    return client_->Activity().UnreadCount(Identifier::Factory(nymID));
+    return client_->Activity().UnreadCount(client_->Factory().NymID(nymID));
 }
 
 void SwigWrap::Thread_Preload(
@@ -2728,8 +2750,8 @@ void SwigWrap::Thread_Preload(
     const std::uint32_t items)
 {
     client_->Activity().PreloadThread(
-        Identifier::Factory(nymID),
-        Identifier::Factory(threadID),
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(threadID),
         start,
         items);
 }
@@ -2740,7 +2762,8 @@ std::string SwigWrap::Blockchain_Account(
     const std::string& accountID)
 {
     const auto output = client_->Blockchain().Account(
-        Identifier::Factory(nymID), Identifier::Factory(accountID));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(accountID));
 
     if (false == bool(output)) { return {}; }
 
@@ -2762,7 +2785,7 @@ std::string SwigWrap::Blockchain_Account_List(
     const std::string& nymID,
     const std::uint32_t chain)
 {
-    const auto nym = Identifier::Factory(nymID);
+    const auto nym = client_->Factory().NymID(nymID);
     const auto type = static_cast<proto::ContactItemType>(chain);
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading account list for ")(
         proto::TranslateItemType(type))
@@ -2779,8 +2802,8 @@ std::string SwigWrap::Blockchain_Allocate_Address(
     const bool internal)
 {
     const auto output = client_->Blockchain().AllocateAddress(
-        Identifier::Factory(nymID),
-        Identifier::Factory(accountID),
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(accountID),
         label,
         internal);
 
@@ -2816,10 +2839,10 @@ bool SwigWrap::Blockchain_Assign_Address(
     const bool internal)
 {
     return client_->Blockchain().AssignAddress(
-        Identifier::Factory(nymID),
-        Identifier::Factory(accountID),
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(accountID),
         index,
-        Identifier::Factory(contact),
+        client_->Factory().Identifier(contact),
         internal);
 }
 
@@ -2830,8 +2853,8 @@ std::string SwigWrap::Blockchain_Load_Address(
     const bool internal)
 {
     const auto output = client_->Blockchain().LoadAddress(
-        Identifier::Factory(nymID),
-        Identifier::Factory(accountID),
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(accountID),
         index,
         internal);
 
@@ -2864,7 +2887,7 @@ std::string SwigWrap::Blockchain_New_Bip44_Account(
 {
     return client_->Blockchain()
         .NewAccount(
-            Identifier::Factory(nymID),
+            client_->Factory().NymID(nymID),
             BlockchainAccountType::BIP44,
             static_cast<proto::ContactItemType>(chain))
         ->str();
@@ -2876,7 +2899,7 @@ std::string SwigWrap::Blockchain_New_Bip32_Account(
 {
     return client_->Blockchain()
         .NewAccount(
-            Identifier::Factory(nymID),
+            client_->Factory().NymID(nymID),
             BlockchainAccountType::BIP32,
             static_cast<proto::ContactItemType>(chain))
         ->str();
@@ -2900,8 +2923,8 @@ bool SwigWrap::Blockchain_Store_Incoming(
     }
 
     return client_->Blockchain().StoreIncoming(
-        Identifier::Factory(nymID),
-        Identifier::Factory(accountID),
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(accountID),
         index,
         internal,
         input);
@@ -2936,9 +2959,9 @@ bool SwigWrap::Blockchain_Store_Outgoing(
     }
 
     return client_->Blockchain().StoreOutgoing(
-        Identifier::Factory(nymID),
-        Identifier::Factory(accountID),
-        Identifier::Factory(recipientContactID),
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(accountID),
+        client_->Factory().Identifier(recipientContactID),
         input);
 }
 
@@ -2984,7 +3007,7 @@ std::string SwigWrap::Add_Contact(
 
     if (noLabel && noNym && noPaymentCode) { return {}; }
 
-    auto nym = Identifier::Factory(nymID);
+    auto nym = client_->Factory().NymID(nymID);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto code = client_->Factory().PaymentCode(paymentCode);
 
@@ -3035,8 +3058,8 @@ bool SwigWrap::Contact_Add_Blockchain_Address(
     const std::string& address,
     const std::uint32_t chain)
 {
-    auto contact =
-        client_->Contacts().mutable_Contact(Identifier::Factory(contactID));
+    auto contact = client_->Contacts().mutable_Contact(
+        client_->Factory().Identifier(contactID));
 
     if (false == bool(contact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Contact does not exist.").Flush();
@@ -3058,14 +3081,16 @@ bool SwigWrap::Contact_Merge(
     const std::string& child)
 {
     auto contact = client_->Contacts().Merge(
-        Identifier::Factory(parent), Identifier::Factory(child));
+        client_->Factory().Identifier(parent),
+        client_->Factory().Identifier(child));
 
     return bool(contact);
 }
 
 std::string SwigWrap::Contact_Name(const std::string& id)
 {
-    auto contact = client_->Contacts().Contact(Identifier::Factory(id));
+    auto contact =
+        client_->Contacts().Contact(client_->Factory().Identifier(id));
 
     if (contact) { return contact->Label(); }
 
@@ -3076,7 +3101,8 @@ std::string SwigWrap::Contact_PaymentCode(
     const std::string& id,
     const std::uint32_t currency)
 {
-    auto contact = client_->Contacts().Contact(Identifier::Factory(id));
+    auto contact =
+        client_->Contacts().Contact(client_->Factory().Identifier(id));
 
     if (contact) {
 
@@ -3090,7 +3116,7 @@ std::string SwigWrap::Contact_PaymentCode(
 std::string SwigWrap::Contact_to_Nym(const std::string& contactID)
 {
     const auto contact =
-        client_->Contacts().Contact(Identifier::Factory(contactID));
+        client_->Contacts().Contact(client_->Factory().Identifier(contactID));
 
     if (false == bool(contact)) { return {}; }
 
@@ -3103,14 +3129,16 @@ std::string SwigWrap::Contact_to_Nym(const std::string& contactID)
 
 bool SwigWrap::Have_Contact(const std::string& id)
 {
-    auto contact = client_->Contacts().Contact(Identifier::Factory(id));
+    auto contact =
+        client_->Contacts().Contact(client_->Factory().Identifier(id));
 
     return bool(contact);
 }
 
 bool SwigWrap::Rename_Contact(const std::string& id, const std::string& name)
 {
-    auto contact = client_->Contacts().mutable_Contact(Identifier::Factory(id));
+    auto contact =
+        client_->Contacts().mutable_Contact(client_->Factory().Identifier(id));
 
     if (contact) {
         contact->It().SetLabel(name);
@@ -3123,7 +3151,9 @@ bool SwigWrap::Rename_Contact(const std::string& id, const std::string& name)
 
 std::string SwigWrap::Nym_to_Contact(const std::string& nymID)
 {
-    return client_->Contacts().ContactID(Identifier::Factory(nymID))->str();
+    return client_->Contacts()
+        .ContactID(client_->Factory().NymID(nymID))
+        ->str();
 }
 
 //-----------------------------------------------------------------------------
@@ -3132,7 +3162,7 @@ std::string SwigWrap::Bailment_Instructions(const std::string& account)
 {
     const auto& db = client_->Storage();
     const auto& wallet = client_->Wallet();
-    const auto accountID = Identifier::Factory(account);
+    const auto accountID = client_->Factory().Identifier(account);
 
     if (accountID->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account.").Flush();
@@ -3191,28 +3221,29 @@ std::uint8_t SwigWrap::Can_Message(
     const std::string& recipientContactID)
 {
     return static_cast<std::uint8_t>(client_->OTX().CanMessage(
-        Identifier::Factory(senderNymID),
-        Identifier::Factory(recipientContactID)));
+        client_->Factory().NymID(senderNymID),
+        client_->Factory().Identifier(recipientContactID)));
 }
 
 bool SwigWrap::Deposit_Cheque(
     const std::string& nymID,
     const std::string& chequeID)
 {
-    std::set<OTIdentifier> ids{Identifier::Factory(chequeID)};
+    std::set<OTIdentifier> ids{client_->Factory().Identifier(chequeID)};
 
-    return 1 == client_->OTX().DepositCheques(Identifier::Factory(nymID), ids);
+    return 1 ==
+           client_->OTX().DepositCheques(client_->Factory().NymID(nymID), ids);
 }
 
 bool SwigWrap::Deposit_Cheques(const std::string& nymID)
 {
-    return 0 < client_->OTX().DepositCheques(Identifier::Factory(nymID));
+    return 0 < client_->OTX().DepositCheques(client_->Factory().NymID(nymID));
 }
 
 std::string SwigWrap::Find_Nym(const std::string& nymID)
 {
     return std::to_string(
-        std::get<0>(client_->OTX().FindNym(Identifier::Factory(nymID))));
+        std::get<0>(client_->OTX().FindNym(client_->Factory().NymID(nymID))));
 }
 
 std::string SwigWrap::Find_Nym_Hint(
@@ -3220,13 +3251,14 @@ std::string SwigWrap::Find_Nym_Hint(
     const std::string& serverID)
 {
     return std::to_string(std::get<0>(client_->OTX().FindNym(
-        Identifier::Factory(nymID), Identifier::Factory(serverID))));
+        client_->Factory().NymID(nymID),
+        client_->Factory().ServerID(serverID))));
 }
 
 std::string SwigWrap::Find_Server(const std::string& serverID)
 {
-    return std::to_string(
-        std::get<0>(client_->OTX().FindServer(Identifier::Factory(serverID))));
+    return std::to_string(std::get<0>(
+        client_->OTX().FindServer(client_->Factory().ServerID(serverID))));
 }
 
 std::string SwigWrap::Get_Introduction_Server()
@@ -3251,8 +3283,8 @@ std::string SwigWrap::Message_Contact(
     const std::string& message)
 {
     const auto output = client_->OTX().MessageContact(
-        Identifier::Factory(senderNymID),
-        Identifier::Factory(contactID),
+        client_->Factory().NymID(senderNymID),
+        client_->Factory().Identifier(contactID),
         message);
 
     return std::to_string(std::get<0>(output));
@@ -3264,7 +3296,9 @@ bool SwigWrap::Pair_Node(
     const std::string& password)
 {
     return client_->Pair().AddIssuer(
-        Identifier::Factory(myNym), Identifier::Factory(bridgeNym), password);
+        client_->Factory().NymID(myNym),
+        client_->Factory().NymID(bridgeNym),
+        password);
 }
 
 bool SwigWrap::Pair_ShouldRename(
@@ -3272,7 +3306,8 @@ bool SwigWrap::Pair_ShouldRename(
     const std::string& serverID)
 {
     const auto context = client_->Wallet().ServerContext(
-        Identifier::Factory(localNym), Identifier::Factory(serverID));
+        client_->Factory().NymID(localNym),
+        client_->Factory().ServerID(serverID));
 
     if (false == bool(context)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Server does not exist.").Flush();
@@ -3288,13 +3323,14 @@ std::string SwigWrap::Pair_Status(
     const std::string& issuerNym)
 {
     return client_->Pair().IssuerDetails(
-        Identifier::Factory(localNym), Identifier::Factory(issuerNym));
+        client_->Factory().NymID(localNym),
+        client_->Factory().NymID(issuerNym));
 }
 
 std::string SwigWrap::Paired_Issuers(const std::string& localNym)
 {
     return comma(
-        client_->Pair().IssuerList(Identifier::Factory(localNym), true));
+        client_->Pair().IssuerList(client_->Factory().NymID(localNym), true));
 }
 
 std::string SwigWrap::Paired_Server(
@@ -3302,7 +3338,8 @@ std::string SwigWrap::Paired_Server(
     const std::string& issuerNymID)
 {
     auto issuer = client_->Wallet().Issuer(
-        Identifier::Factory(localNymID), Identifier::Factory(issuerNymID));
+        client_->Factory().NymID(localNymID),
+        client_->Factory().NymID(issuerNymID));
 
     if (false == bool(issuer)) { return {""}; }
 
@@ -3321,8 +3358,8 @@ std::string SwigWrap::Register_Nym_Public(
     const bool primary)
 {
     const auto taskID = client_->OTX().RegisterNymPublic(
-        Identifier::Factory(nym),
-        Identifier::Factory(server),
+        client_->Factory().NymID(nym),
+        client_->Factory().ServerID(server),
         setContactData,
         primary);
 
@@ -3337,9 +3374,9 @@ std::string SwigWrap::Send_Cheque(
     const std::string& memo)
 {
     const auto taskID = client_->OTX().SendCheque(
-        Identifier::Factory(localNymID),
-        Identifier::Factory(sourceAccountID),
-        Identifier::Factory(recipientContactID),
+        client_->Factory().NymID(localNymID),
+        client_->Factory().Identifier(sourceAccountID),
+        client_->Factory().Identifier(recipientContactID),
         value,
         memo);
 
@@ -3359,7 +3396,8 @@ std::string SwigWrap::Set_Introduction_Server(const std::string& contract)
 
 void SwigWrap::Start_Introduction_Server(const std::string& localNymID)
 {
-    client_->OTX().StartIntroductionServer(Identifier::Factory(localNymID));
+    client_->OTX().StartIntroductionServer(
+        client_->Factory().NymID(localNymID));
 }
 
 std::uint8_t SwigWrap::Task_Status(const std::string& id)
@@ -3381,7 +3419,7 @@ void SwigWrap::Trigger_Refresh() { client_->OTX().Refresh(); }
 
 const ui::ActivitySummary& SwigWrap::ActivitySummary(const std::string& nymID)
 {
-    return client_->UI().ActivitySummary(Identifier::Factory(nymID));
+    return client_->UI().ActivitySummary(client_->Factory().NymID(nymID));
 }
 
 const ui::AccountActivity& SwigWrap::AccountActivity(
@@ -3389,7 +3427,8 @@ const ui::AccountActivity& SwigWrap::AccountActivity(
     const std::string& accountID)
 {
     return client_->UI().AccountActivity(
-        Identifier::Factory(nymID), Identifier::Factory(accountID));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(accountID));
 }
 
 const ui::AccountSummary& SwigWrap::AccountSummary(
@@ -3397,7 +3436,7 @@ const ui::AccountSummary& SwigWrap::AccountSummary(
     const int currency)
 {
     return client_->UI().AccountSummary(
-        Identifier::Factory(nymID),
+        client_->Factory().NymID(nymID),
         static_cast<proto::ContactItemType>(currency));
 }
 
@@ -3406,22 +3445,23 @@ const ui::ActivityThread& SwigWrap::ActivityThread(
     const std::string& threadID)
 {
     return client_->UI().ActivityThread(
-        Identifier::Factory(nymID), Identifier::Factory(threadID));
+        client_->Factory().NymID(nymID),
+        client_->Factory().Identifier(threadID));
 }
 
 const ui::Contact& SwigWrap::Contact(const std::string& contactID)
 {
-    return client_->UI().Contact(Identifier::Factory(contactID));
+    return client_->UI().Contact(client_->Factory().Identifier(contactID));
 }
 
 const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)
 {
-    return client_->UI().ContactList(Identifier::Factory(nymID));
+    return client_->UI().ContactList(client_->Factory().NymID(nymID));
 }
 
 const ui::MessagableList& SwigWrap::MessagableList(const std::string& nymID)
 {
-    return client_->UI().MessagableList(Identifier::Factory(nymID));
+    return client_->UI().MessagableList(client_->Factory().NymID(nymID));
 }
 
 const ui::PayableList& SwigWrap::PayableList(
@@ -3429,14 +3469,14 @@ const ui::PayableList& SwigWrap::PayableList(
     std::uint32_t currency)
 {
     return client_->UI().PayableList(
-        Identifier::Factory(nymID),
+        client_->Factory().NymID(nymID),
         static_cast<proto::ContactItemType>(currency));
 }
 
-const ui::Profile& SwigWrap::Profile(const std::string& contactID)
+const ui::Profile& SwigWrap::Profile(const std::string& nymID)
 {
 
-    return client_->UI().Profile(Identifier::Factory(contactID));
+    return client_->UI().Profile(client_->Factory().NymID(nymID));
 }
 
 const network::zeromq::Context& SwigWrap::ZMQ()

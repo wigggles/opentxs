@@ -41,10 +41,11 @@ public:
 
     virtual std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,
-        const Identifier& unitID) const = 0;
-    virtual bool BailmentInitiated(const Identifier& unitID) const = 0;
+        const identifier::UnitDefinition& unitID) const = 0;
+    virtual bool BailmentInitiated(
+        const identifier::UnitDefinition& unitID) const = 0;
     virtual std::vector<BailmentDetails> BailmentInstructions(
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         const bool onlyUnused = true) const = 0;
     virtual std::vector<ConnectionDetails> ConnectionInfo(
         const proto::ConnectionInfoType type) const = 0;
@@ -53,11 +54,11 @@ public:
     virtual std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> GetRequests(
         const proto::PeerRequestType type,
         const RequestStatus state = RequestStatus::All) const = 0;
-    virtual const Identifier& IssuerID() const = 0;
-    virtual const Identifier& LocalNymID() const = 0;
+    virtual const identifier::Nym& IssuerID() const = 0;
+    virtual const identifier::Nym& LocalNymID() const = 0;
     virtual bool Paired() const = 0;
     virtual const std::string& PairingCode() const = 0;
-    virtual OTIdentifier PrimaryServer() const = 0;
+    virtual OTServerID PrimaryServer() const = 0;
     virtual std::set<proto::PeerRequestType> RequestTypes() const = 0;
     virtual proto::Issuer Serialize() const = 0;
     virtual bool StoreSecretComplete() const = 0;
@@ -65,7 +66,7 @@ public:
 
     virtual void AddAccount(
         const proto::ContactItemType type,
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         const Identifier& accountID) = 0;
     virtual bool AddReply(
         const proto::PeerRequestType type,
@@ -76,7 +77,7 @@ public:
         const Identifier& requestID) = 0;
     virtual bool RemoveAccount(
         const proto::ContactItemType type,
-        const Identifier& unitID,
+        const identifier::UnitDefinition& unitID,
         const Identifier& accountID) = 0;
     virtual void SetPaired(const bool paired) = 0;
     virtual void SetPairingCode(const std::string& code) = 0;

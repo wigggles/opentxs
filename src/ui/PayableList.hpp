@@ -16,7 +16,8 @@ using PayableListList = List<
     PayableListRowInterface,
     PayableListRowInternal,
     PayableListRowBlank,
-    PayableListSortKey>;
+    PayableListSortKey,
+    PayablePrimaryID>;
 
 class PayableList final : public PayableListList
 {
@@ -51,7 +52,7 @@ private:
     PayableList(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const proto::ContactItemType& currency);
     PayableList() = delete;
     PayableList(const PayableList&) = delete;

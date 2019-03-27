@@ -216,8 +216,8 @@ void Manager::Init()
 }
 
 std::recursive_mutex& Manager::Lock(
-    const Identifier& nymID,
-    const Identifier& serverID) const
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID) const
 {
     return get_lock({nymID.str(), serverID.str()});
 }

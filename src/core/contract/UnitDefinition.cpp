@@ -323,8 +323,9 @@ bool UnitDefinition::VisitAccountRecords(
     // this function.
     //
     if (nullptr != pMap) {
-        const auto pNotaryID = visitor.GetNotaryID();
-        OT_ASSERT(false == pNotaryID->empty());
+        const auto& pNotaryID = visitor.GetNotaryID();
+
+        OT_ASSERT(false == pNotaryID.empty());
 
         auto& theMap = pMap->the_map;
 
@@ -807,7 +808,9 @@ void UnitDefinition::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    wallet_.SetUnitDefinitionAlias(id_, alias);
+    wallet_.SetUnitDefinitionAlias(
+        identifier::UnitDefinition::Factory(id_->str()),
+        alias);  // TODO conversion
 }
 
 bool UnitDefinition::update_signature(const Lock& lock)

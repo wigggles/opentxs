@@ -13,7 +13,8 @@ typedef proto::CredentialIndex serializedCredentialIndex;
 class NymFile
 {
 public:
-    EXPORT virtual bool CompareID(const Identifier& theIdentifier) const = 0;
+    EXPORT virtual bool CompareID(
+        const identifier::Nym& theIdentifier) const = 0;
     EXPORT virtual void DisplayStatistics(String& strOutput) const = 0;
     EXPORT virtual bool GetInboxHash(
         const std::string& acct_id,
@@ -29,7 +30,7 @@ public:
         std::int32_t* pnReturnIndex = nullptr) const = 0;
     EXPORT virtual std::int32_t GetOutpaymentsCount() const = 0;
     EXPORT virtual const std::int64_t& GetUsageCredits() const = 0;
-    EXPORT virtual const Identifier& ID() const = 0;
+    EXPORT virtual const identifier::Nym& ID() const = 0;
     EXPORT virtual std::string PaymentCode() const = 0;
     EXPORT virtual bool SerializeNymFile(String& output) const = 0;
 

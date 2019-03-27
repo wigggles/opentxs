@@ -9,7 +9,9 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/contact/ContactItem.hpp"
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <sstream>
@@ -718,18 +720,18 @@ std::string ContactData::PhoneNumbers(bool active) const
     return output;
 }
 
-OTIdentifier ContactData::PreferredOTServer() const
+OTServerID ContactData::PreferredOTServer() const
 {
     auto group =
         Group(proto::CONTACTSECTION_COMMUNICATION, proto::CITEMTYPE_OPENTXS);
 
-    if (false == bool(group)) { return Identifier::Factory(); }
+    if (false == bool(group)) { return identifier::Server::Factory(); }
 
     auto claim = group->Best();
 
-    if (false == bool(claim)) { return Identifier::Factory(); }
+    if (false == bool(claim)) { return identifier::Server::Factory(); }
 
-    return Identifier::Factory(claim->Value());
+    return identifier::Server::Factory(claim->Value());
 }
 
 std::string ContactData::PrintContactData(const proto::ContactData& data)

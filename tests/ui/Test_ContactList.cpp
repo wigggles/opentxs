@@ -33,7 +33,7 @@ public:
     const opentxs::api::client::Manager& client_;
 
     const std::string fingerprint_;
-    const OTIdentifier nym_id_;
+    const OTNymID nym_id_;
     std::string contact_widget_id_;
     WidgetUpdateCounter counter_;
     std::mutex counter_lock_;
@@ -53,7 +53,7 @@ public:
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
               ""))
-        , nym_id_(Identifier::Factory(client_.Exec().CreateNymHD(
+        , nym_id_(identifier::Nym::Factory(client_.Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               ALICE_NYM_NAME,
               fingerprint_,

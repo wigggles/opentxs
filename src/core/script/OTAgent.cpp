@@ -15,6 +15,8 @@
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
@@ -24,7 +26,6 @@
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -103,7 +104,7 @@ OTAgent::OTAgent(
     , m_strGroupName(String::Factory())
 {
     // Grab m_strNymID
-    auto theNymID = Identifier::Factory();
+    auto theNymID = identifier::Nym::Factory();
     theNym.GetIdentifier(theNymID);
     theNymID->GetString(m_strNymID);
 
@@ -188,7 +189,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 //
 ConstNym OTAgent::LoadNym()
 {
-    auto theAgentNymID = Identifier::Factory();
+    auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
@@ -198,8 +199,7 @@ ConstNym OTAgent::LoadNym()
         return m_pNym;
     } else
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure. Are you sure this agent IS a Nym "
-            "at all?")
+            ": Failure. Are you sure this agent IS a Nym at all?")
             .Flush();
 
     return nullptr;
@@ -423,7 +423,7 @@ bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 //
 bool OTAgent::IsValidSigner(const Nym& theNym)
 {
-    auto theAgentNymID = Identifier::Factory();
+    auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // If there's a NymID on this agent, and it matches theNym's ID...
@@ -536,7 +536,7 @@ bool OTAgent::GetPartyID(Identifier& theOutput) const
 
 bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 {
-    auto theSignerID = Identifier::Factory();
+    auto theSignerID = identifier::Nym::Factory();
 
     if (!GetSignerID(theSignerID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": ERROR: Entities and roles "
@@ -566,7 +566,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     // TODO: When entites and ROLES are added, this function may change a bit to
     // accommodate them.
 
-    auto theAgentNymID = Identifier::Factory();
+    auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.) But in the case of
@@ -576,8 +576,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     if (bNymID) {
         // IsAnIndividual() is definitely true.
 
-        auto context = wallet_.ClientContext(
-            Identifier::Factory(strNotaryID), theAgentNymID);
+        auto context = wallet_.ClientContext(theAgentNymID);
 
         OT_ASSERT(context);
 
@@ -617,7 +616,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
     OTString pstrNote,
     OTString pstrAttachment)
 {
-    auto theAgentNymID = Identifier::Factory();
+    auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
@@ -644,7 +643,7 @@ bool OTAgent::DropServerNoticeToNymbox(
                        // when
                        // it FAILS to activate.
     const Nym& theServerNym,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lInReferenceTo,
     const String& strReference,
@@ -652,7 +651,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     OTString pstrAttachment,
     Nym* pActualNym)
 {
-    auto theAgentNymID = Identifier::Factory();
+    auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     // Not all agents have Nyms. (Might be a voting group.)
@@ -714,8 +713,8 @@ bool OTAgent::VerifyIssuedNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context =
-            wallet_.Context(Identifier::Factory(strNotaryID), m_pNym->ID());
+        auto context = wallet_.Context(
+            identifier::Server::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -743,8 +742,8 @@ bool OTAgent::VerifyTransactionNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context =
-            wallet_.Context(Identifier::Factory(strNotaryID), m_pNym->ID());
+        auto context = wallet_.Context(
+            identifier::Server::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -808,7 +807,7 @@ bool OTAgent::RecoverTransactionNumber(
 {
     if (nullptr != m_pNym) {
         auto context = wallet_.mutable_Context(
-            Identifier::Factory(strNotaryID), m_pNym->ID());
+            identifier::Server::Factory(strNotaryID), m_pNym->ID());
 
         return RecoverTransactionNumber(lNumber, context.It());
     } else {
@@ -844,8 +843,8 @@ bool OTAgent::RemoveTransactionNumber(
         return false;
     }
 
-    auto context =
-        wallet_.mutable_Context(Identifier::Factory(strNotaryID), m_pNym->ID());
+    auto context = wallet_.mutable_Context(
+        identifier::Server::Factory(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeAvailable(lNumber)) {
         context.It().OpenCronItem(lNumber);
@@ -886,8 +885,8 @@ bool OTAgent::RemoveIssuedNumber(
         return false;
     }
 
-    auto context =
-        wallet_.mutable_Context(Identifier::Factory(strNotaryID), m_pNym->ID());
+    auto context = wallet_.mutable_Context(
+        identifier::Server::Factory(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeIssued(lNumber)) {
         context.It().CloseCronItem(lNumber);

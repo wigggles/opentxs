@@ -26,17 +26,17 @@ private:
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     StoreSecret(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const ConstNym& nym,
         const proto::PeerRequest& serialized);
     StoreSecret(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const ConstNym& nym,
-        const Identifier& recipientID,
+        const identifier::Nym& recipientID,
         const proto::SecretType type,
         const std::string& primary,
         const std::string& secondary,
-        const Identifier& serverID);
+        const identifier::Server& serverID);
     StoreSecret() = delete;
 
 public:

@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/identifier/Server.hpp"
+
 #include "internal/consensus/Consensus.hpp"
 
 #include <atomic>
@@ -34,7 +36,7 @@ public:
     RequestNumber Request() const override;
     OTData Serialize() const override;
     proto::Context Serialized() const override;
-    const Identifier& Server() const override;
+    const identifier::Server& Server() const override { return server_id_; }
     bool VerifyAcknowledgedNumber(const RequestNumber& req) const override;
     bool VerifyAvailableNumber(const TransactionNumber& number) const override;
     bool VerifyIssuedNumber(const TransactionNumber& number) const override;
@@ -60,7 +62,7 @@ public:
 
 protected:
     const api::Core& api_;
-    const OTIdentifier server_id_;
+    const OTServerID server_id_;
     std::shared_ptr<const class Nym> remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
     std::set<TransactionNumber> issued_transaction_numbers_{};
@@ -106,23 +108,23 @@ protected:
         const std::uint32_t targetVersion,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const identifier::Server& server);
     Context(
         const api::Core& api,
         const std::uint32_t targetVersion,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server);
+        const identifier::Server& server);
 
 private:
     friend opentxs::Factory;
 
     const std::uint32_t target_version_{0};
 
-    virtual const Identifier& client_nym_id(const Lock& lock) const = 0;
+    virtual const identifier::Nym& client_nym_id(const Lock& lock) const = 0;
     proto::Context IDVersion(const Lock& lock) const;
-    virtual const Identifier& server_nym_id(const Lock& lock) const = 0;
+    virtual const identifier::Nym& server_nym_id(const Lock& lock) const = 0;
     proto::Context SigVersion(const Lock& lock) const;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)
         const override;

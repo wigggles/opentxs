@@ -7,7 +7,9 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 
 #include "Node.hpp"
 
@@ -19,16 +21,20 @@ namespace opentxs::storage
 class Accounts : public Node
 {
 public:
-    OTIdentifier AccountContract(const Identifier& accountID) const;
-    OTIdentifier AccountIssuer(const Identifier& accountID) const;
-    OTIdentifier AccountOwner(const Identifier& accountID) const;
-    OTIdentifier AccountServer(const Identifier& accountID) const;
-    OTIdentifier AccountSigner(const Identifier& accountID) const;
+    OTUnitID AccountContract(const Identifier& accountID) const;
+    OTNymID AccountIssuer(const Identifier& accountID) const;
+    OTNymID AccountOwner(const Identifier& accountID) const;
+    OTServerID AccountServer(const Identifier& accountID) const;
+    OTNymID AccountSigner(const Identifier& accountID) const;
     proto::ContactItemType AccountUnit(const Identifier& accountID) const;
-    std::set<OTIdentifier> AccountsByContract(const Identifier& unit) const;
-    std::set<OTIdentifier> AccountsByIssuer(const Identifier& issuerNym) const;
-    std::set<OTIdentifier> AccountsByOwner(const Identifier& ownerNym) const;
-    std::set<OTIdentifier> AccountsByServer(const Identifier& server) const;
+    std::set<OTIdentifier> AccountsByContract(
+        const identifier::UnitDefinition& unit) const;
+    std::set<OTIdentifier> AccountsByIssuer(
+        const identifier::Nym& issuerNym) const;
+    std::set<OTIdentifier> AccountsByOwner(
+        const identifier::Nym& ownerNym) const;
+    std::set<OTIdentifier> AccountsByServer(
+        const identifier::Server& server) const;
     std::set<OTIdentifier> AccountsByUnit(
         const proto::ContactItemType unit) const;
     std::string Alias(const std::string& id) const;
@@ -44,11 +50,11 @@ public:
         const std::string& id,
         const std::string& data,
         const std::string& alias,
-        const Identifier& ownerNym,
-        const Identifier& signerNym,
-        const Identifier& issuerNym,
-        const Identifier& server,
-        const Identifier& contract,
+        const identifier::Nym& ownerNym,
+        const identifier::Nym& signerNym,
+        const identifier::Nym& issuerNym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& contract,
         const proto::ContactItemType unit);
 
     ~Accounts() = default;
@@ -56,31 +62,34 @@ public:
 private:
     friend class Tree;
 
-    using Index = std::map<OTIdentifier, std::set<OTIdentifier>>;
+    using NymIndex = std::map<OTNymID, std::set<OTIdentifier>>;
+    using ServerIndex = std::map<OTServerID, std::set<OTIdentifier>>;
+    using ContractIndex = std::map<OTUnitID, std::set<OTIdentifier>>;
     using UnitIndex = std::map<proto::ContactItemType, std::set<OTIdentifier>>;
     /** owner, signer, issuer, server, contract, unit */
     using AccountData = std::tuple<
-        OTIdentifier,
-        OTIdentifier,
-        OTIdentifier,
-        OTIdentifier,
-        OTIdentifier,
+        OTNymID,
+        OTNymID,
+        OTNymID,
+        OTServerID,
+        OTUnitID,
         proto::ContactItemType>;
     using ReverseIndex = std::map<OTIdentifier, AccountData>;
 
-    Index owner_index_{};
-    Index signer_index_{};
-    Index issuer_index_{};
-    Index server_index_{};
-    Index contract_index_{};
+    NymIndex owner_index_{};
+    NymIndex signer_index_{};
+    NymIndex issuer_index_{};
+    ServerIndex server_index_{};
+    ContractIndex contract_index_{};
     UnitIndex unit_index_{};
     mutable ReverseIndex account_data_{};
 
+    template <typename A, typename M, typename I>
     static bool add_set_index(
         const Identifier& accountID,
-        const Identifier& argID,
-        Identifier& mapID,
-        Index& index);
+        const A& argID,
+        M& mapID,
+        I& index);
 
     template <typename K, typename I>
     static void erase(const Identifier& accountID, const K& key, I& index)
@@ -102,11 +111,11 @@ private:
     bool check_update_account(
         const Lock& lock,
         const OTIdentifier& accountID,
-        const Identifier& ownerNym,
-        const Identifier& signerNym,
-        const Identifier& issuerNym,
-        const Identifier& server,
-        const Identifier& contract,
+        const identifier::Nym& ownerNym,
+        const identifier::Nym& signerNym,
+        const identifier::Nym& issuerNym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& contract,
         const proto::ContactItemType unit);
     void init(const std::string& hash) override;
     bool save(const Lock& lock) const override;

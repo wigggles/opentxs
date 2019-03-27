@@ -8,6 +8,8 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
@@ -29,16 +31,16 @@
 namespace opentxs
 {
 PeerRequest::PeerRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
     : ot_super(nym, serialized.version())
-    , initiator_(Identifier::Factory(serialized.initiator()))
-    , recipient_(Identifier::Factory(serialized.recipient()))
+    , initiator_(api.Factory().NymID(serialized.initiator()))
+    , recipient_(api.Factory().NymID(serialized.recipient()))
     , server_(Identifier::Factory(serialized.server()))
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
-    , wallet_{wallet}
+    , api_(api)
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -46,17 +48,17 @@ PeerRequest::PeerRequest(
 }
 
 PeerRequest::PeerRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequest& serialized,
     const std::string& conditions)
     : ot_super(nym, serialized.version(), conditions)
-    , initiator_(Identifier::Factory(serialized.initiator()))
-    , recipient_(Identifier::Factory(serialized.recipient()))
+    , initiator_(api.Factory().NymID(serialized.initiator()))
+    , recipient_(api.Factory().NymID(serialized.recipient()))
     , server_(Identifier::Factory(serialized.server()))
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
-    , wallet_{wallet}
+    , api_(api)
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -64,19 +66,19 @@ PeerRequest::PeerRequest(
 }
 
 PeerRequest::PeerRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const std::uint32_t version,
-    const Identifier& recipient,
-    const Identifier& server,
+    const identifier::Nym& recipient,
+    const identifier::Server& server,
     const proto::PeerRequestType& type)
     : ot_super(nym, version)
-    , initiator_(Identifier::Factory(nym->ID()))
-    , recipient_(Identifier::Factory(recipient))
+    , initiator_(nym->ID())
+    , recipient_(recipient)
     , server_(Identifier::Factory(server))
     , cookie_(Identifier::Factory())
     , type_(type)
-    , wallet_{wallet}
+    , api_(api)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
@@ -85,20 +87,20 @@ PeerRequest::PeerRequest(
 }
 
 PeerRequest::PeerRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const std::uint32_t version,
-    const Identifier& recipient,
-    const Identifier& server,
+    const identifier::Nym& recipient,
+    const identifier::Server& server,
     const std::string& conditions,
     const proto::PeerRequestType& type)
     : ot_super(nym, version, conditions)
-    , initiator_(Identifier::Factory(nym->ID()))
-    , recipient_(Identifier::Factory(recipient))
+    , initiator_(nym->ID())
+    , recipient_(recipient)
     , server_(Identifier::Factory(server))
     , cookie_(Identifier::Factory())
     , type_(type)
-    , wallet_{wallet}
+    , api_(api)
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
@@ -122,17 +124,17 @@ proto::PeerRequest PeerRequest::Contract() const
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& sender,
     const proto::PeerRequestType& type,
-    const Identifier& unitID,
-    const Identifier& serverID,
-    const Identifier& recipient,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID,
+    const identifier::Nym& recipient,
     const Identifier& requestID,
     const std::string& txid,
     const Amount& amount)
 {
-    auto unit = wallet.UnitDefinition(unitID);
+    auto unit = api.Wallet().UnitDefinition(unitID);
 
     if (!unit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load unit definition.")
@@ -146,7 +148,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_PENDINGBAILMENT): {
             contract.reset(new BailmentNotice(
-                wallet,
+                api,
                 sender,
                 recipient,
                 unitID,
@@ -168,13 +170,13 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequestType& type,
-    const Identifier& unitID,
-    const Identifier& serverID)
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID)
 {
-    auto unit = wallet.UnitDefinition(unitID);
+    auto unit = api.Wallet().UnitDefinition(unitID);
 
     if (!unit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load unit definition.")
@@ -188,7 +190,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(new BailmentRequest(
-                wallet, nym, unit->Nym()->ID(), unitID, serverID));
+                api, nym, unit->Nym()->ID(), unitID, serverID));
             break;
         }
         default: {
@@ -203,15 +205,15 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequestType& type,
-    const Identifier& unitID,
-    const Identifier& serverID,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID,
     const std::uint64_t& amount,
     const std::string& terms)
 {
-    auto unit = wallet.UnitDefinition(unitID);
+    auto unit = api.Wallet().UnitDefinition(unitID);
 
     if (!unit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load unit definition.")
@@ -225,13 +227,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentRequest(
-                wallet,
-                nym,
-                unit->Nym()->ID(),
-                unitID,
-                serverID,
-                amount,
-                terms));
+                api, nym, unit->Nym()->ID(), unitID, serverID, amount, terms));
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request type.")
@@ -245,19 +241,19 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& sender,
     const proto::PeerRequestType& type,
     const proto::ConnectionInfoType connectionType,
-    const Identifier& recipient,
-    const Identifier& serverID)
+    const identifier::Nym& recipient,
+    const identifier::Server& serverID)
 {
     std::unique_ptr<PeerRequest> contract;
 
     switch (type) {
         case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionRequest(
-                wallet, sender, recipient, connectionType, serverID));
+                api, sender, recipient, connectionType, serverID));
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request type.")
@@ -271,21 +267,21 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& sender,
     const proto::PeerRequestType& type,
     const proto::SecretType secretType,
-    const Identifier& recipient,
+    const identifier::Nym& recipient,
     const std::string& primary,
     const std::string& secondary,
-    const Identifier& serverID)
+    const identifier::Server& serverID)
 {
     std::unique_ptr<PeerRequest> contract;
 
     switch (type) {
         case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new StoreSecret(
-                wallet,
+                api,
                 sender,
                 recipient,
                 secretType,
@@ -305,7 +301,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Factory(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
 {
@@ -319,19 +315,19 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
 
     switch (serialized.type()) {
         case (proto::PEERREQUEST_BAILMENT): {
-            contract.reset(new BailmentRequest(wallet, nym, serialized));
+            contract.reset(new BailmentRequest(api, nym, serialized));
         } break;
         case (proto::PEERREQUEST_OUTBAILMENT): {
-            contract.reset(new OutBailmentRequest(wallet, nym, serialized));
+            contract.reset(new OutBailmentRequest(api, nym, serialized));
         } break;
         case (proto::PEERREQUEST_PENDINGBAILMENT): {
-            contract.reset(new BailmentNotice(wallet, nym, serialized));
+            contract.reset(new BailmentNotice(api, nym, serialized));
         } break;
         case (proto::PEERREQUEST_CONNECTIONINFO): {
-            contract.reset(new ConnectionRequest(wallet, nym, serialized));
+            contract.reset(new ConnectionRequest(api, nym, serialized));
         } break;
         case (proto::PEERREQUEST_STORESECRET): {
-            contract.reset(new StoreSecret(wallet, nym, serialized));
+            contract.reset(new StoreSecret(api, nym, serialized));
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request type.")
@@ -531,6 +527,5 @@ bool PeerRequest::verify_signature(
     sigProto.CopyFrom(signature);
 
     return nym_->VerifyProto(serialized, sigProto);
-    ;
 }
 }  // namespace opentxs

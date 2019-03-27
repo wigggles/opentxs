@@ -54,15 +54,14 @@ private:
     const opentxs::api::server::Manager& manager_;
     OTZMQPushSocket notification_socket_;
 
-    static void AddHashesToTransaction(
+    void AddHashesToTransaction(
         OTTransaction& transaction,
         const Ledger& inbox,
         const Ledger& outbox,
-        const Identifier& accounthash);
-
+        const Identifier& accounthash) const;
     std::unique_ptr<Cheque> extract_cheque(
-        const Identifier& serverID,
-        const Identifier& unitID,
+        const identifier::Server& serverID,
+        const identifier::UnitDefinition& unitID,
         const Item& item) const;
     void send_push_notification(
         const Account& account,
@@ -106,7 +105,7 @@ private:
         const Cheque& cheque,
         const bool isVoucher,
         const bool cancelling,
-        const Identifier& senderNymID,
+        const identifier::Nym& senderNymID,
         ClientContext& senderContext,
         Account& senderAccount,
         Ledger& senderInbox,
@@ -227,7 +226,7 @@ private:
         Account& depositAccount,
         blind::Token& token);
     bool process_token_withdrawal(
-        const Identifier& unit,
+        const identifier::UnitDefinition& unit,
         ClientContext& context,
         ExclusiveAccount& reserveAccount,
         Account& account,

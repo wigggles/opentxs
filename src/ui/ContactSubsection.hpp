@@ -16,7 +16,8 @@ using ContactSubsectionList = List<
     ContactSubsectionRowInterface,
     ContactSubsectionRowInternal,
     ContactSubsectionRowBlank,
-    ContactSubsectionSortKey>;
+    ContactSubsectionSortKey,
+    ContactSubsectionPrimaryID>;
 using ContactSubsectionRow = RowType<
     ContactSectionRowInternal,
     ContactSectionInternalInterface,

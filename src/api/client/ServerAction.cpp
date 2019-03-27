@@ -47,8 +47,8 @@ ServerAction::ServerAction(
 }
 
 ServerAction::Action ServerAction::ActivateSmartContract(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const Identifier& accountID,
     const std::string& agentName,
     std::unique_ptr<OTSmartContract>& contract) const
@@ -58,16 +58,16 @@ ServerAction::Action ServerAction::ActivateSmartContract(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         accountID,
         agentName,
-        contract));
+        contract*/));
 }
 
 ServerAction::Action ServerAction::AdjustUsageCredits(
-    const Identifier& localNymID,
-    const Identifier& serverID,
-    const Identifier& targetNymID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
+    const identifier::Nym& targetNymID,
     const Amount adjustment) const
 {
     return Action(new OTAPI_Func(
@@ -75,14 +75,14 @@ ServerAction::Action ServerAction::AdjustUsageCredits(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         targetNymID,
-        adjustment));
+        adjustment*/));
 }
 
 ServerAction::Action ServerAction::CancelPaymentPlan(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     std::unique_ptr<OTPaymentPlan>& plan) const
 {
     // NOTE: Normally the SENDER (PAYER) is the one who deposits a payment plan.
@@ -99,9 +99,9 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         plan->GetRecipientAcctID(),
-        plan));
+        plan*/));
 }
 
 ServerAction::Action ServerAction::CreateMarketOffer(
@@ -116,8 +116,8 @@ ServerAction::Action ServerAction::CreateMarketOffer(
     const std::string& stopSign,
     const Amount activationPrice) const
 {
-    auto notaryID = Identifier::Factory();
-    auto nymID = Identifier::Factory();
+    auto notaryID = identifier::Server::Factory();
+    auto nymID = identifier::Nym::Factory();
     const auto assetAccount = api_.Wallet().Account(assetAccountID);
 
     if (assetAccount) {
@@ -130,7 +130,7 @@ ServerAction::Action ServerAction::CreateMarketOffer(
         lock_callback_({nymID->str(), notaryID->str()}),
         api_,
         nymID,
-        notaryID,
+        notaryID/*,
         assetAccountID,
         currencyAccountID,
         scale,
@@ -140,12 +140,12 @@ ServerAction::Action ServerAction::CreateMarketOffer(
         selling,
         lifetime.count(),
         activationPrice,
-        stopSign));
+        stopSign*/));
 }
 
 ServerAction::Action ServerAction::DepositPaymentPlan(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     std::unique_ptr<OTPaymentPlan>& plan) const
 {
     return Action(new OTAPI_Func(
@@ -153,14 +153,14 @@ ServerAction::Action ServerAction::DepositPaymentPlan(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         plan->GetSenderAcctID(),
-        plan));
+        plan*/));
 }
 
 ServerAction::Action ServerAction::DownloadMarketList(
-    const Identifier& localNymID,
-    const Identifier& serverID) const
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID) const
 {
     return Action(new OTAPI_Func(
         GET_MARKET_LIST,
@@ -171,8 +171,8 @@ ServerAction::Action ServerAction::DownloadMarketList(
 }
 
 ServerAction::Action ServerAction::DownloadMarketOffers(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const Identifier& marketID,
     const Amount depth) const
 {
@@ -181,14 +181,14 @@ ServerAction::Action ServerAction::DownloadMarketOffers(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         marketID,
-        depth));
+        depth*/));
 }
 
 ServerAction::Action ServerAction::DownloadMarketRecentTrades(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const Identifier& marketID) const
 {
     return Action(new OTAPI_Func(
@@ -196,13 +196,13 @@ ServerAction::Action ServerAction::DownloadMarketRecentTrades(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
-        marketID));
+        serverID/*,
+        marketID*/));
 }
 
 ServerAction::Action ServerAction::DownloadNymMarketOffers(
-    const Identifier& localNymID,
-    const Identifier& serverID) const
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID) const
 {
     return Action(new OTAPI_Func(
         GET_NYM_MARKET_OFFERS,
@@ -213,9 +213,9 @@ ServerAction::Action ServerAction::DownloadNymMarketOffers(
 }
 
 ServerAction::Action ServerAction::ExchangeBasketCurrency(
-    const Identifier& localNymID,
-    const Identifier& serverID,
-    const Identifier& instrumentDefinitionID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
     const Identifier& accountID,
     const Identifier& basketID,
     const bool direction) const
@@ -225,17 +225,17 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         instrumentDefinitionID,
         basketID,
         accountID,
         direction,
-        api_.OTAPI().GetBasketMemberCount(basketID)));
+        api_.OTAPI().GetBasketMemberCount(basketID)*/));
 }
 
 ServerAction::Action ServerAction::IssueBasketCurrency(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const proto::UnitDefinition& basket,
     const std::string& label) const
 {
@@ -244,14 +244,14 @@ ServerAction::Action ServerAction::IssueBasketCurrency(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         basket,
-        label));
+        label*/));
 }
 
 ServerAction::Action ServerAction::KillMarketOffer(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const Identifier& accountID,
     const TransactionNumber number) const
 {
@@ -260,14 +260,14 @@ ServerAction::Action ServerAction::KillMarketOffer(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         accountID,
-        number));
+        number*/));
 }
 
 ServerAction::Action ServerAction::KillPaymentPlan(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const Identifier& accountID,
     const TransactionNumber number) const
 {
@@ -276,15 +276,15 @@ ServerAction::Action ServerAction::KillPaymentPlan(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         accountID,
-        number));
+        number*/));
 }
 
 ServerAction::Action ServerAction::PayDividend(
-    const Identifier& localNymID,
-    const Identifier& serverID,
-    const Identifier& instrumentDefinitionID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
+    const identifier::UnitDefinition& instrumentDefinitionID,
     const Identifier& accountID,
     const std::string& memo,
     const Amount amountPerShare) const
@@ -294,16 +294,16 @@ ServerAction::Action ServerAction::PayDividend(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         accountID,
         instrumentDefinitionID,
         amountPerShare,
-        memo));
+        memo*/));
 }
 
 ServerAction::Action ServerAction::TriggerClause(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const TransactionNumber transactionNumber,
     const std::string& clause,
     const std::string& parameter) const
@@ -313,15 +313,15 @@ ServerAction::Action ServerAction::TriggerClause(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         transactionNumber,
         clause,
-        parameter));
+        parameter*/));
 }
 
 ServerAction::Action ServerAction::UnregisterAccount(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const Identifier& accountID) const
 {
     return Action(new OTAPI_Func(
@@ -329,13 +329,13 @@ ServerAction::Action ServerAction::UnregisterAccount(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
-        accountID));
+        serverID/*,
+        accountID*/));
 }
 
 ServerAction::Action ServerAction::UnregisterNym(
-    const Identifier& localNymID,
-    const Identifier& serverID) const
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID) const
 {
     return Action(new OTAPI_Func(
         DELETE_NYM,
@@ -346,10 +346,10 @@ ServerAction::Action ServerAction::UnregisterNym(
 }
 
 ServerAction::Action ServerAction::WithdrawVoucher(
-    const Identifier& localNymID,
-    const Identifier& serverID,
+    const identifier::Nym& localNymID,
+    const identifier::Server& serverID,
     const Identifier& accountID,
-    const Identifier& recipientNymID,
+    const identifier::Nym& recipientNymID,
     const Amount amount,
     const std::string& memo) const
 {
@@ -358,10 +358,10 @@ ServerAction::Action ServerAction::WithdrawVoucher(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID,
+        serverID/*,
         accountID,
         recipientNymID,
         amount,
-        memo));
+        memo*/));
 }
 }  // namespace opentxs::api::client::implementation

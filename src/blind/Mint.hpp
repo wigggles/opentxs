@@ -8,6 +8,8 @@
 #include "Internal.hpp"
 
 #include "opentxs/blind/Mint.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 
 #include <map>
 
@@ -33,7 +35,7 @@ public:
     std::int32_t GetSeries() const override { return m_nSeries; }
     time64_t GetValidFrom() const override { return m_VALID_FROM; }
     time64_t GetValidTo() const override { return m_VALID_TO; }
-    const Identifier& InstrumentDefinitionID() const override
+    const identifier::UnitDefinition& InstrumentDefinitionID() const override
     {
         return m_InstrumentDefinitionID;
     }
@@ -44,8 +46,8 @@ public:
         time64_t VALID_FROM,
         time64_t VALID_TO,
         time64_t MINT_EXPIRATION,
-        const Identifier& theInstrumentDefinitionID,
-        const Identifier& theNotaryID,
+        const identifier::UnitDefinition& theInstrumentDefinitionID,
+        const identifier::Server& theNotaryID,
         const Nym& theNotary,
         const std::int64_t nDenom1,
         const std::int64_t nDenom2,
@@ -64,7 +66,8 @@ public:
     void Release_Mint() override;
     void ReleaseDenominations() override;
     bool SaveMint(const char* szAppend = nullptr) override;
-    void SetInstrumentDefinitionID(const Identifier& newID) override
+    void SetInstrumentDefinitionID(
+        const identifier::UnitDefinition& newID) override
     {
         m_InstrumentDefinitionID = newID;
     }
@@ -85,11 +88,12 @@ protected:
 
     void InitMint();
 
+    const api::Core& api_;
     mapOfArmor m_mapPrivate;
     mapOfArmor m_mapPublic;
-    OTIdentifier m_NotaryID;
-    OTIdentifier m_ServerNymID;
-    OTIdentifier m_InstrumentDefinitionID;
+    OTServerID m_NotaryID;
+    OTNymID m_ServerNymID;
+    OTUnitID m_InstrumentDefinitionID;
     std::int32_t m_nDenominationCount{0};
     bool m_bSavePrivateKeys{false};
     std::int32_t m_nSeries{0};

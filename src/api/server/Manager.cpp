@@ -13,11 +13,13 @@
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
 #endif  // OT_CASH
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
@@ -170,7 +172,7 @@ void Manager::generate_mint(
     const std::string& unitID,
     const std::uint32_t series) const
 {
-    auto mint = GetPrivateMint(Identifier::Factory(unitID), series);
+    auto mint = GetPrivateMint(Factory().UnitID(unitID), series);
 
     if (mint) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Mint already exists.").Flush();
@@ -211,8 +213,8 @@ void Manager::generate_mint(
         now,
         validTo,
         expires,
-        Identifier::Factory(unitID),
-        Identifier::Factory(serverID),
+        Factory().UnitID(unitID),
+        Factory().ServerID(serverID),
         nym,
         1,
         10,
@@ -322,7 +324,7 @@ std::string Manager::GetOnion() const { return get_arg(OPENTXS_ARG_ONION); }
 
 #if OT_CASH
 std::shared_ptr<blind::Mint> Manager::GetPrivateMint(
-    const Identifier& unitID,
+    const identifier::UnitDefinition& unitID,
     std::uint32_t index) const
 {
     Lock lock(mint_lock_);
@@ -342,7 +344,7 @@ std::shared_ptr<blind::Mint> Manager::GetPrivateMint(
 }
 
 std::shared_ptr<const blind::Mint> Manager::GetPublicMint(
-    const Identifier& unitID) const
+    const identifier::UnitDefinition& unitID) const
 {
     Lock lock(mint_lock_);
     const std::string id{unitID.str()};
@@ -361,7 +363,7 @@ std::string Manager::GetUserName() const { return get_arg(OPENTXS_ARG_NAME); }
 
 std::string Manager::GetUserTerms() const { return get_arg(OPENTXS_ARG_TERMS); }
 
-const Identifier& Manager::ID() const { return server_.GetServerID(); }
+const identifier::Server& Manager::ID() const { return server_.GetServerID(); }
 
 void Manager::Init()
 {
@@ -472,7 +474,7 @@ void Manager::mint() const
             continue;
         }
 
-        auto mint = GetPrivateMint(Identifier::Factory(unitID), last);
+        auto mint = GetPrivateMint(Factory().UnitID(unitID), last);
 
         if (false == bool(mint)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -499,7 +501,10 @@ void Manager::mint() const
 }
 #endif  // OT_CASH
 
-const Identifier& Manager::NymID() const { return server_.GetServerNym().ID(); }
+const identifier::Nym& Manager::NymID() const
+{
+    return server_.GetServerNym().ID();
+}
 
 #if OT_CASH
 void Manager::ScanMints() const
@@ -542,7 +547,7 @@ void Manager::Start()
 }
 
 #if OT_CASH
-void Manager::UpdateMint(const Identifier& unitID) const
+void Manager::UpdateMint(const identifier::UnitDefinition& unitID) const
 {
     Lock updateLock(mint_update_lock_);
     mints_to_check_.push_front(unitID.str());
@@ -576,7 +581,7 @@ std::shared_ptr<blind::Mint> Manager::verify_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     if (false == mint->LoadMint(seriesID.c_str())) {
-        UpdateMint(Identifier::Factory(unitID));
+        UpdateMint(Factory().UnitID(unitID));
 
         return {};
     }

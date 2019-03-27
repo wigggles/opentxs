@@ -37,7 +37,6 @@ class Wallet;
 
 typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
-typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef bool CredentialIndexModeFlag;
 
@@ -71,7 +70,7 @@ public:
         const std::string& childID) const;
     EXPORT const class ContactData& Claims() const;
     EXPORT bool CompareID(const Nym& RHS) const;
-    EXPORT bool CompareID(const Identifier& rhs) const;
+    EXPORT bool CompareID(const identifier::Nym& rhs) const;
     EXPORT std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const;
@@ -81,7 +80,7 @@ public:
     EXPORT std::string EmailAddresses(bool active = true) const;
     EXPORT const String& GetDescription() const { return m_strDescription; }
     EXPORT const std::vector<OTIdentifier> GetMasterCredentialIDs() const;
-    EXPORT void GetIdentifier(Identifier& theIdentifier) const;
+    EXPORT void GetIdentifier(identifier::Nym& theIdentifier) const;
     EXPORT void GetIdentifier(String& theIdentifier) const;
     EXPORT const crypto::key::Asymmetric& GetPrivateAuthKey(
         proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
@@ -106,7 +105,7 @@ public:
         proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
     EXPORT const std::vector<OTIdentifier> GetRevokedCredentialIDs() const;
     EXPORT bool HasCapability(const NymCapability& capability) const;
-    EXPORT const Identifier& ID() const { return m_nymID; }
+    EXPORT const identifier::Nym& ID() const { return m_nymID; }
 
     /* Encrypt a symmetric key's password
      *
@@ -180,7 +179,7 @@ public:
         const NymParameters& nymParameters);
     EXPORT bool AddClaim(const Claim& claim);
     EXPORT bool AddContract(
-        const Identifier& instrumentDefinitionID,
+        const identifier::UnitDefinition& instrumentDefinitionID,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active = true);
@@ -282,7 +281,7 @@ private:
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
     OTString m_strVersion;
     OTString m_strDescription;
-    const OTIdentifier m_nymID;
+    const OTNymID m_nymID;
     std::shared_ptr<NymIDSource> source_{nullptr};
     mutable std::unique_ptr<class ContactData> contact_data_;
 
@@ -343,7 +342,7 @@ private:
 
     Nym(const api::Core& api, const NymParameters& nymParameters);
     Nym(const api::Core& api,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const proto::CredentialIndexMode mode = proto::CREDINDEX_ERROR);
     Nym() = delete;
     Nym(const Nym&) = delete;

@@ -63,7 +63,7 @@ IssuerItem::IssuerItem(
     [[maybe_unused]] const CustomData& custom,
     const proto::ContactItemType currency)
     : IssuerItemList(api, publisher, parent.NymID(), parent.WidgetID())
-    , IssuerItemRow(parent, Identifier::Factory(rowID), true)
+    , IssuerItemRow(parent, rowID, true)
     , listeners_({
           {api_.Endpoints().AccountUpdate(),
            new MessageProcessor<IssuerItem>(&IssuerItem::process_account)},
@@ -132,7 +132,7 @@ void IssuerItem::process_account(const network::zeromq::Message& message)
 
 void IssuerItem::refresh_accounts()
 {
-    const auto blank = Identifier::Factory();
+    const auto blank = identifier::UnitDefinition::Factory();
     const auto accounts = issuer_->AccountList(currency_, blank);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(accounts.size())(
         " accounts.")

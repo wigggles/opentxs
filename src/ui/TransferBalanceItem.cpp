@@ -45,7 +45,7 @@ TransferBalanceItem::TransferBalanceItem(
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID)
     : BalanceItem(
           parent,
@@ -115,7 +115,7 @@ bool TransferBalanceItem::get_contract() const
 {
     if (contract_) { return true; }
 
-    auto contractID = Identifier::Factory();
+    auto contractID = identifier::UnitDefinition::Factory();
     const auto in = parent_.AccountID() == transfer_->GetDestinationAcctID();
 
     if (in) {
@@ -185,7 +185,7 @@ void TransferBalanceItem::startup(const CustomData& custom)
 
                     if (0 < workflow.party_size()) {
                         text += get_contact_name(
-                            Identifier::Factory(workflow.party(0)));
+                            identifier::Nym::Factory(workflow.party(0)));
                     } else {
                         text += "account " +
                                 transfer_->GetDestinationAcctID().str();
@@ -208,7 +208,7 @@ void TransferBalanceItem::startup(const CustomData& custom)
 
                     if (0 < workflow.party_size()) {
                         text += get_contact_name(
-                            Identifier::Factory(workflow.party(0)));
+                            identifier::Nym::Factory(workflow.party(0)));
                     } else {
                         text += "account " +
                                 transfer_->GetPurportedAccountID().str();

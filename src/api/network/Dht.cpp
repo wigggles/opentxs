@@ -255,7 +255,7 @@ OTZMQMessage Dht::process_request(
 
     if (1 == incoming.size()) {
         const std::string id{incoming.at(0)};
-        const auto nymID = Identifier::Factory(id);
+        const auto nymID = identifier::Nym::Factory(id);
 
         if (false == nymID->empty()) {
             output = true;

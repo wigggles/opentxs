@@ -467,6 +467,8 @@ various sequence numbers. Hm.
 
 #include "opentxs/core/script/OTSmartContract.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -480,6 +482,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
 #include "opentxs/core/script/OTClause.hpp"
@@ -502,7 +505,6 @@ various sequence numbers. Hm.
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -741,7 +743,7 @@ OTSmartContract::OTSmartContract(const api::Core& core)
 
 OTSmartContract::OTSmartContract(
     const api::Core& core,
-    const Identifier& NOTARY_ID)
+    const identifier::Server& NOTARY_ID)
     : ot_super(core)
     , m_StashAccts(core, Account::stash)
     , m_strLastSenderUser(String::Factory())
@@ -919,7 +921,7 @@ OTPartyAccount    * GetPartyAccountByID(const Identifier& theAcctID);
 // Otherwise, if it wasn't empty (it had been already set) then
 // it will fail to set in this call, and return false.
 //
-bool OTSmartContract::SetNotaryIDIfEmpty(const Identifier& theID)
+bool OTSmartContract::SetNotaryIDIfEmpty(const identifier::Server& theID)
 {
     if (GetNotaryID().empty()) {
         SetNotaryID(theID);
@@ -967,7 +969,8 @@ void OTSmartContract::GetAllTransactionNumbers(NumList& numlistOutput) const
     }
 }
 
-std::int64_t OTSmartContract::GetOpeningNumber(const Identifier& theNymID) const
+std::int64_t OTSmartContract::GetOpeningNumber(
+    const identifier::Nym& theNymID) const
 {
     OTAgent* pAgent = nullptr;
     OTParty* pParty = FindPartyBasedOnNymIDAsAgent(theNymID, &pAgent);
@@ -1252,7 +1255,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    auto theFromAgentID = Identifier::Factory();
+    auto theFromAgentID = api_.Factory().Identifier();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1270,18 +1273,16 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
         return 0;
     }
 
-    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID());
+    const auto theFromAcctID =
+        api_.Factory().Identifier(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
-
-    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
-    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
-
     const std::string str_party_id = pFromParty->GetPartyID();
     const auto strPartyID = String::Factory(str_party_id);
-    const auto PARTY_NYM_ID = Identifier::Factory(strPartyID);
+    const auto PARTY_NYM_ID = api_.Factory().NymID(strPartyID);
 
-    const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
+    const auto PARTY_ACCT_ID =
+        api_.Factory().Identifier(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
     auto account = api_.Wallet().Account(PARTY_ACCT_ID);
@@ -1462,7 +1463,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    auto theFromAgentID = Identifier::Factory();
+    auto theFromAgentID = api_.Factory().Identifier();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1483,18 +1484,16 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
         return str_return_value;
     }
 
-    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID());
+    const auto theFromAcctID =
+        api_.Factory().Identifier(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
-
-    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
-    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
-
     const std::string str_party_id = pFromParty->GetPartyID();
     const auto strPartyID = String::Factory(str_party_id);
-    const auto PARTY_NYM_ID = Identifier::Factory(strPartyID);
+    const auto PARTY_NYM_ID = api_.Factory().NymID(strPartyID);
 
-    const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
+    const auto PARTY_ACCT_ID =
+        api_.Factory().Identifier(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the instrument definition.
     auto account = api_.Wallet().Account(PARTY_ACCT_ID);
@@ -1926,7 +1925,7 @@ bool OTSmartContract::StashAcctFunds(
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    auto theFromAgentID = Identifier::Factory();
+    auto theFromAgentID = api_.Factory().NymID();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
 
     if (!bFromAgentID) {
@@ -1944,7 +1943,8 @@ bool OTSmartContract::StashAcctFunds(
         return false;
     }
 
-    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID());
+    const auto theFromAcctID =
+        api_.Factory().Identifier(pFromAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID and theFromAgentID available.
 
@@ -2166,7 +2166,7 @@ bool OTSmartContract::UnstashAcctFunds(
     // then we can error out here if he's not.  We can then pass in his Nym ID.
     //
 
-    auto theToAgentID = Identifier::Factory();
+    auto theToAgentID = api_.Factory().NymID();
     const bool bToAgentID = pToAgent->GetSignerID(theToAgentID);
 
     if (!bToAgentID) {
@@ -2184,7 +2184,7 @@ bool OTSmartContract::UnstashAcctFunds(
         return false;
     }
 
-    const auto theToAcctID = Identifier::Factory(pToAcct->GetAcctID());
+    const auto theToAcctID = api_.Factory().Identifier(pToAcct->GetAcctID());
     //
     // BELOW THIS POINT, theToAcctID and theToAgentID available.
 
@@ -2227,7 +2227,7 @@ bool OTSmartContract::StashFunds(
     const std::int64_t& lAmount,  // negative amount here means UNstash.
                                   // Positive means STASH.
     const Identifier& PARTY_ACCT_ID,
-    const Identifier& PARTY_NYM_ID,
+    const identifier::Nym& PARTY_NYM_ID,
     OTStash& theStash)
 {
     OTCron* pCron = GetCron();
@@ -2242,8 +2242,8 @@ bool OTSmartContract::StashFunds(
         return false;
     }
 
-    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
-    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
+    const auto& NOTARY_ID = pCron->GetNotaryID();
+    const auto& NOTARY_NYM_ID = pServerNym->ID();
 
     // Load up the party's account and get the instrument definition, so we know
     // which stash to get off the stash.
@@ -2388,15 +2388,12 @@ bool OTSmartContract::StashFunds(
                        // THE AMOUNT BEFORE LOADING THE ACCOUNT. FYI.
     }
 
-    // Make sure they're not the same Account IDs ...
-    // Otherwise we would have to take care not to load them twice, like with
-    // the Nyms below.
-    // (Instead I just disallow it entirely. After all, even if I DID allow the
-    // account to transfer
-    // to itself, there would be no difference in balance than disallowing it.)
-    //
-    const auto STASH_ACCT_ID =
-        Identifier::Factory(stashAccount.get().GetRealAccountID());
+    // Make sure they're not the same Account IDs ... Otherwise we would have to
+    // take care not to load them twice, like with the Nyms below. (Instead I
+    // just disallow it entirely. After all, even if I DID allow the account to
+    // transfer to itself, there would be no difference in balance than
+    // disallowing it.)
+    const auto& STASH_ACCT_ID = stashAccount.get().GetRealAccountID();
 
     if (PARTY_ACCT_ID == STASH_ACCT_ID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": ERROR: Both account IDs were "
@@ -2409,8 +2406,9 @@ bool OTSmartContract::StashFunds(
     }
 
     // SHOULD NEVER HAPPEN
-    if (account.get().GetInstrumentDefinitionID() !=
-        stashAccount.get().GetInstrumentDefinitionID()) {
+    // TODO ambiguous overload
+    if (account.get().GetInstrumentDefinitionID().str() !=
+        stashAccount.get().GetInstrumentDefinitionID().str()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Aborted stash: Asset type ID "
             "doesn't match. THIS SHOULD NEVER HAPPEN!")
@@ -2426,9 +2424,8 @@ bool OTSmartContract::StashFunds(
         FlagForRemoval();  // Remove from Cron
         return false;
     }
-    const auto STASH_NYM_ID =
-        Identifier::Factory(stashAccount.get().GetNymID());
 
+    const auto& STASH_NYM_ID = stashAccount.get().GetNymID();
     bool bSuccess = false;  // The return value.
 
     auto strPartyNymID = String::Factory(PARTY_NYM_ID),
@@ -2470,8 +2467,9 @@ bool OTSmartContract::StashFunds(
     // using the pointers from there.
 
     // Find out if party Nym is actually also the server nym.
+    // TODO ambiguous overload
     const bool bPartyNymIsServerNym =
-        ((PARTY_NYM_ID == NOTARY_NYM_ID) ? true : false);
+        ((PARTY_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
     ConstNym pPartyNym = nullptr;
     const std::string str_party_id = strPartyNymID->Get();
 
@@ -2586,7 +2584,9 @@ bool OTSmartContract::StashFunds(
             // items... but not in this case.)
             //
             auto pItemParty{api_.Factory().Item(
-                *pTransParty, itemType::paymentReceipt, Identifier::Factory())};
+                *pTransParty,
+                itemType::paymentReceipt,
+                api_.Factory().Identifier())};
             OT_ASSERT(false != bool(pItemParty));  //  may be unnecessary, I'll
                                                    //  have to
                                                    // check
@@ -2958,7 +2958,8 @@ bool OTSmartContract::StashFunds(
             thePartyInbox->SignContract(*pServerNym);
             thePartyInbox->SaveContract();
 
-            account.get().SaveInbox(*thePartyInbox, Identifier::Factory());
+            account.get().SaveInbox(
+                *thePartyInbox, api_.Factory().Identifier());
 
             // This corresponds to the AddTransaction() call just above.
             // These are stored in a separate file now.
@@ -3213,8 +3214,8 @@ bool OTSmartContract::MoveAcctFundsStr(
     // then we can error out here if he's not.  We can then pass in his Nym ID
     //
 
-    auto theFromAgentID = Identifier::Factory(),
-         theToAgentID = Identifier::Factory();
+    auto theFromAgentID = api_.Factory().NymID();
+    auto theToAgentID = api_.Factory().NymID();
     const bool bFromAgentID = pFromAgent->GetSignerID(theFromAgentID);
     const bool bToAgentID = pToAgent->GetSignerID(theToAgentID);
 
@@ -3246,8 +3247,9 @@ bool OTSmartContract::MoveAcctFundsStr(
         return false;
     }
 
-    const auto theFromAcctID = Identifier::Factory(pFromAcct->GetAcctID()),
-               theToAcctID = Identifier::Factory(pToAcct->GetAcctID());
+    const auto theFromAcctID =
+                   api_.Factory().Identifier(pFromAcct->GetAcctID()),
+               theToAcctID = api_.Factory().Identifier(pToAcct->GetAcctID());
     //
     // BELOW THIS POINT, theFromAcctID, theFromAgentID, theToAcctID, and
     // theToAgentID are all available.
@@ -3401,8 +3403,7 @@ void OTSmartContract::onFinalReceipt(
 
         OT_ASSERT(nullptr != pPartyNym);
 
-        auto context =
-            api_.Wallet().mutable_ClientContext(GetNotaryID(), pPartyNym->ID());
+        auto context = api_.Wallet().mutable_ClientContext(pPartyNym->ID());
         const auto opening = pParty->GetOpeningTransNo();
         const bool haveOpening = pParty->GetOpeningTransNo() > 0;
         const bool issuedOpening = context.It().VerifyIssuedNumber(opening);
@@ -5133,7 +5134,8 @@ bool OTSmartContract::Compare(OTScriptable& rhs) const
             return false;
         }
 
-        if ((GetNotaryID() == pSmartContract->GetNotaryID()) &&
+        // TODO ambiguous overload
+        if ((GetNotaryID().str() == pSmartContract->GetNotaryID().str()) &&
             (GetValidFrom() == pSmartContract->GetValidFrom()) &&
             (GetValidTo() == pSmartContract->GetValidTo()))
             return true;
@@ -5273,7 +5275,7 @@ void OTSmartContract::ReleaseLastSenderRecipientIDs()
 void OTSmartContract::PrepareToActivate(
     const std::int64_t& lOpeningTransNo,
     const std::int64_t& lClosingTransNo,
-    const Identifier& theNymID,
+    const identifier::Nym& theNymID,
     const Identifier& theAcctID)
 {
     SetTransactionNum(lOpeningTransNo);
@@ -5334,17 +5336,17 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             String::Factory(xml->getAttributeValue("cancelerNymID"));
 
         if (strNotaryID->Exists()) {
-            const auto NOTARY_ID = Identifier::Factory(strNotaryID);
+            const auto NOTARY_ID = api_.Factory().ServerID(strNotaryID);
             SetNotaryID(NOTARY_ID);
         }
         if (strActivatorNymID->Exists()) {
             const auto ACTIVATOR_NYM_ID =
-                Identifier::Factory(strActivatorNymID);
+                api_.Factory().NymID(strActivatorNymID);
             SetSenderNymID(ACTIVATOR_NYM_ID);
         }
         if (strActivatorAcctID->Exists()) {
             const auto ACTIVATOR_ACCT_ID =
-                Identifier::Factory(strActivatorAcctID);
+                api_.Factory().Identifier(strActivatorAcctID);
             SetSenderAcctID(ACTIVATOR_ACCT_ID);
         }
 
@@ -5461,10 +5463,10 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // true == success, false == failure.
 bool OTSmartContract::MoveFunds(
     const std::int64_t& lAmount,
-    const Identifier& SOURCE_ACCT_ID,     // GetSenderAcctID();
-    const Identifier& SENDER_NYM_ID,      // GetSenderNymID();
-    const Identifier& RECIPIENT_ACCT_ID,  // GetRecipientAcctID();
-    const Identifier& RECIPIENT_NYM_ID)   // GetRecipientNymID();
+    const Identifier& SOURCE_ACCT_ID,         // GetSenderAcctID();
+    const identifier::Nym& SENDER_NYM_ID,     // GetSenderNymID();
+    const Identifier& RECIPIENT_ACCT_ID,      // GetRecipientAcctID();
+    const identifier::Nym& RECIPIENT_NYM_ID)  // GetRecipientNymID();
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -5482,8 +5484,8 @@ bool OTSmartContract::MoveFunds(
 
     bool bSuccess = false;  // The return value.
 
-    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
-    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
+    const auto& NOTARY_ID = pCron->GetNotaryID();
+    const auto& NOTARY_NYM_ID = pServerNym->ID();
 
     auto strSenderNymID = String::Factory(SENDER_NYM_ID),
          strRecipientNymID = String::Factory(RECIPIENT_NYM_ID),
@@ -5554,16 +5556,18 @@ bool OTSmartContract::MoveFunds(
     // We MIGHT use ONE, OR BOTH, of these, or none. (But probably both.)
 
     // Find out if either Nym is actually also the server.
+    // TODO ambiguous overload
     bool bSenderNymIsServerNym =
-        ((SENDER_NYM_ID == NOTARY_NYM_ID) ? true : false);
+        ((SENDER_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
+    // TODO ambiguous overload
     bool bRecipientNymIsServerNym =
-        ((RECIPIENT_NYM_ID == NOTARY_NYM_ID) ? true : false);
+        ((RECIPIENT_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
 
     // We also see, after all that is done, whether both pointers go to the same
-    // entity.
-    // (We'll want to know that later.)
+    // entity. (We'll want to know that later.)
+    // TODO ambiguous overload
     bool bUsersAreSameNym =
-        ((SENDER_NYM_ID == RECIPIENT_NYM_ID) ? true : false);
+        ((SENDER_NYM_ID.str() == RECIPIENT_NYM_ID.str()) ? true : false);
 
     ConstNym pSenderNym = nullptr;
     ConstNym pRecipientNym = nullptr;
@@ -5775,10 +5779,12 @@ bool OTSmartContract::MoveFunds(
     // A few verification if/elses...
 
     // Are both accounts of the same Asset Type?
-    if (sourceAccount.get().GetInstrumentDefinitionID() !=
-        recipientAccount.get().GetInstrumentDefinitionID()) {  // We already
-                                                               // know the
-                                                               // SUPPOSED
+    // TODO ambiguous overload
+    if (sourceAccount.get().GetInstrumentDefinitionID().str() !=
+        recipientAccount.get().GetInstrumentDefinitionID().str()) {  // We
+                                                                     // already
+                                                                     // know the
+                                                                     // SUPPOSED
         // Instrument Definition Ids of these accounts...
         // But only once
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
@@ -5899,9 +5905,13 @@ bool OTSmartContract::MoveFunds(
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
             auto pItemSend{api_.Factory().Item(
-                *pTransSend, itemType::paymentReceipt, Identifier::Factory())};
+                *pTransSend,
+                itemType::paymentReceipt,
+                api_.Factory().Identifier())};
             auto pItemRecip{api_.Factory().Item(
-                *pTransRecip, itemType::paymentReceipt, Identifier::Factory())};
+                *pTransRecip,
+                itemType::paymentReceipt,
+                api_.Factory().Identifier())};
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
@@ -6181,9 +6191,9 @@ bool OTSmartContract::MoveFunds(
 
             // Save both inboxes to storage. (File, DB, wherever it goes.)
             sourceAccount.get().SaveInbox(
-                *theSenderInbox, Identifier::Factory());
+                *theSenderInbox, api_.Factory().Identifier());
             recipientAccount.get().SaveInbox(
-                *theRecipientInbox, Identifier::Factory());
+                *theRecipientInbox, api_.Factory().Identifier());
 
             // These correspond to the AddTransaction() calls, just above
             //

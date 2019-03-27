@@ -50,7 +50,7 @@ namespace opentxs
 ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID)
 {
     return new ui::implementation::AccountActivity(
@@ -63,7 +63,7 @@ namespace opentxs::ui::implementation
 AccountActivity::AccountActivity(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID)
     : AccountActivityList(api, publisher, nymID)
     , listeners_({
@@ -95,7 +95,14 @@ void AccountActivity::construct_row(
     items_[index].emplace(
         id,
         Factory::BalanceItem(
-            *this, api_, publisher_, id, index, custom, nym_id_, account_id_));
+            *this,
+            api_,
+            publisher_,
+            id,
+            index,
+            custom,
+            primary_id_,
+            account_id_));
     names_.emplace(id, index);
 }
 
@@ -375,7 +382,7 @@ void AccountActivity::process_workflow(
     const Identifier& workflowID,
     std::set<AccountActivityRowID>& active)
 {
-    const auto workflow = api_.Workflow().LoadWorkflow(nym_id_, workflowID);
+    const auto workflow = api_.Workflow().LoadWorkflow(primary_id_, workflowID);
 
     OT_ASSERT(workflow)
 
@@ -419,7 +426,7 @@ void AccountActivity::startup()
 
     account.Release();
     const auto workflows =
-        api_.Workflow().WorkflowsByAccount(nym_id_, account_id_);
+        api_.Workflow().WorkflowsByAccount(primary_id_, account_id_);
     std::set<AccountActivityRowID> active{};
 
     for (const auto& id : workflows) { process_workflow(id, active); }

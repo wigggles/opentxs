@@ -16,13 +16,14 @@ using AccountSummaryList = List<
     AccountSummaryRowInterface,
     AccountSummaryRowInternal,
     AccountSummaryRowBlank,
-    AccountSummarySortKey>;
+    AccountSummarySortKey,
+    AccountSummaryPrimaryID>;
 
 class AccountSummary final : public AccountSummaryList
 {
 public:
     proto::ContactItemType Currency() const override { return currency_; }
-    const Identifier& NymID() const override { return nym_id_.get(); }
+    const identifier::Nym& NymID() const override { return primary_id_; }
 
     ~AccountSummary();
 
@@ -31,9 +32,9 @@ private:
 
     const ListenerDefinitions listeners_;
     const proto::ContactItemType currency_;
-    std::set<OTIdentifier> issuers_;
-    std::map<OTIdentifier, OTIdentifier> server_issuer_map_;
-    std::map<OTIdentifier, OTIdentifier> nym_server_map_;
+    std::set<OTNymID> issuers_;
+    std::map<OTServerID, OTNymID> server_issuer_map_;
+    std::map<OTNymID, OTServerID> nym_server_map_;
 
     void construct_row(
         const AccountSummaryRowID& id,
@@ -41,20 +42,20 @@ private:
         const CustomData& custom) const override;
 
     AccountSummarySortKey extract_key(
-        const Identifier& nymID,
-        const Identifier& issuerID);
+        const identifier::Nym& nymID,
+        const identifier::Nym& issuerID);
     void process_connection(const network::zeromq::Message& message);
-    void process_issuer(const Identifier& issuerID);
+    void process_issuer(const identifier::Nym& issuerID);
     void process_issuer(const network::zeromq::Message& message);
     void process_nym(const network::zeromq::Message& message);
     void process_server(const network::zeromq::Message& message);
-    void process_server(const OTIdentifier& serverID);
+    void process_server(const identifier::Server& serverID);
     void startup();
 
     AccountSummary(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID,
+        const identifier::Nym& nymID,
         const proto::ContactItemType currency);
     AccountSummary() = delete;
     AccountSummary(const AccountSummary&) = delete;

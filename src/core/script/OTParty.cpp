@@ -875,7 +875,7 @@ bool OTParty::VerifyOwnershipOfAccount(const Account& theAccount) const
             return false;
         }
 
-        const auto thePartyNymID = Identifier::Factory(str_nym_id);
+        const auto thePartyNymID = identifier::Nym::Factory(str_nym_id);
 
         return theAccount.VerifyOwnerByID(thePartyNymID);
     } else if (IsEntity())
@@ -1001,7 +1001,7 @@ bool OTParty::SendNoticeToParty(
     const api::Core& api,
     bool bSuccessMsg,
     const Nym& theServerNym,
-    const Identifier& theNotaryID,
+    const identifier::Server& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const String& strReference,
     OTString pstrNote,

@@ -47,8 +47,7 @@ blind::Purse* Factory::Purse(
     return Purse(
         api,
         *context.Nym(),
-        identifier::Server::Factory(context.Server().str()),  // TODO server id
-                                                              // type
+        context.Server(),
         context.RemoteNym(),
         type,
         mint,
@@ -64,12 +63,8 @@ blind::Purse* Factory::Purse(
     const blind::Mint& mint,
     const Amount totalValue)
 {
-    auto* output = new blind::implementation::Purse(
-        api,
-        identifier::Nym::Factory(nym.ID().str()),  // TODO nym id type
-        server,
-        type,
-        mint);
+    auto* output =
+        new blind::implementation::Purse(api, nym.ID(), server, type, mint);
 
     if (nullptr == output) { return nullptr; }
 
@@ -211,8 +206,7 @@ Purse::Purse(
           OT_PURSE_VERSION,
           type,
           server,
-          identifier::UnitDefinition::Factory(
-              mint.InstrumentDefinitionID().str()),  // TODO unit id type
+          mint.InstrumentDefinitionID(),
           proto::PURSETYPE_REQUEST,
           0,
           Time::min(),

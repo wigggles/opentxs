@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/util/Timer.hpp"
@@ -52,7 +53,7 @@ private:
     mapOfCronItems m_mapCronItems;
     multimapOfCronItems m_multimapCronItems;
     // Always store this in any object that's associated with a specific server.
-    OTIdentifier m_NOTARY_ID;
+    OTServerID m_NOTARY_ID;
     // I can't put receipts in people's inboxes without a supply of these.
     listOfLongNumbers m_listTransactionNumbers;
     // I don't want to start Cron processing until everything else is all loaded
@@ -127,15 +128,15 @@ public:
 
     std::shared_ptr<OTMarket> GetMarket(const Identifier& MARKET_ID);
     std::shared_ptr<OTMarket> GetOrCreateMarket(
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_ID,
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
+        const identifier::UnitDefinition& CURRENCY_ID,
         const std::int64_t& lScale);
     /** This is informational only. It returns OTStorage-type data objects,
      * packed in a string. */
     bool GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount);
     bool GetNym_OfferList(
         Armored& ascOutput,
-        const Identifier& NYM_ID,
+        const identifier::Nym& NYM_ID,
         std::int32_t& nOfferCount);
     // TRANSACTION NUMBERS
     /**The server starts out putting a bunch of numbers in here so Cron can use
@@ -158,11 +159,11 @@ public:
 
     std::int64_t computeTimeout();
 
-    inline void SetNotaryID(const Identifier& NOTARY_ID)
+    inline void SetNotaryID(const identifier::Server& NOTARY_ID)
     {
         m_NOTARY_ID = NOTARY_ID;
     }
-    inline const Identifier& GetNotaryID() const { return m_NOTARY_ID; }
+    inline const identifier::Server& GetNotaryID() const { return m_NOTARY_ID; }
 
     inline void SetServerNym(ConstNym pServerNym)
     {

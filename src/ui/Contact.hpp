@@ -16,7 +16,8 @@ using ContactType = List<
     ContactRowInterface,
     ContactRowInternal,
     ContactRowBlank,
-    ContactSortKey>;
+    ContactSortKey,
+    ContactPrimaryID>;
 
 class Contact : public ContactType
 {
@@ -58,7 +59,7 @@ private:
     Contact(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const Identifier& nymID);
+        const Identifier& contactID);
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;

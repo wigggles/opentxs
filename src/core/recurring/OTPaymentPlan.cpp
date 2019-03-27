@@ -13,6 +13,7 @@
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -20,7 +21,6 @@
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -53,8 +53,8 @@ OTPaymentPlan::OTPaymentPlan(const api::Core& core)
 
 OTPaymentPlan::OTPaymentPlan(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
@@ -64,12 +64,12 @@ OTPaymentPlan::OTPaymentPlan(
 
 OTPaymentPlan::OTPaymentPlan(
     const api::Core& core,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const identifier::Server& NOTARY_ID,
+    const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const Identifier& SENDER_ACCT_ID,
-    const Identifier& SENDER_NYM_ID,
+    const identifier::Nym& SENDER_NYM_ID,
     const Identifier& RECIPIENT_ACCT_ID,
-    const Identifier& RECIPIENT_NYM_ID)
+    const identifier::Nym& RECIPIENT_NYM_ID)
     : ot_super(
           core,
           NOTARY_ID,
@@ -587,14 +587,12 @@ bool OTPaymentPlan::ProcessPayment(
 
     bool bSuccess = false;  // The return value.
 
-    const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
-    const auto NOTARY_NYM_ID = Identifier::Factory(*pServerNym);
-
-    const Identifier& SOURCE_ACCT_ID = GetSenderAcctID();
-    const Identifier& SENDER_NYM_ID = GetSenderNymID();
-
-    const Identifier& RECIPIENT_ACCT_ID = GetRecipientAcctID();
-    const Identifier& RECIPIENT_NYM_ID = GetRecipientNymID();
+    const auto& NOTARY_ID = pCron->GetNotaryID();
+    const auto& NOTARY_NYM_ID = pServerNym->ID();
+    const auto& SOURCE_ACCT_ID = GetSenderAcctID();
+    const auto& SENDER_NYM_ID = GetSenderNymID();
+    const auto& RECIPIENT_ACCT_ID = GetRecipientAcctID();
+    const auto& RECIPIENT_NYM_ID = GetRecipientNymID();
 
     auto strSenderNymID = String::Factory(SENDER_NYM_ID),
          strRecipientNymID = String::Factory(RECIPIENT_NYM_ID),
@@ -654,16 +652,18 @@ bool OTPaymentPlan::ProcessPayment(
     // We MIGHT use ONE, OR BOTH, of these, or none. (But probably both.)
 
     // Find out if either Nym is actually also the server.
+    // TODO ambiguous overload
     bool bSenderNymIsServerNym =
-        ((SENDER_NYM_ID == NOTARY_NYM_ID) ? true : false);
+        ((SENDER_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
+    // TODO ambiguous overload
     bool bRecipientNymIsServerNym =
-        ((RECIPIENT_NYM_ID == NOTARY_NYM_ID) ? true : false);
+        ((RECIPIENT_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
 
     // We also see, after all that is done, whether both pointers go to the same
-    // entity.
-    // (We'll want to know that later.)
+    // entity. (We'll want to know that later.)
+    // TODO ambiguous overload
     bool bUsersAreSameNym =
-        ((SENDER_NYM_ID == RECIPIENT_NYM_ID) ? true : false);
+        ((SENDER_NYM_ID.str() == RECIPIENT_NYM_ID.str()) ? true : false);
 
     ConstNym pSenderNym = nullptr;
     ConstNym pRecipientNym = nullptr;
@@ -765,10 +765,12 @@ bool OTPaymentPlan::ProcessPayment(
     // A few verification if/elses...
 
     // Are both accounts of the same Asset Type?
-    if (sourceAccount.get().GetInstrumentDefinitionID() !=
-        recipientAccount.get().GetInstrumentDefinitionID()) {  // We already
-                                                               // know the
-                                                               // SUPPOSED
+    // TODO ambiguous overload
+    if (sourceAccount.get().GetInstrumentDefinitionID().str() !=
+        recipientAccount.get().GetInstrumentDefinitionID().str()) {  // We
+                                                                     // already
+                                                                     // know the
+                                                                     // SUPPOSED
         // Instrument Definition Ids of these accounts...
         // But only once
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
@@ -897,9 +899,13 @@ bool OTPaymentPlan::ProcessPayment(
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
             auto pItemSend{api_.Factory().Item(
-                *pTransSend, itemType::paymentReceipt, Identifier::Factory())};
+                *pTransSend,
+                itemType::paymentReceipt,
+                api_.Factory().Identifier())};
             auto pItemRecip{api_.Factory().Item(
-                *pTransRecip, itemType::paymentReceipt, Identifier::Factory())};
+                *pTransRecip,
+                itemType::paymentReceipt,
+                api_.Factory().Identifier())};
 
             OT_ASSERT(false != bool(pItemSend));
             OT_ASSERT(false != bool(pItemRecip));
@@ -1191,9 +1197,9 @@ bool OTPaymentPlan::ProcessPayment(
 
             // Save both inboxes to storage. (File, DB, wherever it goes.)
             sourceAccount.get().SaveInbox(
-                *theSenderInbox, Identifier::Factory());
+                *theSenderInbox, api_.Factory().Identifier());
             recipientAccount.get().SaveInbox(
-                *theRecipientInbox, Identifier::Factory());
+                *theRecipientInbox, api_.Factory().Identifier());
 
             // These correspond to the AddTransaction() calls just above. These
             // are stored in separate files now.

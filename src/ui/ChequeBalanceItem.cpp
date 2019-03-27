@@ -45,7 +45,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID)
     : BalanceItem(
           parent,
@@ -148,11 +148,11 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     std::string name{""};
     std::string text{""};
     auto number = std::to_string(cheque_->GetTransactionNum());
-    auto otherNymID = Identifier::Factory();
+    auto otherNymID = identifier::Nym::Factory();
 
     switch (type_) {
         case StorageBox::INCOMINGCHEQUE: {
-            otherNymID = Identifier::Factory(cheque_->GetSenderNymID());
+            otherNymID->Assign(cheque_->GetSenderNymID());
 
             if (otherNymID->empty()) { otherNymID = nym_id_; }
 
@@ -174,7 +174,7 @@ void ChequeBalanceItem::startup(const CustomData& custom)
             }
         } break;
         case StorageBox::OUTGOINGCHEQUE: {
-            otherNymID = Identifier::Factory(cheque_->GetRecipientNymID());
+            otherNymID->Assign(cheque_->GetRecipientNymID());
 
             switch (event.type()) {
                 case proto::PAYMENTEVENTTYPE_CREATE: {

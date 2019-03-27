@@ -69,12 +69,11 @@ UI::UI(const api::client::Manager& api, const Flag& running)
 }
 
 const ui::AccountActivity& UI::AccountActivity(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& accountID) const
 {
     Lock lock(lock_);
-    const AccountKey key(
-        Identifier::Factory(nymID), Identifier::Factory(accountID));
+    const AccountKey key(nymID, accountID);
     auto& output = accounts_[key];
 
     if (false == bool(output)) {
@@ -103,11 +102,11 @@ const ui::AccountList& UI::AccountList(const identifier::Nym& nym) const
 }
 
 const ui::AccountSummary& UI::AccountSummary(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const proto::ContactItemType currency) const
 {
     Lock lock(lock_);
-    const AccountSummaryKey key{Identifier::Factory(nymID), currency};
+    const AccountSummaryKey key{nymID, currency};
     auto& output = accounts_summaries_[key];
 
     if (false == bool(output)) {
@@ -120,7 +119,8 @@ const ui::AccountSummary& UI::AccountSummary(
     return *output;
 }
 
-const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
+const ui::ActivitySummary& UI::ActivitySummary(
+    const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
     auto& output = activity_summaries_[nymID];
@@ -136,7 +136,7 @@ const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
 }
 
 const ui::ActivityThread& UI::ActivityThread(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     const Identifier& threadID) const
 {
     Lock lock(lock_);
@@ -172,7 +172,7 @@ const ui::Contact& UI::Contact(const Identifier& contactID) const
     return *(it->second);
 }
 
-const ui::ContactList& UI::ContactList(const Identifier& nymID) const
+const ui::ContactList& UI::ContactList(const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
     auto& output = contact_lists_[nymID];
@@ -187,7 +187,7 @@ const ui::ContactList& UI::ContactList(const Identifier& nymID) const
     return *output;
 }
 
-const ui::MessagableList& UI::MessagableList(const Identifier& nymID) const
+const ui::MessagableList& UI::MessagableList(const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
     auto& output = messagable_lists_[nymID];
@@ -203,13 +203,12 @@ const ui::MessagableList& UI::MessagableList(const Identifier& nymID) const
 }
 
 const ui::PayableList& UI::PayableList(
-    const Identifier& nymID,
+    const identifier::Nym& nymID,
     proto::ContactItemType currency) const
 {
     Lock lock(lock_);
-    auto& output =
-        payable_lists_[std::pair<OTIdentifier, proto::ContactItemType>(
-            nymID, currency)];
+    auto& output = payable_lists_[std::pair<OTNymID, proto::ContactItemType>(
+        nymID, currency)];
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::PayableList(
@@ -221,18 +220,17 @@ const ui::PayableList& UI::PayableList(
     return *output;
 }
 
-const ui::Profile& UI::Profile(const Identifier& contactID) const
+const ui::Profile& UI::Profile(const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
-    auto id = Identifier::Factory(contactID);
-    auto it = profiles_.find(id);
+    auto it = profiles_.find(nymID);
 
     if (profiles_.end() == it) {
         it = profiles_
                  .emplace(
-                     std::move(id),
+                     nymID,
                      opentxs::Factory::ProfileWidget(
-                         api_, widget_update_publisher_, contactID))
+                         api_, widget_update_publisher_, nymID))
                  .first;
     }
 
@@ -240,6 +238,4 @@ const ui::Profile& UI::Profile(const Identifier& contactID) const
 
     return *(it->second);
 }
-
-UI::~UI() {}
 }  // namespace opentxs::api::client::implementation

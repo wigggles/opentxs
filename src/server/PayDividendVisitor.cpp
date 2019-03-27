@@ -11,10 +11,12 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
 #include "opentxs/core/Cheque.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -33,17 +35,17 @@ namespace opentxs
 {
 PayDividendVisitor::PayDividendVisitor(
     server::Server& server,
-    const Identifier& theNotaryID,
-    const Identifier& theNymID,
-    const Identifier& thePayoutUnitTypeId,
+    const identifier::Server& theNotaryID,
+    const identifier::Nym& theNymID,
+    const identifier::UnitDefinition& thePayoutUnitTypeId,
     const Identifier& theVoucherAcctID,
     const String& strMemo,
     std::int64_t lPayoutPerShare)
-    : AccountVisitor(server.API().Wallet(), Identifier::Factory(theNotaryID))
+    : AccountVisitor(server.API().Wallet(), theNotaryID)
     , server_(server)
-    , nymId_(Identifier::Factory(theNymID))
-    , payoutUnitTypeId_(Identifier::Factory(thePayoutUnitTypeId))
-    , voucherAcctId_(Identifier::Factory(theVoucherAcctID))
+    , nymId_(theNymID)
+    , payoutUnitTypeId_(thePayoutUnitTypeId)
+    , voucherAcctId_(theVoucherAcctID)
     , m_pstrMemo(String::Factory(strMemo.Get()))
     , m_lPayoutPerShare(lPayoutPerShare)
     , m_lAmountPaidOut(0)
@@ -78,17 +80,17 @@ bool PayDividendVisitor::Trigger(
         return true;  // nothing to pay, since this account owns no shares.
                       // Success!
     }
-    OT_ASSERT(false == GetNotaryID()->empty());
-    const auto theNotaryID = GetNotaryID();
-    OT_ASSERT(!GetPayoutUnitTypeId()->empty());
-    const Identifier& payoutUnitTypeId_ = (Identifier::Factory());
-    OT_ASSERT(!GetVoucherAcctID()->empty());
-    const Identifier& theVoucherAcctID = (GetVoucherAcctID());
+    OT_ASSERT(false == GetNotaryID().empty());
+    const auto& theNotaryID = GetNotaryID();
+    OT_ASSERT(!GetPayoutUnitTypeId().empty());
+    const auto& payoutUnitTypeId_ = GetPayoutUnitTypeId();
+    OT_ASSERT(!GetVoucherAcctID().empty());
+    const auto& theVoucherAcctID = (GetVoucherAcctID());
     Nym& theServerNym = const_cast<Nym&>(server_.GetServerNym());
-    const auto theServerNymID = Identifier::Factory(theServerNym);
-    const Identifier& RECIPIENT_ID = theSharesAccount.GetNymID();
-    OT_ASSERT(!GetNymID()->empty());
-    const Identifier& theSenderNymID = (GetNymID());
+    const auto& theServerNymID = theServerNym.ID();
+    const auto& RECIPIENT_ID = theSharesAccount.GetNymID();
+    OT_ASSERT(!GetNymID().empty());
+    const auto& theSenderNymID = (GetNymID());
     OT_ASSERT(!GetMemo()->empty());
     const String& strMemo = (GetMemo());
     // Note: theSenderNymID is the originator of the Dividend Payout.
@@ -99,8 +101,8 @@ bool PayDividendVisitor::Trigger(
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    auto theVoucher{
-        server_.API().Factory().Cheque(theNotaryID, Identifier::Factory())};
+    auto theVoucher{server_.API().Factory().Cheque(
+        theNotaryID, server_.API().Factory().UnitID())};
 
     OT_ASSERT(false != bool(theVoucher));
 
@@ -120,8 +122,8 @@ bool PayDividendVisitor::Trigger(
     // 180 days (6 months).
     // Todo hardcoding.
     TransactionNumber lNewTransactionNumber = 0;
-    auto context = server_.API().Wallet().mutable_ClientContext(
-        theServerNym.ID(), theServerNym.ID());
+    auto context =
+        server_.API().Wallet().mutable_ClientContext(theServerNym.ID());
     bool bGotNextTransNum =
         server_.GetTransactor().issueNextTransactionNumberToNym(
             context.It(), lNewTransactionNumber);  // We save the transaction
@@ -144,7 +146,7 @@ bool PayDividendVisitor::Trigger(
                                // nym.)
             strMemo,  // Optional memo field. Includes item note and request
                       // memo.
-            Identifier::Factory(RECIPIENT_ID));
+            RECIPIENT_ID);
 
         // All account crediting / debiting happens in the caller, in
         // server::Server.
@@ -190,8 +192,7 @@ bool PayDividendVisitor::Trigger(
             // lTotalPayoutAmount, then we return to rest
             // to the sender.
         } else {
-            const auto strPayoutUnitTypeId = String::Factory(
-                           Identifier::Factory(payoutUnitTypeId_)),
+            const auto strPayoutUnitTypeId = String::Factory(payoutUnitTypeId_),
                        strRecipientNymID = String::Factory(RECIPIENT_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": ERROR failed issuing "
@@ -205,7 +206,7 @@ bool PayDividendVisitor::Trigger(
         //
         if (!bSent) {
             auto theReturnVoucher{server_.API().Factory().Cheque(
-                theNotaryID, Identifier::Factory())};
+                theNotaryID, server_.API().Factory().UnitID())};
 
             OT_ASSERT(false != bool(theReturnVoucher));
 
@@ -222,9 +223,9 @@ bool PayDividendVisitor::Trigger(
                                    // server nym.)
                 strMemo,  // Optional memo field. Includes item note and request
                           // memo.
-                Identifier::Factory(theSenderNymID));  // We're returning the
-                                                       // money to its original
-                                                       // sender.
+                theSenderNymID);  // We're returning the money to its original
+                                  // sender.
+
             if (bIssueReturnVoucher) {
                 // All this does is set the voucher's internal contract string
                 // to

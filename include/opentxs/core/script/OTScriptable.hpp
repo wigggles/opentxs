@@ -70,10 +70,10 @@ public:
         const Account& theAccount,
         OTPartyAccount** ppPartyAccount = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAgent(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAuthAgent(
-        const Identifier& theNymID,
+        const identifier::Nym& theNymID,
         OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccountID(
         const Identifier& theAcctID,
@@ -172,7 +172,7 @@ public:
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg,
         const Nym& theServerNym,
-        const Identifier& theNotaryID,
+        const identifier::Server& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
