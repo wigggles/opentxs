@@ -45,10 +45,25 @@ ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
     const network::zeromq::PublishSocket& publisher,
     const ui::implementation::ContactRowID& rowID,
     const ui::implementation::ContactSortKey& key,
-    const ui::implementation::CustomData& custom)
+    const ui::implementation::CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::ContactSection(
-        parent, api, publisher, rowID, key, custom);
+        parent,
+        api,
+        publisher,
+        rowID,
+        key,
+        custom
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -137,12 +152,22 @@ ContactSection::ContactSection(
     const network::zeromq::PublishSocket& publisher,
     const ContactRowID& rowID,
     const ContactSortKey& key,
-    const CustomData& custom)
+    const CustomData& custom
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
     : ContactSectionList(
           api,
           publisher,
           Identifier::Factory(parent.ContactID()),
-          parent.WidgetID())
+          parent.WidgetID()
+#if OT_QT
+              ,
+          qt
+#endif
+          )
     , ContactSectionRow(parent, rowID, true)
 {
     init();
@@ -172,7 +197,17 @@ void ContactSection::construct_row(
     items_[index].emplace(
         id,
         Factory::ContactSubsectionWidget(
-            *this, api_, publisher_, id, index, custom));
+            *this,
+            api_,
+            publisher_,
+            id,
+            index,
+            custom
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
 }
 
 std::set<ContactSectionRowID> ContactSection::process_section(

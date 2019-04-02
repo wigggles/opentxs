@@ -15,9 +15,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -26,12 +24,9 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
-#include "opentxs/ui/AccountList.hpp"
 #include "opentxs/ui/AccountListItem.hpp"
 
-#include "internal/ui/UI.hpp"
 #include "AccountListItemBlank.hpp"
-#include "List.hpp"
 
 #include <map>
 #include <memory>
@@ -51,9 +46,22 @@ namespace opentxs
 ui::implementation::AccountListExternalInterface* Factory::AccountList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
-    return new ui::implementation::AccountList(api, publisher, nymID);
+    return new ui::implementation::AccountList(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -62,8 +70,27 @@ namespace opentxs::ui::implementation
 AccountList::AccountList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
-    : AccountListList(api, publisher, nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : AccountListList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt,
+          Roles{{IDRole, "id"},
+                {ContractIDRole, "contractid"},
+                {BalanceRole, "balance"},
+                {NotaryIDRole, "notaryid"},
+                {NotaryNameRole, "notaryname"}},
+          1
+#endif
+          )
     , listeners_{
           {api_.Endpoints().AccountUpdate(),
            new MessageProcessor<AccountList>(&AccountList::process_account)}}
@@ -85,6 +112,43 @@ void AccountList::construct_row(
         Factory::AccountListItem(*this, api_, publisher_, id, index, custom));
     names_.emplace(id, index);
 }
+
+#if OT_QT
+QVariant AccountList::data(const QModelIndex& index, int role) const
+{
+    const auto [valid, pRow] = check_index(index);
+
+    if (false == valid) { return {}; }
+
+    const auto& row = *pRow;
+
+    switch (role) {
+        case IDRole: {
+            return row.AccountID().c_str();
+        }
+        case NameRole: {
+            return row.Name().c_str();
+        }
+        case ContractIDRole: {
+            return row.ContractID().c_str();
+        }
+        case BalanceRole: {
+            return row.DisplayBalance().c_str();
+        }
+        case NotaryIDRole: {
+            return row.NotaryID().c_str();
+        }
+        case NotaryNameRole: {
+            return row.NotaryName().c_str();
+        }
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
 
 void AccountList::process_account(const Identifier& id)
 {

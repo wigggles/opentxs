@@ -8,15 +8,12 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
-#include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -27,13 +24,10 @@
 #include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
-#include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/Types.hpp"
 
-#include "internal/ui/UI.hpp"
 #include "ActivityThreadItemBlank.hpp"
-#include "List.hpp"
 
 #include <map>
 #include <memory>
@@ -57,10 +51,23 @@ ui::ActivityThread* Factory::ActivityThread(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const Identifier& threadID)
+    const Identifier& threadID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::ActivityThread(
-        api, publisher, nymID, threadID);
+        api,
+        publisher,
+        nymID,
+        threadID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -70,8 +77,30 @@ ActivityThread::ActivityThread(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const identifier::Nym& nymID,
-    const Identifier& threadID)
-    : ActivityThreadList(api, publisher, nymID)
+    const Identifier& threadID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    )
+    : ActivityThreadList(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt,
+        Roles{{AmountRole, "amount"},
+              {MemoRole, "memo"},
+              {TextRole, "text"},
+              {TimestampRole, "timestamp"},
+              {TypeRole, "type"},
+              {DepositRole, "deposit"},
+              {LoadingRole, "loading"},
+              {PendingRole, "pending"}},
+        1
+#endif
+    )
     , listeners_{{api_.Activity().ThreadPublisher(nymID),
         new MessageProcessor<ActivityThread>(&ActivityThread::process_thread)},}
     , threadID_(Identifier::Factory(threadID))
@@ -183,6 +212,52 @@ void ActivityThread::construct_row(
         }
     }
 }
+
+#if OT_QT
+QVariant ActivityThread::data(const QModelIndex& index, int role) const
+{
+    const auto [valid, pRow] = check_index(index);
+
+    if (false == valid) { return {}; }
+
+    const auto& row = *pRow;
+
+    switch (role) {
+        case AmountRole: {
+            return row.DisplayAmount().c_str();
+        }
+        case MemoRole: {
+            return row.Memo().c_str();
+        }
+        case TextRole: {
+            return row.Text().c_str();
+        }
+        case TimestampRole: {
+            QDateTime qdatetime;
+            qdatetime.setSecsSinceEpoch(
+                std::chrono::system_clock::to_time_t(row.Timestamp()));
+            return qdatetime;
+        }
+        case TypeRole: {
+            return storage_box_name(row.Type()).c_str();
+        }
+        case DepositRole: {
+            return row.Deposit();
+        }
+        case LoadingRole: {
+            return row.Loading();
+        }
+        case PendingRole: {
+            return row.Pending();
+        }
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
 
 std::string ActivityThread::DisplayName() const
 {

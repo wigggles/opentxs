@@ -73,7 +73,12 @@ private:
         const network::zeromq::PublishSocket& publisher,
         const ProfileSectionRowID& rowID,
         const ProfileSectionSortKey& key,
-        const CustomData& custom);
+        const CustomData& custom
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     ProfileSubsection() = delete;
     ProfileSubsection(const ProfileSubsection&) = delete;
     ProfileSubsection(ProfileSubsection&&) = delete;

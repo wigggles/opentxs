@@ -114,7 +114,14 @@ Manager::Manager(
           *ot_api_->m_pClient,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
     , pair_(opentxs::Factory::Pair(running_, *this))
-    , ui_(opentxs::Factory::UI(*this, running_))
+    , ui_(opentxs::Factory::UI(
+          *this,
+          running_
+#if OT_QT
+          ,
+          enable_qt_
+#endif
+          ))
     , lock_()
     , map_lock_()
     , context_locks_()

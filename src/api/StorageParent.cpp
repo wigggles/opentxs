@@ -35,6 +35,9 @@ StorageParent::StorageParent(
     , args_(args)
     , gc_interval_(0)
     , data_folder_(dataFolder)
+#if OT_QT
+    , enable_qt_(extract_qt(args))
+#endif
     , storage_config_()
     , migrate_storage_{false}
     , migrate_from_{String::Factory()}
@@ -126,6 +129,15 @@ OTString StorageParent::extract_primary_storage_plugin(const ArgList& args)
 {
     return extract_arg(OPENTXS_ARG_STORAGE_PLUGIN, args);
 }
+
+#if OT_QT
+bool StorageParent::extract_qt(const ArgList& args)
+{
+    const std::string qt{extract_arg("qt", args)->Get()};
+
+    return qt == "true";
+}
+#endif
 
 OTString StorageParent::get_primary_storage_plugin(
     const api::Settings& config,

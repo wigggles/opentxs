@@ -56,7 +56,12 @@ private:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency);
+        const proto::ContactItemType currency
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     AccountSummary() = delete;
     AccountSummary(const AccountSummary&) = delete;
     AccountSummary(AccountSummary&&) = delete;

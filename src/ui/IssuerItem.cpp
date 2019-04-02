@@ -45,10 +45,26 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const proto::ContactItemType currency)
+    const proto::ContactItemType currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::IssuerItem(
-        parent, api, publisher, rowID, sortKey, custom, currency);
+        parent,
+        api,
+        publisher,
+        rowID,
+        sortKey,
+        custom,
+        currency
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -61,8 +77,22 @@ IssuerItem::IssuerItem(
     const AccountSummaryRowID& rowID,
     const AccountSummarySortKey& sortKey,
     [[maybe_unused]] const CustomData& custom,
-    const proto::ContactItemType currency)
-    : IssuerItemList(api, publisher, parent.NymID(), parent.WidgetID())
+    const proto::ContactItemType currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : IssuerItemList(
+          api,
+          publisher,
+          parent.NymID(),
+          parent.WidgetID()
+#if OT_QT
+              ,
+          qt
+#endif
+          )
     , IssuerItemRow(parent, rowID, true)
     , listeners_({
           {api_.Endpoints().AccountUpdate(),

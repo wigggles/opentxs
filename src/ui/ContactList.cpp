@@ -14,9 +14,7 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -25,12 +23,9 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
-#include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 
-#include "internal/ui/UI.hpp"
 #include "ContactListItemBlank.hpp"
-#include "List.hpp"
 
 #include <map>
 #include <memory>
@@ -49,9 +44,22 @@ namespace opentxs
 ui::implementation::ContactListExternalInterface* Factory::ContactList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
-    return new ui::implementation::ContactList(api, publisher, nymID);
+    return new ui::implementation::ContactList(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -60,8 +68,27 @@ namespace opentxs::ui::implementation
 ContactList::ContactList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID)
-    : ContactListList(api, publisher, nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : ContactListList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt,
+          Roles{{IDRole, "id"},
+                {NameRole, "name"},
+                {ImageRole, "image"},
+                {SectionRole, "section"}},
+          1,
+          1
+#endif
+          )
     , listeners_({
           {api_.Endpoints().ContactUpdate(),
            new MessageProcessor<ContactList>(&ContactList::process_contact)},
@@ -127,6 +154,44 @@ void ContactList::construct_row(
         id, Factory::ContactListItem(*this, api_, publisher_, id, index));
 }
 
+#if OT_QT
+QVariant ContactList::data(const QModelIndex& index, int role) const
+{
+    if (false == index.isValid()) { return {}; }
+
+    if (columnCount() < index.column()) { return {}; }
+
+    const ContactListItem* pRow{
+        (0 == index.row())
+            ? owner_.get()
+            : static_cast<ContactListItem*>(index.internalPointer())};
+
+    if (nullptr == pRow) { return {}; }
+
+    const auto& row = *pRow;
+
+    switch (role) {
+        case IDRole: {
+            return row.ContactID().c_str();
+        }
+        case NameRole: {
+            return row.DisplayName().c_str();
+        }
+        case ImageRole: {
+            return row.ImageURI().c_str();
+        }
+        case SectionRole: {
+            return row.Section().c_str();
+        }
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
+
 /** Returns owner contact. Sets up iterators for next row */
 std::shared_ptr<const ContactListRowInternal> ContactList::first(
     const Lock& lock) const
@@ -139,6 +204,39 @@ std::shared_ptr<const ContactListRowInternal> ContactList::first(
 
     return owner_;
 }
+
+#if OT_QT
+QModelIndex ContactList::index(int row, int column, const QModelIndex& parent)
+    const
+{
+    if (columnCount() < column) { return {}; }
+
+    if (0 == row) {
+
+        return createIndex(row, column, owner_.get());
+    } else {
+        Lock lock(lock_);
+        int i{start_row_};
+        ContactListItem* item{nullptr};
+
+        for (const auto& [sortKey, map] : items_) {
+            for (const auto& [index, pRow] : map) {
+                if (i == row) {
+                    item = pRow.get();
+                    goto exit;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+    exit:
+        if (nullptr == item) { return {}; }
+
+        return createIndex(row, column, item);
+    }
+}
+#endif
 
 void ContactList::process_contact(const network::zeromq::Message& message)
 {

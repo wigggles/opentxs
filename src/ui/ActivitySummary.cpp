@@ -8,9 +8,7 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -19,12 +17,9 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
-#include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
-#include "internal/ui/UI.hpp"
 #include "ActivitySummaryItemBlank.hpp"
-#include "List.hpp"
 
 #include <map>
 #include <memory>
@@ -45,10 +40,23 @@ ui::implementation::ActivitySummaryExternalInterface* Factory::ActivitySummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Flag& running,
-    const identifier::Nym& nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
     return new ui::implementation::ActivitySummary(
-        api, publisher, running, nymID);
+        api,
+        publisher,
+        running,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -59,8 +67,28 @@ ActivitySummary::ActivitySummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Flag& running,
-    const identifier::Nym& nymID)
-    : ActivitySummaryList(api, publisher, nymID)
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : ActivitySummaryList(
+          api,
+          publisher,
+          nymID
+#if OT_QT
+          ,
+          qt,
+          Roles{{IDRole, "id"},
+                {NameRole, "name"},
+                {ImageRole, "image"},
+                {TextRole, "text"},
+                {TimestampRole, "timestamp"},
+                {TypeRole, "type"}},
+          1
+#endif
+          )
     , listeners_{{api_.Activity().ThreadPublisher(nymID),
                   new MessageProcessor<ActivitySummary>(
                       &ActivitySummary::process_thread)}}
@@ -72,6 +100,46 @@ ActivitySummary::ActivitySummary(
 
     OT_ASSERT(startup_)
 }
+
+#if OT_QT
+QVariant ActivitySummary::data(const QModelIndex& index, int role) const
+{
+    const auto [valid, pRow] = check_index(index);
+
+    if (false == valid) { return {}; }
+
+    const auto& row = *pRow;
+
+    switch (role) {
+        case IDRole: {
+            return row.ThreadID().c_str();
+        }
+        case NameRole: {
+            return row.DisplayName().c_str();
+        }
+        case ImageRole: {
+            return row.ImageURI().c_str();
+        }
+        case TextRole: {
+            return row.Text().c_str();
+        }
+        case TimestampRole: {
+            QDateTime qdatetime;
+            qdatetime.setSecsSinceEpoch(
+                std::chrono::system_clock::to_time_t(row.Timestamp()));
+            return qdatetime;
+        }
+        case TypeRole: {
+            return storage_box_name(row.Type()).c_str();
+        }
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
 
 void ActivitySummary::construct_row(
     const ActivitySummaryRowID& id,

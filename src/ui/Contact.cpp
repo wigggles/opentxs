@@ -45,9 +45,22 @@ namespace opentxs
 ui::implementation::ContactExternalInterface* Factory::ContactWidget(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& contactID)
+    const Identifier& contactID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
 {
-    return new ui::implementation::Contact(api, publisher, contactID);
+    return new ui::implementation::Contact(
+        api,
+        publisher,
+        contactID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
 }
 }  // namespace opentxs
 
@@ -64,8 +77,21 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
 Contact::Contact(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const Identifier& contactID)
-    : ContactType(api, publisher, contactID)
+    const Identifier& contactID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+    )
+    : ContactType(
+          api,
+          publisher,
+          contactID
+#if OT_QT
+          ,
+          qt
+#endif
+          )
     , listeners_({
           {api_.Endpoints().ContactUpdate(),
            new MessageProcessor<Contact>(&Contact::process_contact)},
@@ -95,7 +121,17 @@ void Contact::construct_row(
     items_[index].emplace(
         id,
         Factory::ContactSectionWidget(
-            *this, api_, publisher_, id, index, custom));
+            *this,
+            api_,
+            publisher_,
+            id,
+            index,
+            custom
+#if OT_QT
+            ,
+            enable_qt_
+#endif
+            ));
 }
 
 std::string Contact::ContactID() const { return primary_id_->str(); }

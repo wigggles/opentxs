@@ -76,7 +76,12 @@ private:
         const network::zeromq::PublishSocket& publisher,
         const ProfileRowID& rowID,
         const ProfileSortKey& key,
-        const CustomData& custom);
+        const CustomData& custom
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     ProfileSection() = delete;
     ProfileSection(const ProfileSection&) = delete;
     ProfileSection(ProfileSection&&) = delete;

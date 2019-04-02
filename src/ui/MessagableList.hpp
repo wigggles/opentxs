@@ -7,6 +7,11 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/ui/MessagableList.hpp"
+
+#include "internal/ui/UI.hpp"
+#include "List.hpp"
+
 namespace opentxs::ui::implementation
 {
 using MessagableListList = List<
@@ -21,7 +26,15 @@ using MessagableListList = List<
 
 class MessagableList final : public MessagableListList
 {
+#if OT_QT
+    Q_OBJECT
+#endif
+
 public:
+#if OT_QT
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+#endif
     const Identifier& ID() const override;
 
     ~MessagableList();
@@ -51,7 +64,12 @@ private:
     MessagableList(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const identifier::Nym& nymID);
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     MessagableList() = delete;
     MessagableList(const MessagableList&) = delete;
     MessagableList(MessagableList&&) = delete;
