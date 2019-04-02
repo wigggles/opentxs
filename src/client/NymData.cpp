@@ -188,10 +188,7 @@ bool NymData::HaveContract(
 
         const auto value = factory_.UnitID(claim->Value());
 
-        // TODO ambiguous overload
-        if (false == (instrumentDefinitionID.str() == value->str())) {
-            continue;
-        }
+        if (false == (instrumentDefinitionID == value)) { continue; }
 
         if ((false == primary) || claim->isPrimary()) { return true; }
     }

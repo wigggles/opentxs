@@ -209,13 +209,12 @@ void OTTransactionType::Release()
 //
 bool OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
 {
-    if ((GetNymID().str() != rhs.GetNymID().str()) ||  // TODO ambiguous
-                                                       // overload
+    if ((GetNymID() != rhs.GetNymID()) ||
         (GetRealAccountID() != rhs.GetRealAccountID()) ||
-        (GetRealNotaryID().str() != rhs.GetRealNotaryID().str()))  // TODO
-                                                                   // ambiguous
-                                                                   // overload
+        (GetRealNotaryID() != rhs.GetRealNotaryID())) {
         return false;
+    }
+
     return true;
 }
 

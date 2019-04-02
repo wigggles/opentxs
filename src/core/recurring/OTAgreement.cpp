@@ -621,10 +621,7 @@ std::int64_t OTAgreement::GetOpeningNumber(
 {
     const auto& theRecipientNymID = GetRecipientNymID();
 
-    // TODO ambiguous overload
-    if (theNymID.str() == theRecipientNymID.str()) {
-        return GetRecipientOpeningNum();
-    }
+    if (theNymID == theRecipientNymID) { return GetRecipientOpeningNum(); }
 
     return ot_super::GetOpeningNumber(theNymID);
 }
@@ -780,10 +777,9 @@ bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
 bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 {
     // Compare OTAgreement specific info here.
-    // TODO ambiguous overload
     if ((m_strConsideration->Compare(rhs.m_strConsideration)) &&
         (GetRecipientAcctID() == rhs.GetRecipientAcctID()) &&
-        (GetRecipientNymID().str() == rhs.GetRecipientNymID().str()) &&
+        (GetRecipientNymID() == rhs.GetRecipientNymID()) &&
         //        (   m_dequeClosingNumbers == rhs.m_dequeClosingNumbers ) && //
         // The merchant wouldn't know the customer's trans#s.
         // (Thus wouldn't expect them to be set in BOTH versions...)
@@ -795,11 +791,11 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
         // Same here -- we should let the merchant leave these blank,
         //      (   GetSenderNymID()    == rhs.GetSenderNymID()     ) && //
         // and then allow the customer to add them in his version,
-        (GetInstrumentDefinitionID().str() ==
-         rhs.GetInstrumentDefinitionID().str()) &&  // (and this Compare
-                                                    // function still still
-                                                    // verify it.)
-        (GetNotaryID().str() == rhs.GetNotaryID().str()) &&
+        (GetInstrumentDefinitionID() ==
+         rhs.GetInstrumentDefinitionID()) &&  // (and this Compare
+                                              // function still still
+                                              // verify it.)
+        (GetNotaryID() == rhs.GetNotaryID()) &&
         (GetValidFrom() == rhs.GetValidFrom()) &&
         (GetValidTo() == rhs.GetValidTo()))
         return true;
@@ -823,8 +819,7 @@ bool OTAgreement::SetProposal(
     const auto& id_MERCHANT_NYM = nym.ID();
     const auto& id_MERCHANT_ACCT = MERCHANT_ACCT.GetPurportedAccountID();
 
-    // TODO ambiguous overload
-    if (GetRecipientNymID().str() != id_MERCHANT_NYM.str()) {
+    if (GetRecipientNymID() != id_MERCHANT_NYM) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Merchant has wrong NymID (should be same "
             "as RecipientNymID).")
@@ -841,7 +836,7 @@ bool OTAgreement::SetProposal(
                                            "owned by Merchant Nym.")
             .Flush();
         return false;
-    } else if (GetRecipientNymID().str() == GetSenderNymID().str()) {
+    } else if (GetRecipientNymID() == GetSenderNymID()) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failure: Sender and recipient have the same "
             "Nym ID (not allowed).")
@@ -969,8 +964,7 @@ bool OTAgreement::Confirm(
     const auto& id_PAYER_NYM = nym->ID();
     const auto& id_PAYER_ACCT = PAYER_ACCT.GetPurportedAccountID();
 
-    // TODO ambiguous overload
-    if (GetRecipientNymID().str() == GetSenderNymID().str()) {
+    if (GetRecipientNymID() == GetSenderNymID()) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Error: Sender and recipient have the same "
             "Nym ID (not allowed).")
@@ -978,7 +972,7 @@ bool OTAgreement::Confirm(
         return false;
     } else if (
         (!p_id_MERCHANT_NYM.empty()) &&
-        (GetRecipientNymID().str() != p_id_MERCHANT_NYM.str())) {
+        (GetRecipientNymID() != p_id_MERCHANT_NYM)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Merchant has wrong NymID (should be same "
             "as RecipientNymID).")
@@ -986,13 +980,13 @@ bool OTAgreement::Confirm(
         return false;
     } else if (
         (nullptr != pMERCHANT_NYM) &&
-        (GetRecipientNymID().str() != pMERCHANT_NYM->ID().str())) {
+        (GetRecipientNymID() != pMERCHANT_NYM->ID())) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Merchant has wrong NymID (should be same "
             "as RecipientNymID).")
             .Flush();
         return false;
-    } else if (GetSenderNymID().str() != id_PAYER_NYM.str()) {
+    } else if (GetSenderNymID() != id_PAYER_NYM) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Payer has wrong NymID (should be same"
             " as SenderNymID).")

@@ -652,18 +652,12 @@ bool OTPaymentPlan::ProcessPayment(
     // We MIGHT use ONE, OR BOTH, of these, or none. (But probably both.)
 
     // Find out if either Nym is actually also the server.
-    // TODO ambiguous overload
-    bool bSenderNymIsServerNym =
-        ((SENDER_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
-    // TODO ambiguous overload
-    bool bRecipientNymIsServerNym =
-        ((RECIPIENT_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
+    bool bSenderNymIsServerNym = (SENDER_NYM_ID == NOTARY_NYM_ID);
+    bool bRecipientNymIsServerNym = (RECIPIENT_NYM_ID == NOTARY_NYM_ID);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity. (We'll want to know that later.)
-    // TODO ambiguous overload
-    bool bUsersAreSameNym =
-        ((SENDER_NYM_ID.str() == RECIPIENT_NYM_ID.str()) ? true : false);
+    bool bUsersAreSameNym = (SENDER_NYM_ID == RECIPIENT_NYM_ID);
 
     ConstNym pSenderNym = nullptr;
     ConstNym pRecipientNym = nullptr;
@@ -765,16 +759,11 @@ bool OTPaymentPlan::ProcessPayment(
     // A few verification if/elses...
 
     // Are both accounts of the same Asset Type?
-    // TODO ambiguous overload
-    if (sourceAccount.get().GetInstrumentDefinitionID().str() !=
-        recipientAccount.get().GetInstrumentDefinitionID().str()) {  // We
-                                                                     // already
-                                                                     // know the
-                                                                     // SUPPOSED
-        // Instrument Definition Ids of these accounts...
-        // But only once
-        // the accounts THEMSELVES have been loaded can we VERIFY this to be
-        // true.
+    if (sourceAccount.get().GetInstrumentDefinitionID() !=
+        recipientAccount.get().GetInstrumentDefinitionID()) {
+        // We already know the SUPPOSED Instrument Definition Ids of these
+        // accounts... But only once the accounts THEMSELVES have been loaded
+        // can we VERIFY this to be true.
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": ERROR - attempted payment between accounts of different "
             "instrument definitions.")

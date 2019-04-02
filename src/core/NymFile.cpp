@@ -124,8 +124,7 @@ bool NymFile::CompareID(const identifier::Nym& rhs) const
 {
     sLock lock(shared_lock_);
 
-    // TODO ambiguous overload
-    return rhs.str() == target_nym_->ID().str();
+    return rhs == target_nym_->ID();
 }
 
 bool NymFile::DeserializeNymFile(

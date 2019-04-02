@@ -2689,16 +2689,14 @@ OTX::BackgroundTask OTX::SendExternalTransfer(
         return error_task();
     }
 
-    // TODO ambiguous overload
-    if (sourceAccount.get().GetNymID().str() != localNymID.str()) {
+    if (sourceAccount.get().GetNymID() != localNymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong owner on source account.")
             .Flush();
 
         return error_task();
     }
 
-    // TODO ambiguous overload
-    if (sourceAccount.get().GetRealNotaryID().str() != serverID.str()) {
+    if (sourceAccount.get().GetRealNotaryID() != serverID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong notary on source account.")
             .Flush();
 
@@ -2733,16 +2731,14 @@ OTX::BackgroundTask OTX::SendTransfer(
         return error_task();
     }
 
-    // TODO ambiguous overload
-    if (sourceAccount.get().GetNymID().str() != localNymID.str()) {
+    if (sourceAccount.get().GetNymID() != localNymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong owner on source account.")
             .Flush();
 
         return error_task();
     }
 
-    // TODO ambiguous overload
-    if (sourceAccount.get().GetRealNotaryID().str() != serverID.str()) {
+    if (sourceAccount.get().GetRealNotaryID() != serverID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong notary on source account.")
             .Flush();
 
@@ -3457,8 +3453,7 @@ Depositability OTX::valid_recipient(
         return Depositability::READY;
     }
 
-    // TODO ambiguous overload
-    if (recipient.str() == specified.str()) { return Depositability::READY; }
+    if (recipient == specified) { return Depositability::READY; }
 
     return Depositability::WRONG_RECIPIENT;
 }

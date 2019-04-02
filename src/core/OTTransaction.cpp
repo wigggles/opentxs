@@ -871,9 +871,7 @@ bool OTTransaction::HarvestOpeningNumber(
                 // this assumption is merely for deciding which logic to use
                 // about which harvest functions to call.
                 //
-                if (nym->ID().str() == GetNymID().str())  // TODO ambiguous
-                                                          // overload
-                {
+                if (nym->ID() == GetNymID()) {
                     // If the server reply message was unambiguously a FAIL,
                     // that means the opening number is STILL GOOD. (Because the
                     // transaction therefore never even had a chance to run.)

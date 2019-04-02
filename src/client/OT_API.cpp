@@ -2544,32 +2544,22 @@ bool OT_API::SmartContract_ConfirmAccount(
     // up now.
     //
     if (contract->SetNotaryIDIfEmpty(account.get().GetPurportedNotaryID())) {
-        // todo security: possibly want to verify here that this really is the
-        // FIRST
-        // account being confirmed in this smart contract, or at least the first
-        // party.
-        // Right now we're just using the server ID being empty as an easy way
-        // to find
-        // out, but technically a party could slip in a "signed version" without
-        // setting
-        // the server ID, and it might slip by here (though it would eventually
-        // fail some
-        // verification.) In the std::int64_t term we'll do a more thorough
-        // check
-        // here, though.
+        // TODO security: possibly want to verify here that this really is the
+        // FIRST account being confirmed in this smart contract, or at least the
+        // first party. Right now we're just using the server ID being empty as
+        // an easy way to find out, but technically a party could slip in a
+        // "signed version" without setting the server ID, and it might slip by
+        // here (though it would eventually fail some verification.) In the
+        // std::int64_t term we'll do a more thorough check here, though.
     } else if (
-        // TODO ambiguous overload
-        contract->GetNotaryID().str() !=
-        account.get().GetPurportedNotaryID().str()) {
+        contract->GetNotaryID() != account.get().GetPurportedNotaryID()) {
         const auto strServer1 = String::Factory(contract->GetNotaryID()),
                    strServer2 =
                        String::Factory(account.get().GetPurportedNotaryID());
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure: The smart contract has a different "
-            "server ID on it already (")(strServer1)(
-            ") than the one "
-            "that goes with this account (server ")(strServer2)(
-            ", for account ")(ACCT_ID)(").")
+            ": The smart contract has a different server ID on it already (")(
+            strServer1)(") than the one  that goes with this account (server ")(
+            strServer2)(", for account ")(ACCT_ID)(").")
             .Flush();
         return false;
     }
@@ -5704,24 +5694,18 @@ bool OT_API::RecordPayment(
                             // one case. the Nym is the "sender" and in another
                             // case, he's the "recipient." (So we need to figure
                             // out which, and set the account accordingly.)
-                            //
-                            // TODO ambiguous overload
-                            if (NYM_ID.str() ==
-                                pPlan->GetRecipientNymID().str())
+                            if (NYM_ID == pPlan->GetRecipientNymID()) {
                                 theSenderAcctID = pPlan->GetRecipientAcctID();
-                            else if (
-                                NYM_ID.str() ==
-                                pPlan->GetSenderNymID().str())  // TODO
-                                                                // ambiguous
-                                                                // overload
+                            } else if (NYM_ID == pPlan->GetSenderNymID()) {
                                 theSenderAcctID = pPlan->GetSenderAcctID();
-                            else
+                            } else {
                                 LogOutput(OT_METHOD)(__FUNCTION__)(
                                     ": ERROR: Should never happen: NYM_ID "
                                     "didn't match this payment plan for "
                                     "sender OR recipient. "
                                     "(Expected one or the other).")
                                     .Flush();
+                            }
                         }
                     }
                     if (bIsSmartContract)  // In this case we have to loop
@@ -6277,9 +6261,8 @@ void OT_API::FlushSentMessages(
     const auto strNotaryID = String::Factory(NOTARY_ID),
                strNymID = String::Factory(NYM_ID);
 
-    // TODO ambiguous overload
-    if ((THE_NYMBOX.GetNymID().str() != NYM_ID.str()) ||
-        (THE_NYMBOX.GetPurportedNotaryID().str() != NOTARY_ID.str())) {
+    if ((THE_NYMBOX.GetNymID() != NYM_ID) ||
+        (THE_NYMBOX.GetPurportedNotaryID() != NOTARY_ID)) {
         const auto strLedger = String::Factory(THE_NYMBOX);
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failure, Bad input data: NymID (")(strNymID)(
@@ -6584,9 +6567,8 @@ Basket* OT_API::GenerateBasketExchange(
 
     // By this point, account is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    // TODO ambiguous overload
-    if (BASKET_INSTRUMENT_DEFINITION_ID.str() !=
-        account.get().GetInstrumentDefinitionID().str()) {
+    if (BASKET_INSTRUMENT_DEFINITION_ID !=
+        account.get().GetInstrumentDefinitionID()) {
         const auto strAcctID = String::Factory(accountID),
                    strAcctTypeID =
                        String::Factory(BASKET_INSTRUMENT_DEFINITION_ID);
@@ -6680,9 +6662,7 @@ bool OT_API::AddBasketExchangeItem(
         return false;
     }
 
-    // TODO ambiguous overload
-    if (INSTRUMENT_DEFINITION_ID.str() !=
-        account.get().GetInstrumentDefinitionID().str()) {
+    if (INSTRUMENT_DEFINITION_ID != account.get().GetInstrumentDefinitionID()) {
         const auto strInstrumentDefinitionID =
                        String::Factory(INSTRUMENT_DEFINITION_ID),
                    strAcctID = String::Factory(ASSET_ACCOUNT_ID);
@@ -7577,10 +7557,9 @@ bool OT_API::DiscardCheque(
             .Flush();
         return false;
     } else if (
-        // TODO ambiguous overload
-        (theCheque->GetNotaryID().str() == NOTARY_ID.str()) &&
-        (theCheque->GetInstrumentDefinitionID().str() == contractID->str()) &&
-        (theCheque->GetSenderNymID().str() == NYM_ID.str()) &&
+        (theCheque->GetNotaryID() == NOTARY_ID) &&
+        (theCheque->GetInstrumentDefinitionID() == contractID) &&
+        (theCheque->GetSenderNymID() == NYM_ID) &&
         (theCheque->GetSenderAcctID() == accountID)) {
         // we only "add it back" if it was really there in the first place.
         if (context.It().VerifyIssuedNumber(theCheque->GetTransactionNum())) {
@@ -7651,8 +7630,7 @@ CommandResult OT_API::depositPaymentPlan(
         return output;
     }
 
-    // TODO ambiguous overload
-    const bool bCancelling = (plan->GetRecipientNymID().str() == nymID.str());
+    const bool bCancelling = (plan->GetRecipientNymID() == nymID);
 
     if (bCancelling) {
         if (plan->IsCanceled()) {
@@ -7888,8 +7866,7 @@ CommandResult OT_API::activateSmartContract(
         }
     }
 
-    // TODO ambiguous overload
-    if (serverID.str() != contract->GetNotaryID().str()) {
+    if (serverID != contract->GetNotaryID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed. The server ID passed "
             "in doesn't match the one on the contract itself.")
@@ -8313,8 +8290,7 @@ CommandResult OT_API::issueMarketOffer(
     const auto& currencyContractID =
         currencyAccount.get().GetInstrumentDefinitionID();
 
-    // TODO ambiguous overload
-    if (assetContractID.str() == currencyContractID.str()) {
+    if (assetContractID == currencyContractID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": The asset account and currency account cannot "
             "have the same instrument definition ID. (You can't, for "

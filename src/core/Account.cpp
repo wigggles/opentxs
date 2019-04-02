@@ -582,8 +582,7 @@ bool Account::VerifyOwner(const Nym& candidate) const
 // TODO: when entities and roles are added, probably more will go here.
 bool Account::VerifyOwnerByID(const identifier::Nym& nymId) const
 {
-    // TODO ambiguous overload
-    return nymId.str() == m_AcctNymID->str();
+    return nymId == m_AcctNymID;
 }
 
 Account* Account::LoadExistingAccount(

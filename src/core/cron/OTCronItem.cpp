@@ -1418,8 +1418,7 @@ std::int64_t OTCronItem::GetOpeningNumber(const identifier::Nym& theNymID) const
 {
     const auto& theSenderNymID = GetSenderNymID();
 
-    // TODO ambiguous overload
-    if (theSenderNymID.str() == theNymID.str()) return GetOpeningNum();
+    if (theSenderNymID == theNymID) { return GetOpeningNum(); }
 
     return 0;
 }

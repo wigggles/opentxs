@@ -161,7 +161,7 @@ Issuer::operator std::string() const
             if (account_map_.end() == accountSet) { continue; }
 
             for (const auto& [unit, accountID] : accountSet->second) {
-                if (unit->str() == unitID->str()) {  // TODO ambiguous overload
+                if (unit == unitID) {
                     output << "  * Account ID: " << accountID->str() << "\n";
                 }
             }

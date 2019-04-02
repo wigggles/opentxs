@@ -2406,9 +2406,8 @@ bool OTSmartContract::StashFunds(
     }
 
     // SHOULD NEVER HAPPEN
-    // TODO ambiguous overload
-    if (account.get().GetInstrumentDefinitionID().str() !=
-        stashAccount.get().GetInstrumentDefinitionID().str()) {
+    if (account.get().GetInstrumentDefinitionID() !=
+        stashAccount.get().GetInstrumentDefinitionID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Aborted stash: Asset type ID "
             "doesn't match. THIS SHOULD NEVER HAPPEN!")
@@ -2467,9 +2466,7 @@ bool OTSmartContract::StashFunds(
     // using the pointers from there.
 
     // Find out if party Nym is actually also the server nym.
-    // TODO ambiguous overload
-    const bool bPartyNymIsServerNym =
-        ((PARTY_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
+    const bool bPartyNymIsServerNym = (PARTY_NYM_ID == NOTARY_NYM_ID);
     ConstNym pPartyNym = nullptr;
     const std::string str_party_id = strPartyNymID->Get();
 
@@ -5134,8 +5131,7 @@ bool OTSmartContract::Compare(OTScriptable& rhs) const
             return false;
         }
 
-        // TODO ambiguous overload
-        if ((GetNotaryID().str() == pSmartContract->GetNotaryID().str()) &&
+        if ((GetNotaryID() == pSmartContract->GetNotaryID()) &&
             (GetValidFrom() == pSmartContract->GetValidFrom()) &&
             (GetValidTo() == pSmartContract->GetValidTo()))
             return true;
@@ -5556,18 +5552,12 @@ bool OTSmartContract::MoveFunds(
     // We MIGHT use ONE, OR BOTH, of these, or none. (But probably both.)
 
     // Find out if either Nym is actually also the server.
-    // TODO ambiguous overload
-    bool bSenderNymIsServerNym =
-        ((SENDER_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
-    // TODO ambiguous overload
-    bool bRecipientNymIsServerNym =
-        ((RECIPIENT_NYM_ID.str() == NOTARY_NYM_ID.str()) ? true : false);
+    bool bSenderNymIsServerNym = (SENDER_NYM_ID == NOTARY_NYM_ID);
+    bool bRecipientNymIsServerNym = (RECIPIENT_NYM_ID == NOTARY_NYM_ID);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity. (We'll want to know that later.)
-    // TODO ambiguous overload
-    bool bUsersAreSameNym =
-        ((SENDER_NYM_ID.str() == RECIPIENT_NYM_ID.str()) ? true : false);
+    bool bUsersAreSameNym = (SENDER_NYM_ID == RECIPIENT_NYM_ID);
 
     ConstNym pSenderNym = nullptr;
     ConstNym pRecipientNym = nullptr;
@@ -5779,12 +5769,11 @@ bool OTSmartContract::MoveFunds(
     // A few verification if/elses...
 
     // Are both accounts of the same Asset Type?
-    // TODO ambiguous overload
-    if (sourceAccount.get().GetInstrumentDefinitionID().str() !=
-        recipientAccount.get().GetInstrumentDefinitionID().str()) {  // We
-                                                                     // already
-                                                                     // know the
-                                                                     // SUPPOSED
+    if (sourceAccount.get().GetInstrumentDefinitionID() !=
+        recipientAccount.get().GetInstrumentDefinitionID()) {  // We
+                                                               // already
+                                                               // know the
+                                                               // SUPPOSED
         // Instrument Definition Ids of these accounts...
         // But only once
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
