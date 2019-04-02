@@ -471,7 +471,7 @@ proto::RPCResponse RPC::create_issuer_account(
     if (0 < command.identifier_size()) { label = command.identifier(0); }
 
     if (false == bool(unitdefinition) ||
-        ownerID->str() != unitdefinition->Nym()->ID().str()) {
+        ownerID != unitdefinition->Nym()->ID()) {
         add_output_status(output, proto::RPCRESPONSE_UNITDEFINITION_NOT_FOUND);
 
         return output;

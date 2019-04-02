@@ -136,8 +136,7 @@ void Notary::cancel_cheque(
     const auto strSenderNymID = String::Factory(cheque.GetSenderNymID());
     const auto strRecipientNymID = String::Factory(cheque.GetRecipientNymID());
 
-    if (cheque.GetSenderNymID().str() != nymID.str()) {  // TODO ambiguous
-                                                         // overload
+    if (cheque.GetSenderNymID() != nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect nym id (")(
             cheque.GetSenderNymID())(").")
             .Flush();
@@ -252,9 +251,7 @@ void Notary::deposit_cheque(
     const auto& remitterNymID(cheque.GetRemitterNymID());
     const bool isVoucher = cheque.HasRemitter();
     const bool cancelVoucher =
-        (isVoucher &&
-         (nymID.str() == cheque.GetRemitterNymID().str()));  // TODO ambiguous
-                                                             // overload
+        (isVoucher && (nymID == cheque.GetRemitterNymID()));
     std::shared_ptr<Ledger> senderInbox{nullptr};
     std::shared_ptr<Ledger> senderOutbox{nullptr};
     std::shared_ptr<OTTransaction> inboxItem{nullptr};
@@ -449,11 +446,10 @@ void Notary::deposit_cheque(
     Item& responseItem,
     Item& responseBalanceItem)
 {
-    // TODO ambiguous overload
-    const bool sameUnit = (cheque.GetInstrumentDefinitionID().str() ==
-                           sourceAccount.GetInstrumentDefinitionID().str()) &&
-                          (cheque.GetInstrumentDefinitionID().str() ==
-                           depositorAccount.GetInstrumentDefinitionID().str());
+    const bool sameUnit = (cheque.GetInstrumentDefinitionID() ==
+                           sourceAccount.GetInstrumentDefinitionID()) &&
+                          (cheque.GetInstrumentDefinitionID() ==
+                           depositorAccount.GetInstrumentDefinitionID());
 
     if (false == sameUnit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Deposit account unit definition "
@@ -466,8 +462,7 @@ void Notary::deposit_cheque(
     const auto& nymID = depositorContext.RemoteNym().ID();
     const auto& serverNymID = senderContext.Nym()->ID();
 
-    if (isVoucher &&
-        (senderNymID.str() != serverNymID.str())) {  // TODO ambiguous overload
+    if (isVoucher && (senderNymID != serverNymID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid sender nym on voucher: ")(
             senderNymID)(".")
             .Flush();
@@ -499,9 +494,7 @@ void Notary::deposit_cheque(
         validReceipient = true;
     } else {
         if (cheque.HasRecipient()) {
-            validReceipient =
-                (nymID.str() ==
-                 cheque.GetRecipientNymID().str());  // TODO ambiguous overload
+            validReceipient = (nymID == cheque.GetRecipientNymID());
         } else {
             validReceipient = true;
         }
@@ -561,9 +554,7 @@ void Notary::deposit_cheque(
     }
 
     // This happens if the voucher is the result of a dividend payment
-    if (isVoucher && (senderNymID.str() ==
-                      senderContext.Nym()->ID().str())) {  // TODO ambiguous
-                                                           // overload
+    if (isVoucher && (senderNymID == senderContext.Nym()->ID())) {
         // Server nyms never process the inbox of internal server accounts,
         // so this ensures the number is fully closed out.
         senderContext.ConsumeIssued(chequeNumber);
@@ -633,8 +624,7 @@ std::unique_ptr<Cheque> Notary::extract_cheque(
         return cheque;
     }
 
-    if (serverID.str() != cheque->GetNotaryID().str()) {  // TODO ambiguous
-                                                          // overload
+    if (serverID != cheque->GetNotaryID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Cheque rejected due to incorrect notary ID (")(
             cheque->GetNotaryID())(").")
@@ -836,10 +826,8 @@ void Notary::NotarizeTransfer(
                 .Flush();
         }
         // Are both of the accounts of the same Asset Type?
-        else if (!(theFromAccount.get().GetInstrumentDefinitionID().str() ==
-                   destinationAccount.get()
-                       .GetInstrumentDefinitionID()
-                       .str())) {  // TODO ambiguous overload
+        else if (!(theFromAccount.get().GetInstrumentDefinitionID() ==
+                   destinationAccount.get().GetInstrumentDefinitionID())) {
             auto strFromInstrumentDefinitionID = String::Factory(
                      theFromAccount.get().GetInstrumentDefinitionID()),
                  strDestinationInstrumentDefinitionID = String::Factory(
@@ -1442,9 +1430,8 @@ void Notary::NotarizeWithdrawal(
                     " for Nym: ")(strNymID->Get())(".")
                     .Flush();
             } else if (
-                INSTRUMENT_DEFINITION_ID.str() !=
-                theVoucherRequest->GetInstrumentDefinitionID()
-                    .str()) {  // TODO ambiguous overload
+                INSTRUMENT_DEFINITION_ID !=
+                theVoucherRequest->GetInstrumentDefinitionID()) {
                 const auto strFoundInstrumentDefinitionID = String::Factory(
                     theVoucherRequest->GetInstrumentDefinitionID());
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1947,10 +1934,7 @@ void Notary::NotarizePayDividend(
                     "shares-based. Asset type ID: %s\n",
                     szFunc,
                     strSharesType->Get());
-            } else if (!(purportedID.str() ==
-                         pSharesContract->Nym()->ID().str())) {  // TODO
-                                                                 // ambiguous
-                                                                 // overload
+            } else if (!(purportedID == pSharesContract->Nym()->ID())) {
                 const auto strSharesType =
                     String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                 Log::vError(
@@ -2820,18 +2804,14 @@ void Notary::NotarizePaymentPlan(
                     "%s: ERROR loading payment plan from string:\n%s\n",
                     __FUNCTION__,
                     strPaymentPlan->Get());
-            } else if (
-                pPlan->GetNotaryID().str() !=
-                NOTARY_ID.str()) {  // TODO ambiguous overload
+            } else if (pPlan->GetNotaryID() != NOTARY_ID) {
                 Log::vOutput(
                     0,
                     "%s: ERROR bad server ID on payment plan.\n",
                     __FUNCTION__);
             } else if (
-                pPlan->GetInstrumentDefinitionID().str() !=
-                theDepositorAccount.get()
-                    .GetInstrumentDefinitionID()
-                    .str()) {  // TODO ambiguous overload
+                pPlan->GetInstrumentDefinitionID() !=
+                theDepositorAccount.get().GetInstrumentDefinitionID()) {
                 const auto
                     strInstrumentDefinitionID1 =
                         String::Factory(pPlan->GetInstrumentDefinitionID()),
@@ -2894,9 +2874,7 @@ void Notary::NotarizePaymentPlan(
                         bCancelling ? "cancelling" : "activating",
                         lFoundOpeningNum,
                         pItem->GetTransactionNum());
-                } else if (
-                    FOUND_NYM_ID.str() !=
-                    DEPOSITOR_NYM_ID.str()) {  // TODO ambiguous overload
+                } else if (FOUND_NYM_ID != DEPOSITOR_NYM_ID) {
                     const auto strIDExpected = String::Factory(FOUND_NYM_ID),
                                strIDDepositor =
                                    String::Factory(DEPOSITOR_NYM_ID);
@@ -2909,9 +2887,7 @@ void Notary::NotarizePaymentPlan(
                         strIDDepositor->Get(),
                         strIDExpected->Get());
                 } else if (
-                    bCancelling &&
-                    (DEPOSITOR_NYM_ID.str() !=
-                     theCancelerNymID->str())) {  // TODO ambiguous overload
+                    bCancelling && (DEPOSITOR_NYM_ID != theCancelerNymID)) {
                     const auto strIDExpected =
                                    String::Factory(DEPOSITOR_NYM_ID),
                                strIDDepositor =
@@ -3096,11 +3072,9 @@ void Notary::NotarizePaymentPlan(
                             // Are both of the accounts of the same Asset Type?
                             // VERY IMPORTANT!!
                             else if (
-                                pRecipientAcct->GetInstrumentDefinitionID()
-                                    .str() != theDepositorAccount.get()
-                                                  .GetInstrumentDefinitionID()
-                                                  .str()) {  // TODO ambiguous
-                                                             // overload
+                                pRecipientAcct->GetInstrumentDefinitionID() !=
+                                theDepositorAccount.get()
+                                    .GetInstrumentDefinitionID()) {
                                 auto strSourceInstrumentDefinitionID =
                                          String::Factory(
                                              theDepositorAccount.get()
@@ -3136,10 +3110,8 @@ void Notary::NotarizePaymentPlan(
                             // instrument
                             // definition ID.)
                             else if (
-                                pRecipientAcct->GetInstrumentDefinitionID()
-                                    .str() != pPlan->GetInstrumentDefinitionID()
-                                                  .str()) {  // TODO ambiguous
-                                                             // overload
+                                pRecipientAcct->GetInstrumentDefinitionID() !=
+                                pPlan->GetInstrumentDefinitionID()) {
                                 const auto
                                     strInstrumentDefinitionID1 =
                                         String::Factory(
@@ -3529,9 +3501,7 @@ void Notary::NotarizeSmartContract(
                     "string:\n\n%s\n\n",
                     __FUNCTION__,
                     strContract->Get());
-            } else if (
-                pContract->GetNotaryID().str() !=
-                NOTARY_ID.str()) {  // TODO ambiguous overload
+            } else if (pContract->GetNotaryID() != NOTARY_ID) {
                 const auto strWrongID =
                     String::Factory(pContract->GetNotaryID());
                 Log::vOutput(
@@ -3660,8 +3630,7 @@ void Notary::NotarizeSmartContract(
                 // to enforce this, then I need to do it for ALL
                 // parties, not just the activator!
                 else if (
-                    (pContract->GetSenderNymID().str() ==
-                     NOTARY_NYM_ID.str()) ||  // TODO ambiguous overload
+                    (pContract->GetSenderNymID() == NOTARY_NYM_ID) ||
                     (nullptr != pContract->FindPartyBasedOnNymAsAgent(
                                     server_.GetServerNym()))) {
                     Log::vOutput(
@@ -4797,13 +4766,9 @@ void Notary::NotarizeExchangeBasket(
                                     // VerifyContractID was already called
                                     // in LoadExistingAccount().
                                     if (userAccount.get()
-                                            .GetInstrumentDefinitionID()
-                                            .str() !=
-                                        server_.API()
-                                            .Factory()
-                                            .UnitID(requestContractID)
-                                            ->str()) {  // TODO ambiguous
-                                                        // overload
+                                            .GetInstrumentDefinitionID() !=
+                                        server_.API().Factory().UnitID(
+                                            requestContractID)) {
                                         LogOutput(OT_METHOD)(__FUNCTION__)(
                                             ": ERROR verifying instrument "
                                             "definition on a "
@@ -5552,10 +5517,8 @@ void Notary::NotarizeMarketOffer(
             }
             // Are both of the accounts of the same Asset Type?
             else if (
-                theAssetAccount.get().GetInstrumentDefinitionID().str() ==
-                currencyAccount.get()
-                    .GetInstrumentDefinitionID()
-                    .str()) {  // TODO ambiguous overload
+                theAssetAccount.get().GetInstrumentDefinitionID() ==
+                currencyAccount.get().GetInstrumentDefinitionID()) {
                 auto strInstrumentDefinitionID = String::Factory(
                          theAssetAccount.get().GetInstrumentDefinitionID()),
                      strCurrencyTypeID = String::Factory(
@@ -5601,9 +5564,7 @@ void Notary::NotarizeMarketOffer(
                     ": ERROR needed 2 valid closing transaction "
                     "numbers in Notary::NotarizeMarketOffer.")
                     .Flush();
-            } else if (
-                pTrade->GetNotaryID().str() !=
-                NOTARY_ID.str()) {  // TODO ambiguous overload
+            } else if (pTrade->GetNotaryID() != NOTARY_ID) {
                 const auto strID1 = String::Factory(pTrade->GetNotaryID()),
                            strID2 = String::Factory(NOTARY_ID);
                 Log::vOutput(
@@ -5612,9 +5573,7 @@ void Notary::NotarizeMarketOffer(
                     "Notary ID (%s) on trade. Expected: %s\n",
                     strID1->Get(),
                     strID2->Get());
-            } else if (
-                pTrade->GetSenderNymID().str() !=
-                NYM_ID.str()) {  // TODO ambiguous overload
+            } else if (pTrade->GetSenderNymID() != NYM_ID) {
                 const auto strID1 = String::Factory(pTrade->GetSenderNymID()),
                            strID2 = String::Factory(NYM_ID);
                 Log::vOutput(
@@ -5624,10 +5583,8 @@ void Notary::NotarizeMarketOffer(
                     strID1->Get(),
                     strID2->Get());
             } else if (
-                pTrade->GetInstrumentDefinitionID().str() !=
-                theAssetAccount.get()
-                    .GetInstrumentDefinitionID()
-                    .str()) {  // TODO ambiguous overload
+                pTrade->GetInstrumentDefinitionID() !=
+                theAssetAccount.get().GetInstrumentDefinitionID()) {
                 const auto
                     strInstrumentDefinitionID1 =
                         String::Factory(pTrade->GetInstrumentDefinitionID()),
@@ -5651,10 +5608,8 @@ void Notary::NotarizeMarketOffer(
                     strAcctID1->Get(),
                     strAcctID2->Get());
             } else if (
-                pTrade->GetCurrencyID().str() !=
-                currencyAccount.get()
-                    .GetInstrumentDefinitionID()
-                    .str()) {  // TODO ambiguous overload
+                pTrade->GetCurrencyID() !=
+                currencyAccount.get().GetInstrumentDefinitionID()) {
                 const auto strID1 = String::Factory(pTrade->GetCurrencyID()),
                            strID2 = String::Factory(
                                currencyAccount.get()
@@ -8423,15 +8378,11 @@ void Notary::process_cash_deposit(
                         "balance statement while depositing cash. "
                         "Acct ID:\n%s\n",
                         strAccountID->Get());
-                } else if (
-                    INSTRUMENT_DEFINITION_ID.str() !=
-                    purse.Unit().str()) {  // TODO ambiguous overload
+                } else if (INSTRUMENT_DEFINITION_ID != purse.Unit()) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Incorrect unit definition ID on purse")
                         .Flush();
-                } else if (
-                    NOTARY_ID.str() !=
-                    purse.Notary().str()) {  // TODO ambiguous overload
+                } else if (NOTARY_ID != purse.Notary()) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Incorrect notary ID on purse")
                         .Flush();

@@ -315,8 +315,7 @@ bool UserCommandProcessor::check_client_isnt_server(
     const Nym& serverNym)
 {
     const auto& serverNymID = serverNym.ID();
-    const bool bNymIsServerNym =
-        serverNymID.str() == nymID.str();  // TODO ambiguous overload
+    const bool bNymIsServerNym = serverNymID == nymID;
 
     if (bNymIsServerNym) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -734,8 +733,7 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
         return false;
     }
 
-    if (account.get().GetNymID().str() != nymID.str()) {  // TODO ambiguous
-                                                          // overload
+    if (account.get().GetNymID() != nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(
             " does not own account ")(accountID)
             .Flush();

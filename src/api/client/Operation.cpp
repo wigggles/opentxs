@@ -640,8 +640,7 @@ std::shared_ptr<Message> Operation::construct_deposit_cash()
 
     const auto& unitID = account.get().GetInstrumentDefinitionID();
 
-    // TODO ambiguous overload
-    if (unitID.str() != purse.Unit().str()) {
+    if (unitID != purse.Unit()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect account type").Flush();
 
         return {};
@@ -671,8 +670,7 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
         Identifier::Factory(),
         amount);
 
-    // TODO ambiguous overload
-    if (cheque.GetNotaryID().str() != serverID.str()) {
+    if (cheque.GetNotaryID() != serverID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": NotaryID on cheque (")(
             cheque.GetNotaryID())(
             ") doesn't match notaryID where it's being deposited to (")(
@@ -688,15 +686,14 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
     auto copy{api_.Factory().Cheque(
         serverID, account.get().GetInstrumentDefinitionID())};
 
-    // TODO ambiguous overload
     if (cheque.HasRemitter()) {
         cancellingCheque =
             ((cheque.GetRemitterAcctID() == account_id_) &&
-             (cheque.GetRemitterNymID().str() == nymID.str()));
+             (cheque.GetRemitterNymID() == nymID));
     } else {
         cancellingCheque =
             ((cheque.GetSenderAcctID() == account_id_) &&
-             (cheque.GetSenderNymID().str() == nymID.str()));
+             (cheque.GetSenderNymID() == nymID));
         if (cancellingCheque) cancellingCheque = cheque.VerifySignature(nym);
     }
 

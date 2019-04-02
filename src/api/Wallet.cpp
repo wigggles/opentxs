@@ -526,15 +526,13 @@ bool Wallet::UpdateAccount(
         return false;
     }
 
-    // TODO ambiguous overload
-    if (newAccount->GetNymID().str() != localNym.ID().str()) {
+    if (localNym.ID() != newAccount->GetNymID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong nym on account.").Flush();
 
         return false;
     }
 
-    // TODO ambiguous overload
-    if (newAccount->GetRealNotaryID().str() != context.Server().str()) {
+    if (context.Server() != newAccount->GetRealNotaryID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong server on account.")
             .Flush();
 

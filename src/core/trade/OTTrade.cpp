@@ -332,16 +332,13 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
             ": While verifying offer, failed matching transaction number.")
             .Flush();
         return false;
-    } else if (GetNotaryID().str() != offer.GetNotaryID().str()) {  // TODO
-                                                                    // ambiguous
-                                                                    // overload
+    } else if (GetNotaryID() != offer.GetNotaryID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": While verifying offer, failed matching Notary ID.")
             .Flush();
         return false;
     } else if (
-        GetInstrumentDefinitionID().str() !=
-        offer.GetInstrumentDefinitionID().str()) {  // TODO ambiguous
+        GetInstrumentDefinitionID() != offer.GetInstrumentDefinitionID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": While verifying offer, failed matching instrument definition "
             "ID.")
@@ -1155,11 +1152,9 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
 
     // Validate the Notary ID, Instrument Definition ID, Currency Type ID, and
     // Date Range.
-    // TODO ambiguous overload
-    if ((GetNotaryID().str() != offer.GetNotaryID().str()) ||
-        (GetCurrencyID().str() != offer.GetCurrencyID().str()) ||
-        (GetInstrumentDefinitionID().str() !=
-         offer.GetInstrumentDefinitionID().str()) ||
+    if ((GetNotaryID() != offer.GetNotaryID()) ||
+        (GetCurrencyID() != offer.GetCurrencyID()) ||
+        (GetInstrumentDefinitionID() != offer.GetInstrumentDefinitionID()) ||
         (offer.GetValidFrom() < OT_TIME_ZERO) ||
         (offer.GetValidTo() < offer.GetValidFrom())) {
         return false;

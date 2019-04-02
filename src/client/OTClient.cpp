@@ -109,8 +109,7 @@ std::int32_t OTClient::ProcessUserCommand(
     const auto& nym = *context.Nym();
 
     if (nullptr != pAccount) {
-        if (pAccount->GetPurportedNotaryID().str() !=
-            context.Server().str()) {  // ambiguous overload
+        if (pAccount->GetPurportedNotaryID() != context.Server()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": pAccount->GetPurportedNotaryID() doesn't match "
                 "NOTARY_ID. (Try adding: --server NOTARY_ID).")

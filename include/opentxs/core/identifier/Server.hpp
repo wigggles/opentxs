@@ -34,10 +34,10 @@ namespace opentxs
 #ifndef SWIG
 bool operator==(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
-    const opentxs::identifier::Server& rhs);
+    const opentxs::Identifier& rhs);
 bool operator!=(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
-    const opentxs::identifier::Server& rhs);
+    const opentxs::Identifier& rhs);
 bool operator<(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
     const opentxs::Pimpl<opentxs::identifier::Server>& rhs);

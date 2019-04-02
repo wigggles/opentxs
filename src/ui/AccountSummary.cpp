@@ -211,8 +211,7 @@ void AccountSummary::process_issuer(const network::zeromq::Message& message)
     OT_ASSERT(false == nymID->empty())
     OT_ASSERT(false == issuerID->empty())
 
-    // TODO ambiguous overload
-    if (nymID.get().str() != primary_id_->str()) { return; }
+    if (nymID != primary_id_) { return; }
 
     auto existing = names_.count(issuerID);
 

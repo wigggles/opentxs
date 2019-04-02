@@ -67,16 +67,65 @@ public:
     {
     }
 
-    bool example_test_1(const crypto::Bip32& library)
+    bool test_base58_encode(const crypto::Bip32& library)
     {
-        // TODO
+        // TODO test opentxs::api::crypto::Encode::IdentifierEncode
 
         return true;
     }
 
-    bool example_test_2(const crypto::AsymmetricProvider& library)
+    bool test_base58_decode(const crypto::Bip32& library)
     {
-        // TODO
+        // TODO test opentxs::api::crypto::Encode::IdentifierDecode
+
+        return true;
+    }
+
+    bool test_ripemd160(const crypto::Bip32& library)
+    {
+        // TODO test opentxs::api::crypto::Hash::Digest
+
+        return true;
+    }
+
+    bool test_bip32_seed(const crypto::Bip32& library)
+    {
+        // TODO test opentxs::crypto::Bip32::GetHDKey
+
+        return true;
+    }
+
+    bool test_bip32_child_key(const crypto::Bip32& library)
+    {
+        // TODO test opentxs::crypto::Bip32::GetChild
+
+        return true;
+    }
+
+    bool test_bip32_seed_to_fingerprint(const crypto::Bip32& library)
+    {
+        // TODO test opentxs::crypto::Bip32::SeedToFingerprint
+
+        return true;
+    }
+
+    bool test_bip32_seed_to_key(const crypto::Bip32& library)
+    {
+        // TODO test opentxs::crypto::Bip32::SeedToPrivateKey
+
+        return true;
+    }
+
+    bool test_bip39_words(const crypto::Bip32& library)
+    {
+        // TODO test opentxs::crypto::Bip39::SeedToWords
+
+        return true;
+    }
+
+    bool test_bip39_seeds(const crypto::Bip32& library)
+    {
+        // TODO test opentxs::crypto::Bip39::WordsToSeed
 
         return true;
     }
@@ -85,16 +134,30 @@ public:
 #if OT_CRYPTO_USING_TREZOR
 TEST_F(Test_Bitcoin_Providers, Trezor)
 {
-    EXPECT_EQ(true, example_test_1(*trezor_));
-    EXPECT_EQ(true, example_test_2(*trezor_));
+    EXPECT_EQ(true, test_base58_encode(*trezor_));
+    EXPECT_EQ(true, test_base58_decode(*trezor_));
+    EXPECT_EQ(true, test_ripemd160(*trezor_));
+    EXPECT_EQ(true, test_bip32_seed(*trezor_));
+    EXPECT_EQ(true, test_bip32_child_key(*trezor_));
+    EXPECT_EQ(true, test_bip32_seed_to_fingerprint(*trezor_));
+    EXPECT_EQ(true, test_bip32_seed_to_key(*trezor_));
+    EXPECT_EQ(true, test_bip39_words(*trezor_));
+    EXPECT_EQ(true, test_bip39_seeds(*trezor_));
 }
 #endif  // OT_CRYPTO_USING_TREZOR
 
 #if OT_CRYPTO_USING_LIBBITCOIN
 TEST_F(Test_Bitcoin_Providers, Libbitcoin)
 {
-    EXPECT_EQ(true, example_test_1(*bitcoin_));
-    EXPECT_EQ(true, example_test_2(*bitcoin_));
+    EXPECT_EQ(true, test_base58_encode(*bitcoin_));
+    EXPECT_EQ(true, test_base58_decode(*bitcoin_));
+    EXPECT_EQ(true, test_ripemd160(*bitcoin_));
+    EXPECT_EQ(true, test_bip32_seed(*bitcoin_));
+    EXPECT_EQ(true, test_bip32_child_key(*bitcoin_));
+    EXPECT_EQ(true, test_bip32_seed_to_fingerprint(*bitcoin_));
+    EXPECT_EQ(true, test_bip32_seed_to_key(*bitcoin_));
+    EXPECT_EQ(true, test_bip39_words(*bitcoin_));
+    EXPECT_EQ(true, test_bip39_seeds(*bitcoin_));
 }
 #endif  // OT_CRYPTO_USING_LIBBITCOIN
 }  // namespace

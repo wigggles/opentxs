@@ -292,9 +292,9 @@ bool OTMarket::GetNym_OfferList(
         // We only return offers for a specific Nym ID, since this is private
         // info only for that Nym.
         //
-        if ((nullptr == pTrade) || (pTrade->GetSenderNymID().str() !=
-                                    NYM_ID.str()))  // TODO ambiguous overload
+        if ((nullptr == pTrade) || (pTrade->GetSenderNymID() != NYM_ID)) {
             continue;
+        }
 
         // Below this point, I KNOW pTrade and pOffer are both good pointers.
         // with no need to cleanup. I also know they are for the right Nym.
@@ -1135,20 +1135,12 @@ void OTMarket::ProcessTrade(
     // We MIGHT use ONE, OR BOTH, of these, or none.
 
     // Find out if either Nym is actually also the server.
-    bool bFirstNymIsServerNym =
-        ((FIRST_NYM_ID.str() == NOTARY_NYM_ID.str())
-             ? true
-             : false);  // TODO ambiguous overload
-    bool bOtherNymIsServerNym =
-        ((OTHER_NYM_ID.str() == NOTARY_NYM_ID.str())
-             ? true
-             : false);  // TODO ambiguous overload
+    bool bFirstNymIsServerNym = (FIRST_NYM_ID == NOTARY_NYM_ID);
+    bool bOtherNymIsServerNym = (OTHER_NYM_ID == NOTARY_NYM_ID);
 
     // We also see, after all that is done, whether both pointers go to the same
     // entity. We'll want to know that later.
-    bool bTradersAreSameNym =
-        ((FIRST_NYM_ID.str() == OTHER_NYM_ID.str()) ? true
-                                                    : false);  // TODO ambiguous
+    bool bTradersAreSameNym = (FIRST_NYM_ID == OTHER_NYM_ID);
 
     // Initially both nym pointers are set to their own blank objects
     ConstNym pFirstNym = nullptr;
@@ -1257,13 +1249,13 @@ void OTMarket::ProcessTrade(
     // But only once the accounts themselves have been loaded can we VERIFY this
     // to be true.
     else if (
-        (pFirstAssetAcct.get().GetInstrumentDefinitionID().str() !=
-         GetInstrumentDefinitionID().str()) ||  // TODO ambiguous overload
-                                                // the trader's asset accts have
-                                                // same instrument definition
-                                                // as the market.
-        (pFirstCurrencyAcct.get().GetInstrumentDefinitionID().str() !=
-         GetCurrencyID().str())  // TODO ambiguous overload
+        (pFirstAssetAcct.get().GetInstrumentDefinitionID() !=
+         GetInstrumentDefinitionID()) ||
+        // the trader's asset accts have
+        // same instrument definition
+        // as the market.
+        (pFirstCurrencyAcct.get().GetInstrumentDefinitionID() !=
+         GetCurrencyID())
         // the trader's currency accts have same asset
         // type as the market.
     ) {
@@ -1274,13 +1266,13 @@ void OTMarket::ProcessTrade(
         theTrade.FlagForRemoval();  // Removes from Cron.
         return;
     } else if (
-        (pOtherAssetAcct.get().GetInstrumentDefinitionID().str() !=
-         GetInstrumentDefinitionID().str()) ||  // TODO ambiguous overload
-                                                // the trader's asset accts have
-                                                // same asset
-                                                // type as the market.
-        (pOtherCurrencyAcct.get().GetInstrumentDefinitionID().str() !=
-         GetCurrencyID().str()))  // TODO ambiguous overload
+        (pOtherAssetAcct.get().GetInstrumentDefinitionID() !=
+         GetInstrumentDefinitionID()) ||
+        // the trader's asset accts have
+        // same asset
+        // type as the market.
+        (pOtherCurrencyAcct.get().GetInstrumentDefinitionID() !=
+         GetCurrencyID()))
     // the trader's currency accts have same asset
     // type as market.
     {
@@ -2632,8 +2624,7 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
     bool bValidOffer = true;
     auto strReason = String::Factory();
 
-    if (GetNotaryID().str() !=
-        theOffer.GetNotaryID().str()) {  // TODO ambiguous overload
+    if (GetNotaryID() != theOffer.GetNotaryID()) {
         bValidOffer = false;
         const auto strID = String::Factory(GetNotaryID()),
                    strOtherID = String::Factory(theOffer.GetNotaryID());
@@ -2642,9 +2633,7 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
             strID->Get(),
             strOtherID->Get());
     } else if (
-        GetInstrumentDefinitionID().str() !=
-        theOffer.GetInstrumentDefinitionID().str()) {  // TODO ambiguous
-                                                       // overload
+        GetInstrumentDefinitionID() != theOffer.GetInstrumentDefinitionID()) {
         bValidOffer = false;
         const auto strID = String::Factory(GetInstrumentDefinitionID()),
                    strOtherID =

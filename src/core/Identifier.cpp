@@ -53,17 +53,17 @@ bool operator==(const OTIdentifier& lhs, const Identifier& rhs)
     return lhs.get() == rhs;
 }
 
-bool operator==(const OTNymID& lhs, const identifier::Nym& rhs)
+bool operator==(const OTNymID& lhs, const opentxs::Identifier& rhs)
 {
     return lhs.get().operator==(rhs);
 }
 
-bool operator==(const OTServerID& lhs, const identifier::Server& rhs)
+bool operator==(const OTServerID& lhs, const opentxs::Identifier& rhs)
 {
     return lhs.get().operator==(rhs);
 }
 
-bool operator==(const OTUnitID& lhs, const identifier::UnitDefinition& rhs)
+bool operator==(const OTUnitID& lhs, const opentxs::Identifier& rhs)
 {
     return lhs.get().operator==(rhs);
 }
@@ -73,17 +73,17 @@ bool operator!=(const OTIdentifier& lhs, const Identifier& rhs)
     return lhs.get() != rhs;
 }
 
-bool operator!=(const OTNymID& lhs, const identifier::Nym& rhs)
+bool operator!=(const OTNymID& lhs, const opentxs::Identifier& rhs)
 {
     return lhs.get().operator!=(rhs);
 }
 
-bool operator!=(const OTServerID& lhs, const identifier::Server& rhs)
+bool operator!=(const OTServerID& lhs, const opentxs::Identifier& rhs)
 {
     return lhs.get().operator!=(rhs);
 }
 
-bool operator!=(const OTUnitID& lhs, const identifier::UnitDefinition& rhs)
+bool operator!=(const OTUnitID& lhs, const opentxs::Identifier& rhs)
 {
     return lhs.get().operator!=(rhs);
 }

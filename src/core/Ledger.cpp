@@ -1434,10 +1434,8 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     }
 
     if ((theAccount.GetPurportedAccountID() != GetPurportedAccountID()) ||
-        (theAccount.GetPurportedNotaryID().str() !=
-         GetPurportedNotaryID().str()) ||
-        (theAccount.GetNymID().str() != GetNymID().str())) {  // TODO ambiguous
-                                                              // overload
+        (theAccount.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
+        (theAccount.GetNymID() != GetNymID())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong Account passed in.")
             .Flush();
 
@@ -1445,17 +1443,14 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     }
 
     if ((theOutbox.GetPurportedAccountID() != GetPurportedAccountID()) ||
-        (theOutbox.GetPurportedNotaryID().str() !=
-         GetPurportedNotaryID().str()) ||
-        (theOutbox.GetNymID().str() != GetNymID().str())) {  // TODO ambiguous
-                                                             // overload
+        (theOutbox.GetPurportedNotaryID() != GetPurportedNotaryID()) ||
+        (theOutbox.GetNymID() != GetNymID())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong Outbox passed in.").Flush();
 
         return nullptr;
     }
 
-    if ((context.Nym()->ID().str() != GetNymID().str())) {  // TODO ambiguous
-                                                            // overload
+    if ((context.Nym()->ID() != GetNymID())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong Nym passed in.").Flush();
 
         return nullptr;

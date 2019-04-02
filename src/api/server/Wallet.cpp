@@ -120,7 +120,7 @@ bool Wallet::load_legacy_account(
 
     const auto& serverID = pAccount->GetPurportedNotaryID();
 
-    OT_ASSERT(server_.ID().str() == serverID.str())  // TODO ambiguous overload
+    OT_ASSERT(server_.ID() == serverID)
 
     saved = api_.Storage().Store(
         accountID.str(),

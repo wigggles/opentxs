@@ -264,8 +264,7 @@ bool ServerContext::accept_entire_nymbox(
         return false;
     }
 
-    // TODO ambiguous overload
-    if (nymbox.GetNymID().str() != nymID.str()) {
+    if (nymbox.GetNymID() != nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong nymbox").Flush();
 
         return false;
@@ -1077,8 +1076,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
         return {};
     }
 
-    // TODO ambiguous overload
-    if (receipt->GetNymID().str() != owner.str()) {
+    if (receipt->GetNymID() != owner) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym").Flush();
 
         return {};
@@ -2633,14 +2631,12 @@ void ServerContext::process_accept_cron_receipt_reply(
 
         OT_ASSERT(account)
 
-        // TODO ambiguous overload
         bool bIsAsset =
-            (theTrade->GetInstrumentDefinitionID().str() ==
-             account.get().GetInstrumentDefinitionID().str());
-        // TODO ambiguous overload
+            (theTrade->GetInstrumentDefinitionID() ==
+             account.get().GetInstrumentDefinitionID());
         bool bIsCurrency =
-            (theTrade->GetCurrencyID().str() ==
-             account.get().GetInstrumentDefinitionID().str());
+            (theTrade->GetCurrencyID() ==
+             account.get().GetInstrumentDefinitionID());
         const auto strAcctID = String::Factory(accountID);
         const auto strServerTransaction = String::Factory(inboxTransaction);
 
@@ -3227,8 +3223,7 @@ bool ServerContext::process_box_item(
         return false;
     }
 
-    // TODO ambiguous overload
-    if (receipt->GetNymID().str() != nymID.str()) {
+    if (receipt->GetNymID() != nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong nym id on box receipt")
             .Flush();
 
@@ -3456,9 +3451,7 @@ bool ServerContext::process_get_box_receipt_response(
                         .Flush();
                     client.Workflow().ConveyTransfer(
                         nymID, server_id_, *receipt);
-                } else if (
-                    transfer.GetNymID().str() !=
-                    nymID.str()) {  // TODO ambiguous overload
+                } else if (transfer.GetNymID() != nymID) {
 
                     LogDetail(OT_METHOD)(__FUNCTION__)(
                         ": Conveying incoming transfer")
@@ -6360,9 +6353,8 @@ bool ServerContext::remove_nymbox_item(
             const bool bCancelling =
                 (pCronItem->IsCanceled() &&
                  pCronItem->GetCancelerID(theCancelerNymID));
-            // TODO ambiguous overload
             const bool bIsCancelerNym =
-                (bCancelling && (nymID.str() == theCancelerNymID->str()));
+                (bCancelling && (nymID == theCancelerNymID));
             const bool bIsActivatingNym =
                 (pCronItem->GetOpeningNum() == openingNumber);
 
@@ -6965,8 +6957,7 @@ std::unique_ptr<Item> ServerContext::statement(
 
     OT_ASSERT(nym_);
 
-    // TODO ambiguous overload
-    if ((transaction.GetNymID().str() != nym_->ID().str())) {
+    if ((transaction.GetNymID() != nym_->ID())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Transaction has wrong owner.")
             .Flush();
 

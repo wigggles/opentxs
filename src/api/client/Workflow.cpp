@@ -509,7 +509,7 @@ bool Workflow::AcceptTransfer(
     const auto recipientNymID = pending.GetNymID().str();
     const auto& accountID = pending.GetPurportedAccountID();
 
-    if (pending.GetNymID().str() != nymID.str()) {  // TODO ambiguous overload
+    if (pending.GetNymID() != nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid recipient").Flush();
 
         return false;
@@ -1541,7 +1541,7 @@ OTIdentifier Workflow::ConveyTransfer(
     contact_.NymToContact(transfer->GetNymID());
     const auto recipientNymID = pending.GetNymID().str();
 
-    if (pending.GetNymID().str() != nymID.str()) {  // TODO ambiguous overload
+    if (pending.GetNymID() != nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid recipient").Flush();
 
         return Identifier::Factory();
@@ -2756,8 +2756,7 @@ bool Workflow::validate_recipient(
 {
     if (nymID.empty()) { return true; }
 
-    return (nymID.str() == cheque.GetRecipientNymID().str());  // TODO ambiguous
-                                                               // overload
+    return (nymID == cheque.GetRecipientNymID());
 }
 
 std::vector<OTIdentifier> Workflow::WorkflowsByAccount(
