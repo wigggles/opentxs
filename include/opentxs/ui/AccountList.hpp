@@ -28,11 +28,15 @@ class AccountList : virtual public List
 public:
     enum AccountListRoles {
         IDRole = Qt::UserRole + 1,
-        NameRole = Qt::UserRole + 2,
+        BalanceRole = Qt::UserRole + 2,
         ContractIDRole = Qt::UserRole + 3,
-        BalanceRole = Qt::UserRole + 4,
-        NotaryIDRole = Qt::UserRole + 5,
-        NotaryNameRole = Qt::UserRole + 6,
+        DisplayBalanceRole = Qt::UserRole + 4,
+        DisplayUnit = Qt::UserRole + 5,
+        NameRole = Qt::UserRole + 6,
+        NotaryIDRole = Qt::UserRole + 7,
+        NotaryNameRole = Qt::UserRole + 8,
+        TypeRole = Qt::UserRole + 9,
+        UnitRole = Qt::UserRole + 10,
     };
 #endif
 

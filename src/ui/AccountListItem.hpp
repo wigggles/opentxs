@@ -19,6 +19,7 @@ public:
     Amount Balance() const override { return balance_; }
     std::string ContractID() const override { return contract_->ID()->str(); }
     std::string DisplayBalance() const override;
+    std::string DisplayUnit() const override { return contract_->TLA(); }
     std::string Name() const override { return name_; }
     std::string NotaryID() const override { return notary_->ID()->str(); }
     std::string NotaryName() const override { return notary_->EffectiveName(); }

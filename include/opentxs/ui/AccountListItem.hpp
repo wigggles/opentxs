@@ -37,6 +37,7 @@ public:
     EXPORT virtual Amount Balance() const = 0;
     EXPORT virtual std::string ContractID() const = 0;
     EXPORT virtual std::string DisplayBalance() const = 0;
+    EXPORT virtual std::string DisplayUnit() const = 0;
     EXPORT virtual std::string Name() const = 0;
     EXPORT virtual std::string NotaryID() const = 0;
     EXPORT virtual std::string NotaryName() const = 0;

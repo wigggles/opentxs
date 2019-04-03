@@ -244,10 +244,13 @@ private:
         std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
     using IssuerMap = std::map<IssuerID, IssuerLock>;
     using PurseID = std::tuple<OTNymID, OTServerID, OTUnitID>;
+    using UnitNameMap = std::map<std::string, proto::ContactItemType>;
+    using UnitNameReverse = std::map<proto::ContactItemType, std::string>;
 
     friend opentxs::Factory;
 
-    static const std::map<std::string, proto::ContactItemType> unit_of_account_;
+    static const UnitNameMap unit_of_account_;
+    static const UnitNameReverse unit_lookup_;
 
     mutable AccountMap account_map_;
     mutable NymMap nym_map_;
@@ -277,6 +280,8 @@ private:
     OTZMQRequestSocket dht_server_requester_;
     OTZMQRequestSocket dht_unit_requester_;
     OTZMQPushSocket find_nym_;
+
+    static UnitNameReverse reverse_unit_map(const UnitNameMap& map);
 
     std::string account_alias(
         const std::string& accountID,
