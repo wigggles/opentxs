@@ -34,6 +34,20 @@ public:
         {"00010966776006953D5567439E5E39F86A0D273BEE",
          "16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM"},
     };
+    const std::map<std::string, std::string> ripemd160_{
+        {"", "9c1185a5c5e9fc54612808977ee8f548b2258d31"},
+        {"a", "0bdc9d2d256b3ee9daae347be6f4dc835a467ffe"},
+        {"abc", "8eb208f7e05d987a9b044a8e98c6b087f15a0bfc"},
+        {"message digest", "5d0689ef49d2fae572b881b123a85ffa21595f36"},
+        {"abcdefghijklmnopqrstuvwxyz",
+         "f71c27109c692c1b56bbdceb5b9d2865b3708dbc"},
+        {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+         "12a053384a9c0c88e405a06c27dcf49ada62eb2b"},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+         "b0e20b6e3116640286ed3a87a5713079b21f5189"},
+        {"123456789012345678901234567890123456789012345678901234567890123456789"
+         "01234567890",
+         "9b752e45573d4b39f4dbd3323cab82bf63326bfb"}};
 
     Test_Bitcoin_Providers()
         : client_(ot::OT::App().StartClient({}, 0))
@@ -71,7 +85,15 @@ public:
 
     bool test_ripemd160(const ot::crypto::Bip32& library)
     {
-        // TODO test opentxs::api::crypto::Hash::Digest
+        for (const auto& [preimage, hash] : ripemd160_) {
+            auto input = ot::Data::Factory();
+            auto output = ot::Data::Factory();
+
+            EXPECT_TRUE(input->DecodeHex(hash));
+            EXPECT_TRUE(crypto_.Hash().Digest(
+                ot::proto::HASHTYPE_RIMEMD160, preimage, output));
+            EXPECT_EQ(output.get(), input.get());
+        }
 
         return true;
     }

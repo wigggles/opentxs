@@ -36,6 +36,10 @@ public:
         const String& data,
         Data& digest) const = 0;
     virtual bool Digest(
+        const proto::HashType hashType,
+        const std::string& data,
+        Data& digest) const = 0;
+    virtual bool Digest(
         const std::uint32_t type,
         const std::string& data,
         std::string& encodedDigest) const = 0;
