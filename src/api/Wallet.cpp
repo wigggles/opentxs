@@ -63,7 +63,7 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 
 namespace opentxs::api::implementation
 {
-const std::map<std::string, proto::ContactItemType> Wallet::unit_of_account_{
+const Wallet::UnitNameMap Wallet::unit_of_account_{
     {"BTC", proto::CITEMTYPE_BTC},   {"ETH", proto::CITEMTYPE_ETH},
     {"XRP", proto::CITEMTYPE_XRP},   {"LTC", proto::CITEMTYPE_LTC},
     {"DAO", proto::CITEMTYPE_DAO},   {"XEM", proto::CITEMTYPE_XEM},
@@ -85,6 +85,8 @@ const std::map<std::string, proto::ContactItemType> Wallet::unit_of_account_{
     {"LTT", proto::CITEMTYPE_TNLTC}, {"DAT", proto::CITEMTYPE_TNDASH},
     {"BCH", proto::CITEMTYPE_BCH},   {"BCT", proto::CITEMTYPE_TNBCH},
 };
+const Wallet::UnitNameReverse Wallet::unit_lookup_{
+    reverse_unit_map(unit_of_account_)};
 
 Wallet::Wallet(const api::Core& core)
     : api_(core)
@@ -1795,6 +1797,15 @@ bool Wallet::RemoveUnitDefinition(const identifier::UnitDefinition& id) const
 void Wallet::publish_server(const identifier::Server& id) const
 {
     server_publisher_->Publish(id.str());
+}
+
+Wallet::UnitNameReverse Wallet::reverse_unit_map(const UnitNameMap& map)
+{
+    UnitNameReverse output{};
+
+    for (const auto& [key, value] : map) { output.emplace(value, key); }
+
+    return output;
 }
 
 void Wallet::save(

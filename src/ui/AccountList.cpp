@@ -84,10 +84,15 @@ AccountList::AccountList(
           ,
           qt,
           Roles{{IDRole, "id"},
-                {ContractIDRole, "contractid"},
                 {BalanceRole, "balance"},
+                {ContractIDRole, "contractid"},
+                {DisplayBalanceRole, "displaybalance"},
+                {DisplayUnit, "displayunit"},
+                {NameRole, "name"},
                 {NotaryIDRole, "notaryid"},
-                {NotaryNameRole, "notaryname"}},
+                {NotaryNameRole, "notaryname"},
+                {TypeRole, "type"},
+                {UnitRole, "unit"}},
           1
 #endif
           )
@@ -126,20 +131,32 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
         case IDRole: {
             return row.AccountID().c_str();
         }
-        case NameRole: {
-            return row.Name().c_str();
+        case BalanceRole: {
+            return static_cast<int>(row.Balance());
         }
         case ContractIDRole: {
             return row.ContractID().c_str();
         }
-        case BalanceRole: {
+        case DisplayBalanceRole: {
             return row.DisplayBalance().c_str();
+        }
+        case DisplayUnit: {
+            return row.DisplayUnit().c_str();
+        }
+        case NameRole: {
+            return row.Name().c_str();
         }
         case NotaryIDRole: {
             return row.NotaryID().c_str();
         }
         case NotaryNameRole: {
             return row.NotaryName().c_str();
+        }
+        case TypeRole: {
+            return static_cast<int>(row.Type());
+        }
+        case UnitRole: {
+            return static_cast<int>(row.Unit());
         }
         default: {
             return {};
