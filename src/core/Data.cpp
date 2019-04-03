@@ -10,6 +10,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <cstdio>
 #include <iomanip>
@@ -149,6 +150,28 @@ void Data::Concatenate(const void* data, const std::size_t& size)
 
     Data temp(data, size);
     concatenate(temp.data_);
+}
+
+bool Data::DecodeHex(const std::string& hex)
+{
+    data_.clear();
+
+    if (hex.empty()) { return true; }
+
+    if (2 > hex.size()) { return false; }
+
+    const auto prefix = hex.substr(0, 2);
+    const auto stripped = (prefix == "0x" || prefix == "0X")
+                              ? hex.substr(2, hex.size() - 2)
+                              : hex;
+    const auto padded =
+        (0 == stripped.size() % 2) ? stripped : std::string("0") + stripped;
+
+    for (std::size_t i = 0; i < padded.length(); i += 2) {
+        data_.emplace_back(strtol(padded.substr(i, 2).c_str(), nullptr, 16));
+    }
+
+    return true;
 }
 
 void Data::Initialize()

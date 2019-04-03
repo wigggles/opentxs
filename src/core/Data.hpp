@@ -47,6 +47,7 @@ public:
     iterator begin() override { return iterator(this, 0); }
     void Concatenate(const void* data, const std::size_t& size) override;
     void* data() override { return data_.data(); }
+    bool DecodeHex(const std::string& hex) override;
     iterator end() override { return iterator(this, data_.size()); }
     std::size_t OTfread(std::uint8_t* data, const std::size_t& size) override;
     bool Randomize(const std::size_t& size) override;

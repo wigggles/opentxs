@@ -94,6 +94,7 @@ public:
     EXPORT virtual iterator begin() = 0;
 #ifndef SWIG
     EXPORT virtual void* data() = 0;
+    EXPORT virtual bool DecodeHex(const std::string& hex) = 0;
 #endif
     EXPORT virtual void Concatenate(
         const void* data,
