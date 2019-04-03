@@ -520,7 +520,7 @@ std::string Trezor::Base58CheckEncode(
 
     OT_ASSERT(outputSize <= bufferSize);
 
-    output.resize(outputSize);
+    output.resize(outputSize - 1);
 
     return output;
 }
