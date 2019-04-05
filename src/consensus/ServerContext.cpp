@@ -187,7 +187,7 @@ ServerContext::ServerContext(
           serialized,
           local,
           remote,
-          api_.Factory().ServerID(serialized.servercontext().serverid()))
+          api.Factory().ServerID(serialized.servercontext().serverid()))
     , request_sent_(requestSent)
     , reply_received_(replyReceived)
     , client_(nullptr)
