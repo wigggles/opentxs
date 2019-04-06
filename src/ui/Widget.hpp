@@ -78,6 +78,7 @@ public:
         MessageProcessor& operator=(const MessageProcessor&) = delete;
     };
 
+    void SetCallback(ui::Widget::Callback cb) const override;
     OTIdentifier WidgetID() const override;
 
     virtual ~Widget() = default;
@@ -104,6 +105,8 @@ protected:
 private:
     std::vector<OTZMQListenCallback> callbacks_;
     std::vector<OTZMQSubscribeSocket> listeners_;
+    mutable std::mutex cb_lock_;
+    mutable ui::Widget::Callback cb_;
 
     Widget() = delete;
     Widget(const Widget&) = delete;

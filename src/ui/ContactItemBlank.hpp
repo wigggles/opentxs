@@ -22,6 +22,7 @@ public:
     bool IsPrimary() const override { return false; }
     std::string Value() const override { return {}; }
     bool Last() const override { return true; }
+    void SetCallback(ui::Widget::Callback) const override {}
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 

@@ -18,6 +18,7 @@
         return $self->WidgetID()->str();
     }
 }
+%ignore opentxs::ui::Widget::SetCallback;
 %ignore opentxs::ui::Widget::WidgetID;
 %rename(UIWidget) opentxs::ui::Widget;
 // clang-format on
@@ -30,6 +31,9 @@ namespace ui
 class Widget
 {
 public:
+    using Callback = std::function<void()>;
+
+    EXPORT virtual void SetCallback(Callback cb) const = 0;
     EXPORT virtual OTIdentifier WidgetID() const = 0;
 
     EXPORT virtual ~Widget() = default;

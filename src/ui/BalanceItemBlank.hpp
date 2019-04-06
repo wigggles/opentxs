@@ -23,6 +23,7 @@ public:
     bool Last() const override { return true; }
     std::string Memo() const override { return {}; }
     std::string Workflow() const override { return {}; }
+    void SetCallback(ui::Widget::Callback) const override {}
     std::string Text() const override { return {}; }
     std::chrono::system_clock::time_point Timestamp() const override
     {

@@ -22,6 +22,7 @@ public:
     std::string Value() const override { return {}; }
     bool Last() const override { return true; }
     bool SetActive(const bool& active) const override { return false; }
+    void SetCallback(ui::Widget::Callback) const override {}
     bool SetPrimary(const bool& primary) const override { return false; }
     bool SetValue(const std::string& value) const override { return false; }
     bool Valid() const override { return false; }

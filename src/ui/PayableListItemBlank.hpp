@@ -19,6 +19,7 @@ class PayableListItemBlank final : public PayableListRowInternal,
 {
 public:
     std::string PaymentCode() const override { return {}; }
+    void SetCallback(ui::Widget::Callback) const override {}
 
     void reindex(const PayableListSortKey&, const implementation::CustomData&)
         override

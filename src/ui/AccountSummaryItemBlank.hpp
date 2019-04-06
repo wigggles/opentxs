@@ -34,6 +34,7 @@ public:
     bool Valid() const override { return {}; }
 
     // Widget
+    void SetCallback(ui::Widget::Callback) const override {}
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
     AccountSummaryItemBlank() = default;

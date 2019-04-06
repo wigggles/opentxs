@@ -20,6 +20,7 @@ public:
     std::string DisplayName() const override { return {}; }
     std::string ImageURI() const override { return {}; }
     bool Last() const override { return true; }
+    void SetCallback(ui::Widget::Callback) const override {}
     std::string Text() const override { return {}; }
     std::string ThreadID() const override { return {}; }
     std::chrono::system_clock::time_point Timestamp() const override

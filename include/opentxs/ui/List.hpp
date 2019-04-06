@@ -17,6 +17,8 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include <functional>
+
 #ifdef SWIG
 // clang-format off
 %rename(UIList) opentxs::ui::List;
