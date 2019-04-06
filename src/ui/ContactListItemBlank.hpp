@@ -22,6 +22,7 @@ public:
     std::string ImageURI() const override { return {}; }
     bool Last() const override { return true; }
     std::string Section() const override { return {}; }
+    void SetCallback(ui::Widget::Callback) const override {}
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 

@@ -27,6 +27,8 @@ Widget::Widget(
     , widget_id_(Identifier::Factory(id))
     , callbacks_()
     , listeners_()
+    , cb_lock_()
+    , cb_()
 {
 }
 
@@ -35,6 +37,12 @@ Widget::Widget(
     const network::zeromq::PublishSocket& publisher)
     : Widget(api, publisher, Identifier::Random())
 {
+}
+
+void Widget::SetCallback(ui::Widget::Callback cb) const
+{
+    Lock lock(cb_lock_);
+    cb_ = cb;
 }
 
 void Widget::setup_listeners(const ListenerDefinitions& definitions)
@@ -56,9 +64,12 @@ void Widget::setup_listeners(const ListenerDefinitions& definitions)
 
 void Widget::UpdateNotify() const
 {
-    publisher_.Publish(widget_id_->str());
     LogTrace(OT_METHOD)(__FUNCTION__)(": Widget ")(widget_id_)(" updated.")
         .Flush();
+    publisher_.Publish(widget_id_->str());
+    Lock lock(cb_lock_);
+
+    if (cb_) { cb_(); }
 }
 
 OTIdentifier Widget::WidgetID() const

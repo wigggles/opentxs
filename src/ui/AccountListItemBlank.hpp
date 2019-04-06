@@ -26,6 +26,7 @@ public:
     std::string Name() const override { return {}; }
     std::string NotaryID() const override { return {}; }
     std::string NotaryName() const override { return {}; }
+    void SetCallback(ui::Widget::Callback) const override {}
     AccountType Type() const override { return {}; }
     proto::ContactItemType Unit() const override { return {}; }
     bool Valid() const override { return false; }

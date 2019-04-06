@@ -25,6 +25,7 @@ public:
     bool MarkRead() const override { return false; }
     std::string Memo() const override { return {}; }
     bool Pending() const override { return false; }
+    void SetCallback(ui::Widget::Callback) const override {}
     std::string Text() const override { return {}; }
     std::chrono::system_clock::time_point Timestamp() const override
     {

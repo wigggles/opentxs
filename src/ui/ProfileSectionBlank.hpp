@@ -68,6 +68,7 @@ public:
     {
         return false;
     }
+    void SetCallback(ui::Widget::Callback) const override {}
     bool SetPrimary(const int, const std::string&, const bool) const override
     {
         return false;

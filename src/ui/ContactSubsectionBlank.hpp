@@ -54,6 +54,7 @@ public:
 
         return OTUIContactItem{empty};
     }
+    void SetCallback(ui::Widget::Callback) const override {}
     proto::ContactItemType Type() const override { return {}; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
