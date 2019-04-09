@@ -70,7 +70,7 @@ private:
 #endif
         bool& haveNymID,
         bool& havePaymentCode,
-        OTIdentifier& outputNymID) const;
+        identifier::Nym& outputNymID) const;
     bool verify_write_lock(const rLock& lock) const;
 
     // takes ownership

@@ -414,6 +414,7 @@ private:
     mutable std::map<ContextID, OperationQueue> operations_;
     mutable std::map<OTIdentifier, UniqueQueue<OTNymID>> server_nym_fetch_;
     UniqueQueue<CheckNymTask> missing_nyms_;
+    UniqueQueue<CheckNymTask> outdated_nyms_;
     UniqueQueue<OTServerID> missing_servers_;
     UniqueQueue<OTUnitID> missing_unit_definitions_;
     mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
@@ -433,6 +434,8 @@ private:
     OTZMQPublishSocket task_finished_;
     mutable OTFlag auto_process_inbox_;
     mutable std::atomic<TaskID> next_task_id_;
+    mutable std::atomic<bool> shutdown_;
+    mutable std::mutex shutdown_lock_;
 
     static Result error_result();
     static BackgroundTask error_task();
@@ -493,7 +496,8 @@ private:
         identifier::UnitDefinition& unitID) const;
     bool find_nym(
         api::client::internal::Operation& op,
-        const identifier::Nym& targetNymID) const;
+        const identifier::Nym& targetNymID,
+        const bool skipExisting) const;
     void find_nym(const opentxs::network::zeromq::Message& message) const;
     bool find_server(
         api::client::internal::Operation& op,
