@@ -112,7 +112,7 @@ void Contacts::check_identifiers(
 #endif
     bool& haveNymID,
     bool& havePaymentCode,
-    OTIdentifier& outputNymID) const
+    identifier::Nym& outputNymID) const
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     if (paymentCode.VerifyInternally()) { havePaymentCode = true; }
@@ -122,12 +122,12 @@ void Contacts::check_identifiers(
 
     if (false == inputNymID.empty()) {
         haveNymID = true;
-        outputNymID = Identifier::Factory(inputNymID);
+        outputNymID.Assign(inputNymID);
     }
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     else if (havePaymentCode) {
         haveNymID = true;
-        outputNymID = Identifier::Factory(paymentCode.ID());
+        outputNymID.Assign(paymentCode.ID());
     }
 #endif
 }
@@ -447,7 +447,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
 
     bool haveNymID{false};
     bool havePaymentCode{false};
-    auto inputNymID = Identifier::Factory();
+    auto inputNymID = identifier::Nym::Factory();
     check_identifiers(
         nymID,
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -458,7 +458,8 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
         inputNymID);
 
     if (haveNymID) {
-        const auto contactID = api_.Storage().ContactOwnerNym(nymID.str());
+        const auto contactID =
+            api_.Storage().ContactOwnerNym(inputNymID->str());
 
         if (false == contactID.empty()) {
 
@@ -484,16 +485,16 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
 
     auto& mContact = output->It();
 
-    if (false == nymID.empty()) {
-        auto nym = api_.Wallet().Nym(nymID);
+    if (false == inputNymID->empty()) {
+        auto nym = api_.Wallet().Nym(inputNymID);
 
         if (nym) {
             mContact.AddNym(nym, true);
         } else {
-            mContact.AddNym(nymID, true);
+            mContact.AddNym(inputNymID, true);
         }
 
-        update_nym_map(lock, nymID, mContact, true);
+        update_nym_map(lock, inputNymID, mContact, true);
     }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
