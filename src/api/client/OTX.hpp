@@ -414,6 +414,7 @@ private:
     mutable std::map<ContextID, OperationQueue> operations_;
     mutable std::map<OTIdentifier, UniqueQueue<OTNymID>> server_nym_fetch_;
     UniqueQueue<CheckNymTask> missing_nyms_;
+    UniqueQueue<CheckNymTask> outdated_nyms_;
     UniqueQueue<OTServerID> missing_servers_;
     UniqueQueue<OTUnitID> missing_unit_definitions_;
     mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
@@ -493,7 +494,8 @@ private:
         identifier::UnitDefinition& unitID) const;
     bool find_nym(
         api::client::internal::Operation& op,
-        const identifier::Nym& targetNymID) const;
+        const identifier::Nym& targetNymID,
+        const bool skipExisting) const;
     void find_nym(const opentxs::network::zeromq::Message& message) const;
     bool find_server(
         api::client::internal::Operation& op,

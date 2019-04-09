@@ -254,6 +254,7 @@ OTX::OTX(
     , operations_()
     , server_nym_fetch_()
     , missing_nyms_()
+    , outdated_nyms_()
     , missing_servers_()
     , missing_unit_definitions_()
     , state_machines_()
@@ -908,7 +909,7 @@ Messagability OTX::can_message(
 
     if (false == bool(recipientNym)) {
         for (const auto& nymID : nyms) {
-            missing_nyms_.Push(next_task_id(), nymID);
+            outdated_nyms_.Push(next_task_id(), nymID);
         }
 
         LogDetail(OT_METHOD)(__FUNCTION__)(": Recipient contact ")(
@@ -929,7 +930,7 @@ Messagability OTX::can_message(
             recipientContactID)(", nym ")(recipientNymID)(
             ": credentials do not specify a server.")
             .Flush();
-        missing_nyms_.Push(next_task_id(), recipientNymID);
+        outdated_nyms_.Push(next_task_id(), recipientNymID);
 
         return Messagability::NO_SERVER_CLAIM;
     }
@@ -1447,13 +1448,14 @@ OTX::BackgroundTask OTX::error_task()
 
 bool OTX::find_nym(
     api::client::internal::Operation& op,
-    const identifier::Nym& targetNymID) const
+    const identifier::Nym& targetNymID,
+    const bool skipExisting) const
 {
     OT_ASSERT(false == targetNymID.empty())
 
     const auto nym = client_.Wallet().Nym(targetNymID);
 
-    if (nym) {
+    if (nym && skipExisting) {
         missing_nyms_.CancelByValue(targetNymID);
 
         return true;
@@ -1461,6 +1463,7 @@ bool OTX::find_nym(
 
     if (download_nym(next_task_id(), op, targetNymID)) {
         missing_nyms_.CancelByValue(targetNymID);
+        outdated_nyms_.CancelByValue(targetNymID);
 
         return true;
     }
@@ -2447,7 +2450,7 @@ void OTX::refresh_contacts() const
                 if (false == bool(serverGroup)) {
 
                     const auto taskID{next_task_id()};
-                    missing_nyms_.Push(taskID, nymID);
+                    outdated_nyms_.Push(taskID, nymID);
                     continue;
                 }
 
@@ -2991,7 +2994,7 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
         // This is a list of nyms for which we do not have credentials..
         // We ask all known servers on which we are registered to try to find
         // their credentials.
-        const auto nyms = missing_nyms_.Copy();
+        auto nyms = missing_nyms_.Copy();
 
         for (const auto& [targetID, taskID] : nyms) {
             SHUTDOWN()
@@ -3009,7 +3012,29 @@ void OTX::state_machine(const ContextID id, OperationQueue& queue) const
             }
 
             [[maybe_unused]] const auto& notUsed = taskID;
-            find_nym(*queue.op_, targetID);
+            find_nym(*queue.op_, targetID, true);
+        }
+
+        SHUTDOWN()
+
+        nyms = outdated_nyms_.Copy();
+
+        for (const auto& [targetID, taskID] : nyms) {
+            SHUTDOWN()
+
+            if (targetID->empty()) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": How did an empty nymID get in here?")
+                    .Flush();
+
+                continue;
+            } else {
+                LogDetail(OT_METHOD)(__FUNCTION__)(": Updating nym ")(targetID)
+                    .Flush();
+            }
+
+            [[maybe_unused]] const auto& notUsed = taskID;
+            find_nym(*queue.op_, targetID, false);
         }
 
         SHUTDOWN()
