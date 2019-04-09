@@ -297,7 +297,8 @@ void Socket::shutdown(const Lock& lock)
     }
 
     endpoints_.clear();
-    zmq_close(socket_);
+
+    if (0 == zmq_close(socket_)) { socket_ = nullptr; }
 }
 
 bool Socket::Start(const std::string& endpoint) const

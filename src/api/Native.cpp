@@ -729,6 +729,9 @@ const api::network::ZAP& Native::ZAP() const
 
 Native::~Native()
 {
+    client_.clear();
+    server_.clear();
+
     if (pid_) { pid_->Close(); }
 
     LogSource::Shutdown();

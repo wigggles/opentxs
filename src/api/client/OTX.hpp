@@ -434,6 +434,8 @@ private:
     OTZMQPublishSocket task_finished_;
     mutable OTFlag auto_process_inbox_;
     mutable std::atomic<TaskID> next_task_id_;
+    mutable std::atomic<bool> shutdown_;
+    mutable std::mutex shutdown_lock_;
 
     static Result error_result();
     static BackgroundTask error_task();
