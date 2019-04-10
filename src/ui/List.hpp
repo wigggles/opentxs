@@ -227,6 +227,9 @@ protected:
         OT_ASSERT(verify_lock(lock));
 
         valid_iterators();
+
+        OT_ASSERT(init_.load());
+
         /* TODO: this line will cause a segfault in the clang-5 ast parser.
         const auto & [ id, item ] = *inner_;
         */
@@ -270,7 +273,7 @@ protected:
 
             // I'm about to delete this row. Make sure iterators are not
             // pointing to it
-            if (inner_ == item) { increment_inner(lock); }
+            if (init_.load() && inner_ == item) { increment_inner(lock); }
 
 #if OT_QT
             if (enable_qt_) {
@@ -351,6 +354,7 @@ protected:
         if (0 == items_.size()) {
             outer_ = outer_first();
             inner_ = items_.begin()->second.begin();
+            init_.store(false);
 
             return false;
         }
@@ -362,6 +366,7 @@ protected:
 
             if (0 < item.size()) {
                 inner_ = item.begin();
+                init_.store(true);
                 valid_iterators();
 
                 return true;
@@ -377,6 +382,8 @@ protected:
     {
         valid_iterators();
         const auto& item = outer_->second;
+
+        OT_ASSERT(init_.load());
 
         ++inner_;
 
@@ -465,7 +472,7 @@ protected:
 
         // I'm about to delete this row. Make sure iterators are not pointing
         // to it
-        if (inner_ == item) { increment_inner(lock); }
+        if (init_.load() && inner_ == item) { increment_inner(lock); }
 
 #if OT_QT
         if (enable_qt_) {
@@ -498,9 +505,11 @@ protected:
     {
         OT_ASSERT(outer_end() != outer_)
 
-        const auto& item = outer_->second;
+        if (init_.load()) {
+            const auto& item = outer_->second;
 
-        OT_ASSERT(item.end() != inner_)
+            OT_ASSERT(item.end() != inner_)
+        }
     }
     void wait_for_startup() const
     {
@@ -556,6 +565,7 @@ protected:
         , startup_(nullptr)
         , blank_p_(new RowBlank)
         , blank_(*blank_p_)
+        , init_(false)
     {
         OT_ASSERT(blank_p_);
     }
@@ -588,6 +598,8 @@ protected:
     }
 
 private:
+    mutable std::atomic<bool> init_;
+
 #if OT_QT
     int find_delete_point(const Lock& lock, const RowID& id) const
     {
