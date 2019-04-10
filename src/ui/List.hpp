@@ -476,10 +476,8 @@ protected:
 
 #if OT_QT
         if (enable_qt_) {
-            const auto oldrow = find_delete_point(lock, id);
-            const auto newrow = find_insert_point(lock, id, newIndex);
-            unconst_cast(this)->beginMoveRows(
-                me(), oldrow, oldrow, me(), newrow);
+            const auto row = find_delete_point(lock, id);
+            unconst_cast(this)->beginRemoveRows(me(), row, row);
         }
 #endif
         std::shared_ptr<RowInternal> row = std::move(item->second);
@@ -489,12 +487,19 @@ protected:
 
         if (0 == itemMap.size()) { items_.erase(index); }
 
+#if OT_QT
+        if (enable_qt_) {
+            unconst_cast(this)->endRemoveRows();
+            const auto row = find_insert_point(lock, id, newIndex);
+            unconst_cast(this)->beginInsertRows(me(), row, row + 1);
+        }
+#endif
         names_[id] = newIndex;
         row->reindex(newIndex, custom);
         items_[newIndex].emplace(id, std::move(row));
 
 #if OT_QT
-        if (enable_qt_) { unconst_cast(this)->endMoveRows(); }
+        if (enable_qt_) { unconst_cast(this)->endInsertRows(); }
 #endif
     }
     virtual bool same(const RowID& lhs, const RowID& rhs) const
