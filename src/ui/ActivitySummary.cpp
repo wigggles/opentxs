@@ -187,26 +187,32 @@ const proto::StorageThreadItem& ActivitySummary::newest_item(
     CustomData& custom)
 {
     const proto::StorageThreadItem* output{nullptr};
+    auto* time = new Time;
+
+    OT_ASSERT(nullptr != time);
 
     for (const auto& item : thread.item()) {
         if (nullptr == output) {
             output = &item;
+            *time = Clock::from_time_t(item.time());
 
             continue;
         }
 
         if (item.time() > output->time()) {
             output = &item;
+            *time = Clock::from_time_t(item.time());
 
             continue;
         }
     }
 
-    OT_ASSERT(nullptr != output)
+    OT_ASSERT(nullptr != output);
 
     custom.emplace_back(new std::string(output->id()));
     custom.emplace_back(new StorageBox(static_cast<StorageBox>(output->box())));
     custom.emplace_back(new std::string(output->account()));
+    custom.emplace_back(time);
 
     return *output;
 }

@@ -646,6 +646,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->ImageURI(), "");
                    EXPECT_EQ(row->Text(), firstMessage);
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
                    EXPECT_TRUE(row->Last());
 
@@ -663,6 +664,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->ImageURI(), "");
                    EXPECT_EQ(row->Text(), secondMessage);
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
                    EXPECT_TRUE(row->Last());
 
@@ -683,6 +685,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_STREQ("", row->ImageURI().c_str());
                    EXPECT_STREQ("Received cheque", row->Text().c_str());
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
                    EXPECT_FALSE(row->Last());
 
@@ -694,6 +697,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->ImageURI(), "");
                    EXPECT_EQ(row->Text(), secondMessage);
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
                    EXPECT_TRUE(row->Last());
 
@@ -713,6 +717,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->ImageURI(), "");
                    EXPECT_EQ(row->Text(), "Sent cheque for dollars 0.75");
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::OUTGOINGCHEQUE);
                    EXPECT_FALSE(row->Last());
 
@@ -724,6 +729,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_STREQ("", row->ImageURI().c_str());
                    EXPECT_STREQ("Received cheque", row->Text().c_str());
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
 
                    return true;
@@ -755,6 +761,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
                    EXPECT_TRUE(row->Last());
 
@@ -778,6 +785,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
                    EXPECT_FALSE(row->Last());
 
@@ -791,6 +799,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
                    EXPECT_TRUE(row->Last());
 
@@ -814,6 +823,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
                    EXPECT_FALSE(row->Last());
 
@@ -827,6 +837,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
                    EXPECT_FALSE(row->Last());
 
@@ -840,6 +851,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), CHEQUE_MEMO);
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), "Sent cheque for dollars 0.75");
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::OUTGOINGCHEQUE);
                    EXPECT_TRUE(row->Last());
 
@@ -873,6 +885,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_FALSE(row->Pending());
                    EXPECT_STREQ(
                        "Received cheque for dollars 1.00", row->Text().c_str());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(StorageBox::INCOMINGCHEQUE, row->Type());
                    EXPECT_TRUE(row->Last());
 
@@ -1229,6 +1242,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->ImageURI(), "");
                    EXPECT_EQ(row->Text(), firstMessage);
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
                    EXPECT_TRUE(row->Last());
 
@@ -1245,6 +1259,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->ImageURI(), "");
                    EXPECT_EQ(row->Text(), secondMessage);
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
                    EXPECT_TRUE(row->Last());
 
@@ -1260,6 +1275,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->ImageURI(), "");
                    EXPECT_EQ(row->Text(), "Received cheque");
                    EXPECT_FALSE(row->ThreadID().empty());
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::INCOMINGCHEQUE);
                    EXPECT_TRUE(row->Last());
 
@@ -1281,6 +1297,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), message_.at(msg_count_));
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
 
                    return true;
@@ -1303,6 +1320,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
                    EXPECT_FALSE(row->Last());
 
@@ -1326,6 +1344,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ(row->Memo(), "");
                    EXPECT_FALSE(row->Pending());
                    EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
                    EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
                    EXPECT_TRUE(row->Last());
 
