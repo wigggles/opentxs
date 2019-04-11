@@ -88,6 +88,7 @@ AccountActivity::AccountActivity(
           Roles{{IDRole, "id"},
                 {AmountRole, "amount"},
                 {ContactsRole, "contacts"},
+                {DisplayAmountRole, "displayamount"},
                 {MemoRole, "memo"},
                 {WorkflowRole, "workflow"},
                 {TextRole, "text"},
@@ -150,18 +151,23 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
             return row.UUID().c_str();
         }
         case AmountRole: {
-            return row.DisplayAmount().c_str();
+            return qlonglong(row.Amount());
         }
         case ContactsRole: {
             std::string contacts;
             auto contact = row.Contacts().cbegin();
+
             if (contact != row.Contacts().cend()) {
                 contacts = *contact;
                 while (++contact != row.Contacts().cend()) {
                     contacts += ", " + *contact;
                 }
             }
+
             return contacts.c_str();
+        }
+        case DisplayAmountRole: {
+            return row.DisplayAmount().c_str();
         }
         case MemoRole: {
             return row.Memo().c_str();
@@ -176,10 +182,11 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
             QDateTime qdatetime;
             qdatetime.setSecsSinceEpoch(
                 std::chrono::system_clock::to_time_t(row.Timestamp()));
+
             return qdatetime;
         }
         case TypeRole: {
-            return storage_box_name(row.Type()).c_str();
+            return static_cast<int>(row.Type());
         }
         default: {
             return {};

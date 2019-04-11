@@ -130,7 +130,7 @@ QVariant ActivitySummary::data(const QModelIndex& index, int role) const
             return qdatetime;
         }
         case TypeRole: {
-            return storage_box_name(row.Type()).c_str();
+            return static_cast<int>(row.Type());
         }
         default: {
             return {};
