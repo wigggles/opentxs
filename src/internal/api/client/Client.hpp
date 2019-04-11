@@ -10,11 +10,13 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/OTX.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/UniqueQueue.hpp"
 
 #include "internal/core/identifier/Identifier.hpp"
 #include "internal/core/Core.hpp"
@@ -312,5 +314,25 @@ struct Operation {
 #endif
 
     virtual ~Operation() = default;
+};
+
+struct OTX : virtual public api::client::OTX {
+    virtual void associate_message_id(
+        const Identifier& messageID,
+        const TaskID taskID) const = 0;
+    virtual Depositability can_deposit(
+        const OTPayment& payment,
+        const identifier::Nym& recipient,
+        const Identifier& accountIDHint,
+        identifier::Server& depositServer,
+        Identifier& depositAccount) const = 0;
+    virtual bool finish_task(
+        const TaskID taskID,
+        const bool success,
+        Result&& result) const = 0;
+    virtual UniqueQueue<OTNymID>& get_nym_fetch(
+        const identifier::Server& serverID) const = 0;
+    virtual BackgroundTask start_task(const TaskID taskID, bool success)
+        const = 0;
 };
 }  // namespace opentxs::api::client::internal
