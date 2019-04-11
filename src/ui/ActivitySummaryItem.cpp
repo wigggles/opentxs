@@ -76,7 +76,7 @@ ActivitySummaryItem::ActivitySummaryItem(
     , display_name_{std::get<1>(key_)}
     , text_("")
     , type_(extract_custom<StorageBox>(custom, 1))
-    , time_()
+    , time_(extract_custom<Time>(custom, 3))
     , newest_item_thread_(nullptr)
     , newest_item_()
     , next_task_id_(0)
