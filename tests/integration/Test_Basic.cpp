@@ -1352,7 +1352,60 @@ const Test_Basic::StateMap Test_Basic::state_{
                }},
               {2,
                []() -> bool {
-                   // FIXME
+                   const auto& firstMessage = message_[msg_count_ - 1];
+                   const auto& secondMessage = message_[msg_count_];
+                   const auto& widget = bob_->UI().ActivityThread(
+                       bob_nym_id_, contact_id_bob_alice_);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), firstMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
+                   EXPECT_EQ(row->Type(), StorageBox::MAILINBOX);
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   bool loading{true};
+
+                   EXPECT_EQ(row->Amount(), 0);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), "");
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), secondMessage);
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
+                   EXPECT_EQ(row->Type(), StorageBox::MAILOUTBOX);
+                   EXPECT_FALSE(row->Last());
+
+                   // This allows the test to work correctly in valgrind when
+                   // loading is unusually slow
+                   while (loading) {
+                       row = widget.First();
+                       row = widget.Next();
+                       row = widget.Next();
+                       loading = row->Loading();
+                   }
+
+                   EXPECT_EQ(row->Amount(), CHEQUE_AMOUNT_2);
+                   EXPECT_EQ(row->DisplayAmount(), "");
+                   EXPECT_FALSE(row->Loading());
+                   EXPECT_EQ(row->Memo(), CHEQUE_MEMO);
+                   EXPECT_FALSE(row->Pending());
+                   EXPECT_EQ(row->Text(), "Received cheque");
+                   EXPECT_LT(0, Clock::to_time_t(row->Timestamp()));
+                   EXPECT_EQ(row->Type(), StorageBox::INCOMINGCHEQUE);
+                   EXPECT_TRUE(row->Last());
 
                    return true;
                }},

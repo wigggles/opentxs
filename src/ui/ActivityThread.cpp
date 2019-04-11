@@ -91,11 +91,11 @@ ActivityThread::ActivityThread(
         ,
         qt,
         Roles{{AmountRole, "amount"},
+              {DisplayAmountRole, "displayamount"},
               {MemoRole, "memo"},
               {TextRole, "text"},
               {TimestampRole, "timestamp"},
               {TypeRole, "type"},
-              {DepositRole, "deposit"},
               {LoadingRole, "loading"},
               {PendingRole, "pending"}},
         1
@@ -224,6 +224,9 @@ QVariant ActivityThread::data(const QModelIndex& index, int role) const
 
     switch (role) {
         case AmountRole: {
+            return qlonglong(row.Amount());
+        }
+        case DisplayAmountRole: {
             return row.DisplayAmount().c_str();
         }
         case MemoRole: {
@@ -239,10 +242,7 @@ QVariant ActivityThread::data(const QModelIndex& index, int role) const
             return qdatetime;
         }
         case TypeRole: {
-            return storage_box_name(row.Type()).c_str();
-        }
-        case DepositRole: {
-            return row.Deposit();
+            return static_cast<int>(row.Type());
         }
         case LoadingRole: {
             return row.Loading();

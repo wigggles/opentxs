@@ -132,7 +132,7 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
             return row.AccountID().c_str();
         }
         case BalanceRole: {
-            return static_cast<int>(row.Balance());
+            return qlonglong(row.Balance());
         }
         case ContractIDRole: {
             return row.ContractID().c_str();

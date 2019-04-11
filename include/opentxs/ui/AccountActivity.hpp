@@ -30,11 +30,12 @@ public:
         IDRole = Qt::UserRole + 1,
         AmountRole = Qt::UserRole + 2,
         ContactsRole = Qt::UserRole + 3,
-        MemoRole = Qt::UserRole + 4,
-        WorkflowRole = Qt::UserRole + 5,
-        TextRole = Qt::UserRole + 6,
-        TimestampRole = Qt::UserRole + 7,
-        TypeRole = Qt::UserRole + 8,
+        DisplayAmountRole = Qt::UserRole + 4,
+        MemoRole = Qt::UserRole + 5,
+        WorkflowRole = Qt::UserRole + 6,
+        TextRole = Qt::UserRole + 7,
+        TimestampRole = Qt::UserRole + 8,
+        TypeRole = Qt::UserRole + 9,
     };
 #endif
 
