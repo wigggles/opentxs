@@ -984,7 +984,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_EQ("-dollars 0.75", row->DisplayAmount());
                    EXPECT_EQ(CHEQUE_MEMO, row->Memo());
                    EXPECT_FALSE(row->Workflow().empty());
-                   EXPECT_EQ("Wrote cheque #618 for Bob", row->Text());
+                   EXPECT_EQ("Wrote cheque #721 for Bob", row->Text());
                    EXPECT_EQ(StorageBox::OUTGOINGCHEQUE, row->Type());
                    EXPECT_FALSE(row->UUID().empty());
                    EXPECT_FALSE(row->Last());

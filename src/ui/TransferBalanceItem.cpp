@@ -132,7 +132,7 @@ bool TransferBalanceItem::get_contract() const
 
     if (contract_) { return true; }
 
-    api_.OTX().DownloadContract(
+    api_.OTX().DownloadUnitDefinition(
         nym_id_, api_.OTX().IntroductionServer(), contractID);
 
     return false;

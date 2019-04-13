@@ -78,10 +78,6 @@ public:
         const Identifier& accountID,
         const std::shared_ptr<const OTPayment>& payment) const override;
     void DisableAutoaccept() const override;
-    BackgroundTask DownloadContract(
-        const identifier::Nym& localNymID,
-        const identifier::Server& serverID,
-        const Identifier& contractID) const override;
 #if OT_CASH
     BackgroundTask DownloadMint(
         const identifier::Nym& nym,
@@ -95,6 +91,14 @@ public:
     BackgroundTask DownloadNymbox(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const override;
+    BackgroundTask DownloadServerContract(
+        const identifier::Nym& localNymID,
+        const identifier::Server& serverID,
+        const identifier::Server& contractID) const override;
+    BackgroundTask DownloadUnitDefinition(
+        const identifier::Nym& localNymID,
+        const identifier::Server& serverID,
+        const identifier::UnitDefinition& contractID) const override;
     BackgroundTask FindNym(const identifier::Nym& nymID) const override;
     BackgroundTask FindNym(
         const identifier::Nym& nymID,
@@ -248,7 +252,6 @@ private:
     UniqueQueue<CheckNymTask> outdated_nyms_;
     UniqueQueue<OTServerID> missing_servers_;
     UniqueQueue<OTUnitID> missing_unit_definitions_;
-    mutable std::map<ContextID, std::unique_ptr<std::thread>> state_machines_;
     mutable std::unique_ptr<OTServerID> introduction_server_id_;
     mutable TaskStatusMap task_status_;
     mutable std::map<TaskID, MessageID> task_message_id_;
@@ -295,7 +298,6 @@ private:
     void find_unit(const opentxs::network::zeromq::Message& message) const;
     bool finish_task(const TaskID taskID, const bool success, Result&& result)
         const override;
-    std::future<void> get_future(const ContextID& id) const;
     OTServerID get_introduction_server(const Lock& lock) const;
     UniqueQueue<OTNymID>& get_nym_fetch(
         const identifier::Server& serverID) const override;
@@ -315,8 +317,8 @@ private:
     bool queue_cheque_deposit(
         const identifier::Nym& nymID,
         const Cheque& cheque) const;
-    void refresh_accounts() const;
-    void refresh_contacts() const;
+    bool refresh_accounts() const;
+    bool refresh_contacts() const;
     BackgroundTask schedule_download_nymbox(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const;
@@ -338,6 +340,7 @@ private:
         const ThreadStatus status,
         Result&& result) const;
     void start_introduction_server(const identifier::Nym& nymID) const;
+    void trigger_all() const;
     Depositability valid_account(
         const OTPayment& payment,
         const identifier::Nym& recipient,
