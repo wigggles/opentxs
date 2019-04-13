@@ -123,6 +123,11 @@ internal::ServerContext* Factory::ServerContext(
 namespace opentxs::implementation
 {
 const std::string ServerContext::default_node_name_{DEFAULT_NODE_NAME};
+const std::set<MessageType> ServerContext::do_not_need_request_number_{
+    MessageType::pingNotary,
+    MessageType::registerNym,
+    MessageType::getRequestNumber,
+};
 
 ServerContext::ServerContext(
     const api::client::Manager& api,
@@ -775,6 +780,8 @@ NetworkReplyMessage ServerContext::attempt_delivery(
         static_cast<opentxs::network::ServerConnection::Push>(
             enable_otx_push_.load()));
     auto& [status, reply] = output;
+    const auto needRequestNumber =
+        need_request_number(Message::Type(message.m_strCommand->Get()));
 
     switch (status) {
         case SendResult::VALID_REPLY: {
@@ -797,6 +804,8 @@ NetworkReplyMessage ServerContext::attempt_delivery(
 
                 return output;
             }
+
+            if (false == needRequestNumber) { break; }
 
             bool sent{false};
             auto number = update_request_number(contextLock, messageLock, sent);
@@ -2265,6 +2274,11 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
     }
 }
 
+bool ServerContext::need_request_number(const MessageType type)
+{
+    return 0 == do_not_need_request_number_.count(type);
+}
+
 OTManagedNumber ServerContext::next_transaction_number(
     const Lock& lock,
     const MessageType reason)
@@ -2319,6 +2333,8 @@ void ServerContext::pending_send(const api::client::Manager& client)
 
     auto result =
         attempt_delivery(contextLock, messageLock, client, *pending_message_);
+    const auto needRequestNumber = need_request_number(
+        Message::Type(pending_message_->m_strCommand->Get()));
 
     switch (result.first) {
         case SendResult::SHUTDOWN: {
@@ -2344,10 +2360,12 @@ void ServerContext::pending_send(const api::client::Manager& client)
         } break;
         case SendResult::TIMEOUT:
         case SendResult::INVALID_REPLY: {
-            update_state(
-                contextLock,
-                proto::DELIVERTYSTATE_NEEDNYMBOX,
-                proto::LASTREPLYSTATUS_UNKNOWN);
+            if (needRequestNumber) {
+                update_state(
+                    contextLock,
+                    proto::DELIVERTYSTATE_NEEDNYMBOX,
+                    proto::LASTREPLYSTATUS_UNKNOWN);
+            }
         } break;
         default: {
         }
