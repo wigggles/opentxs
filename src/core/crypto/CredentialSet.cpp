@@ -49,10 +49,10 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -1236,6 +1236,61 @@ bool CredentialSet::hasCapability(const NymCapability& capability) const
             break;
         }
         default: {
+        }
+    }
+
+    return false;
+}
+
+bool CredentialSet::Sign(
+    const GetPreimage input,
+    const proto::SignatureRole role,
+    proto::Signature& signature,
+    proto::KeyRole key,
+    const OTPasswordData* pPWData,
+    const proto::HashType hash) const
+{
+    switch (role) {
+        case (proto::SIGROLE_PUBCREDENTIAL): {
+            if (m_MasterCredential->hasCapability(
+                    NymCapability::SIGN_CHILDCRED)) {
+                return m_MasterCredential->Sign(
+                    input, role, signature, key, pPWData, hash);
+            }
+
+            break;
+        }
+        case (proto::SIGROLE_NYMIDSOURCE): {
+            LogOutput(": Credentials to be signed with a nym source can not "
+                      "use this method.")
+                .Flush();
+
+            return false;
+        }
+        case (proto::SIGROLE_PRIVCREDENTIAL): {
+            LogOutput(": Private credential can not use this method.").Flush();
+
+            return false;
+        }
+        default: {
+            bool haveSignature = false;
+
+            for (auto& it : m_mapCredentials) {
+                auto& credential = it.second;
+
+                if (nullptr != credential) {
+                    if (credential->hasCapability(
+                            NymCapability::SIGN_MESSAGE)) {
+                        const auto keyCredential =
+                            dynamic_cast<const KeyCredential*>(
+                                credential.get());
+                        haveSignature = keyCredential->Sign(
+                            input, role, signature, key, pPWData, hash);
+                    }
+
+                    if (haveSignature) { return true; }
+                }
+            }
         }
     }
 

@@ -59,7 +59,8 @@ public:
 #ifndef SWIG
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const String& rhs);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(const Nym& nym);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const identity::Nym& nym);
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const Cheque& cheque);
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(const Item& item);

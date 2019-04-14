@@ -21,7 +21,7 @@ class UserCommandProcessor
 public:
     static bool check_client_isnt_server(
         const identifier::Nym& nymID,
-        const Nym& serverNym);
+        const identity::Nym& serverNym);
     static bool check_message_notary(
         const identifier::Server& notaryID,
         const Identifier& realNotaryID);
@@ -46,7 +46,7 @@ private:
     public:
         FinalizeResponse(
             const api::Core& core,
-            const Nym& nym,
+            const identity::Nym& nym,
             ReplyMessage& reply,
             Ledger& ledger);
         FinalizeResponse() = delete;
@@ -62,7 +62,7 @@ private:
 
     private:
         const api::Core& api_;
-        const Nym& nym_;
+        const identity::Nym& nym_;
         ReplyMessage& reply_;
         Ledger& ledger_;
         std::vector<std::shared_ptr<OTTransaction>> response_;
@@ -122,31 +122,34 @@ private:
     std::unique_ptr<Ledger> create_nymbox(
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
-        const Nym& serverNym) const;
+        const identity::Nym& serverNym) const;
     bool hash_check(const ClientContext& context, Identifier& nymboxHash) const;
     RequestNumber initialize_request_number(ClientContext& context) const;
     std::unique_ptr<Ledger> load_inbox(
         const identifier::Nym& nymID,
         const Identifier& accountID,
         const identifier::Server& serverID,
-        const Nym& serverNym,
+        const identity::Nym& serverNym,
         const bool verifyAccount) const;
     std::unique_ptr<Ledger> load_nymbox(
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
-        const Nym& serverNym,
+        const identity::Nym& serverNym,
         const bool verifyAccount) const;
     std::unique_ptr<Ledger> load_outbox(
         const identifier::Nym& nymID,
         const Identifier& accountID,
         const identifier::Server& serverID,
-        const Nym& serverNym,
+        const identity::Nym& serverNym,
         const bool verifyAccount) const;
     bool reregister_nym(ReplyMessage& reply) const;
-    bool save_box(const Nym& nym, Ledger& box) const;
-    bool save_inbox(const Nym& nym, Identifier& hash, Ledger& inbox) const;
-    bool save_nymbox(const Nym& nym, Identifier& hash, Ledger& nymbox) const;
-    bool save_outbox(const Nym& nym, Identifier& hash, Ledger& outbox) const;
+    bool save_box(const identity::Nym& nym, Ledger& box) const;
+    bool save_inbox(const identity::Nym& nym, Identifier& hash, Ledger& inbox)
+        const;
+    bool save_nymbox(const identity::Nym& nym, Identifier& hash, Ledger& nymbox)
+        const;
+    bool save_outbox(const identity::Nym& nym, Identifier& hash, Ledger& outbox)
+        const;
     bool send_message_to_nym(
         const identifier::Server& notaryID,
         const identifier::Nym& senderNymID,
@@ -155,10 +158,11 @@ private:
     bool verify_box(
         const Identifier& ownerID,
         Ledger& box,
-        const Nym& nym,
+        const identity::Nym& nym,
         const bool full) const;
-    bool verify_transaction(const OTTransaction* transaction, const Nym& signer)
-        const;
+    bool verify_transaction(
+        const OTTransaction* transaction,
+        const identity::Nym& signer) const;
 
     UserCommandProcessor(
         Server& server,

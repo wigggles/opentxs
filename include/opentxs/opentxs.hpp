@@ -95,7 +95,7 @@
 #include <opentxs/core/LogSource.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/NumList.hpp>
-#include <opentxs/core/Nym.hpp>
+#include <opentxs/core/NymIDSource.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/OTTransactionType.hpp>
@@ -126,6 +126,7 @@
 #include <opentxs/otx/Request.hpp>
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
+#include <opentxs/identity/Nym.hpp>
 #include <opentxs/iterator/Bidirectional.hpp>
 #include <opentxs/network/zeromq/zap/Callback.hpp>
 #include <opentxs/network/zeromq/zap/Handler.hpp>

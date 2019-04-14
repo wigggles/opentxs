@@ -27,11 +27,11 @@ private:
 
     StoreSecret(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequest& serialized);
     StoreSecret(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const identifier::Nym& recipientID,
         const proto::SecretType type,
         const std::string& primary,

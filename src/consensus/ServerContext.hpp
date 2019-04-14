@@ -211,16 +211,16 @@ private:
         const TransactionNumber number) const;
     std::shared_ptr<OTTransaction> extract_box_receipt(
         const String& serialized,
-        const opentxs::Nym& signer,
+        const identity::Nym& signer,
         const identifier::Nym& owner,
         const TransactionNumber target);
     std::unique_ptr<Ledger> extract_ledger(
         const Armored& armored,
         const Identifier& accountID,
-        const opentxs::Nym& signer) const;
+        const identity::Nym& signer) const;
     std::unique_ptr<Message> extract_message(
         const Armored& armored,
-        const opentxs::Nym& signer) const;
+        const identity::Nym& signer) const;
     std::unique_ptr<Item> extract_original_item(
         const itemType type,
         OTTransaction& response) const;
@@ -563,8 +563,8 @@ private:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& requestSent,
         const network::zeromq::PublishSocket& replyReceived,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server,
         network::ServerConnection& connection);
     ServerContext(
@@ -572,8 +572,8 @@ private:
         const network::zeromq::PublishSocket& requestSent,
         const network::zeromq::PublishSocket& replyReceived,
         const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         network::ServerConnection& connection);
     ServerContext() = delete;
     ServerContext(const ServerContext&) = delete;

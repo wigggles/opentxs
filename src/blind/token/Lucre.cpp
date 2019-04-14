@@ -148,7 +148,7 @@ Lucre::Lucre(const api::Core& api, Purse& purse, const proto::Token& in)
 
 Lucre::Lucre(
     const api::Core& api,
-    const Nym& owner,
+    const identity::Nym& owner,
     const Mint& mint,
     const Denomination value,
     Purse& purse,
@@ -218,7 +218,7 @@ bool Lucre::ChangeOwner(crypto::key::Symmetric& key)
 }
 
 bool Lucre::GenerateTokenRequest(
-    const Nym& owner,
+    const identity::Nym& owner,
     const OTPassword& primaryPassword,
     const OTPassword& secondaryPassword,
     const Mint& mint)
@@ -465,7 +465,7 @@ bool Lucre::MarkSpent()
     return output;
 }
 
-bool Lucre::Process(const Nym& owner, const Mint& mint)
+bool Lucre::Process(const identity::Nym& owner, const Mint& mint)
 {
     if (proto::TOKENSTATE_SIGNED != state_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect token state.").Flush();

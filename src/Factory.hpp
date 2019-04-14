@@ -104,14 +104,14 @@ public:
 #endif
     static internal::ClientContext* ClientContext(
         const api::Core& api,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server);
     static internal::ClientContext* ClientContext(
         const api::Core& api,
         const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server);
     static api::client::internal::Manager* ClientManager(
         const api::Native& parent,
@@ -291,10 +291,17 @@ public:
         const std::chrono::seconds gcInterval,
         OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();
+    static identity::internal::Nym* Nym(
+        const api::Core& api,
+        const NymParameters& nymParameters);
+    static identity::internal::Nym* Nym(
+        const api::Core& api,
+        const identifier::Nym& nymID,
+        const proto::CredentialIndexMode mode = proto::CREDINDEX_ERROR);
     static internal::NymFile* NymFile(
         const api::Core& core,
-        std::shared_ptr<const Nym> targetNym,
-        std::shared_ptr<const Nym> signerNym);
+        Nym_p targetNym,
+        Nym_p signerNym);
     static crypto::OpenSSL* OpenSSL(const api::Crypto& crypto);
     static api::client::internal::Operation* Operation(
         const api::client::Manager& api,
@@ -336,17 +343,17 @@ public:
         const ui::implementation::CustomData& custom);
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& message);
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& payment,
         const bool isPayment);
 #if OT_CASH
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse);
 #endif
     static opentxs::PeerObject* PeerObject(
@@ -361,12 +368,12 @@ public:
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
         const api::Core& api,
-        const ConstNym& signerNym,
+        const Nym_p& signerNym,
         const proto::PeerObject& serialized);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
         const api::Core& api,
-        const ConstNym& recipientNym,
+        const Nym_p& recipientNym,
         const Armored& encrypted);
     static ui::implementation::ActivityThreadRowInternal* PendingSend(
         const ui::implementation::ActivityThreadInternalInterface& parent,
@@ -430,19 +437,19 @@ public:
         const Amount totalValue);
     static blind::Purse* Purse(
         const api::Core& api,
-        const Nym& owner,
+        const identity::Nym& owner,
         const identifier::Server& server,
-        const Nym& serverNym,
+        const identity::Nym& serverNym,
         const proto::CashType type,
         const blind::Mint& mint,
         const Amount totalValue);
     static blind::Purse* Purse(
         const api::Core& api,
         const blind::Purse& request,
-        const Nym& requester);
+        const identity::Nym& requester);
     static blind::Purse* Purse(
         const api::Core& api,
-        const Nym& owner,
+        const identity::Nym& owner,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const proto::CashType type);
@@ -466,8 +473,8 @@ public:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& requestSent,
         const network::zeromq::PublishSocket& replyReceived,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server,
         network::ServerConnection& connection);
     static internal::ServerContext* ServerContext(
@@ -475,8 +482,8 @@ public:
         const network::zeromq::PublishSocket& requestSent,
         const network::zeromq::PublishSocket& replyReceived,
         const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         network::ServerConnection& connection);
     static api::server::Manager* ServerManager(
         const api::Native& parent,
@@ -555,7 +562,7 @@ public:
         const proto::Token& serialized);
     static blind::Token* Token(
         const api::Core& api,
-        const Nym& owner,
+        const identity::Nym& owner,
         const blind::Mint& mint,
         const std::uint64_t value,
         blind::Purse& purse,

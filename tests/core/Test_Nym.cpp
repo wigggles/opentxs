@@ -28,8 +28,8 @@ struct Test_Symmetric : public ::testing::Test {
     static opentxs::proto::SessionKey session_key_;
 
     const opentxs::api::client::Manager& api_;
-    std::shared_ptr<const opentxs::Nym> alice_;
-    std::shared_ptr<const opentxs::Nym> bob_;
+    opentxs::Nym_p alice_;
+    opentxs::Nym_p bob_;
 
     Test_Symmetric()
         : api_(opentxs::OT::App().StartClient(args_, 0))

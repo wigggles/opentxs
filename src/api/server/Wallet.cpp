@@ -58,8 +58,8 @@ std::shared_ptr<const opentxs::Context> Wallet::Context(
 
 void Wallet::instantiate_client_context(
     const proto::Context& serialized,
-    const std::shared_ptr<const opentxs::Nym>& localNym,
-    const std::shared_ptr<const opentxs::Nym>& remoteNym,
+    const Nym_p& localNym,
+    const Nym_p& remoteNym,
     std::shared_ptr<opentxs::internal::Context>& output) const
 {
     output.reset(opentxs::Factory::ClientContext(
@@ -194,8 +194,7 @@ Editor<opentxs::Context> Wallet::mutable_Context(
     return Editor<opentxs::Context>(base.get(), callback);
 }
 
-std::shared_ptr<const opentxs::Nym> Wallet::signer_nym(
-    const identifier::Nym&) const
+Nym_p Wallet::signer_nym(const identifier::Nym&) const
 {
     return Nym(server_.NymID());
 }

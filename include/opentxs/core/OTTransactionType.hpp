@@ -96,7 +96,7 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(const Nym& theNym);
+    virtual bool VerifyAccount(const identity::Nym& theNym);
 
     void InitTransactionType();
     void Release() override;

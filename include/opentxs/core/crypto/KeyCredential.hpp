@@ -118,38 +118,13 @@ public:
 
     virtual ~KeyCredential() = default;
 
-    template <class C>
-    bool SignProto(
-        C& serialized,
+    bool Sign(
+        const GetPreimage input,
+        const proto::SignatureRole role,
         proto::Signature& signature,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr) const
-    {
-        const crypto::key::Keypair* keyToUse{nullptr};
-
-        switch (key) {
-            case (proto::KEYROLE_AUTH):
-                keyToUse = &authentication_key_.get();
-                break;
-            case (proto::KEYROLE_SIGN):
-                keyToUse = &signing_key_.get();
-                break;
-            case (proto::KEYROLE_ERROR):
-            case (proto::KEYROLE_ENCRYPT):
-            default:
-                LogOutput(": Can not sign with the "
-                          "specified key.")
-                    .Flush();
-                return false;
-        }
-
-        if (nullptr != keyToUse) {
-            return keyToUse->SignProto<C>(
-                serialized, signature, String::Factory(id_), pPWData);
-        }
-
-        return false;
-    }
+        const OTPasswordData* pPWData = nullptr,
+        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const;
 
 private:
     static OTKeypair deserialize_key(

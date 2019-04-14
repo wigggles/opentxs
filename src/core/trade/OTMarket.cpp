@@ -24,11 +24,11 @@
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -1143,8 +1143,8 @@ void OTMarket::ProcessTrade(
     bool bTradersAreSameNym = (FIRST_NYM_ID == OTHER_NYM_ID);
 
     // Initially both nym pointers are set to their own blank objects
-    ConstNym pFirstNym = nullptr;
-    ConstNym pOtherNym = nullptr;
+    Nym_p pFirstNym = nullptr;
+    Nym_p pOtherNym = nullptr;
 
     // Unless either of them is actually the server,
     // in which case the pointer is re-pointed to the server Nym.

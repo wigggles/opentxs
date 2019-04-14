@@ -37,9 +37,9 @@
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
@@ -305,7 +305,7 @@ ExclusiveAccount Wallet::CreateAccount(
     const identifier::Nym& ownerNymID,
     const identifier::Server& notaryID,
     const identifier::UnitDefinition& instrumentDefinitionID,
-    const opentxs::Nym& signer,
+    const identity::Nym& signer,
     Account::AccountType type,
     TransactionNumber stash) const
 {
@@ -945,7 +945,7 @@ std::set<OTNymID> Wallet::LocalNyms() const
     return nymIds;
 }
 
-ConstNym Wallet::Nym(
+Nym_p Wallet::Nym(
     const identifier::Nym& id,
     const std::chrono::milliseconds& timeout) const
 {
@@ -962,12 +962,12 @@ ConstNym Wallet::Nym(
 
         if (loaded) {
             auto& pNym = nym_map_[nym].second;
-            pNym.reset(new opentxs::Nym(api_, id));
+            pNym.reset(opentxs::Factory::Nym(api_, id));
 
             if (pNym) {
                 if (pNym->LoadCredentialIndex(*serialized)) {
                     valid = pNym->VerifyPseudonym();
-                    pNym->alias_ = alias;
+                    pNym->SetAliasStartup(alias);
                 }
             }
         } else {
@@ -1001,7 +1001,7 @@ ConstNym Wallet::Nym(
     return nullptr;
 }
 
-ConstNym Wallet::Nym(const proto::CredentialIndex& serialized) const
+Nym_p Wallet::Nym(const proto::CredentialIndex& serialized) const
 {
     const auto& id = serialized.nymid();
     const auto nymID = identifier::Nym::Factory(id);
@@ -1021,7 +1021,8 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& serialized) const
 
         return existing;
     } else {
-        std::unique_ptr<opentxs::Nym> candidate(new opentxs::Nym(api_, nymID));
+        std::unique_ptr<identity::internal::Nym> candidate(
+            opentxs::Factory::Nym(api_, nymID));
 
         OT_ASSERT(candidate)
 
@@ -1048,12 +1049,13 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& serialized) const
     return existing;
 }
 
-ConstNym Wallet::Nym(
+Nym_p Wallet::Nym(
     const NymParameters& nymParameters,
     const proto::ContactItemType type,
     const std::string name) const
 {
-    std::shared_ptr<opentxs::Nym> pNym(new opentxs::Nym(api_, nymParameters));
+    std::shared_ptr<identity::internal::Nym> pNym(
+        opentxs::Factory::Nym(api_, nymParameters));
 
     OT_ASSERT(pNym);
 
@@ -1062,7 +1064,6 @@ ConstNym Wallet::Nym(
             proto::CITEMTYPE_ERROR != type && !name.empty();
         if (nameAndTypeSet) {
             pNym->SetScope(type, name, true);
-
             pNym->SetAlias(name);
         }
 
@@ -1140,8 +1141,8 @@ Editor<opentxs::NymFile> Wallet::mutable_Nymfile(
 }
 
 Editor<opentxs::NymFile> Wallet::mutable_nymfile(
-    const std::shared_ptr<const opentxs::Nym>& targetNym,
-    const std::shared_ptr<const opentxs::Nym>& signerNym,
+    const Nym_p& targetNym,
+    const Nym_p& signerNym,
     const identifier::Nym& id,
     const OTPasswordData& reason) const
 {
@@ -1172,7 +1173,7 @@ std::mutex& Wallet::nymfile_lock(const identifier::Nym& nymID) const
     return output;
 }
 
-ConstNym Wallet::NymByIDPartialMatch(const std::string& partialId) const
+Nym_p Wallet::NymByIDPartialMatch(const std::string& partialId) const
 {
     Lock mapLock(nym_map_lock_);
     bool inMap = (nym_map_.find(partialId) != nym_map_.end());
@@ -1941,10 +1942,11 @@ void Wallet::save(opentxs::NymFile* nymfile, const Lock& lock) const
     OT_ASSERT(saved);
 }
 
-bool Wallet::SaveCredentialIDs(const opentxs::Nym& nym) const
+bool Wallet::SaveCredentialIDs(const identity::Nym& nym) const
 {
-    serializedCredentialIndex index =
-        nym.SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_ONLY_IDS);
+    const auto index = dynamic_cast<const identity::internal::Nym&>(nym)
+                           .SerializeCredentialIndex(
+                               identity::internal::Nym::Mode::Abbreviated);
     const bool valid = proto::Validate(index, VERBOSE);
 
     if (!valid) { return false; }

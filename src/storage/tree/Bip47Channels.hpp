@@ -76,7 +76,7 @@ public:
     ~Bip47Channels() = default;
 
 private:
-    friend class Nym;
+    friend Nym;
 
     /** Channel ID, addresses */
     using AddressMap = std::map<OTIdentifier, std::set<std::string>>;

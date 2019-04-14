@@ -11,15 +11,15 @@ class Factory final : public opentxs::api::implementation::Factory
 {
 public:
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& message) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& payment,
         const bool isPayment) const override;
 #if OT_CASH
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse) const override;
 #endif
     std::unique_ptr<opentxs::PeerObject> PeerObject(
@@ -30,10 +30,10 @@ public:
         const std::shared_ptr<const PeerRequest> request,
         const std::uint32_t& version) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& signerNym,
+        const Nym_p& signerNym,
         const proto::PeerObject& serialized) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& recipientNym,
+        const Nym_p& recipientNym,
         const Armored& encrypted) const override;
 
     ~Factory() override = default;

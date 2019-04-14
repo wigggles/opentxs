@@ -58,13 +58,14 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -483,7 +484,7 @@ std::string OTAPI_Exec::CreateNymLegacy(
     nymParameters = std::make_shared<NymParameters>(proto::CREDTYPE_LEGACY);
 #endif
 
-    ConstNym pNym = api_.Wallet().Nym(*nymParameters);
+    Nym_p pNym = api_.Wallet().Nym(*nymParameters);
 
     if (false == bool(pNym))  // Creation failed.
     {
@@ -651,82 +652,6 @@ std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
     if (false == bool(pNym)) return {};
     const std::string str_return(pNym->GetDescription().Get());
     return str_return;
-}
-
-std::string OTAPI_Exec::GetNym_MasterCredentialContents(
-    const std::string& NYM_ID,
-    const std::string& CREDENTIAL_ID) const
-{
-    if (NYM_ID.empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": nullptr NYM_ID passed in!")
-            .Flush();
-        return {};
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = api_.Factory().NymID(NYM_ID);
-    auto pNym = api_.Wallet().Nym(nym_id);
-    if (false == bool(pNym)) return {};
-
-    auto serialized = pNym->MasterCredentialContents(CREDENTIAL_ID);
-
-    if (serialized) { return proto::ProtoAsString(*serialized); }
-
-    return {};
-}
-
-std::string OTAPI_Exec::GetNym_RevokedCredContents(
-    const std::string& NYM_ID,
-    const std::string& CREDENTIAL_ID) const
-{
-    if (NYM_ID.empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": nullptr NYM_ID passed in!")
-            .Flush();
-        return {};
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = api_.Factory().NymID(NYM_ID);
-    auto pNym = api_.Wallet().Nym(nym_id);
-    if (false == bool(pNym)) { return {}; }
-
-    auto serialized = pNym->RevokedCredentialContents(CREDENTIAL_ID);
-
-    if (serialized) { return proto::ProtoAsString(*serialized); }
-
-    return {};
-}
-
-std::string OTAPI_Exec::GetNym_ChildCredentialContents(
-    const std::string& NYM_ID,
-    const std::string& MASTER_CRED_ID,
-    const std::string& SUB_CRED_ID) const
-{
-    if (NYM_ID.empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": nullptr NYM_ID passed in!")
-            .Flush();
-        return {};
-    }
-    if (MASTER_CRED_ID.empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": nullptr MASTER_CRED_ID passed in!")
-            .Flush();
-        return {};
-    }
-    if (SUB_CRED_ID.empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": nullptr SUB_CRED_ID passed in!")
-            .Flush();
-        return {};
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = api_.Factory().NymID(NYM_ID);
-    auto pNym = api_.Wallet().Nym(nym_id);
-    if (false == bool(pNym)) return {};
-
-    auto serialized =
-        pNym->ChildCredentialContents(MASTER_CRED_ID, SUB_CRED_ID);
-
-    if (serialized) { return proto::ProtoAsString(*serialized); }
-
-    return {};
 }
 
 bool OTAPI_Exec::RevokeChildCredential(
@@ -1038,7 +963,7 @@ std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
         return {};
     }
 
-    ConstNym pNym = pContract->GetContractPublicNym();
+    Nym_p pNym = pContract->GetContractPublicNym();
 
     if (false == bool(pNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1813,7 +1738,7 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
         return {};
     }
 
-    const Nym* pObject = nullptr;
+    const identity::Nym* pObject = nullptr;
 
     auto thePartialID = api_.Factory().NymID(PARTIAL_ID);
 
@@ -1821,8 +1746,8 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
     // (We STILL confirm whether he's found in the wallet...)
     //
     if (!thePartialID->empty()) {
-        auto constNym = api_.Wallet().Nym(thePartialID);
-        if (constNym) { pObject = constNym.get(); }
+        auto Nym_p = api_.Wallet().Nym(thePartialID);
+        if (Nym_p) { pObject = Nym_p.get(); }
     }
 
     if (nullptr != pObject)  // Found it (as full ID.)
@@ -1833,8 +1758,8 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
     // we know about, so now we can go ahead and search for it as a PARTIAL
     // ID...
     //
-    auto constNym = api_.Wallet().NymByIDPartialMatch(PARTIAL_ID);
-    if (constNym) { pObject = constNym.get(); }
+    auto Nym_p = api_.Wallet().NymByIDPartialMatch(PARTIAL_ID);
+    if (Nym_p) { pObject = Nym_p.get(); }
 
     if (nullptr != pObject)  // Found it (as partial ID.)
     {
@@ -2003,7 +1928,7 @@ std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
         !NYM_ID.empty(), "OTAPI_Exec::GetNym_Stats: Null NYM_ID passed in.");
 
     auto theNymID = api_.Factory().NymID(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
+    std::unique_ptr<const opentxs::NymFile> pNym =
         api_.Wallet().Nymfile(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
@@ -2406,7 +2331,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
         return {};
     }
     auto theNymID = api_.Factory().NymID(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
+    std::unique_ptr<const opentxs::NymFile> pNym =
         api_.Wallet().Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     auto pMessage = pNym->GetOutpaymentsByIndex(nIndex);
@@ -2441,7 +2366,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
         return {};
     }
     auto theNymID = api_.Factory().NymID(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
+    std::unique_ptr<const opentxs::NymFile> pNym =
         api_.Wallet().Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     auto pMessage = pNym->GetOutpaymentsByIndex(nIndex);
@@ -2526,7 +2451,7 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
         return false;
     }
     auto theNymID = api_.Factory().NymID(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
+    std::unique_ptr<const opentxs::NymFile> pNym =
         api_.Wallet().Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return false;
     auto pMessage = pNym->GetOutpaymentsByIndex(nIndex);
@@ -2535,7 +2460,7 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
         const auto theSenderNymID = api_.Factory().NymID(pMessage->m_strNymID);
 
         // Grab a pointer to that Nym (if its public key is in my wallet.)
-        ConstNym pSenderNym = api_.Wallet().Nym(theSenderNymID);
+        Nym_p pSenderNym = api_.Wallet().Nym(theSenderNymID);
 
         // If it's there, use it to verify the signature on the message.
         // return true if successful signature verification.
@@ -6807,7 +6732,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
 
     auto strPubkey = String::Factory();  // For the output
     auto nym_id = api_.Factory().NymID(NYM_ID);
-    ConstNym pNym = api_.Wallet().Nym(nym_id);
+    Nym_p pNym = api_.Wallet().Nym(nym_id);
 
     if (false == bool(pNym)) { return {}; }
 
@@ -6832,7 +6757,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
     auto strPubkey = String::Factory();  // For the output
     auto nym_id = api_.Factory().NymID(NYM_ID);
     // No need to cleanup.
-    ConstNym pNym = api_.Wallet().Nym(nym_id);
+    Nym_p pNym = api_.Wallet().Nym(nym_id);
 
     if (false == bool(pNym)) { return {}; }
 
@@ -6993,7 +6918,7 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
                 "abbreviated version instead, so I can "
                 "still return SOMETHING.")
                 .Flush();
-            ConstNym pNym = api_.Wallet().Nym(theNymID);
+            Nym_p pNym = api_.Wallet().Nym(theNymID);
             if (false == bool(pNym)) { return {}; }
             pTransaction->ReleaseSignatures();
             pTransaction->SignContract(*pNym);
@@ -10188,7 +10113,7 @@ bool OTAPI_Exec::ResyncNymWithServer(
     auto nymfile = context.It().mutable_Nymfile(legacy_.ClientDataFolder(),
     __FUNCTION__);
 
-    ConstNym pNym = context.It().Nym();
+    Nym_p pNym = context.It().Nym();
     if (false == bool(pNym)) { return false; }
 
     Message theMessage{legacy_.ClientDataFolder()};
@@ -10242,7 +10167,7 @@ bool OTAPI_Exec::ResyncNymWithServer(
     }
 
     bool unused;
-    std::unique_ptr<class Nym> theMessageNym =
+    std::unique_ptr<identity::Nym> theMessageNym =
         Nym::DeserializeNymfile(legacy_.ClientDataFolder(), strMessageNym,
     unused); if (nullptr == theMessageNym) { otErr << OT_METHOD <<
     __FUNCTION__

@@ -112,7 +112,7 @@ public:
     // expects/uses a pubkey from inside the contract in order to verify
     // it.
     //
-    EXPORT bool VerifyAccount(const Nym& theNym) override;
+    EXPORT bool VerifyAccount(const identity::Nym& theNym) override;
     // For ALL abbreviated transactions, load the actual box receipt for each.
     EXPORT bool LoadBoxReceipts(
         std::set<std::int64_t>* psetUnloaded = nullptr);  // if psetUnloaded

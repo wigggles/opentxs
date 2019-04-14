@@ -23,7 +23,7 @@ class Identity
 {
 public:
     virtual std::unique_ptr<proto::VerificationSet> Verifications(
-        const Nym& fromNym) const = 0;
+        const identity::Nym& fromNym) const = 0;
     virtual std::unique_ptr<proto::VerificationSet> Verify(
         NymData& onNym,
         bool& changed,

@@ -340,7 +340,7 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    bool VerifyAccount(const Nym& theNym) override;
+    bool VerifyAccount(const identity::Nym& theNym) override;
 
     void InitTransaction();
 
@@ -456,7 +456,7 @@ public:
     // they are first loaded up. NotaryID and AccountID have been verified.
     // Now we check ownership, and signatures, and transaction #s, etc.
     // (We go deeper.)
-    EXPORT bool VerifyItems(const Nym& theNym);
+    EXPORT bool VerifyItems(const identity::Nym& theNym);
 
     inline std::int32_t GetItemCount() const
     {

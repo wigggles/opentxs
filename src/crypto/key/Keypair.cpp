@@ -316,6 +316,25 @@ std::shared_ptr<proto::AsymmetricKey> Keypair::Serialize(bool privateKey) const
     }
 }
 
+bool Keypair::Sign(
+    const GetPreimage input,
+    const proto::SignatureRole role,
+    proto::Signature& signature,
+    const Identifier& credential,
+    proto::KeyRole key,
+    const OTPasswordData* pPWData,
+    const proto::HashType hash) const
+{
+    if (false == HasPrivateKey()) {
+        LogOutput(": Missing private key. Can not sign.").Flush();
+
+        return false;
+    }
+
+    return GetPrivateKey().Sign(
+        input, role, signature, credential, key, pPWData, hash);
+}
+
 bool Keypair::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
     OT_ASSERT(m_pkeyPrivate.get());

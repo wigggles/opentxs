@@ -29,9 +29,9 @@ public:
     bool NymboxHashMatch() const override;
     std::string LegacyDataFolder() const override;
     OTIdentifier LocalNymboxHash() const override;
-    std::unique_ptr<const class NymFile> Nymfile(
+    std::unique_ptr<const opentxs::NymFile> Nymfile(
         const OTPasswordData& reason) const override;
-    const class Nym& RemoteNym() const override;
+    const identity::Nym& RemoteNym() const override;
     OTIdentifier RemoteNymboxHash() const override;
     RequestNumber Request() const override;
     OTData Serialize() const override;
@@ -47,7 +47,7 @@ public:
     bool ConsumeIssued(const TransactionNumber& number) override;
     RequestNumber IncrementRequest() override;
     bool InitializeNymbox() override;
-    Editor<class NymFile> mutable_Nymfile(
+    Editor<opentxs::NymFile> mutable_Nymfile(
         const OTPasswordData& reason) override;
     bool OpenCronItem(const TransactionNumber) override { return false; }
     bool RecoverAvailableNumber(const TransactionNumber& number) override;
@@ -63,7 +63,7 @@ public:
 protected:
     const api::Core& api_;
     const OTServerID server_id_;
-    std::shared_ptr<const class Nym> remote_nym_{};
+    Nym_p remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
     std::set<TransactionNumber> issued_transaction_numbers_{};
     std::atomic<RequestNumber> request_number_{0};
@@ -106,15 +106,15 @@ protected:
     Context(
         const api::Core& api,
         const std::uint32_t targetVersion,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server);
     Context(
         const api::Core& api,
         const std::uint32_t targetVersion,
         const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server);
 
 private:

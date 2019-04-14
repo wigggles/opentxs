@@ -163,15 +163,15 @@ public:
         const identifier::Nym& RECIPIENT_NYM_ID) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& message) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& payment,
         const bool isPayment) const = 0;
 #if OT_CASH
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse) const = 0;
 #endif
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
@@ -182,10 +182,10 @@ public:
         const std::shared_ptr<const PeerRequest> request,
         const std::uint32_t& version) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& signerNym,
+        const Nym_p& signerNym,
         const proto::PeerObject& serialized) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& recipientNym,
+        const Nym_p& recipientNym,
         const Armored& encrypted) const = 0;
 
 #if OT_CASH
@@ -198,7 +198,7 @@ public:
     EXPORT virtual std::unique_ptr<blind::Purse> Purse(
         const proto::Purse& serialized) const = 0;
     EXPORT virtual std::unique_ptr<blind::Purse> Purse(
-        const Nym& owner,
+        const identity::Nym& owner,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const proto::CashType type = proto::CASHTYPE_LUCRE) const = 0;

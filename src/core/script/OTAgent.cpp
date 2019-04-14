@@ -27,8 +27,8 @@
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
@@ -90,7 +90,7 @@ OTAgent::OTAgent(
 OTAgent::OTAgent(
     const api::Wallet& wallet,
     const std::string& str_agent_name,
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const bool bNymRepresentsSelf)
     /*IF false, then: ROLE parameter goes here.*/
     : wallet_{wallet}
@@ -187,7 +187,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 // This call may always fail for a specific agent, if the agent isn't a Nym
 // (the agent could be a voting group.)
 //
-ConstNym OTAgent::LoadNym()
+Nym_p OTAgent::LoadNym()
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -421,7 +421,7 @@ bool OTAgent::IsValidSignerID(const Identifier& theNymID)
 
 // See if theNym is a valid signer for this agent.
 //
-bool OTAgent::IsValidSigner(const Nym& theNym)
+bool OTAgent::IsValidSigner(const identity::Nym& theNym)
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -642,14 +642,14 @@ bool OTAgent::DropServerNoticeToNymbox(
     bool bSuccessMsg,  // Added this so we can notify smart contract parties
                        // when
                        // it FAILS to activate.
-    const Nym& theServerNym,
+    const identity::Nym& theServerNym,
     const identifier::Server& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lInReferenceTo,
     const String& strReference,
     OTString pstrNote,
     OTString pstrAttachment,
-    Nym* pActualNym)
+    identity::Nym* pActualNym)
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);

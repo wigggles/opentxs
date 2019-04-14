@@ -52,7 +52,7 @@ public:
     }
     bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) override;
     bool RemoveOutpaymentsByTransNum(const std::int64_t lTransNum) override;
-    bool SaveSignedNymFile(const Nym& SIGNER_NYM);
+    bool SaveSignedNymFile(const identity::Nym& SIGNER_NYM);
     bool SetInboxHash(
         const std::string& acct_id,
         const Identifier& theInput) override;  // client-side
@@ -72,8 +72,8 @@ private:
     friend opentxs::Factory;
 
     const api::Core& api_;
-    const std::shared_ptr<const Nym> target_nym_{nullptr};
-    const std::shared_ptr<const Nym> signer_nym_{nullptr};
+    const Nym_p target_nym_{nullptr};
+    const Nym_p signer_nym_{nullptr};
     std::int64_t m_lUsageCredits{-1};
     bool m_bMarkForDeletion{false};
     OTString m_strNymFile;
@@ -131,10 +131,7 @@ private:
         const std::string& str_id,
         const Identifier& theInput);
 
-    NymFile(
-        const api::Core& core,
-        std::shared_ptr<const Nym> targetNym,
-        std::shared_ptr<const Nym> signerNym);
+    NymFile(const api::Core& core, Nym_p targetNym, Nym_p signerNym);
     NymFile() = delete;
     NymFile(const NymFile&) = delete;
     NymFile(NymFile&&) = delete;

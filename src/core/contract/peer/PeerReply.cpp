@@ -17,8 +17,8 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 
 #define OT_METHOD "opentxs::PeerReply::"
@@ -27,7 +27,7 @@ namespace opentxs
 {
 PeerReply::PeerReply(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerReply& serialized)
     : ot_super(nym)
     , initiator_(identifier::Nym::Factory(serialized.initiator()))
@@ -45,7 +45,7 @@ PeerReply::PeerReply(
 
 PeerReply::PeerReply(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::uint32_t version,
     const identifier::Nym& initiator,
     const identifier::Server& server,
@@ -78,7 +78,7 @@ proto::PeerReply PeerReply::Contract() const
 
 std::unique_ptr<PeerReply> PeerReply::Create(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequestType& type,
     const Identifier& requestID,
     const identifier::Server& server,
@@ -122,7 +122,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 
 std::unique_ptr<PeerReply> PeerReply::Create(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const Identifier& requestID,
     const identifier::Server& server,
     const bool& ack)
@@ -159,7 +159,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 
 std::unique_ptr<PeerReply> PeerReply::Create(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const Identifier& request,
     const identifier::Server& server,
     const bool& ack,
@@ -202,7 +202,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 
 std::unique_ptr<PeerReply> PeerReply::Factory(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerReply& serialized)
 {
     if (!proto::Validate(serialized, VERBOSE)) {
@@ -340,7 +340,7 @@ proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
 
 std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const Identifier& requestID)
 {
     std::shared_ptr<proto::PeerRequest> output;
@@ -391,8 +391,7 @@ bool PeerReply::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_role(proto::SIGROLE_PEERREPLY);
-    success = nym_->SignProto(serialized, signature);
+    success = nym_->SignProto(serialized, proto::SIGROLE_PEERREPLY, signature);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));

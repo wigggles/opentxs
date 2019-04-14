@@ -90,6 +90,14 @@ class OpenSSL;
 }  // namespace implementation
 }  // namespace crypto
 
+namespace identity
+{
+namespace internal
+{
+class Nym;
+}  // namespace internal
+}  // namespace identity
+
 namespace internal
 {
 struct ClientContext;

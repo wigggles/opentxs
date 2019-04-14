@@ -16,7 +16,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -259,7 +259,7 @@ std::string Profile::PaymentCode() const
     return payment_code_;
 }
 
-void Profile::process_nym(const Nym& nym)
+void Profile::process_nym(const identity::Nym& nym)
 {
     Lock lock(lock_);
     name_ = nym.Alias();

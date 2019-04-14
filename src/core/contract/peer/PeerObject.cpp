@@ -35,7 +35,7 @@ namespace opentxs
 {
 opentxs::PeerObject* Factory::PeerObject(
     const api::Core& api,
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::string& message)
 {
     std::unique_ptr<opentxs::PeerObject> output(
@@ -48,7 +48,7 @@ opentxs::PeerObject* Factory::PeerObject(
 
 opentxs::PeerObject* Factory::PeerObject(
     const api::Core& api,
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::string& payment,
     const bool isPayment)
 {
@@ -65,7 +65,7 @@ opentxs::PeerObject* Factory::PeerObject(
 #if OT_CASH
 opentxs::PeerObject* Factory::PeerObject(
     const api::Core& api,
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::shared_ptr<blind::Purse> purse)
 {
     std::unique_ptr<opentxs::PeerObject> output(
@@ -107,7 +107,7 @@ opentxs::PeerObject* Factory::PeerObject(
 opentxs::PeerObject* Factory::PeerObject(
     const api::client::Contacts& contacts,
     const api::Core& api,
-    const ConstNym& signerNym,
+    const Nym_p& signerNym,
     const proto::PeerObject& serialized)
 {
     const bool valid = proto::Validate(serialized, VERBOSE);
@@ -126,10 +126,10 @@ opentxs::PeerObject* Factory::PeerObject(
 opentxs::PeerObject* Factory::PeerObject(
     const api::client::Contacts& contacts,
     const api::Core& api,
-    const ConstNym& recipientNym,
+    const Nym_p& recipientNym,
     const Armored& encrypted)
 {
-    ConstNym notUsed{nullptr};
+    Nym_p notUsed{nullptr};
     std::unique_ptr<opentxs::PeerObject> output;
     OTEnvelope input;
 
@@ -149,7 +149,7 @@ namespace opentxs::peer::implementation
 {
 Object::Object(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::string& message,
     const std::string& payment,
     const std::shared_ptr<const PeerReply> reply,
@@ -176,7 +176,7 @@ Object::Object(
 Object::Object(
     const api::client::Contacts& contacts,
     const api::Core& api,
-    const ConstNym& signerNym,
+    const Nym_p& signerNym,
     const proto::PeerObject serialized)
     : Object(
           api,
@@ -191,7 +191,7 @@ Object::Object(
           serialized.type(),
           serialized.version())
 {
-    ConstNym objectNym{nullptr};
+    Nym_p objectNym{nullptr};
 
     if (serialized.has_nym()) {
         objectNym = api_.Wallet().Nym(serialized.nym());
@@ -241,7 +241,7 @@ Object::Object(
 
 Object::Object(
     const api::Core& api,
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::string& message)
     : Object(
           api,
@@ -261,7 +261,7 @@ Object::Object(
 #if OT_CASH
 Object::Object(
     const api::Core& api,
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::shared_ptr<blind::Purse> purse)
     : Object(
           api,
@@ -280,7 +280,7 @@ Object::Object(
 Object::Object(
     const api::Core& api,
     const std::string& payment,
-    const ConstNym& senderNym)
+    const Nym_p& senderNym)
     : Object(
           api,
           senderNym,

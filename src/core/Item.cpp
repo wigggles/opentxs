@@ -24,11 +24,11 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>

@@ -35,7 +35,7 @@ private:
     RequestNumber number_{0};
     std::shared_ptr<proto::OTXPush> payload_{nullptr};
 
-    static std::shared_ptr<const opentxs::Nym> extract_nym(
+    static Nym_p extract_nym(
         const api::Core& api,
         const proto::ServerReply serialized);
 
@@ -52,7 +52,7 @@ private:
         const override;
 
     Reply(
-        const std::shared_ptr<const opentxs::Nym> signer,
+        const Nym_p signer,
         const identifier::Nym& recipient,
         const identifier::Server& server,
         const proto::ServerReplyType type,

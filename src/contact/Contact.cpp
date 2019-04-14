@@ -193,10 +193,7 @@ bool Contact::add_claim(
     return true;
 }
 
-bool Contact::add_nym(
-    const Lock& lock,
-    const std::shared_ptr<const Nym>& nym,
-    const bool primary)
+bool Contact::add_nym(const Lock& lock, const Nym_p& nym, const bool primary)
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -309,7 +306,7 @@ bool Contact::AddEmail(
     return true;
 }
 
-bool Contact::AddNym(const std::shared_ptr<const Nym>& nym, const bool primary)
+bool Contact::AddNym(const Nym_p& nym, const bool primary)
 {
     Lock lock(lock_);
 
@@ -536,12 +533,12 @@ std::string Contact::EmailAddresses(bool active) const
     return data->EmailAddresses(active);
 }
 
-std::string Contact::ExtractLabel(const Nym& nym)
+std::string Contact::ExtractLabel(const identity::Nym& nym)
 {
     return nym.Claims().Name();
 }
 
-proto::ContactItemType Contact::ExtractType(const Nym& nym)
+proto::ContactItemType Contact::ExtractType(const identity::Nym& nym)
 {
     return nym.Claims().Type();
 }
@@ -898,7 +895,7 @@ void Contact::Update(const proto::CredentialIndex& serialized)
     add_claim(lock, claim);
 }
 
-void Contact::update_label(const Lock& lock, const Nym& nym)
+void Contact::update_label(const Lock& lock, const identity::Nym& nym)
 {
     OT_ASSERT(verify_write_lock(lock));
 

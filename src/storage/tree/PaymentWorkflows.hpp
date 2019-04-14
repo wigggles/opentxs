@@ -40,7 +40,7 @@ public:
     ~PaymentWorkflows() = default;
 
 private:
-    friend class Nym;
+    friend Nym;
 
     Workflows archived_;
     std::map<std::string, std::string> item_workflow_map_;

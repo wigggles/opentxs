@@ -64,7 +64,7 @@ private:
 
     explicit Identifier(const std::string& rhs);
     explicit Identifier(const String& rhs);
-    explicit Identifier(const opentxs::Nym& nym);
+    explicit Identifier(const identity::Nym& nym);
     explicit Identifier(const Contract& contract);
     explicit Identifier(const crypto::key::LegacySymmetric& key);
     explicit Identifier(const OTCachedKey& key);

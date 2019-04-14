@@ -15,7 +15,7 @@ namespace opentxs
 {
 NoticeAcknowledgement::NoticeAcknowledgement(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerReply& serialized)
     : ot_super(wallet, nym, serialized)
     , ack_(serialized.notice().ack())
@@ -24,7 +24,7 @@ NoticeAcknowledgement::NoticeAcknowledgement(
 
 NoticeAcknowledgement::NoticeAcknowledgement(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const identifier::Nym& initiator,
     const Identifier& request,
     const identifier::Server& server,

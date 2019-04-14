@@ -85,7 +85,7 @@ public:
     bool SendNoticeToParty(
         const api::Core& api,
         bool bSuccessMsg,
-        const Nym& theServerNym,
+        const identity::Nym& theServerNym,
         const identifier::Server& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo,
@@ -93,7 +93,7 @@ public:
         const String& strReference,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
-        Nym* pActualNym = nullptr);
+        identity::Nym* pActualNym = nullptr);
     // This pointer isn't owned -- just stored for convenience.
     //
     OTScriptable* GetOwnerAgreement() { return m_pOwnerAgreement; }
@@ -172,7 +172,7 @@ public:
     // return true.
     //
     bool HasAgent(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         OTAgent** ppAgent = nullptr) const;  // If Nym is agent for
                                              // Party,
     // set agent's pointer to Nym
@@ -180,16 +180,17 @@ public:
     bool HasAgentByNymID(
         const Identifier& theNymID,
         OTAgent** ppAgent = nullptr) const;
-    bool HasAuthorizingAgent(const Nym& theNym, OTAgent** ppAgent = nullptr)
-        const;
+    bool HasAuthorizingAgent(
+        const identity::Nym& theNym,
+        OTAgent** ppAgent = nullptr) const;
     bool HasAuthorizingAgentByNymID(
         const Identifier& theNymID,
         OTAgent** ppAgent = nullptr) const;  // ppAgent lets you get the agent
                                              // ptr if it was there.
     // Load the authorizing agent from storage. Set agent's pointer to Nym.
     //
-    ConstNym LoadAuthorizingAgentNym(
-        const Nym& theSignerNym,
+    Nym_p LoadAuthorizingAgentNym(
+        const identity::Nym& theSignerNym,
         OTAgent** ppAgent = nullptr);
     bool AddAccount(OTPartyAccount& thePartyAcct);
     EXPORT bool AddAccount(
@@ -267,8 +268,8 @@ public:
         const api::Wallet& wallet,
         const std::string& dataFolder,
         std::string str_PartyName,
-        const Nym& theNym,  // Nym is BOTH owner AND agent, when
-                            // using this constructor.
+        const identity::Nym& theNym,  // Nym is BOTH owner AND agent, when
+                                      // using this constructor.
         std::string str_agent_name,
         Account* pAccount = nullptr,
         const std::string* pstr_account_name = nullptr,

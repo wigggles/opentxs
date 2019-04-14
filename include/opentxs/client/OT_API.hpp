@@ -1019,7 +1019,7 @@ private:
         const TransactionNumber originNumber,
         const TransactionNumber referenceNumber,
         const String& note,
-        const Nym& nym,
+        const identity::Nym& nym,
         const Amount amount,
         const String& inRefTo,
         OTTransaction& processInbox) const;

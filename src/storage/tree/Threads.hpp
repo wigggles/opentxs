@@ -21,16 +21,11 @@ namespace opentxs
 {
 namespace storage
 {
-
-class Mailbox;
-class Nym;
-class Thread;
-
 class Threads : public Node
 {
 private:
     typedef Node ot_super;
-    friend class Nym;
+    friend Nym;
 
     mutable std::map<std::string, std::unique_ptr<class Thread>> threads_;
     Mailbox& mail_inbox_;

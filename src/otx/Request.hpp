@@ -32,7 +32,7 @@ private:
     RequestNumber number_{0};
     OTFlag include_nym_;
 
-    static std::shared_ptr<const opentxs::Nym> extract_nym(
+    static Nym_p extract_nym(
         const api::Core& api,
         const proto::ServerRequest serialized);
 
@@ -49,7 +49,7 @@ private:
         const override;
 
     Request(
-        const std::shared_ptr<const opentxs::Nym> signer,
+        const Nym_p signer,
         const identifier::Nym& initiator,
         const identifier::Server& server,
         const proto::ServerRequestType type);

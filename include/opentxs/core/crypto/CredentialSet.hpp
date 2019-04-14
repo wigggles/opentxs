@@ -213,72 +213,13 @@ public:
     bool Verify(const proto::Verification& item) const;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const;
 
-    template <class C>
-    bool SignProto(
-        C& serialized,
+    bool Sign(
+        const GetPreimage input,
+        const proto::SignatureRole role,
         proto::Signature& signature,
+        proto::KeyRole key = proto::KEYROLE_SIGN,
         const OTPasswordData* pPWData = nullptr,
-        proto::KeyRole key = proto::KEYROLE_SIGN) const
-    {
-        switch (signature.role()) {
-            case (proto::SIGROLE_PUBCREDENTIAL): {
-                if (m_MasterCredential->hasCapability(
-                        NymCapability::SIGN_CHILDCRED)) {
-                    return m_MasterCredential->SignProto<C>(
-                        serialized, signature, key, pPWData);
-                }
-
-                break;
-            }
-            case (proto::SIGROLE_NYMIDSOURCE): {
-                LogOutput(": Credentials to be signed "
-                          "with a nym source can not use this method.")
-                    .Flush();
-
-                return false;
-            }
-            case (proto::SIGROLE_PRIVCREDENTIAL): {
-                LogOutput(": Private credential can not "
-                          "use this method.")
-                    .Flush();
-
-                return false;
-            }
-
-            // TODO Justus
-            case (proto::SIGROLE_ERROR):
-            case (proto::SIGROLE_CLAIM):
-            case (proto::SIGROLE_SERVERCONTRACT):
-            case (proto::SIGROLE_UNITDEFINITION):
-            case (proto::SIGROLE_PEERREQUEST):
-            case (proto::SIGROLE_PEERREPLY):
-            case (proto::SIGROLE_CONTEXT):
-            case (proto::SIGROLE_ACCOUNT):
-
-            default: {
-                bool haveSignature = false;
-
-                for (auto& it : m_mapCredentials) {
-                    auto& credential = it.second;
-
-                    if (nullptr != credential) {
-                        if (credential->hasCapability(
-                                NymCapability::SIGN_MESSAGE)) {
-                            const auto keyCredential =
-                                dynamic_cast<const KeyCredential*>(
-                                    credential.get());
-                            haveSignature = keyCredential->SignProto<C>(
-                                serialized, signature, key, pPWData);
-                        }
-
-                        if (haveSignature) { return true; }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
+        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const;
 
     EXPORT ~CredentialSet();
 

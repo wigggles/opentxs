@@ -26,11 +26,12 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -225,7 +226,7 @@ bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
 
 bool Account::create_box(
     std::unique_ptr<Ledger>& box,
-    const Nym& signer,
+    const identity::Nym& signer,
     const ledgerType type)
 {
     const auto& nymID = GetNymID();
@@ -274,7 +275,7 @@ bool Account::LoadContractFromString(const String& theStr)
     return OTTransactionType::LoadContractFromString(theStr);
 }
 
-std::unique_ptr<Ledger> Account::LoadInbox(const Nym& nym) const
+std::unique_ptr<Ledger> Account::LoadInbox(const identity::Nym& nym) const
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
@@ -294,7 +295,7 @@ std::unique_ptr<Ledger> Account::LoadInbox(const Nym& nym) const
     return nullptr;
 }
 
-std::unique_ptr<Ledger> Account::LoadOutbox(const Nym& nym) const
+std::unique_ptr<Ledger> Account::LoadOutbox(const identity::Nym& nym) const
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
@@ -414,7 +415,7 @@ bool Account::GetOutboxHash(Identifier& output)
     return false;
 }
 
-bool Account::InitBoxes(const Nym& signer)
+bool Account::InitBoxes(const identity::Nym& signer)
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Generating inbox/outbox.").Flush();
     std::unique_ptr<Ledger> inbox{LoadInbox(signer)};
@@ -571,7 +572,7 @@ void Account::InitAccount()
 // Verify Contract ID first, THEN Verify Owner.
 // Because we use the ID in this function, so make sure that it is verified
 // before calling this.
-bool Account::VerifyOwner(const Nym& candidate) const
+bool Account::VerifyOwner(const identity::Nym& candidate) const
 {
     auto ID_CANDIDATE = api_.Factory().NymID();
     candidate.GetIdentifier(ID_CANDIDATE);
@@ -646,7 +647,7 @@ Account* Account::GenerateNewAccount(
     const api::Core& core,
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
-    const Nym& serverNym,
+    const identity::Nym& serverNym,
     const Identifier& userNymID,
     const identifier::UnitDefinition& instrumentDefinitionID,
     Account::AccountType acctType,
@@ -676,7 +677,7 @@ message.m_strInstrumentDefinitionID;
 message.m_strNotaryID;
  */
 bool Account::GenerateNewAccount(
-    const Nym& server,
+    const identity::Nym& server,
     const Identifier& userNymID,
     const identifier::Server& notaryID,
     const identifier::UnitDefinition& instrumentDefinitionID,

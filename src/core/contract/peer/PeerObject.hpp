@@ -18,7 +18,7 @@ public:
     {
         return message_;
     }
-    const ConstNym& Nym() const override { return nym_; }
+    const Nym_p& Nym() const override { return nym_; }
     const std::unique_ptr<std::string>& Payment() const override
     {
         return payment_;
@@ -50,7 +50,7 @@ private:
     friend opentxs::Factory;
 
     const api::Core& api_;
-    ConstNym nym_{nullptr};
+    Nym_p nym_{nullptr};
     std::unique_ptr<std::string> message_{nullptr};
     std::unique_ptr<std::string> payment_{nullptr};
     std::shared_ptr<const PeerReply> reply_{nullptr};
@@ -64,22 +64,22 @@ private:
     Object(
         const api::client::Contacts& contacts,
         const api::Core& api,
-        const ConstNym& signerNym,
+        const Nym_p& signerNym,
         const proto::PeerObject serialized);
     Object(
         const api::Core& api,
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& message);
 #if OT_CASH
     Object(
         const api::Core& api,
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse);
 #endif
     Object(
         const api::Core& api,
         const std::string& payment,
-        const ConstNym& senderNym);
+        const Nym_p& senderNym);
     Object(
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
@@ -91,7 +91,7 @@ private:
         const std::uint32_t& version);
     Object(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::string& message,
         const std::string& payment,
         const std::shared_ptr<const PeerReply> reply,

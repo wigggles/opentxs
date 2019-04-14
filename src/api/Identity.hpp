@@ -13,7 +13,7 @@ class Identity : virtual public api::Identity
 {
 public:
     std::unique_ptr<proto::VerificationSet> Verifications(
-        const Nym& fromNym) const override;
+        const identity::Nym& fromNym) const override;
     std::unique_ptr<proto::VerificationSet> Verify(
         NymData& onNym,
         bool& changed,
@@ -34,7 +34,7 @@ private:
     bool AddInternalVerification(
         bool& changed,
         proto::VerificationSet& verifications,
-        const Nym& onNym,
+        const identity::Nym& onNym,
         const std::string& claimantNymID,
         const std::string& claimID,
         const ClaimPolarity polarity,
@@ -77,7 +77,7 @@ private:
         const std::int64_t end = 0) const;
     bool Sign(
         proto::Verification& plaintext,
-        const Nym& nym,
+        const identity::Nym& nym,
         const OTPasswordData* pPWData = nullptr) const;
 
     Identity(const api::Core& api);

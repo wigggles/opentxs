@@ -20,8 +20,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <cstdint>
 #include <map>
@@ -97,8 +97,8 @@ OTParty::OTParty(
     const api::Wallet& wallet,
     const std::string& dataFolder,
     std::string str_PartyName,
-    const Nym& theNym,  // Nym is BOTH owner AND agent, when using
-                        // this constructor.
+    const identity::Nym& theNym,  // Nym is BOTH owner AND agent, when using
+                                  // this constructor.
     const std::string str_agent_name,
     Account* pAccount,
     const std::string* pstr_account_name,
@@ -710,7 +710,7 @@ bool OTParty::HasAccount(
 // If so, make sure that agent has a pointer to theNym and return true.
 // else return false.
 //
-bool OTParty::HasAgent(const Nym& theNym, OTAgent** ppAgent) const
+bool OTParty::HasAgent(const identity::Nym& theNym, OTAgent** ppAgent) const
 {
     for (const auto& it : m_mapAgents) {
         OTAgent* pAgent = it.second;
@@ -747,7 +747,7 @@ bool OTParty::HasAgentByNymID(const Identifier& theNymID, OTAgent** ppAgent)
 // transaction #) If so, make sure that agent has a pointer to theNym and return
 // true. else return false.
 bool OTParty::HasAuthorizingAgent(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     OTAgent** ppAgent) const  // ppAgent lets you get the agent ptr if it was
                               // there.
 {
@@ -819,8 +819,8 @@ bool OTParty::HasAuthorizingAgentByNymID(
 // This is a low-level function.
 
 // ppAgent lets you get the agent ptr if it was there.
-ConstNym OTParty::LoadAuthorizingAgentNym(
-    const Nym& theSignerNym,
+Nym_p OTParty::LoadAuthorizingAgentNym(
+    const identity::Nym& theSignerNym,
     OTAgent** ppAgent)
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
@@ -831,7 +831,7 @@ ConstNym OTParty::LoadAuthorizingAgentNym(
             OTAgent* pAgent = it->second;
             OT_ASSERT(nullptr != pAgent);
 
-            ConstNym pNym = nullptr;
+            Nym_p pNym = nullptr;
 
             if (!pAgent->IsAnIndividual())
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1000,13 +1000,13 @@ bool OTParty::DropFinalReceiptToNymboxes(
 bool OTParty::SendNoticeToParty(
     const api::Core& api,
     bool bSuccessMsg,
-    const Nym& theServerNym,
+    const identity::Nym& theServerNym,
     const identifier::Server& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const String& strReference,
     OTString pstrNote,
     OTString pstrAttachment,
-    Nym* pActualNym)
+    identity::Nym* pActualNym)
 {
     bool bSuccess =
         false;  // Success is defined as "at least one agent was notified"

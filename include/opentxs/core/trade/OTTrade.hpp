@@ -150,10 +150,13 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    bool VerifyNymAsAgent(const Nym& nym, const Nym& signerNym) const override;
+    bool VerifyNymAsAgent(
+        const identity::Nym& nym,
+        const identity::Nym& signerNym) const override;
 
-    bool VerifyNymAsAgentForAccount(const Nym& nym, const Account& account)
-        const override;
+    bool VerifyNymAsAgentForAccount(
+        const identity::Nym& nym,
+        const Account& account) const override;
     void InitTrade();
 
     void Release_Trade();
@@ -172,8 +175,8 @@ protected:
     void onFinalReceipt(
         OTCronItem& origCronItem,
         const std::int64_t& newTransactionNumber,
-        ConstNym originator,
-        ConstNym remover) override;
+        Nym_p originator,
+        Nym_p remover) override;
     void onRemovalFromCron() override;
 
 private:

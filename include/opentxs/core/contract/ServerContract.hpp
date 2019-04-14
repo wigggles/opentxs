@@ -9,7 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -34,14 +34,14 @@ public:
 
     static ServerContract* Create(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::list<Endpoint>& endpoints,
         const std::string& terms,
         const std::string& name,
         const std::uint32_t version);
     static ServerContract* Factory(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::ServerContract& serialized);
 
     bool ConnectInfo(
@@ -82,10 +82,10 @@ private:
     bool update_signature(const Lock& lock) override;
 
     ServerContract() = delete;
-    ServerContract(const api::Wallet& wallet, const ConstNym& nym);
+    ServerContract(const api::Wallet& wallet, const Nym_p& nym);
     ServerContract(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::ServerContract& serialized);
 };
 }  // namespace opentxs

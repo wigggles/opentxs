@@ -52,7 +52,7 @@ public:
     EXPORT static OTNymID Factory();
     EXPORT static OTNymID Factory(const std::string& rhs);
     EXPORT static OTNymID Factory(const String& rhs);
-    EXPORT static OTNymID Factory(const opentxs::Nym& nym);
+    EXPORT static OTNymID Factory(const identity::Nym& nym);
 #endif
 
     EXPORT virtual ~Nym() = default;

@@ -103,8 +103,8 @@ void Bidirectional::init()
     auto bound = bind(pull_socket_, lock_, endpoint_);
 
     if (false == bound) {
-    	pull_socket_ = nullptr;
-    	push_socket_ = nullptr;
+        pull_socket_ = nullptr;
+        push_socket_ = nullptr;
         std::cerr << OT_METHOD << __FUNCTION__ << ": "
                   << zmq_strerror(zmq_errno()) << std::endl;
         return;
@@ -112,9 +112,9 @@ void Bidirectional::init()
 
     auto connected = connect(push_socket_, lock_, endpoint_);
 
-    if (false == connected){
-    	pull_socket_ = nullptr;
-    	push_socket_ = nullptr;
+    if (false == connected) {
+        pull_socket_ = nullptr;
+        push_socket_ = nullptr;
         std::cerr << OT_METHOD << __FUNCTION__ << ": "
                   << zmq_strerror(zmq_errno()) << std::endl;
         return;

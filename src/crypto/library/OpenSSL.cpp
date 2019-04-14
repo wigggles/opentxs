@@ -21,13 +21,13 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/crypto/key/RSA.hpp"
 #endif
 #include "opentxs/crypto/library/OpenSSL.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -3165,7 +3165,7 @@ bool OpenSSL::EncryptSessionKey(
 // RSA / AES
 bool OpenSSL::DecryptSessionKey(
     Data& dataInput,
-    const Nym& theRecipient,
+    const identity::Nym& theRecipient,
     Data& plaintext,
     const OTPasswordData* pPWData) const
 {

@@ -17,6 +17,7 @@
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 
 #include "internal/consensus/Consensus.hpp"
+#include "internal/identity/Identity.hpp"
 
 #include <map>
 #include <tuple>
@@ -32,7 +33,7 @@ public:
         const identifier::Nym& ownerNymID,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
-        const opentxs::Nym& signer,
+        const identity::Nym& signer,
         Account::AccountType type,
         TransactionNumber stash) const override;
     bool DeleteAccount(const Identifier& accountID) const override;
@@ -72,12 +73,12 @@ public:
     bool IsLocalNym(const std::string& id) const override;
     std::size_t LocalNymCount() const override;
     std::set<OTNymID> LocalNyms() const override;
-    ConstNym Nym(
+    Nym_p Nym(
         const identifier::Nym& id,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const override;
-    ConstNym Nym(const proto::CredentialIndex& nym) const override;
-    ConstNym Nym(
+    Nym_p Nym(const proto::CredentialIndex& nym) const override;
+    Nym_p Nym(
         const NymParameters& nymParameters,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const override;
@@ -88,7 +89,7 @@ public:
     Editor<opentxs::NymFile> mutable_Nymfile(
         const identifier::Nym& id,
         const OTPasswordData& reason) const override;
-    ConstNym NymByIDPartialMatch(const std::string& partialId) const override;
+    Nym_p NymByIDPartialMatch(const std::string& partialId) const override;
     ObjectList NymList() const override;
     bool NymNameByIndex(const std::size_t index, String& name) const override;
     std::shared_ptr<proto::PeerReply> PeerReply(
@@ -233,7 +234,8 @@ protected:
 
 private:
     using AccountMap = std::map<OTIdentifier, AccountLock>;
-    using NymLock = std::pair<std::mutex, std::shared_ptr<opentxs::Nym>>;
+    using NymLock =
+        std::pair<std::mutex, std::shared_ptr<identity::internal::Nym>>;
     using NymMap = std::map<std::string, NymLock>;
     using ServerMap =
         std::map<std::string, std::shared_ptr<opentxs::ServerContract>>;
@@ -298,15 +300,15 @@ private:
 #endif
     virtual void instantiate_client_context(
         const proto::Context& serialized,
-        const std::shared_ptr<const opentxs::Nym>& localNym,
-        const std::shared_ptr<const opentxs::Nym>& remoteNym,
+        const Nym_p& localNym,
+        const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const
     {
     }
     virtual void instantiate_server_context(
         const proto::Context& serialized,
-        const std::shared_ptr<const opentxs::Nym>& localNym,
-        const std::shared_ptr<const opentxs::Nym>& remoteNym,
+        const Nym_p& localNym,
+        const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const
     {
     }
@@ -318,8 +320,8 @@ private:
         return false;
     }
     Editor<opentxs::NymFile> mutable_nymfile(
-        const std::shared_ptr<const opentxs::Nym>& targetNym,
-        const std::shared_ptr<const opentxs::Nym>& signerNym,
+        const Nym_p& targetNym,
+        const Nym_p& signerNym,
         const identifier::Nym& id,
         const OTPasswordData& reason) const;
     std::mutex& nymfile_lock(const identifier::Nym& nymID) const;
@@ -343,9 +345,8 @@ private:
 #endif
     void save(NymData* nymData, const Lock& lock) const;
     void save(opentxs::NymFile* nym, const Lock& lock) const;
-    bool SaveCredentialIDs(const opentxs::Nym& nym) const;
-    virtual std::shared_ptr<const opentxs::Nym> signer_nym(
-        const identifier::Nym& id) const = 0;
+    bool SaveCredentialIDs(const identity::Nym& nym) const;
+    virtual Nym_p signer_nym(const identifier::Nym& id) const = 0;
 
     /* Throws std::out_of_range for missing accounts */
     AccountLock& account(

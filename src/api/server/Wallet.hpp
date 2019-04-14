@@ -32,15 +32,14 @@ private:
 
     void instantiate_client_context(
         const proto::Context& serialized,
-        const std::shared_ptr<const opentxs::Nym>& localNym,
-        const std::shared_ptr<const opentxs::Nym>& remoteNym,
+        const Nym_p& localNym,
+        const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const override;
     bool load_legacy_account(
         const Identifier& accountID,
         const eLock& lock,
         AccountLock& row) const override;
-    std::shared_ptr<const opentxs::Nym> signer_nym(
-        const identifier::Nym& id) const override;
+    Nym_p signer_nym(const identifier::Nym& id) const override;
 
     Wallet(const api::server::Manager& server);
     Wallet() = delete;

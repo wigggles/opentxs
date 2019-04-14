@@ -686,7 +686,7 @@ Messagability OTX::can_message(
         return Messagability::CONTACT_LACKS_NYM;
     }
 
-    std::shared_ptr<const Nym> recipientNym{nullptr};
+    Nym_p recipientNym{nullptr};
 
     for (const auto& it : nyms) {
         recipientNym = client_.Wallet().Nym(it);

@@ -15,7 +15,7 @@
 
 namespace opentxs
 {
-Signable::Signable(const ConstNym& nym)
+Signable::Signable(const Nym_p& nym)
     : alias_()
     , id_(Identifier::Factory())
     , nym_(nym)
@@ -26,7 +26,7 @@ Signable::Signable(const ConstNym& nym)
 {
 }
 
-Signable::Signable(const ConstNym& nym, const std::uint32_t version)
+Signable::Signable(const Nym_p& nym, const std::uint32_t version)
     : alias_()
     , id_(Identifier::Factory())
     , nym_(nym)
@@ -38,7 +38,7 @@ Signable::Signable(const ConstNym& nym, const std::uint32_t version)
 }
 
 Signable::Signable(
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::uint32_t version,
     const std::string& conditions)
     : alias_()
@@ -81,7 +81,7 @@ OTIdentifier Signable::ID() const
     return id(lock);
 }
 
-ConstNym Signable::Nym() const { return nym_; }
+Nym_p Signable::Nym() const { return nym_; }
 
 void Signable::SetAlias(const std::string& alias)
 {

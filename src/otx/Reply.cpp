@@ -10,7 +10,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Reply.hpp"
 
 #include "Reply.hpp"
@@ -19,14 +19,13 @@ template class opentxs::Pimpl<opentxs::otx::Reply>;
 
 // TODO 1.14.0
 #define OTX_REPLY_CREATE_VERSION 1
-#define OTX_REPLY_SIGNATURE_VERSION 3
 
 #define OT_METHOD "opentxs::otx::implementation::Reply::"
 
 namespace opentxs::otx
 {
 OTXReply Reply::Factory(
-    const std::shared_ptr<const opentxs::Nym> signer,
+    const Nym_p signer,
     const identifier::Nym& recipient,
     const identifier::Server& server,
     const proto::ServerReplyType type,
@@ -59,7 +58,7 @@ OTXReply Reply::Factory(
 namespace opentxs::otx::implementation
 {
 Reply::Reply(
-    const std::shared_ptr<const opentxs::Nym> signer,
+    const Nym_p signer,
     const identifier::Nym& recipient,
     const identifier::Server& server,
     const proto::ServerReplyType type,
@@ -108,7 +107,7 @@ proto::ServerReply Reply::Contract() const
     return output;
 }
 
-std::shared_ptr<const opentxs::Nym> Reply::extract_nym(
+Nym_p Reply::extract_nym(
     const api::Core& api,
     const proto::ServerReply serialized)
 {
@@ -215,9 +214,8 @@ bool Reply::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = signature_version(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_version(OTX_REPLY_SIGNATURE_VERSION);
-    signature.set_role(proto::SIGROLE_SERVERREPLY);
-    success = nym_->SignProto(serialized, signature);
+    success =
+        nym_->SignProto(serialized, proto::SIGROLE_SERVERREPLY, signature);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));

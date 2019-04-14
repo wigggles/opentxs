@@ -49,6 +49,7 @@
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
@@ -97,8 +98,8 @@ internal::ServerContext* Factory::ServerContext(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& requestSent,
     const network::zeromq::PublishSocket& replyReceived,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server,
     network::ServerConnection& connection)
 {
@@ -111,8 +112,8 @@ internal::ServerContext* Factory::ServerContext(
     const network::zeromq::PublishSocket& requestSent,
     const network::zeromq::PublishSocket& replyReceived,
     const proto::Context& serialized,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     network::ServerConnection& connection)
 {
     return new implementation::ServerContext(
@@ -133,8 +134,8 @@ ServerContext::ServerContext(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& requestSent,
     const network::zeromq::PublishSocket& replyReceived,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server,
     network::ServerConnection& connection)
     : Signable(local, CURRENT_VERSION)
@@ -174,8 +175,8 @@ ServerContext::ServerContext(
     const network::zeromq::PublishSocket& requestSent,
     const network::zeromq::PublishSocket& replyReceived,
     const proto::Context& serialized,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     network::ServerConnection& connection)
     : Signable(local, CURRENT_VERSION)
     , implementation::Context(
@@ -934,7 +935,7 @@ bool ServerContext::create_instrument_notice_from_peer_object(
 
 std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
     const String& serialized,
-    const opentxs::Nym& signer,
+    const identity::Nym& signer,
     const identifier::Nym& owner,
     const TransactionNumber target)
 {
@@ -989,7 +990,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
 std::unique_ptr<Ledger> ServerContext::extract_ledger(
     const Armored& armored,
     const Identifier& accountID,
-    const opentxs::Nym& signer) const
+    const identity::Nym& signer) const
 {
     OT_ASSERT(nym_);
 
@@ -1028,7 +1029,7 @@ std::unique_ptr<Ledger> ServerContext::extract_ledger(
 
 std::unique_ptr<Message> ServerContext::extract_message(
     const Armored& armored,
-    const opentxs::Nym& signer) const
+    const identity::Nym& signer) const
 {
     auto output = api_.Factory().Message();
 

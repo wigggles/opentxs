@@ -25,12 +25,12 @@
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <stdlib.h>
@@ -126,7 +126,7 @@ char const* Ledger::_GetTypeString(ledgerType theType)
 // expects/uses a pubkey from inside the contract in order to verify
 // it.
 //
-bool Ledger::VerifyAccount(const Nym& theNym)
+bool Ledger::VerifyAccount(const identity::Nym& theNym)
 {
     switch (GetType()) {
         case ledgerType::message:  // message ledgers do not load Box Receipts.

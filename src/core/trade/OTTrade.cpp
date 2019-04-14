@@ -21,9 +21,9 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdlib.h>
@@ -91,15 +91,17 @@ OTTrade::OTTrade(
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(const Nym& nym, const Nym&) const
+bool OTTrade::VerifyNymAsAgent(const identity::Nym& nym, const identity::Nym&)
+    const
 {
     return VerifySignature(nym);
 }
 
 // This is an override. See note above.
 //
-bool OTTrade::VerifyNymAsAgentForAccount(const Nym& nym, const Account& account)
-    const
+bool OTTrade::VerifyNymAsAgentForAccount(
+    const identity::Nym& nym,
+    const Account& account) const
 {
     return account.VerifyOwner(nym);
 }
@@ -825,8 +827,8 @@ bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
 void OTTrade::onFinalReceipt(
     OTCronItem& origCronItem,
     const std::int64_t& newTransactionNumber,
-    ConstNym originator,
-    ConstNym remover)
+    Nym_p originator,
+    Nym_p remover)
 {
 
     OTCron* cron = GetCron();

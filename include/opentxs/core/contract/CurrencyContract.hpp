@@ -12,9 +12,6 @@
 
 namespace opentxs
 {
-
-class Nym;
-
 class CurrencyContract : public UnitDefinition
 {
 private:
@@ -31,11 +28,11 @@ private:
 
     EXPORT CurrencyContract(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::UnitDefinition serialized);
     EXPORT CurrencyContract(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,

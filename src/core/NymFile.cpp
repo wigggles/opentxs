@@ -74,8 +74,8 @@ namespace opentxs
 {
 internal::NymFile* Factory::NymFile(
     const api::Core& core,
-    std::shared_ptr<const Nym> targetNym,
-    std::shared_ptr<const Nym> signerNym)
+    Nym_p targetNym,
+    Nym_p signerNym)
 {
     return new implementation::NymFile(core, targetNym, signerNym);
 }
@@ -83,10 +83,7 @@ internal::NymFile* Factory::NymFile(
 
 namespace opentxs::implementation
 {
-NymFile::NymFile(
-    const api::Core& core,
-    std::shared_ptr<const Nym> targetNym,
-    std::shared_ptr<const Nym> signerNym)
+NymFile::NymFile(const api::Core& core, Nym_p targetNym, Nym_p signerNym)
     : api_{core}
     , target_nym_{targetNym}
     , signer_nym_{signerNym}

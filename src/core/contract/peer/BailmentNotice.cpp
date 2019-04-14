@@ -17,7 +17,7 @@ namespace opentxs
 {
 BailmentNotice::BailmentNotice(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequest& serialized)
     : ot_super(api, nym, serialized)
     , unit_(api_.Factory().UnitID(serialized.pendingbailment().unitid()))
@@ -30,7 +30,7 @@ BailmentNotice::BailmentNotice(
 
 BailmentNotice::BailmentNotice(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const identifier::Nym& recipientID,
     const identifier::UnitDefinition& unitID,
     const identifier::Server& serverID,

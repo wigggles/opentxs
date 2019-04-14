@@ -15,8 +15,8 @@
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include "blind/token/Lucre.hpp"
 #include "blind/Lucre.hpp"
@@ -98,7 +98,7 @@ Lucre::Lucre(
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
 bool Lucre::AddDenomination(
-    const Nym& theNotary,
+    const identity::Nym& theNotary,
     const std::int64_t denomination,
     const std::size_t keySize)
 {
@@ -205,7 +205,7 @@ bool Lucre::AddDenomination(
 
 // Lucre step 3: the mint signs the token
 //
-bool Lucre::SignToken(const Nym& notary, blind::Token& token)
+bool Lucre::SignToken(const identity::Nym& notary, blind::Token& token)
 {
 #if OT_LUCRE_DEBUG
     LucreDumper setDumper;
@@ -303,7 +303,7 @@ bool Lucre::SignToken(const Nym& notary, blind::Token& token)
     return true;
 }
 
-bool Lucre::VerifyToken(const Nym& notary, const blind::Token& token)
+bool Lucre::VerifyToken(const identity::Nym& notary, const blind::Token& token)
 {
 
     if (proto::CASHTYPE_LUCRE != token.Type()) {

@@ -19,9 +19,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <ctype.h>
@@ -43,7 +43,7 @@ namespace opentxs
 {
 UnitDefinition::UnitDefinition(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
@@ -60,7 +60,7 @@ UnitDefinition::UnitDefinition(
 
 UnitDefinition::UnitDefinition(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::UnitDefinition serialized)
     : ot_super(nym)
     , wallet_{wallet}
@@ -610,7 +610,7 @@ bool UnitDefinition::EraseAccountRecord(
 
 UnitDefinition* UnitDefinition::Create(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
@@ -645,7 +645,7 @@ UnitDefinition* UnitDefinition::Create(
 
 UnitDefinition* UnitDefinition::Create(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
@@ -680,7 +680,7 @@ UnitDefinition* UnitDefinition::Create(
 // the server, which actually creates the contract.
 UnitDefinition* UnitDefinition::Create(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
@@ -695,7 +695,7 @@ UnitDefinition* UnitDefinition::Create(
 
 UnitDefinition* UnitDefinition::Factory(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::UnitDefinition& serialized)
 {
     if (!proto::Validate<proto::UnitDefinition>(serialized, VERBOSE, true)) {
@@ -821,8 +821,8 @@ bool UnitDefinition::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_role(proto::SIGROLE_UNITDEFINITION);
-    success = nym_->SignProto(serialized, signature);
+    success =
+        nym_->SignProto(serialized, proto::SIGROLE_UNITDEFINITION, signature);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));

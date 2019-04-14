@@ -34,11 +34,11 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
@@ -159,7 +159,7 @@ void Server::ProcessCron()
 
 const identifier::Server& Server::GetServerID() const { return m_notaryID; }
 
-const Nym& Server::GetServerNym() const { return *m_nymServer; }
+const identity::Nym& Server::GetServerNym() const { return *m_nymServer; }
 
 bool Server::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
 
@@ -780,7 +780,7 @@ bool Server::DropMessageToNymbox(
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
-        ConstNym nymRecipient = manager_.Wallet().Nym(RECIPIENT_NYM_ID);
+        Nym_p nymRecipient = manager_.Wallet().Nym(RECIPIENT_NYM_ID);
 
         const crypto::key::Asymmetric& thePubkey =
             nymRecipient->GetPublicEncrKey();

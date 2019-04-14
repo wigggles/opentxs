@@ -22,9 +22,6 @@
 
 namespace opentxs
 {
-
-class OTPassword;
-
 class NymParameters
 {
 private:

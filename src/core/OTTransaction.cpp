@@ -31,11 +31,11 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -201,7 +201,7 @@ OTTransaction::OTTransaction(
 // This CONSTRUCTOR is used for instantiating "abbreviated" transactions,
 // each of which separately load their full contents from a separate datafile
 // not during loading but during the subsequent verification process.
-// See: bool OTTransaction::VerifyItems(Nym& theNym)
+// See: bool OTTransaction::VerifyItems(identity::Nym& theNym)
 //
 OTTransaction::OTTransaction(
     const api::Core& core,
@@ -434,7 +434,7 @@ void OTTransaction::SetClosingNum(std::int64_t lClosingNum)
 //
 // This overrides from OTTransactionType::VerifyAccount()
 //
-bool OTTransaction::VerifyAccount(const Nym& theNym)
+bool OTTransaction::VerifyAccount(const identity::Nym& theNym)
 {
     Ledger* pParent = const_cast<Ledger*>(m_pParent);
 
@@ -3225,7 +3225,7 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 // make sure that the items on it also have the right owner, as well as that
 // owner's signature, and a matching transaction number to boot.
 //
-bool OTTransaction::VerifyItems(const Nym& theNym)
+bool OTTransaction::VerifyItems(const identity::Nym& theNym)
 {
     const auto NYM_ID = Identifier::Factory(theNym);
 
@@ -5907,8 +5907,8 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay()
          function, which we don't, we have no way of decrypting that cheque and
          returning the "Display" number that the user actually wants to see.
 
-         TODO long term: Add a Nym* parameter so we have the OPTION here to
-         decrypt the payload and return the correct data.
+         TODO long term: Add a identity::Nym* parameter so we have the OPTION
+         here to decrypt the payload and return the correct data.
 
          In the meantime, I don't need to change anything here, since
          OTRecordList decrypts the payloads already, and has a pPayment* now

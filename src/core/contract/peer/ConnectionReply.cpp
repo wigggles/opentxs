@@ -15,7 +15,7 @@ namespace opentxs
 {
 ConnectionReply::ConnectionReply(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerReply& serialized)
     : ot_super(wallet, nym, serialized)
     , success_(serialized.connectioninfo().success())
@@ -28,7 +28,7 @@ ConnectionReply::ConnectionReply(
 
 ConnectionReply::ConnectionReply(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const identifier::Nym& initiator,
     const Identifier& request,
     const identifier::Server& server,

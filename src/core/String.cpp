@@ -15,7 +15,8 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymFile.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #if !(                                                                         \
     defined(_WIN32) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE) ||      \

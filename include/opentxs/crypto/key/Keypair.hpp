@@ -53,22 +53,14 @@ public:
         bool bImporting) = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize(
         bool privateKey = false) const = 0;
-    template <class C>
-    EXPORT bool SignProto(
-        C& serialized,
+    EXPORT virtual bool Sign(
+        const GetPreimage input,
+        const proto::SignatureRole role,
         proto::Signature& signature,
-        const String& credID = String::Factory(),
-        const OTPasswordData* pPWData = nullptr) const
-    {
-        if (false == HasPrivateKey()) {
-            LogOutput(": Missing private key. Can not sign.").Flush();
-
-            return false;
-        }
-
-        return GetPrivateKey().SignProto<C>(
-            serialized, signature, credID, pPWData);
-    }
+        const Identifier& credential,
+        proto::KeyRole key = proto::KEYROLE_SIGN,
+        const OTPasswordData* pPWData = nullptr,
+        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
     EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
         const = 0;
     EXPORT virtual bool Verify(

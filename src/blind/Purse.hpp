@@ -28,17 +28,17 @@ public:
     bool IsUnlocked() const override { return unlocked_; }
     Time LatestValidFrom() const override { return latest_valid_from_; }
     const identifier::Server& Notary() const override { return notary_; }
-    bool Process(const Nym& owner, const Mint& mint) override;
+    bool Process(const identity::Nym& owner, const Mint& mint) override;
     proto::Purse Serialize() const override;
     std::size_t size() const noexcept override { return tokens_.size(); }
     proto::PurseType State() const override { return state_; }
     proto::CashType Type() const override { return type_; }
     const identifier::UnitDefinition& Unit() const override { return unit_; }
-    bool Unlock(const Nym& nym) const override;
+    bool Unlock(const identity::Nym& nym) const override;
     bool Verify(const api::server::Manager& server) const override;
     Amount Value() const override { return total_value_; }
 
-    bool AddNym(const Nym& nym) override;
+    bool AddNym(const identity::Nym& nym) override;
     Token& at(const std::size_t position) override
     {
         return tokens_.at(position);
@@ -46,13 +46,13 @@ public:
     iterator begin() noexcept override { return iterator(this, 0); }
     iterator end() noexcept override { return iterator(this, tokens_.size()); }
     bool GeneratePrototokens(
-        const Nym& owner,
+        const identity::Nym& owner,
         const Mint& mint,
         const Amount amount);
     crypto::key::Symmetric& PrimaryKey() override;
     std::shared_ptr<Token> Pop() override;
     bool Push(std::shared_ptr<Token> token) override;
-    crypto::key::Symmetric& SecondaryKey(const Nym& owner) override;
+    crypto::key::Symmetric& SecondaryKey(const identity::Nym& owner) override;
 
     ~Purse() override = default;
 

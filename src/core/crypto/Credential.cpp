@@ -112,7 +112,7 @@ Credential::Credential(
     CredentialSet& theOwner,
     const std::uint32_t version,
     const NymParameters& nymParameters)
-    : ot_super(ConstNym(), version)
+    : ot_super(Nym_p(), version)
     , api_(api)
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
@@ -124,7 +124,7 @@ Credential::Credential(
     const api::Core& api,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
-    : ot_super(ConstNym(), serializedCred.version())
+    : ot_super(Nym_p(), serializedCred.version())
     , api_(api)
     , type_(serializedCred.type())
     , role_(serializedCred.role())
@@ -557,9 +557,13 @@ bool Credential::AddMasterSignature(const Lock& lock)
         std::make_shared<proto::Signature>();
     auto serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
-    signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
 
-    bool havePublicSig = owner_backlink_->SignProto(*serialized, signature);
+    bool havePublicSig = owner_backlink_->Sign(
+        [&serialized]() -> std::string {
+            return proto::ProtoAsString(*serialized);
+        },
+        proto::SIGROLE_PUBCREDENTIAL,
+        signature);
 
     if (!havePublicSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

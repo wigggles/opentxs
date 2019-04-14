@@ -20,11 +20,11 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -608,7 +608,9 @@ std::int32_t Message::processXmlNodeNotaryMessage(
 // their contents just before signing.
 // See OTMessage::UpdateContents near the top of this file for an example.
 //
-bool Message::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
+bool Message::SignContract(
+    const identity::Nym& theNym,
+    const OTPasswordData* pPWData)
 {
     // I release these, I assume, because a message only has one signer.
     ReleaseSignatures();  // Note: this might change with credentials. We might
@@ -628,8 +630,9 @@ bool Message::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
 }
 
 // virtual (Contract)
-bool Message::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
-    const
+bool Message::VerifySignature(
+    const identity::Nym& theNym,
+    const OTPasswordData* pPWData) const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing

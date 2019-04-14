@@ -19,11 +19,11 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 
 extern "C" {
@@ -386,7 +386,7 @@ EXPORT bool OTEnvelope::Seal(
     }
 }
 
-bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
+bool OTEnvelope::Seal(const identity::Nym& theRecipient, const String& theInput)
 {
     return Seal(theRecipient.GetPublicEncrKey(), theInput);
 }
@@ -416,7 +416,7 @@ bool OTEnvelope::Seal(
 }
 
 bool OTEnvelope::Open(
-    const Nym& theRecipient,
+    const identity::Nym& theRecipient,
     String& theOutput,
     const OTPasswordData* pPWData)
 {

@@ -51,23 +51,23 @@ protected:
 
     PeerRequest(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequest& serialized);
     PeerRequest(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequest& serialized,
         const std::string& conditions);
     PeerRequest(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         std::uint32_t version,
         const identifier::Nym& recipient,
         const identifier::Server& serverID,
         const proto::PeerRequestType& type);
     PeerRequest(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         std::uint32_t version,
         const identifier::Nym& recipient,
         const identifier::Server& serverID,
@@ -77,13 +77,13 @@ protected:
 public:
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequestType& type,
         const identifier::UnitDefinition& unitID,
         const identifier::Server& serverID);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
-        const ConstNym& sender,
+        const Nym_p& sender,
         const proto::PeerRequestType& type,
         const identifier::UnitDefinition& unitID,
         const identifier::Server& serverID,
@@ -93,7 +93,7 @@ public:
         const Amount& amount);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequestType& type,
         const identifier::UnitDefinition& unitID,
         const identifier::Server& serverID,
@@ -101,14 +101,14 @@ public:
         const std::string& terms);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
-        const ConstNym& sender,
+        const Nym_p& sender,
         const proto::PeerRequestType& type,
         const proto::ConnectionInfoType connectionType,
         const identifier::Nym& recipient,
         const identifier::Server& serverID);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
-        const ConstNym& sender,
+        const Nym_p& sender,
         const proto::PeerRequestType& type,
         const proto::SecretType secretType,
         const identifier::Nym& recipient,
@@ -117,7 +117,7 @@ public:
         const identifier::Server& serverID);
     static std::unique_ptr<PeerRequest> Factory(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequest& serialized);
 
     std::string Alias() const override { return Name(); }

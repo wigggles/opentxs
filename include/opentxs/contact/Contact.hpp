@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -27,8 +28,8 @@ public:
     typedef std::pair<proto::ContactItemType, std::string> BlockchainAddress;
 
     static std::shared_ptr<ContactItem> Best(const ContactGroup& group);
-    static std::string ExtractLabel(const Nym& nym);
-    static proto::ContactItemType ExtractType(const Nym& nym);
+    static std::string ExtractLabel(const identity::Nym& nym);
+    static proto::ContactItemType ExtractType(const identity::Nym& nym);
     static std::string PaymentCode(
         const ContactData& data,
         const proto::ContactItemType currency);
@@ -68,7 +69,7 @@ public:
         const std::string& value,
         const bool primary,
         const bool active);
-    bool AddNym(const std::shared_ptr<const Nym>& nym, const bool primary);
+    bool AddNym(const Nym_p& nym, const bool primary);
     bool AddNym(const identifier::Nym& nymID, const bool primary);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddPaymentCode(
@@ -91,7 +92,7 @@ public:
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
     bool RemoveNym(const identifier::Nym& nymID);
     void SetLabel(const std::string& label);
-    void Update(const proto::CredentialIndex& nym);
+    void Update(const identity::Nym::Serialized& nym);
 
     ~Contact() = default;
 
@@ -103,7 +104,7 @@ private:
     const OTIdentifier id_;
     OTIdentifier parent_;
     OTNymID primary_nym_;
-    std::map<OTNymID, std::shared_ptr<const Nym>> nyms_;
+    std::map<OTNymID, Nym_p> nyms_;
     std::set<OTIdentifier> merged_children_;
     std::unique_ptr<ContactData> contact_data_{};
     mutable std::shared_ptr<ContactData> cached_contact_data_{};
@@ -121,10 +122,7 @@ private:
     proto::ContactItemType type(const Lock& lock) const;
     bool verify_write_lock(const Lock& lock) const;
 
-    bool add_nym(
-        const Lock& lock,
-        const std::shared_ptr<const Nym>& nym,
-        const bool primary);
+    bool add_nym(const Lock& lock, const Nym_p& nym, const bool primary);
     bool add_claim(const std::shared_ptr<ContactItem>& item);
     bool add_claim(const Lock& lock, const std::shared_ptr<ContactItem>& item);
     void add_nym_claim(
@@ -135,7 +133,7 @@ private:
         const Lock& lock,
         const std::shared_ptr<ContactItem>& item);
     void init_nyms();
-    void update_label(const Lock& lock, const Nym& nym);
+    void update_label(const Lock& lock, const identity::Nym& nym);
 
     Contact() = delete;
     Contact(const Contact&) = delete;

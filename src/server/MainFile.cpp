@@ -25,10 +25,10 @@
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include "Server.hpp"
 #include "Transactor.hpp"

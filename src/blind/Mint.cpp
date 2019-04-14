@@ -345,7 +345,7 @@ bool Mint::SaveMint(const char* szAppend)
 
 // Make sure this contract checks out. Very high level.
 // Verifies ID and signature.
-bool Mint::VerifyMint(const Nym& theOperator)
+bool Mint::VerifyMint(const identity::Nym& theOperator)
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -669,7 +669,7 @@ void Mint::GenerateNewMint(
     time64_t MINT_EXPIRATION,
     const identifier::UnitDefinition& theInstrumentDefinitionID,
     const identifier::Server& theNotaryID,
-    const Nym& theNotary,
+    const identity::Nym& theNotary,
     const std::int64_t nDenom1,
     const std::int64_t nDenom2,
     const std::int64_t nDenom3,

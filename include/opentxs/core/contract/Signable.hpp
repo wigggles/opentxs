@@ -19,7 +19,6 @@
 
 namespace opentxs
 {
-using ConstNym = std::shared_ptr<const class Nym>;
 using SerializedSignature = std::shared_ptr<proto::Signature>;
 
 class Signable
@@ -28,7 +27,7 @@ public:
     virtual std::string Alias() const;
     OTIdentifier ID() const;
     virtual std::string Name() const = 0;
-    ConstNym Nym() const;
+    Nym_p Nym() const;
     virtual const std::string& Terms() const;
     virtual OTData Serialize() const = 0;
     bool Validate() const;
@@ -43,7 +42,7 @@ protected:
 
     std::string alias_;
     OTIdentifier id_;
-    const ConstNym nym_;
+    const Nym_p nym_;
     Signatures signatures_;
     std::uint32_t version_ = 0;
     std::string conditions_;  // Human-readable portion
@@ -66,10 +65,10 @@ protected:
     virtual OTIdentifier GetID(const Lock& lock) const = 0;
 
     Signable() = delete;
-    explicit Signable(const ConstNym& nym);
-    explicit Signable(const ConstNym& nym, const std::uint32_t version);
+    explicit Signable(const Nym_p& nym);
+    explicit Signable(const Nym_p& nym, const std::uint32_t version);
     explicit Signable(
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::uint32_t version,
         const std::string& conditions);
     Signable(const Signable&) = delete;

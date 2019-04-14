@@ -24,10 +24,10 @@
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdlib.h>
@@ -359,7 +359,8 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
     return false;
 }
 
-bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
+bool OTPaymentPlan::VerifyMerchantSignature(
+    const identity::Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy{api_};
@@ -394,7 +395,8 @@ bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
     return true;
 }
 
-bool OTPaymentPlan::VerifyCustomerSignature(const Nym& SENDER_NYM) const
+bool OTPaymentPlan::VerifyCustomerSignature(
+    const identity::Nym& SENDER_NYM) const
 {
     if (!VerifySignature(SENDER_NYM)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -659,8 +661,8 @@ bool OTPaymentPlan::ProcessPayment(
     // entity. (We'll want to know that later.)
     bool bUsersAreSameNym = (SENDER_NYM_ID == RECIPIENT_NYM_ID);
 
-    ConstNym pSenderNym = nullptr;
-    ConstNym pRecipientNym = nullptr;
+    Nym_p pSenderNym = nullptr;
+    Nym_p pRecipientNym = nullptr;
 
     // Figure out if Sender Nym is also Server Nym.
     if (bSenderNymIsServerNym) {

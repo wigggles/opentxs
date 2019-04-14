@@ -86,7 +86,7 @@ bool PayDividendVisitor::Trigger(
     const auto& payoutUnitTypeId_ = GetPayoutUnitTypeId();
     OT_ASSERT(!GetVoucherAcctID().empty());
     const auto& theVoucherAcctID = (GetVoucherAcctID());
-    Nym& theServerNym = const_cast<Nym&>(server_.GetServerNym());
+    const auto& theServerNym = server_.GetServerNym();
     const auto& theServerNymID = theServerNym.ID();
     const auto& RECIPIENT_ID = theSharesAccount.GetNymID();
     OT_ASSERT(!GetNymID().empty());

@@ -124,6 +124,11 @@ class Server;
 class UnitDefinition;
 }  // namespace identifier
 
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
 namespace network
 {
 namespace zeromq
@@ -252,7 +257,6 @@ class MasterCredential;
 class ManagedNumber;
 class Message;
 class NumList;
-class Nym;
 class NymData;
 class NymFile;
 class NymIDSource;
@@ -312,6 +316,7 @@ class StringXML;
 class Tag;
 class TransactionStatement;
 class UnitDefinition;
+class UserCommandProcessor;
 
 using OTArmored = Pimpl<Armored>;
 using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;

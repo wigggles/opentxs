@@ -27,6 +27,14 @@ public:
         override;
     std::shared_ptr<proto::AsymmetricKey> Serialize(
         bool privateKey = false) const override;
+    bool Sign(
+        const GetPreimage input,
+        const proto::SignatureRole role,
+        proto::Signature& signature,
+        const Identifier& credential,
+        proto::KeyRole key = proto::KEYROLE_SIGN,
+        const OTPasswordData* pPWData = nullptr,
+        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
     bool Verify(const Data& plaintext, const proto::Signature& sig)
         const override;

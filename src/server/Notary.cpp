@@ -38,10 +38,10 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
@@ -85,7 +85,10 @@ Notary::Notary(Server& server, const opentxs::api::server::Manager& manager)
     OT_ASSERT(bound);
 }
 
-Notary::Finalize::Finalize(const Nym& signer, Item& item, Item& balanceItem)
+Notary::Finalize::Finalize(
+    const identity::Nym& signer,
+    Item& item,
+    Item& balanceItem)
     : signer_(signer)
     , item_(item)
     , balance_item_(balanceItem)

@@ -60,7 +60,7 @@ private:
     //  up and ready to go.
     bool m_bIsActivated{false};
     // I'll need this for later.
-    ConstNym m_pServerNym{nullptr};
+    Nym_p m_pServerNym{nullptr};
     // Number of transaction numbers Cron  will grab for itself, when it gets
     // low, before each round.
     static std::int32_t __trans_refill_amount;
@@ -113,7 +113,7 @@ public:
         bool bSaveReceipt,
         time64_t tDateAdded);  // Date it was FIRST added to Cron.
     /** if returns false, item wasn't found. */
-    bool RemoveCronItem(std::int64_t lTransactionNum, ConstNym theRemover);
+    bool RemoveCronItem(std::int64_t lTransactionNum, Nym_p theRemover);
     std::shared_ptr<OTCronItem> GetItemByOfficialNum(
         std::int64_t lTransactionNum);
     std::shared_ptr<OTCronItem> GetItemByValidOpeningNum(
@@ -165,12 +165,12 @@ public:
     }
     inline const identifier::Server& GetNotaryID() const { return m_NOTARY_ID; }
 
-    inline void SetServerNym(ConstNym pServerNym)
+    inline void SetServerNym(Nym_p pServerNym)
     {
         OT_ASSERT(nullptr != pServerNym);
         m_pServerNym = pServerNym;
     }
-    inline ConstNym GetServerNym() const { return m_pServerNym; }
+    inline Nym_p GetServerNym() const { return m_pServerNym; }
 
     bool LoadCron();
     bool SaveCron();

@@ -17,8 +17,8 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #define OT_METHOD "opentxs::NymData::"
 
@@ -27,7 +27,7 @@ namespace opentxs
 NymData::NymData(
     const api::Factory& factory,
     std::mutex& objectMutex,
-    const std::shared_ptr<class Nym>& nym,
+    const std::shared_ptr<identity::Nym>& nym,
     LockedSave save)
     : factory_{factory}
     , object_lock_{new Lock(objectMutex)}
@@ -143,7 +143,7 @@ bool NymData::AddSocialMediaProfile(
     return nym().AddSocialMediaProfile(value, type, primary, active);
 }
 
-const serializedCredentialIndex NymData::asPublicNym() const
+identity::Nym::Serialized NymData::asPublicNym() const
 {
     return nym().asPublicNym();
 }
@@ -198,16 +198,16 @@ bool NymData::HaveContract(
 
 std::string NymData::Name() const { return nym().Name(); }
 
-const opentxs::Nym& NymData::Nym() const { return nym(); }
+const identity::Nym& NymData::Nym() const { return nym(); }
 
-opentxs::Nym& NymData::nym()
+identity::Nym& NymData::nym()
 {
     OT_ASSERT(nym_);
 
     return *nym_;
 }
 
-const opentxs::Nym& NymData::nym() const
+const identity::Nym& NymData::nym() const
 {
     OT_ASSERT(nym_);
 

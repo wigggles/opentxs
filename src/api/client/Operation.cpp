@@ -944,7 +944,7 @@ std::shared_ptr<Message> Operation::construct_request_admin()
 
 std::shared_ptr<Message> Operation::construct_send_nym_object(
     const PeerObject& object,
-    const Nym& recipient,
+    const identity::Nym& recipient,
     ServerContext& context,
     const RequestNumber number)
 {

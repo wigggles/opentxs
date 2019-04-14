@@ -74,11 +74,11 @@ public:
     EXPORT bool IsIssuer() const;
     // For accounts used by smart contracts, to stash funds while running.
     EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
-    EXPORT std::unique_ptr<Ledger> LoadInbox(const Nym& nym) const;
-    EXPORT std::unique_ptr<Ledger> LoadOutbox(const Nym& nym) const;
+    EXPORT std::unique_ptr<Ledger> LoadInbox(const identity::Nym& nym) const;
+    EXPORT std::unique_ptr<Ledger> LoadOutbox(const identity::Nym& nym) const;
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
-    EXPORT bool VerifyOwner(const Nym& candidate) const;
+    EXPORT bool VerifyOwner(const identity::Nym& candidate) const;
     EXPORT bool VerifyOwnerByID(const identifier::Nym& nymId) const;
 
     // Debit a certain amount from the account (presumably the same amount is
@@ -89,7 +89,7 @@ public:
     EXPORT bool Credit(const Amount amount);
     EXPORT bool GetInboxHash(Identifier& output);
     EXPORT bool GetOutboxHash(Identifier& output);
-    EXPORT bool InitBoxes(const Nym& signer);
+    EXPORT bool InitBoxes(const identity::Nym& signer);
     // If you pass the identifier in, the inbox hash is recorded there
     EXPORT bool SaveInbox(Ledger& box);
     EXPORT bool SaveInbox(Ledger& box, Identifier& hash);
@@ -134,7 +134,7 @@ private:
         const api::Core& core,
         const identifier::Nym& nymID,
         const identifier::Server& notaryID,
-        const Nym& serverNym,
+        const identity::Nym& serverNym,
         const Identifier& userNymID,
         const identifier::UnitDefinition& instrumentDefinitionID,
         AccountType acctType = user,
@@ -150,10 +150,10 @@ private:
 
     bool create_box(
         std::unique_ptr<Ledger>& box,
-        const Nym& signer,
+        const identity::Nym& signer,
         const ledgerType type);
     bool GenerateNewAccount(
-        const Nym& server,
+        const identity::Nym& server,
         const Identifier& userNymID,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,

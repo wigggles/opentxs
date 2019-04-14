@@ -11,7 +11,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Request.hpp"
 
 #include "Request.hpp"
@@ -20,14 +20,13 @@ template class opentxs::Pimpl<opentxs::otx::Request>;
 
 // TODO 1.14.0
 #define OTX_REQUEST_CREATE_VERSION 1
-#define OTX_REQUEST_SIGNATURE_VERSION 3
 
 #define OT_METHOD "opentxs::otx::implementation::Request::"
 
 namespace opentxs::otx
 {
 OTXRequest Request::Factory(
-    const std::shared_ptr<const opentxs::Nym> signer,
+    const Nym_p signer,
     const identifier::Server& server,
     const proto::ServerRequestType type)
 {
@@ -58,7 +57,7 @@ OTXRequest Request::Factory(
 namespace opentxs::otx::implementation
 {
 Request::Request(
-    const std::shared_ptr<const opentxs::Nym> signer,
+    const Nym_p signer,
     const identifier::Nym& initiator,
     const identifier::Server& server,
     const proto::ServerRequestType type)
@@ -103,7 +102,7 @@ proto::ServerRequest Request::Contract() const
     return output;
 }
 
-std::shared_ptr<const opentxs::Nym> Request::extract_nym(
+Nym_p Request::extract_nym(
     const api::Core& api,
     const proto::ServerRequest serialized)
 {
@@ -207,9 +206,8 @@ bool Request::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = signature_version(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_version(OTX_REQUEST_SIGNATURE_VERSION);
-    signature.set_role(proto::SIGROLE_SERVERREQUEST);
-    success = nym_->SignProto(serialized, signature);
+    success =
+        nym_->SignProto(serialized, proto::SIGROLE_SERVERREQUEST, signature);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));

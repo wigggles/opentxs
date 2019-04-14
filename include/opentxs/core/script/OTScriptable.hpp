@@ -61,10 +61,10 @@ public:
     EXPORT OTParty* GetPartyByIndex(std::int32_t nIndex) const;
     EXPORT OTBylaw* GetBylawByIndex(std::int32_t nIndex) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAgent(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         OTAgent** ppAgent = nullptr) const;
     EXPORT OTParty* FindPartyBasedOnNymAsAuthAgent(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
         const Account& theAccount,
@@ -99,8 +99,8 @@ public:
     // Basically this means that the agreement's owner approves of theNym.
     //
     EXPORT virtual bool VerifyNymAsAgent(
-        const Nym& theNym,
-        const Nym& theSignerNym) const;
+        const identity::Nym& theNym,
+        const identity::Nym& theSignerNym) const;
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -110,13 +110,13 @@ public:
     // ACCOUNT.
     //
     EXPORT virtual bool VerifyNymAsAgentForAccount(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const Account& theAccount) const;
     bool VerifyPartyAuthorization(
         OTParty& theParty,  // The party that supposedly is authorized for this
                             // supposedly executed agreement.
-        const Nym& theSignerNym,  // For verifying signature on the authorizing
-                                  // Nym, when loading it
+        const identity::Nym& theSignerNym,  // For verifying signature on the
+                                            // authorizing Nym, when loading it
         const String& strNotaryID,   // For verifying issued num, need the
                                      // notaryID the # goes with.
         bool bBurnTransNo = false);  // In Server::VerifySmartContract(), it
@@ -171,7 +171,7 @@ public:
                         // again.)
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg,
-        const Nym& theServerNym,
+        const identity::Nym& theServerNym,
         const identifier::Server& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo, //
@@ -179,7 +179,7 @@ public:
         const String& strReference,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
-        Nym* pActualNym = nullptr) const;
+        identity::Nym* pActualNym = nullptr) const;
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
     // The default return value, for a legitimate party, is true.

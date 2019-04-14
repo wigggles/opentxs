@@ -162,6 +162,21 @@ proto::AsymmetricKeyType Asymmetric::StringToKeyType(const String& keyType)
 
 namespace opentxs::crypto::key::implementation
 {
+const std::map<proto::SignatureRole, std::uint32_t> Asymmetric::sig_version_{
+    {proto::SIGROLE_PUBCREDENTIAL, 1},
+    {proto::SIGROLE_PRIVCREDENTIAL, 1},
+    {proto::SIGROLE_NYMIDSOURCE, 1},
+    {proto::SIGROLE_CLAIM, 1},
+    {proto::SIGROLE_SERVERCONTRACT, 1},
+    {proto::SIGROLE_UNITDEFINITION, 1},
+    {proto::SIGROLE_PEERREQUEST, 1},
+    {proto::SIGROLE_PEERREPLY, 1},
+    {proto::SIGROLE_CONTEXT, 2},
+    {proto::SIGROLE_ACCOUNT, 2},
+    {proto::SIGROLE_SERVERREQUEST, 3},
+    {proto::SIGROLE_SERVERREPLY, 3},
+};
+
 Asymmetric::Asymmetric(
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
@@ -321,6 +336,21 @@ key::Asymmetric* Asymmetric::KeyFactory(
 
 proto::AsymmetricKeyType Asymmetric::keyType() const { return m_keyType; }
 
+proto::Signature Asymmetric::NewSignature(
+    const Identifier& credentialID,
+    const proto::SignatureRole role,
+    const proto::HashType hash) const
+{
+    proto::Signature output{};
+    output.set_version(sig_version_.at(role));
+    output.set_credentialid(credentialID.str());
+    output.set_role(role);
+    output.set_hashtype((proto::HASHTYPE_ERROR == hash) ? SigHashType() : hash);
+    output.clear_signature();
+
+    return output;
+}
+
 const std::string Asymmetric::Path() const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key type.").Flush();
@@ -388,6 +418,46 @@ bool Asymmetric::Sign(
         if (proto::SIGROLE_ERROR != role) { sig.set_role(role); }
         sig.set_hashtype(hash);
         sig.set_signature(signature->data(), signature->size());
+    }
+
+    return goodSig;
+}
+
+bool Asymmetric::Sign(
+    const GetPreimage input,
+    const proto::SignatureRole role,
+    proto::Signature& signature,
+    const Identifier& credential,
+    proto::KeyRole key,
+    const OTPasswordData* pPWData,
+    const proto::HashType hash) const
+{
+    if (IsPublic()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": You must use private keys to create signatures.")
+            .Flush();
+
+        return false;
+    }
+
+    try {
+        signature = NewSignature(credential, role, hash);
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature role.").Flush();
+
+        return false;
+    }
+
+    auto sig = Data::Factory();
+    const auto raw = input();
+    const auto preimage = Data::Factory(raw.data(), raw.size());
+    bool goodSig = engine().Sign(
+        preimage, *this, signature.hashtype(), sig, pPWData, nullptr);
+
+    if (goodSig) {
+        signature.set_signature(sig->data(), sig->size());
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign preimate").Flush();
     }
 
     return goodSig;

@@ -136,8 +136,8 @@ public:
         const ClientContext& sender) const override;
     bool CompareAgreement(const OTAgreement& rh) const override;
 
-    bool VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const;
-    bool VerifyCustomerSignature(const Nym& SENDER_NYM) const;
+    bool VerifyMerchantSignature(const identity::Nym& RECIPIENT_NYM) const;
+    bool VerifyCustomerSignature(const identity::Nym& SENDER_NYM) const;
 
     // ************ "INITIAL PAYMENT" public GET METHODS **************
     inline bool HasInitialPayment() const { return m_bInitialPayment; }

@@ -125,7 +125,7 @@ public:
         Data& dataOutput) const override;
     bool DecryptSessionKey(
         Data& dataInput,
-        const Nym& theRecipient,
+        const identity::Nym& theRecipient,
         Data& plaintext,
         const OTPasswordData* pPWData = nullptr) const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

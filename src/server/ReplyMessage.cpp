@@ -28,7 +28,7 @@ ReplyMessage::ReplyMessage(
     const UserCommandProcessor& parent,
     const opentxs::api::Wallet& wallet,
     const identifier::Server& notaryID,
-    const Nym& signer,
+    const identity::Nym& signer,
     const Message& input,
     Server& server,
     const MessageType& type,

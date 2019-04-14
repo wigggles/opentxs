@@ -5,8 +5,6 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/Nym.hpp"
-
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -23,6 +21,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
+#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -37,6 +36,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NymIDSource.hpp"
@@ -46,22 +47,49 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+
+#include "internal/identity/Identity.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <sodium/crypto_box.h>
 #include <sys/types.h>
 
 #include <array>
+#include <atomic>
+#include <deque>
 #include <fstream>
 #include <functional>
-#include <string>
+#include <list>
+#include <map>
+#include <mutex>
+
+#include "Nym.hpp"
 
 #define NYMFILE_VERSION "1.1"
 
-#define OT_METHOD "opentxs::Nym::"
+#define OT_METHOD "opentxs::identity::implementation::Nym::"
 
 namespace opentxs
+{
+identity::internal::Nym* Factory::Nym(
+    const api::Core& api,
+    const NymParameters& nymParameters)
+{
+    return new identity::implementation::Nym(api, nymParameters);
+}
+
+identity::internal::Nym* Factory::Nym(
+    const api::Core& api,
+    const identifier::Nym& nymID,
+    const proto::CredentialIndexMode mode)
+{
+    return new identity::implementation::Nym(api, nymID, mode);
+}
+}  // namespace opentxs
+
+namespace opentxs::identity::implementation
 {
 bool session_key_from_iv(
     const api::Core& api,
@@ -335,26 +363,9 @@ bool Nym::AddSocialMediaProfile(
 
 std::string Nym::Alias() const { return alias_; }
 
-const serializedCredentialIndex Nym::asPublicNym() const
+const Nym::Serialized Nym::asPublicNym() const
 {
-    return SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_FULL_CREDS);
-}
-
-std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
-    const std::string& masterID,
-    const std::string& childID) const
-{
-    sLock lock(shared_lock_);
-
-    std::shared_ptr<const proto::Credential> output;
-    auto credential = MasterCredential(String::Factory(masterID));
-
-    if (nullptr != credential) {
-        output = credential->GetChildCredential(String::Factory(childID))
-                     ->Serialized(AS_PUBLIC, WITH_SIGNATURES);
-    }
-
-    return output;
+    return SerializeCredentialIndex(Mode::Full);
 }
 
 std::string Nym::BestEmail() const
@@ -401,13 +412,6 @@ const class ContactData& Nym::Claims() const
     return *contact_data_;
 }
 
-void Nym::ClearCredentials()
-{
-    eLock lock(shared_lock_);
-
-    clear_credentials(lock);
-}
-
 void Nym::clear_credentials(const eLock& lock)
 {
     OT_ASSERT(verify_lock(lock));
@@ -429,7 +433,14 @@ void Nym::clear_credentials(const eLock& lock)
     }
 }
 
-bool Nym::CompareID(const Nym& rhs) const
+void Nym::ClearCredentials()
+{
+    eLock lock(shared_lock_);
+
+    clear_credentials(lock);
+}
+
+bool Nym::CompareID(const identity::Nym& rhs) const
 {
     sLock lock(shared_lock_);
 
@@ -469,18 +480,6 @@ bool Nym::DeleteClaim(const Identifier& id)
     return set_contact_data(lock, contact_data_->Serialize());
 }
 
-void Nym::DisplayStatistics(String& strOutput) const
-{
-    sLock lock(shared_lock_);
-    strOutput.Concatenate("Source for ID:\n%s\n", Source().asString()->Get());
-    strOutput.Concatenate("Description: %s\n\n", m_strDescription->Get());
-    strOutput.Concatenate("%s", "\n");
-    strOutput.Concatenate("==>      Name: %s\n", Alias().c_str());
-    strOutput.Concatenate("      Version: %s\n", m_strVersion->Get());
-    auto theStringID = String::Factory(ID());
-    strOutput.Concatenate("Nym ID: %s\n", theStringID->Get());
-}
-
 std::string Nym::EmailAddresses(bool active) const
 {
     eLock lock(shared_lock_);
@@ -490,32 +489,6 @@ std::string Nym::EmailAddresses(bool active) const
     OT_ASSERT(contact_data_);
 
     return contact_data_->EmailAddresses(active);
-}
-
-const std::vector<OTIdentifier> Nym::GetChildCredentialIDs(
-    const std::string& masterID) const
-{
-    sLock lock(shared_lock_);
-
-    std::vector<OTIdentifier> ids;
-
-    auto it = m_mapCredentialSets.find(masterID);
-    if (m_mapCredentialSets.end() != it) {
-        const CredentialSet* pMaster = it->second;
-
-        OT_ASSERT(nullptr != pMaster);
-
-        auto count = pMaster->GetChildCredentialCount();
-        for (size_t i = 0; i < count; ++i) {
-            auto pChild = pMaster->GetChildCredentialByIndex(i);
-
-            OT_ASSERT(nullptr != pChild);
-
-            ids.emplace_back(pChild->ID());
-        }
-    }
-
-    return ids;
 }
 
 void Nym::GetIdentifier(identifier::Nym& theIdentifier) const
@@ -531,42 +504,6 @@ void Nym::GetIdentifier(String& theIdentifier) const
     sLock lock(shared_lock_);
 
     m_nymID->GetString(theIdentifier);
-}
-
-CredentialSet* Nym::GetMasterCredential(const String& strID)
-{
-    sLock lock(shared_lock_);
-    auto iter = m_mapCredentialSets.find(strID.Get());
-    CredentialSet* pCredential = nullptr;
-
-    if (m_mapCredentialSets.end() != iter)  // found it
-        pCredential = iter->second;
-
-    return pCredential;
-}
-
-const std::vector<OTIdentifier> Nym::GetMasterCredentialIDs() const
-{
-    sLock lock(shared_lock_);
-
-    std::vector<OTIdentifier> ids;
-
-    for (const auto& it : m_mapCredentialSets) {
-        const CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        ids.emplace_back(pCredential->GetMasterCredential().ID());
-    }
-
-    return ids;
-}
-
-const crypto::key::Asymmetric& Nym::GetPrivateAuthKey(
-    proto::AsymmetricKeyType keytype) const
-{
-    sLock lock(shared_lock_);
-
-    return get_private_auth_key(lock, keytype);
 }
 
 template <typename T>
@@ -597,25 +534,12 @@ const crypto::key::Asymmetric& Nym::get_private_auth_key(
         keytype, &m_listRevokedIDs);  // success
 }
 
-void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
-    const
+const crypto::key::Asymmetric& Nym::GetPrivateAuthKey(
+    proto::AsymmetricKeyType keytype) const
 {
-    Tag tag("nymData");
+    sLock lock(shared_lock_);
 
-    tag.add_attribute("version", m_strVersion->Get());
-
-    auto strNymID = String::Factory(m_nymID);
-
-    tag.add_attribute("nymID", strNymID->Get());
-
-    SerializeNymIDSource(tag);
-
-    SaveCredentialsToTag(tag, nullptr, pmapCredFiles);
-
-    std::string str_result;
-    tag.output(str_result);
-
-    strCredList.Concatenate("%s", str_result.c_str());
+    return get_private_auth_key(lock, keytype);
 }
 
 const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
@@ -680,6 +604,36 @@ const crypto::key::Asymmetric& Nym::get_private_sign_key(
     if (nullptr == pCredential) OT_FAIL;
 
     return pCredential->GetPrivateSignKey(
+        keytype,
+        &m_listRevokedIDs);  // success
+}
+
+template <typename T>
+const crypto::key::Asymmetric& Nym::get_public_sign_key(
+    const T& lock,
+    proto::AsymmetricKeyType keytype) const
+{
+    OT_ASSERT(!m_mapCredentialSets.empty());
+
+    OT_ASSERT(verify_lock(lock));
+
+    const CredentialSet* pCredential = nullptr;
+
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
+
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
+    }
+    if (nullptr == pCredential) OT_FAIL;
+
+    return pCredential->GetPublicSignKey(
         keytype,
         &m_listRevokedIDs);  // success
 }
@@ -781,72 +735,6 @@ const crypto::key::Asymmetric& Nym::GetPublicSignKey(
     return get_public_sign_key(lock, keytype);
 }
 
-template <typename T>
-const crypto::key::Asymmetric& Nym::get_public_sign_key(
-    const T& lock,
-    proto::AsymmetricKeyType keytype) const
-{
-    OT_ASSERT(!m_mapCredentialSets.empty());
-
-    OT_ASSERT(verify_lock(lock));
-
-    const CredentialSet* pCredential = nullptr;
-
-    for (const auto& it : m_mapCredentialSets) {
-        // Todo: If we have some criteria, such as which master or
-        // child credential
-        // is currently being employed by the user, we'll use that here to
-        // skip
-        // through this loop until we find the right one. Until then, I'm
-        // just
-        // going to return the first one that's valid (not null).
-
-        pCredential = it.second;
-        if (nullptr != pCredential) break;
-    }
-    if (nullptr == pCredential) OT_FAIL;
-
-    return pCredential->GetPublicSignKey(
-        keytype,
-        &m_listRevokedIDs);  // success
-}
-
-CredentialSet* Nym::GetRevokedCredential(const String& strID)
-{
-    sLock lock(shared_lock_);
-
-    auto iter = m_mapRevokedSets.find(strID.Get());
-    CredentialSet* pCredential = nullptr;
-
-    if (m_mapCredentialSets.end() != iter)  // found it
-        pCredential = iter->second;
-
-    return pCredential;
-}
-
-const std::vector<OTIdentifier> Nym::GetRevokedCredentialIDs() const
-{
-    sLock lock(shared_lock_);
-
-    std::vector<OTIdentifier> ids;
-
-    for (const auto& it : m_mapRevokedSets) {
-        const CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        ids.emplace_back(pCredential->GetMasterCredential().ID());
-    }
-
-    return ids;
-}
-
-bool Nym::HasCapability(const NymCapability& capability) const
-{
-    eLock lock(shared_lock_);
-
-    return has_capability(lock, capability);
-}
-
 bool Nym::has_capability(const eLock& lock, const NymCapability& capability)
     const
 {
@@ -863,6 +751,13 @@ bool Nym::has_capability(const eLock& lock, const NymCapability& capability)
     }
 
     return false;
+}
+
+bool Nym::HasCapability(const NymCapability& capability) const
+{
+    eLock lock(shared_lock_);
+
+    return has_capability(lock, capability);
 }
 
 void Nym::init_claims(const eLock& lock) const
@@ -903,16 +798,7 @@ void Nym::init_claims(const eLock& lock) const
     OT_ASSERT(contact_data_)
 }
 
-bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
-{
-    eLock lock(shared_lock_);
-
-    return load_credential_index(lock, index);
-}
-
-bool Nym::load_credential_index(
-    const eLock& lock,
-    const serializedCredentialIndex& index)
+bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
 {
     if (!proto::Validate<proto::CredentialIndex>(index, VERBOSE)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load invalid serialized"
@@ -962,53 +848,11 @@ bool Nym::load_credential_index(
     return true;
 }
 
-// Use this to load the keys for a Nym (whether public or private), and then
-// call VerifyPseudonym, and then load the actual Nymfile using
-// LoadSignedNymfile.
-bool Nym::LoadCredentials(
-    bool bLoadPrivate,
-    const OTPasswordData* pPWData,
-    const OTPassword* pImportPassword)
+bool Nym::LoadCredentialIndex(const Serialized& index)
 {
     eLock lock(shared_lock_);
 
-    return load_credentials(lock);
-}
-
-bool Nym::load_credentials(
-    const eLock& lock,
-    bool bLoadPrivate,
-    const OTPasswordData* pPWData,
-    const OTPassword* pImportPassword)
-{
-    clear_credentials(lock);
-
-    auto strNymID = String::Factory(m_nymID);
-    std::shared_ptr<proto::CredentialIndex> index;
-
-    if (api_.Storage().Load(strNymID->Get(), index)) {
-        return load_credential_index(lock, *index);
-    } else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed trying to load credential list for nym: ")(strNymID)(".")
-            .Flush();
-    }
-
-    return false;
-}
-
-// This version is run on the server side, and assumes only a Public Key.
-// This code reads up the file, discards the bookends, and saves only the
-// gibberish itself.
-bool Nym::LoadPublicKey()
-{
-    eLock lock(shared_lock_);
-
-    if (load_credentials(lock) && (m_mapCredentialSets.size() > 0)) {
-        return true;
-    }
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Failure. ").Flush();
-    return false;
+    return load_credential_index(lock, index);
 }
 
 bool Nym::Lock(
@@ -1076,34 +920,6 @@ bool Nym::Lock(
 
     return sessionKey->Encrypt(
         password, ivData, sessionkeyPassword, output, true, mode);
-}
-
-const CredentialSet* Nym::MasterCredential(const String& strID) const
-{
-    auto iter = m_mapCredentialSets.find(strID.Get());
-    CredentialSet* pCredential = nullptr;
-
-    if (m_mapCredentialSets.end() != iter)  // found it
-        pCredential = iter->second;
-
-    return pCredential;
-}
-
-std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
-    const std::string& id) const
-{
-    eLock lock(shared_lock_);
-
-    std::shared_ptr<const proto::Credential> output;
-    auto temp = String::Factory(id);
-    auto credential = MasterCredential(temp);
-
-    if (nullptr != credential) {
-        output = credential->GetMasterCredential().Serialized(
-            AS_PUBLIC, WITH_SIGNATURES);
-    }
-
-    return output;
 }
 
 std::string Nym::Name() const
@@ -1319,90 +1135,6 @@ void Nym::revoke_verification_credentials(const eLock& lock)
     for (auto& it : revokedIDs) { m_listRevokedIDs.push_back(it); }
 }
 
-std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
-    const std::string& id) const
-{
-    eLock lock(shared_lock_);
-
-    std::shared_ptr<const proto::Credential> output;
-
-    auto iter = m_mapRevokedSets.find(id);
-
-    if (m_mapRevokedSets.end() != iter) {
-        output = iter->second->GetMasterCredential().Serialized(
-            AS_PUBLIC, WITH_SIGNATURES);
-    }
-
-    return output;
-}
-
-void Nym::SaveCredentialsToTag(
-    Tag& parent,
-    String::Map* pmapPubInfo,
-    String::Map* pmapPriInfo) const
-{
-    // IDs for revoked child credentials are saved here.
-    for (auto& it : m_listRevokedIDs) {
-        std::string str_revoked_id = it;
-        TagPtr pTag(new Tag("revokedCredential"));
-        pTag->add_attribute("ID", str_revoked_id);
-        parent.add_tag(pTag);
-    }
-
-    // Serialize master and sub-credentials here.
-    for (auto& it : m_mapCredentialSets) {
-        CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        pCredential->SerializeIDs(
-            parent,
-            m_listRevokedIDs,
-            pmapPubInfo,
-            pmapPriInfo,
-            true);  // bShowRevoked=false by default (true here), bValid=true
-    }
-
-    // Serialize Revoked master credentials here, including their child key
-    // credentials.
-    for (auto& it : m_mapRevokedSets) {
-        CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        pCredential->SerializeIDs(
-            parent,
-            m_listRevokedIDs,
-            pmapPubInfo,
-            pmapPriInfo,
-            true,
-            false);  // bShowRevoked=false by default. (Here it's true.)
-                     // bValid=true by default. Here is for revoked, so false.
-    }
-}
-
-bool Nym::SavePseudonymWallet(Tag& parent) const
-{
-    sLock lock(shared_lock_);
-
-    auto nymID = String::Factory(m_nymID);
-
-    // Name is in the clear in memory,
-    // and base64 in storage.
-    auto ascName = Armored::Factory();
-    if (!alias_.empty()) {
-        auto temp = String::Factory(alias_);
-        ascName->SetString(temp, false);  // linebreaks == false
-    }
-
-    TagPtr pTag(new Tag("pseudonym"));
-
-    pTag->add_attribute("name", !alias_.empty() ? ascName->Get() : "");
-    pTag->add_attribute("nymID", nymID->Get());
-
-    parent.add_tag(pTag);
-
-    return true;
-}
-
 bool Nym::Seal(
     const OTPassword& password,
     crypto::key::Symmetric& key,
@@ -1475,16 +1207,15 @@ bool Nym::Seal(
         mode);
 }
 
-serializedCredentialIndex Nym::SerializeCredentialIndex(
-    const CredentialIndexModeFlag mode) const
+Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
 {
     sLock lock(shared_lock_);
-    serializedCredentialIndex index;
+    Serialized index;
     index.set_version(version_);
     auto nymID = String::Factory(m_nymID);
     index.set_nymid(nymID->Get());
 
-    if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
+    if (Mode::Abbreviated == mode) {
         index.set_mode(mode_);
 
         if (proto::CREDINDEX_PRIVATE == mode_) { index.set_index(index_); }
@@ -1497,7 +1228,8 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            SerializedCredentialSet credset = it.second->Serialize(mode);
+            SerializedCredentialSet credset =
+                it.second->Serialize(static_cast<bool>(mode));
             auto pCredSet = index.add_activecredentials();
             *pCredSet = *credset;
             pCredSet = nullptr;
@@ -1506,7 +1238,8 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
 
     for (auto& it : m_mapRevokedSets) {
         if (nullptr != it.second) {
-            SerializedCredentialSet credset = it.second->Serialize(mode);
+            SerializedCredentialSet credset =
+                it.second->Serialize(static_cast<bool>(mode));
             auto pCredSet = index.add_revokedcredentials();
             *pCredSet = *credset;
             pCredSet = nullptr;
@@ -1707,6 +1440,40 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
     return false;
 }
 
+bool Nym::Sign(
+    const GetPreimage input,
+    const proto::SignatureRole role,
+    const proto::HashType hash,
+    proto::Signature& signature,
+    const OTPasswordData* pPWData) const
+{
+    sLock lock(shared_lock_);
+
+    bool haveSig = false;
+
+    for (auto& it : m_mapCredentialSets) {
+        if (nullptr != it.second) {
+            bool success = it.second->Sign(
+                input, role, signature, proto::KEYROLE_SIGN, pPWData, hash);
+
+            if (success) {
+                haveSig = true;
+                break;
+            } else {
+                LogOutput(": Credential set ")(it.second->GetMasterCredID())(
+                    " could not sign protobuf.")
+                    .Flush();
+            }
+        }
+
+        LogOutput(": Did not find any credential sets capable of signing on "
+                  "this nym.")
+            .Flush();
+    }
+
+    return haveSig;
+}
+
 std::string Nym::SocialMediaProfiles(
     const proto::ContactItemType type,
     bool active) const
@@ -1854,13 +1621,6 @@ bool Nym::Verify(const Data& plaintext, const proto::Signature& sig) const
     return false;
 }
 
-bool Nym::VerifyPseudonym() const
-{
-    eLock lock(shared_lock_);
-
-    return verify_pseudonym(lock);
-}
-
 bool Nym::verify_pseudonym(const eLock& lock) const
 {
     // If there are credentials, then we verify the Nym via his credentials.
@@ -1897,6 +1657,13 @@ bool Nym::verify_pseudonym(const eLock& lock) const
     return false;
 }
 
+bool Nym::VerifyPseudonym() const
+{
+    eLock lock(shared_lock_);
+
+    return verify_pseudonym(lock);
+}
+
 bool Nym::WriteCredentials() const
 {
     sLock lock(shared_lock_);
@@ -1914,4 +1681,4 @@ bool Nym::WriteCredentials() const
 }
 
 Nym::~Nym() { ClearCredentials(); }
-}  // namespace opentxs
+}  // namespace opentxs::identity::implementation

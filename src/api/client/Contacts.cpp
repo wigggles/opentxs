@@ -14,6 +14,7 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"

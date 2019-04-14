@@ -14,8 +14,8 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <list>
@@ -49,7 +49,7 @@ Identity::Identity(const api::Core& api)
 bool Identity::AddInternalVerification(
     bool& changed,
     proto::VerificationSet& verifications,
-    const Nym& onNym,
+    const identity::Nym& onNym,
     const std::string& claimantNymID,
     const std::string& claimID,
     const ClaimPolarity polarity,
@@ -245,18 +245,17 @@ bool Identity::RemoveInternalVerification(
 
 bool Identity::Sign(
     proto::Verification& plaintext,
-    const Nym& nym,
+    const identity::Nym& nym,
     const OTPasswordData* pPWData) const
 {
     plaintext.clear_sig();
     auto& signature = *plaintext.mutable_sig();
-    signature.set_role(proto::SIGROLE_CLAIM);
 
-    return nym.SignProto(plaintext, signature, pPWData);
+    return nym.SignProto(plaintext, proto::SIGROLE_CLAIM, signature, pPWData);
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::Verifications(
-    const Nym& onNym) const
+    const identity::Nym& onNym) const
 {
     auto output = onNym.VerificationSet();
 

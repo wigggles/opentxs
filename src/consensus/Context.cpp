@@ -14,16 +14,15 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include "Context.hpp"
 
 #ifndef OT_MAX_ACK_NUMS
 #define OT_MAX_ACK_NUMS 100
 #endif
-
-#define SIGNATURE_VERSION 2
 
 #define OT_METHOD "opentxs::implementation::Context::"
 
@@ -32,8 +31,8 @@ namespace opentxs::implementation
 Context::Context(
     const api::Core& api,
     const std::uint32_t targetVersion,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server)
     : api_(api)
     , server_id_(server)
@@ -52,8 +51,8 @@ Context::Context(
     const api::Core& api,
     const std::uint32_t targetVersion,
     const proto::Context& serialized,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server)
     : api_(api)
     , server_id_(server)
@@ -374,7 +373,7 @@ OTIdentifier Context::LocalNymboxHash() const
     return local_nymbox_hash_;
 }
 
-Editor<class NymFile> Context::mutable_Nymfile(const OTPasswordData& reason)
+Editor<opentxs::NymFile> Context::mutable_Nymfile(const OTPasswordData& reason)
 {
     OT_ASSERT(nym_)
 
@@ -437,7 +436,7 @@ proto::Context Context::Refresh()
     return contract(lock);
 }
 
-const class Nym& Context::RemoteNym() const
+const identity::Nym& Context::RemoteNym() const
 {
     OT_ASSERT(remote_nym_);
 
@@ -598,9 +597,7 @@ bool Context::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_version(SIGNATURE_VERSION);
-    signature.set_role(proto::SIGROLE_CONTEXT);
-    success = nym_->SignProto(serialized, signature);
+    success = nym_->SignProto(serialized, proto::SIGROLE_CONTEXT, signature);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));

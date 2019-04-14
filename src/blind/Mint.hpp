@@ -48,7 +48,7 @@ public:
         time64_t MINT_EXPIRATION,
         const identifier::UnitDefinition& theInstrumentDefinitionID,
         const identifier::Server& theNotaryID,
-        const Nym& theNotary,
+        const identity::Nym& theNotary,
         const std::int64_t nDenom1,
         const std::int64_t nDenom2,
         const std::int64_t nDenom3,
@@ -77,7 +77,7 @@ public:
     }
     void UpdateContents() override;
     bool VerifyContractID() const override;
-    bool VerifyMint(const Nym& theOperator) override;
+    bool VerifyMint(const identity::Nym& theOperator) override;
 
     ~Mint() override;
 

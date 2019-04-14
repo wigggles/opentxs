@@ -555,9 +555,14 @@ bool KeyCredential::SelfSign(
         const serializedCredential publicVersion =
             serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
         auto& signature = *publicVersion->add_signature();
-        signature.set_role(proto::SIGROLE_PUBCREDENTIAL);
-        havePublicSig =
-            SignProto(*publicVersion, signature, proto::KEYROLE_SIGN, pPWData);
+        havePublicSig = Sign(
+            [&]() -> std::string {
+                return proto::ProtoAsString(*publicVersion);
+            },
+            proto::SIGROLE_PUBCREDENTIAL,
+            signature,
+            proto::KEYROLE_SIGN,
+            pPWData);
 
         OT_ASSERT(havePublicSig);
 
@@ -570,9 +575,12 @@ bool KeyCredential::SelfSign(
     serializedCredential privateVersion =
         serialize(lock, AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
-    signature.set_role(proto::SIGROLE_PRIVCREDENTIAL);
-    const bool havePrivateSig =
-        SignProto(*privateVersion, signature, proto::KEYROLE_SIGN, pPWData);
+    const bool havePrivateSig = Sign(
+        [&]() -> std::string { return proto::ProtoAsString(*privateVersion); },
+        proto::SIGROLE_PRIVCREDENTIAL,
+        signature,
+        proto::KEYROLE_SIGN,
+        pPWData);
 
     OT_ASSERT(havePrivateSig);
 
@@ -667,5 +675,38 @@ const crypto::key::Keypair& KeyCredential::GetKeypair(
     }
 
     return *output;
+}
+
+bool KeyCredential::Sign(
+    const GetPreimage input,
+    const proto::SignatureRole role,
+    proto::Signature& signature,
+    proto::KeyRole key,
+    const OTPasswordData* pPWData,
+    const proto::HashType hash) const
+{
+    const crypto::key::Keypair* keyToUse{nullptr};
+
+    switch (key) {
+        case (proto::KEYROLE_AUTH):
+            keyToUse = &authentication_key_.get();
+            break;
+        case (proto::KEYROLE_SIGN):
+            keyToUse = &signing_key_.get();
+            break;
+        case (proto::KEYROLE_ERROR):
+        case (proto::KEYROLE_ENCRYPT):
+        default:
+            LogOutput(": Can not sign with the "
+                      "specified key.")
+                .Flush();
+            return false;
+    }
+
+    if (nullptr != keyToUse) {
+        return keyToUse->Sign(input, role, signature, id_, key, pPWData, hash);
+    }
+
+    return false;
 }
 }  // namespace opentxs

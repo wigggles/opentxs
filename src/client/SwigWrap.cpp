@@ -29,6 +29,7 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -325,30 +326,6 @@ std::string SwigWrap::GetNym_SourceForID(const std::string& NYM_ID)
 std::string SwigWrap::GetNym_Description(const std::string& NYM_ID)
 {
     return client_->Exec().GetNym_Description(NYM_ID);
-}
-
-std::string SwigWrap::GetNym_MasterCredentialContents(
-    const std::string& NYM_ID,
-    const std::string& CREDENTIAL_ID)
-{
-    return client_->Exec().GetNym_MasterCredentialContents(
-        NYM_ID, CREDENTIAL_ID);
-}
-
-std::string SwigWrap::GetNym_RevokedCredContents(
-    const std::string& NYM_ID,
-    const std::string& CREDENTIAL_ID)
-{
-    return client_->Exec().GetNym_RevokedCredContents(NYM_ID, CREDENTIAL_ID);
-}
-
-std::string SwigWrap::GetNym_ChildCredentialContents(
-    const std::string& NYM_ID,
-    const std::string& MASTER_CRED_ID,
-    const std::string& SUB_CRED_ID)
-{
-    return client_->Exec().GetNym_ChildCredentialContents(
-        NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
 }
 
 std::string SwigWrap::NymIDFromPaymentCode(const std::string& paymentCode)

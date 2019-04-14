@@ -10,8 +10,8 @@
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
 
 #include "Transactor.hpp"
@@ -36,7 +36,7 @@ public:
         std::string& hostname,
         std::uint32_t& port) const;
     const identifier::Server& GetServerID() const;
-    const Nym& GetServerNym() const;
+    const identity::Nym& GetServerNym() const;
     std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     bool IsFlaggedForShutdown() const;
 
@@ -95,7 +95,7 @@ private:
     std::string m_strServerNymID;
     // This is the server's own contract, containing its public key and
     // connect info.
-    ConstNym m_nymServer;
+    Nym_p m_nymServer;
     std::unique_ptr<OTCron> m_Cron;  // This is where re-occurring and expiring
                                      // tasks go.
     OTZMQPushSocket notification_socket_;

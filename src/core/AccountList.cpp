@@ -161,7 +161,7 @@ void AccountList::Release_AcctList() { mapAcctIDs_.clear(); }
 void AccountList::Release() { Release_AcctList(); }
 
 ExclusiveAccount AccountList::GetOrRegisterAccount(
-    const Nym& serverNym,
+    const identity::Nym& serverNym,
     const identifier::Nym& accountOwnerId,
     const identifier::UnitDefinition& instrumentDefinitionID,
     const identifier::Server& notaryID,

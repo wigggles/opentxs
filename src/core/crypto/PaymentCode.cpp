@@ -475,9 +475,13 @@ bool PaymentCode::Sign(
     serializedCredential serialized =
         credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
-    signature.set_role(proto::SIGROLE_NYMIDSOURCE);
-    const bool goodSig = signingKey->SignProto(
-        *serialized, signature, String::Factory(ID()), pPWData);
+    const bool goodSig = signingKey->Sign(
+        [&]() -> std::string { return proto::ProtoAsString(*serialized); },
+        proto::SIGROLE_NYMIDSOURCE,
+        signature,
+        ID(),
+        proto::KEYROLE_SIGN,
+        pPWData);
     sig.CopyFrom(signature);
 
     return goodSig;
