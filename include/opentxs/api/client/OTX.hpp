@@ -36,7 +36,7 @@ public:
     using Result = std::pair<proto::LastReplyStatus, std::shared_ptr<Message>>;
     using Future = std::future<Result>;
     using BackgroundTask = std::pair<TaskID, Future>;
-    using Finished = std::future<void>;
+    using Finished = std::shared_future<void>;
 
     EXPORT virtual BackgroundTask AcknowledgeBailment(
         const identifier::Nym& localNymID,
@@ -113,10 +113,6 @@ public:
         const std::shared_ptr<const OTPayment>& payment) const = 0;
     /** Used by unit tests */
     EXPORT virtual void DisableAutoaccept() const = 0;
-    EXPORT virtual BackgroundTask DownloadContract(
-        const identifier::Nym& localNymID,
-        const identifier::Server& serverID,
-        const Identifier& contractID) const = 0;
 #if OT_CASH
     EXPORT virtual BackgroundTask DownloadMint(
         const identifier::Nym& nym,
@@ -130,6 +126,14 @@ public:
     EXPORT virtual BackgroundTask DownloadNymbox(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const = 0;
+    EXPORT virtual BackgroundTask DownloadServerContract(
+        const identifier::Nym& localNymID,
+        const identifier::Server& serverID,
+        const identifier::Server& contractID) const = 0;
+    EXPORT virtual BackgroundTask DownloadUnitDefinition(
+        const identifier::Nym& localNymID,
+        const identifier::Server& serverID,
+        const identifier::UnitDefinition& contractID) const = 0;
     EXPORT virtual BackgroundTask FindNym(
         const identifier::Nym& nymID) const = 0;
     EXPORT virtual BackgroundTask FindNym(

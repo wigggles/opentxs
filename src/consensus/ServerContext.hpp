@@ -10,7 +10,8 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::implementation
 {
 class ServerContext final : virtual public internal::ServerContext,
-                            public Context
+                            public Context,
+                            public opentxs::internal::StateMachine
 {
 public:
     std::vector<OTIdentifier> Accounts() const override;
@@ -139,6 +140,7 @@ private:
     enum class TransactionAttempt : bool { Accepted = true, Rejected = false };
 
     static const std::string default_node_name_;
+    static const std::set<MessageType> do_not_need_request_number_;
 
     const network::zeromq::PublishSocket& request_sent_;
     const network::zeromq::PublishSocket& reply_received_;
@@ -161,19 +163,14 @@ private:
     std::promise<DeliveryResult> pending_result_;
     std::atomic<bool> pending_result_set_;
     std::atomic<bool> process_nymbox_;
-    std::atomic<bool> queue_running_;
     std::atomic<bool> enable_otx_push_;
     std::atomic<int> failure_counter_;
     std::shared_ptr<Ledger> inbox_;
     std::shared_ptr<Ledger> outbox_;
     std::set<OTManagedNumber>* numbers_;
-    OTZMQListenCallback queue_callback_;
-    OTZMQPullSocket queue_pull_;
-    OTZMQPushSocket queue_push_;
     OTZMQPushSocket find_nym_;
     OTZMQPushSocket find_server_;
     OTZMQPushSocket find_unit_definition_;
-    OTFlag running_;
 
     static const api::client::Manager& client(const api::Core& api);
     static TransactionNumbers extract_numbers(OTTransaction& input);
@@ -182,6 +179,7 @@ private:
     static std::unique_ptr<opentxs::Message> instantiate_message(
         const api::Core& api,
         const std::string& serialized);
+    static bool need_request_number(const MessageType type);
     static void scan_number_set(
         const TransactionNumbers& input,
         TransactionNumber& highest,
@@ -304,7 +302,6 @@ private:
         const Lock& messageLock,
         const api::client::Manager& client,
         Message& message);
-    void deliver_message(const zmq::Message& in);
     bool harvest_unused(const Lock& lock, const api::client::Manager& client);
     void init_sockets();
     RequestNumber initialize_server_command(
@@ -525,6 +522,7 @@ private:
     proto::Context serialize(const Lock& lock) const override;
     const identifier::Nym& server_nym_id(const Lock& lock) const override;
     QueueResult start(
+        const Lock& decisionLock,
         const api::client::Manager& client,
         std::shared_ptr<Message> message,
         const ExtraArgs& args,
@@ -533,6 +531,7 @@ private:
         std::shared_ptr<Ledger> inbox = {},
         std::shared_ptr<Ledger> outbox = {},
         std::set<OTManagedNumber>* numbers = nullptr);
+    bool state_machine() noexcept;
     std::unique_ptr<Item> statement(
         const Lock& lock,
         const OTTransaction& owner,

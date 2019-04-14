@@ -58,11 +58,11 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/otx/Reply.hpp"
 
+#include "core/StateMachine.hpp"
 #include "Context.hpp"
 
 #include <algorithm>
@@ -73,21 +73,20 @@
 #include "ServerContext.hpp"
 
 #define START()                                                                \
-    {                                                                          \
-        const auto running = queue_running_.exchange(true);                    \
+    Lock lock(decision_lock_);                                                 \
                                                                                \
-        if (running) {                                                         \
-            LogDebug(": state machine is already running.").Flush();           \
+    if (running().load()) {                                                    \
+        LogDebug(OT_METHOD)(__FUNCTION__)(                                     \
+            ": State machine is already running.")                             \
+            .Flush();                                                          \
                                                                                \
-            return {};                                                         \
-        }                                                                      \
+        return {};                                                             \
     }
 
 #define CURRENT_VERSION 3
 #define PENDING_COMMAND_VERSION 1
 #define DEFAULT_NODE_NAME "Stash Node Pro"
 #define NYMBOX_BOX_TYPE 0
-#define THREAD_WAIT_MILLISECONDS 100
 #define FAILURE_COUNT_LIMIT 3
 
 #define OT_METHOD "opentxs::implementation::ServerContext::"
@@ -124,6 +123,11 @@ internal::ServerContext* Factory::ServerContext(
 namespace opentxs::implementation
 {
 const std::string ServerContext::default_node_name_{DEFAULT_NODE_NAME};
+const std::set<MessageType> ServerContext::do_not_need_request_number_{
+    MessageType::pingNotary,
+    MessageType::registerNym,
+    MessageType::getRequestNumber,
+};
 
 ServerContext::ServerContext(
     const api::client::Manager& api,
@@ -135,6 +139,7 @@ ServerContext::ServerContext(
     network::ServerConnection& connection)
     : Signable(local, CURRENT_VERSION)
     , implementation::Context(api, CURRENT_VERSION, local, remote, server)
+    , StateMachine(std::bind(&ServerContext::state_machine, this))
     , request_sent_(requestSent)
     , reply_received_(replyReceived)
     , client_(nullptr)
@@ -152,22 +157,14 @@ ServerContext::ServerContext(
     , pending_result_()
     , pending_result_set_(false)
     , process_nymbox_(false)
-    , queue_running_(false)
     , failure_counter_(0)
     , inbox_()
     , outbox_()
     , numbers_(nullptr)
-    , queue_callback_(zmq::ListenCallback::Factory(
-          [=](const zmq::Message& in) -> void { this->deliver_message(in); }))
-    , queue_pull_(api.ZeroMQ().PullSocket(
-          queue_callback_,
-          zmq::Socket::Direction::Bind))
-    , queue_push_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , find_nym_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , find_server_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , find_unit_definition_(
           api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
-    , running_(Flag::Factory(true))
 {
     init_sockets();
 }
@@ -188,6 +185,7 @@ ServerContext::ServerContext(
           local,
           remote,
           api.Factory().ServerID(serialized.servercontext().serverid()))
+    , StateMachine(std::bind(&ServerContext::state_machine, this))
     , request_sent_(requestSent)
     , reply_received_(replyReceived)
     , client_(nullptr)
@@ -210,23 +208,15 @@ ServerContext::ServerContext(
           serialized.servercontext().pending().resync())
     , pending_result_()
     , pending_result_set_(false)
-    , queue_running_(false)
     , enable_otx_push_(true)
     , failure_counter_(0)
     , inbox_()
     , outbox_()
     , numbers_(nullptr)
-    , queue_callback_(zmq::ListenCallback::Factory(
-          [=](const zmq::Message& in) -> void { this->deliver_message(in); }))
-    , queue_pull_(api.ZeroMQ().PullSocket(
-          queue_callback_,
-          zmq::Socket::Direction::Bind))
-    , queue_push_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , find_nym_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , find_server_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
     , find_unit_definition_(
           api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
-    , running_(Flag::Factory(true))
 {
     for (const auto& it : serialized.servercontext().tentativerequestnumber()) {
         tentative_transaction_numbers_.insert(it);
@@ -790,6 +780,8 @@ NetworkReplyMessage ServerContext::attempt_delivery(
         static_cast<opentxs::network::ServerConnection::Push>(
             enable_otx_push_.load()));
     auto& [status, reply] = output;
+    const auto needRequestNumber =
+        need_request_number(Message::Type(message.m_strCommand->Get()));
 
     switch (status) {
         case SendResult::VALID_REPLY: {
@@ -812,6 +804,8 @@ NetworkReplyMessage ServerContext::attempt_delivery(
 
                 return output;
             }
+
+            if (false == needRequestNumber) { break; }
 
             bool sent{false};
             auto number = update_request_number(contextLock, messageLock, sent);
@@ -935,99 +929,6 @@ bool ServerContext::create_instrument_notice_from_peer_object(
     } else {
 
         return add_item_to_payment_inbox(number, payment);
-    }
-}
-
-void ServerContext::deliver_message(const zmq::Message& in)
-{
-    struct Cleanup {
-        ServerContext& parent_;
-        bool continue_{false};
-
-        Cleanup(ServerContext& parent)
-            : parent_(parent)
-        {
-        }
-
-        ~Cleanup()
-        {
-            if (false == continue_) {
-                parent_.queue_running_.store(false);
-
-                if (false == parent_.pending_result_set_.load()) {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Error: state machine termination with dangling "
-                        "promise")
-                        .Flush();
-
-                    OT_FAIL;
-                }
-            }
-        }
-    };
-
-    Cleanup cleanup(*this);
-
-    if (false == running_.get()) {
-        queue_running_.store(false);
-
-        return;
-    }
-
-    const auto* pClient = client_.load();
-
-    OT_ASSERT(nullptr != pClient);
-
-    const auto& client = *pClient;
-
-    switch (state_.load()) {
-        case proto::DELIVERTYSTATE_PENDINGSEND: {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Attempting to send message")
-                .Flush();
-            pending_send(client);
-        } break;
-        case proto::DELIVERTYSTATE_NEEDNYMBOX: {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading nymbox").Flush();
-            need_nymbox(client);
-        } break;
-        case proto::DELIVERTYSTATE_NEEDBOXITEMS: {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading box items")
-                .Flush();
-            need_box_items(client);
-        } break;
-        case proto::DELIVERTYSTATE_NEEDPROCESSNYMBOX: {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Processing nymbox").Flush();
-            need_process_nymbox(client);
-        } break;
-        case proto::DELIVERTYSTATE_IDLE:
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected state").Flush();
-        }
-    }
-
-    const bool more = proto::DELIVERTYSTATE_IDLE != state_.load();
-    const bool retry = FAILURE_COUNT_LIMIT >= failure_counter_.load();
-
-    if (false == more) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Delivery complete").Flush();
-    } else if (false == retry && running_.get()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Error limit exceeded").Flush();
-        Lock lock(lock_);
-        resolve_queue(
-            lock,
-            DeliveryResult{proto::LASTREPLYSTATUS_NOTSENT, nullptr},
-            proto::DELIVERTYSTATE_IDLE);
-    } else if (false == running_.get()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Shutting down").Flush();
-        Lock lock(lock_);
-        resolve_queue(
-            lock,
-            DeliveryResult{proto::LASTREPLYSTATUS_NOTSENT, nullptr},
-            proto::DELIVERTYSTATE_IDLE);
-    } else {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Continuing").Flush();
-        cleanup.continue_ = true;
-        queue_push_->Push("");
     }
 }
 
@@ -1699,25 +1600,7 @@ void ServerContext::init_sockets()
 {
     const auto endpoint =
         std::string("inproc://") + Identifier::Random()->str();
-    auto started = queue_pull_->Start(endpoint);
-
-    if (false == started) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start pull socket ")
-            .Flush();
-
-        OT_FAIL;
-    }
-
-    started = queue_push_->Start(endpoint);
-
-    if (false == started) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start push socket ")
-            .Flush();
-
-        OT_FAIL;
-    }
-
-    started = find_nym_->Start(api_.Endpoints().FindNym());
+    auto started = find_nym_->Start(api_.Endpoints().FindNym());
 
     if (false == started) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start find nym socket ")
@@ -1920,16 +1803,7 @@ bool ServerContext::is_internal_transfer(const Item& item) const
     return sourceOwner == destinationOwner;
 }
 
-void ServerContext::Join()
-{
-    running_->Off();
-    bool running{true};
-
-    while (running) {
-        running = queue_running_.exchange(true);
-        Log::Sleep(std::chrono::milliseconds(THREAD_WAIT_MILLISECONDS));
-    }
-}
+void ServerContext::Join() { Wait().get(); }
 
 const Item& ServerContext::make_accept_item(
     const itemType type,
@@ -2400,6 +2274,11 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
     }
 }
 
+bool ServerContext::need_request_number(const MessageType type)
+{
+    return 0 == do_not_need_request_number_.count(type);
+}
+
 OTManagedNumber ServerContext::next_transaction_number(
     const Lock& lock,
     const MessageType reason)
@@ -2454,6 +2333,8 @@ void ServerContext::pending_send(const api::client::Manager& client)
 
     auto result =
         attempt_delivery(contextLock, messageLock, client, *pending_message_);
+    const auto needRequestNumber = need_request_number(
+        Message::Type(pending_message_->m_strCommand->Get()));
 
     switch (result.first) {
         case SendResult::SHUTDOWN: {
@@ -2479,10 +2360,12 @@ void ServerContext::pending_send(const api::client::Manager& client)
         } break;
         case SendResult::TIMEOUT:
         case SendResult::INVALID_REPLY: {
-            update_state(
-                contextLock,
-                proto::DELIVERTYSTATE_NEEDNYMBOX,
-                proto::LASTREPLYSTATUS_UNKNOWN);
+            if (needRequestNumber) {
+                update_state(
+                    contextLock,
+                    proto::DELIVERTYSTATE_NEEDNYMBOX,
+                    proto::LASTREPLYSTATUS_UNKNOWN);
+            }
         } break;
         default: {
         }
@@ -6129,7 +6012,7 @@ ServerContext::QueueResult ServerContext::Queue(
 {
     START();
 
-    return start(client, message, args);
+    return start(lock, client, message, args);
 }
 
 ServerContext::QueueResult ServerContext::Queue(
@@ -6157,6 +6040,7 @@ ServerContext::QueueResult ServerContext::Queue(
     }
 
     return start(
+        lock,
         client,
         message,
         args,
@@ -6173,6 +6057,7 @@ ServerContext::QueueResult ServerContext::RefreshNymbox(
     START();
 
     return start(
+        lock,
         client,
         nullptr,
         {},
@@ -6719,13 +6604,7 @@ bool ServerContext::RemoveTentativeNumber(const TransactionNumber& number)
     return remove_tentative_number(lock, number);
 }
 
-void ServerContext::ResetThread()
-{
-    if (false == running_.get()) {
-        running_->On();
-        queue_running_.store(false);
-    }
-}
+void ServerContext::ResetThread() { Join(); }
 
 void ServerContext::resolve_queue(
     const Lock& contextLock,
@@ -7052,6 +6931,7 @@ bool ServerContext::ShouldRename(const std::string& defaultName) const
 }
 
 ServerContext::QueueResult ServerContext::start(
+    const Lock& decisionLock,
     const api::client::Manager& client,
     std::shared_ptr<Message> message,
     const ExtraArgs& args,
@@ -7061,7 +6941,7 @@ ServerContext::QueueResult ServerContext::start(
     std::shared_ptr<Ledger> outbox,
     std::set<OTManagedNumber>* numbers)
 {
-    Lock lock(lock_);
+    Lock contextLock(lock_);
     client_.store(&client);
     process_nymbox_.store(static_cast<bool>(type));
     pending_message_ = message;
@@ -7072,15 +6952,76 @@ ServerContext::QueueResult ServerContext::start(
     outbox_ = outbox;
     numbers_ = numbers;
     failure_counter_.store(0);
-    update_state(lock, state);
+    update_state(contextLock, state);
 
-    if (queue_push_->Push("")) {
+    if (trigger(decisionLock)) {
         return std::make_unique<SendFuture>(pending_result_.get_future());
     }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to queue task").Flush();
 
     return {};
+}
+
+bool ServerContext::state_machine() noexcept
+{
+    const auto* pClient = client_.load();
+
+    OT_ASSERT(nullptr != pClient);
+
+    const auto& client = *pClient;
+
+    switch (state_.load()) {
+        case proto::DELIVERTYSTATE_PENDINGSEND: {
+            LogDetail(OT_METHOD)(__FUNCTION__)(": Attempting to send message")
+                .Flush();
+            pending_send(client);
+        } break;
+        case proto::DELIVERTYSTATE_NEEDNYMBOX: {
+            LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading nymbox").Flush();
+            need_nymbox(client);
+        } break;
+        case proto::DELIVERTYSTATE_NEEDBOXITEMS: {
+            LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading box items")
+                .Flush();
+            need_box_items(client);
+        } break;
+        case proto::DELIVERTYSTATE_NEEDPROCESSNYMBOX: {
+            LogDetail(OT_METHOD)(__FUNCTION__)(": Processing nymbox").Flush();
+            need_process_nymbox(client);
+        } break;
+        case proto::DELIVERTYSTATE_IDLE:
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected state").Flush();
+        }
+    }
+
+    const bool more = proto::DELIVERTYSTATE_IDLE != state_.load();
+    const bool retry = FAILURE_COUNT_LIMIT >= failure_counter_.load();
+
+    if (false == more) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Delivery complete").Flush();
+    } else if (false == retry) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error limit exceeded").Flush();
+        Lock lock(lock_);
+        resolve_queue(
+            lock,
+            DeliveryResult{proto::LASTREPLYSTATUS_NOTSENT, nullptr},
+            proto::DELIVERTYSTATE_IDLE);
+    } else if (shutdown().load()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Shutting down").Flush();
+        Lock lock(lock_);
+        resolve_queue(
+            lock,
+            DeliveryResult{proto::LASTREPLYSTATUS_NOTSENT, nullptr},
+            proto::DELIVERTYSTATE_IDLE);
+    } else {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Continuing").Flush();
+
+        return true;
+    }
+
+    return false;
 }
 
 proto::ConsensusType ServerContext::Type() const
@@ -7409,9 +7350,16 @@ bool ServerContext::VerifyTentativeNumber(const TransactionNumber& number) const
 
 ServerContext::~ServerContext()
 {
-    if (running_.get()) { Join(); }
+    Stop().get();
+    const bool needPromise = (false == pending_result_set_.load()) &&
+                             (proto::DELIVERTYSTATE_IDLE != state_.load());
 
-    queue_push_->Close();
-    queue_pull_->Close();
+    if (needPromise) {
+        Lock lock(lock_);
+        resolve_queue(
+            lock,
+            DeliveryResult{proto::LASTREPLYSTATUS_UNKNOWN, nullptr},
+            proto::DELIVERTYSTATE_IDLE);
+    }
 }
 }  // namespace opentxs::implementation

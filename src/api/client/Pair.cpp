@@ -592,7 +592,7 @@ void Pair::queue_unit_definition(
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID) const
 {
-    client_.OTX().DownloadContract(nymID, serverID, unitID);
+    client_.OTX().DownloadUnitDefinition(nymID, serverID, unitID);
 }
 
 void Pair::refresh() const

@@ -38,11 +38,8 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 
+#include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
 
 #include <atomic>
@@ -54,17 +51,17 @@
 #include "Operation.hpp"
 
 #define START()                                                                \
-    {                                                                          \
-        const auto running = running_.exchange(true);                          \
+    Lock lock(decision_lock_);                                                 \
                                                                                \
-        if (running) {                                                         \
-            LogDebug(": state machine is already running.").Flush();           \
+    if (running().load()) {                                                    \
+        LogDebug(OT_METHOD)(__FUNCTION__)(                                     \
+            ": State machine is already running.")                             \
+            .Flush();                                                          \
                                                                                \
-            return false;                                                      \
-        }                                                                      \
+        return {};                                                             \
+    }                                                                          \
                                                                                \
-        reset();                                                               \
-    }
+    reset();
 
 #define OPERATION_POLL_MILLISECONDS 100
 #define OPERATION_JOIN_MILLISECONDS OPERATION_POLL_MILLISECONDS
@@ -325,11 +322,10 @@ Operation::Operation(
     const api::client::Manager& api,
     const identifier::Nym& nym,
     const identifier::Server& server)
-    : api_(api)
+    : StateMachine(std::bind(&Operation::state_machine, this))
+    , api_(api)
     , nym_id_(nym)
     , server_id_(server)
-    , shutdown_lock_()
-    , running_(false)
     , type_(Type::Invalid)
     , state_(State::Idle)
     , refresh_account_(false)
@@ -339,7 +335,6 @@ Operation::Operation(
     , result_set_(false)
     , enable_otx_push_(true)
     , result_()
-    , shutdown_(Flag::Factory(false))
     , target_nym_id_(identifier::Nym::Factory())
     , target_server_id_(identifier::Server::Factory())
     , target_unit_id_(identifier::UnitDefinition::Factory())
@@ -366,12 +361,7 @@ Operation::Operation(
     , peer_reply_()
     , peer_request_()
     , set_id_()
-    , callback_(zmq::ListenCallback::Factory(
-          [=](const zmq::Message&) -> void { this->state_machine(); }))
-    , pull_(api_.ZeroMQ().PullSocket(callback_, zmq::Socket::Direction::Bind))
-    , push_(api_.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
 {
-    init();
 }
 
 void Operation::account_pre()
@@ -415,7 +405,7 @@ bool Operation::AddClaim(
     claim_section_ = section;
     claim_type_ = type;
 
-    return start(Type::AddClaim, {});
+    return start(lock, Type::AddClaim, {});
 }
 
 bool Operation::check_future(ServerContext::SendFuture& future)
@@ -1359,7 +1349,7 @@ bool Operation::ConveyPayment(
     target_nym_id_ = recipient;
     payment_ = payment;
 
-    return start(Type::ConveyPayment, {});
+    return start(lock, Type::ConveyPayment, {});
 }
 
 #if OT_CASH
@@ -1405,7 +1395,7 @@ bool Operation::DepositCash(
     affected_accounts_.insert(depositAccountID);
     purse_ = purse;
 
-    return start(Type::DepositCash, {});
+    return start(lock, Type::DepositCash, {});
 }
 #endif
 
@@ -1419,7 +1409,7 @@ bool Operation::DepositCheque(
     affected_accounts_.insert(depositAccountID);
     cheque_ = cheque;
 
-    return start(Type::DepositCheque, {});
+    return start(lock, Type::DepositCheque, {});
 }
 
 bool Operation::download_accounts(
@@ -1438,7 +1428,7 @@ bool Operation::download_accounts(
     std::size_t ready{0};
 
     for (const auto& accountID : affected_accounts_) {
-        if (shutdown_.get()) { return false; }
+        if (shutdown().load()) { return false; }
 
         ready += download_account(accountID, lastResult);
     }
@@ -1484,7 +1474,7 @@ std::size_t Operation::download_account(
         return 0;
     }
 
-    if (shutdown_.get()) { return 0; }
+    if (shutdown().load()) { return 0; }
 
     if (get_receipts(accountID, inbox, outbox)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Success synchronizing account ")(
@@ -1498,7 +1488,7 @@ std::size_t Operation::download_account(
         return 0;
     }
 
-    if (shutdown_.get()) { return 0; }
+    if (shutdown().load()) { return 0; }
 
     if (process_inbox(accountID, inbox, outbox, lastResult)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Success processing inbox ")(
@@ -1560,7 +1550,7 @@ bool Operation::download_box_receipt(
     OT_ASSERT(result);
 
     while (check_future(*result)) {
-        if (shutdown_.get()) { return false; }
+        if (shutdown().load()) { return false; }
     }
 
     return proto::LASTREPLYSTATUS_MESSAGESUCCESS == std::get<0>(result->get());
@@ -1573,7 +1563,7 @@ bool Operation::DownloadContract(const Identifier& ID, const ContractType type)
     generic_id_ = ID;
     contract_type_ = type;
 
-    return start(Type::DownloadContract, {});
+    return start(lock, Type::DownloadContract, {});
 }
 
 void Operation::evaluate_transaction_reply(
@@ -1734,7 +1724,7 @@ void Operation::execute()
     }
 
     while (check_future(*result)) {
-        if (shutdown_.get()) { return; }
+        if (shutdown().load()) { return; }
     }
 
     auto finished = result->get();
@@ -1806,7 +1796,7 @@ bool Operation::get_account_data(
     }
 
     while (check_future(*result)) {
-        if (shutdown_.get()) { return false; }
+        if (shutdown().load()) { return false; }
     }
 
     lastResult = result->get();
@@ -1897,14 +1887,6 @@ bool Operation::hasContext() const
 
 Operation::Future Operation::GetFuture() { return result_.get_future(); }
 
-void Operation::init()
-{
-    const auto endpoint =
-        std::string("inproc://") + Identifier::Random()->str();
-    pull_->Start(endpoint);
-    push_->Start(endpoint);
-}
-
 bool Operation::IssueUnitDefinition(
     const std::shared_ptr<const proto::UnitDefinition> unitDefinition,
     const ServerContext::ExtraArgs& args)
@@ -1925,7 +1907,7 @@ bool Operation::IssueUnitDefinition(
 
     unit_definition_ = unitDefinition;
 
-    return start(Type::IssueUnitDefinition, args);
+    return start(lock, Type::IssueUnitDefinition, args);
 }
 
 void Operation::join()
@@ -1967,7 +1949,7 @@ void Operation::nymbox_post()
         }
 
         while (check_future(*result)) {
-            if (shutdown_.get()) { return; }
+            if (shutdown().load()) { return; }
         }
 
         switch (std::get<0>(result->get())) {
@@ -2015,7 +1997,7 @@ void Operation::nymbox_pre()
             }
 
             while (check_future(*result)) {
-                if (shutdown_.get()) { return; }
+                if (shutdown().load()) { return; }
             }
 
             switch (std::get<0>(result->get())) {
@@ -2190,7 +2172,7 @@ bool Operation::process_inbox(
     }
 
     while (check_future(*result)) {
-        if (shutdown_.get()) { return false; }
+        if (shutdown().load()) { return false; }
     }
 
     lastResult = result->get();
@@ -2229,7 +2211,7 @@ bool Operation::PublishContract(const identifier::Nym& id)
 
     target_nym_id_ = id;
 
-    return start(Type::PublishNym, {});
+    return start(lock, Type::PublishNym, {});
 }
 
 bool Operation::PublishContract(const identifier::Server& id)
@@ -2238,7 +2220,7 @@ bool Operation::PublishContract(const identifier::Server& id)
 
     target_server_id_ = id;
 
-    return start(Type::PublishServer, {});
+    return start(lock, Type::PublishServer, {});
 }
 
 bool Operation::PublishContract(const identifier::UnitDefinition& id)
@@ -2247,7 +2229,7 @@ bool Operation::PublishContract(const identifier::UnitDefinition& id)
 
     target_unit_id_ = id;
 
-    return start(Type::PublishUnit, {});
+    return start(lock, Type::PublishUnit, {});
 }
 
 void Operation::refresh()
@@ -2263,7 +2245,7 @@ bool Operation::RequestAdmin(const String& password)
 
     memo_ = password;
 
-    return start(Type::RequestAdmin, {});
+    return start(lock, Type::RequestAdmin, {});
 }
 
 void Operation::reset()
@@ -2373,7 +2355,7 @@ bool Operation::SendCash(
     generic_id_ = workflowID;
     purse_ = std::move(pPurse);
 
-    return start(Type::SendCash, {});
+    return start(lock, Type::SendCash, {});
 }
 #endif
 
@@ -2388,7 +2370,7 @@ bool Operation::SendMessage(
     memo_ = message;
     set_id_ = setID;
 
-    return start(Type::SendMessage, {});
+    return start(lock, Type::SendMessage, {});
 }
 
 bool Operation::SendPeerReply(
@@ -2402,7 +2384,7 @@ bool Operation::SendPeerReply(
     peer_reply_ = peerreply;
     peer_request_ = peerrequest;
 
-    return start(Type::SendPeerReply, {});
+    return start(lock, Type::SendPeerReply, {});
 }
 
 bool Operation::SendPeerRequest(
@@ -2414,7 +2396,7 @@ bool Operation::SendPeerRequest(
     target_nym_id_ = targetNymID;
     peer_request_ = peerrequest;
 
-    return start(Type::SendPeerRequest, {});
+    return start(lock, Type::SendPeerRequest, {});
 }
 
 bool Operation::SendTransfer(
@@ -2431,7 +2413,7 @@ bool Operation::SendTransfer(
     memo_ = memo;
     affected_accounts_.insert(sourceAccountID);
 
-    return start(Type::SendTransfer, {});
+    return start(lock, Type::SendTransfer, {});
 }
 
 void Operation::set_consensus_hash(
@@ -2459,7 +2441,7 @@ void Operation::set_result(ServerContext::DeliveryResult&& result)
     result_.set_value(std::move(result));
 }
 
-void Operation::Shutdown() { shutdown_->On(); }
+void Operation::Shutdown() { Stop(); }
 
 bool Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
 {
@@ -2477,7 +2459,7 @@ bool Operation::Start(const Type type, const ServerContext::ExtraArgs& args)
         }
     }
 
-    return start(type, args);
+    return start(lock, type, args);
 }
 
 bool Operation::Start(
@@ -2501,7 +2483,7 @@ bool Operation::Start(
 
     target_unit_id_ = targetUnitID;
 
-    return start(type, args);
+    return start(lock, type, args);
 }
 
 bool Operation::Start(
@@ -2524,46 +2506,24 @@ bool Operation::Start(
 
     target_nym_id_ = targetNymID;
 
-    return start(type, args);
+    return start(lock, type, args);
 }
 
-bool Operation::start(const Type type, const ServerContext::ExtraArgs& args)
+bool Operation::start(
+    const Lock& decisionLock,
+    const Type type,
+    const ServerContext::ExtraArgs& args)
 {
     type_.store(type);
     args_ = args;
 
     if (Type::RefreshAccount == type) { refresh_account_.store(true); }
 
-    return push_->Push("");
+    return trigger(decisionLock);
 }
 
-void Operation::state_machine()
+bool Operation::state_machine()
 {
-    struct Cleanup {
-        Operation& parent_;
-        bool continue_{false};
-
-        Cleanup(Operation& parent)
-            : parent_(parent)
-        {
-        }
-
-        ~Cleanup()
-        {
-            if (false == continue_) { parent_.state_.store(State::Idle); }
-
-            if (false == (parent_.result_set_.load() || continue_)) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Error: state machine termination with dangling promise")
-                    .Flush();
-
-                OT_FAIL;
-            }
-        }
-    };
-
-    Cleanup cleanup(*this);
-
     switch (state_.load()) {
         case State::NymboxPre: {
             nymbox_pre();
@@ -2588,22 +2548,20 @@ void Operation::state_machine()
         }
     }
 
-    Lock lock(shutdown_lock_);
-    const auto error = error_count_ > MAX_ERROR_COUNT;
+    if (State::Idle == state_.load()) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Success").Flush();
 
-    if (error || shutdown_.get()) {
+        return false;
+    }
+
+    if (error_count_ > MAX_ERROR_COUNT) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error count exceeded").Flush();
         set_result({proto::LASTREPLYSTATUS_UNKNOWN, nullptr});
+
+        return false;
     }
 
-    const bool run = (false == shutdown_.get()) &&
-                     (State::Idle != state_.load()) && (false == error);
-
-    if (run) {
-        cleanup.continue_ = true;
-        push_->Push("");
-    } else {
-        running_.store(false);
-    }
+    return true;
 }
 
 void Operation::transaction_numbers()
@@ -2650,21 +2608,21 @@ void Operation::transaction_numbers()
     }
 
     while (check_future(*result)) {
-        if (shutdown_.get()) { return; }
+        if (shutdown().load()) { return; }
     }
 
     if (proto::LASTREPLYSTATUS_MESSAGESUCCESS == std::get<0>(result->get())) {
         auto nymbox = context.RefreshNymbox(api_);
 
         while (false == bool(nymbox)) {
-            if (shutdown_.get()) { return; }
+            if (shutdown().load()) { return; }
             LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
             Log::Sleep(std::chrono::milliseconds(OPERATION_POLL_MILLISECONDS));
             nymbox = context.RefreshNymbox(api_);
         }
 
         while (check_future(*nymbox)) {
-            if (shutdown_.get()) { return; }
+            if (shutdown().load()) { return; }
         }
 
         [[maybe_unused]] auto done = nymbox->get();
@@ -2752,7 +2710,7 @@ bool Operation::UpdateAccount(const Identifier& accountID)
     affected_accounts_.insert(accountID);
     redownload_accounts_.clear();
 
-    return start(Type::RefreshAccount, {});
+    return start(lock, Type::RefreshAccount, {});
 }
 
 #if OT_CASH
@@ -2764,18 +2722,19 @@ bool Operation::WithdrawCash(const Identifier& accountID, const Amount amount)
     amount_ = amount;
     affected_accounts_.insert(accountID);
 
-    return start(Type::WithdrawCash, {});
+    return start(lock, Type::WithdrawCash, {});
 }
 #endif
 
 Operation::~Operation()
 {
-    Lock lock(shutdown_lock_);
-    shutdown_->On();
-    lock.unlock();
-    push_->Close();
-    pull_->Close();
+    Stop().get();
 
     if (hasContext()) { context().It().Join(); }
+
+    const bool needPromise =
+        (false == result_set_.load()) && (State::Idle != state_.load());
+
+    if (needPromise) { set_result({proto::LASTREPLYSTATUS_UNKNOWN, nullptr}); }
 }
 }  // namespace opentxs::api::client::implementation

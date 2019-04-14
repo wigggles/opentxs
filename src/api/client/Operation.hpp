@@ -9,7 +9,8 @@
 
 namespace opentxs::api::client::implementation
 {
-class Operation final : virtual public client::internal::Operation
+class Operation final : virtual public client::internal::Operation,
+                        public opentxs::internal::StateMachine
 {
 public:
     const identifier::Nym& NymID() const override { return nym_id_; }
@@ -117,8 +118,6 @@ private:
     const api::client::Manager& api_;
     const OTNymID nym_id_;
     const OTServerID server_id_;
-    std::mutex shutdown_lock_;
-    std::atomic<bool> running_;
     std::atomic<Type> type_;
     std::atomic<State> state_;
     std::atomic<bool> refresh_account_;
@@ -128,7 +127,6 @@ private:
     std::atomic<bool> result_set_;
     std::atomic<bool> enable_otx_push_;
     Promise result_;
-    OTFlag shutdown_;
     OTNymID target_nym_id_;
     OTServerID target_server_id_;
     OTUnitID target_unit_id_;
@@ -155,9 +153,6 @@ private:
     std::shared_ptr<const PeerReply> peer_reply_;
     std::shared_ptr<const PeerRequest> peer_request_;
     SetID set_id_;
-    OTZMQListenCallback callback_;
-    OTZMQPullSocket pull_;
-    OTZMQPushSocket push_;
 
     static bool check_future(ServerContext::SendFuture& future);
     static void set_consensus_hash(
@@ -249,7 +244,6 @@ private:
         const Identifier& accountID,
         const BoxType type,
         Ledger& box);
-    void init();
     void nymbox_post();
     void nymbox_pre();
     bool process_inbox(
@@ -260,8 +254,11 @@ private:
     void refresh();
     void reset();
     void set_result(ServerContext::DeliveryResult&& result);
-    bool start(const Type type, const ServerContext::ExtraArgs& args);
-    void state_machine();
+    bool start(
+        const Lock& decisionLock,
+        const Type type,
+        const ServerContext::ExtraArgs& args);
+    bool state_machine();
     void transaction_numbers();
 
     Operation(

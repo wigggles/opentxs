@@ -41,6 +41,7 @@ set(cxx-sources
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
+  StateMachine.cpp
   String.cpp
   StringXML.cpp
 )
@@ -86,6 +87,7 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/Flag.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Identifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/NymFile.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/StateMachine.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/String.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/StringXML.hpp"
 )

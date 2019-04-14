@@ -17,6 +17,8 @@ set(cxx-sources
   OTX.cpp
   Pair.cpp
   ServerAction.cpp
+  StateMachine.cpp
+  StateMachine.tpp
   UI.cpp
   Wallet.cpp
   Workflow.cpp
@@ -48,6 +50,7 @@ set(cxx-headers
   OTX.hpp
   Pair.hpp
   ServerAction.hpp
+  StateMachine.hpp
   UI.hpp
   Wallet.hpp
   Workflow.hpp

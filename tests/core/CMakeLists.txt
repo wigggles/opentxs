@@ -12,6 +12,7 @@ set(cxx-sources
   Test_Data.cpp
   Test_Ledger.cpp
   Test_Nym.cpp
+  Test_StateMachine.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 
