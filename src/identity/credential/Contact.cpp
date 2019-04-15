@@ -5,29 +5,50 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/ContactCredential.hpp"
-
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Authority.hpp"
-#include "opentxs/OT.hpp"
 
+#include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
+#include "Base.hpp"
 
+#include <memory>
 #include <ostream>
-#include <string>
 
-#define OT_METHOD "opentxs::ContactCredential::"
+#include "Contact.hpp"
+
+#define OT_METHOD "opentxs::identity::credential::implementation::Contact::"
 
 namespace opentxs
 {
+identity::credential::internal::Contact* Factory::ContactCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const proto::Credential& serialized)
+{
+    return new identity::credential::implementation::Contact(
+        api, parent, serialized);
+}
+
+identity::credential::internal::Contact* Factory::ContactCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const NymParameters& parameters)
+{
+    return new identity::credential::implementation::Contact(
+        api, parent, parameters);
+}
+}  // namespace opentxs
+
+namespace opentxs::identity::credential
+{
 // static
-std::string ContactCredential::ClaimID(
+std::string Contact::ClaimID(
     const std::string& nymid,
     const std::uint32_t section,
     const proto::ContactItem& item)
@@ -45,7 +66,7 @@ std::string ContactCredential::ClaimID(
 }
 
 // static
-std::string ContactCredential::ClaimID(
+std::string Contact::ClaimID(
     const std::string& nymid,
     const proto::ContactSectionName section,
     const proto::ContactItemType type,
@@ -66,7 +87,7 @@ std::string ContactCredential::ClaimID(
 }
 
 // static
-OTIdentifier ContactCredential::ClaimID(const proto::Claim& preimage)
+OTIdentifier Contact::ClaimID(const proto::Claim& preimage)
 {
     auto output = Identifier::Factory();
     output->CalculateDigest(proto::ProtoAsData<proto::Claim>(preimage));
@@ -75,7 +96,7 @@ OTIdentifier ContactCredential::ClaimID(const proto::Claim& preimage)
 }
 
 // static
-Claim ContactCredential::asClaim(
+Claim Contact::asClaim(
     const String& nymid,
     const std::uint32_t section,
     const proto::ContactItem& item)
@@ -92,23 +113,32 @@ Claim ContactCredential::asClaim(
                  item.end(),
                  attributes};
 }
+}  // namespace opentxs::identity::credential
 
-ContactCredential::ContactCredential(
+namespace opentxs::identity::credential::implementation
+{
+Contact::Contact(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const proto::Credential& credential)
-    : ot_super(api, parent, credential)
+    const proto::Credential& serialized)
+    : Signable({}, serialized.version())  // TODO Signable
+    , credential::implementation::Base(api, parent, serialized)
 {
     mode_ = proto::KEYMODE_NULL;
-    master_id_ = credential.childdata().masterid();
-    data_.reset(new proto::ContactData(credential.contactdata()));
+    master_id_ = serialized.childdata().masterid();
+    data_.reset(new proto::ContactData(serialized.contactdata()));
 }
 
-ContactCredential::ContactCredential(
+Contact::Contact(
     const api::Core& api,
     identity::internal::Authority& parent,
     const NymParameters& nymParameters)
-    : ot_super(api, parent, CONTACT_CREDENTIAL_VERSION, nymParameters)
+    : Signable({}, CONTACT_CREDENTIAL_VERSION)  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          parent,
+          CONTACT_CREDENTIAL_VERSION,
+          nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_CONTACT;
@@ -119,7 +149,7 @@ ContactCredential::ContactCredential(
     if (contacts) { data_.reset(new proto::ContactData(*contacts)); }
 }
 
-bool ContactCredential::GetContactData(
+bool Contact::GetContactData(
     std::unique_ptr<proto::ContactData>& contactData) const
 {
     if (!data_) { return false; }
@@ -129,13 +159,12 @@ bool ContactCredential::GetContactData(
     return bool(contactData);
 }
 
-serializedCredential ContactCredential::serialize(
+std::shared_ptr<Base::SerializedType> Contact::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
 {
-    serializedCredential serializedCredential =
-        this->ot_super::serialize(lock, asPrivate, asSigned);
+    auto serializedCredential = Base::serialize(lock, asPrivate, asSigned);
     serializedCredential->set_mode(proto::KEYMODE_NULL);
     serializedCredential->clear_signature();  // this fixes a bug, but shouldn't
 
@@ -159,4 +188,4 @@ serializedCredential ContactCredential::serialize(
     return serializedCredential;
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::identity::credential::implementation

@@ -698,7 +698,7 @@ bool OTAPI_Exec::RevokeChildCredential(
     else // Found the master credential...
     {
         const String strSubID(SUB_CRED_ID);
-        const Credential* pSub = pCredential->GetChildCredential(strSubID);
+        const auto* pSub = pCredential->GetChildCredential(strSubID);
 
         if (nullptr == pSub)
             otOut << OT_METHOD << __FUNCTION__ << ": Found master credential ("

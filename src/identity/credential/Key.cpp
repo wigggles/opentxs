@@ -3,40 +3,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//////////////////////////////////////////////////////////////////////
-
-// A nym contains a list of credential sets.
-// The whole purpose of a Nym is to be an identity, which can have
-// multiple Authorities.
-//
-// Each Authority contains list of Credentials. One of the
-// Credentials is a MasterCredential, and the rest are ChildCredentials
-// signed by the MasterCredential.
-//
-// A Credential may contain keys, in which case it is a KeyCredential.
-//
-// Credentials without keys might be an interface to a hardware device
-// or other kind of external encryption and authentication system.
-//
-// Non-key Credentials are not yet implemented.
-//
-// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
-//
-// A MasterCredential must be a KeyCredential, and is only used to sign
-// ChildCredentials
-//
-// ChildCredentials are used for all other actions, and never sign other
-// Credentials
-
 #include "stdafx.hpp"
-
-#include "opentxs/core/crypto/KeyCredential.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
@@ -55,32 +26,41 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
+#include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <ostream>
 
-#define OT_METHOD "opentxs::KeyCredential"
+#include "Key.hpp"
 
-namespace opentxs
+#define OT_METHOD "opentxs::identity::credential::implementation::Key"
+
+namespace opentxs::identity::credential::implementation
 {
-KeyCredential::KeyCredential(
+Key::Key(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const proto::Credential& serializedCred)
-    : ot_super(api, theOwner, serializedCred)
-    , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serializedCred))
-    , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serializedCred))
-    , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serializedCred))
+    const proto::Credential& serialized)
+    : Signable({}, serialized.version())  // TODO Signable
+    , credential::implementation::Base(api, theOwner, serialized)
+    , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serialized))
+    , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serialized))
+    , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serialized))
 {
 }
 
-KeyCredential::KeyCredential(
+Key::Key(
     const api::Core& api,
     identity::internal::Authority& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(api, theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
+    : Signable({}, KEY_CREDENTIAL_VERSION)  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          theOwner,
+          KEY_CREDENTIAL_VERSION,
+          nymParameters)
     , signing_key_(new_key(api_.Crypto(), proto::KEYROLE_SIGN, nymParameters))
     , authentication_key_(
           new_key(api_.Crypto(), proto::KEYROLE_AUTH, nymParameters))
@@ -89,7 +69,7 @@ KeyCredential::KeyCredential(
 {
 }
 
-bool KeyCredential::VerifySignedBySelf(const Lock& lock) const
+bool Key::VerifySignedBySelf(const Lock& lock) const
 {
     auto publicSig = SelfSignature(PUBLIC_VERSION);
 
@@ -162,7 +142,7 @@ bool KeyCredential::VerifySignedBySelf(const Lock& lock) const
 // which is to return all
 // possible matching pubkeys based on a full match of the metadata.
 //
-std::int32_t KeyCredential::GetPublicKeysBySignature(
+std::int32_t Key::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
     const Signature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
@@ -234,10 +214,10 @@ std::int32_t KeyCredential::GetPublicKeysBySignature(
     return nCount;
 }
 
-bool KeyCredential::verify_internally(const Lock& lock) const
+bool Key::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::verify_internally(lock)) { return false; }
+    if (!Base::verify_internally(lock)) { return false; }
 
     // All KeyCredentials must sign themselves
     if (!VerifySignedBySelf(lock)) {
@@ -251,7 +231,7 @@ bool KeyCredential::verify_internally(const Lock& lock) const
     return true;
 }
 
-OTKeypair KeyCredential::deserialize_key(
+OTKeypair Key::deserialize_key(
     const int index,
     const proto::Credential& credential)
 {
@@ -269,7 +249,7 @@ OTKeypair KeyCredential::deserialize_key(
     return crypto::key::Keypair::Factory(publicKey);
 }
 
-OTKeypair KeyCredential::new_key(
+OTKeypair Key::new_key(
     const api::Crypto& crypto,
     const proto::KeyRole role,
     const NymParameters& nymParameters)
@@ -300,11 +280,11 @@ OTKeypair KeyCredential::new_key(
 #endif
 }
 
-bool KeyCredential::New(const NymParameters& nymParameters)
+bool Key::New(const NymParameters& nymParameters)
 {
     bool output = false;
 
-    output = ot_super::New(nymParameters);
+    output = Base::New(nymParameters);
 
     if (output) {
         output = SelfSign();
@@ -318,7 +298,7 @@ bool KeyCredential::New(const NymParameters& nymParameters)
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-OTKeypair KeyCredential::derive_hd_keypair(
+OTKeypair Key::derive_hd_keypair(
     const api::Crypto& crypto,
     const OTPassword& seed,
     const std::string& fingerprint,
@@ -399,9 +379,7 @@ OTKeypair KeyCredential::derive_hd_keypair(
 }
 #endif
 
-bool KeyCredential::ReEncryptKeys(
-    const OTPassword& theExportPassword,
-    bool bImporting)
+bool Key::ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting)
 {
     const bool bSign = signing_key_->ReEncrypt(theExportPassword, bImporting);
     const bool bAuth =
@@ -417,12 +395,12 @@ bool KeyCredential::ReEncryptKeys(
                                   // to keep these changes.
 }
 
-serializedCredential KeyCredential::serialize(
+std::shared_ptr<Base::SerializedType> Key::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
 {
-    auto serializedCredential = ot_super::serialize(lock, asPrivate, asSigned);
+    auto serializedCredential = Base::serialize(lock, asPrivate, asSigned);
 
     addKeyCredentialtoSerializedCredential(serializedCredential, false);
 
@@ -433,7 +411,7 @@ serializedCredential KeyCredential::serialize(
     return serializedCredential;
 }
 
-bool KeyCredential::addKeytoSerializedKeyCredential(
+bool Key::addKeytoSerializedKeyCredential(
     proto::KeyCredential& credential,
     const bool getPrivate,
     const proto::KeyRole role) const
@@ -469,8 +447,8 @@ bool KeyCredential::addKeytoSerializedKeyCredential(
     return true;
 }
 
-bool KeyCredential::addKeyCredentialtoSerializedCredential(
-    serializedCredential credential,
+bool Key::addKeyCredentialtoSerializedCredential(
+    std::shared_ptr<Base::SerializedType> credential,
     const bool addPrivate) const
 {
     std::unique_ptr<proto::KeyCredential> keyCredential(
@@ -512,7 +490,7 @@ bool KeyCredential::addKeyCredentialtoSerializedCredential(
     return false;
 }
 
-bool KeyCredential::Verify(
+bool Key::Verify(
     const Data& plaintext,
     const proto::Signature& sig,
     const proto::KeyRole key) const
@@ -539,7 +517,7 @@ bool KeyCredential::Verify(
     return keyToUse->Verify(plaintext, sig);
 }
 
-bool KeyCredential::SelfSign(
+bool Key::SelfSign(
     const OTPassword*,
     const OTPasswordData* pPWData,
     const bool onlyPrivate)
@@ -551,7 +529,7 @@ bool KeyCredential::SelfSign(
     bool havePublicSig = false;
 
     if (!onlyPrivate) {
-        const serializedCredential publicVersion =
+        const auto publicVersion =
             serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
         auto& signature = *publicVersion->add_signature();
         havePublicSig = Sign(
@@ -571,8 +549,7 @@ bool KeyCredential::SelfSign(
         }
     }
 
-    serializedCredential privateVersion =
-        serialize(lock, AS_PRIVATE, WITHOUT_SIGNATURES);
+    auto privateVersion = serialize(lock, AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
     const bool havePrivateSig = Sign(
         [&]() -> std::string { return proto::ProtoAsString(*privateVersion); },
@@ -591,12 +568,12 @@ bool KeyCredential::SelfSign(
     return ((havePublicSig | onlyPrivate) && havePrivateSig);
 }
 
-bool KeyCredential::VerifySig(
+bool Key::VerifySig(
     const Lock& lock,
     const proto::Signature& sig,
     const CredentialModeFlag asPrivate) const
 {
-    serializedCredential serialized;
+    std::shared_ptr<Base::SerializedType> serialized;
 
     if ((proto::KEYMODE_PRIVATE != mode_) && asPrivate) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -620,12 +597,12 @@ bool KeyCredential::VerifySig(
     return Verify(plaintext, sig);
 }
 
-bool KeyCredential::TransportKey(Data& publicKey, OTPassword& privateKey) const
+bool Key::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
     return authentication_key_->TransportKey(publicKey, privateKey);
 }
 
-bool KeyCredential::hasCapability(const NymCapability& capability) const
+bool Key::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
         case (NymCapability::SIGN_MESSAGE): {
@@ -644,7 +621,7 @@ bool KeyCredential::hasCapability(const NymCapability& capability) const
     return false;
 }
 
-const crypto::key::Keypair& KeyCredential::GetKeypair(
+const crypto::key::Keypair& Key::GetKeypair(
     const proto::AsymmetricKeyType type,
     const proto::KeyRole role) const
 {
@@ -676,7 +653,7 @@ const crypto::key::Keypair& KeyCredential::GetKeypair(
     return *output;
 }
 
-bool KeyCredential::Sign(
+bool Key::Sign(
     const GetPreimage input,
     const proto::SignatureRole role,
     proto::Signature& signature,
@@ -708,4 +685,4 @@ bool KeyCredential::Sign(
 
     return false;
 }
-}  // namespace opentxs
+}  // namespace opentxs::identity::credential::implementation

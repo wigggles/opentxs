@@ -126,6 +126,16 @@ class UnitDefinition;
 
 namespace identity
 {
+namespace credential
+{
+class Base;
+class Contact;
+class Key;
+class Primary;
+class Secondary;
+class Verification;
+}  // namespace credential
+
 class Authority;
 class Nym;
 }  // namespace identity
@@ -243,9 +253,9 @@ class ContactSection;
 class Context;
 class Contract;
 class CurrencyContract;
-class Credential;
 class CryptoSymmetricDecryptOutput;
 class Data;
+class Factory;
 class Flag;
 class Identifier;
 class Item;
@@ -253,7 +263,6 @@ class Ledger;
 class Letter;
 class ListenCallbackSwig;
 class Log;
-class MasterCredential;
 class ManagedNumber;
 class Message;
 class NumList;

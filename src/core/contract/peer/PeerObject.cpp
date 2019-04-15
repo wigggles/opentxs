@@ -25,8 +25,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#include "Factory.hpp"
-
 #include "PeerObject.hpp"
 
 #define OT_METHOD "opentxs::peer::implementation::Object::"

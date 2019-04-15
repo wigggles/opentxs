@@ -92,6 +92,19 @@ class OpenSSL;
 
 namespace identity
 {
+namespace credential
+{
+namespace internal
+{
+class Base;
+class Contact;
+class Key;
+class Primary;
+class Secondary;
+class Verification;
+}  // namespace internal
+}  // namespace credential
+
 namespace internal
 {
 class Authority;

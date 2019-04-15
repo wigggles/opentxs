@@ -40,7 +40,6 @@
 #include "storage/tree/Tree.hpp"
 #include "storage/tree/Units.hpp"
 #include "storage/StorageConfig.hpp"
-#include "Factory.hpp"
 
 #include <cassert>
 #include <atomic>

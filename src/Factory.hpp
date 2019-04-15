@@ -132,6 +132,14 @@ public:
         const network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);
+    static identity::credential::internal::Contact* ContactCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const proto::Credential& credential);
+    static identity::credential::internal::Contact* ContactCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const NymParameters& nymParameters);
     static ui::implementation::ContactListExternalInterface* ContactList(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
@@ -189,6 +197,19 @@ public:
         const bool qt
 #endif
     );
+    template <class C>
+    static C* Credential(
+        const api::Core& api,
+        identity::internal::Authority& owner,
+        const NymParameters& nymParameters,
+        const proto::CredentialRole role);
+    template <class C>
+    static C* Credential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const proto::Credential& serialized,
+        const proto::KeyMode mode,
+        const proto::CredentialRole role);
     static api::Crypto* Crypto(const api::Settings& settings);
     static api::crypto::Config* CryptoConfig(const api::Settings& settings);
     static api::network::Dht* Dht(
@@ -394,6 +415,14 @@ public:
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static opentxs::PIDFile* PIDFile(const std::string& path);
+    static identity::credential::internal::Primary* PrimaryCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const proto::Credential& credential);
+    static identity::credential::internal::Primary* PrimaryCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const NymParameters& nymParameters);
     static ui::implementation::ProfileExternalInterface* ProfileWidget(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
@@ -468,6 +497,14 @@ public:
     static crypto::key::RSA* RSAKey(const proto::AsymmetricKey& serializedKey);
     static crypto::key::RSA* RSAKey(const String& publicKey);
     static crypto::key::RSA* RSAKey(const proto::KeyRole role);
+    static identity::credential::internal::Secondary* SecondaryCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const proto::Credential& credential);
+    static identity::credential::internal::Secondary* SecondaryCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const NymParameters& nymParameters);
     static crypto::Secp256k1* Secp256k1(
         const api::Crypto& crypto,
         const api::crypto::Util& util,
@@ -517,7 +554,6 @@ public:
         const std::chrono::seconds gcIntervalCLI,
         String& encryptedDirectoryCLI,
         StorageConfig& storageConfig);
-    static api::crypto::Symmetric* Symmetric(crypto::SymmetricProvider& sodium);
 #if OT_STORAGE_FS
     static opentxs::api::storage::Plugin* StorageFSArchive(
         const api::storage::Storage& storage,
@@ -565,6 +601,7 @@ public:
         const Random& random,
         const Flag& bucket);
 #endif
+    static api::crypto::Symmetric* Symmetric(crypto::SymmetricProvider& sodium);
 #if OT_CASH
     static blind::Token* Token(
         const api::Core& api,
@@ -588,6 +625,14 @@ public:
         const bool qt
 #endif
     );
+    static identity::credential::internal::Verification* VerificationCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const proto::Credential& credential);
+    static identity::credential::internal::Verification* VerificationCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const NymParameters& nymParameters);
     static api::Wallet* Wallet(const api::client::Manager& client);
     static api::Wallet* Wallet(const api::server::Manager& server);
     static api::client::Workflow* Workflow(

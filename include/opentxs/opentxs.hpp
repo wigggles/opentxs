@@ -63,7 +63,6 @@
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/contract/UnitDefinition.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
-#include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCallback.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
@@ -126,6 +125,12 @@
 #include <opentxs/otx/Request.hpp>
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
+#include <opentxs/identity/credential/Base.hpp>
+#include <opentxs/identity/credential/Contact.hpp>
+#include <opentxs/identity/credential/Key.hpp>
+#include <opentxs/identity/credential/Primary.hpp>
+#include <opentxs/identity/credential/Secondary.hpp>
+#include <opentxs/identity/credential/Verification.hpp>
 #include <opentxs/identity/Authority.hpp>
 #include <opentxs/identity/Nym.hpp>
 #include <opentxs/iterator/Bidirectional.hpp>

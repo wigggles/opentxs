@@ -3,24 +3,35 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-add_subdirectory(credential)
-
-set(MODULE_NAME opentxs-identity)
+set(MODULE_NAME opentxs-identity-credential)
 
 set(cxx-sources
-  "Authority.cpp"
-  "Nym.cpp"
+  "Base.cpp"
+  "Contact.cpp"
+  "Key.cpp"
+  "Primary.cpp"
+  "Secondary.cpp"
+  "Verification.cpp"
 )
 
 set(cxx-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/identity/Authority.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/identity/Nym.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/identity/credential/Base.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/identity/credential/Contact.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/identity/credential/Key.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/identity/credential/Primary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/identity/credential/Secondary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/identity/credential/Verification.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
-  "Authority.hpp"
-  "Nym.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../internal/identity/credential/Credential.hpp"
+  "Base.tpp"
+  "Contact.hpp"
+  "Key.hpp"
+  "Primary.hpp"
+  "Secondary.hpp"
+  "Verification.hpp"
 )
 
 if(WIN32)
@@ -47,9 +58,9 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/identity
+        DESTINATION include/opentxs/identity/credential
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
-target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../deps/")
+target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")

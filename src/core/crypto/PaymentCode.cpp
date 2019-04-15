@@ -13,8 +13,6 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -30,6 +28,8 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/Bip32.hpp"
+#include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/identity/credential/Primary.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -464,7 +464,7 @@ SerializedPaymentCode PaymentCode::Serialize() const
 }
 
 bool PaymentCode::Sign(
-    const Credential& credential,
+    const identity::credential::Base& credential,
     proto::Signature& sig,
     const OTPasswordData* pPWData) const
 {
@@ -472,8 +472,7 @@ bool PaymentCode::Sign(
 
     if (false == bool(signingKey.get())) { return false; }
 
-    serializedCredential serialized =
-        credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
+    auto serialized = credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     const bool goodSig = signingKey->Sign(
         [&]() -> std::string { return proto::ProtoAsString(*serialized); },

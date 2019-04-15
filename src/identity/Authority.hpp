@@ -14,12 +14,12 @@ class Authority final : virtual public identity::internal::Authority
 public:
     bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const override;
-    const MasterCredential& GetMasterCredential() const override
+    const credential::Primary& GetMasterCredential() const override
     {
-        return *m_MasterCredential;
+        return *master_;
     }
     const std::string GetMasterCredID() const override;
-    const std::string& GetNymID() const override;
+    const std::string& GetNymID() const override { return m_strNymID; }
     const crypto::key::Asymmetric& GetPublicAuthKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const override;
@@ -58,7 +58,7 @@ public:
     std::shared_ptr<Serialized> Serialize(
         const CredentialIndexModeFlag mode) const override;
     bool Sign(
-        const MasterCredential& credential,
+        const credential::Primary& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const override;
     bool Sign(
@@ -68,7 +68,7 @@ public:
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
-    const NymIDSource& Source() const override;
+    const NymIDSource& Source() const override { return *nym_id_source_; }
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
     bool Verify(
         const Data& plaintext,
@@ -92,27 +92,26 @@ public:
     void SetSource(const std::shared_ptr<NymIDSource>& source) override;
     bool WriteCredentials() const override;
 
-    Authority(const api::Core& api);
-    Authority(
-        const api::Core& api,
-        const proto::KeyMode mode,
-        const Serialized& serializedAuthority);
-    Authority(
-        const api::Core& api,
-        const NymParameters& nymParameters,
-        std::uint32_t version,
-        const OTPasswordData* pPWData = nullptr);
-
-    ~Authority() override;
+    ~Authority() override = default;
 
 private:
     friend opentxs::Factory;
 
-    using mapOfCredentials = std::map<std::string, std::unique_ptr<Credential>>;
+    using ContactCredentialMap =
+        std::map<OTIdentifier, std::unique_ptr<credential::internal::Contact>>;
+    using KeyCredentialMap = std::
+        map<OTIdentifier, std::unique_ptr<credential::internal::Secondary>>;
+    using VerificationCredentialMap = std::
+        map<OTIdentifier, std::unique_ptr<credential::internal::Verification>>;
+
+    using mapOfCredentials =
+        std::map<std::string, std::unique_ptr<credential::internal::Base>>;
 
     const api::Core& api_;
-    std::unique_ptr<MasterCredential> m_MasterCredential;
-    mapOfCredentials m_mapCredentials;
+    std::unique_ptr<credential::internal::Primary> master_;
+    KeyCredentialMap key_credentials_;
+    ContactCredentialMap contact_credentials_;
+    VerificationCredentialMap verification_credentials_;
     mapOfCredentials m_mapRevokedCredentials;
     std::string m_strNymID;
     std::shared_ptr<NymIDSource> nym_id_source_;
@@ -121,11 +120,21 @@ private:
     std::uint32_t index_{0};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
 
-    const Credential* GetChildCredential(
-        const String& strSubID,
+    static bool is_revoked(
+        const std::string& id,
+        const String::List* plistRevokedIDs);
+
+    const crypto::key::Keypair& get_keypair(
+        const proto::AsymmetricKeyType type,
+        const proto::KeyRole role,
+        const String::List* plistRevokedIDs) const;
+    const credential::Base* get_secondary_credential(
+        const std::string& strSubID,
         const String::List* plistRevokedIDs = nullptr) const;
 
-    void ClearChildCredentials();
+    template <typename Item>
+    bool validate_credential(const Item& item) const;
+
     bool CreateMasterCredential(const NymParameters& nymParameters);
     bool Load_Master(
         const String& strNymID,
@@ -135,5 +144,20 @@ private:
     bool LoadChildKeyCredential(const proto::Credential& serializedCred);
 
     Authority() = delete;
+    Authority(
+        const api::Core& api,
+        const std::uint32_t version = 0,
+        const std::uint32_t index = 0,
+        const proto::KeyMode mode = proto::KEYMODE_PRIVATE,
+        const std::string& nymID = "");
+    Authority(
+        const api::Core& api,
+        const proto::KeyMode mode,
+        const Serialized& serializedAuthority);
+    Authority(
+        const api::Core& api,
+        const NymParameters& nymParameters,
+        std::uint32_t version,
+        const OTPasswordData* pPWData = nullptr);
 };
 }  // namespace opentxs::identity::implementation

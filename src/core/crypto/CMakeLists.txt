@@ -9,14 +9,9 @@
 set(MODULE_NAME opentxs-core-crypto)
 
 set(cxx-sources
-  ChildKeyCredential.cpp
-  ContactCredential.cpp
-  Credential.cpp
   CryptoSymmetricDecryptOutput.cpp
-  KeyCredential.cpp
   Letter.cpp
   LowLevelKeyGenerator.cpp
-  MasterCredential.cpp
   NullCallback.cpp
   NymParameters.cpp
   OTCachedKey.cpp
@@ -30,18 +25,12 @@ set(cxx-sources
   OTSignedFile.cpp
   PaymentCode.cpp
   Signature.cpp
-  VerificationCredential.cpp
   mkcert.cpp
 )
 
 set(cxx-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/ChildKeyCredential.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/ContactCredential.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/Credential.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/KeyCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/Letter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/LowLevelKeyGenerator.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/MasterCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/mkcert.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/NymParameters.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTCachedKey.hpp"
@@ -55,7 +44,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSignedFile.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/PaymentCode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/Signature.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/VerificationCredential.hpp"
 )
 
 set(cxx-headers

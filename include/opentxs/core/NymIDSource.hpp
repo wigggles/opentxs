@@ -36,7 +36,7 @@ public:
         const proto::Credential& master,
         const proto::Signature& sourceSignature) const;
     bool Sign(
-        const MasterCredential& credential,
+        const identity::credential::Primary& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;
 

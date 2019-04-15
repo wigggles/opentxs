@@ -3,40 +3,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//////////////////////////////////////////////////////////////////////
-
-// A nym contains a list of credential sets.
-// The whole purpose of a Nym is to be an identity, which can have
-// multiple Authorities.
-//
-// Each Authority contains list of Credentials. One of the
-// Credentials is a MasterCredential, and the rest are ChildCredentials
-// signed by the MasterCredential.
-//
-// A Credential may contain keys, in which case it is a KeyCredential.
-//
-// Credentials without keys might be an interface to a hardware device
-// or other kind of external encryption and authentication system.
-//
-// Non-key Credentials are not yet implemented.
-//
-// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
-//
-// A MasterCredential must be a KeyCredential, and is only used to sign
-// ChildCredentials
-//
-// ChildCredentials are used for all other actions, and never sign other
-// Credentials
-
 #include "stdafx.hpp"
-
-#include "opentxs/core/crypto/MasterCredential.hpp"
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -49,37 +20,65 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/Proto.hpp"
 
+#include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
+#include "identity/credential/Key.hpp"
 
 #include <memory>
 #include <ostream>
 
-#define OT_METHOD "opentxs::MasterCredential::"
+#include "Primary.hpp"
+
+#define OT_METHOD "opentxs::identity::credential::implementation::Primary::"
 
 namespace opentxs
 {
-MasterCredential::MasterCredential(
+identity::credential::internal::Primary* Factory::PrimaryCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const proto::Credential& serialized)
+{
+    return new identity::credential::implementation::Primary(
+        api, parent, serialized);
+}
+
+identity::credential::internal::Primary* Factory::PrimaryCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const NymParameters& parameters)
+{
+    return new identity::credential::implementation::Primary(
+        api, parent, parameters);
+}
+}  // namespace opentxs
+
+namespace opentxs::identity::credential::implementation
+{
+Primary::Primary(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const proto::Credential& serializedCred)
-    : ot_super(api, theOwner, serializedCred)
+    const proto::Credential& serialized)
+    : Signable({}, serialized.version())  // TODO Signable
+    , credential::implementation::Key(api, theOwner, serialized)
 {
     role_ = proto::CREDROLE_MASTERKEY;
     auto source = std::make_shared<NymIDSource>(
-        api_.Factory(), serializedCred.masterdata().source());
+        api_.Factory(), serialized.masterdata().source());
     owner_backlink_->SetSource(source);
     source_proof_.reset(
-        new proto::SourceProof(serializedCred.masterdata().sourceproof()));
+        new proto::SourceProof(serialized.masterdata().sourceproof()));
 }
 
-MasterCredential::MasterCredential(
+Primary::Primary(
     const api::Core& api,
     identity::internal::Authority& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(api, theOwner, nymParameters)
+    : Signable({}, KEY_CREDENTIAL_VERSION)  // TODO Signable
+    , credential::implementation::Key(api, theOwner, nymParameters)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 
@@ -122,10 +121,10 @@ MasterCredential::MasterCredential(
 /** Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
  * verify that *this == owner_backlink_->GetMasterCredential() (the master
  * credential.) Verify the (self-signed) signature on *this. */
-bool MasterCredential::verify_internally(const Lock& lock) const
+bool Primary::verify_internally(const Lock& lock) const
 {
     // Perform common Key Credential verifications
-    if (!ot_super::verify_internally(lock)) { return false; }
+    if (!Key::verify_internally(lock)) { return false; }
 
     // Check that the source validates this credential
     if (!verify_against_source(lock)) {
@@ -140,7 +139,7 @@ bool MasterCredential::verify_internally(const Lock& lock) const
     return true;
 }
 
-bool MasterCredential::verify_against_source(const Lock& lock) const
+bool Primary::verify_against_source(const Lock& lock) const
 {
     std::shared_ptr<proto::Credential> serialized;
 
@@ -170,9 +169,9 @@ bool MasterCredential::verify_against_source(const Lock& lock) const
     return owner_backlink_->Source().Verify(*serialized, *sourceSig);
 }
 
-bool MasterCredential::New(const NymParameters& nymParameters)
+bool Primary::New(const NymParameters& nymParameters)
 {
-    if (!ot_super::New(nymParameters)) { return false; }
+    if (!Key::New(nymParameters)) { return false; }
 
     if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         SerializedSignature sig = std::make_shared<proto::Signature>();
@@ -188,12 +187,12 @@ bool MasterCredential::New(const NymParameters& nymParameters)
     return true;
 }
 
-serializedCredential MasterCredential::serialize(
+std::shared_ptr<identity::credential::Base::SerializedType> Primary::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
 {
-    auto serializedCredential = ot_super::serialize(lock, asPrivate, asSigned);
+    auto serializedCredential = Key::serialize(lock, asPrivate, asSigned);
 
     std::unique_ptr<proto::MasterCredentialParameters> parameters(
         new proto::MasterCredentialParameters);
@@ -212,7 +211,7 @@ serializedCredential MasterCredential::serialize(
     return serializedCredential;
 }
 
-bool MasterCredential::Verify(
+bool Primary::Verify(
     const proto::Credential& credential,
     const proto::CredentialRole& role,
     const Identifier& masterID,
@@ -246,7 +245,7 @@ bool MasterCredential::Verify(
     return Verify(proto::ProtoAsData(copy), masterSig);
 }
 
-bool MasterCredential::hasCapability(const NymCapability& capability) const
+bool Primary::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
         case (NymCapability::SIGN_CHILDCRED): {
@@ -259,7 +258,7 @@ bool MasterCredential::hasCapability(const NymCapability& capability) const
     return false;
 }
 
-bool MasterCredential::Path(proto::HDPath& output) const
+bool Primary::Path(proto::HDPath& output) const
 {
     if (false == signing_key_->HasPrivateKey()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No private key.").Flush();
@@ -273,8 +272,8 @@ bool MasterCredential::Path(proto::HDPath& output) const
     return found;
 }
 
-std::string MasterCredential::Path() const
+std::string Primary::Path() const
 {
     return signing_key_->GetPrivateKey().Path();
 }
-}  // namespace opentxs
+}  // namespace opentxs::identity::credential::implementation

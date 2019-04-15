@@ -64,7 +64,6 @@ protected:
     /** Calculate identifier */
     virtual OTIdentifier GetID(const Lock& lock) const = 0;
 
-    Signable() = delete;
     explicit Signable(const Nym_p& nym);
     explicit Signable(const Nym_p& nym, const std::uint32_t version);
     explicit Signable(

@@ -12,7 +12,6 @@
 #include "opentxs/core/util/OTPaths.hpp"
 
 #include "Internal.hpp"
-#include "Factory.hpp"
 
 #define DEFAULT_ACCOUNT "accounts"
 #define DEFAULT_CERT "certs"

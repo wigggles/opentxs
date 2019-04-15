@@ -102,8 +102,8 @@ void Test_ContactData::testAddItemMethod(
     }
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             sectionName,
             opentxs::proto::CITEMTYPE_BCH,
@@ -123,8 +123,8 @@ void Test_ContactData::testAddItemMethod(
         false);
 
     // Verify that the item wasn't made primary.
-    const opentxs::OTIdentifier identifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             sectionName,
             opentxs::proto::CITEMTYPE_BCH,
@@ -146,8 +146,8 @@ void Test_ContactData::testAddItemMethod(
     // Verify the group was created.
     ASSERT_NE(nullptr, data4.Group(sectionName, opentxs::proto::CITEMTYPE_EUR));
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier3(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             sectionName,
             opentxs::proto::CITEMTYPE_EUR,
@@ -169,8 +169,8 @@ void Test_ContactData::testAddItemMethod(
     // Verify the group was created.
     ASSERT_NE(nullptr, data5.Group(sectionName, opentxs::proto::CITEMTYPE_USD));
     // Verify that the item was made active.
-    const opentxs::OTIdentifier identifier4(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             sectionName,
             opentxs::proto::CITEMTYPE_USD,
@@ -190,8 +190,8 @@ void Test_ContactData::testAddItemMethod(
         false);
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier5(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier5(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             sectionName,
             opentxs::proto::CITEMTYPE_USD,
@@ -240,8 +240,8 @@ void Test_ContactData::testAddItemMethod2(
     }
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             sectionName,
             itemType,
@@ -256,8 +256,8 @@ void Test_ContactData::testAddItemMethod2(
     const auto& data3 = contactDataMethod(data2, "contactValue2", false, false);
 
     // Verify that the item wasn't made primary.
-    const opentxs::OTIdentifier identifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             sectionName,
             itemType,
@@ -288,8 +288,8 @@ void Test_ContactData::testAddItemMethod2(
     // Verify the group was created.
     ASSERT_NE(nullptr, data5.Group(sectionName, itemType));
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier3(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym4",
             sectionName,
             itemType,
@@ -304,8 +304,8 @@ void Test_ContactData::testAddItemMethod2(
     const auto& data6 = contactDataMethod(data5, "contactValue4", false, true);
 
     // Verify that the item was made active.
-    const opentxs::OTIdentifier identifier4(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym4",
             sectionName,
             itemType,
@@ -976,8 +976,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
         opentxs::ContactData::SectionMap{
             {opentxs::proto::CONTACTSECTION_COMMUNICATION, section1}});
 
-    const opentxs::OTIdentifier serverIdentifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier serverIdentifier1(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -987,8 +987,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     const auto& data2 = data1.AddPreferredOTServer(serverIdentifier1, false);
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1000,8 +1000,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     ASSERT_TRUE(contactItem1->isPrimary());
 
     // Add a server to a group with a primary.
-    const opentxs::OTIdentifier serverIdentifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier serverIdentifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1011,8 +1011,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     const auto& data3 = data2.AddPreferredOTServer(serverIdentifier2, false);
 
     // Verify that the item wasn't made primary.
-    const opentxs::OTIdentifier identifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym1",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1024,8 +1024,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     ASSERT_FALSE(contactItem2->isPrimary());
 
     // Add a server to a ContactData with no group.
-    const opentxs::OTIdentifier serverIdentifier3(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier serverIdentifier3(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1042,8 +1042,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS));
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier3(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1055,8 +1055,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     ASSERT_TRUE(contactItem3->isPrimary());
 
     // Add a primary server.
-    const opentxs::OTIdentifier serverIdentifier4(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier serverIdentifier4(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1066,8 +1066,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     const auto& data5 = data4.AddPreferredOTServer(serverIdentifier4, true);
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier4(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1099,8 +1099,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& data2 = contactData_.AddSocialMediaProfile(
         "profileValue1", opentxs::proto::CITEMTYPE_ABOUTME, false, false);
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_PROFILE,
             opentxs::proto::CITEMTYPE_ABOUTME,
@@ -1115,8 +1115,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& data3 = data2.AddSocialMediaProfile(
         "profileValue2", opentxs::proto::CITEMTYPE_ABOUTME, true, false);
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_PROFILE,
             opentxs::proto::CITEMTYPE_ABOUTME,
@@ -1131,8 +1131,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& data4 = data3.AddSocialMediaProfile(
         "profileValue3", opentxs::proto::CITEMTYPE_ABOUTME, false, true);
     // Verify that the item was made active.
-    const opentxs::OTIdentifier identifier3(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_PROFILE,
             opentxs::proto::CITEMTYPE_ABOUTME,
@@ -1148,8 +1148,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& data5 = contactData_.AddSocialMediaProfile(
         "profileValue4", opentxs::proto::CITEMTYPE_LINKEDIN, false, false);
     // Verify that it was added to the profile section.
-    const opentxs::OTIdentifier identifier4(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_PROFILE,
             opentxs::proto::CITEMTYPE_LINKEDIN,
@@ -1159,8 +1159,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
     // Verify that it was added to the communication section.
-    const opentxs::OTIdentifier identifier5(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier5(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_LINKEDIN,
@@ -1175,8 +1175,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& data6 = data5.AddSocialMediaProfile(
         "profileValue5", opentxs::proto::CITEMTYPE_YAHOO, false, false);
     // Verify that it was added to the profile section.
-    const opentxs::OTIdentifier identifier6(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier6(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_PROFILE,
             opentxs::proto::CITEMTYPE_YAHOO,
@@ -1186,8 +1186,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem6 = data6.Claim(identifier6);
     ASSERT_NE(nullptr, contactItem6);
     // Verify that it was added to the identifier section.
-    const opentxs::OTIdentifier identifier7(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier7(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::CITEMTYPE_YAHOO,
@@ -1202,8 +1202,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& data7 = data6.AddSocialMediaProfile(
         "profileValue6", opentxs::proto::CITEMTYPE_TWITTER, false, false);
     // Verify that it was added to the profile section.
-    const opentxs::OTIdentifier identifier8(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier8(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_PROFILE,
             opentxs::proto::CITEMTYPE_TWITTER,
@@ -1213,8 +1213,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem8 = data7.Claim(identifier8);
     ASSERT_NE(nullptr, contactItem8);
     // Verify that it was added to the communication section.
-    const opentxs::OTIdentifier identifier9(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier9(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_TWITTER,
@@ -1224,8 +1224,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem9 = data7.Claim(identifier9);
     ASSERT_NE(nullptr, contactItem9);
     // Verify that it was added to the identifier section.
-    const opentxs::OTIdentifier identifier10(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier10(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::CITEMTYPE_TWITTER,
@@ -1569,8 +1569,8 @@ TEST_F(Test_ContactData, PreferredOTServer)
     ASSERT_TRUE(identifier2->empty());
 
     // Test getting the preferred server.
-    const opentxs::OTIdentifier serverIdentifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier serverIdentifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -1597,8 +1597,8 @@ TEST_F(Test_ContactData, Section)
 TEST_F(Test_ContactData, SetCommonName)
 {
     const auto& data1 = contactData_.SetCommonName("commonName");
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::CITEMTYPE_COMMONNAME,
@@ -1619,8 +1619,8 @@ TEST_F(Test_ContactData, SetName)
     // Test that SetName creates a scope item.
     const auto& data2 = data1.SetName("secondName");
     // Verify the item was created in the scope section and made primary.
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_SCOPE,
             opentxs::proto::CITEMTYPE_INDIVIDUAL,
@@ -1635,8 +1635,8 @@ TEST_F(Test_ContactData, SetName)
     // Test that SetName creates an item in the scope section without making it
     // primary.
     const auto& data3 = data2.SetName("thirdName", false);
-    const opentxs::OTIdentifier identifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_SCOPE,
             opentxs::proto::CITEMTYPE_INDIVIDUAL,
@@ -1654,8 +1654,8 @@ TEST_F(Test_ContactData, SetScope)
     const auto& data1 = contactData_.SetScope(
         opentxs::proto::CITEMTYPE_ORGANIZATION, "organizationScope");
     // Verify the scope item was created.
-    const opentxs::OTIdentifier identifier1(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_SCOPE,
             opentxs::proto::CITEMTYPE_ORGANIZATION,
@@ -1671,8 +1671,8 @@ TEST_F(Test_ContactData, SetScope)
     const auto& data2 =
         data1.SetScope(opentxs::proto::CITEMTYPE_ORGANIZATION, "businessScope");
     // Verify the item wasn't added.
-    const opentxs::OTIdentifier identifier2(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "contactDataNym",
             opentxs::proto::CONTACTSECTION_SCOPE,
             opentxs::proto::CITEMTYPE_BUSINESS,

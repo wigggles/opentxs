@@ -8,8 +8,6 @@
 #include "opentxs/core/NymIDSource.hpp"
 
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -24,6 +22,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/identity/credential/Primary.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -198,7 +198,8 @@ bool NymIDSource::Verify(
     const proto::Credential& master,
     __attribute__((unused)) const proto::Signature& sourceSignature) const
 {
-    serializedCredential serializedMaster;
+    std::shared_ptr<identity::credential::Base::SerializedType>
+        serializedMaster;
     bool isSelfSigned, sameSource;
     std::unique_ptr<proto::AsymmetricKey> signingKey;
     std::shared_ptr<proto::AsymmetricKey> sourceKey;
@@ -259,9 +260,9 @@ bool NymIDSource::Verify(
 }
 
 bool NymIDSource::Sign(
-    __attribute__((unused)) const MasterCredential& credential,
-    __attribute__((unused)) proto::Signature& sig,
-    __attribute__((unused)) const OTPasswordData* pPWData) const
+    [[maybe_unused]] const identity::credential::Primary& credential,
+    [[maybe_unused]] proto::Signature& sig,
+    [[maybe_unused]] const OTPasswordData* pPWData) const
 {
     bool goodsig = false;
 

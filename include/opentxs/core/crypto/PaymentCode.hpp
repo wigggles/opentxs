@@ -52,7 +52,7 @@ public:
         const proto::Credential& master,
         const proto::Signature& sourceSignature) const = 0;
     EXPORT virtual bool Sign(
-        const Credential& credential,
+        const identity::credential::Base& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const = 0;
     EXPORT virtual bool Sign(

@@ -67,7 +67,7 @@ public:
     EXPORT virtual std::shared_ptr<Serialized> Serialize(
         const CredentialIndexModeFlag mode) const = 0;
     EXPORT virtual bool Sign(
-        const MasterCredential& credential,
+        const credential::Primary& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const = 0;
     EXPORT virtual bool Sign(

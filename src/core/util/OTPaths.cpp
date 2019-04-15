@@ -17,7 +17,6 @@
 #include "opentxs/core/String.hpp"
 
 #include "Internal.hpp"
-#include "Factory.hpp"
 
 #include <sys/stat.h>
 

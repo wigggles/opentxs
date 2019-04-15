@@ -5,33 +5,53 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/VerificationCredential.hpp"
-
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
+#include "Base.hpp"
 
 #include <memory>
 #include <ostream>
 #include <string>
 
-#define OT_METHOD "opentxs::VerificationCredential::"
+#include "Verification.hpp"
+
+#define OT_METHOD "opentxs::identity::credential::Verification::"
 
 namespace opentxs
 {
+identity::credential::internal::Verification* Factory::VerificationCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const proto::Credential& serialized)
+{
+    return new identity::credential::implementation::Verification(
+        api, parent, serialized);
+}
 
+identity::credential::internal::Verification* Factory::VerificationCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const NymParameters& parameters)
+{
+    return new identity::credential::implementation::Verification(
+        api, parent, parameters);
+}
+}  // namespace opentxs
+
+namespace opentxs::identity::credential
+{
 // static
-proto::Verification VerificationCredential::SigningForm(
-    const proto::Verification& item)
+proto::Verification Verification::SigningForm(const proto::Verification& item)
 {
     proto::Verification signingForm(item);
     signingForm.clear_sig();
@@ -40,31 +60,39 @@ proto::Verification VerificationCredential::SigningForm(
 }
 
 // static
-std::string VerificationCredential::VerificationID(
-    const proto::Verification& item)
+std::string Verification::VerificationID(const proto::Verification& item)
 {
     auto id = Identifier::Factory();
     id->CalculateDigest(proto::ProtoAsData<proto::Verification>(item));
 
     return String::Factory(id)->Get();
 }
+}  // namespace opentxs::identity::credential
 
-VerificationCredential::VerificationCredential(
+namespace opentxs::identity::credential::implementation
+{
+Verification::Verification(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const proto::Credential& credential)
-    : ot_super(api, parent, credential)
+    const proto::Credential& serialized)
+    : Signable({}, serialized.version())  // TODO Signable
+    , credential::implementation::Base(api, parent, serialized)
 {
     mode_ = proto::KEYMODE_NULL;
-    master_id_ = credential.childdata().masterid();
-    data_.reset(new proto::VerificationSet(credential.verification()));
+    master_id_ = serialized.childdata().masterid();
+    data_.reset(new proto::VerificationSet(serialized.verification()));
 }
 
-VerificationCredential::VerificationCredential(
+Verification::Verification(
     const api::Core& api,
     identity::internal::Authority& parent,
     const NymParameters& nymParameters)
-    : ot_super(api, parent, VERIFICATION_CREDENTIAL_VERSION, nymParameters)
+    : Signable({}, VERIFICATION_CREDENTIAL_VERSION)  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          parent,
+          VERIFICATION_CREDENTIAL_VERSION,
+          nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_VERIFY;
@@ -77,7 +105,7 @@ VerificationCredential::VerificationCredential(
     }
 }
 
-bool VerificationCredential::GetVerificationSet(
+bool Verification::GetVerificationSet(
     std::unique_ptr<proto::VerificationSet>& verificationSet) const
 {
     if (!data_) { return false; }
@@ -87,13 +115,12 @@ bool VerificationCredential::GetVerificationSet(
     return true;
 }
 
-serializedCredential VerificationCredential::serialize(
+std::shared_ptr<Base::SerializedType> Verification::serialize(
     const Lock& lock,
     const SerializationModeFlag asPrivate,
     const SerializationSignatureFlag asSigned) const
 {
-    serializedCredential serializedCredential =
-        this->ot_super::serialize(lock, asPrivate, asSigned);
+    auto serializedCredential = Base::serialize(lock, asPrivate, asSigned);
     serializedCredential->set_mode(proto::KEYMODE_NULL);
     serializedCredential->clear_signature();  // this fixes a bug, but shouldn't
 
@@ -117,10 +144,10 @@ serializedCredential VerificationCredential::serialize(
     return serializedCredential;
 }
 
-bool VerificationCredential::verify_internally(const Lock& lock) const
+bool Verification::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!ot_super::verify_internally(lock)) { return false; }
+    if (!Base::verify_internally(lock)) { return false; }
 
     if (data_) {
         for (auto& nym : data_->internal().identity()) {
@@ -140,5 +167,4 @@ bool VerificationCredential::verify_internally(const Lock& lock) const
 
     return true;
 }
-
-}  // namespace opentxs
+}  // namespace opentxs::identity::credential::implementation

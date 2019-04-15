@@ -13,7 +13,7 @@
 namespace opentxs::identity::internal
 {
 struct Authority : virtual public identity::Authority {
-    virtual const MasterCredential& GetMasterCredential() const = 0;
+    virtual const credential::Primary& GetMasterCredential() const = 0;
     virtual void SetSource(const std::shared_ptr<NymIDSource>& source) = 0;
     virtual bool WriteCredentials() const = 0;
 
