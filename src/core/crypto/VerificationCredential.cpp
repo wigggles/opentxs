@@ -9,14 +9,16 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Authority.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
+
+#include "internal/identity/Identity.hpp"
 
 #include <memory>
 #include <ostream>
@@ -49,7 +51,7 @@ std::string VerificationCredential::VerificationID(
 
 VerificationCredential::VerificationCredential(
     const api::Core& api,
-    CredentialSet& parent,
+    identity::internal::Authority& parent,
     const proto::Credential& credential)
     : ot_super(api, parent, credential)
 {
@@ -60,7 +62,7 @@ VerificationCredential::VerificationCredential(
 
 VerificationCredential::VerificationCredential(
     const api::Core& api,
-    CredentialSet& parent,
+    identity::internal::Authority& parent,
     const NymParameters& nymParameters)
     : ot_super(api, parent, VERIFICATION_CREDENTIAL_VERSION, nymParameters)
 {

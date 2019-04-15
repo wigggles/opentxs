@@ -33,11 +33,11 @@ private:
 
     ContactCredential(
         const api::Core& api,
-        CredentialSet& parent,
+        identity::internal::Authority& parent,
         const proto::Credential& credential);
     ContactCredential(
         const api::Core& api,
-        CredentialSet& parent,
+        identity::internal::Authority& parent,
         const NymParameters& nymParameters);
     ContactCredential() = delete;
     ContactCredential(const ContactCredential&) = delete;

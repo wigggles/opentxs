@@ -15,7 +15,6 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -42,6 +41,7 @@
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Authority.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 

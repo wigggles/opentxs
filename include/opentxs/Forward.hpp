@@ -126,6 +126,7 @@ class UnitDefinition;
 
 namespace identity
 {
+class Authority;
 class Nym;
 }  // namespace identity
 
@@ -243,7 +244,6 @@ class Context;
 class Contract;
 class CurrencyContract;
 class Credential;
-class CredentialSet;
 class CryptoSymmetricDecryptOutput;
 class Data;
 class Flag;

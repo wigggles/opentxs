@@ -18,9 +18,9 @@
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
-// master credentials.
+// multiple Authorities.
 //
-// Each CredentialSet contains list of Credentials. One of the
+// Each Authority contains list of Credentials. One of the
 // Credentials is a MasterCredential, and the rest are ChildCredentials
 // signed by the MasterCredential.
 //
@@ -42,6 +42,13 @@
 
 namespace opentxs
 {
+namespace identity
+{
+namespace implementation
+{
+class Authority;
+}  // namespace implementation
+}  // namespace identity
 /// KeyCredential
 /// A form of Credential that contains 3 key pairs: signing,
 /// authentication, and encryption.
@@ -52,7 +59,8 @@ class KeyCredential : public Credential
 {
 private:
     typedef Credential ot_super;
-    friend class CredentialSet;
+    friend identity::implementation::Authority;
+
     KeyCredential() = delete;
 
     bool addKeytoSerializedKeyCredential(
@@ -83,11 +91,11 @@ protected:
 
     KeyCredential(
         const api::Core& api,
-        CredentialSet& owner,
+        identity::internal::Authority& owner,
         const NymParameters& nymParameters);
     KeyCredential(
         const api::Core& api,
-        CredentialSet& owner,
+        identity::internal::Authority& owner,
         const proto::Credential& serializedCred);
 
 public:

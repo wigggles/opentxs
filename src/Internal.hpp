@@ -94,6 +94,7 @@ namespace identity
 {
 namespace internal
 {
+class Authority;
 class Nym;
 }  // namespace internal
 }  // namespace identity

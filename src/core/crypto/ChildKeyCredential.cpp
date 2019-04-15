@@ -7,9 +7,9 @@
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
-// master credentials.
+// multiple Authorities.
 //
-// Each CredentialSet contains list of Credentials. One of the
+// Each Authority contains list of Credentials. One of the
 // Credentials is a MasterCredential, and the rest are ChildCredentials
 // signed by the MasterCredential.
 //
@@ -35,11 +35,13 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Authority.hpp"
+
+#include "internal/identity/Identity.hpp"
 
 #include <memory>
 #include <ostream>
@@ -50,7 +52,7 @@ namespace opentxs
 {
 ChildKeyCredential::ChildKeyCredential(
     const api::Core& api,
-    CredentialSet& owner,
+    identity::internal::Authority& owner,
     const proto::Credential& serializedCred)
     : ot_super(api, owner, serializedCred)
 {
@@ -60,7 +62,7 @@ ChildKeyCredential::ChildKeyCredential(
 
 ChildKeyCredential::ChildKeyCredential(
     const api::Core& api,
-    CredentialSet& owner,
+    identity::internal::Authority& owner,
     const NymParameters& nymParameters)
     : ot_super(api, owner, nymParameters)
 {

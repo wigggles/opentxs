@@ -12,7 +12,6 @@ set(cxx-sources
   ChildKeyCredential.cpp
   ContactCredential.cpp
   Credential.cpp
-  CredentialSet.cpp
   CryptoSymmetricDecryptOutput.cpp
   KeyCredential.cpp
   Letter.cpp
@@ -39,7 +38,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/ChildKeyCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/ContactCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/Credential.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/CredentialSet.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/KeyCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/Letter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/LowLevelKeyGenerator.hpp"

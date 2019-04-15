@@ -23,7 +23,7 @@
 // The whole purpose of a Nym is to be an identity, which can have
 // master credentials.
 //
-// Each CredentialSet contains list of Credentials. One of the
+// Each Authority contains list of Credentials. One of the
 // Credentials is a MasterCredential, and the rest are ChildCredentials
 // signed by the MasterCredential.
 //
@@ -45,6 +45,14 @@
 
 namespace opentxs
 {
+namespace identity
+{
+namespace internal
+{
+struct Authority;
+}  // namespace internal
+}  // namespace identity
+
 typedef std::shared_ptr<proto::Credential> serializedCredential;
 
 class Credential : public Signable
@@ -58,7 +66,7 @@ public:
         const Armored& armoredCredential);
     static std::unique_ptr<Credential> Factory(
         const api::Core& api,
-        CredentialSet& parent,
+        identity::internal::Authority& parent,
         const proto::Credential& serialized,
         const proto::KeyMode& mode,
         const proto::CredentialRole& role = proto::CREDROLE_ERROR);
@@ -66,7 +74,7 @@ public:
     template <class C>
     static std::unique_ptr<C> Create(
         const api::Core& api,
-        CredentialSet& owner,
+        identity::internal::Authority& owner,
         const NymParameters& nymParameters)
     {
         std::unique_ptr<C> credential;
@@ -114,7 +122,8 @@ protected:
     proto::CredentialType type_ = proto::CREDTYPE_ERROR;
     proto::CredentialRole role_ = proto::CREDROLE_ERROR;
     proto::KeyMode mode_ = proto::KEYMODE_ERROR;
-    CredentialSet* owner_backlink_ = nullptr;  // Do not cleanup.
+    identity::internal::Authority* owner_backlink_ =
+        nullptr;  // Do not cleanup.
     std::string master_id_;
     std::string nym_id_;
 
@@ -130,11 +139,11 @@ protected:
 
     Credential(
         const api::Core& api,
-        CredentialSet& owner,
+        identity::internal::Authority& owner,
         const proto::Credential& serializedCred);
     Credential(
         const api::Core& api,
-        CredentialSet& owner,
+        identity::internal::Authority& owner,
         const std::uint32_t version,
         const NymParameters& nymParameters);
 

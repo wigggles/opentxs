@@ -19,7 +19,7 @@
 // The whole purpose of a Nym is to be an identity, which can have
 // master credentials.
 //
-// Each CredentialSet contains list of Credentials. One of the
+// Each Authority contains list of Credentials. One of the
 // Credentials is a MasterCredential, and the rest are ChildCredentials
 // signed by the MasterCredential.
 //
@@ -75,11 +75,11 @@ private:
 
     MasterCredential(
         const api::Core& api,
-        CredentialSet& theOwner,
+        identity::internal::Authority& theOwner,
         const proto::Credential& serializedCred);
     MasterCredential(
         const api::Core& api,
-        CredentialSet& theOwner,
+        identity::internal::Authority& theOwner,
         const NymParameters& nymParameters);
     MasterCredential() = delete;
     MasterCredential(const MasterCredential&) = delete;

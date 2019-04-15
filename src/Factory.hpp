@@ -10,6 +10,16 @@ namespace opentxs
 class Factory
 {
 public:
+    static identity::internal::Authority* Authority(const api::Core& api);
+    static identity::internal::Authority* Authority(
+        const api::Core& api,
+        const proto::KeyMode mode,
+        const proto::CredentialSet& serialized);
+    static identity::internal::Authority* Authority(
+        const api::Core& api,
+        const NymParameters& nymParameters,
+        const std::uint32_t version,
+        const OTPasswordData* pPWData = nullptr);
     static ui::implementation::AccountActivityExternalInterface*
     AccountActivity(
         const api::client::Manager& api,

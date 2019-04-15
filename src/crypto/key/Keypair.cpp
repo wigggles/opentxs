@@ -7,9 +7,9 @@
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
-// master credentials.
+// multiple Authorities.
 //
-// Each CredentialSet contains list of Credentials. One of the
+// Each Authority contains list of Credentials. One of the
 // Credentials is a MasterCredential, and the rest are ChildCredentials
 // signed by the MasterCredential.
 //
@@ -21,7 +21,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 Asymmetrics (public and private.)
+// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials

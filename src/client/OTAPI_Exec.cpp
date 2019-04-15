@@ -27,7 +27,6 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -62,6 +61,7 @@
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Authority.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
@@ -689,7 +689,7 @@ bool OTAPI_Exec::RevokeChildCredential(
         .Flush();
 
     /* Revokation is not implemented yet
-    CredentialSet* pCredential = pNym->GetMasterCredential(strCredID);
+    identity::Authority* pCredential = pNym->GetMasterCredential(strCredID);
 
     if (nullptr == pCredential)
         otOut << OT_METHOD << __FUNCTION__ << ": Sorry, (Nym " << NYM_ID

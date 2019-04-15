@@ -7,9 +7,9 @@
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
-// master credentials.
+// multiple Authorities.
 //
-// Each CredentialSet contains list of Credentials. One of the
+// Each Authority contains list of Credentials. One of the
 // Credentials is a MasterCredential, and the rest are ChildCredentials
 // signed by the MasterCredential.
 //
@@ -39,7 +39,6 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
@@ -48,7 +47,10 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Authority.hpp"
 #include "opentxs/Proto.hpp"
+
+#include "internal/identity/Identity.hpp"
 
 #include <list>
 #include <memory>
@@ -65,7 +67,7 @@ namespace opentxs
  * also an Credential.) */
 std::unique_ptr<Credential> Credential::Factory(
     const api::Core& api,
-    CredentialSet& parent,
+    identity::internal::Authority& parent,
     const proto::Credential& serialized,
     const proto::KeyMode& mode,
     const proto::CredentialRole& purportedRole)
@@ -109,7 +111,7 @@ std::unique_ptr<Credential> Credential::Factory(
 
 Credential::Credential(
     const api::Core& api,
-    CredentialSet& theOwner,
+    identity::internal::Authority& theOwner,
     const std::uint32_t version,
     const NymParameters& nymParameters)
     : ot_super(Nym_p(), version)
@@ -122,7 +124,7 @@ Credential::Credential(
 
 Credential::Credential(
     const api::Core& api,
-    CredentialSet& theOwner,
+    identity::internal::Authority& theOwner,
     const proto::Credential& serializedCred)
     : ot_super(Nym_p(), serializedCred.version())
     , api_(api)
@@ -181,7 +183,7 @@ bool Credential::VerifyMasterID() const
 }
 
 /** Verifies the cryptographic integrity of a credential. Assumes the
- * CredentialSet specified by owner_backlink_ is valid. */
+ * Authority specified by owner_backlink_ is valid. */
 bool Credential::verify_internally(const Lock& lock) const
 {
     OT_ASSERT(nullptr != owner_backlink_);
@@ -189,7 +191,7 @@ bool Credential::verify_internally(const Lock& lock) const
     if (nullptr == owner_backlink_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": This credential is not "
-            "attached to a CredentialSet. Can not verify.")
+            "attached to a Authority. Can not verify.")
             .Flush();
 
         return false;
@@ -198,7 +200,7 @@ bool Credential::verify_internally(const Lock& lock) const
     if (!VerifyNymID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": NymID for this credential "
-            "does not match NymID of parent CredentialSet.")
+            "does not match NymID of parent Authority.")
             .Flush();
 
         return false;
@@ -207,7 +209,7 @@ bool Credential::verify_internally(const Lock& lock) const
     if (!VerifyMasterID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": MasterID for this credential "
-            "does not match MasterID of parent CredentialSet.")
+            "does not match MasterID of parent Authority.")
             .Flush();
 
         return false;

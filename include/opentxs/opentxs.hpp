@@ -126,6 +126,7 @@
 #include <opentxs/otx/Request.hpp>
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
+#include <opentxs/identity/Authority.hpp>
 #include <opentxs/identity/Nym.hpp>
 #include <opentxs/iterator/Bidirectional.hpp>
 #include <opentxs/network/zeromq/zap/Callback.hpp>

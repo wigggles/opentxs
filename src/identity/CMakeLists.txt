@@ -6,15 +6,18 @@
 set(MODULE_NAME opentxs-identity)
 
 set(cxx-sources
+  "Authority.cpp"
   "Nym.cpp"
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/identity/Authority.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/identity/Nym.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
+  "Authority.hpp"
   "Nym.hpp"
 )
 

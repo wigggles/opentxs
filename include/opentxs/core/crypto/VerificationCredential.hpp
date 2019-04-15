@@ -33,11 +33,11 @@ private:
 
     VerificationCredential(
         const api::Core& api,
-        CredentialSet& parent,
+        identity::internal::Authority& parent,
         const proto::Credential& credential);
     VerificationCredential(
         const api::Core& api,
-        CredentialSet& parent,
+        identity::internal::Authority& parent,
         const NymParameters& nymParameters);
     VerificationCredential() = delete;
     VerificationCredential(const VerificationCredential&) = delete;

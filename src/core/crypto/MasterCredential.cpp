@@ -7,9 +7,9 @@
 
 // A nym contains a list of credential sets.
 // The whole purpose of a Nym is to be an identity, which can have
-// master credentials.
+// multiple Authorities.
 //
-// Each CredentialSet contains list of Credentials. One of the
+// Each Authority contains list of Credentials. One of the
 // Credentials is a MasterCredential, and the rest are ChildCredentials
 // signed by the MasterCredential.
 //
@@ -37,7 +37,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -50,7 +49,10 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/Authority.hpp"
 #include "opentxs/Proto.hpp"
+
+#include "internal/identity/Identity.hpp"
 
 #include <memory>
 #include <ostream>
@@ -61,7 +63,7 @@ namespace opentxs
 {
 MasterCredential::MasterCredential(
     const api::Core& api,
-    CredentialSet& theOwner,
+    identity::internal::Authority& theOwner,
     const proto::Credential& serializedCred)
     : ot_super(api, theOwner, serializedCred)
 {
@@ -75,7 +77,7 @@ MasterCredential::MasterCredential(
 
 MasterCredential::MasterCredential(
     const api::Core& api,
-    CredentialSet& theOwner,
+    identity::internal::Authority& theOwner,
     const NymParameters& nymParameters)
     : ot_super(api, theOwner, nymParameters)
 {

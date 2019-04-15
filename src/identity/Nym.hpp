@@ -9,8 +9,6 @@
 
 namespace opentxs
 {
-typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
-
 namespace identity::implementation
 {
 class Nym final : virtual public identity::internal::Nym, Lockable
@@ -148,6 +146,9 @@ public:
     ~Nym() override;
 
 private:
+    using mapOfCredentialSets =
+        std::map<std::string, identity::internal::Authority*>;
+
     friend opentxs::Factory;
 
     const api::Core& api_;

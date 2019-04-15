@@ -21,7 +21,6 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -47,6 +46,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
@@ -142,24 +142,21 @@ Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
     }
 
     const std::int32_t newIndex = nymIndex + 1;
-
     api_.Seeds().UpdateIndex(fingerprint, newIndex);
     revisedParameters.SetEntropy(*seed);
     revisedParameters.SetSeed(fingerprint);
     revisedParameters.SetNym(nymIndex);
 #endif
-    CredentialSet* pNewCredentialSet =
-        new CredentialSet(api_, revisedParameters, version_);
+    auto* pNewCredentialSet =
+        opentxs::Factory::Authority(api_, revisedParameters, version_);
 
     OT_ASSERT(nullptr != pNewCredentialSet);
 
     source_ = std::make_shared<NymIDSource>(pNewCredentialSet->Source());
     const_cast<OTNymID&>(m_nymID) = source_->NymID();
-
     SetDescription(source_->Description());
-
-    m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-        pNewCredentialSet->GetMasterCredID(), pNewCredentialSet));
+    m_mapCredentialSets.emplace(
+        pNewCredentialSet->GetMasterCredID(), pNewCredentialSet);
 }
 
 bool Nym::add_contact_credential(
@@ -419,14 +416,14 @@ void Nym::clear_credentials(const eLock& lock)
     m_listRevokedIDs.clear();
 
     while (!m_mapCredentialSets.empty()) {
-        CredentialSet* pCredential = m_mapCredentialSets.begin()->second;
+        identity::Authority* pCredential = m_mapCredentialSets.begin()->second;
         m_mapCredentialSets.erase(m_mapCredentialSets.begin());
         delete pCredential;
         pCredential = nullptr;
     }
 
     while (!m_mapRevokedSets.empty()) {
-        CredentialSet* pCredential = m_mapRevokedSets.begin()->second;
+        identity::Authority* pCredential = m_mapRevokedSets.begin()->second;
         m_mapRevokedSets.erase(m_mapRevokedSets.begin());
         delete pCredential;
         pCredential = nullptr;
@@ -514,7 +511,7 @@ const crypto::key::Asymmetric& Nym::get_private_auth_key(
     OT_ASSERT(!m_mapCredentialSets.empty());
 
     OT_ASSERT(verify_lock(lock));
-    const CredentialSet* pCredential = nullptr;
+    const identity::Authority* pCredential = nullptr;
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -549,7 +546,7 @@ const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
 
     OT_ASSERT(!m_mapCredentialSets.empty());
 
-    const CredentialSet* pCredential = nullptr;
+    const identity::Authority* pCredential = nullptr;
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -587,7 +584,7 @@ const crypto::key::Asymmetric& Nym::get_private_sign_key(
 
     OT_ASSERT(verify_lock(lock));
 
-    const CredentialSet* pCredential = nullptr;
+    const identity::Authority* pCredential = nullptr;
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -617,7 +614,7 @@ const crypto::key::Asymmetric& Nym::get_public_sign_key(
 
     OT_ASSERT(verify_lock(lock));
 
-    const CredentialSet* pCredential = nullptr;
+    const identity::Authority* pCredential = nullptr;
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -645,7 +642,7 @@ const crypto::key::Asymmetric& Nym::GetPublicAuthKey(
 
     OT_ASSERT(!m_mapCredentialSets.empty());
 
-    const CredentialSet* pCredential = nullptr;
+    const identity::Authority* pCredential = nullptr;
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -673,7 +670,7 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
 
     OT_ASSERT(!m_mapCredentialSets.empty());
 
-    const CredentialSet* pCredential = nullptr;
+    const identity::Authority* pCredential = nullptr;
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
         // child credential
@@ -716,7 +713,7 @@ std::int32_t Nym::GetPublicKeysBySignature(
     sLock lock(shared_lock_);
 
     for (const auto& it : m_mapCredentialSets) {
-        const CredentialSet* pCredential = it.second;
+        const identity::Authority* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
         const std::int32_t nTempCount = pCredential->GetPublicKeysBySignature(
@@ -744,7 +741,7 @@ bool Nym::has_capability(const eLock& lock, const NymCapability& capability)
         OT_ASSERT(nullptr != it.second);
 
         if (nullptr != it.second) {
-            const CredentialSet& credSet = *it.second;
+            const identity::Authority& credSet = *it.second;
 
             if (credSet.hasCapability(capability)) { return true; }
         }
@@ -826,7 +823,7 @@ bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
     m_mapCredentialSets.clear();
 
     for (auto& it : index.activecredentials()) {
-        CredentialSet* newSet = new CredentialSet(api_, mode, it);
+        auto* newSet = opentxs::Factory::Authority(api_, mode, it);
 
         if (nullptr != newSet) {
             m_mapCredentialSets.emplace(
@@ -837,7 +834,7 @@ bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
     m_mapRevokedSets.clear();
 
     for (auto& it : index.revokedcredentials()) {
-        CredentialSet* newSet = new CredentialSet(api_, mode, it);
+        auto* newSet = opentxs::Factory::Authority(api_, mode, it);
 
         if (nullptr != newSet) {
             m_mapRevokedSets.emplace(
@@ -1092,7 +1089,7 @@ bool Nym::ReEncryptPrivateCredentials(
     }
 
     for (auto& it : m_mapCredentialSets) {
-        CredentialSet* pCredential = it.second;
+        identity::Authority* pCredential = it.second;
         OT_ASSERT(nullptr != pCredential);
 
         if (false == pCredential->ReEncryptPrivateCredentials(
@@ -1228,8 +1225,7 @@ Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            SerializedCredentialSet credset =
-                it.second->Serialize(static_cast<bool>(mode));
+            auto credset = it.second->Serialize(static_cast<bool>(mode));
             auto pCredSet = index.add_activecredentials();
             *pCredSet = *credset;
             pCredSet = nullptr;
@@ -1238,8 +1234,7 @@ Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
 
     for (auto& it : m_mapRevokedSets) {
         if (nullptr != it.second) {
-            SerializedCredentialSet credset =
-                it.second->Serialize(static_cast<bool>(mode));
+            auto credset = it.second->Serialize(static_cast<bool>(mode));
             auto pCredSet = index.add_revokedcredentials();
             *pCredSet = *credset;
             pCredSet = nullptr;
@@ -1507,7 +1502,7 @@ std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
         OT_ASSERT(nullptr != it.second);
 
         if (nullptr != it.second) {
-            const CredentialSet& credSet = *it.second;
+            const identity::Authority& credSet = *it.second;
             found = credSet.TransportKey(pubkey, *privateKey);
 
             if (found) { break; }
@@ -1627,7 +1622,7 @@ bool Nym::verify_pseudonym(const eLock& lock) const
     if (!m_mapCredentialSets.empty()) {
         // Verify Nym by his own credentials.
         for (const auto& it : m_mapCredentialSets) {
-            const CredentialSet* pCredential = it.second;
+            const identity::Authority* pCredential = it.second;
             OT_ASSERT(nullptr != pCredential);
 
             const auto theCredentialNymID =
@@ -1641,7 +1636,7 @@ bool Nym::verify_pseudonym(const eLock& lock) const
                 return false;
             }
 
-            // Verify all Credentials in the CredentialSet, including source
+            // Verify all Credentials in the Authority, including source
             // verification for the master credential.
             if (!pCredential->VerifyInternally()) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Credential (")(
