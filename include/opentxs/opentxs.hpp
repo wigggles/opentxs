@@ -27,6 +27,7 @@
 #include <opentxs/api/crypto/Config.hpp>
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/crypto/Encode.hpp>
+#include <opentxs/api/crypto/Hash.hpp>
 #include <opentxs/api/crypto/Symmetric.hpp>
 #include <opentxs/api/network/ZAP.hpp>
 #include <opentxs/api/network/ZMQ.hpp>

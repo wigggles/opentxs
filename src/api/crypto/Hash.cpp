@@ -225,6 +225,25 @@ bool Hash::Digest(
 }
 
 bool Hash::Digest(
+    const proto::HashType hashType,
+    const std::string& data,
+    Data& digest) const
+{
+    if (false == Allocate(hashType, digest)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
+            .Flush();
+
+        return false;
+    }
+
+    return Digest(
+        hashType,
+        reinterpret_cast<const std::uint8_t*>(data.c_str()),
+        data.size(),
+        static_cast<std::uint8_t*>(const_cast<void*>(digest.data())));
+}
+
+bool Hash::Digest(
     const std::uint32_t type,
     const std::string& data,
     std::string& encodedDigest) const
