@@ -16,7 +16,6 @@
 #include "opentxs/Types.hpp"
 
 #include "Internal.hpp"
-#include "Factory.hpp"
 
 #ifndef _WIN32
 #include <unistd.h>

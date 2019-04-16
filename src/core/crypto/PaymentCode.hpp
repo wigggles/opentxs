@@ -26,7 +26,7 @@ public:
         const proto::Credential& master,
         const proto::Signature& sourceSignature) const override;
     bool Sign(
-        const Credential& credential,
+        const identity::credential::Base& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const override;
     bool Sign(

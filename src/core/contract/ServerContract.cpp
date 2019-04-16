@@ -15,15 +15,15 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #define OT_METHOD "opentxs::ServerContract::"
 
 namespace opentxs
 {
-ServerContract::ServerContract(const api::Wallet& wallet, const ConstNym& nym)
+ServerContract::ServerContract(const api::Wallet& wallet, const Nym_p& nym)
     : ot_super(nym)
     , wallet_{wallet}
     , listen_params_()
@@ -34,7 +34,7 @@ ServerContract::ServerContract(const api::Wallet& wallet, const ConstNym& nym)
 
 ServerContract::ServerContract(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::ServerContract& serialized)
     : ServerContract(wallet, nym)
 {
@@ -62,7 +62,7 @@ ServerContract::ServerContract(
 
 ServerContract* ServerContract::Create(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
     const std::string& name,
@@ -82,11 +82,26 @@ ServerContract* ServerContract::Create(
 
         Lock lock(contract->lock_);
 
-        if (!contract->CalculateID(lock)) { return nullptr; }
+        if (!contract->CalculateID(lock)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Error calculating contract id")
+                .Flush();
 
-        if (contract->nym_) { contract->update_signature(lock); }
+            return nullptr;
+        }
 
-        if (!contract->validate(lock)) { return nullptr; }
+        if (false == contract->update_signature(lock)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign contract")
+                .Flush();
+
+            return nullptr;
+        }
+
+        if (!contract->validate(lock)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid contract").Flush();
+
+            return nullptr;
+        }
 
         contract->alias_ = contract->name_;
     } else {
@@ -112,7 +127,7 @@ std::string ServerContract::EffectiveName() const
 
 ServerContract* ServerContract::Factory(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::ServerContract& serialized)
 {
     if (!proto::Validate<proto::ServerContract>(serialized, VERBOSE)) {
@@ -301,8 +316,8 @@ bool ServerContract::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_role(proto::SIGROLE_SERVERCONTRACT);
-    success = nym_->SignProto(serialized, signature);
+    success =
+        nym_->SignProto(serialized, proto::SIGROLE_SERVERCONTRACT, signature);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));

@@ -35,11 +35,11 @@ private:
 
     BailmentNotice(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequest& serialized);
     BailmentNotice(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const identifier::Nym& recipientID,
         const identifier::UnitDefinition& unitID,
         const identifier::Server& serverID,

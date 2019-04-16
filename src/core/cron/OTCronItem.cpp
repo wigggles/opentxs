@@ -26,11 +26,10 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-//#include "opentxs/OT.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -773,7 +772,7 @@ void OTCronItem::HookActivationOnCron(bool bForTheFirstTime)
 //
 void OTCronItem::HookRemovalFromCron(
     const api::Wallet& wallet,
-    ConstNym pRemover,
+    Nym_p pRemover,
     std::int64_t newTransactionNo)
 {
     auto pServerNym = serverNym_;
@@ -858,7 +857,7 @@ void OTCronItem::HookRemovalFromCron(
         // Otherwise the originator
         // pointer just pointers to *pRemover.
         //
-        ConstNym pOriginator = nullptr;
+        Nym_p pOriginator = nullptr;
 
         if (pServerNym->CompareID(pOrigCronItem->GetSenderNymID())) {
             pOriginator = pServerNym;  // Just in case the originator Nym is
@@ -933,10 +932,10 @@ void OTCronItem::HookRemovalFromCron(
 void OTCronItem::onFinalReceipt(
     OTCronItem& theOrigCronItem,
     const std::int64_t& lNewTransactionNumber,
-    ConstNym theOriginator,
-    ConstNym pRemover)  // may already point to
-                        // theOriginator... or
-                        // someone else...
+    Nym_p theOriginator,
+    Nym_p pRemover)  // may already point to
+                     // theOriginator... or
+                     // someone else...
 {
     OT_ASSERT(nullptr != serverNym_);
 
@@ -1062,7 +1061,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    const Nym& pServerNym = *serverNym_;
+    const identity::Nym& pServerNym = *serverNym_;
     // Load the inbox in case it already exists.
     auto theInbox{api_.Factory().Ledger(NYM_ID, ACCOUNT_ID, GetNotaryID())};
 
@@ -1241,7 +1240,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    ConstNym pServerNym(serverNym_);
+    Nym_p pServerNym(serverNym_);
 
     auto theLedger{api_.Factory().Ledger(NYM_ID, NYM_ID, GetNotaryID())};
 
@@ -1492,7 +1491,7 @@ bool OTCronItem::GetCancelerID(identifier::Nym& theOutput) const
 
 // When canceling a cron item before it has been activated, use this.
 //
-bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
+bool OTCronItem::CancelBeforeActivation(const identity::Nym& theCancelerNym)
 {
     OT_ASSERT(!m_pCancelerNymID->empty());
 

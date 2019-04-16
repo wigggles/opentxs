@@ -33,8 +33,8 @@ public:
     static std::chrono::system_clock::time_point valid_to_;
 
     const opentxs::api::client::Manager& api_;
-    std::shared_ptr<const opentxs::Nym> alice_;
-    std::shared_ptr<const opentxs::Nym> bob_;
+    opentxs::Nym_p alice_;
+    opentxs::Nym_p bob_;
 
     Test_Basic()
         : api_(opentxs::OT::App().StartClient(args_, 0))

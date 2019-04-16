@@ -36,7 +36,7 @@ Factory::Factory(const api::client::Manager& client)
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::string& message) const
 {
     return std::unique_ptr<opentxs::PeerObject>{
@@ -44,7 +44,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::string& payment,
     const bool isPayment) const
 {
@@ -54,7 +54,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 #if OT_CASH
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    const ConstNym& senderNym,
+    const Nym_p& senderNym,
     const std::shared_ptr<blind::Purse> purse) const
 {
     return std::unique_ptr<opentxs::PeerObject>{
@@ -80,7 +80,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    const ConstNym& signerNym,
+    const Nym_p& signerNym,
     const proto::PeerObject& serialized) const
 {
     return std::unique_ptr<opentxs::PeerObject>{opentxs::Factory::PeerObject(
@@ -88,7 +88,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    const ConstNym& recipientNym,
+    const Nym_p& recipientNym,
     const Armored& encrypted) const
 {
     return std::unique_ptr<opentxs::PeerObject>{opentxs::Factory::PeerObject(

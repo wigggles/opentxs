@@ -26,6 +26,10 @@ public:
     bool IsPrivate() const override { return m_bIsPrivateKey; }
     bool IsPublic() const override { return m_bIsPublicKey; }
     proto::AsymmetricKeyType keyType() const override;
+    proto::Signature NewSignature(
+        const Identifier& credentialID,
+        const proto::SignatureRole role,
+        const proto::HashType hash) const;
     const std::string Path() const override;
     bool Path(proto::HDPath& output) const override;
     const proto::KeyRole& Role() const override { return role_; }
@@ -39,6 +43,14 @@ public:
         const OTPassword* exportPassword = nullptr,
         const String& credID = String::Factory(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const override;
+    bool Sign(
+        const GetPreimage input,
+        const proto::SignatureRole role,
+        proto::Signature& signature,
+        const Identifier& credential,
+        proto::KeyRole key = proto::KEYROLE_SIGN,
+        const OTPasswordData* pPWData = nullptr,
+        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
     bool Verify(const Data& plaintext, const proto::Signature& sig)
         const override;
 
@@ -112,6 +124,10 @@ protected:
         const proto::KeyRole role,
         const bool publicKey,
         const bool privateKey);
+
+private:
+    static const std::map<proto::SignatureRole, std::uint32_t> sig_version_;
+
     Asymmetric(const Asymmetric&) = delete;
     Asymmetric(Asymmetric&&) = delete;
     Asymmetric& operator=(const Asymmetric&) = delete;

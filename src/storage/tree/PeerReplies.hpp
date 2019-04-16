@@ -15,13 +15,10 @@ namespace opentxs
 {
 namespace storage
 {
-
-class Nym;
-
 class PeerReplies : public Node
 {
 private:
-    friend class Nym;
+    friend Nym;
 
     void init(const std::string& hash) override;
     bool save(const std::unique_lock<std::mutex>& lock) const override;

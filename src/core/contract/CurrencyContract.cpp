@@ -19,7 +19,7 @@ namespace opentxs
 
 CurrencyContract::CurrencyContract(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::UnitDefinition serialized)
     : ot_super(wallet, nym, serialized)
     , tla_(serialized.currency().tla())
@@ -30,7 +30,7 @@ CurrencyContract::CurrencyContract(
 
 CurrencyContract::CurrencyContract(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,

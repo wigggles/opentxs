@@ -19,13 +19,13 @@
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -312,10 +312,10 @@ bool Contract::VerifyContractID() const
     }
 }
 
-ConstNym Contract::GetContractPublicNym() const
+Nym_p Contract::GetContractPublicNym() const
 {
     for (auto& it : m_mapNyms) {
-        ConstNym pNym = it.second;
+        Nym_p pNym = it.second;
         OT_ASSERT_MSG(
             nullptr != pNym,
             "nullptr pseudonym pointer in Contract::GetContractPublicNym.\n");
@@ -346,7 +346,9 @@ ConstNym Contract::GetContractPublicNym() const
 // If you want the signature to remain on the contract and be handled
 // internally, then this is what you should call.
 //
-bool Contract::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
+bool Contract::SignContract(
+    const identity::Nym& theNym,
+    const OTPasswordData* pPWData)
 {
     auto sig = Signature::Factory();
     bool bSigned = SignContract(theNym, sig, pPWData);
@@ -366,7 +368,7 @@ bool Contract::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
 // Signs using authentication key instead of signing key.
 //
 bool Contract::SignContractAuthent(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const OTPasswordData* pPWData)
 {
     auto sig = Signature::Factory();
@@ -387,7 +389,7 @@ bool Contract::SignContractAuthent(
 // The output signature will be in theSignature.
 // It is NOT attached to the contract.  This is just a utility function.
 bool Contract::SignContract(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     Signature& theSignature,
     const OTPasswordData* pPWData)
 {
@@ -399,7 +401,7 @@ bool Contract::SignContract(
 
 // Uses authentication key instead of signing key.
 bool Contract::SignContractAuthent(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     Signature& theSignature,
     const OTPasswordData* pPWData)
 {
@@ -409,7 +411,7 @@ bool Contract::SignContractAuthent(
     return SignContract(key, theSignature, m_strSigHashType, pPWData);
 }
 
-// Normally you'd use Contract::SignContract(const Nym& theNym)...
+// Normally you'd use Contract::SignContract(const identity::Nym& theNym)...
 // Normally you WOULDN'T use this function SignWithKey.
 // But this is here anyway for those peculiar places where you need it. For
 // example,
@@ -536,7 +538,7 @@ bool Contract::SignContract(
 }
 
 bool Contract::VerifySigAuthent(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const OTPasswordData* pPWData) const
 {
     auto strNymID = String::Factory();
@@ -561,8 +563,9 @@ bool Contract::VerifySigAuthent(
     return false;
 }
 
-bool Contract::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
-    const
+bool Contract::VerifySignature(
+    const identity::Nym& theNym,
+    const OTPasswordData* pPWData) const
 {
     auto strNymID = String::Factory(theNym.ID());
     char cNymID = '0';
@@ -619,7 +622,7 @@ bool Contract::VerifyWithKey(
 // signature but you don't want a legally binding signature, just a technically
 // secure signature.)
 bool Contract::VerifySigAuthent(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const Signature& theSignature,
     const OTPasswordData* pPWData) const
 {
@@ -668,7 +671,7 @@ bool Contract::VerifySigAuthent(
 // for you.  Choose the function you prefer, you can do it either way.
 //
 bool Contract::VerifySignature(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const Signature& theSignature,
     const OTPasswordData* pPWData) const
 {
@@ -827,7 +830,7 @@ void Contract::UpdateContents()
 bool Contract::SignFlatText(
     String& strFlatText,
     const String& strContractType,
-    const Nym& theSigner,
+    const identity::Nym& theSigner,
     String& strOutput)
 {
 
@@ -1903,7 +1906,9 @@ bool Contract::LoadEncodedTextFieldByName(
 // type
 // is unknown.
 //
-bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
+bool Contract::CreateContract(
+    const String& strContract,
+    const identity::Nym& theSigner)
 {
     Release();
 
@@ -2028,7 +2033,7 @@ void Contract::CreateInnerContents(Tag& parent)
         // CREDENTIALS, based on NymID and Source, and credential IDs.
         for (auto& it : m_mapNyms) {
             std::string str_name = it.first;
-            ConstNym pNym = it.second;
+            Nym_p pNym = it.second;
             OT_ASSERT_MSG(
                 nullptr != pNym,
                 "2: nullptr pseudonym pointer in "

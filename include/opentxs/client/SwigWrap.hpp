@@ -502,18 +502,6 @@ public:
     EXPORT static std::string GetNym_SourceForID(const std::string& NYM_ID);
     EXPORT static std::string GetNym_Description(const std::string& NYM_ID);
 
-    EXPORT static std::string GetNym_MasterCredentialContents(
-        const std::string& NYM_ID,
-        const std::string& CREDENTIAL_ID);
-
-    EXPORT static std::string GetNym_RevokedCredContents(
-        const std::string& NYM_ID,
-        const std::string& CREDENTIAL_ID);
-
-    EXPORT static std::string GetNym_ChildCredentialContents(
-        const std::string& NYM_ID,
-        const std::string& MASTER_CRED_ID,
-        const std::string& SUB_CRED_ID);
     EXPORT static std::string NymIDFromPaymentCode(
         const std::string& paymentCode);
 
@@ -1211,7 +1199,7 @@ public:
     From OTAgreement: (This must be called first, before the other two methods
     below can be called.)
 
-    bool    OTAgreement::SetProposal(const Nym& MERCHANT_NYM, const
+    bool    OTAgreement::SetProposal(const identity::Nym& MERCHANT_NYM, const
     OTString& strConsideration,
     const time64_t& VALID_FROM=0, const time64_t& VALID_TO=0);
 

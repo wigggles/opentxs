@@ -507,10 +507,10 @@ various sequence numbers. Hm.
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #if OT_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
@@ -900,9 +900,9 @@ void OTSmartContract::DeactivateSmartContract()  // Called from within script.
 OTParty        * GetParty    (std::string str_party_name);
 OTBylaw        * GetBylaw    (std::string str_bylaw_name);
 OTClause    * GetClause    (std::string str_clause_name);
-OTParty * FindPartyBasedOnNymAsAgent(Nym& theNym, OTAgent **
+OTParty * FindPartyBasedOnNymAsAgent(identity::Nym& theNym, OTAgent **
 ppAgent=nullptr);
-OTParty * FindPartyBasedOnNymAsAuthAgent(Nym& theNym, OTAgent **
+OTParty * FindPartyBasedOnNymAsAuthAgent(identity::Nym& theNym, OTAgent **
 ppAgent=nullptr);
 OTParty * FindPartyBasedOnAccount(OTAccount& theAccount, OTPartyAccount **
 ppPartyAccount=nullptr);
@@ -1303,7 +1303,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1515,7 +1515,7 @@ std::string OTSmartContract::GetStashBalance(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(pServerNym);
 
     // Below this point, these are all good:
@@ -1565,7 +1565,7 @@ bool OTSmartContract::SendANoticeToAllParties()
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1613,7 +1613,7 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -1738,7 +1738,7 @@ bool OTSmartContract::StashAcctFunds(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -2003,7 +2003,7 @@ bool OTSmartContract::UnstashAcctFunds(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -2233,7 +2233,7 @@ bool OTSmartContract::StashFunds(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym(pCron->GetServerNym());
+    Nym_p pServerNym(pCron->GetServerNym());
     OT_ASSERT(nullptr != pServerNym);
 
     if (0 == lAmount) {
@@ -2467,7 +2467,7 @@ bool OTSmartContract::StashFunds(
 
     // Find out if party Nym is actually also the server nym.
     const bool bPartyNymIsServerNym = (PARTY_NYM_ID == NOTARY_NYM_ID);
-    ConstNym pPartyNym = nullptr;
+    Nym_p pPartyNym = nullptr;
     const std::string str_party_id = strPartyNymID->Get();
 
     // Figure out if party Nym is also Server Nym.
@@ -3015,7 +3015,7 @@ bool OTSmartContract::MoveAcctFundsStr(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     // Below this point, these are all good:
@@ -3288,9 +3288,9 @@ bool OTSmartContract::MoveAcctFundsStr(
 void OTSmartContract::onFinalReceipt(
     OTCronItem& theOrigCronItem,
     const std::int64_t& lNewTransactionNumber,
-    ConstNym theOriginator,
-    ConstNym pActingNym)  // AKA "pRemover" in any other onFinalReceipt. Could
-                          // be nullptr.
+    Nym_p theOriginator,
+    Nym_p pActingNym)  // AKA "pRemover" in any other onFinalReceipt. Could
+                       // be nullptr.
 {
     OTCron* pCron = GetCron();
 
@@ -3356,7 +3356,7 @@ void OTSmartContract::onFinalReceipt(
         // perhaps it just expired and pActingNym is nullptr. The originating
         // Nym (if different than pActingNym) is loaded up. Otherwise
         // theOriginator just points to *pActingNym also.
-        ConstNym pPartyNym = nullptr;
+        Nym_p pPartyNym = nullptr;
 
         // See if the serverNym is an agent on this party.
 
@@ -3750,7 +3750,7 @@ void OTSmartContract::ExecuteClauses(
         OTCron* pCron = GetCron();
         OT_ASSERT(nullptr != pCron);
 
-        ConstNym pServerNym = pCron->GetServerNym();
+        Nym_p pServerNym = pCron->GetServerNym();
         OT_ASSERT(nullptr != pServerNym);
 
         const std::int64_t lNewTransactionNumber =
@@ -3810,7 +3810,7 @@ bool OTSmartContract::CanCancelContract(std::string str_party_name)
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     OTParty* pParty = GetParty(str_party_name);
@@ -3969,7 +3969,7 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
     //
     //
     // ===> THIS version (OTSmartContract) will look up pParty using theNym via:
-    // OTParty * OTScriptable::FindPartyBasedOnNymAsAgent(const Nym&
+    // OTParty * OTScriptable::FindPartyBasedOnNymAsAgent(const identity::Nym&
     // theNym, OTAgent ** ppAgent=nullptr);
     //
     // ...Then it WILL check to see if pParty has its Opening number verified as
@@ -4071,7 +4071,7 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
 // Server will also want to verify that originator IS a party (this function
 // won't do it.)
 //
-// bool OTSmartContract::VerifySmartContract(Nym& theNym)
+// bool OTSmartContract::VerifySmartContract(identity::Nym& theNym)
 //{
 // Need to verify:
 //
@@ -4221,9 +4221,9 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
 // about the opening and closing #s)
 //
 bool OTSmartContract::VerifySmartContract(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const Account& theAcct,
-    const Nym& theServerNym,
+    const identity::Nym& theServerNym,
     bool bBurnTransNo)
 {
     OTAgent* pAuthAgent = nullptr;
@@ -4763,7 +4763,7 @@ void OTSmartContract::CloseoutOpeningNumbers()
 // (Server-side.)
 //
 void OTSmartContract::HarvestClosingNumbers(
-    const Nym& pSignerNym,
+    const identity::Nym& pSignerNym,
     std::set<OTParty*>* pFailedParties)
 {
     const auto strNotaryID = String::Factory(GetNotaryID());
@@ -5467,7 +5467,7 @@ bool OTSmartContract::MoveFunds(
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
 
-    ConstNym pServerNym = pCron->GetServerNym();
+    Nym_p pServerNym = pCron->GetServerNym();
     OT_ASSERT(nullptr != pServerNym);
 
     if (lAmount <= 0) {
@@ -5559,8 +5559,8 @@ bool OTSmartContract::MoveFunds(
     // entity. (We'll want to know that later.)
     bool bUsersAreSameNym = (SENDER_NYM_ID == RECIPIENT_NYM_ID);
 
-    ConstNym pSenderNym = nullptr;
-    ConstNym pRecipientNym = nullptr;
+    Nym_p pSenderNym = nullptr;
+    Nym_p pRecipientNym = nullptr;
 
     // Figure out if Sender Nym is also Server Nym.
     if (bSenderNymIsServerNym) {

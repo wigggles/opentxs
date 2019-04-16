@@ -10,8 +10,8 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -46,11 +46,11 @@ protected:
 
     UnitDefinition(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::UnitDefinition serialized);
     UnitDefinition(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
@@ -59,7 +59,7 @@ protected:
 public:
     EXPORT static UnitDefinition* Create(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
@@ -69,7 +69,7 @@ public:
         const std::string& fraction);
     EXPORT static UnitDefinition* Create(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
@@ -77,14 +77,14 @@ public:
         const std::uint64_t weight);
     EXPORT static UnitDefinition* Create(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
         const std::string& terms);
     EXPORT static UnitDefinition* Factory(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::UnitDefinition& serialized);
 
     // Some instrument definitions keep a list of "user" accounts (the

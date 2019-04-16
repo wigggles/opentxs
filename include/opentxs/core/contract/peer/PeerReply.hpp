@@ -34,7 +34,7 @@ private:
         std::unique_ptr<PeerReply>& contract);
     static std::shared_ptr<proto::PeerRequest> LoadRequest(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const Identifier& requestID);
 
     proto::PeerReply contract(const Lock& lock) const;
@@ -55,11 +55,11 @@ protected:
 
     PeerReply(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerReply& serialized);
     PeerReply(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::uint32_t version,
         const identifier::Nym& initiator,
         const identifier::Server& server,
@@ -69,20 +69,20 @@ protected:
 public:
     static std::unique_ptr<PeerReply> Create(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequestType& type,
         const Identifier& request,
         const identifier::Server& server,
         const std::string& terms);
     static std::unique_ptr<PeerReply> Create(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const Identifier& request,
         const identifier::Server& server,
         const bool& ack);
     static std::unique_ptr<PeerReply> Create(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const Identifier& request,
         const identifier::Server& server,
         const bool& ack,
@@ -92,7 +92,7 @@ public:
         const std::string& key);
     static std::unique_ptr<PeerReply> Factory(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerReply& serialized);
 
     std::string Alias() const override { return Name(); }

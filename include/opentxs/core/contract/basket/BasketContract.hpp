@@ -12,11 +12,6 @@
 
 namespace opentxs
 {
-
-class Basket;
-class Nym;
-class UserCommandProcessor;
-
 class BasketContract : public UnitDefinition
 {
 private:
@@ -33,11 +28,11 @@ private:
 
     EXPORT BasketContract(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::UnitDefinition serialized);
     EXPORT BasketContract(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
@@ -52,7 +47,7 @@ public:
         const proto::UnitDefinition& serialized);
     EXPORT static bool FinalizeTemplate(
         const api::Wallet& wallet,
-        const ConstNym& nym,
+        const Nym_p& nym,
         proto::UnitDefinition& serialized);
 
     EXPORT OTIdentifier BasketID() const;

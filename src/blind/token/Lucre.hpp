@@ -25,18 +25,18 @@ public:
     bool AddSignature(const String& signature);
     bool ChangeOwner(crypto::key::Symmetric& key) override;
     bool GenerateTokenRequest(
-        const Nym& owner,
+        const identity::Nym& owner,
         const OTPassword& primaryPassword,
         const OTPassword& secondaryPassword,
         const Mint& mint) override;
     bool GetPublicPrototoken(String& output);
     bool MarkSpent() override;
-    bool Process(const Nym& owner, const Mint& mint) override;
+    bool Process(const identity::Nym& owner, const Mint& mint) override;
 
     Lucre(const api::Core& api, Purse& purse, const proto::Token& serialized);
     Lucre(
         const api::Core& api,
-        const Nym& owner,
+        const identity::Nym& owner,
         const Mint& mint,
         const Denomination value,
         Purse& purse,

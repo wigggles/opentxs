@@ -21,9 +21,13 @@
 
 namespace opentxs
 {
+namespace identity
+{
+class Nym;
+}  // namespace identity
+
 class Identifier;
 class Message;
-class Nym;
 class String;
 
 #define PAYMENT_CODE_VERSION 1
@@ -82,6 +86,8 @@ typedef bool BlockMode;
 static const BlockMode BLOCK_MODE = true;
 static const BlockMode NOBLOCK_MODE = false;
 
+using GetPreimage = std::function<std::string()>;
+
 typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 
 typedef std::function<void(bool)> DhtDoneCallback;
@@ -121,8 +127,7 @@ typedef std::list<std::pair<std::string, std::string>> ObjectList;
 
 typedef std::vector<unsigned char> RawData;
 
-typedef std::shared_ptr<const class Nym> ConstNym;
-typedef std::map<std::string, ConstNym> mapOfConstNyms;
+using Nym_p = std::shared_ptr<const identity::Nym>;
 
 // local ID, remote ID
 using ContextID = std::pair<std::string, std::string>;

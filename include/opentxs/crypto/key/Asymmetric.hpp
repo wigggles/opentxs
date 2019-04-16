@@ -84,42 +84,14 @@ public:
         const OTPassword* exportPassword = nullptr,
         const String& credID = String::Factory(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const = 0;
-    template <class C>
-    EXPORT bool SignProto(
-        C& serialized,
+    EXPORT virtual bool Sign(
+        const GetPreimage input,
+        const proto::SignatureRole role,
         proto::Signature& signature,
-        const String& credID = String::Factory(""),
-        const OTPasswordData* pPWData = nullptr) const
-    {
-        if (IsPublic()) {
-            LogOutput(": You must use private keys to create signatures.")
-                .Flush();
-
-            return false;
-        }
-
-        if (0 == signature.version()) { signature.set_version(1); }
-
-        signature.set_credentialid(credID.Get());
-
-        if ((proto::HASHTYPE_ERROR == signature.hashtype()) ||
-            !signature.has_hashtype()) {
-            signature.set_hashtype(SigHashType());
-        }
-
-        auto sig = Data::Factory();
-        bool goodSig = engine().Sign(
-            proto::ProtoAsData<C>(serialized),
-            *this,
-            signature.hashtype(),
-            sig,
-            pPWData,
-            nullptr);
-
-        if (goodSig) { signature.set_signature(sig->data(), sig->size()); }
-
-        return goodSig;
-    }
+        const Identifier& credential,
+        proto::KeyRole key = proto::KEYROLE_SIGN,
+        const OTPasswordData* pPWData = nullptr,
+        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
     EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
         const = 0;
     EXPORT virtual bool Verify(

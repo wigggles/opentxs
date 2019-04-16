@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -57,7 +58,7 @@ public:
     EXPORT virtual OTIdentifier NymToContact(
         const identifier::Nym& nymID) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Update(
-        const proto::CredentialIndex& nym) const = 0;
+        const identity::Nym::Serialized& nym) const = 0;
 
     virtual ~Contacts() = default;
 

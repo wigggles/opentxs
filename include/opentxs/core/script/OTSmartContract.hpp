@@ -109,7 +109,7 @@ public:
     void CloseoutOpeningNumbers();
     using ot_super::HarvestClosingNumbers;
     void HarvestClosingNumbers(
-        const Nym& pSignerNym,
+        const identity::Nym& pSignerNym,
         std::set<OTParty*>* pFailedParties = nullptr);  // Used on server-side.
                                                         // Assumes the
     // related Nyms are already loaded and
@@ -137,9 +137,9 @@ public:
     EXPORT bool SetNotaryIDIfEmpty(const identifier::Server& theID);
 
     EXPORT bool VerifySmartContract(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const Account& theAcct,
-        const Nym& theServerNym,
+        const identity::Nym& theServerNym,
         bool bBurnTransNo = false);
 
     // theNym is trying to activate the smart contract, and has
@@ -313,8 +313,8 @@ protected:
     void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
-        ConstNym theOriginator,
-        ConstNym pRemover) override;
+        Nym_p theOriginator,
+        Nym_p pRemover) override;
     void onRemovalFromCron() override;
     // Above are stored the user and acct IDs of the last sender and recipient
     // of funds.

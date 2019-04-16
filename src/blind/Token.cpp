@@ -45,7 +45,7 @@ blind::Token* Factory::Token(
 
 blind::Token* Factory::Token(
     const api::Core& api,
-    const Nym& owner,
+    const identity::Nym& owner,
     const blind::Mint& mint,
     const blind::Token::Denomination value,
     blind::Purse& purse,

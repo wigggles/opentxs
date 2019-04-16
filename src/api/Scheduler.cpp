@@ -9,7 +9,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Periodic.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <ctime>
 #include <functional>
@@ -48,7 +48,7 @@ void Scheduler::Start(
         std::chrono::seconds(nym_publish_interval_),
         [=]() -> void {
             NymLambda nymLambda(
-                [=](const serializedCredentialIndex& nym) -> void {
+                [=](const identity::Nym::Serialized& nym) -> void {
                     dht->Insert(nym);
                 });
             storage->MapPublicNyms(nymLambda);
@@ -59,7 +59,7 @@ void Scheduler::Start(
         std::chrono::seconds(nym_refresh_interval_),
         [=]() -> void {
             NymLambda nymLambda(
-                [=](const serializedCredentialIndex& nym) -> void {
+                [=](const identity::Nym::Serialized& nym) -> void {
                     dht->GetPublicNym(nym.nymid());
                 });
             storage->MapPublicNyms(nymLambda);

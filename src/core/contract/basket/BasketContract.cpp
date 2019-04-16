@@ -9,7 +9,7 @@
 
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -20,7 +20,7 @@ namespace opentxs
 {
 BasketContract::BasketContract(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::UnitDefinition serialized)
     : ot_super(wallet, nym, serialized)
 {
@@ -39,7 +39,7 @@ BasketContract::BasketContract(
 
 BasketContract::BasketContract(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
@@ -67,7 +67,7 @@ OTIdentifier BasketContract::CalculateBasketID(
 
 bool BasketContract::FinalizeTemplate(
     const api::Wallet& wallet,
-    const ConstNym& nym,
+    const Nym_p& nym,
     proto::UnitDefinition& serialized)
 {
     std::unique_ptr<BasketContract> contract(

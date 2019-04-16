@@ -45,7 +45,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
         proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
 
     // Check m / 0'
-    const ConstNym NymA = client_.Wallet().Nym(identifier::Nym::Factory(Alice));
+    const Nym_p NymA = client_.Wallet().Nym(identifier::Nym::Factory(Alice));
     proto::HDPath pathA;
     ASSERT_TRUE(NymA.get()->Path(pathA));
     ASSERT_EQ(
@@ -268,7 +268,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
         proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0);
 
     // Check m / 0'
-    const ConstNym NymB = client_.Wallet().Nym(identifier::Nym::Factory(Bob));
+    const Nym_p NymB = client_.Wallet().Nym(identifier::Nym::Factory(Bob));
     proto::HDPath pathB;
     ASSERT_TRUE(NymB.get()->Path(pathB));
     ASSERT_EQ(
@@ -503,8 +503,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
         static_cast<proto::ContactItemType>(proto::CITEMTYPE_LTC));
 
     // Check m / 44 ' / 0'
-    const ConstNym NymC =
-        client_.Wallet().Nym(identifier::Nym::Factory(Charly));
+    const Nym_p NymC = client_.Wallet().Nym(identifier::Nym::Factory(Charly));
     proto::HDPath pathC;
     ASSERT_TRUE(NymC.get()->Path(pathC));
     ASSERT_EQ(

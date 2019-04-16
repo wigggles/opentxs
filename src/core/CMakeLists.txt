@@ -34,7 +34,6 @@ set(cxx-sources
   LogSource.cpp
   Message.cpp
   NumList.cpp
-  Nym.cpp
   NymFile.cpp
   NymIDSource.cpp
   OTStorage.cpp
@@ -65,7 +64,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/LogSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Message.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NumList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Nym.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NymFile.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NymIDSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStorage.hpp"

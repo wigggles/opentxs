@@ -31,7 +31,7 @@ public:
         NameRole = Qt::UserRole + 2,
         ImageRole = Qt::UserRole + 3,
         SectionRole = Qt::UserRole + 4,
-		PaymentCodeRole = Qt::UserRole + 5,
+        PaymentCodeRole = Qt::UserRole + 5,
     };
 #endif
 

@@ -13,10 +13,10 @@
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include "MainFile.hpp"
 #include "Server.hpp"

@@ -9,13 +9,13 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
-#include "opentxs/core/crypto/ContactCredential.hpp"
-#include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/credential/Contact.hpp"
+#include "opentxs/identity/credential/Verification.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <list>
@@ -49,7 +49,7 @@ Identity::Identity(const api::Core& api)
 bool Identity::AddInternalVerification(
     bool& changed,
     proto::VerificationSet& verifications,
-    const Nym& onNym,
+    const identity::Nym& onNym,
     const std::string& claimantNymID,
     const std::string& claimID,
     const ClaimPolarity polarity,
@@ -214,7 +214,8 @@ void Identity::PopulateVerificationIDs(proto::VerificationGroup& group) const
 {
     for (auto& identity : *group.mutable_identity()) {
         for (auto& item : *identity.mutable_verification()) {
-            const auto id = VerificationCredential::VerificationID(item);
+            const auto id =
+                identity::credential::Verification::VerificationID(item);
             item.set_id(id);
         }
     }
@@ -245,18 +246,17 @@ bool Identity::RemoveInternalVerification(
 
 bool Identity::Sign(
     proto::Verification& plaintext,
-    const Nym& nym,
+    const identity::Nym& nym,
     const OTPasswordData* pPWData) const
 {
     plaintext.clear_sig();
     auto& signature = *plaintext.mutable_sig();
-    signature.set_role(proto::SIGROLE_CLAIM);
 
-    return nym.SignProto(plaintext, signature, pPWData);
+    return nym.SignProto(plaintext, proto::SIGROLE_CLAIM, signature, pPWData);
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::Verifications(
-    const Nym& onNym) const
+    const identity::Nym& onNym) const
 {
     auto output = onNym.VerificationSet();
 

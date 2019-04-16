@@ -21,9 +21,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 
 #define OT_METHOD "opentxs::PeerRequest::"
@@ -32,7 +32,7 @@ namespace opentxs
 {
 PeerRequest::PeerRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequest& serialized)
     : ot_super(nym, serialized.version())
     , initiator_(api.Factory().NymID(serialized.initiator()))
@@ -49,7 +49,7 @@ PeerRequest::PeerRequest(
 
 PeerRequest::PeerRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequest& serialized,
     const std::string& conditions)
     : ot_super(nym, serialized.version(), conditions)
@@ -67,7 +67,7 @@ PeerRequest::PeerRequest(
 
 PeerRequest::PeerRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::uint32_t version,
     const identifier::Nym& recipient,
     const identifier::Server& server,
@@ -88,7 +88,7 @@ PeerRequest::PeerRequest(
 
 PeerRequest::PeerRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const std::uint32_t version,
     const identifier::Nym& recipient,
     const identifier::Server& server,
@@ -125,7 +125,7 @@ proto::PeerRequest PeerRequest::Contract() const
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
     const api::Core& api,
-    const ConstNym& sender,
+    const Nym_p& sender,
     const proto::PeerRequestType& type,
     const identifier::UnitDefinition& unitID,
     const identifier::Server& serverID,
@@ -171,7 +171,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequestType& type,
     const identifier::UnitDefinition& unitID,
     const identifier::Server& serverID)
@@ -206,7 +206,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequestType& type,
     const identifier::UnitDefinition& unitID,
     const identifier::Server& serverID,
@@ -242,7 +242,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
     const api::Core& api,
-    const ConstNym& sender,
+    const Nym_p& sender,
     const proto::PeerRequestType& type,
     const proto::ConnectionInfoType connectionType,
     const identifier::Nym& recipient,
@@ -268,7 +268,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
     const api::Core& api,
-    const ConstNym& sender,
+    const Nym_p& sender,
     const proto::PeerRequestType& type,
     const proto::SecretType secretType,
     const identifier::Nym& recipient,
@@ -302,7 +302,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 
 std::unique_ptr<PeerRequest> PeerRequest::Factory(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequest& serialized)
 {
     if (!proto::Validate(serialized, VERBOSE)) {
@@ -469,8 +469,8 @@ bool PeerRequest::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    signature.set_role(proto::SIGROLE_PEERREQUEST);
-    success = nym_->SignProto(serialized, signature);
+    success =
+        nym_->SignProto(serialized, proto::SIGROLE_PEERREQUEST, signature);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));

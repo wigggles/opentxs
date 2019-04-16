@@ -89,7 +89,7 @@ public:
     ~Nym();
 
 private:
-    friend class Nyms;
+    friend Nyms;
 
     using PurseID = std::pair<OTServerID, OTUnitID>;
 
@@ -197,9 +197,9 @@ private:
         const std::string& hash,
         const std::string& alias);
     Nym() = delete;
-    Nym(const Nym&) = delete;
+    Nym(const identity::Nym&) = delete;
     Nym(Nym&&) = delete;
-    Nym operator=(const Nym&) = delete;
+    Nym operator=(const identity::Nym&) = delete;
     Nym operator=(Nym&&) = delete;
 };
 }  // namespace opentxs::storage

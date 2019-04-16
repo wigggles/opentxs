@@ -22,7 +22,7 @@ class Reply : virtual public Signable
 {
 public:
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
-        const std::shared_ptr<const opentxs::Nym> signer,
+        const Nym_p signer,
         const identifier::Nym& recipient,
         const identifier::Server& server,
         const proto::ServerReplyType type,

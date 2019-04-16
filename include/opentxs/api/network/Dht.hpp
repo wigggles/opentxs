@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <functional>
@@ -37,7 +38,7 @@ public:
     EXPORT virtual void GetUnitDefinition(const std::string& key) const = 0;
     EXPORT virtual void Insert(const std::string& key, const std::string& value)
         const = 0;
-    EXPORT virtual void Insert(const proto::CredentialIndex& nym) const = 0;
+    EXPORT virtual void Insert(const identity::Nym::Serialized& nym) const = 0;
     EXPORT virtual void Insert(const proto::ServerContract& contract) const = 0;
     EXPORT virtual void Insert(const proto::UnitDefinition& contract) const = 0;
 #if OT_DHT

@@ -45,8 +45,8 @@ TEST_F(Test_ContactItem, first_constructor)
         NULL_START,
         NULL_END);
 
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "testContactItemNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
@@ -100,8 +100,8 @@ TEST_F(Test_ContactItem, second_constructor)
             NULL_END,
             {opentxs::proto::CITEMATTR_ACTIVE}));
 
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "testContactItemNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
@@ -141,8 +141,8 @@ TEST_F(Test_ContactItem, third_constructor)
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         data);
 
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "testContactItemNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
@@ -188,8 +188,8 @@ TEST_F(Test_ContactItem, move_constructor)
     opentxs::ContactItem movedContactItem(
         std::move<opentxs::ContactItem>(contactItem_.SetPrimary(true)));
 
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
@@ -258,8 +258,8 @@ TEST_F(Test_ContactItem, operator_proto_not_equal)
 
 TEST_F(Test_ContactItem, public_accessors)
 {
-    const opentxs::OTIdentifier identifier(
-        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,

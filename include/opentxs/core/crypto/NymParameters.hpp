@@ -8,11 +8,11 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/Credential.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/OTPassword.hpp"
 #endif
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -22,9 +22,6 @@
 
 namespace opentxs
 {
-
-class OTPassword;
-
 class NymParameters
 {
 private:

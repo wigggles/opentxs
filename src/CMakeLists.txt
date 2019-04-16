@@ -21,6 +21,7 @@ add_subdirectory(crypto)
 add_subdirectory(core)
 add_subdirectory(consensus)
 add_subdirectory(ext)
+add_subdirectory(identity)
 add_subdirectory(network)
 add_subdirectory(client)
 add_subdirectory(api)
@@ -108,6 +109,8 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-crypto protobuf)
   add_dependencies(opentxs-cron protobuf)
   add_dependencies(opentxs-ext protobuf)
+  add_dependencies(opentxs-identity-credential protobuf)
+  add_dependencies(opentxs-identity protobuf)
   add_dependencies(opentxs-iterator protobuf)
   add_dependencies(opentxs-network-zeromq-zap protobuf)
   add_dependencies(opentxs-network-zeromq protobuf)
@@ -228,6 +231,8 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-crypto>
   $<TARGET_OBJECTS:opentxs-cron>
   $<TARGET_OBJECTS:opentxs-ext>
+  $<TARGET_OBJECTS:opentxs-identity-credential>
+  $<TARGET_OBJECTS:opentxs-identity>
   $<TARGET_OBJECTS:opentxs-iterator>
   $<TARGET_OBJECTS:opentxs-network-zeromq-zap>
   $<TARGET_OBJECTS:opentxs-network-zeromq>

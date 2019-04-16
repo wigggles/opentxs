@@ -58,8 +58,8 @@ std::shared_ptr<const opentxs::Context> Wallet::Context(
 
 void Wallet::instantiate_server_context(
     const proto::Context& serialized,
-    const std::shared_ptr<const opentxs::Nym>& localNym,
-    const std::shared_ptr<const opentxs::Nym>& remoteNym,
+    const Nym_p& localNym,
+    const Nym_p& remoteNym,
     std::shared_ptr<opentxs::internal::Context>& output) const
 {
     auto& zmq = client_.ZMQ();
@@ -157,9 +157,5 @@ std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
     return output;
 }
 
-std::shared_ptr<const opentxs::Nym> Wallet::signer_nym(
-    const identifier::Nym& id) const
-{
-    return Nym(id);
-}
+Nym_p Wallet::signer_nym(const identifier::Nym& id) const { return Nym(id); }
 }  // namespace opentxs::api::client::implementation

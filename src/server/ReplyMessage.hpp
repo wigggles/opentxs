@@ -8,7 +8,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -24,7 +24,7 @@ public:
         const UserCommandProcessor& parent,
         const opentxs::api::Wallet& wallet,
         const identifier::Server& notaryID,
-        const Nym& signer,
+        const identity::Nym& signer,
         const Message& input,
         Server& server,
         const MessageType& type,
@@ -65,7 +65,7 @@ public:
 private:
     const UserCommandProcessor& parent_;
     const opentxs::api::Wallet& wallet_;
-    const Nym& signer_;
+    const identity::Nym& signer_;
     const Message& original_;
     const OTServerID notary_id_;
     Message& message_;
@@ -73,7 +73,7 @@ private:
     bool init_{false};
     bool drop_{false};
     bool drop_status_{false};
-    ConstNym sender_nym_{nullptr};
+    Nym_p sender_nym_{nullptr};
     std::unique_ptr<Editor<ClientContext>> context_{nullptr};
 
     void attach_request();

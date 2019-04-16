@@ -40,7 +40,7 @@ public:
         const String& acctCount);
     void SetType(Account::AccountType acctType) { acctType_ = acctType; }
     ExclusiveAccount GetOrRegisterAccount(
-        const Nym& serverNym,
+        const identity::Nym& serverNym,
         const identifier::Nym& ACCOUNT_OWNER_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const identifier::Server& NOTARY_ID,

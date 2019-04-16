@@ -675,8 +675,8 @@ public:
     }
 
     void verify_account(
-        const Nym& clientNym,
-        const Nym& serverNym,
+        const identity::Nym& clientNym,
+        const identity::Nym& serverNym,
         const Account& client,
         const Account& server)
     {

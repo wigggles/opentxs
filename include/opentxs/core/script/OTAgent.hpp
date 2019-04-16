@@ -40,7 +40,7 @@ private:
 
     // If agent is active (has a nym), here is the sometimes-available pointer
     // to said Agent Nym. Someday may add a "role" pointer here.
-    ConstNym m_pNym;
+    Nym_p m_pNym;
 
     OTParty* m_pForParty;  // The agent probably has a pointer to the party it
                            // acts on behalf of.
@@ -79,7 +79,7 @@ public:
     OTAgent(
         const api::Wallet& wallet,
         const std::string& str_agent_name,
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const bool bNymRepresentsSelf = true);
     /*IF false, then: ENTITY and ROLE parameters go here.*/
     //
@@ -139,7 +139,7 @@ public:
     void SetParty(OTParty& theOwnerParty);  // This happens when the agent is
                                             // added to the party.
 
-    EXPORT bool IsValidSigner(const Nym& theNym);
+    EXPORT bool IsValidSigner(const identity::Nym& theNym);
     EXPORT bool IsValidSignerID(const Identifier& theNymID);
 
     bool IsAuthorizingAgentForParty();  // true/false whether THIS agent is the
@@ -282,7 +282,7 @@ public:
     // This also makes sure that Nyms and Entities don't ever share IDs, so the
     // IDs become more and more interchangeable.
 
-    ConstNym LoadNym();
+    Nym_p LoadNym();
 
     bool DropFinalReceiptToNymbox(
         OTSmartContract& theSmartContract,
@@ -304,14 +304,14 @@ public:
     bool DropServerNoticeToNymbox(
         const api::Core& api,
         bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
-        const Nym& theServerNym,
+        const identity::Nym& theServerNym,
         const identifier::Server& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lInReferenceTo,
         const String& strReference,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
-        Nym* pActualNym = nullptr);
+        identity::Nym* pActualNym = nullptr);
 };
 }  // namespace opentxs
 #endif

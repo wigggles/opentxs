@@ -224,8 +224,7 @@ const UniqueQueue<WithdrawCashTask>& StateMachine::get_task() const
 #endif
 
 template <>
-std::shared_ptr<const opentxs::Nym> StateMachine::load_contract<CheckNymTask>(
-    const identifier::Nym& id) const
+Nym_p StateMachine::load_contract<CheckNymTask>(const identifier::Nym& id) const
 {
     return client_.Wallet().Nym(id);
 }

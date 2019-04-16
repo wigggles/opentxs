@@ -22,7 +22,7 @@ class Request : virtual public Signable
 {
 public:
     EXPORT static Pimpl<opentxs::otx::Request> Factory(
-        const std::shared_ptr<const opentxs::Nym> signer,
+        const Nym_p signer,
         const identifier::Server& server,
         const proto::ServerRequestType type);
     EXPORT static Pimpl<opentxs::otx::Request> Factory(

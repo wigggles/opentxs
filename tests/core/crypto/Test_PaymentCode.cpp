@@ -261,8 +261,7 @@ TEST_F(Test_PaymentCode, factory)
 
     // Factory 3: std:
     proto::HDPath path;
-    const ConstNym nym =
-        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
+    const Nym_p nym = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
     EXPECT_TRUE(nym.get()->Path(path));
     std::string fingerprint = path.root();
 
@@ -287,8 +286,7 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
     std::uint8_t bitmessage_version = 0;
     std::uint8_t bitmessage_stream = 0;
 
-    const ConstNym nym =
-        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
+    const Nym_p nym = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
     proto::HDPath path;
     EXPECT_TRUE(nym.get()->Path(path));
 
@@ -302,10 +300,8 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
  */
 TEST_F(Test_PaymentCode, two_nyms)
 {
-    const ConstNym nym_0 =
-        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
-    const ConstNym nym_1 =
-        client_.Wallet().Nym(identifier::Nym::Factory(nymID_1));
+    const Nym_p nym_0 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
+    const Nym_p nym_1 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_1));
 
     NymIDSource idsource_0(
         client_.Factory(), client_.Factory().PaymentCode(paycode_0));

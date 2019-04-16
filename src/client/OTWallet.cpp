@@ -28,13 +28,13 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -133,21 +133,6 @@ void OTWallet::DisplayStatistics(String& strOutput) const
     Lock lock(lock_);
     strOutput.Concatenate(
         "\n-------------------------------------------------\n");
-    strOutput.Concatenate("WALLET STATISTICS:\n");
-
-    strOutput.Concatenate("\nNYM(s):\n\n");
-
-    for (auto& it : api_.Storage().LocalNyms()) {
-        const auto& nymId = identifier::Nym::Factory(it);
-        const auto& pNym = api_.Wallet().Nym(nymId);
-
-        OT_ASSERT(pNym);
-
-        pNym->DisplayStatistics(strOutput);
-    }
-
-    strOutput.Concatenate(
-        "-------------------------------------------------\n");
     strOutput.Concatenate("ACCOUNTS:\n\n");
 
     for (const auto& it : api_.Storage().AccountList()) {

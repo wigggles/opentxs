@@ -9,10 +9,10 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/StringXML.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -129,7 +129,7 @@ public:
      * sign it and calculate its new ID from the finished result. */
     EXPORT virtual bool CreateContract(
         const String& strContract,
-        const Nym& theSigner);
+        const identity::Nym& theSigner);
 
     /** CreateContract is great if you already know what kind of contract to
      * instantiate and have already done so. Otherwise this function will take
@@ -139,7 +139,7 @@ public:
     EXPORT static bool SignFlatText(
         String& strFlatText,
         const String& strContractType,  // "LEDGER" or "PURSE" etc.
-        const Nym& theSigner,
+        const identity::Nym& theSigner,
         String& strOutput);
     EXPORT inline void GetName(String& strName) const
     {
@@ -234,22 +234,22 @@ public:
     /** Save m_xmlUnsigned to a string that's passed in */
     EXPORT virtual bool SaveContents(String& strContents) const;
     EXPORT virtual bool SignContract(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContractAuthent(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignWithKey(
         const crypto::key::Asymmetric& theKey,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         Signature& theSignature,
         const OTPasswordData* pPWData = nullptr);
 
     /** Uses authentication key instead of signing key. */
     EXPORT bool SignContractAuthent(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         Signature& theSignature,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(
@@ -279,22 +279,22 @@ public:
 
     /** So far not overridden anywhere (used to be OTTrade.) */
     EXPORT virtual bool VerifySignature(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT virtual bool VerifySigAuthent(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT virtual bool VerifyWithKey(
         const crypto::key::Asymmetric& theKey,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT bool VerifySignature(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const Signature& theSignature,
         const OTPasswordData* pPWData = nullptr) const;
 
     /** Uses authentication key instead of signing key. */
     EXPORT bool VerifySigAuthent(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const Signature& theSignature,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT bool VerifySignature(
@@ -302,7 +302,7 @@ public:
         const Signature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
-    EXPORT ConstNym GetContractPublicNym() const;
+    EXPORT Nym_p GetContractPublicNym() const;
 
 protected:
     const api::Core& api_;
@@ -343,7 +343,7 @@ protected:
      * requisite key exchange. ==> THE TRADER HAS ASSURANCE THAT, IF HIS
      * OUT-MESSAGE IS ENCRYPTED, HE KNOWS THE MESSAGE CAN ONLY BE DECRYPTED BY
      * THE SAME PERSON WHO SIGNED THAT CONTRACT. */
-    mapOfConstNyms m_mapNyms;
+    std::map<std::string, Nym_p> m_mapNyms;
 
     /** The PGP signatures at the bottom of the XML file. */
     listOfSignatures m_listSignatures;

@@ -8,8 +8,6 @@
 
 namespace opentxs
 {
-typedef proto::CredentialIndex serializedCredentialIndex;
-
 class NymFile
 {
 public:

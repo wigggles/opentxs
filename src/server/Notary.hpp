@@ -39,13 +39,13 @@ private:
     class Finalize
     {
     public:
-        Finalize(const Nym& signer, Item& item, Item& balanceItem);
+        Finalize(const identity::Nym& signer, Item& item, Item& balanceItem);
         Finalize() = delete;
 
         ~Finalize();
 
     private:
-        const Nym& signer_;
+        const identity::Nym& signer_;
         Item& item_;
         Item& balance_item_;
     };

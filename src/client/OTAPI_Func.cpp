@@ -23,9 +23,9 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <cstdint>
 #include <iostream>

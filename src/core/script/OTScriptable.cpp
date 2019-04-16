@@ -645,7 +645,7 @@ bool OTScriptable::ExecuteCallback(
 
 bool OTScriptable::SendNoticeToAllParties(
     bool bSuccessMsg,
-    const Nym& theServerNym,
+    const identity::Nym& theServerNym,
     const identifier::Server& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     // const std::int64_t& lInReferenceTo,
@@ -653,7 +653,7 @@ bool OTScriptable::SendNoticeToAllParties(
     const String& strReference,
     OTString pstrNote,
     OTString pstrAttachment,
-    Nym* pActualNym) const
+    identity::Nym* pActualNym) const
 {
     bool bSuccess =
         true;  // Success is defined as ALL parties receiving a notice
@@ -869,7 +869,7 @@ OTParty* OTScriptable::FindPartyBasedOnAccountID(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
@@ -882,7 +882,7 @@ OTParty* OTScriptable::FindPartyBasedOnNymAsAgent(
 }
 
 OTParty* OTScriptable::FindPartyBasedOnNymAsAuthAgent(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     OTAgent** ppAgent) const
 {
     for (auto& it : m_mapParties) {
@@ -951,8 +951,8 @@ OTParty* OTScriptable::FindPartyBasedOnAccount(
 bool OTScriptable::VerifyPartyAuthorization(
     OTParty& theParty,  // The party that supposedly is authorized for this
                         // supposedly executed agreement.
-    const Nym& theSignerNym,    // For verifying signature on the authorizing
-                                // Nym, when loading it
+    const identity::Nym& theSignerNym,  // For verifying signature on the
+                                        // authorizing Nym, when loading it
     const String& strNotaryID,  // For verifying issued num, need the notaryID
                                 // the # goes with.
     const bool bBurnTransNo)    // In Server::VerifySmartContract(),
@@ -988,7 +988,7 @@ bool OTScriptable::VerifyPartyAuthorization(
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    ConstNym pAuthAgentsNym = nullptr;
+    Nym_p pAuthAgentsNym = nullptr;
     pAuthAgentsNym =
         theParty.LoadAuthorizingAgentNym(theSignerNym, &pAuthorizingAgent);
 
@@ -1155,8 +1155,9 @@ bool OTScriptable::VerifyPartyAuthorization(
 // and cleans the pointers
 // when it's done.
 //
-bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
-    const
+bool OTScriptable::VerifyNymAsAgent(
+    const identity::Nym& theNym,
+    const identity::Nym& theSignerNym) const
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:
@@ -1223,7 +1224,7 @@ bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    ConstNym pAuthAgentsNym = nullptr;
+    Nym_p pAuthAgentsNym = nullptr;
 
     // See if theNym is the authorizing agent.
     //
@@ -1503,7 +1504,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 // AGAIN: CALL VerifyNymAsAgent() BEFORE you call this function! Otherwise you
 // aren't proving nearly as much. ALWAYS call it first.
 bool OTScriptable::VerifyNymAsAgentForAccount(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const Account& theAccount) const
 {
 

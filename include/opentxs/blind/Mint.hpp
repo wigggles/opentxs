@@ -40,7 +40,7 @@ public:
         const = 0;
 
     EXPORT virtual bool AddDenomination(
-        const Nym& theNotary,
+        const identity::Nym& theNotary,
         const std::int64_t denomination,
         const std::size_t keySize) = 0;
     EXPORT virtual void GenerateNewMint(
@@ -51,7 +51,7 @@ public:
         time64_t MINT_EXPIRATION,
         const identifier::UnitDefinition& theInstrumentDefinitionID,
         const identifier::Server& theNotaryID,
-        const Nym& theNotary,
+        const identity::Nym& theNotary,
         const std::int64_t nDenom1,
         const std::int64_t nDenom2,
         const std::int64_t nDenom3,
@@ -70,10 +70,12 @@ public:
     EXPORT virtual void SetInstrumentDefinitionID(
         const identifier::UnitDefinition& newID) = 0;
     EXPORT virtual void SetSavePrivateKeys(bool bDoIt = true) = 0;
-    EXPORT virtual bool SignToken(const Nym& notary, blind::Token& token) = 0;
-    EXPORT virtual bool VerifyMint(const Nym& theOperator) = 0;
+    EXPORT virtual bool SignToken(
+        const identity::Nym& notary,
+        blind::Token& token) = 0;
+    EXPORT virtual bool VerifyMint(const identity::Nym& theOperator) = 0;
     EXPORT virtual bool VerifyToken(
-        const Nym& notary,
+        const identity::Nym& notary,
         const blind::Token& token) = 0;
 
     EXPORT ~Mint() override = default;

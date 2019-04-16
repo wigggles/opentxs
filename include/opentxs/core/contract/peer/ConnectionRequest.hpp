@@ -25,11 +25,11 @@ private:
 
     ConnectionRequest(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const proto::PeerRequest& serialized);
     ConnectionRequest(
         const api::Core& api,
-        const ConstNym& nym,
+        const Nym_p& nym,
         const identifier::Nym& recipientID,
         const proto::ConnectionInfoType type,
         const identifier::Server& serverID);

@@ -789,8 +789,8 @@ bool OTCron::AddCronItem(
 
 bool OTCron::RemoveCronItem(
     std::int64_t lTransactionNum,
-    ConstNym theRemover)  // if returns false, item
-                          // wasn't found.
+    Nym_p theRemover)  // if returns false, item
+                       // wasn't found.
 {
     // See if there's a cron item with that transaction number.
     auto it_map = FindItemOnMap(lTransactionNum);

@@ -54,7 +54,7 @@ public:
         Data& dataOutput);
     static bool Open(
         const Data& dataInput,
-        const Nym& theRecipient,
+        const identity::Nym& theRecipient,
         const OTPasswordData& keyPassword,
         String& theOutput);
 

@@ -61,7 +61,7 @@ public:
     // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
     void HookRemovalFromCron(
         const api::Wallet& wallet,
-        ConstNym pRemover,
+        Nym_p pRemover,
         std::int64_t newTransactionNo);
 
     inline bool IsFlaggedForRemoval() const { return m_bRemovalFlag; }
@@ -114,7 +114,7 @@ public:
     }
 
     inline OTCron* GetCron() const { return m_pCron; }
-    void setServerNym(ConstNym serverNym) { serverNym_ = serverNym; }
+    void setServerNym(Nym_p serverNym) { serverNym_ = serverNym; }
     void setNotaryID(const identifier::Server& notaryID);
     // When first adding anything to Cron, a copy needs to be saved in a folder
     // somewhere.
@@ -140,7 +140,7 @@ public:
 
     // When canceling a cron item before it
     // has been activated, use this.
-    EXPORT bool CancelBeforeActivation(const Nym& theCancelerNym);
+    EXPORT bool CancelBeforeActivation(const identity::Nym& theCancelerNym);
 
     // These are for     std::deque<std::int64_t> m_dequeClosingNumbers;
     // They are numbers used for CLOSING a transaction. (finalReceipt.)
@@ -183,9 +183,9 @@ protected:
     virtual void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
-        ConstNym theOriginator,
-        ConstNym pRemover) = 0;  // called by
-                                 // HookRemovalFromCron().
+        Nym_p theOriginator,
+        Nym_p pRemover) = 0;  // called by
+                              // HookRemovalFromCron().
 
     virtual void onRemovalFromCron() {}  // called by HookRemovalFromCron().
     void ClearClosingNumbers();
@@ -206,7 +206,7 @@ private:
     typedef OTTrackable ot_super;
 
     OTCron* m_pCron{nullptr};
-    ConstNym serverNym_{nullptr};
+    Nym_p serverNym_{nullptr};
     OTIdentifier notaryID_;
     time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
                                   // authorized.

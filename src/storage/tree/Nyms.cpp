@@ -116,22 +116,22 @@ bool Nyms::Migrate(const opentxs::api::storage::Driver& to) const
     return output;
 }
 
-Editor<class Nym> Nyms::mutable_Nym(const std::string& id)
+Editor<storage::Nym> Nyms::mutable_Nym(const std::string& id)
 {
-    std::function<void(class Nym*, Lock&)> callback =
-        [&](class Nym* in, Lock& lock) -> void { this->save(in, lock, id); };
+    std::function<void(storage::Nym*, Lock&)> callback =
+        [&](storage::Nym* in, Lock& lock) -> void { this->save(in, lock, id); };
 
-    return Editor<class Nym>(write_lock_, nym(id), callback);
+    return Editor<storage::Nym>(write_lock_, nym(id), callback);
 }
 
-class Nym* Nyms::nym(const std::string& id) const
+storage::Nym* Nyms::nym(const std::string& id) const
 {
     Lock lock(write_lock_);
 
     return nym(lock, id);
 }
 
-class Nym* Nyms::nym(const Lock& lock, const std::string& id) const
+storage::Nym* Nyms::nym(const Lock& lock, const std::string& id) const
 {
     OT_ASSERT(verify_write_lock(lock))
 
@@ -141,7 +141,7 @@ class Nym* Nyms::nym(const Lock& lock, const std::string& id) const
     auto& node = nyms_[id];
 
     if (!node) {
-        node.reset(new class Nym(driver_, id, hash, alias));
+        node.reset(new storage::Nym(driver_, id, hash, alias));
 
         if (!node) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate nym.")
@@ -153,7 +153,7 @@ class Nym* Nyms::nym(const Lock& lock, const std::string& id) const
     return node.get();
 }
 
-const class Nym& Nyms::Nym(const std::string& id) const { return *nym(id); }
+const storage::Nym& Nyms::Nym(const std::string& id) const { return *nym(id); }
 
 bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
 {
@@ -205,7 +205,7 @@ bool Nyms::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-void Nyms::save(class Nym* nym, const Lock& lock, const std::string& id)
+void Nyms::save(storage::Nym* nym, const Lock& lock, const std::string& id)
 {
     if (!verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();

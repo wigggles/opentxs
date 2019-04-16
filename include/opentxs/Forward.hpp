@@ -124,6 +124,22 @@ class Server;
 class UnitDefinition;
 }  // namespace identifier
 
+namespace identity
+{
+namespace credential
+{
+class Base;
+class Contact;
+class Key;
+class Primary;
+class Secondary;
+class Verification;
+}  // namespace credential
+
+class Authority;
+class Nym;
+}  // namespace identity
+
 namespace network
 {
 namespace zeromq
@@ -237,10 +253,9 @@ class ContactSection;
 class Context;
 class Contract;
 class CurrencyContract;
-class Credential;
-class CredentialSet;
 class CryptoSymmetricDecryptOutput;
 class Data;
+class Factory;
 class Flag;
 class Identifier;
 class Item;
@@ -248,11 +263,9 @@ class Ledger;
 class Letter;
 class ListenCallbackSwig;
 class Log;
-class MasterCredential;
 class ManagedNumber;
 class Message;
 class NumList;
-class Nym;
 class NymData;
 class NymFile;
 class NymIDSource;
@@ -312,6 +325,7 @@ class StringXML;
 class Tag;
 class TransactionStatement;
 class UnitDefinition;
+class UserCommandProcessor;
 
 using OTArmored = Pimpl<Armored>;
 using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;

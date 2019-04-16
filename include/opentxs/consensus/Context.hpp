@@ -35,7 +35,7 @@ public:
     EXPORT virtual bool NymboxHashMatch() const = 0;
     EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
         const OTPasswordData& reason) const = 0;
-    EXPORT virtual const opentxs::Nym& RemoteNym() const = 0;
+    EXPORT virtual const identity::Nym& RemoteNym() const = 0;
     EXPORT virtual OTIdentifier RemoteNymboxHash() const = 0;
     EXPORT virtual RequestNumber Request() const = 0;
     EXPORT virtual proto::Context Serialized() const = 0;

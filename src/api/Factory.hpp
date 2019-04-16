@@ -146,15 +146,15 @@ public:
         const identifier::Nym& RECIPIENT_NYM_ID) const override;
 
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& message) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::string& payment,
         const bool isPayment) const override;
 #if OT_CASH
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& senderNym,
+        const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse) const override;
 #endif
     std::unique_ptr<opentxs::PeerObject> PeerObject(
@@ -165,10 +165,10 @@ public:
         const std::shared_ptr<const PeerRequest> request,
         const std::uint32_t& version) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& signerNym,
+        const Nym_p& signerNym,
         const proto::PeerObject& serialized) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const ConstNym& recipientNym,
+        const Nym_p& recipientNym,
         const Armored& encrypted) const override;
 
 #if OT_CASH
@@ -181,7 +181,7 @@ public:
     std::unique_ptr<blind::Purse> Purse(
         const proto::Purse& serialized) const override;
     std::unique_ptr<blind::Purse> Purse(
-        const Nym& owner,
+        const identity::Nym& owner,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const proto::CashType type) const override;

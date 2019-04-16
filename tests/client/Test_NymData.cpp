@@ -43,24 +43,6 @@ static const std::string expectedStringOutput =
     std::string{"\n--- Attributes: Active Primary \n"};
 }  // namespace
 
-//
-// TODO: NymData::AddChildKeyCredential is broken.
-//
-// TEST_F(Test_NymData, AddChildKeyCredential)
-//{
-//    const opentxs::CredentialSet* credentialSet =
-//        nymData_.Nym().GetMasterCredentialByIndex(0);
-//    ASSERT_NE(nullptr, credentialSet);
-//
-//    opentxs::OTIdentifier masterId =
-//    credentialSet->GetMasterCredential().ID();
-//
-//    opentxs::NymParameters nymParameters;
-//    std::string id =
-//        nymData_.AddChildKeyCredential(masterId, nymParameters);
-//    ASSERT_TRUE(!id.empty());
-//}
-
 TEST_F(Test_NymData, AddClaim)
 {
     opentxs::Claim claim = std::make_tuple(
@@ -83,7 +65,7 @@ TEST_F(Test_NymData, AddContract)
     EXPECT_FALSE(added);
 
     const auto identifier1(opentxs::identifier::UnitDefinition::Factory(
-        opentxs::ContactCredential::ClaimID(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -137,7 +119,7 @@ TEST_F(Test_NymData, AddPhoneNumber)
 TEST_F(Test_NymData, AddPreferredOTServer)
 {
     const auto identifier(opentxs::identifier::Server::Factory(
-        opentxs::ContactCredential::ClaimID(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -229,7 +211,7 @@ TEST_F(Test_NymData, DeleteClaim)
     ASSERT_TRUE(added);
 
     const auto identifier(opentxs::identifier::UnitDefinition::Factory(
-        opentxs::ContactCredential::ClaimID(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -268,7 +250,7 @@ TEST_F(Test_NymData, EmailAddresses)
 TEST_F(Test_NymData, HaveContract)
 {
     const auto identifier1(opentxs::identifier::UnitDefinition::Factory(
-        opentxs::ContactCredential::ClaimID(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -297,7 +279,7 @@ TEST_F(Test_NymData, HaveContract)
     EXPECT_TRUE(haveContract);
 
     const auto identifier2(opentxs::identifier::UnitDefinition::Factory(
-        opentxs::ContactCredential::ClaimID(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -380,7 +362,7 @@ TEST_F(Test_NymData, PreferredOTServer)
     EXPECT_TRUE(preferred.empty());
 
     const auto identifier(opentxs::identifier::Server::Factory(
-        opentxs::ContactCredential::ClaimID(
+        opentxs::identity::credential::Contact::ClaimID(
             "testNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,

@@ -20,7 +20,7 @@ class PeerObject
 {
 public:
     EXPORT virtual const std::unique_ptr<std::string>& Message() const = 0;
-    EXPORT virtual const ConstNym& Nym() const = 0;
+    EXPORT virtual const Nym_p& Nym() const = 0;
     EXPORT virtual const std::unique_ptr<std::string>& Payment() const = 0;
 #if OT_CASH
     EXPORT virtual std::shared_ptr<blind::Purse> Purse() const = 0;

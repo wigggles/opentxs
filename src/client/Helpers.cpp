@@ -16,10 +16,10 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -38,7 +38,7 @@ namespace opentxs
 // a purse or something, that the caller wants to retrieve.
 //
 std::shared_ptr<OTPayment> GetInstrumentByReceiptID(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const std::int64_t& lReceiptId,
     Ledger& ledger)
 {
@@ -56,7 +56,7 @@ std::shared_ptr<OTPayment> GetInstrumentByReceiptID(
 }
 // ------------------------------------------------------------
 std::shared_ptr<OTPayment> GetInstrumentByIndex(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const std::int32_t& nIndex,
     Ledger& ledger)
 {
@@ -78,7 +78,7 @@ std::shared_ptr<OTPayment> GetInstrumentByIndex(
 // Returns financial instrument contained in receipt.
 //
 std::shared_ptr<OTPayment> GetInstrument(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     Ledger& ledger,
     std::shared_ptr<OTTransaction> pTransaction)
 {
@@ -154,7 +154,7 @@ std::shared_ptr<OTPayment> GetInstrument(
 
 // Low-level.
 std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     std::shared_ptr<OTTransaction> pTransaction)
 {
     const bool bValidNotice =

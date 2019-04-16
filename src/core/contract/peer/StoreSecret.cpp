@@ -16,7 +16,7 @@ namespace opentxs
 {
 StoreSecret::StoreSecret(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequest& serialized)
     : ot_super(api, nym, serialized)
     , secret_type_(serialized.storesecret().type())
@@ -27,7 +27,7 @@ StoreSecret::StoreSecret(
 
 StoreSecret::StoreSecret(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const identifier::Nym& recipientID,
     const proto::SecretType type,
     const std::string& primary,

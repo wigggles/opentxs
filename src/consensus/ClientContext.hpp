@@ -63,14 +63,14 @@ private:
 
     ClientContext(
         const api::Core& api,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server);
     ClientContext(
         const api::Core& api,
         const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
+        const Nym_p& local,
+        const Nym_p& remote,
         const identifier::Server& server);
     ClientContext() = delete;
     ClientContext(const ClientContext&) = delete;

@@ -71,8 +71,8 @@ protected:
     void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
-        ConstNym theOriginator,
-        ConstNym pRemover) override;
+        Nym_p theOriginator,
+        Nym_p pRemover) override;
     void onRemovalFromCron() override;
 
     // Numbers used for CLOSING a transaction. (finalReceipt.)
@@ -116,7 +116,7 @@ public:
         ServerContext& context,
         const Account& PAYER_ACCT,
         const identifier::Nym& p_id_MERCHANT_NYM,
-        const Nym* pMERCHANT_NYM = nullptr);
+        const identity::Nym* pMERCHANT_NYM = nullptr);
 
     // What should be the process here?
 
@@ -192,7 +192,7 @@ public:
 
      THE RECIPIENT:
 
-     3) bool bConfirmation =  pPlan->Confirm(Nym& PAYER_NYM,
+     3) bool bConfirmation =  pPlan->Confirm(identity::Nym& PAYER_NYM,
                                              Nym *
     pMERCHANT_NYM=nullptr,
                                              OTIdentifier *
@@ -357,23 +357,24 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    bool VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
-        const override;
+    bool VerifyNymAsAgent(
+        const identity::Nym& theNym,
+        const identity::Nym& theSignerNym) const override;
 
     bool VerifyNymAsAgentForAccount(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const Account& theAccount) const override;
 
     /*
      From Contract, I have:
 
-     virtual bool SignContract (const Nym& theNym);
+     virtual bool SignContract (const identity::Nym& theNym);
 
      */
     EXPORT bool SendNoticeToAllParties(
         const api::Core& core,
         bool bSuccessMsg,
-        const Nym& theServerNym,
+        const identity::Nym& theServerNym,
         const identifier::Server& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo, //
@@ -381,13 +382,13 @@ public:
         const String& strReference,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
-        Nym* pActualNym = nullptr) const;
+        identity::Nym* pActualNym = nullptr) const;
 
     // Nym receives an Item::acknowledgment or Item::rejection.
     EXPORT static bool DropServerNoticeToNymbox(
         const api::Core& core,
         bool bSuccessMsg,
-        const Nym& theServerNym,
+        const identity::Nym& theServerNym,
         const identifier::Server& NOTARY_ID,
         const identifier::Nym& NYM_ID,
         const TransactionNumber& lNewTransactionNumber,

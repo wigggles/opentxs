@@ -16,7 +16,7 @@ namespace opentxs
 {
 ConnectionRequest::ConnectionRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequest& serialized)
     : ot_super(api, nym, serialized)
     , connection_type_(serialized.connectioninfo().type())
@@ -25,7 +25,7 @@ ConnectionRequest::ConnectionRequest(
 
 ConnectionRequest::ConnectionRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const identifier::Nym& recipientID,
     const proto::ConnectionInfoType type,
     const identifier::Server& serverID)

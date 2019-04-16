@@ -21,14 +21,6 @@
 
 namespace opentxs
 {
-
-class Context;
-class Message;
-class Nym;
-class OTPasswordData;
-class ServerContext;
-class Tag;
-
 namespace api
 {
 namespace implementation
@@ -115,10 +107,10 @@ public:
     bool VerifyContractID() const override;
 
     EXPORT bool SignContract(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const OTPasswordData* pPWData = nullptr) override;
     EXPORT bool VerifySignature(
-        const Nym& theNym,
+        const identity::Nym& theNym,
         const OTPasswordData* pPWData = nullptr) const override;
 
     EXPORT bool HarvestTransactionNumbers(

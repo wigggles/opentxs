@@ -24,9 +24,9 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -100,14 +100,14 @@ void OTAgreement::setCustomerNymId(const identifier::Nym& NYM_ID)
 bool OTAgreement::SendNoticeToAllParties(
     const api::Core& core,
     bool bSuccessMsg,
-    const Nym& theServerNym,
+    const identity::Nym& theServerNym,
     const identifier::Server& theNotaryID,
     const TransactionNumber& lNewTransactionNumber,
     // Each party has its own opening trans #.
     const String& strReference,
     OTString pstrNote,
     OTString pstrAttachment,
-    Nym* pActualNym) const
+    identity::Nym* pActualNym) const
 {
     // Success is defined as ALL parties receiving a notice
     bool bSuccess = true;
@@ -155,7 +155,7 @@ bool OTAgreement::SendNoticeToAllParties(
 bool OTAgreement::DropServerNoticeToNymbox(
     const api::Core& core,
     bool bSuccessMsg,
-    const Nym& theServerNym,
+    const identity::Nym& theServerNym,
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& NYM_ID,
     const TransactionNumber& lNewTransactionNumber,
@@ -338,7 +338,9 @@ void OTAgreement::GetAllTransactionNumbers(NumList& numlistOutput) const
 // what I still call here, inside this function. But that's a special case -- an
 // override from the OTScriptable / OTSmartContract version, which verifies
 // parties and agents, etc.
-bool OTAgreement::VerifyNymAsAgent(const Nym& theNym, const Nym&) const
+bool OTAgreement::VerifyNymAsAgent(
+    const identity::Nym& theNym,
+    const identity::Nym&) const
 {
     return VerifySignature(theNym);
 }
@@ -346,7 +348,7 @@ bool OTAgreement::VerifyNymAsAgent(const Nym& theNym, const Nym&) const
 // This is an override. See note above.
 //
 bool OTAgreement::VerifyNymAsAgentForAccount(
-    const Nym& theNym,
+    const identity::Nym& theNym,
     const Account& theAccount) const
 {
     return theAccount.VerifyOwner(theNym);
@@ -358,8 +360,8 @@ bool OTAgreement::VerifyNymAsAgentForAccount(
 void OTAgreement::onFinalReceipt(
     OTCronItem& theOrigCronItem,
     const std::int64_t& lNewTransactionNumber,
-    ConstNym theOriginator,
-    ConstNym pRemover)
+    Nym_p theOriginator,
+    Nym_p pRemover)
 {
     OTCron* pCron = GetCron();
 
@@ -955,7 +957,7 @@ bool OTAgreement::Confirm(
     ServerContext& context,
     const Account& PAYER_ACCT,
     const identifier::Nym& p_id_MERCHANT_NYM,
-    const Nym* pMERCHANT_NYM)
+    const identity::Nym* pMERCHANT_NYM)
 {
     auto nym = context.Nym();
 

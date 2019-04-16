@@ -23,21 +23,17 @@ namespace opentxs
 {
 namespace storage
 {
-
-class Nym;
-class Tree;
-
 class Nyms : public Node
 {
 private:
     friend class Tree;
 
-    mutable std::map<std::string, std::unique_ptr<class Nym>> nyms_;
+    mutable std::map<std::string, std::unique_ptr<storage::Nym>> nyms_;
     std::set<std::string> local_nyms_{};
 
-    class Nym* nym(const std::string& id) const;
-    class Nym* nym(const Lock& lock, const std::string& id) const;
-    void save(class Nym* nym, const Lock& lock, const std::string& id);
+    storage::Nym* nym(const std::string& id) const;
+    storage::Nym* nym(const Lock& lock, const std::string& id) const;
+    void save(storage::Nym* nym, const Lock& lock, const std::string& id);
 
     void init(const std::string& hash) override;
     bool save(const Lock& lock) const override;
@@ -55,9 +51,9 @@ public:
     const std::set<std::string> LocalNyms() const;
     void Map(NymLambda lambda) const;
     bool Migrate(const opentxs::api::storage::Driver& to) const override;
-    const class Nym& Nym(const std::string& id) const;
+    const storage::Nym& Nym(const std::string& id) const;
 
-    Editor<class Nym> mutable_Nym(const std::string& id);
+    Editor<storage::Nym> mutable_Nym(const std::string& id);
     bool RelabelThread(const std::string& threadID, const std::string label);
     void UpgradeLocalnym();
 

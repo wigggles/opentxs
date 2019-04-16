@@ -33,6 +33,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
@@ -698,7 +699,7 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    [[maybe_unused]] const ConstNym& senderNym,
+    [[maybe_unused]] const Nym_p& senderNym,
     [[maybe_unused]] const std::string& message) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -709,7 +710,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    [[maybe_unused]] const ConstNym& senderNym,
+    [[maybe_unused]] const Nym_p& senderNym,
     [[maybe_unused]] const std::string& payment,
     [[maybe_unused]] const bool isPayment) const
 {
@@ -722,7 +723,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 #if OT_CASH
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    [[maybe_unused]] const ConstNym& senderNym,
+    [[maybe_unused]] const Nym_p& senderNym,
     [[maybe_unused]] const std::shared_ptr<blind::Purse> purse) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -757,7 +758,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    [[maybe_unused]] const ConstNym& signerNym,
+    [[maybe_unused]] const Nym_p& signerNym,
     [[maybe_unused]] const proto::PeerObject& serialized) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -768,7 +769,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    [[maybe_unused]] const ConstNym& recipientNym,
+    [[maybe_unused]] const Nym_p& recipientNym,
     [[maybe_unused]] const Armored& encrypted) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -798,7 +799,7 @@ std::unique_ptr<blind::Purse> Factory::Purse(
 }
 
 std::unique_ptr<blind::Purse> Factory::Purse(
-    const Nym& owner,
+    const identity::Nym& owner,
     const identifier::Server& server,
     const identifier::UnitDefinition& unit,
     const proto::CashType type) const

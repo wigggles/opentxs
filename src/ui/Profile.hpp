@@ -82,7 +82,7 @@ private:
         return ProfileList::last(id);
     }
 
-    void process_nym(const Nym& nym);
+    void process_nym(const identity::Nym& nym);
     void process_nym(const network::zeromq::Message& message);
     void startup();
 

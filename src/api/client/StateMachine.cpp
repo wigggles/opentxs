@@ -809,9 +809,9 @@ bool StateMachine::publish_server_contract(
 bool StateMachine::queue_contracts(const ServerContext& context, int& next)
 {
     check_server_nym(context);
-    check_missing_contract<CheckNymTask, opentxs::Nym>(
+    check_missing_contract<CheckNymTask, identity::Nym>(
         missing_nyms_, unknown_nyms_);
-    check_missing_contract<CheckNymTask, opentxs::Nym>(
+    check_missing_contract<CheckNymTask, identity::Nym>(
         outdated_nyms_, unknown_nyms_, false);
     check_missing_contract<DownloadContractTask, opentxs::ServerContract>(
         missing_servers_, unknown_servers_);

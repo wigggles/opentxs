@@ -73,7 +73,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
@@ -82,6 +82,7 @@
 #include "opentxs/crypto/Bip32.hpp"
 #endif
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
@@ -4883,7 +4884,7 @@ bool OT_API::RecordPayment(
 
     // Sometimes the payment and transport notaries are the same
     // notary. Sometimes they are different, we handle both cases.
-    ConstNym payment_nym;  // So far, still null.
+    Nym_p payment_nym;  // So far, still null.
     // ----------------------------------------
     std::unique_ptr<rLock> payment_lock;
 
@@ -4905,12 +4906,12 @@ bool OT_API::RecordPayment(
     };
     class recordpayment_cleanup2
     {
-        Editor<class NymFile> payment_nymfile_;
+        Editor<opentxs::NymFile> payment_nymfile_;
 
     public:
-        Editor<class NymFile>& paymentNymfile() { return payment_nymfile_; }
+        Editor<opentxs::NymFile>& paymentNymfile() { return payment_nymfile_; }
 
-        recordpayment_cleanup2(Editor<class NymFile>&& payment_nymfile)
+        recordpayment_cleanup2(Editor<opentxs::NymFile>&& payment_nymfile)
             : payment_nymfile_(std::move(payment_nymfile))
         {
         }
@@ -4919,7 +4920,7 @@ bool OT_API::RecordPayment(
     std::unique_ptr<recordpayment_cleanup2> pCleanup2;
 
     Editor<opentxs::ServerContext>* payment_context{nullptr};
-    Editor<class NymFile>* payment_nymfile{nullptr};
+    Editor<opentxs::NymFile>* payment_nymfile{nullptr};
     // ----------------------------------------
     std::unique_ptr<Ledger> pRecordBox{nullptr};
     std::unique_ptr<Ledger> pExpiredBox{nullptr};
@@ -10252,7 +10253,7 @@ bool OT_API::add_accept_item(
     const TransactionNumber originNumber,
     const TransactionNumber referenceNumber,
     const String& note,
-    const Nym& nym,
+    const identity::Nym& nym,
     const Amount amount,
     const String& inRefTo,
     OTTransaction& processInbox) const

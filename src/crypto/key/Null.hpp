@@ -73,6 +73,17 @@ public:
     {
         return false;
     }
+    bool Sign(
+        const GetPreimage,
+        const proto::SignatureRole,
+        proto::Signature&,
+        const Identifier&,
+        proto::KeyRole key,
+        const OTPasswordData* pPWData,
+        const proto::HashType hash) const override
+    {
+        return false;
+    }
     bool TransportKey(Data&, OTPassword&) const override { return false; }
     bool Verify(const Data&, const proto::Signature&) const override
     {

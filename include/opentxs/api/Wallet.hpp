@@ -53,7 +53,7 @@ public:
         const identifier::Nym& ownerNymID,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
-        const class Nym& signer,
+        const identity::Nym& signer,
         Account::AccountType type,
         TransactionNumber stash) const = 0;
     EXPORT virtual bool DeleteAccount(const Identifier& accountID) const = 0;
@@ -195,7 +195,7 @@ public:
      *                       willing to wait for a network lookup. The default
      *                       value of 0 will return immediately.
      */
-    EXPORT virtual ConstNym Nym(
+    EXPORT virtual Nym_p Nym(
         const identifier::Nym& id,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
@@ -207,24 +207,24 @@ public:
      *
      *    \param[in] nym the serialized version of the contract
      */
-    EXPORT virtual ConstNym Nym(const proto::CredentialIndex& nym) const = 0;
+    EXPORT virtual Nym_p Nym(const identity::Nym::Serialized& nym) const = 0;
 
-    EXPORT virtual ConstNym Nym(
+    EXPORT virtual Nym_p Nym(
         const NymParameters& nymParameters,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const = 0;
 
     EXPORT virtual NymData mutable_Nym(const identifier::Nym& id) const = 0;
 
-    EXPORT virtual std::unique_ptr<const class NymFile> Nymfile(
+    EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
         const identifier::Nym& id,
         const OTPasswordData& reason) const = 0;
 
-    EXPORT virtual Editor<class NymFile> mutable_Nymfile(
+    EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
         const identifier::Nym& id,
         const OTPasswordData& reason) const = 0;
 
-    EXPORT virtual ConstNym NymByIDPartialMatch(
+    EXPORT virtual Nym_p NymByIDPartialMatch(
         const std::string& partialId) const = 0;
 
     /**   Returns a list of all known nyms and their aliases

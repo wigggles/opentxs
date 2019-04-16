@@ -11,12 +11,13 @@ class Lucre final : Mint
 {
 public:
     bool AddDenomination(
-        const Nym& theNotary,
+        const identity::Nym& theNotary,
         const std::int64_t denomination,
         const std::size_t keySize) override;
 
-    bool SignToken(const Nym& notary, blind::Token& token) override;
-    bool VerifyToken(const Nym& notary, const blind::Token& token) override;
+    bool SignToken(const identity::Nym& notary, blind::Token& token) override;
+    bool VerifyToken(const identity::Nym& notary, const blind::Token& token)
+        override;
 
     ~Lucre() = default;
 

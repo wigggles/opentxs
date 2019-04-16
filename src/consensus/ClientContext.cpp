@@ -11,7 +11,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include "Context.hpp"
 
@@ -25,8 +25,8 @@ namespace opentxs
 {
 internal::ClientContext* Factory::ClientContext(
     const api::Core& api,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server)
 {
     return new implementation::ClientContext(api, local, remote, server);
@@ -35,8 +35,8 @@ internal::ClientContext* Factory::ClientContext(
 internal::ClientContext* Factory::ClientContext(
     const api::Core& api,
     const proto::Context& serialized,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server)
 {
     return new implementation::ClientContext(
@@ -48,8 +48,8 @@ namespace opentxs::implementation
 {
 ClientContext::ClientContext(
     const api::Core& api,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server)
     : Signable(local, CURRENT_VERSION)
     , implementation::Context(api, CURRENT_VERSION, local, remote, server)
@@ -59,8 +59,8 @@ ClientContext::ClientContext(
 ClientContext::ClientContext(
     const api::Core& api,
     const proto::Context& serialized,
-    const ConstNym& local,
-    const ConstNym& remote,
+    const Nym_p& local,
+    const Nym_p& remote,
     const identifier::Server& server)
     : Signable(local, CURRENT_VERSION)
     , implementation::Context(

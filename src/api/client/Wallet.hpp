@@ -36,11 +36,10 @@ private:
 
     void instantiate_server_context(
         const proto::Context& serialized,
-        const std::shared_ptr<const opentxs::Nym>& localNym,
-        const std::shared_ptr<const opentxs::Nym>& remoteNym,
+        const Nym_p& localNym,
+        const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const override;
-    std::shared_ptr<const opentxs::Nym> signer_nym(
-        const identifier::Nym& id) const override;
+    Nym_p signer_nym(const identifier::Nym& id) const override;
 
     Wallet(const api::client::Manager& client);
     Wallet() = delete;

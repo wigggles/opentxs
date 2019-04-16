@@ -20,9 +20,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 
 #include "Data.hpp"
@@ -173,12 +173,12 @@ OTUnitID identifier::UnitDefinition::Factory(const String& rhs)
     return OTUnitID(new implementation::Identifier(rhs));
 }
 
-OTIdentifier Identifier::Factory(const opentxs::Nym& nym)
+OTIdentifier Identifier::Factory(const identity::Nym& nym)
 {
     return OTIdentifier(new implementation::Identifier(nym));
 }
 
-OTNymID identifier::Nym::Factory(const opentxs::Nym& rhs)
+OTNymID identifier::Nym::Factory(const identity::Nym& rhs)
 {
     return OTNymID(new implementation::Identifier(rhs));
 }
@@ -267,10 +267,10 @@ Identifier::Identifier(const Contract& theContract)
     (const_cast<Contract&>(theContract)).GetIdentifier(*this);
 }
 
-Identifier::Identifier(const opentxs::Nym& theNym)
+Identifier::Identifier(const identity::Nym& theNym)
     : ot_super()  // Get the Nym's ID into this identifier.
 {
-    (const_cast<opentxs::Nym&>(theNym)).GetIdentifier(*this);
+    (const_cast<identity::Nym&>(theNym)).GetIdentifier(*this);
 }
 
 Identifier::Identifier(const crypto::key::LegacySymmetric& theKey)

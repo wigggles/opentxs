@@ -21,7 +21,6 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -44,6 +43,7 @@
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -304,7 +304,7 @@ bool Letter::Seal(
 
 bool Letter::Open(
     const Data& dataInput,
-    const Nym& theRecipient,
+    const identity::Nym& theRecipient,
     const OTPasswordData& keyPassword,
     String& theOutput)
 {

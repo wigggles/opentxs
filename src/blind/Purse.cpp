@@ -16,13 +16,14 @@
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/blind/Token.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include "Token.hpp"
 
@@ -56,9 +57,9 @@ blind::Purse* Factory::Purse(
 
 blind::Purse* Factory::Purse(
     const api::Core& api,
-    const Nym& nym,
+    const identity::Nym& nym,
     const identifier::Server& server,
-    const Nym& serverNym,
+    const identity::Nym& serverNym,
     const proto::CashType type,
     const blind::Mint& mint,
     const Amount totalValue)
@@ -98,7 +99,7 @@ blind::Purse* Factory::Purse(
 blind::Purse* Factory::Purse(
     const api::Core& api,
     const blind::Purse& request,
-    const Nym& requester)
+    const identity::Nym& requester)
 {
     auto* output = new blind::implementation::Purse(
         api, dynamic_cast<const blind::implementation::Purse&>(request));
@@ -115,7 +116,7 @@ blind::Purse* Factory::Purse(
 
 blind::Purse* Factory::Purse(
     const api::Core& api,
-    const Nym& owner,
+    const identity::Nym& owner,
     const identifier::Server& server,
     const identifier::UnitDefinition& unit,
     const proto::CashType type)
@@ -331,7 +332,7 @@ Purse::Purse(const api::Core& api, const Purse& owner)
     OT_ASSERT(primary_);
 }
 
-bool Purse::AddNym(const Nym& nym)
+bool Purse::AddNym(const identity::Nym& nym)
 {
     if (false == unlocked_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Purse is locked").Flush();
@@ -379,7 +380,7 @@ OTSymmetricKey Purse::generate_key(OTPassword& password) const
 // TODO replace this algorithm with one that will ensure all spends up to and
 // including the specified amount are possible
 bool Purse::GeneratePrototokens(
-    const Nym& owner,
+    const identity::Nym& owner,
     const Mint& mint,
     const Amount amount)
 {
@@ -463,7 +464,7 @@ std::shared_ptr<Token> Purse::Pop()
     return pToken;
 }
 
-bool Purse::Process(const Nym& owner, const Mint& mint)
+bool Purse::Process(const identity::Nym& owner, const Mint& mint)
 {
     if (proto::PURSETYPE_ISSUE != state_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect purse state").Flush();
@@ -540,7 +541,7 @@ void Purse::recalculate_times()
     for (const auto& token : tokens_) { apply_times(token); }
 }
 
-crypto::key::Symmetric& Purse::SecondaryKey(const Nym& owner)
+crypto::key::Symmetric& Purse::SecondaryKey(const identity::Nym& owner)
 {
     if (false == bool(secondary_)) {
         throw std::out_of_range("No secondary key");
@@ -613,7 +614,7 @@ proto::Purse Purse::Serialize() const
     return output;
 }
 
-bool Purse::Unlock(const Nym& nym) const
+bool Purse::Unlock(const identity::Nym& nym) const
 {
     if (primary_passwords_.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No session keys found").Flush();

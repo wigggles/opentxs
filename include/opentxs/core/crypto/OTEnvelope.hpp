@@ -17,7 +17,7 @@ namespace opentxs
 {
 typedef std::multimap<std::string, crypto::key::Asymmetric*>
     mapOfAsymmetricKeys;
-typedef std::set<const Nym*> setOfNyms;
+typedef std::set<const identity::Nym*> setOfNyms;
 
 class OTEnvelope
 {
@@ -39,7 +39,7 @@ public:
         const crypto::key::LegacySymmetric& theKey,
         const OTPassword& thePassword);
     EXPORT bool Seal(const setOfNyms& recipients, const String& theInput);
-    EXPORT bool Seal(const Nym& theRecipient, const String& theInput);
+    EXPORT bool Seal(const identity::Nym& theRecipient, const String& theInput);
     EXPORT bool Seal(
         const mapOfAsymmetricKeys& recipientKeys,
         const String& theInput);
@@ -47,7 +47,7 @@ public:
         const crypto::key::Asymmetric& RecipPubKey,
         const String& theInput);
     EXPORT bool Open(
-        const Nym& theRecipient,
+        const identity::Nym& theRecipient,
         String& theOutput,
         const OTPasswordData* pPWData = nullptr);
 

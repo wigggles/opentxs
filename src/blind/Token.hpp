@@ -26,7 +26,7 @@ public:
     Denomination Value() const override { return denomination_; }
 
     virtual bool GenerateTokenRequest(
-        const Nym& owner,
+        const identity::Nym& owner,
         const OTPassword& primaryPassword,
         const OTPassword& secondaryPassword,
         const Mint& mint) = 0;

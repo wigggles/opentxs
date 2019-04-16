@@ -8,9 +8,9 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/core/Nym.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -157,7 +157,7 @@ public:
     NymData(const NymData&);
     NymData(NymData&&);
 
-    const proto::CredentialIndex asPublicNym() const;
+    identity::Nym::Serialized asPublicNym() const;
     std::string BestEmail() const;
     std::string BestPhoneNumber() const;
     std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
@@ -170,7 +170,7 @@ public:
         const bool primary,
         const bool active) const;
     std::string Name() const;
-    const opentxs::Nym& Nym() const;
+    const identity::Nym& Nym() const;
     std::string PaymentCode(const proto::ContactItemType currency) const;
     std::string PhoneNumbers(bool active = true) const;
     std::string PreferredOTServer() const;
@@ -234,19 +234,19 @@ private:
     std::unique_ptr<Lock> object_lock_;
     std::unique_ptr<LockedSave> locked_save_callback_;
 
-    std::shared_ptr<opentxs::Nym> nym_;
+    std::shared_ptr<identity::Nym> nym_;
 
     const ContactData& data() const;
 
-    const opentxs::Nym& nym() const;
-    opentxs::Nym& nym();
+    const identity::Nym& nym() const;
+    identity::Nym& nym();
 
     void release();
 
     NymData(
         const api::Factory& factory,
         std::mutex& objectMutex,
-        const std::shared_ptr<opentxs::Nym>& nym,
+        const std::shared_ptr<identity::Nym>& nym,
         LockedSave save);
     NymData() = delete;
     NymData& operator=(const NymData&) = delete;

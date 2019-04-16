@@ -17,7 +17,7 @@ namespace opentxs
 {
 OutBailmentRequest::OutBailmentRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const proto::PeerRequest& serialized)
     : ot_super(api, nym, serialized, serialized.outbailment().instructions())
     , unit_(api_.Factory().UnitID(serialized.outbailment().unitid()))
@@ -28,7 +28,7 @@ OutBailmentRequest::OutBailmentRequest(
 
 OutBailmentRequest::OutBailmentRequest(
     const api::Core& api,
-    const ConstNym& nym,
+    const Nym_p& nym,
     const identifier::Nym& recipientID,
     const identifier::UnitDefinition& unitID,
     const identifier::Server& serverID,

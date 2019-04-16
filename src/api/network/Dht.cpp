@@ -14,7 +14,7 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
@@ -162,7 +162,7 @@ void Dht::Insert(
 }
 
 void Dht::Insert(__attribute__((unused))
-                 const serializedCredentialIndex& nym) const
+                 const identity::Nym::Serialized& nym) const
 {
 #if OT_DHT
     node_->Insert(nym.nymid(), proto::ProtoAsString(nym));

@@ -39,7 +39,9 @@ public:
 
     EXPORT virtual bool ChangeOwner(crypto::key::Symmetric& key) = 0;
     EXPORT virtual bool MarkSpent() = 0;
-    EXPORT virtual bool Process(const Nym& owner, const Mint& mint) = 0;
+    EXPORT virtual bool Process(
+        const identity::Nym& owner,
+        const Mint& mint) = 0;
 
     EXPORT virtual ~Token() = default;
 

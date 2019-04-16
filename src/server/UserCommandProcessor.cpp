@@ -36,11 +36,12 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/Nym.hpp"
+#include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/identity/Nym.hpp"
 
 #include "Macros.hpp"
 #include "MainFile.hpp"
@@ -66,7 +67,7 @@ namespace opentxs::server
 {
 UserCommandProcessor::FinalizeResponse::FinalizeResponse(
     const api::Core& core,
-    const Nym& nym,
+    const identity::Nym& nym,
     ReplyMessage& reply,
     Ledger& ledger)
     : api_{core}
@@ -312,7 +313,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
 
 bool UserCommandProcessor::check_client_isnt_server(
     const identifier::Nym& nymID,
-    const Nym& serverNym)
+    const identity::Nym& serverNym)
 {
     const auto& serverNymID = serverNym.ID();
     const bool bNymIsServerNym = serverNymID == nymID;
@@ -2414,7 +2415,7 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
 std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
     const identifier::Nym& nymID,
     const identifier::Server& server,
-    const Nym& serverNym) const
+    const identity::Nym& serverNym) const
 {
     auto nymbox{manager_.Factory().Ledger(nymID, nymID, server)};
 
@@ -2600,7 +2601,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const identifier::Server& serverID,
-    const Nym& serverNym,
+    const identity::Nym& serverNym,
     const bool verifyAccount) const
 {
     if (accountID == nymID) {
@@ -2647,7 +2648,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
 std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
-    const Nym& serverNym,
+    const identity::Nym& serverNym,
     const bool verifyAccount) const
 {
     auto nymbox{manager_.Factory().Ledger(nymID, nymID, serverID)};
@@ -2689,7 +2690,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
     const identifier::Nym& nymID,
     const Identifier& accountID,
     const identifier::Server& serverID,
-    const Nym& serverNym,
+    const identity::Nym& serverNym,
     const bool verifyAccount) const
 {
     if (accountID == nymID) {
@@ -2957,7 +2958,7 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
     return true;
 }
 
-bool UserCommandProcessor::save_box(const Nym& nym, Ledger& box) const
+bool UserCommandProcessor::save_box(const identity::Nym& nym, Ledger& box) const
 {
     box.ReleaseSignatures();
 
@@ -2967,7 +2968,7 @@ bool UserCommandProcessor::save_box(const Nym& nym, Ledger& box) const
 }
 
 bool UserCommandProcessor::save_inbox(
-    const Nym& nym,
+    const identity::Nym& nym,
     Identifier& hash,
     Ledger& inbox) const
 {
@@ -2979,7 +2980,7 @@ bool UserCommandProcessor::save_inbox(
 }
 
 bool UserCommandProcessor::save_nymbox(
-    const Nym& nym,
+    const identity::Nym& nym,
     Identifier& hash,
     Ledger& nymbox) const
 {
@@ -2991,7 +2992,7 @@ bool UserCommandProcessor::save_nymbox(
 }
 
 bool UserCommandProcessor::save_outbox(
-    const Nym& nym,
+    const identity::Nym& nym,
     Identifier& hash,
     Ledger& outbox) const
 {
@@ -3005,7 +3006,7 @@ bool UserCommandProcessor::save_outbox(
 bool UserCommandProcessor::verify_box(
     const Identifier& ownerID,
     Ledger& box,
-    const Nym& nym,
+    const identity::Nym& nym,
     const bool full) const
 {
     if (false == box.VerifyContractID()) {
@@ -3039,7 +3040,7 @@ bool UserCommandProcessor::verify_box(
 
 bool UserCommandProcessor::verify_transaction(
     const OTTransaction* transaction,
-    const Nym& signer) const
+    const identity::Nym& signer) const
 {
     if (nullptr == transaction) { return false; }
 
