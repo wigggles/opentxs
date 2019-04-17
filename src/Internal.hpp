@@ -406,6 +406,14 @@ template <typename T>
 struct make_blank {
     static T value() { return T{}; }
 };
+
+template <typename I>
+int polarity(const I value)
+{
+    if (0 == value) { return 0; }
+
+    return (0 < value) ? 1 : -1;
+}
 }  // namespace opentxs
 
 #include "Factory.hpp"

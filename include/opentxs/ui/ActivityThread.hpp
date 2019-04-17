@@ -38,7 +38,7 @@ class ActivityThread : virtual public List
 
 public:
     enum ActivityThreadRoles {
-        AmountRole = Qt::UserRole + 1,
+        AmountPolarityRole = Qt::UserRole + 1,
         DisplayAmountRole = Qt::UserRole + 2,
         MemoRole = Qt::UserRole + 3,
         TextRole = Qt::UserRole + 4,

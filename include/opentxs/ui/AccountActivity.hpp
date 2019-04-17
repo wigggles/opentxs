@@ -28,7 +28,7 @@ class AccountActivity : virtual public List
 public:
     enum AccountActivityRoles {
         IDRole = Qt::UserRole + 1,
-        AmountRole = Qt::UserRole + 2,
+        AmountPolarityRole = Qt::UserRole + 2,
         ContactsRole = Qt::UserRole + 3,
         DisplayAmountRole = Qt::UserRole + 4,
         MemoRole = Qt::UserRole + 5,
@@ -41,6 +41,7 @@ public:
 
 public:
     EXPORT virtual Amount Balance() const = 0;
+    EXPORT virtual int BalancePolarity() const = 0;
     EXPORT virtual std::string DisplayBalance() const = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First()
         const = 0;
