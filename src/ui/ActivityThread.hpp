@@ -91,6 +91,11 @@ public:
     std::string GetDraft() const override;
     std::string Participants() const override;
     bool Pay(
+        const std::string& amount,
+        const Identifier& sourceAccount,
+        const std::string& memo,
+        const PaymentType type) const override;
+    bool Pay(
         const Amount amount,
         const Identifier& sourceAccount,
         const std::string& memo,
