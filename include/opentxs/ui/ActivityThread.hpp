@@ -58,6 +58,11 @@ public:
     EXPORT virtual std::string GetDraft() const = 0;
     EXPORT virtual std::string Participants() const = 0;
     EXPORT virtual bool Pay(
+        const std::string& amount,
+        const Identifier& sourceAccount,
+        const std::string& memo = "",
+        const PaymentType type = PaymentType::Cheque) const = 0;
+    EXPORT virtual bool Pay(
         const Amount amount,
         const Identifier& sourceAccount,
         const std::string& memo = "",

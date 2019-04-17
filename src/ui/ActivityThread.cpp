@@ -360,6 +360,47 @@ std::string ActivityThread::Participants() const
 }
 
 bool ActivityThread::Pay(
+    const std::string& amount,
+    const Identifier& sourceAccount,
+    const std::string& memo,
+    const PaymentType type) const
+{
+    const auto& unitID = api_.Storage().AccountContract(sourceAccount);
+
+    if (unitID->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account: (")(
+            sourceAccount)(")")
+            .Flush();
+
+        return false;
+    }
+
+    const auto contract = api_.Wallet().UnitDefinition(unitID);
+
+    if (false == bool(contract)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing unit definition (")(
+            unitID)(")")
+            .Flush();
+
+        return false;
+    }
+
+    Amount value{0};
+    const auto converted =
+        contract->StringToAmountLocale(value, amount, "", "");
+
+    if (false == converted) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error parsing amount (")(amount)(
+            ")")
+            .Flush();
+
+        return false;
+    }
+
+    return Pay(value, sourceAccount, memo, type);
+}
+
+bool ActivityThread::Pay(
     const Amount amount,
     const Identifier& sourceAccount,
     const std::string& memo,
