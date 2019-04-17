@@ -40,6 +40,7 @@ class AccountActivity final : public AccountActivityList
 
 public:
     const Identifier& AccountID() const override { return account_id_.get(); }
+    int BalancePolarity() const override { return polarity(balance_.load()); }
     Amount Balance() const override { return balance_.load(); }
 #if OT_QT
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)

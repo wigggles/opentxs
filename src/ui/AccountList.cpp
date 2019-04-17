@@ -84,7 +84,7 @@ AccountList::AccountList(
           ,
           qt,
           Roles{{IDRole, "id"},
-                {BalanceRole, "balance"},
+                {BalancePolarityRole, "balancepolarity"},
                 {ContractIDRole, "contractid"},
                 {DisplayBalanceRole, "displaybalance"},
                 {DisplayUnit, "displayunit"},
@@ -131,8 +131,8 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
         case IDRole: {
             return row.AccountID().c_str();
         }
-        case BalanceRole: {
-            return qlonglong(row.Balance());
+        case BalancePolarityRole: {
+            return polarity(row.Balance());
         }
         case ContractIDRole: {
             return row.ContractID().c_str();

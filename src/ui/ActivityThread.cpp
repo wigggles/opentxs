@@ -90,7 +90,7 @@ ActivityThread::ActivityThread(
 #if OT_QT
         ,
         qt,
-        Roles{{AmountRole, "amount"},
+        Roles{{AmountPolarityRole, "amountpolarity"},
               {DisplayAmountRole, "displayamount"},
               {MemoRole, "memo"},
               {TextRole, "text"},
@@ -223,8 +223,8 @@ QVariant ActivityThread::data(const QModelIndex& index, int role) const
     const auto& row = *pRow;
 
     switch (role) {
-        case AmountRole: {
-            return qlonglong(row.Amount());
+        case AmountPolarityRole: {
+            return polarity(row.Amount());
         }
         case DisplayAmountRole: {
             return row.DisplayAmount().c_str();

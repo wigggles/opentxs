@@ -86,7 +86,7 @@ AccountActivity::AccountActivity(
           ,
           qt,
           Roles{{IDRole, "id"},
-                {AmountRole, "amount"},
+                {AmountPolarityRole, "amountpolarity"},
                 {ContactsRole, "contacts"},
                 {DisplayAmountRole, "displayamount"},
                 {MemoRole, "memo"},
@@ -150,8 +150,8 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
         case IDRole: {
             return row.UUID().c_str();
         }
-        case AmountRole: {
-            return qlonglong(row.Amount());
+        case AmountPolarityRole: {
+            return polarity(row.Amount());
         }
         case ContactsRole: {
             std::string contacts;
