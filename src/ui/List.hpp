@@ -265,33 +265,30 @@ protected:
     {
         OT_ASSERT(verify_lock(lock));
 
-        try {
-            auto& key = names_.at(id);
-            auto& inner = items_.at(key);
+        auto& key = names_.at(id);
+        auto& inner = items_.at(key);
 
-            auto item = inner.find(id);
+        auto item = inner.find(id);
 
-            // I'm about to delete this row. Make sure iterators are not
-            // pointing to it
-            if (init_.load() && inner_ == item) { increment_inner(lock); }
+        // I'm about to delete this row. Make sure iterators are not
+        // pointing to it
+        if (init_.load() && inner_ == item) { increment_inner(lock); }
 
 #if OT_QT
-            if (enable_qt_) {
-                const auto row = find_delete_point(lock, id);
-                unconst_cast(this)->beginRemoveRows(me(), row, row);
-            }
-#endif
-            const auto itemDeleted = inner.erase(id);
-
-            OT_ASSERT(1 == itemDeleted)
-
-            if (0 == inner.size()) { items_.erase(key); }
-
-            const auto indexDeleted = names_.erase(id);
-
-            OT_ASSERT(1 == indexDeleted)
-        } catch (...) {
+        if (enable_qt_) {
+            const auto row = find_delete_point(lock, id);
+            unconst_cast(this)->beginRemoveRows(me(), row, row);
         }
+#endif
+        const auto itemDeleted = inner.erase(id);
+
+        OT_ASSERT(1 == itemDeleted)
+
+        if (0 == inner.size()) { items_.erase(key); }
+
+        const auto indexDeleted = names_.erase(id);
+
+        OT_ASSERT(1 == indexDeleted)
 
 #if OT_QT
         if (enable_qt_) {
