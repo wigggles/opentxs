@@ -3805,8 +3805,7 @@ void ServerContext::process_incoming_message(
 
     if (false == message->LoadContractFromString(serialized)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to decode peer object: failed to deserialize "
-            "message.")
+            ": Unable to decode peer object: failed to deserialize message.")
             .Flush();
 
         return;
@@ -3871,9 +3870,7 @@ void ServerContext::process_incoming_message(
             } break;
             default: {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Unable to decode peer object: unknown peer "
-                    "object "
-                    "type.")
+                    ": Unable to decode peer object: unknown peer object type.")
                     .Flush();
             }
         }
