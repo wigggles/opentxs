@@ -105,6 +105,8 @@ ActivityThread::ActivityThread(
         new MessageProcessor<ActivityThread>(&ActivityThread::process_thread)},}
     , threadID_(Identifier::Factory(threadID))
     , participants_()
+    , participants_promise_()
+    , participants_future_(participants_promise_.get_future())
     , contact_lock_()
     , draft_lock_()
     , draft_()
@@ -132,6 +134,8 @@ ActivityThread::ActivityThread(
 
 void ActivityThread::can_message() const
 {
+    participants_future_.get();
+
     for (const auto& id : participants_) {
         api_.OTX().CanMessage(primary_id_, id, true);
     }
@@ -261,8 +265,7 @@ QVariant ActivityThread::data(const QModelIndex& index, int role) const
 
 std::string ActivityThread::DisplayName() const
 {
-    Lock lock(lock_);
-
+    participants_future_.get();
     std::set<std::string> names{};
 
     for (const auto& contactID : participants_) {
@@ -287,7 +290,7 @@ std::string ActivityThread::GetDraft() const
 
 void ActivityThread::init_contact()
 {
-    wait_for_startup();
+    participants_future_.get();
 
     if (1 != participants_.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong number of participants (")(
@@ -333,6 +336,7 @@ void ActivityThread::load_thread(const proto::StorageThread& thread)
         participants_.emplace(Identifier::Factory(id));
     }
 
+    participants_promise_.set_value();
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(thread.item().size())(
         " items.")
         .Flush();
@@ -345,13 +349,14 @@ void ActivityThread::load_thread(const proto::StorageThread& thread)
 void ActivityThread::new_thread()
 {
     participants_.emplace(threadID_);
+    participants_promise_.set_value();
     UpdateNotify();
     startup_complete_->On();
 }
 
 std::string ActivityThread::Participants() const
 {
-    Lock lock(lock_);
+    participants_future_.get();
     std::set<std::string> ids{};
 
     for (const auto& id : participants_) { ids.emplace(id->str()); }
@@ -527,6 +532,8 @@ bool ActivityThread::send_cheque(
     const Identifier& sourceAccount,
     const std::string& memo) const
 {
+    participants_future_.get();
+
     if (false == validate_account(sourceAccount)) { return false; }
 
     if (participants_.empty()) {
@@ -590,6 +597,7 @@ bool ActivityThread::send_cheque(
 
 bool ActivityThread::SendDraft() const
 {
+    participants_future_.get();
     eLock draftLock(draft_lock_);
 
     if (draft_.empty()) {
