@@ -13,6 +13,8 @@
 #include "internal/ui/UI.hpp"
 #include "List.hpp"
 
+#include <future>
+
 namespace std
 {
 using STORAGEID = std::
@@ -116,6 +118,8 @@ private:
     const ListenerDefinitions listeners_;
     const OTIdentifier threadID_;
     std::set<OTIdentifier> participants_;
+    mutable std::promise<void> participants_promise_;
+    mutable std::shared_future<void> participants_future_;
     mutable std::mutex contact_lock_;
     mutable std::shared_mutex draft_lock_;
     mutable std::string draft_{""};
