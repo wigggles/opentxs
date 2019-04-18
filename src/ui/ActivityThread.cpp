@@ -101,6 +101,7 @@ ActivityThread::ActivityThread(
         1
 #endif
     )
+    , StateMachine(std::bind(&ActivityThread::process_drafts, this))
     , listeners_{{api_.Activity().ThreadPublisher(nymID),
         new MessageProcessor<ActivityThread>(&ActivityThread::process_thread)},}
     , threadID_(Identifier::Factory(threadID))
@@ -108,20 +109,12 @@ ActivityThread::ActivityThread(
     , participants_promise_()
     , participants_future_(participants_promise_.get_future())
     , contact_lock_()
-    , draft_lock_()
     , draft_()
     , draft_tasks_()
     , contact_(nullptr)
     , contact_thread_(nullptr)
-    , queue_callback_(zmq::ListenCallback::Factory(
-          [=](const zmq::Message& in) -> void { this->process_draft(in); }))
-    , queue_pull_(api.ZeroMQ().PullSocket(
-          queue_callback_,
-          zmq::Socket::Direction::Bind))
-    , queue_push_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
 {
     init();
-    init_sockets();
     setup_listeners(listeners_);
     startup_.reset(new std::thread(&ActivityThread::startup, this));
 
@@ -283,7 +276,7 @@ std::string ActivityThread::DisplayName() const
 
 std::string ActivityThread::GetDraft() const
 {
-    sLock lock(draft_lock_);
+    Lock lock(decision_lock_);
 
     return draft_;
 }
@@ -305,29 +298,6 @@ void ActivityThread::init_contact()
     contact_ = contact;
     lock.unlock();
     UpdateNotify();
-}
-
-void ActivityThread::init_sockets()
-{
-    const auto endpoint =
-        std::string("inproc://") + Identifier::Random()->str();
-    auto started = queue_pull_->Start(endpoint);
-
-    if (false == started) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start pull socket ")
-            .Flush();
-
-        OT_FAIL;
-    }
-
-    started = queue_push_->Start(endpoint);
-
-    if (false == started) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start push socket ")
-            .Flush();
-
-        OT_FAIL;
-    }
 }
 
 void ActivityThread::load_thread(const proto::StorageThread& thread)
@@ -442,9 +412,9 @@ std::string ActivityThread::PaymentCode(
     return {};
 }
 
-void ActivityThread::process_draft(const network::zeromq::Message&)
+bool ActivityThread::process_drafts()
 {
-    eLock lock(draft_lock_);
+    Lock draftLock(decision_lock_);
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Checking ")(draft_tasks_.size())(
         " pending sends.")
         .Flush();
@@ -453,7 +423,7 @@ void ActivityThread::process_draft(const network::zeromq::Message&)
     for (auto i = draft_tasks_.begin(); i != draft_tasks_.end();) {
         auto& [rowID, backgroundTask] = *i;
         auto& future = std::get<1>(backgroundTask);
-        const auto status = future.wait_for(std::chrono::milliseconds(1));
+        const auto status = future.wait_for(std::chrono::microseconds(1));
 
         if (std::future_status::ready == status) {
             // TODO maybe keep failed sends
@@ -464,13 +434,18 @@ void ActivityThread::process_draft(const network::zeromq::Message&)
         }
     }
 
+    draftLock.unlock();
     Lock widgetLock(lock_);
 
     for (const auto& id : deleted) { delete_item(widgetLock, id); }
 
     if (0 < deleted.size()) { UpdateNotify(); }
 
-    if (0 < draft_tasks_.size()) { queue_push_->Push(""); }
+    draftLock.lock();
+
+    if (0 < draft_tasks_.size()) { return true; }
+
+    return false;
 }
 
 ActivityThreadRowID ActivityThread::process_item(
@@ -510,6 +485,12 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
         const auto id = process_item(item);
         active.emplace(id);
     }
+
+    Lock draftLock(decision_lock_);
+
+    for (const auto& [id, task] : draft_tasks_) { active.emplace(id); }
+
+    draftLock.unlock();
 
     delete_inactive(active);
 }
@@ -577,6 +558,7 @@ bool ActivityThread::send_cheque(
         return false;
     }
 
+    Lock draftLock(decision_lock_);
     id = ActivityThreadRowID{
         Identifier::Random(), StorageBox::PENDING_SEND, Identifier::Factory()};
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
@@ -590,15 +572,14 @@ bool ActivityThread::send_cheque(
     OT_ASSERT(1 == names_.count(id));
 
     draft_tasks_.emplace_back(std::move(task));
-    queue_push_->Push("");
+    trigger(draftLock);
 
     return true;
 }
 
 bool ActivityThread::SendDraft() const
 {
-    participants_future_.get();
-    eLock draftLock(draft_lock_);
+    Lock draftLock(decision_lock_);
 
     if (draft_.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No draft message to send.")
@@ -646,7 +627,7 @@ bool ActivityThread::SendDraft() const
 
     draft_tasks_.emplace_back(std::move(task));
     draft_.clear();
-    queue_push_->Push("");
+    trigger(draftLock);
 
     return true;
 }
@@ -657,7 +638,7 @@ bool ActivityThread::SetDraft(const std::string& draft) const
 
     if (draft.empty()) { return false; }
 
-    eLock lock(draft_lock_);
+    Lock lock(decision_lock_);
     draft_ = draft;
 
     return true;
@@ -706,6 +687,8 @@ bool ActivityThread::validate_account(const Identifier& sourceAccount) const
 
 ActivityThread::~ActivityThread()
 {
+    Stop();
+
     for (auto& it : listeners_) { delete it.second; }
 
     if (contact_thread_ && contact_thread_->joinable()) {

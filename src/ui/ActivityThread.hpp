@@ -10,6 +10,7 @@
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
 
+#include "core/StateMachine.hpp"
 #include "internal/ui/UI.hpp"
 #include "List.hpp"
 
@@ -78,7 +79,8 @@ using ActivityThreadList = List<
     ActivityThreadSortKey,
     ActivityThreadPrimaryID>;
 
-class ActivityThread final : public ActivityThreadList
+class ActivityThread final : public ActivityThreadList,
+                             public opentxs::internal::StateMachine
 {
 #if OT_QT
     Q_OBJECT
@@ -121,14 +123,10 @@ private:
     mutable std::promise<void> participants_promise_;
     mutable std::shared_future<void> participants_future_;
     mutable std::mutex contact_lock_;
-    mutable std::shared_mutex draft_lock_;
     mutable std::string draft_{""};
     mutable std::vector<DraftTask> draft_tasks_;
     std::shared_ptr<const opentxs::Contact> contact_;
     std::unique_ptr<std::thread> contact_thread_{nullptr};
-    OTZMQListenCallback queue_callback_;
-    OTZMQPullSocket queue_pull_;
-    OTZMQPushSocket queue_push_;
 
     std::string comma(const std::set<std::string>& list) const;
     void can_message() const;
@@ -143,11 +141,10 @@ private:
     bool validate_account(const Identifier& sourceAccount) const;
 
     void init_contact();
-    void init_sockets();
     void load_thread(const proto::StorageThread& thread);
     void new_thread();
     ActivityThreadRowID process_item(const proto::StorageThreadItem& item);
-    void process_draft(const network::zeromq::Message& message);
+    bool process_drafts();
     void process_thread(const network::zeromq::Message& message);
     void startup();
 
