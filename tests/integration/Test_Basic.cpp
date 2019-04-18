@@ -24,6 +24,7 @@ using namespace opentxs;
 #define ACTIVITY_THREAD_ALICE_ISSUER "ACTIVITY_THREAD_ALICE_ISSUER"
 #define ACTIVITY_THREAD_BOB_ALICE "ACTIVITY_THREAD_BOB_ALICE"
 #define CONTACT_LIST "CONTACT_LIST"
+#define CONTACT_ALICE_ISSUER "CONTACT_ALICE_ISSUER"
 #define MESSAGABLE_LIST "MESSAGAGABLE_LIST"
 #define PAYABLE_LIST_BTC "PAYABLE_LIST_BTC"
 #define PAYABLE_LIST_BCH "PAYABLE_LIST_BCH"
@@ -92,6 +93,7 @@ public:
 
     static std::string alice_payment_code_;
     static std::string bob_payment_code_;
+    static std::string issuer_payment_code_;
 
     static int msg_count_;
     static std::map<int, std::string> message_;
@@ -352,6 +354,7 @@ const opentxs::api::client::Manager* Test_Basic::bob_{nullptr};
 std::mutex Test_Basic::callback_lock_{};
 std::string Test_Basic::alice_payment_code_;
 std::string Test_Basic::bob_payment_code_;
+std::string Test_Basic::issuer_payment_code_;
 int Test_Basic::msg_count_ = 0;
 std::map<int, std::string> Test_Basic::message_{};
 OTUnitID Test_Basic::unit_id_{identifier::UnitDefinition::Factory()};
@@ -617,6 +620,13 @@ const Test_Basic::StateMap Test_Basic::state_{
                    row = widget.Next();
 
                    EXPECT_STREQ(BOB, row->DisplayName().c_str());
+                   EXPECT_FALSE(row->Last());
+
+                   if (row->Last()) { return false; }
+
+                   row = widget.Next();
+
+                   EXPECT_STREQ(ISSUER, row->DisplayName().c_str());
                    EXPECT_TRUE(row->Last());
 
                    return true;
@@ -1046,6 +1056,25 @@ const Test_Basic::StateMap Test_Basic::state_{
                        server_contract_->EffectiveName(), row->NotaryName());
                    EXPECT_EQ(AccountType::Custodial, row->Type());
                    EXPECT_EQ(proto::CITEMTYPE_USD, row->Unit());
+
+                   return true;
+               }},
+          }},
+         {CONTACT_ALICE_ISSUER,
+          {
+              {0,
+               []() -> bool {
+                   const auto& widget =
+                       alice_->UI().Contact(contact_id_alice_issuer_);
+
+                   EXPECT_EQ(
+                       contact_id_alice_issuer_->str(), widget.ContactID());
+                   EXPECT_EQ(std::string(ISSUER), widget.DisplayName());
+                   EXPECT_EQ(issuer_payment_code_, widget.PaymentCode());
+
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
 
                    return true;
                }},
@@ -1596,41 +1625,56 @@ TEST_F(Test_Basic, payment_codes)
 {
     auto alice = alice_client_.Wallet().mutable_Nym(alice_nym_id_);
     auto bob = bob_client_.Wallet().mutable_Nym(bob_nym_id_);
+    auto issuer = issuer_client_.Wallet().mutable_Nym(issuer_nym_id_);
 
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, alice.Type());
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, bob.Type());
+    EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, issuer.Type());
 
     auto aliceScopeSet =
         alice.SetScope(opentxs::proto::CITEMTYPE_INDIVIDUAL, ALICE, true);
     auto bobScopeSet = bob.SetScope(proto::CITEMTYPE_INDIVIDUAL, BOB, true);
+    auto issuerScopeSet =
+        issuer.SetScope(proto::CITEMTYPE_INDIVIDUAL, ISSUER, true);
 
     EXPECT_TRUE(aliceScopeSet);
     EXPECT_TRUE(bobScopeSet);
+    EXPECT_TRUE(issuerScopeSet);
 
     alice_payment_code_ =
         alice_client_.Factory().PaymentCode(SeedA_, 0, 1)->asBase58();
     bob_payment_code_ =
         bob_client_.Factory().PaymentCode(SeedB_, 0, 1)->asBase58();
+    issuer_payment_code_ =
+        issuer_client_.Factory().PaymentCode(SeedC_, 0, 1)->asBase58();
 
     EXPECT_FALSE(alice_payment_code_.empty());
     EXPECT_FALSE(bob_payment_code_.empty());
+    EXPECT_FALSE(issuer_payment_code_.empty());
 
     alice.AddPaymentCode(
         alice_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
     bob.AddPaymentCode(
         bob_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
+    issuer.AddPaymentCode(
+        issuer_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
     alice.AddPaymentCode(
         alice_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
     bob.AddPaymentCode(
         bob_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
+    issuer.AddPaymentCode(
+        issuer_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
 
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BTC).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BTC).empty());
+    EXPECT_FALSE(issuer.PaymentCode(proto::CITEMTYPE_BTC).empty());
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BCH).empty());
+    EXPECT_FALSE(issuer.PaymentCode(proto::CITEMTYPE_BCH).empty());
 
     alice.Release();
     bob.Release();
+    issuer.Release();
 }
 
 TEST_F(Test_Basic, introduction_server)
@@ -1756,7 +1800,7 @@ TEST_F(Test_Basic, activity_thread_bob_alice)
         bob_client_.UI()
             .ActivityThread(bob_nym_id_, contact_id_bob_alice_)
             .WidgetID(),
-        2,
+        3,
         state_.at(BOB).at(ACTIVITY_THREAD_BOB_ALICE).at(0));
 
     EXPECT_EQ(11, bob_widget_map_.size());
@@ -1789,7 +1833,7 @@ TEST_F(Test_Basic, send_message_from_Bob_to_Alice_2)
         ACTIVITY_SUMMARY, 4, state_.at(BOB).at(ACTIVITY_SUMMARY).at(2));
     auto bobActivityThreadDone = set_callback_bob(
         ACTIVITY_THREAD_BOB_ALICE,
-        7,
+        8,
         state_.at(BOB).at(ACTIVITY_THREAD_BOB_ALICE).at(1));
 
     const auto& conversation =
@@ -1870,7 +1914,7 @@ TEST_F(Test_Basic, pay_alice)
     auto activitySummaryDone = set_callback_alice(
         ACTIVITY_SUMMARY, 6, state_.at(ALICE).at(ACTIVITY_SUMMARY).at(3));
     auto payableBCHListDone = set_callback_alice(
-        PAYABLE_LIST_BCH, 1, state_.at(ALICE).at(PAYABLE_LIST_BCH).at(2));
+        PAYABLE_LIST_BCH, 3, state_.at(ALICE).at(PAYABLE_LIST_BCH).at(2));
 
     auto task = issuer_client_.OTX().SendCheque(
         issuer_nym_id_,
@@ -1892,6 +1936,19 @@ TEST_F(Test_Basic, pay_alice)
     EXPECT_TRUE(payableBCHListDone.get());
 }
 
+TEST_F(Test_Basic, contact_alice_issuer)
+{
+    auto issuerContactDone = add_ui_widget_alice(
+        CONTACT_ALICE_ISSUER,
+        alice_client_.UI().Contact(contact_id_alice_issuer_).WidgetID(),
+        3,
+        state_.at(ALICE).at(CONTACT_ALICE_ISSUER).at(0));
+
+    EXPECT_EQ(12, alice_widget_map_.size());
+    EXPECT_EQ(12, alice_ui_names_.size());
+    EXPECT_TRUE(issuerContactDone.get());
+}
+
 TEST_F(Test_Basic, deposit_cheque_alice)
 {
     auto activityThreadDone = add_ui_widget_alice(
@@ -1902,11 +1959,15 @@ TEST_F(Test_Basic, deposit_cheque_alice)
         3,
         state_.at(ALICE).at(ACTIVITY_THREAD_ALICE_ISSUER).at(0));
 
-    EXPECT_EQ(12, alice_widget_map_.size());
-    EXPECT_EQ(12, alice_ui_names_.size());
+    EXPECT_EQ(13, alice_widget_map_.size());
+    EXPECT_EQ(13, alice_ui_names_.size());
 
     auto accountListDone = set_callback_alice(
         ACCOUNT_LIST, 4, state_.at(ALICE).at(ACCOUNT_LIST).at(1));
+    auto issuerContactDone = set_callback_alice(
+        CONTACT_ALICE_ISSUER,
+        9,
+        state_.at(ALICE).at(CONTACT_ALICE_ISSUER).at(0));
 
     EXPECT_TRUE(activityThreadDone.get());
 
@@ -1917,6 +1978,7 @@ TEST_F(Test_Basic, deposit_cheque_alice)
     ASSERT_TRUE(row->Valid());
     EXPECT_TRUE(row->Deposit());
     EXPECT_TRUE(accountListDone.get());
+    EXPECT_TRUE(issuerContactDone.get());
 
     alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
 }
@@ -1931,8 +1993,8 @@ TEST_F(Test_Basic, account_activity_alice)
         4,
         state_.at(ALICE).at(ACCOUNT_ACTIVITY_USD).at(0));
 
-    EXPECT_EQ(13, alice_widget_map_.size());
-    EXPECT_EQ(13, alice_ui_names_.size());
+    EXPECT_EQ(14, alice_widget_map_.size());
+    EXPECT_EQ(14, alice_ui_names_.size());
 
     EXPECT_TRUE(accountActivityDone.get());
 }
@@ -1951,10 +2013,14 @@ TEST_F(Test_Basic, pay_bob)
         ACTIVITY_SUMMARY, 8, state_.at(ALICE).at(ACTIVITY_SUMMARY).at(4));
     auto bobActivityThreadDone = set_callback_bob(
         ACTIVITY_THREAD_BOB_ALICE,
-        10,
+        11,
         state_.at(BOB).at(ACTIVITY_THREAD_BOB_ALICE).at(2));
     auto bobActivitySummaryDone = set_callback_bob(
         ACTIVITY_SUMMARY, 6, state_.at(BOB).at(ACTIVITY_SUMMARY).at(3));
+    auto issuerContactDone = set_callback_alice(
+        CONTACT_ALICE_ISSUER,
+        13,
+        state_.at(ALICE).at(CONTACT_ALICE_ISSUER).at(0));
 
     auto& thread =
         alice_client_.UI().ActivityThread(alice_nym_id_, contact_id_alice_bob_);
@@ -1967,6 +2033,7 @@ TEST_F(Test_Basic, pay_bob)
     EXPECT_TRUE(aliceActivitySummaryDone.get());
     EXPECT_TRUE(bobActivityThreadDone.get());
     EXPECT_TRUE(bobActivitySummaryDone.get());
+    EXPECT_TRUE(issuerContactDone.get());
 
     alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
     bob_client_.OTX().ContextIdle(bob_nym_id_, server_1_id_).get();

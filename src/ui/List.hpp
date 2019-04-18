@@ -277,7 +277,7 @@ protected:
 #if OT_QT
         if (enable_qt_) {
             const auto row = find_delete_point(lock, id);
-            unconst_cast(this)->beginRemoveRows(me(), row, row);
+            emit unconst_cast(this)->beginRemoveRows(me(), row, row);
         }
 #endif
         const auto itemDeleted = inner.erase(id);
@@ -293,7 +293,7 @@ protected:
 #if OT_QT
         if (enable_qt_) {
             --row_count_;
-            unconst_cast(this)->endRemoveRows();
+            emit unconst_cast(this)->endRemoveRows();
         }
 #endif
     }
@@ -474,7 +474,7 @@ protected:
 #if OT_QT
         if (enable_qt_) {
             const auto row = find_delete_point(lock, id);
-            unconst_cast(this)->beginRemoveRows(me(), row, row);
+            emit unconst_cast(this)->beginRemoveRows(me(), row, row);
         }
 #endif
         std::shared_ptr<RowInternal> row = std::move(item->second);
@@ -486,9 +486,9 @@ protected:
 
 #if OT_QT
         if (enable_qt_) {
-            unconst_cast(this)->endRemoveRows();
+            emit unconst_cast(this)->endRemoveRows();
             const auto row = find_insert_point(lock, id, newIndex);
-            unconst_cast(this)->beginInsertRows(me(), row, row + 1);
+            emit unconst_cast(this)->beginInsertRows(me(), row, row + 1);
         }
 #endif
         names_[id] = newIndex;
@@ -496,7 +496,7 @@ protected:
         items_[newIndex].emplace(id, std::move(row));
 
 #if OT_QT
-        if (enable_qt_) { unconst_cast(this)->endInsertRows(); }
+        if (enable_qt_) { emit unconst_cast(this)->endInsertRows(); }
 #endif
     }
     virtual bool same(const RowID& lhs, const RowID& rhs) const
@@ -667,7 +667,7 @@ private:
 #if OT_QT
             if (enable_qt_) {
                 const auto row = find_insert_point(lock, id, index);
-                beginInsertRows(me(), row, row + 1);
+                emit beginInsertRows(me(), row, row + 1);
             }
 #endif
             construct_row(id, index, custom);
@@ -675,7 +675,7 @@ private:
 #if OT_QT
             if (enable_qt_) {
                 ++row_count_;
-                endInsertRows();
+                emit endInsertRows();
             }
 #endif
 

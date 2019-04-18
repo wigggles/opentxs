@@ -434,14 +434,11 @@ bool ActivityThread::process_drafts()
         }
     }
 
-    draftLock.unlock();
     Lock widgetLock(lock_);
 
     for (const auto& id : deleted) { delete_item(widgetLock, id); }
 
     if (0 < deleted.size()) { UpdateNotify(); }
-
-    draftLock.lock();
 
     if (0 < draft_tasks_.size()) { return true; }
 
@@ -489,8 +486,6 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
     Lock draftLock(decision_lock_);
 
     for (const auto& [id, task] : draft_tasks_) { active.emplace(id); }
-
-    draftLock.unlock();
 
     delete_inactive(active);
 }

@@ -204,7 +204,7 @@ int Contact::sort_key(const proto::ContactSectionName type)
 
 void Contact::startup()
 {
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Loading contact ")(primary_id_)
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading contact ")(primary_id_)
         .Flush();
     const auto contact = api_.Contacts().Contact(primary_id_);
 
