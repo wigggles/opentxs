@@ -31,6 +31,34 @@
 
 namespace opentxs::storage
 {
+template <>
+void Nym::_save(
+    storage::Threads* input,
+    const Lock& lock,
+    std::mutex& mutex,
+    std::string& root)
+{
+    OT_ASSERT(mail_inbox_);
+    OT_ASSERT(mail_outbox_);
+
+    _save(mail_inbox_.get(), lock, mail_inbox_lock_, mail_inbox_root_);
+    _save(mail_outbox_.get(), lock, mail_outbox_lock_, mail_outbox_root_);
+
+    if (nullptr == input) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
+        OT_FAIL;
+    }
+
+    Lock rootLock(mutex);
+    root = input->Root();
+    rootLock.unlock();
+
+    if (false == save(lock)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
+        OT_FAIL;
+    }
+}
+
 Nym::Nym(
     const opentxs::api::storage::Driver& storage,
     const std::string& id,

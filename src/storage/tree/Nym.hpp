@@ -135,10 +135,10 @@ private:
     mutable std::unique_ptr<Mailbox> mail_outbox_;
     std::string mail_outbox_root_;
     mutable std::mutex threads_lock_;
-    mutable std::unique_ptr<class Threads> threads_;
+    mutable std::unique_ptr<storage::Threads> threads_;
     std::string threads_root_;
     mutable std::mutex contexts_lock_;
-    mutable std::unique_ptr<class Contexts> contexts_;
+    mutable std::unique_ptr<storage::Contexts> contexts_;
     std::string contexts_root_;
     mutable std::mutex blockchain_lock_;
     std::map<proto::ContactItemType, std::set<std::string>>
@@ -147,10 +147,10 @@ private:
         blockchain_accounts_{};
     std::string issuers_root_;
     mutable std::mutex issuers_lock_;
-    mutable std::unique_ptr<class Issuers> issuers_;
+    mutable std::unique_ptr<storage::Issuers> issuers_;
     std::string workflows_root_;
     mutable std::mutex workflows_lock_;
-    mutable std::unique_ptr<class PaymentWorkflows> workflows_;
+    mutable std::unique_ptr<storage::PaymentWorkflows> workflows_;
     std::map<PurseID, std::string> purse_id_;
 
     template <typename T, typename... Args>
