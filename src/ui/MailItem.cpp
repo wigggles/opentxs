@@ -162,10 +162,10 @@ void MailItem::load()
         }
     }
 
-    OT_ASSERT(text)
-
     eLock lock(shared_lock_);
-    text_ = *text;
+
+    if (text) { text_ = *text; }
+
     loading_->Off();
     pending_->Off();
     UpdateNotify();
