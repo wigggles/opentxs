@@ -8,6 +8,7 @@ set(name unittests-opentxs-integration)
 set(cxx-sources
   ${PROJECT_SOURCE_DIR}/tests/main.cpp
   Test_Basic.cpp
+  Test_DepositCheques.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 

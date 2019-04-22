@@ -7,9 +7,9 @@
 
 #include "Internal.hpp"
 
-namespace opentxs::api::client::implementation
+namespace opentxs::otx::client::implementation
 {
-class Operation final : virtual public client::internal::Operation,
+class Operation final : virtual public otx::client::internal::Operation,
                         public opentxs::internal::StateMachine
 {
 public:
@@ -271,4 +271,4 @@ private:
     Operation& operator=(const Operation&) = delete;
     Operation& operator=(Operation&&) = delete;
 };
-}  // namespace opentxs::api::client::implementation
+}  // namespace opentxs::otx::client::implementation

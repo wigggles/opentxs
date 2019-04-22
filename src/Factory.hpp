@@ -285,7 +285,7 @@ public:
         Nym_p targetNym,
         Nym_p signerNym);
     static crypto::OpenSSL* OpenSSL(const api::Crypto& crypto);
-    static api::client::internal::Operation* Operation(
+    static otx::client::internal::Operation* Operation(
         const api::client::Manager& api,
         const identifier::Nym& nym,
         const identifier::Server& server);

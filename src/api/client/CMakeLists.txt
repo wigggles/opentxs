@@ -13,12 +13,9 @@ set(cxx-sources
   Factory.cpp
   Issuer.cpp
   Manager.cpp
-  Operation.cpp
   OTX.cpp
   Pair.cpp
   ServerAction.cpp
-  StateMachine.cpp
-  StateMachine.tpp
   UI.cpp
   Wallet.cpp
   Workflow.cpp
@@ -46,11 +43,9 @@ set(cxx-headers
   Factory.hpp
   Issuer.hpp
   Manager.hpp
-  Operation.hpp
   OTX.hpp
   Pair.hpp
   ServerAction.hpp
-  StateMachine.hpp
   UI.hpp
   Wallet.hpp
   Workflow.hpp

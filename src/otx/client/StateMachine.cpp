@@ -14,10 +14,12 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "internal/api/client/Client.hpp"
+#include "internal/otx/client/Client.hpp"
 
 #include "StateMachine.tpp"
 
@@ -92,9 +94,9 @@
         Log::Sleep(std::chrono::milliseconds(a));                              \
     }
 
-#define OT_METHOD "opentxs::api::client::implementation::StateMachine::"
+#define OT_METHOD "opentxs::otx::client::implementation::StateMachine::"
 
-namespace opentxs::api::client::implementation
+namespace opentxs::otx::client::implementation
 {
 StateMachine::StateMachine(
     const api::client::Manager& client,
@@ -109,6 +111,7 @@ StateMachine::StateMachine(
     const UniqueQueue<OTUnitID>& missingUnitDefinitions)
     : opentxs::internal::StateMachine(
           std::bind(&implementation::StateMachine::state_machine, this))
+    , payment_tasks_(*this)
     , client_(client)
     , parent_(parent)
     , next_task_id_(nextTaskID)
@@ -157,17 +160,6 @@ StateMachine::StateMachine(
     , unknown_units_()
 {
     OT_ASSERT(pOp_);
-}
-
-std::future<void> StateMachine::add_task(const Lock& lock)
-{
-    OT_ASSERT(lock.owns_lock());
-
-    tasks_.emplace_back(counter_.load() + 2, std::promise<void>{});
-    auto& task = *tasks_.rbegin();
-    auto& promise = task.second;
-
-    return promise.get_future();
 }
 
 bool StateMachine::bump_task(const bool bump) const
@@ -355,7 +347,7 @@ bool StateMachine::deposit_cheque(
     const TaskID taskID,
     const DepositPaymentTask& task) const
 {
-    const auto& [accountID, payment] = task;
+    const auto& [unitID, accountID, payment] = task;
 
     OT_ASSERT(false == accountID->empty());
     OT_ASSERT(payment);
@@ -391,40 +383,18 @@ bool StateMachine::deposit_cheque_wrapper(
     UniqueQueue<DepositPaymentTask>& retry) const
 {
     bool output{false};
-    const auto& [accountIDHint, payment] = param;
+    const auto& [unitID, accountIDHint, payment] = param;
 
     OT_ASSERT(payment);
 
     auto depositServer = identifier::Server::Factory();
+    auto depositUnitID = identifier::UnitDefinition::Factory();
     auto depositAccount = Identifier::Factory();
+    output = deposit_cheque(task, param);
 
-    const auto status = can_deposit(
-        *payment, op_.NymID(), accountIDHint, depositServer, depositAccount);
-
-    switch (status) {
-        case Depositability::READY: {
-            auto revised{param};
-            revised.first = depositAccount;
-            output = deposit_cheque(task, revised);
-
-            if (false == output) {
-                retry.Push(task, revised);
-                bump_task(
-                    get_task<RegisterNymTask>().Push(next_task_id(), false));
-            }
-        } break;
-        case Depositability::NOT_REGISTERED:
-        case Depositability::NO_ACCOUNT: {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Temporary failure trying to deposit payment")
-                .Flush();
-            retry.Push(task, param);
-        } break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Permanent failure trying to deposit payment.")
-                .Flush();
-        }
+    if (false == output) {
+        retry.Push(task, param);
+        bump_task(get_task<RegisterNymTask>().Push(next_task_id(), false));
     }
 
     return output;
@@ -436,7 +406,7 @@ bool StateMachine::download_mint(
     const DownloadMintTask& task) const
 {
     DO_OPERATION(
-        Start, internal::Operation::Type::DownloadMint, task.first, {});
+        Start, client::internal::Operation::Type::DownloadMint, task.first, {});
 
     return finish_task(taskID, success, std::move(result));
 }
@@ -449,7 +419,7 @@ bool StateMachine::download_nym(const TaskID taskID, const CheckNymTask& id)
 
     ServerContext::ExtraArgs args{};
 
-    DO_OPERATION(Start, internal::Operation::Type::CheckNym, id, args);
+    DO_OPERATION(Start, client::internal::Operation::Type::CheckNym, id, args);
 
     resolve_unknown(id, success, unknown_nyms_);
 
@@ -478,7 +448,7 @@ bool StateMachine::download_nymbox(const TaskID taskID) const
     return finish_task(taskID, success, std::move(result));
 }
 
-StateMachine::Result StateMachine::error_result()
+StateMachine::Result StateMachine::error_result() const
 {
     Result output{proto::LASTREPLYSTATUS_NOTSENT, nullptr};
 
@@ -570,7 +540,8 @@ bool StateMachine::get_transaction_numbers(const TaskID taskID) const
 {
     ServerContext::ExtraArgs args{};
 
-    DO_OPERATION(Start, internal::Operation::Type::GetTransactionNumbers, args);
+    DO_OPERATION(
+        Start, client::internal::Operation::Type::GetTransactionNumbers, args);
 
     return finish_task(taskID, success, std::move(result));
 }
@@ -872,7 +843,7 @@ bool StateMachine::register_account(
 
     DO_OPERATION(
         Start,
-        internal::Operation::Type::RegisterAccount,
+        client::internal::Operation::Type::RegisterAccount,
         unitID,
         {label, false});
 
@@ -904,7 +875,7 @@ bool StateMachine::register_nym(
 
     if (resync) { std::get<1>(args) = true; }
 
-    DO_OPERATION(Start, internal::Operation::Type::RegisterNym, args);
+    DO_OPERATION(Start, client::internal::Operation::Type::RegisterNym, args);
 
     return finish_task(taskID, success, std::move(result));
 }
@@ -1035,11 +1006,22 @@ bool StateMachine::send_transfer(
 template <typename T>
 StateMachine::BackgroundTask StateMachine::StartTask(const T& params) const
 {
+    return StartTask<T>(next_task_id(), params);
+}
+
+template <typename T>
+StateMachine::BackgroundTask StateMachine::StartTask(
+    const TaskID taskID,
+    const T& params) const
+{
     Lock lock(decision_lock_);
 
-    if (shutdown().load()) { return BackgroundTask{0, Future{}}; }
+    if (shutdown().load()) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Shutting down").Flush();
 
-    const auto taskID{next_task_id()};
+        return BackgroundTask{0, Future{}};
+    }
+
     auto output =
         start_task(taskID, bump_task(get_task<T>().Push(taskID, params)));
     trigger(lock);
@@ -1168,4 +1150,4 @@ bool StateMachine::write_and_send_cheque_wrapper(
 
     return TaskDone::yes == done;
 }
-}  // namespace opentxs::api::client::implementation
+}  // namespace opentxs::otx::client::implementation

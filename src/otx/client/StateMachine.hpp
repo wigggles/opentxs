@@ -11,7 +11,9 @@
 #include "opentxs/core/UniqueQueue.hpp"
 
 #include "core/StateMachine.hpp"
+#include "otx/client/PaymentTasks.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/otx/client/Client.hpp"
 
 #include <functional>
 #include <future>
@@ -39,12 +41,12 @@ struct less<PAYMENTTASK> {
 
         auto lPaymentID = opentxs::Identifier::Factory();
         auto rPaymentID = opentxs::Identifier::Factory();
-        
+
         lPayment->GetIdentifier(lPaymentID);
         rPayment->GetIdentifier(rPaymentID);
 
         if (lPaymentID->str() < rPaymentID->str()) { return true; }
-        
+
         return false;
     }
 };
@@ -76,9 +78,10 @@ struct less<MESSAGETASK> {
 };
 }  // namespace std
 
-namespace opentxs::api::client::implementation
+namespace opentxs::otx::client::implementation
 {
-class StateMachine : public opentxs::internal::StateMachine
+class StateMachine final : public opentxs::internal::StateMachine,
+                           public otx::client::internal::StateMachine
 {
 public:
     using BackgroundTask = api::client::OTX::BackgroundTask;
@@ -121,10 +124,29 @@ public:
         ~Params() {}
     };
 
-    static Result error_result();
+    otx::client::implementation::PaymentTasks payment_tasks_;
 
+    const api::Core& api() const override { return client_; }
+    BackgroundTask DepositPayment(
+        const DepositPaymentTask& params) const override
+    {
+        return StartTask(params);
+    }
+    BackgroundTask DownloadUnitDefinition(
+        const DownloadUnitDefinitionTask& params) const override
+    {
+        return StartTask(params);
+    }
+    Result error_result() const override;
+    BackgroundTask RegisterAccount(
+        const RegisterAccountTask& params) const override
+    {
+        return StartTask(params);
+    }
     template <typename T>
     BackgroundTask StartTask(const T& params) const;
+    template <typename T>
+    BackgroundTask StartTask(const TaskID taskID, const T& params) const;
 
     void Shutdown() { op_.Shutdown(); }
 
@@ -139,6 +161,7 @@ public:
         const UniqueQueue<CheckNymTask>& outdatedNyms,
         const UniqueQueue<OTServerID>& missingServers,
         const UniqueQueue<OTUnitID>& missingUnitDefinitions);
+    ~StateMachine() override = default;
 
 private:
     enum class TaskDone : int { no, yes, retry };
@@ -151,8 +174,8 @@ private:
     const UniqueQueue<CheckNymTask>& outdated_nyms_;
     const UniqueQueue<OTServerID>& missing_servers_;
     const UniqueQueue<OTUnitID>& missing_unit_definitions_;
-    std::unique_ptr<api::client::internal::Operation> pOp_;
-    api::client::internal::Operation& op_;
+    std::unique_ptr<otx::client::internal::Operation> pOp_;
+    otx::client::internal::Operation& op_;
     UniqueQueue<CheckNymTask> check_nym_;
     UniqueQueue<DepositPaymentTask> deposit_payment_;
     UniqueQueue<DownloadContractTask> download_contract_;
@@ -201,16 +224,6 @@ private:
         return parent_.associate_message_id(messageID, taskID);
     }
     bool bump_task(const bool bump) const;
-    Depositability can_deposit(
-        const OTPayment& payment,
-        const identifier::Nym& recipient,
-        const Identifier& accountIDHint,
-        identifier::Server& depositServer,
-        Identifier& depositAccount) const
-    {
-        return parent_.can_deposit(
-            payment, recipient, accountIDHint, depositServer, depositAccount);
-    }
     bool check_admin(const ServerContext& context) const;
     template <typename T, typename C, typename M, typename U>
     bool check_missing_contract(M& missing, U& unknown, bool skip = true) const;
@@ -229,6 +242,7 @@ private:
         const TaskID taskID,
         const DepositPaymentTask& task,
         UniqueQueue<DepositPaymentTask>& retry) const;
+
 #if OT_CASH
     bool download_mint(const TaskID taskID, const DownloadMintTask& task) const;
 #endif
@@ -248,7 +262,7 @@ private:
         U& unknown,
         const bool skipExisting = true) const;
     bool finish_task(const TaskID taskID, const bool success, Result&& result)
-        const
+        const override
     {
         return parent_.finish_task(taskID, success, std::move(result));
     }
@@ -274,7 +288,7 @@ private:
     template <typename T, typename C, typename I>
     std::shared_ptr<const C> load_contract(const I& id) const;
     bool message_nym(const TaskID taskID, const MessageTask& task) const;
-    TaskID next_task_id() const { return ++next_task_id_; }
+    TaskID next_task_id() const override { return ++next_task_id_; }
     bool pay_nym(const TaskID taskID, const PaymentTask& task) const;
 #if OT_CASH
     bool pay_nym_cash(const TaskID taskID, const PayCashTask& Task) const;
@@ -299,7 +313,7 @@ private:
     template <typename T, typename M>
     void scan_unknown(const M& map, int& next) const;
     bool send_transfer(const TaskID taskID, const SendTransferTask& task) const;
-    BackgroundTask start_task(const TaskID taskID, bool success) const
+    BackgroundTask start_task(const TaskID taskID, bool success) const override
     {
         return parent_.start_task(taskID, success);
     }
@@ -314,7 +328,6 @@ private:
         const SendChequeTask& task,
         UniqueQueue<SendChequeTask>& retry) const;
 
-    std::future<void> add_task(const Lock& lock);
     template <typename T>
     T& get_param();
     void increment_counter(const bool run);
@@ -335,4 +348,4 @@ private:
 
     StateMachine() = delete;
 };
-}  // namespace opentxs::api::client::implementation
+}  // namespace opentxs::otx::client::implementation

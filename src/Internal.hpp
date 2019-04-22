@@ -25,7 +25,6 @@ namespace internal
 struct Activity;
 struct Contacts;
 struct Manager;
-struct Operation;
 }  // namespace internal
 }  // namespace client
 
@@ -136,6 +135,18 @@ class Proxy;
 }  // namespace implementation
 }  // namespace zeromq
 }  // namespace network
+
+namespace otx
+{
+namespace client
+{
+namespace internal
+{
+struct Operation;
+struct StateMachine;
+}  // namespace internal
+}  // namespace client
+}  // namespace otx
 
 namespace rpc
 {
