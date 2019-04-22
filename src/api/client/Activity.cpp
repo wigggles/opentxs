@@ -35,7 +35,7 @@
 
 #include "Activity.hpp"
 
-#define OT_METHOD "opentxs::api::implementation::Activity::"
+#define OT_METHOD "opentxs::api::client::implementation::Activity::"
 
 namespace opentxs
 {
@@ -336,14 +336,15 @@ std::unique_ptr<Message> Activity::Mail(
 
     std::unique_ptr<Message> output;
 
-    if (!loaded) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load Message.").Flush();
+    if (false == loaded) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load message ")(id)
+            .Flush();
 
         return output;
     }
 
     if (raw.empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Empty message.").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Empty message ")(id).Flush();
 
         return output;
     }
@@ -353,7 +354,8 @@ std::unique_ptr<Message> Activity::Mail(
     OT_ASSERT(output);
 
     if (false == output->LoadContractFromString(String::Factory(raw.c_str()))) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialized Message.")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialize message ")(
+            id)
             .Flush();
 
         output.reset();
@@ -670,7 +672,7 @@ void Activity::preload(
     const auto message = Mail(nymID, id, box);
 
     if (!message) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load message ")(id)(".")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load message ")(id)
             .Flush();
 
         return;
@@ -685,8 +687,7 @@ void Activity::preload(
         return;
     }
 
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Decrypting message ")(id)(".")
-        .Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Decrypting message ")(id).Flush();
     auto peerObject = api_.Factory().PeerObject(nym, message->m_ascPayload);
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Message ")(id)(" decrypted.")
         .Flush();
@@ -768,7 +769,7 @@ void Activity::thread_preload_thread(
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load thread ")(
-            threadID)(" for nym ")(nymID)(".")
+            threadID)(" for nym ")(nymID)
             .Flush();
 
         return;
@@ -795,7 +796,7 @@ void Activity::thread_preload_thread(
             case StorageBox::MAILINBOX:
             case StorageBox::MAILOUTBOX: {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Preloading item ")(
-                    item.id())(" in thread ")(threadID)(".")
+                    item.id())(" in thread ")(threadID)
                     .Flush();
                 MailText(
                     identifier::Nym::Factory(nymID),
