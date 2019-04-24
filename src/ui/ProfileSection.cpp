@@ -48,7 +48,9 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
     const ui::implementation::CustomData& custom
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
 )
 {
@@ -61,7 +63,9 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
         custom
 #if OT_QT
         ,
-        qt
+        qt,
+        insertCallback,
+        removeCallback
 #endif
     );
 }
@@ -176,7 +180,9 @@ ProfileSection::ProfileSection(
     const CustomData& custom
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ProfileSectionList(
@@ -186,7 +192,9 @@ ProfileSection::ProfileSection(
           parent.WidgetID()
 #if OT_QT
               ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , ProfileSectionRow(parent, rowID, true)
@@ -233,7 +241,9 @@ void ProfileSection::construct_row(
             custom
 #if OT_QT
             ,
-            enable_qt_
+            enable_qt_,
+            insert_callbacks_,
+            remove_callbacks_
 #endif
             ));
 }

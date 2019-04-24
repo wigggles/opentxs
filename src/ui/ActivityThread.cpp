@@ -45,31 +45,48 @@ template class std::
 
 namespace zmq = opentxs::network::zeromq;
 
-namespace opentxs
+namespace opentxs::ui
 {
-ui::ActivityThread* Factory::ActivityThread(
-    const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID,
-    const Identifier& threadID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-)
+QT_MODEL_WRAPPER(ActivityThreadQt, ActivityThread)
+
+QString ActivityThreadQt::displayName() const
 {
-    return new ui::implementation::ActivityThread(
-        api,
-        publisher,
-        nymID,
-        threadID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
+    return parent_->DisplayName().c_str();
 }
-}  // namespace opentxs
+QString ActivityThreadQt::getDraft() const
+{
+    return parent_->GetDraft().c_str();
+}
+QString ActivityThreadQt::participants() const
+{
+    return parent_->Participants().c_str();
+}
+bool ActivityThreadQt::pay(
+    const QString& amount,
+    const QString& sourceAccount,
+    const QString& memo) const
+{
+    return parent_->Pay(
+        amount.toStdString(),
+        Identifier::Factory(sourceAccount.toStdString()),
+        memo.toStdString(),
+        PaymentType::Cheque);
+}
+QString ActivityThreadQt::paymentCode(const int currency) const
+{
+    return parent_->PaymentCode(static_cast<proto::ContactItemType>(currency))
+        .c_str();
+}
+bool ActivityThreadQt::sendDraft() const { return parent_->SendDraft(); }
+bool ActivityThreadQt::setDraft(const QString& draft) const
+{
+    return parent_->SetDraft(draft.toStdString());
+}
+QString ActivityThreadQt::threadID() const
+{
+    return parent_->ThreadID().c_str();
+}
+}  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
 {
@@ -80,7 +97,9 @@ ActivityThread::ActivityThread(
     const Identifier& threadID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ActivityThreadList(
@@ -89,15 +108,15 @@ ActivityThread::ActivityThread(
         nymID
 #if OT_QT
         ,
-        qt,
-        Roles{{AmountPolarityRole, "amountpolarity"},
-              {DisplayAmountRole, "displayamount"},
-              {MemoRole, "memo"},
-              {TextRole, "text"},
-              {TimestampRole, "timestamp"},
-              {TypeRole, "type"},
-              {LoadingRole, "loading"},
-              {PendingRole, "pending"}},
+        qt, insertCallback, removeCallback,
+        Roles{{ActivityThreadQt::AmountPolarityRole, "amountpolarity"},
+              {ActivityThreadQt::DisplayAmountRole, "displayamount"},
+              {ActivityThreadQt::MemoRole, "memo"},
+              {ActivityThreadQt::TextRole, "text"},
+              {ActivityThreadQt::TimestampRole, "timestamp"},
+              {ActivityThreadQt::TypeRole, "type"},
+              {ActivityThreadQt::LoadingRole, "loading"},
+              {ActivityThreadQt::PendingRole, "pending"}},
         1
 #endif
     )
@@ -220,31 +239,31 @@ QVariant ActivityThread::data(const QModelIndex& index, int role) const
     const auto& row = *pRow;
 
     switch (role) {
-        case AmountPolarityRole: {
+        case ActivityThreadQt::AmountPolarityRole: {
             return polarity(row.Amount());
         }
-        case DisplayAmountRole: {
+        case ActivityThreadQt::DisplayAmountRole: {
             return row.DisplayAmount().c_str();
         }
-        case MemoRole: {
+        case ActivityThreadQt::MemoRole: {
             return row.Memo().c_str();
         }
-        case TextRole: {
+        case ActivityThreadQt::TextRole: {
             return row.Text().c_str();
         }
-        case TimestampRole: {
+        case ActivityThreadQt::TimestampRole: {
             QDateTime qdatetime;
             qdatetime.setSecsSinceEpoch(
                 std::chrono::system_clock::to_time_t(row.Timestamp()));
             return qdatetime;
         }
-        case TypeRole: {
+        case ActivityThreadQt::TypeRole: {
             return static_cast<int>(row.Type());
         }
-        case LoadingRole: {
+        case ActivityThreadQt::LoadingRole: {
             return row.Loading();
         }
-        case PendingRole: {
+        case ActivityThreadQt::PendingRole: {
             return row.Pending();
         }
         default: {

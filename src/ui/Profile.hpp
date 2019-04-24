@@ -57,7 +57,7 @@ public:
     ~Profile();
 
 private:
-    friend opentxs::Factory;
+    friend api::client::implementation::UI;
 
     const ListenerDefinitions listeners_;
     std::string name_;
@@ -92,7 +92,9 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
     Profile() = delete;

@@ -34,31 +34,10 @@
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummary::"
 
-namespace opentxs
+namespace opentxs::ui
 {
-ui::implementation::ActivitySummaryExternalInterface* Factory::ActivitySummary(
-    const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
-    const Flag& running,
-    const identifier::Nym& nymID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-)
-{
-    return new ui::implementation::ActivitySummary(
-        api,
-        publisher,
-        running,
-        nymID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
-}
-}  // namespace opentxs
+QT_MODEL_WRAPPER(ActivitySummaryQt, ActivitySummary)
+}  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
 {
@@ -70,7 +49,9 @@ ActivitySummary::ActivitySummary(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ActivitySummaryList(
@@ -80,12 +61,14 @@ ActivitySummary::ActivitySummary(
 #if OT_QT
           ,
           qt,
-          Roles{{IDRole, "id"},
-                {NameRole, "name"},
-                {ImageRole, "image"},
-                {TextRole, "text"},
-                {TimestampRole, "timestamp"},
-                {TypeRole, "type"}},
+          insertCallback,
+          removeCallback,
+          Roles{{ActivitySummaryQt::IDRole, "id"},
+                {ActivitySummaryQt::NameRole, "name"},
+                {ActivitySummaryQt::ImageRole, "image"},
+                {ActivitySummaryQt::TextRole, "text"},
+                {ActivitySummaryQt::TimestampRole, "timestamp"},
+                {ActivitySummaryQt::TypeRole, "type"}},
           1
 #endif
           )
@@ -111,25 +94,25 @@ QVariant ActivitySummary::data(const QModelIndex& index, int role) const
     const auto& row = *pRow;
 
     switch (role) {
-        case IDRole: {
+        case ActivitySummaryQt::IDRole: {
             return row.ThreadID().c_str();
         }
-        case NameRole: {
+        case ActivitySummaryQt::NameRole: {
             return row.DisplayName().c_str();
         }
-        case ImageRole: {
+        case ActivitySummaryQt::ImageRole: {
             return row.ImageURI().c_str();
         }
-        case TextRole: {
+        case ActivitySummaryQt::TextRole: {
             return row.Text().c_str();
         }
-        case TimestampRole: {
+        case ActivitySummaryQt::TimestampRole: {
             QDateTime qdatetime;
             qdatetime.setSecsSinceEpoch(
                 std::chrono::system_clock::to_time_t(row.Timestamp()));
             return qdatetime;
         }
-        case TypeRole: {
+        case ActivitySummaryQt::TypeRole: {
             return static_cast<int>(row.Type());
         }
         default: {

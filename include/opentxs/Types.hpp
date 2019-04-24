@@ -6,6 +6,10 @@
 #ifndef OPENTXS_TYPES_HPP
 #define OPENTXS_TYPES_HPP
 
+#if OT_QT
+#include "opentxs/Qt.hpp"
+#endif
+
 #include <chrono>
 #include <cstdint>
 #include <functional>
@@ -14,9 +18,9 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <tuple>
 #include <shared_mutex>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace opentxs
@@ -87,6 +91,12 @@ static const BlockMode BLOCK_MODE = true;
 static const BlockMode NOBLOCK_MODE = false;
 
 using GetPreimage = std::function<std::string()>;
+using SimpleCallback = std::function<void()>;
+#if OT_QT
+using RowCallback =
+    std::function<void(const QModelIndex& parent, int first, int last)>;
+using RowCallbacks = std::pair<RowCallback, SimpleCallback>;
+#endif
 
 typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 

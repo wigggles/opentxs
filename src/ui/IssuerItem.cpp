@@ -48,7 +48,9 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
 )
 {
@@ -62,7 +64,9 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
         currency
 #if OT_QT
         ,
-        qt
+        qt,
+        insertCallback,
+        removeCallback
 #endif
     );
 }
@@ -80,7 +84,9 @@ IssuerItem::IssuerItem(
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : IssuerItemList(
@@ -90,7 +96,9 @@ IssuerItem::IssuerItem(
           parent.WidgetID()
 #if OT_QT
               ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , IssuerItemRow(parent, rowID, true)

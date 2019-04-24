@@ -20,22 +20,13 @@ namespace opentxs
 {
 namespace ui
 {
+namespace implementation
+{
+class ActivitySummary;
+}  // namespace implementation
+
 class ActivitySummary : virtual public List
 {
-#if OT_QT
-    Q_OBJECT
-
-public:
-    enum ActivitySummaryRoles {
-        IDRole = Qt::UserRole + 1,
-        NameRole = Qt::UserRole + 2,
-        ImageRole = Qt::UserRole + 3,
-        TextRole = Qt::UserRole + 4,
-        TimestampRole = Qt::UserRole + 5,
-        TypeRole = Qt::UserRole + 6,
-    };
-#endif
-
 public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>
     First() const = 0;
@@ -53,6 +44,61 @@ private:
     ActivitySummary& operator=(const ActivitySummary&) = delete;
     ActivitySummary& operator=(ActivitySummary&&) = delete;
 };
+
+#if OT_QT
+class ActivitySummaryQt : public QAbstractItemModel
+{
+public:
+    using ConstructorCallback = std::function<implementation::ActivitySummary*(
+        RowCallbacks insert,
+        RowCallbacks remove)>;
+
+    enum Roles {
+        IDRole = Qt::UserRole + 1,
+        NameRole = Qt::UserRole + 2,
+        ImageRole = Qt::UserRole + 3,
+        TextRole = Qt::UserRole + 4,
+        TimestampRole = Qt::UserRole + 5,
+        TypeRole = Qt::UserRole + 6,
+    };
+
+    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+    QModelIndex index(
+        int row,
+        int column,
+        const QModelIndex& parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex& index) const override;
+    QHash<int, QByteArray> roleNames() const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const;
+
+    const ActivitySummary& operator*() const;
+
+    ActivitySummaryQt(ConstructorCallback cb);
+    ~ActivitySummaryQt() override;
+
+signals:
+    void updated() const;
+
+private:
+    Q_OBJECT
+
+    std::unique_ptr<implementation::ActivitySummary> parent_;
+
+    void notify() const;
+    void finish_row_add();
+    void finish_row_delete();
+    void start_row_add(const QModelIndex& parent, int first, int last);
+    void start_row_delete(const QModelIndex& parent, int first, int last);
+
+    ActivitySummaryQt() = delete;
+    ActivitySummaryQt(const ActivitySummaryQt&) = delete;
+    ActivitySummaryQt(ActivitySummaryQt&&) = delete;
+    ActivitySummaryQt& operator=(const ActivitySummaryQt&) = delete;
+    ActivitySummaryQt& operator=(ActivitySummaryQt&&) = delete;
+};
+#endif
 }  // namespace ui
 }  // namespace opentxs
 #endif

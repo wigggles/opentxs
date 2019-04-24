@@ -35,10 +35,6 @@ namespace ui
 {
 class ProfileSubsection : virtual public List, virtual public ListRow
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     EXPORT virtual bool AddItem(
         const std::string& value,

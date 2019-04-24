@@ -48,7 +48,9 @@ ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
     const ui::implementation::CustomData& custom
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
 )
 {
@@ -61,7 +63,9 @@ ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
         custom
 #if OT_QT
         ,
-        qt
+        qt,
+        insertCallback,
+        removeCallback
 #endif
     );
 }
@@ -155,7 +159,9 @@ ContactSection::ContactSection(
     const CustomData& custom
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ContactSectionList(
@@ -165,7 +171,9 @@ ContactSection::ContactSection(
           parent.WidgetID()
 #if OT_QT
               ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , ContactSectionRow(parent, rowID, true)
@@ -205,7 +213,9 @@ void ContactSection::construct_row(
             custom
 #if OT_QT
             ,
-            enable_qt_
+            enable_qt_,
+            insert_callbacks_,
+            remove_callbacks_
 #endif
             ));
 }

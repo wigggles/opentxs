@@ -240,4 +240,78 @@ struct ProfileItem : virtual public ui::ProfileItem {
 
     virtual ~ProfileItem() = default;
 };
+
+#if OT_QT
+#define QT_MODEL_WRAPPER(WrapperType, InterfaceType)                           \
+    WrapperType::WrapperType(ConstructorCallback cb)                           \
+        : parent_(                                                             \
+              (cb) ? cb({std::bind(                                            \
+                             &WrapperType::start_row_add,                      \
+                             this,                                             \
+                             std::placeholders::_1,                            \
+                             std::placeholders::_2,                            \
+                             std::placeholders::_3),                           \
+                         std::bind(&WrapperType::finish_row_add, this)},       \
+                        {std::bind(                                            \
+                             &WrapperType::start_row_delete,                   \
+                             this,                                             \
+                             std::placeholders::_1,                            \
+                             std::placeholders::_2,                            \
+                             std::placeholders::_3),                           \
+                         std::bind(&WrapperType::finish_row_delete, this)})    \
+                   : nullptr)                                                  \
+    {                                                                          \
+        QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);        \
+                                                                               \
+        if (false == bool(parent_)) {                                          \
+            throw std::runtime_error("Invalid model");                         \
+        }                                                                      \
+                                                                               \
+        parent_->SetCallback([this]() -> void { notify(); });                  \
+    }                                                                          \
+                                                                               \
+    const InterfaceType& WrapperType::operator*() const { return *parent_; }   \
+                                                                               \
+    int WrapperType::columnCount(const QModelIndex& parent) const              \
+    {                                                                          \
+        return parent_->columnCount(parent);                                   \
+    }                                                                          \
+    QVariant WrapperType::data(const QModelIndex& index, int role) const       \
+    {                                                                          \
+        return parent_->data(index, role);                                     \
+    }                                                                          \
+    QModelIndex WrapperType::index(                                            \
+        int row, int column, const QModelIndex& parent) const                  \
+    {                                                                          \
+        return parent_->index(row, column, parent);                            \
+    }                                                                          \
+    void WrapperType::notify() const { emit updated(); }                       \
+    QModelIndex WrapperType::parent(const QModelIndex& index) const            \
+    {                                                                          \
+        return parent_->parent(index);                                         \
+    }                                                                          \
+    QHash<int, QByteArray> WrapperType::roleNames() const                      \
+    {                                                                          \
+        return parent_->roleNames();                                           \
+    }                                                                          \
+    int WrapperType::rowCount(const QModelIndex& parent) const                 \
+    {                                                                          \
+        return parent_->rowCount(parent);                                      \
+    }                                                                          \
+                                                                               \
+    void WrapperType::finish_row_add() { endInsertRows(); }                    \
+    void WrapperType::finish_row_delete() { endRemoveRows(); }                 \
+    void WrapperType::start_row_add(                                           \
+        const QModelIndex& parent, int first, int last)                        \
+    {                                                                          \
+        beginInsertRows(parent, first, last);                                  \
+    }                                                                          \
+    void WrapperType::start_row_delete(                                        \
+        const QModelIndex& parent, int first, int last)                        \
+    {                                                                          \
+        beginRemoveRows(parent, first, last);                                  \
+    }                                                                          \
+                                                                               \
+    WrapperType::~WrapperType() = default;
+#endif
 }  // namespace opentxs::ui::internal

@@ -26,10 +26,6 @@ using MessagableListList = List<
 
 class MessagableList final : public MessagableListList
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
 #if OT_QT
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
@@ -67,7 +63,9 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
     MessagableList() = delete;

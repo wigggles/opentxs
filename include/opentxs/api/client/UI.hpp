@@ -69,6 +69,32 @@ public:
     EXPORT virtual const ui::Profile& Profile(
         const identifier::Nym& nymID) const = 0;
 
+#if OT_QT
+    /// Caller does not own this pointer
+    EXPORT virtual ui::AccountActivityQt* AccountActivityQt(
+        const identifier::Nym& nymID,
+        const Identifier& accountID) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::AccountListQt* AccountListQt(
+        const identifier::Nym& nym) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::ActivitySummaryQt* ActivitySummaryQt(
+        const identifier::Nym& nymID) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::ActivityThreadQt* ActivityThreadQt(
+        const identifier::Nym& nymID,
+        const Identifier& threadID) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::ContactQt* ContactQt(
+        const Identifier& contactID) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::ContactListQt* ContactListQt(
+        const identifier::Nym& nymID) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::ProfileQt* ProfileQt(
+        const identifier::Nym& nymID) const = 0;
+#endif
+
     virtual ~UI() = default;
 
 protected:

@@ -82,10 +82,6 @@ using ActivityThreadList = List<
 class ActivityThread final : public ActivityThreadList,
                              public opentxs::internal::StateMachine
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
 #if OT_QT
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
@@ -115,7 +111,7 @@ public:
     ~ActivityThread();
 
 private:
-    friend opentxs::Factory;
+    friend api::client::implementation::UI;
 
     const ListenerDefinitions listeners_;
     const OTIdentifier threadID_;
@@ -155,7 +151,9 @@ private:
         const Identifier& threadID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
 

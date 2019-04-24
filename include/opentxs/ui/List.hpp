@@ -9,15 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/Widget.hpp"
-
-#if OT_QT
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
-#include <QtCore/qabstractitemmodel.h>
-#pragma GCC diagnostic pop
-#endif
-
-#include <functional>
+#include "opentxs/Types.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -29,16 +21,8 @@ namespace opentxs
 {
 namespace ui
 {
-class List :
-#if OT_QT
-    virtual public QAbstractItemModel,
-#endif
-    virtual public Widget
+class List : virtual public Widget
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     EXPORT virtual ~List() = default;
 

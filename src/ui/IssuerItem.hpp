@@ -66,7 +66,9 @@ private:
         const proto::ContactItemType currency
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
     IssuerItem() = delete;

@@ -26,10 +26,6 @@ using ContactListList = List<
 
 class ContactList final : public ContactListList
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     std::string AddContact(
         const std::string& label,
@@ -50,7 +46,7 @@ public:
     ~ContactList();
 
 private:
-    friend opentxs::Factory;
+    friend api::client::implementation::UI;
 
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
@@ -81,7 +77,9 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
     ContactList() = delete;

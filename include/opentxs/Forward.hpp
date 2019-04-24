@@ -234,6 +234,19 @@ class Profile;
 class ProfileItem;
 class ProfileSection;
 class ProfileSubsection;
+
+#if OT_QT
+class AccountActivityQt;
+class AccountListQt;
+class AccountSummaryQt;
+class ActivitySummaryQt;
+class ActivityThreadQt;
+class ContactQt;
+class ContactListQt;
+class MessagableListQt;
+class PayableListQt;
+class ProfileQt;
+#endif
 }  // namespace ui
 
 class Account;

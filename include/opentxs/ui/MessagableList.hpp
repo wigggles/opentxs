@@ -23,8 +23,6 @@ namespace ui
 class MessagableList : virtual public List
 {
 #if OT_QT
-    Q_OBJECT
-
 public:
     enum ContactListRoles {
         IDRole = Qt::UserRole + 1,

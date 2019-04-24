@@ -26,10 +26,6 @@ namespace ui
 {
 class IssuerItem : virtual public List, virtual public ListRow
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     EXPORT virtual bool ConnectionState() const = 0;
     EXPORT virtual std::string Debug() const = 0;

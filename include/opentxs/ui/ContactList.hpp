@@ -20,20 +20,13 @@ namespace opentxs
 {
 namespace ui
 {
+namespace implementation
+{
+class ContactList;
+}  // namespace implementation
+
 class ContactList : virtual public List
 {
-#if OT_QT
-    Q_OBJECT
-
-public:
-    enum ContactListRoles {
-        IDRole = Qt::UserRole + 1,
-        NameRole = Qt::UserRole + 2,
-        ImageRole = Qt::UserRole + 3,
-        SectionRole = Qt::UserRole + 4,
-    };
-#endif
-
 public:
     EXPORT virtual std::string AddContact(
         const std::string& label,
@@ -55,6 +48,63 @@ private:
     ContactList& operator=(const ContactList&) = delete;
     ContactList& operator=(ContactList&&) = delete;
 };
+
+#if OT_QT
+class ContactListQt : public QAbstractItemModel
+{
+public:
+    using ConstructorCallback = std::function<
+        implementation::ContactList*(RowCallbacks insert, RowCallbacks remove)>;
+
+    enum Roles {
+        IDRole = Qt::UserRole + 1,
+        NameRole = Qt::UserRole + 2,
+        ImageRole = Qt::UserRole + 3,
+        SectionRole = Qt::UserRole + 4,
+    };
+
+    Q_INVOKABLE QString addContact(
+        const QString& label,
+        const QString& paymentCode = "",
+        const QString& nymID = "") const;
+
+    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+    QModelIndex index(
+        int row,
+        int column,
+        const QModelIndex& parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex& index) const override;
+    QHash<int, QByteArray> roleNames() const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const;
+
+    const ContactList& operator*() const;
+
+    ContactListQt(ConstructorCallback cb);
+    ~ContactListQt() override;
+
+signals:
+    void updated() const;
+
+private:
+    Q_OBJECT
+
+    std::unique_ptr<implementation::ContactList> parent_;
+
+    void notify() const;
+    void finish_row_add();
+    void finish_row_delete();
+    void start_row_add(const QModelIndex& parent, int first, int last);
+    void start_row_delete(const QModelIndex& parent, int first, int last);
+
+    ContactListQt() = delete;
+    ContactListQt(const ContactListQt&) = delete;
+    ContactListQt(ContactListQt&&) = delete;
+    ContactListQt& operator=(const ContactListQt&) = delete;
+    ContactListQt& operator=(ContactListQt&&) = delete;
+};
+#endif
 }  // namespace ui
 }  // namespace opentxs
 #endif

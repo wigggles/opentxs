@@ -56,7 +56,9 @@ ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
 )
 {
@@ -67,7 +69,9 @@ ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
         currency
 #if OT_QT
         ,
-        qt
+        qt,
+        insertCallback,
+        removeCallback
 #endif
     );
 }
@@ -82,7 +86,9 @@ AccountSummary::AccountSummary(
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : AccountSummaryList(
@@ -91,7 +97,9 @@ AccountSummary::AccountSummary(
           nymID
 #if OT_QT
           ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , listeners_({
@@ -136,7 +144,9 @@ void AccountSummary::construct_row(
             currency_
 #if OT_QT
             ,
-            enable_qt_
+            enable_qt_,
+            insert_callbacks_,
+            remove_callbacks_
 #endif
             ));
     names_.emplace(id, index);

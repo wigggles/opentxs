@@ -32,6 +32,14 @@
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/Types.hpp"
 
+#include "ui/AccountActivity.hpp"
+#include "ui/AccountList.hpp"
+#include "ui/ActivitySummary.hpp"
+#include "ui/ActivityThread.hpp"
+#include "ui/Contact.hpp"
+#include "ui/ContactList.hpp"
+#include "ui/Profile.hpp"
+
 #include <map>
 #include <memory>
 #include <tuple>
@@ -90,53 +98,105 @@ UI::UI(
     widget_update_publisher_->Start(api_.Endpoints().WidgetUpdate());
 }
 
-const ui::AccountActivity& UI::AccountActivity(
+UI::AccountActivityMap::mapped_type& UI::account_activity(
     const identifier::Nym& nymID,
     const Identifier& accountID) const
 {
     Lock lock(lock_);
-    const AccountKey key(nymID, accountID);
-    auto& output = accounts_[key];
+    AccountActivityKey key(nymID, accountID);
+    auto it = accounts_.find(key);
 
-    if (false == bool(output)) {
-        output.reset(opentxs::Factory::AccountActivity(
-            api_,
-            widget_update_publisher_,
-            nymID,
-            accountID
+    if (accounts_.end() == it) {
+        it =
+            accounts_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
 #if OT_QT
-            ,
-            enable_qt_
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::AccountActivity(
+                                api_,
+                                widget_update_publisher_,
+                                nymID,
+                                accountID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::AccountActivity(
+                            api_, widget_update_publisher_, nymID, accountID)
 #endif
-            ));
+                        ))
+                .first;
     }
 
-    OT_ASSERT(output)
-
-    return *output;
+    return it->second;
 }
 
-const ui::AccountList& UI::AccountList(const identifier::Nym& nym) const
+const ui::AccountActivity& UI::AccountActivity(
+    const identifier::Nym& nymID,
+    const Identifier& accountID) const
+{
+    return *account_activity(nymID, accountID);
+}
+
+#if OT_QT
+ui::AccountActivityQt* UI::AccountActivityQt(
+    const identifier::Nym& nymID,
+    const Identifier& accountID) const
+{
+    return &account_activity(nymID, accountID);
+}
+#endif
+
+UI::AccountListMap::mapped_type& UI::account_list(
+    const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
-    auto& output = account_lists_[nym];
+    AccountListKey key(nymID);
+    auto it = account_lists_.find(key);
 
-    if (false == bool(output)) {
-        output.reset(opentxs::Factory::AccountList(
-            api_,
-            widget_update_publisher_,
-            nym
+    if (account_lists_.end() == it) {
+        it =
+            account_lists_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
 #if OT_QT
-            ,
-            enable_qt_
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::AccountList(
+                                api_,
+                                widget_update_publisher_,
+                                nymID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::AccountActivity(
+                            api_, widget_update_publisher_, nymID, accountID)
 #endif
-            ));
+                        ))
+                .first;
     }
 
-    OT_ASSERT(output)
-
-    return *output;
+    return it->second;
 }
+
+const ui::AccountList& UI::AccountList(const identifier::Nym& nymID) const
+{
+    return *account_list(nymID);
+}
+
+#if OT_QT
+ui::AccountListQt* UI::AccountListQt(const identifier::Nym& nymID) const
+{
+    return &account_list(nymID);
+}
+#endif
 
 const ui::AccountSummary& UI::AccountSummary(
     const identifier::Nym& nymID,
@@ -164,103 +224,200 @@ const ui::AccountSummary& UI::AccountSummary(
     return *output;
 }
 
-const ui::ActivitySummary& UI::ActivitySummary(
+UI::ActivitySummaryMap::mapped_type& UI::activity_summary(
     const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
-    auto& output = activity_summaries_[nymID];
+    ActivitySummaryKey key(nymID);
+    auto it = activity_summaries_.find(key);
 
-    if (false == bool(output)) {
-        output.reset(opentxs::Factory::ActivitySummary(
-            api_,
-            widget_update_publisher_,
-            running_,
-            nymID
+    if (activity_summaries_.end() == it) {
+        it =
+            activity_summaries_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
 #if OT_QT
-            ,
-            enable_qt_
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::ActivitySummary(
+                                api_,
+                                widget_update_publisher_,
+                                running_,
+                                nymID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::ActivitySummary(
+                            api_, widget_update_publisher_, running_, nymID)
 #endif
-            ));
+                        ))
+                .first;
     }
 
-    OT_ASSERT(output)
+    return it->second;
+}
 
-    return *output;
+const ui::ActivitySummary& UI::ActivitySummary(
+    const identifier::Nym& nymID) const
+{
+    return *activity_summary(nymID);
+}
+
+#if OT_QT
+ui::ActivitySummaryQt* UI::ActivitySummaryQt(const identifier::Nym& nymID) const
+{
+    return &activity_summary(nymID);
+}
+#endif
+
+UI::ActivityThreadMap::mapped_type& UI::activity_thread(
+    const identifier::Nym& nymID,
+    const Identifier& threadID) const
+{
+    Lock lock(lock_);
+    ActivityThreadKey key(nymID, threadID);
+    auto it = activity_threads_.find(key);
+
+    if (activity_threads_.end() == it) {
+        it =
+            activity_threads_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
+#if OT_QT
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::ActivityThread(
+                                api_,
+                                widget_update_publisher_,
+                                nymID,
+                                threadID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::ActivityThread(
+                            api_, widget_update_publisher_, nymID, threadID)
+#endif
+                        ))
+                .first;
+    }
+
+    return it->second;
 }
 
 const ui::ActivityThread& UI::ActivityThread(
     const identifier::Nym& nymID,
     const Identifier& threadID) const
 {
-    Lock lock(lock_);
-    auto& output = activity_threads_[{nymID, threadID}];
+    return *activity_thread(nymID, threadID);
+}
 
-    if (false == bool(output)) {
-        output.reset(opentxs::Factory::ActivityThread(
-            api_,
-            widget_update_publisher_,
-            nymID,
-            threadID
 #if OT_QT
-            ,
-            enable_qt_
+ui::ActivityThreadQt* UI::ActivityThreadQt(
+    const identifier::Nym& nymID,
+    const Identifier& threadID) const
+{
+    return &activity_thread(nymID, threadID);
+}
 #endif
-            ));
+
+UI::ContactMap::mapped_type& UI::contact(const Identifier& contactID) const
+{
+    Lock lock(lock_);
+    ContactKey key(contactID);
+    auto it = contacts_.find(key);
+
+    if (contacts_.end() == it) {
+        it =
+            contacts_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
+#if OT_QT
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::Contact(
+                                api_,
+                                widget_update_publisher_,
+                                contactID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::Contact(
+                            api_, widget_update_publisher_, contactID)
+#endif
+                        ))
+                .first;
     }
 
-    OT_ASSERT(output)
-
-    return *output;
+    return it->second;
 }
 
 const ui::Contact& UI::Contact(const Identifier& contactID) const
 {
-    Lock lock(lock_);
-    auto id = Identifier::Factory(contactID);
-    auto it = contacts_.find(id);
+    return *contact(contactID);
+}
 
-    if (contacts_.end() == it) {
-        it = contacts_
-                 .emplace(
-                     std::move(id),
-                     opentxs::Factory::ContactWidget(
-                         api_,
-                         widget_update_publisher_,
-                         contactID
 #if OT_QT
-                         ,
-                         enable_qt_
+ui::ContactQt* UI::ContactQt(const Identifier& contactID) const
+{
+    return &contact(contactID);
+}
 #endif
-                         ))
-                 .first;
+
+UI::ContactListMap::mapped_type& UI::contact_list(
+    const identifier::Nym& nymID) const
+{
+    Lock lock(lock_);
+    ContactListKey key(nymID);
+    auto it = contact_lists_.find(key);
+
+    if (contact_lists_.end() == it) {
+        it =
+            contact_lists_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
+#if OT_QT
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::ContactList(
+                                api_,
+                                widget_update_publisher_,
+                                nymID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::ContactList(
+                            api_, widget_update_publisher_, nymID)
+#endif
+                        ))
+                .first;
     }
 
-    OT_ASSERT(it->second)
-
-    return *(it->second);
+    return it->second;
 }
 
 const ui::ContactList& UI::ContactList(const identifier::Nym& nymID) const
 {
-    Lock lock(lock_);
-    auto& output = contact_lists_[nymID];
-
-    if (false == bool(output)) {
-        output.reset(opentxs::Factory::ContactList(
-            api_,
-            widget_update_publisher_,
-            nymID
-#if OT_QT
-            ,
-            enable_qt_
-#endif
-            ));
-    }
-
-    OT_ASSERT(output)
-
-    return *output;
+    return *contact_list(nymID);
 }
+
+#if OT_QT
+ui::ContactListQt* UI::ContactListQt(const identifier::Nym& nymID) const
+{
+    return &contact_list(nymID);
+}
+#endif
 
 const ui::MessagableList& UI::MessagableList(const identifier::Nym& nymID) const
 {
@@ -310,29 +467,49 @@ const ui::PayableList& UI::PayableList(
     return *output;
 }
 
-const ui::Profile& UI::Profile(const identifier::Nym& nymID) const
+UI::ProfileMap::mapped_type& UI::profile(const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
-    auto it = profiles_.find(nymID);
+    ProfileKey key(nymID);
+    auto it = profiles_.find(key);
 
     if (profiles_.end() == it) {
-        it = profiles_
-                 .emplace(
-                     nymID,
-                     opentxs::Factory::ProfileWidget(
-                         api_,
-                         widget_update_publisher_,
-                         nymID
+        it =
+            profiles_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
 #if OT_QT
-                         ,
-                         enable_qt_
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::Profile(
+                                api_,
+                                widget_update_publisher_,
+                                nymID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::Profile(
+                            api_, widget_update_publisher_, nymID)
 #endif
-                         ))
-                 .first;
+                        ))
+                .first;
     }
 
-    OT_ASSERT(it->second)
-
-    return *(it->second);
+    return it->second;
 }
+
+const ui::Profile& UI::Profile(const identifier::Nym& nymID) const
+{
+    return *profile(nymID);
+}
+
+#if OT_QT
+ui::ProfileQt* UI::ProfileQt(const identifier::Nym& nymID) const
+{
+    return &profile(nymID);
+}
+#endif
 }  // namespace opentxs::api::client::implementation

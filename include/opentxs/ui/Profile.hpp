@@ -81,12 +81,13 @@ namespace opentxs
 {
 namespace ui
 {
+namespace implementation
+{
+class Profile;
+}  // namespace implementation
+
 class Profile : virtual public List
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     using ItemType = std::pair<proto::ContactItemType, std::string>;
     using ItemTypeList = std::vector<ItemType>;
@@ -142,6 +143,60 @@ private:
     Profile& operator=(const Profile&) = delete;
     Profile& operator=(Profile&&) = delete;
 };
+
+#if OT_QT
+class ProfileQt : public QAbstractItemModel
+{
+public:
+    using ConstructorCallback = std::function<
+        implementation::Profile*(RowCallbacks insert, RowCallbacks remove)>;
+
+    enum Roles {};
+
+    QString displayName() const;
+    QString nymID() const;
+    QString paymentCode() const;
+
+    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+    QModelIndex index(
+        int row,
+        int column,
+        const QModelIndex& parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex& index) const override;
+    QHash<int, QByteArray> roleNames() const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const;
+
+    const Profile& operator*() const;
+
+    ProfileQt(ConstructorCallback cb);
+    ~ProfileQt() override;
+
+signals:
+    void updated() const;
+
+private:
+    Q_OBJECT
+    Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
+    Q_PROPERTY(QString nymID READ nymID NOTIFY updated)
+    Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
+
+    std::unique_ptr<implementation::Profile> parent_;
+
+    void notify() const;
+    void finish_row_add();
+    void finish_row_delete();
+    void start_row_add(const QModelIndex& parent, int first, int last);
+    void start_row_delete(const QModelIndex& parent, int first, int last);
+
+    ProfileQt() = delete;
+    ProfileQt(const ProfileQt&) = delete;
+    ProfileQt(ProfileQt&&) = delete;
+    ProfileQt& operator=(const ProfileQt&) = delete;
+    ProfileQt& operator=(ProfileQt&&) = delete;
+};
+#endif
 }  // namespace ui
 }  // namespace opentxs
 #endif

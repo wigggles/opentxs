@@ -20,26 +20,6 @@ public:
         const NymParameters& nymParameters,
         const std::uint32_t version,
         const OTPasswordData* pPWData = nullptr);
-    static ui::implementation::AccountActivityExternalInterface*
-    AccountActivity(
-        const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
-        const identifier::Nym& nymID,
-        const Identifier& accountID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
-    static ui::implementation::AccountListExternalInterface* AccountList(
-        const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static ui::implementation::AccountListRowInternal* AccountListItem(
         const ui::implementation::AccountListInternalInterface& parent,
         const api::client::Manager& api,
@@ -54,7 +34,9 @@ public:
         const proto::ContactItemType currency
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
     static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
@@ -67,17 +49,6 @@ public:
     static api::client::internal::Activity* Activity(
         const api::Core& api,
         const api::client::Contacts& contact);
-    static ui::implementation::ActivitySummaryExternalInterface*
-    ActivitySummary(
-        const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
-        const Flag& running,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static ui::implementation::ActivitySummaryRowInternal* ActivitySummaryItem(
         const ui::implementation::ActivitySummaryInternalInterface& parent,
         const api::client::Manager& api,
@@ -87,16 +58,6 @@ public:
         const ui::implementation::ActivitySummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
         const Flag& running);
-    static ui::ActivityThread* ActivityThread(
-        const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
-        const identifier::Nym& nymID,
-        const Identifier& threadID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
         const api::client::Manager& api,
@@ -140,15 +101,6 @@ public:
         const api::Core& api,
         identity::internal::Authority& parent,
         const NymParameters& nymParameters);
-    static ui::implementation::ContactListExternalInterface* ContactList(
-        const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static ui::implementation::ContactListRowInternal* ContactListItem(
         const ui::implementation::ContactListInternalInterface& parent,
         const api::client::Manager& api,
@@ -156,15 +108,6 @@ public:
         const ui::implementation::ContactListRowID& rowID,
         const ui::implementation::ContactListSortKey& key);
     static api::client::internal::Contacts* Contacts(const api::Core& api);
-    static ui::implementation::ContactExternalInterface* ContactWidget(
-        const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
-        const Identifier& contactID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
         const ui::implementation::ContactSubsectionInternalInterface& parent,
         const api::client::Manager& api,
@@ -181,7 +124,9 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
     static ui::implementation::ContactSectionRowInternal*
@@ -194,7 +139,9 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
     template <class C>
@@ -267,7 +214,9 @@ public:
         const proto::ContactItemType currency
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
     static api::Legacy* Legacy();
@@ -301,7 +250,9 @@ public:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
 #if OT_CASH
@@ -353,7 +304,9 @@ public:
         const proto::ContactItemType& currency
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
     static ui::implementation::PayableListRowInternal* PayableListItem(
@@ -423,15 +376,6 @@ public:
         const api::Core& api,
         identity::internal::Authority& parent,
         const NymParameters& nymParameters);
-    static ui::implementation::ProfileExternalInterface* ProfileWidget(
-        const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt
-#endif
-    );
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
         const api::client::Manager& api,
@@ -448,7 +392,9 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
     static ui::implementation::ProfileSectionRowInternal*
@@ -461,7 +407,9 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback = {},
+        const RowCallbacks removeCallback = {}
 #endif
     );
 #if OT_CASH

@@ -34,10 +34,6 @@ using AccountActivityList = List<
  */
 class AccountActivity final : public AccountActivityList
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     const Identifier& AccountID() const override { return account_id_.get(); }
     int BalancePolarity() const override { return polarity(balance_.load()); }
@@ -50,7 +46,7 @@ public:
     ~AccountActivity();
 
 private:
-    friend opentxs::Factory;
+    friend api::client::implementation::UI;
 
     using EventRow =
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
@@ -86,7 +82,9 @@ private:
         const Identifier& accountID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
     AccountActivity() = delete;

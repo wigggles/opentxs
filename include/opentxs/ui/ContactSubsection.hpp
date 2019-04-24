@@ -35,10 +35,6 @@ namespace ui
 {
 class ContactSubsection : virtual public List, virtual public ListRow
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     EXPORT virtual std::string Name(const std::string& lang) const = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactItem> First()

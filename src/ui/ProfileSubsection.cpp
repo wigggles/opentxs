@@ -49,7 +49,9 @@ ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
     const ui::implementation::CustomData& custom
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
 )
 {
@@ -62,7 +64,9 @@ ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
         custom
 #if OT_QT
         ,
-        qt
+        qt,
+        insertCallback,
+        removeCallback
 #endif
     );
 }
@@ -79,7 +83,9 @@ ProfileSubsection::ProfileSubsection(
     const CustomData& custom
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ProfileSubsectionList(
@@ -89,7 +95,9 @@ ProfileSubsection::ProfileSubsection(
           parent.WidgetID()
 #if OT_QT
               ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , ProfileSubsectionRow(parent, rowID, true)
