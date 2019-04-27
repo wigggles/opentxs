@@ -41,29 +41,10 @@
 
 #define OT_METHOD "opentxs::ui::implementation::AccountList::"
 
-namespace opentxs
+namespace opentxs::ui
 {
-ui::implementation::AccountListExternalInterface* Factory::AccountList(
-    const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-)
-{
-    return new ui::implementation::AccountList(
-        api,
-        publisher,
-        nymID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
-}
-}  // namespace opentxs
+QT_MODEL_WRAPPER(AccountListQt, AccountList)
+}  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
 {
@@ -73,7 +54,9 @@ AccountList::AccountList(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : AccountListList(
@@ -83,16 +66,18 @@ AccountList::AccountList(
 #if OT_QT
           ,
           qt,
-          Roles{{IDRole, "id"},
-                {BalancePolarityRole, "balancepolarity"},
-                {ContractIDRole, "contractid"},
-                {DisplayBalanceRole, "displaybalance"},
-                {DisplayUnit, "displayunit"},
-                {NameRole, "name"},
-                {NotaryIDRole, "notaryid"},
-                {NotaryNameRole, "notaryname"},
-                {TypeRole, "type"},
-                {UnitRole, "unit"}},
+          insertCallback,
+          removeCallback,
+          Roles{{AccountListQt::IDRole, "id"},
+                {AccountListQt::BalancePolarityRole, "balancepolarity"},
+                {AccountListQt::ContractIDRole, "contractid"},
+                {AccountListQt::DisplayBalanceRole, "displaybalance"},
+                {AccountListQt::DisplayUnit, "displayunit"},
+                {AccountListQt::NameRole, "name"},
+                {AccountListQt::NotaryIDRole, "notaryid"},
+                {AccountListQt::NotaryNameRole, "notaryname"},
+                {AccountListQt::TypeRole, "type"},
+                {AccountListQt::UnitRole, "unit"}},
           1
 #endif
           )
@@ -128,34 +113,34 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
     const auto& row = *pRow;
 
     switch (role) {
-        case IDRole: {
+        case AccountListQt::IDRole: {
             return row.AccountID().c_str();
         }
-        case BalancePolarityRole: {
+        case AccountListQt::BalancePolarityRole: {
             return polarity(row.Balance());
         }
-        case ContractIDRole: {
+        case AccountListQt::ContractIDRole: {
             return row.ContractID().c_str();
         }
-        case DisplayBalanceRole: {
+        case AccountListQt::DisplayBalanceRole: {
             return row.DisplayBalance().c_str();
         }
-        case DisplayUnit: {
+        case AccountListQt::DisplayUnit: {
             return row.DisplayUnit().c_str();
         }
-        case NameRole: {
+        case AccountListQt::NameRole: {
             return row.Name().c_str();
         }
-        case NotaryIDRole: {
+        case AccountListQt::NotaryIDRole: {
             return row.NotaryID().c_str();
         }
-        case NotaryNameRole: {
+        case AccountListQt::NotaryNameRole: {
             return row.NotaryName().c_str();
         }
-        case TypeRole: {
+        case AccountListQt::TypeRole: {
             return static_cast<int>(row.Type());
         }
-        case UnitRole: {
+        case AccountListQt::UnitRole: {
             return static_cast<int>(row.Unit());
         }
         default: {

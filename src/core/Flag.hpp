@@ -5,13 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
-
-#include <atomic>
-
 namespace opentxs::implementation
 {
 class Flag : virtual public opentxs::Flag, Lockable

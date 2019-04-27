@@ -29,7 +29,7 @@ public:
     ~Contact();
 
 private:
-    friend opentxs::Factory;
+    friend api::client::implementation::UI;
 
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
@@ -62,7 +62,9 @@ private:
         const Identifier& contactID
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
     Contact() = delete;

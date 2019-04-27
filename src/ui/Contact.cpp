@@ -40,29 +40,20 @@
 
 #define OT_METHOD "opentxs::ui::implementation::Contact::"
 
-namespace opentxs
+namespace opentxs::ui
 {
-ui::implementation::ContactExternalInterface* Factory::ContactWidget(
-    const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
-    const Identifier& contactID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-)
+QT_MODEL_WRAPPER(ContactQt, Contact)
+
+QString ContactQt::displayName() const
 {
-    return new ui::implementation::Contact(
-        api,
-        publisher,
-        contactID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
+    return parent_->DisplayName().c_str();
 }
-}  // namespace opentxs
+QString ContactQt::contactID() const { return parent_->ContactID().c_str(); }
+QString ContactQt::paymentCode() const
+{
+    return parent_->PaymentCode().c_str();
+}
+}  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
 {
@@ -80,7 +71,9 @@ Contact::Contact(
     const Identifier& contactID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ContactType(
@@ -89,7 +82,9 @@ Contact::Contact(
           contactID
 #if OT_QT
           ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , listeners_({
@@ -129,7 +124,9 @@ void Contact::construct_row(
             custom
 #if OT_QT
             ,
-            enable_qt_
+            enable_qt_,
+            insert_callbacks_,
+            remove_callbacks_
 #endif
             ));
 }

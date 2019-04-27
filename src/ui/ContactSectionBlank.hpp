@@ -18,27 +18,23 @@ class ContactSectionBlank final : public ContactRowInternal
 {
 public:
 #if OT_QT
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override
+    int columnCount(const QModelIndex& parent = QModelIndex()) const
     {
         return 0;
     }
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
     {
         return {};
     }
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override
+        const QModelIndex& parent = QModelIndex()) const
     {
         return {};
     }
-    QModelIndex parent(const QModelIndex& index) const override { return {}; }
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override
-    {
-        return 0;
-    }
+    QModelIndex parent(const QModelIndex& index) const { return {}; }
+    int rowCount(const QModelIndex& parent = QModelIndex()) const { return 0; }
 #endif
     std::string Name(const std::string& lang) const override { return {}; }
     OTUIContactSubsection First() const override

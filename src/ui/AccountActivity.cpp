@@ -40,31 +40,19 @@
 
 #define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
 
-namespace opentxs
+namespace opentxs::ui
 {
-ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
-    const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID,
-    const Identifier& accountID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-)
+QT_MODEL_WRAPPER(AccountActivityQt, AccountActivity)
+
+int AccountActivityQt::balancePolarity() const
 {
-    return new ui::implementation::AccountActivity(
-        api,
-        publisher,
-        nymID,
-        accountID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
+    return parent_->BalancePolarity();
 }
-}  // namespace opentxs
+QString AccountActivityQt::displayBalance() const
+{
+    return parent_->DisplayBalance().c_str();
+}
+}  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
 {
@@ -75,7 +63,9 @@ AccountActivity::AccountActivity(
     const Identifier& accountID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : AccountActivityList(
@@ -85,15 +75,17 @@ AccountActivity::AccountActivity(
 #if OT_QT
           ,
           qt,
-          Roles{{IDRole, "id"},
-                {AmountPolarityRole, "amountpolarity"},
-                {ContactsRole, "contacts"},
-                {DisplayAmountRole, "displayamount"},
-                {MemoRole, "memo"},
-                {WorkflowRole, "workflow"},
-                {TextRole, "text"},
-                {TimestampRole, "timestamp"},
-                {TypeRole, "type"}},
+          insertCallback,
+          removeCallback,
+          Roles{{AccountActivityQt::IDRole, "id"},
+                {AccountActivityQt::AmountPolarityRole, "amountpolarity"},
+                {AccountActivityQt::ContactsRole, "contacts"},
+                {AccountActivityQt::DisplayAmountRole, "displayamount"},
+                {AccountActivityQt::MemoRole, "memo"},
+                {AccountActivityQt::WorkflowRole, "workflow"},
+                {AccountActivityQt::TextRole, "text"},
+                {AccountActivityQt::TimestampRole, "timestamp"},
+                {AccountActivityQt::TypeRole, "type"}},
           1
 #endif
           )
@@ -147,13 +139,13 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
     const auto& row = *pRow;
 
     switch (role) {
-        case IDRole: {
+        case AccountActivityQt::IDRole: {
             return row.UUID().c_str();
         }
-        case AmountPolarityRole: {
+        case AccountActivityQt::AmountPolarityRole: {
             return polarity(row.Amount());
         }
-        case ContactsRole: {
+        case AccountActivityQt::ContactsRole: {
             std::string contacts;
             auto contact = row.Contacts().cbegin();
 
@@ -166,26 +158,26 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
 
             return contacts.c_str();
         }
-        case DisplayAmountRole: {
+        case AccountActivityQt::DisplayAmountRole: {
             return row.DisplayAmount().c_str();
         }
-        case MemoRole: {
+        case AccountActivityQt::MemoRole: {
             return row.Memo().c_str();
         }
-        case WorkflowRole: {
+        case AccountActivityQt::WorkflowRole: {
             return row.Workflow().c_str();
         }
-        case TextRole: {
+        case AccountActivityQt::TextRole: {
             return row.Text().c_str();
         }
-        case TimestampRole: {
+        case AccountActivityQt::TimestampRole: {
             QDateTime qdatetime;
             qdatetime.setSecsSinceEpoch(
                 std::chrono::system_clock::to_time_t(row.Timestamp()));
 
             return qdatetime;
         }
-        case TypeRole: {
+        case AccountActivityQt::TypeRole: {
             return static_cast<int>(row.Type());
         }
         default: {

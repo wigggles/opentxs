@@ -46,7 +46,9 @@ ui::implementation::MessagableExternalInterface* Factory::MessagableList(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
 )
 {
@@ -56,7 +58,9 @@ ui::implementation::MessagableExternalInterface* Factory::MessagableList(
         nymID
 #if OT_QT
         ,
-        qt
+        qt,
+        insertCallback,
+        removeCallback
 #endif
     );
 }
@@ -70,7 +74,9 @@ MessagableList::MessagableList(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : MessagableListList(
@@ -79,7 +85,9 @@ MessagableList::MessagableList(
           nymID
 #if OT_QT
           ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , listeners_({

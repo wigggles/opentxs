@@ -30,7 +30,7 @@ if(NOT OT_BUNDLED_OPENTXS_PROTO)
 endif()
 
 if(OT_WITH_QT)
-  target_link_libraries(${name} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Widgets_LIBRARIES})
+  target_link_libraries(${name} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Qml_LIBRARIES} ${Qt5Widgets_LIBRARIES})
 endif()
 
 set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)

@@ -44,29 +44,20 @@ template struct std::pair<int, std::string>;
 
 #define OT_METHOD "opentxs::ui::implementation::Profile::"
 
-namespace opentxs
+namespace opentxs::ui
 {
-ui::Profile* Factory::ProfileWidget(
-    const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-)
+QT_MODEL_WRAPPER(ProfileQt, Profile)
+
+QString ProfileQt::displayName() const
 {
-    return new ui::implementation::Profile(
-        api,
-        publisher,
-        nymID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
+    return parent_->DisplayName().c_str();
 }
-}  // namespace opentxs
+QString ProfileQt::nymID() const { return parent_->ID().c_str(); }
+QString ProfileQt::paymentCode() const
+{
+    return parent_->PaymentCode().c_str();
+}
+}  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
 {
@@ -84,7 +75,9 @@ Profile::Profile(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ProfileList(
@@ -93,7 +86,9 @@ Profile::Profile(
           nymID
 #if OT_QT
           ,
-          qt
+          qt,
+          insertCallback,
+          removeCallback
 #endif
           )
     , listeners_({
@@ -216,7 +211,9 @@ void Profile::construct_row(
             custom
 #if OT_QT
             ,
-            enable_qt_
+            enable_qt_,
+            insert_callbacks_,
+            remove_callbacks_
 #endif
             ));
 }

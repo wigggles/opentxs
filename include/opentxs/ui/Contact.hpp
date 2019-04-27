@@ -23,12 +23,13 @@ namespace opentxs
 {
 namespace ui
 {
+namespace implementation
+{
+class Contact;
+}  // namespace implementation
+
 class Contact : virtual public List
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     EXPORT virtual std::string ContactID() const = 0;
     EXPORT virtual std::string DisplayName() const = 0;
@@ -49,6 +50,60 @@ private:
     Contact& operator=(const Contact&) = delete;
     Contact& operator=(Contact&&) = delete;
 };
+
+#if OT_QT
+class ContactQt : public QAbstractItemModel
+{
+public:
+    using ConstructorCallback = std::function<
+        implementation::Contact*(RowCallbacks insert, RowCallbacks remove)>;
+
+    enum Roles {};
+
+    QString displayName() const;
+    QString contactID() const;
+    QString paymentCode() const;
+
+    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+        const override;
+    QModelIndex index(
+        int row,
+        int column,
+        const QModelIndex& parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex& index) const override;
+    QHash<int, QByteArray> roleNames() const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const;
+
+    const Contact& operator*() const;
+
+    ContactQt(ConstructorCallback cb);
+    ~ContactQt() override;
+
+signals:
+    void updated() const;
+
+private:
+    Q_OBJECT
+    Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
+    Q_PROPERTY(QString contactID READ contactID NOTIFY updated)
+    Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
+
+    std::unique_ptr<implementation::Contact> parent_;
+
+    void notify() const;
+    void finish_row_add();
+    void finish_row_delete();
+    void start_row_add(const QModelIndex& parent, int first, int last);
+    void start_row_delete(const QModelIndex& parent, int first, int last);
+
+    ContactQt() = delete;
+    ContactQt(const ContactQt&) = delete;
+    ContactQt(ContactQt&&) = delete;
+    ContactQt& operator=(const ContactQt&) = delete;
+    ContactQt& operator=(ContactQt&&) = delete;
+};
+#endif
 }  // namespace ui
 }  // namespace opentxs
 #endif

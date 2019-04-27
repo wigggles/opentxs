@@ -69,7 +69,10 @@ void Widget::UpdateNotify() const
     publisher_.Publish(widget_id_->str());
     Lock lock(cb_lock_);
 
-    if (cb_) { cb_(); }
+    if (cb_) {
+        std::thread thread{[=]() -> void { cb_(); }};
+        thread.detach();
+    }
 }
 
 OTIdentifier Widget::WidgetID() const

@@ -23,8 +23,6 @@ namespace ui
 class PayableList : virtual public List
 {
 #if OT_QT
-    Q_OBJECT
-
 public:
     enum PayableListRoles {
         IDRole = Qt::UserRole + 1,

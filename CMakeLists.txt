@@ -435,7 +435,7 @@ if (OT_CRYPTO_USING_LIBBITCOIN)
 endif()
 
 if(OT_WITH_QT)
-  find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
+  find_package(Qt5 COMPONENTS Core Gui Qml Widgets REQUIRED)
   set_target_properties(Qt5::Core PROPERTIES MAP_IMPORTED_CONFIG_COVERAGE "RELEASE")
   list(GET Qt5Core_INCLUDE_DIRS 0 QT_INCLUDE_DIR)
   include_directories("${QT_INCLUDE_DIR}")

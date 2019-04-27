@@ -39,29 +39,23 @@
 
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
 
-namespace opentxs
+namespace opentxs::ui
 {
-ui::implementation::ContactListExternalInterface* Factory::ContactList(
-    const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
-    const identifier::Nym& nymID
-#if OT_QT
-    ,
-    const bool qt
-#endif
-)
+QT_MODEL_WRAPPER(ContactListQt, ContactList)
+
+QString ContactListQt::addContact(
+    const QString& label,
+    const QString& paymentCode,
+    const QString& nymID) const
 {
-    return new ui::implementation::ContactList(
-        api,
-        publisher,
-        nymID
-#if OT_QT
-        ,
-        qt
-#endif
-    );
+    if (nullptr == parent_) { return {}; }
+
+    return parent_
+        ->AddContact(
+            label.toStdString(), paymentCode.toStdString(), nymID.toStdString())
+        .c_str();
 }
-}  // namespace opentxs
+}  // namespace opentxs::ui
 
 namespace opentxs::ui::implementation
 {
@@ -71,7 +65,9 @@ ContactList::ContactList(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt
+    const bool qt,
+    const RowCallbacks insertCallback,
+    const RowCallbacks removeCallback
 #endif
     )
     : ContactListList(
@@ -81,10 +77,12 @@ ContactList::ContactList(
 #if OT_QT
           ,
           qt,
-          Roles{{IDRole, "id"},
-                {NameRole, "name"},
-                {ImageRole, "image"},
-                {SectionRole, "section"}},
+          insertCallback,
+          removeCallback,
+          Roles{{ContactListQt::IDRole, "id"},
+                {ContactListQt::NameRole, "name"},
+                {ContactListQt::ImageRole, "image"},
+                {ContactListQt::SectionRole, "section"}},
           1,
           1
 #endif
@@ -171,16 +169,16 @@ QVariant ContactList::data(const QModelIndex& index, int role) const
     const auto& row = *pRow;
 
     switch (role) {
-        case IDRole: {
+        case ContactListQt::IDRole: {
             return row.ContactID().c_str();
         }
-        case NameRole: {
+        case ContactListQt::NameRole: {
             return row.DisplayName().c_str();
         }
-        case ImageRole: {
+        case ContactListQt::ImageRole: {
             return row.ImageURI().c_str();
         }
-        case SectionRole: {
+        case ContactListQt::SectionRole: {
             return row.Section().c_str();
         }
         default: {

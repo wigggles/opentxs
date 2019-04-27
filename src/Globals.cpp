@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/Types.hpp"
 
 namespace opentxs
@@ -67,5 +69,4 @@ std::string storage_box_name(StorageBox box)
 
     return name;
 }
-
 }  // namespace opentxs

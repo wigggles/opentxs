@@ -5,7 +5,13 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/Types.hpp"
+
+#include <atomic>
 
 #include "Flag.hpp"
 

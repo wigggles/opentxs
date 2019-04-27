@@ -26,10 +26,6 @@ using PayableListList = List<
 
 class PayableList final : public PayableListList
 {
-#if OT_QT
-    Q_OBJECT
-#endif
-
 public:
     const Identifier& ID() const override;
 
@@ -69,7 +65,9 @@ private:
         const proto::ContactItemType& currency
 #if OT_QT
         ,
-        const bool qt
+        const bool qt,
+        const RowCallbacks insertCallback,
+        const RowCallbacks removeCallback
 #endif
     );
     PayableList() = delete;
