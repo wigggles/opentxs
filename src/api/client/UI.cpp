@@ -176,8 +176,8 @@ UI::AccountListMap::mapped_type& UI::account_list(
                                 remove);
                         }
 #else
-                        new ui::implementation::AccountActivity(
-                            api_, widget_update_publisher_, nymID, accountID)
+                        new ui::implementation::AccountList(
+                            api_, widget_update_publisher_, nymID)
 #endif
                         ))
                 .first;

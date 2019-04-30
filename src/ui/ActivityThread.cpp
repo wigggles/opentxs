@@ -45,6 +45,7 @@ template class std::
 
 namespace zmq = opentxs::network::zeromq;
 
+#if OT_QT
 namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(ActivityThreadQt, ActivityThread)
@@ -87,6 +88,7 @@ QString ActivityThreadQt::threadID() const
     return parent_->ThreadID().c_str();
 }
 }  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {

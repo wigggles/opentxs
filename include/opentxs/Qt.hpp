@@ -17,17 +17,3 @@
 #pragma GCC diagnostic pop
 #endif
 #endif
-
-namespace opentxs
-{
-namespace api
-{
-namespace client
-{
-namespace implementation
-{
-class UI;
-}  // namespace implementation
-}  // namespace client
-}  // namespace api
-}  // namespace opentxs

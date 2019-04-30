@@ -44,6 +44,7 @@ template struct std::pair<int, std::string>;
 
 #define OT_METHOD "opentxs::ui::implementation::Profile::"
 
+#if OT_QT
 namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(ProfileQt, Profile)
@@ -58,6 +59,7 @@ QString ProfileQt::paymentCode() const
     return parent_->PaymentCode().c_str();
 }
 }  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {

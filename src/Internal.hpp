@@ -15,6 +15,11 @@ namespace api
 {
 namespace client
 {
+namespace implementation
+{
+class UI;
+}  // namespace implementation
+
 namespace internal
 {
 struct Activity;

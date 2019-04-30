@@ -41,10 +41,12 @@
 
 #define OT_METHOD "opentxs::ui::implementation::AccountList::"
 
+#if OT_QT
 namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(AccountListQt, AccountList)
 }  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {

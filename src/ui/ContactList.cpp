@@ -39,6 +39,7 @@
 
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
 
+#if OT_QT
 namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(ContactListQt, ContactList)
@@ -56,6 +57,7 @@ QString ContactListQt::addContact(
         .c_str();
 }
 }  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {
