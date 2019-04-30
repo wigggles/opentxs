@@ -40,6 +40,7 @@
 
 #define OT_METHOD "opentxs::ui::implementation::Contact::"
 
+#if OT_QT
 namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(ContactQt, Contact)
@@ -54,6 +55,7 @@ QString ContactQt::paymentCode() const
     return parent_->PaymentCode().c_str();
 }
 }  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {

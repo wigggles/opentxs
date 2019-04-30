@@ -34,10 +34,12 @@
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummary::"
 
+#if OT_QT
 namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(ActivitySummaryQt, ActivitySummary)
 }  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {

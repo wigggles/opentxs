@@ -40,6 +40,7 @@
 
 #define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
 
+#if OT_QT
 namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(AccountActivityQt, AccountActivity)
@@ -53,6 +54,7 @@ QString AccountActivityQt::displayBalance() const
     return parent_->DisplayBalance().c_str();
 }
 }  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {
