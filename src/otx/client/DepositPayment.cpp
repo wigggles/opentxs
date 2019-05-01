@@ -112,7 +112,7 @@ bool DepositPayment::deposit()
     }
 
 exit:
-    if ((false == repeat) && error) {
+    if (false == repeat) {
         parent_.finish_task(task_id_, !error, std::move(result_));
     }
 

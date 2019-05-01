@@ -31,7 +31,7 @@ class Factory;
 // object with the ID in it and store it in our inbox. THEN if we want to send a
 // transaction, we use the blank to do so. If there is no blank available, we
 // message the server and request one.
-typedef std::map<std::int64_t, std::shared_ptr<OTTransaction>>
+typedef std::map<TransactionNumber, std::shared_ptr<OTTransaction>>
     mapOfTransactions;
 
 // the "inbox" and "outbox" functionality is implemented in this class
@@ -75,10 +75,11 @@ public:
     EXPORT void ProduceOutboxReport(Item& theBalanceItem);
 
     EXPORT bool AddTransaction(std::shared_ptr<OTTransaction> theTransaction);
-    EXPORT bool RemoveTransaction(std::int64_t lTransactionNum);  // if false,
-                                                                  // transaction
-                                                                  // wasn't
-                                                                  // found.
+    EXPORT bool RemoveTransaction(
+        const TransactionNumber number);  // if false,
+                                          // transaction
+                                          // wasn't
+                                          // found.
 
     EXPORT std::set<std::int64_t> GetTransactionNums(
         const std::set<std::int32_t>* pOnlyForIndices = nullptr) const;
@@ -86,7 +87,7 @@ public:
     EXPORT std::shared_ptr<OTTransaction> GetTransaction(
         transactionType theType);
     EXPORT std::shared_ptr<OTTransaction> GetTransaction(
-        std::int64_t lTransactionNum) const;
+        const TransactionNumber number) const;
     EXPORT std::shared_ptr<OTTransaction> GetTransactionByIndex(
         std::int32_t nIndex) const;
     EXPORT std::shared_ptr<OTTransaction> GetFinalReceipt(
@@ -96,9 +97,9 @@ public:
     EXPORT std::shared_ptr<OTTransaction> GetChequeReceipt(
         std::int64_t lChequeNum);
     EXPORT std::int32_t GetTransactionIndex(
-        std::int64_t lTransactionNum);  // if not
-                                        // found,
-                                        // returns -1
+        const TransactionNumber number);  // if not
+                                          // found,
+                                          // returns -1
     EXPORT std::shared_ptr<OTTransaction> GetReplyNotice(
         const std::int64_t& lRequestNum);
 

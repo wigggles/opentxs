@@ -3,13 +3,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-add_subdirectory(deposit)
-
-set(name unittests-opentxs-integration)
+set(name unittests-opentxs-integration-deposit)
 
 set(cxx-sources
   ${PROJECT_SOURCE_DIR}/tests/main.cpp
-  Test_Basic.cpp
+  Test_DepositCheques.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 
