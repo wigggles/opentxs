@@ -172,9 +172,8 @@ bool Ledger::SaveBoxReceipts()  // For ALL full transactions, save the actual
                                 // box receipt for each to its own place.
 {
     bool bRetVal = true;
-    for (auto& it : m_mapTransactions) {
-        auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+    for (auto& [number, pTransaction] : m_mapTransactions) {
+        OT_ASSERT(pTransaction);
 
         // We only save full versions of transactions as box receipts, not
         // abbreviated versions.
@@ -188,7 +187,7 @@ bool Ledger::SaveBoxReceipts()  // For ALL full transactions, save the actual
         if (!bRetVal) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed calling SaveBoxReceipt "
-                "on transaction: ")(pTransaction->GetTransactionNum())(".")
+                "on transaction: ")(number)(".")
                 .Flush();
             break;
         }
@@ -247,10 +246,9 @@ bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
     //
     std::set<std::int64_t> the_set;
 
-    for (auto& it : m_mapTransactions) {
-        const auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
-        the_set.insert(pTransaction->GetTransactionNum());
+    for (auto& [number, pTransaction] : m_mapTransactions) {
+        OT_ASSERT(pTransaction);
+        the_set.insert(number);
     }
 
     // Now iterate through those numbers and for each, load the box receipt.
@@ -261,7 +259,7 @@ bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
         std::int64_t lSetNum = it;
 
         const auto pTransaction = GetTransaction(lSetNum);
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         // Failed loading the boxReceipt
         //
@@ -379,20 +377,21 @@ std::set<std::int64_t> Ledger::GetTransactionNums(
 
     std::int32_t current_index{-1};
 
-    for (const auto& it : m_mapTransactions) {
+    for (const auto& [number, pTransaction] : m_mapTransactions) {
         ++current_index;  // 0 on first iteration.
-        const auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
-        const std::int64_t lTransNum = pTransaction->GetTransactionNum();
+
+        OT_ASSERT(pTransaction);
+
         if (nullptr == pOnlyForIndices) {
-            the_set.insert(lTransNum);
+            the_set.insert(number);
             continue;
         }
-        // -------------------------------
-        std::set<std::int32_t>::const_iterator it_indices =
-            pOnlyForIndices->find(current_index);
-        if (pOnlyForIndices->end() != it_indices) { the_set.insert(lTransNum); }
+
+        auto it_indices = pOnlyForIndices->find(current_index);
+
+        if (pOnlyForIndices->end() != it_indices) { the_set.insert(number); }
     }
+
     return the_set;
 }
 
@@ -1043,48 +1042,35 @@ const mapOfTransactions& Ledger::GetTransactionMap() const
 /// If transaction #87, in reference to #74, is in the inbox, you can remove it
 /// by calling this function and passing in 87. Deletes.
 ///
-bool Ledger::RemoveTransaction(std::int64_t lTransactionNum)
+bool Ledger::RemoveTransaction(const TransactionNumber number)
 {
-    // See if there's something there with that transaction number.
-    auto it = m_mapTransactions.find(lTransactionNum);
-
-    // If it's not already on the list, then there's nothing to remove.
-    if (it == m_mapTransactions.end()) {
+    if (0 == m_mapTransactions.erase(number)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Attempt to remove Transaction from ledger, when "
-            "not already there: ")(lTransactionNum)(".")
+            "not already there: ")(number)(".")
             .Flush();
+
         return false;
     }
-    // Otherwise, if it WAS already there, remove it properly.
-    else {
-        m_mapTransactions.erase(it);
 
-        return true;
-    }
+    return true;
 }
 
 bool Ledger::AddTransaction(std::shared_ptr<OTTransaction> theTransaction)
 {
-    // See if there's something else already there with the same transaction
-    // number.
-    auto it = m_mapTransactions.find(theTransaction->GetTransactionNum());
+    const auto number = theTransaction->GetTransactionNum();
+    const auto [it, added] = m_mapTransactions.emplace(number, theTransaction);
 
-    // If it's not already on the list, then add it...
-    if (it == m_mapTransactions.end()) {
-        m_mapTransactions[theTransaction->GetTransactionNum()] = theTransaction;
-        theTransaction->SetParent(*this);  // for convenience
-        return true;
-    }
-    // Otherwise, if it was already there, log an error.
-    else {
+    if (false == added) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Attempt to add Transaction to ledger when already there for "
-            "that number: ")(theTransaction->GetTransactionNum())(".")
+            "that number: ")(number)
             .Flush();
+
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 // Do NOT delete the return value, it's owned by the ledger.
@@ -1094,7 +1080,7 @@ std::shared_ptr<OTTransaction> Ledger::GetTransaction(transactionType theType)
 
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         if (theType == pTransaction->GetType()) return pTransaction;
     }
@@ -1103,23 +1089,22 @@ std::shared_ptr<OTTransaction> Ledger::GetTransaction(transactionType theType)
 }
 
 // if not found, returns -1
-std::int32_t Ledger::GetTransactionIndex(std::int64_t lTransactionNum)
+std::int32_t Ledger::GetTransactionIndex(const TransactionNumber target)
 {
     // loop through the transactions inside this ledger
     // If a specific transaction is found, returns its index inside the ledger
     //
-    std::int32_t nIndex = -1;
+    std::int32_t output{0};
 
-    for (auto& it : m_mapTransactions) {
-        const auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+    for (const auto& [number, pTransaction] : m_mapTransactions) {
+        if (target == number) {
 
-        ++nIndex;  // 0 on first iteration.
-
-        if (pTransaction->GetTransactionNum() == lTransactionNum) {
-            return nIndex;
+            return output;
+        } else {
+            ++output;
         }
     }
+
     return -1;
 }
 
@@ -1129,18 +1114,15 @@ std::int32_t Ledger::GetTransactionIndex(std::int64_t lTransactionNum)
 // Do NOT delete the return value, it's owned by the ledger.
 //
 std::shared_ptr<OTTransaction> Ledger::GetTransaction(
-    std::int64_t lTransactionNum) const
+    const TransactionNumber number) const
 {
-    auto it = m_mapTransactions.find(lTransactionNum);
-    if (it != m_mapTransactions.end()) {  // found it
-        auto pTransaction = it->second;
-        OT_ASSERT(false != bool(pTransaction));
-        if (pTransaction->GetTransactionNum() == lTransactionNum) {
-            return pTransaction;
-        }
-        // TODO: Else log error here.
+    try {
+
+        return m_mapTransactions.at(number);
+    } catch (...) {
+
+        return {};
     }
-    return nullptr;
 }
 
 // Return a count of all the transactions in this ledger that are IN REFERENCE
@@ -1155,7 +1137,7 @@ std::int32_t Ledger::GetTransactionCountInRefTo(
 
     for (auto& it : m_mapTransactions) {
         const auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         if (pTransaction->GetReferenceToNum() == lReferenceNum) nCount++;
     }
@@ -1177,7 +1159,7 @@ std::shared_ptr<OTTransaction> Ledger::GetTransactionByIndex(
     for (auto& it : m_mapTransactions) {
         nIndexCount++;  // On first iteration, this is now 0, same as nIndex.
         auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));  // Should always be good.
+        OT_ASSERT(pTransaction);  // Should always be good.
 
         // If this transaction is the one at the requested index
         if (nIndexCount == nIndex) return pTransaction;
@@ -1196,7 +1178,7 @@ std::shared_ptr<OTTransaction> Ledger::GetReplyNotice(
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         if (transactionType::replyNotice !=
             pTransaction->GetType())  // <=======
@@ -1214,7 +1196,7 @@ std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         if (transactionType::transferReceipt == pTransaction->GetType()) {
             auto strReference = String::Factory();
@@ -1224,7 +1206,7 @@ std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
                 strReference,
                 pTransaction->GetPurportedNotaryID(),
                 pTransaction->GetReferenceToNum())};
-            OT_ASSERT(false != bool(pOriginalItem));
+            OT_ASSERT(pOriginalItem);
 
             if (pOriginalItem->GetType() != itemType::acceptPending) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1323,7 +1305,7 @@ std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
             pOriginalItem->GetAttachment(strCheque);
 
             auto pCheque{api_.Factory().Cheque()};
-            OT_ASSERT(false != bool(pCheque));
+            OT_ASSERT(pCheque);
 
             if (!((strCheque->GetLength() > 2) &&
                   pCheque->LoadContractFromString(strCheque))) {
@@ -1379,7 +1361,7 @@ std::shared_ptr<OTTransaction> Ledger::GetFinalReceipt(
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         if (transactionType::finalReceipt !=
             pTransaction->GetType())  // <=======
@@ -1565,7 +1547,7 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
 
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         LogVerbose(OT_METHOD)(__FUNCTION__)("Producing a report... ").Flush();
         // This function adds a receipt sub-item to pBalanceItem, where
@@ -1598,7 +1580,7 @@ std::int64_t Ledger::GetTotalPendingValue()
 
     for (auto& it : m_mapTransactions) {
         const auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         if (pTransaction->GetType() == transactionType::pending)
             lTotalPendingValue +=
@@ -1629,7 +1611,7 @@ void Ledger::ProduceOutboxReport(Item& theBalanceItem)
     // in this outbox.)
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         // it only reports receipts where we don't yet have balance agreement.
         pTransaction->ProduceOutboxReportItem(
@@ -1735,7 +1717,7 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
     // loop through the transactions and print them out here.
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
-        OT_ASSERT(false != bool(pTransaction));
+        OT_ASSERT(pTransaction);
 
         if (false == bSavingAbbreviated)  // only OTLedger::message uses this
                                           // block.
@@ -1970,7 +1952,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     std::int64_t lNumberOfOrigin = 0;
                     originType theOriginType =
                         originType::not_applicable;  // default
-                    std::int64_t lTransactionNum = 0;
+                    TransactionNumber number{0};
                     std::int64_t lInRefTo = 0;
                     std::int64_t lInRefDisplay = 0;
 
@@ -1989,7 +1971,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         xml,
                         lNumberOfOrigin,
                         theOriginType,
-                        lTransactionNum,
+                        number,
                         lInRefTo,
                         lInRefDisplay,
                         the_DATE_SIGNED,
@@ -2012,13 +1994,13 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // ledger.
                     // (There can only be one.)
                     //
-                    auto pExistingTrans = GetTransaction(lTransactionNum);
+                    auto pExistingTrans = GetTransaction(number);
                     if (false != bool(pExistingTrans))  // Uh-oh, it's already
                                                         // there!
                     {
                         LogNormal(OT_METHOD)(__FUNCTION__)(
-                            ": Error loading transaction ")(lTransactionNum)(
-                            " (")(strExpected)(
+                            ": Error loading transaction ")(number)(" (")(
+                            strExpected)(
                             "), since one was already there, in box for "
                             "account: ")(strLedgerAcctID)(".")
                             .Flush();
@@ -2039,7 +2021,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         NOTARY_ID,
                         lNumberOfOrigin,
                         static_cast<originType>(theOriginType),
-                        lTransactionNum,
+                        number,
                         lInRefTo,  // lInRefTo
                         lInRefDisplay,
                         the_DATE_SIGNED,
@@ -2053,7 +2035,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         pNumList)};  // This is for "transactionType::blank" and
                                      // "transactionType::successNotice",
                                      // otherwise nullptr.
-                    OT_ASSERT(false != bool(pTransaction));
+                    OT_ASSERT(pTransaction);
                     //
                     // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported
                     // AcctID and purported NotaryID.
@@ -2229,7 +2211,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // GetRealNotaryID());
             auto pTransaction{api_.Factory().Transaction(
                 GetNymID(), GetPurportedAccountID(), GetPurportedNotaryID())};
-            OT_ASSERT(false != bool(pTransaction));
+            OT_ASSERT(pTransaction);
 
             // Need this set before the LoadContractFromString().
             //

@@ -7007,17 +7007,21 @@ void Notary::NotarizeProcessInbox(
     // can't process the same inbox item twice simultaneously! Or even at
     // all.)
 
-    for (auto& it_bigloop : processInbox.GetItemList()) {
-        pItem = it_bigloop;
-        OT_ASSERT_MSG(
-            nullptr != pItem, "Pointer should not have been nullptr.");
-        std::shared_ptr<OTTransaction> pServerTransaction = nullptr;
+    for (const auto& pItem : processInbox.GetItemList()) {
+        if (false == bool(pItem)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transaction").Flush();
+            bSuccessFindingAllTransactions = false;
 
-        switch (pItem->GetType()) {
+            break;
+        }
+
+        const auto& item = *pItem;
+        std::shared_ptr<OTTransaction> pServerTransaction;
+
+        switch (item.GetType()) {
             case itemType::balanceStatement: {
-                pServerTransaction = nullptr;
-            }
                 continue;
+            }
             case itemType::acceptCronReceipt:
             case itemType::acceptFinalReceipt:
             case itemType::acceptBasketReceipt:
@@ -7025,7 +7029,7 @@ void Notary::NotarizeProcessInbox(
             case itemType::disputeFinalReceipt:
             case itemType::disputeBasketReceipt: {
                 pServerTransaction =
-                    inbox.GetTransaction(pItem->GetReferenceToNum());
+                    inbox.GetTransaction(item.GetReferenceToNum());
             } break;
             // Accept an incoming (pending) transfer.
             case itemType::acceptPending:
@@ -7034,13 +7038,12 @@ void Notary::NotarizeProcessInbox(
             case itemType::rejectPending:
             case itemType::disputeItemReceipt: {
                 pServerTransaction =
-                    inbox.GetTransaction(pItem->GetReferenceToNum());
+                    inbox.GetTransaction(item.GetReferenceToNum());
             } break;
             default: {
                 auto strItemType = String::Factory();
-                pItem->GetTypeString(strItemType);
-                itemType nItemType = pItem->GetType();
-                pServerTransaction = nullptr;
+                item.GetTypeString(strItemType);
+                itemType nItemType = item.GetType();
                 bSuccessFindingAllTransactions = false;
 
                 Log::vError(
@@ -7051,7 +7054,7 @@ void Notary::NotarizeProcessInbox(
             } break;
         }
 
-        if (nullptr == pServerTransaction) {
+        if (false == bool(pServerTransaction)) {
             const auto strAccountID = String::Factory(ACCOUNT_ID);
             Log::vError(
                 "%s: Unable to find or process inbox transaction "
@@ -7061,14 +7064,13 @@ void Notary::NotarizeProcessInbox(
                 strAccountID->Get());
             bSuccessFindingAllTransactions = false;
             break;
-        } else if (
-            pServerTransaction->GetReceiptAmount() != pItem->GetAmount()) {
+        } else if (pServerTransaction->GetReceiptAmount() != item.GetAmount()) {
             Log::vError(
                 "%s: Receipt amounts don't match: %" PRId64 " and %" PRId64
                 ". Nym: %s\n",
                 __FUNCTION__,
                 pServerTransaction->GetReceiptAmount(),
-                pItem->GetAmount(),
+                item.GetAmount(),
                 strNymID.c_str());
             bSuccessFindingAllTransactions = false;
             break;
@@ -7076,10 +7078,10 @@ void Notary::NotarizeProcessInbox(
 
         // BELOW THIS POINT, WE KNOW THAT pServerTransaction was FOUND (and
         // validated.)
-        const TransactionNumber closingNum =
-            pServerTransaction->GetClosingNum();
+        auto& serverTransaction = *pServerTransaction;
+        const auto closingNum = serverTransaction.GetClosingNum();
 
-        switch (pItem->GetType()) {
+        switch (item.GetType()) {
             case itemType::acceptCronReceipt: {
                 bSuccessFindingAllTransactions = true;
             } break;
@@ -7114,7 +7116,7 @@ void Notary::NotarizeProcessInbox(
                 // For each, look it up on the inbox. (Each item will be "in
                 // reference to" the original transaction.) ONCE THE INBOX
                 // RECEIPT IS FOUND, if *IT* is "in reference to"
-                // pServerTransaction->GetReferenceToNum(), Then increment
+                // serverTransaction.GetReferenceToNum(), Then increment
                 // the count for the transaction.  COMPARE *THAT* to
                 // theInbox.GetCount and we're golden!!
 
@@ -7133,14 +7135,14 @@ void Notary::NotarizeProcessInbox(
 
                     if ((false != bool(pTransPointer)) &&
                         (pTransPointer->GetReferenceToNum() ==
-                         pServerTransaction->GetReferenceToNum())) {
+                         serverTransaction.GetReferenceToNum())) {
                         setOfRefNumbers.insert(
                             pItemPointer->GetReferenceToNum());
                     }
                 }
 
                 if (inbox.GetTransactionCountInRefTo(
-                        pServerTransaction->GetReferenceToNum()) !=
+                        serverTransaction.GetReferenceToNum()) !=
                     static_cast<std::int32_t>(setOfRefNumbers.size())) {
                     Log::vOutput(
                         0,
@@ -7214,7 +7216,7 @@ void Notary::NotarizeProcessInbox(
             case itemType::acceptPending: {
                 // IF I'm accepting a pending transfer, then add the amount
                 // to my counter of total amount being accepted.
-                lTotalBeingAccepted += pServerTransaction->GetReceiptAmount();
+                lTotalBeingAccepted += serverTransaction.GetReceiptAmount();
                 bSuccessFindingAllTransactions = true;
             } break;
             case itemType::acceptItemReceipt: {
@@ -7233,12 +7235,12 @@ void Notary::NotarizeProcessInbox(
                 // my original transfer (or contains a cheque with my
                 // original number.) (THAT's the # I need.)
                 auto strOriginalItem = String::Factory();
-                pServerTransaction->GetReferenceString(strOriginalItem);
+                serverTransaction.GetReferenceString(strOriginalItem);
 
                 auto pOriginalItem{manager_.Factory().Item(
                     strOriginalItem,
                     NOTARY_ID,
-                    pServerTransaction->GetReferenceToNum())};
+                    serverTransaction.GetReferenceToNum())};
 
                 if (false != bool(pOriginalItem)) {
                     // If pOriginalItem is acceptPending, that means the
@@ -7397,7 +7399,7 @@ void Notary::NotarizeProcessInbox(
             // the rest of the loop needs the data still, in that inbox.) So
             // we save in a list, and remove AFTER the loop.
             theListOfInboxReceiptsBeingRemoved.push_back(
-                pServerTransaction->GetTransactionNum());
+                serverTransaction.GetTransactionNum());
         }
         // If there was an error above, then we don't want to keep looping.
         // We want the below error block.
