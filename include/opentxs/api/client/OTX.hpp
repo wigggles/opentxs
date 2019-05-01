@@ -34,7 +34,7 @@ public:
     using TaskID = int;
     using MessageID = OTIdentifier;
     using Result = std::pair<proto::LastReplyStatus, std::shared_ptr<Message>>;
-    using Future = std::future<Result>;
+    using Future = std::shared_future<Result>;
     using BackgroundTask = std::pair<TaskID, Future>;
     using Finished = std::shared_future<void>;
 

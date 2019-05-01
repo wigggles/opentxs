@@ -116,6 +116,7 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-network-zeromq protobuf)
   add_dependencies(opentxs-network protobuf)
   add_dependencies(opentxs-otx protobuf)
+  add_dependencies(opentxs-otx-client protobuf)
   add_dependencies(opentxs-recurring protobuf)
   add_dependencies(opentxs-rpc protobuf)
   add_dependencies(opentxs-script protobuf)
@@ -238,6 +239,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-network-zeromq>
   $<TARGET_OBJECTS:opentxs-network>
   $<TARGET_OBJECTS:opentxs-otx>
+  $<TARGET_OBJECTS:opentxs-otx-client>
   $<TARGET_OBJECTS:opentxs-recurring>
   $<TARGET_OBJECTS:opentxs-rpc>
   $<TARGET_OBJECTS:opentxs-script>

@@ -41,6 +41,7 @@
 
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/otx/client/Client.hpp"
 
 #include <atomic>
 #include <future>
@@ -67,7 +68,7 @@
 #define OPERATION_JOIN_MILLISECONDS OPERATION_POLL_MILLISECONDS
 #define MAX_ERROR_COUNT 3
 
-#define OT_METHOD "opentxs::api::client::implementation::Operation::"
+#define OT_METHOD "opentxs::otx::client::implementation::Operation::"
 
 #define PREPARE_CONTEXT()                                                      \
     auto contextEditor = context();                                            \
@@ -257,16 +258,16 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
-api::client::internal::Operation* Factory::Operation(
+otx::client::internal::Operation* Factory::Operation(
     const api::client::Manager& api,
     const identifier::Nym& nym,
     const identifier::Server& server)
 {
-    return new api::client::implementation::Operation(api, nym, server);
+    return new otx::client::implementation::Operation(api, nym, server);
 }
 }  // namespace opentxs
 
-namespace opentxs::api::client::implementation
+namespace opentxs::otx::client::implementation
 {
 const std::map<Operation::Type, Operation::Category> Operation::category_{
     {Type::AddClaim, Category::Basic},
@@ -2737,4 +2738,4 @@ Operation::~Operation()
 
     if (needPromise) { set_result({proto::LASTREPLYSTATUS_UNKNOWN, nullptr}); }
 }
-}  // namespace opentxs::api::client::implementation
+}  // namespace opentxs::otx::client::implementation

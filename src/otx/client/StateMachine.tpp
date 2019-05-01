@@ -7,7 +7,7 @@
 
 #include "StateMachine.hpp"
 
-namespace opentxs::api::client::implementation
+namespace opentxs::otx::client::implementation
 {
 template <>
 CheckNymTask& StateMachine::get_param()
@@ -287,4 +287,4 @@ template StateMachine::BackgroundTask StateMachine::StartTask(
 template StateMachine::BackgroundTask StateMachine::StartTask(
     const WithdrawCashTask& params) const;
 #endif  // OT_CASH
-}  // namespace opentxs::api::client::implementation
+}  // namespace opentxs::otx::client::implementation

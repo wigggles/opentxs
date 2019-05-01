@@ -3,24 +3,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-add_subdirectory(client)
-
-set(MODULE_NAME opentxs-otx)
+set(MODULE_NAME opentxs-otx-client)
 
 set(cxx-sources
-  Reply.cpp
-  Request.cpp
-)
-
-set(cxx-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otx/Reply.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otx/Request.hpp"
+  DepositPayment.cpp
+  Operation.cpp
+  PaymentTasks.cpp
+  StateMachine.cpp
+  StateMachine.tpp
 )
 
 set(cxx-headers
-  ${cxx-install-headers}
-  Reply.hpp
-  Request.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../internal/otx/client/Client.hpp
+  DepositPayment.hpp
+  Operation.hpp
+  PaymentTasks.hpp
+  StateMachine.hpp
 )
 
 if(WIN32)
@@ -43,9 +41,6 @@ else()
   )
 endif()
 
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/otx
-        COMPONENT dev)
-
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")

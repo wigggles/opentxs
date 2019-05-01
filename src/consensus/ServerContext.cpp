@@ -1532,11 +1532,11 @@ bool ServerContext::HaveAdminPassword() const
 
 bool ServerContext::HaveSufficientNumbers(const MessageType reason) const
 {
-	if (MessageType::processInbox == reason) {
-		return 0 < available_transaction_numbers_.size();
-	}
-	
-	return 1 < available_transaction_numbers_.size();
+    if (MessageType::processInbox == reason) {
+        return 0 < available_transaction_numbers_.size();
+    }
+
+    return 1 < available_transaction_numbers_.size();
 }
 
 TransactionNumber ServerContext::Highest() const

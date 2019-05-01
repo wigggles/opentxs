@@ -246,10 +246,11 @@ private:
     mutable std::mutex nym_fetch_lock_{};
     mutable std::mutex task_status_lock_{};
     mutable std::atomic<std::uint64_t> refresh_counter_{0};
-    mutable std::map<ContextID, StateMachine> operations_;
+    mutable std::map<ContextID, otx::client::implementation::StateMachine>
+        operations_;
     mutable std::map<OTIdentifier, UniqueQueue<OTNymID>> server_nym_fetch_;
-    UniqueQueue<CheckNymTask> missing_nyms_;
-    UniqueQueue<CheckNymTask> outdated_nyms_;
+    UniqueQueue<otx::client::CheckNymTask> missing_nyms_;
+    UniqueQueue<otx::client::CheckNymTask> outdated_nyms_;
     UniqueQueue<OTServerID> missing_servers_;
     UniqueQueue<OTUnitID> missing_unit_definitions_;
     mutable std::unique_ptr<OTServerID> introduction_server_id_;
@@ -272,6 +273,10 @@ private:
     mutable std::mutex shutdown_lock_;
 
     static BackgroundTask error_task();
+    static Result error_result()
+    {
+        return Result{proto::LASTREPLYSTATUS_NOTSENT, nullptr};
+    }
 
     BackgroundTask add_task(const TaskID taskID, const ThreadStatus status)
         const;
@@ -282,6 +287,7 @@ private:
         const identifier::Nym& recipient,
         const Identifier& accountIDHint,
         identifier::Server& depositServer,
+        identifier::UnitDefinition& unitID,
         Identifier& depositAccount) const override;
     Messagability can_message(
         const identifier::Nym& senderNymID,
@@ -301,8 +307,10 @@ private:
     OTServerID get_introduction_server(const Lock& lock) const;
     UniqueQueue<OTNymID>& get_nym_fetch(
         const identifier::Server& serverID) const override;
-    StateMachine& get_operations(const ContextID& id) const;
-    StateMachine& get_task(const ContextID& id) const;
+    otx::client::implementation::StateMachine& get_operations(
+        const ContextID& id) const;
+    otx::client::implementation::StateMachine& get_task(
+        const ContextID& id) const;
     OTServerID import_default_introduction_server(const Lock& lock) const;
     void load_introduction_server(const Lock& lock) const;
     TaskID next_task_id() const { return ++next_task_id_; }
