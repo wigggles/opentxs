@@ -142,10 +142,7 @@ Wallet::AccountLock& Wallet::account(
     OT_ASSERT(verify_lock(lock, account_map_lock_))
 
     auto& row = account_map_[account];
-    // WTF clang? This is perfectly valid c++17. Fix your shit.
-    // auto& [rowMutex, pAccount] = row;
-    auto& rowMutex = std::get<0>(row);
-    auto& pAccount = std::get<1>(row);
+    auto& [rowMutex, pAccount] = row;
 
     if (pAccount) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Account ")(account)(
@@ -236,16 +233,60 @@ opentxs::Account* Wallet::account_factory(
         return nullptr;
     }
 
-    auto account = new opentxs::Account{api_};
-    if (nullptr == account) {
+    const auto owner = api_.Storage().AccountOwner(accountID);
+    const auto notary = api_.Storage().AccountServer(accountID);
+
+    std::unique_ptr<opentxs::Account> pAccount{
+        new opentxs::Account{api_, owner, accountID, notary}};
+
+    if (false == bool(pAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create account.")
             .Flush();
 
         return nullptr;
     }
 
-    account->SetLoadInsecure();
-    auto deserialized = account->LoadContractFromString(strContract);
+    auto& account = *pAccount;
+
+    if (account.GetNymID() != owner) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym id (")(account.GetNymID())(
+            ") does not match expect value (")(owner)(")")
+            .Flush();
+        account.SetNymID(owner);
+    }
+
+    if (account.GetRealAccountID() != accountID) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Account id (")(
+            account.GetRealAccountID())(") does not match expect value (")(
+            accountID)(")")
+            .Flush();
+        account.SetRealAccountID(accountID);
+    }
+
+    if (account.GetPurportedAccountID() != accountID) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Purported account id (")(
+            account.GetPurportedAccountID())(") does not match expect value (")(
+            accountID)(")")
+            .Flush();
+        account.SetPurportedAccountID(accountID);
+    }
+
+    if (account.GetRealNotaryID() != notary) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Notary id (")(account.GetNymID())(
+            ") does not match expect value (")(notary)(")")
+            .Flush();
+        account.SetRealNotaryID(notary);
+    }
+
+    if (account.GetPurportedNotaryID() != notary) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Purported notary id (")(
+            account.GetNymID())(") does not match expect value (")(notary)(")")
+            .Flush();
+        account.SetPurportedNotaryID(notary);
+    }
+
+    account.SetLoadInsecure();
+    auto deserialized = account.LoadContractFromString(strContract);
 
     if (false == deserialized) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialize account.")
@@ -271,15 +312,15 @@ opentxs::Account* Wallet::account_factory(
         return nullptr;
     }
 
-    if (false == account->VerifySignature(*signerNym)) {
+    if (false == account.VerifySignature(*signerNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
 
         return nullptr;
     }
 
-    account->SetAlias(alias.c_str());
+    account.SetAlias(alias.c_str());
 
-    return account;
+    return pAccount.release();
 }
 
 OTIdentifier Wallet::AccountPartialMatch(const std::string& hint) const
@@ -353,7 +394,11 @@ ExclusiveAccount Wallet::CreateAccount(
 
             OT_ASSERT(pAccount)
 
-            const auto id = pAccount->GetRealAccountID().str();
+            const auto id = accountID.str();
+            pAccount->SetNymID(ownerNymID);
+            pAccount->SetPurportedAccountID(accountID);
+            pAccount->SetRealNotaryID(notaryID);
+            pAccount->SetPurportedNotaryID(notaryID);
             auto serialized = String::Factory();
             pAccount->SaveContractRaw(serialized);
             const auto saved = api_.Storage().Store(
@@ -453,11 +498,7 @@ ExclusiveAccount Wallet::mutable_Account(
     Lock mapLock(account_map_lock_);
 
     try {
-        auto& row = account(mapLock, accountID, false);
-        // WTF clang? This is perfectly valid c++17. Fix your shit.
-        // auto& [rowMutex, pAccount] = row;
-        auto& rowMutex = std::get<0>(row);
-        auto& pAccount = std::get<1>(row);
+        auto& [rowMutex, pAccount] = account(mapLock, accountID, false);
         const auto id = accountID.str();
 
         if (pAccount) {

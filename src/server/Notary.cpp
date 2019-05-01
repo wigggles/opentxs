@@ -5798,21 +5798,39 @@ void Notary::NotarizeTransaction(
     OTTransaction& tranOut,
     bool& bOutSuccess)
 {
+    struct Cleanup {
+        OTTransaction& transaction_;
+        const identity::Nym& server_;
+
+        Cleanup(OTTransaction& transaction, const identity::Nym& server)
+            : transaction_(transaction)
+            , server_(server)
+        {
+        }
+
+        ~Cleanup()
+        {
+            transaction_.SignContract(server_);
+            transaction_.SaveContract();
+        }
+    };
+
+    const auto& serverNym = server_.GetServerNym();
+    Cleanup cleanup(tranOut, serverNym);
     const auto lTransactionNumber = tranIn.GetTransactionNum();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto strIDNym = String::Factory(NYM_ID);
     auto theFromAccount =
         manager_.Wallet().mutable_Account(tranIn.GetPurportedAccountID());
+    std::unique_ptr<Ledger> pInbox(theFromAccount.get().LoadInbox(serverNym));
+    std::unique_ptr<Ledger> pOutbox(theFromAccount.get().LoadOutbox(serverNym));
 
-    std::unique_ptr<Ledger> pInbox(
-        theFromAccount.get().LoadInbox(server_.GetServerNym()));
-    std::unique_ptr<Ledger> pOutbox(
-        theFromAccount.get().LoadOutbox(server_.GetServerNym()));
-
-    if (nullptr == pInbox) {
+    if (false == bool(pInbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading or verifying inbox.")
             .Flush();
+
+        return;
     } else {
         auto inboxHash{server_.API().Factory().Identifier()};
         pInbox->CalculateInboxHash(inboxHash);
@@ -5825,10 +5843,12 @@ void Notary::NotarizeTransaction(
         }
     }
 
-    if (nullptr == pOutbox) {
+    if (false == bool(pOutbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading or verifying outbox.")
             .Flush();
+
+        return;
     } else {
         auto outboxHash{server_.API().Factory().Identifier()};
         pOutbox->CalculateOutboxHash(outboxHash);
@@ -5844,6 +5864,7 @@ void Notary::NotarizeTransaction(
 
     auto accountHash{server_.API().Factory().Identifier()};
     theFromAccount.get().ConsensusHash(context, accountHash);
+
     if (tranIn.GetAccountHash() != accountHash) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Account hash mismatch. Local account hash: ")(
@@ -5851,6 +5872,9 @@ void Notary::NotarizeTransaction(
             tranIn.GetAccountHash()->str())(".")
             .Flush();
     }
+
+    auto& inbox = *pInbox;
+    auto& outbox = *pOutbox;
 
     // Make sure the Account ID loaded from the file matches the one we just
     // set and used as the filename.
@@ -5880,7 +5904,7 @@ void Notary::NotarizeTransaction(
             strIDAcct->Get());
     }
     // Make sure I, the server, have signed this file.
-    else if (!theFromAccount.get().VerifySignature(server_.GetServerNym())) {
+    else if (!theFromAccount.get().VerifySignature(serverNym)) {
         const auto idAcct =
             server_.API().Factory().Identifier(theFromAccount.get());
         const auto strIDAcct = String::Factory(idAcct);
@@ -5959,8 +5983,8 @@ void Notary::NotarizeTransaction(
                         theFromAccount,
                         tranIn,
                         tranOut,
-                        *pInbox,
-                        *pOutbox,
+                        inbox,
+                        outbox,
                         bOutSuccess);
                     theReplyItemType = itemType::atTransfer;
                     break;
@@ -5977,8 +6001,8 @@ void Notary::NotarizeTransaction(
                         theFromAccount,
                         tranIn,
                         tranOut,
-                        *pInbox,
-                        *pOutbox,
+                        inbox,
+                        outbox,
                         bOutSuccess);
                     //                    theReplyItemType =
                     //                    Item::atProcessInbox;
@@ -6013,8 +6037,8 @@ void Notary::NotarizeTransaction(
                         theFromAccount,
                         tranIn,
                         tranOut,
-                        *pInbox,
-                        *pOutbox,
+                        inbox,
+                        outbox,
                         bOutSuccess);
                 } break;
 
@@ -6030,8 +6054,8 @@ void Notary::NotarizeTransaction(
                         theFromAccount,
                         tranIn,
                         tranOut,
-                        *pInbox,
-                        *pOutbox,
+                        inbox,
+                        outbox,
                         bOutSuccess);
                     theReplyItemType = itemType::atDeposit;
                     break;
@@ -6048,8 +6072,8 @@ void Notary::NotarizeTransaction(
                         theFromAccount,
                         tranIn,
                         tranOut,
-                        *pInbox,
-                        *pOutbox,
+                        inbox,
+                        outbox,
                         bOutSuccess);
                     theReplyItemType = itemType::atPayDividend;
                     break;
@@ -6123,8 +6147,8 @@ void Notary::NotarizeTransaction(
                         theFromAccount,
                         tranIn,
                         tranOut,
-                        *pInbox,
-                        *pOutbox,
+                        inbox,
+                        outbox,
                         bOutSuccess);
                     theReplyItemType = itemType::atExchangeBasket;
                     break;
@@ -6222,18 +6246,6 @@ void Notary::NotarizeTransaction(
             }
         }
     }
-
-    // sign the outoing transaction
-    tranOut.SignContract(server_.GetServerNym());
-    tranOut.SaveContract();  // don't forget to save (to internal raw file
-                             // member)
-
-    // Contracts store an internal member that contains the "Raw File"
-    // contents That is, the unsigned XML portion, plus the signatures,
-    // attached in a standard PGP-compatible format. It's not enough to sign
-    // it, you must also save it into that Raw file member variable (using
-    // SaveContract) and then you must sometimes THEN save it into a file
-    // (or a string or wherever you want to put it.)
 }
 
 /// The client may send multiple transactions in the ledger when he calls
