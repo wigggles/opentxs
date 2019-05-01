@@ -195,7 +195,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
         originType::not_applicable,
         transactionNumber)};
 
-    OT_ASSERT(false != bool(transaction));
+    OT_ASSERT(transaction);
 
     if (transaction) {
         transaction->AddNumbersToTransaction(newNumbers);
@@ -252,7 +252,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     const auto& nymID = context.RemoteNym().ID();
     auto nymbox{manager_.Factory().Ledger(nymID, nymID, context.Server())};
 
-    OT_ASSERT(false != bool(nymbox));
+    OT_ASSERT(nymbox);
 
     if (nymbox->LoadNymbox() &&
         nymbox->VerifySignature(server_.GetServerNym())) {
@@ -274,7 +274,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
                 // that lRequestNum
                 auto pReplyNotice = nymbox->GetReplyNotice(lRequestNum);
 
-                if (false != bool(pReplyNotice)) {
+                if (pReplyNotice) {
                     // If so, remove it...
                     const bool bDeleted =
                         pReplyNotice->DeleteBoxReceipt(*nymbox);
@@ -1191,7 +1191,7 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
     const auto& serverID = context.Server();
     auto theLedger{manager_.Factory().Ledger(nymID, nymID, serverID)};
 
-    OT_ASSERT(false != bool(theLedger));
+    OT_ASSERT(theLedger);
 
     NumList theNumlist;
 
@@ -1436,8 +1436,8 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     auto responseLedger{manager_.Factory().Ledger(
         serverNymID, accountID, serverID, ledgerType::message, false)};
 
-    OT_ASSERT(false != bool(input));
-    OT_ASSERT(false != bool(responseLedger));
+    OT_ASSERT(input);
+    OT_ASSERT(responseLedger);
 
     if (false == hash_check(context, nymboxHash)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nymbox hash mismatch.").Flush();
@@ -1540,8 +1540,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     auto responseLedger{manager_.Factory().Ledger(
         serverNymID, accountID, serverID, ledgerType::message, false)};
 
-    OT_ASSERT(false != bool(input));
-    OT_ASSERT(false != bool(responseLedger));
+    OT_ASSERT(input);
+    OT_ASSERT(responseLedger);
 
     if (false == hash_check(context, nymboxHash)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nymbox hash mismatch.").Flush();
@@ -1561,9 +1561,9 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
 
     if (false == bool(account)) { return false; }
 
-    auto processInbox = input->GetTransaction(transactionType::processInbox);
+    auto pProcessInbox = input->GetTransaction(transactionType::processInbox);
 
-    if (nullptr == processInbox) {
+    if (false == bool(pProcessInbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": processInbox transaction not found in input ledger.")
             .Flush();
@@ -1571,7 +1571,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    const auto inputNumber = processInbox->GetTransactionNum();
+    auto& processInbox = *pProcessInbox;
+    const auto inputNumber = processInbox.GetTransactionNum();
 
     if (false == context.VerifyIssuedNumber(inputNumber)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Transaction number ")(
@@ -1586,7 +1587,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     // ownership, signatures, and transaction number on each item. That way
     // those things don't have to be checked for security over and over again in
     // the subsequent calls.
-    if (false == processInbox->VerifyItems(nym)) {
+    if (false == processInbox.VerifyItems(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to verify transaction items.")
             .Flush();
@@ -1617,7 +1618,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     FinalizeResponse response(manager_, serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
-    auto responseTrans = response.AddResponse(
+    auto pResponseTrans = response.AddResponse(
         std::shared_ptr<OTTransaction>(manager_.Factory()
                                            .Transaction(
                                                *responseLedger,
@@ -1625,16 +1626,40 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
                                                originType::not_applicable,
                                                inputNumber)
                                            .release()));
+
+    if (false == bool(pResponseTrans)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to instantiate response transaction")
+            .Flush();
+        reply.SetSuccess(false);
+
+        return false;
+    }
+
+    auto& responseTransaction = *pResponseTrans;
     bool transactionSuccess{false};
     std::unique_ptr<Ledger> pInbox(account.get().LoadInbox(serverNym));
     std::unique_ptr<Ledger> pOutbox(account.get().LoadOutbox(serverNym));
+
+    if (false == bool(pInbox) || false == bool(pOutbox)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error loading or verifying inbox or outbox.")
+            .Flush();
+        responseTransaction.SignContract(serverNym);
+        responseTransaction.SaveContract();
+
+        return true;
+    }
+
+    auto& inbox = *pInbox;
+    auto& outbox = *pOutbox;
     server_.GetNotary().NotarizeProcessInbox(
         context,
         account,
-        *processInbox,
-        *responseTrans,
-        *pInbox,
-        *pOutbox,
+        processInbox,
+        responseTransaction,
+        inbox,
+        outbox,
         transactionSuccess);
     const auto consumed = context.ConsumeIssued(inputNumber);
 
@@ -1663,7 +1688,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     }
 
     OT_ASSERT_MSG(
-        inputNumber == responseTrans->GetTransactionNum(),
+        inputNumber == responseTransaction.GetTransactionNum(),
         "Transaction number and response number should "
         "always be the same. (But this time they weren't).");
 
@@ -1686,8 +1711,8 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     auto responseLedger{manager_.Factory().Ledger(
         serverNymID, nymID, serverID, ledgerType::message, false)};
 
-    OT_ASSERT(false != bool(input));
-    OT_ASSERT(false != bool(responseLedger));
+    OT_ASSERT(input);
+    OT_ASSERT(responseLedger);
 
     if (false == hash_check(context, nymboxHash)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nymbox hash mismatch.").Flush();
@@ -1863,8 +1888,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     auto outbox{manager_.Factory().Ledger(nymID, accountID, serverID)};
     auto inbox{manager_.Factory().Ledger(nymID, accountID, serverID)};
 
-    OT_ASSERT(false != bool(outbox));
-    OT_ASSERT(false != bool(inbox));
+    OT_ASSERT(outbox);
+    OT_ASSERT(inbox);
 
     bool inboxLoaded = inbox->LoadInbox();
     bool outboxLoaded = outbox->LoadOutbox();
@@ -2466,7 +2491,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const auto& serverNym = *context.Nym();
     auto theNymbox{server.API().Factory().Ledger(nymID, nymID, serverID)};
 
-    OT_ASSERT(false != bool(theNymbox));
+    OT_ASSERT(theNymbox);
 
     bool bSuccessLoadingNymbox = theNymbox->LoadNymbox();
 
@@ -2504,12 +2529,12 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
         originType::not_applicable,
         lReplyNoticeTransNum)};
 
-    OT_ASSERT(false != bool(pReplyNotice));
+    OT_ASSERT(pReplyNotice);
 
     auto pReplyNoticeItem{server.API().Factory().Item(
         *pReplyNotice, itemType::replyNotice, Identifier::Factory())};
 
-    OT_ASSERT(false != bool(pReplyNoticeItem));
+    OT_ASSERT(pReplyNoticeItem);
 
     // Nymbox notice is always a success. It's just a notice. (The message
     // inside it will have success/failure also, and any transaction inside that
