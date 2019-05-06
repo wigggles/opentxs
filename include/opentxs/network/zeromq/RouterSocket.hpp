@@ -54,9 +54,9 @@ private:
     virtual RouterSocket* clone() const = 0;
 
     RouterSocket(const RouterSocket&) = delete;
-    RouterSocket(RouterSocket&&) = default;
+    RouterSocket(RouterSocket&&) = delete;
     RouterSocket& operator=(const RouterSocket&) = delete;
-    RouterSocket& operator=(RouterSocket&&) = default;
+    RouterSocket& operator=(RouterSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

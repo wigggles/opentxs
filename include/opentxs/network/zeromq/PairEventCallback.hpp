@@ -52,9 +52,9 @@ private:
     virtual PairEventCallback* clone() const override = 0;
 
     PairEventCallback(const PairEventCallback&) = delete;
-    PairEventCallback(PairEventCallback&&) = default;
+    PairEventCallback(PairEventCallback&&) = delete;
     PairEventCallback& operator=(const PairEventCallback&) = delete;
-    PairEventCallback& operator=(PairEventCallback&&) = default;
+    PairEventCallback& operator=(PairEventCallback&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

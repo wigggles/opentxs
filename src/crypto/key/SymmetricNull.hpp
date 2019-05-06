@@ -88,7 +88,7 @@ public:
 private:
     SymmetricNull* clone() const override { return nullptr; }
 
-    SymmetricNull(const SymmetricNull&) = default;
+    SymmetricNull(const SymmetricNull&) = delete;
     SymmetricNull(SymmetricNull&&) = delete;
     SymmetricNull& operator=(const SymmetricNull&) = delete;
     SymmetricNull& operator=(SymmetricNull&&) = delete;

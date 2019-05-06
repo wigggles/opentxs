@@ -71,8 +71,8 @@ private:
         const std::string& version);
     Request();
     Request(const Request&);
-    Request(Request&&) = default;
+    Request(Request&&) = delete;
     Request& operator=(const Request&) = delete;
-    Request& operator=(Request&&) = default;
+    Request& operator=(Request&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::zap::implementation

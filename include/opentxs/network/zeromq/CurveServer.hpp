@@ -37,9 +37,9 @@ protected:
 
 private:
     CurveServer(const CurveServer&) = delete;
-    CurveServer(CurveServer&&) = default;
+    CurveServer(CurveServer&&) = delete;
     CurveServer& operator=(const CurveServer&) = delete;
-    CurveServer& operator=(CurveServer&&) = default;
+    CurveServer& operator=(CurveServer&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

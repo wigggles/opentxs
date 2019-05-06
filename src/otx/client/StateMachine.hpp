@@ -120,7 +120,7 @@ public:
         WithdrawCashTask withdraw_cash_;
 #endif
 
-        Params() { memset(this, 0, sizeof(Params)); }
+        Params() { memset(static_cast<void*>(this), 0, sizeof(Params)); }
         ~Params() {}
     };
 

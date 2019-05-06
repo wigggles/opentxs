@@ -307,7 +307,7 @@ if(ANDROID)
 endif()
 
 if(CMAKE_COMPILER_IS_CLANGXX)
-  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS} -Wno-unused-parameter -Wno-old-style-cast -Wno-null-dereference")
+  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS} -Wno-unused-parameter -Wno-old-style-cast -Wno-null-dereference -Wno-unknown-warning-option")
 endif()
 
 message(STATUS "C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}")

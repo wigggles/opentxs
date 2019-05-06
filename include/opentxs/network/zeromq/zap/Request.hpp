@@ -57,9 +57,9 @@ private:
     virtual Request* clone() const = 0;
 
     Request(const Request&) = delete;
-    Request(Request&&) = default;
+    Request(Request&&) = delete;
     Request& operator=(const Request&) = delete;
-    Request& operator=(Request&&) = default;
+    Request& operator=(Request&&) = delete;
 };
 }  // namespace zap
 }  // namespace zeromq

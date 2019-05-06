@@ -50,9 +50,9 @@ private:
     virtual PullSocket* clone() const = 0;
 
     PullSocket(const PullSocket&) = delete;
-    PullSocket(PullSocket&&) = default;
+    PullSocket(PullSocket&&) = delete;
     PullSocket& operator=(const PullSocket&) = delete;
-    PullSocket& operator=(PullSocket&&) = default;
+    PullSocket& operator=(PullSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

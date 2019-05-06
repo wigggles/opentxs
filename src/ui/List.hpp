@@ -71,27 +71,27 @@ class List : virtual public ExternalInterface,
 {
 #if OT_QT
 public:
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
+    int columnCount(const QModelIndex& parent = QModelIndex()) const override
     {
         return column_count_;
     }
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const
+        const override
     {
         return {};
     }
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const
+        const QModelIndex& parent = QModelIndex()) const override
     {
         Lock lock(lock_);
 
         return get_index(lock, row, column, parent);
     }
-    QModelIndex parent(const QModelIndex& index) const { return {}; }
-    QHash<int, QByteArray> roleNames() const { return qt_roles_; }
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
+    QModelIndex parent(const QModelIndex& index) const override { return {}; }
+    QHash<int, QByteArray> roleNames() const override { return qt_roles_; }
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override
     {
         return row_count_.load();
     }

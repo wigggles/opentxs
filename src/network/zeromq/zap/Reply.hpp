@@ -76,8 +76,8 @@ private:
         const std::string& version);
     Reply() = delete;
     Reply(const Reply&);
-    Reply(Reply&&) = default;
+    Reply(Reply&&) = delete;
     Reply& operator=(const Reply&) = delete;
-    Reply& operator=(Reply&&) = default;
+    Reply& operator=(Reply&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::zap::implementation
