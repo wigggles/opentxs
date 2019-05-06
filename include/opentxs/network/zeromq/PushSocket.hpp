@@ -50,9 +50,9 @@ private:
     virtual PushSocket* clone() const = 0;
 
     PushSocket(const PushSocket&) = delete;
-    PushSocket(PushSocket&&) = default;
+    PushSocket(PushSocket&&) = delete;
     PushSocket& operator=(const PushSocket&) = delete;
-    PushSocket& operator=(PushSocket&&) = default;
+    PushSocket& operator=(PushSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

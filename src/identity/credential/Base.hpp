@@ -71,7 +71,7 @@ protected:
     virtual bool verify_internally(const Lock& lock) const;
 
     bool AddMasterSignature(const Lock& lock);
-    virtual bool New(const NymParameters& nymParameters);
+    bool New(const NymParameters& nymParameters) override;
 
     Base(
         const api::Core& api,

@@ -47,9 +47,9 @@ private:
     virtual ReplySocket* clone() const = 0;
 
     ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = default;
+    ReplySocket(ReplySocket&&) = delete;
     ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = default;
+    ReplySocket& operator=(ReplySocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

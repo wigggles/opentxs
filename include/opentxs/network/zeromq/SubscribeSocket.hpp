@@ -48,9 +48,9 @@ private:
     virtual SubscribeSocket* clone() const = 0;
 
     SubscribeSocket(const SubscribeSocket&) = delete;
-    SubscribeSocket(SubscribeSocket&&) = default;
+    SubscribeSocket(SubscribeSocket&&) = delete;
     SubscribeSocket& operator=(const SubscribeSocket&) = delete;
-    SubscribeSocket& operator=(SubscribeSocket&&) = default;
+    SubscribeSocket& operator=(SubscribeSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

@@ -37,9 +37,9 @@ private:
     virtual Handler* clone() const = 0;
 
     Handler(const Handler&) = delete;
-    Handler(Handler&&) = default;
+    Handler(Handler&&) = delete;
     Handler& operator=(const Handler&) = delete;
-    Handler& operator=(Handler&&) = default;
+    Handler& operator=(Handler&&) = delete;
 };
 }  // namespace zap
 }  // namespace zeromq

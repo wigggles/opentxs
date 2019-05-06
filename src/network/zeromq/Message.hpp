@@ -62,8 +62,8 @@ private:
     bool hasDivider() const;
     std::size_t findDivider() const;
 
-    Message(Message&&) = default;
+    Message(Message&&) = delete;
     Message& operator=(const Message&) = delete;
-    Message& operator=(Message&&) = default;
+    Message& operator=(Message&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation

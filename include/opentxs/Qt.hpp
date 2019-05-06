@@ -11,6 +11,7 @@
 #if OT_QT
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QDateTime>
 #include <QtQml/QQmlEngine>

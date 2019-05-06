@@ -1026,7 +1026,7 @@ StateMachine::BackgroundTask StateMachine::StartTask(
         start_task(taskID, bump_task(get_task<T>().Push(taskID, params)));
     trigger(lock);
 
-    return std::move(output);
+    return output;
 }
 
 bool StateMachine::state_machine() noexcept

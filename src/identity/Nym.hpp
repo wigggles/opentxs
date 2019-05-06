@@ -81,14 +81,14 @@ public:
     bool Unlock(
         const proto::Ciphertext& input,
         crypto::key::Symmetric& key,
-        OTPassword& password) const;
+        OTPassword& password) const override;
     std::unique_ptr<proto::VerificationSet> VerificationSet() const override;
     bool VerifyPseudonym() const override;
     bool WriteCredentials() const override;
 
     std::string AddChildKeyCredential(
         const Identifier& strMasterID,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters) override;
     bool AddClaim(const Claim& claim) override;
     bool AddContract(
         const identifier::UnitDefinition& instrumentDefinitionID,

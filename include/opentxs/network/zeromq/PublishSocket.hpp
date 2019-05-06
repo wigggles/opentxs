@@ -49,9 +49,9 @@ private:
     virtual PublishSocket* clone() const = 0;
 
     PublishSocket(const PublishSocket&) = delete;
-    PublishSocket(PublishSocket&&) = default;
+    PublishSocket(PublishSocket&&) = delete;
     PublishSocket& operator=(const PublishSocket&) = delete;
-    PublishSocket& operator=(PublishSocket&&) = default;
+    PublishSocket& operator=(PublishSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

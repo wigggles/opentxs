@@ -34,10 +34,16 @@
 #include "opentxs/OT.hpp"
 
 #if OT_SCRIPT_CHAI
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnoexcept"
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wdefaulted-function-deleted"
+#endif
 #include <chaiscript/chaiscript.hpp>
 #ifdef OT_USE_CHAI_STDLIB
 #include <chaiscript/chaiscript_stdlib.hpp>
 #endif
+#pragma GCC diagnostic pop
 #endif
 #include <irrxml/irrXML.hpp>
 

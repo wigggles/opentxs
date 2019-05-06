@@ -55,9 +55,9 @@ private:
     virtual Reply* clone() const = 0;
 
     Reply(const Reply&) = delete;
-    Reply(Reply&&) = default;
+    Reply(Reply&&) = delete;
     Reply& operator=(const Reply&) = delete;
-    Reply& operator=(Reply&&) = default;
+    Reply& operator=(Reply&&) = delete;
 };
 }  // namespace zap
 }  // namespace zeromq

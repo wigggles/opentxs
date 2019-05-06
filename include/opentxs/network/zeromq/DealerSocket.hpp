@@ -53,9 +53,9 @@ private:
     virtual DealerSocket* clone() const = 0;
 
     DealerSocket(const DealerSocket&) = delete;
-    DealerSocket(DealerSocket&&) = default;
+    DealerSocket(DealerSocket&&) = delete;
     DealerSocket& operator=(const DealerSocket&) = delete;
-    DealerSocket& operator=(DealerSocket&&) = default;
+    DealerSocket& operator=(DealerSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

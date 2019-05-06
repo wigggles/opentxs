@@ -46,9 +46,9 @@ protected:
 
 private:
     CurveClient(const CurveClient&) = delete;
-    CurveClient(CurveClient&&) = default;
+    CurveClient(CurveClient&&) = delete;
     CurveClient& operator=(const CurveClient&) = delete;
-    CurveClient& operator=(CurveClient&&) = default;
+    CurveClient& operator=(CurveClient&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

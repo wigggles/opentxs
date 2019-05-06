@@ -58,9 +58,9 @@ private:
     virtual RequestSocket* clone() const = 0;
 
     RequestSocket(const RequestSocket&) = delete;
-    RequestSocket(RequestSocket&&) = default;
+    RequestSocket(RequestSocket&&) = delete;
     RequestSocket& operator=(const RequestSocket&) = delete;
-    RequestSocket& operator=(RequestSocket&&) = default;
+    RequestSocket& operator=(RequestSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

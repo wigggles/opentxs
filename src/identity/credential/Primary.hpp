@@ -14,8 +14,8 @@ class Primary final : virtual public credential::internal::Primary,
 {
 public:
     bool hasCapability(const NymCapability& capability) const override;
-    bool Path(proto::HDPath& output) const;
-    std::string Path() const;
+    bool Path(proto::HDPath& output) const override;
+    std::string Path() const override;
     using Base::Verify;
     bool Verify(
         const proto::Credential& credential,

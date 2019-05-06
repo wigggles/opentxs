@@ -57,7 +57,7 @@ private:
     std::atomic<std::size_t> position_{0};
     const Message* parent_{nullptr};
 
-    FrameIterator(FrameIterator&&) = default;  // needed by operator++(int)
+    FrameIterator(FrameIterator&&) = delete;
     FrameIterator& operator=(FrameIterator&&) = delete;
 };
 }  // namespace zeromq

@@ -100,19 +100,19 @@ namespace credential
 {
 namespace internal
 {
-class Base;
-class Contact;
-class Key;
-class Primary;
-class Secondary;
-class Verification;
+struct Base;
+struct Contact;
+struct Key;
+struct Primary;
+struct Secondary;
+struct Verification;
 }  // namespace internal
 }  // namespace credential
 
 namespace internal
 {
-class Authority;
-class Nym;
+struct Authority;
+struct Nym;
 }  // namespace internal
 }  // namespace identity
 

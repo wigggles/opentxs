@@ -79,9 +79,9 @@ private:
     virtual PairSocket* clone() const = 0;
 
     PairSocket(const PairSocket&) = delete;
-    PairSocket(PairSocket&&) = default;
+    PairSocket(PairSocket&&) = delete;
     PairSocket& operator=(const PairSocket&) = delete;
-    PairSocket& operator=(PairSocket&&) = default;
+    PairSocket& operator=(PairSocket&&) = delete;
 };
 }  // namespace zeromq
 }  // namespace network

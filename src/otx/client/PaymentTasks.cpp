@@ -140,6 +140,6 @@ PaymentTasks::BackgroundTask PaymentTasks::PaymentTasks::Queue(
     auto output = parent_.start_task(taskID, true);
     trigger(lock);
 
-    return std::move(output);
+    return output;
 }
 }  // namespace opentxs::otx::client::implementation
