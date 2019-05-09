@@ -10,6 +10,7 @@
 
 #if OT_QT
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <QtCore/QAbstractItemModel>
