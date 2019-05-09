@@ -272,15 +272,17 @@ opentxs::Account* Wallet::account_factory(
     }
 
     if (account.GetRealNotaryID() != notary) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Notary id (")(account.GetNymID())(
-            ") does not match expect value (")(notary)(")")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Notary id (")(
+            account.GetRealNotaryID())(") does not match expect value (")(
+            notary)(")")
             .Flush();
         account.SetRealNotaryID(notary);
     }
 
     if (account.GetPurportedNotaryID() != notary) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Purported notary id (")(
-            account.GetNymID())(") does not match expect value (")(notary)(")")
+            account.GetPurportedNotaryID())(") does not match expect value (")(
+            notary)(")")
             .Flush();
         account.SetPurportedNotaryID(notary);
     }

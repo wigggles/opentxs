@@ -19,7 +19,9 @@ namespace opentxs::otx::client::implementation
 PaymentTasks::PaymentTasks(client::internal::StateMachine& parent)
     : StateMachine(std::bind(&PaymentTasks::cleanup, this))
     , parent_(parent)
-
+    , tasks_{}
+    , unit_lock_{}
+    , account_lock_{}
 {
 }
 
@@ -63,6 +65,13 @@ PaymentTasks::BackgroundTask PaymentTasks::error_task()
     BackgroundTask output{0, Future{}};
 
     return output;
+}
+
+std::mutex& PaymentTasks::GetAccountLock(const identifier::UnitDefinition& unit)
+{
+    Lock lock(unit_lock_);
+
+    return account_lock_[unit];
 }
 
 OTIdentifier PaymentTasks::get_payment_id(const OTPayment& payment) const
@@ -123,7 +132,7 @@ PaymentTasks::BackgroundTask PaymentTasks::PaymentTasks::Queue(
     auto [it, success] = tasks_.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(id),
-        std::forward_as_tuple(parent_, taskID, task));
+        std::forward_as_tuple(parent_, taskID, task, *this));
 
     if (false == success) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

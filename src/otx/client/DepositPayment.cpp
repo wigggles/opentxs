@@ -14,6 +14,7 @@
 #include "opentxs/core/Message.hpp"
 
 #include "DepositPayment.hpp"
+#include "PaymentTasks.hpp"
 
 #define OT_METHOD "opentxs::otx::client::implementation::DepositPayment::"
 
@@ -22,13 +23,15 @@ namespace opentxs::otx::client::implementation
 DepositPayment::DepositPayment(
     client::internal::StateMachine& parent,
     const TaskID taskID,
-    const DepositPaymentTask& payment)
+    const DepositPaymentTask& payment,
+	PaymentTasks& paymenttasks)
     : StateMachine(std::bind(&DepositPayment::deposit, this))
     , parent_(parent)
     , task_id_(taskID)
     , payment_(payment)
     , state_(Depositability::UNKNOWN)
     , result_(parent.error_result())
+	, payment_tasks_(paymenttasks)
 {
 }
 
@@ -122,7 +125,7 @@ exit:
 OTIdentifier DepositPayment::get_account_id(
     const identifier::UnitDefinition& unit)
 {
-    Lock lock(get_account_lock(unit));
+    Lock lock(payment_tasks_.GetAccountLock(unit));
     const auto accounts = parent_.api().Storage().AccountsByContract(unit);
 
     if (1 < accounts.size()) {
@@ -190,14 +193,6 @@ OTIdentifier DepositPayment::get_account_id(
     }
 
     return accountID;
-}
-
-std::mutex& DepositPayment::get_account_lock(
-    const identifier::UnitDefinition& unit)
-{
-    Lock lock(unit_lock_);
-
-    return account_lock_[unit];
 }
 
 DepositPayment::~DepositPayment() { Stop(); }

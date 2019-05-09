@@ -15,6 +15,8 @@
 
 namespace opentxs::otx::client::implementation
 {
+class PaymentTasks;
+
 class DepositPayment final : public opentxs::internal::StateMachine
 {
 public:
@@ -23,7 +25,8 @@ public:
     DepositPayment(
         client::internal::StateMachine& parent,
         const TaskID taskID,
-        const DepositPaymentTask& payment);
+        const DepositPaymentTask& payment,
+        PaymentTasks& paymenttasks);
     ~DepositPayment();
 
 private:
@@ -32,12 +35,10 @@ private:
     DepositPaymentTask payment_;
     Depositability state_;
     api::client::OTX::Result result_;
-    std::mutex unit_lock_;
-    std::map<OTUnitID, std::mutex> account_lock_;
+    PaymentTasks& payment_tasks_;
 
     bool deposit();
     OTIdentifier get_account_id(const identifier::UnitDefinition& unit);
-    std::mutex& get_account_lock(const identifier::UnitDefinition& unit);
 
     DepositPayment() = delete;
 };
