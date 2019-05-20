@@ -40,14 +40,8 @@ class String;
 #define PEER_CASH_VERSION 7
 #define PEER_OBJECT_PEER_REQUEST 7
 #define PEER_OBJECT_PEER_REPLY 7
-#define NYM_CREATE_VERSION 5          // TODO 1.14.0
-#define NYM_UPGRADE_VERSION 5         // TODO 1.14.0
-#define CONTACT_CREDENTIAL_VERSION 5  // TODO 1.14.0
-#define NYM_CONTACT_DATA_VERSION 5    // TODO 1.14.0
 #define OT_CONTACT_VERSION 3
 #define CONTACT_CONTACT_DATA_VERSION 6
-#define VERIFICATION_CREDENTIAL_VERSION 1
-#define KEY_CREDENTIAL_VERSION 1
 #define MESSAGE_SEND_ERROR -1
 #define MESSAGE_NOT_SENT_NO_ERROR 0
 #define MESSAGE_SENT 1
@@ -56,6 +50,9 @@ class String;
 #define MESSAGE_SUCCESS_TRUE 1
 #define FIRST_REQUEST_NUMBER 1
 #define SERVER_CONTRACT_CREATE_VERSION 1
+
+using VersionNumber = std::uint32_t;
+using VersionConversionMap = std::map<VersionNumber, VersionNumber>;
 
 using Clock = std::chrono::system_clock;
 using Time = Clock::time_point;

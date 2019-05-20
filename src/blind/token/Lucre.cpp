@@ -40,7 +40,7 @@ namespace opentxs::blind::token::implementation
 Lucre::Lucre(
     const api::Core& api,
     Purse& purse,
-    const std::uint32_t version,
+    const VersionNumber version,
     const proto::TokenState state,
     const std::uint64_t series,
     const Denomination value,

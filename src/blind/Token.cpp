@@ -90,7 +90,7 @@ Token::Token(
     const Denomination denomination,
     const Time validFrom,
     const Time validTo,
-    const std::uint32_t version)
+    const VersionNumber version)
     : blind::Token()
     , api_(api)
     , purse_(purse)
@@ -141,7 +141,7 @@ Token::Token(const api::Core& api, Purse& purse, const proto::Token& in)
 Token::Token(
     const api::Core& api,
     Purse& purse,
-    const std::uint32_t version,
+    const VersionNumber version,
     const proto::TokenState state,
     const std::uint64_t series,
     const Denomination denomination,

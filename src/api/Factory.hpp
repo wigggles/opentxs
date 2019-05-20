@@ -160,10 +160,10 @@ public:
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const std::uint32_t& version) const override;
+        const VersionNumber version) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
-        const std::uint32_t& version) const override;
+        const VersionNumber version) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& signerNym,
         const proto::PeerObject& serialized) const override;

@@ -41,10 +41,11 @@ identity::credential::internal::Verification* Factory::VerificationCredential(
 identity::credential::internal::Verification* Factory::VerificationCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const NymParameters& parameters)
+    const NymParameters& parameters,
+    const VersionNumber version)
 {
     return new identity::credential::implementation::Verification(
-        api, parent, parameters);
+        api, parent, parameters, version);
 }
 }  // namespace opentxs
 
@@ -86,13 +87,10 @@ Verification::Verification(
 Verification::Verification(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const NymParameters& nymParameters)
-    : Signable({}, VERIFICATION_CREDENTIAL_VERSION)  // TODO Signable
-    , credential::implementation::Base(
-          api,
-          parent,
-          VERIFICATION_CREDENTIAL_VERSION,
-          nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version)
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Base(api, parent, nymParameters, version)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_VERIFY;

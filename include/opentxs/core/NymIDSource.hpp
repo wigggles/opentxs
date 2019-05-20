@@ -58,7 +58,7 @@ public:
 private:
     const api::Factory& factory_;
 
-    std::uint32_t version_ = 0;
+    VersionNumber version_ = 0;
     proto::SourceType type_ = proto::SOURCETYPE_ERROR;
     OTAsymmetricKey pubkey_;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47

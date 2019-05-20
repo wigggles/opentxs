@@ -2933,7 +2933,7 @@ public:
      */
     EXPORT static std::string GetContactSectionTypes(
         const std::uint32_t section,
-        const std::uint32_t version);
+        const VersionNumber version);
 
     /**  Translate a claim type enum value to human-readable text
      *    \param[in]  section claim type enum value

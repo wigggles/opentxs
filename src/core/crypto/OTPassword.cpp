@@ -484,9 +484,8 @@ bool OTPassword::Compare(OTPassword& rhs) const
     if (isPassword() && !rhs.isPassword()) return false;
     if (isMemory() && !rhs.isMemory()) return false;
 
-    const std::uint32_t nThisSize =
-        isPassword() ? getPasswordSize() : getMemorySize();
-    const std::uint32_t nRhsSize =
+    const auto nThisSize = isPassword() ? getPasswordSize() : getMemorySize();
+    const auto nRhsSize =
         rhs.isPassword() ? rhs.getPasswordSize() : rhs.getMemorySize();
 
     if (nThisSize != nRhsSize) return false;
@@ -678,7 +677,7 @@ bool OTPassword::randomizePassword_uint8(
 //
 std::int32_t OTPassword::randomizePassword(std::uint32_t nNewSize)
 {
-    std::uint32_t nSize = nNewSize;
+    auto nSize = nNewSize;
 
     // Wipe whatever was in there before.
     //
@@ -746,7 +745,7 @@ bool OTPassword::randomizeMemory_uint8(
 //
 std::int32_t OTPassword::randomizeMemory(std::uint32_t nNewSize)
 {
-    std::uint32_t nSize = nNewSize;
+    auto nSize = nNewSize;
 
     // Wipe whatever was in there before.
     //
@@ -862,10 +861,10 @@ std::int32_t OTPassword::addMemory(
 std::int32_t OTPassword::setMemory(const Data& data)
 {
     const std::uint32_t dataSize = data.size();
-    std::uint32_t returnedSize = dataSize;
-
+    auto returnedSize = dataSize;
     bool memorySet = setMemory(data.data(), returnedSize);
     // TODO maybe we should check for truncation?
+
     return memorySet;
 }
 

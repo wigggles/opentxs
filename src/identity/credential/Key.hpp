@@ -66,12 +66,17 @@ protected:
 
     Key(const api::Core& api,
         identity::internal::Authority& owner,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version) noexcept;
     Key(const api::Core& api,
         identity::internal::Authority& owner,
-        const proto::Credential& serializedCred);
+        const proto::Credential& serializedCred) noexcept;
 
 private:
+    static const VersionConversionMap credential_subversion_;
+
+    const VersionNumber subversion_;
+
     static OTKeypair deserialize_key(
         const int index,
         const proto::Credential& credential);

@@ -18,8 +18,8 @@ namespace opentxs
 {
 ContactSection::ContactSection(
     const std::string& nym,
-    const std::uint32_t version,
-    const std::uint32_t parentVersion,
+    const VersionNumber version,
+    const VersionNumber parentVersion,
     const proto::ContactSectionName section,
     const GroupMap& groups)
     : version_(check_version(version, parentVersion))
@@ -31,8 +31,8 @@ ContactSection::ContactSection(
 
 ContactSection::ContactSection(
     const std::string& nym,
-    const std::uint32_t version,
-    const std::uint32_t parentVersion,
+    const VersionNumber version,
+    const VersionNumber parentVersion,
     const proto::ContactSectionName section,
     const std::shared_ptr<ContactItem>& item)
     : ContactSection(
@@ -51,7 +51,7 @@ ContactSection::ContactSection(
 
 ContactSection::ContactSection(
     const std::string& nym,
-    const std::uint32_t parentVersion,
+    const VersionNumber parentVersion,
     const proto::ContactSection& serialized)
     : ContactSection(
           nym,
@@ -159,9 +159,9 @@ ContactSection::GroupMap::const_iterator ContactSection::begin() const
     return groups_.cbegin();
 }
 
-std::uint32_t ContactSection::check_version(
-    const std::uint32_t in,
-    const std::uint32_t targetVersion)
+VersionNumber ContactSection::check_version(
+    const VersionNumber in,
+    const VersionNumber targetVersion)
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }
@@ -229,7 +229,7 @@ ContactSection::GroupMap::const_iterator ContactSection::end() const
 
 ContactSection::GroupMap ContactSection::extract_groups(
     const std::string& nym,
-    const std::uint32_t parentVersion,
+    const VersionNumber parentVersion,
     const proto::ContactSection& serialized)
 {
     GroupMap groupMap{};
@@ -309,5 +309,5 @@ const proto::ContactSectionName& ContactSection::Type() const
     return section_;
 }
 
-const std::uint32_t& ContactSection::Version() const { return version_; }
+VersionNumber ContactSection::Version() const { return version_; }
 }  // namespace opentxs

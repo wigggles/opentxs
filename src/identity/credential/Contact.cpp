@@ -38,10 +38,11 @@ identity::credential::internal::Contact* Factory::ContactCredential(
 identity::credential::internal::Contact* Factory::ContactCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const NymParameters& parameters)
+    const NymParameters& parameters,
+    const VersionNumber version)
 {
     return new identity::credential::implementation::Contact(
-        api, parent, parameters);
+        api, parent, parameters, version);
 }
 }  // namespace opentxs
 
@@ -132,13 +133,10 @@ Contact::Contact(
 Contact::Contact(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const NymParameters& nymParameters)
-    : Signable({}, CONTACT_CREDENTIAL_VERSION)  // TODO Signable
-    , credential::implementation::Base(
-          api,
-          parent,
-          CONTACT_CREDENTIAL_VERSION,
-          nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version)
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Base(api, parent, nymParameters, version)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_CONTACT;

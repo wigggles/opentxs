@@ -62,7 +62,7 @@ private:
     static const proto::SymmetricMode mode_;
 
     const api::Core& api_;
-    const std::uint32_t version_;
+    const VersionNumber version_;
     const proto::CashType type_;
     const OTServerID notary_;
     const OTUnitID unit_;
@@ -100,7 +100,7 @@ private:
         const proto::CashType type);
     Purse(
         const api::Core& api,
-        const std::uint32_t version,
+        const VersionNumber version,
         const proto::CashType type,
         const identifier::Server& notary,
         const identifier::UnitDefinition& unit,

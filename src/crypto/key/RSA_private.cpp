@@ -181,7 +181,7 @@ EVP_PKEY* RSA::d::CopyPublicKey(
         // public key supposedly is, and lSize will contain the size of that
         // memory.
         const std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        const std::uint32_t nSize = static_cast<uint32_t>(lSize);
+        const auto nSize = static_cast<std::uint32_t>(lSize);
 
         if (nSize > 0) {
             auto theData = Data::Factory();
@@ -338,7 +338,7 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
         // and lSize will contain the size of that memory.
         //
         const std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        const std::uint32_t nSize = static_cast<uint32_t>(lSize);
+        const auto nSize = static_cast<std::uint32_t>(lSize);
 
         if (nSize > 0) {
             auto theData = Data::Factory();
@@ -446,7 +446,7 @@ bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
         // supposedly is, and lSize will contain the size of that memory.
         //
         std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        std::uint32_t nSize = static_cast<uint32_t>(
+        auto nSize = static_cast<std::uint32_t>(
             lSize);  // todo security, etc. Fix this assumed type conversion.
 
         if (nSize > 0) {
@@ -715,7 +715,7 @@ bool RSA::d::ArmorPrivateKey(
         // and lSize will contain the size of that memory.
         //
         std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-        std::uint32_t nSize = static_cast<uint32_t>(lSize);
+        auto nSize = static_cast<std::uint32_t>(lSize);
 
         if (nSize > 0) {
             // Set the buffer size in our own memory.

@@ -80,8 +80,8 @@ protected:
     Base(
         const api::Core& api,
         identity::internal::Authority& owner,
-        const std::uint32_t version,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
 
 private:
     OTIdentifier GetID(const Lock& lock) const override;

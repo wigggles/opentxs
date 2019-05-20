@@ -16,6 +16,19 @@ public:
     const opentxs::api::client::Manager& client_;
     opentxs::NymData nymData_;
 
+    static std::string ExpectedStringOutput(const std::uint32_t version)
+    {
+        return std::string{"Version "} + std::to_string(version) +
+               std::string(" contact data\nSections found: 1\n- Section: "
+                           "Scope, version: ") +
+               std::to_string(version) +
+               std::string{" containing 1 item(s).\n-- Item type: "
+                           "\"Individual\", value: "
+                           "\"testNym\", start: 0, end: 0, version: "} +
+               std::to_string(version) +
+               std::string{"\n--- Attributes: Active Primary \n"};
+    }
+
     Test_NymData()
         : client_(opentxs::OT::App().StartClient({}, 0))
         , nymData_(client_.Wallet().mutable_Nym(
@@ -31,16 +44,6 @@ public:
 static const std::string paymentCode{
     "PM8TJKxypQfFUaHfSq59nn82EjdGU4SpHcp2ssa4GxPshtzoFtmnjfoRuHpvLiyASD7itH6auP"
     "C66jekGjnqToqS9ZJWWdf1c9L8x4iaFCQ2Gq5hMEFC"};
-
-static const std::string expectedStringOutput =
-    std::string{"Version "} + std::to_string(NYM_CONTACT_DATA_VERSION) +
-    std::string(
-        " contact data\nSections found: 1\n- Section: Scope, version: ") +
-    std::to_string(NYM_CONTACT_DATA_VERSION) +
-    std::string{" containing 1 item(s).\n-- Item type: \"Individual\", value: "
-                "\"testNym\", start: 0, end: 0, version: "} +
-    std::to_string(NYM_CONTACT_DATA_VERSION) +
-    std::string{"\n--- Attributes: Active Primary \n"};
 }  // namespace
 
 TEST_F(Test_NymData, AddClaim)
@@ -190,10 +193,12 @@ TEST_F(Test_NymData, BestSocialMediaProfile)
 TEST_F(Test_NymData, Claims)
 {
     auto contactData = nymData_.Claims();
+    const auto expected =
+        ExpectedStringOutput(nymData_.Nym().ContactDataVersion());
 
     std::string output = contactData;
     EXPECT_TRUE(!output.empty());
-    EXPECT_STREQ(expectedStringOutput.c_str(), output.c_str());
+    EXPECT_STREQ(expected.c_str(), output.c_str());
 }
 
 TEST_F(Test_NymData, DeleteClaim)
@@ -379,16 +384,19 @@ TEST_F(Test_NymData, PreferredOTServer)
 
 TEST_F(Test_NymData, PrintContactData)
 {
-    const auto& dataString = nymData_.PrintContactData();
-    EXPECT_STREQ(expectedStringOutput.c_str(), dataString.c_str());
+    const auto& text = nymData_.PrintContactData();
+    const auto expected =
+        ExpectedStringOutput(nymData_.Nym().ContactDataVersion());
+
+    EXPECT_STREQ(expected.c_str(), text.c_str());
 }
 
 TEST_F(Test_NymData, SetContactData)
 {
     const opentxs::ContactData contactData(
         std::string("contactData"),
-        NYM_CONTACT_DATA_VERSION,
-        NYM_CONTACT_DATA_VERSION,
+        nymData_.Nym().ContactDataVersion(),
+        nymData_.Nym().ContactDataVersion(),
         {});
 
     auto data = contactData.Serialize(true);

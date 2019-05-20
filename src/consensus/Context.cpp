@@ -30,7 +30,7 @@ namespace opentxs::implementation
 {
 Context::Context(
     const api::Core& api,
-    const std::uint32_t targetVersion,
+    const VersionNumber targetVersion,
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
@@ -49,7 +49,7 @@ Context::Context(
 
 Context::Context(
     const api::Core& api,
-    const std::uint32_t targetVersion,
+    const VersionNumber targetVersion,
     const proto::Context& serialized,
     const Nym_p& local,
     const Nym_p& remote,

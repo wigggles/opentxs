@@ -49,10 +49,11 @@ identity::credential::internal::Primary* Factory::PrimaryCredential(
 identity::credential::internal::Primary* Factory::PrimaryCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const NymParameters& parameters)
+    const NymParameters& parameters,
+    const VersionNumber version)
 {
     return new identity::credential::implementation::Primary(
-        api, parent, parameters);
+        api, parent, parameters, version);
 }
 }  // namespace opentxs
 
@@ -76,9 +77,10 @@ Primary::Primary(
 Primary::Primary(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const NymParameters& nymParameters)
-    : Signable({}, KEY_CREDENTIAL_VERSION)  // TODO Signable
-    , credential::implementation::Key(api, theOwner, nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version)
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Key(api, theOwner, nymParameters, version)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 

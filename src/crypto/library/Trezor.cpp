@@ -147,32 +147,6 @@ std::string Trezor::SeedToFingerprint(
     return "";
 }
 
-std::shared_ptr<proto::AsymmetricKey> Trezor::SeedToPrivateKey(
-    const EcdsaCurve& curve,
-    const OTPassword& seed) const
-{
-    std::shared_ptr<proto::AsymmetricKey> derivedKey;
-    auto node = InstantiateHDNode(curve, seed);
-
-    OT_ASSERT_MSG(node, "Derivation of root node failed.");
-
-    if (node) {
-        derivedKey = HDNodeToSerialized(
-            AsymmetricProvider::CurveToKeyType(curve),
-            *node,
-            Trezor::DERIVE_PRIVATE);
-
-        if (derivedKey) {
-            OTPassword root;
-            crypto_.Hash().Digest(proto::HASHTYPE_BLAKE2B160, seed, root);
-            derivedKey->mutable_path()->set_root(
-                root.getMemory(), root.getMemorySize());
-        }
-    }
-
-    return derivedKey;
-}
-
 std::shared_ptr<proto::AsymmetricKey> Trezor::GetChild(
     const proto::AsymmetricKey& parent,
     const std::uint32_t index) const

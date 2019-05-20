@@ -85,9 +85,18 @@ identity::internal::Nym* Factory::Nym(
     const identifier::Nym& nymID,
     const proto::CredentialIndexMode mode)
 {
-    return new identity::implementation::Nym(api, nymID, mode);
+    // NOTE version may be incorrect until LoadCredentialIndex is called
+
+    return new identity::implementation::Nym(
+        api, nymID, mode, identity::Nym::DefaultVersion);
 }
 }  // namespace opentxs
+
+namespace opentxs::identity
+{
+const VersionNumber Nym::DefaultVersion{5};
+const VersionNumber Nym::MaxVersion{6};
+}  // namespace opentxs::identity
 
 namespace opentxs::identity::implementation
 {
@@ -98,12 +107,22 @@ bool session_key_from_iv(
     const proto::HashType hashType,
     OTPasswordData& output);
 
+const VersionConversionMap Nym::contact_credential_to_contact_data_version_{
+    {1, 1},
+    {2, 2},
+    {3, 3},
+    {4, 4},
+    {5, 5},
+    {6, 6},
+};
+
 Nym::Nym(
     const api::Core& api,
     const identifier::Nym& nymID,
-    const proto::CredentialIndexMode mode)
+    const proto::CredentialIndexMode mode,
+    const VersionNumber version)
     : api_(api)
-    , version_(NYM_CREATE_VERSION)
+    , version_(version)
     , index_(0)
     , alias_()
     , revision_(1)
@@ -117,10 +136,11 @@ Nym::Nym(
     , m_mapRevokedSets()
     , m_listRevokedIDs()
 {
+    OT_ASSERT(0 != version_);
 }
 
 Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
-    : Nym(api, api.Factory().NymID(), proto::CREDINDEX_PRIVATE)
+    : Nym(api, api.Factory().NymID(), proto::CREDINDEX_PRIVATE, DefaultVersion)
 {
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -281,7 +301,7 @@ bool Nym::AddEmail(
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool Nym::AddPaymentCode(
-    const class PaymentCode& code,
+    const opentxs::PaymentCode& code,
     const proto::ContactItemType currency,
     const bool primary,
     const bool active)
@@ -398,7 +418,7 @@ std::string Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
     return contact_data_->BestSocialMediaProfile(type);
 }
 
-const class ContactData& Nym::Claims() const
+const opentxs::ContactData& Nym::Claims() const
 {
     eLock lock(shared_lock_);
 
@@ -449,6 +469,14 @@ bool Nym::CompareID(const identifier::Nym& rhs) const
     sLock lock(shared_lock_);
 
     return m_nymID == rhs;
+}
+
+std::uint32_t Nym::ContactCredentialVersion() const
+{
+    // TODO support multiple authorities
+    OT_ASSERT(0 < m_mapCredentialSets.size())
+
+    return m_mapCredentialSets.cbegin()->second->ContactCredentialVersion();
 }
 
 std::set<OTIdentifier> Nym::Contracts(
@@ -762,13 +790,9 @@ void Nym::init_claims(const eLock& lock) const
     OT_ASSERT(verify_lock(lock));
 
     const auto nymID{m_nymID->str()};
-    // const std::string nymID = String::Factory(m_nymID)->Get();
-
-    contact_data_.reset(new class ContactData(
-        nymID,
-        NYM_CONTACT_DATA_VERSION,
-        NYM_CONTACT_DATA_VERSION,
-        ContactData::SectionMap()));
+    const auto dataVersion = ContactDataVersion();
+    contact_data_.reset(new opentxs::ContactData(
+        nymID, dataVersion, dataVersion, ContactData::SectionMap()));
 
     OT_ASSERT(contact_data_);
 
@@ -784,10 +808,9 @@ void Nym::init_claims(const eLock& lock) const
             OT_ASSERT(
                 proto::Validate(*serialized, VERBOSE, proto::CLAIMS_NORMAL));
 
-            class ContactData claimCred(
-                nymID, NYM_CONTACT_DATA_VERSION, *serialized);
+            opentxs::ContactData claimCred(nymID, dataVersion, *serialized);
             contact_data_.reset(
-                new class ContactData(*contact_data_ + claimCred));
+                new opentxs::ContactData(*contact_data_ + claimCred));
             serialized.reset();
         }
     }
@@ -1331,7 +1354,7 @@ bool Nym::set_contact_data(const eLock& lock, const proto::ContactData& data)
 
     auto version = proto::NymRequiredVersion(data.version(), version_);
 
-    if (!version || version > NYM_UPGRADE_VERSION) {
+    if ((0 == version) || version > MaxVersion) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Contact data version not supported by this nym.")
             .Flush();
@@ -1385,9 +1408,8 @@ bool Nym::SetCommonName(const std::string& name)
 bool Nym::SetContactData(const proto::ContactData& data)
 {
     eLock lock(shared_lock_);
-
     contact_data_.reset(
-        new ContactData(m_nymID->str(), NYM_CONTACT_DATA_VERSION, data));
+        new ContactData(m_nymID->str(), ContactDataVersion(), data));
 
     return set_contact_data(lock, data);
 }
@@ -1590,6 +1612,15 @@ bool Nym::update_nym(const eLock& lock, const std::int32_t version)
     }
 
     return false;
+}
+
+std::uint32_t Nym::VerificationCredentialVersion() const
+{
+    // TODO support multiple authorities
+    OT_ASSERT(0 < m_mapCredentialSets.size())
+
+    return m_mapCredentialSets.cbegin()
+        ->second->VerificationCredentialVersion();
 }
 
 std::unique_ptr<proto::VerificationSet> Nym::VerificationSet() const

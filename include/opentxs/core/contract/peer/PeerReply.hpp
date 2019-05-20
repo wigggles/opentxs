@@ -60,7 +60,7 @@ protected:
     PeerReply(
         const api::Wallet& wallet,
         const Nym_p& nym,
-        const std::uint32_t version,
+        const VersionNumber version,
         const identifier::Nym& initiator,
         const identifier::Server& server,
         const proto::PeerRequestType& type,

@@ -668,7 +668,7 @@ void Storage::ContactSaveIndices() const
     mutable_Root().It().mutable_Tree().It().mutable_Contacts().It().Save();
 }
 
-std::uint32_t Storage::ContactUpgradeLevel() const
+VersionNumber Storage::ContactUpgradeLevel() const
 {
     return Root().Tree().Contacts().UpgradeLevel();
 }

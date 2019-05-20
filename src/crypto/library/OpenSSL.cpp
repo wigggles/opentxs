@@ -3074,7 +3074,7 @@ bool OpenSSL::EncryptSessionKey(
         OT_ASSERT(eklen[ii] > 0);      // assert key length larger than 0.
 
         // Calculate "network-order" version of length.
-        std::uint32_t eklen_n = htonl(static_cast<uint32_t>(eklen[ii]));
+        auto eklen_n = htonl(static_cast<std::uint32_t>(eklen[ii]));
 
         dataOutput.Concatenate(
             reinterpret_cast<void*>(&eklen_n),
@@ -3092,7 +3092,7 @@ bool OpenSSL::EncryptSessionKey(
 
     // Write IV size before then writing IV itself.
     //
-    std::uint32_t ivlen = static_cast<uint32_t>(
+    auto ivlen = static_cast<std::uint32_t>(
         EVP_CIPHER_iv_length(cipher_type));  // Length of IV for this cipher...
     // (TODO: add cipher name to output,
     // and use it for looking up cipher

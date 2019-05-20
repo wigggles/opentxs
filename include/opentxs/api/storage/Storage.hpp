@@ -101,7 +101,7 @@ public:
     virtual ObjectList ContextList(const std::string& nymID) const = 0;
     virtual std::string ContactOwnerNym(const std::string& nymID) const = 0;
     virtual void ContactSaveIndices() const = 0;
-    virtual std::uint32_t ContactUpgradeLevel() const = 0;
+    virtual VersionNumber ContactUpgradeLevel() const = 0;
     virtual bool CreateThread(
         const std::string& nymID,
         const std::string& threadID,

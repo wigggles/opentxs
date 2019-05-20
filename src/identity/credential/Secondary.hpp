@@ -30,7 +30,8 @@ private:
     Secondary(
         const api::Core& api,
         identity::internal::Authority& other,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     Secondary() = delete;
     Secondary(const Secondary&) = delete;
     Secondary(Secondary&&) = delete;

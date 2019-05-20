@@ -34,9 +34,6 @@ public:
     EXPORT virtual std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> SeedToPrivateKey(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const = 0;
 };
 }  // namespace crypto
 }  // namespace opentxs

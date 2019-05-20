@@ -17,8 +17,8 @@ namespace opentxs
 {
 ContactItem::ContactItem(
     const std::string& nym,
-    const std::uint32_t version,
-    const std::uint32_t parentVersion,
+    const VersionNumber version,
+    const VersionNumber parentVersion,
     const proto::ContactSectionName section,
     const proto::ContactItemType& type,
     const std::string& value,
@@ -50,8 +50,8 @@ ContactItem::ContactItem(
 
 ContactItem::ContactItem(
     const std::string& nym,
-    const std::uint32_t version,
-    const std::uint32_t parentVersion,
+    const VersionNumber version,
+    const VersionNumber parentVersion,
     const Claim& claim)
     : ContactItem(
           nym,
@@ -68,7 +68,7 @@ ContactItem::ContactItem(
 
 ContactItem::ContactItem(
     const std::string& nym,
-    const std::uint32_t parentVersion,
+    const VersionNumber parentVersion,
     const proto::ContactSectionName section,
     const proto::ContactItem& data)
     : ContactItem(
@@ -109,9 +109,9 @@ bool ContactItem::operator==(const ContactItem& rhs) const
 
 ContactItem::operator proto::ContactItem() const { return Serialize(true); }
 
-std::uint32_t ContactItem::check_version(
-    const std::uint32_t in,
-    const std::uint32_t targetVersion)
+VersionNumber ContactItem::check_version(
+    const VersionNumber in,
+    const VersionNumber targetVersion)
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }
@@ -287,5 +287,5 @@ const proto::ContactItemType& ContactItem::Type() const { return type_; }
 
 const std::string& ContactItem::Value() const { return value_; }
 
-const std::uint32_t& ContactItem::Version() const { return version_; }
+VersionNumber ContactItem::Version() const { return version_; }
 }  // namespace opentxs

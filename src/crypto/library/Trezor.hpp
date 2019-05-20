@@ -36,9 +36,6 @@ public:
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;
-    std::shared_ptr<proto::AsymmetricKey> SeedToPrivateKey(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const override;
 #endif
 
 #if OT_CRYPTO_WITH_BIP39

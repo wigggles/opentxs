@@ -68,7 +68,7 @@ PeerRequest::PeerRequest(
 PeerRequest::PeerRequest(
     const api::Core& api,
     const Nym_p& nym,
-    const std::uint32_t version,
+    const VersionNumber version,
     const identifier::Nym& recipient,
     const identifier::Server& server,
     const proto::PeerRequestType& type)
@@ -89,7 +89,7 @@ PeerRequest::PeerRequest(
 PeerRequest::PeerRequest(
     const api::Core& api,
     const Nym_p& nym,
-    const std::uint32_t version,
+    const VersionNumber version,
     const identifier::Nym& recipient,
     const identifier::Server& server,
     const std::string& conditions,

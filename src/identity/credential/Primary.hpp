@@ -46,7 +46,8 @@ private:
     Primary(
         const api::Core& api,
         identity::internal::Authority& theOwner,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     Primary() = delete;
     Primary(const Primary&) = delete;
     Primary(Primary&&) = delete;

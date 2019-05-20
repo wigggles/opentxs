@@ -162,7 +162,7 @@ proto::AsymmetricKeyType Asymmetric::StringToKeyType(const String& keyType)
 
 namespace opentxs::crypto::key::implementation
 {
-const std::map<proto::SignatureRole, std::uint32_t> Asymmetric::sig_version_{
+const std::map<proto::SignatureRole, VersionNumber> Asymmetric::sig_version_{
     {proto::SIGROLE_PUBCREDENTIAL, 1},
     {proto::SIGROLE_PRIVCREDENTIAL, 1},
     {proto::SIGROLE_NYMIDSOURCE, 1},

@@ -172,12 +172,12 @@ bool OTEnvelope::Encrypt(
 
     // Write IV size (in network-order)
     //
-    std::uint32_t ivlen =
+    auto ivlen =
         OT::App().Crypto().Config().SymmetricIvSize();  // Length of IV for this
                                                         // cipher...
     OT_ASSERT(ivlen >= theIV->size());
-    std::uint32_t ivlen_n = htonl(theIV->size());  // Calculate "network-order"
-                                                   // version of iv length.
+    auto ivlen_n = htonl(theIV->size());  // Calculate "network-order"
+                                          // version of iv length.
 
     ciphertext_->Concatenate(
         reinterpret_cast<void*>(&ivlen_n),
@@ -258,7 +258,7 @@ bool OTEnvelope::Decrypt(
     // or 2, doesn't mean we add 1 or 2 extra bytes to the length here. Nope!
 
     if (2 != env_type) {
-        const std::uint32_t l_env_type = static_cast<uint32_t>(env_type);
+        const auto l_env_type = static_cast<std::uint32_t>(env_type);
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error: Expected Envelope for Symmetric key (type "
             "2) but instead found type: ")(l_env_type)(".")
@@ -268,7 +268,7 @@ bool OTEnvelope::Decrypt(
 
     // Read network-order IV size (and convert to host version)
     //
-    const std::uint32_t max_iv_length =
+    const auto max_iv_length =
         OT::App().Crypto().Config().SymmetricIvSize();  // I believe this is a
                                                         // max length, so it may
                                                         // not match the actual
@@ -289,7 +289,7 @@ bool OTEnvelope::Decrypt(
 
     // convert that iv size from network to HOST endian.
     //
-    const std::uint32_t iv_size_host_order = ntohl(iv_size_n);
+    const auto iv_size_host_order = ntohl(iv_size_n);
 
     if (iv_size_host_order > max_iv_length) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: iv_size (")(

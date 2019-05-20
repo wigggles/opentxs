@@ -639,7 +639,7 @@ bool RSA::ReEncryptPrivateKey(
                 // and lSize will contain the size of that memory.
                 //
                 std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-                std::uint32_t nSize = static_cast<uint32_t>(lSize);
+                auto nSize = static_cast<std::uint32_t>(lSize);
 
                 if (nSize > 0) {
                     // Set the buffer size in our own memory.

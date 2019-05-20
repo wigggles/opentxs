@@ -45,11 +45,6 @@ Function for_each(Range& range, Function f)
     return std::for_each(std::begin(range), std::end(range), f);
 }
 
-identity::internal::Authority* Factory::Authority(const api::Core& api)
-{
-    return new identity::implementation::Authority(api);
-}
-
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
     const proto::KeyMode mode,
@@ -61,22 +56,63 @@ identity::internal::Authority* Factory::Authority(
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
     const NymParameters& nymParameters,
-    const std::uint32_t version,
+    const std::uint32_t nymVersion,
     const OTPasswordData* pPWData)
 {
     return new identity::implementation::Authority(
-        api, nymParameters, version, pPWData);
+        api, nymParameters, nymVersion, pPWData);
 }
 }  // namespace opentxs
 
 namespace opentxs::identity::implementation
 {
+const VersionConversionMap Authority::authority_to_contact_{
+    {1, 1},
+    {2, 2},
+    {3, 3},
+    {4, 4},
+    {5, 5},
+    {6, 6},
+};
+const VersionConversionMap Authority::authority_to_primary_{
+    {1, 1},
+    {2, 2},
+    {3, 3},
+    {4, 4},
+    {5, 5},
+    {6, 6},
+};
+const VersionConversionMap Authority::authority_to_secondary_{
+    {1, 1},
+    {2, 2},
+    {3, 3},
+    {4, 4},
+    {5, 5},
+    {6, 6},
+};
+const VersionConversionMap Authority::authority_to_verification_{
+    {1, 1},
+    {2, 1},
+    {3, 1},
+    {4, 1},
+    {5, 1},
+    {6, 1},
+};
+const VersionConversionMap Authority::nym_to_authority_{
+    {1, 1},
+    {2, 2},
+    {3, 3},
+    {4, 4},
+    {5, 5},
+    {6, 6},
+};
+
 Authority::Authority(
     const api::Core& api,
-    const std::uint32_t version,
+    const VersionNumber version,
     const std::uint32_t index,
     const proto::KeyMode mode,
-    const std::string& nymID)
+    const std::string& nymID) noexcept
     : api_(api)
     , master_(nullptr)
     , key_credentials_()
@@ -90,12 +126,13 @@ Authority::Authority(
     , index_(index)
     , mode_(mode)
 {
+    OT_ASSERT(0 != version);
 }
 
 Authority::Authority(
     const api::Core& api,
     const proto::KeyMode mode,
-    const Serialized& serialized)
+    const Serialized& serialized) noexcept
     : Authority(
           api,
           serialized.version(),
@@ -131,9 +168,9 @@ Authority::Authority(
 Authority::Authority(
     const api::Core& api,
     const NymParameters& nymParameters,
-    std::uint32_t version,
-    const OTPasswordData*)
-    : Authority(api)
+    std::uint32_t nymVersion,
+    const OTPasswordData*) noexcept
+    : Authority(api, nym_to_authority_.at(nymVersion))
 {
     CreateMasterCredential(nymParameters);
 
@@ -184,7 +221,11 @@ std::string Authority::AddChildKeyCredential(const NymParameters& nymParameters)
 #endif
     std::unique_ptr<credential::internal::Secondary> child{
         opentxs::Factory::Credential<credential::internal::Secondary>(
-            api_, *this, revisedParameters, proto::CREDROLE_CHILDKEY)};
+            api_,
+            *this,
+            authority_to_secondary_.at(version_),
+            revisedParameters,
+            proto::CREDROLE_CHILDKEY)};
 
     if (!child) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -211,7 +252,11 @@ bool Authority::AddContactCredential(const proto::ContactData& contactData)
     nymParameters.SetContactData(contactData);
     std::unique_ptr<credential::internal::Contact> credential{
         opentxs::Factory::Credential<credential::internal::Contact>(
-            api_, *this, nymParameters, proto::CREDROLE_CONTACT)};
+            api_,
+            *this,
+            authority_to_contact_.at(version_),
+            nymParameters,
+            proto::CREDROLE_CONTACT)};
 
     if (false == bool(credential)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct credential")
@@ -242,7 +287,11 @@ bool Authority::AddVerificationCredential(
     nymParameters.SetVerificationSet(verificationSet);
     std::unique_ptr<credential::internal::Verification> credential{
         opentxs::Factory::Credential<credential::internal::Verification>(
-            api_, *this, nymParameters, proto::CREDROLE_VERIFY)};
+            api_,
+            *this,
+            authority_to_verification_.at(version_),
+            nymParameters,
+            proto::CREDROLE_VERIFY)};
 
     if (false == bool(credential)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct credential")
@@ -287,7 +336,11 @@ bool Authority::CreateMasterCredential(const NymParameters& nymParameters)
     }
 
     master_.reset(opentxs::Factory::Credential<credential::internal::Primary>(
-        api_, *this, nymParameters, proto::CREDROLE_MASTERKEY));
+        api_,
+        *this,
+        authority_to_primary_.at(version_),
+        nymParameters,
+        proto::CREDROLE_MASTERKEY));
 
     if (master_) {
         index_++;
@@ -608,9 +661,9 @@ bool Authority::Load_Master(
 bool Authority::Path(proto::HDPath& output) const
 {
     if (master_) {
-
         const bool found = master_->Path(output);
         output.mutable_child()->RemoveLast();
+
         return found;
     }
 

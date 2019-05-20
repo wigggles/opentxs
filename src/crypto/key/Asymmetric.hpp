@@ -126,7 +126,7 @@ protected:
         const bool privateKey);
 
 private:
-    static const std::map<proto::SignatureRole, std::uint32_t> sig_version_;
+    static const std::map<proto::SignatureRole, VersionNumber> sig_version_;
 
     Asymmetric(const Asymmetric&) = delete;
     Asymmetric(Asymmetric&&) = delete;

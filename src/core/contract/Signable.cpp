@@ -26,7 +26,7 @@ Signable::Signable(const Nym_p& nym)
 {
 }
 
-Signable::Signable(const Nym_p& nym, const std::uint32_t version)
+Signable::Signable(const Nym_p& nym, const VersionNumber version)
     : alias_()
     , id_(Identifier::Factory())
     , nym_(nym)
@@ -39,7 +39,7 @@ Signable::Signable(const Nym_p& nym, const std::uint32_t version)
 
 Signable::Signable(
     const Nym_p& nym,
-    const std::uint32_t version,
+    const VersionNumber version,
     const std::string& conditions)
     : alias_()
     , id_(Identifier::Factory())
@@ -147,5 +147,5 @@ bool Signable::verify_signature(const Lock& lock, const proto::Signature&) const
     return true;
 }
 
-const std::uint32_t& Signable::Version() const { return version_; }
+VersionNumber Signable::Version() const { return version_; }
 }  // namespace opentxs

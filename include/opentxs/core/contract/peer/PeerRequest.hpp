@@ -61,14 +61,14 @@ protected:
     PeerRequest(
         const api::Core& api,
         const Nym_p& nym,
-        std::uint32_t version,
+        VersionNumber version,
         const identifier::Nym& recipient,
         const identifier::Server& serverID,
         const proto::PeerRequestType& type);
     PeerRequest(
         const api::Core& api,
         const Nym_p& nym,
-        std::uint32_t version,
+        VersionNumber version,
         const identifier::Nym& recipient,
         const identifier::Server& serverID,
         const std::string& conditions,

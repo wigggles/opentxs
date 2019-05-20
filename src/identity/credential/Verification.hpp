@@ -36,7 +36,8 @@ private:
     Verification(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     Verification() = delete;
     Verification(const Verification&) = delete;
     Verification(Verification&&) = delete;

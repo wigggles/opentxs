@@ -102,7 +102,7 @@ void Basket::HarvestClosingNumbers(
     const auto strNotaryID = String::Factory(theNotaryID);
 
     // The SUB-CURRENCIES first...
-    const std::uint32_t nCount = static_cast<uint32_t>(Count());
+    const auto nCount = static_cast<std::uint32_t>(Count());
 
     for (std::uint32_t i = 0; i < nCount; i++) {
         BasketItem* pRequestItem = At(i);

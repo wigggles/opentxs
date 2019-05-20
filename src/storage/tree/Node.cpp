@@ -179,7 +179,7 @@ std::string Node::Root() const
 }
 
 void Node::serialize_index(
-    const std::uint32_t version,
+    const VersionNumber version,
     const std::string& id,
     const Metadata& metadata,
     proto::StorageItemHash& output,
@@ -204,7 +204,7 @@ bool Node::set_alias(const std::string& id, const std::string& alias)
 }
 
 void Node::set_hash(
-    const std::uint32_t version,
+    const VersionNumber version,
     const std::string& id,
     const std::string& hash,
     proto::StorageItemHash& output,
@@ -259,7 +259,7 @@ bool Node::store_raw(
     return save(lock);
 }
 
-std::uint32_t Node::UpgradeLevel() const { return original_version_; }
+VersionNumber Node::UpgradeLevel() const { return original_version_; }
 
 bool Node::verify_write_lock(const Lock& lock) const
 {

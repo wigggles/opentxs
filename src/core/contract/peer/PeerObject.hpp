@@ -59,7 +59,7 @@ private:
     std::shared_ptr<blind::Purse> purse_{nullptr};
 #endif
     proto::PeerObjectType type_{proto::PEEROBJECT_ERROR};
-    std::uint32_t version_{0};
+    VersionNumber version_{0};
 
     Object(
         const api::client::Contacts& contacts,
@@ -84,11 +84,11 @@ private:
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const std::uint32_t& version);
+        const VersionNumber version);
     Object(
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
-        const std::uint32_t& version);
+        const VersionNumber version);
     Object(
         const api::Core& api,
         const Nym_p& nym,
@@ -100,7 +100,7 @@ private:
         const std::shared_ptr<blind::Purse> purse,
 #endif
         const proto::PeerObjectType type,
-        const std::uint32_t& version);
+        const VersionNumber version);
     Object() = delete;
 };
 }  // namespace opentxs::peer::implementation

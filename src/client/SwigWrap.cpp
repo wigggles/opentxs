@@ -2512,7 +2512,7 @@ std::string SwigWrap::GetContactAttributeName(
         static_cast<proto::ContactItemAttribute>(type), lang);
 }
 
-std::string SwigWrap::GetContactSections(const std::uint32_t version)
+std::string SwigWrap::GetContactSections(const VersionNumber version)
 {
     const auto data = client_->Exec().ContactSectionList(version);
     NumList list;
@@ -2535,7 +2535,7 @@ std::string SwigWrap::GetContactSectionName(
 
 std::string SwigWrap::GetContactSectionTypes(
     const std::uint32_t section,
-    const std::uint32_t version)
+    const VersionNumber version)
 {
     const auto data = client_->Exec().ContactSectionTypeList(
         static_cast<proto::ContactSectionName>(section), version);

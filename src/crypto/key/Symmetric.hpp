@@ -93,7 +93,7 @@ private:
 
     /// The library providing the underlying crypto algorithms
     const crypto::SymmetricProvider& engine_;
-    const std::uint32_t version_{0};
+    const VersionNumber version_{0};
     const proto::SymmetricKeyType type_{proto::SKEYTYPE_ERROR};
     /// Size of the plaintext key in bytes;
     std::size_t key_size_{0};

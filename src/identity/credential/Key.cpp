@@ -35,38 +35,47 @@
 
 #include "Key.hpp"
 
-#define OT_METHOD "opentxs::identity::credential::implementation::Key"
+#define OT_METHOD "opentxs::identity::credential::implementation::Key::"
 
 namespace opentxs::identity::credential::implementation
 {
+const VersionConversionMap Key::credential_subversion_{
+    {1, 1},
+    {2, 1},
+    {3, 1},
+    {4, 1},
+    {5, 1},
+    {6, 1},
+};
+
 Key::Key(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const proto::Credential& serialized)
+    const proto::Credential& serialized) noexcept
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Base(api, theOwner, serialized)
     , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serialized))
     , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serialized))
     , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serialized))
+    , subversion_(credential_subversion_.at(version_))
 {
 }
 
 Key::Key(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const NymParameters& nymParameters)
-    : Signable({}, KEY_CREDENTIAL_VERSION)  // TODO Signable
-    , credential::implementation::Base(
-          api,
-          theOwner,
-          KEY_CREDENTIAL_VERSION,
-          nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version) noexcept
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Base(api, theOwner, nymParameters, version)
     , signing_key_(new_key(api_.Crypto(), proto::KEYROLE_SIGN, nymParameters))
     , authentication_key_(
           new_key(api_.Crypto(), proto::KEYROLE_AUTH, nymParameters))
     , encryption_key_(
           new_key(api_.Crypto(), proto::KEYROLE_ENCRYPT, nymParameters))
+    , subversion_(credential_subversion_.at(version_))
 {
+    OT_ASSERT(0 != version);
 }
 
 bool Key::VerifySignedBySelf(const Lock& lock) const
@@ -462,7 +471,7 @@ bool Key::addKeyCredentialtoSerializedCredential(
         return false;
     }
 
-    keyCredential->set_version(KEY_CREDENTIAL_VERSION);
+    keyCredential->set_version(subversion_);
 
     // These must be serialized in this order
     bool auth = addKeytoSerializedKeyCredential(

@@ -98,7 +98,7 @@ public:
 
 private:
     const api::Core& api_;
-    std::uint32_t version_{0};
+    VersionNumber version_{0};
     std::string label_{""};
     mutable std::mutex lock_{};
     const OTIdentifier id_;
@@ -110,9 +110,9 @@ private:
     mutable std::shared_ptr<ContactData> cached_contact_data_{};
     std::atomic<std::uint64_t> revision_{0};
 
-    static std::uint32_t check_version(
-        const std::uint32_t in,
-        const std::uint32_t targetVersion);
+    static VersionNumber check_version(
+        const VersionNumber in,
+        const VersionNumber targetVersion);
 
     std::shared_ptr<ContactGroup> payment_codes(
         const Lock& lock,
