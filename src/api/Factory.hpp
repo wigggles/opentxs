@@ -125,7 +125,7 @@ public:
         const proto::PaymentCode& serialized) const override;
     OTPaymentCode PaymentCode(
         const std::string& seed,
-        const std::uint32_t nym,
+        const Bip32Index nym,
         const std::uint8_t version,
         const bool bitmessage = false,
         const std::uint8_t bitmessageVersion = 0,

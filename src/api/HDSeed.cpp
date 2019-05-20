@@ -68,18 +68,18 @@ HDSeed::HDSeed(
 std::shared_ptr<proto::AsymmetricKey> HDSeed::AccountChildKey(
     const proto::HDPath& rootPath,
     const BIP44Chain internal,
-    const std::uint32_t index) const
+    const Bip32Index index) const
 {
     auto path = rootPath;
     auto fingerprint = rootPath.root();
     std::shared_ptr<proto::AsymmetricKey> output;
-    std::uint32_t notUsed = 0;
+    Bip32Index notUsed = 0;
     auto seed = Seed(fingerprint, notUsed);
     path.set_root(fingerprint);
 
     if (false == bool(seed)) { return output; }
 
-    const std::uint32_t change = internal ? 1 : 0;
+    const Bip32Index change = internal ? 1 : 0;
     path.add_child(change);
     path.add_child(index);
 
@@ -94,7 +94,7 @@ std::string HDSeed::Bip32Root(const std::string& fingerprint) const
 {
     // TODO: make fingerprint non-const
     std::string input(fingerprint);
-    std::uint32_t notUsed = 0;
+    Bip32Index notUsed = 0;
     auto seed = Seed(input, notUsed);
 
     if (!seed) { return ""; }
@@ -157,10 +157,10 @@ std::string HDSeed::DefaultSeed() const { return storage_.DefaultSeed(); }
 
 std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
     std::string& fingerprint,
-    const std::uint32_t nym) const
+    const Bip32Index nym) const
 {
     std::shared_ptr<proto::AsymmetricKey> output;
-    std::uint32_t notUsed = 0;
+    Bip32Index notUsed = 0;
     auto seed = Seed(fingerprint, notUsed);
 
     if (!seed) { return output; }
@@ -168,12 +168,12 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
     proto::HDPath path;
     path.set_root(fingerprint);
     path.add_child(
-        static_cast<std::uint32_t>(Bip43Purpose::PAYCODE) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        static_cast<Bip32Index>(Bip43Purpose::PAYCODE) |
+        static_cast<Bip32Index>(Bip32Child::HARDENED));
     path.add_child(
-        static_cast<std::uint32_t>(Bip44Type::BITCOIN) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    path.add_child(nym | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        static_cast<Bip32Index>(Bip44Type::BITCOIN) |
+        static_cast<Bip32Index>(Bip32Child::HARDENED));
+    path.add_child(nym | static_cast<Bip32Index>(Bip32Child::HARDENED));
     output = bip32_.GetHDKey(
         EcdsaCurve::SECP256K1,
         *seed,
@@ -186,7 +186,7 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
 std::shared_ptr<proto::AsymmetricKey> HDSeed::GetStorageKey(
     std::string& fingerprint) const
 {
-    std::uint32_t notUsed = 0;
+    Bip32Index notUsed = 0;
     auto seed = Seed(fingerprint, notUsed);
 
     if (false == bool(seed)) {
@@ -198,11 +198,11 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::GetStorageKey(
     proto::HDPath path;
     path.set_root(fingerprint);
     path.add_child(
-        static_cast<std::uint32_t>(Bip43Purpose::FS) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        static_cast<Bip32Index>(Bip43Purpose::FS) |
+        static_cast<Bip32Index>(Bip32Child::HARDENED));
     path.add_child(
-        static_cast<std::uint32_t>(Bip32Child::ENCRYPT_KEY) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        static_cast<Bip32Index>(Bip32Child::ENCRYPT_KEY) |
+        static_cast<Bip32Index>(Bip32Child::HARDENED));
 
     return bip32_.GetHDKey(
         EcdsaCurve::SECP256K1,
@@ -315,7 +315,7 @@ std::string HDSeed::Passphrase(const std::string& fingerprint) const
 {
     // TODO: make fingerprint non-const
     std::string input(fingerprint);
-    std::uint32_t notUsed = 0;
+    Bip32Index notUsed = 0;
     auto seed = SerializedSeed(input, notUsed);
 
     if (!seed) { return ""; }
@@ -329,7 +329,7 @@ std::string HDSeed::Passphrase(const std::string& fingerprint) const
 
 std::shared_ptr<OTPassword> HDSeed::Seed(
     std::string& fingerprint,
-    std::uint32_t& index) const
+    Bip32Index& index) const
 {
     auto output = aes_.InstantiateBinarySecretSP();
 
@@ -360,7 +360,7 @@ std::shared_ptr<OTPassword> HDSeed::Seed(
 
 std::shared_ptr<proto::Seed> HDSeed::SerializedSeed(
     std::string& fingerprint,
-    std::uint32_t& index) const
+    Bip32Index& index) const
 {
     const bool wantDefaultSeed = fingerprint.empty();
     std::shared_ptr<proto::Seed> serialized;
@@ -389,9 +389,9 @@ std::shared_ptr<proto::Seed> HDSeed::SerializedSeed(
     return serialized;
 }
 
-bool HDSeed::UpdateIndex(std::string& seed, const std::uint32_t index) const
+bool HDSeed::UpdateIndex(std::string& seed, const Bip32Index index) const
 {
-    std::uint32_t oldIndex = 0;
+    Bip32Index oldIndex = 0;
     auto serialized = SerializedSeed(seed, oldIndex);
 
     if (oldIndex > index) {
@@ -413,7 +413,7 @@ std::string HDSeed::Words(const std::string& fingerprint) const
 {
     // TODO: make fingerprint non-const
     std::string input(fingerprint);
-    std::uint32_t notUsed;
+    Bip32Index notUsed;
     auto seed = SerializedSeed(input, notUsed);
 
     if (!seed) { return ""; }

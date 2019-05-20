@@ -56,7 +56,7 @@ identity::internal::Authority* Factory::Authority(
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
     const NymParameters& nymParameters,
-    const std::uint32_t nymVersion,
+    const VersionNumber nymVersion,
     const OTPasswordData* pPWData)
 {
     return new identity::implementation::Authority(
@@ -110,7 +110,7 @@ const VersionConversionMap Authority::nym_to_authority_{
 Authority::Authority(
     const api::Core& api,
     const VersionNumber version,
-    const std::uint32_t index,
+    const Bip32Index index,
     const proto::KeyMode mode,
     const std::string& nymID) noexcept
     : api_(api)
@@ -168,7 +168,7 @@ Authority::Authority(
 Authority::Authority(
     const api::Core& api,
     const NymParameters& nymParameters,
-    std::uint32_t nymVersion,
+    VersionNumber nymVersion,
     const OTPasswordData*) noexcept
     : Authority(api, nym_to_authority_.at(nymVersion))
 {

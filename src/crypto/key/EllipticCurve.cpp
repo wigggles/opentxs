@@ -8,6 +8,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -20,8 +21,10 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -36,8 +39,53 @@ extern "C" {
 
 namespace opentxs::crypto::key
 {
-const VersionNumber EllipticCurve::DefaultVersion{1};
-const VersionNumber EllipticCurve::MaxVersion{1};
+const VersionNumber EllipticCurve::DefaultVersion{2};
+const VersionNumber EllipticCurve::MaxVersion{2};
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+Bip32Fingerprint EllipticCurve::CalculateFingerprint(const Data& key)
+{
+    Bip32Fingerprint output{0};
+    auto sha = Data::Factory();
+    auto ripe = Data::Factory();
+
+    if (33 != key.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid public key").Flush();
+
+        return output;
+    }
+
+    const auto& crypto = OT::App().Crypto();
+    const bool haveSha = crypto.Hash().Digest(proto::HASHTYPE_SHA256, key, sha);
+
+    if (false == haveSha) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to calculate public key hash (sha256)")
+            .Flush();
+
+        return output;
+    }
+
+    const bool haveRipe =
+        crypto.Hash().Digest(proto::HASHTYPE_RIMEMD160, sha, ripe);
+
+    if (false == haveRipe) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to calculate public key hash (ripemd160)")
+            .Flush();
+
+        return output;
+    }
+
+    if (false == ripe->Extract(output)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set output").Flush();
+
+        OT_FAIL;
+    }
+
+    return output;
+}
+#endif
 }  // namespace opentxs::crypto::key
 
 namespace opentxs::crypto::key::implementation
@@ -51,6 +99,9 @@ EllipticCurve::EllipticCurve(
     , encrypted_key_(nullptr)
     , path_(nullptr)
     , chain_code_(nullptr)
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    , parent_(0)
+#endif
 {
 }
 
@@ -60,6 +111,9 @@ EllipticCurve::EllipticCurve(const proto::AsymmetricKey& serializedKey) noexcept
     , encrypted_key_(nullptr)
     , path_(nullptr)
     , chain_code_(nullptr)
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    , parent_(serializedKey.bip32_parent())
+#endif
 {
     m_keyType = serializedKey.type();
 
@@ -144,6 +198,39 @@ OTData EllipticCurve::CalculateHash(
     }
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+OTData EllipticCurve::Chaincode() const
+{
+    auto output = Data::Factory();
+
+    if (false == bool(encrypted_key_)) { return output; }
+    if (false == bool(chain_code_)) { return output; }
+
+    const auto& chaincode = *chain_code_;
+    const auto& privateKey = *encrypted_key_;
+    // Private key data and chain code are encrypted to the same session key,
+    // and this session key is only embedded in the private key ciphertext
+    auto sessionKey = OT::App().Crypto().Symmetric().Key(
+        privateKey.key(), proto::SMODE_CHACHA20POLY1305);
+
+    if (false == sessionKey.get()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract session key.")
+            .Flush();
+
+        return output;
+    }
+
+    if (false == sessionKey->Decrypt(chaincode, __FUNCTION__, output)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt chain code")
+            .Flush();
+
+        return Data::Factory();
+    }
+
+    return output;
+}
+#endif
+
 EllipticCurve* EllipticCurve::clone() const
 {
     auto output = ot_super::clone();
@@ -168,6 +255,70 @@ EllipticCurve* EllipticCurve::clone() const
 
     return key;
 }
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+int EllipticCurve::Depth() const
+{
+    if (false == bool(path_)) { return -1; }
+
+    return path_->child_size();
+}
+
+Bip32Fingerprint EllipticCurve::Fingerprint() const
+{
+    auto key = Data::Factory();
+
+    if (false == GetPublicKey(key)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load public key")
+            .Flush();
+
+        return {};
+    }
+
+    return CalculateFingerprint(key);
+}
+
+std::tuple<bool, Bip32Depth, Bip32Index> EllipticCurve::get_params() const
+{
+    std::tuple<bool, Bip32Depth, Bip32Index> output{false, 0x0, 0x0};
+    auto& [success, depth, child] = output;
+
+    if (false == bool(path_)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": missing path").Flush();
+
+        return output;
+    }
+
+    const auto& path = *path_;
+    auto size = path.child_size();
+
+    if (0 > size) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid depth (")(size)(")")
+            .Flush();
+
+        return output;
+    }
+
+    if (std::numeric_limits<Bip32Depth>::max() < size) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid depth (")(size)(")")
+            .Flush();
+
+        return output;
+    }
+
+    depth = size;
+
+    if (0 < depth) {
+        const auto& index = *(path_->child().rbegin());
+        child = index;
+    }
+
+    success = true;
+
+    return output;
+}
+
+#endif
 
 bool EllipticCurve::GetKey(Data& key) const
 {
@@ -258,12 +409,11 @@ const std::string EllipticCurve::Path() const
 
             for (auto& it : path_->child()) {
                 path->Concatenate(" / ");
-                if (it < static_cast<std::uint32_t>(Bip32Child::HARDENED)) {
+                if (it < static_cast<Bip32Index>(Bip32Child::HARDENED)) {
                     path->Concatenate(String::Factory(std::to_string(it)));
                 } else {
                     path->Concatenate(String::Factory(std::to_string(
-                        it -
-                        static_cast<std::uint32_t>(Bip32Child::HARDENED))));
+                        it - static_cast<Bip32Index>(Bip32Child::HARDENED))));
                     path->Concatenate("'");
                 }
             }
@@ -284,6 +434,53 @@ bool EllipticCurve::Path(proto::HDPath& output) const
     LogOutput(OT_METHOD)(__FUNCTION__)(": HDPath not instantiated.").Flush();
 
     return false;
+}
+
+OTData EllipticCurve::PrivateKey() const
+{
+    auto output = Data::Factory();
+
+    if (false == bool(encrypted_key_)) { return Data::Factory(); }
+
+    const auto& privateKey = *encrypted_key_;
+    // Private key data and chain code are encrypted to the same session key,
+    // and this session key is only embedded in the private key ciphertext
+    auto sessionKey = OT::App().Crypto().Symmetric().Key(
+        privateKey.key(), proto::SMODE_CHACHA20POLY1305);
+
+    if (false == sessionKey.get()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract session key.")
+            .Flush();
+
+        return Data::Factory();
+    }
+
+    if (false == sessionKey->Decrypt(privateKey, __FUNCTION__, output)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt private key")
+            .Flush();
+
+        return Data::Factory();
+    }
+
+    return output;
+}
+
+OTData EllipticCurve::PublicKey() const
+{
+    auto output = Data::Factory();
+
+    if (false == bool(encrypted_key_)) { return Data::Factory(); }
+
+    const auto& privateKey = *encrypted_key_;
+
+    if (false == ECDSA().PrivateToPublic(privateKey, output)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate public key")
+            .Flush();
+
+        return Data::Factory();
+    }
+
+    return output;
 }
 
 bool EllipticCurve::ReEncryptPrivateKey(
@@ -374,7 +571,6 @@ bool EllipticCurve::Seal(
     OTAsymmetricKey& dhPublic,
     crypto::key::Symmetric& key,
     OTPasswordData& password) const
-
 {
     if (false == IsPublic()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key type (private)")
@@ -432,6 +628,10 @@ std::shared_ptr<proto::AsymmetricKey> EllipticCurve::Serialize() const
         }
     }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    if (1 < version_) { serializedKey->set_bip32_parent(parent_); }
+#endif
+
     return serializedKey;
 }
 
@@ -464,4 +664,30 @@ bool EllipticCurve::TransportKey(Data& publicKey, OTPassword& privateKey) const
 
     return ECDSA().SeedToCurveKey(seed, privateKey, publicKey);
 }
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+std::string EllipticCurve::Xprv() const
+{
+    const auto [ready, depth, child] = get_params();
+
+    if (false == ready) { return {}; }
+
+    const auto priv = PrivateKey();
+    OTPassword privateKey{};
+    privateKey.setMemory(priv->data(), priv->size());
+
+    return OT::App().Crypto().BIP32().SerializePrivate(
+        0x0488ADE4, depth, parent_, child, Chaincode(), privateKey);
+}
+
+std::string EllipticCurve::Xpub() const
+{
+    const auto [ready, depth, child] = get_params();
+
+    if (false == ready) { return {}; }
+
+    return OT::App().Crypto().BIP32().SerializePublic(
+        0x0488B21E, depth, parent_, child, Chaincode(), PublicKey());
+}
+#endif
 }  // namespace opentxs::crypto::key::implementation

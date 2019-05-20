@@ -36,6 +36,7 @@ namespace opentxs
 {
 const VersionConversionMap NymIDSource::key_to_source_version_{
     {1, 1},
+    {2, 2},
 };
 
 NymIDSource::NymIDSource(

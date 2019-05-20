@@ -45,9 +45,9 @@ private:
     proto::CredentialType credentialType_{proto::CREDTYPE_HD};
     std::unique_ptr<OTPassword> entropy_;
     std::string seed_;
-    std::uint32_t nym_{0};
-    std::uint32_t credset_{0};
-    std::uint32_t cred_index_{0};
+    Bip32Index nym_{0};
+    Bip32Index credset_{0};
+    Bip32Index cred_index_{0};
     bool default_{true};
     bool use_auto_index_{false};
 #else
@@ -114,14 +114,14 @@ public:
     inline std::string Seed() const { return seed_; }
     inline void SetSeed(const std::string& seed) { seed_ = seed; }
 
-    inline std::uint32_t Nym() const { return nym_; }
-    inline void SetNym(const std::uint32_t path) { nym_ = path; }
+    inline Bip32Index Nym() const { return nym_; }
+    inline void SetNym(const Bip32Index path) { nym_ = path; }
 
-    inline std::uint32_t Credset() const { return credset_; }
-    inline void SetCredset(const std::uint32_t path) { credset_ = path; }
+    inline Bip32Index Credset() const { return credset_; }
+    inline void SetCredset(const Bip32Index path) { credset_ = path; }
 
-    inline std::uint32_t CredIndex() const { return cred_index_; }
-    inline void SetCredIndex(const std::uint32_t path) { cred_index_ = path; }
+    inline Bip32Index CredIndex() const { return cred_index_; }
+    inline void SetCredIndex(const Bip32Index path) { cred_index_ = path; }
 
     inline bool Default() const { return default_; }
     inline void SetDefault(const bool in) { default_ = in; }

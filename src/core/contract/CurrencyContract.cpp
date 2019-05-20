@@ -36,7 +36,7 @@ CurrencyContract::CurrencyContract(
     const std::string& symbol,
     const std::string& terms,
     const std::string& tla,
-    const std::uint32_t& power,
+    const std::uint32_t power,
     const std::string& fraction)
     : ot_super(wallet, nym, shortname, name, symbol, terms)
     , tla_(tla)

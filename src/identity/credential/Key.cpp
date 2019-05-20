@@ -45,10 +45,11 @@ const VersionConversionMap Key::credential_subversion_{
     {3, 1},
     {4, 1},
     {5, 1},
-    {6, 1},
+    {6, 2},
 };
 const VersionConversionMap Key::subversion_to_key_version_{
     {1, 1},
+    {2, 2},
 };
 
 Key::Key(
@@ -326,9 +327,9 @@ OTKeypair Key::derive_hd_keypair(
     const api::Crypto& crypto,
     const OTPassword& seed,
     const std::string& fingerprint,
-    const std::uint32_t nym,
-    const std::uint32_t credset,
-    const std::uint32_t credindex,
+    const Bip32Index nym,
+    const Bip32Index credset,
+    const Bip32Index credindex,
     const EcdsaCurve& curve,
     const proto::KeyRole role,
     const VersionNumber version)
@@ -339,29 +340,28 @@ OTKeypair Key::derive_hd_keypair(
     keyPath.set_root(input.c_str(), input.size());
 
     keyPath.add_child(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    keyPath.add_child(nym | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+        static_cast<Bip32Index>(Bip32Child::HARDENED));
+    keyPath.add_child(nym | static_cast<Bip32Index>(Bip32Child::HARDENED));
+    keyPath.add_child(credset | static_cast<Bip32Index>(Bip32Child::HARDENED));
     keyPath.add_child(
-        credset | static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    keyPath.add_child(
-        credindex | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        credindex | static_cast<Bip32Index>(Bip32Child::HARDENED));
 
     switch (role) {
         case proto::KEYROLE_AUTH:
             keyPath.add_child(
-                static_cast<std::uint32_t>(Bip32Child::AUTH_KEY) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(Bip32Child::AUTH_KEY) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_ENCRYPT:
             keyPath.add_child(
-                static_cast<std::uint32_t>(Bip32Child::ENCRYPT_KEY) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(Bip32Child::ENCRYPT_KEY) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_SIGN:
             keyPath.add_child(
-                static_cast<std::uint32_t>(Bip32Child::SIGN_KEY) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(Bip32Child::SIGN_KEY) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             break;
         default:
             break;

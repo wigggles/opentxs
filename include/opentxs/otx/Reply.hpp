@@ -21,6 +21,9 @@ namespace otx
 class Reply : virtual public Signable
 {
 public:
+    EXPORT static const VersionNumber DefaultVersion;
+    EXPORT static const VersionNumber MaxVersion;
+
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
         const Nym_p signer,
         const identifier::Nym& recipient,

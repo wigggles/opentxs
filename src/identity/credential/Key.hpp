@@ -85,9 +85,9 @@ private:
         const api::Crypto& crypto,
         const OTPassword& seed,
         const std::string& fingerprint,
-        const std::uint32_t nym,
-        const std::uint32_t credset,
-        const std::uint32_t credindex,
+        const Bip32Index nym,
+        const Bip32Index credset,
+        const Bip32Index credindex,
         const EcdsaCurve& curve,
         const proto::KeyRole role,
         const VersionNumber version);

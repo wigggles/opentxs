@@ -168,15 +168,19 @@ enum class StorageBox : std::uint8_t {
 };
 
 std::string storage_box_name(StorageBox box);
+using Bip32Network = std::uint32_t;
+using Bip32Depth = std::uint8_t;
+using Bip32Fingerprint = std::uint32_t;
+using Bip32Index = std::uint32_t;
 
-enum class Bip43Purpose : std::uint32_t {
+enum class Bip43Purpose : Bip32Index {
     HDWALLET = 44,    // BIP-44
     PAYCODE = 47,     // BIP-47
     FS = 0x4f544653,  // OTFS
     NYM = 0x4f544e4d  // OTNM
 };
 
-enum class Bip44Type : std::uint32_t {
+enum class Bip44Type : Bip32Index {
     BITCOIN = 0,
     TESTNET = 1,
     LITECOIN = 2,
@@ -191,7 +195,7 @@ enum class Bip44Type : std::uint32_t {
     BITCOINCASH = 145,
 };
 
-enum class Bip32Child : std::uint32_t {
+enum class Bip32Child : Bip32Index {
     AUTH_KEY = 0x41555448,
     ENCRYPT_KEY = 0x454e4352,
     SIGN_KEY = 0x5349474e,

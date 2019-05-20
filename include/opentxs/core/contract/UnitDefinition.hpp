@@ -65,7 +65,7 @@ public:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const std::uint32_t& power,
+        const std::uint32_t power,
         const std::string& fraction);
     EXPORT static UnitDefinition* Create(
         const api::Wallet& wallet,

@@ -50,7 +50,7 @@ template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
 namespace opentxs::crypto::key
 {
 const VersionNumber Asymmetric::DefaultVersion{1};
-const VersionNumber Asymmetric::MaxVersion{1};
+const VersionNumber Asymmetric::MaxVersion{2};
 
 OTAsymmetricKey Asymmetric::Factory()
 {

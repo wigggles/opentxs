@@ -130,7 +130,7 @@ private:
     std::shared_ptr<NymIDSource> nym_id_source_;
     const OTPassword* m_pImportPassword = nullptr;
     VersionNumber version_{0};
-    std::uint32_t index_{0};
+    Bip32Index index_{0};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
 
     static bool is_revoked(
@@ -160,7 +160,7 @@ private:
     Authority(
         const api::Core& api,
         const VersionNumber version,
-        const std::uint32_t index = 0,
+        const Bip32Index index = 0,
         const proto::KeyMode mode = proto::KEYMODE_PRIVATE,
         const std::string& nymID = "") noexcept;
     Authority(

@@ -59,6 +59,7 @@ namespace opentxs
 {
 const VersionConversionMap Letter::akey_to_envelope_version_{
     {1, 1},
+    {2, 2},
 };
 
 bool Letter::AddRSARecipients(

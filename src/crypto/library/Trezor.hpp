@@ -27,7 +27,7 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     std::shared_ptr<proto::AsymmetricKey> GetChild(
         const proto::AsymmetricKey& parent,
-        const std::uint32_t index) const override;
+        const Bip32Index index) const override;
     std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
@@ -96,6 +96,7 @@ private:
 
 #if OT_CRYPTO_WITH_BIP32
     const curve_info* secp256k1_{nullptr};
+    const curve_info* ed25519_{nullptr};
 
     static std::string CurveName(const EcdsaCurve& curve);
 
@@ -104,15 +105,19 @@ private:
         const OTPassword& seed);
     static std::unique_ptr<HDNode> GetChild(
         const HDNode& parent,
-        const std::uint32_t index,
+        const Bip32Index index,
         const DerivationMode privateVersion);
 
     std::unique_ptr<HDNode> DeriveChild(
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        proto::HDPath& path) const;
+        proto::HDPath& path,
+        Bip32Fingerprint& fingerprint) const;
+    const curve_info* get_curve(const EcdsaCurve& curve) const;
+    const curve_info* get_curve(const proto::AsymmetricKeyType& curve) const;
     std::unique_ptr<HDNode> SerializedToHDNode(
-        const proto::AsymmetricKey& serialized) const;
+        const proto::AsymmetricKey& serialized,
+        Bip32Fingerprint& fingerprint) const;
     std::shared_ptr<proto::AsymmetricKey> HDNodeToSerialized(
         const proto::AsymmetricKeyType& type,
         const HDNode& node,

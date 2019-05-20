@@ -38,13 +38,13 @@ public:
     virtual bool AssignAddress(
         const identifier::Nym& nymID,
         const Identifier& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const Identifier& contactID,
         const BIP44Chain chain = EXTERNAL_CHAIN) const = 0;
     virtual std::unique_ptr<proto::Bip44Address> LoadAddress(
         const identifier::Nym& nymID,
         const Identifier& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const BIP44Chain chain) const = 0;
     virtual OTIdentifier NewAccount(
         const identifier::Nym& nymID,
@@ -53,7 +53,7 @@ public:
     virtual bool StoreIncoming(
         const identifier::Nym& nymID,
         const Identifier& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const BIP44Chain chain,
         const proto::BlockchainTransaction& transaction) const = 0;
     virtual bool StoreOutgoing(

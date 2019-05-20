@@ -640,7 +640,7 @@ OTPaymentCode Factory::PaymentCode(const proto::PaymentCode& serialized) const
 
 OTPaymentCode Factory::PaymentCode(
     const std::string& seed,
-    const std::uint32_t nym,
+    const Bip32Index nym,
     const std::uint8_t version,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,

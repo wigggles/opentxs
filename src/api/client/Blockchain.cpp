@@ -115,7 +115,7 @@ std::set<OTIdentifier> Blockchain::AccountList(
 }
 
 proto::Bip44Address& Blockchain::add_address(
-    const std::uint32_t index,
+    const Bip32Index index,
     proto::Bip44Account& account,
     const BIP44Chain chain) const
 {
@@ -230,7 +230,7 @@ std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
 bool Blockchain::AssignAddress(
     const identifier::Nym& nymID,
     const Identifier& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const Identifier& contactID,
     const BIP44Chain chain) const
 {
@@ -360,7 +360,7 @@ Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
 std::string Blockchain::calculate_address(
     const proto::Bip44Account& account,
     const BIP44Chain chain,
-    const std::uint32_t index) const
+    const Bip32Index index) const
 {
     const auto& path = account.path();
     auto fingerprint = path.root();
@@ -438,7 +438,7 @@ std::string Blockchain::calculate_address(
 }
 
 proto::Bip44Address& Blockchain::find_address(
-    const std::uint32_t index,
+    const Bip32Index index,
     const BIP44Chain chain,
     proto::Bip44Account& account) const
 {
@@ -463,7 +463,7 @@ proto::Bip44Address& Blockchain::find_address(
 void Blockchain::init_path(
     const std::string& root,
     const proto::ContactItemType chain,
-    const std::uint32_t account,
+    const Bip32Index account,
     const BlockchainAccountType standard,
     proto::HDPath& path) const
 {
@@ -473,15 +473,15 @@ void Blockchain::init_path(
     switch (standard) {
         case BlockchainAccountType::BIP32: {
             path.add_child(
-                account | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                account | static_cast<Bip32Index>(Bip32Child::HARDENED));
         } break;
         case BlockchainAccountType::BIP44: {
             path.add_child(
-                static_cast<std::uint32_t>(Bip43Purpose::HDWALLET) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(Bip43Purpose::HDWALLET) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             path.add_child(
-                static_cast<std::uint32_t>(bip44_type(chain)) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(bip44_type(chain)) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             path.add_child(account);
         } break;
         default: {
@@ -504,7 +504,7 @@ std::shared_ptr<proto::Bip44Account> Blockchain::load_account(
 std::unique_ptr<proto::Bip44Address> Blockchain::LoadAddress(
     const identifier::Nym& nymID,
     const Identifier& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const BIP44Chain chain) const
 {
     LOCK_ACCOUNT()
@@ -603,7 +603,7 @@ OTIdentifier Blockchain::NewAccount(
     init_path(
         nymPath.root(),
         type,
-        nymPath.child(1) | static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        nymPath.child(1) | static_cast<Bip32Index>(Bip32Child::HARDENED),
         standard,
         accountPath);
     const auto accountID = Identifier::Factory(type, accountPath);
@@ -631,7 +631,7 @@ OTIdentifier Blockchain::NewAccount(
 bool Blockchain::StoreIncoming(
     const identifier::Nym& nymID,
     const Identifier& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const BIP44Chain chain,
     const proto::BlockchainTransaction& transaction) const
 {

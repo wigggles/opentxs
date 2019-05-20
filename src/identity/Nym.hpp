@@ -164,7 +164,7 @@ private:
 
     const api::Core& api_;
     std::int32_t version_{0};
-    std::uint32_t index_{0};
+    Bip32Index index_{0};
     std::string alias_;
     std::atomic<std::uint64_t> revision_{0};
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};

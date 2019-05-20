@@ -94,7 +94,7 @@ identity::internal::Nym* Factory::Nym(
 
 namespace opentxs::identity
 {
-const VersionNumber Nym::DefaultVersion{5};
+const VersionNumber Nym::DefaultVersion{6};
 const VersionNumber Nym::MaxVersion{6};
 }  // namespace opentxs::identity
 
@@ -109,6 +109,7 @@ bool session_key_from_iv(
 
 const VersionConversionMap Nym::akey_to_session_key_version_{
     {1, 1},
+    {2, 1},
 };
 const VersionConversionMap Nym::contact_credential_to_contact_data_version_{
     {1, 1},
@@ -148,7 +149,7 @@ Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredset(index_++);
-    std::uint32_t nymIndex = 0;
+    Bip32Index nymIndex = 0;
     std::string fingerprint = nymParameters.Seed();
     auto seed = api_.Seeds().Seed(fingerprint, nymIndex);
 
@@ -474,7 +475,7 @@ bool Nym::CompareID(const identifier::Nym& rhs) const
     return m_nymID == rhs;
 }
 
-std::uint32_t Nym::ContactCredentialVersion() const
+VersionNumber Nym::ContactCredentialVersion() const
 {
     // TODO support multiple authorities
     OT_ASSERT(0 < m_mapCredentialSets.size())
@@ -1619,7 +1620,7 @@ bool Nym::update_nym(const eLock& lock, const std::int32_t version)
     return false;
 }
 
-std::uint32_t Nym::VerificationCredentialVersion() const
+VersionNumber Nym::VerificationCredentialVersion() const
 {
     // TODO support multiple authorities
     OT_ASSERT(0 < m_mapCredentialSets.size())

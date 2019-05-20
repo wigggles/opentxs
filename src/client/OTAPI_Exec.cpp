@@ -806,7 +806,7 @@ bool OTAPI_Exec::SetContactData(
 /// to be base64-encoded (and must be decoded here.)
 bool OTAPI_Exec::SetClaim_Base64(
     const std::string& nymID,
-    const std::uint32_t& section,
+    const std::uint32_t section,
     const std::string& claim) const
 {
     if (claim.empty()) {
@@ -826,7 +826,7 @@ bool OTAPI_Exec::SetClaim_Base64(
 
 bool OTAPI_Exec::SetClaim(
     const std::string& nymID,
-    const std::uint32_t& section,
+    const std::uint32_t section,
     const std::string& claim) const
 {
     if (nymID.empty()) {
@@ -10846,8 +10846,8 @@ std::string OTAPI_Exec::Wallet_ImportSeed(
 
 bool OTAPI_Exec::AddClaim(
     const std::string& nymID,
-    const std::uint32_t& section,
-    const std::uint32_t& type,
+    const std::uint32_t section,
+    const std::uint32_t type,
     const std::string& value,
     const bool active,
     const bool primary,

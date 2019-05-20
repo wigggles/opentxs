@@ -17,13 +17,13 @@
 
 template class opentxs::Pimpl<opentxs::otx::Reply>;
 
-// TODO 1.14.0
-#define OTX_REPLY_CREATE_VERSION 1
-
 #define OT_METHOD "opentxs::otx::implementation::Reply::"
 
 namespace opentxs::otx
 {
+const VersionNumber Reply::DefaultVersion{1};
+const VersionNumber Reply::MaxVersion{1};
+
 OTXReply Reply::Factory(
     const Nym_p signer,
     const identifier::Nym& recipient,
@@ -63,7 +63,7 @@ Reply::Reply(
     const identifier::Server& server,
     const proto::ServerReplyType type,
     const bool success)
-    : Signable(signer, OTX_REPLY_CREATE_VERSION, "")
+    : Signable(signer, DefaultVersion, "")
     , recipient_(recipient)
     , server_(server)
     , type_(type)

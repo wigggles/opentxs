@@ -13,12 +13,12 @@ public:
     std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
-        const std::uint32_t index) const override;
+        const Bip32Index index) const override;
     std::string Bip32Root(const std::string& fingerprint = "") const override;
     std::string DefaultSeed() const override;
     std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
-        const std::uint32_t nym) const override;
+        const Bip32Index nym) const override;
     std::shared_ptr<proto::AsymmetricKey> GetStorageKey(
         std::string& seed) const override;
     std::string ImportSeed(
@@ -28,9 +28,8 @@ public:
     std::string Passphrase(const std::string& fingerprint = "") const override;
     std::shared_ptr<OTPassword> Seed(
         std::string& fingerprint,
-        std::uint32_t& index) const override;
-    bool UpdateIndex(std::string& seed, const std::uint32_t index)
-        const override;
+        Bip32Index& index) const override;
+    bool UpdateIndex(std::string& seed, const Bip32Index index) const override;
     std::string Words(const std::string& fingerprint = "") const override;
 
     virtual ~HDSeed() = default;
@@ -59,7 +58,7 @@ private:
         OTPassword& output) const;
     std::shared_ptr<proto::Seed> SerializedSeed(
         std::string& fingerprint,
-        std::uint32_t& index) const;
+        Bip32Index& index) const;
 
     HDSeed(
         const api::crypto::Symmetric& symmetric,
