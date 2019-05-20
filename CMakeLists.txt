@@ -250,7 +250,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-  set(GCC_WARN_FLAGS "-Wno-attributes -Wnoexcept -Wstrict-null-sentinel -Wlogical-op -Wno-parentheses")
+  set(GCC_WARN_FLAGS "-Wno-attributes -Wstrict-null-sentinel -Wlogical-op -Wno-parentheses")
 
   if(ANDROID)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions -frtti")
