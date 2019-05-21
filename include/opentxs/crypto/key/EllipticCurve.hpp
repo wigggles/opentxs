@@ -21,16 +21,19 @@ namespace key
 class EllipticCurve : virtual public Asymmetric
 {
 public:
-    virtual const crypto::EcdsaProvider& ECDSA() const = 0;
-    virtual bool GetKey(Data& key) const = 0;
-    virtual bool GetKey(proto::Ciphertext& key) const = 0;
+    EXPORT static const VersionNumber DefaultVersion;
+    EXPORT static const VersionNumber MaxVersion;
+
+    EXPORT virtual const crypto::EcdsaProvider& ECDSA() const = 0;
+    EXPORT virtual bool GetKey(Data& key) const = 0;
+    EXPORT virtual bool GetKey(proto::Ciphertext& key) const = 0;
     using Asymmetric::GetPublicKey;
-    virtual bool GetPublicKey(Data& key) const = 0;
+    EXPORT virtual bool GetPublicKey(Data& key) const = 0;
 
-    virtual bool SetKey(const Data& key) = 0;
-    virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) = 0;
+    EXPORT virtual bool SetKey(const Data& key) = 0;
+    EXPORT virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) = 0;
 
-    virtual ~EllipticCurve() = default;
+    EXPORT virtual ~EllipticCurve() = default;
 
 protected:
     EllipticCurve() = default;

@@ -28,10 +28,11 @@ private:
     friend key::Asymmetric;
     friend opentxs::Factory;
 
-    Secp256k1();
-    explicit Secp256k1(const proto::KeyRole role);
-    explicit Secp256k1(const proto::AsymmetricKey& serializedKey);
-    explicit Secp256k1(const String& publicKey);
+    explicit Secp256k1(const VersionNumber version) noexcept;
+    Secp256k1(const proto::KeyRole role, const VersionNumber version) noexcept;
+    Secp256k1(const proto::AsymmetricKey& serializedKey) noexcept;
+    Secp256k1(const String& publicKey, const VersionNumber version) noexcept;
+    Secp256k1() = delete;
 };
 }  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1

@@ -30,13 +30,18 @@ typedef std::list<Asymmetric*> listOfAsymmetricKeys;
 class Asymmetric
 {
 public:
+    EXPORT static const VersionNumber DefaultVersion;
+    EXPORT static const VersionNumber MaxVersion;
+
     EXPORT static OTAsymmetricKey Factory();
     EXPORT static OTAsymmetricKey Factory(
         const proto::AsymmetricKeyType keyType,
-        const String& pubkey);
+        const String& pubkey,
+        const VersionNumber version);
     EXPORT static OTAsymmetricKey Factory(
         const NymParameters& nymParameters,
-        const proto::KeyRole role);
+        const proto::KeyRole role,
+        const VersionNumber version);
     EXPORT static OTAsymmetricKey Factory(
         const proto::AsymmetricKey& serializedKey);
     EXPORT static OTString KeyTypeToString(

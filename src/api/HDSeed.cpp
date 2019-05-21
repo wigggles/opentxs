@@ -16,6 +16,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/Bip32.hpp"
@@ -82,7 +83,11 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::AccountChildKey(
     path.add_child(change);
     path.add_child(index);
 
-    return bip32_.GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
+    return bip32_.GetHDKey(
+        EcdsaCurve::SECP256K1,
+        *seed,
+        path,
+        opentxs::crypto::key::EllipticCurve::DefaultVersion);
 }
 
 std::string HDSeed::Bip32Root(const std::string& fingerprint) const
@@ -169,8 +174,11 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
         static_cast<std::uint32_t>(Bip44Type::BITCOIN) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
     path.add_child(nym | static_cast<std::uint32_t>(Bip32Child::HARDENED));
-
-    output = bip32_.GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
+    output = bip32_.GetHDKey(
+        EcdsaCurve::SECP256K1,
+        *seed,
+        path,
+        opentxs::crypto::key::EllipticCurve::DefaultVersion);
 
     return output;
 }
@@ -196,7 +204,11 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::GetStorageKey(
         static_cast<std::uint32_t>(Bip32Child::ENCRYPT_KEY) |
         static_cast<std::uint32_t>(Bip32Child::HARDENED));
 
-    return bip32_.GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
+    return bip32_.GetHDKey(
+        EcdsaCurve::SECP256K1,
+        *seed,
+        path,
+        opentxs::crypto::key::EllipticCurve::DefaultVersion);
 }
 
 std::string HDSeed::SaveSeed(
@@ -412,6 +424,5 @@ std::string HDSeed::Words(const std::string& fingerprint) const
 
     return words.getPassword();
 }
-
 }  // namespace opentxs::api::implementation
 #endif

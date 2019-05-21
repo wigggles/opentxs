@@ -158,8 +158,10 @@ private:
 
     friend opentxs::Factory;
 
+    static const VersionConversionMap akey_to_session_key_version_;
     static const VersionConversionMap
         contact_credential_to_contact_data_version_;
+
     const api::Core& api_;
     std::int32_t version_{0};
     std::uint32_t index_{0};

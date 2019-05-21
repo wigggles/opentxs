@@ -30,7 +30,8 @@ public:
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        proto::HDPath& path) const = 0;
+        proto::HDPath& path,
+        const VersionNumber version) const = 0;
     EXPORT virtual std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;

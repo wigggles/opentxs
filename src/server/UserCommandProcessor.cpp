@@ -376,9 +376,10 @@ bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
 
     proto::AsymmetricKeyType keytypeAuthent =
         static_cast<proto::AsymmetricKeyType>(msgIn.keytypeAuthent_);
-
     auto nymAuthentKey = crypto::key::Asymmetric::Factory(
-        keytypeAuthent, msgIn.m_strNymPublicKey);
+        keytypeAuthent,
+        msgIn.m_strNymPublicKey,
+        crypto::key::Asymmetric::DefaultVersion);
 
     if (false == bool(nymAuthentKey.get())) { return false; }
 

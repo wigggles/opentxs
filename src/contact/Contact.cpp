@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/contact/Contact.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"

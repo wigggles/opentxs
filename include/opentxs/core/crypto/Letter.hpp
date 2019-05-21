@@ -33,20 +33,6 @@ typedef std::multimap<std::string, const crypto::key::EllipticCurve*>
  */
 class Letter
 {
-private:
-    static bool AddRSARecipients(
-        const mapOfAsymmetricKeys& recipients,
-        const crypto::key::Symmetric& sessionKey,
-        proto::Envelope& envelope);
-    static bool DefaultPassword(OTPasswordData& password);
-    static bool SortRecipients(
-        const mapOfAsymmetricKeys& recipients,
-        mapOfAsymmetricKeys& RSARecipients,
-        mapOfECKeys& secp256k1Recipients,
-        mapOfECKeys& ed25519Recipients);
-
-    Letter() = default;
-
 public:
     static bool Seal(
         const mapOfAsymmetricKeys& RecipPubKeys,
@@ -59,8 +45,22 @@ public:
         String& theOutput);
 
     ~Letter() = default;
+
+private:
+    static const VersionConversionMap akey_to_envelope_version_;
+
+    static bool AddRSARecipients(
+        const mapOfAsymmetricKeys& recipients,
+        const crypto::key::Symmetric& sessionKey,
+        proto::Envelope& envelope);
+    static bool DefaultPassword(OTPasswordData& password);
+    static bool SortRecipients(
+        const mapOfAsymmetricKeys& recipients,
+        mapOfAsymmetricKeys& RSARecipients,
+        mapOfECKeys& secp256k1Recipients,
+        mapOfECKeys& ed25519Recipients);
+
+    Letter() = default;
 };
-
 }  // namespace opentxs
-
 #endif

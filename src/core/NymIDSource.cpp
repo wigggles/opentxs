@@ -34,10 +34,13 @@
 
 namespace opentxs
 {
+const VersionConversionMap NymIDSource::key_to_source_version_{
+    {1, 1},
+};
 
 NymIDSource::NymIDSource(
     const api::Factory& factory,
-    const proto::NymIDSource& serializedSource)
+    const proto::NymIDSource& serializedSource) noexcept
     : factory_{factory}
     , version_(serializedSource.version())
     , type_(serializedSource.type())
@@ -65,7 +68,9 @@ NymIDSource::NymIDSource(
     }
 }
 
-NymIDSource::NymIDSource(const api::Factory& factory, const String& source)
+NymIDSource::NymIDSource(
+    const api::Factory& factory,
+    const String& source) noexcept
     : NymIDSource(factory, *ExtractArmoredSource(Armored::Factory(source)))
 {
 }
@@ -73,9 +78,9 @@ NymIDSource::NymIDSource(const api::Factory& factory, const String& source)
 NymIDSource::NymIDSource(
     const api::Factory& factory,
     const NymParameters& nymParameters,
-    proto::AsymmetricKey& pubkey)
+    proto::AsymmetricKey& pubkey) noexcept
     : factory_{factory}
-    , version_(1)
+    , version_(key_to_source_version_.at(pubkey.version()))
     , type_(nymParameters.SourceType())
     , pubkey_(crypto::key::Asymmetric::Factory(pubkey))
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -87,7 +92,9 @@ NymIDSource::NymIDSource(
 }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-NymIDSource::NymIDSource(const api::Factory& factory, const PaymentCode& source)
+NymIDSource::NymIDSource(
+    const api::Factory& factory,
+    const PaymentCode& source) noexcept
     : factory_{factory}
     , version_(1)
     , type_(proto::SOURCETYPE_BIP47)
@@ -97,7 +104,7 @@ NymIDSource::NymIDSource(const api::Factory& factory, const PaymentCode& source)
 }
 #endif
 
-NymIDSource::NymIDSource(const NymIDSource& rhs)
+NymIDSource::NymIDSource(const NymIDSource& rhs) noexcept
     : NymIDSource(rhs.factory_, *rhs.Serialize())
 {
 }

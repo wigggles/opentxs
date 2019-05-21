@@ -2914,7 +2914,7 @@ public:
      *    \param[in]  version version of the contact data protobuf to query
      *    \return comma-separated list of allowed section types
      */
-    EXPORT static std::string GetContactSections(const std::uint32_t version);
+    EXPORT static std::string GetContactSections(const VersionNumber version);
 
     /**  Translate a claim section name enum value to human-readable text
      *    \param[in]  section claim section name enum value

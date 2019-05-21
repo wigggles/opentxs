@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/client/Utility.hpp"
 
 #include "opentxs/api/client/Manager.hpp"

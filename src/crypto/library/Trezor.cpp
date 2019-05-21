@@ -159,8 +159,8 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::GetChild(
         hdnode_public_ckd(node.get(), index);
     }
 
-    std::shared_ptr<proto::AsymmetricKey> key =
-        HDNodeToSerialized(parent.type(), *node, Trezor::DERIVE_PRIVATE);
+    std::shared_ptr<proto::AsymmetricKey> key = HDNodeToSerialized(
+        parent.type(), *node, Trezor::DERIVE_PRIVATE, parent.version());
 
     return key;
 }
@@ -214,7 +214,8 @@ std::unique_ptr<HDNode> Trezor::DeriveChild(
 std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
     const EcdsaCurve& curve,
     const OTPassword& seed,
-    proto::HDPath& path) const
+    proto::HDPath& path,
+    const VersionNumber version) const
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Deriving child: ")(Print(path))
         .Flush();
@@ -230,7 +231,8 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
     output = HDNodeToSerialized(
         AsymmetricProvider::CurveToKeyType(curve),
         *node,
-        Trezor::DERIVE_PRIVATE);
+        Trezor::DERIVE_PRIVATE,
+        version);
 
     if (output) { *(output->mutable_path()) = path; }
 
@@ -240,13 +242,14 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
 std::shared_ptr<proto::AsymmetricKey> Trezor::HDNodeToSerialized(
     const proto::AsymmetricKeyType& type,
     const HDNode& node,
-    const DerivationMode privateVersion) const
+    const DerivationMode privateVersion,
+    const VersionNumber version) const
 {
     auto key = std::make_shared<proto::AsymmetricKey>();
 
     OT_ASSERT(key);
 
-    key->set_version(1);
+    key->set_version(version);
     key->set_type(type);
 
     if (privateVersion) {

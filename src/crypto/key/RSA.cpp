@@ -75,8 +75,11 @@ crypto::key::RSA* Factory::RSAKey(const proto::KeyRole input)
 
 namespace opentxs::crypto::key::implementation
 {
-RSA::RSA()
-    : Asymmetric(proto::AKEYTYPE_LEGACY, proto::KEYROLE_ERROR)
+RSA::RSA() noexcept
+    : Asymmetric(
+          proto::AKEYTYPE_LEGACY,
+          proto::KEYROLE_ERROR,
+          Asymmetric::DefaultVersion)
     , dp(new d())
     , m_p_ascKey(Armored::Factory())
 {
@@ -85,8 +88,8 @@ RSA::RSA()
     dp->m_pKey = nullptr;
 }
 
-RSA::RSA(const proto::KeyRole role)
-    : Asymmetric(proto::AKEYTYPE_LEGACY, role)
+RSA::RSA(const proto::KeyRole role) noexcept
+    : Asymmetric(proto::AKEYTYPE_LEGACY, role, Asymmetric::DefaultVersion)
     , dp(new d())
     , m_p_ascKey(Armored::Factory())
 {
@@ -95,7 +98,7 @@ RSA::RSA(const proto::KeyRole role)
     dp->m_pKey = nullptr;
 }
 
-RSA::RSA(const proto::AsymmetricKey& serializedKey)
+RSA::RSA(const proto::AsymmetricKey& serializedKey) noexcept
     : Asymmetric(serializedKey)
     , dp(new d())
     , m_p_ascKey(Armored::Factory())
@@ -116,8 +119,8 @@ RSA::RSA(const proto::AsymmetricKey& serializedKey)
     }
 }
 
-RSA::RSA(const String& publicKey)
-    : Asymmetric()
+RSA::RSA(const String& publicKey) noexcept
+    : Asymmetric(Asymmetric::DefaultVersion)
     , dp(new d())
     , m_p_ascKey(Armored::Factory())
 {

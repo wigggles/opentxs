@@ -31,7 +31,8 @@ public:
     std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        proto::HDPath& path) const override;
+        proto::HDPath& path,
+        const VersionNumber version) const override;
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
@@ -115,7 +116,8 @@ private:
     std::shared_ptr<proto::AsymmetricKey> HDNodeToSerialized(
         const proto::AsymmetricKeyType& type,
         const HDNode& node,
-        const DerivationMode privateVersion) const;
+        const DerivationMode privateVersion,
+        const VersionNumber version) const;
     std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve) const;
     bool ValidPrivateKey(const OTPassword& key) const;
 #endif

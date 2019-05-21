@@ -14,7 +14,8 @@ class Asymmetric : virtual public key::Asymmetric
 public:
     static key::Asymmetric* KeyFactory(
         const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role);
+        const proto::KeyRole role,
+        const VersionNumber version);
 
     /** Only works for public keys. */
     bool CalculateID(Identifier& theOutput) const override;
@@ -75,20 +76,21 @@ public:
     virtual ~Asymmetric();
 
 protected:
+    friend OTAsymmetricKey;
+
+    const VersionNumber version_;
     proto::AsymmetricKeyType m_keyType{proto::AKEYTYPE_ERROR};
     proto::KeyRole role_{proto::KEYROLE_ERROR};
     bool m_bIsPublicKey{false};
     bool m_bIsPrivateKey{false};
     Timer m_timer;
 
-    explicit Asymmetric(const proto::AsymmetricKey& serializedKey);
+    explicit Asymmetric(const proto::AsymmetricKey& serializedKey) noexcept;
+    explicit Asymmetric(const VersionNumber version) noexcept;
     Asymmetric(
         const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role);
-    Asymmetric();
-
-protected:
-    friend OTAsymmetricKey;
+        const proto::KeyRole role,
+        const VersionNumber version) noexcept;
 
     // To use m_metadata, call m_metadata.HasMetadata(). If it's true, then you
     // can see these values:
@@ -119,15 +121,16 @@ protected:
 
     virtual void ReleaseKeyLowLevel_Hook() {}
 
+private:
+    static const std::map<proto::SignatureRole, VersionNumber> sig_version_;
+
     Asymmetric(
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role,
         const bool publicKey,
-        const bool privateKey);
-
-private:
-    static const std::map<proto::SignatureRole, VersionNumber> sig_version_;
-
+        const bool privateKey,
+        const VersionNumber version) noexcept;
+    Asymmetric() = delete;
     Asymmetric(const Asymmetric&) = delete;
     Asymmetric(Asymmetric&&) = delete;
     Asymmetric& operator=(const Asymmetric&) = delete;

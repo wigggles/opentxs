@@ -66,7 +66,7 @@ ServerContract* ServerContract::Create(
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
     const std::string& name,
-    const std::uint32_t version)
+    const VersionNumber version)
 {
     OT_ASSERT(nym);
     OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));

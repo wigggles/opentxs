@@ -107,6 +107,9 @@ bool session_key_from_iv(
     const proto::HashType hashType,
     OTPasswordData& output);
 
+const VersionConversionMap Nym::akey_to_session_key_version_{
+    {1, 1},
+};
 const VersionConversionMap Nym::contact_credential_to_contact_data_version_{
     {1, 1},
     {2, 2},
@@ -1205,7 +1208,6 @@ bool Nym::Seal(
         return false;
     }
 
-    output.set_version(1);
     const auto serializedDH = dhPublic->Serialize();
 
     if (false == bool(serializedDH)) {
@@ -1216,7 +1218,9 @@ bool Nym::Seal(
         return false;
     }
 
-    *output.mutable_dh() = *serializedDH;
+    auto& dh = *output.mutable_dh();
+    dh = *serializedDH;
+    output.set_version(akey_to_session_key_version_.at(dh.version()));
 
     return sessionKey->Encrypt(
         password,
@@ -1358,6 +1362,7 @@ bool Nym::set_contact_data(const eLock& lock, const proto::ContactData& data)
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Contact data version not supported by this nym.")
             .Flush();
+
         return false;
     }
 

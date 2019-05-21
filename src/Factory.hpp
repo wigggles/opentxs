@@ -171,8 +171,12 @@ public:
         std::int64_t& unitRefreshInterval);
     static crypto::key::Ed25519* Ed25519Key(
         const proto::AsymmetricKey& serializedKey);
-    static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
-    static crypto::key::Ed25519* Ed25519Key(const proto::KeyRole role);
+    static crypto::key::Ed25519* Ed25519Key(
+        const String& publicKey,
+        const VersionNumber version);
+    static crypto::key::Ed25519* Ed25519Key(
+        const proto::KeyRole role,
+        const VersionNumber version);
     static api::crypto::Encode* Encode(const crypto::EncodingProvider& base58);
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
@@ -462,8 +466,12 @@ public:
         const crypto::EcdsaProvider& ecdsa);
     static crypto::key::Secp256k1* Secp256k1Key(
         const proto::AsymmetricKey& serializedKey);
-    static crypto::key::Secp256k1* Secp256k1Key(const String& publicKey);
-    static crypto::key::Secp256k1* Secp256k1Key(const proto::KeyRole role);
+    static crypto::key::Secp256k1* Secp256k1Key(
+        const String& publicKey,
+        const VersionNumber version);
+    static crypto::key::Secp256k1* Secp256k1Key(
+        const proto::KeyRole role,
+        const VersionNumber version);
     static api::client::ServerAction* ServerAction(
         const api::client::Manager& api,
         const ContextLockCallback& lockCallback);

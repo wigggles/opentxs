@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "Internal.hpp"
 
 #include <gtest/gtest.h>
 
@@ -86,8 +87,8 @@ public:
         path.add_child(
             static_cast<std::uint32_t>(Bip32Child::SIGN_KEY) |
             static_cast<std::uint32_t>(Bip32Child::HARDENED));
-        const auto serialized =
-            api.Crypto().BIP32().GetHDKey(curve, *seed, path);
+        const auto serialized = api.Crypto().BIP32().GetHDKey(
+            curve, *seed, path, crypto::key::EllipticCurve::DefaultVersion);
 
         return crypto::key::Asymmetric::Factory(*serialized);
     }

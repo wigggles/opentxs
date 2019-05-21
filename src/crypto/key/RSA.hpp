@@ -103,10 +103,10 @@ private:
     void Release_AsymmetricKey_OpenSSL();
     void ReleaseKeyLowLevel_Hook() override;
 
-    explicit RSA(const proto::AsymmetricKey& serializedKey);
-    explicit RSA(const String& publicKey);
-    explicit RSA(const proto::KeyRole role);
-    RSA();
+    explicit RSA(const proto::AsymmetricKey& serializedKey) noexcept;
+    explicit RSA(const String& publicKey) noexcept;
+    explicit RSA(const proto::KeyRole role) noexcept;
+    RSA() noexcept;
     RSA(const RSA&) = delete;
     RSA(RSA&&) = delete;
     RSA& operator=(const RSA&) = delete;

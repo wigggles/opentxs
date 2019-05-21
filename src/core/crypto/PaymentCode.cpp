@@ -397,8 +397,7 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         false, new OTPassword, Data::Factory()};
     auto& [success, chainCode, publicKey] = output;
     auto fingerprint{seed};
-    std::shared_ptr<proto::AsymmetricKey> privatekey =
-        seeds.GetPaymentCode(fingerprint, index);
+    auto privatekey = seeds.GetPaymentCode(fingerprint, index);
 
     OT_ASSERT(seed == fingerprint)
 

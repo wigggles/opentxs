@@ -34,12 +34,19 @@ extern "C" {
 
 #define OT_METHOD "opentxs::crypto::key::implementation::EllipticCurve::"
 
+namespace opentxs::crypto::key
+{
+const VersionNumber EllipticCurve::DefaultVersion{1};
+const VersionNumber EllipticCurve::MaxVersion{1};
+}  // namespace opentxs::crypto::key
+
 namespace opentxs::crypto::key::implementation
 {
 EllipticCurve::EllipticCurve(
     const proto::AsymmetricKeyType keyType,
-    const proto::KeyRole role)
-    : ot_super(keyType, role)
+    const proto::KeyRole role,
+    const VersionNumber version) noexcept
+    : ot_super(keyType, role, version)
     , key_(Data::Factory())
     , encrypted_key_(nullptr)
     , path_(nullptr)
@@ -47,7 +54,7 @@ EllipticCurve::EllipticCurve(
 {
 }
 
-EllipticCurve::EllipticCurve(const proto::AsymmetricKey& serializedKey)
+EllipticCurve::EllipticCurve(const proto::AsymmetricKey& serializedKey) noexcept
     : ot_super(serializedKey)
     , key_(Data::Factory())
     , encrypted_key_(nullptr)
@@ -80,8 +87,9 @@ EllipticCurve::EllipticCurve(const proto::AsymmetricKey& serializedKey)
 
 EllipticCurve::EllipticCurve(
     const proto::AsymmetricKeyType keyType,
-    const String& publicKey)
-    : EllipticCurve(keyType, proto::KEYROLE_ERROR)
+    const String& publicKey,
+    const VersionNumber version) noexcept
+    : EllipticCurve(keyType, proto::KEYROLE_ERROR, version)
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
     auto key = OT::App().Crypto().Encode().DataDecode(publicKey.Get());
@@ -379,8 +387,8 @@ bool EllipticCurve::Seal(
         dynamic_cast<const crypto::EcdsaProvider&>(this->engine());
     NymParameters parameters(proto::CREDTYPE_LEGACY);
     parameters.setNymParameterType(CreateType());
-    auto dhKeypair =
-        crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
+    auto dhKeypair = crypto::key::Keypair::Factory(
+        parameters, version_, proto::KEYROLE_ENCRYPT);
     auto dhRawKey =
         crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
     dhPublic = crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(false));

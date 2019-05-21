@@ -47,6 +47,9 @@ const VersionConversionMap Key::credential_subversion_{
     {5, 1},
     {6, 1},
 };
+const VersionConversionMap Key::subversion_to_key_version_{
+    {1, 1},
+};
 
 Key::Key(
     const api::Core& api,
@@ -54,10 +57,10 @@ Key::Key(
     const proto::Credential& serialized) noexcept
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Base(api, theOwner, serialized)
+    , subversion_(credential_subversion_.at(version_))
     , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serialized))
     , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serialized))
     , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serialized))
-    , subversion_(credential_subversion_.at(version_))
 {
 }
 
@@ -68,12 +71,22 @@ Key::Key(
     const VersionNumber version) noexcept
     : Signable({}, version)  // TODO Signable
     , credential::implementation::Base(api, theOwner, nymParameters, version)
-    , signing_key_(new_key(api_.Crypto(), proto::KEYROLE_SIGN, nymParameters))
-    , authentication_key_(
-          new_key(api_.Crypto(), proto::KEYROLE_AUTH, nymParameters))
-    , encryption_key_(
-          new_key(api_.Crypto(), proto::KEYROLE_ENCRYPT, nymParameters))
     , subversion_(credential_subversion_.at(version_))
+    , signing_key_(new_key(
+          api_.Crypto(),
+          proto::KEYROLE_SIGN,
+          nymParameters,
+          subversion_to_key_version_.at(subversion_)))
+    , authentication_key_(new_key(
+          api_.Crypto(),
+          proto::KEYROLE_AUTH,
+          nymParameters,
+          subversion_to_key_version_.at(subversion_)))
+    , encryption_key_(new_key(
+          api_.Crypto(),
+          proto::KEYROLE_ENCRYPT,
+          nymParameters,
+          subversion_to_key_version_.at(subversion_)))
 {
     OT_ASSERT(0 != version);
 }
@@ -261,11 +274,12 @@ OTKeypair Key::deserialize_key(
 OTKeypair Key::new_key(
     const api::Crypto& crypto,
     const proto::KeyRole role,
-    const NymParameters& nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
 
-        return crypto::key::Keypair::Factory(nymParameters, role);
+        return crypto::key::Keypair::Factory(nymParameters, version, role);
     }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -283,7 +297,8 @@ OTKeypair Key::new_key(
         nymParameters.Credset(),
         nymParameters.CredIndex(),
         curve,
-        role);
+        role,
+        version);
 #else
     OT_FAIL
 #endif
@@ -315,7 +330,8 @@ OTKeypair Key::derive_hd_keypair(
     const std::uint32_t credset,
     const std::uint32_t credindex,
     const EcdsaCurve& curve,
-    const proto::KeyRole role)
+    const proto::KeyRole role,
+    const VersionNumber version)
 {
     proto::HDPath keyPath;
     keyPath.set_version(1);
@@ -351,7 +367,7 @@ OTKeypair Key::derive_hd_keypair(
             break;
     }
 
-    auto privateKey = crypto.BIP32().GetHDKey(curve, seed, keyPath);
+    auto privateKey = crypto.BIP32().GetHDKey(curve, seed, keyPath, version);
 
     OT_ASSERT(privateKey)
 

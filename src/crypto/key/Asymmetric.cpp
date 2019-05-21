@@ -49,6 +49,9 @@ template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
 
 namespace opentxs::crypto::key
 {
+const VersionNumber Asymmetric::DefaultVersion{1};
+const VersionNumber Asymmetric::MaxVersion{1};
+
 OTAsymmetricKey Asymmetric::Factory()
 {
     return OTAsymmetricKey(new implementation::Null);
@@ -56,18 +59,18 @@ OTAsymmetricKey Asymmetric::Factory()
 
 OTAsymmetricKey Asymmetric::Factory(
     const proto::AsymmetricKeyType keyType,
-    const String& pubkey)  // Caller IS responsible to
-                           // delete!
+    const String& pubkey,
+    const VersionNumber version)
 {
     switch (keyType) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (proto::AKEYTYPE_ED25519): {
-            return OTAsymmetricKey(Factory::Ed25519Key(pubkey));
+            return OTAsymmetricKey(Factory::Ed25519Key(pubkey, version));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
-            return OTAsymmetricKey(Factory::Secp256k1Key(pubkey));
+            return OTAsymmetricKey(Factory::Secp256k1Key(pubkey, version));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -77,8 +80,8 @@ OTAsymmetricKey Asymmetric::Factory(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Open-Transactions isn't built with "
-                "support for this key type.")
+                ": Open-Transactions isn't built with support for this key "
+                "type.")
                 .Flush();
         }
     }
@@ -88,12 +91,13 @@ OTAsymmetricKey Asymmetric::Factory(
 
 OTAsymmetricKey Asymmetric::Factory(
     const NymParameters& nymParameters,
-    const proto::KeyRole role)  // Caller IS responsible to delete!
+    const proto::KeyRole role,
+    const VersionNumber version)
 {
     const auto keyType = nymParameters.AsymmetricKeyType();
 
     return OTAsymmetricKey(
-        implementation::Asymmetric::KeyFactory(keyType, role));
+        implementation::Asymmetric::KeyFactory(keyType, role, version));
 }
 
 OTAsymmetricKey Asymmetric::Factory(
@@ -120,8 +124,8 @@ OTAsymmetricKey Asymmetric::Factory(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Open-Transactions isn't built with "
-                "support for this key type.")
+                ": Open-Transactions isn't built with support for this key "
+                "type.")
                 .Flush();
         }
     }
@@ -181,35 +185,45 @@ Asymmetric::Asymmetric(
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
     const bool publicKey,
-    const bool privateKey)
-    : m_keyType{keyType}
-    , role_{role}
-    , m_bIsPublicKey{publicKey}
-    , m_bIsPrivateKey{privateKey}
-    , m_timer{}
-    , m_pMetadata{new OTSignatureMetadata}
+    const bool privateKey,
+    const VersionNumber version) noexcept
+    : version_(version)
+    , m_keyType(keyType)
+    , role_(role)
+    , m_bIsPublicKey(publicKey)
+    , m_bIsPrivateKey(privateKey)
+    , m_timer()
+    , m_pMetadata(new OTSignatureMetadata)
 {
+    OT_ASSERT(0 < version);
     OT_ASSERT(nullptr != m_pMetadata);
 }
 
-Asymmetric::Asymmetric()
-    : Asymmetric(proto::AKEYTYPE_ERROR, proto::KEYROLE_ERROR, false, false)
+Asymmetric::Asymmetric(const VersionNumber version) noexcept
+    : Asymmetric(
+          proto::AKEYTYPE_ERROR,
+          proto::KEYROLE_ERROR,
+          false,
+          false,
+          version)
 {
 }
 
 Asymmetric::Asymmetric(
     const proto::AsymmetricKeyType keyType,
-    const proto::KeyRole role)
-    : Asymmetric(keyType, role, false, false)
+    const proto::KeyRole role,
+    const VersionNumber version) noexcept
+    : Asymmetric(keyType, role, false, false, version)
 {
 }
 
-Asymmetric::Asymmetric(const proto::AsymmetricKey& key)
+Asymmetric::Asymmetric(const proto::AsymmetricKey& key) noexcept
     : Asymmetric(
           key.type(),
           key.role(),
           proto::KEYMODE_PUBLIC == key.mode(),
-          proto::KEYMODE_PRIVATE == key.mode())
+          proto::KEYMODE_PRIVATE == key.mode(),
+          key.version())
 {
 }
 
@@ -262,7 +276,7 @@ bool Asymmetric::CalculateID(Identifier& theOutput) const  // Only works
 
 Asymmetric* Asymmetric::clone() const
 {
-    auto output = KeyFactory(m_keyType, role_);
+    auto output = KeyFactory(m_keyType, role_, version_);
 
     OT_ASSERT(nullptr != output)
 
@@ -297,21 +311,22 @@ bool Asymmetric::hasCapability(const NymCapability& capability) const
 // static
 key::Asymmetric* Asymmetric::KeyFactory(
     const proto::AsymmetricKeyType keyType,
-    const proto::KeyRole role)
+    const proto::KeyRole role,
+    const VersionNumber version)
 {
     key::Asymmetric* pKey = nullptr;
 
     switch (keyType) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (proto::AKEYTYPE_ED25519): {
-            pKey = Factory::Ed25519Key(role);
+            pKey = Factory::Ed25519Key(role, version);
 
             break;
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
-            pKey = Factory::Secp256k1Key(role);
+            pKey = Factory::Secp256k1Key(role, version);
 
             break;
         }
@@ -325,8 +340,8 @@ key::Asymmetric* Asymmetric::KeyFactory(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Open-Transactions isn't built with "
-                "support for this key type.")
+                ": Open-Transactions isn't built with support for this key "
+                "type.")
                 .Flush();
         }
     }
@@ -375,10 +390,8 @@ void Asymmetric::Release()
 std::shared_ptr<proto::AsymmetricKey> Asymmetric::Serialize() const
 
 {
-    std::shared_ptr<proto::AsymmetricKey> serializedKey =
-        std::make_shared<proto::AsymmetricKey>();
-
-    serializedKey->set_version(1);
+    auto serializedKey = std::make_shared<proto::AsymmetricKey>();
+    serializedKey->set_version(version_);
     serializedKey->set_role(role_);
     serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
 

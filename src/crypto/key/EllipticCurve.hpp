@@ -53,13 +53,15 @@ protected:
     std::shared_ptr<proto::HDPath> path_{nullptr};
     std::unique_ptr<proto::Ciphertext> chain_code_{nullptr};
 
-    explicit EllipticCurve(
+    explicit EllipticCurve(const proto::AsymmetricKey& serializedKey) noexcept;
+    EllipticCurve(
         const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role);
-    explicit EllipticCurve(const proto::AsymmetricKey& serializedKey);
-    explicit EllipticCurve(
+        const proto::KeyRole role,
+        const VersionNumber version) noexcept;
+    EllipticCurve(
         const proto::AsymmetricKeyType keyType,
-        const String& publicKey);
+        const String& publicKey,
+        const VersionNumber version) noexcept;
 
 private:
     friend class crypto::EcdsaProvider;

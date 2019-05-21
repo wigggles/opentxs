@@ -57,6 +57,10 @@
 
 namespace opentxs
 {
+const VersionConversionMap Letter::akey_to_envelope_version_{
+    {1, 1},
+};
+
 bool Letter::AddRSARecipients(
     [[maybe_unused]] const mapOfAsymmetricKeys& recipients,
     [[maybe_unused]] const crypto::key::Symmetric& sessionKey,
@@ -182,7 +186,7 @@ bool Letter::Seal(
     auto sessionKey = OT::App().Crypto().Symmetric().Key(defaultPassword);
 
     proto::Envelope output;
-    output.set_version(1);
+    VersionNumber highestKeyVersion{1};
     auto iv = Data::Factory();
     const bool encrypted = sessionKey->Encrypt(
         theInput, iv, defaultPassword, *output.mutable_ciphertext(), false);
@@ -208,8 +212,10 @@ bool Letter::Seal(
             OT::App().Crypto().SECP256K1());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::SECP256K1);
-        auto dhKeypair =
-            crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
+        auto dhKeypair = crypto::key::Keypair::Factory(
+            parameters,
+            crypto::key::Asymmetric::DefaultVersion,
+            proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
         dhRawKey =
@@ -234,6 +240,8 @@ bool Letter::Seal(
             if (haveSessionKey) {
                 auto& serializedSessionKey = *output.add_sessionkey();
                 sessionKey->Serialize(serializedSessionKey);
+                highestKeyVersion =
+                    std::max(highestKeyVersion, newDhKey.version());
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Session key encryption failed.")
@@ -259,8 +267,10 @@ bool Letter::Seal(
                 OT::App().Crypto().ED25519());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
-        auto dhKeypair =
-            crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
+        auto dhKeypair = crypto::key::Keypair::Factory(
+            parameters,
+            crypto::key::Asymmetric::DefaultVersion,
+            proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
         dhRawKey =
@@ -285,6 +295,8 @@ bool Letter::Seal(
             if (haveSessionKey) {
                 auto& serializedSessionKey = *output.add_sessionkey();
                 sessionKey->Serialize(serializedSessionKey);
+                highestKeyVersion =
+                    std::max(highestKeyVersion, newDhKey.version());
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Session key encryption failed.")
@@ -296,6 +308,7 @@ bool Letter::Seal(
     }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
+    output.set_version(akey_to_envelope_version_.at(highestKeyVersion));
     auto temp = proto::ProtoAsData(output);
     dataOutput.Assign(temp->data(), temp->size());
 
