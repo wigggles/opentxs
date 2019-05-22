@@ -431,7 +431,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 
     std::string strCachedKey;
-    auto& cachedKey = manager_.Crypto().DefaultKey();
+    auto& cachedKey = manager_.Crypto().DefaultKey(manager_);
 
     if (cachedKey.IsGenerated()) {
         auto ascMasterContents = Armored::Factory();
@@ -787,7 +787,7 @@ bool Server::DropMessageToNymbox(
             nymRecipient->GetPublicEncrKey();
         // Wrap the message up into an envelope and attach it to theMsgAngel.
         //
-        OTEnvelope theEnvelope;
+        OTEnvelope theEnvelope(manager_);
 
         theMsgAngel->m_ascPayload->Release();
 

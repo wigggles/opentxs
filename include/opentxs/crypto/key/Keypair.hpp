@@ -26,16 +26,6 @@ class Keypair
 public:
     using Keys = std::list<const Asymmetric*>;
 
-    EXPORT static OTKeypair Factory(
-        const NymParameters& nymParameters,
-        const VersionNumber version,
-        const proto::KeyRole role);
-    EXPORT static OTKeypair Factory(
-        const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey);
-    EXPORT static OTKeypair Factory(
-        const proto::AsymmetricKey& serializedPubkey);
-
     EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
     EXPORT virtual const Asymmetric& GetPrivateKey() const = 0;
     EXPORT virtual const Asymmetric& GetPublicKey() const = 0;

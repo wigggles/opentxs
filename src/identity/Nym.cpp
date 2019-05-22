@@ -988,7 +988,7 @@ bool Nym::Open(
     }
 
     OTPasswordData sessionkeyPassword{""};
-    auto dhPublic = crypto::key::Asymmetric::Factory(serializedDHPublic);
+    auto dhPublic = api_.Factory().AsymmetricKey(serializedDHPublic);
     const auto& encryptKey = GetPrivateEncrKey();
     const auto opened =
         encryptKey.Open(dhPublic, sessionKey, sessionkeyPassword);
@@ -1199,7 +1199,7 @@ bool Nym::Seal(
     auto dhPublic = crypto::key::Asymmetric::Factory();
     const auto& encryptKey = GetPublicEncrKey();
     const auto sealed =
-        encryptKey.Seal(dhPublic, sessionKey, sessionKeyPassword);
+        encryptKey.Seal(api_, dhPublic, sessionKey, sessionKeyPassword);
 
     if (false == sealed) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

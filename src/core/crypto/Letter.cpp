@@ -10,6 +10,8 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/crypto/Util.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -63,6 +65,7 @@ const VersionConversionMap Letter::akey_to_envelope_version_{
 };
 
 bool Letter::AddRSARecipients(
+    [[maybe_unused]] const api::Core& api,
     [[maybe_unused]] const mapOfAsymmetricKeys& recipients,
     [[maybe_unused]] const crypto::key::Symmetric& sessionKey,
     [[maybe_unused]] proto::Envelope& envelope)
@@ -70,7 +73,7 @@ bool Letter::AddRSARecipients(
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_USING_OPENSSL
     const crypto::OpenSSL& engine =
-        dynamic_cast<const crypto::OpenSSL&>(OT::App().Crypto().RSA());
+        dynamic_cast<const crypto::OpenSSL&>(api.Crypto().RSA());
 #endif
 
     // Encrypt the session key to all RSA recipients and add the
@@ -162,6 +165,7 @@ bool Letter::SortRecipients(
 }
 
 bool Letter::Seal(
+    const api::Core& api,
     const mapOfAsymmetricKeys& RecipPubKeys,
     const String& theInput,
     Data& dataOutput)
@@ -184,7 +188,7 @@ bool Letter::Seal(
 
     OTPasswordData defaultPassword("");
     DefaultPassword(defaultPassword);
-    auto sessionKey = OT::App().Crypto().Symmetric().Key(defaultPassword);
+    auto sessionKey = api.Crypto().Symmetric().Key(defaultPassword);
 
     proto::Envelope output;
     VersionNumber highestKeyVersion{1};
@@ -199,7 +203,7 @@ bool Letter::Seal(
     }
 
     if (0 < RSARecipients.size()) {
-        if (!AddRSARecipients(RSARecipients, sessionKey, output)) {
+        if (!AddRSARecipients(api, RSARecipients, sessionKey, output)) {
             return false;
         }
     }
@@ -210,17 +214,16 @@ bool Letter::Seal(
     if (haveRecipientsECDSA) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-            OT::App().Crypto().SECP256K1());
+            api.Crypto().SECP256K1());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::SECP256K1);
-        auto dhKeypair = crypto::key::Keypair::Factory(
+        auto dhKeypair = api.Factory().Keypair(
             parameters,
             crypto::key::Asymmetric::DefaultVersion,
             proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
-        dhRawKey =
-            crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
+        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->Serialize(true));
         dhPrivateKey =
             dynamic_cast<const crypto::key::Secp256k1*>(&dhRawKey.get());
 
@@ -264,18 +267,16 @@ bool Letter::Seal(
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     if (haveRecipientsED25519) {
         const crypto::EcdsaProvider& engine =
-            dynamic_cast<const crypto::EcdsaProvider&>(
-                OT::App().Crypto().ED25519());
+            dynamic_cast<const crypto::EcdsaProvider&>(api.Crypto().ED25519());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
-        auto dhKeypair = crypto::key::Keypair::Factory(
+        auto dhKeypair = api.Factory().Keypair(
             parameters,
             crypto::key::Asymmetric::DefaultVersion,
             proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
-        dhRawKey =
-            crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
+        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->Serialize(true));
         dhPrivateKey =
             dynamic_cast<const crypto::key::Ed25519*>(&dhRawKey.get());
 
@@ -317,6 +318,7 @@ bool Letter::Seal(
 }
 
 bool Letter::Open(
+    const api::Core& api,
     const Data& dataInput,
     const identity::Nym& theRecipient,
     const OTPasswordData& keyPassword,
@@ -386,7 +388,7 @@ bool Letter::Open(
             return false;
         }
 
-        const auto dhRawKey = crypto::key::Asymmetric::Factory(ephemeralPubkey);
+        const auto dhRawKey = api.Factory().AsymmetricKey(ephemeralPubkey);
         const crypto::key::EllipticCurve* dhPublicKey{nullptr};
 
         if (secp256k1) {
@@ -406,7 +408,7 @@ bool Letter::Open(
         // The only way to know which session key (might) belong to us to
         // try them all
         for (auto& it : serialized.sessionkey()) {
-            key = OT::App().Crypto().Symmetric().Key(
+            key = api.Crypto().Symmetric().Key(
                 it, serialized.ciphertext().mode());
             haveSessionKey = ecKey->ECDSA().DecryptSessionKeyECDH(
                 *ecKey, *dhPublicKey, keyPassword, key);
@@ -419,7 +421,7 @@ bool Letter::Open(
     if (rsa) {
 #if OT_CRYPTO_USING_OPENSSL
         const crypto::OpenSSL& engine =
-            dynamic_cast<const crypto::OpenSSL&>(OT::App().Crypto().RSA());
+            dynamic_cast<const crypto::OpenSSL&>(api.Crypto().RSA());
 #endif
         auto serializedKey = Data::Factory(
             serialized.rsakey().data(), serialized.rsakey().size());

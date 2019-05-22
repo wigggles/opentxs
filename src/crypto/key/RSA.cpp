@@ -264,7 +264,11 @@ void RSA::ReleaseKeyLowLevel_Hook()
     dp->m_pKey = nullptr;
 }
 
-bool RSA::Seal(OTAsymmetricKey&, crypto::key::Symmetric&, OTPasswordData&) const
+bool RSA::Seal(
+    const opentxs::api::Core&,
+    OTAsymmetricKey&,
+    crypto::key::Symmetric&,
+    OTPasswordData&) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(": Not implemented.").Flush();
 

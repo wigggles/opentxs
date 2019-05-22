@@ -247,11 +247,11 @@ const std::string HD::Path() const
 
             for (auto& it : path_->child()) {
                 path->Concatenate(" / ");
-                if (it < static_cast<Bip32Index>(Bip32Child::HARDENED)) {
+                if (it < HDIndex{Bip32Child::HARDENED}) {
                     path->Concatenate(String::Factory(std::to_string(it)));
                 } else {
-                    path->Concatenate(String::Factory(std::to_string(
-                        it - static_cast<Bip32Index>(Bip32Child::HARDENED))));
+                    path->Concatenate(String::Factory(
+                        std::to_string(it - HDIndex{Bip32Child::HARDENED})));
                     path->Concatenate("'");
                 }
             }

@@ -44,6 +44,7 @@ public:
 private:
     friend opentxs::LowLevelKeyGenerator;
     friend key::Keypair;
+    friend opentxs::Factory;
 
     OTAsymmetricKey m_pkeyPublic;
     OTAsymmetricKey m_pkeyPrivate;
@@ -53,12 +54,16 @@ private:
 
     bool make_new_keypair(const NymParameters& nymParameters);
 
-    explicit Keypair(const proto::AsymmetricKey& serializedPubkey) noexcept;
     Keypair(
+        const api::Core& api,
+        const proto::AsymmetricKey& serializedPubkey) noexcept;
+    Keypair(
+        const api::Core& api,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const proto::KeyRole role = proto::KEYROLE_ERROR) noexcept;
     Keypair(
+        const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey) noexcept;
     Keypair() = delete;

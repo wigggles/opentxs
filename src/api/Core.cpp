@@ -41,6 +41,7 @@ Core::Core(
     , endpoints_(opentxs::Factory::Endpoints(zmq_context_, instance_))
 #if OT_CRYPTO_WITH_BIP39
     , seeds_(opentxs::Factory::HDSeed(
+          crypto_.Asymmetric(),
           crypto_.Symmetric(),
           *storage_,
           crypto_.BIP32(),

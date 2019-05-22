@@ -33,6 +33,7 @@ class Workflow;
 
 namespace crypto
 {
+class Asymmetric;
 class Config;
 class Crypto;
 class Encode;
@@ -346,6 +347,7 @@ using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
 using OTData = Pimpl<Data>;
 using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
+using OTHDKey = Pimpl<crypto::key::HD>;
 using OTIdentifier = Pimpl<Identifier>;
 using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
 using OTManagedNumber = Pimpl<ManagedNumber>;

@@ -24,16 +24,13 @@ class PaymentCode
 public:
     EXPORT static OTPaymentCode Factory(const PaymentCode& rhs);
     EXPORT static OTPaymentCode Factory(
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
+        const api::Core& api,
         const std::string& base58);
     EXPORT static OTPaymentCode Factory(
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
+        const api::Core& api,
         const proto::PaymentCode& serialized);
     EXPORT static OTPaymentCode Factory(
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
+        const api::Core& api,
         const std::string& seed,
         const Bip32Index nym,
         const std::uint8_t version,

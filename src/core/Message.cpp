@@ -1058,16 +1058,8 @@ public:
         TagPtr pEncryptKeyTag(
             new Tag("publicEncryptionKey", m.m_strNymID2->Get()));
 
-        pAuthentKeyTag->add_attribute(
-            "type",
-            crypto::key::Asymmetric::KeyTypeToString(
-                static_cast<proto::AsymmetricKeyType>(m.keytypeAuthent_))
-                ->Get());
-        pEncryptKeyTag->add_attribute(
-            "type",
-            crypto::key::Asymmetric::KeyTypeToString(
-                static_cast<proto::AsymmetricKeyType>(m.keytypeEncrypt_))
-                ->Get());
+        pAuthentKeyTag->add_attribute("type", "notused");
+        pEncryptKeyTag->add_attribute("type", "notused");
 
         pTag->add_tag(pAuthentKeyTag);
         pTag->add_tag(pEncryptKeyTag);
@@ -1102,26 +1094,9 @@ public:
                 .Flush();
             return (-1);  // error condition
         }
-        {
-            // -----------------------------------------------
-            auto it = temp_MapAttributesAuthent.find("type");
 
-            if ((it != temp_MapAttributesAuthent.end()))  // We expected this
-                                                          // much.
-            {
-                std::string& str_type = it->second;
-
-                if (str_type.size() > 0)  // Success finding key type.
-                {
-                    m.keytypeAuthent_ =
-                        crypto::key::Asymmetric::StringToKeyType(
-                            String::Factory(str_type));
-                }
-            }
-            // -----------------------------------------------
-        }
         m.m_strNymPublicKey->Set(ascTextExpected);
-        // -------------------------------------------------
+
         pElementExpected = "publicEncryptionKey";
         ascTextExpected->Release();
 
@@ -1141,26 +1116,9 @@ public:
                 .Flush();
             return (-1);  // error condition
         }
-        {
-            // -----------------------------------------------
-            auto it = temp_MapAttributesEncrypt.find("type");
 
-            if ((it != temp_MapAttributesEncrypt.end()))  // We expected this
-                                                          // much.
-            {
-                std::string& str_type = it->second;
-
-                if (str_type.size() > 0)  // Success finding key type.
-                {
-                    m.keytypeEncrypt_ =
-                        crypto::key::Asymmetric::StringToKeyType(
-                            String::Factory(str_type));
-                }
-            }
-        }
-        // -----------------------------------------------
         m.m_strNymID2->Set(ascTextExpected);
-        // -------------------------------------------------
+
         LogDetail(OT_METHOD)(__FUNCTION__)(": Command: ")(m.m_strCommand)(
             " NymID:    ")(m.m_strNymID)(" NotaryID: ")(m.m_strNotaryID)(
             " Public signing key: ")(m.m_strNymPublicKey)(

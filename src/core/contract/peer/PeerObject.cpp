@@ -129,7 +129,7 @@ opentxs::PeerObject* Factory::PeerObject(
 {
     Nym_p notUsed{nullptr};
     std::unique_ptr<opentxs::PeerObject> output;
-    OTEnvelope input;
+    OTEnvelope input(api);
 
     if (!input.SetCiphertext(encrypted)) { return output.release(); }
 

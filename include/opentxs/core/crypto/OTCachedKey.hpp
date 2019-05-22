@@ -134,13 +134,13 @@ class OTCachedKey
 {
 public:
     EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
-        const api::Crypto& crypto,
+        const api::Core& api,
         OTPassword& theOutput,
         const char* szDisplay = nullptr,
         std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 
     EXPORT explicit OTCachedKey(
-        const api::Crypto& crypto,
+        const api::Core& api,
         const Armored& ascCachedKey);
     EXPORT bool GetIdentifier(Identifier& theIdentifier) const;
     EXPORT bool GetIdentifier(String& strIdentifier) const;
@@ -192,7 +192,7 @@ public:
 private:
     friend class api::implementation::Crypto;
 
-    const api::Crypto& crypto_;
+    const api::Core& api_;
     mutable std::mutex general_lock_;
     mutable std::mutex master_password_lock_;
     mutable OTFlag shutdown_;
@@ -231,7 +231,7 @@ private:
     void reset_master_password();
 
     explicit OTCachedKey(
-        const api::Crypto& crypto,
+        const api::Core& api,
         const std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
     OTCachedKey() = delete;
     OTCachedKey(const OTCachedKey&) = delete;

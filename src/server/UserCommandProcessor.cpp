@@ -9,6 +9,7 @@
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
@@ -374,12 +375,9 @@ bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
 {
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_notary_id);
 
-    proto::AsymmetricKeyType keytypeAuthent =
-        static_cast<proto::AsymmetricKeyType>(msgIn.keytypeAuthent_);
-    auto nymAuthentKey = crypto::key::Asymmetric::Factory(
-        keytypeAuthent,
-        msgIn.m_strNymPublicKey,
-        crypto::key::Asymmetric::DefaultVersion);
+    const auto serialized =
+        proto::StringToProto<proto::AsymmetricKey>(msgIn.m_strNymPublicKey);
+    auto nymAuthentKey = manager_.Factory().AsymmetricKey(serialized);
 
     if (false == bool(nymAuthentKey.get())) { return false; }
 

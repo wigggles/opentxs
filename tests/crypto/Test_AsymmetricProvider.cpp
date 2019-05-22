@@ -73,24 +73,18 @@ public:
         const EcdsaCurve& curve)
     {
         std::string id{fingerprint};
-        std::uint32_t notUsed{0};
-        auto seed = api.Seeds().Seed(id, notUsed);
-        proto::HDPath path{};
-        path.set_version(1);
-        path.set_root(id.c_str(), id.size());
-        path.add_child(
-            static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED));
-        path.add_child(0 | static_cast<std::uint32_t>(Bip32Child::HARDENED));
-        path.add_child(0 | static_cast<std::uint32_t>(Bip32Child::HARDENED));
-        path.add_child(0 | static_cast<std::uint32_t>(Bip32Child::HARDENED));
-        path.add_child(
-            static_cast<std::uint32_t>(Bip32Child::SIGN_KEY) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED));
-        const auto serialized = api.Crypto().BIP32().GetHDKey(
-            curve, *seed, path, crypto::key::EllipticCurve::DefaultVersion);
 
-        return crypto::key::Asymmetric::Factory(*serialized);
+        return OTAsymmetricKey{
+            api.Seeds()
+                .GetHDKey(
+                    id,
+                    curve,
+                    {HDIndex{Bip43Purpose::NYM, Bip32Child::HARDENED},
+                     HDIndex{0, Bip32Child::HARDENED},
+                     HDIndex{0, Bip32Child::HARDENED},
+                     HDIndex{0, Bip32Child::HARDENED},
+                     HDIndex{Bip32Child::SIGN_KEY, Bip32Child::HARDENED}})
+                .release()};
     }
 
     bool test_signature(

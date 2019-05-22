@@ -34,20 +34,6 @@ public:
     EXPORT static const VersionNumber MaxVersion;
 
     EXPORT static OTAsymmetricKey Factory();
-    EXPORT static OTAsymmetricKey Factory(
-        const proto::AsymmetricKeyType keyType,
-        const String& pubkey,
-        const VersionNumber version);
-    EXPORT static OTAsymmetricKey Factory(
-        const NymParameters& nymParameters,
-        const proto::KeyRole role,
-        const VersionNumber version);
-    EXPORT static OTAsymmetricKey Factory(
-        const proto::AsymmetricKey& serializedKey);
-    EXPORT static OTString KeyTypeToString(
-        const proto::AsymmetricKeyType keyType);
-    EXPORT static proto::AsymmetricKeyType StringToKeyType(
-        const String& keyType);
 
     EXPORT virtual OTData CalculateHash(
         const proto::HashType hashType,
@@ -75,6 +61,7 @@ public:
         bool bImporting) const = 0;
     EXPORT virtual const proto::KeyRole& Role() const = 0;
     EXPORT virtual bool Seal(
+        const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
         OTPasswordData& password) const = 0;

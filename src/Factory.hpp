@@ -57,6 +57,24 @@ public:
         const ui::implementation::ActivitySummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
         const Flag& running);
+    static api::crypto::Asymmetric* AsymmetricAPI(
+        const api::crypto::Encode& encode,
+        const api::crypto::Hash& hash,
+        const api::crypto::Util& util,
+        const api::crypto::Symmetric& symmetric,
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+        const crypto::Bip32& bip32,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        const crypto::AsymmetricProvider& ed25519,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        const crypto::AsymmetricProvider& rsa,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        const crypto::AsymmetricProvider& secp256k1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    );
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
         const api::client::Manager& api,
@@ -194,6 +212,7 @@ public:
     );
 #if OT_CRYPTO_WITH_BIP39
     static api::HDSeed* HDSeed(
+        const api::crypto::Asymmetric& asymmetric,
         const api::crypto::Symmetric& symmetric,
         const api::storage::Storage& storage,
         const crypto::Bip32& bip32,
@@ -224,6 +243,18 @@ public:
         const RowCallbacks removeCallback = {}
 #endif
     );
+    static crypto::key::Keypair* Keypair(
+        const api::Core& api,
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const proto::KeyRole role);
+    static crypto::key::Keypair* Keypair(
+        const api::Core& api,
+        const proto::AsymmetricKey& serializedPubkey,
+        const proto::AsymmetricKey& serializedPrivkey);
+    static crypto::key::Keypair* Keypair(
+        const api::Core& api,
+        const proto::AsymmetricKey& serializedPubkey);
     static api::Legacy* Legacy();
     static api::internal::Log* Log(
         const network::zeromq::Context& zmq,

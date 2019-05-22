@@ -3471,7 +3471,7 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
     std::string strDisplay = "OTAPI: Creating a new symmetric key.";
     const auto otstrDisplay = String::Factory(strDisplay);
     const bool bSuccess = crypto::key::LegacySymmetric::CreateNewKey(
-        api_.Crypto(), strOutput, otstrDisplay);  // pAlreadyHavePW=""
+        api_, strOutput, otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return {};
 
@@ -3508,7 +3508,7 @@ std::string OTAPI_Exec::SymmetricEncrypt(
     std::string strDisplay = "OTAPI: Password-protecting a plaintext.";
     const auto otstrDisplay = String::Factory(strDisplay);
     const bool bSuccess = crypto::key::LegacySymmetric::Encrypt(
-        api_.Crypto(),
+        api_,
         strKey,
         strPlaintext,
         strOutput,
@@ -3541,7 +3541,7 @@ std::string OTAPI_Exec::SymmetricDecrypt(
         "OTAPI: Decrypting a password-protected ciphertext.";
     const auto otstrDisplay = String::Factory(strDisplay);
     const bool bSuccess = crypto::key::LegacySymmetric::Decrypt(
-        api_.Crypto(),
+        api_,
         strKey,
         strCiphertext,
         strOutput,
@@ -6604,183 +6604,6 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     return bSuccess ? true : false;
 }
 
-// bool OTAPI_Exec::HarvestClosingNumbers(const std::string& NOTARY_ID,
-//                                    const std::string& NYM_ID,
-//                                    const std::string& THE_CRON_ITEM)
-//{
-//    OT_ASSERT_MSG("" != NOTARY_ID, "OTAPI_Exec::HarvestClosingNumbers:
-//    Null
-// NOTARY_ID passed in.");
-//    OT_ASSERT_MSG("" != NYM_ID, "OTAPI_Exec::HarvestClosingNumbers: Null
-// NYM_ID passed in.");
-//    OT_ASSERT_MSG("" != THE_CRON_ITEM, "OTAPI_Exec::HarvestClosingNumbers:
-// Null THE_CRON_ITEM passed in.");
-//
-//    const Identifier&    theNymID(NYM_ID), theNotaryID(NOTARY_ID);
-//    const OTString        strContract(THE_CRON_ITEM);
-//
-//    const bool& bHarvested = ot_api_.HarvestClosingNumbers(theNotaryID,
-// theNymID, strContract);
-//
-//    return bHarvested ? true : false;
-//}
-//
-//
-// NOTE: usually you will want to call OTAPI_Exec::HarvestClosingNumbers,
-// since the Opening number is usually burned up from some failed
-// transaction or whatever. You don't want to harvest the opening number
-// usually, just the closing numbers. (If the opening number is burned up,
-// yet you still harvest it, then your OT wallet will end up using that
-// number again on some other transaction, which will obviously then fail
-// since the number isn't good anymore.) This function is only for those
-// cases where you are sure that the opening transaction # hasn't been
-// burned yet, such as when the message failed and the transaction wasn't
-// attempted (because it never got that far) or such as when the contract
-// simply never got signed or activated by one of the other parties, and so
-// you want to claw your
-// #'s back, and since in that case your opening number is still good, you
-// would use the below function to get it back.
-//
-// bool OTAPI_Exec::HarvestAllNumbers(const std::string& NOTARY_ID,
-//                                const std::string& NYM_ID,
-//                                const std::string& THE_CRON_ITEM)
-//{
-//    OT_ASSERT_MSG("" != NOTARY_ID, "OTAPI_Exec::HarvestAllNumbers: Null
-// NOTARY_ID passed in.");
-//    OT_ASSERT_MSG("" != NYM_ID, "OTAPI_Exec::HarvestAllNumbers: Null
-//    NYM_ID
-// passed in.");
-//    OT_ASSERT_MSG("" != THE_CRON_ITEM, "OTAPI_Exec::HarvestAllNumbers:
-//    Null
-// THE_CRON_ITEM passed in.");
-//
-//    const Identifier&    theNymID(NYM_ID), theNotaryID(NOTARY_ID);
-//    const OTString        strContract(THE_CRON_ITEM);
-//
-//    const bool& bHarvested = ot_api_.HarvestAllNumbers(theNotaryID,
-// theNymID, strContract);
-//
-//    return bHarvested ? true : false;
-//}
-
-// LOAD PUBLIC KEY (of other users, where no private key is available)
-// This is the "address book" versus the private Nym.
-// If nothing found in the address book, it still tries to load
-// a Private Nym (just to get the pubkey from it.)
-// -- from local storage
-//
-// Return as STRING (NOT escaped.)
-//
-// Users will most likely store public keys of OTHER users, and they will
-// need to load those from time to time, especially to verify signatures,
-// etc.
-//
-std::string OTAPI_Exec::LoadPubkey_Encryption(
-    const std::string& NYM_ID) const  // returns "", or a public key.
-{
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    auto strPubkey = String::Factory();  // For the output
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = api_.Factory().NymID(NYM_ID);
-    auto pNym = api_.Wallet().Nym(nym_id);
-    if (false == bool(pNym)) return {};
-    if (false == pNym->GetPublicEncrKey().GetPublicKey(strPubkey))  // bEscaped
-                                                                    // defaults
-                                                                    // to true.
-                                                                    // 6/13/12
-    {
-        auto strNymID = String::Factory(nym_id);
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": Failure retrieving encryption pubkey."
-            " From Nym: ")(strNymID)(".")
-            .Flush();
-    } else  // success
-    {
-        std::string pBuf = strPubkey->Get();
-        return pBuf;
-    }
-    return {};
-}
-
-std::string OTAPI_Exec::LoadPubkey_Signing(
-    const std::string& NYM_ID) const  // returns "", or a public key.
-{
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    auto strPubkey = String::Factory();  // For the output
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = api_.Factory().NymID(NYM_ID);
-    auto pNym = api_.Wallet().Nym(nym_id);
-    if (false == bool(pNym)) return {};
-    if (false == pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
-        auto strNymID = String::Factory(nym_id);
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": Failure retrieving signing pubkey."
-            " From Nym: ")(strNymID)(".")
-            .Flush();
-    } else  // success
-    {
-        std::string pBuf = strPubkey->Get();
-        return pBuf;
-    }
-    return {};
-}
-
-// LOAD USER PUBLIC KEY  -- from local storage
-//
-// (return as STRING)
-//
-std::string OTAPI_Exec::LoadUserPubkey_Encryption(
-    const std::string& NYM_ID) const  // returns "", or a public key.
-{
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    auto strPubkey = String::Factory();  // For the output
-    auto nym_id = api_.Factory().NymID(NYM_ID);
-    Nym_p pNym = api_.Wallet().Nym(nym_id);
-
-    if (false == bool(pNym)) { return {}; }
-
-    if (!pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
-        auto strNymID = String::Factory(nym_id);
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": Failure retrieving encryption pubkey from Nym: ")(strNymID)(".")
-            .Flush();
-    } else  // success
-    {
-        std::string pBuf = strPubkey->Get();
-        return pBuf;
-    }
-    return {};
-}
-
-std::string OTAPI_Exec::LoadUserPubkey_Signing(
-    const std::string& NYM_ID) const  // returns "", or a public key.
-{
-    OT_VERIFY_ID_STR(NYM_ID);
-
-    auto strPubkey = String::Factory();  // For the output
-    auto nym_id = api_.Factory().NymID(NYM_ID);
-    // No need to cleanup.
-    Nym_p pNym = api_.Wallet().Nym(nym_id);
-
-    if (false == bool(pNym)) { return {}; }
-
-    if (!pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
-        auto strNymID = String::Factory(nym_id);
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": Failure retrieving signing pubkey from Nym: ")(strNymID)(".")
-            .Flush();
-    } else  // success
-    {
-        std::string pBuf = strPubkey->Get();
-        return pBuf;
-    }
-    return {};
-}
-
-//
 // Verify that NYM_ID (including its Private Key) is an
 // available and verified user in local storage.
 //

@@ -40,9 +40,6 @@ public:
         Bip32Index& index,
         Data& chainCode,
         Data& key) const = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetChild(
-        const proto::AsymmetricKey& parent,
-        const Bip32Index index) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,

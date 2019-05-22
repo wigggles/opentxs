@@ -5,6 +5,9 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -27,64 +30,81 @@
 
 template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
 
-namespace opentxs::crypto::key
+namespace opentxs
 {
-OTKeypair Keypair::Factory(
+crypto::key::Keypair* Factory::Keypair(
+    const api::Core& api,
     const NymParameters& nymParameters,
     const VersionNumber version,
     const proto::KeyRole role)
 {
-    return OTKeypair{new implementation::Keypair(nymParameters, version, role)};
+    return new crypto::key::implementation::Keypair(
+        api, nymParameters, version, role);
 }
 
-OTKeypair Keypair::Factory(
+crypto::key::Keypair* Factory::Keypair(
+    const api::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey)
 {
-    return OTKeypair{
-        new implementation::Keypair(serializedPubkey, serializedPrivkey)};
+    return new crypto::key::implementation::Keypair(
+        api, serializedPubkey, serializedPrivkey);
 }
 
-OTKeypair Keypair::Factory(const proto::AsymmetricKey& serializedPubkey)
+crypto::key::Keypair* Factory::Keypair(
+    const api::Core& api,
+    const proto::AsymmetricKey& serializedPubkey)
 {
-    return OTKeypair{new implementation::Keypair(serializedPubkey)};
+    return new crypto::key::implementation::Keypair(api, serializedPubkey);
 }
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {
 Keypair::Keypair(
-    const NymParameters& nymParameters,
+    const api::Core& api,
+    const NymParameters& params,
     const VersionNumber version,
     const proto::KeyRole role) noexcept
-    : m_pkeyPublic{Asymmetric::Factory(nymParameters, role, version)}
-    , m_pkeyPrivate{Asymmetric::Factory(nymParameters, role, version)}
-    , role_{role}
+    : m_pkeyPublic(api.Factory().AsymmetricKey(params, role, version))
+    , m_pkeyPrivate(api.Factory().AsymmetricKey(params, role, version))
+    , role_(role)
 {
-    make_new_keypair(nymParameters);
+    const bool haveKeys = make_new_keypair(params);
+
+    OT_ASSERT(haveKeys);
+    OT_ASSERT(m_pkeyPublic.get());
+    OT_ASSERT(m_pkeyPrivate.get());
 }
 
 Keypair::Keypair(
+    const api::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey) noexcept
-    : m_pkeyPublic{Asymmetric::Factory(serializedPubkey)}
-    , m_pkeyPrivate{Asymmetric::Factory(serializedPrivkey)}
-    , role_{m_pkeyPrivate->Role()}
+    : m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey))
+    , m_pkeyPrivate(api.Factory().AsymmetricKey(serializedPrivkey))
+    , role_(m_pkeyPrivate->Role())
 {
+    OT_ASSERT(m_pkeyPublic.get());
+    OT_ASSERT(m_pkeyPrivate.get());
 }
 
-Keypair::Keypair(const proto::AsymmetricKey& serializedPubkey) noexcept
-    : m_pkeyPublic{Asymmetric::Factory(serializedPubkey)}
-    , m_pkeyPrivate{Asymmetric::Factory()}
-    , role_{m_pkeyPublic->Role()}
+Keypair::Keypair(
+    const api::Core& api,
+    const proto::AsymmetricKey& serializedPubkey) noexcept
+    : m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey))
+    , m_pkeyPrivate(Asymmetric::Factory())
+    , role_(m_pkeyPublic->Role())
 {
+    OT_ASSERT(m_pkeyPublic.get());
+    OT_ASSERT(false == bool(m_pkeyPrivate.get()));
 }
 
 Keypair::Keypair(const Keypair& rhs) noexcept
-    : key::Keypair{}
-    , m_pkeyPublic{rhs.m_pkeyPublic}
-    , m_pkeyPrivate{rhs.m_pkeyPrivate}
-    , role_{rhs.role_}
+    : key::Keypair()
+    , m_pkeyPublic(rhs.m_pkeyPublic)
+    , m_pkeyPrivate(rhs.m_pkeyPrivate)
+    , role_(rhs.role_)
 {
 }
 

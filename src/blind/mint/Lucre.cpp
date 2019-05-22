@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #if OT_CASH_USING_LUCRE
+#include "opentxs/api/Core.hpp"
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Token.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -180,7 +181,7 @@ bool Lucre::AddDenomination(
 
     // Seal the private bank info up into an encrypted Envelope
     // and set it onto pPrivate
-    OTEnvelope theEnvelope;
+    OTEnvelope theEnvelope(api_);
     theEnvelope.Seal(theNotary, strPrivateBank);  // Todo check the return
                                                   // values on these two
                                                   // functions
@@ -235,7 +236,7 @@ bool Lucre::SignToken(const identity::Nym& notary, blind::Token& token)
         LogInsane(OT_METHOD)(__FUNCTION__)(": Loaded private mint key").Flush();
     }
 
-    OTEnvelope envelope(armoredPrivate);
+    OTEnvelope envelope(api_, armoredPrivate);
     auto privateKey = String::Factory();
 
     if (false == envelope.Open(notary, privateKey)) {
@@ -332,7 +333,7 @@ bool Lucre::VerifyToken(const identity::Nym& notary, const blind::Token& token)
     BIO_puts(bioCoin, spendable->Get());
     auto armoredPrivate = Armored::Factory();
     GetPrivate(armoredPrivate, token.Value());
-    OTEnvelope envelope(armoredPrivate);
+    OTEnvelope envelope(api_, armoredPrivate);
     auto privateKey = String::Factory();
 
     if (false == envelope.Open(notary, privateKey)) {

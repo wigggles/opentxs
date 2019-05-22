@@ -346,42 +346,7 @@ bool OT_API::Init()
         return false;
     }
 
-    // PID -- Make sure we're not running two copies of OT on the same data
-    // simultaneously here.
-    //
-    // we need to get the loacation of where the pid file should be.
-    // then we pass it to the OpenPid function.
-    auto strDataPath = String::Factory(api_.DataFolder().c_str());
-
-    {
-        bool bExists = false, bIsNew = false;
-        if (!OTPaths::ConfirmCreateFolder(strDataPath, bExists, bIsNew)) {
-            return false;
-        }
-    }
-
-    // This way, everywhere else I can use the default storage context (for now)
-    // and it will work everywhere I put it. (Because it's now set up...)
-    m_bDefaultStore = OTDB::InitDefaultStorage(
-        OTDB_DEFAULT_STORAGE,
-        OTDB_DEFAULT_PACKER);  // We only need to do this once now.
-
-    if (m_bDefaultStore) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Success invoking OTDB::InitDefaultStorage")
-            .Flush();
-
-        m_pWallet = new OTWallet(api_);
-        m_pClient.reset(new OTClient(api_));
-
-        return true;
-    } else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed invoking OTDB::InitDefaultStorage.")
-            .Flush();
-    }
-
-    return false;
+    return true;
 }
 
 bool OT_API::Cleanup() { return true; }
@@ -423,13 +388,49 @@ bool OT_API::LoadConfigFile()
         auto strValue = String::Factory();
         api_.Config().CheckSet_str(
             String::Factory("wallet"),
-            String::Factory("api_.Wallet()filename"),
+            String::Factory("wallet_filename"),
             CLIENT_WALLET_FILENAME,
             strValue,
             bIsNewKey);
         OT_API::SetWalletFilename(strValue);
         LogDetail(OT_METHOD)(__FUNCTION__)(": Using Wallet: ")(strValue)
             .Flush();
+    }
+
+    // PID -- Make sure we're not running two copies of OT on the same data
+    // simultaneously here.
+    //
+    // we need to get the loacation of where the pid file should be.
+    // then we pass it to the OpenPid function.
+    auto strDataPath = String::Factory(api_.DataFolder().c_str());
+
+    {
+        bool bExists = false, bIsNew = false;
+        if (!OTPaths::ConfirmCreateFolder(strDataPath, bExists, bIsNew)) {
+            return false;
+        }
+    }
+
+    // This way, everywhere else I can use the default storage context (for now)
+    // and it will work everywhere I put it. (Because it's now set up...)
+    m_bDefaultStore = OTDB::InitDefaultStorage(
+        OTDB_DEFAULT_STORAGE,
+        OTDB_DEFAULT_PACKER);  // We only need to do this once now.
+
+    if (m_bDefaultStore) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Success invoking OTDB::InitDefaultStorage")
+            .Flush();
+
+        m_pWallet = new OTWallet(api_);
+        m_pClient.reset(new OTClient(api_));
+        load_wallet(lock);
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed invoking OTDB::InitDefaultStorage.")
+            .Flush();
+
+        return false;
     }
 
     // LATENCY
@@ -542,7 +543,7 @@ bool OT_API::SetWallet(const String& strFilename) const
         bool bNewOrUpdated;
         api_.Config().Set_str(
             String::Factory("wallet"),
-            String::Factory("api_.Wallet()filename"),
+            String::Factory("wallet_filename"),
             strWalletFilename,
             bNewOrUpdated,
             String::Factory("; Wallet updated\n"));
@@ -576,6 +577,11 @@ bool OT_API::LoadWallet() const
 {
     Lock lock(lock_);
 
+    return load_wallet(lock);
+}
+
+bool OT_API::load_wallet(const Lock& lock) const
+{
     OT_ASSERT_MSG(
         m_bDefaultStore,
         "Default Storage not Initialized; call OT_API::Init first.\n");
@@ -1651,7 +1657,7 @@ bool OT_API::Encrypt(
 {
     auto pRecipientNym = api_.Wallet().Nym(theRecipientNymID);
     if (false == bool(pRecipientNym)) return false;
-    OTEnvelope theEnvelope;
+    OTEnvelope theEnvelope(api_);
     bool bSuccess = theEnvelope.Seal(*pRecipientNym, strPlaintext);
 
     if (bSuccess) {
@@ -1698,7 +1704,7 @@ bool OT_API::Decrypt(
 
     if (false == bool(pRecipientNym)) { return false; }
 
-    OTEnvelope theEnvelope;
+    OTEnvelope theEnvelope(api_);
     auto ascCiphertext = Armored::Factory();
     const bool bLoadedArmor = Armored::LoadFromString(
         ascCiphertext, strCiphertext);  // str_bookend="-----BEGIN" by default
@@ -5001,7 +5007,8 @@ bool OT_API::RecordPayment(
                 .Flush();
             return false;
         }
-        pPayment = GetInstrumentByIndex(*transport_nym, nIndex, *pPaymentInbox);
+        pPayment =
+            GetInstrumentByIndex(api_, *transport_nym, nIndex, *pPaymentInbox);
         // ------------------------------------------
         // Payment Notary (versus the Transport Notary).
         //
@@ -8882,7 +8889,7 @@ CommandResult OT_API::sendNymObject(
 
     auto plaintext(proto::ProtoAsArmored(
         object.Serialize(), String::Factory("PEER OBJECT")));
-    OTEnvelope theEnvelope;
+    OTEnvelope theEnvelope(api_);
     auto recipient = api_.Wallet().Nym(recipientNymID);
 
     if (false == bool(recipient)) {
@@ -9194,6 +9201,7 @@ std::shared_ptr<OTPayment> OT_API::Ledger_GetInstrument(
     OT_ASSERT(nym);
     // ------------------------------------
     std::shared_ptr<OTPayment> pPayment = GetInstrumentByIndex(
+        api_,
         *nym,
         nIndex,
         const_cast<Ledger&>(ledger)  // Todo justus has fix for this
@@ -9228,6 +9236,7 @@ std::shared_ptr<OTPayment> OT_API::Ledger_GetInstrumentByReceiptID(
     OT_ASSERT(nym);
     // ------------------------------------
     std::shared_ptr<OTPayment> pPayment = GetInstrumentByReceiptID(
+        api_,
         *nym,
         lReceiptId,
         const_cast<Ledger&>(ledger)  // Todo justus has fix for this

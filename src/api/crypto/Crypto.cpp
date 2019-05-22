@@ -7,6 +7,7 @@
 
 #include "Crypto.hpp"
 
+#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -70,7 +71,6 @@ namespace opentxs::api::implementation
 Crypto::Crypto(const api::Settings& settings)
     : cached_key_lock_()
     , primary_key_(nullptr)
-    , cached_keys_()
     , config_(opentxs::Factory::CryptoConfig(settings))
 #if OT_CRYPTO_USING_LIBBITCOIN
     , bitcoin_(opentxs::Factory::Bitcoin(*this))
@@ -115,6 +115,24 @@ Crypto::Crypto(const api::Settings& settings)
 #endif  // OT_CRYPTO_USING_TREZOR
           ))
     , symmetric_(opentxs::Factory::Symmetric(*sodium_))
+    , asymmetric_(opentxs::Factory::AsymmetricAPI(
+          *encode_,
+          *hash_,
+          util_,
+          *symmetric_,
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+          bip32_,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+          *sodium_,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+          *ssl_,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+          secp256k1_provider_
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+          ))
 {
 #if OT_CRYPTO_USING_LIBBITCOIN
     OT_ASSERT(bitcoin_)
@@ -142,6 +160,13 @@ const opentxs::crypto::LegacySymmetricProvider& Crypto::AES() const
 }
 #endif
 
+const crypto::Asymmetric& Crypto::Asymmetric() const
+{
+    OT_ASSERT(asymmetric_);
+
+    return *asymmetric_;
+}
+
 #if OT_CRYPTO_WITH_BIP32
 const opentxs::crypto::Bip32& Crypto::BIP32() const { return bip32_; }
 #endif
@@ -150,48 +175,10 @@ const opentxs::crypto::Bip32& Crypto::BIP32() const { return bip32_; }
 const opentxs::crypto::Bip39& Crypto::BIP39() const { return bip39_; }
 #endif
 
-const OTCachedKey& Crypto::CachedKey(const Identifier& id) const
-{
-    Lock lock(cached_key_lock_);
-
-    auto& output = cached_keys_[id];
-
-    if (false == bool(output)) {
-        OT_FAIL_MSG("This function is broken, this never should have "
-                    "happened.");
-
-        output.reset(new OTCachedKey(*this, OT_MASTER_KEY_TIMEOUT));
-    }
-
-    OT_ASSERT(output);
-
-    return *output;
-}
-
-const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
-{
-    Lock lock(cached_key_lock_);
-    const auto id = Identifier::Factory(source);
-    auto& output = cached_keys_[id];
-
-    if (false == bool(output)) {
-        auto serialized = Armored::Factory();
-        const bool haveSerialized = source.SerializeTo(serialized);
-
-        OT_ASSERT(haveSerialized);
-
-        output.reset(new OTCachedKey(*this, serialized));
-    }
-
-    OT_ASSERT(output);
-
-    return *output;
-}
-
 void Crypto::Cleanup()
 {
     primary_key_.reset();
-    cached_keys_.clear();
+    asymmetric_.reset();
     symmetric_.reset();
     hash_.reset();
     encode_.reset();
@@ -222,7 +209,16 @@ const OTCachedKey& Crypto::DefaultKey() const
 {
     Lock lock(cached_key_lock_);
 
-    init_default_key(lock);
+    OT_ASSERT(primary_key_);
+
+    return *primary_key_;
+}
+
+const OTCachedKey& Crypto::DefaultKey(const api::Core& api) const
+{
+    Lock lock(cached_key_lock_);
+
+    if (false == bool(primary_key_)) { init_default_key(lock, api); }
 
     OT_ASSERT(primary_key_);
 
@@ -291,18 +287,20 @@ void Crypto::Init()
 #endif
 }
 
-void Crypto::init_default_key(const Lock&) const
+void Crypto::init_default_key(const Lock&, const api::Core& api) const
 {
     if (false == bool(primary_key_)) {
-        primary_key_.reset(new OTCachedKey(*this, OT_MASTER_KEY_TIMEOUT));
+        primary_key_.reset(new OTCachedKey(api, OT_MASTER_KEY_TIMEOUT));
     }
 }
 
-const OTCachedKey& Crypto::LoadDefaultKey(const Armored& serialized) const
+const OTCachedKey& Crypto::LoadDefaultKey(
+    const api::Core& api,
+    const Armored& serialized) const
 {
     Lock lock(cached_key_lock_);
 
-    init_default_key(lock);
+    init_default_key(lock, api);
 
     OT_ASSERT(primary_key_);
 
@@ -331,8 +329,6 @@ void Crypto::SetTimeout(const std::chrono::seconds& timeout) const
 {
     Lock lock(cached_key_lock_);
 
-    init_default_key(lock);
-
     OT_ASSERT(primary_key_);
 
     primary_key_->SetTimeoutSeconds(timeout.count());
@@ -341,8 +337,6 @@ void Crypto::SetTimeout(const std::chrono::seconds& timeout) const
 void Crypto::SetSystemKeyring(const bool useKeyring) const
 {
     Lock lock(cached_key_lock_);
-
-    init_default_key(lock);
 
     OT_ASSERT(primary_key_);
 

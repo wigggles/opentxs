@@ -621,7 +621,7 @@ bool ServerContext::add_item_to_workflow(
         return false;
     }
 
-    OTEnvelope envelope(message->m_ascPayload);
+    OTEnvelope envelope(api_, message->m_ascPayload);
     auto plaintext = String::Factory();
     const auto decrypted = envelope.Open(nym, plaintext);
 
@@ -2398,18 +2398,31 @@ NetworkReplyMessage ServerContext::PingNotary()
         return {};
     }
 
-    auto serializedAuthKey = String::Factory();
-    auto serializedEncryptKey = String::Factory();
-    const auto& authKey = nym_->GetPublicAuthKey();
-    const auto& encrKey = nym_->GetPublicEncrKey();
-    authKey.GetPublicKey(serializedAuthKey);
-    encrKey.GetPublicKey(serializedEncryptKey);
+    auto pAuth = nym_->GetPublicAuthKey().Serialize();
+    auto pEncr = nym_->GetPublicEncrKey().Serialize();
+
+    if (false == bool(pAuth)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize auth key")
+            .Flush();
+
+        return {};
+    }
+
+    if (false == bool(pEncr)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize encrypt key")
+            .Flush();
+
+        return {};
+    }
+
+    const auto& serializedAuthKey = *pAuth;
+    const auto& serializedEncryptKey = *pEncr;
     request->m_strRequestNum =
         String::Factory(std::to_string(FIRST_REQUEST_NUMBER).c_str());
-    request->m_strNymPublicKey = serializedAuthKey;
-    request->m_strNymID2 = serializedEncryptKey;
-    request->keytypeAuthent_ = authKey.keyType();
-    request->keytypeEncrypt_ = encrKey.keyType();
+    request->m_strNymPublicKey = proto::ProtoAsArmored(
+        serializedAuthKey, String::Factory("ASYMMETRIC KEY"));
+    request->m_strNymID2 = proto::ProtoAsArmored(
+        serializedEncryptKey, String::Factory("ASYMMETRIC KEY"));
 
     if (false == finalize_server_command(*request)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4935,7 +4948,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
     for (auto& receipt_id : receipt_ids) {
         TransactionNumber number{0};
         auto pPayment =
-            GetInstrumentByReceiptID(nym, receipt_id, *paymentInbox);
+            GetInstrumentByReceiptID(api_, nym, receipt_id, *paymentInbox);
 
         if (false == bool(pPayment) || !pPayment->SetTempValues() ||
             !pPayment->GetTransactionNum(number) || (number != chequeNumber)) {
@@ -5239,8 +5252,8 @@ void ServerContext::process_response_transaction_cron(
             const std::set<std::int64_t> set_receipt_ids{
                 thePmntInbox->GetTransactionNums()};
             for (const auto& receipt_id : set_receipt_ids) {
-                auto pPayment =
-                    GetInstrumentByReceiptID(nym, receipt_id, *thePmntInbox);
+                auto pPayment = GetInstrumentByReceiptID(
+                    api_, nym, receipt_id, *thePmntInbox);
 
                 if (false == bool(pPayment)) {
                     LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -6380,7 +6393,7 @@ bool ServerContext::remove_nymbox_item(
 
                     for (const auto& receipt_id : set_receipt_ids) {
                         auto pPayment = GetInstrumentByReceiptID(
-                            nym, receipt_id, *paymentInbox);
+                            api_, nym, receipt_id, *paymentInbox);
 
                         if (false == bool(pPayment)) {
                             LogNormal(OT_METHOD)(__FUNCTION__)(

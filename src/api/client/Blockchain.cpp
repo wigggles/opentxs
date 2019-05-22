@@ -15,6 +15,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Data.hpp"
@@ -372,7 +373,7 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    const auto key{opentxs::crypto::key::Asymmetric::Factory(*serialized)};
+    const auto key{api_.Factory().AsymmetricKey(*serialized)};
     const opentxs::crypto::key::Secp256k1* ecKey{
         dynamic_cast<const opentxs::crypto::key::Secp256k1*>(&key.get())};
 
@@ -472,16 +473,12 @@ void Blockchain::init_path(
 
     switch (standard) {
         case BlockchainAccountType::BIP32: {
-            path.add_child(
-                account | static_cast<Bip32Index>(Bip32Child::HARDENED));
+            path.add_child(HDIndex{account, Bip32Child::HARDENED});
         } break;
         case BlockchainAccountType::BIP44: {
             path.add_child(
-                static_cast<Bip32Index>(Bip43Purpose::HDWALLET) |
-                static_cast<Bip32Index>(Bip32Child::HARDENED));
-            path.add_child(
-                static_cast<Bip32Index>(bip44_type(chain)) |
-                static_cast<Bip32Index>(Bip32Child::HARDENED));
+                HDIndex{Bip43Purpose::HDWALLET, Bip32Child::HARDENED});
+            path.add_child(HDIndex{bip44_type(chain), Bip32Child::HARDENED});
             path.add_child(account);
         } break;
         default: {
@@ -603,7 +600,7 @@ OTIdentifier Blockchain::NewAccount(
     init_path(
         nymPath.root(),
         type,
-        nymPath.child(1) | static_cast<Bip32Index>(Bip32Child::HARDENED),
+        HDIndex{nymPath.child(1), Bip32Child::HARDENED},
         standard,
         accountPath);
     const auto accountID = Identifier::Factory(type, accountPath);

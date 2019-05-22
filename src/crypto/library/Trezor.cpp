@@ -179,37 +179,6 @@ const curve_info* Trezor::get_curve(const proto::AsymmetricKeyType& curve) const
     }
 }
 
-std::shared_ptr<proto::AsymmetricKey> Trezor::GetChild(
-    const proto::AsymmetricKey& parent,
-    const Bip32Index index) const
-{
-    Bip32Fingerprint fingerprint{};
-    auto node = SerializedToHDNode(parent, fingerprint);
-    int result{0};
-
-    if (proto::KEYMODE_PRIVATE == parent.mode()) {
-        result = hdnode_private_ckd(node.get(), index);
-        hdnode_fill_public_key(node.get());
-    } else {
-        result = hdnode_public_ckd(node.get(), index);
-    }
-
-    std::shared_ptr<proto::AsymmetricKey> key = HDNodeToSerialized(
-        parent.type(), *node, Trezor::DERIVE_PRIVATE, parent.version());
-
-    OT_ASSERT(key);
-
-    key->set_bip32_parent(fingerprint);
-
-    if (1 != result) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive child").Flush();
-
-        return {};
-    }
-
-    return key;
-}
-
 std::unique_ptr<HDNode> Trezor::GetChild(
     const HDNode& parent,
     const Bip32Index index,

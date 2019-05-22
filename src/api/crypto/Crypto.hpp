@@ -23,10 +23,11 @@ class Crypto : virtual public opentxs::api::Crypto
 public:
     const crypto::Config& Config() const override;
     const OTCachedKey& DefaultKey() const override;
+    const OTCachedKey& DefaultKey(const api::Core& api) const override;
     Editor<OTCachedKey> mutable_DefaultKey() const override;
-    const OTCachedKey& CachedKey(const Identifier& id) const override;
-    const OTCachedKey& CachedKey(const OTCachedKey& source) const override;
-    const OTCachedKey& LoadDefaultKey(const Armored& serialized) const override;
+    const OTCachedKey& LoadDefaultKey(
+        const api::Core& api,
+        const Armored& serialized) const override;
     void SetTimeout(const std::chrono::seconds& timeout) const override;
     void SetSystemKeyring(const bool useKeyring) const override;
 
@@ -40,6 +41,7 @@ public:
     const crypto::Util& Util() const override;
 
     // Asymmetric encryption engines
+    const crypto::Asymmetric& Asymmetric() const override;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     const opentxs::crypto::AsymmetricProvider& ED25519() const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -73,7 +75,6 @@ private:
 
     mutable std::mutex cached_key_lock_;
     mutable std::unique_ptr<OTCachedKey> primary_key_;
-    mutable std::map<OTIdentifier, std::unique_ptr<OTCachedKey>> cached_keys_;
     std::unique_ptr<api::crypto::Config> config_;
 #if OT_CRYPTO_USING_LIBBITCOIN
     std::unique_ptr<opentxs::crypto::Bitcoin> bitcoin_;
@@ -98,8 +99,9 @@ private:
     std::unique_ptr<crypto::Encode> encode_;
     std::unique_ptr<crypto::Hash> hash_;
     std::unique_ptr<crypto::Symmetric> symmetric_;
+    std::unique_ptr<crypto::Asymmetric> asymmetric_;
 
-    void init_default_key(const Lock& lock) const;
+    void init_default_key(const Lock& lock, const api::Core& api) const;
 
     void Init();
     void Cleanup();

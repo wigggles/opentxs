@@ -78,11 +78,12 @@ private:
     static const VersionConversionMap subversion_to_key_version_;
 
     static OTKeypair deserialize_key(
+        const api::Core& api,
         const int index,
         const proto::Credential& credential);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static OTKeypair derive_hd_keypair(
-        const api::Crypto& crypto,
+        const api::Core& core,
         const OTPassword& seed,
         const std::string& fingerprint,
         const Bip32Index nym,
@@ -93,7 +94,7 @@ private:
         const VersionNumber version);
 #endif
     static OTKeypair new_key(
-        const api::Crypto& crypto,
+        const api::Core& api,
         const proto::KeyRole role,
         const NymParameters& nymParameters,
         const VersionNumber version);

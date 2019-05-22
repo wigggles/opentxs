@@ -25,9 +25,6 @@ class Trezor final : virtual public crypto::Trezor,
 {
 public:
 #if OT_CRYPTO_WITH_BIP32
-    std::shared_ptr<proto::AsymmetricKey> GetChild(
-        const proto::AsymmetricKey& parent,
-        const Bip32Index index) const override;
     std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,

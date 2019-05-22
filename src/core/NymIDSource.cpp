@@ -42,7 +42,7 @@ const VersionConversionMap NymIDSource::key_to_source_version_{
 NymIDSource::NymIDSource(
     const api::Factory& factory,
     const proto::NymIDSource& serializedSource) noexcept
-    : factory_{factory}
+    : factory_(factory)
     , version_(serializedSource.version())
     , type_(serializedSource.type())
     , pubkey_(crypto::key::Asymmetric::Factory())
@@ -52,7 +52,7 @@ NymIDSource::NymIDSource(
 {
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY: {
-            pubkey_ = crypto::key::Asymmetric::Factory(serializedSource.key());
+            pubkey_ = factory_.AsymmetricKey(serializedSource.key());
 
             break;
         }
@@ -83,7 +83,7 @@ NymIDSource::NymIDSource(
     : factory_{factory}
     , version_(key_to_source_version_.at(pubkey.version()))
     , type_(nymParameters.SourceType())
-    , pubkey_(crypto::key::Asymmetric::Factory(pubkey))
+    , pubkey_(factory_.AsymmetricKey(pubkey))
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     , payment_code_(factory_.PaymentCode(""))
 #endif

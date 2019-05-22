@@ -60,6 +60,7 @@ public:
         const String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr) const override;
     bool Seal(
+        const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
         OTPasswordData& password) const override;

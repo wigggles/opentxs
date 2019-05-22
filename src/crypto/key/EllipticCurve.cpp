@@ -9,6 +9,8 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -366,6 +368,7 @@ bool EllipticCurve::ReEncryptPrivateKey(
 }
 
 bool EllipticCurve::Seal(
+    const opentxs::api::Core& api,
     OTAsymmetricKey& dhPublic,
     crypto::key::Symmetric& key,
     OTPasswordData& password) const
@@ -381,11 +384,10 @@ bool EllipticCurve::Seal(
         dynamic_cast<const crypto::EcdsaProvider&>(this->engine());
     NymParameters parameters(proto::CREDTYPE_LEGACY);
     parameters.setNymParameterType(CreateType());
-    auto dhKeypair = crypto::key::Keypair::Factory(
-        parameters, version_, proto::KEYROLE_ENCRYPT);
-    auto dhRawKey =
-        crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
-    dhPublic = crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(false));
+    auto dhKeypair =
+        api.Factory().Keypair(parameters, version_, proto::KEYROLE_ENCRYPT);
+    auto dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->Serialize(true));
+    dhPublic = api.Factory().AsymmetricKey(*dhKeypair->Serialize(false));
     auto& dhPrivate =
         dynamic_cast<const crypto::key::EllipticCurve&>(dhRawKey.get());
     OTPassword newPassword{};

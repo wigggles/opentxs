@@ -25,11 +25,10 @@ class Crypto
 public:
     EXPORT virtual const crypto::Config& Config() const = 0;
     EXPORT virtual const OTCachedKey& DefaultKey() const = 0;
+    EXPORT virtual const OTCachedKey& DefaultKey(const Core& api) const = 0;
     EXPORT virtual Editor<OTCachedKey> mutable_DefaultKey() const = 0;
-    EXPORT virtual const OTCachedKey& CachedKey(const Identifier& id) const = 0;
-    EXPORT virtual const OTCachedKey& CachedKey(
-        const OTCachedKey& source) const = 0;
     EXPORT virtual const OTCachedKey& LoadDefaultKey(
+        const Core& api,
         const Armored& serialized) const = 0;
     EXPORT virtual void SetTimeout(
         const std::chrono::seconds& timeout) const = 0;
@@ -45,6 +44,8 @@ public:
     EXPORT virtual const crypto::Util& Util() const = 0;
 
     // Asymmetric encryption engines
+    EXPORT virtual const crypto::Asymmetric& Asymmetric() const = 0;
+
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     EXPORT virtual const opentxs::crypto::AsymmetricProvider& ED25519()
         const = 0;

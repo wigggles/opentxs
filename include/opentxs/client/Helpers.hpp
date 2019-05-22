@@ -18,11 +18,13 @@ namespace opentxs
 // a purse or something, that the caller wants to retrieve.
 //
 EXPORT std::shared_ptr<OTPayment> GetInstrumentByReceiptID(
+    const api::Core& api,
     const identity::Nym& theNym,
     const std::int64_t& lReceiptId,
     Ledger& ledger);
 
 EXPORT std::shared_ptr<OTPayment> GetInstrumentByIndex(
+    const api::Core& api,
     const identity::Nym& theNym,
     const std::int32_t& nIndex,
     Ledger& ledger);
@@ -30,11 +32,13 @@ EXPORT std::shared_ptr<OTPayment> GetInstrumentByIndex(
 // returns financial instrument inside pTransaction.
 // (Cheque, Purse, etc.)
 EXPORT std::shared_ptr<OTPayment> GetInstrument(
+    const api::Core& api,
     const identity::Nym& theNym,
     Ledger& ledger,
     std::shared_ptr<OTTransaction> pTransaction);
 
 EXPORT std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
+    const api::Core& api,
     const identity::Nym& theNym,
     std::shared_ptr<OTTransaction> pTransaction);
 }  // namespace opentxs

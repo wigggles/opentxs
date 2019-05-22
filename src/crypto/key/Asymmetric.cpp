@@ -8,7 +8,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -55,112 +54,6 @@ const VersionNumber Asymmetric::MaxVersion{2};
 OTAsymmetricKey Asymmetric::Factory()
 {
     return OTAsymmetricKey(new implementation::Null);
-}
-
-OTAsymmetricKey Asymmetric::Factory(
-    const proto::AsymmetricKeyType keyType,
-    const String& pubkey,
-    const VersionNumber version)
-{
-    switch (keyType) {
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (proto::AKEYTYPE_ED25519): {
-            return OTAsymmetricKey(Factory::Ed25519Key(pubkey, version));
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (proto::AKEYTYPE_SECP256K1): {
-            return OTAsymmetricKey(Factory::Secp256k1Key(pubkey, version));
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (proto::AKEYTYPE_LEGACY): {
-            return OTAsymmetricKey(Factory::RSAKey(pubkey));
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Open-Transactions isn't built with support for this key "
-                "type.")
-                .Flush();
-        }
-    }
-
-    return OTAsymmetricKey(new implementation::Null);
-}
-
-OTAsymmetricKey Asymmetric::Factory(
-    const NymParameters& nymParameters,
-    const proto::KeyRole role,
-    const VersionNumber version)
-{
-    const auto keyType = nymParameters.AsymmetricKeyType();
-
-    return OTAsymmetricKey(
-        implementation::Asymmetric::KeyFactory(keyType, role, version));
-}
-
-OTAsymmetricKey Asymmetric::Factory(
-    const proto::AsymmetricKey& serializedKey)  // Caller IS responsible to
-                                                // delete!
-{
-    const auto keyType = serializedKey.type();
-
-    switch (keyType) {
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (proto::AKEYTYPE_ED25519): {
-            return OTAsymmetricKey(Factory::Ed25519Key(serializedKey));
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (proto::AKEYTYPE_SECP256K1): {
-            return OTAsymmetricKey(Factory::Secp256k1Key(serializedKey));
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (proto::AKEYTYPE_LEGACY): {
-            return OTAsymmetricKey(Factory::RSAKey(serializedKey));
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Open-Transactions isn't built with support for this key "
-                "type.")
-                .Flush();
-        }
-    }
-
-    return OTAsymmetricKey(new implementation::Null);
-}
-
-OTString Asymmetric::KeyTypeToString(const proto::AsymmetricKeyType keyType)
-
-{
-    auto keytypeString = String::Factory();
-
-    switch (keyType) {
-        case proto::AKEYTYPE_LEGACY:
-            keytypeString = String::Factory("legacy");
-            break;
-        case proto::AKEYTYPE_SECP256K1:
-            keytypeString = String::Factory("secp256k1");
-            break;
-        case proto::AKEYTYPE_ED25519:
-            keytypeString = String::Factory("ed25519");
-            break;
-        default:
-            keytypeString = String::Factory("error");
-    }
-    return keytypeString;
-}
-
-proto::AsymmetricKeyType Asymmetric::StringToKeyType(const String& keyType)
-{
-    if (keyType.Compare("legacy")) return proto::AKEYTYPE_LEGACY;
-    if (keyType.Compare("secp256k1")) return proto::AKEYTYPE_SECP256K1;
-    if (keyType.Compare("ed25519")) return proto::AKEYTYPE_ED25519;
-
-    return proto::AKEYTYPE_ERROR;
 }
 }  // namespace opentxs::crypto::key
 

@@ -7,6 +7,8 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/HDSeed.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
@@ -17,6 +19,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/crypto/key/HD.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -59,9 +64,9 @@ Key::Key(
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Base(api, theOwner, serialized)
     , subversion_(credential_subversion_.at(version_))
-    , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serialized))
-    , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serialized))
-    , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serialized))
+    , signing_key_(deserialize_key(api, proto::KEYROLE_SIGN, serialized))
+    , authentication_key_(deserialize_key(api, proto::KEYROLE_AUTH, serialized))
+    , encryption_key_(deserialize_key(api, proto::KEYROLE_ENCRYPT, serialized))
 {
 }
 
@@ -74,17 +79,17 @@ Key::Key(
     , credential::implementation::Base(api, theOwner, nymParameters, version)
     , subversion_(credential_subversion_.at(version_))
     , signing_key_(new_key(
-          api_.Crypto(),
+          api_,
           proto::KEYROLE_SIGN,
           nymParameters,
           subversion_to_key_version_.at(subversion_)))
     , authentication_key_(new_key(
-          api_.Crypto(),
+          api_,
           proto::KEYROLE_AUTH,
           nymParameters,
           subversion_to_key_version_.at(subversion_)))
     , encryption_key_(new_key(
-          api_.Crypto(),
+          api_,
           proto::KEYROLE_ENCRYPT,
           nymParameters,
           subversion_to_key_version_.at(subversion_)))
@@ -255,6 +260,7 @@ bool Key::verify_internally(const Lock& lock) const
 }
 
 OTKeypair Key::deserialize_key(
+    const api::Core& api,
     const int index,
     const proto::Credential& credential)
 {
@@ -266,21 +272,21 @@ OTKeypair Key::deserialize_key(
     if (hasPrivate) {
         const auto privateKey = credential.privatecredential().key(index - 1);
 
-        return crypto::key::Keypair::Factory(publicKey, privateKey);
+        return api.Factory().Keypair(publicKey, privateKey);
     }
 
-    return crypto::key::Keypair::Factory(publicKey);
+    return api.Factory().Keypair(publicKey);
 }
 
 OTKeypair Key::new_key(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const proto::KeyRole role,
     const NymParameters& nymParameters,
     const VersionNumber version)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
 
-        return crypto::key::Keypair::Factory(nymParameters, version, role);
+        return api.Factory().Keypair(nymParameters, version, role);
     }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -291,7 +297,7 @@ OTKeypair Key::new_key(
     OT_ASSERT(nymParameters.Entropy())
 
     return derive_hd_keypair(
-        crypto,
+        api,
         *nymParameters.Entropy(),
         nymParameters.Seed(),
         nymParameters.Nym(),
@@ -324,7 +330,7 @@ bool Key::New(const NymParameters& nymParameters)
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 OTKeypair Key::derive_hd_keypair(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const OTPassword& seed,
     const std::string& fingerprint,
     const Bip32Index nym,
@@ -334,73 +340,48 @@ OTKeypair Key::derive_hd_keypair(
     const proto::KeyRole role,
     const VersionNumber version)
 {
-    proto::HDPath keyPath;
-    keyPath.set_version(1);
     std::string input(fingerprint);
-    keyPath.set_root(input.c_str(), input.size());
-
-    keyPath.add_child(
-        static_cast<Bip32Index>(Bip43Purpose::NYM) |
-        static_cast<Bip32Index>(Bip32Child::HARDENED));
-    keyPath.add_child(nym | static_cast<Bip32Index>(Bip32Child::HARDENED));
-    keyPath.add_child(credset | static_cast<Bip32Index>(Bip32Child::HARDENED));
-    keyPath.add_child(
-        credindex | static_cast<Bip32Index>(Bip32Child::HARDENED));
+    Bip32Index roleIndex{0};
 
     switch (role) {
-        case proto::KEYROLE_AUTH:
-            keyPath.add_child(
-                static_cast<Bip32Index>(Bip32Child::AUTH_KEY) |
-                static_cast<Bip32Index>(Bip32Child::HARDENED));
-            break;
-        case proto::KEYROLE_ENCRYPT:
-            keyPath.add_child(
-                static_cast<Bip32Index>(Bip32Child::ENCRYPT_KEY) |
-                static_cast<Bip32Index>(Bip32Child::HARDENED));
-            break;
-        case proto::KEYROLE_SIGN:
-            keyPath.add_child(
-                static_cast<Bip32Index>(Bip32Child::SIGN_KEY) |
-                static_cast<Bip32Index>(Bip32Child::HARDENED));
-            break;
-        default:
-            break;
-    }
-
-    auto privateKey = crypto.BIP32().GetHDKey(curve, seed, keyPath, version);
-
-    OT_ASSERT(privateKey)
-
-    privateKey->set_role(role);
-    const crypto::EcdsaProvider* engine = nullptr;
-
-    switch (curve) {
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (EcdsaCurve::SECP256K1): {
-            engine =
-                dynamic_cast<const crypto::EcdsaProvider*>(&crypto.SECP256K1());
-            break;
-        }
-#endif
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (EcdsaCurve::ED25519): {
-            engine =
-                dynamic_cast<const crypto::EcdsaProvider*>(&crypto.ED25519());
-            break;
-        }
-#endif
+        case proto::KEYROLE_AUTH: {
+            roleIndex = HDIndex{Bip32Child::AUTH_KEY, Bip32Child::HARDENED};
+        } break;
+        case proto::KEYROLE_ENCRYPT: {
+            roleIndex = HDIndex{Bip32Child::ENCRYPT_KEY, Bip32Child::HARDENED};
+        } break;
+        case proto::KEYROLE_SIGN: {
+            roleIndex = HDIndex{Bip32Child::SIGN_KEY, Bip32Child::HARDENED};
+        } break;
         default: {
+            OT_FAIL
         }
     }
 
-    OT_ASSERT(engine)
+    const api::HDSeed::Path path{
+        HDIndex{Bip43Purpose::NYM, Bip32Child::HARDENED},
+        HDIndex{nym, Bip32Child::HARDENED},
+        HDIndex{credset, Bip32Child::HARDENED},
+        HDIndex{credindex, Bip32Child::HARDENED},
+        roleIndex};
 
+    auto pPrivateKey = api.Seeds().GetHDKey(input, curve, path, role);
+
+    OT_ASSERT(pPrivateKey)
+
+    auto& privateKey = *pPrivateKey;
+    const auto pSerialized = privateKey.Serialize();
+
+    OT_ASSERT(pSerialized);
+
+    const auto& serialized = *pSerialized;
     proto::AsymmetricKey publicKey;
-    const bool haveKey = engine->PrivateToPublic(*privateKey, publicKey);
+    const bool haveKey =
+        privateKey.ECDSA().PrivateToPublic(serialized, publicKey);
 
     OT_ASSERT(haveKey)
 
-    return crypto::key::Keypair::Factory(publicKey, *privateKey);
+    return api.Factory().Keypair(publicKey, serialized);
 }
 #endif
 

@@ -41,6 +41,7 @@ public:
         const OTPassword& theExportPassword,
         bool bImporting) const override;
     bool Seal(
+        const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
         OTPasswordData& password) const override;

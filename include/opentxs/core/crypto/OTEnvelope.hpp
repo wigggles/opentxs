@@ -22,8 +22,10 @@ typedef std::set<const identity::Nym*> setOfNyms;
 class OTEnvelope
 {
 public:
-    EXPORT OTEnvelope();
-    EXPORT explicit OTEnvelope(const Armored& theArmoredText);
+    EXPORT OTEnvelope(const api::Core& api);
+    EXPORT explicit OTEnvelope(
+        const api::Core& api,
+        const Armored& theArmoredText);
 
     /** Retrieve ciphertext in ascii armored form */
     EXPORT bool GetCiphertext(Armored& theArmoredText) const;
@@ -56,7 +58,10 @@ public:
 private:
     friend Letter;
 
+    const api::Core& api_;
     OTData ciphertext_;
+
+    OTEnvelope() = delete;
 };
 }  // namespace opentxs
 #endif

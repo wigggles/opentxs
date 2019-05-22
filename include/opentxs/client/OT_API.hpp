@@ -1047,6 +1047,7 @@ private:
         const identifier::Server& notaryID,
         const OTTransaction& source,
         String& note) const;
+    bool load_wallet(const Lock& lock) const;
     itemType response_type(const transactionType sourceType, const bool success)
         const;
 
