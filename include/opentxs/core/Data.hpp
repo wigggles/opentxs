@@ -45,10 +45,14 @@ namespace opentxs
 bool operator==(OTData& lhs, const Data& rhs);
 bool operator!=(OTData& lhs, const Data& rhs);
 OTData& operator+=(OTData& lhs, const OTData& rhs);
+OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
+OTData& operator+=(OTData& lhs, const std::uint32_t rhs);
 
 class Data
 {
 public:
+    enum class Mode : bool { Hex = true, Raw = false };
+
     using iterator = opentxs::iterator::Bidirectional<Data, std::byte>;
     using const_iterator =
         opentxs::iterator::Bidirectional<const Data, const std::byte>;
@@ -62,6 +66,9 @@ public:
     EXPORT static OTData Factory(const Armored& source);
     EXPORT static OTData Factory(const std::vector<unsigned char>& source);
     EXPORT static OTData Factory(const network::zeromq::Frame& message);
+    EXPORT static OTData Factory(const std::uint8_t in);
+    EXPORT static OTData Factory(const std::uint32_t in);
+    EXPORT static OTData Factory(const std::string in, const Mode mode);
 #endif
 
     EXPORT virtual bool operator==(const Data& rhs) const = 0;
@@ -74,6 +81,15 @@ public:
     EXPORT virtual const void* data() const = 0;
     EXPORT virtual bool empty() const = 0;
     EXPORT virtual const_iterator end() const = 0;
+    EXPORT virtual bool Extract(
+        const std::size_t amount,
+        Data& output,
+        const std::size_t pos = 0) const = 0;
+    EXPORT virtual bool Extract(std::uint8_t& output, const std::size_t pos = 0)
+        const = 0;
+    EXPORT virtual bool Extract(
+        std::uint32_t& output,
+        const std::size_t pos = 0) const = 0;
 #ifndef SWIG
     [[deprecated]] EXPORT virtual const void* GetPointer() const = 0;
 #endif
@@ -86,6 +102,8 @@ public:
     EXPORT virtual std::size_t size() const = 0;
 
     EXPORT virtual Data& operator+=(const Data& rhs) = 0;
+    EXPORT virtual Data& operator+=(const std::uint8_t rhs) = 0;
+    EXPORT virtual Data& operator+=(const std::uint32_t rhs) = 0;
     EXPORT virtual void Assign(const Data& source) = 0;
 #ifndef SWIG
     EXPORT virtual void Assign(const void* data, const std::size_t& size) = 0;
