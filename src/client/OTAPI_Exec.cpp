@@ -806,7 +806,7 @@ bool OTAPI_Exec::SetContactData(
 /// to be base64-encoded (and must be decoded here.)
 bool OTAPI_Exec::SetClaim_Base64(
     const std::string& nymID,
-    const std::uint32_t& section,
+    const std::uint32_t section,
     const std::string& claim) const
 {
     if (claim.empty()) {
@@ -826,7 +826,7 @@ bool OTAPI_Exec::SetClaim_Base64(
 
 bool OTAPI_Exec::SetClaim(
     const std::string& nymID,
-    const std::uint32_t& section,
+    const std::uint32_t section,
     const std::string& claim) const
 {
     if (nymID.empty()) {
@@ -925,11 +925,17 @@ std::string OTAPI_Exec::SetVerification(
         LogOutput(OT_METHOD)(__FUNCTION__)(": Empty onNym passed in!").Flush();
         return {};
     }
-    NymData pNym = api_.Wallet().mutable_Nym(api_.Factory().NymID(onNym));
 
-    // ------------------------------
+    NymData pNym = api_.Wallet().mutable_Nym(api_.Factory().NymID(onNym));
     auto verifications = identity_.Verify(
-        pNym, changed, claimantNymID, claimID, polarity, start, end);
+        pNym,
+        pNym.Nym().VerificationCredentialVersion(),
+        changed,
+        claimantNymID,
+        claimID,
+        polarity,
+        start,
+        end);
 
     if (verifications) { return proto::ProtoAsString(*verifications); }
 
@@ -10777,7 +10783,7 @@ std::string OTAPI_Exec::ContactAttributeName(
 }
 
 std::set<proto::ContactSectionName> OTAPI_Exec::ContactSectionList(
-    const std::uint32_t version) const
+    const VersionNumber version) const
 {
     return proto::AllowedSectionNames.at(version);
 }
@@ -10791,7 +10797,7 @@ std::string OTAPI_Exec::ContactSectionName(
 
 std::set<proto::ContactItemType> OTAPI_Exec::ContactSectionTypeList(
     const proto::ContactSectionName section,
-    const std::uint32_t version) const
+    const VersionNumber version) const
 {
     proto::ContactSectionVersion contactVersion{version, section};
 
@@ -10840,8 +10846,8 @@ std::string OTAPI_Exec::Wallet_ImportSeed(
 
 bool OTAPI_Exec::AddClaim(
     const std::string& nymID,
-    const std::uint32_t& section,
-    const std::uint32_t& type,
+    const std::uint32_t section,
+    const std::uint32_t type,
     const std::string& value,
     const bool active,
     const bool primary,

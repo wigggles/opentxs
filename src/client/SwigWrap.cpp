@@ -2512,7 +2512,7 @@ std::string SwigWrap::GetContactAttributeName(
         static_cast<proto::ContactItemAttribute>(type), lang);
 }
 
-std::string SwigWrap::GetContactSections(const std::uint32_t version)
+std::string SwigWrap::GetContactSections(const VersionNumber version)
 {
     const auto data = client_->Exec().ContactSectionList(version);
     NumList list;
@@ -2535,7 +2535,7 @@ std::string SwigWrap::GetContactSectionName(
 
 std::string SwigWrap::GetContactSectionTypes(
     const std::uint32_t section,
-    const std::uint32_t version)
+    const VersionNumber version)
 {
     const auto data = client_->Exec().ContactSectionTypeList(
         static_cast<proto::ContactSectionName>(section), version);
@@ -2663,7 +2663,7 @@ std::string SwigWrap::AddChildRSACredential(
 
 void SwigWrap::Activity_Preload(
     const std::string& nymID,
-    const std::uint32_t& items)
+    const std::uint32_t items)
 {
     client_->Activity().PreloadActivity(client_->Factory().NymID(nymID), items);
 }
@@ -2760,7 +2760,7 @@ std::string SwigWrap::Blockchain_Account_base64(
 
 std::string SwigWrap::Blockchain_Account_List(
     const std::string& nymID,
-    const std::uint32_t chain)
+    const Bip32Index chain)
 {
     const auto nym = client_->Factory().NymID(nymID);
     const auto type = static_cast<proto::ContactItemType>(chain);
@@ -2811,7 +2811,7 @@ std::string SwigWrap::Blockchain_Allocate_Address_base64(
 bool SwigWrap::Blockchain_Assign_Address(
     const std::string& nymID,
     const std::string& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const std::string& contact,
     const bool internal)
 {
@@ -2826,7 +2826,7 @@ bool SwigWrap::Blockchain_Assign_Address(
 std::string SwigWrap::Blockchain_Load_Address(
     const std::string& nymID,
     const std::string& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const bool internal)
 {
     const auto output = client_->Blockchain().LoadAddress(
@@ -2847,7 +2847,7 @@ std::string SwigWrap::Blockchain_Load_Address(
 std::string SwigWrap::Blockchain_Load_Address_base64(
     const std::string& nymID,
     const std::string& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const bool internal)
 {
     const auto address =
@@ -2860,7 +2860,7 @@ std::string SwigWrap::Blockchain_Load_Address_base64(
 
 std::string SwigWrap::Blockchain_New_Bip44_Account(
     const std::string& nymID,
-    const std::uint32_t chain)
+    const Bip32Index chain)
 {
     return client_->Blockchain()
         .NewAccount(
@@ -2872,7 +2872,7 @@ std::string SwigWrap::Blockchain_New_Bip44_Account(
 
 std::string SwigWrap::Blockchain_New_Bip32_Account(
     const std::string& nymID,
-    const std::uint32_t chain)
+    const Bip32Index chain)
 {
     return client_->Blockchain()
         .NewAccount(
@@ -2885,7 +2885,7 @@ std::string SwigWrap::Blockchain_New_Bip32_Account(
 bool SwigWrap::Blockchain_Store_Incoming(
     const std::string& nymID,
     const std::string& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const bool internal,
     const std::string& transaction)
 {
@@ -2910,7 +2910,7 @@ bool SwigWrap::Blockchain_Store_Incoming(
 bool SwigWrap::Blockchain_Store_Incoming_base64(
     const std::string& nymID,
     const std::string& accountID,
-    const std::uint32_t index,
+    const Bip32Index index,
     const bool internal,
     const std::string& transaction)
 {
@@ -3007,7 +3007,7 @@ std::string SwigWrap::Add_Contact(
 
 std::string SwigWrap::Blockchain_Address_To_Contact(
     const std::string& address,
-    const std::uint32_t chain,
+    const Bip32Index chain,
     const std::string& label)
 {
     const proto::ContactItemType type =
@@ -3033,7 +3033,7 @@ std::string SwigWrap::Blockchain_Address_To_Contact(
 bool SwigWrap::Contact_Add_Blockchain_Address(
     const std::string& contactID,
     const std::string& address,
-    const std::uint32_t chain)
+    const Bip32Index chain)
 {
     auto contact = client_->Contacts().mutable_Contact(
         client_->Factory().Identifier(contactID));

@@ -28,7 +28,8 @@ public:
 
     EXPORT static OTKeypair Factory(
         const NymParameters& nymParameters,
-        const proto::KeyRole role = proto::KEYROLE_ERROR);
+        const VersionNumber version,
+        const proto::KeyRole role);
     EXPORT static OTKeypair Factory(
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey);

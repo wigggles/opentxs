@@ -16,6 +16,17 @@
 #include <iomanip>
 #include <sstream>
 
+extern "C" {
+// For the htonl function
+#ifdef _WIN32
+#include <winsock2.h>
+
+#pragma comment(lib, "ws2_32.lib")
+#else
+#include <netinet/in.h>
+#endif
+}
+
 #include "Data.hpp"
 
 template class opentxs::Pimpl<opentxs::Data>;
@@ -29,6 +40,20 @@ bool operator!=(OTData& lhs, const Data& rhs) { return lhs.get() != rhs; }
 OTData& operator+=(OTData& lhs, const OTData& rhs)
 {
     lhs.get() += rhs.get();
+
+    return lhs;
+}
+
+OTData& operator+=(OTData& lhs, const std::uint8_t rhs)
+{
+    lhs.get() += rhs;
+
+    return lhs;
+}
+
+OTData& operator+=(OTData& lhs, const std::uint32_t rhs)
+{
+    lhs.get() += rhs;
 
     return lhs;
 }
@@ -58,6 +83,31 @@ OTData Data::Factory(const std::vector<unsigned char>& source)
 OTData Data::Factory(const network::zeromq::Frame& message)
 {
     return OTData(new implementation::Data(message.data(), message.size()));
+}
+
+OTData Data::Factory(const std::uint8_t in)
+{
+    return OTData(new implementation::Data(&in, sizeof(in)));
+}
+
+OTData Data::Factory(const std::uint32_t in)
+{
+    const auto input = htonl(in);
+
+    return OTData(new implementation::Data(&input, sizeof(input)));
+}
+
+OTData Data::Factory(const std::string in, const Mode mode)
+{
+    if (Mode::Hex == mode) {
+        auto output = OTData(new implementation::Data(in.data(), in.size()));
+
+        if (output->DecodeHex(in)) { return output; }
+
+        return OTData(new implementation::Data());
+    } else {
+        return OTData(new implementation::Data(in.data(), in.size()));
+    }
 }
 
 namespace implementation
@@ -102,6 +152,22 @@ Data& Data::operator+=(const opentxs::Data& rhs)
     return *this;
 }
 
+Data& Data::operator+=(const std::uint8_t rhs)
+{
+    data_.emplace_back(rhs);
+
+    return *this;
+}
+
+Data& Data::operator+=(const std::uint32_t rhs)
+{
+    const auto input = htonl(rhs);
+    Data temp(&input, sizeof(input));
+    concatenate(temp.data_);
+
+    return *this;
+}
+
 std::string Data::asHex() const
 {
     std::stringstream out{};
@@ -134,6 +200,21 @@ void Data::Assign(const void* data, const std::size_t& size)
         const std::uint8_t* end = start + size;
         data_.assign(start, end);
     }
+}
+
+bool Data::check_sub(const std::size_t pos, const std::size_t target) const
+{
+    const auto size = data_.size();
+
+    if (pos > size) { return false; }
+
+    if ((std::numeric_limits<std::size_t>::max() - pos) < target) {
+        return false;
+    }
+
+    if ((pos + target) > size) { return false; }
+
+    return true;
 }
 
 void Data::concatenate(const Vector& data)
@@ -170,6 +251,36 @@ bool Data::DecodeHex(const std::string& hex)
     for (std::size_t i = 0; i < padded.length(); i += 2) {
         data_.emplace_back(strtol(padded.substr(i, 2).c_str(), nullptr, 16));
     }
+
+    return true;
+}
+
+bool Data::Extract(
+    const std::size_t amount,
+    opentxs::Data& output,
+    const std::size_t pos) const
+{
+    if (false == check_sub(pos, amount)) { return false; }
+
+    output.Assign(&data_.at(pos), amount);
+
+    return true;
+}
+
+bool Data::Extract(std::uint8_t& output, const std::size_t pos) const
+{
+    if (false == check_sub(pos, sizeof(output))) { return false; }
+
+    output = data_.at(pos);
+
+    return true;
+}
+
+bool Data::Extract(std::uint32_t& output, const std::size_t pos) const
+{
+    if (false == check_sub(pos, sizeof(output))) { return false; }
+
+    output = ntohl(reinterpret_cast<const std::uint32_t&>(data_.at(pos)));
 
     return true;
 }

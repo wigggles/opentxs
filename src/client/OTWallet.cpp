@@ -455,7 +455,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // wallet (which assumed only one seed existed).
                     else if (strNodeName->Compare("hd")) {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-                        std::uint32_t index = String::StringToUint(
+                        auto index = String::StringToUint(
                             xml->getAttributeValue("index"));
                         // An empty string will load the default seed
                         std::string seed = "";

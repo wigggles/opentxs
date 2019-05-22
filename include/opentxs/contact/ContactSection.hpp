@@ -28,19 +28,19 @@ public:
 
     ContactSection(
         const std::string& nym,
-        const std::uint32_t version,
-        const std::uint32_t parentVersion,
+        const VersionNumber version,
+        const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const GroupMap& groups);
     ContactSection(
         const std::string& nym,
-        const std::uint32_t version,
-        const std::uint32_t parentVersion,
+        const VersionNumber version,
+        const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const std::shared_ptr<ContactItem>& item);
     ContactSection(
         const std::string& nym,
-        const std::uint32_t parentVersion,
+        const VersionNumber parentVersion,
         const proto::ContactSection& serialized);
     ContactSection(const ContactSection&) = default;
     ContactSection(ContactSection&&) = default;
@@ -59,26 +59,26 @@ public:
         const;
     std::size_t Size() const;
     const proto::ContactSectionName& Type() const;
-    const std::uint32_t& Version() const;
+    VersionNumber Version() const;
 
     ~ContactSection() = default;
 
 private:
-    const std::uint32_t version_{0};
+    const VersionNumber version_{0};
     const std::string nym_{};
     const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
     const GroupMap groups_{};
 
-    static std::uint32_t check_version(
-        const std::uint32_t in,
-        const std::uint32_t targetVersion);
+    static VersionNumber check_version(
+        const VersionNumber in,
+        const VersionNumber targetVersion);
     static GroupMap create_group(
         const std::string& nym,
         const proto::ContactSectionName section,
         const std::shared_ptr<ContactItem>& item);
     static GroupMap extract_groups(
         const std::string& nym,
-        const std::uint32_t parentVersion,
+        const VersionNumber parentVersion,
         const proto::ContactSection& serialized);
 
     ContactSection add_scope(const std::shared_ptr<ContactItem>& item) const;

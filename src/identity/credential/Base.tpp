@@ -10,21 +10,25 @@ namespace opentxs
 template identity::credential::internal::Secondary* Factory::Credential(
     const api::Core&,
     identity::internal::Authority&,
+    const std::uint32_t,
     const NymParameters&,
     const proto::CredentialRole);
 template identity::credential::internal::Contact* Factory::Credential(
     const api::Core&,
     identity::internal::Authority&,
+    const std::uint32_t,
     const NymParameters&,
     const proto::CredentialRole);
 template identity::credential::internal::Primary* Factory::Credential(
     const api::Core&,
     identity::internal::Authority&,
+    const std::uint32_t,
     const NymParameters&,
     const proto::CredentialRole);
 template identity::credential::internal::Verification* Factory::Credential(
     const api::Core&,
     identity::internal::Authority&,
+    const std::uint32_t,
     const NymParameters&,
     const proto::CredentialRole);
 
@@ -65,6 +69,7 @@ struct make_credential {
     static C* Get(
         const api::Core& api,
         identity::internal::Authority& owner,
+        const std::uint32_t version,
         const NymParameters& nymParameter);
 };
 
@@ -114,9 +119,11 @@ struct make_credential<identity::credential::internal::Contact> {
     static identity::credential::internal::Contact* Get(
         const api::Core& api,
         identity::internal::Authority& owner,
+        const std::uint32_t version,
         const NymParameters& nymParameters)
     {
-        return opentxs::Factory::ContactCredential(api, owner, nymParameters);
+        return opentxs::Factory::ContactCredential(
+            api, owner, nymParameters, version);
     }
 };
 template <>
@@ -124,9 +131,11 @@ struct make_credential<identity::credential::internal::Primary> {
     static identity::credential::internal::Primary* Get(
         const api::Core& api,
         identity::internal::Authority& owner,
+        const std::uint32_t version,
         const NymParameters& nymParameters)
     {
-        return opentxs::Factory::PrimaryCredential(api, owner, nymParameters);
+        return opentxs::Factory::PrimaryCredential(
+            api, owner, nymParameters, version);
     }
 };
 template <>
@@ -134,9 +143,11 @@ struct make_credential<identity::credential::internal::Secondary> {
     static identity::credential::internal::Secondary* Get(
         const api::Core& api,
         identity::internal::Authority& owner,
+        const std::uint32_t version,
         const NymParameters& nymParameters)
     {
-        return opentxs::Factory::SecondaryCredential(api, owner, nymParameters);
+        return opentxs::Factory::SecondaryCredential(
+            api, owner, nymParameters, version);
     }
 };
 template <>
@@ -144,10 +155,11 @@ struct make_credential<identity::credential::internal::Verification> {
     static identity::credential::internal::Verification* Get(
         const api::Core& api,
         identity::internal::Authority& owner,
+        const std::uint32_t version,
         const NymParameters& nymParameters)
     {
         return opentxs::Factory::VerificationCredential(
-            api, owner, nymParameters);
+            api, owner, nymParameters, version);
     }
 };
 
@@ -155,11 +167,12 @@ template <class C>
 C* Factory::Credential(
     const api::Core& api,
     identity::internal::Authority& owner,
+    const std::uint32_t version,
     const NymParameters& nymParameters,
     const proto::CredentialRole role)
 {
     std::unique_ptr<C> output{
-        make_credential<C>::Get(api, owner, nymParameters)};
+        make_credential<C>::Get(api, owner, version, nymParameters)};
 
     if (!output) {
         LogOutput(": Failed to construct credential.").Flush();

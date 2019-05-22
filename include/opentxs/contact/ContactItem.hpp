@@ -26,8 +26,8 @@ class ContactItem
 public:
     ContactItem(
         const std::string& nym,
-        const std::uint32_t version,
-        const std::uint32_t parentVersion,
+        const VersionNumber version,
+        const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const proto::ContactItemType& type,
         const std::string& value,
@@ -36,12 +36,12 @@ public:
         const std::time_t end);
     ContactItem(
         const std::string& nym,
-        const std::uint32_t version,
-        const std::uint32_t parentVersion,
+        const VersionNumber version,
+        const VersionNumber parentVersion,
         const Claim& claim);
     ContactItem(
         const std::string& nym,
-        const std::uint32_t parentVersion,
+        const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const proto::ContactItem& serialized);
     ContactItem(const ContactItem&) = default;
@@ -68,12 +68,12 @@ public:
     const std::time_t& Start() const;
     const proto::ContactItemType& Type() const;
     const std::string& Value() const;
-    const std::uint32_t& Version() const;
+    VersionNumber Version() const;
 
     ~ContactItem() = default;
 
 private:
-    const std::uint32_t version_{0};
+    const VersionNumber version_{0};
     const std::string nym_{};
     const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
     const proto::ContactItemType type_{proto::CITEMTYPE_ERROR};
@@ -83,9 +83,9 @@ private:
     const std::set<proto::ContactItemAttribute> attributes_{};
     const OTIdentifier id_;
 
-    static std::uint32_t check_version(
-        const std::uint32_t in,
-        const std::uint32_t targetVersion);
+    static VersionNumber check_version(
+        const VersionNumber in,
+        const VersionNumber targetVersion);
     static std::set<proto::ContactItemAttribute> extract_attributes(
         const proto::ContactItem& serialized);
     static std::set<proto::ContactItemAttribute> extract_attributes(

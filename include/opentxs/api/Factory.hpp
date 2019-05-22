@@ -143,7 +143,7 @@ public:
         const proto::PaymentCode& serialized) const = 0;
     EXPORT virtual OTPaymentCode PaymentCode(
         const std::string& seed,
-        const std::uint32_t nym,
+        const Bip32Index nym,
         const std::uint8_t version,
         const bool bitmessage = false,
         const std::uint8_t bitmessageVersion = 0,
@@ -177,10 +177,10 @@ public:
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const std::uint32_t& version) const = 0;
+        const VersionNumber version) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
-        const std::uint32_t& version) const = 0;
+        const VersionNumber version) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& signerNym,
         const proto::PeerObject& serialized) const = 0;

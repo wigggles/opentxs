@@ -26,6 +26,9 @@ class Nym
 public:
     using Serialized = proto::CredentialIndex;
 
+    EXPORT static const VersionNumber DefaultVersion;
+    EXPORT static const VersionNumber MaxVersion;
+
     EXPORT virtual std::string Alias() const = 0;
     EXPORT virtual const Serialized asPublicNym() const = 0;
     EXPORT virtual std::string BestEmail() const = 0;
@@ -35,6 +38,8 @@ public:
     EXPORT virtual const class ContactData& Claims() const = 0;
     EXPORT virtual bool CompareID(const Nym& RHS) const = 0;
     EXPORT virtual bool CompareID(const identifier::Nym& rhs) const = 0;
+    EXPORT virtual VersionNumber ContactCredentialVersion() const = 0;
+    EXPORT virtual VersionNumber ContactDataVersion() const = 0;
     EXPORT virtual std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const = 0;
@@ -148,6 +153,7 @@ public:
         const proto::Ciphertext& input,
         crypto::key::Symmetric& key,
         OTPassword& password) const = 0;
+    EXPORT virtual VersionNumber VerificationCredentialVersion() const = 0;
     EXPORT virtual std::unique_ptr<proto::VerificationSet> VerificationSet()
         const = 0;
     template <typename T>

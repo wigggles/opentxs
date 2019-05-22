@@ -616,7 +616,7 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& symbol,
     const std::string& terms,
     const std::string& tla,
-    const std::uint32_t& power,
+    const std::uint32_t power,
     const std::string& fraction)
 {
     std::unique_ptr<UnitDefinition> contract(new CurrencyContract(

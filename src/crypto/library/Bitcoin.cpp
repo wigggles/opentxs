@@ -146,7 +146,7 @@ std::shared_ptr<proto::AsymmetricKey> Bitcoin::SeedToPrivateKey(
 
 std::shared_ptr<proto::AsymmetricKey> Bitcoin::GetChild(
     [[maybe_unused]] const proto::AsymmetricKey& parent,
-    [[maybe_unused]] const std::uint32_t index) const
+    [[maybe_unused]] const Bip32Index index) const
 {
     // TODO
 

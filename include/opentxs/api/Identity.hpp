@@ -26,6 +26,7 @@ public:
         const identity::Nym& fromNym) const = 0;
     virtual std::unique_ptr<proto::VerificationSet> Verify(
         NymData& onNym,
+        const VersionNumber version,
         bool& changed,
         const std::string& claimantNymID,
         const std::string& claimID,

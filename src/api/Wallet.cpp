@@ -2182,10 +2182,9 @@ ConstServerContract Wallet::Server(
     const std::string& name,
     const std::string& terms,
     const std::list<ServerContract::Endpoint>& endpoints,
-    const std::uint32_t version) const
+    const VersionNumber version) const
 {
     std::string server;
-
     auto nym = Nym(identifier::Nym::Factory(nymid));
 
     if (nym) {
@@ -2408,7 +2407,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const std::string& symbol,
     const std::string& terms,
     const std::string& tla,
-    const std::uint32_t& power,
+    const std::uint32_t power,
     const std::string& fraction) const
 {
     std::string unit;

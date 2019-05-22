@@ -38,7 +38,7 @@ private:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const std::uint32_t& power,
+        const std::uint32_t power,
         const std::string& fraction);
 
     EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;

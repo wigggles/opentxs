@@ -42,23 +42,27 @@ public:
 
     NymIDSource(
         const api::Factory& factory,
-        const proto::NymIDSource& serializedSource);
-    NymIDSource(const api::Factory& factory, const String& stringSource);
+        const proto::NymIDSource& serializedSource) noexcept;
+    NymIDSource(
+        const api::Factory& factory,
+        const String& stringSource) noexcept;
     NymIDSource(
         const api::Factory& factory,
         const NymParameters& nymParameters,
-        proto::AsymmetricKey& pubkey);
+        proto::AsymmetricKey& pubkey) noexcept;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    explicit NymIDSource(
+    NymIDSource(
         const api::Factory& factory,
-        const PaymentCode& source);
+        const PaymentCode& source) noexcept;
 #endif
-    NymIDSource(const NymIDSource&);
+    NymIDSource(const NymIDSource&) noexcept;
 
 private:
+    static const VersionConversionMap key_to_source_version_;
+
     const api::Factory& factory_;
 
-    std::uint32_t version_ = 0;
+    VersionNumber version_ = 0;
     proto::SourceType type_ = proto::SOURCETYPE_ERROR;
     OTAsymmetricKey pubkey_;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47

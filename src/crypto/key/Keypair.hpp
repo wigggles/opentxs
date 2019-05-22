@@ -53,15 +53,16 @@ private:
 
     bool make_new_keypair(const NymParameters& nymParameters);
 
+    explicit Keypair(const proto::AsymmetricKey& serializedPubkey) noexcept;
     Keypair(
         const NymParameters& nymParameters,
-        const proto::KeyRole role = proto::KEYROLE_ERROR);
+        const VersionNumber version,
+        const proto::KeyRole role = proto::KEYROLE_ERROR) noexcept;
     Keypair(
         const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey);
-    explicit Keypair(const proto::AsymmetricKey& serializedPubkey);
+        const proto::AsymmetricKey& serializedPrivkey) noexcept;
     Keypair() = delete;
-    Keypair(const Keypair&);
+    Keypair(const Keypair&) noexcept;
     Keypair(Keypair&&) = delete;
     Keypair& operator=(const Keypair&) = delete;
     Keypair& operator=(Keypair&&) = delete;

@@ -25,13 +25,13 @@ public:
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
-        const std::uint32_t index) const = 0;
+        const Bip32Index index) const = 0;
     EXPORT virtual std::string Bip32Root(
         const std::string& fingerprint = "") const = 0;
     EXPORT virtual std::string DefaultSeed() const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
-        const std::uint32_t nym) const = 0;
+        const Bip32Index nym) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetStorageKey(
         std::string& seed) const = 0;
     EXPORT virtual std::string ImportSeed(
@@ -42,10 +42,9 @@ public:
         const std::string& fingerprint = "") const = 0;
     EXPORT virtual std::shared_ptr<OTPassword> Seed(
         std::string& fingerprint,
-        std::uint32_t& index) const = 0;
-    EXPORT virtual bool UpdateIndex(
-        std::string& seed,
-        const std::uint32_t index) const = 0;
+        Bip32Index& index) const = 0;
+    EXPORT virtual bool UpdateIndex(std::string& seed, const Bip32Index index)
+        const = 0;
     EXPORT virtual std::string Words(
         const std::string& fingerprint = "") const = 0;
 

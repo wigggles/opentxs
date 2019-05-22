@@ -21,6 +21,9 @@ namespace otx
 class Request : virtual public Signable
 {
 public:
+    EXPORT static const VersionNumber DefaultVersion;
+    EXPORT static const VersionNumber MaxVersion;
+
     EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const Nym_p signer,
         const identifier::Server& server,

@@ -12,6 +12,10 @@ namespace opentxs::identity::implementation
 class Authority final : virtual public identity::internal::Authority
 {
 public:
+    VersionNumber ContactCredentialVersion() const override
+    {
+        return authority_to_contact_.at(version_);
+    }
     bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const override;
     const credential::Primary& GetMasterCredential() const override
@@ -70,6 +74,10 @@ public:
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
     const NymIDSource& Source() const override { return *nym_id_source_; }
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
+    VersionNumber VerificationCredentialVersion() const override
+    {
+        return authority_to_verification_.at(version_);
+    }
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
@@ -103,9 +111,14 @@ private:
         map<OTIdentifier, std::unique_ptr<credential::internal::Secondary>>;
     using VerificationCredentialMap = std::
         map<OTIdentifier, std::unique_ptr<credential::internal::Verification>>;
-
     using mapOfCredentials =
         std::map<std::string, std::unique_ptr<credential::internal::Base>>;
+
+    static const VersionConversionMap authority_to_contact_;
+    static const VersionConversionMap authority_to_primary_;
+    static const VersionConversionMap authority_to_secondary_;
+    static const VersionConversionMap authority_to_verification_;
+    static const VersionConversionMap nym_to_authority_;
 
     const api::Core& api_;
     std::unique_ptr<credential::internal::Primary> master_;
@@ -116,8 +129,8 @@ private:
     std::string m_strNymID;
     std::shared_ptr<NymIDSource> nym_id_source_;
     const OTPassword* m_pImportPassword = nullptr;
-    std::uint32_t version_{0};
-    std::uint32_t index_{0};
+    VersionNumber version_{0};
+    Bip32Index index_{0};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
 
     static bool is_revoked(
@@ -146,18 +159,18 @@ private:
     Authority() = delete;
     Authority(
         const api::Core& api,
-        const std::uint32_t version = 0,
-        const std::uint32_t index = 0,
+        const VersionNumber version,
+        const Bip32Index index = 0,
         const proto::KeyMode mode = proto::KEYMODE_PRIVATE,
-        const std::string& nymID = "");
+        const std::string& nymID = "") noexcept;
     Authority(
         const api::Core& api,
         const proto::KeyMode mode,
-        const Serialized& serializedAuthority);
+        const Serialized& serializedAuthority) noexcept;
     Authority(
         const api::Core& api,
         const NymParameters& nymParameters,
-        std::uint32_t version,
-        const OTPasswordData* pPWData = nullptr);
+        VersionNumber nymVersion,
+        const OTPasswordData* pPWData = nullptr) noexcept;
 };
 }  // namespace opentxs::identity::implementation

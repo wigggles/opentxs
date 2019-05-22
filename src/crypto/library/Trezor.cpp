@@ -97,7 +97,10 @@ Trezor::Trezor(const api::Crypto& crypto)
 {
 #if OT_CRYPTO_WITH_BIP32
     secp256k1_ = get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str());
+    ed25519_ = get_curve_by_name(CurveName(EcdsaCurve::ED25519).c_str());
+
     OT_ASSERT(nullptr != secp256k1_);
+    OT_ASSERT(nullptr != ed25519_);
 #endif
 }
 
@@ -137,74 +140,97 @@ std::string Trezor::SeedToFingerprint(
     if (node) {
         auto pubkey = Data::Factory(
             static_cast<void*>(node->public_key), sizeof(node->public_key));
-        auto identifier = Identifier::Factory();
-        identifier->CalculateDigest(pubkey);
-        auto fingerprint = String::Factory(identifier);
+        auto output = Identifier::Factory();
+        output->CalculateDigest(pubkey);
 
-        return fingerprint->Get();
+        return output->str();
     }
 
     return "";
 }
 
-std::shared_ptr<proto::AsymmetricKey> Trezor::SeedToPrivateKey(
-    const EcdsaCurve& curve,
-    const OTPassword& seed) const
+const curve_info* Trezor::get_curve(const EcdsaCurve& curve) const
 {
-    std::shared_ptr<proto::AsymmetricKey> derivedKey;
-    auto node = InstantiateHDNode(curve, seed);
-
-    OT_ASSERT_MSG(node, "Derivation of root node failed.");
-
-    if (node) {
-        derivedKey = HDNodeToSerialized(
-            AsymmetricProvider::CurveToKeyType(curve),
-            *node,
-            Trezor::DERIVE_PRIVATE);
-
-        if (derivedKey) {
-            OTPassword root;
-            crypto_.Hash().Digest(proto::HASHTYPE_BLAKE2B160, seed, root);
-            derivedKey->mutable_path()->set_root(
-                root.getMemory(), root.getMemorySize());
+    switch (curve) {
+        case EcdsaCurve::SECP256K1: {
+            return secp256k1_;
+        }
+        case EcdsaCurve::ED25519: {
+            return ed25519_;
+        }
+        default: {
+            OT_FAIL
         }
     }
+}
 
-    return derivedKey;
+const curve_info* Trezor::get_curve(const proto::AsymmetricKeyType& curve) const
+{
+    switch (curve) {
+        case proto::AKEYTYPE_SECP256K1: {
+            return secp256k1_;
+        }
+        case proto::AKEYTYPE_ED25519: {
+            return ed25519_;
+        }
+        default: {
+            OT_FAIL
+        }
+    }
 }
 
 std::shared_ptr<proto::AsymmetricKey> Trezor::GetChild(
     const proto::AsymmetricKey& parent,
-    const std::uint32_t index) const
+    const Bip32Index index) const
 {
-    auto node = SerializedToHDNode(parent);
+    Bip32Fingerprint fingerprint{};
+    auto node = SerializedToHDNode(parent, fingerprint);
+    int result{0};
 
     if (proto::KEYMODE_PRIVATE == parent.mode()) {
-        hdnode_private_ckd(node.get(), index);
+        result = hdnode_private_ckd(node.get(), index);
+        hdnode_fill_public_key(node.get());
     } else {
-        hdnode_public_ckd(node.get(), index);
+        result = hdnode_public_ckd(node.get(), index);
     }
 
-    std::shared_ptr<proto::AsymmetricKey> key =
-        HDNodeToSerialized(parent.type(), *node, Trezor::DERIVE_PRIVATE);
+    std::shared_ptr<proto::AsymmetricKey> key = HDNodeToSerialized(
+        parent.type(), *node, Trezor::DERIVE_PRIVATE, parent.version());
+
+    OT_ASSERT(key);
+
+    key->set_bip32_parent(fingerprint);
+
+    if (1 != result) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive child").Flush();
+
+        return {};
+    }
 
     return key;
 }
 
 std::unique_ptr<HDNode> Trezor::GetChild(
     const HDNode& parent,
-    const std::uint32_t index,
+    const Bip32Index index,
     const DerivationMode privateVersion)
 {
-    std::unique_ptr<HDNode> output;
-    output.reset(new HDNode(parent));
+    auto output = std::make_unique<HDNode>(parent);
+    int result{0};
 
     if (!output) { OT_FAIL; }
 
     if (privateVersion) {
-        hdnode_private_ckd(output.get(), index);
+        result = hdnode_private_ckd(output.get(), index);
+        hdnode_fill_public_key(output.get());
     } else {
-        hdnode_public_ckd(output.get(), index);
+        result = hdnode_public_ckd(output.get(), index);
+    }
+
+    if (1 != result) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive child").Flush();
+
+        return {};
     }
 
     return output;
@@ -213,39 +239,45 @@ std::unique_ptr<HDNode> Trezor::GetChild(
 std::unique_ptr<HDNode> Trezor::DeriveChild(
     const EcdsaCurve& curve,
     const OTPassword& seed,
-    proto::HDPath& path) const
+    proto::HDPath& path,
+    Bip32Fingerprint& fingerprint) const
 {
-    std::uint32_t depth = path.child_size();
+    std::unique_ptr<HDNode> output{nullptr};
+    Bip32Index depth = path.child_size();
 
     if (0 == depth) {
-
-        return InstantiateHDNode(curve, seed);
+        fingerprint = 0;
+        output = InstantiateHDNode(curve, seed);
     } else {
         proto::HDPath newpath = path;
         newpath.mutable_child()->RemoveLast();
-        auto parentnode = DeriveChild(curve, seed, newpath);
-        std::unique_ptr<HDNode> output{nullptr};
+        auto parentnode = DeriveChild(curve, seed, newpath, fingerprint);
 
         if (parentnode) {
             const auto child = path.child(depth - 1);
             output = GetChild(*parentnode, child, DERIVE_PRIVATE);
+            const auto pubkey = Data::Factory(
+                parentnode->public_key, sizeof(parentnode->public_key));
+            fingerprint = key::EllipticCurve::CalculateFingerprint(pubkey);
         } else {
             OT_FAIL;
         }
-
-        return output;
     }
+
+    return output;
 }
 
 std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
     const EcdsaCurve& curve,
     const OTPassword& seed,
-    proto::HDPath& path) const
+    proto::HDPath& path,
+    const VersionNumber version) const
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Deriving child: ")(Print(path))
         .Flush();
     std::shared_ptr<proto::AsymmetricKey> output{nullptr};
-    auto node = DeriveChild(curve, seed, path);
+    Bip32Fingerprint fingerprint{};
+    auto node = DeriveChild(curve, seed, path, fingerprint);
 
     if (!node) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive child.").Flush();
@@ -256,9 +288,14 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
     output = HDNodeToSerialized(
         AsymmetricProvider::CurveToKeyType(curve),
         *node,
-        Trezor::DERIVE_PRIVATE);
+        Trezor::DERIVE_PRIVATE,
+        version);
 
-    if (output) { *(output->mutable_path()) = path; }
+    if (output) {
+        output->set_bip32_parent(fingerprint);
+
+        *(output->mutable_path()) = path;
+    }
 
     return output;
 }
@@ -266,13 +303,14 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
 std::shared_ptr<proto::AsymmetricKey> Trezor::HDNodeToSerialized(
     const proto::AsymmetricKeyType& type,
     const HDNode& node,
-    const DerivationMode privateVersion) const
+    const DerivationMode privateVersion,
+    const VersionNumber version) const
 {
     auto key = std::make_shared<proto::AsymmetricKey>();
 
     OT_ASSERT(key);
 
-    key->set_version(1);
+    key->set_version(version);
     key->set_type(type);
 
     if (privateVersion) {
@@ -341,10 +379,12 @@ std::unique_ptr<HDNode> Trezor::InstantiateHDNode(
 }
 
 std::unique_ptr<HDNode> Trezor::SerializedToHDNode(
-    const proto::AsymmetricKey& serialized) const
+    const proto::AsymmetricKey& serialized,
+    Bip32Fingerprint& fingerprint) const
 {
     auto node = InstantiateHDNode(
         AsymmetricProvider::KeyTypeToCurve(serialized.type()));
+    auto publicKey = Data::Factory();
 
     if (proto::KEYMODE_PRIVATE == serialized.mode()) {
         OTPassword key, chaincode;
@@ -375,6 +415,12 @@ std::unique_ptr<HDNode> Trezor::SerializedToHDNode(
             chaincode.getMemory(),
             chaincode.getMemorySize(),
             false);
+        std::array<std::uint8_t, 33> raw{0x0};
+        ::ecdsa_get_public_key33(
+            get_curve(serialized.type())->params,
+            key.getMemory_uint8(),
+            raw.data());
+        publicKey->Assign(raw.data(), raw.size());
     } else {
         OTPassword::safe_memcpy(
             &(node->public_key[0]),
@@ -382,7 +428,10 @@ std::unique_ptr<HDNode> Trezor::SerializedToHDNode(
             serialized.key().c_str(),
             serialized.key().size(),
             false);
+        publicKey->Assign(serialized.key().c_str(), serialized.key().size());
     }
+
+    fingerprint = key::EllipticCurve::CalculateFingerprint(publicKey);
 
     return node;
 }

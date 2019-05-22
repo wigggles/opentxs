@@ -18,13 +18,13 @@
 
 template class opentxs::Pimpl<opentxs::otx::Request>;
 
-// TODO 1.14.0
-#define OTX_REQUEST_CREATE_VERSION 1
-
 #define OT_METHOD "opentxs::otx::implementation::Request::"
 
 namespace opentxs::otx
 {
+const VersionNumber Request::DefaultVersion{2};
+const VersionNumber Request::MaxVersion{2};
+
 OTXRequest Request::Factory(
     const Nym_p signer,
     const identifier::Server& server,
@@ -61,7 +61,7 @@ Request::Request(
     const identifier::Nym& initiator,
     const identifier::Server& server,
     const proto::ServerRequestType type)
-    : Signable(signer, OTX_REQUEST_CREATE_VERSION, "")
+    : Signable(signer, DefaultVersion, "")
     , initiator_(initiator)
     , server_(server)
     , type_(type)

@@ -16,6 +16,7 @@ public:
         const identity::Nym& fromNym) const override;
     std::unique_ptr<proto::VerificationSet> Verify(
         NymData& onNym,
+        const VersionNumber version,
         bool& changed,
         const std::string& claimantNymID,
         const std::string& claimID,
@@ -49,11 +50,11 @@ private:
         const std::int64_t end = 0) const;
     proto::VerificationGroup& GetOrCreateInternalGroup(
         proto::VerificationSet& verificationSet,
-        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
+        const VersionNumber version) const;
     proto::VerificationIdentity& GetOrCreateVerificationIdentity(
         proto::VerificationGroup& verificationGroup,
         const std::string& nym,
-        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
+        const VersionNumber version) const;
     bool HaveVerification(
         proto::VerificationIdentity& identity,
         const std::string& claimID,
@@ -61,7 +62,7 @@ private:
         const std::int64_t start = 0,
         const std::int64_t end = 0) const;
     std::unique_ptr<proto::VerificationSet> InitializeVerificationSet(
-        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
+        const VersionNumber version) const;
     bool MatchVerification(
         const proto::Verification& item,
         const std::string& claimID,

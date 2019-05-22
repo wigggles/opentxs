@@ -66,7 +66,7 @@ ServerContract* ServerContract::Create(
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
     const std::string& name,
-    const std::uint32_t version)
+    const VersionNumber version)
 {
     OT_ASSERT(nym);
     OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));
@@ -117,6 +117,9 @@ std::string ServerContract::EffectiveName() const
 {
     OT_ASSERT(nym_)
 
+    // TODO The version stored in nym_ might be out of date so load it from the
+    // wallet. This can be fixed correctly by implementing in-place updates of
+    // Nym credentials
     const auto nym = wallet_.Nym(nym_->ID());
     const auto output = nym->Name();
 

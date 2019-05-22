@@ -35,16 +35,30 @@
 
 #include "Key.hpp"
 
-#define OT_METHOD "opentxs::identity::credential::implementation::Key"
+#define OT_METHOD "opentxs::identity::credential::implementation::Key::"
 
 namespace opentxs::identity::credential::implementation
 {
+const VersionConversionMap Key::credential_subversion_{
+    {1, 1},
+    {2, 1},
+    {3, 1},
+    {4, 1},
+    {5, 1},
+    {6, 2},
+};
+const VersionConversionMap Key::subversion_to_key_version_{
+    {1, 1},
+    {2, 2},
+};
+
 Key::Key(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const proto::Credential& serialized)
+    const proto::Credential& serialized) noexcept
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Base(api, theOwner, serialized)
+    , subversion_(credential_subversion_.at(version_))
     , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serialized))
     , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serialized))
     , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serialized))
@@ -54,19 +68,28 @@ Key::Key(
 Key::Key(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const NymParameters& nymParameters)
-    : Signable({}, KEY_CREDENTIAL_VERSION)  // TODO Signable
-    , credential::implementation::Base(
-          api,
-          theOwner,
-          KEY_CREDENTIAL_VERSION,
-          nymParameters)
-    , signing_key_(new_key(api_.Crypto(), proto::KEYROLE_SIGN, nymParameters))
-    , authentication_key_(
-          new_key(api_.Crypto(), proto::KEYROLE_AUTH, nymParameters))
-    , encryption_key_(
-          new_key(api_.Crypto(), proto::KEYROLE_ENCRYPT, nymParameters))
+    const NymParameters& nymParameters,
+    const VersionNumber version) noexcept
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Base(api, theOwner, nymParameters, version)
+    , subversion_(credential_subversion_.at(version_))
+    , signing_key_(new_key(
+          api_.Crypto(),
+          proto::KEYROLE_SIGN,
+          nymParameters,
+          subversion_to_key_version_.at(subversion_)))
+    , authentication_key_(new_key(
+          api_.Crypto(),
+          proto::KEYROLE_AUTH,
+          nymParameters,
+          subversion_to_key_version_.at(subversion_)))
+    , encryption_key_(new_key(
+          api_.Crypto(),
+          proto::KEYROLE_ENCRYPT,
+          nymParameters,
+          subversion_to_key_version_.at(subversion_)))
 {
+    OT_ASSERT(0 != version);
 }
 
 bool Key::VerifySignedBySelf(const Lock& lock) const
@@ -252,11 +275,12 @@ OTKeypair Key::deserialize_key(
 OTKeypair Key::new_key(
     const api::Crypto& crypto,
     const proto::KeyRole role,
-    const NymParameters& nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
 
-        return crypto::key::Keypair::Factory(nymParameters, role);
+        return crypto::key::Keypair::Factory(nymParameters, version, role);
     }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -274,7 +298,8 @@ OTKeypair Key::new_key(
         nymParameters.Credset(),
         nymParameters.CredIndex(),
         curve,
-        role);
+        role,
+        version);
 #else
     OT_FAIL
 #endif
@@ -302,11 +327,12 @@ OTKeypair Key::derive_hd_keypair(
     const api::Crypto& crypto,
     const OTPassword& seed,
     const std::string& fingerprint,
-    const std::uint32_t nym,
-    const std::uint32_t credset,
-    const std::uint32_t credindex,
+    const Bip32Index nym,
+    const Bip32Index credset,
+    const Bip32Index credindex,
     const EcdsaCurve& curve,
-    const proto::KeyRole role)
+    const proto::KeyRole role,
+    const VersionNumber version)
 {
     proto::HDPath keyPath;
     keyPath.set_version(1);
@@ -314,35 +340,34 @@ OTKeypair Key::derive_hd_keypair(
     keyPath.set_root(input.c_str(), input.size());
 
     keyPath.add_child(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-        static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    keyPath.add_child(nym | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+        static_cast<Bip32Index>(Bip32Child::HARDENED));
+    keyPath.add_child(nym | static_cast<Bip32Index>(Bip32Child::HARDENED));
+    keyPath.add_child(credset | static_cast<Bip32Index>(Bip32Child::HARDENED));
     keyPath.add_child(
-        credset | static_cast<std::uint32_t>(Bip32Child::HARDENED));
-    keyPath.add_child(
-        credindex | static_cast<std::uint32_t>(Bip32Child::HARDENED));
+        credindex | static_cast<Bip32Index>(Bip32Child::HARDENED));
 
     switch (role) {
         case proto::KEYROLE_AUTH:
             keyPath.add_child(
-                static_cast<std::uint32_t>(Bip32Child::AUTH_KEY) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(Bip32Child::AUTH_KEY) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_ENCRYPT:
             keyPath.add_child(
-                static_cast<std::uint32_t>(Bip32Child::ENCRYPT_KEY) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(Bip32Child::ENCRYPT_KEY) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             break;
         case proto::KEYROLE_SIGN:
             keyPath.add_child(
-                static_cast<std::uint32_t>(Bip32Child::SIGN_KEY) |
-                static_cast<std::uint32_t>(Bip32Child::HARDENED));
+                static_cast<Bip32Index>(Bip32Child::SIGN_KEY) |
+                static_cast<Bip32Index>(Bip32Child::HARDENED));
             break;
         default:
             break;
     }
 
-    auto privateKey = crypto.BIP32().GetHDKey(curve, seed, keyPath);
+    auto privateKey = crypto.BIP32().GetHDKey(curve, seed, keyPath, version);
 
     OT_ASSERT(privateKey)
 
@@ -462,7 +487,7 @@ bool Key::addKeyCredentialtoSerializedCredential(
         return false;
     }
 
-    keyCredential->set_version(KEY_CREDENTIAL_VERSION);
+    keyCredential->set_version(subversion_);
 
     // These must be serialized in this order
     bool auth = addKeytoSerializedKeyCredential(

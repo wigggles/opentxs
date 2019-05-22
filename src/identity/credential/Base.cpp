@@ -35,8 +35,8 @@ namespace opentxs::identity::credential::implementation
 Base::Base(
     const api::Core& api,
     identity::internal::Authority& theOwner,
-    const std::uint32_t version,
-    const NymParameters& nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version)
     : Signable({}, version)
     , api_(api)
     , type_(nymParameters.credentialType())

@@ -30,10 +30,11 @@ private:
     friend opentxs::Factory;
     friend LowLevelKeyGenerator;
 
-    Ed25519();
-    explicit Ed25519(const proto::KeyRole role);
-    explicit Ed25519(const proto::AsymmetricKey& serializedKey);
-    explicit Ed25519(const String& publicKey);
+    explicit Ed25519(const VersionNumber version) noexcept;
+    explicit Ed25519(const proto::AsymmetricKey& serializedKey) noexcept;
+    Ed25519(const proto::KeyRole role, const VersionNumber version) noexcept;
+    Ed25519(const String& publicKey, const VersionNumber version) noexcept;
+    Ed25519() = delete;
     Ed25519(const Ed25519&) = delete;
     Ed25519(Ed25519&&) = delete;
     Ed25519& operator=(const Ed25519&) = delete;

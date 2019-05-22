@@ -99,7 +99,7 @@ public:
     ObjectList ContextList(const std::string& nymID) const override;
     std::string ContactOwnerNym(const std::string& nymID) const override;
     void ContactSaveIndices() const override;
-    std::uint32_t ContactUpgradeLevel() const override;
+    VersionNumber ContactUpgradeLevel() const override;
     bool CreateThread(
         const std::string& nymID,
         const std::string& threadID,

@@ -34,7 +34,7 @@ public:
         Data& output,
         const OTPasswordData* pPWData = nullptr) const override;
 
-    bool AddPrivateKeys(const std::string& seed, const std::uint32_t index)
+    bool AddPrivateKeys(const std::string& seed, const Bip32Index index)
         override;
 
     ~PaymentCode() = default;
@@ -60,7 +60,7 @@ private:
         const api::Crypto& crypto,
         const api::HDSeed& seeds,
         const std::string& seed,
-        const std::uint32_t index);
+        const Bip32Index index);
 
     PaymentCode* clone() const override;
     const OTData Pubkey() const;
@@ -79,7 +79,7 @@ private:
         const api::Crypto& crypto,
         const api::HDSeed& seeds,
         const std::string& seed,
-        const std::uint32_t nym,
+        const Bip32Index nym,
         const std::uint8_t version,
         const bool bitmessage,
         const std::uint8_t bitmessageVersion,

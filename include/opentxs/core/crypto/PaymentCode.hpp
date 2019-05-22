@@ -35,7 +35,7 @@ public:
         const api::Crypto& crypto,
         const api::HDSeed& seeds,
         const std::string& seed,
-        const std::uint32_t nym,
+        const Bip32Index nym,
         const std::uint8_t version,
         const bool bitmessage = false,
         const std::uint8_t bitmessageVersion = 0,
@@ -62,7 +62,7 @@ public:
 
     EXPORT virtual bool AddPrivateKeys(
         const std::string& seed,
-        const std::uint32_t index) = 0;
+        const Bip32Index index) = 0;
 
     EXPORT virtual ~PaymentCode() = default;
 

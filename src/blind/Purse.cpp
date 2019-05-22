@@ -143,7 +143,7 @@ const proto::SymmetricMode Purse::mode_{proto::SMODE_CHACHA20POLY1305};
 
 Purse::Purse(
     const api::Core& api,
-    const std::uint32_t version,
+    const VersionNumber version,
     const proto::CashType type,
     const identifier::Server& notary,
     const identifier::UnitDefinition& unit,

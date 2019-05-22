@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactSection.hpp"
@@ -22,8 +24,8 @@ namespace opentxs
 {
 ContactData::ContactData(
     const std::string& nym,
-    const std::uint32_t version,
-    const std::uint32_t targetVersion,
+    const VersionNumber version,
+    const VersionNumber targetVersion,
     const SectionMap& sections)
     : version_(check_version(version, targetVersion))
     , nym_(nym)
@@ -38,7 +40,7 @@ ContactData::ContactData(
 
 ContactData::ContactData(
     const std::string& nym,
-    const std::uint32_t targetVersion,
+    const VersionNumber targetVersion,
     const proto::ContactData& serialized)
     : ContactData(
           nym,
@@ -518,9 +520,9 @@ std::string ContactData::BestSocialMediaProfile(
     return bestProfile;
 }
 
-std::uint32_t ContactData::check_version(
-    const std::uint32_t in,
-    const std::uint32_t targetVersion)
+VersionNumber ContactData::check_version(
+    const VersionNumber in,
+    const VersionNumber targetVersion)
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }
@@ -623,7 +625,7 @@ std::string ContactData::EmailAddresses(bool active) const
 
 ContactData::SectionMap ContactData::extract_sections(
     const std::string& nym,
-    const std::uint32_t targetVersion,
+    const VersionNumber targetVersion,
     const proto::ContactData& serialized)
 {
     SectionMap sectionMap{};
@@ -939,5 +941,5 @@ const std::set<proto::ContactItemType> ContactData::SocialMediaProfileTypes()
 
 proto::ContactItemType ContactData::Type() const { return scope().first; }
 
-std::uint32_t ContactData::Version() const { return version_; }
+VersionNumber ContactData::Version() const { return version_; }
 }  // namespace opentxs

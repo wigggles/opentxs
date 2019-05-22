@@ -2914,7 +2914,7 @@ public:
      *    \param[in]  version version of the contact data protobuf to query
      *    \return comma-separated list of allowed section types
      */
-    EXPORT static std::string GetContactSections(const std::uint32_t version);
+    EXPORT static std::string GetContactSections(const VersionNumber version);
 
     /**  Translate a claim section name enum value to human-readable text
      *    \param[in]  section claim section name enum value
@@ -2933,7 +2933,7 @@ public:
      */
     EXPORT static std::string GetContactSectionTypes(
         const std::uint32_t section,
-        const std::uint32_t version);
+        const VersionNumber version);
 
     /**  Translate a claim type enum value to human-readable text
      *    \param[in]  section claim type enum value
@@ -3014,7 +3014,7 @@ public:
         const std::string& itemID);
     EXPORT static void Activity_Preload(
         const std::string& nymID,
-        const std::uint32_t& items);
+        const std::uint32_t items);
 
     /**  Retrieve an activity thread
      *    \param[in]  nymId owner of the thread
@@ -3068,7 +3068,7 @@ public:
      */
     EXPORT static std::string Blockchain_Account_List(
         const std::string& nymID,
-        const std::uint32_t chain);
+        const Bip32Index chain);
 
     /**  Allocate the next address in a blockchain account
      *    \param[in]  nymID owner of the account
@@ -3106,7 +3106,7 @@ public:
     EXPORT static bool Blockchain_Assign_Address(
         const std::string& nymID,
         const std::string& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const std::string& contact,
         const bool internal = false);
 
@@ -3120,7 +3120,7 @@ public:
     EXPORT static std::string Blockchain_Load_Address(
         const std::string& nymID,
         const std::string& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const bool internal = false);
 
     /**  Load metadata for a blockchain address
@@ -3133,7 +3133,7 @@ public:
     EXPORT static std::string Blockchain_Load_Address_base64(
         const std::string& nymID,
         const std::string& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const bool internal = false);
 
     /**  Allocate a blockchain account using BIP-44
@@ -3143,7 +3143,7 @@ public:
      */
     EXPORT static std::string Blockchain_New_Bip44_Account(
         const std::string& nymID,
-        const std::uint32_t chain);
+        const Bip32Index chain);
 
     /**  Allocate a blockchain account using BIP-32
      *    \param[in]  nymID owner of the account
@@ -3152,7 +3152,7 @@ public:
      */
     EXPORT static std::string Blockchain_New_Bip32_Account(
         const std::string& nymID,
-        const std::uint32_t chain);
+        const Bip32Index chain);
 
     /**  Store an incoming blockchain transaction
      *    \param[in]  nymID owner of the incoming address
@@ -3164,7 +3164,7 @@ public:
     EXPORT static bool Blockchain_Store_Incoming(
         const std::string& nymID,
         const std::string& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const bool internal,
         const std::string& transaction);
 
@@ -3178,7 +3178,7 @@ public:
     EXPORT static bool Blockchain_Store_Incoming_base64(
         const std::string& nymID,
         const std::string& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const bool internal,
         const std::string& transaction);
 
@@ -3234,13 +3234,13 @@ public:
      */
     EXPORT static std::string Blockchain_Address_To_Contact(
         const std::string& address,
-        const std::uint32_t chain,
+        const Bip32Index chain,
         const std::string& label = "");
 
     EXPORT static bool Contact_Add_Blockchain_Address(
         const std::string& contactID,
         const std::string& address,
-        const std::uint32_t chain);
+        const Bip32Index chain);
 
     EXPORT static std::string Contact_List();
 

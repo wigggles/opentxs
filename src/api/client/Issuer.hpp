@@ -70,7 +70,7 @@ private:
 
     friend opentxs::Factory;
     const api::Wallet& wallet_;
-    std::uint32_t version_{0};
+    VersionNumber version_{0};
     std::string pairing_code_{""};
     mutable OTFlag paired_;
     const OTNymID nym_id_;

@@ -105,13 +105,13 @@ protected:
 
     Context(
         const api::Core& api,
-        const std::uint32_t targetVersion,
+        const VersionNumber targetVersion,
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server);
     Context(
         const api::Core& api,
-        const std::uint32_t targetVersion,
+        const VersionNumber targetVersion,
         const proto::Context& serialized,
         const Nym_p& local,
         const Nym_p& remote,
@@ -120,7 +120,7 @@ protected:
 private:
     friend opentxs::Factory;
 
-    const std::uint32_t target_version_{0};
+    const VersionNumber target_version_{0};
 
     virtual const identifier::Nym& client_nym_id(const Lock& lock) const = 0;
     proto::Context IDVersion(const Lock& lock) const;

@@ -640,7 +640,7 @@ OTPaymentCode Factory::PaymentCode(const proto::PaymentCode& serialized) const
 
 OTPaymentCode Factory::PaymentCode(
     const std::string& seed,
-    const std::uint32_t nym,
+    const Bip32Index nym,
     const std::uint8_t version,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
@@ -737,7 +737,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const std::shared_ptr<const PeerRequest> request,
     [[maybe_unused]] const std::shared_ptr<const PeerReply> reply,
-    [[maybe_unused]] const std::uint32_t& version) const
+    [[maybe_unused]] const VersionNumber version) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -748,7 +748,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const std::shared_ptr<const PeerRequest> request,
-    [[maybe_unused]] const std::uint32_t& version) const
+    [[maybe_unused]] const VersionNumber version) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")

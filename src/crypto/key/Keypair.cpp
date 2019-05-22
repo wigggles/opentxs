@@ -31,9 +31,10 @@ namespace opentxs::crypto::key
 {
 OTKeypair Keypair::Factory(
     const NymParameters& nymParameters,
+    const VersionNumber version,
     const proto::KeyRole role)
 {
-    return OTKeypair{new implementation::Keypair(nymParameters, role)};
+    return OTKeypair{new implementation::Keypair(nymParameters, version, role)};
 }
 
 OTKeypair Keypair::Factory(
@@ -52,9 +53,12 @@ OTKeypair Keypair::Factory(const proto::AsymmetricKey& serializedPubkey)
 
 namespace opentxs::crypto::key::implementation
 {
-Keypair::Keypair(const NymParameters& nymParameters, const proto::KeyRole role)
-    : m_pkeyPublic{Asymmetric::Factory(nymParameters, role)}
-    , m_pkeyPrivate{Asymmetric::Factory(nymParameters, role)}
+Keypair::Keypair(
+    const NymParameters& nymParameters,
+    const VersionNumber version,
+    const proto::KeyRole role) noexcept
+    : m_pkeyPublic{Asymmetric::Factory(nymParameters, role, version)}
+    , m_pkeyPrivate{Asymmetric::Factory(nymParameters, role, version)}
     , role_{role}
 {
     make_new_keypair(nymParameters);
@@ -62,21 +66,21 @@ Keypair::Keypair(const NymParameters& nymParameters, const proto::KeyRole role)
 
 Keypair::Keypair(
     const proto::AsymmetricKey& serializedPubkey,
-    const proto::AsymmetricKey& serializedPrivkey)
+    const proto::AsymmetricKey& serializedPrivkey) noexcept
     : m_pkeyPublic{Asymmetric::Factory(serializedPubkey)}
     , m_pkeyPrivate{Asymmetric::Factory(serializedPrivkey)}
     , role_{m_pkeyPrivate->Role()}
 {
 }
 
-Keypair::Keypair(const proto::AsymmetricKey& serializedPubkey)
+Keypair::Keypair(const proto::AsymmetricKey& serializedPubkey) noexcept
     : m_pkeyPublic{Asymmetric::Factory(serializedPubkey)}
     , m_pkeyPrivate{Asymmetric::Factory()}
     , role_{m_pkeyPublic->Role()}
 {
 }
 
-Keypair::Keypair(const Keypair& rhs)
+Keypair::Keypair(const Keypair& rhs) noexcept
     : key::Keypair{}
     , m_pkeyPublic{rhs.m_pkeyPublic}
     , m_pkeyPrivate{rhs.m_pkeyPrivate}

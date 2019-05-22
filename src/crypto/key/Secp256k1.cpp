@@ -29,36 +29,44 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(const proto::AsymmetricKey& input)
     return new crypto::key::implementation::Secp256k1(input);
 }
 
-crypto::key::Secp256k1* Factory::Secp256k1Key(const String& input)
+crypto::key::Secp256k1* Factory::Secp256k1Key(
+    const String& input,
+    const VersionNumber version)
 {
-    return new crypto::key::implementation::Secp256k1(input);
+    return new crypto::key::implementation::Secp256k1(input, version);
 }
 
-crypto::key::Secp256k1* Factory::Secp256k1Key(const proto::KeyRole input)
+crypto::key::Secp256k1* Factory::Secp256k1Key(
+    const proto::KeyRole input,
+    const VersionNumber version)
 {
-    return new crypto::key::implementation::Secp256k1(input);
+    return new crypto::key::implementation::Secp256k1(input, version);
 }
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {
-Secp256k1::Secp256k1()
-    : ot_super(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR)
+Secp256k1::Secp256k1(const VersionNumber version) noexcept
+    : ot_super(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR, version)
 {
 }
 
-Secp256k1::Secp256k1(const proto::KeyRole role)
-    : ot_super(proto::AKEYTYPE_SECP256K1, role)
+Secp256k1::Secp256k1(
+    const proto::KeyRole role,
+    const VersionNumber version) noexcept
+    : ot_super(proto::AKEYTYPE_SECP256K1, role, version)
 {
 }
 
-Secp256k1::Secp256k1(const proto::AsymmetricKey& serializedKey)
+Secp256k1::Secp256k1(const proto::AsymmetricKey& serializedKey) noexcept
     : ot_super(serializedKey)
 {
 }
 
-Secp256k1::Secp256k1(const String& publicKey)
-    : ot_super(proto::AKEYTYPE_SECP256K1, publicKey)
+Secp256k1::Secp256k1(
+    const String& publicKey,
+    const VersionNumber version) noexcept
+    : ot_super(proto::AKEYTYPE_SECP256K1, publicKey, version)
 {
 }
 

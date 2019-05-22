@@ -173,8 +173,8 @@ protected:
 
     const opentxs::api::storage::Driver& driver_;
 
-    std::uint32_t version_{0};
-    std::uint32_t original_version_{0};
+    VersionNumber version_{0};
+    VersionNumber original_version_{0};
     mutable std::string root_;
 
     mutable std::mutex write_lock_;
@@ -197,7 +197,7 @@ protected:
         const opentxs::api::storage::Driver& to) const;
     virtual bool save(const Lock& lock) const = 0;
     void serialize_index(
-        const std::uint32_t version,
+        const VersionNumber version,
         const std::string& id,
         const Metadata& metadata,
         proto::StorageItemHash& output,
@@ -207,7 +207,7 @@ protected:
     bool delete_item(const Lock& lock, const std::string& id);
     bool set_alias(const std::string& id, const std::string& alias);
     void set_hash(
-        const std::uint32_t version,
+        const VersionNumber version,
         const std::string& id,
         const std::string& hash,
         proto::StorageItemHash& output,
@@ -231,7 +231,7 @@ public:
     virtual ObjectList List() const;
     virtual bool Migrate(const opentxs::api::storage::Driver& to) const;
     std::string Root() const;
-    std::uint32_t UpgradeLevel() const;
+    VersionNumber UpgradeLevel() const;
 
     virtual ~Node() = default;
 };

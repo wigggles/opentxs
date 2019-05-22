@@ -122,7 +122,7 @@ void Identity::DeleteVerification(
 
 proto::VerificationGroup& Identity::GetOrCreateInternalGroup(
     proto::VerificationSet& verificationSet,
-    const std::uint32_t version) const
+    const VersionNumber version) const
 {
     const bool existing = verificationSet.has_internal();
     auto& output = *verificationSet.mutable_internal();
@@ -135,7 +135,7 @@ proto::VerificationGroup& Identity::GetOrCreateInternalGroup(
 proto::VerificationIdentity& Identity::GetOrCreateVerificationIdentity(
     proto::VerificationGroup& verificationGroup,
     const std::string& nym,
-    const std::uint32_t version) const
+    const VersionNumber version) const
 {
     for (auto& identity : *verificationGroup.mutable_identity()) {
         if (identity.nym() == nym) { return identity; }
@@ -177,7 +177,7 @@ bool Identity::HaveVerification(
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::InitializeVerificationSet(
-    const std::uint32_t version) const
+    const VersionNumber version) const
 {
     std::unique_ptr<proto::VerificationSet> output(new proto::VerificationSet);
 
@@ -277,6 +277,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verifications(
 
 std::unique_ptr<proto::VerificationSet> Identity::Verify(
     NymData& onNym,
+    const VersionNumber version,
     bool& changed,
     const std::string& claimantNymID,
     const std::string& claimID,
@@ -293,7 +294,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
         revised.reset(new proto::VerificationSet(*existing));
     } else {
         changed = true;
-        revised = InitializeVerificationSet();
+        revised = InitializeVerificationSet(version);
     }
 
     if (!revised) { return revised; }

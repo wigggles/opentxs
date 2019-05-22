@@ -23,6 +23,12 @@ public:
     const class ContactData& Claims() const override;
     bool CompareID(const identity::Nym& RHS) const override;
     bool CompareID(const identifier::Nym& rhs) const override;
+    VersionNumber ContactCredentialVersion() const override;
+    VersionNumber ContactDataVersion() const override
+    {
+        return contact_credential_to_contact_data_version_.at(
+            ContactCredentialVersion());
+    }
     std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const override;
@@ -82,6 +88,7 @@ public:
         const proto::Ciphertext& input,
         crypto::key::Symmetric& key,
         OTPassword& password) const override;
+    VersionNumber VerificationCredentialVersion() const override;
     std::unique_ptr<proto::VerificationSet> VerificationSet() const override;
     bool VerifyPseudonym() const override;
     bool WriteCredentials() const override;
@@ -151,9 +158,13 @@ private:
 
     friend opentxs::Factory;
 
+    static const VersionConversionMap akey_to_session_key_version_;
+    static const VersionConversionMap
+        contact_credential_to_contact_data_version_;
+
     const api::Core& api_;
     std::int32_t version_{0};
-    std::uint32_t index_{0};
+    Bip32Index index_{0};
     std::string alias_;
     std::atomic<std::uint64_t> revision_{0};
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
@@ -203,7 +214,8 @@ private:
     Nym(const api::Core& api, const NymParameters& nymParameters);
     Nym(const api::Core& api,
         const identifier::Nym& nymID,
-        const proto::CredentialIndexMode mode);
+        const proto::CredentialIndexMode mode,
+        const VersionNumber version);
     Nym() = delete;
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;

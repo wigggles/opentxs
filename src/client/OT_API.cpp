@@ -3711,7 +3711,7 @@ bool OT_API::AddClaim(
     const bool active,
     const std::uint64_t start,
     const std::uint64_t end,
-    const std::uint32_t) const
+    const VersionNumber) const
 {
     std::set<std::uint32_t> attribute;
 

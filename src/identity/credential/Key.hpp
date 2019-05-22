@@ -52,6 +52,7 @@ public:
     virtual ~Key() = default;
 
 protected:
+    const VersionNumber subversion_;
     OTKeypair signing_key_;
     OTKeypair authentication_key_;
     OTKeypair encryption_key_;
@@ -66,12 +67,16 @@ protected:
 
     Key(const api::Core& api,
         identity::internal::Authority& owner,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version) noexcept;
     Key(const api::Core& api,
         identity::internal::Authority& owner,
-        const proto::Credential& serializedCred);
+        const proto::Credential& serializedCred) noexcept;
 
 private:
+    static const VersionConversionMap credential_subversion_;
+    static const VersionConversionMap subversion_to_key_version_;
+
     static OTKeypair deserialize_key(
         const int index,
         const proto::Credential& credential);
@@ -80,16 +85,18 @@ private:
         const api::Crypto& crypto,
         const OTPassword& seed,
         const std::string& fingerprint,
-        const std::uint32_t nym,
-        const std::uint32_t credset,
-        const std::uint32_t credindex,
+        const Bip32Index nym,
+        const Bip32Index credset,
+        const Bip32Index credindex,
         const EcdsaCurve& curve,
-        const proto::KeyRole role);
+        const proto::KeyRole role,
+        const VersionNumber version);
 #endif
     static OTKeypair new_key(
         const api::Crypto& crypto,
         const proto::KeyRole role,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
 
     bool addKeytoSerializedKeyCredential(
         proto::KeyCredential& credential,

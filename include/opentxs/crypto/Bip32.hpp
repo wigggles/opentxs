@@ -24,19 +24,47 @@ std::string Print(const proto::HDPath& node);
 class Bip32
 {
 public:
+    EXPORT virtual bool DeserializePrivate(
+        const std::string& serialized,
+        Bip32Network& network,
+        Bip32Depth& depth,
+        Bip32Fingerprint& parent,
+        Bip32Index& index,
+        Data& chainCode,
+        OTPassword& key) const = 0;
+    EXPORT virtual bool DeserializePublic(
+        const std::string& serialized,
+        Bip32Network& network,
+        Bip32Depth& depth,
+        Bip32Fingerprint& parent,
+        Bip32Index& index,
+        Data& chainCode,
+        Data& key) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetChild(
         const proto::AsymmetricKey& parent,
-        const std::uint32_t index) const = 0;
+        const Bip32Index index) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        proto::HDPath& path) const = 0;
+        proto::HDPath& path,
+        const VersionNumber version) const = 0;
     EXPORT virtual std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> SeedToPrivateKey(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const = 0;
+    EXPORT virtual std::string SerializePrivate(
+        const Bip32Network network,
+        const Bip32Depth depth,
+        const Bip32Fingerprint parent,
+        const Bip32Index index,
+        const Data& chainCode,
+        const OTPassword& key) const = 0;
+    EXPORT virtual std::string SerializePublic(
+        const Bip32Network network,
+        const Bip32Depth depth,
+        const Bip32Fingerprint parent,
+        const Bip32Index index,
+        const Data& chainCode,
+        const Data& key) const = 0;
 };
 }  // namespace crypto
 }  // namespace opentxs

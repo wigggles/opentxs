@@ -39,10 +39,11 @@ identity::credential::internal::Secondary* Factory::SecondaryCredential(
 identity::credential::internal::Secondary* Factory::SecondaryCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const NymParameters& parameters)
+    const NymParameters& parameters,
+    const VersionNumber version)
 {
     return new identity::credential::implementation::Secondary(
-        api, parent, parameters);
+        api, parent, parameters, version);
 }
 }  // namespace opentxs
 
@@ -62,12 +63,12 @@ Secondary::Secondary(
 Secondary::Secondary(
     const api::Core& api,
     identity::internal::Authority& owner,
-    const NymParameters& nymParameters)
-    : Signable({}, KEY_CREDENTIAL_VERSION)  // TODO Signable
-    , credential::implementation::Key(api, owner, nymParameters)
+    const NymParameters& nymParameters,
+    const VersionNumber version)
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Key(api, owner, nymParameters, version)
 {
     role_ = proto::CREDROLE_CHILDKEY;
-
     nym_id_ = owner.GetNymID();
     master_id_ = owner.GetMasterCredID();
 }

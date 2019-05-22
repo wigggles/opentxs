@@ -54,7 +54,7 @@ protected:
     Token(
         const api::Core& api,
         Purse& purse,
-        const std::uint32_t version,
+        const VersionNumber version,
         const proto::TokenState state,
         const std::uint64_t series,
         const Denomination denomination,
@@ -66,7 +66,7 @@ private:
     friend blind::implementation::Purse;
 
     const proto::CashType type_;
-    const std::uint32_t version_;
+    const VersionNumber version_;
 
     virtual Token* clone() const noexcept override = 0;
 
@@ -81,7 +81,7 @@ private:
         const Denomination denomination,
         const Time validFrom,
         const Time validTo,
-        const std::uint32_t version);
+        const VersionNumber version);
     Token() = delete;
     Token(Token&&) = delete;
     Token& operator=(const Token&) = delete;

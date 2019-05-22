@@ -23,6 +23,8 @@
 #include <tuple>
 #include <vector>
 
+#define OPENTXS_DEFAULT_SERVER_CONTRACT_VERSION 1
+
 namespace opentxs
 {
 namespace identity
@@ -34,28 +36,8 @@ class Identifier;
 class Message;
 class String;
 
-#define PAYMENT_CODE_VERSION 1
-#define PEER_MESSAGE_VERSION 2
-#define PEER_PAYMENT_VERSION 5
-#define PEER_CASH_VERSION 7
-#define PEER_OBJECT_PEER_REQUEST 7
-#define PEER_OBJECT_PEER_REPLY 7
-#define NYM_CREATE_VERSION 5          // TODO 1.14.0
-#define NYM_UPGRADE_VERSION 5         // TODO 1.14.0
-#define CONTACT_CREDENTIAL_VERSION 5  // TODO 1.14.0
-#define NYM_CONTACT_DATA_VERSION 5    // TODO 1.14.0
-#define OT_CONTACT_VERSION 3
-#define CONTACT_CONTACT_DATA_VERSION 6
-#define VERIFICATION_CREDENTIAL_VERSION 1
-#define KEY_CREDENTIAL_VERSION 1
-#define MESSAGE_SEND_ERROR -1
-#define MESSAGE_NOT_SENT_NO_ERROR 0
-#define MESSAGE_SENT 1
-#define REPLY_NOT_RECEIVED -1
-#define MESSAGE_SUCCESS_FALSE 0
-#define MESSAGE_SUCCESS_TRUE 1
-#define FIRST_REQUEST_NUMBER 1
-#define SERVER_CONTRACT_CREATE_VERSION 1
+using VersionNumber = std::uint32_t;
+using VersionConversionMap = std::map<VersionNumber, VersionNumber>;
 
 using Clock = std::chrono::system_clock;
 using Time = Clock::time_point;
@@ -186,15 +168,19 @@ enum class StorageBox : std::uint8_t {
 };
 
 std::string storage_box_name(StorageBox box);
+using Bip32Network = std::uint32_t;
+using Bip32Depth = std::uint8_t;
+using Bip32Fingerprint = std::uint32_t;
+using Bip32Index = std::uint32_t;
 
-enum class Bip43Purpose : std::uint32_t {
+enum class Bip43Purpose : Bip32Index {
     HDWALLET = 44,    // BIP-44
     PAYCODE = 47,     // BIP-47
     FS = 0x4f544653,  // OTFS
     NYM = 0x4f544e4d  // OTNM
 };
 
-enum class Bip44Type : std::uint32_t {
+enum class Bip44Type : Bip32Index {
     BITCOIN = 0,
     TESTNET = 1,
     LITECOIN = 2,
@@ -209,7 +195,7 @@ enum class Bip44Type : std::uint32_t {
     BITCOINCASH = 145,
 };
 
-enum class Bip32Child : std::uint32_t {
+enum class Bip32Child : Bip32Index {
     AUTH_KEY = 0x41555448,
     ENCRYPT_KEY = 0x454e4352,
     SIGN_KEY = 0x5349474e,

@@ -79,7 +79,7 @@ opentxs::PeerObject* Factory::PeerObject(
     const api::Core& api,
     const std::shared_ptr<const PeerRequest> request,
     const std::shared_ptr<const PeerReply> reply,
-    const std::uint32_t& version)
+    const VersionNumber version)
 {
     std::unique_ptr<opentxs::PeerObject> output(
         new peer::implementation::Object(api, request, reply, version));
@@ -92,7 +92,7 @@ opentxs::PeerObject* Factory::PeerObject(
 opentxs::PeerObject* Factory::PeerObject(
     const api::Core& api,
     const std::shared_ptr<const PeerRequest> request,
-    const std::uint32_t& version)
+    const VersionNumber version)
 {
     std::unique_ptr<opentxs::PeerObject> output(
         new peer::implementation::Object(api, request, version));
@@ -156,7 +156,7 @@ Object::Object(
     const std::shared_ptr<blind::Purse> purse,
 #endif
     const proto::PeerObjectType type,
-    const std::uint32_t& version)
+    const VersionNumber version)
     : api_(api)
     , nym_(nym)
     , message_(message.empty() ? nullptr : new std::string(message))
@@ -298,7 +298,7 @@ Object::Object(
     const api::Core& api,
     const std::shared_ptr<const PeerRequest> request,
     const std::shared_ptr<const PeerReply> reply,
-    const std::uint32_t& version)
+    const VersionNumber version)
     : Object(
           api,
           {},
@@ -317,7 +317,7 @@ Object::Object(
 Object::Object(
     const api::Core& api,
     const std::shared_ptr<const PeerRequest> request,
-    const std::uint32_t& version)
+    const VersionNumber version)
     : Object(
           api,
           {},

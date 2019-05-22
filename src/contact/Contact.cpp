@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/contact/Contact.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -494,9 +496,9 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
     return output;
 }
 
-std::uint32_t Contact::check_version(
-    const std::uint32_t in,
-    const std::uint32_t targetVersion)
+VersionNumber Contact::check_version(
+    const VersionNumber in,
+    const VersionNumber targetVersion)
 {
     // Upgrade version
     if (targetVersion > in) { return targetVersion; }

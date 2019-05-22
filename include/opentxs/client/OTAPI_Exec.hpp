@@ -487,11 +487,11 @@ public:
      */
     EXPORT bool SetClaim(
         const std::string& nymID,
-        const std::uint32_t& section,
+        const std::uint32_t section,
         const std::string& claim) const;
     EXPORT bool SetClaim_Base64(
         const std::string& nymID,
-        const std::uint32_t& section,
+        const std::uint32_t section,
         const std::string& claim) const;
 
     /**   Add a single claim to the target nym's contact credential
@@ -507,8 +507,8 @@ public:
      */
     EXPORT bool AddClaim(
         const std::string& nymID,
-        const std::uint32_t& section,
-        const std::uint32_t& type,
+        const std::uint32_t section,
+        const std::uint32_t type,
         const std::string& value,
         const bool active = true,
         const bool primary = false,
@@ -577,7 +577,7 @@ public:
      *    \return list of allowed section types
      */
     EXPORT std::set<proto::ContactSectionName> ContactSectionList(
-        const std::uint32_t version = 1) const;
+        const VersionNumber version = 1) const;
 
     /**  Translate a claim section name enum value to human-readable text
      *    \param[in]  section claim section name enum value
@@ -596,7 +596,7 @@ public:
      */
     EXPORT std::set<proto::ContactItemType> ContactSectionTypeList(
         const proto::ContactSectionName section,
-        const std::uint32_t version = 1) const;
+        const VersionNumber version = 1) const;
 
     /**  Translate a claim type enum value to human-readable text
      *    \param[in]  section claim type enum value

@@ -168,7 +168,7 @@ public:
         const std::string& name,
         const std::string& terms,
         const std::list<ServerContract::Endpoint>& endpoints,
-        const std::uint32_t version) const override;
+        const VersionNumber version) const override;
     ObjectList ServerList() const override;
     bool SetNymAlias(const identifier::Nym& id, const std::string& alias)
         const override;
@@ -191,7 +191,7 @@ public:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const std::uint32_t& power,
+        const std::uint32_t power,
         const std::string& fraction) const override;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,

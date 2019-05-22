@@ -24,6 +24,7 @@ class Authority
 public:
     using Serialized = proto::CredentialSet;
 
+    EXPORT virtual VersionNumber ContactCredentialVersion() const = 0;
     EXPORT virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const = 0;
     EXPORT virtual const std::string GetMasterCredID() const = 0;
@@ -80,6 +81,7 @@ public:
     EXPORT virtual const NymIDSource& Source() const = 0;
     EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
         const = 0;
+    EXPORT virtual VersionNumber VerificationCredentialVersion() const = 0;
     EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,

@@ -109,7 +109,7 @@ public:
         const bool active = true,
         const std::uint64_t start = 0,
         const std::uint64_t end = 0,
-        const std::uint32_t version = 1) const;
+        const VersionNumber version = 1) const;
 
     // The name is basically just a client-side label.
     // This function lets you change it.

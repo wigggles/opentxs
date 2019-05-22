@@ -25,13 +25,13 @@ public:
     bool AssignAddress(
         const identifier::Nym& nymID,
         const Identifier& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const Identifier& contactID,
         const BIP44Chain chain = EXTERNAL_CHAIN) const override;
     std::unique_ptr<proto::Bip44Address> LoadAddress(
         const identifier::Nym& nymID,
         const Identifier& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const BIP44Chain chain) const override;
     OTIdentifier NewAccount(
         const identifier::Nym& nymID,
@@ -40,7 +40,7 @@ public:
     bool StoreIncoming(
         const identifier::Nym& nymID,
         const Identifier& accountID,
-        const std::uint32_t index,
+        const Bip32Index index,
         const BIP44Chain chain,
         const proto::BlockchainTransaction& transaction) const override;
     bool StoreOutgoing(
@@ -64,7 +64,7 @@ private:
     mutable IDLock nym_lock_;
     mutable IDLock account_lock_;
     proto::Bip44Address& add_address(
-        const std::uint32_t index,
+        const Bip32Index index,
         proto::Bip44Account& account,
         const BIP44Chain chain) const;
     std::uint8_t address_prefix(const proto::ContactItemType type) const;
@@ -73,15 +73,15 @@ private:
     std::string calculate_address(
         const proto::Bip44Account& account,
         const BIP44Chain chain,
-        const std::uint32_t index) const;
+        const Bip32Index index) const;
     proto::Bip44Address& find_address(
-        const std::uint32_t index,
+        const Bip32Index index,
         const BIP44Chain chain,
         proto::Bip44Account& account) const;
     void init_path(
         const std::string& root,
         const proto::ContactItemType chain,
-        const std::uint32_t account,
+        const Bip32Index account,
         const BlockchainAccountType standard,
         proto::HDPath& path) const;
     std::shared_ptr<proto::Bip44Account> load_account(

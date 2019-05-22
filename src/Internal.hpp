@@ -9,6 +9,22 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
+#define PAYMENT_CODE_VERSION 1
+#define PEER_MESSAGE_VERSION 2
+#define PEER_PAYMENT_VERSION 5
+#define PEER_CASH_VERSION 7
+#define PEER_OBJECT_PEER_REQUEST 7
+#define PEER_OBJECT_PEER_REPLY 7
+#define OT_CONTACT_VERSION 3
+#define CONTACT_CONTACT_DATA_VERSION 6
+#define MESSAGE_SEND_ERROR -1
+#define MESSAGE_NOT_SENT_NO_ERROR 0
+#define MESSAGE_SENT 1
+#define REPLY_NOT_RECEIVED -1
+#define MESSAGE_SUCCESS_FALSE 0
+#define MESSAGE_SUCCESS_TRUE 1
+#define FIRST_REQUEST_NUMBER 1
+
 namespace opentxs
 {
 namespace api

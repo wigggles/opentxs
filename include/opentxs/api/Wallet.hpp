@@ -537,7 +537,8 @@ public:
         const std::string& name,
         const std::string& terms,
         const std::list<ServerContract::Endpoint>& endpoints,
-        const std::uint32_t version = SERVER_CONTRACT_CREATE_VERSION) const = 0;
+        const VersionNumber version =
+            OPENTXS_DEFAULT_SERVER_CONTRACT_VERSION) const = 0;
 
     /**   Returns a list of all available server contracts and their aliases
      */
@@ -645,7 +646,7 @@ public:
         const std::string& symbol,
         const std::string& terms,
         const std::string& tla,
-        const std::uint32_t& power,
+        const std::uint32_t power,
         const std::string& fraction) const = 0;
 
     /**   Create a new security contract

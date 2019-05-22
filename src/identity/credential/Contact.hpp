@@ -35,7 +35,8 @@ private:
     Contact(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;

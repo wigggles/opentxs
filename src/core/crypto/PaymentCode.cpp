@@ -97,7 +97,7 @@ OTPaymentCode PaymentCode::Factory(
     const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const std::string& seed,
-    const std::uint32_t nym,
+    const Bip32Index nym,
     const std::uint8_t version,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
@@ -199,7 +199,7 @@ PaymentCode::PaymentCode(
     const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const std::string& seed,
-    const std::uint32_t nym,
+    const Bip32Index nym,
     const std::uint8_t version,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
@@ -268,7 +268,7 @@ PaymentCode::operator const crypto::key::Asymmetric&() const
 
 bool PaymentCode::AddPrivateKeys(
     const std::string& seed,
-    const std::uint32_t index)
+    const Bip32Index index)
 {
     if (false == seed_.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Seed already set.").Flush();
@@ -391,14 +391,13 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
     const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const std::string& seed,
-    const std::uint32_t index)
+    const Bip32Index index)
 {
     std::tuple<bool, std::unique_ptr<OTPassword>, OTData> output{
         false, new OTPassword, Data::Factory()};
     auto& [success, chainCode, publicKey] = output;
     auto fingerprint{seed};
-    std::shared_ptr<proto::AsymmetricKey> privatekey =
-        seeds.GetPaymentCode(fingerprint, index);
+    auto privatekey = seeds.GetPaymentCode(fingerprint, index);
 
     OT_ASSERT(seed == fingerprint)
 

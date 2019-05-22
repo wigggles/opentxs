@@ -35,12 +35,12 @@ public:
 
     ContactData(
         const std::string& nym,
-        const std::uint32_t version,
-        const std::uint32_t targetVersion,
+        const VersionNumber version,
+        const VersionNumber targetVersion,
         const SectionMap& sections);
     ContactData(
         const std::string& nym,
-        const std::uint32_t targetVersion,
+        const VersionNumber targetVersion,
         const proto::ContactData& serialized);
     ContactData(const ContactData&) = default;
     ContactData(ContactData&&) = default;
@@ -112,7 +112,7 @@ public:
         bool active = true) const;
     const std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
     proto::ContactItemType Type() const;
-    std::uint32_t Version() const;
+    VersionNumber Version() const;
 
     ~ContactData() = default;
 
@@ -121,16 +121,16 @@ private:
         pair<proto::ContactItemType, std::shared_ptr<const ContactGroup>>
             Scope;
 
-    const std::uint32_t version_{0};
+    const VersionNumber version_{0};
     const std::string nym_{};
     const SectionMap sections_{};
 
-    static std::uint32_t check_version(
-        const std::uint32_t in,
-        const std::uint32_t targetVersion);
+    static VersionNumber check_version(
+        const VersionNumber in,
+        const VersionNumber targetVersion);
     static SectionMap extract_sections(
         const std::string& nym,
-        const std::uint32_t targetVersion,
+        const VersionNumber targetVersion,
         const proto::ContactData& serialized);
 
     Scope scope() const;

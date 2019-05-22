@@ -13,5 +13,46 @@ namespace opentxs::crypto::implementation
 {
 class Bip32 : virtual public opentxs::crypto::Bip32
 {
+public:
+    bool DeserializePrivate(
+        const std::string& serialized,
+        Bip32Network& network,
+        Bip32Depth& depth,
+        Bip32Fingerprint& parent,
+        Bip32Index& index,
+        Data& chainCode,
+        OTPassword& key) const override;
+    bool DeserializePublic(
+        const std::string& serialized,
+        Bip32Network& network,
+        Bip32Depth& depth,
+        Bip32Fingerprint& parent,
+        Bip32Index& index,
+        Data& chainCode,
+        Data& key) const override;
+    std::string SerializePrivate(
+        const Bip32Network network,
+        const Bip32Depth depth,
+        const Bip32Fingerprint parent,
+        const Bip32Index index,
+        const Data& chainCode,
+        const OTPassword& key) const override;
+    std::string SerializePublic(
+        const Bip32Network network,
+        const Bip32Depth depth,
+        const Bip32Fingerprint parent,
+        const Bip32Index index,
+        const Data& chainCode,
+        const Data& key) const override;
+
+private:
+    OTData decode(const std::string& serialized) const;
+    bool extract(
+        const Data& input,
+        Bip32Network& network,
+        Bip32Depth& depth,
+        Bip32Fingerprint& parent,
+        Bip32Index& index,
+        Data& chainCode) const;
 };
 }  // namespace opentxs::crypto::implementation

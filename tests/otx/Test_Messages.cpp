@@ -9,10 +9,6 @@
 
 using namespace opentxs;
 
-// TODO 1.14.0
-#define REPLY_VERSION 1
-#define REQUEST_VERSION 1
-
 namespace
 {
 bool init_{false};
@@ -103,7 +99,7 @@ TEST_F(Test_Messages, activateRequest)
 
     auto serialized = request->Contract();
 
-    EXPECT_EQ(REQUEST_VERSION, serialized.version());
+    EXPECT_EQ(opentxs::otx::Request::DefaultVersion, serialized.version());
     EXPECT_EQ(requestID->str(), serialized.id());
     EXPECT_EQ(type, serialized.type());
     EXPECT_EQ(Alice_, serialized.nym());
@@ -160,12 +156,12 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(type, reply->Type());
     EXPECT_EQ(0, reply->Number());
     EXPECT_FALSE(reply->Push());
+
     proto::OTXPush push;
     push.set_version(1);
     push.set_type(proto::OTXPUSH_NYMBOX);
     push.set_item(payload);
     reply->SetPush(push);
-
     replyID = reply->ID();
 
     EXPECT_FALSE(replyID->empty());
@@ -173,7 +169,7 @@ TEST_F(Test_Messages, pushReply)
 
     auto serialized = reply->Contract();
 
-    EXPECT_EQ(REPLY_VERSION, serialized.version());
+    EXPECT_EQ(opentxs::otx::Reply::DefaultVersion, serialized.version());
     EXPECT_EQ(replyID->str(), serialized.id());
     EXPECT_EQ(type, serialized.type());
     EXPECT_EQ(Alice_, serialized.nym());
@@ -191,7 +187,6 @@ TEST_F(Test_Messages, pushReply)
     serialized = reply->Contract();
 
     EXPECT_EQ(1, serialized.request());
-
     ASSERT_TRUE(reply->Push());
     EXPECT_EQ(payload, reply->Push()->item());
     EXPECT_TRUE(reply->Validate());

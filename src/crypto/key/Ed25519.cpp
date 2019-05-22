@@ -26,36 +26,42 @@ crypto::key::Ed25519* Factory::Ed25519Key(const proto::AsymmetricKey& input)
     return new crypto::key::implementation::Ed25519(input);
 }
 
-crypto::key::Ed25519* Factory::Ed25519Key(const String& input)
+crypto::key::Ed25519* Factory::Ed25519Key(
+    const String& input,
+    const VersionNumber version)
 {
-    return new crypto::key::implementation::Ed25519(input);
+    return new crypto::key::implementation::Ed25519(input, version);
 }
 
-crypto::key::Ed25519* Factory::Ed25519Key(const proto::KeyRole input)
+crypto::key::Ed25519* Factory::Ed25519Key(
+    const proto::KeyRole input,
+    const VersionNumber version)
 {
-    return new crypto::key::implementation::Ed25519(input);
+    return new crypto::key::implementation::Ed25519(input, version);
 }
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {
-Ed25519::Ed25519()
-    : ot_super(proto::AKEYTYPE_ED25519, proto::KEYROLE_ERROR)
+Ed25519::Ed25519(const VersionNumber version) noexcept
+    : ot_super(proto::AKEYTYPE_ED25519, proto::KEYROLE_ERROR, version)
 {
 }
 
-Ed25519::Ed25519(const proto::KeyRole role)
-    : ot_super(proto::AKEYTYPE_ED25519, role)
+Ed25519::Ed25519(
+    const proto::KeyRole role,
+    const VersionNumber version) noexcept
+    : ot_super(proto::AKEYTYPE_ED25519, role, version)
 {
 }
 
-Ed25519::Ed25519(const proto::AsymmetricKey& serializedKey)
+Ed25519::Ed25519(const proto::AsymmetricKey& serializedKey) noexcept
     : ot_super(serializedKey)
 {
 }
 
-Ed25519::Ed25519(const String& publicKey)
-    : ot_super(proto::AKEYTYPE_ED25519, publicKey)
+Ed25519::Ed25519(const String& publicKey, const VersionNumber version) noexcept
+    : ot_super(proto::AKEYTYPE_ED25519, publicKey, version)
 {
 }
 

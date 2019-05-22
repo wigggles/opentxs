@@ -15,6 +15,8 @@ public:
     bool operator==(const opentxs::Data& rhs) const override;
     bool operator!=(const opentxs::Data& rhs) const override;
     Data& operator+=(const opentxs::Data& rhs) override;
+    Data& operator+=(const std::uint8_t rhs) override;
+    Data& operator+=(const std::uint32_t rhs) override;
 
     std::string asHex() const override;
     const std::byte& at(const std::size_t position) const override
@@ -33,6 +35,12 @@ public:
     {
         return const_iterator(this, data_.size());
     }
+    bool Extract(
+        const std::size_t amount,
+        opentxs::Data& output,
+        const std::size_t pos) const override;
+    bool Extract(std::uint8_t& output, const std::size_t pos) const override;
+    bool Extract(std::uint32_t& output, const std::size_t pos) const override;
     bool IsEmpty() const override { return empty(); }
     const void* GetPointer() const override { return data_.data(); }
     std::size_t GetSize() const override { return size(); }
@@ -81,6 +89,7 @@ private:
         return new Data(this->data_, this->position_);
     }
 
+    bool check_sub(const std::size_t pos, const std::size_t target) const;
     void concatenate(const Vector& data);
 
     Data(const Data& rhs) = delete;

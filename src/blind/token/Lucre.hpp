@@ -48,7 +48,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const std::uint32_t lucre_version_;
+    const VersionNumber lucre_version_;
     OTString signature_;
     std::shared_ptr<proto::Ciphertext> private_;
     std::shared_ptr<proto::Ciphertext> public_;
@@ -64,7 +64,7 @@ private:
     Lucre(
         const api::Core& api,
         Purse& purse,
-        const std::uint32_t version,
+        const VersionNumber version,
         const proto::TokenState state,
         const std::uint64_t series,
         const Denomination value,

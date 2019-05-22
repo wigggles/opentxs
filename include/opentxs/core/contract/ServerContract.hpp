@@ -29,7 +29,7 @@ public:
         proto::ProtocolVersion,
         std::string,    // hostname / address
         std::uint32_t,  // port
-        std::uint32_t>  // version
+        VersionNumber>  // version
         Endpoint;
 
     static ServerContract* Create(
@@ -38,7 +38,7 @@ public:
         const std::list<Endpoint>& endpoints,
         const std::string& terms,
         const std::string& name,
-        const std::uint32_t version);
+        const VersionNumber version);
     static ServerContract* Factory(
         const api::Wallet& wallet,
         const Nym_p& nym,

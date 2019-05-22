@@ -10,7 +10,6 @@ namespace opentxs
 class Factory
 {
 public:
-    static identity::internal::Authority* Authority(const api::Core& api);
     static identity::internal::Authority* Authority(
         const api::Core& api,
         const proto::KeyMode mode,
@@ -18,7 +17,7 @@ public:
     static identity::internal::Authority* Authority(
         const api::Core& api,
         const NymParameters& nymParameters,
-        const std::uint32_t version,
+        const VersionNumber nymVersion,
         const OTPasswordData* pPWData = nullptr);
     static ui::implementation::AccountListRowInternal* AccountListItem(
         const ui::implementation::AccountListInternalInterface& parent,
@@ -100,7 +99,8 @@ public:
     static identity::credential::internal::Contact* ContactCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     static ui::implementation::ContactListRowInternal* ContactListItem(
         const ui::implementation::ContactListInternalInterface& parent,
         const api::client::Manager& api,
@@ -148,6 +148,7 @@ public:
     static C* Credential(
         const api::Core& api,
         identity::internal::Authority& owner,
+        const VersionNumber version,
         const NymParameters& nymParameters,
         const proto::CredentialRole role);
     template <class C>
@@ -170,8 +171,12 @@ public:
         std::int64_t& unitRefreshInterval);
     static crypto::key::Ed25519* Ed25519Key(
         const proto::AsymmetricKey& serializedKey);
-    static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
-    static crypto::key::Ed25519* Ed25519Key(const proto::KeyRole role);
+    static crypto::key::Ed25519* Ed25519Key(
+        const String& publicKey,
+        const VersionNumber version);
+    static crypto::key::Ed25519* Ed25519Key(
+        const proto::KeyRole role,
+        const VersionNumber version);
     static api::crypto::Encode* Encode(const crypto::EncodingProvider& base58);
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
@@ -344,11 +349,11 @@ public:
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const std::uint32_t& version);
+        const VersionNumber version);
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
-        const std::uint32_t& version);
+        const VersionNumber version);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
         const api::Core& api,
@@ -375,7 +380,8 @@ public:
     static identity::credential::internal::Primary* PrimaryCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
         const api::client::Manager& api,
@@ -452,15 +458,20 @@ public:
     static identity::credential::internal::Secondary* SecondaryCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     static crypto::Secp256k1* Secp256k1(
         const api::Crypto& crypto,
         const api::crypto::Util& util,
         const crypto::EcdsaProvider& ecdsa);
     static crypto::key::Secp256k1* Secp256k1Key(
         const proto::AsymmetricKey& serializedKey);
-    static crypto::key::Secp256k1* Secp256k1Key(const String& publicKey);
-    static crypto::key::Secp256k1* Secp256k1Key(const proto::KeyRole role);
+    static crypto::key::Secp256k1* Secp256k1Key(
+        const String& publicKey,
+        const VersionNumber version);
+    static crypto::key::Secp256k1* Secp256k1Key(
+        const proto::KeyRole role,
+        const VersionNumber version);
     static api::client::ServerAction* ServerAction(
         const api::client::Manager& api,
         const ContextLockCallback& lockCallback);
@@ -580,7 +591,8 @@ public:
     static identity::credential::internal::Verification* VerificationCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const VersionNumber version);
     static api::Wallet* Wallet(const api::client::Manager& client);
     static api::Wallet* Wallet(const api::server::Manager& server);
     static api::client::Workflow* Workflow(

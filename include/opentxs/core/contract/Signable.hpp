@@ -31,7 +31,7 @@ public:
     virtual const std::string& Terms() const;
     virtual OTData Serialize() const = 0;
     bool Validate() const;
-    const std::uint32_t& Version() const;
+    VersionNumber Version() const;
 
     virtual void SetAlias(const std::string& alias);
 
@@ -44,7 +44,7 @@ protected:
     OTIdentifier id_;
     const Nym_p nym_;
     Signatures signatures_;
-    std::uint32_t version_ = 0;
+    VersionNumber version_ = 0;
     std::string conditions_;  // Human-readable portion
     mutable std::mutex lock_;
 
@@ -65,10 +65,10 @@ protected:
     virtual OTIdentifier GetID(const Lock& lock) const = 0;
 
     explicit Signable(const Nym_p& nym);
-    explicit Signable(const Nym_p& nym, const std::uint32_t version);
+    explicit Signable(const Nym_p& nym, const VersionNumber version);
     explicit Signable(
         const Nym_p& nym,
-        const std::uint32_t version,
+        const VersionNumber version,
         const std::string& conditions);
     Signable(const Signable&) = delete;
     Signable(Signable&&) = delete;

@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "Internal.hpp"
 
 #include <gtest/gtest.h>
 
@@ -1605,7 +1606,7 @@ TEST_F(Test_Rpc, Get_Nym)
     ASSERT_EQ(1, response.nym_size());
 
     const auto& credentialindex = response.nym(0);
-    ASSERT_EQ(NYM_CREATE_VERSION, credentialindex.version());
+    ASSERT_EQ(identity::Nym::DefaultVersion, credentialindex.version());
     ASSERT_STREQ(nym1_id_.c_str(), credentialindex.nymid().c_str());
     ASSERT_EQ(proto::CREDINDEX_PUBLIC, credentialindex.mode());
     ASSERT_EQ(6, credentialindex.revision());
@@ -1639,7 +1640,7 @@ TEST_F(Test_Rpc, Get_Nyms)
     ASSERT_EQ(3, response.nym_size());
 
     auto& credentialindex = response.nym(0);
-    ASSERT_EQ(NYM_CREATE_VERSION, credentialindex.version());
+    ASSERT_EQ(identity::Nym::DefaultVersion, credentialindex.version());
     ASSERT_TRUE(
         nym1_id_ == credentialindex.nymid() ||
         nym2_id_ == credentialindex.nymid() ||

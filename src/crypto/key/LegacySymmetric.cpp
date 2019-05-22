@@ -356,7 +356,7 @@ OTPassword* LegacySymmetric::GetPassphraseFromUser(
         pPassUserInput->getBlockSize(),
         bAskTwice ? 1 : 0,
         static_cast<void*>(&thePWData));
-    const std::uint32_t uCallback = static_cast<uint32_t>(nCallback);
+    const auto uCallback = static_cast<std::uint32_t>(nCallback);
     if ((nCallback > 0) &&  // Success retrieving the passphrase from the user.
         pPassUserInput->SetSize(uCallback)) {
         //      otOut << "%s: Retrieved passphrase (blocksize %d, actual size
@@ -577,10 +577,10 @@ bool LegacySymmetric::GenerateKey(
     OTPassword theActualKey;
 
     {
-        std::int32_t nRes =
+        auto nRes =
             theActualKey.randomizeMemory(crypto_.Config().SymmetricKeySize());
         if (0 > nRes) { OT_FAIL; }
-        std::uint32_t uRes =
+        auto uRes =
             static_cast<std::uint32_t>(nRes);  // we need an uint32_t value.
 
         if (crypto_.Config().SymmetricKeySize() != uRes) {
