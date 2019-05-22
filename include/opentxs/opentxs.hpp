@@ -105,6 +105,9 @@
 #include <opentxs/crypto/key/Ed25519.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include <opentxs/crypto/key/EllipticCurve.hpp>
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include <opentxs/crypto/key/HD.hpp>
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/crypto/key/Keypair.hpp>
 #include <opentxs/crypto/key/LegacySymmetric.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_RSA

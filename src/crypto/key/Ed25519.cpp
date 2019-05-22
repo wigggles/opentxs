@@ -17,6 +17,11 @@
 #include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 
+#include "crypto/key/EllipticCurve.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "crypto/key/HD.hpp"
+#endif
+
 #include "Ed25519.hpp"
 
 namespace opentxs

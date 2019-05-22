@@ -6,11 +6,15 @@
 #pragma once
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "EllipticCurve.hpp"
 
 namespace opentxs::crypto::key::implementation
 {
-class Secp256k1 final : virtual public key::Secp256k1, public EllipticCurve
+class Secp256k1 final : virtual public key::Secp256k1,
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+                        public implementation::HD
+#else
+                        public implementation::EllipticCurve
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 {
 public:
     NymParameterType CreateType() const override
@@ -23,7 +27,11 @@ public:
     ~Secp256k1() = default;
 
 private:
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    using ot_super = HD;
+#else
     using ot_super = EllipticCurve;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     friend key::Asymmetric;
     friend opentxs::Factory;

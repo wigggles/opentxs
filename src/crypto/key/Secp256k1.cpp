@@ -20,6 +20,11 @@
 #endif
 #include "opentxs/OT.hpp"
 
+#include "crypto/key/EllipticCurve.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "crypto/key/HD.hpp"
+#endif
+
 #include "Secp256k1.hpp"
 
 namespace opentxs

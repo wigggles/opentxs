@@ -11,25 +11,20 @@
 
 namespace opentxs::crypto::key::implementation
 {
-class EllipticCurve : virtual public key::EllipticCurve, public Asymmetric
+class EllipticCurve :
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    virtual public key::HD,
+#else
+    virtual public key::EllipticCurve,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    public Asymmetric
 {
-    using ot_super = Asymmetric;
-
 public:
     OTData CalculateHash(
         const proto::HashType hashType,
         const OTPasswordData& password) const override;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    OTData Chaincode() const override;
-#endif
     virtual NymParameterType CreateType() const = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    int Depth() const override;
-#endif
     bool IsEmpty() const override;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    Bip32Fingerprint Fingerprint() const override;
-#endif
     virtual bool GetKey(Data& key) const override;
     virtual bool GetKey(proto::Ciphertext& key) const override;
     bool GetPublicKey(String& strKey) const override;
@@ -38,9 +33,8 @@ public:
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
         OTPasswordData& password) const override;
-    using ot_super::Path;
-    const std::string Path() const override;
-    bool Path(proto::HDPath& output) const override;
+    const std::string Path() const override { return {}; }
+    bool Path(proto::HDPath& output) const override { return {}; }
     OTData PrivateKey() const override;
     OTData PublicKey() const override;
     virtual bool ReEncryptPrivateKey(
@@ -52,10 +46,6 @@ public:
         OTPasswordData& password) const override;
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::string Xprv() const override;
-    std::string Xpub() const override;
-#endif
 
     virtual bool SetKey(const Data& key) override;
     virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) override;
@@ -65,8 +55,10 @@ public:
 protected:
     OTData key_;
     std::unique_ptr<proto::Ciphertext> encrypted_key_{nullptr};
-    std::shared_ptr<proto::HDPath> path_{nullptr};
-    std::unique_ptr<proto::Ciphertext> chain_code_{nullptr};
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    EllipticCurve* clone() const override;
+#endif
 
     explicit EllipticCurve(const proto::AsymmetricKey& serializedKey) noexcept;
     EllipticCurve(
@@ -81,13 +73,8 @@ protected:
 private:
     friend class crypto::EcdsaProvider;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    Bip32Fingerprint parent_;
-#endif
-
+#if !OT_CRYPTO_SUPPORTED_KEY_HD
     EllipticCurve* clone() const override final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::tuple<bool, Bip32Depth, Bip32Index> get_params() const;
 #endif
 
     EllipticCurve() = delete;

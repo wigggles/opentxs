@@ -10,6 +10,7 @@ set(cxx-sources
   Asymmetric.cpp
   Ed25519.cpp
   EllipticCurve.cpp
+  HD.cpp
   Keypair.cpp
   LegacySymmetric.cpp
   RSA.cpp
@@ -22,6 +23,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Asymmetric.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/EllipticCurve.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Ed25519.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/HD.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Keypair.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/LegacySymmetric.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/RSA.hpp"
@@ -34,6 +36,7 @@ set(cxx-headers
   Asymmetric.hpp
   Ed25519.hpp
   EllipticCurve.hpp
+  HD.hpp
   Keypair.hpp
   LegacySymmetric.hpp
   LegacySymmetricNull.hpp

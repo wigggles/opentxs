@@ -6,12 +6,15 @@
 #pragma once
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "EllipticCurve.hpp"
 
 namespace opentxs::crypto::key::implementation
 {
 class Ed25519 final : virtual public key::Ed25519,
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+                      public implementation::HD
+#else
                       public implementation::EllipticCurve
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 {
 public:
     NymParameterType CreateType() const override
@@ -25,7 +28,11 @@ public:
     ~Ed25519() = default;
 
 private:
-    using ot_super = implementation::EllipticCurve;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    using ot_super = HD;
+#else
+    using ot_super = EllipticCurve;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     friend opentxs::Factory;
     friend LowLevelKeyGenerator;

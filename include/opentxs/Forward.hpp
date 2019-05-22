@@ -94,6 +94,7 @@ class Asymmetric;
 class Ed25519;
 class EllipticCurve;
 class Keypair;
+class HD;
 class LegacySymmetric;
 class RSA;
 class Secp256k1;

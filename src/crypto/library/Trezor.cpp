@@ -258,7 +258,7 @@ std::unique_ptr<HDNode> Trezor::DeriveChild(
             output = GetChild(*parentnode, child, DERIVE_PRIVATE);
             const auto pubkey = Data::Factory(
                 parentnode->public_key, sizeof(parentnode->public_key));
-            fingerprint = key::EllipticCurve::CalculateFingerprint(pubkey);
+            fingerprint = key::HD::CalculateFingerprint(pubkey);
         } else {
             OT_FAIL;
         }
@@ -431,7 +431,7 @@ std::unique_ptr<HDNode> Trezor::SerializedToHDNode(
         publicKey->Assign(serialized.key().c_str(), serialized.key().size());
     }
 
-    fingerprint = key::EllipticCurve::CalculateFingerprint(publicKey);
+    fingerprint = key::HD::CalculateFingerprint(publicKey);
 
     return node;
 }
