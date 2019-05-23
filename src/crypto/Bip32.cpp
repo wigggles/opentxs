@@ -39,7 +39,7 @@ std::string Print(const proto::HDPath& node)
 
     for (const auto& child : node.child()) {
         output << " / ";
-        const auto max = static_cast<Bip32Index>(Bip32Child::HARDENED);
+        const Bip32Index max = HDIndex{Bip32Child::HARDENED};
 
         if (max > child) {
             output << std::to_string(child);

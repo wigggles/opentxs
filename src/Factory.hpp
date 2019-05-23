@@ -57,6 +57,24 @@ public:
         const ui::implementation::ActivitySummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
         const Flag& running);
+    static api::crypto::Asymmetric* AsymmetricAPI(
+        const api::crypto::Encode& encode,
+        const api::crypto::Hash& hash,
+        const api::crypto::Util& util,
+        const api::crypto::Symmetric& symmetric,
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+        const crypto::Bip32& bip32,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        const crypto::EcdsaProvider& ed25519,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        const crypto::AsymmetricProvider& rsa,
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        const crypto::EcdsaProvider& secp256k1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    );
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
         const api::client::Manager& api,
@@ -170,13 +188,26 @@ public:
         std::int64_t& unitPublishInterval,
         std::int64_t& unitRefreshInterval);
     static crypto::key::Ed25519* Ed25519Key(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKey& serializedKey);
     static crypto::key::Ed25519* Ed25519Key(
-        const String& publicKey,
-        const VersionNumber version);
-    static crypto::key::Ed25519* Ed25519Key(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    static crypto::key::Ed25519* Ed25519Key(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
+        const OTPassword& privateKey,
+        const OTPassword& chainCode,
+        const Data& publicKey,
+        const proto::HDPath& path,
+        const Bip32Fingerprint parent,
+        const proto::KeyRole role,
+        const VersionNumber version);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     static api::crypto::Encode* Encode(const crypto::EncodingProvider& base58);
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
@@ -194,6 +225,7 @@ public:
     );
 #if OT_CRYPTO_WITH_BIP39
     static api::HDSeed* HDSeed(
+        const api::crypto::Asymmetric& asymmetric,
         const api::crypto::Symmetric& symmetric,
         const api::storage::Storage& storage,
         const crypto::Bip32& bip32,
@@ -224,6 +256,18 @@ public:
         const RowCallbacks removeCallback = {}
 #endif
     );
+    static crypto::key::Keypair* Keypair(
+        const api::Core& api,
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const proto::KeyRole role);
+    static crypto::key::Keypair* Keypair(
+        const api::Core& api,
+        const proto::AsymmetricKey& serializedPubkey,
+        const proto::AsymmetricKey& serializedPrivkey);
+    static crypto::key::Keypair* Keypair(
+        const api::Core& api,
+        const proto::AsymmetricKey& serializedPubkey);
     static api::Legacy* Legacy();
     static api::internal::Log* Log(
         const network::zeromq::Context& zmq,
@@ -448,9 +492,16 @@ public:
         const proto::CashType type);
 #endif
     static rpc::internal::RPC* RPC(const api::Native& native);
-    static crypto::key::RSA* RSAKey(const proto::AsymmetricKey& serializedKey);
-    static crypto::key::RSA* RSAKey(const String& publicKey);
-    static crypto::key::RSA* RSAKey(const proto::KeyRole role);
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    static crypto::key::RSA* RSAKey(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
+        const proto::AsymmetricKey& serializedKey);
+    static crypto::key::RSA* RSAKey(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
+        const proto::KeyRole role);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
     static identity::credential::internal::Secondary* SecondaryCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
@@ -465,13 +516,26 @@ public:
         const api::crypto::Util& util,
         const crypto::EcdsaProvider& ecdsa);
     static crypto::key::Secp256k1* Secp256k1Key(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKey& serializedKey);
     static crypto::key::Secp256k1* Secp256k1Key(
-        const String& publicKey,
-        const VersionNumber version);
-    static crypto::key::Secp256k1* Secp256k1Key(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    static crypto::key::Secp256k1* Secp256k1Key(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
+        const OTPassword& privateKey,
+        const OTPassword& chainCode,
+        const Data& publicKey,
+        const proto::HDPath& path,
+        const Bip32Fingerprint parent,
+        const proto::KeyRole role,
+        const VersionNumber version);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::ServerAction* ServerAction(
         const api::client::Manager& api,
         const ContextLockCallback& lockCallback);

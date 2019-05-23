@@ -8,77 +8,131 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/core/util/Timer.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #endif
-#include "opentxs/OT.hpp"
+
+#include "crypto/key/EllipticCurve.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "crypto/key/HD.hpp"
+#endif
 
 #include "Secp256k1.hpp"
 
 namespace opentxs
 {
-crypto::key::Secp256k1* Factory::Secp256k1Key(const proto::AsymmetricKey& input)
+crypto::key::Secp256k1* Factory::Secp256k1Key(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
+    const proto::AsymmetricKey& input)
 {
-    return new crypto::key::implementation::Secp256k1(input);
+    return new crypto::key::implementation::Secp256k1(crypto, ecdsa, input);
 }
 
 crypto::key::Secp256k1* Factory::Secp256k1Key(
-    const String& input,
-    const VersionNumber version)
-{
-    return new crypto::key::implementation::Secp256k1(input, version);
-}
-
-crypto::key::Secp256k1* Factory::Secp256k1Key(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole input,
     const VersionNumber version)
 {
-    return new crypto::key::implementation::Secp256k1(input, version);
+    return new crypto::key::implementation::Secp256k1(
+        crypto, ecdsa, input, version);
 }
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+crypto::key::Secp256k1* Factory::Secp256k1Key(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
+    const OTPassword& privateKey,
+    const OTPassword& chainCode,
+    const Data& publicKey,
+    const proto::HDPath& path,
+    const Bip32Fingerprint parent,
+    const proto::KeyRole role,
+    const VersionNumber version)
+{
+    const auto reason = OTPasswordData(__FUNCTION__);
+    auto sessionKey = crypto.Symmetric().Key(__FUNCTION__);
+
+    return new crypto::key::implementation::Secp256k1(
+        crypto,
+        ecdsa,
+        privateKey,
+        chainCode,
+        publicKey,
+        path,
+        parent,
+        role,
+        version,
+        sessionKey,
+        reason);
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {
-Secp256k1::Secp256k1(const VersionNumber version) noexcept
-    : ot_super(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR, version)
+Secp256k1::Secp256k1(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
+    const proto::AsymmetricKey& serializedKey) noexcept
+    : ot_super(crypto, ecdsa, serializedKey)
 {
 }
 
 Secp256k1::Secp256k1(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole role,
     const VersionNumber version) noexcept
-    : ot_super(proto::AKEYTYPE_SECP256K1, role, version)
+    : ot_super(crypto, ecdsa, proto::AKEYTYPE_SECP256K1, role, version)
 {
 }
 
-Secp256k1::Secp256k1(const proto::AsymmetricKey& serializedKey) noexcept
-    : ot_super(serializedKey)
-{
-}
-
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 Secp256k1::Secp256k1(
-    const String& publicKey,
-    const VersionNumber version) noexcept
-    : ot_super(proto::AKEYTYPE_SECP256K1, publicKey, version)
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
+    const OTPassword& privateKey,
+    const OTPassword& chainCode,
+    const Data& publicKey,
+    const proto::HDPath& path,
+    const Bip32Fingerprint parent,
+    const proto::KeyRole role,
+    const VersionNumber version,
+    key::Symmetric& sessionKey,
+    const OTPasswordData& reason) noexcept
+    : ot_super(
+          crypto,
+          ecdsa,
+          proto::AKEYTYPE_SECP256K1,
+          privateKey,
+          chainCode,
+          publicKey,
+          path,
+          parent,
+          role,
+          version,
+          sessionKey,
+          reason)
 {
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
-const crypto::EcdsaProvider& Secp256k1::ECDSA() const
+Secp256k1::Secp256k1(const Secp256k1& rhs) noexcept
+    : key::Secp256k1()
+    , ot_super(rhs)
 {
-    return dynamic_cast<const crypto::EcdsaProvider&>(engine());
-}
-
-const crypto::AsymmetricProvider& Secp256k1::engine() const
-
-{
-    return OT::App().Crypto().SECP256K1();
 }
 }  // namespace opentxs::crypto::key::implementation
 #endif

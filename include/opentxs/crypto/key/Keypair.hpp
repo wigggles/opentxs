@@ -26,47 +26,21 @@ class Keypair
 public:
     using Keys = std::list<const Asymmetric*>;
 
-    EXPORT static OTKeypair Factory(
-        const NymParameters& nymParameters,
-        const VersionNumber version,
-        const proto::KeyRole role);
-    EXPORT static OTKeypair Factory(
-        const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey);
-    EXPORT static OTKeypair Factory(
-        const proto::AsymmetricKey& serializedPubkey);
-
-    EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
+    EXPORT virtual bool CheckCapability(
+        const NymCapability& capability) const = 0;
+    /// throws std::runtime_error if private key is missing
     EXPORT virtual const Asymmetric& GetPrivateKey() const = 0;
+    /// throws std::runtime_error if public key is missing
     EXPORT virtual const Asymmetric& GetPublicKey() const = 0;
-    EXPORT virtual bool GetPublicKey(String& strKey) const = 0;
     // inclusive means, return keys when theSignature has no metadata.
     EXPORT virtual std::int32_t GetPublicKeyBySignature(
         Keys& listOutput,
         const Signature& theSignature,
         bool bInclusive = false) const = 0;
-    EXPORT virtual bool hasCapability(
-        const NymCapability& capability) const = 0;
-    EXPORT virtual bool HasPrivateKey() const = 0;
-    EXPORT virtual bool HasPublicKey() const = 0;
-    EXPORT virtual bool ReEncrypt(
-        const OTPassword& theExportPassword,
-        bool bImporting) = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize(
-        bool privateKey = false) const = 0;
-    EXPORT virtual bool Sign(
-        const GetPreimage input,
-        const proto::SignatureRole role,
-        proto::Signature& signature,
-        const Identifier& credential,
-        proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
-        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
-    EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetSerialized(
+        bool privateKey) const = 0;
+    EXPORT virtual bool GetTransportKey(Data& publicKey, OTPassword& privateKey)
         const = 0;
-    EXPORT virtual bool Verify(
-        const Data& plaintext,
-        const proto::Signature& sig) const = 0;
 
     EXPORT virtual ~Keypair() = default;
 

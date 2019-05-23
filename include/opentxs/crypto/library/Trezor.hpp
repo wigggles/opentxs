@@ -34,7 +34,6 @@ class Trezor : virtual public EncodingProvider,
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     ,
-               virtual public AsymmetricProvider,
                virtual public EcdsaProvider
 #endif
 {

@@ -49,7 +49,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     proto::HDPath pathA;
     ASSERT_TRUE(NymA.get()->Path(pathA));
     ASSERT_EQ(
-        0 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathA.child(1));
+        0 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathA.child(1));
 
     OTIdentifier AccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Alice),
@@ -272,7 +272,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     proto::HDPath pathB;
     ASSERT_TRUE(NymB.get()->Path(pathB));
     ASSERT_EQ(
-        0 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathB.child(1));
+        0 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathB.child(1));
 
     OTIdentifier AccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Bob),
@@ -507,7 +507,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
     proto::HDPath pathC;
     ASSERT_TRUE(NymC.get()->Path(pathC));
     ASSERT_EQ(
-        0 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathC.child(1));
+        0 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathC.child(1));
 
     std::shared_ptr<proto::Bip44Account> BTCAccount_ =
         client_.Blockchain().Account(

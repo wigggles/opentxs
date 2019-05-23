@@ -11,6 +11,8 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -76,26 +78,21 @@ OTPaymentCode PaymentCode::Factory(const PaymentCode& rhs)
 }
 
 OTPaymentCode PaymentCode::Factory(
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
+    const api::Core& api,
     const std::string& base58)
 {
-    return OTPaymentCode(
-        new implementation::PaymentCode(crypto, seeds, base58));
+    return OTPaymentCode(new implementation::PaymentCode(api, base58));
 }
 
 OTPaymentCode PaymentCode::Factory(
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
+    const api::Core& api,
     const proto::PaymentCode& serialized)
 {
-    return OTPaymentCode(
-        new implementation::PaymentCode(crypto, seeds, serialized));
+    return OTPaymentCode(new implementation::PaymentCode(api, serialized));
 }
 
 OTPaymentCode PaymentCode::Factory(
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
+    const api::Core& api,
     const std::string& seed,
     const Bip32Index nym,
     const std::uint8_t version,
@@ -104,8 +101,7 @@ OTPaymentCode PaymentCode::Factory(
     const std::uint8_t bitmessageStream)
 {
     return OTPaymentCode(new implementation::PaymentCode(
-        crypto,
-        seeds,
+        api,
         seed,
         nym,
         version,
@@ -117,12 +113,8 @@ OTPaymentCode PaymentCode::Factory(
 
 namespace opentxs::implementation
 {
-PaymentCode::PaymentCode(
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
-    const std::string& base58)
-    : crypto_(crypto)
-    , seeds_{seeds}
+PaymentCode::PaymentCode(const api::Core& api, const std::string& base58)
+    : api_(api)
     , version_(0)
     , seed_("")
     , index_(-1)
@@ -133,7 +125,7 @@ PaymentCode::PaymentCode(
     , bitmessage_version_(0)
     , bitmessage_stream_(0)
 {
-    std::string rawCode = crypto_.Encode().IdentifierDecode(base58);
+    std::string rawCode = api_.Crypto().Encode().IdentifierDecode(base58);
 
     if (SERIALIZED_BYTES == rawCode.size()) {
         version_ = rawCode[VERSION_OFFSET];
@@ -163,11 +155,9 @@ PaymentCode::PaymentCode(
 }
 
 PaymentCode::PaymentCode(
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
+    const api::Core& api,
     const proto::PaymentCode& paycode)
-    : crypto_(crypto)
-    , seeds_{seeds}
+    : api_(api)
     , version_(paycode.version())
     , seed_("")
     , index_(-1)
@@ -196,16 +186,14 @@ PaymentCode::PaymentCode(
 }
 
 PaymentCode::PaymentCode(
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
+    const api::Core& api,
     const std::string& seed,
     const Bip32Index nym,
     const std::uint8_t version,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
     const std::uint8_t bitmessageStream)
-    : crypto_(crypto)
-    , seeds_{seeds}
+    : api_(api)
     , version_(version)
     , seed_(seed)
     , index_(nym)
@@ -216,8 +204,7 @@ PaymentCode::PaymentCode(
     , bitmessage_version_(bitmessageVersion)
     , bitmessage_stream_(bitmessageStream)
 {
-    auto [success, chainCode, publicKey] =
-        make_key(crypto_, seeds_, seed_, index_);
+    auto [success, chainCode, publicKey] = make_key(api_, seed_, index_);
 
     if (success) {
         chain_code_.swap(chainCode);
@@ -227,8 +214,7 @@ PaymentCode::PaymentCode(
 
 PaymentCode::PaymentCode(const PaymentCode& rhs)
     : opentxs::PaymentCode()
-    , crypto_{rhs.crypto_}
-    , seeds_{rhs.seeds_}
+    , api_(rhs.api_)
     , version_(rhs.version_)
     , seed_(rhs.seed_)
     , index_(rhs.index_)
@@ -283,8 +269,7 @@ bool PaymentCode::AddPrivateKeys(
     }
 
     const PaymentCode candidate(
-        crypto_,
-        seeds_,
+        api_,
         seed,
         index,
         version_,
@@ -329,7 +314,7 @@ const std::string PaymentCode::asBase58() const
         auto binaryVersion =
             Data::Factory(serialized.data(), serialized.size());
 
-        return crypto_.Encode().IdentifierEncode(binaryVersion);
+        return api_.Crypto().Encode().IdentifierEncode(binaryVersion);
     } else {
 
         return {};
@@ -346,7 +331,7 @@ void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
     newKey.set_mode(proto::KEYMODE_PUBLIC);
     newKey.set_role(proto::KEYROLE_SIGN);
     newKey.set_key(pubkey.data(), pubkey.size());
-    asymmetric_key_ = crypto::key::Asymmetric::Factory(newKey);
+    asymmetric_key_ = api_.Factory().AsymmetricKey(newKey);
 
     if (asymmetric_key_.get()) {
         pubkey_ = dynamic_cast<crypto::key::Secp256k1*>(&asymmetric_key_.get());
@@ -388,8 +373,7 @@ const OTNymID PaymentCode::ID() const
 }
 
 std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
+    const api::Core& api,
     const std::string& seed,
     const Bip32Index index)
 {
@@ -397,7 +381,7 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         false, new OTPassword, Data::Factory()};
     auto& [success, chainCode, publicKey] = output;
     auto fingerprint{seed};
-    auto privatekey = seeds.GetPaymentCode(fingerprint, index);
+    auto privatekey = api.Seeds().GetPaymentCode(fingerprint, index);
 
     OT_ASSERT(seed == fingerprint)
 
@@ -405,15 +389,16 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         OT_ASSERT(chainCode)
 
         OTPassword privkey{};
-        auto symmetricKey = crypto.Symmetric().Key(
+        auto symmetricKey = api.Crypto().Symmetric().Key(
             privatekey->encryptedkey().key(),
             privatekey->encryptedkey().mode());
         OTPasswordData password(__FUNCTION__);
         symmetricKey->Decrypt(privatekey->chaincode(), password, *chainCode);
         proto::AsymmetricKey key{};
         bool haveKey{false};
-        haveKey = dynamic_cast<const crypto::EcdsaProvider&>(crypto.SECP256K1())
-                      .PrivateToPublic(*privatekey, key);
+        haveKey =
+            dynamic_cast<const crypto::EcdsaProvider&>(api.Crypto().SECP256K1())
+                .PrivateToPublic(*privatekey, key);
 
         if (haveKey) {
             publicKey = Data::Factory(key.key().c_str(), key.key().size());
@@ -527,7 +512,7 @@ OTAsymmetricKey PaymentCode::signing_key() const
 
     std::string fingerprint = seed_;
     std::shared_ptr<proto::AsymmetricKey> privatekey =
-        seeds_.GetPaymentCode(fingerprint, index_);
+        api_.Seeds().GetPaymentCode(fingerprint, index_);
 
     if (fingerprint != seed_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -549,7 +534,7 @@ OTAsymmetricKey PaymentCode::signing_key() const
     auto compareKeyData = Data::Factory();
     proto::AsymmetricKey compareKey;
     const bool haveKey =
-        dynamic_cast<const crypto::EcdsaProvider&>(crypto_.SECP256K1())
+        dynamic_cast<const crypto::EcdsaProvider&>(api_.Crypto().SECP256K1())
             .PrivateToPublic(*privatekey, compareKey);
 
     if (!haveKey) { return crypto::key::Asymmetric::Factory(); }
@@ -566,7 +551,7 @@ OTAsymmetricKey PaymentCode::signing_key() const
         return crypto::key::Asymmetric::Factory();
     }
 
-    const auto signingKey = crypto::key::Asymmetric::Factory(*privatekey);
+    const auto signingKey = api_.Factory().AsymmetricKey(*privatekey);
 
     return signingKey;
 }

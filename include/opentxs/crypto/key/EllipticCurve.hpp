@@ -8,7 +8,9 @@
 
 #include "opentxs/Forward.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 
 #include <memory>
 
@@ -18,34 +20,17 @@ namespace crypto
 {
 namespace key
 {
-class EllipticCurve : virtual public Asymmetric
+class EllipticCurve : virtual public Asymmetric, virtual public Keypair
 {
 public:
     EXPORT static const VersionNumber DefaultVersion;
     EXPORT static const VersionNumber MaxVersion;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT static Bip32Fingerprint CalculateFingerprint(const Data& pubkey);
-#endif
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual OTData Chaincode() const = 0;
-    EXPORT virtual int Depth() const = 0;
-#endif
     EXPORT virtual const crypto::EcdsaProvider& ECDSA() const = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual Bip32Fingerprint Fingerprint() const = 0;
-#endif
     EXPORT virtual bool GetKey(Data& key) const = 0;
     EXPORT virtual bool GetKey(proto::Ciphertext& key) const = 0;
-    using Asymmetric::GetPublicKey;
-    EXPORT virtual bool GetPublicKey(Data& key) const = 0;
     EXPORT virtual OTData PrivateKey() const = 0;
     EXPORT virtual OTData PublicKey() const = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual std::string Xprv() const = 0;
-    EXPORT virtual std::string Xpub() const = 0;
-#endif
 
     EXPORT virtual bool SetKey(const Data& key) = 0;
     EXPORT virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) = 0;
@@ -64,4 +49,5 @@ private:
 }  // namespace key
 }  // namespace crypto
 }  // namespace opentxs
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif

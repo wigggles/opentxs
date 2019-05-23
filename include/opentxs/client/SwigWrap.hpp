@@ -1827,44 +1827,6 @@ public:
         const bool& bTransactionWasSuccess,
         const bool& bTransactionWasFailure);
 
-    // Returns OT_BOOL
-    // std::int32_t HarvestClosingNumbers(const std::string& NOTARY_ID,
-    //    const std::string& NYM_ID,
-    //    const std::string& THE_CRON_ITEM);
-    //
-    //
-    //
-    // Returns OT_BOOL
-    // std::int32_t HarvestAllNumbers(const std::string& NOTARY_ID,
-    //    const std::string& NYM_ID,
-    //    const std::string& THE_CRON_ITEM);
-
-    /** -----------------------------------------------------------------
-    // LOAD USER PUBLIC KEY -- from local storage
-    //
-    // (returns as STRING)
-    //
-    // MEANT TO BE USED in cases where a private key is also available.
-    */
-    EXPORT static std::string LoadUserPubkey_Encryption(
-        const std::string& NYM_ID);  // returns nullptr, or a public key.
-
-    EXPORT static std::string LoadUserPubkey_Signing(
-        const std::string& NYM_ID);  // returns nullptr, or a public key.
-
-    /** -----------------------------------------------------------------
-    // LOAD PUBLIC KEY -- from local storage
-    //
-    // (returns as STRING)
-    //
-    // MEANT TO BE USED in cases where a private key is NOT available.
-    */
-    EXPORT static std::string LoadPubkey_Encryption(
-        const std::string& NYM_ID);  // returns nullptr, or a public key.
-
-    EXPORT static std::string LoadPubkey_Signing(
-        const std::string& NYM_ID);  // returns nullptr, or a public key.
-
     /** ------------------------------------------------------------------------
     //
     // Verify that NYM_ID (including its Private Key) is an

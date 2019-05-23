@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
@@ -57,28 +58,34 @@
 
 namespace opentxs
 {
-crypto::key::RSA* Factory::RSAKey(const proto::AsymmetricKey& input)
+crypto::key::RSA* Factory::RSAKey(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
+    const proto::AsymmetricKey& input)
 {
-    return new crypto::key::implementation::RSA(input);
+    return new crypto::key::implementation::RSA(crypto, engine, input);
 }
 
-crypto::key::RSA* Factory::RSAKey(const String& input)
+crypto::key::RSA* Factory::RSAKey(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
+    const proto::KeyRole input)
 {
-    return new crypto::key::implementation::RSA(input);
-}
-
-crypto::key::RSA* Factory::RSAKey(const proto::KeyRole input)
-{
-    return new crypto::key::implementation::RSA(input);
+    return new crypto::key::implementation::RSA(crypto, engine, input);
 }
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
 {
-RSA::RSA() noexcept
+RSA::RSA(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
+    const proto::KeyRole role) noexcept
     : Asymmetric(
+          crypto,
+          engine,
           proto::AKEYTYPE_LEGACY,
-          proto::KEYROLE_ERROR,
+          role,
           Asymmetric::DefaultVersion)
     , dp(new d())
     , m_p_ascKey(Armored::Factory())
@@ -88,18 +95,11 @@ RSA::RSA() noexcept
     dp->m_pKey = nullptr;
 }
 
-RSA::RSA(const proto::KeyRole role) noexcept
-    : Asymmetric(proto::AKEYTYPE_LEGACY, role, Asymmetric::DefaultVersion)
-    , dp(new d())
-    , m_p_ascKey(Armored::Factory())
-{
-    dp->backlink = this;
-    dp->m_pX509 = nullptr;
-    dp->m_pKey = nullptr;
-}
-
-RSA::RSA(const proto::AsymmetricKey& serializedKey) noexcept
-    : Asymmetric(serializedKey)
+RSA::RSA(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
+    const proto::AsymmetricKey& serializedKey) noexcept
+    : Asymmetric(crypto, engine, serializedKey)
     , dp(new d())
     , m_p_ascKey(Armored::Factory())
 {
@@ -107,7 +107,6 @@ RSA::RSA(const proto::AsymmetricKey& serializedKey) noexcept
     dp->backlink = this;
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
-    m_keyType = proto::AKEYTYPE_LEGACY;
     const auto dataKey =
         Data::Factory(serializedKey.key().c_str(), serializedKey.key().size());
     m_p_ascKey->SetData(dataKey.get());
@@ -119,17 +118,13 @@ RSA::RSA(const proto::AsymmetricKey& serializedKey) noexcept
     }
 }
 
-RSA::RSA(const String& publicKey) noexcept
-    : Asymmetric(Asymmetric::DefaultVersion)
-    , dp(new d())
-    , m_p_ascKey(Armored::Factory())
+RSA::RSA(const RSA& rhs) noexcept
+    : key::RSA()
+    , Asymmetric(rhs)
+    , dp(new d(*rhs.dp))
+    , m_p_ascKey(rhs.m_p_ascKey)
 {
-
     dp->backlink = this;
-    dp->m_pX509 = nullptr;
-    dp->m_pKey = nullptr;
-    m_keyType = proto::AKEYTYPE_LEGACY;
-    SetPublicKey(publicKey);
 }
 
 OTData RSA::CalculateHash(const proto::HashType hashType, const OTPasswordData&)
@@ -137,7 +132,7 @@ OTData RSA::CalculateHash(const proto::HashType hashType, const OTPasswordData&)
 {
     auto key = String::Factory();
 
-    if (IsPrivate()) {
+    if (HasPrivate()) {
         const bool got = GetPrivateKey(key, this);
 
         if (false == got) {
@@ -148,7 +143,7 @@ OTData RSA::CalculateHash(const proto::HashType hashType, const OTPasswordData&)
             return Data::Factory();
         }
     } else {
-        const bool got = GetPublicKey(key);
+        const bool got = get_public_key(key);
 
         if (false == got) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract public key")
@@ -159,7 +154,7 @@ OTData RSA::CalculateHash(const proto::HashType hashType, const OTPasswordData&)
     }
 
     auto output = Data::Factory();
-    const auto hashed = OT::App().Crypto().Hash().Digest(hashType, key, output);
+    const auto hashed = crypto_.Hash().Digest(hashType, key, output);
 
     if (false == hashed) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hash")
@@ -171,26 +166,8 @@ OTData RSA::CalculateHash(const proto::HashType hashType, const OTPasswordData&)
     return output;
 }
 
-RSA* RSA::clone() const
-{
-    auto output = ot_super::clone();
-
-    OT_ASSERT(nullptr != output)
-
-    auto* key = dynamic_cast<RSA*>(output);
-
-    OT_ASSERT(nullptr != key)
-
-    key->m_p_ascKey = m_p_ascKey;
-
-    return key;
-}
-
 // virtual
-bool RSA::IsEmpty() const { return (m_p_ascKey->empty()); }
-
-// virtual
-bool RSA::GetPublicKey(String& strKey) const
+bool RSA::get_public_key(String& strKey) const
 {
     if (false == m_p_ascKey->empty()) {
         strKey.Concatenate(
@@ -222,8 +199,8 @@ bool RSA::Open(
 bool RSA::SetPublicKey(const String& strKey)
 {
     Release();
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
+    has_public_ = true;
+    has_private_ = false;
 
     // This reads the string into the Armor and removes the bookends. (-----
     // BEGIN ...)
@@ -264,7 +241,11 @@ void RSA::ReleaseKeyLowLevel_Hook()
     dp->m_pKey = nullptr;
 }
 
-bool RSA::Seal(OTAsymmetricKey&, crypto::key::Symmetric&, OTPasswordData&) const
+bool RSA::Seal(
+    const opentxs::api::Core&,
+    OTAsymmetricKey&,
+    crypto::key::Symmetric&,
+    OTPasswordData&) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(": Not implemented.").Flush();
 
@@ -282,8 +263,8 @@ bool RSA::SetPrivateKey(
 {
     Release();
 
-    m_bIsPublicKey = false;
-    m_bIsPrivateKey = true;
+    has_public_ = false;
+    has_private_ = true;
 
     if (!strCert.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -393,8 +374,8 @@ bool RSA::SetPublicKeyFromPrivateKey(
 {
     Release();
 
-    m_bIsPublicKey = true;
-    m_bIsPrivateKey = false;
+    has_public_ = true;
+    has_private_ = false;
 
     bool bReturnValue = false;
 
@@ -499,192 +480,6 @@ bool RSA::SetPublicKeyFromPrivateKey(
     return bReturnValue;
 }
 
-// Used when importing / exporting Nym to/from the wallet.
-//
-bool RSA::ReEncryptPrivateKey(
-    const OTPassword& theExportPassword,
-    bool bImporting) const
-{
-    OT_ASSERT(IsPrivate());
-
-    bool bReturnVal = false;
-
-    const EVP_CIPHER* pCipher =
-        EVP_des_ede3_cbc();  // todo should this algorithm be hardcoded?
-    // after base64-decoding the ascii-armored string, the (encrypted) binary
-    // will be stored here.
-    auto theData = Data::Factory();
-    // This line base64 decodes the ascii-armored string into binary object
-    // theData...
-    //
-    m_p_ascKey->GetData(theData);  // theData now contains binary data, the
-                                   // encrypted private key itself, no longer in
-                                   // text-armoring.
-
-    if (theData->size() > 0) {
-        EVP_PKEY* pClearKey = nullptr;
-
-        // Copy the encrypted binary private key data into an OpenSSL memory
-        // BIO...
-        //
-        crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData->data())),
-            theData->size());  // theData will zeroMemory upon destruction.
-        OT_ASSERT_MSG(
-            nullptr != keyBio,
-            "RSA::"
-            "ReEncryptPrivateKey: Assert: nullptr != "
-            "keyBio \n");
-
-        // Here's thePWData we use if we didn't have anything else:
-        //
-        OTPasswordData thePWData(
-            bImporting ? "(Importing) Enter the exported Nym's passphrase."
-                       : "(Exporting) Enter your wallet's master passphrase.");
-
-        // If we're importing, that means we're currently stored as an EXPORTED
-        // NYM (i.e. with its own
-        // password, independent of the wallet.) So we use theExportedPassword.
-        //
-        if (bImporting) {
-            //          otOut << "RE-ENCRYPT PRIVATE KEY -- READING using
-            // special EXPORT password: %s\n", theExportPassword.getPassword());
-            pClearKey = PEM_read_bio_PrivateKey(
-                keyBio,
-                nullptr,
-                0,
-                const_cast<void*>(reinterpret_cast<const void*>(
-                    theExportPassword.getPassword())));
-        }
-
-        // Else if we're exporting, that means we're currently stored in the
-        // wallet (i.e. using the wallet's
-        // cached master key.) So we use the normal password callback.
-        //
-        else {
-            const auto& native =
-                dynamic_cast<const api::internal::Native&>(OT::App());
-            pClearKey = PEM_read_bio_PrivateKey(
-                keyBio,
-                nullptr,
-                native.GetInternalPasswordCallback(),
-                &thePWData);
-        }
-
-        if (nullptr != pClearKey) {
-            LogTrace(OT_METHOD)(__FUNCTION__)(
-                ": Success reading private key from ASCII-armored data.")
-                .Flush();
-
-            // Okay, we have loaded up the private key, now let's save it back
-            // to m_p_ascKey using the new passphrase.
-            crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
-            OT_ASSERT(nullptr != bmem);
-
-            // write a private key to that buffer, from pClearKey
-            //
-            std::int32_t nWriteBio = 0;
-            const auto& native =
-                dynamic_cast<const api::internal::Native&>(OT::App());
-
-            // If we're importing, that means we just loaded up the (previously)
-            // exported Nym using theExportedPassphrase, so now we need to save
-            // it back again using the normal password callback (for importing
-            // it to the wallet.)
-            if (bImporting) {
-                nWriteBio = PEM_write_bio_PrivateKey(
-                    bmem,
-                    pClearKey,
-                    pCipher,
-                    nullptr,
-                    0,
-                    native.GetInternalPasswordCallback(),
-                    &thePWData);
-            }
-
-            // Else if we're exporting, that means we just loaded up the Nym
-            // from the wallet
-            // using the normal password callback, and now we need to save it
-            // back again using
-            // theExportedPassphrase (for exporting it outside of the wallet.)
-            //
-            else {
-                //              otOut << "RE-ENCRYPT PRIVATE KEY -- WRITING
-                // using special EXPORT password: %s  Size: %d\n",
-                // theExportPassword.getPassword(),
-                //                             theExportPassword.getPasswordSize());
-                nWriteBio = PEM_write_bio_PrivateKey(
-                    bmem,
-                    pClearKey,
-                    pCipher,
-                    nullptr,
-                    0,
-                    0,
-                    const_cast<void*>(reinterpret_cast<const void*>(
-                        theExportPassword.getPassword())));
-            }
-
-            EVP_PKEY_free(pClearKey);
-
-            if (0 == nWriteBio)
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Failed writing EVP_PKEY to memory buffer.")
-                    .Flush();
-            else {
-                LogInsane(OT_METHOD)(__FUNCTION__)(
-                    ": Success writing EVP_PKEY to memory buffer.")
-                    .Flush();
-                auto theNewData = Data::Factory();
-                char* pChar = nullptr;
-
-                // After the below call, pChar will point to the memory buffer
-                // where the private key supposedly is,
-                // and lSize will contain the size of that memory.
-                //
-                std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
-                auto nSize = static_cast<std::uint32_t>(lSize);
-
-                if (nSize > 0) {
-                    // Set the buffer size in our own memory.
-                    theNewData->SetSize(nSize);
-
-                    //                  void * pv =
-                    OTPassword::safe_memcpy(
-                        (static_cast<char*>(const_cast<void*>(
-                            theNewData->data()))),  // destination
-                        theNewData->size(),  // size of destination buffer.
-                        pChar,               // source
-                        nSize);              // length of source.
-                    // bool bZeroSource=false); // if true, sets the source
-                    // buffer to zero after copying is done.
-
-                    // This base64 encodes the private key data, which
-                    // is already encrypted to its passphase as well.
-                    //
-                    m_p_ascKey->SetData(theNewData);  // <======== Success!
-                    bReturnVal = true;
-                } else
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Failed copying private key into memory.")
-                        .Flush();
-            }  // (nWriteBio != 0)
-
-        } else
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed loading actual private key from "
-                "BIO containing ASCII-armored data: ")(m_p_ascKey->Get())(".")
-                .Flush();
-    } else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed reading private key from ASCII-armored data. ")
-            .Flush();
-    //      otErr << "%s: Failed reading private key from ASCII-armored
-    // data:\n\n%s\n\n",
-    //                    __FUNCTION__, m_p_ascKey->Get());
-
-    return bReturnVal;
-}
-
 // virtual
 bool RSA::SaveCertToString(
     String& strOutput,
@@ -751,7 +546,7 @@ bool RSA::GetPrivateKey(
     const EVP_CIPHER* pCipher =
         EVP_des_ede3_cbc();  // todo security (revisit this mode...)
 
-    if (!IsPrivate()) {
+    if (false == HasPrivate()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error: !IsPrivate() (This function should "
             "only be called on a private key).")
@@ -830,12 +625,6 @@ bool RSA::GetPrivateKey(
     return privateSuccess && publicSuccess;
 }
 
-const crypto::AsymmetricProvider& RSA::engine() const
-
-{
-    return OT::App().Crypto().RSA();
-}
-
 std::shared_ptr<proto::AsymmetricKey> RSA::Serialize() const
 
 {
@@ -843,7 +632,7 @@ std::shared_ptr<proto::AsymmetricKey> RSA::Serialize() const
     auto dataKey = Data::Factory();
     m_p_ascKey->GetData(dataKey);
 
-    if (IsPrivate()) {
+    if (HasPrivate()) {
         serializedKey->set_mode(proto::KEYMODE_PRIVATE);
     } else {
         serializedKey->set_mode(proto::KEYMODE_PUBLIC);
@@ -859,13 +648,13 @@ bool RSA::TransportKey(
     [[maybe_unused]] OTPassword& privateKey) const
 {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    if (!IsPrivate()) { return false; }
+    if (false == HasPrivate()) { return false; }
 
     auto key = Data::Factory();
     auto hash = Data::Factory();
     m_p_ascKey->GetData(key);
 
-    OT::App().Crypto().Hash().Digest(StandardHash, key, hash);
+    crypto_.Hash().Digest(StandardHash, key, hash);
     OTPassword seed;
     seed.setMemory(hash->data(), hash->size());
     const crypto::EcdsaProvider& engine =

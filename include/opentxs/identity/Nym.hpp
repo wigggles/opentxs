@@ -100,11 +100,6 @@ public:
     EXPORT virtual bool Path(proto::HDPath& output) const = 0;
     EXPORT virtual std::string PaymentCode() const = 0;
     EXPORT virtual std::string PhoneNumbers(bool active = true) const = 0;
-    // Like for when you are exporting a Nym from the wallet.
-    EXPORT virtual bool ReEncryptPrivateCredentials(
-        bool bImporting,
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr) const = 0;
     EXPORT virtual std::uint64_t Revision() const = 0;
 
     /* Encrypt a symmetric key's password

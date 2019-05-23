@@ -1623,26 +1623,6 @@ bool SwigWrap::Msg_HarvestTransactionNumbers(
         bTransactionWasFailure);
 }
 
-std::string SwigWrap::LoadPubkey_Encryption(const std::string& NYM_ID)
-{
-    return client_->Exec().LoadPubkey_Encryption(NYM_ID);
-}
-
-std::string SwigWrap::LoadPubkey_Signing(const std::string& NYM_ID)
-{
-    return client_->Exec().LoadPubkey_Signing(NYM_ID);
-}
-
-std::string SwigWrap::LoadUserPubkey_Encryption(const std::string& NYM_ID)
-{
-    return client_->Exec().LoadUserPubkey_Encryption(NYM_ID);
-}
-
-std::string SwigWrap::LoadUserPubkey_Signing(const std::string& NYM_ID)
-{
-    return client_->Exec().LoadUserPubkey_Signing(NYM_ID);
-}
-
 bool SwigWrap::VerifyUserPrivateKey(const std::string& NYM_ID)
 {
     return client_->Exec().VerifyUserPrivateKey(NYM_ID);

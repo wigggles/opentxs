@@ -576,7 +576,7 @@ std::shared_ptr<Message> Operation::construct_convey_payment()
         return {};
     }
 
-    OTEnvelope envelope{};
+    OTEnvelope envelope{api_};
     auto sealed = envelope.Seal(recipientPubkey, serialized);
 
     if (sealed) { sealed &= envelope.GetCiphertext(message.m_ascPayload); }
@@ -953,7 +953,7 @@ std::shared_ptr<Message> Operation::construct_send_nym_object(
 
     const auto plaintext(proto::ProtoAsArmored(
         object.Serialize(), String::Factory("PEER OBJECT")));
-    OTEnvelope envelope{};
+    OTEnvelope envelope{api_};
     auto sealed = envelope.Seal(recipient, plaintext);
 
     if (sealed) { sealed &= envelope.GetCiphertext(message.m_ascPayload); }
@@ -1070,7 +1070,7 @@ std::shared_ptr<Message> Operation::construct_send_message()
     const auto& copy = *pCopy;
     const auto plaintext(proto::ProtoAsArmored(
         copy.Serialize(), String::Factory("PEER OBJECT")));
-    OTEnvelope envelope{};
+    OTEnvelope envelope{api_};
 
     if (false == envelope.Seal(nym, plaintext)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed sealing envelope.")

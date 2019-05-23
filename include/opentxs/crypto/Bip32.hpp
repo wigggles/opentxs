@@ -14,6 +14,8 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <tuple>
+#include <vector>
 
 namespace opentxs
 {
@@ -24,6 +26,15 @@ std::string Print(const proto::HDPath& node);
 class Bip32
 {
 public:
+    using Path = std::vector<Bip32Index>;
+    using Key =
+        std::tuple<OTPassword, OTPassword, OTData, Path, Bip32Fingerprint>;
+
+    EXPORT virtual Key DeriveKey(
+        const api::crypto::Hash& hash,
+        const EcdsaCurve& curve,
+        const OTPassword& seed,
+        const Path& path) const = 0;
     EXPORT virtual bool DeserializePrivate(
         const std::string& serialized,
         Bip32Network& network,
@@ -40,14 +51,6 @@ public:
         Bip32Index& index,
         Data& chainCode,
         Data& key) const = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetChild(
-        const proto::AsymmetricKey& parent,
-        const Bip32Index index) const = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetHDKey(
-        const EcdsaCurve& curve,
-        const OTPassword& seed,
-        proto::HDPath& path,
-        const VersionNumber version) const = 0;
     EXPORT virtual std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;

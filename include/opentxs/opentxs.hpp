@@ -24,6 +24,7 @@
 #include <opentxs/api/client/ServerAction.hpp>
 #include <opentxs/api/client/UI.hpp>
 #include <opentxs/api/client/Workflow.hpp>
+#include <opentxs/api/crypto/Asymmetric.hpp>
 #include <opentxs/api/crypto/Config.hpp>
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/crypto/Encode.hpp>
@@ -105,6 +106,9 @@
 #include <opentxs/crypto/key/Ed25519.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include <opentxs/crypto/key/EllipticCurve.hpp>
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include <opentxs/crypto/key/HD.hpp>
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/crypto/key/Keypair.hpp>
 #include <opentxs/crypto/key/LegacySymmetric.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_RSA

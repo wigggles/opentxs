@@ -8,9 +8,9 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/Proto.hpp"
-
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <cstdint>
 #include <string>
@@ -22,6 +22,13 @@ namespace api
 class Factory
 {
 public:
+    EXPORT virtual OTAsymmetricKey AsymmetricKey(
+        const NymParameters& params,
+        const proto::KeyRole role = proto::KEYROLE_SIGN,
+        const VersionNumber version =
+            opentxs::crypto::key::Asymmetric::DefaultVersion) const = 0;
+    EXPORT virtual OTAsymmetricKey AsymmetricKey(
+        const proto::AsymmetricKey& serialized) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Basket> Basket() const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Basket> Basket(
         std::int32_t nCount,
@@ -79,6 +86,16 @@ public:
         const OTTransaction& theOwner,
         itemType theType,
         const opentxs::Identifier& pDestinationAcctID) const = 0;
+
+    EXPORT virtual OTKeypair Keypair(
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const proto::KeyRole role) const = 0;
+    EXPORT virtual OTKeypair Keypair(
+        const proto::AsymmetricKey& serializedPubkey,
+        const proto::AsymmetricKey& serializedPrivkey) const = 0;
+    EXPORT virtual OTKeypair Keypair(
+        const proto::AsymmetricKey& serializedPubkey) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,

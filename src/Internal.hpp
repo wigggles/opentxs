@@ -446,6 +446,23 @@ int polarity(const I value)
 
     return (0 < value) ? 1 : -1;
 }
+
+template <typename I>
+struct HDIndex {
+    Bip32Index value_{};
+
+    operator Bip32Index() const { return value_; }
+
+    HDIndex(const I in)
+        : value_(static_cast<Bip32Index>(in))
+    {
+    }
+
+    HDIndex(const I lhs, const Bip32Child rhs)
+        : value_(static_cast<Bip32Index>(lhs) | static_cast<Bip32Index>(rhs))
+    {
+    }
+};
 }  // namespace opentxs
 
 #include "Factory.hpp"

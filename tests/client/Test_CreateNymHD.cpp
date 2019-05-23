@@ -75,12 +75,12 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
     EXPECT_EQ(2, pathA.child_size());
 
     EXPECT_EQ(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+            static_cast<Bip32Index>(Bip32Child::HARDENED),
         pathA.child(0));
 
     EXPECT_EQ(
-        0 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathA.child(1));
+        0 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathA.child(1));
 
     // Bob
     proto::HDPath pathB;
@@ -89,12 +89,12 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
     EXPECT_EQ(2, pathB.child_size());
 
     EXPECT_EQ(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+            static_cast<Bip32Index>(Bip32Child::HARDENED),
         pathB.child(0));
 
     EXPECT_EQ(
-        0 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathB.child(1));
+        0 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathB.child(1));
 
     // Charly
     proto::HDPath pathC;
@@ -103,12 +103,12 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
     EXPECT_EQ(2, pathC.child_size());
 
     EXPECT_EQ(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+            static_cast<Bip32Index>(Bip32Child::HARDENED),
         pathC.child(0));
 
     EXPECT_EQ(
-        1 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathC.child(1));
+        1 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathC.child(1));
 }
 
 TEST_F(Test_CreateNymHD, TestNym_Dave)
@@ -123,12 +123,12 @@ TEST_F(Test_CreateNymHD, TestNym_Dave)
     EXPECT_EQ(2, pathD.child_size());
 
     EXPECT_EQ(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+            static_cast<Bip32Index>(Bip32Child::HARDENED),
         pathD.child(0));
 
     EXPECT_EQ(
-        1 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathD.child(1));
+        1 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathD.child(1));
 }
 
 TEST_F(Test_CreateNymHD, TestNym_Eve)
@@ -147,12 +147,12 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
     EXPECT_EQ(2, pathE.child_size());
 
     EXPECT_EQ(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+            static_cast<Bip32Index>(Bip32Child::HARDENED),
         pathE.child(0));
 
     EXPECT_EQ(
-        2 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathE.child(1));
+        2 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathE.child(1));
 }
 
 TEST_F(Test_CreateNymHD, TestNym_Frank)
@@ -179,14 +179,14 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
     EXPECT_EQ(2, pathF2.child_size());
 
     EXPECT_EQ(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED),
+        static_cast<Bip32Index>(Bip43Purpose::NYM) |
+            static_cast<Bip32Index>(Bip32Child::HARDENED),
         pathF.child(0));
 
     EXPECT_EQ(
-        3 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathF.child(1));
+        3 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathF.child(1));
     EXPECT_EQ(
-        3 | static_cast<std::uint32_t>(Bip32Child::HARDENED), pathF2.child(1));
+        3 | static_cast<Bip32Index>(Bip32Child::HARDENED), pathF2.child(1));
 }
 
 TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)

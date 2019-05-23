@@ -256,7 +256,12 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
     crypto::key::Keypair& input,
     OTPasswordData& passwordData)
 {
-    if (!pkeyData_) { return false; }
+    if (false == bool(pkeyData_)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing creation parameters")
+            .Flush();
+
+        return false;
+    }
 
     auto& keypair = dynamic_cast<crypto::key::implementation::Keypair&>(input);
 
@@ -278,8 +283,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             if (nullptr == pPublicKey) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": dynamic_cast of public key to "
-                    "crypto::key::Ed25519 failed.")
+                    ": dynamic_cast of public key to crypto::key::Ed25519 "
+                    "failed.")
                     .Flush();
 
                 return false;
@@ -287,8 +292,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             if (nullptr == pPrivateKey) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": dynamic_cast of private key to "
-                    "crypto::key::Ed25519 failed.")
+                    ": dynamic_cast of private key to crypto::key::Ed25519 "
+                    "failed.")
                     .Flush();
 
                 return false;
@@ -396,6 +401,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unknown key type").Flush();
 
             return false;  // unsupported keyType
         }

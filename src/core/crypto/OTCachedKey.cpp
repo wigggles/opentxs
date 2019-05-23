@@ -8,6 +8,7 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTKeyring.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -39,9 +40,9 @@ namespace opentxs
 {
 
 OTCachedKey::OTCachedKey(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const std::int32_t nTimeoutSeconds)
-    : crypto_(crypto)
+    : api_(api)
     , general_lock_()
     , master_password_lock_()
     , shutdown_(Flag::Factory(false))
@@ -52,13 +53,13 @@ OTCachedKey::OTCachedKey(
     , timeout_(nTimeoutSeconds)
     , thread_(nullptr)
     , master_password_(nullptr)
-    , key_(crypto::key::LegacySymmetric::Factory(crypto_))
+    , key_(crypto::key::LegacySymmetric::Factory(api_))
     , secret_id_(String::Factory())
 {
 }
 
-OTCachedKey::OTCachedKey(const api::Crypto& crypto, const Armored& ascCachedKey)
-    : OTCachedKey(crypto, OT_MASTER_KEY_TIMEOUT)
+OTCachedKey::OTCachedKey(const api::Core& api, const Armored& ascCachedKey)
+    : OTCachedKey(api, OT_MASTER_KEY_TIMEOUT)
 {
     OT_ASSERT(ascCachedKey.Exists());
 
@@ -121,13 +122,12 @@ bool OTCachedKey::ChangeUserPassphrase()
 }
 
 std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
-    const api::Crypto& crypto,
+    const api::Core& api,
     OTPassword& theOutput,
     const char* szDisplay,
     std::int32_t nTimeoutSeconds)
 {
-    std::shared_ptr<OTCachedKey> pMaster(
-        new OTCachedKey(crypto, nTimeoutSeconds));
+    std::shared_ptr<OTCachedKey> pMaster(new OTCachedKey(api, nTimeoutSeconds));
 
     OT_ASSERT(pMaster);
 
@@ -221,7 +221,7 @@ bool OTCachedKey::GetMasterPassword(
     inner.unlock();
     release_thread();
     inner.lock();
-    master_password_.reset(crypto_.AES().InstantiateBinarySecret());
+    master_password_.reset(api_.Crypto().AES().InstantiateBinarySecret());
 
     /*
     How does this work?
@@ -268,7 +268,7 @@ bool OTCachedKey::GetMasterPassword(
     OTPassword* pDerivedKey = nullptr;
     std::unique_ptr<OTPassword> theDerivedAngel;
 
-    if (!key_.get()) { key_ = crypto::key::LegacySymmetric::Factory(crypto_); }
+    if (!key_.get()) { key_ = crypto::key::LegacySymmetric::Factory(api_); }
 
     OT_ASSERT(key_.get());
 
@@ -288,8 +288,9 @@ bool OTCachedKey::GetMasterPassword(
         // passphrase...
         //
 
-        pDerivedKey = crypto_.AES().InstantiateBinarySecret();  // pDerivedKey
-                                                                // is
+        pDerivedKey =
+            api_.Crypto().AES().InstantiateBinarySecret();  // pDerivedKey
+                                                            // is
         // instantiated here to
         // use as output argument
         // below.
@@ -787,7 +788,7 @@ void OTCachedKey::SetCachedKey(const Armored& ascCachedKey)
 
     OT_ASSERT(ascCachedKey.Exists());
 
-    key_ = crypto::key::LegacySymmetric::Factory(crypto_);
+    key_ = crypto::key::LegacySymmetric::Factory(api_);
 
     OT_ASSERT(key_.get());
 

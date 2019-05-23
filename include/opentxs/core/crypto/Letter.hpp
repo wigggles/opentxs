@@ -35,10 +35,12 @@ class Letter
 {
 public:
     static bool Seal(
+        const api::Core& api,
         const mapOfAsymmetricKeys& RecipPubKeys,
         const String& theInput,
         Data& dataOutput);
     static bool Open(
+        const api::Core& api,
         const Data& dataInput,
         const identity::Nym& theRecipient,
         const OTPasswordData& keyPassword,
@@ -50,6 +52,7 @@ private:
     static const VersionConversionMap akey_to_envelope_version_;
 
     static bool AddRSARecipients(
+        const api::Core& api,
         const mapOfAsymmetricKeys& recipients,
         const crypto::key::Symmetric& sessionKey,
         proto::Envelope& envelope);

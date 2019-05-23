@@ -319,6 +319,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
     }
 
     bool bNeedToSaveAgain = false;
+    bool haveCachedKey{false};
 
     {
         auto xmlFileContents = StringXML::Factory(strFileContents);
@@ -385,8 +386,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             // We successfully loaded the cachedKey from file,
                             // so let's SET it as the cached key globally...
-                            auto& cachedKey =
-                                api_.Crypto().LoadDefaultKey(ascCachedKey);
+                            auto& cachedKey = api_.Crypto().LoadDefaultKey(
+                                api_, ascCachedKey);
+                            haveCachedKey = true;
 
                             if (!cachedKey.HasHashCheck()) {
                                 OTPassword tempPassword;
@@ -479,6 +481,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
         //
         // delete the xml parser after usage
         if (xml) delete xml;
+    }
+
+    if (false == haveCachedKey) {
+        api_.Crypto().DefaultKey(api_);
+        bNeedToSaveAgain = true;
     }
 
     // In case we converted any of the Nyms to the new "master key" encryption.

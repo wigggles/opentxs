@@ -9,6 +9,7 @@
 
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -53,21 +54,21 @@ OTLegacySymmetricKey LegacySymmetric::Blank()
     return OTLegacySymmetricKey{new implementation::LegacySymmetricNull};
 }
 
-OTLegacySymmetricKey LegacySymmetric::Factory(const api::Crypto& crypto)
+OTLegacySymmetricKey LegacySymmetric::Factory(const api::Core& api)
 {
-    return OTLegacySymmetricKey{new implementation::LegacySymmetric(crypto)};
+    return OTLegacySymmetricKey{new implementation::LegacySymmetric(api)};
 }
 
 OTLegacySymmetricKey LegacySymmetric::Factory(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const OTPassword& thePassword)
 {
     return OTLegacySymmetricKey{
-        new implementation::LegacySymmetric(crypto, thePassword)};
+        new implementation::LegacySymmetric(api, thePassword)};
 }
 
 bool LegacySymmetric::CreateNewKey(
-    const api::Crypto& crypto,
+    const api::Core& api,
     String& strOutput,
     const String& pstrDisplay,
     const OTPassword* pAlreadyHavePW)
@@ -92,7 +93,7 @@ bool LegacySymmetric::CreateNewKey(
         LogDebug(OT_METHOD)(__FUNCTION__)(
             ": Calling LegacySymmetric theKey.GenerateKey()...")
             .Flush();
-        implementation::LegacySymmetric theKey(crypto, *pPassUserInput);
+        implementation::LegacySymmetric theKey(api, *pPassUserInput);
         const bool bGenerated = theKey.IsGenerated();
 
         if (bGenerated && theKey.SerializeTo(strOutput))
@@ -110,7 +111,7 @@ bool LegacySymmetric::CreateNewKey(
 }
 
 bool LegacySymmetric::Decrypt(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const String& strKey,
     String& strCiphertext,
     String& strOutput,
@@ -125,7 +126,7 @@ bool LegacySymmetric::Decrypt(
         return false;
     }
 
-    implementation::LegacySymmetric theKey(crypto);
+    implementation::LegacySymmetric theKey(api);
 
     if (!theKey.SerializeFrom(strKey)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -138,10 +139,11 @@ bool LegacySymmetric::Decrypt(
     // By this point, we know we have a ciphertext envelope and a symmetric Key.
     //
     return Decrypt(
-        theKey, strCiphertext, strOutput, pstrDisplay, pAlreadyHavePW);
+        api, theKey, strCiphertext, strOutput, pstrDisplay, pAlreadyHavePW);
 }
 
 bool LegacySymmetric::Decrypt(
+    const api::Core& api,
     const LegacySymmetric& theKey,
     const String& strCiphertext,
     String& strOutput,
@@ -186,7 +188,7 @@ bool LegacySymmetric::Decrypt(
     if (pPassUserInput ||  // Success retrieving the passphrase from the
         pAlreadyHavePW)    // user, or passphrase was provided out of scope.
     {
-        OTEnvelope theEnvelope(ascArmor);
+        OTEnvelope theEnvelope(api, ascArmor);
 
         if (theEnvelope.Decrypt(
                 strOutput,
@@ -208,7 +210,7 @@ bool LegacySymmetric::Decrypt(
 
 // static
 bool LegacySymmetric::Encrypt(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const String& strKey,
     const String& strPlaintext,
     String& strOutput,
@@ -224,7 +226,7 @@ bool LegacySymmetric::Encrypt(
         return false;
     }
 
-    implementation::LegacySymmetric theKey(crypto);
+    implementation::LegacySymmetric theKey(api);
 
     if (!theKey.SerializeFrom(strKey)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -237,6 +239,7 @@ bool LegacySymmetric::Encrypt(
     // By this point, we know we have a plaintext and a symmetric Key.
     //
     return Encrypt(
+        api,
         theKey,
         strPlaintext,
         strOutput,
@@ -247,6 +250,7 @@ bool LegacySymmetric::Encrypt(
 
 // static
 bool LegacySymmetric::Encrypt(
+    const api::Core& api,
     const LegacySymmetric& theKey,
     const String& strPlaintext,
     String& strOutput,
@@ -290,7 +294,7 @@ bool LegacySymmetric::Encrypt(
     if (nullptr != pPassUserInput)  // Success retrieving the passphrase from
                                     // the user. (Now let's encrypt...)
     {
-        OTEnvelope theEnvelope;
+        OTEnvelope theEnvelope(api);
 
         if (theEnvelope.Encrypt(
                 strPlaintext,
@@ -325,10 +329,7 @@ bool LegacySymmetric::Encrypt(
 // NOTE: this version circumvents the master key.
 OTPassword* LegacySymmetric::GetPassphraseFromUser(
     const String& pstrDisplay,
-    bool bAskTwice)  // returns a
-                     // text
-                     // OTPassword,
-                     // or nullptr.
+    bool bAskTwice)  // returns a text OTPassword, or nullptr.
 {
     OTPassword* pPassUserInput =
         OTPassword::CreateTextBuffer();  // already asserts.
@@ -379,12 +380,12 @@ OTPassword* LegacySymmetric::GetPassphraseFromUser(
 
 namespace opentxs::crypto::key::implementation
 {
-LegacySymmetric::LegacySymmetric(const api::Crypto& crypto)
-    : crypto_(crypto)
+LegacySymmetric::LegacySymmetric(const api::Core& api)
+    : api_(api)
     , m_bIsGenerated(false)
     , has_hash_check_(Flag::Factory(false))
-    , m_nKeySize(crypto_.Config().SymmetricKeySize() * 8)
-    , m_uIterationCount(crypto_.Config().IterationCount())
+    , m_nKeySize(api.Crypto().Config().SymmetricKeySize() * 8)
+    , m_uIterationCount(api_.Crypto().Config().IterationCount())
     , salt_(Data::Factory())
     , iv_(Data::Factory())
     , encrypted_key_(Data::Factory())
@@ -393,9 +394,9 @@ LegacySymmetric::LegacySymmetric(const api::Crypto& crypto)
 }
 
 LegacySymmetric::LegacySymmetric(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const OTPassword& thePassword)
-    : LegacySymmetric(crypto)
+    : LegacySymmetric(api)
 {
     GenerateKey(thePassword);
 }
@@ -403,7 +404,7 @@ LegacySymmetric::LegacySymmetric(
 LegacySymmetric::LegacySymmetric(const LegacySymmetric& rhs)
     : key::LegacySymmetric()
     , Lockable()
-    , crypto_(rhs.crypto_)
+    , api_(rhs.api_)
     , m_bIsGenerated(rhs.m_bIsGenerated)
     , has_hash_check_(Flag::Factory(rhs.has_hash_check_.get()))
     , m_nKeySize(rhs.m_nKeySize)
@@ -467,7 +468,7 @@ bool LegacySymmetric::ChangePassphrase(
     // the symmetric key itself, whereas the content has its own IV in
     // OTEnvelope.
     //
-    if (!dataIV->Randomize(crypto_.Config().SymmetricIvSize())) {
+    if (!dataIV->Randomize(api_.Crypto().Config().SymmetricIvSize())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed generating iv for changing "
             "passphrase on a symmetric key. (Returning "
@@ -476,7 +477,7 @@ bool LegacySymmetric::ChangePassphrase(
         return false;
     }
 
-    if (!dataSalt->Randomize(crypto_.Config().SymmetricSaltSize())) {
+    if (!dataSalt->Randomize(api_.Crypto().Config().SymmetricSaltSize())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed generating random salt for changing "
             "passphrase on a symmetric key. (Returning "
@@ -513,7 +514,7 @@ bool LegacySymmetric::ChangePassphrase(
     // (Both are OTPasswords.)
     // Put the result into the encrypted_key_.
     //
-    const bool bEncryptedKey = crypto_.AES().Encrypt(
+    const bool bEncryptedKey = api_.Crypto().AES().Encrypt(
         *pNewDerivedKey,  // pNewDerivedKey is a symmetric key, in clear form.
                           // Used for encrypting theActualKey.
         reinterpret_cast<const char*>(
@@ -556,7 +557,7 @@ bool LegacySymmetric::GenerateKey(
         ": GENERATING keys and passwords... ")
         .Flush();
 
-    if (!iv_->Randomize(crypto_.Config().SymmetricIvSize())) {
+    if (!iv_->Randomize(api_.Crypto().Config().SymmetricIvSize())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed generating iv for encrypting a "
             "symmetric key. (Returning false).")
@@ -564,7 +565,7 @@ bool LegacySymmetric::GenerateKey(
         return false;
     }
 
-    if (!salt_->Randomize(crypto_.Config().SymmetricSaltSize())) {
+    if (!salt_->Randomize(api_.Crypto().Config().SymmetricSaltSize())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed generating random salt. (Returning false).")
             .Flush();
@@ -577,13 +578,13 @@ bool LegacySymmetric::GenerateKey(
     OTPassword theActualKey;
 
     {
-        auto nRes =
-            theActualKey.randomizeMemory(crypto_.Config().SymmetricKeySize());
+        auto nRes = theActualKey.randomizeMemory(
+            api_.Crypto().Config().SymmetricKeySize());
         if (0 > nRes) { OT_FAIL; }
         auto uRes =
             static_cast<std::uint32_t>(nRes);  // we need an uint32_t value.
 
-        if (crypto_.Config().SymmetricKeySize() != uRes) {
+        if (api_.Crypto().Config().SymmetricKeySize() != uRes) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed generating symmetric key. (Returning false).")
                 .Flush();
@@ -618,7 +619,7 @@ bool LegacySymmetric::GenerateKey(
     // are OTPasswords.)
     // Put the result into the encrypted_key_.
     //
-    const bool bEncryptedKey = crypto_.AES().Encrypt(
+    const bool bEncryptedKey = api_.Crypto().AES().Encrypt(
         *pDerivedKey,  // pDerivedKey is a symmetric key, in clear form. Used
                        // for
                        // encrypting theActualKey.
@@ -756,7 +757,7 @@ OTPassword* LegacySymmetric::calculate_derived_key_from_passphrase(
         }
     }
 
-    return crypto_.AES().DeriveNewKey(
+    return api_.Crypto().AES().DeriveNewKey(
         thePassphrase, salt_.get(), m_uIterationCount, tmpDataHashCheck);
 }
 
@@ -780,7 +781,7 @@ OTPassword* LegacySymmetric::calculate_new_derived_key_from_passphrase(
 
     if (false == HasHashCheck()) {
         hash_check_ = Data::Factory();
-        pDerivedKey.reset(crypto_.AES().DeriveNewKey(
+        pDerivedKey.reset(api_.Crypto().AES().DeriveNewKey(
             thePassphrase, salt_, m_uIterationCount, hash_check_));
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -867,7 +868,7 @@ bool LegacySymmetric::get_raw_key_from_derived_key(
         .Flush();
 
     CryptoSymmetricDecryptOutput plaintext(theRawKeyOutput);
-    const bool bDecryptedKey = crypto_.AES().Decrypt(
+    const bool bDecryptedKey = api_.Crypto().AES().Decrypt(
         theDerivedKey,  // We're using theDerivedKey to decrypt
                         // encrypted_key_.
         // Here's what we're trying to decrypt: the encrypted

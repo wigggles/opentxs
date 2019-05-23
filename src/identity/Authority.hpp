@@ -90,9 +90,6 @@ public:
     bool AddVerificationCredential(
         const proto::VerificationSet& verificationSet) override;
     bool AddContactCredential(const proto::ContactData& contactData) override;
-    bool ReEncryptPrivateCredentials(
-        const OTPassword& theExportPassword,
-        bool bImporting) override;
     void RevokeContactCredentials(
         std::list<std::string>& contactCredentialIDs) override;
     void RevokeVerificationCredentials(

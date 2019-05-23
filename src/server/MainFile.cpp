@@ -244,7 +244,8 @@ bool MainFile::CreateMainFile(
     }
     auto ascCachedKey = Armored::Factory();
     ascCachedKey->Set(strCachedKey.c_str());
-    auto& cachedKey = server_.API().Crypto().LoadDefaultKey(ascCachedKey);
+    auto& cachedKey =
+        server_.API().Crypto().LoadDefaultKey(server_.API(), ascCachedKey);
 
     if (!cachedKey.HasHashCheck()) {
         OTPassword tempPassword;
@@ -369,7 +370,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             auto& cachedKey =
                                 server_.API().Crypto().LoadDefaultKey(
-                                    ascCachedKey);
+                                    server_.API(), ascCachedKey);
 
                             if (!cachedKey.HasHashCheck()) {
                                 OTPassword tempPassword;

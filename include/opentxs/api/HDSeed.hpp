@@ -9,11 +9,14 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace opentxs
 {
@@ -22,6 +25,8 @@ namespace api
 class HDSeed
 {
 public:
+    using Path = std::vector<Bip32Index>;
+
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
@@ -29,6 +34,13 @@ public:
     EXPORT virtual std::string Bip32Root(
         const std::string& fingerprint = "") const = 0;
     EXPORT virtual std::string DefaultSeed() const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
+        std::string& fingerprint,
+        const EcdsaCurve& curve,
+        const Path& path,
+        const proto::KeyRole role = proto::KEYROLE_SIGN,
+        const VersionNumber version =
+            opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
         const Bip32Index nym) const = 0;

@@ -9,7 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/crypto/key/HD.hpp"
+#else
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 namespace opentxs
 {
@@ -17,7 +21,12 @@ namespace crypto
 {
 namespace key
 {
-class Secp256k1 : virtual public EllipticCurve
+class Secp256k1 :
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    virtual public HD
+#else
+    virtual public EllipticCurve
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 {
 public:
     virtual ~Secp256k1() = default;

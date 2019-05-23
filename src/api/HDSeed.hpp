@@ -16,6 +16,13 @@ public:
         const Bip32Index index) const override;
     std::string Bip32Root(const std::string& fingerprint = "") const override;
     std::string DefaultSeed() const override;
+    std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
+        std::string& fingerprint,
+        const EcdsaCurve& curve,
+        const Path& path,
+        const proto::KeyRole role = proto::KEYROLE_SIGN,
+        const VersionNumber version =
+            opentxs::crypto::key::EllipticCurve::DefaultVersion) const override;
     std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
         const Bip32Index nym) const override;
@@ -40,6 +47,7 @@ private:
     static const std::string DEFAULT_PASSPHRASE;
     static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
 
+    const api::crypto::Asymmetric& asymmetric_;
     const api::crypto::Symmetric& symmetric_;
     const api::storage::Storage& storage_;
     const opentxs::crypto::Bip32& bip32_;
@@ -61,6 +69,7 @@ private:
         Bip32Index& index) const;
 
     HDSeed(
+        const api::crypto::Asymmetric& asymmetric,
         const api::crypto::Symmetric& symmetric,
         const api::storage::Storage& storage,
         const opentxs::crypto::Bip32& bip32,

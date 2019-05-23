@@ -10,6 +10,12 @@ namespace opentxs::api::implementation
 class Factory : virtual public opentxs::api::Factory
 {
 public:
+    OTAsymmetricKey AsymmetricKey(
+        const NymParameters& params,
+        const proto::KeyRole role,
+        const VersionNumber version) const override;
+    OTAsymmetricKey AsymmetricKey(
+        const proto::AsymmetricKey& serialized) const override;
     std::unique_ptr<opentxs::Basket> Basket() const override;
     std::unique_ptr<opentxs::Basket> Basket(
         std::int32_t nCount,
@@ -64,6 +70,16 @@ public:
         const OTTransaction& theOwner,
         itemType theType,
         const opentxs::Identifier& pDestinationAcctID) const override;
+
+    OTKeypair Keypair(
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const proto::KeyRole role) const override;
+    OTKeypair Keypair(
+        const proto::AsymmetricKey& serializedPubkey,
+        const proto::AsymmetricKey& serializedPrivkey) const override;
+    OTKeypair Keypair(
+        const proto::AsymmetricKey& serializedPubkey) const override;
 
     std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,

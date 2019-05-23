@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/HDSeed.hpp"
@@ -17,6 +18,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/Bip32.hpp"
@@ -34,6 +36,7 @@
 namespace opentxs
 {
 api::HDSeed* Factory::HDSeed(
+    const api::crypto::Asymmetric& asymmetric,
     const api::crypto::Symmetric& symmetric,
     const api::storage::Storage& storage,
     const crypto::Bip32& bip32,
@@ -41,7 +44,7 @@ api::HDSeed* Factory::HDSeed(
     const crypto::LegacySymmetricProvider& aes)
 {
     return new api::implementation::HDSeed(
-        symmetric, storage, bip32, bip39, aes);
+        asymmetric, symmetric, storage, bip32, bip39, aes);
 }
 }  // namespace opentxs
 
@@ -52,12 +55,14 @@ const proto::SymmetricMode HDSeed::DEFAULT_ENCRYPTION_MODE =
 const std::string HDSeed::DEFAULT_PASSPHRASE = "";
 
 HDSeed::HDSeed(
+    const api::crypto::Asymmetric& asymmetric,
     const api::crypto::Symmetric& symmetric,
     const api::storage::Storage& storage,
     const opentxs::crypto::Bip32& bip32,
     const opentxs::crypto::Bip39& bip39,
     const opentxs::crypto::LegacySymmetricProvider& aes)
-    : symmetric_(symmetric)
+    : asymmetric_(asymmetric)
+    , symmetric_(symmetric)
     , storage_(storage)
     , bip32_(bip32)
     , bip39_(bip39)
@@ -70,24 +75,20 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::AccountChildKey(
     const BIP44Chain internal,
     const Bip32Index index) const
 {
-    auto path = rootPath;
-    auto fingerprint = rootPath.root();
-    std::shared_ptr<proto::AsymmetricKey> output;
-    Bip32Index notUsed = 0;
-    auto seed = Seed(fingerprint, notUsed);
-    path.set_root(fingerprint);
-
-    if (false == bool(seed)) { return output; }
-
+    std::string fingerprint{rootPath.root()};
     const Bip32Index change = internal ? 1 : 0;
-    path.add_child(change);
-    path.add_child(index);
+    Path path{};
 
-    return bip32_.GetHDKey(
-        EcdsaCurve::SECP256K1,
-        *seed,
-        path,
-        opentxs::crypto::key::EllipticCurve::DefaultVersion);
+    for (const auto& index : rootPath.child()) { path.emplace_back(index); }
+
+    path.emplace_back(change);
+    path.emplace_back(index);
+
+    auto key = GetHDKey(fingerprint, EcdsaCurve::SECP256K1, path);
+
+    if (key) { return key->Serialize(); }
+
+    return {};
 }
 
 std::string HDSeed::Bip32Root(const std::string& fingerprint) const
@@ -155,60 +156,49 @@ bool HDSeed::DecryptSeed(
 
 std::string HDSeed::DefaultSeed() const { return storage_.DefaultSeed(); }
 
+std::unique_ptr<opentxs::crypto::key::HD> HDSeed::GetHDKey(
+    std::string& fingerprint,
+    const EcdsaCurve& curve,
+    const Path& path,
+    const proto::KeyRole role,
+    const VersionNumber version) const
+{
+    Bip32Index notUsed{0};
+    auto seed = Seed(fingerprint, notUsed);
+
+    if (false == bool(seed)) { return {}; }
+
+    return asymmetric_.NewHDKey(fingerprint, *seed, curve, path, role, version);
+}
+
 std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
     std::string& fingerprint,
     const Bip32Index nym) const
 {
-    std::shared_ptr<proto::AsymmetricKey> output;
-    Bip32Index notUsed = 0;
-    auto seed = Seed(fingerprint, notUsed);
-
-    if (!seed) { return output; }
-
-    proto::HDPath path;
-    path.set_root(fingerprint);
-    path.add_child(
-        static_cast<Bip32Index>(Bip43Purpose::PAYCODE) |
-        static_cast<Bip32Index>(Bip32Child::HARDENED));
-    path.add_child(
-        static_cast<Bip32Index>(Bip44Type::BITCOIN) |
-        static_cast<Bip32Index>(Bip32Child::HARDENED));
-    path.add_child(nym | static_cast<Bip32Index>(Bip32Child::HARDENED));
-    output = bip32_.GetHDKey(
+    auto key = GetHDKey(
+        fingerprint,
         EcdsaCurve::SECP256K1,
-        *seed,
-        path,
-        opentxs::crypto::key::EllipticCurve::DefaultVersion);
+        {HDIndex{Bip43Purpose::PAYCODE, Bip32Child::HARDENED},
+         HDIndex{Bip44Type::BITCOIN, Bip32Child::HARDENED},
+         HDIndex{nym, Bip32Child::HARDENED}});
 
-    return output;
+    if (key) { return key->Serialize(); }
+
+    return {};
 }
 
 std::shared_ptr<proto::AsymmetricKey> HDSeed::GetStorageKey(
     std::string& fingerprint) const
 {
-    Bip32Index notUsed = 0;
-    auto seed = Seed(fingerprint, notUsed);
-
-    if (false == bool(seed)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load seed.").Flush();
-
-        return {};
-    }
-
-    proto::HDPath path;
-    path.set_root(fingerprint);
-    path.add_child(
-        static_cast<Bip32Index>(Bip43Purpose::FS) |
-        static_cast<Bip32Index>(Bip32Child::HARDENED));
-    path.add_child(
-        static_cast<Bip32Index>(Bip32Child::ENCRYPT_KEY) |
-        static_cast<Bip32Index>(Bip32Child::HARDENED));
-
-    return bip32_.GetHDKey(
+    auto key = GetHDKey(
+        fingerprint,
         EcdsaCurve::SECP256K1,
-        *seed,
-        path,
-        opentxs::crypto::key::EllipticCurve::DefaultVersion);
+        {HDIndex{Bip43Purpose::FS, Bip32Child::HARDENED},
+         HDIndex{Bip32Child::ENCRYPT_KEY, Bip32Child::HARDENED}});
+
+    if (key) { return key->Serialize(); }
+
+    return {};
 }
 
 std::string HDSeed::SaveSeed(

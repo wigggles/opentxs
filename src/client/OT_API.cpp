@@ -346,42 +346,7 @@ bool OT_API::Init()
         return false;
     }
 
-    // PID -- Make sure we're not running two copies of OT on the same data
-    // simultaneously here.
-    //
-    // we need to get the loacation of where the pid file should be.
-    // then we pass it to the OpenPid function.
-    auto strDataPath = String::Factory(api_.DataFolder().c_str());
-
-    {
-        bool bExists = false, bIsNew = false;
-        if (!OTPaths::ConfirmCreateFolder(strDataPath, bExists, bIsNew)) {
-            return false;
-        }
-    }
-
-    // This way, everywhere else I can use the default storage context (for now)
-    // and it will work everywhere I put it. (Because it's now set up...)
-    m_bDefaultStore = OTDB::InitDefaultStorage(
-        OTDB_DEFAULT_STORAGE,
-        OTDB_DEFAULT_PACKER);  // We only need to do this once now.
-
-    if (m_bDefaultStore) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Success invoking OTDB::InitDefaultStorage")
-            .Flush();
-
-        m_pWallet = new OTWallet(api_);
-        m_pClient.reset(new OTClient(api_));
-
-        return true;
-    } else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed invoking OTDB::InitDefaultStorage.")
-            .Flush();
-    }
-
-    return false;
+    return true;
 }
 
 bool OT_API::Cleanup() { return true; }
@@ -423,13 +388,49 @@ bool OT_API::LoadConfigFile()
         auto strValue = String::Factory();
         api_.Config().CheckSet_str(
             String::Factory("wallet"),
-            String::Factory("api_.Wallet()filename"),
+            String::Factory("wallet_filename"),
             CLIENT_WALLET_FILENAME,
             strValue,
             bIsNewKey);
         OT_API::SetWalletFilename(strValue);
         LogDetail(OT_METHOD)(__FUNCTION__)(": Using Wallet: ")(strValue)
             .Flush();
+    }
+
+    // PID -- Make sure we're not running two copies of OT on the same data
+    // simultaneously here.
+    //
+    // we need to get the loacation of where the pid file should be.
+    // then we pass it to the OpenPid function.
+    auto strDataPath = String::Factory(api_.DataFolder().c_str());
+
+    {
+        bool bExists = false, bIsNew = false;
+        if (!OTPaths::ConfirmCreateFolder(strDataPath, bExists, bIsNew)) {
+            return false;
+        }
+    }
+
+    // This way, everywhere else I can use the default storage context (for now)
+    // and it will work everywhere I put it. (Because it's now set up...)
+    m_bDefaultStore = OTDB::InitDefaultStorage(
+        OTDB_DEFAULT_STORAGE,
+        OTDB_DEFAULT_PACKER);  // We only need to do this once now.
+
+    if (m_bDefaultStore) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Success invoking OTDB::InitDefaultStorage")
+            .Flush();
+
+        m_pWallet = new OTWallet(api_);
+        m_pClient.reset(new OTClient(api_));
+        load_wallet(lock);
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed invoking OTDB::InitDefaultStorage.")
+            .Flush();
+
+        return false;
     }
 
     // LATENCY
@@ -542,7 +543,7 @@ bool OT_API::SetWallet(const String& strFilename) const
         bool bNewOrUpdated;
         api_.Config().Set_str(
             String::Factory("wallet"),
-            String::Factory("api_.Wallet()filename"),
+            String::Factory("wallet_filename"),
             strWalletFilename,
             bNewOrUpdated,
             String::Factory("; Wallet updated\n"));
@@ -576,6 +577,11 @@ bool OT_API::LoadWallet() const
 {
     Lock lock(lock_);
 
+    return load_wallet(lock);
+}
+
+bool OT_API::load_wallet(const Lock& lock) const
+{
     OT_ASSERT_MSG(
         m_bDefaultStore,
         "Default Storage not Initialized; call OT_API::Init first.\n");
@@ -1037,148 +1043,8 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     return BOOL_RETURN_VALUE;
 }
 
-// OT has the capability to export a Nym (normally stored in several files) as
-// an encoded
-// object (in base64-encoded form) and then import it again.
-//
-// Returns bool on success, and strOutput will contain the exported data.
-bool OT_API::Wallet_ExportNym(const identifier::Nym& NYM_ID, String& strOutput)
-    const
+bool OT_API::Wallet_ExportNym(const identifier::Nym&, String&) const
 {
-    /*Lock lock(lock_);
-
-    if (NYM_ID.IsEmpty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
-        OT_FAIL;
-    }
-
-    OTPasswordData thePWDataSave("Create new passphrase for exported Nym.");
-    String strReasonToSave(thePWDataSave.GetDisplayString());
-    auto nym = api_.Wallet().Nym(NYM_ID);
-
-    if (false == bool(nym)) { return false; }
-
-    std::string str_nym_name(nym->Alias());
-    std::string str_nym_id(NYM_ID.str());
-    // Below this point I can use:
-    //
-    // nymfile, str_nym_name, and str_nym_id.
-    //
-    // I still need the certfile and the nymfile (both in string form.)
-    //
-
-    OT_ASSERT(nym->HasCapability(NymCapability::SIGN_CHILDCRED));
-
-    Armored ascCredentials, ascCredList;
-    String strCertfile;
-    bool bSavedCert = false;
-
-    // We don't have to pause OTCachedKey here, because
-    // this already has built-in mechanisms to go around OTCachedKey.
-    //
-    const bool bReEncrypted = nym->ReEncryptPrivateCredentials(
-        false / *bImporting* /,
-        &thePWDataSave);  // Handles OTCachedKey already.
-    if (bReEncrypted) {
-        // Create a new OTDB::StringMap object.
-
-        // this asserts already, on failure.
-        std::unique_ptr<OTDB::Storable> pStorable(
-            OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
-        OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
-        if (nullptr == pMap)
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Error: failed trying to load or create a "
-                     "STORED_OBJ_STRING_MAP.\n";
-        else  // It instantiated.
-        {
-            String strCredList;
-            String::Map& theMap = pMap->the_map;
-
-            nym->GetPrivateCredentials(strCredList, &theMap);
-            // Serialize the StringMap to a string...
-
-            // Won't bother if there are zero credentials somehow.
-            if (strCredList.Exists() && (!theMap.empty())) {
-                std::string str_Encoded = OTDB::EncodeObject(*pMap);
-                const bool bSuccessEncoding = (str_Encoded.size() > 0);
-                if (bSuccessEncoding) {
-                    ascCredList.SetString(strCredList);  // <========== Success
-                    ascCredentials.Set(
-                        str_Encoded.c_str());  // Payload contains
-                                               // credentials list, payload2
-                                               // contains actual
-                                               // credentials.
-                    bSavedCert = true;
-                }
-            }
-        }
-    }  // bReEncrypted.
-
-    if (!bSavedCert) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed while saving Nym's private cert, or private "
-                 "credentials, to string.\n"
-                 "Reason I was doing this: \""
-              << thePWDataSave.GetDisplayString() << "\"\n";
-        return false;
-    }
-    String strNymfile;
-    const bool bSavedNym = nym->SerializeNymfile(strNymfile);
-
-    if (!bSavedNym) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed while calling "
-                 "nymfile->SerializeNymfile(strNymfile) (to string)\n";
-        return false;
-    }
-    // Create an OTDB::StringMap object.
-    //
-    // Set the name, id, [certfile|credlist credentials], and nymfile onto it.
-    // (Our exported
-    // Nym appears as an ASCII-armored text to the naked eye, but when loaded up
-    // in code it
-    // appears as a map of strings: name, id, [certfile|credlist credentials],
-    // and nymfile.)
-
-    // this asserts already, on failure.
-    std::unique_ptr<OTDB::Storable> pStorable(
-        OTDB::CreateObject(OTDB::STORED_OBJ_STRING_MAP));
-    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
-    // It exists.
-    //
-    if (nullptr == pMap) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Error: failed trying to load or create a "
-                 "STORED_OBJ_STRING_MAP.\n";
-        return false;
-    }
-    String::Map& theMap = pMap->the_map;
-    theMap["id"] = str_nym_id;
-    theMap["name"] = str_nym_name;
-    theMap["nymfile"] = strNymfile.Get();
-
-    if (strCertfile.Exists()) theMap["certfile"] = strCertfile.Get();
-
-    if (ascCredList.Exists()) theMap["credlist"] = ascCredList.Get();
-
-    if (ascCredentials.Exists()) theMap["credentials"] = ascCredentials.Get();
-    // Serialize the StringMap to a string...
-    //
-    std::string str_Encoded = OTDB::EncodeObject(*pMap);
-    bool bReturnVal = (str_Encoded.size() > 0);
-
-    if (bReturnVal) {
-        Armored ascTemp;
-        ascTemp.Set(str_Encoded.c_str());
-        strOutput.Release();
-        bReturnVal = ascTemp.WriteArmoredString(
-            strOutput, "EXPORTED NYM"  // -----BEGIN OT EXPORTED NYM-----
-        );                             // (bool bEscaped=false by default.)
-    }
-
-    return bReturnVal;
-    */
     return false;
 }
 
@@ -1651,7 +1517,7 @@ bool OT_API::Encrypt(
 {
     auto pRecipientNym = api_.Wallet().Nym(theRecipientNymID);
     if (false == bool(pRecipientNym)) return false;
-    OTEnvelope theEnvelope;
+    OTEnvelope theEnvelope(api_);
     bool bSuccess = theEnvelope.Seal(*pRecipientNym, strPlaintext);
 
     if (bSuccess) {
@@ -1698,7 +1564,7 @@ bool OT_API::Decrypt(
 
     if (false == bool(pRecipientNym)) { return false; }
 
-    OTEnvelope theEnvelope;
+    OTEnvelope theEnvelope(api_);
     auto ascCiphertext = Armored::Factory();
     const bool bLoadedArmor = Armored::LoadFromString(
         ascCiphertext, strCiphertext);  // str_bookend="-----BEGIN" by default
@@ -5001,7 +4867,8 @@ bool OT_API::RecordPayment(
                 .Flush();
             return false;
         }
-        pPayment = GetInstrumentByIndex(*transport_nym, nIndex, *pPaymentInbox);
+        pPayment =
+            GetInstrumentByIndex(api_, *transport_nym, nIndex, *pPaymentInbox);
         // ------------------------------------------
         // Payment Notary (versus the Transport Notary).
         //
@@ -8882,7 +8749,7 @@ CommandResult OT_API::sendNymObject(
 
     auto plaintext(proto::ProtoAsArmored(
         object.Serialize(), String::Factory("PEER OBJECT")));
-    OTEnvelope theEnvelope;
+    OTEnvelope theEnvelope(api_);
     auto recipient = api_.Wallet().Nym(recipientNymID);
 
     if (false == bool(recipient)) {
@@ -9194,6 +9061,7 @@ std::shared_ptr<OTPayment> OT_API::Ledger_GetInstrument(
     OT_ASSERT(nym);
     // ------------------------------------
     std::shared_ptr<OTPayment> pPayment = GetInstrumentByIndex(
+        api_,
         *nym,
         nIndex,
         const_cast<Ledger&>(ledger)  // Todo justus has fix for this
@@ -9228,6 +9096,7 @@ std::shared_ptr<OTPayment> OT_API::Ledger_GetInstrumentByReceiptID(
     OT_ASSERT(nym);
     // ------------------------------------
     std::shared_ptr<OTPayment> pPayment = GetInstrumentByReceiptID(
+        api_,
         *nym,
         lReceiptId,
         const_cast<Ledger&>(ledger)  // Todo justus has fix for this

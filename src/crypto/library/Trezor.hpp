@@ -5,6 +5,9 @@
 
 #pragma once
 
+#define OPENTXS_TREZOR_PROVIDES_ECDSA                                          \
+    OT_CRYPTO_SUPPORTED_KEY_SECP256K1 || OT_CRYPTO_SUPPORTED_KEY_ED25519
+
 namespace opentxs::crypto::implementation
 {
 class Trezor final : virtual public crypto::Trezor,
@@ -17,22 +20,29 @@ class Trezor final : virtual public crypto::Trezor,
     ,
                      public Bip32
 #endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OPENTXS_TREZOR_PROVIDES_ECDSA
     ,
                      public AsymmetricProvider,
                      public EcdsaProvider
 #endif
 {
 public:
+    std::string Base58CheckEncode(
+        const std::uint8_t* inputStart,
+        const std::size_t& inputSize) const override;
+    bool Base58CheckDecode(const std::string&& input, RawData& output)
+        const override;
+    bool RIPEMD160(
+        const std::uint8_t* input,
+        const size_t inputSize,
+        std::uint8_t* output) const override;
+
 #if OT_CRYPTO_WITH_BIP32
-    std::shared_ptr<proto::AsymmetricKey> GetChild(
-        const proto::AsymmetricKey& parent,
-        const Bip32Index index) const override;
-    std::shared_ptr<proto::AsymmetricKey> GetHDKey(
+    Key DeriveKey(
+        const api::crypto::Hash& hash,
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        proto::HDPath& path,
-        const VersionNumber version) const override;
+        const Path& path) const override;
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
@@ -47,16 +57,13 @@ public:
         const OTPassword& passphrase) const override;
 #endif
 
-    std::string Base58CheckEncode(
-        const std::uint8_t* inputStart,
-        const std::size_t& inputSize) const override;
-    bool Base58CheckDecode(const std::string&& input, RawData& output)
+#if OPENTXS_TREZOR_PROVIDES_ECDSA
+    bool ECDH(
+        const Data& publicKey,
+        const OTPassword& privateKey,
+        OTPassword& secret) const override;
+    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
         const override;
-    bool RIPEMD160(
-        const std::uint8_t* input,
-        const size_t inputSize,
-        std::uint8_t* output) const override;
-
     bool Sign(
         const Data& plaintext,
         const key::Asymmetric& theKey,
@@ -70,6 +77,7 @@ public:
         const Data& signature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const override;
+#endif  // OPENTXS_TREZOR_PROVIDES_ECDSA
 
     ~Trezor() = default;
 
@@ -85,46 +93,32 @@ private:
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F};
 
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    bool ECDH(
-        const Data& publicKey,
-        const OTPassword& privateKey,
-        OTPassword& secret) const override;
-    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
-        const override;
-#endif
+    static std::string curve_name(const EcdsaCurve& curve);
 
-#if OT_CRYPTO_WITH_BIP32
+#if OPENTXS_TREZOR_PROVIDES_ECDSA
     const curve_info* secp256k1_{nullptr};
     const curve_info* ed25519_{nullptr};
 
-    static std::string CurveName(const EcdsaCurve& curve);
+    const curve_info* get_curve(const EcdsaCurve& curve) const;
+    const curve_info* get_curve(const proto::AsymmetricKeyType& curve) const;
+#endif
 
-    static std::unique_ptr<HDNode> InstantiateHDNode(
-        const EcdsaCurve& curve,
-        const OTPassword& seed);
-    static std::unique_ptr<HDNode> GetChild(
+#if OT_CRYPTO_WITH_BIP32
+    static std::unique_ptr<HDNode> derive_child(
         const HDNode& parent,
         const Bip32Index index,
         const DerivationMode privateVersion);
+    static std::unique_ptr<HDNode> instantiate_node(
+        const EcdsaCurve& curve,
+        const OTPassword& seed);
 
-    std::unique_ptr<HDNode> DeriveChild(
+    std::unique_ptr<HDNode> derive_child(
+        const api::crypto::Hash& hash,
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        proto::HDPath& path,
-        Bip32Fingerprint& fingerprint) const;
-    const curve_info* get_curve(const EcdsaCurve& curve) const;
-    const curve_info* get_curve(const proto::AsymmetricKeyType& curve) const;
-    std::unique_ptr<HDNode> SerializedToHDNode(
-        const proto::AsymmetricKey& serialized,
-        Bip32Fingerprint& fingerprint) const;
-    std::shared_ptr<proto::AsymmetricKey> HDNodeToSerialized(
-        const proto::AsymmetricKeyType& type,
-        const HDNode& node,
-        const DerivationMode privateVersion,
-        const VersionNumber version) const;
-    std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve) const;
-    bool ValidPrivateKey(const OTPassword& key) const;
+        const Path& path,
+        Bip32Fingerprint& parentID) const;
+    bool is_valid(const OTPassword& key) const;
 #endif
 
     Trezor(const api::Crypto& crypto);

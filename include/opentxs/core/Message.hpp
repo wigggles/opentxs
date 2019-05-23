@@ -187,8 +187,6 @@ public:
     std::int64_t m_lTransactionNum{0};  // For Market-related messages... Also
                                         // used by getBoxReceipt
 
-    std::int32_t keytypeAuthent_ = 0;
-    std::int32_t keytypeEncrypt_ = 0;
     std::uint8_t enum_{0};
     std::uint32_t enum2_{0};
 

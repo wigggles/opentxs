@@ -9,7 +9,7 @@
 
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/Letter.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -24,7 +24,6 @@
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 
 extern "C" {
 #ifdef _WIN32
@@ -43,13 +42,15 @@ extern "C" {
 
 namespace opentxs
 {
-OTEnvelope::OTEnvelope()
-    : ciphertext_(Data::Factory())
+OTEnvelope::OTEnvelope(const api::Core& api)
+    : api_(api)
+    , ciphertext_(Data::Factory())
 {
 }
 
-OTEnvelope::OTEnvelope(const Armored& theArmoredText)
-    : ciphertext_(Data::Factory())
+OTEnvelope::OTEnvelope(const api::Core& api, const Armored& theArmoredText)
+    : api_(api)
+    , ciphertext_(Data::Factory())
 {
     SetCiphertext(theArmoredText);
 }
@@ -87,7 +88,7 @@ bool OTEnvelope::Encrypt(
     //
     auto theIV = Data::Factory();
 
-    if (!theIV->Randomize(OT::App().Crypto().Config().SymmetricIvSize())) {
+    if (!theIV->Randomize(api_.Crypto().Config().SymmetricIvSize())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to randomly generate IV.")
             .Flush();
@@ -130,7 +131,7 @@ bool OTEnvelope::Encrypt(
     }
 
     auto theCipherText = Data::Factory();
-    const bool bEncrypted = OT::App().Crypto().AES().Encrypt(
+    const bool bEncrypted = api_.Crypto().AES().Encrypt(
         theRawSymmetricKey,        // The symmetric key, in clear form.
         theInput.Get(),            // This is the Plaintext.
         theInput.GetLength() + 1,  // for null terminator
@@ -172,9 +173,8 @@ bool OTEnvelope::Encrypt(
 
     // Write IV size (in network-order)
     //
-    auto ivlen =
-        OT::App().Crypto().Config().SymmetricIvSize();  // Length of IV for this
-                                                        // cipher...
+    auto ivlen = api_.Crypto().Config().SymmetricIvSize();  // Length of IV for
+                                                            // this cipher...
     OT_ASSERT(ivlen >= theIV->size());
     auto ivlen_n = htonl(theIV->size());  // Calculate "network-order"
                                           // version of iv length.
@@ -269,10 +269,10 @@ bool OTEnvelope::Decrypt(
     // Read network-order IV size (and convert to host version)
     //
     const auto max_iv_length =
-        OT::App().Crypto().Config().SymmetricIvSize();  // I believe this is a
-                                                        // max length, so it may
-                                                        // not match the actual
-                                                        // length of the IV.
+        api_.Crypto().Config().SymmetricIvSize();  // I believe this is a
+                                                   // max length, so it may
+                                                   // not match the actual
+                                                   // length of the IV.
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //
@@ -337,7 +337,7 @@ bool OTEnvelope::Decrypt(
     auto thePlaintext = Data::Factory();  // for output.
     CryptoSymmetricDecryptOutput plaintext(thePlaintext);
 
-    const bool bDecrypted = OT::App().Crypto().AES().Decrypt(
+    const bool bDecrypted = api_.Crypto().AES().Decrypt(
         theRawSymmetricKey,  // The symmetric key, in clear form.
         static_cast<const char*>(theCipherText->data()),  // This is the
                                                           // Ciphertext.
@@ -412,7 +412,7 @@ bool OTEnvelope::Seal(
 
     ciphertext_ = Data::Factory();
 
-    return Letter::Seal(recipientKeys, theInput, ciphertext_);
+    return Letter::Seal(api_, recipientKeys, theInput, ciphertext_);
 }
 
 bool OTEnvelope::Open(
@@ -425,10 +425,12 @@ bool OTEnvelope::Open(
     if (nullptr == pPWData) {
         OTPasswordData password("Decrypt this document.");
 
-        return Letter::Open(ciphertext_, theRecipient, password, theOutput);
+        return Letter::Open(
+            api_, ciphertext_, theRecipient, password, theOutput);
     } else {
 
-        return Letter::Open(ciphertext_, theRecipient, *pPWData, theOutput);
+        return Letter::Open(
+            api_, ciphertext_, theRecipient, *pPWData, theOutput);
     }
 }
 }  // namespace opentxs

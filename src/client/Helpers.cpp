@@ -38,6 +38,7 @@ namespace opentxs
 // a purse or something, that the caller wants to retrieve.
 //
 std::shared_ptr<OTPayment> GetInstrumentByReceiptID(
+    const api::Core& api,
     const identity::Nym& theNym,
     const std::int64_t& lReceiptId,
     Ledger& ledger)
@@ -52,10 +53,11 @@ std::shared_ptr<OTPayment> GetInstrumentByReceiptID(
             .Flush();
         return nullptr;  // Weird.
     }
-    return GetInstrument(theNym, ledger, pTransaction);
+    return GetInstrument(api, theNym, ledger, pTransaction);
 }
 // ------------------------------------------------------------
 std::shared_ptr<OTPayment> GetInstrumentByIndex(
+    const api::Core& api,
     const identity::Nym& theNym,
     const std::int32_t& nIndex,
     Ledger& ledger)
@@ -70,7 +72,7 @@ std::shared_ptr<OTPayment> GetInstrumentByIndex(
             .Flush();
         return nullptr;  // Weird.
     }
-    return GetInstrument(theNym, ledger, pTransaction);
+    return GetInstrument(api, theNym, ledger, pTransaction);
 }
 // ------------------------------------------------------------
 // For paymentsInbox and possibly the Nym's recordbox / expired box.
@@ -78,6 +80,7 @@ std::shared_ptr<OTPayment> GetInstrumentByIndex(
 // Returns financial instrument contained in receipt.
 //
 std::shared_ptr<OTPayment> GetInstrument(
+    const api::Core& api,
     const identity::Nym& theNym,
     Ledger& ledger,
     std::shared_ptr<OTTransaction> pTransaction)
@@ -147,13 +150,14 @@ std::shared_ptr<OTPayment> GetInstrument(
     // that would contain the sort of instrument we're looking for.
     //
     auto pPayment =
-        extract_payment_instrument_from_notice(theNym, pTransaction);
+        extract_payment_instrument_from_notice(api, theNym, pTransaction);
 
     return pPayment;
 }
 
 // Low-level.
 std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
+    const api::Core& api,
     const identity::Nym& theNym,
     std::shared_ptr<OTTransaction> pTransaction)
 {
@@ -206,7 +210,7 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
         // RECIPIENT:  pMsg->m_strNymID2
         // INSTRUMENT: pMsg->m_ascPayload (in an OTEnvelope)
         //
-        OTEnvelope theEnvelope;
+        OTEnvelope theEnvelope(api);
         auto strEnvelopeContents = String::Factory();
 
         // Decrypt the Envelope.

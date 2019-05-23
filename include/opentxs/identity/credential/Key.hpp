@@ -45,11 +45,7 @@ public:
         const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
 
-    EXPORT virtual bool ReEncryptKeys(
-        const OTPassword& theExportPassword,
-        bool bImporting) = 0;
-
-    ~Key() override = default;
+    EXPORT ~Key() override = default;
 
 protected:
     Key() = default;

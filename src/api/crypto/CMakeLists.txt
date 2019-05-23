@@ -6,6 +6,7 @@
 set(MODULE_NAME opentxs-api-crypto)
 
 set(cxx-sources
+  Asymmetric.cpp
   Config.cpp
   Crypto.cpp
   Encode.cpp
@@ -13,17 +14,24 @@ set(cxx-sources
   Symmetric.cpp
 )
 
-file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/*.hpp"
+set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Asymmetric.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Config.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Crypto.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Encode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Hash.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Symmetric.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Util.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Config.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Crypto.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Encode.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Hash.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Symmetric.hpp
+  Asymmetric.hpp
+  Config.hpp
+  Crypto.hpp
+  Encode.hpp
+  Hash.hpp
+  Symmetric.hpp
 )
 
 if(WIN32)

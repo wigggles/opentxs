@@ -14,8 +14,7 @@
 
 namespace opentxs::crypto
 {
-class Secp256k1 : virtual public AsymmetricProvider,
-                  virtual public EcdsaProvider
+class Secp256k1 : virtual public EcdsaProvider
 {
 public:
     EXPORT virtual void Init() = 0;

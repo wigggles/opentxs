@@ -44,8 +44,7 @@ private:
 
     const std::uint8_t BIP47_VERSION_BYTE{0x47};
 
-    const api::Crypto& crypto_;
-    const api::HDSeed& seeds_;
+    const api::Core& api_;
     std::uint8_t version_{1};
     std::string seed_{""};
     std::int32_t index_{-1};
@@ -57,8 +56,7 @@ private:
     std::uint8_t bitmessage_stream_{0};
 
     static std::tuple<bool, std::unique_ptr<OTPassword>, OTData> make_key(
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
+        const api::Core& api,
         const std::string& seed,
         const Bip32Index index);
 
@@ -67,17 +65,10 @@ private:
     void ConstructKey(const Data& pubkey);
     OTAsymmetricKey signing_key() const;
 
+    PaymentCode(const api::Core& api, const std::string& base58);
+    PaymentCode(const api::Core& api, const proto::PaymentCode& paycode);
     PaymentCode(
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
-        const std::string& base58);
-    PaymentCode(
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
-        const proto::PaymentCode& paycode);
-    PaymentCode(
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
+        const api::Core& api,
         const std::string& seed,
         const Bip32Index nym,
         const std::uint8_t version,

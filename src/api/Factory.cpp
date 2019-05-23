@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/crypto/Asymmetric.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
@@ -58,6 +60,22 @@ namespace opentxs::api::implementation
 Factory::Factory(const api::Core& api)
     : api_(api)
 {
+}
+
+OTAsymmetricKey Factory::AsymmetricKey(
+    const NymParameters& params,
+    const proto::KeyRole role,
+    const VersionNumber version) const
+{
+    return OTAsymmetricKey{
+        api_.Crypto().Asymmetric().NewKey(params, role, version).release()};
+}
+
+OTAsymmetricKey Factory::AsymmetricKey(
+    const proto::AsymmetricKey& serialized) const
+{
+    return OTAsymmetricKey{
+        api_.Crypto().Asymmetric().InstantiateKey(serialized).release()};
 }
 
 std::unique_ptr<opentxs::Basket> Factory::Basket() const
@@ -428,6 +446,28 @@ std::unique_ptr<opentxs::Item> Factory::Item(
     return nullptr;
 }
 
+OTKeypair Factory::Keypair(
+    const NymParameters& nymParameters,
+    const VersionNumber version,
+    const proto::KeyRole role) const
+{
+    return OTKeypair{
+        opentxs::Factory::Keypair(api_, nymParameters, version, role)};
+}
+
+OTKeypair Factory::Keypair(
+    const proto::AsymmetricKey& serializedPubkey,
+    const proto::AsymmetricKey& serializedPrivkey) const
+{
+    return OTKeypair{
+        opentxs::Factory::Keypair(api_, serializedPubkey, serializedPrivkey)};
+}
+
+OTKeypair Factory::Keypair(const proto::AsymmetricKey& serializedPubkey) const
+{
+    return OTKeypair{opentxs::Factory::Keypair(api_, serializedPubkey)};
+}
+
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     const opentxs::Identifier& theAccountID,
     const identifier::Server& theNotaryID) const
@@ -629,13 +669,12 @@ std::unique_ptr<OTPayment> Factory::Payment(
 #if OT_CRYPTO_WITH_BIP39
 OTPaymentCode Factory::PaymentCode(const std::string& base58) const
 {
-    return opentxs::PaymentCode::Factory(api_.Crypto(), api_.Seeds(), base58);
+    return opentxs::PaymentCode::Factory(api_, base58);
 }
 
 OTPaymentCode Factory::PaymentCode(const proto::PaymentCode& serialized) const
 {
-    return opentxs::PaymentCode::Factory(
-        api_.Crypto(), api_.Seeds(), serialized);
+    return opentxs::PaymentCode::Factory(api_, serialized);
 }
 
 OTPaymentCode Factory::PaymentCode(
@@ -647,8 +686,7 @@ OTPaymentCode Factory::PaymentCode(
     const std::uint8_t bitmessageStream) const
 {
     return opentxs::PaymentCode::Factory(
-        api_.Crypto(),
-        api_.Seeds(),
+        api_,
         seed,
         nym,
         version,
