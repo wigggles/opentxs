@@ -369,6 +369,7 @@ OTKeypair Key::derive_hd_keypair(
 
     OT_ASSERT(pPrivateKey)
 
+    // TODO return OTKeypair{pPrivateKey.release()};
     auto& privateKey = *pPrivateKey;
     const auto pSerialized = privateKey.Serialize();
 
@@ -384,22 +385,6 @@ OTKeypair Key::derive_hd_keypair(
     return api.Factory().Keypair(publicKey, serialized);
 }
 #endif
-
-bool Key::ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting)
-{
-    const bool bSign = signing_key_->ReEncrypt(theExportPassword, bImporting);
-    const bool bAuth =
-        authentication_key_->ReEncrypt(theExportPassword, bImporting);
-    const bool bEncr =
-        encryption_key_->ReEncrypt(theExportPassword, bImporting);
-
-    const bool bSuccessReEncrypting = (bSign && bAuth && bEncr);
-    OT_ASSERT(bSuccessReEncrypting);
-
-    return bSuccessReEncrypting;  // Note: Caller must re-sign credential after
-                                  // doing this,
-                                  // to keep these changes.
-}
 
 std::shared_ptr<Base::SerializedType> Key::serialize(
     const Lock& lock,
@@ -426,22 +411,23 @@ bool Key::addKeytoSerializedKeyCredential(
     const crypto::key::Keypair* pKey{nullptr};
 
     switch (role) {
-        case proto::KEYROLE_AUTH:
+        case proto::KEYROLE_AUTH: {
             pKey = &authentication_key_.get();
-            break;
-        case proto::KEYROLE_ENCRYPT:
+        } break;
+        case proto::KEYROLE_ENCRYPT: {
             pKey = &encryption_key_.get();
-            break;
-        case proto::KEYROLE_SIGN:
+        } break;
+        case proto::KEYROLE_SIGN: {
             pKey = &signing_key_.get();
-            break;
-        default:
+        } break;
+        default: {
             return false;
+        }
     }
 
     if (nullptr == pKey) { return false; }
 
-    key = pKey->Serialize(getPrivate);
+    key = pKey->GetSerialized(getPrivate);
 
     if (!key) { return false; }
 
@@ -520,7 +506,11 @@ bool Key::Verify(
 
     OT_ASSERT(nullptr != keyToUse);
 
-    return keyToUse->Verify(plaintext, sig);
+    try {
+        return keyToUse->GetPublicKey().Verify(plaintext, sig);
+    } catch (...) {
+        return false;
+    }
 }
 
 bool Key::SelfSign(
@@ -605,20 +595,20 @@ bool Key::VerifySig(
 
 bool Key::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
-    return authentication_key_->TransportKey(publicKey, privateKey);
+    return authentication_key_->GetTransportKey(publicKey, privateKey);
 }
 
 bool Key::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
         case (NymCapability::SIGN_MESSAGE): {
-            return signing_key_->hasCapability(capability);
+            return signing_key_->CheckCapability(capability);
         }
         case (NymCapability::ENCRYPT_MESSAGE): {
-            return encryption_key_->hasCapability(capability);
+            return encryption_key_->CheckCapability(capability);
         }
         case (NymCapability::AUTHENTICATE_CONNECTION): {
-            return authentication_key_->hasCapability(capability);
+            return authentication_key_->CheckCapability(capability);
         }
         default: {
         }
@@ -670,23 +660,26 @@ bool Key::Sign(
     const crypto::key::Keypair* keyToUse{nullptr};
 
     switch (key) {
-        case (proto::KEYROLE_AUTH):
+        case (proto::KEYROLE_AUTH): {
             keyToUse = &authentication_key_.get();
-            break;
-        case (proto::KEYROLE_SIGN):
+        } break;
+        case (proto::KEYROLE_SIGN): {
             keyToUse = &signing_key_.get();
-            break;
+        } break;
         case (proto::KEYROLE_ERROR):
         case (proto::KEYROLE_ENCRYPT):
-        default:
-            LogOutput(": Can not sign with the "
-                      "specified key.")
-                .Flush();
+        default: {
+            LogOutput(": Can not sign with the specified key.").Flush();
             return false;
+        }
     }
 
     if (nullptr != keyToUse) {
-        return keyToUse->Sign(input, role, signature, id_, key, pPWData, hash);
+        try {
+            return keyToUse->GetPrivateKey().Sign(
+                input, role, signature, id_, key, pPWData, hash);
+        } catch (...) {
+        }
     }
 
     return false;

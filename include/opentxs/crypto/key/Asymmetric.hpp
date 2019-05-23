@@ -43,12 +43,10 @@ public:
     EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
         const = 0;
     EXPORT virtual const OTSignatureMetadata* GetMetadata() const = 0;
-    EXPORT virtual bool GetPublicKey(String& strKey) const = 0;
     EXPORT virtual bool hasCapability(
         const NymCapability& capability) const = 0;
-    EXPORT virtual bool IsEmpty() const = 0;
-    EXPORT virtual bool IsPrivate() const = 0;
-    EXPORT virtual bool IsPublic() const = 0;
+    EXPORT virtual bool HasPrivate() const = 0;
+    EXPORT virtual bool HasPublic() const = 0;
     EXPORT virtual proto::AsymmetricKeyType keyType() const = 0;
     EXPORT virtual bool Open(
         crypto::key::Asymmetric& dhPublic,
@@ -56,9 +54,6 @@ public:
         OTPasswordData& password) const = 0;
     EXPORT virtual const std::string Path() const = 0;
     EXPORT virtual bool Path(proto::HDPath& output) const = 0;
-    EXPORT virtual bool ReEncryptPrivateKey(
-        const OTPassword& theExportPassword,
-        bool bImporting) const = 0;
     EXPORT virtual const proto::KeyRole& Role() const = 0;
     EXPORT virtual bool Seal(
         const opentxs::api::Core& api,

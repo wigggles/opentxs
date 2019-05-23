@@ -420,21 +420,6 @@ public:
     }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    ot::proto::HDPath get_path(
-        const ot::crypto::Bip32& library,
-        const ot::OTPassword& seed,
-        const Path& path)
-    {
-        ot::proto::HDPath output{};
-        output.set_version(1);
-        output.set_root(
-            library.SeedToFingerprint(ot::EcdsaCurve::SECP256K1, seed));
-
-        for (const auto& index : path) { output.add_child(index); }
-
-        return output;
-    }
-
     std::unique_ptr<ot::OTPassword> get_seed(const std::string& hex) const
     {
         auto data = ot::Data::Factory();
@@ -454,24 +439,16 @@ public:
             EXPECT_TRUE(data->DecodeHex(node));
 
             const ot::OTPassword seed{data->data(), data->size()};
-            const auto id =
+            const auto seedID =
                 library.SeedToFingerprint(ot::EcdsaCurve::SECP256K1, seed);
-            ot::proto::HDPath path{};
-            path.set_version(1);
-            path.set_root(id);
-            const auto pSerialized = library.GetHDKey(
-                ot::EcdsaCurve::SECP256K1,
-                seed,
-                path,
+            const auto serialized = library.DeriveKey(
+                crypto_.Hash(), ot::EcdsaCurve::SECP256K1, seed, {});
+            auto pKey = crypto_.Asymmetric().InstantiateKey(
+                ot::proto::AKEYTYPE_SECP256K1,
+                seedID,
+                serialized,
+                ot::proto::KEYROLE_SIGN,
                 ot::crypto::key::EllipticCurve::DefaultVersion);
-
-            EXPECT_TRUE(pSerialized);
-
-            if (false == bool(pSerialized)) { return false; }
-
-            auto& serialized = *pSerialized;
-            std::unique_ptr<ot::crypto::key::Secp256k1> pKey{
-                ot::Factory::Secp256k1Key(serialized)};
 
             EXPECT_TRUE(pKey);
 
@@ -479,9 +456,8 @@ public:
 
             const auto& key = *pKey;
 
-            EXPECT_TRUE(key.IsEmpty());
-            EXPECT_TRUE(key.IsPrivate());
-            EXPECT_FALSE(key.IsPublic());
+            EXPECT_TRUE(key.HasPrivate());
+            EXPECT_TRUE(key.HasPublic());
             EXPECT_EQ(ot::proto::AKEYTYPE_SECP256K1, key.keyType());
             EXPECT_TRUE(compare_private(library, xprv, key.Xprv()));
         }
@@ -584,20 +560,16 @@ public:
                 const auto& [rawPath, expectPub, expectPrv] = testCase;
                 const auto pSeed = get_seed(hex);
                 const auto& seed = *pSeed;
-                auto path = get_path(library, seed, rawPath);
-                const auto pSerialized = library.GetHDKey(
-                    ot::EcdsaCurve::SECP256K1,
-                    seed,
-                    path,
+                const auto seedID =
+                    library.SeedToFingerprint(ot::EcdsaCurve::SECP256K1, seed);
+                const auto serialized = library.DeriveKey(
+                    crypto_.Hash(), ot::EcdsaCurve::SECP256K1, seed, rawPath);
+                auto pKey = crypto_.Asymmetric().InstantiateKey(
+                    ot::proto::AKEYTYPE_SECP256K1,
+                    seedID,
+                    serialized,
+                    ot::proto::KEYROLE_SIGN,
                     ot::crypto::key::EllipticCurve::DefaultVersion);
-
-                EXPECT_TRUE(pSerialized);
-
-                if (false == bool(pSerialized)) { continue; }
-
-                auto& serialized = *pSerialized;
-                std::unique_ptr<ot::crypto::key::Secp256k1> pKey{
-                    ot::Factory::Secp256k1Key(serialized)};
 
                 EXPECT_TRUE(pKey);
 
@@ -605,16 +577,13 @@ public:
 
                 const auto& key = *pKey;
 
-                EXPECT_TRUE(key.IsEmpty());
-                EXPECT_TRUE(key.IsPrivate());
-                EXPECT_FALSE(key.IsPublic());
+                EXPECT_TRUE(key.HasPrivate());
+                EXPECT_TRUE(key.HasPublic());
                 EXPECT_EQ(ot::proto::AKEYTYPE_SECP256K1, key.keyType());
                 EXPECT_TRUE(compare_private(library, expectPrv, key.Xprv()));
                 EXPECT_TRUE(compare_public(library, expectPub, key.Xpub()));
             }
         }
-
-        // TODO test ot::crypto::Bip32::GetChild
 
         return true;
     }

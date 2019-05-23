@@ -28,11 +28,9 @@ public:
         throw;
     }
     const OTSignatureMetadata* GetMetadata() const override { return nullptr; }
-    bool GetPublicKey(String&) const override { return false; }
     bool hasCapability(const NymCapability&) const override { return false; }
-    bool IsEmpty() const override { return false; }
-    bool IsPrivate() const override { return false; }
-    bool IsPublic() const override { return false; }
+    bool HasPrivate() const override { return false; }
+    bool HasPublic() const override { return false; }
     proto::AsymmetricKeyType keyType() const override
     {
         return proto::AKEYTYPE_NULL;
@@ -46,10 +44,6 @@ public:
     }
     const std::string Path() const override { return {}; }
     bool Path(proto::HDPath&) const override { return false; }
-    bool ReEncryptPrivateKey(const OTPassword&, bool bImporting) const override
-    {
-        return false;
-    }
     const proto::KeyRole& Role() const override { throw; }
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override
     {
@@ -114,22 +108,28 @@ public:
 
 private:
     Null* clone() const override { return new Null; }
-
-    Null(const Null&) = delete;
-    Null(Null&&) = delete;
-    Null& operator=(const Null&) = delete;
-    Null& operator=(Null&&) = delete;
 };
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 class NullEC : virtual public key::EllipticCurve, public Null
 {
 public:
+    bool CheckCapability(const NymCapability&) const override { return {}; }
     const crypto::EcdsaProvider& ECDSA() const override { throw; }
     bool GetKey(Data&) const override { return {}; }
     bool GetKey(proto::Ciphertext&) const override { return {}; }
-    using Asymmetric::GetPublicKey;
-    bool GetPublicKey(Data&) const override { return {}; }
+    const Asymmetric& GetPrivateKey() const override { throw; }
+    const Asymmetric& GetPublicKey() const override { throw; }
+    std::int32_t GetPublicKeyBySignature(Keys&, const Signature&, bool)
+        const override
+    {
+        return {};
+    }
+    std::shared_ptr<proto::AsymmetricKey> GetSerialized(bool) const override
+    {
+        return {};
+    }
+    bool GetTransportKey(Data&, OTPassword&) const override { return false; }
     OTData PrivateKey() const override { return Data::Factory(); }
     OTData PublicKey() const override { return Data::Factory(); }
 
@@ -138,12 +138,6 @@ public:
 
     NullEC() = default;
     ~NullEC() = default;
-
-private:
-    NullEC(const NullEC&) = delete;
-    NullEC(NullEC&&) = delete;
-    NullEC& operator=(const NullEC&) = delete;
-    NullEC& operator=(NullEC&&) = delete;
 };
 
 class NullHD : virtual public key::HD, public NullEC
@@ -159,10 +153,7 @@ public:
     ~NullHD() = default;
 
 private:
-    NullHD(const NullHD&) = delete;
-    NullHD(NullHD&&) = delete;
-    NullHD& operator=(const NullHD&) = delete;
-    NullHD& operator=(NullHD&&) = delete;
+    NullHD* clone() const override { return new NullHD; }
 };
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }  // namespace opentxs::crypto::key::implementation

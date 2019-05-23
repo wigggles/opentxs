@@ -251,7 +251,7 @@ bool Primary::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
         case (NymCapability::SIGN_CHILDCRED): {
-            return signing_key_->hasCapability(capability);
+            return signing_key_->CheckCapability(capability);
         }
         default: {
         }
@@ -262,16 +262,17 @@ bool Primary::hasCapability(const NymCapability& capability) const
 
 bool Primary::Path(proto::HDPath& output) const
 {
-    if (false == signing_key_->HasPrivateKey()) {
+    try {
+        const bool found = signing_key_->GetPrivateKey().Path(output);
+
+        if (found) { output.mutable_child()->RemoveLast(); }
+
+        return found;
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No private key.").Flush();
 
         return false;
     }
-
-    const bool found = signing_key_->GetPrivateKey().Path(output);
-    output.mutable_child()->RemoveLast();
-
-    return found;
 }
 
 std::string Primary::Path() const

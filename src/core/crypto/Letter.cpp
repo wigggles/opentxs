@@ -222,8 +222,8 @@ bool Letter::Seal(
             crypto::key::Asymmetric::DefaultVersion,
             proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
-        newDhKey = *dhKeypair->Serialize(false);
-        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->Serialize(true));
+        newDhKey = *dhKeypair->GetSerialized(false);
+        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(true));
         dhPrivateKey =
             dynamic_cast<const crypto::key::Secp256k1*>(&dhRawKey.get());
 
@@ -275,8 +275,8 @@ bool Letter::Seal(
             crypto::key::Asymmetric::DefaultVersion,
             proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
-        newDhKey = *dhKeypair->Serialize(false);
-        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->Serialize(true));
+        newDhKey = *dhKeypair->GetSerialized(false);
+        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(true));
         dhPrivateKey =
             dynamic_cast<const crypto::key::Ed25519*>(&dhRawKey.get());
 

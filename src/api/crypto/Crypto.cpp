@@ -236,7 +236,7 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-const opentxs::crypto::AsymmetricProvider& Crypto::ED25519() const
+const opentxs::crypto::EcdsaProvider& Crypto::ED25519() const
 {
     OT_ASSERT(sodium_);
 
@@ -319,7 +319,7 @@ const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-const opentxs::crypto::AsymmetricProvider& Crypto::SECP256K1() const
+const opentxs::crypto::EcdsaProvider& Crypto::SECP256K1() const
 {
     return secp256k1_provider_;
 }

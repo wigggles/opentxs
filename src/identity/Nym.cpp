@@ -1074,59 +1074,6 @@ std::string Nym::PhoneNumbers(bool active) const
     return contact_data_->PhoneNumbers(active);
 }
 
-// Used when importing/exporting Nym into and out-of the sphere of the
-// cached key in the wallet.
-bool Nym::ReEncryptPrivateCredentials(
-    bool bImporting,  // bImporting=true, or
-                      // false if exporting.
-    const OTPasswordData* pPWData,
-    const OTPassword* pImportPassword) const
-{
-    eLock lock(shared_lock_);
-
-    const OTPassword* pExportPassphrase = nullptr;
-    std::unique_ptr<const OTPassword> thePasswordAngel;
-
-    if (nullptr == pImportPassword) {
-
-        // whether import/export, this display string is for the OUTSIDE OF
-        // WALLET
-        // portion of that process.
-        //
-        auto strDisplay = String::Factory(
-            nullptr != pPWData
-                ? pPWData->GetDisplayString()
-                : (bImporting ? "Enter passphrase for the Nym being imported."
-                              : "Enter passphrase for exported Nym."));
-        // Circumvents the cached key.
-        pExportPassphrase = crypto::key::LegacySymmetric::GetPassphraseFromUser(
-            strDisplay, !bImporting);  // bAskTwice is true when exporting
-                                       // (since the export passphrase is being
-                                       // created at that time.)
-        thePasswordAngel.reset(pExportPassphrase);
-
-        if (nullptr == pExportPassphrase) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed in GetPassphraseFromUser.")
-                .Flush();
-            return false;
-        }
-    } else {
-        pExportPassphrase = pImportPassword;
-    }
-
-    for (auto& it : m_mapCredentialSets) {
-        identity::Authority* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        if (false == pCredential->ReEncryptPrivateCredentials(
-                         *pExportPassphrase, bImporting))
-            return false;
-    }
-
-    return true;
-}
-
 std::uint64_t Nym::Revision() const { return revision_.load(); }
 
 void Nym::revoke_contact_credentials(const eLock& lock)

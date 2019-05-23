@@ -47,15 +47,13 @@ public:
     EXPORT virtual const crypto::Asymmetric& Asymmetric() const = 0;
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    EXPORT virtual const opentxs::crypto::AsymmetricProvider& ED25519()
-        const = 0;
+    EXPORT virtual const opentxs::crypto::EcdsaProvider& ED25519() const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     EXPORT virtual const opentxs::crypto::AsymmetricProvider& RSA() const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT virtual const opentxs::crypto::AsymmetricProvider& SECP256K1()
-        const = 0;
+    EXPORT virtual const opentxs::crypto::EcdsaProvider& SECP256K1() const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
     // Symmetric encryption engines

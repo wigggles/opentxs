@@ -21,7 +21,6 @@ namespace opentxs::crypto
 class Sodium : virtual public api::crypto::Util
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     ,
-               virtual public AsymmetricProvider,
                virtual public EcdsaProvider
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     ,

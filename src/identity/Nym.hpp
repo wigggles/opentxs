@@ -66,10 +66,6 @@ public:
     bool Path(proto::HDPath& output) const override;
     std::string PaymentCode() const override;
     std::string PhoneNumbers(bool active) const override;
-    bool ReEncryptPrivateCredentials(
-        bool bImporting,
-        const OTPasswordData* pPWData,
-        const OTPassword* pImportPassword) const override;
     std::uint64_t Revision() const override;
     bool Seal(
         const OTPassword& password,

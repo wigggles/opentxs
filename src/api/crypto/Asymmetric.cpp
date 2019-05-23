@@ -10,7 +10,6 @@
 #include "opentxs/crypto/key/HD.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/util/Timer.hpp"  // TODO asymmetric key implementation
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -24,7 +23,6 @@
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/Bip32.hpp"
 
-#include "crypto/key/Asymmetric.hpp"  // TODO asymmetric key implementation
 #include "crypto/key/Null.hpp"
 #include "Factory.hpp"
 
@@ -43,13 +41,13 @@ api::crypto::Asymmetric* Factory::AsymmetricAPI(
     const crypto::Bip32& bip32,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    const crypto::AsymmetricProvider& ed25519,
+    const crypto::EcdsaProvider& ed25519,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     const crypto::AsymmetricProvider& rsa,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    const crypto::AsymmetricProvider& secp256k1
+    const crypto::EcdsaProvider& secp256k1
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 )
 {
@@ -76,6 +74,14 @@ api::crypto::Asymmetric* Factory::AsymmetricAPI(
 
 namespace opentxs::api::crypto::implementation
 {
+const VersionNumber Asymmetric::serialized_path_version_{1};
+
+const Asymmetric::TypeMap Asymmetric::curve_to_key_type_{
+    {EcdsaCurve::ERROR, proto::AKEYTYPE_ERROR},
+    {EcdsaCurve::SECP256K1, proto::AKEYTYPE_SECP256K1},
+    {EcdsaCurve::ED25519, proto::AKEYTYPE_ED25519},
+};
+
 Asymmetric::Asymmetric(
     const crypto::Encode& encode,
     const crypto::Hash& hash,
@@ -85,13 +91,13 @@ Asymmetric::Asymmetric(
     const opentxs::crypto::Bip32& bip32,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    const opentxs::crypto::AsymmetricProvider& ed25519,
+    const opentxs::crypto::EcdsaProvider& ed25519,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     const opentxs::crypto::AsymmetricProvider& rsa,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    const opentxs::crypto::AsymmetricProvider& secp256k1
+    const opentxs::crypto::EcdsaProvider& secp256k1
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     )
     : encode_(encode)
@@ -122,12 +128,69 @@ Asymmetric::HDKey Asymmetric::InstantiateHDKey(
     switch (keyType) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (proto::AKEYTYPE_ED25519): {
-            return HDKey{opentxs::Factory::Ed25519Key(serialized)};
+            return HDKey{
+                opentxs::Factory::Ed25519Key(*this, ed25519_, serialized)};
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
-            return HDKey{opentxs::Factory::Secp256k1Key(serialized)};
+            return HDKey{
+                opentxs::Factory::Secp256k1Key(*this, secp256k1_, serialized)};
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY): {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong key type (RSA)")
+                .Flush();
+        } break;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Open-Transactions isn't built with support for this key "
+                "type.")
+                .Flush();
+        }
+    }
+
+    return HDKey{new opentxs::crypto::key::implementation::NullHD};
+}
+
+Asymmetric::HDKey Asymmetric::InstantiateKey(
+    const proto::AsymmetricKeyType type,
+    const std::string& seedID,
+    const opentxs::crypto::Bip32::Key& serialized,
+    const proto::KeyRole role,
+    const VersionNumber version) const
+{
+    const auto& [privkey, ccode, pubkey, path, parent] = serialized;
+
+    switch (type) {
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        case (proto::AKEYTYPE_ED25519): {
+            return HDKey{opentxs::Factory::Ed25519Key(
+                *this,
+                ed25519_,
+                privkey,
+                ccode,
+                pubkey,
+                serialize_path(seedID, path),
+                parent,
+                role,
+                version)};
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1): {
+            return HDKey{opentxs::Factory::Secp256k1Key(
+                *this,
+                secp256k1_,
+                privkey,
+                ccode,
+                pubkey,
+                serialize_path(seedID, path),
+                parent,
+                role,
+                version)};
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -156,17 +219,19 @@ Asymmetric::Key Asymmetric::InstantiateKey(
     switch (keyType) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (proto::AKEYTYPE_ED25519): {
-            return Key{opentxs::Factory::Ed25519Key(serialized)};
+            return Key{
+                opentxs::Factory::Ed25519Key(*this, ed25519_, serialized)};
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
-            return Key{opentxs::Factory::Secp256k1Key(serialized)};
+            return Key{
+                opentxs::Factory::Secp256k1Key(*this, secp256k1_, serialized)};
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY): {
-            return Key{opentxs::Factory::RSAKey(serialized)};
+            return Key{opentxs::Factory::RSAKey(*this, rsa_, serialized)};
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
@@ -182,28 +247,19 @@ Asymmetric::Key Asymmetric::InstantiateKey(
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 Asymmetric::HDKey Asymmetric::NewHDKey(
+    const std::string& seedID,
     const OTPassword& seed,
     const EcdsaCurve& curve,
-    const Path& path,
+    const opentxs::crypto::Bip32::Path& path,
     const proto::KeyRole role,
     const VersionNumber version) const
 {
-    proto::HDPath ppath;
-
-    for (const auto& index : path) { ppath.add_child(index); }
-
-    auto pSerialized = bip32_.GetHDKey(curve, seed, ppath, version);
-
-    if (false == bool(pSerialized)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive key").Flush();
-
-        return {};
-    }
-
-    auto& serialized = *pSerialized;
-    serialized.set_role(role);
-
-    return InstantiateHDKey(serialized);
+    return InstantiateKey(
+        curve_to_key_type_.at(curve),
+        seedID,
+        bip32_.DeriveKey(hash_, curve, seed, path),
+        role,
+        version);
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
@@ -212,9 +268,47 @@ Asymmetric::Key Asymmetric::NewKey(
     const proto::KeyRole role,
     const VersionNumber version) const
 {
-    const auto keyType = params.AsymmetricKeyType();
+    switch (params.AsymmetricKeyType()) {
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        case (proto::AKEYTYPE_ED25519): {
+            return Key{
+                opentxs::Factory::Ed25519Key(*this, ed25519_, role, version)};
+        } break;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1): {
+            return Key{opentxs::Factory::Secp256k1Key(
+                *this, secp256k1_, role, version)};
+        } break;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY): {
+            return Key{opentxs::Factory::RSAKey(*this, rsa_, role)};
+        } break;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Open-Transactions isn't built with support for this key "
+                "type.")
+                .Flush();
+        }
+    }
 
-    return Key{opentxs::crypto::key::implementation::Asymmetric::KeyFactory(
-        keyType, role, version)};
+    return {};
 }
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+proto::HDPath Asymmetric::serialize_path(
+    const std::string& seedID,
+    const opentxs::crypto::Bip32::Path& children)
+{
+    proto::HDPath output;
+    output.set_version(serialized_path_version_);
+    output.set_root(seedID);
+
+    for (const auto& index : children) { output.add_child(index); }
+
+    return output;
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }  // namespace opentxs::api::crypto::implementation

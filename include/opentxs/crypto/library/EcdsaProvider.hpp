@@ -8,13 +8,14 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/Proto.hpp"
 
 namespace opentxs
 {
 namespace crypto
 {
-class EcdsaProvider
+class EcdsaProvider : virtual public AsymmetricProvider
 {
 public:
     EXPORT virtual bool AsymmetricKeyToECPrivatekey(

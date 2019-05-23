@@ -11,8 +11,8 @@
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
@@ -108,41 +108,33 @@ Keypair::Keypair(const Keypair& rhs) noexcept
 {
 }
 
-bool Keypair::CalculateID(Identifier& theOutput) const
+bool Keypair::CheckCapability(const NymCapability& capability) const
 {
-    OT_ASSERT(m_pkeyPublic.get());
+    bool output{false};
 
-    return m_pkeyPublic->CalculateID(theOutput);  // Only works for public keys.
+    if (m_pkeyPrivate.get()) {
+        output |= m_pkeyPrivate->hasCapability(capability);
+    } else if (m_pkeyPublic.get()) {
+        output |= m_pkeyPublic->hasCapability(capability);
+    }
+
+    return output;
 }
 
-Keypair* Keypair::clone() const { return new Keypair(*this); }
-
 // Return the private key as an Asymmetric object
-// TODO this violates encapsulation and should be deprecated
 const Asymmetric& Keypair::GetPrivateKey() const
 {
-    OT_ASSERT(m_pkeyPrivate.get());
+    if (m_pkeyPrivate.get()) { return m_pkeyPrivate; }
 
-    return m_pkeyPrivate;
+    throw std::runtime_error("not a private key");
 }
 
 // Return the public key as an Asymmetric object
-// TODO this violates encapsulation and should be deprecated
 const Asymmetric& Keypair::GetPublicKey() const
 {
-    OT_ASSERT(m_pkeyPublic.get());
+    if (m_pkeyPublic.get()) { return m_pkeyPublic; }
 
-    return m_pkeyPublic;
-}
-
-// Get a public key as an opentxs::String.
-// This form is used in all cases except for the NymIDSource
-// of a self-signed MasterCredential
-bool Keypair::GetPublicKey(String& strKey) const
-{
-    OT_ASSERT(m_pkeyPublic.get());
-
-    return m_pkeyPublic->GetPublicKey(strKey);
+    throw std::runtime_error("not a private key");
 }
 
 std::int32_t Keypair::GetPublicKeyBySignature(
@@ -187,29 +179,23 @@ std::int32_t Keypair::GetPublicKeyBySignature(
     return 0;
 }
 
-bool Keypair::hasCapability(const NymCapability& capability) const
-{
-    if (m_pkeyPrivate.get()) {
-        return m_pkeyPrivate->hasCapability(capability);
-    }
-
-    return false;
-}
-
-bool Keypair::HasPrivateKey() const
-{
-    OT_ASSERT(m_pkeyPrivate.get());
-
-    return m_pkeyPrivate->IsPrivate();  // This means it actually has a private
-                                        // key in it, or tried to.
-}
-
-bool Keypair::HasPublicKey() const
+std::shared_ptr<proto::AsymmetricKey> Keypair::GetSerialized(
+    bool privateKey) const
 {
     OT_ASSERT(m_pkeyPublic.get());
 
-    return m_pkeyPublic->IsPublic();  // This means it actually has a public key
-                                      // in it, or tried to.
+    if (privateKey) {
+        OT_ASSERT(m_pkeyPrivate.get());
+
+        return m_pkeyPrivate->Serialize();
+    } else {
+        return m_pkeyPublic->Serialize();
+    }
+}
+
+bool Keypair::GetTransportKey(Data& publicKey, OTPassword& privateKey) const
+{
+    return m_pkeyPrivate->TransportKey(publicKey, privateKey);
 }
 
 bool Keypair::make_new_keypair(const NymParameters& nymParameters)
@@ -224,132 +210,7 @@ bool Keypair::make_new_keypair(const NymParameters& nymParameters)
     }
 
     OTPasswordData passwordData("Enter or set the wallet master password.");
+
     return lowLevelKeys.SetOntoKeypair(*this, passwordData);
-
-    // If true is returned:
-    // Success! At this point, theKeypair's public and private keys have been
-    // set.
-}
-
-// Used when importing/exporting a Nym to/from the wallet.
-//
-bool Keypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
-{
-
-    OT_ASSERT(m_pkeyPublic.get());
-    OT_ASSERT(m_pkeyPrivate.get());
-    OT_ASSERT(HasPublicKey());
-    OT_ASSERT(HasPrivateKey());
-
-    // If we were importing, we were in the exported format but now we're in the
-    // internal format.
-    // Therefore we want to use the wallet's internal cached master passphrase
-    // to save. Therefore
-    // strReason will be used for the import case.
-    //
-    // But if we were exporting, then we were in the internal format and just
-    // re-encrypted to the
-    // export format. So we'd want to pass the export passphrase when saving.
-    //
-    const auto strReasonAbove = String::Factory(
-        bImporting ? "Enter the new export passphrase. (Above "
-                     "ReEncryptPrivateKey in OTKeypair::ReEncrypt)"
-                   : "Enter your wallet's master passphrase. (Above "
-                     "ReEncryptPrivateKey in OTKeypair::ReEncrypt)");
-
-    const auto strReasonBelow = String::Factory(
-        bImporting ? "Enter your wallet's master passphrase. (Below "
-                     "ReEncryptPrivateKey in OTKeypair::ReEncrypt)"
-                   : "Enter the new export passphrase. (Below "
-                     "ReEncryptPrivateKey in OTKeypair::ReEncrypt)");
-
-    // At this point the public key was loaded from a public key, not a cert,
-    // but the private key was loaded from the cert. Therefore we'll save the
-    // public cert from the private key, and then use that to reload the public
-    // key after ReEncrypting. (Otherwise the public key would be there, but it
-    // would be missing the x509, which is only available in the cert, not the
-    // pubkey alone -- and without the x509 being there, the "SaveAndReload"
-    // call
-    // below would fail.
-    // Why don't I just stick the Cert itself into the public data, instead of
-    // sticking the public key in there? Because not all key credentials will
-    // use
-    // certs. Some will use pubkeys from certs, and some will use pubkeys not
-    // from
-    // certs. But I might still just stick it in there, and code things to be
-    // able to
-    // load either indiscriminately. After all, that's what I'm doing already in
-    // the
-    // asset and server contracts. But even in those cases, there will be times
-    // when
-    // only a pubkey is available, not a cert, so I'll probably still find
-    // myself having
-    // to do this. Hmm...
-
-    const bool bReEncrypted = m_pkeyPrivate->ReEncryptPrivateKey(
-        theExportPassword, bImporting);  // <==== IMPORT or EXPORT occurs here.
-
-    if (!(bReEncrypted)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure, either when re-encrypting, or "
-            "when subsequently retrieving "
-            "the public/private keys. bImporting == ")(
-            bImporting ? "true" : "false")(".")
-            .Flush();
-    }
-
-    return (bReEncrypted);
-}
-
-std::shared_ptr<proto::AsymmetricKey> Keypair::Serialize(bool privateKey) const
-{
-    OT_ASSERT(m_pkeyPublic.get());
-
-    if (privateKey) {
-        OT_ASSERT(m_pkeyPrivate.get());
-
-        return m_pkeyPrivate->Serialize();
-    } else {
-        return m_pkeyPublic->Serialize();
-    }
-}
-
-bool Keypair::Sign(
-    const GetPreimage input,
-    const proto::SignatureRole role,
-    proto::Signature& signature,
-    const Identifier& credential,
-    proto::KeyRole key,
-    const OTPasswordData* pPWData,
-    const proto::HashType hash) const
-{
-    if (false == HasPrivateKey()) {
-        LogOutput(": Missing private key. Can not sign.").Flush();
-
-        return false;
-    }
-
-    return GetPrivateKey().Sign(
-        input, role, signature, credential, key, pPWData, hash);
-}
-
-bool Keypair::TransportKey(Data& publicKey, OTPassword& privateKey) const
-{
-    OT_ASSERT(m_pkeyPrivate.get());
-
-    return m_pkeyPrivate->TransportKey(publicKey, privateKey);
-}
-
-bool Keypair::Verify(const Data& plaintext, const proto::Signature& sig) const
-{
-    if (!m_pkeyPublic.get()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Missing public key. Can not verify.")
-            .Flush();
-
-        return false;
-    }
-
-    return m_pkeyPublic->Verify(plaintext, sig);
 }
 }  // namespace opentxs::crypto::key::implementation

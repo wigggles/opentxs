@@ -390,9 +390,9 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    auto pubkey = Data::Factory();
+    auto pubkey = ecKey->PublicKey();
 
-    if (false == ecKey->GetPublicKey(pubkey)) {
+    if (pubkey->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to extract public key.")
             .Flush();
 

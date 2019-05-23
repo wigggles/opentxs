@@ -7,7 +7,6 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -29,7 +28,6 @@
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include "Null.hpp"
@@ -75,16 +73,21 @@ const std::map<proto::SignatureRole, VersionNumber> Asymmetric::sig_version_{
 };
 
 Asymmetric::Asymmetric(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
-    const bool publicKey,
-    const bool privateKey,
+    const bool hasPublic,
+    const bool hasPrivate,
     const VersionNumber version) noexcept
-    : version_(version)
-    , m_keyType(keyType)
+    : key::Asymmetric()
+    , crypto_(crypto)
+    , provider_(engine)
+    , version_(version)
+    , type_(keyType)
     , role_(role)
-    , m_bIsPublicKey(publicKey)
-    , m_bIsPrivateKey(privateKey)
+    , has_public_(hasPublic)
+    , has_private_(hasPrivate)
     , m_timer()
     , m_pMetadata(new OTSignatureMetadata)
 {
@@ -92,26 +95,13 @@ Asymmetric::Asymmetric(
     OT_ASSERT(nullptr != m_pMetadata);
 }
 
-Asymmetric::Asymmetric(const VersionNumber version) noexcept
-    : Asymmetric(
-          proto::AKEYTYPE_ERROR,
-          proto::KEYROLE_ERROR,
-          false,
-          false,
-          version)
-{
-}
-
 Asymmetric::Asymmetric(
-    const proto::AsymmetricKeyType keyType,
-    const proto::KeyRole role,
-    const VersionNumber version) noexcept
-    : Asymmetric(keyType, role, false, false, version)
-{
-}
-
-Asymmetric::Asymmetric(const proto::AsymmetricKey& key) noexcept
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
+    const proto::AsymmetricKey& key) noexcept
     : Asymmetric(
+          crypto,
+          engine,
           key.type(),
           key.role(),
           proto::KEYMODE_PUBLIC == key.mode(),
@@ -120,7 +110,46 @@ Asymmetric::Asymmetric(const proto::AsymmetricKey& key) noexcept
 {
 }
 
-Asymmetric::operator bool() const { return m_bIsPublicKey || m_bIsPrivateKey; }
+Asymmetric::Asymmetric(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
+    const proto::AsymmetricKey& serialized,
+    const bool hasPublic,
+    const bool hasPrivate) noexcept
+    : Asymmetric(
+          crypto,
+          engine,
+          serialized.type(),
+          serialized.role(),
+          hasPublic,
+          hasPrivate,
+          serialized.version())
+{
+}
+
+Asymmetric::Asymmetric(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::AsymmetricProvider& engine,
+    const proto::AsymmetricKeyType keyType,
+    const proto::KeyRole role,
+    const VersionNumber version) noexcept
+    : Asymmetric(crypto, engine, keyType, role, false, false, version)
+{
+}
+
+Asymmetric::Asymmetric(const Asymmetric& rhs) noexcept
+    : Asymmetric(
+          rhs.crypto_,
+          rhs.provider_,
+          rhs.type_,
+          rhs.role_,
+          rhs.has_public_,
+          rhs.has_private_,
+          rhs.version_)
+{
+}
+
+Asymmetric::operator bool() const { return has_public_ || has_private_; }
 
 bool Asymmetric::operator==(const proto::AsymmetricKey& rhs) const
 {
@@ -131,22 +160,18 @@ bool Asymmetric::operator==(const proto::AsymmetricKey& rhs) const
     return (LHData == RHData);
 }
 
-bool Asymmetric::CalculateID(Identifier& theOutput) const  // Only works
-                                                           // for public
-                                                           // keys.
+bool Asymmetric::CalculateID(Identifier& theOutput) const
 {
     theOutput.Release();
 
-    if (!IsPublic()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error: !IsPublic() (This function should only be "
-            "called on a public key).")
-            .Flush();
+    if (false == HasPublic()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public key").Flush();
+
         return false;
     }
 
     auto strPublicKey = String::Factory();
-    bool bGotPublicKey = GetPublicKey(strPublicKey);
+    bool bGotPublicKey = get_public_key(strPublicKey);
 
     if (!bGotPublicKey) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error getting public key.")
@@ -167,22 +192,6 @@ bool Asymmetric::CalculateID(Identifier& theOutput) const  // Only works
     return true;
 }
 
-Asymmetric* Asymmetric::clone() const
-{
-    auto output = KeyFactory(m_keyType, role_, version_);
-
-    OT_ASSERT(nullptr != output)
-
-    auto* key = dynamic_cast<Asymmetric*>(output);
-
-    OT_ASSERT(nullptr != key)
-
-    key->m_bIsPublicKey = m_bIsPublicKey;
-    key->m_bIsPrivateKey = m_bIsPrivateKey;
-
-    return key;
-}
-
 bool Asymmetric::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
@@ -201,48 +210,7 @@ bool Asymmetric::hasCapability(const NymCapability& capability) const
     return false;
 }
 
-// static
-key::Asymmetric* Asymmetric::KeyFactory(
-    const proto::AsymmetricKeyType keyType,
-    const proto::KeyRole role,
-    const VersionNumber version)
-{
-    key::Asymmetric* pKey = nullptr;
-
-    switch (keyType) {
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (proto::AKEYTYPE_ED25519): {
-            pKey = Factory::Ed25519Key(role, version);
-
-            break;
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (proto::AKEYTYPE_SECP256K1): {
-            pKey = Factory::Secp256k1Key(role, version);
-
-            break;
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (proto::AKEYTYPE_LEGACY): {
-            pKey = Factory::RSAKey(role);
-
-            break;
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Open-Transactions isn't built with support for this key "
-                "type.")
-                .Flush();
-        }
-    }
-
-    return pKey;
-}
-
-proto::AsymmetricKeyType Asymmetric::keyType() const { return m_keyType; }
+proto::AsymmetricKeyType Asymmetric::keyType() const { return type_; }
 
 proto::Signature Asymmetric::NewSignature(
     const Identifier& credentialID,
@@ -286,7 +254,7 @@ std::shared_ptr<proto::AsymmetricKey> Asymmetric::Serialize() const
     auto serializedKey = std::make_shared<proto::AsymmetricKey>();
     serializedKey->set_version(version_);
     serializedKey->set_role(role_);
-    serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(m_keyType));
+    serializedKey->set_type(static_cast<proto::AsymmetricKeyType>(type_));
 
     return serializedKey;
 }
@@ -305,10 +273,9 @@ bool Asymmetric::Sign(
     const String& credID,
     const proto::SignatureRole role) const
 {
-    if (IsPublic()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": You must use private keys to create signatures.")
-            .Flush();
+    if (false == HasPrivate()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing private key").Flush();
+
         return false;
     }
 
@@ -338,10 +305,8 @@ bool Asymmetric::Sign(
     const OTPasswordData* pPWData,
     const proto::HashType hash) const
 {
-    if (IsPublic()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": You must use private keys to create signatures.")
-            .Flush();
+    if (false == HasPrivate()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)("Missing private key").Flush();
 
         return false;
     }
@@ -372,10 +337,9 @@ bool Asymmetric::Sign(
 bool Asymmetric::Verify(const Data& plaintext, const proto::Signature& sig)
     const
 {
-    if (IsPrivate()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": You must use public keys to verify signatures.")
-            .Flush();
+    if (false == HasPublic()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public key").Flush();
+
         return false;
     }
 

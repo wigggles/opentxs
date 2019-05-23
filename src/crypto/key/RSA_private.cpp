@@ -88,12 +88,12 @@ void RSA::d::SetKeyAsCopyOf(
         "RSA::SetKeyAsCopyOf: "
         "ASSERT: nullptr != m_pKey \n");
 
-    backlink->m_bIsPublicKey = !bIsPrivateKey;
-    backlink->m_bIsPrivateKey = bIsPrivateKey;
+    backlink->has_public_ = !bIsPrivateKey;
+    backlink->has_private_ = bIsPrivateKey;
     backlink->m_p_ascKey->Release();
     // By this point, m_p_ascKey definitely exists, and it's empty.
 
-    if (backlink->m_bIsPrivateKey) {
+    if (backlink->has_private_) {
         RSA::d::ArmorPrivateKey(
             *m_pKey,
             backlink->m_p_ascKey,
@@ -104,7 +104,7 @@ void RSA::d::SetKeyAsCopyOf(
     // NOTE: Timer is already set INSIDE ArmorPrivateKey. No need to set twice.
     //      m_timer.start(); // Note: this isn't the ultimate timer solution.
     // See notes in ReleaseKeyLowLevel.
-    else if (backlink->m_bIsPublicKey) {
+    else if (backlink->has_public_) {
         RSA::d::ArmorPublicKey(*m_pKey, backlink->m_p_ascKey);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -133,12 +133,12 @@ const EVP_PKEY* RSA::d::GetKey(const OTPasswordData* pPWData)
 
 EVP_PKEY* RSA::d::InstantiateKey(const OTPasswordData* pPWData)
 {
-    if (backlink->IsPublic())
+    if (backlink->HasPublic())
         return InstantiatePublicKey(pPWData);  // this is the ONLY place,
                                                // currently, that this private
                                                // method is called.
 
-    else if (backlink->IsPrivate())
+    else if (backlink->HasPrivate())
         return InstantiatePrivateKey(pPWData);  // this is the ONLY place,
                                                 // currently, that this private
                                                 // method is called.
@@ -485,7 +485,7 @@ bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
 EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == nullptr);
-    OT_ASSERT(backlink->IsPublic());
+    OT_ASSERT(backlink->HasPublic());
 
     EVP_PKEY* pReturnKey = nullptr;
     auto theData = Data::Factory();
@@ -550,7 +550,7 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
 EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == nullptr);
-    OT_ASSERT(backlink->IsPrivate());
+    OT_ASSERT(backlink->HasPrivate());
 
     EVP_PKEY* pReturnKey = nullptr;
     // after base64-decoding the ascii-armored string, the (encrypted) binary

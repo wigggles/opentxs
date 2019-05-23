@@ -38,21 +38,16 @@ public:
     OTData CalculateHash(
         const proto::HashType hashType,
         const OTPasswordData& password) const override;
-    const crypto::AsymmetricProvider& engine() const override;
     bool GetPrivateKey(
         String& strOutput,
         const key::Asymmetric* pPubkey,
         const String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr) const override;
-    bool GetPublicKey(String& strKey) const override;
-    bool IsEmpty() const override;
+    bool get_public_key(String& strKey) const override;
     bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
         OTPasswordData& password) const override;
-    bool ReEncryptPrivateKey(
-        const OTPassword& theExportPassword,
-        bool bImporting) const override;
     /** Don't ever call this. It's only here because it's impossible to get rid
      * of unless and until RSA key support is removed entirely. */
     bool SaveCertToString(
@@ -99,16 +94,21 @@ private:
      * basic value. m_pKey is derived from it, for example. */
     mutable OTArmored m_p_ascKey;
 
-    RSA* clone() const override;
+    RSA* clone() const final override { return new RSA(*this); }
 
     void Release_AsymmetricKey_OpenSSL();
     void ReleaseKeyLowLevel_Hook() override;
 
-    explicit RSA(const proto::AsymmetricKey& serializedKey) noexcept;
-    explicit RSA(const String& publicKey) noexcept;
-    explicit RSA(const proto::KeyRole role) noexcept;
-    RSA() noexcept;
-    RSA(const RSA&) = delete;
+    RSA(const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
+        const proto::AsymmetricKey& serializedKey)
+    noexcept;
+    RSA(const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
+        const proto::KeyRole role)
+    noexcept;
+    RSA() = delete;
+    RSA(const RSA&) noexcept;
     RSA(RSA&&) = delete;
     RSA& operator=(const RSA&) = delete;
     RSA& operator=(RSA&&) = delete;

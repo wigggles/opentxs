@@ -95,9 +95,6 @@ public:
         const proto::VerificationSet& verificationSet) = 0;
     EXPORT virtual bool AddContactCredential(
         const proto::ContactData& contactData) = 0;
-    EXPORT virtual bool ReEncryptPrivateCredentials(
-        const OTPassword& theExportPassword,
-        bool bImporting) = 0;
     EXPORT virtual void RevokeContactCredentials(
         std::list<std::string>& contactCredentialIDs) = 0;
     EXPORT virtual void RevokeVerificationCredentials(

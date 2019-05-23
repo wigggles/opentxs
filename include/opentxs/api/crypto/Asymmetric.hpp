@@ -11,12 +11,12 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/Bip32.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <memory>
-#include <vector>
 
 namespace opentxs
 {
@@ -30,20 +30,30 @@ public:
     using Key = std::unique_ptr<opentxs::crypto::key::Asymmetric>;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     using HDKey = std::unique_ptr<opentxs::crypto::key::HD>;
-    using Path = std::vector<Bip32Index>;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
+    EXPORT virtual const opentxs::crypto::Bip32& BIP32() const = 0;
+    EXPORT virtual const crypto::Encode& Encode() const = 0;
+    EXPORT virtual const crypto::Hash& Hash() const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual HDKey InstantiateHDKey(
         const proto::AsymmetricKey& serialized) const = 0;
+    EXPORT virtual HDKey InstantiateKey(
+        const proto::AsymmetricKeyType type,
+        const std::string& seedID,
+        const opentxs::crypto::Bip32::Key& serialized,
+        const proto::KeyRole role = proto::KEYROLE_SIGN,
+        const VersionNumber version =
+            opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual Key InstantiateKey(
         const proto::AsymmetricKey& serialized) const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual HDKey NewHDKey(
+        const std::string& seedID,
         const OTPassword& seed,
         const EcdsaCurve& curve,
-        const Path& path,
+        const opentxs::crypto::Bip32::Path& path,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
@@ -53,6 +63,7 @@ public:
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::Asymmetric::DefaultVersion) const = 0;
+    EXPORT virtual const crypto::Symmetric& Symmetric() const = 0;
 
     EXPORT virtual ~Asymmetric() = default;
 

@@ -22,7 +22,9 @@ namespace key
 class HD : virtual public EllipticCurve
 {
 public:
-    EXPORT static Bip32Fingerprint CalculateFingerprint(const Data& pubkey);
+    EXPORT static Bip32Fingerprint CalculateFingerprint(
+        const api::crypto::Hash& hash,
+        const Data& pubkey);
 
     EXPORT virtual OTData Chaincode() const = 0;
     EXPORT virtual int Depth() const = 0;

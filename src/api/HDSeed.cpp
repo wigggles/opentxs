@@ -163,29 +163,12 @@ std::unique_ptr<opentxs::crypto::key::HD> HDSeed::GetHDKey(
     const proto::KeyRole role,
     const VersionNumber version) const
 {
-    Bip32Index notUsed = 0;
+    Bip32Index notUsed{0};
     auto seed = Seed(fingerprint, notUsed);
 
     if (false == bool(seed)) { return {}; }
 
-    proto::HDPath ppath;
-    ppath.set_version(1);
-    ppath.set_root(fingerprint);
-
-    for (const auto& index : path) { ppath.add_child(index); }
-
-    auto pSerialized = bip32_.GetHDKey(curve, *seed, ppath, version);
-
-    if (false == bool(pSerialized)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive key").Flush();
-
-        return {};
-    }
-
-    auto& serialized = *pSerialized;
-    serialized.set_role(role);
-
-    return asymmetric_.InstantiateHDKey(serialized);
+    return asymmetric_.NewHDKey(fingerprint, *seed, curve, path, role, version);
 }
 
 std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(

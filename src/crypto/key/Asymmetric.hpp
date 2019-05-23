@@ -12,20 +12,19 @@ namespace opentxs::crypto::key::implementation
 class Asymmetric : virtual public key::Asymmetric
 {
 public:
-    static key::Asymmetric* KeyFactory(
-        const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role,
-        const VersionNumber version);
-
     /** Only works for public keys. */
     bool CalculateID(Identifier& theOutput) const override;
+    const crypto::AsymmetricProvider& engine() const override
+    {
+        return provider_;
+    }
     const OTSignatureMetadata* GetMetadata() const override
     {
         return m_pMetadata;
     }
     bool hasCapability(const NymCapability& capability) const override;
-    bool IsPrivate() const override { return m_bIsPrivateKey; }
-    bool IsPublic() const override { return m_bIsPublicKey; }
+    bool HasPrivate() const override { return has_private_; }
+    bool HasPublic() const override { return has_public_; }
     proto::AsymmetricKeyType keyType() const override;
     proto::Signature NewSignature(
         const Identifier& credentialID,
@@ -60,14 +59,14 @@ public:
     /** Don't use this, normally it's not necessary. */
     void SetAsPublic() override
     {
-        m_bIsPublicKey = true;
-        m_bIsPrivateKey = false;
+        has_public_ = true;
+        has_private_ = false;
     }
     /** (Only if you really know what you are doing.) */
     void SetAsPrivate() override
     {
-        m_bIsPublicKey = false;
-        m_bIsPrivateKey = true;
+        has_public_ = false;
+        has_private_ = true;
     }
 
     operator bool() const override;
@@ -78,60 +77,50 @@ public:
 protected:
     friend OTAsymmetricKey;
 
+    const api::crypto::Asymmetric& crypto_;
+    const crypto::AsymmetricProvider& provider_;
     const VersionNumber version_;
-    proto::AsymmetricKeyType m_keyType{proto::AKEYTYPE_ERROR};
-    proto::KeyRole role_{proto::KEYROLE_ERROR};
-    bool m_bIsPublicKey{false};
-    bool m_bIsPrivateKey{false};
+    const proto::AsymmetricKeyType type_;
+    const proto::KeyRole role_;
+    bool has_public_{false};
+    bool has_private_{false};
     Timer m_timer;
+    OTSignatureMetadata* m_pMetadata{nullptr};
 
-    explicit Asymmetric(const proto::AsymmetricKey& serializedKey) noexcept;
-    explicit Asymmetric(const VersionNumber version) noexcept;
+    virtual bool get_public_key(String& strKey) const = 0;
+
     Asymmetric(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
+        const proto::AsymmetricKeyType keyType,
+        const proto::KeyRole role,
+        const bool hasPublic,
+        const bool hasPrivate,
+        const VersionNumber version) noexcept;
+    Asymmetric(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
+        const proto::AsymmetricKey& serializedKey) noexcept;
+    Asymmetric(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
+        const proto::AsymmetricKey& serializedKey,
+        const bool hasPublic,
+        const bool hasPrivate) noexcept;
+    Asymmetric(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::AsymmetricProvider& engine,
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role,
         const VersionNumber version) noexcept;
-
-    // To use m_metadata, call m_metadata.HasMetadata(). If it's true, then you
-    // can see these values:
-    //    char m_metadata::Getproto::AsymmetricKeyType()             // Can be
-    //    A, E, or S
-    //    (authentication, encryption, or signing. Also, E would be unusual.)
-    //    char m_metadata::FirstCharNymID()         // Can be any letter from
-    //    base62 alphabet. Represents first letter of a Nym's ID.
-    //    char m_metadata::FirstCharMasterCredID()  // Can be any letter from
-    //    base62 alphabet. Represents first letter of a Master Credential ID
-    //    (for that Nym.)
-    //    char m_metadata::FirstCharChildCredID()     // Can be any letter from
-    //    base62 alphabet. Represents first letter of a Credential ID (signed by
-    //    that Master.)
-    //
-    // Here's how metadata works: It's optional. You can set it, or not. If it's
-    // there, OT will add it to the signature on the contract itself, when this
-    // key is used to sign something. (Signature has the same
-    // OTSignatureMetadata struct.) Later on when verifying the signature, the
-    // metadata is used to speed up the lookup/verification process so we don't
-    // have to verify the signature against every single child key credential
-    // available for that Nym. In practice, however, we are adding metadata to
-    // every single signature (except possibly cash...) (And we will make it
-    // mandatory for Nyms who use credentials.)
-    OTSignatureMetadata* m_pMetadata{nullptr};
-
-    virtual Asymmetric* clone() const override;
+    Asymmetric(const Asymmetric& rhs) noexcept;
 
     virtual void ReleaseKeyLowLevel_Hook() {}
 
 private:
     static const std::map<proto::SignatureRole, VersionNumber> sig_version_;
 
-    Asymmetric(
-        const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role,
-        const bool publicKey,
-        const bool privateKey,
-        const VersionNumber version) noexcept;
     Asymmetric() = delete;
-    Asymmetric(const Asymmetric&) = delete;
     Asymmetric(Asymmetric&&) = delete;
     Asymmetric& operator=(const Asymmetric&) = delete;
     Asymmetric& operator=(Asymmetric&&) = delete;

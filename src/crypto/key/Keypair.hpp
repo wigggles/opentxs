@@ -9,34 +9,19 @@
 
 namespace opentxs::crypto::key::implementation
 {
-class Keypair : virtual public key::Keypair
+class Keypair final : virtual public key::Keypair
 {
 public:
-    bool CalculateID(Identifier& theOutput) const override;
+    bool CheckCapability(const NymCapability& capability) const override;
     const Asymmetric& GetPrivateKey() const override;
     const Asymmetric& GetPublicKey() const override;
-    bool GetPublicKey(String& strKey) const override;
     std::int32_t GetPublicKeyBySignature(
         Keys& listOutput,
         const Signature& theSignature,
         bool bInclusive = false) const override;
-    bool hasCapability(const NymCapability& capability) const override;
-    bool HasPrivateKey() const override;
-    bool HasPublicKey() const override;
-    bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
-        override;
-    std::shared_ptr<proto::AsymmetricKey> Serialize(
+    std::shared_ptr<proto::AsymmetricKey> GetSerialized(
         bool privateKey = false) const override;
-    bool Sign(
-        const GetPreimage input,
-        const proto::SignatureRole role,
-        proto::Signature& signature,
-        const Identifier& credential,
-        proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
-        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
-    bool Verify(const Data& plaintext, const proto::Signature& sig)
+    bool GetTransportKey(Data& publicKey, OTPassword& privateKey)
         const override;
 
     ~Keypair() = default;
@@ -50,7 +35,7 @@ private:
     OTAsymmetricKey m_pkeyPrivate;
     const proto::KeyRole role_{proto::KEYROLE_ERROR};
 
-    Keypair* clone() const override;
+    Keypair* clone() const override final { return new Keypair(*this); }
 
     bool make_new_keypair(const NymParameters& nymParameters);
 

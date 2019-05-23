@@ -42,8 +42,6 @@ public:
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
 
-    bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting)
-        override;
     bool SelfSign(
         const OTPassword* exportPassword = nullptr,
         const OTPasswordData* pPWData = nullptr,

@@ -21,8 +21,6 @@ public:
     {
         return NymParameterType::ED25519;
     }
-    const crypto::EcdsaProvider& ECDSA() const override;
-    const crypto::AsymmetricProvider& engine() const override;
     bool hasCapability(const NymCapability& capability) const override;
 
     ~Ed25519() = default;
@@ -37,12 +35,37 @@ private:
     friend opentxs::Factory;
     friend LowLevelKeyGenerator;
 
-    explicit Ed25519(const VersionNumber version) noexcept;
-    explicit Ed25519(const proto::AsymmetricKey& serializedKey) noexcept;
-    Ed25519(const proto::KeyRole role, const VersionNumber version) noexcept;
-    Ed25519(const String& publicKey, const VersionNumber version) noexcept;
+    Ed25519* clone() const override final { return new Ed25519(*this); }
+    std::shared_ptr<proto::AsymmetricKey> get_public() const override
+    {
+        return serialize_public(clone());
+    }
+
+    Ed25519(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
+        const proto::AsymmetricKey& serializedKey) noexcept;
+    Ed25519(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
+        const proto::KeyRole role,
+        const VersionNumber version) noexcept;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    Ed25519(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
+        const OTPassword& privateKey,
+        const OTPassword& chainCode,
+        const Data& publicKey,
+        const proto::HDPath& path,
+        const Bip32Fingerprint parent,
+        const proto::KeyRole role,
+        const VersionNumber version,
+        key::Symmetric& sessionKey,
+        const OTPasswordData& reason) noexcept;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     Ed25519() = delete;
-    Ed25519(const Ed25519&) = delete;
+    Ed25519(const Ed25519&) noexcept;
     Ed25519(Ed25519&&) = delete;
     Ed25519& operator=(const Ed25519&) = delete;
     Ed25519& operator=(Ed25519&&) = delete;

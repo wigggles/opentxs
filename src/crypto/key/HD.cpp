@@ -7,11 +7,11 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/key/HD.hpp"
@@ -22,7 +22,6 @@
 #include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -34,7 +33,9 @@
 
 namespace opentxs::crypto::key
 {
-Bip32Fingerprint HD::CalculateFingerprint(const Data& key)
+Bip32Fingerprint HD::CalculateFingerprint(
+    const api::crypto::Hash& hash,
+    const Data& key)
 {
     Bip32Fingerprint output{0};
     auto sha = Data::Factory();
@@ -46,8 +47,7 @@ Bip32Fingerprint HD::CalculateFingerprint(const Data& key)
         return output;
     }
 
-    const auto& crypto = OT::App().Crypto();
-    const bool haveSha = crypto.Hash().Digest(proto::HASHTYPE_SHA256, key, sha);
+    const bool haveSha = hash.Digest(proto::HASHTYPE_SHA256, key, sha);
 
     if (false == haveSha) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -57,8 +57,7 @@ Bip32Fingerprint HD::CalculateFingerprint(const Data& key)
         return output;
     }
 
-    const bool haveRipe =
-        crypto.Hash().Digest(proto::HASHTYPE_RIMEMD160, sha, ripe);
+    const bool haveRipe = hash.Digest(proto::HASHTYPE_RIMEMD160, sha, ripe);
 
     if (false == haveRipe) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -81,18 +80,10 @@ Bip32Fingerprint HD::CalculateFingerprint(const Data& key)
 namespace opentxs::crypto::key::implementation
 {
 HD::HD(
-    const proto::AsymmetricKeyType keyType,
-    const proto::KeyRole role,
-    const VersionNumber version) noexcept
-    : EllipticCurve(keyType, role, version)
-    , path_(nullptr)
-    , chain_code_(nullptr)
-    , parent_(0)
-{
-}
-
-HD::HD(const proto::AsymmetricKey& serializedKey) noexcept
-    : EllipticCurve(serializedKey)
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
+    const proto::AsymmetricKey& serializedKey) noexcept
+    : EllipticCurve(crypto, ecdsa, serializedKey)
     , path_(nullptr)
     , chain_code_(nullptr)
     , parent_(serializedKey.bip32_parent())
@@ -107,15 +98,60 @@ HD::HD(const proto::AsymmetricKey& serializedKey) noexcept
 }
 
 HD::HD(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKeyType keyType,
-    const String& publicKey,
+    const proto::KeyRole role,
     const VersionNumber version) noexcept
-    : HD(keyType, proto::KEYROLE_ERROR, version)
+    : EllipticCurve(crypto, ecdsa, keyType, role, version)
+    , path_(nullptr)
+    , chain_code_(nullptr)
+    , parent_(0)
 {
-    m_keyType = proto::AKEYTYPE_SECP256K1;
-    auto key = OT::App().Crypto().Encode().DataDecode(publicKey.Get());
-    auto dataKey = Data::Factory(key.data(), key.size());
-    SetKey(dataKey);
+}
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+HD::HD(
+    const api::crypto::Asymmetric& crypto,
+    const crypto::EcdsaProvider& ecdsa,
+    const proto::AsymmetricKeyType keyType,
+    const OTPassword& privateKey,
+    const OTPassword& chainCode,
+    const Data& publicKey,
+    const proto::HDPath& path,
+    const Bip32Fingerprint parent,
+    const proto::KeyRole role,
+    const VersionNumber version,
+    key::Symmetric& sessionKey,
+    const OTPasswordData& reason) noexcept
+    : EllipticCurve(
+          crypto,
+          ecdsa,
+          keyType,
+          privateKey,
+          publicKey,
+          role,
+          version,
+          sessionKey,
+          reason)
+    , path_(std::make_shared<proto::HDPath>(path))
+    , chain_code_(encrypt_key(sessionKey, reason, false, chainCode))
+    , parent_(parent)
+{
+    OT_ASSERT(path_);
+    OT_ASSERT(chain_code_);
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+HD::HD(const HD& rhs) noexcept
+    : key::HD()
+    , EllipticCurve(rhs)
+    , path_(bool(rhs.path_) ? new proto::HDPath(*rhs.path_) : nullptr)
+    , chain_code_(
+          bool(rhs.chain_code_) ? new proto::Ciphertext(*rhs.chain_code_)
+                                : nullptr)
+    , parent_(rhs.parent_)
+{
 }
 
 OTData HD::Chaincode() const
@@ -129,7 +165,7 @@ OTData HD::Chaincode() const
     const auto& privateKey = *encrypted_key_;
     // Private key data and chain code are encrypted to the same session key,
     // and this session key is only embedded in the private key ciphertext
-    auto sessionKey = OT::App().Crypto().Symmetric().Key(
+    auto sessionKey = crypto_.Symmetric().Key(
         privateKey.key(), proto::SMODE_CHACHA20POLY1305);
 
     if (false == sessionKey.get()) {
@@ -149,31 +185,6 @@ OTData HD::Chaincode() const
     return output;
 }
 
-HD* HD::clone() const
-{
-    auto output = EllipticCurve::clone();
-
-    OT_ASSERT(nullptr != output)
-
-    auto* key = dynamic_cast<HD*>(output);
-
-    OT_ASSERT(nullptr != key)
-
-    key->key_ = key_;
-
-    if (encrypted_key_) {
-        key->encrypted_key_.reset(new proto::Ciphertext(*encrypted_key_));
-    }
-
-    if (path_) { key->path_.reset(new proto::HDPath(*path_)); }
-
-    if (chain_code_) {
-        key->chain_code_.reset(new proto::Ciphertext(*chain_code_));
-    }
-
-    return key;
-}
-
 int HD::Depth() const
 {
     if (false == bool(path_)) { return -1; }
@@ -181,18 +192,16 @@ int HD::Depth() const
     return path_->child_size();
 }
 
+void HD::erase_private_data()
+{
+    EllipticCurve::erase_private_data();
+    path_.reset();
+    chain_code_.reset();
+}
+
 Bip32Fingerprint HD::Fingerprint() const
 {
-    auto key = Data::Factory();
-
-    if (false == GetPublicKey(key)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load public key")
-            .Flush();
-
-        return {};
-    }
-
-    return CalculateFingerprint(key);
+    return CalculateFingerprint(crypto_.Hash(), PublicKey());
 }
 
 std::tuple<bool, Bip32Depth, Bip32Index> HD::get_params() const
@@ -280,7 +289,7 @@ std::shared_ptr<proto::AsymmetricKey> HD::Serialize() const
 
     OT_ASSERT(output)
 
-    if (IsPrivate()) {
+    if (HasPrivate()) {
         if (path_) { *(output->mutable_path()) = *path_; }
 
         if (chain_code_) { *output->mutable_chaincode() = *chain_code_; }
@@ -301,7 +310,7 @@ std::string HD::Xprv() const
     OTPassword privateKey{};
     privateKey.setMemory(priv->data(), priv->size());
 
-    return OT::App().Crypto().BIP32().SerializePrivate(
+    return crypto_.BIP32().SerializePrivate(
         0x0488ADE4, depth, parent_, child, Chaincode(), privateKey);
 }
 
@@ -311,7 +320,7 @@ std::string HD::Xpub() const
 
     if (false == ready) { return {}; }
 
-    return OT::App().Crypto().BIP32().SerializePublic(
+    return crypto_.BIP32().SerializePublic(
         0x0488B21E, depth, parent_, child, Chaincode(), PublicKey());
 }
 }  // namespace opentxs::crypto::key::implementation

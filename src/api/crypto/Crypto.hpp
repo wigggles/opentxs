@@ -43,13 +43,13 @@ public:
     // Asymmetric encryption engines
     const crypto::Asymmetric& Asymmetric() const override;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    const opentxs::crypto::AsymmetricProvider& ED25519() const override;
+    const opentxs::crypto::EcdsaProvider& ED25519() const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     const opentxs::crypto::AsymmetricProvider& RSA() const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    const opentxs::crypto::AsymmetricProvider& SECP256K1() const override;
+    const opentxs::crypto::EcdsaProvider& SECP256K1() const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
     // Symmetric encryption engines
@@ -95,7 +95,7 @@ private:
 #if OT_CRYPTO_USING_LIBSECP256K1
     std::unique_ptr<opentxs::crypto::Secp256k1> secp256k1_;
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
-    const opentxs::crypto::AsymmetricProvider& secp256k1_provider_;
+    const opentxs::crypto::EcdsaProvider& secp256k1_provider_;
     std::unique_ptr<crypto::Encode> encode_;
     std::unique_ptr<crypto::Hash> hash_;
     std::unique_ptr<crypto::Symmetric> symmetric_;

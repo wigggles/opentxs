@@ -11,24 +11,33 @@
 
 namespace opentxs::crypto::key::implementation
 {
-class EllipticCurve :
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    virtual public key::HD,
-#else
-    virtual public key::EllipticCurve,
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    public Asymmetric
+class EllipticCurve : virtual public key::EllipticCurve, public Asymmetric
 {
 public:
     OTData CalculateHash(
         const proto::HashType hashType,
         const OTPasswordData& password) const override;
+    bool CheckCapability(const NymCapability& cap) const override
+    {
+        return hasCapability(cap);
+    }
     virtual NymParameterType CreateType() const = 0;
-    bool IsEmpty() const override;
-    virtual bool GetKey(Data& key) const override;
-    virtual bool GetKey(proto::Ciphertext& key) const override;
-    bool GetPublicKey(String& strKey) const override;
-    virtual bool GetPublicKey(Data& key) const override;
+    const crypto::EcdsaProvider& ECDSA() const override { return ecdsa_; }
+    bool GetKey(Data& key) const override;
+    bool GetKey(proto::Ciphertext& key) const override;
+    const key::Asymmetric& GetPrivateKey() const override;
+    const key::Asymmetric& GetPublicKey() const override;
+    std::int32_t GetPublicKeyBySignature(
+        Keys& listOutput,
+        const Signature& theSignature,
+        bool bInclusive = false) const override;
+    bool get_public_key(String& strKey) const override;
+    std::shared_ptr<proto::AsymmetricKey> GetSerialized(
+        bool getPrivate) const override;
+    bool GetTransportKey(Data& publicKey, OTPassword& privateKey) const override
+    {
+        return TransportKey(publicKey, privateKey);
+    }
     bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
@@ -37,9 +46,6 @@ public:
     bool Path(proto::HDPath& output) const override { return {}; }
     OTData PrivateKey() const override;
     OTData PublicKey() const override;
-    virtual bool ReEncryptPrivateKey(
-        const OTPassword& theExportPassword,
-        bool bImporting) const override;
     bool Seal(
         const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
@@ -48,38 +54,60 @@ public:
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
 
-    virtual bool SetKey(const Data& key) override;
-    virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) override;
+    bool SetKey(const Data& key) override;
+    bool SetKey(std::unique_ptr<proto::Ciphertext>& key) override;
 
-    virtual ~EllipticCurve() = default;
+    virtual ~EllipticCurve() override = default;
 
 protected:
+    const crypto::EcdsaProvider& ecdsa_;
     OTData key_;
     std::unique_ptr<proto::Ciphertext> encrypted_key_{nullptr};
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EllipticCurve* clone() const override;
-#endif
+    static std::unique_ptr<proto::Ciphertext> encrypt_key(
+        key::Symmetric& sessionKey,
+        const OTPasswordData& reason,
+        const bool attach,
+        const OTPassword& plaintext);
+    static std::shared_ptr<proto::AsymmetricKey> serialize_public(
+        EllipticCurve* copy);
 
-    explicit EllipticCurve(const proto::AsymmetricKey& serializedKey) noexcept;
+    virtual std::shared_ptr<proto::AsymmetricKey> get_public() const = 0;
+    virtual void erase_private_data();
+
     EllipticCurve(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
+        const proto::AsymmetricKey& serializedKey) noexcept;
+    EllipticCurve(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role,
         const VersionNumber version) noexcept;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EllipticCurve(
+        const api::crypto::Asymmetric& crypto,
+        const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKeyType keyType,
-        const String& publicKey,
-        const VersionNumber version) noexcept;
+        const OTPassword& privateKey,
+        const Data& publicKey,
+        const proto::KeyRole role,
+        const VersionNumber version,
+        key::Symmetric& sessionKey,
+        const OTPasswordData& reason) noexcept;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    EllipticCurve(const EllipticCurve&) noexcept;
 
 private:
     friend class crypto::EcdsaProvider;
 
-#if !OT_CRYPTO_SUPPORTED_KEY_HD
-    EllipticCurve* clone() const override final;
-#endif
+    static std::unique_ptr<proto::Ciphertext> extract_key(
+        const crypto::EcdsaProvider& ecdsa,
+        const proto::AsymmetricKey& serialized,
+        Data& publicKey);
 
     EllipticCurve() = delete;
-    EllipticCurve(const EllipticCurve&) = delete;
     EllipticCurve(EllipticCurve&&) = delete;
     EllipticCurve& operator=(const EllipticCurve&) = delete;
     EllipticCurve& operator=(EllipticCurve&&) = delete;

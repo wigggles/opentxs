@@ -10,6 +10,7 @@
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 
 #include <memory>
 
@@ -19,7 +20,7 @@ namespace crypto
 {
 namespace key
 {
-class EllipticCurve : virtual public Asymmetric
+class EllipticCurve : virtual public Asymmetric, virtual public Keypair
 {
 public:
     EXPORT static const VersionNumber DefaultVersion;
@@ -28,8 +29,6 @@ public:
     EXPORT virtual const crypto::EcdsaProvider& ECDSA() const = 0;
     EXPORT virtual bool GetKey(Data& key) const = 0;
     EXPORT virtual bool GetKey(proto::Ciphertext& key) const = 0;
-    using Asymmetric::GetPublicKey;
-    EXPORT virtual bool GetPublicKey(Data& key) const = 0;
     EXPORT virtual OTData PrivateKey() const = 0;
     EXPORT virtual OTData PublicKey() const = 0;
 
