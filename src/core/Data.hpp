@@ -14,6 +14,10 @@ class Data : virtual public opentxs::Data
 public:
     bool operator==(const opentxs::Data& rhs) const override;
     bool operator!=(const opentxs::Data& rhs) const override;
+    bool operator<(const opentxs::Data& rhs) const override;
+    bool operator>(const opentxs::Data& rhs) const override;
+    bool operator<=(const opentxs::Data& rhs) const override;
+    bool operator>=(const opentxs::Data& rhs) const override;
     Data& operator+=(const opentxs::Data& rhs) override;
     Data& operator+=(const std::uint8_t rhs) override;
     Data& operator+=(const std::uint32_t rhs) override;

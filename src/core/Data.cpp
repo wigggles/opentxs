@@ -37,6 +37,14 @@ bool operator==(OTData& lhs, const Data& rhs) { return lhs.get() == rhs; }
 
 bool operator!=(OTData& lhs, const Data& rhs) { return lhs.get() != rhs; }
 
+bool operator<(OTData& lhs, const Data& rhs) { return lhs.get() < rhs; }
+
+bool operator>(OTData& lhs, const Data& rhs) { return lhs.get() > rhs; }
+
+bool operator<=(OTData& lhs, const Data& rhs) { return lhs.get() <= rhs; }
+
+bool operator>=(OTData& lhs, const Data& rhs) { return lhs.get() >= rhs; }
+
 OTData& operator+=(OTData& lhs, const OTData& rhs)
 {
     lhs.get() += rhs.get();
@@ -135,14 +143,112 @@ Data::Data(const Vector& rhs, const std::size_t size)
 {
 }
 
-bool Data::operator==(const opentxs::Data& rhs) const
+bool Data::operator==(const opentxs::Data& in) const
 {
-    return data_ == dynamic_cast<const Data&>(rhs).data_;
+    if (data_.size() != in.size()) { return false; }
+
+    std::size_t x{0};
+
+    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
+        const auto& lhs = *i;
+        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+
+        if (lhs != rhs) { return false; }
+    }
+
+    return true;
 }
 
-bool Data::operator!=(const opentxs::Data& rhs) const
+bool Data::operator!=(const opentxs::Data& in) const
 {
-    return !operator==(rhs);
+    if (data_.size() != in.size()) { return true; }
+
+    std::size_t x{0};
+
+    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
+        const auto& lhs = *i;
+        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+
+        if (lhs != rhs) { return true; }
+    }
+
+    return false;
+}
+
+bool Data::operator<(const opentxs::Data& in) const
+{
+    if (data_.size() < in.size()) { return true; }
+
+    if (data_.size() > in.size()) { return false; }
+
+    std::size_t x{0};
+
+    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
+        const auto& lhs = *i;
+        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+
+        if (lhs < rhs) { return true; }
+    }
+
+    return false;
+}
+
+bool Data::operator>(const opentxs::Data& in) const
+{
+    if (data_.size() < in.size()) { return false; }
+
+    if (data_.size() > in.size()) { return true; }
+
+    std::size_t x{0};
+
+    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
+        const auto& lhs = *i;
+        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+
+        if (lhs > rhs) { return true; }
+    }
+
+    return false;
+}
+
+bool Data::operator<=(const opentxs::Data& in) const
+{
+    if (data_.size() < in.size()) { return true; }
+
+    if (data_.size() > in.size()) { return false; }
+
+    std::size_t x{0};
+
+    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
+        const auto& lhs = *i;
+        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+
+        if (lhs < rhs) { return true; }
+    }
+
+    --x;
+
+    return at(x) == in.at(x);
+}
+
+bool Data::operator>=(const opentxs::Data& in) const
+{
+    if (data_.size() < in.size()) { return false; }
+
+    if (data_.size() > in.size()) { return true; }
+
+    std::size_t x{0};
+
+    for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
+        const auto& lhs = *i;
+        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+
+        if (lhs > rhs) { return true; }
+    }
+
+    --x;
+
+    return at(x) == in.at(x);
 }
 
 Data& Data::operator+=(const opentxs::Data& rhs)

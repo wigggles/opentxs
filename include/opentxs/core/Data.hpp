@@ -44,6 +44,10 @@ namespace opentxs
 {
 bool operator==(OTData& lhs, const Data& rhs);
 bool operator!=(OTData& lhs, const Data& rhs);
+bool operator<(OTData& lhs, const Data& rhs);
+bool operator>(OTData& lhs, const Data& rhs);
+bool operator<=(OTData& lhs, const Data& rhs);
+bool operator>=(OTData& lhs, const Data& rhs);
 OTData& operator+=(OTData& lhs, const OTData& rhs);
 OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
 OTData& operator+=(OTData& lhs, const std::uint32_t rhs);
@@ -73,6 +77,10 @@ public:
 
     EXPORT virtual bool operator==(const Data& rhs) const = 0;
     EXPORT virtual bool operator!=(const Data& rhs) const = 0;
+    EXPORT virtual bool operator<(const Data& rhs) const = 0;
+    EXPORT virtual bool operator>(const Data& rhs) const = 0;
+    EXPORT virtual bool operator<=(const Data& rhs) const = 0;
+    EXPORT virtual bool operator>=(const Data& rhs) const = 0;
     EXPORT virtual std::string asHex() const = 0;
     EXPORT virtual const std::byte& at(const std::size_t position) const = 0;
     EXPORT virtual const_iterator begin() const = 0;
