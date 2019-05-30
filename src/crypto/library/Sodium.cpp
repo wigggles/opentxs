@@ -250,19 +250,22 @@ bool Sodium::Encrypt(
     tag.resize(TagSize(mode), 0x0);
     output.resize(inputSize, 0x0);
 
+    OT_ASSERT(false == nonce.empty());
+    OT_ASSERT(false == tag.empty());
+
     switch (mode) {
         case (proto::SMODE_CHACHA20POLY1305): {
             return (
                 0 == crypto_aead_chacha20poly1305_ietf_encrypt_detached(
-                         reinterpret_cast<unsigned char*>(&output.front()),
-                         reinterpret_cast<unsigned char*>(&tag.front()),
+                         reinterpret_cast<unsigned char*>(output.data()),
+                         reinterpret_cast<unsigned char*>(tag.data()),
                          nullptr,
                          input,
                          inputSize,
                          nullptr,
                          0,
                          nullptr,
-                         reinterpret_cast<const unsigned char*>(&nonce.front()),
+                         reinterpret_cast<const unsigned char*>(nonce.data()),
                          key));
 
             break;
