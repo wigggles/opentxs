@@ -111,7 +111,9 @@ PeerRequest::PeerRequest(
 proto::PeerRequest PeerRequest::contract(const Lock& lock) const
 {
     auto contract = SigVersion(lock);
-    *(contract.mutable_signature()) = *(signatures_.front());
+    if (0 < signatures_.size()) {
+    	*(contract.mutable_signature()) = *(signatures_.front());
+    }
 
     return contract;
 }
