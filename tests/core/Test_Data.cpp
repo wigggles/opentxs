@@ -54,6 +54,76 @@ TEST_F(Default_Data, default_accessors)
     ASSERT_EQ(data_->size(), 0);
 }
 
+TEST_F(Default_Data, hex)
+{
+    for (const auto& input : hex_) {
+        auto value = Data::Factory();
+
+        EXPECT_TRUE(value->DecodeHex(input));
+
+        const auto output = value->asHex();
+
+        EXPECT_EQ(output, input);
+    }
+}
+
+TEST_F(Default_Data, comparison_equal_size)
+{
+    const auto one = Data::Factory(hex_.at(2), Data::Mode::Hex);
+    const auto two = Data::Factory(hex_.at(3), Data::Mode::Hex);
+
+    EXPECT_FALSE(one.get() == two.get());
+    EXPECT_FALSE(two.get() == one.get());
+    EXPECT_TRUE(one.get() != two.get());
+    EXPECT_TRUE(two.get() != one.get());
+    EXPECT_TRUE(one.get() < two.get());
+    EXPECT_TRUE(one.get() <= two.get());
+    EXPECT_FALSE(two.get() < one.get());
+    EXPECT_FALSE(two.get() <= one.get());
+    EXPECT_TRUE(two.get() > one.get());
+    EXPECT_TRUE(two.get() >= one.get());
+    EXPECT_FALSE(one.get() > two.get());
+    EXPECT_FALSE(one.get() >= two.get());
+}
+
+TEST_F(Default_Data, comparison_lhs_short)
+{
+    const auto one = Data::Factory(hex_.at(3), Data::Mode::Hex);
+    const auto two = Data::Factory(hex_.at(4), Data::Mode::Hex);
+
+    EXPECT_FALSE(one.get() == two.get());
+    EXPECT_FALSE(two.get() == one.get());
+    EXPECT_TRUE(one.get() != two.get());
+    EXPECT_TRUE(two.get() != one.get());
+    EXPECT_TRUE(one.get() < two.get());
+    EXPECT_TRUE(one.get() <= two.get());
+    EXPECT_FALSE(two.get() < one.get());
+    EXPECT_FALSE(two.get() <= one.get());
+    EXPECT_TRUE(two.get() > one.get());
+    EXPECT_TRUE(two.get() >= one.get());
+    EXPECT_FALSE(one.get() > two.get());
+    EXPECT_FALSE(one.get() >= two.get());
+}
+
+TEST_F(Default_Data, comparison_rhs_short)
+{
+    const auto one = Data::Factory(hex_.at(5), Data::Mode::Hex);
+    const auto two = Data::Factory(hex_.at(6), Data::Mode::Hex);
+
+    EXPECT_FALSE(one.get() == two.get());
+    EXPECT_FALSE(two.get() == one.get());
+    EXPECT_TRUE(one.get() != two.get());
+    EXPECT_TRUE(two.get() != one.get());
+    EXPECT_FALSE(one.get() < two.get());
+    EXPECT_FALSE(one.get() <= two.get());
+    EXPECT_TRUE(two.get() < one.get());
+    EXPECT_TRUE(two.get() <= one.get());
+    EXPECT_FALSE(two.get() > one.get());
+    EXPECT_FALSE(two.get() >= one.get());
+    EXPECT_TRUE(one.get() > two.get());
+    EXPECT_TRUE(one.get() >= two.get());
+}
+
 TEST(Data, compare_equal_to_self)
 {
     auto one = Data::Factory("abcd", 4);
@@ -108,17 +178,4 @@ TEST(Data, copy_from_interface)
     auto other = Data::Factory(one.get());
     std::string value(static_cast<const char*>(other->data()), other->size());
     ASSERT_EQ(value, "abcd");
-}
-
-TEST_F(Default_Data, hex)
-{
-    for (const auto& input : hex_) {
-        auto value = Data::Factory();
-
-        EXPECT_TRUE(value->DecodeHex(input));
-
-        const auto output = value->asHex();
-
-        EXPECT_EQ(output, input);
-    }
 }

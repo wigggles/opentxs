@@ -18,9 +18,7 @@ class Identifier final : virtual public opentxs::Identifier,
 public:
     using ot_super = Data;
 
-    using ot_super::operator==;
     bool operator==(const opentxs::Identifier& rhs) const override;
-    using ot_super::operator!=;
     bool operator!=(const opentxs::Identifier& rhs) const override;
     bool operator>(const opentxs::Identifier& rhs) const override;
     bool operator<(const opentxs::Identifier& rhs) const override;

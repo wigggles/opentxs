@@ -50,7 +50,7 @@ namespace opentxs
 {
 bool operator==(const OTIdentifier& lhs, const Identifier& rhs)
 {
-    return lhs.get() == rhs;
+    return lhs.get().operator==(rhs);
 }
 
 bool operator==(const OTNymID& lhs, const opentxs::Identifier& rhs)
@@ -70,7 +70,7 @@ bool operator==(const OTUnitID& lhs, const opentxs::Identifier& rhs)
 
 bool operator!=(const OTIdentifier& lhs, const Identifier& rhs)
 {
-    return lhs.get() != rhs;
+    return lhs.get().operator!=(rhs);
 }
 
 bool operator!=(const OTNymID& lhs, const opentxs::Identifier& rhs)
@@ -88,24 +88,84 @@ bool operator!=(const OTUnitID& lhs, const opentxs::Identifier& rhs)
     return lhs.get().operator!=(rhs);
 }
 
-bool operator<(const OTIdentifier& lhs, const OTIdentifier& rhs)
+bool operator<(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
 {
-    return lhs.get() < rhs.get();
+    return lhs.get().operator<(rhs);
 }
 
-bool operator<(const OTNymID& lhs, const OTNymID& rhs)
+bool operator<(const OTNymID& lhs, const opentxs::Identifier& rhs)
 {
-    return lhs.get() < rhs.get();
+    return lhs.get().operator<(rhs);
 }
 
-bool operator<(const OTServerID& lhs, const OTServerID& rhs)
+bool operator<(const OTServerID& lhs, const opentxs::Identifier& rhs)
 {
-    return lhs.get() < rhs.get();
+    return lhs.get().operator<(rhs);
 }
 
-bool operator<(const OTUnitID& lhs, const OTUnitID& rhs)
+bool operator<(const OTUnitID& lhs, const opentxs::Identifier& rhs)
 {
-    return lhs.get() < rhs.get();
+    return lhs.get().operator<(rhs);
+}
+
+bool operator>(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>(rhs);
+}
+
+bool operator>(const OTNymID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>(rhs);
+}
+
+bool operator>(const OTServerID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>(rhs);
+}
+
+bool operator>(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>(rhs);
+}
+
+bool operator<=(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator<=(rhs);
+}
+
+bool operator<=(const OTNymID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator<=(rhs);
+}
+
+bool operator<=(const OTServerID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator<=(rhs);
+}
+
+bool operator<=(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator<=(rhs);
+}
+
+bool operator>=(const OTIdentifier& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>=(rhs);
+}
+
+bool operator>=(const OTNymID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>=(rhs);
+}
+
+bool operator>=(const OTServerID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>=(rhs);
+}
+
+bool operator>=(const OTUnitID& lhs, const opentxs::Identifier& rhs)
+{
+    return lhs.get().operator>=(rhs);
 }
 
 OTIdentifier Identifier::Factory()

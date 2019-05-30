@@ -40,7 +40,16 @@ bool operator!=(
     const opentxs::Identifier& rhs);
 bool operator<(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
-    const opentxs::Pimpl<opentxs::Identifier>& rhs);
+    const opentxs::Identifier& rhs);
+bool operator>(
+    const opentxs::Pimpl<opentxs::Identifier>& lhs,
+    const opentxs::Identifier& rhs);
+bool operator<=(
+    const opentxs::Pimpl<opentxs::Identifier>& lhs,
+    const opentxs::Identifier& rhs);
+bool operator>=(
+    const opentxs::Pimpl<opentxs::Identifier>& lhs,
+    const opentxs::Identifier& rhs);
 #endif
 
 /** An Identifier is basically a 256 bit hash value. This class makes it easy to
@@ -80,9 +89,13 @@ public:
     EXPORT virtual bool operator==(const Identifier& rhs) const = 0;
     using ot_super::operator!=;
     EXPORT virtual bool operator!=(const Identifier& rhs) const = 0;
+    using ot_super::operator>;
     EXPORT virtual bool operator>(const Identifier& rhs) const = 0;
+    using ot_super::operator<;
     EXPORT virtual bool operator<(const Identifier& rhs) const = 0;
+    using ot_super::operator<=;
     EXPORT virtual bool operator<=(const Identifier& rhs) const = 0;
+    using ot_super::operator>=;
     EXPORT virtual bool operator>=(const Identifier& rhs) const = 0;
 
 #ifndef SWIG

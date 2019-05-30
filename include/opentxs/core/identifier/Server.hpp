@@ -40,7 +40,16 @@ bool operator!=(
     const opentxs::Identifier& rhs);
 bool operator<(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
-    const opentxs::Pimpl<opentxs::identifier::Server>& rhs);
+    const opentxs::Identifier& rhs);
+bool operator>(
+    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const opentxs::Identifier& rhs);
+bool operator<=(
+    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const opentxs::Identifier& rhs);
+bool operator>=(
+    const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
+    const opentxs::Identifier& rhs);
 #endif
 
 namespace identifier
