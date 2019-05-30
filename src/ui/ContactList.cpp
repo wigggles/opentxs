@@ -16,6 +16,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -117,10 +118,12 @@ std::string ContactList::AddContact(
     const std::string& paymentCode,
     const std::string& nymID) const
 {
+    auto reason = api_.Factory().PasswordPrompt("Adding a new contact");
     const auto contact = api_.Contacts().NewContact(
         label,
         identifier::Nym::Factory(nymID),
-        api_.Factory().PaymentCode(paymentCode));
+        api_.Factory().PaymentCode(paymentCode, reason),
+        reason);
     const auto& id = contact->ID();
     api_.OTX().CanMessage(primary_id_, id, true);
 

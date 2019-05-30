@@ -107,10 +107,11 @@ OTMarket::OTMarket(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTMarket::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
-
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
     // then we just return either way.  But if it comes back
@@ -174,8 +175,8 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             OT_ASSERT(false != bool(pOffer));
 
             OTOffer* offer = pOffer.release();
-            if (pOffer->LoadContractFromString(strData) &&
-                AddOffer(nullptr, *offer, false, tDateAdded))
+            if (pOffer->LoadContractFromString(strData, reason) &&
+                AddOffer(nullptr, *offer, reason, false, tDateAdded))
             // bSaveMarket = false (Don't SAVE -- we're loading right now!)
             {
                 LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -197,7 +198,7 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-void OTMarket::UpdateContents()
+void OTMarket::UpdateContents(const PasswordPrompt& reason)
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();
@@ -626,9 +627,10 @@ OTOffer* OTMarket::GetOffer(const std::int64_t& lTransactionNum)
     return nullptr;
 }
 
-bool OTMarket::RemoveOffer(const std::int64_t& lTransactionNum)  // if false,
-                                                                 // offer
-// wasn't found.
+// if false, offer wasn't found.
+bool OTMarket::RemoveOffer(
+    const std::int64_t& lTransactionNum,
+    const PasswordPrompt& reason)
 {
     bool bReturnValue = false;
 
@@ -710,7 +712,7 @@ bool OTMarket::RemoveOffer(const std::int64_t& lTransactionNum)  // if false,
     }
 
     if (bReturnValue)
-        return SaveMarket();  // <====== SAVE since an offer was removed.
+        return SaveMarket(reason);  // <====== SAVE since an offer was removed.
     else
         return false;
 }
@@ -725,6 +727,7 @@ bool OTMarket::RemoveOffer(const std::int64_t& lTransactionNum)  // if false,
 bool OTMarket::AddOffer(
     OTTrade* pTrade,
     OTOffer& theOffer,
+    const PasswordPrompt& reason,
     bool bSaveFile,
     time64_t tDateAddedToMarket)
 {
@@ -801,9 +804,8 @@ bool OTMarket::AddOffer(
             //
             theOffer.SetDateAddedToMarket(OTTimeGetCurrentTime());
 
-            return SaveMarket();  // <====== SAVE since an offer was added to
-                                  // the
-                                  // Market.
+            return SaveMarket(reason);  // <====== SAVE since an offer
+                                        // was added to the Market.
         } else {
             // Set this to the date passed in, since this offer was
             // added to the market in the past, and we are preserving that date.
@@ -817,7 +819,7 @@ bool OTMarket::AddOffer(
     return false;
 }
 
-bool OTMarket::LoadMarket()
+bool OTMarket::LoadMarket(const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
@@ -831,9 +833,11 @@ bool OTMarket::LoadMarket()
     bool bSuccess =
         OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "");
 
-    if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename);  // todo ??
+    if (bSuccess)
+        bSuccess = LoadContract(szFoldername, szFilename, reason);  // todo ??
 
-    if (bSuccess) bSuccess = VerifySignature(*(GetCron()->GetServerNym()));
+    if (bSuccess)
+        bSuccess = VerifySignature(*(GetCron()->GetServerNym()), reason);
 
     // Load the list of recent market trades (informational only.)
     //
@@ -857,7 +861,7 @@ bool OTMarket::LoadMarket()
     return bSuccess;
 }
 
-bool OTMarket::SaveMarket()
+bool OTMarket::SaveMarket(const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
@@ -877,8 +881,8 @@ bool OTMarket::SaveMarket()
 
     // Sign it, save it internally to string, and then save that out to the
     // file.
-    if (!SignContract(*(GetCron()->GetServerNym())) || !SaveContract() ||
-        !SaveContract(szFoldername, szFilename)) {
+    if (!SignContract(*(GetCron()->GetServerNym()), reason) ||
+        !SaveContract() || !SaveContract(szFoldername, szFilename)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving Market: ")(
             szFoldername)(Log::PathSeparator())(szFilename)(".")
             .Flush();
@@ -1041,7 +1045,8 @@ void OTMarket::ProcessTrade(
     const api::Wallet& wallet,
     OTTrade& theTrade,
     OTOffer& theOffer,
-    OTOffer& theOtherOffer)
+    OTOffer& theOtherOffer,
+    const PasswordPrompt& reason)
 {
     OTTrade* pOtherTrade = theOtherOffer.GetTrade();
     OTCron* pCron = theTrade.GetCron();
@@ -1155,7 +1160,7 @@ void OTMarket::ProcessTrade(
         pFirstNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pFirstNym = api_.Wallet().Nym(FIRST_NYM_ID);
+        pFirstNym = api_.Wallet().Nym(FIRST_NYM_ID, reason);
         if (nullptr == pFirstNym) {
             auto strNymID = String::Factory(FIRST_NYM_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1178,7 +1183,7 @@ void OTMarket::ProcessTrade(
         pOtherNym = pFirstNym;  // theNym is pFirstNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pOtherNym = api_.Wallet().Nym(OTHER_NYM_ID);
+        pOtherNym = api_.Wallet().Nym(OTHER_NYM_ID, reason);
         if (nullptr == pOtherNym) {
             auto strNymID = String::Factory(OTHER_NYM_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1218,13 +1223,14 @@ void OTMarket::ProcessTrade(
     // Make sure have ALL FOUR accounts loaded and checked out.
     // (first nym's asset/currency, and other nym's asset/currency.)
 
-    auto pFirstAssetAcct = wallet.mutable_Account(theTrade.GetSenderAcctID());
+    auto pFirstAssetAcct =
+        wallet.mutable_Account(theTrade.GetSenderAcctID(), reason);
     auto pFirstCurrencyAcct =
-        wallet.mutable_Account(theTrade.GetCurrencyAcctID());
+        wallet.mutable_Account(theTrade.GetCurrencyAcctID(), reason);
     auto pOtherAssetAcct =
-        wallet.mutable_Account(pOtherTrade->GetSenderAcctID());
+        wallet.mutable_Account(pOtherTrade->GetSenderAcctID(), reason);
     auto pOtherCurrencyAcct =
-        wallet.mutable_Account(pOtherTrade->GetCurrencyAcctID());
+        wallet.mutable_Account(pOtherTrade->GetCurrencyAcctID(), reason);
 
     if ((!pFirstAssetAcct) || (!pFirstCurrencyAcct)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -1291,9 +1297,9 @@ void OTMarket::ProcessTrade(
     // LoadExistingAccount().
     else if (
         (!pFirstAssetAcct.get().VerifyOwner(*pFirstNym) ||
-         !pFirstAssetAcct.get().VerifySignature(*pServerNym)) ||
+         !pFirstAssetAcct.get().VerifySignature(*pServerNym, reason)) ||
         (!pFirstCurrencyAcct.get().VerifyOwner(*pFirstNym) ||
-         !pFirstCurrencyAcct.get().VerifySignature(*pServerNym))) {
+         !pFirstCurrencyAcct.get().VerifySignature(*pServerNym, reason))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on one of first "
             "trader's accounts.")
@@ -1302,9 +1308,9 @@ void OTMarket::ProcessTrade(
         return;
     } else if (
         (!pOtherAssetAcct.get().VerifyOwner(*pOtherNym) ||
-         !pOtherAssetAcct.get().VerifySignature(*pServerNym)) ||
+         !pOtherAssetAcct.get().VerifySignature(*pServerNym, reason)) ||
         (!pOtherCurrencyAcct.get().VerifyOwner(*pOtherNym) ||
-         !pOtherCurrencyAcct.get().VerifySignature(*pServerNym))) {
+         !pOtherCurrencyAcct.get().VerifySignature(*pServerNym, reason))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on one of other "
             "trader's accounts.")
@@ -1343,53 +1349,59 @@ void OTMarket::ProcessTrade(
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingFirstAsset = theFirstAssetInbox->LoadInbox();
-        bool bSuccessLoadingFirstCurrency = theFirstCurrencyInbox->LoadInbox();
-        bool bSuccessLoadingOtherAsset = theOtherAssetInbox->LoadInbox();
-        bool bSuccessLoadingOtherCurrency = theOtherCurrencyInbox->LoadInbox();
+        bool bSuccessLoadingFirstAsset = theFirstAssetInbox->LoadInbox(reason);
+        bool bSuccessLoadingFirstCurrency =
+            theFirstCurrencyInbox->LoadInbox(reason);
+        bool bSuccessLoadingOtherAsset = theOtherAssetInbox->LoadInbox(reason);
+        bool bSuccessLoadingOtherCurrency =
+            theOtherCurrencyInbox->LoadInbox(reason);
 
         // ...or generate them otherwise...
 
         if (true == bSuccessLoadingFirstAsset)
             bSuccessLoadingFirstAsset =
-                theFirstAssetInbox->VerifyAccount(*pServerNym);
+                theFirstAssetInbox->VerifyAccount(*pServerNym, reason);
         else
             bSuccessLoadingFirstAsset = theFirstAssetInbox->GenerateLedger(
                 theTrade.GetSenderAcctID(),
                 NOTARY_ID,
                 ledgerType::inbox,
+                reason,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingFirstCurrency)
             bSuccessLoadingFirstCurrency =
-                theFirstCurrencyInbox->VerifyAccount(*pServerNym);
+                theFirstCurrencyInbox->VerifyAccount(*pServerNym, reason);
         else
             bSuccessLoadingFirstCurrency =
                 theFirstCurrencyInbox->GenerateLedger(
                     theTrade.GetCurrencyAcctID(),
                     NOTARY_ID,
                     ledgerType::inbox,
+                    reason,
                     true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherAsset)
             bSuccessLoadingOtherAsset =
-                theOtherAssetInbox->VerifyAccount(*pServerNym);
+                theOtherAssetInbox->VerifyAccount(*pServerNym, reason);
         else
             bSuccessLoadingOtherAsset = theOtherAssetInbox->GenerateLedger(
                 pOtherTrade->GetSenderAcctID(),
                 NOTARY_ID,
                 ledgerType::inbox,
+                reason,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherCurrency)
             bSuccessLoadingOtherCurrency =
-                theOtherCurrencyInbox->VerifyAccount(*pServerNym);
+                theOtherCurrencyInbox->VerifyAccount(*pServerNym, reason);
         else
             bSuccessLoadingOtherCurrency =
                 theOtherCurrencyInbox->GenerateLedger(
                     pOtherTrade->GetCurrencyAcctID(),
                     NOTARY_ID,
                     ledgerType::inbox,
+                    reason,
                     true);  // bGenerateFile=true
 
         if ((false == bSuccessLoadingFirstAsset) ||
@@ -1869,19 +1881,19 @@ void OTMarket::ProcessTrade(
 
                 // These have updated values, so let's save them.
                 theTrade.ReleaseSignatures();
-                theTrade.SignContract(*pServerNym);
+                theTrade.SignContract(*pServerNym, reason);
                 theTrade.SaveContract();
 
                 pOtherTrade->ReleaseSignatures();
-                pOtherTrade->SignContract(*pServerNym);
+                pOtherTrade->SignContract(*pServerNym, reason);
                 pOtherTrade->SaveContract();
 
                 theOffer.ReleaseSignatures();
-                theOffer.SignContract(*pServerNym);
+                theOffer.SignContract(*pServerNym, reason);
                 theOffer.SaveContract();
 
                 theOtherOffer.ReleaseSignatures();
-                theOtherOffer.SignContract(*pServerNym);
+                theOtherOffer.SignContract(*pServerNym, reason);
                 theOtherOffer.SaveContract();
 
                 m_lLastSalePrice =
@@ -1936,7 +1948,7 @@ void OTMarket::ProcessTrade(
                 // that we just processed. Make sure to save the Market
                 // since it contains those offers that have just
                 // updated.
-                SaveMarket();
+                SaveMarket(reason);
 
                 // The Trade has changed, and it is stored as a
                 // CronItem. So I save Cron as well, for the same reason
@@ -1986,20 +1998,20 @@ void OTMarket::ProcessTrade(
             // OTCronItem::LoadCronReceipt loads the original version
             // with the user's signature. (Updated versions, as
             // processing occurs, are signed by the server.)
-            auto pOrigTrade =
-                OTCronItem::LoadCronReceipt(api_, theTrade.GetTransactionNum());
+            auto pOrigTrade = OTCronItem::LoadCronReceipt(
+                api_, theTrade.GetTransactionNum(), reason);
             auto pOrigOtherTrade = OTCronItem::LoadCronReceipt(
-                api_, pOtherTrade->GetTransactionNum());
+                api_, pOtherTrade->GetTransactionNum(), reason);
 
             OT_ASSERT(false != bool(pOrigTrade));
             OT_ASSERT(false != bool(pOrigOtherTrade));
 
             OT_ASSERT_MSG(
-                pOrigTrade->VerifySignature(*pFirstNym),
+                pOrigTrade->VerifySignature(*pFirstNym, reason),
                 "Signature was already verified on Trade when first "
                 "added to market, but now it fails.\n");
             OT_ASSERT_MSG(
-                pOrigOtherTrade->VerifySignature(*pOtherNym),
+                pOrigOtherTrade->VerifySignature(*pOtherNym, reason),
                 "Signature was already verified on Trade when first "
                 "added to market, but now it fails.\n");
 
@@ -2090,10 +2102,10 @@ void OTMarket::ProcessTrade(
 
             if (true == bSuccess) {
                 // sign the item
-                item1->SignContract(*pServerNym);
-                item2->SignContract(*pServerNym);
-                item3->SignContract(*pServerNym);
-                item4->SignContract(*pServerNym);
+                item1->SignContract(*pServerNym, reason);
+                item2->SignContract(*pServerNym, reason);
+                item3->SignContract(*pServerNym, reason);
+                item4->SignContract(*pServerNym, reason);
 
                 item1->SaveContract();
                 item2->SaveContract();
@@ -2105,10 +2117,10 @@ void OTMarket::ProcessTrade(
                 trans3->AddItem(item3);
                 trans4->AddItem(item4);
 
-                trans1->SignContract(*pServerNym);
-                trans2->SignContract(*pServerNym);
-                trans3->SignContract(*pServerNym);
-                trans4->SignContract(*pServerNym);
+                trans1->SignContract(*pServerNym, reason);
+                trans2->SignContract(*pServerNym, reason);
+                trans3->SignContract(*pServerNym, reason);
+                trans4->SignContract(*pServerNym, reason);
 
                 trans1->SaveContract();
                 trans2->SaveContract();
@@ -2131,10 +2143,10 @@ void OTMarket::ProcessTrade(
                 theOtherCurrencyInbox->ReleaseSignatures();
 
                 // Sign all four of them.
-                theFirstAssetInbox->SignContract(*pServerNym);
-                theFirstCurrencyInbox->SignContract(*pServerNym);
-                theOtherAssetInbox->SignContract(*pServerNym);
-                theOtherCurrencyInbox->SignContract(*pServerNym);
+                theFirstAssetInbox->SignContract(*pServerNym, reason);
+                theFirstCurrencyInbox->SignContract(*pServerNym, reason);
+                theOtherAssetInbox->SignContract(*pServerNym, reason);
+                theOtherCurrencyInbox->SignContract(*pServerNym, reason);
 
                 // Save all four of them internally
                 theFirstAssetInbox->SaveContract();
@@ -2221,17 +2233,17 @@ void OTMarket::ProcessTrade(
                     }
 
                     pTempItem->SetStatus(Item::rejection);
-                    pTempItem->SignContract(*pServerNym);
+                    pTempItem->SignContract(*pServerNym, reason);
                     pTempItem->SaveContract();
 
                     pTempTransaction->AddItem(pTempItem);
-                    pTempTransaction->SignContract(*pServerNym);
+                    pTempTransaction->SignContract(*pServerNym, reason);
                     pTempTransaction->SaveContract();
 
                     pTempInbox->AddTransaction(pTempTransaction);
 
                     pTempInbox->ReleaseSignatures();
-                    pTempInbox->SignContract(*pServerNym);
+                    pTempInbox->SignContract(*pServerNym, reason);
                     pTempInbox->SaveContract();
                     pTempInbox->SaveInbox(Identifier::Factory());
 
@@ -2259,17 +2271,17 @@ void OTMarket::ProcessTrade(
                     }
 
                     pTempItem->SetStatus(Item::rejection);
-                    pTempItem->SignContract(*pServerNym);
+                    pTempItem->SignContract(*pServerNym, reason);
                     pTempItem->SaveContract();
 
                     pTempTransaction->AddItem(pTempItem);
-                    pTempTransaction->SignContract(*pServerNym);
+                    pTempTransaction->SignContract(*pServerNym, reason);
                     pTempTransaction->SaveContract();
 
                     pTempInbox->AddTransaction(pTempTransaction);
 
                     pTempInbox->ReleaseSignatures();
-                    pTempInbox->SignContract(*pServerNym);
+                    pTempInbox->SignContract(*pServerNym, reason);
                     pTempInbox->SaveContract();
                     pTempInbox->SaveInbox(Identifier::Factory());
 
@@ -2356,7 +2368,8 @@ void OTMarket::ProcessTrade(
 bool OTMarket::ProcessTrade(
     const api::Wallet& wallet,
     OTTrade& theTrade,
-    OTOffer& theOffer)
+    OTOffer& theOffer,
+    const PasswordPrompt& reason)
 {
     if (theOffer.GetAmountAvailable() < theOffer.GetMinimumIncrement()) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Removing offer from ")(
@@ -2488,7 +2501,8 @@ bool OTMarket::ProcessTrade(
                         wallet,
                         theTrade,
                         theOffer,
-                        *pBid);  // <========
+                        *pBid,
+                        reason);  // <========
             }
 
             // Else, the bid is lower than I am willing to sell. (And
@@ -2578,7 +2592,7 @@ bool OTMarket::ProcessTrade(
                     !pAsk->GetTrade()->IsFlaggedForRemoval())
 
                     ProcessTrade(
-                        wallet, theTrade, theOffer, *pAsk);  // <=======
+                        wallet, theTrade, theOffer, *pAsk, reason);  // <======
             }
             // Else, the ask price is higher than I am willing to pay.
             // (And all the remaining sellers are even HIGHER.)

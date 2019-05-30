@@ -70,8 +70,6 @@ private:
     explicit Identifier(const String& rhs);
     explicit Identifier(const identity::Nym& nym);
     explicit Identifier(const Contract& contract);
-    explicit Identifier(const crypto::key::LegacySymmetric& key);
-    explicit Identifier(const OTCachedKey& key);
     explicit Identifier(
         const Vector& data,
         const std::size_t size,

@@ -68,7 +68,8 @@ OTIdentifier BasketContract::CalculateBasketID(
 bool BasketContract::FinalizeTemplate(
     const api::Wallet& wallet,
     const Nym_p& nym,
-    proto::UnitDefinition& serialized)
+    proto::UnitDefinition& serialized,
+    const PasswordPrompt& reason)
 {
     std::unique_ptr<BasketContract> contract(
         new BasketContract(wallet, nym, serialized));
@@ -83,7 +84,7 @@ bool BasketContract::FinalizeTemplate(
         proto::UnitDefinition basket = contract->SigVersion(lock);
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
-        if (contract->update_signature(lock)) {
+        if (contract->update_signature(lock, reason)) {
             lock.unlock();
             serialized = contract->PublicContract();
 

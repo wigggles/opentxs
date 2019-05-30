@@ -16,6 +16,7 @@ class Test_CreateNymHD : public ::testing::Test
 {
 public:
     const opentxs::api::client::Manager& client_;
+    opentxs::OTPasswordPrompt reason_;
     std::string SeedA_;
     std::string SeedB_;
     std::string SeedC_;
@@ -25,6 +26,7 @@ public:
 
     Test_CreateNymHD()
         : client_(opentxs::OT::App().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         // these fingerprints are deterministic so we can share them among tests
         , SeedA_(client_.Exec().Wallet_ImportSeed(
               "spike nominee miss inquiry fee nothing belt list other daughter "
@@ -63,10 +65,14 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
     auto Dave = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
 
-    const Nym_p NymA = client_.Wallet().Nym(identifier::Nym::Factory(Alice));
-    const Nym_p NymB = client_.Wallet().Nym(identifier::Nym::Factory(Bob));
-    const Nym_p NymC = client_.Wallet().Nym(identifier::Nym::Factory(Charly));
-    const Nym_p NymD = client_.Wallet().Nym(identifier::Nym::Factory(Dave));
+    const Nym_p NymA =
+        client_.Wallet().Nym(identifier::Nym::Factory(Alice), reason_);
+    const Nym_p NymB =
+        client_.Wallet().Nym(identifier::Nym::Factory(Bob), reason_);
+    const Nym_p NymC =
+        client_.Wallet().Nym(identifier::Nym::Factory(Charly), reason_);
+    const Nym_p NymD =
+        client_.Wallet().Nym(identifier::Nym::Factory(Dave), reason_);
 
     // Alice
     proto::HDPath pathA;
@@ -115,7 +121,8 @@ TEST_F(Test_CreateNymHD, TestNym_Dave)
 {
     const auto Dave = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
-    const Nym_p NymD = client_.Wallet().Nym(identifier::Nym::Factory(Dave));
+    const Nym_p NymD =
+        client_.Wallet().Nym(identifier::Nym::Factory(Dave), reason_);
 
     proto::HDPath pathD;
     EXPECT_TRUE(NymD.get()->Path(pathD));
@@ -139,7 +146,8 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
         proto::CITEMTYPE_INDIVIDUAL, "Eve", SeedB_, 2);
     EXPECT_STREQ(EveID.c_str(), NewEve.c_str());
 
-    const Nym_p NymE = client_.Wallet().Nym(identifier::Nym::Factory(NewEve));
+    const Nym_p NymE =
+        client_.Wallet().Nym(identifier::Nym::Factory(NewEve), reason_);
 
     proto::HDPath pathE;
     EXPECT_TRUE(NymE.get()->Path(pathE));
@@ -165,8 +173,10 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
     EXPECT_STRNE(Frank.c_str(), Frank2.c_str());
     EXPECT_STREQ(FrankID.c_str(), Frank.c_str());
 
-    const Nym_p NymF = client_.Wallet().Nym(identifier::Nym::Factory(Frank));
-    const Nym_p NymF2 = client_.Wallet().Nym(identifier::Nym::Factory(Frank2));
+    const Nym_p NymF =
+        client_.Wallet().Nym(identifier::Nym::Factory(Frank), reason_);
+    const Nym_p NymF2 =
+        client_.Wallet().Nym(identifier::Nym::Factory(Frank2), reason_);
 
     proto::HDPath pathF, pathF2;
     EXPECT_TRUE(NymF.get()->Path(pathF));
@@ -197,8 +207,10 @@ TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
     auto NymID2 = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedC_, 0);
 
-    const Nym_p Nym1 = client_.Wallet().Nym(identifier::Nym::Factory(NymID1));
-    const Nym_p Nym2 = client_.Wallet().Nym(identifier::Nym::Factory(NymID2));
+    const Nym_p Nym1 =
+        client_.Wallet().Nym(identifier::Nym::Factory(NymID1), reason_);
+    const Nym_p Nym2 =
+        client_.Wallet().Nym(identifier::Nym::Factory(NymID2), reason_);
 
     proto::HDPath path1, path2;
     EXPECT_TRUE(Nym1.get()->Path(path1));
@@ -218,8 +230,10 @@ TEST_F(Test_CreateNymHD, TestNym_NegativeIndex)
     auto NymID2 = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedD_, -1);
 
-    const Nym_p Nym1 = client_.Wallet().Nym(identifier::Nym::Factory(NymID1));
-    const Nym_p Nym2 = client_.Wallet().Nym(identifier::Nym::Factory(NymID2));
+    const Nym_p Nym1 =
+        client_.Wallet().Nym(identifier::Nym::Factory(NymID1), reason_);
+    const Nym_p Nym2 =
+        client_.Wallet().Nym(identifier::Nym::Factory(NymID2), reason_);
 
     proto::HDPath path1, path2;
     EXPECT_TRUE(Nym1.get()->Path(path1));
@@ -230,5 +244,4 @@ TEST_F(Test_CreateNymHD, TestNym_NegativeIndex)
 
     ASSERT_NE(nym1Index, nym2Index);
 }
-
 }  // namespace

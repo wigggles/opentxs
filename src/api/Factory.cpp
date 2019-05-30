@@ -9,6 +9,7 @@
 
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
@@ -19,6 +20,7 @@
 #endif
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -39,7 +41,12 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <array>
 
@@ -49,7 +56,7 @@
 
 namespace opentxs
 {
-api::Factory* Factory::FactoryAPI(const api::Core& api)
+api::internal::Factory* Factory::FactoryAPI(const api::internal::Core& api)
 {
     return new api::implementation::Factory(api);
 }
@@ -57,9 +64,16 @@ api::Factory* Factory::FactoryAPI(const api::Core& api)
 
 namespace opentxs::api::implementation
 {
-Factory::Factory(const api::Core& api)
-    : api_(api)
+Factory::Factory(const api::internal::Core& api)
+    : api::internal::Factory()
+    , api_(api)
+    , pAsymmetric_(opentxs::Factory::AsymmetricAPI(api_))
+    , asymmetric_(*pAsymmetric_)
+    , pSymmetric_(opentxs::Factory::Symmetric(api_))
+    , symmetric_(*pSymmetric_)
 {
+    OT_ASSERT(pAsymmetric_);
+    OT_ASSERT(pSymmetric_);
 }
 
 OTAsymmetricKey Factory::AsymmetricKey(
@@ -67,15 +81,15 @@ OTAsymmetricKey Factory::AsymmetricKey(
     const proto::KeyRole role,
     const VersionNumber version) const
 {
-    return OTAsymmetricKey{
-        api_.Crypto().Asymmetric().NewKey(params, role, version).release()};
+    return OTAsymmetricKey{asymmetric_.NewKey(params, role, version).release()};
 }
 
 OTAsymmetricKey Factory::AsymmetricKey(
-    const proto::AsymmetricKey& serialized) const
+    const proto::AsymmetricKey& serialized,
+    const opentxs::PasswordPrompt& reason) const
 {
     return OTAsymmetricKey{
-        api_.Crypto().Asymmetric().InstantiateKey(serialized).release()};
+        asymmetric_.InstantiateKey(serialized, reason).release()};
 }
 
 std::unique_ptr<opentxs::Basket> Factory::Basket() const
@@ -96,8 +110,22 @@ std::unique_ptr<opentxs::Basket> Factory::Basket(
     return basket;
 }
 
+std::unique_ptr<OTPassword> Factory::BinarySecret() const
+{
+    auto output = std::make_unique<OTPassword>();
+
+    OT_ASSERT(output);
+
+    auto& secret = *output;
+    std::array<std::uint8_t, 32> empty{0};
+    secret.setMemory(empty.data(), empty.size());
+
+    return output;
+}
+
 std::unique_ptr<opentxs::Cheque> Factory::Cheque(
-    const OTTransaction& receipt) const
+    const OTTransaction& receipt,
+    const opentxs::PasswordPrompt& reason) const
 {
     std::unique_ptr<opentxs::Cheque> output{new opentxs::Cheque{receipt.API()}};
 
@@ -108,13 +136,15 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
     std::unique_ptr<opentxs::Item> item{Item(
         serializedItem,
         receipt.GetRealNotaryID(),
-        receipt.GetReferenceToNum())};
+        receipt.GetReferenceToNum(),
+        reason)};
 
     OT_ASSERT(false != bool(item));
 
     auto serializedCheque = String::Factory();
     item->GetAttachment(serializedCheque);
-    const auto loaded = output->LoadContractFromString(serializedCheque);
+    const auto loaded =
+        output->LoadContractFromString(serializedCheque, reason);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load cheque.").Flush();
@@ -143,7 +173,8 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
 }
 
 std::unique_ptr<opentxs::Contract> Factory::Contract(
-    const opentxs::String& strInput) const
+    const opentxs::String& strInput,
+    const opentxs::PasswordPrompt& reason) const
 {
 
     using namespace opentxs;
@@ -209,7 +240,7 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
                 strFirstLine)
                 .Flush();
             // Does the contract successfully load from the string passed in?
-        } else if (!pContract->LoadContractFromString(strContract)) {
+        } else if (!pContract->LoadContractFromString(strContract, reason)) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Failed loading contract from string (first line): ")(
                 strFirstLine)
@@ -229,7 +260,9 @@ std::unique_ptr<OTCron> Factory::Cron(const api::Core& server) const
     return cron;
 }
 
-std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
+std::unique_ptr<OTCronItem> Factory::CronItem(
+    const String& strCronItem,
+    const opentxs::PasswordPrompt& reason) const
 {
     std::array<char, 45> buf{};
 
@@ -286,7 +319,7 @@ std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
     }
 
     // Does the contract successfully load from the string passed in?
-    if (pItem->LoadContractFromString(strContract)) { return pItem; }
+    if (pItem->LoadContractFromString(strContract, reason)) { return pItem; }
 
     return nullptr;
 }
@@ -314,17 +347,20 @@ OTIdentifier Factory::Identifier(const opentxs::Item& item) const
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const std::string& serialized) const
+    const std::string& serialized,
+    const opentxs::PasswordPrompt& reason) const
 {
-    return Item(String::Factory(serialized));
+    return Item(String::Factory(serialized), reason);
 }
 
-std::unique_ptr<opentxs::Item> Factory::Item(const String& serialized) const
+std::unique_ptr<opentxs::Item> Factory::Item(
+    const String& serialized,
+    const opentxs::PasswordPrompt& reason) const
 {
     std::unique_ptr<opentxs::Item> output{new opentxs::Item(api_)};
 
     if (output) {
-        const auto loaded = output->LoadContractFromString(serialized);
+        const auto loaded = output->LoadContractFromString(serialized, reason);
 
         if (false == loaded) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to deserialize.")
@@ -381,7 +417,8 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 std::unique_ptr<opentxs::Item> Factory::Item(
     const String& strItem,
     const identifier::Server& theNotaryID,
-    std::int64_t lTransactionNumber) const
+    std::int64_t lTransactionNumber,
+    const opentxs::PasswordPrompt& reason) const
 {
     if (!strItem.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": strItem is empty. (Expected an "
@@ -396,7 +433,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
     pItem->SetRealNotaryID(theNotaryID);
 
     // This loads up the purported account ID and the user ID.
-    if (pItem->LoadContractFromString(strItem)) {
+    if (pItem->LoadContractFromString(strItem, reason)) {
         const opentxs::Identifier& ACCOUNT_ID = pItem->GetPurportedAccountID();
         pItem->SetRealAccountID(ACCOUNT_ID);  // I do this because it's all
                                               // we've got in this case. It's
@@ -456,16 +493,21 @@ OTKeypair Factory::Keypair(
 }
 
 OTKeypair Factory::Keypair(
+    const api::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
-    const proto::AsymmetricKey& serializedPrivkey) const
+    const proto::AsymmetricKey& serializedPrivkey,
+    const opentxs::PasswordPrompt& reason) const
 {
-    return OTKeypair{
-        opentxs::Factory::Keypair(api_, serializedPubkey, serializedPrivkey)};
+    return OTKeypair{opentxs::Factory::Keypair(
+        api_, reason, serializedPubkey, serializedPrivkey)};
 }
 
-OTKeypair Factory::Keypair(const proto::AsymmetricKey& serializedPubkey) const
+OTKeypair Factory::Keypair(
+    const api::Core& api,
+    const proto::AsymmetricKey& serializedPubkey,
+    const opentxs::PasswordPrompt& reason) const
 {
-    return OTKeypair{opentxs::Factory::Keypair(api_, serializedPubkey)};
+    return OTKeypair{opentxs::Factory::Keypair(api_, reason, serializedPubkey)};
 }
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
@@ -640,6 +682,11 @@ std::unique_ptr<OTOffer> Factory::Offer(
     return offer;
 }
 
+OTPasswordPrompt Factory::PasswordPrompt(const std::string& text) const
+{
+    return OTPasswordPrompt{opentxs::Factory::PasswordPrompt(api_, text)};
+}
+
 std::unique_ptr<OTPayment> Factory::Payment() const
 {
     std::unique_ptr<OTPayment> payment;
@@ -657,42 +704,50 @@ std::unique_ptr<OTPayment> Factory::Payment(const String& strPayment) const
 }
 
 std::unique_ptr<OTPayment> Factory::Payment(
-    const opentxs::Contract& contract) const
+    const opentxs::Contract& contract,
+    const opentxs::PasswordPrompt& reason) const
 {
     auto payment = Factory::Payment(String::Factory(contract));
 
-    if (payment) { payment->SetTempValues(); }
+    if (payment) { payment->SetTempValues(reason); }
 
     return payment;
 }
 
 #if OT_CRYPTO_WITH_BIP39
-OTPaymentCode Factory::PaymentCode(const std::string& base58) const
+OTPaymentCode Factory::PaymentCode(
+    const std::string& base58,
+    const opentxs::PasswordPrompt& reason) const
 {
-    return opentxs::PaymentCode::Factory(api_, base58);
+    return OTPaymentCode{opentxs::Factory::PaymentCode(api_, base58, reason)};
 }
 
-OTPaymentCode Factory::PaymentCode(const proto::PaymentCode& serialized) const
+OTPaymentCode Factory::PaymentCode(
+    const proto::PaymentCode& serialized,
+    const opentxs::PasswordPrompt& reason) const
 {
-    return opentxs::PaymentCode::Factory(api_, serialized);
+    return OTPaymentCode{
+        opentxs::Factory::PaymentCode(api_, serialized, reason)};
 }
 
 OTPaymentCode Factory::PaymentCode(
     const std::string& seed,
     const Bip32Index nym,
     const std::uint8_t version,
+    const opentxs::PasswordPrompt& reason,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
     const std::uint8_t bitmessageStream) const
 {
-    return opentxs::PaymentCode::Factory(
+    return OTPaymentCode{opentxs::Factory::PaymentCode(
         api_,
         seed,
         nym,
         version,
+        reason,
         bitmessage,
         bitmessageVersion,
-        bitmessageStream);
+        bitmessageStream)};
 }
 #endif
 
@@ -738,7 +793,8 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const Nym_p& senderNym,
-    [[maybe_unused]] const std::string& message) const
+    [[maybe_unused]] const std::string& message,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -750,7 +806,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const Nym_p& senderNym,
     [[maybe_unused]] const std::string& payment,
-    [[maybe_unused]] const bool isPayment) const
+    [[maybe_unused]] const bool isPayment,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -762,7 +819,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 #if OT_CASH
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const Nym_p& senderNym,
-    [[maybe_unused]] const std::shared_ptr<blind::Purse> purse) const
+    [[maybe_unused]] const std::shared_ptr<blind::Purse> purse,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -775,7 +833,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const std::shared_ptr<const PeerRequest> request,
     [[maybe_unused]] const std::shared_ptr<const PeerReply> reply,
-    [[maybe_unused]] const VersionNumber version) const
+    [[maybe_unused]] const VersionNumber version,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -786,7 +845,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const std::shared_ptr<const PeerRequest> request,
-    [[maybe_unused]] const VersionNumber version) const
+    [[maybe_unused]] const VersionNumber version,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -797,7 +857,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const Nym_p& signerNym,
-    [[maybe_unused]] const proto::PeerObject& serialized) const
+    [[maybe_unused]] const proto::PeerObject& serialized,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -808,7 +869,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const Nym_p& recipientNym,
-    [[maybe_unused]] const Armored& encrypted) const
+    [[maybe_unused]] const Armored& encrypted,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Peer objects are only supported in client sessions")
@@ -823,10 +885,11 @@ std::unique_ptr<blind::Purse> Factory::Purse(
     const identifier::UnitDefinition& unit,
     const blind::Mint& mint,
     const Amount totalValue,
+    const opentxs::PasswordPrompt& reason,
     const proto::CashType type) const
 {
     return std::unique_ptr<blind::Purse>(
-        opentxs::Factory::Purse(api_, context, type, mint, totalValue));
+        opentxs::Factory::Purse(api_, context, type, mint, totalValue, reason));
 }
 
 std::unique_ptr<blind::Purse> Factory::Purse(
@@ -840,14 +903,17 @@ std::unique_ptr<blind::Purse> Factory::Purse(
     const identity::Nym& owner,
     const identifier::Server& server,
     const identifier::UnitDefinition& unit,
+    const opentxs::PasswordPrompt& reason,
     const proto::CashType type) const
 {
     return std::unique_ptr<blind::Purse>(
-        opentxs::Factory::Purse(api_, owner, server, unit, type));
+        opentxs::Factory::Purse(api_, owner, server, unit, type, reason));
 }
 #endif  // OT_CASH
 
-std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
+std::unique_ptr<OTScriptable> Factory::Scriptable(
+    const String& strInput,
+    const opentxs::PasswordPrompt& reason) const
 {
     std::array<char, 45> buf{};
 
@@ -906,7 +972,7 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
     if (false == bool(pItem)) return nullptr;
 
     // Does the contract successfully load from the string passed in?
-    if (pItem->LoadContractFromString(strContract)) return pItem;
+    if (pItem->LoadContractFromString(strContract, reason)) return pItem;
 
     return nullptr;
 }
@@ -977,6 +1043,49 @@ std::unique_ptr<OTSmartContract> Factory::SmartContract(
     return smartcontract;
 }
 
+OTSymmetricKey Factory::SymmetricKey() const
+{
+    return OTSymmetricKey{opentxs::Factory::SymmetricKey()};
+}
+
+OTSymmetricKey Factory::SymmetricKey(
+    const opentxs::crypto::SymmetricProvider& engine,
+    const opentxs::PasswordPrompt& password,
+    const proto::SymmetricMode mode) const
+{
+    return OTSymmetricKey{
+        opentxs::Factory::SymmetricKey(api_, engine, password, mode)};
+}
+
+OTSymmetricKey Factory::SymmetricKey(
+    const opentxs::crypto::SymmetricProvider& engine,
+    const proto::SymmetricKey serialized) const
+{
+    return OTSymmetricKey{
+        opentxs::Factory::SymmetricKey(api_, engine, serialized)};
+}
+
+OTSymmetricKey Factory::SymmetricKey(
+    const opentxs::crypto::SymmetricProvider& engine,
+    const OTPassword& seed,
+    const std::uint64_t operations,
+    const std::uint64_t difficulty,
+    const std::size_t size,
+    const proto::SymmetricKeyType type) const
+{
+    return OTSymmetricKey{opentxs::Factory::SymmetricKey(
+        api_, engine, seed, operations, difficulty, size, type)};
+}
+
+OTSymmetricKey Factory::SymmetricKey(
+    const opentxs::crypto::SymmetricProvider& engine,
+    const OTPassword& raw,
+    const opentxs::PasswordPrompt& reason) const
+{
+    return OTSymmetricKey{
+        opentxs::Factory::SymmetricKey(api_, engine, raw, reason)};
+}
+
 std::unique_ptr<OTTrade> Factory::Trade() const
 {
     std::unique_ptr<OTTrade> trade;
@@ -1007,7 +1116,8 @@ std::unique_ptr<OTTrade> Factory::Trade(
 }
 
 std::unique_ptr<OTTransactionType> Factory::Transaction(
-    const String& strInput) const
+    const String& strInput,
+    const opentxs::PasswordPrompt& reason) const
 {
     auto strContract = String::Factory(),
          strFirstLine = String::Factory();  // output for the below function.
@@ -1069,7 +1179,7 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
         pContract->SetLoadInsecure();
 
         // Does the contract successfully load from the string passed in?
-        if (pContract->LoadContractFromString(strContract)) {
+        if (pContract->LoadContractFromString(strContract, reason)) {
             // NOTE: this already happens in OTTransaction::ProcessXMLNode and
             // OTLedger::ProcessXMLNode.
             // Specifically, it happens when m_bLoadSecurely is set to false.

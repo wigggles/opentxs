@@ -126,7 +126,9 @@ char const* Ledger::_GetTypeString(ledgerType theType)
 // expects/uses a pubkey from inside the contract in order to verify
 // it.
 //
-bool Ledger::VerifyAccount(const identity::Nym& theNym)
+bool Ledger::VerifyAccount(
+    const identity::Nym& theNym,
+    const PasswordPrompt& reason)
 {
     switch (GetType()) {
         case ledgerType::message:  // message ledgers do not load Box Receipts.
@@ -140,11 +142,8 @@ bool Ledger::VerifyAccount(const identity::Nym& theNym)
         case ledgerType::recordBox:
         case ledgerType::expiredBox: {
             std::set<std::int64_t> setUnloaded;
-            // if psetUnloaded passed in, then use it to return the #s that
-            // weren't there as box receipts.
-            //          bool bLoadedBoxReceipts =
-            LoadBoxReceipts(&setUnloaded);  // Note: Also useful for suppressing
-                                            // errors here.
+            LoadBoxReceipts(reason, &setUnloaded);  // Note: Also useful for
+                                                    // suppressing errors here.
         } break;
         default: {
             const std::int32_t nLedgerType =
@@ -161,7 +160,7 @@ bool Ledger::VerifyAccount(const identity::Nym& theNym)
             return false;
     }
 
-    return OTTransactionType::VerifyAccount(theNym);
+    return OTTransactionType::VerifyAccount(theNym, reason);
 }
 
 // This makes sure that ALL transactions inside the ledger are saved as box
@@ -240,7 +239,9 @@ bool Ledger::DeleteBoxReceipt(const std::int64_t& lTransactionNum)
 // then add that transaction# to the set. (psetUnloaded)
 
 // if psetUnloaded passed in, then use it to return the #s that weren't there.
-bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
+bool Ledger::LoadBoxReceipts(
+    const PasswordPrompt& reason,
+    std::set<std::int64_t>* psetUnloaded)
 {
     // Grab a copy of all the transaction #s stored inside this ledger.
     //
@@ -264,7 +265,7 @@ bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
         // Failed loading the boxReceipt
         //
         if ((true == pTransaction->IsAbbreviated()) &&
-            (false == LoadBoxReceipt(lSetNum))) {
+            (false == LoadBoxReceipt(lSetNum, reason))) {
             // WARNING: pTransaction must be re-Get'd below this point if
             // needed, since pointer
             // is bad if success on LoadBoxReceipt() call.
@@ -308,7 +309,9 @@ bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
  "nymbox/NOTARY_ID/NYM_ID.r/TRANSACTION_ID.rct"
  */
 
-bool Ledger::LoadBoxReceipt(const std::int64_t& lTransactionNum)
+bool Ledger::LoadBoxReceipt(
+    const std::int64_t& lTransactionNum,
+    const PasswordPrompt& reason)
 {
     // First, see if the transaction itself exists on this ledger.
     // Get a pointer to it.
@@ -351,7 +354,7 @@ bool Ledger::LoadBoxReceipt(const std::int64_t& lTransactionNum)
     // abbreviated
     // (which it must be.) So I don't bother checking twice.
     //
-    auto pBoxReceipt = ::opentxs::LoadBoxReceipt(*pTransaction, *this);
+    auto pBoxReceipt = ::opentxs::LoadBoxReceipt(*pTransaction, *this, reason);
 
     // success
     if (false != bool(pBoxReceipt)) {
@@ -400,11 +403,9 @@ std::set<std::int64_t> Ledger::GetTransactionNums(
 // Then it uses the ID to form the path for the file that is opened.
 // Easy, right?
 
-bool Ledger::LoadInbox()
+bool Ledger::LoadInbox(const PasswordPrompt& reason)
 {
-    //  print_stacktrace();
-
-    bool bRetVal = LoadGeneric(ledgerType::inbox);
+    bool bRetVal = LoadGeneric(ledgerType::inbox, reason);
 
     return bRetVal;
 }
@@ -414,47 +415,71 @@ bool Ledger::LoadInbox()
 // VerifyContract is overriden and explicitly checks the notaryID.
 // Should also check the Type at the same time.
 
-bool Ledger::LoadOutbox() { return LoadGeneric(ledgerType::outbox); }
-
-bool Ledger::LoadNymbox() { return LoadGeneric(ledgerType::nymbox); }
-
-bool Ledger::LoadInboxFromString(const String& strBox)
+bool Ledger::LoadOutbox(const PasswordPrompt& reason)
 {
-    return LoadGeneric(ledgerType::inbox, strBox);
+    return LoadGeneric(ledgerType::outbox, reason);
 }
 
-bool Ledger::LoadOutboxFromString(const String& strBox)
+bool Ledger::LoadNymbox(const PasswordPrompt& reason)
 {
-    return LoadGeneric(ledgerType::outbox, strBox);
+    return LoadGeneric(ledgerType::nymbox, reason);
 }
 
-bool Ledger::LoadNymboxFromString(const String& strBox)
+bool Ledger::LoadInboxFromString(
+    const String& strBox,
+    const PasswordPrompt& reason)
 {
-    return LoadGeneric(ledgerType::nymbox, strBox);
+    return LoadGeneric(ledgerType::inbox, reason, strBox);
 }
 
-bool Ledger::LoadPaymentInbox()
+bool Ledger::LoadOutboxFromString(
+    const String& strBox,
+    const PasswordPrompt& reason)
 {
-    return LoadGeneric(ledgerType::paymentInbox);
+    return LoadGeneric(ledgerType::outbox, reason, strBox);
 }
 
-bool Ledger::LoadRecordBox() { return LoadGeneric(ledgerType::recordBox); }
-
-bool Ledger::LoadExpiredBox() { return LoadGeneric(ledgerType::expiredBox); }
-
-bool Ledger::LoadPaymentInboxFromString(const String& strBox)
+bool Ledger::LoadNymboxFromString(
+    const String& strBox,
+    const PasswordPrompt& reason)
 {
-    return LoadGeneric(ledgerType::paymentInbox, strBox);
+    return LoadGeneric(ledgerType::nymbox, reason, strBox);
 }
 
-bool Ledger::LoadRecordBoxFromString(const String& strBox)
+bool Ledger::LoadPaymentInbox(const PasswordPrompt& reason)
 {
-    return LoadGeneric(ledgerType::recordBox, strBox);
+    return LoadGeneric(ledgerType::paymentInbox, reason);
 }
 
-bool Ledger::LoadExpiredBoxFromString(const String& strBox)
+bool Ledger::LoadRecordBox(const PasswordPrompt& reason)
 {
-    return LoadGeneric(ledgerType::expiredBox, strBox);
+    return LoadGeneric(ledgerType::recordBox, reason);
+}
+
+bool Ledger::LoadExpiredBox(const PasswordPrompt& reason)
+{
+    return LoadGeneric(ledgerType::expiredBox, reason);
+}
+
+bool Ledger::LoadPaymentInboxFromString(
+    const String& strBox,
+    const PasswordPrompt& reason)
+{
+    return LoadGeneric(ledgerType::paymentInbox, reason, strBox);
+}
+
+bool Ledger::LoadRecordBoxFromString(
+    const String& strBox,
+    const PasswordPrompt& reason)
+{
+    return LoadGeneric(ledgerType::recordBox, reason, strBox);
+}
+
+bool Ledger::LoadExpiredBoxFromString(
+    const String& strBox,
+    const PasswordPrompt& reason)
+{
+    return LoadGeneric(ledgerType::expiredBox, reason, strBox);
 }
 
 /**
@@ -464,7 +489,10 @@ bool Ledger::LoadExpiredBoxFromString(const String& strBox)
   pString -- optional argument, for when  you prefer to load from a string
   instead of from a file.
  */
-bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
+bool Ledger::LoadGeneric(
+    ledgerType theType,
+    const PasswordPrompt& reason,
+    const String& pString)
 {
     const auto pszType = GetTypeString();
     const auto [valid, path1, path2, path3] = make_filename(theType);
@@ -518,7 +546,7 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
         return false;
     }
 
-    bool bSuccess = LoadContractFromString(strRawFile);
+    bool bSuccess = LoadContractFromString(strRawFile, reason);
 
     if (!bSuccess) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading ")(pszType)(" ")(
@@ -969,6 +997,7 @@ bool Ledger::GenerateLedger(
     const Identifier& theAcctID,
     const identifier::Server& theNotaryID,
     ledgerType theType,
+    const PasswordPrompt& reason,
     bool bCreateFile)
 {
     auto nymID = api_.Factory().NymID();
@@ -976,7 +1005,7 @@ bool Ledger::GenerateLedger(
     if ((ledgerType::inbox == theType) || (ledgerType::outbox == theType)) {
         // Have to look up the NymID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        auto account = api_.Wallet().Account(theAcctID);
+        auto account = api_.Wallet().Account(theAcctID, reason);
 
         if (account) {
             nymID = account.get().GetNymID();
@@ -989,7 +1018,7 @@ bool Ledger::GenerateLedger(
         }
     } else if (ledgerType::recordBox == theType) {
         // RecordBox COULD be by NymID OR AcctID. So we TRY to lookup the acct.
-        auto account = api_.Wallet().Account(theAcctID);
+        auto account = api_.Wallet().Account(theAcctID, reason);
 
         if (account) {
             nymID = account.get().GetNymID();
@@ -1191,7 +1220,8 @@ std::shared_ptr<OTTransaction> Ledger::GetReplyNotice(
 }
 
 std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
-    std::int64_t lNumberOfOrigin)
+    std::int64_t lNumberOfOrigin,
+    const PasswordPrompt& reason)
 {
     // loop through the transactions that make up this ledger.
     for (auto& it : m_mapTransactions) {
@@ -1205,7 +1235,8 @@ std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
             auto pOriginalItem{api_.Factory().Item(
                 strReference,
                 pTransaction->GetPurportedNotaryID(),
-                pTransaction->GetReferenceToNum())};
+                pTransaction->GetReferenceToNum(),
+                reason)};
             OT_ASSERT(pOriginalItem);
 
             if (pOriginalItem->GetType() != itemType::acceptPending) {
@@ -1237,7 +1268,7 @@ std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
                 // NumberOfOrigin,
                 // and compare it to the NumberOfOrigin, to find the match.
                 //
-                if (pOriginalItem->GetNumberOfOrigin() == lNumberOfOrigin)
+                if (pOriginalItem->GetNumberOfOrigin(reason) == lNumberOfOrigin)
                     //              if (pOriginalItem->GetReferenceToNum() ==
                     // lTransactionNum)
                     return pTransaction;  // FOUND IT!
@@ -1266,7 +1297,9 @@ std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
 // (But of course do NOT delete the OTTransaction that's returned, since that is
 // owned by the ledger.)
 //
-std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
+std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(
+    std::int64_t lChequeNum,
+    const PasswordPrompt& reason)
 {
     for (auto& it : m_mapTransactions) {
         auto pCurrentReceipt = it.second;
@@ -1282,7 +1315,8 @@ std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
         auto pOriginalItem{api_.Factory().Item(
             strDepositChequeMsg,
             GetPurportedNotaryID(),
-            pCurrentReceipt->GetReferenceToNum())};
+            pCurrentReceipt->GetReferenceToNum(),
+            reason)};
 
         if (false == bool(pOriginalItem)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1308,7 +1342,7 @@ std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
             OT_ASSERT(pCheque);
 
             if (!((strCheque->GetLength() > 2) &&
-                  pCheque->LoadContractFromString(strCheque))) {
+                  pCheque->LoadContractFromString(strCheque, reason))) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error loading cheque from string: ")(strCheque)(".")
                     .Flush();
@@ -1388,7 +1422,8 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     const OTTransaction& theOwner,
     const ServerContext& context,
     const Account& theAccount,
-    Ledger& theOutbox) const
+    Ledger& theOutbox,
+    const PasswordPrompt& reason) const
 {
     return GenerateBalanceStatement(
         lAdjustment,
@@ -1396,7 +1431,8 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
         context,
         theAccount,
         theOutbox,
-        std::set<TransactionNumber>());
+        std::set<TransactionNumber>(),
+        reason);
 }
 
 std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
@@ -1405,7 +1441,8 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     const ServerContext& context,
     const Account& theAccount,
     Ledger& theOutbox,
-    const std::set<TransactionNumber>& without) const
+    const std::set<TransactionNumber>& without,
+    const PasswordPrompt& reason) const
 {
     std::set<TransactionNumber> removing = without;
 
@@ -1524,7 +1561,7 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     }
 
     std::set<TransactionNumber> adding;
-    auto statement = context.Statement(adding, removing);
+    auto statement = context.Statement(adding, removing, reason);
 
     if (!statement) { return nullptr; }
 
@@ -1552,11 +1589,11 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
         LogVerbose(OT_METHOD)(__FUNCTION__)("Producing a report... ").Flush();
         // This function adds a receipt sub-item to pBalanceItem, where
         // appropriate for INBOX items.
-        pTransaction->ProduceInboxReportItem(*pBalanceItem);
+        pTransaction->ProduceInboxReportItem(*pBalanceItem, reason);
     }
 
-    theOutbox.ProduceOutboxReport(*pBalanceItem);
-    pBalanceItem->SignContract(*context.Nym());
+    theOutbox.ProduceOutboxReport(*pBalanceItem, reason);
+    pBalanceItem->SignContract(*context.Nym(), reason);
     pBalanceItem->SaveContract();
 
     return pBalanceItem;
@@ -1567,7 +1604,7 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
 // (And it really loads the items to check the amount, but does all this ONLY
 // for pending transfers.)
 //
-std::int64_t Ledger::GetTotalPendingValue()
+std::int64_t Ledger::GetTotalPendingValue(const PasswordPrompt& reason)
 {
     std::int64_t lTotalPendingValue = 0;
 
@@ -1583,8 +1620,8 @@ std::int64_t Ledger::GetTotalPendingValue()
         OT_ASSERT(pTransaction);
 
         if (pTransaction->GetType() == transactionType::pending)
-            lTotalPendingValue +=
-                pTransaction->GetReceiptAmount();  // this actually loads up the
+            lTotalPendingValue += pTransaction->GetReceiptAmount(
+                reason);  // this actually loads up the
         // original item and reads the
         // amount.
     }
@@ -1596,7 +1633,9 @@ std::int64_t Ledger::GetTotalPendingValue()
 // This ledger is an outbox, and it is creating a report of itself,
 // adding each report item to this balance item.
 // DO NOT call this, it's meant to be used only by above function.
-void Ledger::ProduceOutboxReport(Item& theBalanceItem)
+void Ledger::ProduceOutboxReport(
+    Item& theBalanceItem,
+    const PasswordPrompt& reason)
 {
     if (ledgerType::outbox != GetType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong ledger type.").Flush();
@@ -1615,8 +1654,9 @@ void Ledger::ProduceOutboxReport(Item& theBalanceItem)
 
         // it only reports receipts where we don't yet have balance agreement.
         pTransaction->ProduceOutboxReportItem(
-            theBalanceItem);  // <======= This function adds a pending transfer
-                              // sub-item to theBalanceItem, where appropriate.
+            theBalanceItem,
+            reason);  // <======= This function adds a pending transfer
+                      // sub-item to theBalanceItem, where appropriate.
     }
 }
 
@@ -1625,7 +1665,9 @@ void Ledger::ProduceOutboxReport(Item& theBalanceItem)
 // for when you don't know their type already.)
 // Otherwise if you know the type, then use LoadNymboxFromString() etc.
 //
-bool Ledger::LoadLedgerFromString(const String& theStr)
+bool Ledger::LoadLedgerFromString(
+    const String& theStr,
+    const PasswordPrompt& reason)
 {
     bool bLoaded = false;
 
@@ -1633,27 +1675,31 @@ bool Ledger::LoadLedgerFromString(const String& theStr)
     // Any vulnerabilities?
     //
     if (theStr.Contains("type=\"nymbox\""))
-        bLoaded = LoadNymboxFromString(theStr);
+        bLoaded = LoadNymboxFromString(theStr, reason);
     else if (theStr.Contains("type=\"inbox\""))
-        bLoaded = LoadInboxFromString(theStr);
+        bLoaded = LoadInboxFromString(theStr, reason);
     else if (theStr.Contains("type=\"outbox\""))
-        bLoaded = LoadOutboxFromString(theStr);
+        bLoaded = LoadOutboxFromString(theStr, reason);
     else if (theStr.Contains("type=\"paymentInbox\""))
-        bLoaded = LoadPaymentInboxFromString(theStr);
+        bLoaded = LoadPaymentInboxFromString(theStr, reason);
     else if (theStr.Contains("type=\"recordBox\""))
-        bLoaded = LoadRecordBoxFromString(theStr);
+        bLoaded = LoadRecordBoxFromString(theStr, reason);
     else if (theStr.Contains("type=\"expiredBox\""))
-        bLoaded = LoadExpiredBoxFromString(theStr);
+        bLoaded = LoadExpiredBoxFromString(theStr, reason);
     else if (theStr.Contains("type=\"message\"")) {
         m_Type = ledgerType::message;
-        bLoaded = LoadContractFromString(theStr);
+        bLoaded = LoadContractFromString(theStr, reason);
     }
     return bLoaded;
 }
 
 // SignContract will call this function at the right time.
-void Ledger::UpdateContents()  // Before transmission or serialization, this is
-                               // where the ledger saves its contents
+void Ledger::UpdateContents(const PasswordPrompt& reason)  // Before
+                                                           // transmission or
+                                                           // serialization,
+                                                           // this is where the
+                                                           // ledger saves its
+                                                           // contents
 {
     switch (GetType()) {
         case ledgerType::message:
@@ -1740,22 +1786,22 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
             switch (GetType()) {
 
                 case ledgerType::nymbox:
-                    pTransaction->SaveAbbreviatedNymboxRecord(tag);
+                    pTransaction->SaveAbbreviatedNymboxRecord(tag, reason);
                     break;
                 case ledgerType::inbox:
-                    pTransaction->SaveAbbreviatedInboxRecord(tag);
+                    pTransaction->SaveAbbreviatedInboxRecord(tag, reason);
                     break;
                 case ledgerType::outbox:
-                    pTransaction->SaveAbbreviatedOutboxRecord(tag);
+                    pTransaction->SaveAbbreviatedOutboxRecord(tag, reason);
                     break;
                 case ledgerType::paymentInbox:
-                    pTransaction->SaveAbbrevPaymentInboxRecord(tag);
+                    pTransaction->SaveAbbrevPaymentInboxRecord(tag, reason);
                     break;
                 case ledgerType::recordBox:
-                    pTransaction->SaveAbbrevRecordBoxRecord(tag);
+                    pTransaction->SaveAbbrevRecordBoxRecord(tag, reason);
                     break;
                 case ledgerType::expiredBox:
-                    pTransaction->SaveAbbrevExpiredBoxRecord(tag);
+                    pTransaction->SaveAbbrevExpiredBoxRecord(tag, reason);
                     break;
 
                 default
@@ -1782,7 +1828,9 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
 
 // LoadContract will call this function at the right time.
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Ledger::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
 
     const auto strNodeName = String::Factory(xml->getNodeName());
@@ -2222,7 +2270,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // a transaction, then let's add it to the ledger's list of
             // transactions
             if (strTransaction->Exists() &&
-                pTransaction->LoadContractFromString(strTransaction) &&
+                pTransaction->LoadContractFromString(strTransaction, reason) &&
                 pTransaction->VerifyContractID())
             // I responsible here to call pTransaction->VerifyContractID()
             // since

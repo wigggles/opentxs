@@ -14,7 +14,6 @@
 #include "opentxs/blind/Purse.hpp"
 #endif  // OT_CASH
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
@@ -22,7 +21,6 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -37,6 +35,7 @@
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "core/StateMachine.hpp"
@@ -72,7 +71,7 @@
 
 #define PREPARE_CONTEXT()                                                      \
     auto contextEditor = context();                                            \
-    auto& context = contextEditor.It();                                        \
+    auto& context = contextEditor.get();                                       \
     [[maybe_unused]] auto& nym = *context.Nym();                               \
     [[maybe_unused]] auto& nymID = nym.ID();                                   \
     [[maybe_unused]] auto& serverID = context.Server();                        \
@@ -93,7 +92,7 @@
     auto& message = *pMessage;
 
 #define FINISH_MESSAGE(a, b)                                                   \
-    const auto finalized = context.FinalizeServerCommand(message);             \
+    const auto finalized = context.FinalizeServerCommand(message, reason_);    \
                                                                                \
     if (false == bool(finalized)) {                                            \
         LogOutput(OT_METHOD)(#a)(": Failed to sign ")(#b);                     \
@@ -108,7 +107,7 @@
                                                                                \
     PREPARE_CONTEXT();                                                         \
                                                                                \
-    auto account = api_.Wallet().Account(account_id_);                         \
+    auto account = api_.Wallet().Account(account_id_, reason_);                \
                                                                                \
     if (false == bool(account)) {                                              \
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.")        \
@@ -148,8 +147,8 @@
     }                                                                          \
                                                                                \
     auto& ledger = *pLedger;                                                   \
-    const bool generated =                                                     \
-        ledger.GenerateLedger(account_id_, serverID, ledgerType::message);     \
+    const bool generated = ledger.GenerateLedger(                              \
+        account_id_, serverID, ledgerType::message, reason_);                  \
                                                                                \
     if (false == generated) {                                                  \
         LogOutput(OT_METHOD)(__FUNCTION__)(                                    \
@@ -191,8 +190,8 @@
                                                                                \
     transaction.AddItem(pItem);                                                \
     auto& item = *pItem;                                                       \
-    inbox_.reset(account.get().LoadInbox(nym).release());                      \
-    outbox_.reset(account.get().LoadOutbox(nym).release());                    \
+    inbox_.reset(account.get().LoadInbox(nym, reason_).release());             \
+    outbox_.reset(account.get().LoadOutbox(nym, reason_).release());           \
                                                                                \
     if (false == bool(inbox_)) {                                               \
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading inbox for "       \
@@ -212,11 +211,11 @@
                                                                                \
     auto& inbox = *inbox_;                                                     \
     auto& outbox = *outbox_;                                                   \
-    set_consensus_hash(transaction, context, account.get());
+    set_consensus_hash(transaction, context, account.get(), reason_);
 
 #define ADD_BALANCE_ITEM(AMOUNT)                                               \
     std::shared_ptr<Item> pBalanceItem{inbox.GenerateBalanceStatement(         \
-        AMOUNT, transaction, context, account.get(), outbox)};                 \
+        AMOUNT, transaction, context, account.get(), outbox, reason_)};        \
                                                                                \
     if (false == bool(pBalanceItem)) {                                         \
         LogOutput(OT_METHOD)(__FUNCTION__)(                                    \
@@ -235,13 +234,13 @@
     ADD_BALANCE_ITEM(AMOUNT);
 
 #define SIGN_ITEM()                                                            \
-    item.SignContract(nym);                                                    \
+    item.SignContract(nym, reason_);                                           \
     item.SaveContract();
 
 #define SIGN_TRANSACTION_AND_LEDGER()                                          \
-    transaction.SignContract(nym);                                             \
+    transaction.SignContract(nym, reason_);                                    \
     transaction.SaveContract();                                                \
-    ledger.SignContract(nym);                                                  \
+    ledger.SignContract(nym, reason_);                                         \
     ledger.SaveContract();
 
 #define FINISH_TRANSACTION()                                                   \
@@ -261,9 +260,10 @@ namespace opentxs
 otx::client::internal::Operation* Factory::Operation(
     const api::client::Manager& api,
     const identifier::Nym& nym,
-    const identifier::Server& server)
+    const identifier::Server& server,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new otx::client::implementation::Operation(api, nym, server);
+    return new otx::client::implementation::Operation(api, nym, server, reason);
 }
 }  // namespace opentxs
 
@@ -322,9 +322,11 @@ const std::map<Operation::Type, std::size_t> Operation::transaction_numbers_{
 Operation::Operation(
     const api::client::Manager& api,
     const identifier::Nym& nym,
-    const identifier::Server& server)
+    const identifier::Server& server,
+    const opentxs::PasswordPrompt& reason)
     : StateMachine(std::bind(&Operation::state_machine, this))
     , api_(api)
+    , reason_(reason)
     , nym_id_(nym)
     , server_id_(server)
     , type_(Type::Invalid)
@@ -551,7 +553,7 @@ std::shared_ptr<Message> Operation::construct_convey_payment()
     }
 
     auto& payment = *payment_;
-    const auto recipientNym = api_.Wallet().Nym(target_nym_id_);
+    const auto recipientNym = api_.Wallet().Nym(target_nym_id_, reason_);
 
     if (false == bool(recipientNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -577,7 +579,7 @@ std::shared_ptr<Message> Operation::construct_convey_payment()
     }
 
     OTEnvelope envelope{api_};
-    auto sealed = envelope.Seal(recipientPubkey, serialized);
+    auto sealed = envelope.Seal(recipientPubkey, serialized, reason_);
 
     if (sealed) { sealed &= envelope.GetCiphertext(message.m_ascPayload); }
 
@@ -587,7 +589,7 @@ std::shared_ptr<Message> Operation::construct_convey_payment()
         return {};
     }
 
-    const auto finalized = context.FinalizeServerCommand(message);
+    const auto finalized = context.FinalizeServerCommand(message, reason_);
 
     if (false == bool(finalized)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign message");
@@ -596,7 +598,7 @@ std::shared_ptr<Message> Operation::construct_convey_payment()
     }
 
     const auto pObject = api_.Factory().PeerObject(
-        context.Nym(), String::Factory(message)->Get(), true);
+        context.Nym(), String::Factory(message)->Get(), true, reason_);
 
     if (false == bool(pObject)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object");
@@ -685,7 +687,8 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
         cancellingCheque =
             ((cheque.GetSenderAcctID() == account_id_) &&
              (cheque.GetSenderNymID() == nymID));
-        if (cancellingCheque) cancellingCheque = cheque.VerifySignature(nym);
+        if (cancellingCheque)
+            cancellingCheque = cheque.VerifySignature(nym, reason_);
     }
 
     if (cancellingCheque) {
@@ -709,7 +712,7 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
         // make sure there isn't a chequeReceipt or voucherReceipt already
         // sitting in the inbox, for this same cheque.
         auto pChequeReceipt =
-            inbox_->GetChequeReceipt(cheque.GetTransactionNum());
+            inbox_->GetChequeReceipt(cheque.GetTransactionNum(), reason_);
 
         if (pChequeReceipt) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -721,7 +724,8 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
             return {};
         }
 
-        if (false == copy->LoadContractFromString(String::Factory(cheque))) {
+        if (false ==
+            copy->LoadContractFromString(String::Factory(cheque), reason_)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Unable to load cheque from string.")
                 .Flush();
@@ -739,7 +743,7 @@ std::shared_ptr<Message> Operation::construct_deposit_cheque()
     if (cancel) {
         copy->CancelCheque();
         copy->ReleaseSignatures();
-        copy->SignContract(nym);
+        copy->SignContract(nym, reason_);
         copy->SaveContract();
         cheque_.reset(copy.release());
 
@@ -769,7 +773,7 @@ std::shared_ptr<Message> Operation::construct_download_contract()
 #if OT_CASH
 std::shared_ptr<Message> Operation::construct_download_mint()
 {
-    auto contract = api_.Wallet().UnitDefinition(target_unit_id_);
+    auto contract = api_.Wallet().UnitDefinition(target_unit_id_, reason_);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid unit definition id");
@@ -799,7 +803,7 @@ std::shared_ptr<Message> Operation::construct_get_account_data(
 
 std::shared_ptr<Message> Operation::construct_get_transaction_numbers()
 {
-    return api_.OTAPI().getTransactionNumbers(context().It());
+    return api_.OTAPI().getTransactionNumbers(context().get());
 }
 
 std::shared_ptr<Message> Operation::construct_issue_unit_definition()
@@ -810,7 +814,7 @@ std::shared_ptr<Message> Operation::construct_issue_unit_definition()
         return {};
     }
 
-    auto contract = api_.Wallet().UnitDefinition(*unit_definition_);
+    auto contract = api_.Wallet().UnitDefinition(*unit_definition_, reason_);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid unit definition").Flush();
@@ -831,7 +835,7 @@ std::shared_ptr<Message> Operation::construct_issue_unit_definition()
 
 std::shared_ptr<Message> Operation::construct_publish_nym()
 {
-    const auto contract = api_.Wallet().Nym(target_nym_id_);
+    const auto contract = api_.Wallet().Nym(target_nym_id_, reason_);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym not found: ")(target_nym_id_)
@@ -851,7 +855,7 @@ std::shared_ptr<Message> Operation::construct_publish_nym()
 
 std::shared_ptr<Message> Operation::construct_publish_server()
 {
-    const auto contract = api_.Wallet().Server(target_server_id_);
+    const auto contract = api_.Wallet().Server(target_server_id_, reason_);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Server not found: ")(
@@ -873,7 +877,8 @@ std::shared_ptr<Message> Operation::construct_publish_server()
 
 std::shared_ptr<Message> Operation::construct_publish_unit()
 {
-    const auto contract = api_.Wallet().UnitDefinition(target_unit_id_);
+    const auto contract =
+        api_.Wallet().UnitDefinition(target_unit_id_, reason_);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unit definition not found: ")(
@@ -907,7 +912,7 @@ std::shared_ptr<Message> Operation::construct_process_inbox(
 
 std::shared_ptr<Message> Operation::construct_register_account()
 {
-    auto contract = api_.Wallet().UnitDefinition(target_unit_id_);
+    auto contract = api_.Wallet().UnitDefinition(target_unit_id_, reason_);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid unit definition id");
@@ -952,9 +957,9 @@ std::shared_ptr<Message> Operation::construct_send_nym_object(
     CREATE_MESSAGE(sendNymMessage, recipient.ID(), number, true, true);
 
     const auto plaintext(proto::ProtoAsArmored(
-        object.Serialize(), String::Factory("PEER OBJECT")));
+        object.Serialize(reason_), String::Factory("PEER OBJECT")));
     OTEnvelope envelope{api_};
-    auto sealed = envelope.Seal(recipient, plaintext);
+    auto sealed = envelope.Seal(recipient, plaintext, reason_);
 
     if (sealed) { sealed &= envelope.GetCiphertext(message.m_ascPayload); }
 
@@ -970,7 +975,7 @@ std::shared_ptr<Message> Operation::construct_send_nym_object(
 #if OT_CASH
 std::shared_ptr<Message> Operation::construct_send_cash()
 {
-    const auto pRecipient = api_.Wallet().Nym(target_nym_id_);
+    const auto pRecipient = api_.Wallet().Nym(target_nym_id_, reason_);
 
     if (false == bool(pRecipient)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -990,7 +995,8 @@ std::shared_ptr<Message> Operation::construct_send_cash()
 
     PREPARE_CONTEXT();
 
-    const auto pObject = api_.Factory().PeerObject(context.Nym(), purse_);
+    const auto pObject =
+        api_.Factory().PeerObject(context.Nym(), purse_, reason_);
 
     if (false == bool(pObject)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object");
@@ -1006,7 +1012,7 @@ std::shared_ptr<Message> Operation::construct_send_cash()
 
 std::shared_ptr<Message> Operation::construct_send_message()
 {
-    const auto recipientNym = api_.Wallet().Nym(target_nym_id_);
+    const auto recipientNym = api_.Wallet().Nym(target_nym_id_, reason_);
 
     if (false == bool(recipientNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1023,11 +1029,11 @@ std::shared_ptr<Message> Operation::construct_send_message()
     }
 
     auto contextEditor = context();
-    auto& context = contextEditor.It();
+    auto& context = contextEditor.get();
     const auto& nym = *context.Nym();
     context.SetPush(enable_otx_push_.load());
     const auto pObject =
-        api_.Factory().PeerObject(context.Nym(), memo_->Get(), false);
+        api_.Factory().PeerObject(context.Nym(), memo_->Get(), false, reason_);
 
     if (false == bool(pObject)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object")
@@ -1058,7 +1064,7 @@ std::shared_ptr<Message> Operation::construct_send_message()
     }
 
     auto& outmail = *pOutmail;
-    auto pCopy = api_.Factory().PeerObject(nullptr, memo_->Get());
+    auto pCopy = api_.Factory().PeerObject(nullptr, memo_->Get(), reason_);
 
     if (false == bool(pCopy)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object")
@@ -1069,10 +1075,10 @@ std::shared_ptr<Message> Operation::construct_send_message()
 
     const auto& copy = *pCopy;
     const auto plaintext(proto::ProtoAsArmored(
-        copy.Serialize(), String::Factory("PEER OBJECT")));
+        copy.Serialize(reason_), String::Factory("PEER OBJECT")));
     OTEnvelope envelope{api_};
 
-    if (false == envelope.Seal(nym, plaintext)) {
+    if (false == envelope.Seal(nym, plaintext, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed sealing envelope.")
             .Flush();
 
@@ -1086,7 +1092,7 @@ std::shared_ptr<Message> Operation::construct_send_message()
         return {};
     }
 
-    outmail.SignContract(nym);
+    outmail.SignContract(nym, reason_);
     outmail.SaveContract();
     outmail_message_ = std::move(pOutmail);
 
@@ -1095,7 +1101,7 @@ std::shared_ptr<Message> Operation::construct_send_message()
 
 std::shared_ptr<Message> Operation::construct_send_peer_reply()
 {
-    const auto recipientNym = api_.Wallet().Nym(target_nym_id_);
+    const auto recipientNym = api_.Wallet().Nym(target_nym_id_, reason_);
     if (false == bool(recipientNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Recipient nym credentials not found")
@@ -1117,7 +1123,7 @@ std::shared_ptr<Message> Operation::construct_send_peer_reply()
     }
 
     auto contextEditor = context();
-    auto& context = contextEditor.It();
+    auto& context = contextEditor.get();
     const auto& nym = *context.Nym();
     context.SetPush(enable_otx_push_.load());
     const bool saved = api_.Wallet().PeerReplyCreate(
@@ -1131,7 +1137,7 @@ std::shared_ptr<Message> Operation::construct_send_peer_reply()
     }
 
     const auto pObject = api_.Factory().PeerObject(
-        peer_request_, peer_reply_, PEER_OBJECT_PEER_REPLY);
+        peer_request_, peer_reply_, PEER_OBJECT_PEER_REPLY, reason_);
 
     if (false == bool(pObject)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object")
@@ -1154,7 +1160,7 @@ std::shared_ptr<Message> Operation::construct_send_peer_reply()
 
 std::shared_ptr<Message> Operation::construct_send_peer_request()
 {
-    const auto recipientNym = api_.Wallet().Nym(target_nym_id_);
+    const auto recipientNym = api_.Wallet().Nym(target_nym_id_, reason_);
 
     if (false == bool(recipientNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1171,7 +1177,7 @@ std::shared_ptr<Message> Operation::construct_send_peer_request()
     }
 
     auto contextEditor = context();
-    auto& context = contextEditor.It();
+    auto& context = contextEditor.get();
     const auto& nym = *context.Nym();
     context.SetPush(enable_otx_push_.load());
     const bool saved =
@@ -1186,8 +1192,8 @@ std::shared_ptr<Message> Operation::construct_send_peer_request()
     }
 
     const auto itemID = peer_request_->ID();
-    const auto pObject =
-        api_.Factory().PeerObject(peer_request_, PEER_OBJECT_PEER_REQUEST);
+    const auto pObject = api_.Factory().PeerObject(
+        peer_request_, PEER_OBJECT_PEER_REQUEST, reason_);
 
     if (false == bool(pObject)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object")
@@ -1254,10 +1260,11 @@ std::shared_ptr<Message> Operation::construct_send_transfer()
         -1);
 
     // Reset the temporary changes made above
-    inbox_.reset(account.get().LoadInbox(nym).release());
-    outbox_.reset(account.get().LoadOutbox(nym).release());
+    inbox_.reset(account.get().LoadInbox(nym, reason_).release());
+    outbox_.reset(account.get().LoadOutbox(nym, reason_).release());
     account.Release();
-    const auto workflowID = api_.Workflow().CreateTransfer(item, message);
+    const auto workflowID =
+        api_.Workflow().CreateTransfer(item, message, reason_);
 
     if (workflowID->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1311,7 +1318,8 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
     }
 
     auto& mint = *pMint;
-    const bool validMint = mint.LoadMint() && mint.VerifyMint(serverNym);
+    const bool validMint =
+        mint.LoadMint(reason_) && mint.VerifyMint(serverNym, reason_);
 
     if (false == validMint) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mint").Flush();
@@ -1319,7 +1327,8 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
         return {};
     }
 
-    auto pPurse{api_.Factory().Purse(context, unitID, mint, totalAmount)};
+    auto pPurse{
+        api_.Factory().Purse(context, unitID, mint, totalAmount, reason_)};
 
     if (false == bool(pPurse)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct purse")
@@ -1338,7 +1347,7 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
 
 Editor<ServerContext> Operation::context() const
 {
-    return api_.Wallet().mutable_ServerContext(nym_id_, server_id_);
+    return api_.Wallet().mutable_ServerContext(nym_id_, server_id_, reason_);
 }
 
 bool Operation::ConveyPayment(
@@ -1364,7 +1373,7 @@ bool Operation::DepositCash(
         return false;
     }
 
-    auto pContext = api_.Wallet().ServerContext(nym_id_, server_id_);
+    auto pContext = api_.Wallet().ServerContext(nym_id_, server_id_, reason_);
 
     if (false == bool(pContext)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load context").Flush();
@@ -1376,13 +1385,13 @@ bool Operation::DepositCash(
     const auto& nym = *context.Nym();
     const auto& serverNym = context.RemoteNym();
 
-    if (false == purse->Unlock(nym)) {
+    if (false == purse->Unlock(nym, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to unlock pursed").Flush();
 
         return false;
     }
 
-    if (false == purse->AddNym(serverNym)) {
+    if (false == purse->AddNym(serverNym, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to encrypt purse to notary")
             .Flush();
@@ -1531,7 +1540,7 @@ bool Operation::download_box_receipt(
     command->m_strAcctID = String::Factory(accountID);
     command->m_lDepth = static_cast<std::int32_t>(box);
     command->m_lTransactionNum = number;
-    const auto finalized = context.FinalizeServerCommand(*command);
+    const auto finalized = context.FinalizeServerCommand(*command, reason_);
 
     if (false == finalized) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign message").Flush();
@@ -1540,12 +1549,12 @@ bool Operation::download_box_receipt(
     }
 
     context.SetPush(enable_otx_push_.load());
-    auto result = context.Queue(api_, command, {});
+    auto result = context.Queue(api_, command, reason_, {});
 
     while (false == bool(result)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
         Log::Sleep(std::chrono::milliseconds(OPERATION_POLL_MILLISECONDS));
-        result = context.Queue(api_, command, {});
+        result = context.Queue(api_, command, reason_, {});
     }
 
     OT_ASSERT(result);
@@ -1625,7 +1634,7 @@ bool Operation::evaluate_transaction_reply(
 
     OT_ASSERT(response);
 
-    if (false == response->LoadContractFromString(serialized)) {
+    if (false == response->LoadContractFromString(serialized, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to deserialize response ledger")
             .Flush();
@@ -1711,10 +1720,10 @@ void Operation::execute()
     ServerContext::QueueResult result{};
 
     if (Category::Transaction == category) {
-        result =
-            context.Queue(api_, message_, inbox_, outbox_, &numbers_, args_);
+        result = context.Queue(
+            api_, message_, inbox_, outbox_, &numbers_, reason_, args_);
     } else {
-        result = context.Queue(api_, message_, args_);
+        result = context.Queue(api_, message_, reason_, args_);
     }
 
     if (false == bool(result)) {
@@ -1748,7 +1757,10 @@ void Operation::execute()
                     OT_ASSERT(outmail_message_);
 
                     const auto messageID = api_.Activity().Mail(
-                        nym_id_, *outmail_message_, StorageBox::MAILOUTBOX);
+                        nym_id_,
+                        *outmail_message_,
+                        StorageBox::MAILOUTBOX,
+                        reason_);
 
                     if (set_id_) { set_id_(Identifier::Factory(messageID)); }
 
@@ -1787,7 +1799,7 @@ bool Operation::get_account_data(
 
     PREPARE_CONTEXT();
 
-    auto result = context.Queue(api_, message, inbox, outbox, {});
+    auto result = context.Queue(api_, message, inbox, outbox, {}, reason_);
 
     if (false == bool(result)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
@@ -1881,7 +1893,8 @@ bool Operation::get_receipts(
 
 bool Operation::hasContext() const
 {
-    const auto context = api_.Wallet().ServerContext(nym_id_, server_id_);
+    const auto context =
+        api_.Wallet().ServerContext(nym_id_, server_id_, reason_);
 
     return bool(context);
 }
@@ -1921,7 +1934,7 @@ void Operation::join()
 void Operation::nymbox_post()
 {
     auto contextEditor = context();
-    auto& context = contextEditor.It();
+    auto& context = contextEditor.get();
     context.SetPush(enable_otx_push_.load());
     auto mismatch = !context.NymboxHashMatch();
     bool post{false};
@@ -1941,7 +1954,7 @@ void Operation::nymbox_post()
     }
 
     if (post || mismatch) {
-        auto result = context.RefreshNymbox(api_);
+        auto result = context.RefreshNymbox(api_, reason_);
 
         if (false == bool(result)) {
             LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
@@ -1976,7 +1989,7 @@ void Operation::nymbox_pre()
         case Category::CreateAccount:
         case Category::NymboxPre: {
             auto contextEditor = context();
-            auto& context = contextEditor.It();
+            auto& context = contextEditor.get();
             context.SetPush(enable_otx_push_.load());
 
             if (context.NymboxHashMatch()) {
@@ -1989,7 +2002,7 @@ void Operation::nymbox_pre()
                 return;
             }
 
-            auto result = context.RefreshNymbox(api_);
+            auto result = context.RefreshNymbox(api_, reason_);
 
             if (false == bool(result)) {
                 LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
@@ -2063,6 +2076,7 @@ bool Operation::process_inbox(
     OT_ASSERT(ledgerType::inbox == inbox->GetType());
     OT_ASSERT(ledgerType::outbox == outbox->GetType());
 
+    auto reason = api_.Factory().PasswordPrompt("Accepting inbox transactions");
     const std::size_t count =
         (inbox->GetTransactionCount() > 0) ? inbox->GetTransactionCount() : 0;
 
@@ -2106,7 +2120,7 @@ bool Operation::process_inbox(
         const auto number = transaction->GetTransactionNum();
 
         if (transaction->IsAbbreviated()) {
-            inbox->LoadBoxReceipt(number);
+            inbox->LoadBoxReceipt(number, reason);
             transaction = inbox->GetTransaction(number);
 
             if (false == bool(transaction)) {
@@ -2120,8 +2134,8 @@ bool Operation::process_inbox(
 
         // TODO This should happen when the box receipt is downloaded
         if (transactionType::chequeReceipt == transaction->GetType()) {
-            const auto workflowUpdated =
-                api_.Workflow().ClearCheque(context.Nym()->ID(), *transaction);
+            const auto workflowUpdated = api_.Workflow().ClearCheque(
+                context.Nym()->ID(), *transaction, reason_);
 
             if (workflowUpdated) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(": Updated workflow.")
@@ -2146,7 +2160,7 @@ bool Operation::process_inbox(
     }
 
     const bool finalized = api_.OTAPI().FinalizeProcessInbox(
-        accountID, context, *response, *inbox, *outbox);
+        accountID, context, *response, *inbox, *outbox, reason_);
 
     if (false == finalized) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to finalize response.")
@@ -2164,12 +2178,12 @@ bool Operation::process_inbox(
         return false;
     }
 
-    auto result = context.Queue(api_, message, {});
+    auto result = context.Queue(api_, message, reason_, {});
 
     while (false == bool(result)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
         Log::Sleep(std::chrono::milliseconds(OPERATION_POLL_MILLISECONDS));
-        result = context.Queue(api_, message, {});
+        result = context.Queue(api_, message, reason_, {});
     }
 
     while (check_future(*result)) {
@@ -2237,7 +2251,7 @@ void Operation::refresh()
 {
     OT_ASSERT(message_);
 
-    context().It().UpdateRequestNumber(*message_);
+    context().get().UpdateRequestNumber(*message_, reason_);
 }
 
 bool Operation::RequestAdmin(const String& password)
@@ -2290,8 +2304,8 @@ bool Operation::SendCash(
     const identifier::Nym& recipientID,
     const Identifier& workflowID)
 {
-    const auto pSender = api_.Wallet().Nym(nym_id_);
-    const auto pRecipient = api_.Wallet().Nym(recipientID);
+    const auto pSender = api_.Wallet().Nym(nym_id_, reason_);
+    const auto pRecipient = api_.Wallet().Nym(recipientID, reason_);
 
     if (false == bool(pRecipient)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load recipient nym")
@@ -2336,13 +2350,13 @@ bool Operation::SendCash(
 
     auto& purse = *pPurse;
 
-    if (false == purse.Unlock(sender)) {
+    if (false == purse.Unlock(sender, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to unlock pursed").Flush();
 
         return false;
     }
 
-    if (false == purse.AddNym(recipient)) {
+    if (false == purse.AddNym(recipient, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to encrypt purse to recipient")
             .Flush();
@@ -2420,15 +2434,16 @@ bool Operation::SendTransfer(
 void Operation::set_consensus_hash(
     OTTransaction& transaction,
     const Context& context,
-    const Account& account)
+    const Account& account,
+    const opentxs::PasswordPrompt& reason)
 {
     auto accountHash{Identifier::Factory()};
     auto accountid{Identifier::Factory()};
     auto inboxHash{Identifier::Factory()};
     auto outboxHash{Identifier::Factory()};
     account.GetIdentifier(accountid);
-    account.ConsensusHash(context, accountHash);
-    auto nymfile = context.Nymfile(__FUNCTION__);
+    account.ConsensusHash(context, accountHash, reason);
+    auto nymfile = context.Nymfile(reason);
     nymfile->GetInboxHash(accountid->str(), inboxHash);
     nymfile->GetOutboxHash(accountid->str(), outboxHash);
     transaction.SetAccountHash(accountHash);
@@ -2599,7 +2614,7 @@ void Operation::transaction_numbers()
 
     if (false == bool(message)) { return; }
 
-    auto result = context.Queue(api_, message, {});
+    auto result = context.Queue(api_, message, reason_, {});
 
     if (false == bool(result)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
@@ -2613,13 +2628,13 @@ void Operation::transaction_numbers()
     }
 
     if (proto::LASTREPLYSTATUS_MESSAGESUCCESS == std::get<0>(result->get())) {
-        auto nymbox = context.RefreshNymbox(api_);
+        auto nymbox = context.RefreshNymbox(api_, reason_);
 
         while (false == bool(nymbox)) {
             if (shutdown().load()) { return; }
             LogTrace(OT_METHOD)(__FUNCTION__)(": Context is busy").Flush();
             Log::Sleep(std::chrono::milliseconds(OPERATION_POLL_MILLISECONDS));
-            nymbox = context.RefreshNymbox(api_);
+            nymbox = context.RefreshNymbox(api_, reason_);
         }
 
         while (check_future(*nymbox)) {
@@ -2669,7 +2684,8 @@ void Operation::update_workflow_convey_payment(
     OT_ASSERT(pCheque);
 
     auto& cheque = *pCheque;
-    const auto loaded = cheque.LoadContractFromString(payment_->Payment());
+    const auto loaded =
+        cheque.LoadContractFromString(payment_->Payment(), reason_);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load cheque.").Flush();
@@ -2677,7 +2693,7 @@ void Operation::update_workflow_convey_payment(
         return;
     }
 
-    if (const_cast<OTPayment&>(*payment_).IsCancelledCheque()) {
+    if (const_cast<OTPayment&>(*payment_).IsCancelledCheque(reason_)) {
         workflowUpdated =
             api_.Workflow().CancelCheque(cheque, request, reply.get());
     } else {
@@ -2731,7 +2747,7 @@ Operation::~Operation()
 {
     Stop().get();
 
-    if (hasContext()) { context().It().Join(); }
+    if (hasContext()) { context().get().Join(); }
 
     const bool needPromise =
         (false == result_set_.load()) && (State::Idle != state_.load());

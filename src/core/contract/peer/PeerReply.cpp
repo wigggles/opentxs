@@ -65,7 +65,7 @@ proto::PeerReply PeerReply::contract(const Lock& lock) const
 {
     auto contract = SigVersion(lock);
     if (0 < signatures_.size()) {
-    	*(contract.mutable_signature()) = *(signatures_.front());
+        *(contract.mutable_signature()) = *(signatures_.front());
     }
 
     return contract;
@@ -84,7 +84,8 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const proto::PeerRequestType& type,
     const Identifier& requestID,
     const identifier::Server& server,
-    const std::string& terms)
+    const std::string& terms,
+    const PasswordPrompt& reason)
 {
     auto peerRequest = LoadRequest(wallet, nym, requestID);
 
@@ -119,7 +120,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
@@ -127,7 +128,8 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const Nym_p& nym,
     const Identifier& requestID,
     const identifier::Server& server,
-    const bool& ack)
+    const bool& ack,
+    const PasswordPrompt& reason)
 {
     auto peerRequest = LoadRequest(wallet, nym, requestID);
 
@@ -156,7 +158,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
@@ -168,7 +170,8 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const std::string& url,
     const std::string& login,
     const std::string& password,
-    const std::string& key)
+    const std::string& key,
+    const PasswordPrompt& reason)
 {
     auto peerRequest = LoadRequest(wallet, nym, request);
 
@@ -199,13 +202,14 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerReply> PeerReply::Factory(
     const api::Wallet& wallet,
     const Nym_p& nym,
-    const proto::PeerReply& serialized)
+    const proto::PeerReply& serialized,
+    const PasswordPrompt& reason)
 {
     if (!proto::Validate(serialized, VERBOSE)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid serialized reply.")
@@ -246,7 +250,7 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock)) {
+    if (!contract->validate(lock, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid reply.").Flush();
 
         return nullptr;
@@ -271,19 +275,22 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
     return contract;
 }
 
-bool PeerReply::FinalizeContract(PeerReply& contract)
+bool PeerReply::FinalizeContract(
+    PeerReply& contract,
+    const PasswordPrompt& reason)
 {
     Lock lock(contract.lock_);
 
     if (!contract.CalculateID(lock)) { return false; }
 
-    if (!contract.update_signature(lock)) { return false; }
+    if (!contract.update_signature(lock, reason)) { return false; }
 
-    return contract.validate(lock);
+    return contract.validate(lock, reason);
 }
 
 std::unique_ptr<PeerReply> PeerReply::Finish(
-    std::unique_ptr<PeerReply>& contract)
+    std::unique_ptr<PeerReply>& contract,
+    const PasswordPrompt& reason)
 {
     std::unique_ptr<PeerReply> output(contract.release());
 
@@ -294,7 +301,7 @@ std::unique_ptr<PeerReply> PeerReply::Finish(
         return nullptr;
     }
 
-    if (FinalizeContract(*output)) {
+    if (FinalizeContract(*output, reason)) {
 
         return output;
     } else {
@@ -385,15 +392,16 @@ proto::PeerReply PeerReply::SigVersion(const Lock& lock) const
     return contract;
 }
 
-bool PeerReply::update_signature(const Lock& lock)
+bool PeerReply::update_signature(const Lock& lock, const PasswordPrompt& reason)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock, reason)) { return false; }
 
     bool success = false;
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success = nym_->SignProto(serialized, proto::SIGROLE_PEERREPLY, signature);
+    success = nym_->SignProto(
+        serialized, proto::SIGROLE_PEERREPLY, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -405,12 +413,12 @@ bool PeerReply::update_signature(const Lock& lock)
     return success;
 }
 
-bool PeerReply::validate(const Lock& lock) const
+bool PeerReply::validate(const Lock& lock, const PasswordPrompt& reason) const
 {
     bool validNym = false;
 
     if (nym_) {
-        validNym = nym_->VerifyPseudonym();
+        validNym = nym_->VerifyPseudonym(reason);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing nym.").Flush();
 
@@ -440,7 +448,7 @@ bool PeerReply::validate(const Lock& lock) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature); }
+    if (signature) { validSig = verify_signature(lock, *signature, reason); }
 
     if (!validSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
@@ -451,15 +459,16 @@ bool PeerReply::validate(const Lock& lock) const
 
 bool PeerReply::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature,
+    const PasswordPrompt& reason) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature, reason)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);
+    return nym_->VerifyProto(serialized, sigProto, reason);
     ;
 }
 }  // namespace opentxs

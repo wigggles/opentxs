@@ -76,10 +76,6 @@ public:
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const Contract& contract);
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
-        const crypto::key::LegacySymmetric& key);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
-        const OTCachedKey& key);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const proto::ContactItemType type,
         const proto::HDPath& path);
 #endif

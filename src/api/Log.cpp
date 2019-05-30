@@ -39,8 +39,7 @@ api::internal::Log* Factory::Log(
 namespace opentxs::api::implementation
 {
 Log::Log(const zmq::Context& zmq, const std::string& endpoint)
-    : zmq_(zmq)
-    , callback_(zmq::ListenCallback::Factory(
+    : callback_(zmq::ListenCallback::Factory(
           std::bind(&Log::callback, this, std::placeholders::_1)))
     , socket_(zmq.PullSocket(callback_, zmq::Socket::Direction::Bind))
     , publish_socket_(zmq.PublishSocket())

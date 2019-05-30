@@ -15,46 +15,61 @@ class EcdsaProvider : virtual public crypto::EcdsaProvider
 {
 public:
     bool AsymmetricKeyToECPrivatekey(
+        const api::Core& api,
         const crypto::key::EllipticCurve& asymmetricKey,
-        const OTPasswordData& passwordData,
+        const PasswordPrompt& reason,
         OTPassword& privkey) const override;
     bool DecryptSessionKeyECDH(
+        const api::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
-        const OTPasswordData& password,
         crypto::key::Symmetric& sessionKey,
-        OTPassword& plaintextKey) const override;
+        PasswordPrompt& sessionKeyPassword,
+        OTPassword& plaintextKey,
+        const PasswordPrompt& reason) const override;
     bool DecryptSessionKeyECDH(
+        const api::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
-        const OTPasswordData& password,
-        crypto::key::Symmetric& sessionKey) const override;
+        crypto::key::Symmetric& sessionKey,
+        PasswordPrompt& sessionKeyPassword,
+        const PasswordPrompt& reason) const override;
     bool ECPrivatekeyToAsymmetricKey(
+        const api::Core& api,
         const OTPassword& privkey,
-        const OTPasswordData& passwordData,
+        const PasswordPrompt& reason,
         crypto::key::EllipticCurve& asymmetricKey) const override;
     bool ECPubkeyToAsymmetricKey(
         const Data& pubkey,
         crypto::key::EllipticCurve& asymmetricKey) const override;
     bool EncryptSessionKeyECDH(
+        const api::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
-        const OTPasswordData& passwordData,
         crypto::key::Symmetric& sessionKey,
-        OTPassword& newKeyPassword) const override;
+        const PasswordPrompt& sessionKeyPassword,
+        OTPassword& newKeyPassword,
+        const PasswordPrompt& reason) const override;
     bool ExportECPrivatekey(
+        const api::Core& api,
         const OTPassword& privkey,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         crypto::key::EllipticCurve& asymmetricKey) const override;
     bool ImportECPrivatekey(
+        const api::Core& api,
         const proto::Ciphertext& asymmetricKey,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         OTPassword& privkey) const override;
     bool PrivateToPublic(
+        const api::Core& api,
         const proto::AsymmetricKey& privateKey,
-        proto::AsymmetricKey& publicKey) const override;
-    bool PrivateToPublic(const proto::Ciphertext& privateKey, Data& publicKey)
-        const override;
+        proto::AsymmetricKey& publicKey,
+        const PasswordPrompt& reason) const override;
+    bool PrivateToPublic(
+        const api::Core& api,
+        const proto::Ciphertext& privateKey,
+        Data& publicKey,
+        const PasswordPrompt& reason) const override;
     bool SeedToCurveKey(
         const OTPassword& seed,
         OTPassword& privateKey,
@@ -69,27 +84,32 @@ protected:
         const crypto::key::EllipticCurve& asymmetricKey,
         Data& pubkey) const;
     bool AsymmetricKeyToECPrivkey(
+        const api::Core& api,
         const proto::Ciphertext& asymmetricKey,
-        const OTPasswordData& passwordData,
+        const PasswordPrompt& reason,
         OTPassword& privkey) const;
     bool DecryptPrivateKey(
+        const api::Core& api,
         const proto::Ciphertext& encryptedKey,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         OTPassword& plaintextKey) const;
     bool DecryptPrivateKey(
+        const api::Core& api,
         const proto::Ciphertext& encryptedKey,
         const proto::Ciphertext& encryptedChaincode,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         OTPassword& key,
         OTPassword& chaincode) const;
     bool EncryptPrivateKey(
+        const api::Core& api,
         const OTPassword& plaintextKey,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         proto::Ciphertext& encryptedKey) const;
     bool EncryptPrivateKey(
+        const api::Core& api,
         const OTPassword& key,
         const OTPassword& chaincode,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         proto::Ciphertext& encryptedKey,
         proto::Ciphertext& encryptedChaincode) const;
 

@@ -12,29 +12,36 @@ class Factory final : public opentxs::api::implementation::Factory
 public:
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::string& message) const override;
+        const std::string& message,
+        const opentxs::PasswordPrompt& reason) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment) const override;
+        const bool isPayment,
+        const opentxs::PasswordPrompt& reason) const override;
 #if OT_CASH
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse) const override;
+        const std::shared_ptr<blind::Purse> purse,
+        const opentxs::PasswordPrompt& reason) const override;
 #endif
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const VersionNumber version) const override;
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
-        const VersionNumber version) const override;
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& signerNym,
-        const proto::PeerObject& serialized) const override;
+        const proto::PeerObject& serialized,
+        const opentxs::PasswordPrompt& reason) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& recipientNym,
-        const Armored& encrypted) const override;
+        const Armored& encrypted,
+        const opentxs::PasswordPrompt& reason) const override;
 
     ~Factory() override = default;
 
@@ -43,7 +50,7 @@ private:
 
     const api::client::Manager& client_;
 
-    Factory(const api::client::Manager& client);
+    Factory(const api::client::internal::Manager& client);
     Factory() = delete;
     Factory(const Factory&) = delete;
     Factory(Factory&&) = delete;

@@ -12,7 +12,6 @@ set(cxx-sources
   EllipticCurve.cpp
   HD.cpp
   Keypair.cpp
-  LegacySymmetric.cpp
   RSA.cpp
   RSA_private.cpp
   Secp256k1.cpp
@@ -25,7 +24,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Ed25519.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/HD.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Keypair.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/LegacySymmetric.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/RSA.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Secp256k1.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Symmetric.hpp"
@@ -38,8 +36,6 @@ set(cxx-headers
   EllipticCurve.hpp
   HD.hpp
   Keypair.hpp
-  LegacySymmetric.hpp
-  LegacySymmetricNull.hpp
   Null.hpp
   RSA.hpp
   RSA_private.hpp

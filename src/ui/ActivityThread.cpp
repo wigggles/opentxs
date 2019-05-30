@@ -9,12 +9,14 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -304,6 +306,7 @@ std::string ActivityThread::GetDraft() const
 
 void ActivityThread::init_contact()
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     participants_future_.get();
 
     if (1 != participants_.size()) {
@@ -314,7 +317,7 @@ void ActivityThread::init_contact()
         return;
     }
 
-    auto contact = api_.Contacts().Contact(*participants_.cbegin());
+    auto contact = api_.Contacts().Contact(*participants_.cbegin(), reason);
     Lock lock(contact_lock_);
     contact_ = contact;
     lock.unlock();
@@ -361,6 +364,7 @@ bool ActivityThread::Pay(
     const std::string& memo,
     const PaymentType type) const
 {
+    auto reason = api_.Factory().PasswordPrompt("Sending a payment");
     const auto& unitID = api_.Storage().AccountContract(sourceAccount);
 
     if (unitID->empty()) {
@@ -371,7 +375,7 @@ bool ActivityThread::Pay(
         return false;
     }
 
-    const auto contract = api_.Wallet().UnitDefinition(unitID);
+    const auto contract = api_.Wallet().UnitDefinition(unitID, reason);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing unit definition (")(
@@ -402,6 +406,8 @@ bool ActivityThread::Pay(
     const std::string& memo,
     const PaymentType type) const
 {
+    auto reason = api_.Factory().PasswordPrompt("Sending a payment");
+
     if (0 >= amount) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid amount: (")(amount)(")")
             .Flush();
@@ -411,7 +417,7 @@ bool ActivityThread::Pay(
 
     switch (type) {
         case PaymentType::Cheque: {
-            return send_cheque(amount, sourceAccount, memo);
+            return send_cheque(reason, amount, sourceAccount, memo);
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported payment type: (")(
@@ -525,6 +531,7 @@ bool ActivityThread::same(
 }
 
 bool ActivityThread::send_cheque(
+    const PasswordPrompt& reason,
     const Amount amount,
     const Identifier& sourceAccount,
     const std::string& memo) const
@@ -548,7 +555,7 @@ bool ActivityThread::send_cheque(
     }
 
     const auto contract = api_.Wallet().UnitDefinition(
-        api_.Storage().AccountContract(sourceAccount));
+        api_.Storage().AccountContract(sourceAccount), reason);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

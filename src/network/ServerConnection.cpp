@@ -18,6 +18,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/DealerSocket.hpp"
@@ -83,7 +84,9 @@ ServerConnection::ServerConnection(
     , thread_()
     , callback_(zeromq::ListenCallback::Factory(
           [=](const zeromq::Message& in) -> void {
-              this->process_incoming(in);
+              auto reason = this->api_.Factory().PasswordPrompt(
+                  "Process incoming message");
+              this->process_incoming(in, reason);
           }))
     , registration_socket_(zmq.Context().DealerSocket(
           callback_,
@@ -266,11 +269,13 @@ std::chrono::time_point<std::chrono::system_clock> ServerConnection::
     return std::chrono::system_clock::now() + zmq_.SendTimeout();
 }
 
-void ServerConnection::process_incoming(const proto::ServerReply& in)
+void ServerConnection::process_incoming(
+    const proto::ServerReply& in,
+    const PasswordPrompt& reason)
 {
-    auto message = otx::Reply::Factory(api_, in);
+    auto message = otx::Reply::Factory(api_, in, reason);
 
-    if (false == message->Validate()) {
+    if (false == message->Validate(reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid push notification.")
             .Flush();
 
@@ -280,7 +285,9 @@ void ServerConnection::process_incoming(const proto::ServerReply& in)
     notification_socket_->Push(proto::ProtoAsData(message->Contract()));
 }
 
-void ServerConnection::process_incoming(const zeromq::Message& in)
+void ServerConnection::process_incoming(
+    const zeromq::Message& in,
+    const PasswordPrompt& reason)
 {
     if (status_->On()) { publish(); }
 
@@ -304,7 +311,7 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
         const auto [isProto, reply] = check_for_protobuf(frame);
 
         if (isProto) {
-            process_incoming(reply);
+            process_incoming(reply, reason);
 
             return;
         }
@@ -326,7 +333,9 @@ void ServerConnection::publish() const
     updates_.Publish(message);
 }
 
-void ServerConnection::register_for_push(const ServerContext& context)
+void ServerConnection::register_for_push(
+    const ServerContext& context,
+    const PasswordPrompt& reason)
 {
     if (2 > context.Request()) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Nym is not yet registered")
@@ -342,8 +351,8 @@ void ServerConnection::register_for_push(const ServerContext& context)
     if (isRegistered) { return; }
 
     auto request = otx::Request::Factory(
-        context.Nym(), context.Server(), proto::SERVERREQUEST_ACTIVATE);
-    request->SetIncludeNym(true);
+        context.Nym(), context.Server(), proto::SERVERREQUEST_ACTIVATE, reason);
+    request->SetIncludeNym(true, reason);
     auto message = zmq::Message::Factory();
     message->AddFrame();
     message->AddFrame(proto::ProtoAsData(request->Contract()));
@@ -367,6 +376,7 @@ void ServerConnection::reset_timer()
 NetworkReplyMessage ServerConnection::Send(
     const ServerContext& context,
     const Message& message,
+    const PasswordPrompt& reason,
     const Push push)
 {
     struct Cleanup {
@@ -404,7 +414,7 @@ NetworkReplyMessage ServerConnection::Send(
 
     if (Push::Enable == push) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Registering for push").Flush();
-        register_for_push(context);
+        register_for_push(context, reason);
     } else {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Skipping push").Flush();
         disable_push(context.Nym()->ID());
@@ -476,7 +486,8 @@ NetworkReplyMessage ServerConnection::Send(
     armored->Set(std::string(frame).c_str());
     auto serialized = String::Factory();
     armored->GetString(serialized);
-    const auto loaded = replymessage->LoadContractFromString(serialized);
+    const auto loaded =
+        replymessage->LoadContractFromString(serialized, reason);
 
     if (loaded) {
         reply.reset(replymessage.release());

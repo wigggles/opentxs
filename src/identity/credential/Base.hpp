@@ -36,18 +36,23 @@ public:
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const override;
     SerializedSignature SourceSignature() const override;
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
+    bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const override;
     proto::CredentialType Type() const override;
-    bool Validate() const override;
+    bool Validate(const PasswordPrompt& reason) const override;
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
+        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     bool Verify(
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig) const override;
+        const proto::Signature& masterSig,
+        const PasswordPrompt& reason) const override;
 
     void ReleaseSignatures(const bool onlyPrivate) override;
 
@@ -67,11 +72,15 @@ protected:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const;
-    bool validate(const Lock& lock) const override;
-    virtual bool verify_internally(const Lock& lock) const;
+    bool validate(const Lock& lock, const PasswordPrompt& reason)
+        const override;
+    virtual bool verify_internally(
+        const Lock& lock,
+        const PasswordPrompt& reason) const;
 
-    bool AddMasterSignature(const Lock& lock);
-    bool New(const NymParameters& nymParameters) override;
+    bool AddMasterSignature(const Lock& lock, const PasswordPrompt& reason);
+    bool New(const NymParameters& nymParameters, const PasswordPrompt& reason)
+        override;
 
     Base(
         const api::Core& api,
@@ -93,7 +102,8 @@ private:
     std::string Name() const override;
     bool VerifyMasterID() const;
     bool VerifyNymID() const;
-    bool verify_master_signature(const Lock& lock) const;
+    bool verify_master_signature(const Lock& lock, const PasswordPrompt& reason)
+        const;
 
     Base() = delete;
     Base(const Base&) = delete;

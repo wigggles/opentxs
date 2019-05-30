@@ -124,7 +124,7 @@ std::shared_ptr<OTScript> OTScriptFactory(const std::string& script_type)
 
 std::shared_ptr<OTScript> OTScriptFactory(
     const std::string& script_type,
-    ANDROID_UNUSED const std::string& script_contents)
+    [[maybe_unused]] const std::string& script_contents)
 {
 
 #if OT_SCRIPT_CHAI

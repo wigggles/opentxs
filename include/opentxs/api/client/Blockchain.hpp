@@ -33,6 +33,7 @@ public:
     virtual std::unique_ptr<proto::Bip44Address> AllocateAddress(
         const identifier::Nym& nymID,
         const Identifier& accountID,
+        const PasswordPrompt& reason,
         const std::string& label = "",
         const BIP44Chain chain = EXTERNAL_CHAIN) const = 0;
     virtual bool AssignAddress(
@@ -49,7 +50,8 @@ public:
     virtual OTIdentifier NewAccount(
         const identifier::Nym& nymID,
         const BlockchainAccountType standard,
-        const proto::ContactItemType type) const = 0;
+        const proto::ContactItemType type,
+        const PasswordPrompt& reason) const = 0;
     virtual bool StoreIncoming(
         const identifier::Nym& nymID,
         const Identifier& accountID,

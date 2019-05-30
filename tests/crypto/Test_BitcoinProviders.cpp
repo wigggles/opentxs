@@ -20,6 +20,7 @@ class Test_Bitcoin_Providers : public ::testing::Test
 {
 public:
     const ot::api::client::Manager& client_;
+    opentxs::OTPasswordPrompt reason_;
     const ot::api::Crypto& crypto_;
 #if OT_CRYPTO_USING_TREZOR
     const std::unique_ptr<ot::crypto::Trezor> trezor_{
@@ -372,6 +373,7 @@ public:
 
     Test_Bitcoin_Providers()
         : client_(ot::OT::App().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , crypto_(client_.Crypto())
     {
     }
@@ -443,10 +445,11 @@ public:
                 library.SeedToFingerprint(ot::EcdsaCurve::SECP256K1, seed);
             const auto serialized = library.DeriveKey(
                 crypto_.Hash(), ot::EcdsaCurve::SECP256K1, seed, {});
-            auto pKey = crypto_.Asymmetric().InstantiateKey(
+            auto pKey = client_.Asymmetric().InstantiateKey(
                 ot::proto::AKEYTYPE_SECP256K1,
                 seedID,
                 serialized,
+                reason_,
                 ot::proto::KEYROLE_SIGN,
                 ot::crypto::key::EllipticCurve::DefaultVersion);
 
@@ -459,7 +462,7 @@ public:
             EXPECT_TRUE(key.HasPrivate());
             EXPECT_TRUE(key.HasPublic());
             EXPECT_EQ(ot::proto::AKEYTYPE_SECP256K1, key.keyType());
-            EXPECT_TRUE(compare_private(library, xprv, key.Xprv()));
+            EXPECT_TRUE(compare_private(library, xprv, key.Xprv(reason_)));
         }
 
         return true;
@@ -564,10 +567,11 @@ public:
                     library.SeedToFingerprint(ot::EcdsaCurve::SECP256K1, seed);
                 const auto serialized = library.DeriveKey(
                     crypto_.Hash(), ot::EcdsaCurve::SECP256K1, seed, rawPath);
-                auto pKey = crypto_.Asymmetric().InstantiateKey(
+                auto pKey = client_.Asymmetric().InstantiateKey(
                     ot::proto::AKEYTYPE_SECP256K1,
                     seedID,
                     serialized,
+                    reason_,
                     ot::proto::KEYROLE_SIGN,
                     ot::crypto::key::EllipticCurve::DefaultVersion);
 
@@ -580,8 +584,10 @@ public:
                 EXPECT_TRUE(key.HasPrivate());
                 EXPECT_TRUE(key.HasPublic());
                 EXPECT_EQ(ot::proto::AKEYTYPE_SECP256K1, key.keyType());
-                EXPECT_TRUE(compare_private(library, expectPrv, key.Xprv()));
-                EXPECT_TRUE(compare_public(library, expectPub, key.Xpub()));
+                EXPECT_TRUE(
+                    compare_private(library, expectPrv, key.Xprv(reason_)));
+                EXPECT_TRUE(
+                    compare_public(library, expectPub, key.Xpub(reason_)));
             }
         }
 

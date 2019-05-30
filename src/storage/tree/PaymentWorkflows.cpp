@@ -35,8 +35,7 @@ PaymentWorkflows::PaymentWorkflows(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = CURRENT_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(CURRENT_VERSION);
     }
 }
 
@@ -111,9 +110,7 @@ void PaymentWorkflows::init(const std::string& hash)
         OT_FAIL
     }
 
-    version_ = serialized->version();
-
-    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
+    init_version(CURRENT_VERSION, *serialized);
 
     for (const auto& it : serialized->workflow()) {
         item_map_.emplace(

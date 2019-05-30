@@ -29,10 +29,12 @@ public:
         const identifier::Nym& recipient,
         const identifier::Server& server,
         const proto::ServerReplyType type,
-        const bool success);
+        const bool success,
+        const PasswordPrompt& reason);
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
         const api::Core& api,
-        const proto::ServerReply serialized);
+        const proto::ServerReply serialized,
+        const PasswordPrompt& reason);
 
     EXPORT virtual proto::ServerReply Contract() const = 0;
     EXPORT virtual RequestNumber Number() const = 0;
@@ -42,8 +44,12 @@ public:
     EXPORT virtual bool Success() const = 0;
     EXPORT virtual proto::ServerReplyType Type() const = 0;
 
-    EXPORT virtual bool SetNumber(const RequestNumber number) = 0;
-    EXPORT virtual bool SetPush(const proto::OTXPush& push) = 0;
+    EXPORT virtual bool SetNumber(
+        const RequestNumber number,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool SetPush(
+        const proto::OTXPush& push,
+        const PasswordPrompt& reason) = 0;
 
     EXPORT virtual ~Reply() = default;
 

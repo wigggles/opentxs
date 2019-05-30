@@ -22,6 +22,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
@@ -58,7 +59,7 @@
 namespace opentxs
 {
 api::server::Manager* Factory::ServerManager(
-    const api::Native& parent,
+    const api::internal::Native& parent,
     Flag& running,
     const ArgList& args,
     const api::Crypto& crypto,
@@ -106,7 +107,7 @@ api::server::Manager* Factory::ServerManager(
 namespace opentxs::api::server::implementation
 {
 Manager::Manager(
-    const api::Native& parent,
+    const api::internal::Native& parent,
     Flag& running,
     const ArgList& args,
     const api::Crypto& crypto,
@@ -124,10 +125,14 @@ Manager::Manager(
           dataFolder,
           instance,
           true)
-    , server_p_(new opentxs::server::Server(*this))
+    , reason_(factory_.PasswordPrompt("Notary operation"))
+    , server_p_(new opentxs::server::Server(*this, reason_))
     , server_(*server_p_)
-    , message_processor_p_(
-          new opentxs::server::MessageProcessor(server_, context, running_))
+    , message_processor_p_(new opentxs::server::MessageProcessor(
+          server_,
+          reason_,
+          context,
+          running_))
     , message_processor_(*message_processor_p_)
 #if OT_CASH
     , mint_thread_()
@@ -185,7 +190,7 @@ void Manager::generate_mint(
         std::string(SERIES_DIVIDER) + std::to_string(series);
     mint.reset(
         factory_
-            ->Mint(
+            .Mint(
                 String::Factory(nymID.c_str()), String::Factory(unitID.c_str()))
             .release());
 
@@ -226,20 +231,21 @@ void Manager::generate_mint(
         10000000,
         100000000,
         1000000000,
-        mint_key_size_.load());
-    Lock mintLock(mint_lock_);
+        mint_key_size_.load(),
+        reason_);
+    opentxs::Lock mintLock(mint_lock_);
 
     if (mints_.end() != mints_.find(unitID)) {
         mints_.at(unitID).erase(PUBLIC_SERIES);
     }
 
     mint->SetSavePrivateKeys(true);
-    mint->SignContract(nym);
+    mint->SignContract(nym, reason_);
     mint->SaveContract();
     mint->SaveMint(seriesID.c_str());
     mint->SetSavePrivateKeys(false);
     mint->ReleaseSignatures();
-    mint->SignContract(nym);
+    mint->SignContract(nym, reason_);
     mint->SaveContract();
     mint->SaveMint(PUBLIC_SERIES);
     mint->SaveMint();
@@ -327,7 +333,7 @@ std::shared_ptr<blind::Mint> Manager::GetPrivateMint(
     const identifier::UnitDefinition& unitID,
     std::uint32_t index) const
 {
-    Lock lock(mint_lock_);
+    opentxs::Lock lock(mint_lock_);
     const std::string id{unitID.str()};
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(index);
@@ -346,7 +352,7 @@ std::shared_ptr<blind::Mint> Manager::GetPrivateMint(
 std::shared_ptr<const blind::Mint> Manager::GetPublicMint(
     const identifier::UnitDefinition& unitID) const
 {
-    Lock lock(mint_lock_);
+    opentxs::Lock lock(mint_lock_);
     const std::string id{unitID.str()};
     const std::string seriesID{PUBLIC_SERIES};
     auto& output = mints_[id][seriesID];
@@ -375,7 +381,7 @@ void Manager::Init()
 #endif  // OT_CASH
 
     Scheduler::Start(storage_.get(), dht_.get());
-    StorageParent::init(*seeds_);
+    StorageParent::init(factory_, *seeds_);
     Start();
 }
 
@@ -403,13 +409,13 @@ std::int32_t Manager::last_generated_series(
 }
 
 std::shared_ptr<blind::Mint> Manager::load_private_mint(
-    const Lock& lock,
+    const opentxs::Lock& lock,
     const std::string& unitID,
     const std::string seriesID) const
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    std::shared_ptr<blind::Mint> mint{factory_->Mint(
+    std::shared_ptr<blind::Mint> mint{factory_.Mint(
         String::Factory(ID()),
         String::Factory(NymID()),
         String::Factory(unitID.c_str()))};
@@ -420,14 +426,14 @@ std::shared_ptr<blind::Mint> Manager::load_private_mint(
 }
 
 std::shared_ptr<blind::Mint> Manager::load_public_mint(
-    const Lock& lock,
+    const opentxs::Lock& lock,
     const std::string& unitID,
     const std::string seriesID) const
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<blind::Mint> mint{
-        factory_->Mint(String::Factory(ID()), String::Factory(unitID.c_str()))};
+        factory_.Mint(String::Factory(ID()), String::Factory(unitID.c_str()))};
 
     OT_ASSERT(mint);
 
@@ -436,7 +442,7 @@ std::shared_ptr<blind::Mint> Manager::load_public_mint(
 
 void Manager::mint() const
 {
-    Lock updateLock(mint_update_lock_, std::defer_lock);
+    opentxs::Lock updateLock(mint_update_lock_, std::defer_lock);
 
     while (server_.GetServerID().empty()) {
         Log::Sleep(std::chrono::milliseconds(50));
@@ -509,8 +515,8 @@ const identifier::Nym& Manager::NymID() const
 #if OT_CASH
 void Manager::ScanMints() const
 {
-    Lock scanLock(mint_scan_lock_);
-    Lock updateLock(mint_update_lock_, std::defer_lock);
+    opentxs::Lock scanLock(mint_scan_lock_);
+    opentxs::Lock updateLock(mint_update_lock_, std::defer_lock);
     const auto units = wallet_->UnitDefinitionList();
 
     for (const auto& it : units) {
@@ -549,12 +555,13 @@ void Manager::Start()
 #if OT_CASH
 void Manager::UpdateMint(const identifier::UnitDefinition& unitID) const
 {
-    Lock updateLock(mint_update_lock_);
+    opentxs::Lock updateLock(mint_update_lock_);
     mints_to_check_.push_front(unitID.str());
 }
 #endif  // OT_CASH
 
-bool Manager::verify_lock(const Lock& lock, const std::mutex& mutex) const
+bool Manager::verify_lock(const opentxs::Lock& lock, const std::mutex& mutex)
+    const
 {
     if (lock.mutex() != &mutex) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect mutex.").Flush();
@@ -573,21 +580,21 @@ bool Manager::verify_lock(const Lock& lock, const std::mutex& mutex) const
 
 #if OT_CASH
 std::shared_ptr<blind::Mint> Manager::verify_mint(
-    const Lock& lock,
+    const opentxs::Lock& lock,
     const std::string& unitID,
     const std::string seriesID,
     std::shared_ptr<blind::Mint>& mint) const
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    if (false == mint->LoadMint(seriesID.c_str())) {
+    if (false == mint->LoadMint(reason_, seriesID.c_str())) {
         UpdateMint(Factory().UnitID(unitID));
 
         return {};
     }
 
-    if (false == mint->VerifyMint(server_.GetServerNym())) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mint for ")(unitID)(".")
+    if (false == mint->VerifyMint(server_.GetServerNym(), reason_)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mint for ")(unitID)
             .Flush();
 
         return {};

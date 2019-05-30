@@ -24,7 +24,7 @@ class Transactor
     friend class MainFile;
 
 public:
-    explicit Transactor(Server& server);
+    Transactor(Server& server, const PasswordPrompt& reason);
     ~Transactor() = default;
 
     bool issueNextTransactionNumber(TransactionNumber& txNumber);
@@ -70,6 +70,7 @@ private:
     typedef std::map<std::string, std::string> BasketsMap;
 
     Server& server_;
+    const PasswordPrompt& reason_;
     // This stores the last VALID AND ISSUED transaction number.
     TransactionNumber transactionNumber_;
     // maps basketId with basketAccountId

@@ -19,6 +19,7 @@ public:
     NetworkReplyMessage Send(
         const ServerContext& context,
         const Message& message,
+        const PasswordPrompt& reason,
         const Push push) override;
     bool Status() const override;
 
@@ -66,9 +67,15 @@ private:
     void disable_push(const identifier::Nym& nymID);
     zeromq::DealerSocket& get_async(const Lock& lock);
     zeromq::RequestSocket& get_sync(const Lock& lock);
-    void process_incoming(const zeromq::Message& in);
-    void process_incoming(const proto::ServerReply& in);
-    void register_for_push(const ServerContext& context);
+    void process_incoming(
+        const zeromq::Message& in,
+        const PasswordPrompt& reason);
+    void process_incoming(
+        const proto::ServerReply& in,
+        const PasswordPrompt& reason);
+    void register_for_push(
+        const ServerContext& context,
+        const PasswordPrompt& reason);
     void reset_socket(const Lock& lock);
     void reset_timer();
 

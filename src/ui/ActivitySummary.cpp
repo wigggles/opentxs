@@ -8,8 +8,10 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -240,7 +242,8 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
 
 void ActivitySummary::startup()
 {
-    const auto threads = api_.Activity().Threads(primary_id_, false);
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+    const auto threads = api_.Activity().Threads(primary_id_, reason, false);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(threads.size())(
         " threads.")
         .Flush();

@@ -10,10 +10,12 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -499,14 +501,15 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
 
 void AccountActivity::startup()
 {
-    auto account = api_.Wallet().Account(account_id_);
+    auto reason = api_.Factory().PasswordPrompt("Loading account activity");
+    auto account = api_.Wallet().Account(account_id_, reason);
 
     if (account) {
         balance_.store(account.get().GetBalance());
         UpdateNotify();
         eLock lock(shared_lock_);
         contract_ = api_.Wallet().UnitDefinition(
-            api_.Storage().AccountContract(account_id_));
+            api_.Storage().AccountContract(account_id_), reason);
     }
 
     account.Release();

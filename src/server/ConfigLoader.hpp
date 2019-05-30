@@ -22,7 +22,7 @@ namespace server
 
 struct ConfigLoader {
     static bool load(
-        const api::Crypto& crypto,
+        const api::Core& api,
         const api::Settings& config,
         String& walletFilename);
 };

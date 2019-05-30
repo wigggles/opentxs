@@ -25,13 +25,15 @@ private:
 
     Secondary(
         const api::Core& api,
+        const PasswordPrompt& reason,
         identity::internal::Authority& other,
         const proto::Credential& serializedCred);
     Secondary(
         const api::Core& api,
         identity::internal::Authority& other,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
     Secondary() = delete;
     Secondary(const Secondary&) = delete;
     Secondary(Secondary&&) = delete;

@@ -13,31 +13,46 @@ public:
     std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
-        const Bip32Index index) const override;
-    std::string Bip32Root(const std::string& fingerprint = "") const override;
+        const Bip32Index index,
+        const PasswordPrompt& reason) const override;
+    std::string Bip32Root(
+        const PasswordPrompt& reason,
+        const std::string& fingerprint = "") const override;
     std::string DefaultSeed() const override;
     std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
         std::string& fingerprint,
         const EcdsaCurve& curve,
         const Path& path,
+        const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const override;
     std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
-        const Bip32Index nym) const override;
-    std::shared_ptr<proto::AsymmetricKey> GetStorageKey(
-        std::string& seed) const override;
+        const Bip32Index nym,
+        const PasswordPrompt& reason) const override;
+    OTSymmetricKey GetStorageKey(
+        std::string& seed,
+        const PasswordPrompt& reason) const override;
     std::string ImportSeed(
         const OTPassword& words,
-        const OTPassword& passphrase) const override;
-    std::string NewSeed() const override;
-    std::string Passphrase(const std::string& fingerprint = "") const override;
+        const OTPassword& passphrase,
+        const PasswordPrompt& reason) const override;
+    std::string NewSeed(const PasswordPrompt& reason) const override;
+    std::string Passphrase(
+        const PasswordPrompt& reason,
+        const std::string& fingerprint = "") const override;
     std::shared_ptr<OTPassword> Seed(
         std::string& fingerprint,
-        Bip32Index& index) const override;
-    bool UpdateIndex(std::string& seed, const Bip32Index index) const override;
-    std::string Words(const std::string& fingerprint = "") const override;
+        Bip32Index& index,
+        const PasswordPrompt& reason) const override;
+    bool UpdateIndex(
+        std::string& seed,
+        const Bip32Index index,
+        const PasswordPrompt& reason) const override;
+    std::string Words(
+        const PasswordPrompt& reason,
+        const std::string& fingerprint = "") const override;
 
     virtual ~HDSeed() = default;
 
@@ -47,34 +62,38 @@ private:
     static const std::string DEFAULT_PASSPHRASE;
     static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
 
+    const api::Factory& factory_;
     const api::crypto::Asymmetric& asymmetric_;
     const api::crypto::Symmetric& symmetric_;
     const api::storage::Storage& storage_;
     const opentxs::crypto::Bip32& bip32_;
     const opentxs::crypto::Bip39& bip39_;
-    const opentxs::crypto::LegacySymmetricProvider& aes_;
 
     bool DecryptSeed(
         const proto::Seed& seed,
         OTPassword& words,
-        OTPassword& phrase) const;
-    std::string SaveSeed(const OTPassword& words, const OTPassword& passphrase)
-        const;
+        OTPassword& phrase,
+        const PasswordPrompt& reason) const;
+    std::string SaveSeed(
+        const OTPassword& words,
+        const OTPassword& passphrase,
+        const PasswordPrompt& reason) const;
     bool SeedToData(
         const OTPassword& words,
         const OTPassword& passphrase,
         OTPassword& output) const;
     std::shared_ptr<proto::Seed> SerializedSeed(
         std::string& fingerprint,
-        Bip32Index& index) const;
+        Bip32Index& index,
+        const PasswordPrompt& reason) const;
 
     HDSeed(
+        const api::Factory& factory,
         const api::crypto::Asymmetric& asymmetric,
         const api::crypto::Symmetric& symmetric,
         const api::storage::Storage& storage,
         const opentxs::crypto::Bip32& bip32,
-        const opentxs::crypto::Bip39& bip39,
-        const opentxs::crypto::LegacySymmetricProvider& aes);
+        const opentxs::crypto::Bip39& bip39);
     HDSeed() = delete;
     HDSeed(const HDSeed&) = delete;
     HDSeed(HDSeed&&) = delete;

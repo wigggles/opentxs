@@ -41,8 +41,8 @@ public:
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
+        const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
 
     EXPORT ~Key() override = default;

@@ -16,7 +16,6 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -38,7 +37,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
-#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
@@ -127,14 +125,14 @@ bool NymFile::CompareID(const identifier::Nym& rhs) const
 bool NymFile::DeserializeNymFile(
     const String& strNym,
     bool& converted,
+    const PasswordPrompt& reason,
     String::Map* pMapCredentials,
-    String& pstrReason,
     const OTPassword* pImportPassword)
 {
     sLock lock(shared_lock_);
 
     return deserialize_nymfile(
-        lock, strNym, converted, pMapCredentials, pstrReason, pImportPassword);
+        lock, strNym, converted, pMapCredentials, reason, pImportPassword);
 }
 
 template <typename T>
@@ -143,7 +141,7 @@ bool NymFile::deserialize_nymfile(
     const String& strNym,
     bool& converted,
     String::Map* pMapCredentials,
-    String& pstrReason,
+    const PasswordPrompt& reason,
     const OTPassword* pImportPassword)
 {
     OT_ASSERT(verify_lock(lock));
@@ -307,7 +305,7 @@ bool NymFile::deserialize_nymfile(
                                     OT_ASSERT(false != bool(pMessage));
 
                                     if (pMessage->LoadContractFromString(
-                                            strMessage)) {
+                                            strMessage, reason)) {
                                         std::shared_ptr<Message> message{
                                             pMessage.release()};
                                         m_dequeOutpayments.push_back(message);
@@ -427,6 +425,7 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByIndex(
 
 std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
     const std::int64_t lTransNum,
+    const PasswordPrompt& reason,
     std::unique_ptr<OTPayment>* pReturnPayment /*=nullptr*/,
     std::int32_t* pnReturnIndex /*=nullptr*/) const
 {
@@ -452,8 +451,8 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
             // Let's see if it's the cheque we're looking for...
             //
             if (pPayment && pPayment->IsValid()) {
-                if (pPayment->SetTempValues()) {
-                    if (pPayment->HasTransactionNum(lTransNum)) {
+                if (pPayment->SetTempValues(reason)) {
+                    if (pPayment->HasTransactionNum(lTransNum, reason)) {
 
                         if (nullptr != pnReturnIndex) {
                             *pnReturnIndex = nIndex;
@@ -474,15 +473,15 @@ std::int32_t NymFile::GetOutpaymentsCount() const
     return static_cast<std::int32_t>(m_dequeOutpayments.size());
 }
 
-bool NymFile::LoadSignedNymFile()
+bool NymFile::LoadSignedNymFile(const PasswordPrompt& reason)
 {
     sLock lock(shared_lock_);
 
-    return load_signed_nymfile(lock);
+    return load_signed_nymfile(lock, reason);
 }
 
 template <typename T>
-bool NymFile::load_signed_nymfile(const T& lock)
+bool NymFile::load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -493,7 +492,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
     // local directory ("nyms")
     auto theNymFile = api_.Factory().SignedFile(OTFolders::Nym(), nymID);
 
-    if (!theNymFile->LoadFile()) {
+    if (!theNymFile->LoadFile(reason)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Failed loading a signed nymfile: ")(nymID)
             .Flush();
@@ -517,7 +516,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
     const auto& publicSignKey = signer_nym_->GetPublicSignKey();
 
-    if (!theNymFile->VerifyWithKey(publicSignKey)) {
+    if (!theNymFile->VerifyWithKey(publicSignKey, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying signature on nymfile: ")(nymID)(
             ". Signer Nym ID: ")(signer_nym_->ID())(".")
@@ -540,12 +539,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
     bool converted = false;
     const bool loaded = deserialize_nymfile(
-        lock,
-        theNymFile->GetFilePayload(),
-        converted,
-        nullptr,
-        String::Factory(),
-        nullptr);
+        lock, theNymFile->GetFilePayload(), converted, nullptr, reason);
 
     if (!loaded) { return false; }
 
@@ -553,7 +547,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
         // This will ensure that none of the old tags will be present the next
         // time this nym is loaded.
         // Converting a nym more than once is likely to cause sync issues.
-        save_signed_nymfile(lock);
+        save_signed_nymfile(lock, reason);
     }
 
     return true;
@@ -611,12 +605,14 @@ bool NymFile::RemoveOutpaymentsByIndex(const std::int32_t nIndex)
     return true;
 }
 
-bool NymFile::RemoveOutpaymentsByTransNum(const std::int64_t lTransNum)
+bool NymFile::RemoveOutpaymentsByTransNum(
+    const std::int64_t lTransNum,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnIndex = -1;
 
-    auto pMsg =
-        this->GetOutpaymentsByTransNum(lTransNum, nullptr, &nReturnIndex);
+    auto pMsg = this->GetOutpaymentsByTransNum(
+        lTransNum, reason, nullptr, &nReturnIndex);
     const std::uint32_t uIndex = nReturnIndex;
 
     if ((nullptr != pMsg) && (nReturnIndex > (-1)) &&
@@ -749,15 +745,15 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
     return bSaved;
 }
 
-bool NymFile::SaveSignedNymFile()
+bool NymFile::SaveSignedNymFile(const PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
 
-    return save_signed_nymfile(lock);
+    return save_signed_nymfile(lock, reason);
 }
 
 template <typename T>
-bool NymFile::save_signed_nymfile(const T& lock)
+bool NymFile::save_signed_nymfile(const T& lock, const PasswordPrompt& reason)
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -783,7 +779,8 @@ bool NymFile::save_signed_nymfile(const T& lock)
 
     const auto& privateSignKey = signer_nym_->GetPrivateSignKey();
 
-    if (theNymFile->SignWithKey(privateSignKey) && theNymFile->SaveContract()) {
+    if (theNymFile->SignWithKey(privateSignKey, reason) &&
+        theNymFile->SaveContract()) {
         const bool bSaved = theNymFile->SaveFile();
 
         if (!bSaved) {

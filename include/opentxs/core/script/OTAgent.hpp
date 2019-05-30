@@ -104,35 +104,43 @@ public:
     //
     bool VerifyIssuedNumber(
         const TransactionNumber& lNumber,
-        const String& strNotaryID);
+        const String& strNotaryID,
+        const PasswordPrompt& reason);
     bool VerifyTransactionNumber(
         const TransactionNumber& lNumber,
-        const String& strNotaryID);
+        const String& strNotaryID,
+        const PasswordPrompt& reason);
     bool RemoveIssuedNumber(
         const TransactionNumber& lNumber,
-        const String& strNotaryID);
+        const String& strNotaryID,
+        const PasswordPrompt& reason);
     bool RemoveTransactionNumber(
         const TransactionNumber& lNumber,
-        const String& strNotaryID);
+        const String& strNotaryID,
+        const PasswordPrompt& reason);
     bool RecoverTransactionNumber(
         const TransactionNumber& lNumber,
         Context& context);
     bool RecoverTransactionNumber(
         const TransactionNumber& lNumber,
-        const String& strNotaryID);
+        const String& strNotaryID,
+        const PasswordPrompt& reason);
     bool ReserveOpeningTransNum(ServerContext& context);
     bool ReserveClosingTransNum(
         ServerContext& context,
         OTPartyAccount& thePartyAcct);
-    EXPORT bool SignContract(Contract& theInput) const;
+    EXPORT bool SignContract(Contract& theInput, const PasswordPrompt& reason)
+        const;
 
     // Verify that this agent somehow has legitimate agency over this account.
     // (According to the account.)
     //
     bool VerifyAgencyOfAccount(const Account& theAccount) const;
-    bool VerifySignature(const Contract& theContract) const;  // Have the agent
-                                                              // try
-                                                              // to
+    bool VerifySignature(
+        const Contract& theContract,
+        const PasswordPrompt& reason) const;  // Have the agent
+                                              // try
+                                              // to
     // verify his own signature
     // against any contract.
 
@@ -282,12 +290,13 @@ public:
     // This also makes sure that Nyms and Entities don't ever share IDs, so the
     // IDs become more and more interchangeable.
 
-    Nym_p LoadNym();
+    Nym_p LoadNym(const PasswordPrompt& reason);
 
     bool DropFinalReceiptToNymbox(
         OTSmartContract& theSmartContract,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
 
@@ -298,6 +307,7 @@ public:
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lClosingNumber,
         const String& strOrigCronItem,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
 
@@ -309,6 +319,7 @@ public:
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lInReferenceTo,
         const String& strReference,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
         identity::Nym* pActualNym = nullptr);

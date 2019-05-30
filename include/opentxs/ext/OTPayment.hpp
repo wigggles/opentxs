@@ -111,7 +111,9 @@ public:
 
     EXPORT static paymentType GetTypeFromString(const String& strType);
 
-    EXPORT bool GetAllTransactionNumbers(NumList& numlistOutput) const;
+    EXPORT bool GetAllTransactionNumbers(
+        NumList& numlistOutput,
+        const PasswordPrompt& reason) const;
     // Once you "Instantiate" the first time, then these values are set, if
     // available, and can be queried thereafter from *this. Otherwise, these
     // functions will return false.
@@ -121,7 +123,8 @@ public:
     // a given asset account.)
     EXPORT bool GetClosingNum(
         TransactionNumber& lOutput,
-        const Identifier& theAcctID) const;
+        const Identifier& theAcctID,
+        const PasswordPrompt& reason) const;
     EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;
     EXPORT bool GetMemo(String& strOutput) const;
     EXPORT bool GetNotaryID(Identifier& theOutput) const;
@@ -130,7 +133,8 @@ public:
     // a given asset account.)
     EXPORT bool GetOpeningNum(
         TransactionNumber& lOutput,
-        const identifier::Nym& theNymID) const;
+        const identifier::Nym& theNymID,
+        const PasswordPrompt& reason) const;
     EXPORT bool GetPaymentContents(String& strOutput) const
     {
         strOutput.Set(m_strPayment->Get());
@@ -150,10 +154,14 @@ public:
     EXPORT const char* GetTypeString() const { return _GetTypeString(m_Type); }
     EXPORT bool GetValidFrom(time64_t& tOutput) const;
     EXPORT bool GetValidTo(time64_t& tOutput) const;
-    EXPORT bool HasTransactionNum(const TransactionNumber& lInput) const;
-    EXPORT OTTrackable* Instantiate() const;
-    EXPORT OTTrackable* Instantiate(const String& strPayment);
-    EXPORT OTTransaction* InstantiateNotice() const;
+    EXPORT bool HasTransactionNum(
+        const TransactionNumber& lInput,
+        const PasswordPrompt& reason) const;
+    EXPORT OTTrackable* Instantiate(const PasswordPrompt& reason) const;
+    EXPORT OTTrackable* Instantiate(
+        const String& strPayment,
+        const PasswordPrompt& reason);
+    EXPORT OTTransaction* InstantiateNotice(const PasswordPrompt& reason) const;
     EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
     EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
     EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
@@ -163,12 +171,16 @@ public:
     EXPORT bool IsValid() const { return (ERROR_STATE != m_Type); }
     EXPORT const String& Payment() const { return m_strPayment; }
 
-    EXPORT bool IsCancelledCheque();
+    EXPORT bool IsCancelledCheque(const PasswordPrompt& reason);
     // Verify whether the CURRENT date is AFTER the the "VALID TO" date.
     EXPORT bool IsExpired(bool& bExpired);
     EXPORT void InitPayment();
-    EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
-    EXPORT std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    EXPORT OTTransaction* InstantiateNotice(
+        const String& strNotice,
+        const PasswordPrompt& reason);
+    EXPORT std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
     EXPORT void Release() override;
     EXPORT void Release_Payment();
     EXPORT bool SetPayment(const String& strPayment);
@@ -177,11 +189,13 @@ public:
     // has occured, this function forces that very scenario (cleanly) so you
     // don't have to instantiate-and-then-delete a payment instrument. Instead,
     // just call this, and then the temp values will be available thereafter.
-    EXPORT bool SetTempValues();
+    EXPORT bool SetTempValues(const PasswordPrompt& reason);
     EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
     EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
-    EXPORT bool SetTempValuesFromNotice(const OTTransaction& theInput);
+    EXPORT bool SetTempValuesFromNotice(
+        const OTTransaction& theInput,
+        const PasswordPrompt& reason);
     // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
     EXPORT bool VerifyCurrentDate(bool& bVerified);
 
@@ -238,7 +252,7 @@ protected:
         const OTSmartContract& theInput);
     // Before transmission or serialization, this is where the object saves its
     // contents
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
 private:
     friend api::implementation::Factory;

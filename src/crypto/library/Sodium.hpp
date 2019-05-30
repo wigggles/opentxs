@@ -34,11 +34,12 @@ public:
         const override;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool Sign(
+        const api::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const override;
     bool SeedToCurveKey(
         const OTPassword& seed,
@@ -49,7 +50,7 @@ public:
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
     ~Sodium() = default;

@@ -8,9 +8,11 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -98,7 +100,9 @@ std::string ActivitySummaryItem::DisplayName() const
     return display_name_;
 }
 
-std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
+std::string ActivitySummaryItem::find_text(
+    const PasswordPrompt& reason,
+    const ItemLocator& locator) const
 {
     const auto& [itemID, box, accountID] = locator;
 
@@ -106,7 +110,7 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
             auto text = api_.Activity().MailText(
-                nym_id_, Identifier::Factory(itemID), box);
+                nym_id_, Identifier::Factory(itemID), box, reason);
 
             if (text) {
 
@@ -119,7 +123,8 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
         } break;
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
-            auto text = api_.Activity().PaymentText(nym_id_, itemID, accountID);
+            auto text =
+                api_.Activity().PaymentText(nym_id_, itemID, accountID, reason);
 
             if (text) {
 
@@ -140,6 +145,7 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
 
 void ActivitySummaryItem::get_text()
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     sLock lock(shared_lock_, std::defer_lock);
     ItemLocator locator{};
 
@@ -149,7 +155,7 @@ void ActivitySummaryItem::get_text()
         int taskID{0};
 
         if (newest_item_.Pop(taskID, locator)) {
-            const auto text = find_text(locator);
+            const auto text = find_text(reason, locator);
             lock.lock();
             text_ = text;
             lock.unlock();

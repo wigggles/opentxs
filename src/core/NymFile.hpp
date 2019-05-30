@@ -27,6 +27,7 @@ public:
         const std::int32_t nIndex) const override;
     std::shared_ptr<Message> GetOutpaymentsByTransNum(
         const std::int64_t lTransNum,
+        const PasswordPrompt& reason,
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
         std::int32_t* pnReturnIndex = nullptr) const override;
     std::int32_t GetOutpaymentsCount() const override;
@@ -37,9 +38,9 @@ public:
         return m_lUsageCredits;
     }
     const identifier::Nym& ID() const override { return target_nym_->ID(); }
-    std::string PaymentCode() const override
+    std::string PaymentCode(const PasswordPrompt& reason) const override
     {
-        return target_nym_->PaymentCode();
+        return target_nym_->PaymentCode(reason);
     }
     bool SerializeNymFile(String& output) const override;
 
@@ -51,7 +52,9 @@ public:
         return m_setAccounts;
     }
     bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) override;
-    bool RemoveOutpaymentsByTransNum(const std::int64_t lTransNum) override;
+    bool RemoveOutpaymentsByTransNum(
+        const std::int64_t lTransNum,
+        const PasswordPrompt& reason) override;
     bool SaveSignedNymFile(const identity::Nym& SIGNER_NYM);
     bool SetInboxHash(
         const std::string& acct_id,
@@ -105,8 +108,8 @@ private:
     bool DeserializeNymFile(
         const String& strNym,
         bool& converted,
+        const PasswordPrompt& reason,
         String::Map* pMapCredentials = nullptr,
-        String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr);
     template <typename T>
     bool deserialize_nymfile(
@@ -114,15 +117,15 @@ private:
         const String& strNym,
         bool& converted,
         String::Map* pMapCredentials,
-        String& pstrReason = String::Factory(),
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr);
-    bool LoadSignedNymFile() override;
+    bool LoadSignedNymFile(const PasswordPrompt& reason) override;
     template <typename T>
-    bool load_signed_nymfile(const T& lock);
+    bool load_signed_nymfile(const T& lock, const PasswordPrompt& reason);
     void RemoveAllNumbers(const String& pstrNotaryID = String::Factory());
-    bool SaveSignedNymFile() override;
+    bool SaveSignedNymFile(const PasswordPrompt& reason) override;
     template <typename T>
-    bool save_signed_nymfile(const T& lock);
+    bool save_signed_nymfile(const T& lock, const PasswordPrompt& reason);
     template <typename T>
     bool serialize_nymfile(const T& lock, String& strNym) const;
     bool SerializeNymFile(const char* szFoldername, const char* szFilename);

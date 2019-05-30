@@ -15,10 +15,13 @@ namespace opentxs::internal
 {
 struct Context : virtual public opentxs::Context {
     virtual proto::Context GetContract(const Lock& lock) const = 0;
-    virtual bool ValidateContext(const Lock& lock) const = 0;
+    virtual bool ValidateContext(const Lock& lock, const PasswordPrompt& reason)
+        const = 0;
 
     virtual std::mutex& GetLock() = 0;
-    virtual bool UpdateSignature(const Lock& lock) = 0;
+    virtual bool UpdateSignature(
+        const Lock& lock,
+        const PasswordPrompt& reason) = 0;
 
     virtual ~Context() = default;
 };

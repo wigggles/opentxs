@@ -39,95 +39,34 @@ public:
         const size_t keySize,
         std::uint8_t* output) const override;
 
-#if OT_CRYPTO_SUPPORTED_ALGO_AES
-    bool Decrypt(
-        const OTPassword& theRawSymmetricKey,
-        const char* szInput,
-        std::uint32_t lInputLength,
-        const Data& theIV,
-        CryptoSymmetricDecryptOutput& theDecryptedOutput) const override;
-    bool Decrypt(
-        const LegacySymmetricProvider::Mode cipher,
-        const OTPassword& key,
-        const char* ciphertext,
-        std::uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput& plaintext) const override;
-    bool Decrypt(
-        const LegacySymmetricProvider::Mode cipher,
-        const OTPassword& key,
-        const Data& iv,
-        const char* ciphertext,
-        std::uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput& plaintext) const override;
-    bool Decrypt(
-        const LegacySymmetricProvider::Mode cipher,
-        const OTPassword& key,
-        const Data& iv,
-        const Data& tag,
-        const char* ciphertext,
-        const std::uint32_t ciphertextLength,
-        CryptoSymmetricDecryptOutput& plaintext) const override;
-
-    OTPassword* DeriveNewKey(
-        const OTPassword& userPassword,
-        const Data& dataSalt,
-        std::uint32_t uIterations,
-        Data& dataCheckHash) const override;
-    bool Encrypt(
-        const OTPassword& theRawSymmetricKey,
-        const char* szInput,
-        std::uint32_t lInputLength,
-        const Data& theIV,
-        Data& theEncryptedOutput) const override;
-    bool Encrypt(
-        const LegacySymmetricProvider::Mode cipher,
-        const OTPassword& key,
-        const char* plaintext,
-        std::uint32_t plaintextLength,
-        Data& ciphertext) const override;
-    bool Encrypt(
-        const LegacySymmetricProvider::Mode cipher,
-        const OTPassword& key,
-        const Data& iv,
-        const char* plaintext,
-        std::uint32_t plaintextLength,
-        Data& ciphertext) const override;
-    bool Encrypt(
-        const LegacySymmetricProvider::Mode cipher,
-        const OTPassword& key,
-        const Data& iv,
-        const char* plaintext,
-        std::uint32_t plaintextLength,
-        Data& ciphertext,
-        Data& tag) const override;
-    OTPassword* InstantiateBinarySecret() const override;
-    BinarySecret InstantiateBinarySecretSP() const override;
-#endif
+    OTPassword* InstantiateBinarySecret() const;
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     bool Sign(
+        const api::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const override;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
 
     bool EncryptSessionKey(
         const mapOfAsymmetricKeys& RecipPubKeys,
         Data& plaintext,
-        Data& dataOutput) const override;
+        Data& dataOutput,
+        const PasswordPrompt& reason) const override;
     bool DecryptSessionKey(
         Data& dataInput,
         const identity::Nym& theRecipient,
         Data& plaintext,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     void Cleanup() override;
@@ -177,16 +116,6 @@ private:
     std::unique_ptr<OpenSSLdp> dp_;
     mutable std::mutex lock_;
 
-    bool ArgumentCheck(
-        const bool encrypt,
-        const LegacySymmetricProvider::Mode cipher,
-        const OTPassword& key,
-        const Data& iv,
-        const Data& tag,
-        const char* input,
-        const std::uint32_t inputLength,
-        bool& AEAD,
-        bool& ECB) const;
     void thread_setup() const;
     void thread_cleanup() const;
 

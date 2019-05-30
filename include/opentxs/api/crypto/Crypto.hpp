@@ -8,14 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/api/Editor.hpp"
-#include "opentxs/Proto.hpp"
-
-#include <chrono>
-#include <map>
-#include <memory>
-#include <mutex>
-
 namespace opentxs
 {
 namespace api
@@ -24,15 +16,6 @@ class Crypto
 {
 public:
     EXPORT virtual const crypto::Config& Config() const = 0;
-    EXPORT virtual const OTCachedKey& DefaultKey() const = 0;
-    EXPORT virtual const OTCachedKey& DefaultKey(const Core& api) const = 0;
-    EXPORT virtual Editor<OTCachedKey> mutable_DefaultKey() const = 0;
-    EXPORT virtual const OTCachedKey& LoadDefaultKey(
-        const Core& api,
-        const Armored& serialized) const = 0;
-    EXPORT virtual void SetTimeout(
-        const std::chrono::seconds& timeout) const = 0;
-    EXPORT virtual void SetSystemKeyring(const bool useKeyring) const = 0;
 
     // Encoding function interface
     EXPORT virtual const crypto::Encode& Encode() const = 0;
@@ -42,9 +25,6 @@ public:
 
     // Utility class for misc OpenSSL-provided functions
     EXPORT virtual const crypto::Util& Util() const = 0;
-
-    // Asymmetric encryption engines
-    EXPORT virtual const crypto::Asymmetric& Asymmetric() const = 0;
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     EXPORT virtual const opentxs::crypto::EcdsaProvider& ED25519() const = 0;
@@ -56,22 +36,13 @@ public:
     EXPORT virtual const opentxs::crypto::EcdsaProvider& SECP256K1() const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
-    // Symmetric encryption engines
-    EXPORT virtual const crypto::Symmetric& Symmetric() const = 0;
-
-#if OT_CRYPTO_SUPPORTED_ALGO_AES
-    EXPORT virtual const opentxs::crypto::LegacySymmetricProvider& AES()
-        const = 0;
-#endif  // OT_CRYPTO_SUPPORTED_ALGO_AES
+    EXPORT virtual const opentxs::crypto::SymmetricProvider& Sodium() const = 0;
 #if OT_CRYPTO_WITH_BIP32
     EXPORT virtual const opentxs::crypto::Bip32& BIP32() const = 0;
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_WITH_BIP39
     EXPORT virtual const opentxs::crypto::Bip39& BIP39() const = 0;
 #endif  // OT_CRYPTO_WITH_BIP39
-
-    EXPORT virtual OTSymmetricKey GetStorageKey(
-        const proto::AsymmetricKey& raw) const = 0;
 
     EXPORT virtual ~Crypto() = default;
 

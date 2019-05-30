@@ -9,12 +9,14 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -173,7 +175,8 @@ void PayableList::process_contact(
 {
     if (owner_contact_id_ == id) { return; }
 
-    const auto contact = api_.Contacts().Contact(id);
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+    const auto contact = api_.Contacts().Contact(id, reason);
 
     if (false == bool(contact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: Contact ")(id)(

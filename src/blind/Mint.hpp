@@ -59,9 +59,11 @@ public:
         const std::int64_t nDenom8,
         const std::int64_t nDenom9,
         const std::int64_t nDenom10,
-        const std::size_t keySize) override;
-    bool LoadContract() override;
-    bool LoadMint(const char* szAppend = nullptr) override;
+        const std::size_t keySize,
+        const PasswordPrompt& reason) override;
+    bool LoadContract(const PasswordPrompt& reason) override;
+    bool LoadMint(const PasswordPrompt& reason, const char* szAppend = nullptr)
+        override;
     void Release() override;
     void Release_Mint() override;
     void ReleaseDenominations() override;
@@ -75,16 +77,20 @@ public:
     {
         m_bSavePrivateKeys = bDoIt;
     }
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
     bool VerifyContractID() const override;
-    bool VerifyMint(const identity::Nym& theOperator) override;
+    bool VerifyMint(
+        const identity::Nym& theOperator,
+        const PasswordPrompt& reason) override;
 
     ~Mint() override;
 
 protected:
     using mapOfArmor = std::map<std::int64_t, OTArmored>;
 
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
     void InitMint();
 

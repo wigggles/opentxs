@@ -37,7 +37,10 @@
 
 namespace opentxs
 {
-Contact::Contact(const api::Core& api, const proto::Contact& serialized)
+Contact::Contact(
+    const PasswordPrompt& reason,
+    const api::Core& api,
+    const proto::Contact& serialized)
     : api_(api)
     , version_(check_version(serialized.version(), OT_CONTACT_VERSION))
     , label_(serialized.label())
@@ -68,7 +71,7 @@ Contact::Contact(const api::Core& api, const proto::Contact& serialized)
         merged_children_.emplace(api_.Factory().Identifier(child));
     }
 
-    init_nyms();
+    init_nyms(reason);
 }
 
 Contact::Contact(const api::Core& api, const std::string& label)
@@ -547,7 +550,7 @@ proto::ContactItemType Contact::ExtractType(const identity::Nym& nym)
 
 const Identifier& Contact::ID() const { return id_; }
 
-void Contact::init_nyms()
+void Contact::init_nyms(const PasswordPrompt& reason)
 {
     OT_ASSERT(contact_data_);
 
@@ -566,7 +569,7 @@ void Contact::init_nyms()
 
         const auto nymID = api_.Factory().NymID(item->Value());
         auto& nym = nyms_[nymID];
-        nym = api_.Wallet().Nym(nymID);
+        nym = api_.Wallet().Nym(nymID, reason);
 
         if (false == bool(nym)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load nym ")(nymID)(
@@ -861,9 +864,11 @@ proto::ContactItemType Contact::Type() const
     return type(lock);
 }
 
-void Contact::Update(const proto::CredentialIndex& serialized)
+void Contact::Update(
+    const proto::CredentialIndex& serialized,
+    const PasswordPrompt& reason)
 {
-    auto nym = api_.Wallet().Nym(serialized);
+    auto nym = api_.Wallet().Nym(serialized, reason);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid serialized nym.").Flush();

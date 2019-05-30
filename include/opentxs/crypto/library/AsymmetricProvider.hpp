@@ -24,30 +24,32 @@ public:
         const proto::AsymmetricKeyType& type);
 
     EXPORT virtual bool Sign(
+        const api::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const = 0;
     EXPORT virtual bool SignContract(
+        const api::Core& api,
         const String& strContractUnsigned,
         const key::Asymmetric& theKey,
         Signature& theSignature,  // output
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool VerifyContractSignature(
         const String& strContractToVerify,
         const key::Asymmetric& theKey,
         const Signature& theSignature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual ~AsymmetricProvider() = default;
 

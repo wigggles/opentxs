@@ -28,7 +28,9 @@ struct Nym : virtual public identity::Nym {
     virtual Serialized SerializeCredentialIndex(const Mode mode) const = 0;
     virtual bool WriteCredentials() const = 0;
 
-    virtual bool LoadCredentialIndex(const Serialized& index) = 0;
+    virtual bool LoadCredentialIndex(
+        const Serialized& index,
+        const PasswordPrompt& reason) = 0;
     virtual void SetAlias(const std::string& alias) = 0;
     virtual void SetAliasStartup(const std::string& alias) = 0;
 

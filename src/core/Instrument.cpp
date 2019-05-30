@@ -91,7 +91,9 @@ void Instrument::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Instrument::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     //    otErr << "OTInstrument::ProcessXMLNode...\n";
     std::int32_t nReturnVal = 0;
@@ -105,7 +107,7 @@ std::int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // you don't want to use any of those xml tags.
     //
 
-    nReturnVal = OTScriptable::ProcessXMLNode(xml);
+    nReturnVal = OTScriptable::ProcessXMLNode(xml, reason);
 
     // -1 is error, and 1 is "found it". Either way, return.
     if (nReturnVal != 0) {

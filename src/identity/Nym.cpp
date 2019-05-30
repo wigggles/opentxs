@@ -22,7 +22,6 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -40,10 +39,10 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
@@ -75,9 +74,10 @@ namespace opentxs
 {
 identity::internal::Nym* Factory::Nym(
     const api::Core& api,
-    const NymParameters& nymParameters)
+    const NymParameters& nymParameters,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new identity::implementation::Nym(api, nymParameters);
+    return new identity::implementation::Nym(api, nymParameters, reason);
 }
 
 identity::internal::Nym* Factory::Nym(
@@ -105,7 +105,7 @@ bool session_key_from_iv(
     const crypto::key::Asymmetric& signingKey,
     const Data& iv,
     const proto::HashType hashType,
-    OTPasswordData& output);
+    opentxs::PasswordPrompt& reason);
 
 const VersionConversionMap Nym::akey_to_session_key_version_{
     {1, 1},
@@ -143,7 +143,10 @@ Nym::Nym(
     OT_ASSERT(0 != version_);
 }
 
-Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
+Nym::Nym(
+    const api::Core& api,
+    const NymParameters& nymParameters,
+    const opentxs::PasswordPrompt& reason)
     : Nym(api, api.Factory().NymID(), proto::CREDINDEX_PRIVATE, DefaultVersion)
 {
     NymParameters revisedParameters = nymParameters;
@@ -151,7 +154,7 @@ Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
     revisedParameters.SetCredset(index_++);
     Bip32Index nymIndex = 0;
     std::string fingerprint = nymParameters.Seed();
-    auto seed = api_.Seeds().Seed(fingerprint, nymIndex);
+    auto seed = api_.Seeds().Seed(fingerprint, nymIndex, reason);
 
     OT_ASSERT(seed);
 
@@ -166,17 +169,18 @@ Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
     }
 
     const std::int32_t newIndex = nymIndex + 1;
-    api_.Seeds().UpdateIndex(fingerprint, newIndex);
+    api_.Seeds().UpdateIndex(fingerprint, newIndex, reason);
     revisedParameters.SetEntropy(*seed);
     revisedParameters.SetSeed(fingerprint);
     revisedParameters.SetNym(nymIndex);
 #endif
     auto* pNewCredentialSet =
-        opentxs::Factory::Authority(api_, revisedParameters, version_);
+        opentxs::Factory::Authority(api_, revisedParameters, version_, reason);
 
     OT_ASSERT(nullptr != pNewCredentialSet);
 
-    source_ = std::make_shared<NymIDSource>(pNewCredentialSet->Source());
+    source_ =
+        std::make_shared<NymIDSource>(pNewCredentialSet->Source(), reason);
     const_cast<OTNymID&>(m_nymID) = source_->NymID();
     SetDescription(source_->Description());
     m_mapCredentialSets.emplace(
@@ -185,7 +189,8 @@ Nym::Nym(const api::Core& api, const NymParameters& nymParameters)
 
 bool Nym::add_contact_credential(
     const eLock& lock,
-    const proto::ContactData& data)
+    const proto::ContactData& data,
+    const opentxs::PasswordPrompt& reason)
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -194,7 +199,7 @@ bool Nym::add_contact_credential(
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
-                added = it.second->AddContactCredential(data);
+                added = it.second->AddContactCredential(data, reason);
 
                 break;
             }
@@ -206,7 +211,8 @@ bool Nym::add_contact_credential(
 
 bool Nym::add_verification_credential(
     const eLock& lock,
-    const proto::VerificationSet& data)
+    const proto::VerificationSet& data,
+    const opentxs::PasswordPrompt& reason)
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -215,7 +221,7 @@ bool Nym::add_verification_credential(
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
-                added = it.second->AddVerificationCredential(data);
+                added = it.second->AddVerificationCredential(data, reason);
 
                 break;
             }
@@ -227,7 +233,8 @@ bool Nym::add_verification_credential(
 
 std::string Nym::AddChildKeyCredential(
     const Identifier& masterID,
-    const NymParameters& nymParameters)
+    const NymParameters& nymParameters,
+    const opentxs::PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
 
@@ -243,13 +250,13 @@ std::string Nym::AddChildKeyCredential(
     }
 
     if (it->second) {
-        output = it->second->AddChildKeyCredential(nymParameters);
+        output = it->second->AddChildKeyCredential(nymParameters, reason);
     }
 
     return output;
 }
 
-bool Nym::AddClaim(const Claim& claim)
+bool Nym::AddClaim(const Claim& claim, const opentxs::PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
 
@@ -259,12 +266,13 @@ bool Nym::AddClaim(const Claim& claim)
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
 bool Nym::AddContract(
     const identifier::UnitDefinition& instrumentDefinitionID,
     const proto::ContactItemType currency,
+    const opentxs::PasswordPrompt& reason,
     const bool primary,
     const bool active)
 {
@@ -281,11 +289,12 @@ bool Nym::AddContract(
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
 bool Nym::AddEmail(
     const std::string& value,
+    const opentxs::PasswordPrompt& reason,
     const bool primary,
     const bool active)
 {
@@ -300,13 +309,14 @@ bool Nym::AddEmail(
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool Nym::AddPaymentCode(
     const opentxs::PaymentCode& code,
     const proto::ContactItemType currency,
+    const opentxs::PasswordPrompt& reason,
     const bool primary,
     const bool active)
 {
@@ -323,12 +333,13 @@ bool Nym::AddPaymentCode(
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 #endif
 
 bool Nym::AddPhoneNumber(
     const std::string& value,
+    const opentxs::PasswordPrompt& reason,
     const bool primary,
     const bool active)
 {
@@ -343,10 +354,13 @@ bool Nym::AddPhoneNumber(
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
+bool Nym::AddPreferredOTServer(
+    const Identifier& id,
+    const opentxs::PasswordPrompt& reason,
+    const bool primary)
 {
     eLock lock(shared_lock_);
 
@@ -359,12 +373,13 @@ bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
 bool Nym::AddSocialMediaProfile(
     const std::string& value,
     const proto::ContactItemType type,
+    const opentxs::PasswordPrompt& reason,
     const bool primary,
     const bool active)
 {
@@ -379,7 +394,7 @@ bool Nym::AddSocialMediaProfile(
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
 std::string Nym::Alias() const { return alias_; }
@@ -496,7 +511,9 @@ std::set<OTIdentifier> Nym::Contracts(
     return contact_data_->Contracts(currency, onlyActive);
 }
 
-bool Nym::DeleteClaim(const Identifier& id)
+bool Nym::DeleteClaim(
+    const Identifier& id,
+    const opentxs::PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
 
@@ -506,7 +523,7 @@ bool Nym::DeleteClaim(const Identifier& id)
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
 std::string Nym::EmailAddresses(bool active) const
@@ -724,7 +741,7 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
 
 // This is being called by:
 // Contract::VerifySignature(const Nym& theNym, const Signature&
-// theSignature, OTPasswordData * pPWData=nullptr)
+// theSignature, PasswordPrompt * pPWData=nullptr)
 //
 // Note: Need to change Contract::VerifySignature so that it checks all of
 // these keys when verifying.
@@ -822,7 +839,10 @@ void Nym::init_claims(const eLock& lock) const
     OT_ASSERT(contact_data_)
 }
 
-bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
+bool Nym::load_credential_index(
+    const eLock& lock,
+    const Serialized& index,
+    const opentxs::PasswordPrompt& reason)
 {
     if (!proto::Validate<proto::CredentialIndex>(index, VERBOSE)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load invalid serialized"
@@ -842,7 +862,8 @@ bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
     index_ = index.index();
     revision_.store(index.revision());
     mode_ = index.mode();
-    source_ = std::make_shared<NymIDSource>(api_.Factory(), index.source());
+    source_ =
+        std::make_shared<NymIDSource>(api_.Factory(), index.source(), reason);
     proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
                               ? proto::KEYMODE_PRIVATE
                               : proto::KEYMODE_PUBLIC;
@@ -850,7 +871,7 @@ bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
     m_mapCredentialSets.clear();
 
     for (auto& it : index.activecredentials()) {
-        auto* newSet = opentxs::Factory::Authority(api_, mode, it);
+        auto* newSet = opentxs::Factory::Authority(api_, mode, it, reason);
 
         if (nullptr != newSet) {
             m_mapCredentialSets.emplace(
@@ -861,7 +882,7 @@ bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
     m_mapRevokedSets.clear();
 
     for (auto& it : index.revokedcredentials()) {
-        auto* newSet = opentxs::Factory::Authority(api_, mode, it);
+        auto* newSet = opentxs::Factory::Authority(api_, mode, it, reason);
 
         if (nullptr != newSet) {
             m_mapRevokedSets.emplace(
@@ -872,11 +893,13 @@ bool Nym::load_credential_index(const eLock& lock, const Serialized& index)
     return true;
 }
 
-bool Nym::LoadCredentialIndex(const Serialized& index)
+bool Nym::LoadCredentialIndex(
+    const Serialized& index,
+    const opentxs::PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
 
-    return load_credential_index(lock, index);
+    return load_credential_index(lock, index, reason);
 }
 
 bool Nym::Lock(
@@ -894,8 +917,8 @@ bool Nym::Lock(
         return false;
     }
 
-    OTPasswordData keyPassword{""};
-    keyPassword.SetOverride(password);
+    auto keyPassword = api_.Factory().PasswordPrompt("");
+    keyPassword->SetPassword(password);
 
     if (false == key.Unlock(keyPassword)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -906,7 +929,7 @@ bool Nym::Lock(
     }
 
     OTPassword iv;
-    const auto ivSize = api_.Crypto().Symmetric().IvSize(mode);
+    const auto ivSize = api_.Symmetric().IvSize(mode);
 
     if (0 == ivSize) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mode").Flush();
@@ -921,7 +944,7 @@ bool Nym::Lock(
     }
 
     const auto ivData = Data::Factory(iv.getMemory(), iv.getMemorySize());
-    OTPasswordData sessionkeyPassword{""};
+    auto sessionkeyPassword = api_.Factory().PasswordPrompt("");
     const auto haveSessionPassword = session_key_from_iv(
         api_, GetPrivateEncrKey(), ivData, hashType, sessionkeyPassword);
 
@@ -933,7 +956,7 @@ bool Nym::Lock(
         return false;
     }
 
-    auto sessionKey = api_.Crypto().Symmetric().Key(sessionkeyPassword, mode);
+    auto sessionKey = api_.Symmetric().Key(sessionkeyPassword, mode);
 
     if (false == bool(sessionKey.get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to generate session key")
@@ -964,7 +987,8 @@ std::string Nym::Name() const
 bool Nym::Open(
     const proto::SessionKey& input,
     crypto::key::Symmetric& key,
-    OTPassword& password) const
+    OTPassword& password,
+    const opentxs::PasswordPrompt& reason) const
 {
     static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
     const auto& serializedDHPublic = input.dh();
@@ -977,7 +1001,7 @@ bool Nym::Open(
         return false;
     }
 
-    auto sessionKey = api_.Crypto().Symmetric().Key(ciphertext.key(), mode);
+    auto sessionKey = api_.Symmetric().Key(ciphertext.key(), mode);
 
     if (false == bool(sessionKey.get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -987,11 +1011,11 @@ bool Nym::Open(
         return false;
     }
 
-    OTPasswordData sessionkeyPassword{""};
-    auto dhPublic = api_.Factory().AsymmetricKey(serializedDHPublic);
+    auto sessionkeyPassword = api_.Factory().PasswordPrompt("");
+    auto dhPublic = api_.Factory().AsymmetricKey(serializedDHPublic, reason);
     const auto& encryptKey = GetPrivateEncrKey();
     const auto opened =
-        encryptKey.Open(dhPublic, sessionKey, sessionkeyPassword);
+        encryptKey.Open(dhPublic, sessionKey, sessionkeyPassword, reason);
 
     if (false == opened) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
@@ -1009,8 +1033,8 @@ bool Nym::Open(
         return false;
     }
 
-    OTPasswordData keyPassword{""};
-    keyPassword.SetOverride(password);
+    auto keyPassword = api_.Factory().PasswordPrompt("");
+    keyPassword->SetPassword(password);
 
     if (false == key.Unlock(keyPassword)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1043,7 +1067,7 @@ bool Nym::Path(proto::HDPath& output) const
     return false;
 }
 
-std::string Nym::PaymentCode() const
+std::string Nym::PaymentCode(const opentxs::PasswordPrompt& reason) const
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     if (!source_) { return ""; }
@@ -1054,7 +1078,8 @@ std::string Nym::PaymentCode() const
 
     if (!serialized) { return ""; }
 
-    auto paymentCode = api_.Factory().PaymentCode(serialized->paymentcode());
+    auto paymentCode =
+        api_.Factory().PaymentCode(serialized->paymentcode(), reason);
 
     return paymentCode->asBase58();
 
@@ -1109,11 +1134,12 @@ void Nym::revoke_verification_credentials(const eLock& lock)
 bool Nym::Seal(
     const OTPassword& password,
     crypto::key::Symmetric& key,
-    proto::SessionKey& output) const
+    proto::SessionKey& output,
+    const PasswordPrompt& reason) const
 {
     static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
-    OTPasswordData keyPassword{""};
-    keyPassword.SetOverride(password);
+    auto keyPassword = api_.Factory().PasswordPrompt("");
+    keyPassword->SetPassword(password);
 
     if (false == key.Unlock(keyPassword)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1132,9 +1158,9 @@ bool Nym::Seal(
         return false;
     }
 
-    OTPasswordData sessionKeyPassword{""};
-    sessionKeyPassword.SetOverride(randomPassword);
-    auto sessionKey = api_.Crypto().Symmetric().Key(sessionKeyPassword, mode);
+    auto sessionKeyPassword = api_.Factory().PasswordPrompt("");
+    sessionKeyPassword->SetPassword(randomPassword);
+    auto sessionKey = api_.Symmetric().Key(sessionKeyPassword, mode);
 
     if (false == bool(sessionKey.get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to generate session key")
@@ -1146,7 +1172,7 @@ bool Nym::Seal(
     auto dhPublic = crypto::key::Asymmetric::Factory();
     const auto& encryptKey = GetPublicEncrKey();
     const auto sealed =
-        encryptKey.Seal(api_, dhPublic, sessionKey, sessionKeyPassword);
+        encryptKey.Seal(api_, dhPublic, sessionKey, reason, sessionKeyPassword);
 
     if (false == sealed) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1243,10 +1269,10 @@ bool session_key_from_iv(
     const crypto::key::Asymmetric& signingKey,
     const Data& iv,
     const proto::HashType hashType,
-    OTPasswordData& output)
+    opentxs::PasswordPrompt& reason)
 {
     const auto& engine = signingKey.engine();
-    const auto hash = signingKey.CalculateHash(hashType, "");
+    const auto hash = signingKey.CalculateHash(hashType, reason);
 
     if (hash->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash private key")
@@ -1268,10 +1294,12 @@ bool session_key_from_iv(
 
     auto signature = Data::Factory();
     const auto haveSig = engine.Sign(
+        api,
         Data::Factory(hmac.getMemory(), hmac.getMemorySize()),
         signingKey,
         hashType,
-        signature);
+        signature,
+        reason);
 
     if (false == haveSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign IV").Flush();
@@ -1290,7 +1318,7 @@ bool session_key_from_iv(
         return false;
     }
 
-    if (false == output.SetOverride(sessionPassword)) {
+    if (false == reason.SetPassword(sessionPassword)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed set session password")
             .Flush();
 
@@ -1300,7 +1328,10 @@ bool session_key_from_iv(
     return true;
 }
 
-bool Nym::set_contact_data(const eLock& lock, const proto::ContactData& data)
+bool Nym::set_contact_data(
+    const eLock& lock,
+    const proto::ContactData& data,
+    const opentxs::PasswordPrompt& reason)
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -1329,9 +1360,9 @@ bool Nym::set_contact_data(const eLock& lock, const proto::ContactData& data)
 
     revoke_contact_credentials(lock);
 
-    if (add_contact_credential(lock, data)) {
+    if (add_contact_credential(lock, data, reason)) {
 
-        return update_nym(lock, version);
+        return update_nym(lock, version, reason);
     }
 
     return false;
@@ -1345,7 +1376,9 @@ void Nym::SetAlias(const std::string& alias)
     revision_++;
 }
 
-bool Nym::SetCommonName(const std::string& name)
+bool Nym::SetCommonName(
+    const std::string& name,
+    const opentxs::PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
 
@@ -1355,21 +1388,24 @@ bool Nym::SetCommonName(const std::string& name)
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::SetContactData(const proto::ContactData& data)
+bool Nym::SetContactData(
+    const proto::ContactData& data,
+    const opentxs::PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
     contact_data_.reset(
         new ContactData(m_nymID->str(), ContactDataVersion(), data));
 
-    return set_contact_data(lock, data);
+    return set_contact_data(lock, data, reason);
 }
 
 bool Nym::SetScope(
     const proto::ContactItemType type,
     const std::string& name,
+    const opentxs::PasswordPrompt& reason,
     const bool primary)
 {
     eLock lock(shared_lock_);
@@ -1386,10 +1422,12 @@ bool Nym::SetScope(
 
     OT_ASSERT(contact_data_);
 
-    return set_contact_data(lock, contact_data_->Serialize());
+    return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-bool Nym::SetVerificationSet(const proto::VerificationSet& data)
+bool Nym::SetVerificationSet(
+    const proto::VerificationSet& data,
+    const opentxs::PasswordPrompt& reason)
 {
     eLock lock(shared_lock_);
 
@@ -1402,9 +1440,9 @@ bool Nym::SetVerificationSet(const proto::VerificationSet& data)
 
     revoke_verification_credentials(lock);
 
-    if (add_verification_credential(lock, data)) {
+    if (add_verification_credential(lock, data, reason)) {
 
-        return update_nym(lock, version_);
+        return update_nym(lock, version_, reason);
     }
 
     return false;
@@ -1415,7 +1453,7 @@ bool Nym::Sign(
     const proto::SignatureRole role,
     const proto::HashType hash,
     proto::Signature& signature,
-    const OTPasswordData* pPWData) const
+    const opentxs::PasswordPrompt& reason) const
 {
     sLock lock(shared_lock_);
 
@@ -1424,7 +1462,7 @@ bool Nym::Sign(
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             bool success = it.second->Sign(
-                input, role, signature, proto::KEYROLE_SIGN, pPWData, hash);
+                input, role, signature, reason, proto::KEYROLE_SIGN, hash);
 
             if (success) {
                 haveSig = true;
@@ -1464,10 +1502,12 @@ const std::set<proto::ContactItemType> Nym::SocialMediaProfileTypes() const
     return contact_data_->SocialMediaProfileTypes();
 }
 
-std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
+std::unique_ptr<OTPassword> Nym::TransportKey(
+    Data& pubkey,
+    const opentxs::PasswordPrompt& reason) const
 {
     bool found{false};
-    auto privateKey = std::make_unique<OTPassword>();
+    auto privateKey = api_.Factory().BinarySecret();
 
     OT_ASSERT(privateKey);
 
@@ -1478,7 +1518,7 @@ std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
 
         if (nullptr != it.second) {
             const identity::Authority& credSet = *it.second;
-            found = credSet.TransportKey(pubkey, *privateKey);
+            found = credSet.TransportKey(pubkey, *privateKey, reason);
 
             if (found) { break; }
         }
@@ -1505,7 +1545,7 @@ bool Nym::Unlock(
     }
 
     const auto iv = Data::Factory(input.iv().data(), input.iv().size());
-    OTPasswordData sessionkeyPassword{""};
+    auto sessionkeyPassword = api_.Factory().PasswordPrompt("");
     const auto haveSessionPassword = session_key_from_iv(
         api_, GetPrivateEncrKey(), iv, hashType, sessionkeyPassword);
 
@@ -1517,7 +1557,7 @@ bool Nym::Unlock(
         return false;
     }
 
-    auto sessionKey = api_.Crypto().Symmetric().Key(input.key(), mode);
+    auto sessionKey = api_.Symmetric().Key(input.key(), mode);
 
     if (false == bool(sessionKey.get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1537,8 +1577,8 @@ bool Nym::Unlock(
         return false;
     }
 
-    OTPasswordData keyPassword{""};
-    keyPassword.SetOverride(password);
+    auto keyPassword = api_.Factory().PasswordPrompt("");
+    keyPassword->SetPassword(password);
 
     if (false == key.Unlock(keyPassword)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1551,11 +1591,14 @@ bool Nym::Unlock(
     return true;
 }
 
-bool Nym::update_nym(const eLock& lock, const std::int32_t version)
+bool Nym::update_nym(
+    const eLock& lock,
+    const std::int32_t version,
+    const opentxs::PasswordPrompt& reason)
 {
     OT_ASSERT(verify_lock(lock));
 
-    if (verify_pseudonym(lock)) {
+    if (verify_pseudonym(lock, reason)) {
         // Upgrade version
         if (version > version_) { version_ = version; }
 
@@ -1589,18 +1632,23 @@ std::unique_ptr<proto::VerificationSet> Nym::VerificationSet() const
     return verificationSet;
 }
 
-bool Nym::Verify(const Data& plaintext, const proto::Signature& sig) const
+bool Nym::Verify(
+    const Data& plaintext,
+    const proto::Signature& sig,
+    const opentxs::PasswordPrompt& reason) const
 {
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            if (it.second->Verify(plaintext, sig)) { return true; }
+            if (it.second->Verify(plaintext, sig, reason)) { return true; }
         }
     }
 
     return false;
 }
 
-bool Nym::verify_pseudonym(const eLock& lock) const
+bool Nym::verify_pseudonym(
+    const eLock& lock,
+    const opentxs::PasswordPrompt& reason) const
 {
     // If there are credentials, then we verify the Nym via his credentials.
     if (!m_mapCredentialSets.empty()) {
@@ -1622,7 +1670,7 @@ bool Nym::verify_pseudonym(const eLock& lock) const
 
             // Verify all Credentials in the Authority, including source
             // verification for the master credential.
-            if (!pCredential->VerifyInternally()) {
+            if (!pCredential->VerifyInternally(reason)) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Credential (")(
                     pCredential->GetMasterCredID())(
                     ") failed its own internal verification.")
@@ -1636,11 +1684,11 @@ bool Nym::verify_pseudonym(const eLock& lock) const
     return false;
 }
 
-bool Nym::VerifyPseudonym() const
+bool Nym::VerifyPseudonym(const opentxs::PasswordPrompt& reason) const
 {
     eLock lock(shared_lock_);
 
-    return verify_pseudonym(lock);
+    return verify_pseudonym(lock, reason);
 }
 
 bool Nym::WriteCredentials() const

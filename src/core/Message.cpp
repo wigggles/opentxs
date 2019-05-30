@@ -310,11 +310,12 @@ std::string Message::ReplyCommand(const MessageType type)
 
 bool Message::HarvestTransactionNumbers(
     ServerContext& context,
-    bool bHarvestingForRetry,           // false until positively asserted.
-    bool bReplyWasSuccess,              // false until positively asserted.
-    bool bReplyWasFailure,              // false until positively asserted.
-    bool bTransactionWasSuccess,        // false until positively asserted.
-    bool bTransactionWasFailure) const  // false until positively asserted.
+    bool bHarvestingForRetry,     // false until positively asserted.
+    bool bReplyWasSuccess,        // false until positively asserted.
+    bool bReplyWasFailure,        // false until positively asserted.
+    bool bTransactionWasSuccess,  // false until positively asserted.
+    bool bTransactionWasFailure,
+    const PasswordPrompt& reason) const  // false until positively asserted.
 {
 
     const auto MSG_NYM_ID = identifier::Nym::Factory(m_strNymID);
@@ -332,7 +333,8 @@ bool Message::HarvestTransactionNumbers(
                      // load a messsage
                      // ledger from *this.
 
-    if (!strLedger->Exists() || !theLedger->LoadLedgerFromString(strLedger)) {
+    if (!strLedger->Exists() ||
+        !theLedger->LoadLedgerFromString(strLedger, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR: Failed trying to load message ledger: ")(strLedger)(".")
             .Flush();
@@ -388,7 +390,8 @@ bool Message::HarvestTransactionNumbers(
             bReplyWasSuccess,
             bReplyWasFailure,
             bTransactionWasSuccess,
-            bTransactionWasFailure);
+            bTransactionWasFailure,
+            reason);
 
         // We grab the closing numbers no matter what (whether message
         // succeeded or failed.)
@@ -405,7 +408,8 @@ bool Message::HarvestTransactionNumbers(
             bReplyWasSuccess,
             bReplyWasFailure,
             bTransactionWasSuccess,
-            bTransactionWasFailure);
+            bTransactionWasFailure,
+            reason);
     }
 
     return true;
@@ -431,7 +435,7 @@ void Message::SetAcknowledgments(const std::set<RequestNumber>& numbers)
 // contracts are read-only and thus never update their contents.
 // Messages, obviously, are different every time, and this function will be
 // called just prior to the signing of the message, in Contract::SignContract.
-void Message::UpdateContents()
+void Message::UpdateContents(const PasswordPrompt& reason)
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();
@@ -496,7 +500,9 @@ bool Message::updateContentsByType(Tag& parent)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Message::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -526,7 +532,7 @@ std::int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 }
 
 std::int32_t Message::processXmlNodeAckReplies(
-    __attribute__((unused)) Message& m,
+    [[maybe_unused]] Message& m,
     irr::io::IrrXMLReader*& xml)
 {
     auto strDepth = String::Factory();
@@ -545,7 +551,7 @@ std::int32_t Message::processXmlNodeAckReplies(
 }
 
 std::int32_t Message::processXmlNodeAcknowledgedReplies(
-    __attribute__((unused)) Message& m,
+    [[maybe_unused]] Message& m,
     irr::io::IrrXMLReader*& xml)
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(": SKIPPING DEPRECATED FIELD: "
@@ -558,7 +564,7 @@ std::int32_t Message::processXmlNodeAcknowledgedReplies(
 }
 
 std::int32_t Message::processXmlNodeNotaryMessage(
-    __attribute__((unused)) Message& m,
+    [[maybe_unused]] Message& m,
     irr::io::IrrXMLReader*& xml)
 {
     m_strVersion = String::Factory(xml->getAttributeValue("version"));
@@ -610,7 +616,7 @@ std::int32_t Message::processXmlNodeNotaryMessage(
 //
 bool Message::SignContract(
     const identity::Nym& theNym,
-    const OTPasswordData* pPWData)
+    const PasswordPrompt& reason)
 {
     // I release these, I assume, because a message only has one signer.
     ReleaseSignatures();  // Note: this might change with credentials. We might
@@ -618,7 +624,7 @@ bool Message::SignContract(
 
     // Use the authentication key instead of the signing key.
     //
-    m_bIsSigned = Contract::SignContractAuthent(theNym, pPWData);
+    m_bIsSigned = Contract::SignContractAuthent(theNym, reason);
 
     if (false == m_bIsSigned) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failure signing message: ")(
@@ -632,7 +638,7 @@ bool Message::SignContract(
 // virtual (Contract)
 bool Message::VerifySignature(
     const identity::Nym& theNym,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing
@@ -647,7 +653,7 @@ bool Message::VerifySignature(
     // probably be
     // the same way. (Maybe it already is, by the time you are reading this.)
     //
-    return VerifySigAuthent(theNym, pPWData);
+    return VerifySigAuthent(theNym, reason);
 }
 
 // Unlike other contracts, which do not change over time, and thus calculate

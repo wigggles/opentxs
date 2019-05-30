@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -16,6 +17,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -114,26 +116,27 @@ bool Profile::AddClaim(
     const bool primary,
     const bool active) const
 {
-    auto nym = api_.Wallet().mutable_Nym(primary_id_);
+    auto reason = api_.Factory().PasswordPrompt("Adding a claim to nym");
+    auto nym = api_.Wallet().mutable_Nym(primary_id_, reason);
 
     switch (section) {
         case proto::CONTACTSECTION_SCOPE: {
 
-            return nym.SetScope(type, value, primary);
+            return nym.SetScope(type, value, primary, reason);
         } break;
         case proto::CONTACTSECTION_COMMUNICATION: {
             switch (type) {
                 case proto::CITEMTYPE_EMAIL: {
 
-                    return nym.AddEmail(value, primary, active);
+                    return nym.AddEmail(value, primary, active, reason);
                 } break;
                 case proto::CITEMTYPE_PHONE: {
 
-                    return nym.AddPhoneNumber(value, primary, active);
+                    return nym.AddPhoneNumber(value, primary, active, reason);
                 } break;
                 case proto::CITEMTYPE_OPENTXS: {
 
-                    return nym.AddPreferredOTServer(value, primary);
+                    return nym.AddPreferredOTServer(value, primary, reason);
                 } break;
                 default: {
                 }
@@ -141,15 +144,16 @@ bool Profile::AddClaim(
         } break;
         case proto::CONTACTSECTION_PROFILE: {
 
-            return nym.AddSocialMediaProfile(value, type, primary, active);
+            return nym.AddSocialMediaProfile(
+                value, type, primary, active, reason);
         } break;
         case proto::CONTACTSECTION_CONTRACT: {
 
-            return nym.AddContract(value, type, primary, active);
+            return nym.AddContract(value, type, primary, active, reason);
         } break;
         case proto::CONTACTSECTION_PROCEDURE: {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-            return nym.AddPaymentCode(value, type, primary, active);
+            return nym.AddPaymentCode(value, type, primary, active, reason);
 #endif
         } break;
         default: {
@@ -170,7 +174,7 @@ bool Profile::AddClaim(
 
     if (primary || active) { attributes.emplace(proto::CITEMATTR_ACTIVE); }
 
-    return nym.AddClaim(claim);
+    return nym.AddClaim(claim, reason);
 }
 
 Profile::ItemTypeList Profile::AllowedItems(
@@ -260,9 +264,11 @@ std::string Profile::PaymentCode() const
 
 void Profile::process_nym(const identity::Nym& nym)
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
     Lock lock(lock_);
     name_ = nym.Alias();
-    payment_code_ = nym.PaymentCode();
+    payment_code_ = nym.PaymentCode(reason);
     lock.unlock();
     UpdateNotify();
     std::set<ProfileRowID> active{};
@@ -282,6 +288,8 @@ void Profile::process_nym(const identity::Nym& nym)
 
 void Profile::process_nym(const network::zeromq::Message& message)
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
     wait_for_startup();
 
     OT_ASSERT(1 == message.Body().size());
@@ -293,7 +301,7 @@ void Profile::process_nym(const network::zeromq::Message& message)
 
     if (nymID != primary_id_) { return; }
 
-    const auto nym = api_.Wallet().Nym(nymID);
+    const auto nym = api_.Wallet().Nym(nymID, reason);
 
     OT_ASSERT(nym)
 
@@ -349,8 +357,10 @@ int Profile::sort_key(const proto::ContactSectionName type)
 
 void Profile::startup()
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading nym ")(primary_id_).Flush();
-    const auto nym = api_.Wallet().Nym(primary_id_);
+    const auto nym = api_.Wallet().Nym(primary_id_, reason);
 
     OT_ASSERT(nym)
 

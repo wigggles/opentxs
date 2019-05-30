@@ -44,12 +44,28 @@ struct Manager;
 }  // namespace internal
 }  // namespace client
 
+namespace crypto
+{
+namespace internal
+{
+struct Asymmetric;
+}  // namespace internal
+}  // namespace crypto
+
 namespace implementation
 {
 class Core;
 class Native;
 class Storage;
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+struct Factory;
+struct Log;
+struct Native;
+}  // namespace internal
 
 namespace network
 {
@@ -60,12 +76,6 @@ class Dht;
 class ZMQ;
 }  // namespace implementation
 }  // namespace network
-
-namespace internal
-{
-struct Log;
-struct Native;
-}  // namespace internal
 
 namespace server
 {

@@ -10,7 +10,7 @@
 
 #include "NullCallback.hpp"
 
-#define OPENTXS_NULL_PASSWORD "test"
+#define OPENTXS_NULL_PASSWORD "opentxs"
 
 namespace opentxs
 {

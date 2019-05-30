@@ -70,31 +70,40 @@ public:
     EXPORT virtual bool Sign(
         const credential::Primary& credential,
         proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
+        const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
     EXPORT virtual const NymIDSource& Source() const = 0;
-    EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
-        const = 0;
+    EXPORT virtual bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual VersionNumber VerificationCredentialVersion() const = 0;
     EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
+        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const = 0;
-    EXPORT virtual bool Verify(const proto::Verification& item) const = 0;
-    EXPORT virtual bool VerifyInternally() const = 0;
+    EXPORT virtual bool Verify(
+        const proto::Verification& item,
+        const PasswordPrompt& reason) const = 0;
+    EXPORT virtual bool VerifyInternally(
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual std::string AddChildKeyCredential(
-        const NymParameters& nymParameters) = 0;
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool AddVerificationCredential(
-        const proto::VerificationSet& verificationSet) = 0;
+        const proto::VerificationSet& verificationSet,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool AddContactCredential(
-        const proto::ContactData& contactData) = 0;
+        const proto::ContactData& contactData,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual void RevokeContactCredentials(
         std::list<std::string>& contactCredentialIDs) = 0;
     EXPORT virtual void RevokeVerificationCredentials(

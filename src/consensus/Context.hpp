@@ -30,7 +30,7 @@ public:
     std::string LegacyDataFolder() const override;
     OTIdentifier LocalNymboxHash() const override;
     std::unique_ptr<const opentxs::NymFile> Nymfile(
-        const OTPasswordData& reason) const override;
+        const PasswordPrompt& reason) const override;
     const identity::Nym& RemoteNym() const override;
     OTIdentifier RemoteNymboxHash() const override;
     RequestNumber Request() const override;
@@ -46,12 +46,12 @@ public:
     bool ConsumeAvailable(const TransactionNumber& number) override;
     bool ConsumeIssued(const TransactionNumber& number) override;
     RequestNumber IncrementRequest() override;
-    bool InitializeNymbox() override;
+    bool InitializeNymbox(const PasswordPrompt& reason) override;
     Editor<opentxs::NymFile> mutable_Nymfile(
-        const OTPasswordData& reason) override;
+        const PasswordPrompt& reason) override;
     bool OpenCronItem(const TransactionNumber) override { return false; }
     bool RecoverAvailableNumber(const TransactionNumber& number) override;
-    proto::Context Refresh() override;
+    proto::Context Refresh(const PasswordPrompt& reason) override;
     bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req) override;
     void Reset() override;
     void SetLocalNymboxHash(const Identifier& hash) override;
@@ -77,7 +77,8 @@ protected:
         const;
     virtual proto::Context serialize(const Lock& lock) const = 0;
     virtual std::string type() const = 0;
-    bool validate(const Lock& lock) const override;
+    bool validate(const Lock& lock, const PasswordPrompt& reason)
+        const override;
 
     bool add_acknowledged_number(const Lock& lock, const RequestNumber req);
     bool consume_available(const Lock& lock, const TransactionNumber& number);
@@ -92,10 +93,11 @@ protected:
     bool remove_acknowledged_number(
         const Lock& lock,
         const std::set<RequestNumber>& req);
-    bool save(const Lock& lock);
+    bool save(const Lock& lock, const PasswordPrompt& reason);
     void set_local_nymbox_hash(const Lock& lock, const Identifier& hash);
     void set_remote_nymbox_hash(const Lock& lock, const Identifier& hash);
-    bool update_signature(const Lock& lock) override;
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
+        override;
     bool verify_available_number(const Lock& lock, const TransactionNumber& req)
         const;
     bool verify_acknowledged_number(const Lock& lock, const RequestNumber& req)
@@ -126,8 +128,10 @@ private:
     proto::Context IDVersion(const Lock& lock) const;
     virtual const identifier::Nym& server_nym_id(const Lock& lock) const = 0;
     proto::Context SigVersion(const Lock& lock) const;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature,
+        const PasswordPrompt& reason) const override;
 
     // Transition method used for converting from Nym class
     bool insert_available_number(const TransactionNumber& number);

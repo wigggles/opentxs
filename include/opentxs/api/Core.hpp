@@ -8,7 +8,10 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/api/Editor.hpp"
 #include "opentxs/api/Periodic.hpp"
+
+#include <chrono>
 
 namespace opentxs
 {
@@ -17,6 +20,7 @@ namespace api
 class Core : virtual public Periodic
 {
 public:
+    EXPORT virtual const crypto::Asymmetric& Asymmetric() const = 0;
     EXPORT virtual const api::Settings& Config() const = 0;
     EXPORT virtual const api::Crypto& Crypto() const = 0;
     EXPORT virtual const std::string& DataFolder() const = 0;
@@ -27,7 +31,10 @@ public:
 #if OT_CRYPTO_WITH_BIP39
     EXPORT virtual const api::HDSeed& Seeds() const = 0;
 #endif
+    EXPORT virtual void SetMasterKeyTimeout(
+        const std::chrono::seconds& timeout) const = 0;
     EXPORT virtual const storage::Storage& Storage() const = 0;
+    EXPORT virtual const crypto::Symmetric& Symmetric() const = 0;
     EXPORT virtual const api::Wallet& Wallet() const = 0;
     EXPORT virtual const opentxs::network::zeromq::Context& ZeroMQ() const = 0;
 

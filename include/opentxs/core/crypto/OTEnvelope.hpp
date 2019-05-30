@@ -32,26 +32,26 @@ public:
     /** Load ascii armored ciphertext */
     EXPORT bool SetCiphertext(const Armored& theArmoredText);
 
-    EXPORT bool Encrypt(
+    EXPORT bool Seal(
+        const setOfNyms& recipients,
         const String& theInput,
-        crypto::key::LegacySymmetric& theKey,
-        const OTPassword& thePassword);
-    EXPORT bool Decrypt(
-        String& theOutput,
-        const crypto::key::LegacySymmetric& theKey,
-        const OTPassword& thePassword);
-    EXPORT bool Seal(const setOfNyms& recipients, const String& theInput);
-    EXPORT bool Seal(const identity::Nym& theRecipient, const String& theInput);
+        const PasswordPrompt& reason);
+    EXPORT bool Seal(
+        const identity::Nym& theRecipient,
+        const String& theInput,
+        const PasswordPrompt& reason);
     EXPORT bool Seal(
         const mapOfAsymmetricKeys& recipientKeys,
-        const String& theInput);
+        const String& theInput,
+        const PasswordPrompt& reason);
     EXPORT bool Seal(
         const crypto::key::Asymmetric& RecipPubKey,
-        const String& theInput);
+        const String& theInput,
+        const PasswordPrompt& reason);
     EXPORT bool Open(
         const identity::Nym& theRecipient,
         String& theOutput,
-        const OTPasswordData* pPWData = nullptr);
+        const PasswordPrompt& reason);
 
     EXPORT ~OTEnvelope() = default;
 

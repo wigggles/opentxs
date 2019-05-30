@@ -66,7 +66,8 @@ ServerContract* ServerContract::Create(
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
     const std::string& name,
-    const VersionNumber version)
+    const VersionNumber version,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym);
     OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));
@@ -77,7 +78,7 @@ ServerContract* ServerContract::Create(
         contract->version_ = version;
         contract->listen_params_ = endpoints;
         contract->conditions_ = terms;
-        nym->TransportKey(contract->transport_key_);
+        nym->TransportKey(contract->transport_key_, reason);
         contract->name_ = name;
 
         Lock lock(contract->lock_);
@@ -90,14 +91,14 @@ ServerContract* ServerContract::Create(
             return nullptr;
         }
 
-        if (false == contract->update_signature(lock)) {
+        if (false == contract->update_signature(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign contract")
                 .Flush();
 
             return nullptr;
         }
 
-        if (!contract->validate(lock)) {
+        if (!contract->validate(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid contract").Flush();
 
             return nullptr;
@@ -113,14 +114,14 @@ ServerContract* ServerContract::Create(
     return contract;
 }
 
-std::string ServerContract::EffectiveName() const
+std::string ServerContract::EffectiveName(const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_)
 
     // TODO The version stored in nym_ might be out of date so load it from the
     // wallet. This can be fixed correctly by implementing in-place updates of
     // Nym credentials
-    const auto nym = wallet_.Nym(nym_->ID());
+    const auto nym = wallet_.Nym(nym_->ID(), reason);
     const auto output = nym->Name();
 
     if (output.empty()) { return name_; }
@@ -131,7 +132,8 @@ std::string ServerContract::EffectiveName() const
 ServerContract* ServerContract::Factory(
     const api::Wallet& wallet,
     const Nym_p& nym,
-    const proto::ServerContract& serialized)
+    const proto::ServerContract& serialized,
+    const PasswordPrompt& reason)
 {
     if (!proto::Validate<proto::ServerContract>(serialized, VERBOSE)) {
         return nullptr;
@@ -144,7 +146,7 @@ ServerContract* ServerContract::Factory(
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock, reason)) { return nullptr; }
 
     contract->alias_ = contract->name_;
 
@@ -199,7 +201,7 @@ proto::ServerContract ServerContract::contract(const Lock& lock) const
 {
     auto contract = SigVersion(lock);
     if (0 < signatures_.size()) {
-    	*(contract.mutable_signature()) = *(signatures_.front());
+        *(contract.mutable_signature()) = *(signatures_.front());
     }
 
     return contract;
@@ -306,23 +308,27 @@ const Data& ServerContract::TransportKey() const
     return transport_key_.get();
 }
 
-std::unique_ptr<OTPassword> ServerContract::TransportKey(Data& pubkey) const
+std::unique_ptr<OTPassword> ServerContract::TransportKey(
+    Data& pubkey,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
-    return nym_->TransportKey(pubkey);
+    return nym_->TransportKey(pubkey, reason);
 }
 
-bool ServerContract::update_signature(const Lock& lock)
+bool ServerContract::update_signature(
+    const Lock& lock,
+    const PasswordPrompt& reason)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock, reason)) { return false; }
 
     bool success = false;
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success =
-        nym_->SignProto(serialized, proto::SIGROLE_SERVERCONTRACT, signature);
+    success = nym_->SignProto(
+        serialized, proto::SIGROLE_SERVERCONTRACT, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -334,11 +340,12 @@ bool ServerContract::update_signature(const Lock& lock)
     return success;
 }
 
-bool ServerContract::validate(const Lock& lock) const
+bool ServerContract::validate(const Lock& lock, const PasswordPrompt& reason)
+    const
 {
     bool validNym = false;
 
-    if (nym_) { validNym = nym_->VerifyPseudonym(); }
+    if (nym_) { validNym = nym_->VerifyPseudonym(reason); }
 
     if (!validNym) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym.").Flush();
@@ -363,7 +370,7 @@ bool ServerContract::validate(const Lock& lock) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature); }
+    if (signature) { validSig = verify_signature(lock, *signature, reason); }
 
     if (!validSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
@@ -376,14 +383,15 @@ bool ServerContract::validate(const Lock& lock) const
 
 bool ServerContract::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature,
+    const PasswordPrompt& reason) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature, reason)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);
+    return nym_->VerifyProto(serialized, sigProto, reason);
 }
 }  // namespace opentxs

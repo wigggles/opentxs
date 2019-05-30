@@ -39,8 +39,10 @@ public:
         bool bInclusive = false) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetSerialized(
         bool privateKey) const = 0;
-    EXPORT virtual bool GetTransportKey(Data& publicKey, OTPassword& privateKey)
-        const = 0;
+    EXPORT virtual bool GetTransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual ~Keypair() = default;
 

@@ -34,28 +34,32 @@ public:
     serializedNymIDSource Serialize() const;
     bool Verify(
         const proto::Credential& master,
-        const proto::Signature& sourceSignature) const;
+        const proto::Signature& sourceSignature,
+        const PasswordPrompt& reason) const;
     bool Sign(
         const identity::credential::Primary& credential,
         proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
 
     NymIDSource(
         const api::Factory& factory,
-        const proto::NymIDSource& serializedSource) noexcept;
+        const proto::NymIDSource& serializedSource,
+        const PasswordPrompt& reason) noexcept;
     NymIDSource(
         const api::Factory& factory,
-        const String& stringSource) noexcept;
+        const String& stringSource,
+        const PasswordPrompt& reason) noexcept;
     NymIDSource(
         const api::Factory& factory,
         const NymParameters& nymParameters,
-        proto::AsymmetricKey& pubkey) noexcept;
+        proto::AsymmetricKey& pubkey,
+        const PasswordPrompt& reason) noexcept;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     NymIDSource(
         const api::Factory& factory,
         const PaymentCode& source) noexcept;
 #endif
-    NymIDSource(const NymIDSource&) noexcept;
+    NymIDSource(const NymIDSource& rhs, const PasswordPrompt& reason) noexcept;
 
 private:
     static const VersionConversionMap key_to_source_version_;
@@ -76,6 +80,7 @@ private:
         const proto::KeyRole role);
 
     NymIDSource() = delete;
+    NymIDSource(const NymIDSource&) = delete;
     NymIDSource(NymIDSource&&) = delete;
     NymIDSource& operator=(const NymIDSource&);
     NymIDSource& operator=(NymIDSource&&);

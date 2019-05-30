@@ -47,19 +47,23 @@ public:
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const = 0;
     EXPORT virtual SerializedSignature SourceSignature() const = 0;
-    EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
-        const = 0;
+    EXPORT virtual bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual proto::CredentialType Type() const = 0;
-    EXPORT virtual bool Validate() const = 0;
+    EXPORT virtual bool Validate(const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
+        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const = 0;
     EXPORT virtual bool Verify(
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig) const = 0;
+        const proto::Signature& masterSig,
+        const PasswordPrompt& reason) const = 0;
 
     ~Base() override = default;
 

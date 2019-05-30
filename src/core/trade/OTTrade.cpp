@@ -91,10 +91,12 @@ OTTrade::OTTrade(
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(const identity::Nym& nym, const identity::Nym&)
-    const
+bool OTTrade::VerifyNymAsAgent(
+    const identity::Nym& nym,
+    const identity::Nym&,
+    const PasswordPrompt& reason) const
 {
-    return VerifySignature(nym);
+    return VerifySignature(nym, reason);
 }
 
 // This is an override. See note above.
@@ -107,7 +109,9 @@ bool OTTrade::VerifyNymAsAgentForAccount(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTTrade::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t returnVal = 0;
 
@@ -120,7 +124,9 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
     //
-    if (0 != (returnVal = ot_super::ProcessXMLNode(xml))) return returnVal;
+    if (0 != (returnVal = ot_super::ProcessXMLNode(xml, reason))) {
+        return returnVal;
+    }
 
     if (!strcmp("trade", xml->getNodeName())) {
         m_strVersion = String::Factory(xml->getAttributeValue("version"));
@@ -250,7 +256,7 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return returnVal;
 }
 
-void OTTrade::UpdateContents()
+void OTTrade::UpdateContents(const PasswordPrompt& reason)
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();
@@ -363,14 +369,17 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
 // Otherwise it will fail. (Perhaps it's a stop order, and not ready to activate
 // yet.)
 
-OTOffer* OTTrade::GetOffer(OTMarket** market)
+OTOffer* OTTrade::GetOffer(const PasswordPrompt& reason, OTMarket** market)
 {
     auto id = api_.Factory().Identifier();
 
-    return GetOffer(id, market);
+    return GetOffer(id, reason, market);
 }
 
-OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
+OTOffer* OTTrade::GetOffer(
+    Identifier& offerMarketId,
+    const PasswordPrompt& reason,
+    OTMarket** market)
 {
     OT_ASSERT(GetCron() != nullptr);
 
@@ -424,7 +433,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
     // Trying to load the offer from the trader's original signed request
     // (So I can use it to lookup the Market ID, so I can see the offer is
     // already there on the market.)
-    if (!offer->LoadContractFromString(marketOffer_)) {
+    if (!offer->LoadContractFromString(marketOffer_, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading offer from string.")
             .Flush();
         return nullptr;
@@ -517,11 +526,13 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
                 ": How has the trade already activated, yet not on the "
                 "market and null in my pointer?")
                 .Flush();
-        } else if (!pMarket->AddOffer(this, *offer, true))  // Since we're
-                                                            // actually adding
-                                                            // an offer to the
-                                                            // market (not just
-        {  // loading from disk) the we actually want to save the market.
+        } else if (!pMarket->AddOffer(
+                       this, *offer, reason, true))  // Since
+                                                     // we're actually
+                                                     // adding an offer
+                                                     // to the market
+        {  // (not just loading from disk) then we actually want to save the
+            // market.
             // bSaveFile=true.
             // Error adding the offer to the market!
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -546,10 +557,10 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
             // sign with the server instead.
             // The server-signed offer will be stored by the OTMarket.
             offer_->ReleaseSignatures();
-            offer_->SignContract(*(GetCron()->GetServerNym()));
+            offer_->SignContract(*(GetCron()->GetServerNym()), reason);
             offer_->SaveContract();
 
-            pMarket->SaveMarket();
+            pMarket->SaveMarket(reason);
 
             // Now when the market loads next time, it can verify this offer
             // using the server's signature,
@@ -586,9 +597,10 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         if ((IsGreaterThan() && (relevantPrice > GetStopPrice())) ||
             (IsLessThan() && (relevantPrice < GetStopPrice()))) {
             // Activate the stop order!
-            if (!pMarket->AddOffer(this, *offer, true))  // Since we're actually
-                                                         // adding an offer to
-                                                         // the market (not just
+            if (!pMarket->AddOffer(
+                    this, *offer, reason, true))  // Since we're
+                                                  // adding an offer to
+                                                  // the market (not just
             {  // loading from disk) the we actually want to save the market.
                 // Error adding the offer to the market!    // bSaveFile=true.
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -614,10 +626,10 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
                 // sign with the server instead.
                 // The server-signed offer will be stored by the OTMarket.
                 offer_->ReleaseSignatures();
-                offer_->SignContract(*(GetCron()->GetServerNym()));
+                offer_->SignContract(*(GetCron()->GetServerNym()), reason);
                 offer_->SaveContract();
 
-                pMarket->SaveMarket();
+                pMarket->SaveMarket(reason);
 
                 // Now when the market loads next time, it can verify this offer
                 // using the server's signature,
@@ -649,10 +661,9 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
 //
 // In this case, it removes the corresponding offer from the market.
 //
-void OTTrade::onRemovalFromCron()
+void OTTrade::onRemovalFromCron(const PasswordPrompt& reason)
 {
     OTCron* cron = GetCron();
-
     OT_ASSERT(cron != nullptr);
 
     // If I don't already have an offer on the market, then I will have trouble
@@ -682,7 +693,7 @@ void OTTrade::onRemovalFromCron()
         // (So I can use it to lookup the Market ID, so I can see if the offer
         // is
         // already there on the market.)
-        if (!offer->LoadContractFromString(marketOffer_)) {
+        if (!offer->LoadContractFromString(marketOffer_, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error loading offer from string.")
                 .Flush();
@@ -721,7 +732,7 @@ void OTTrade::onRemovalFromCron()
         offer_->SetTrade(*this);
     }
 
-    market->RemoveOffer(transactionNum);
+    market->RemoveOffer(transactionNum, reason);
 }
 
 //    GetSenderAcctID()    -- asset account.
@@ -828,7 +839,8 @@ void OTTrade::onFinalReceipt(
     OTCronItem& origCronItem,
     const std::int64_t& newTransactionNumber,
     Nym_p originator,
-    Nym_p remover)
+    Nym_p remover,
+    const PasswordPrompt& reason)
 {
 
     OTCron* cron = GetCron();
@@ -837,7 +849,8 @@ void OTTrade::onFinalReceipt(
     auto serverNym = cron->GetServerNym();
     OT_ASSERT(serverNym);
 
-    auto context = api_.Wallet().mutable_ClientContext(originator->ID());
+    auto context =
+        api_.Wallet().mutable_ClientContext(originator->ID(), reason);
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -914,18 +927,20 @@ void OTTrade::onFinalReceipt(
     // number. The closing number, by contrast, is not closed out until the
     // final Receipt is ACCEPTED (which happens in a "process inbox"
     // transaction.)
-    if ((openingNumber > 0) && context.It().VerifyIssuedNumber(openingNumber)) {
+    if ((openingNumber > 0) &&
+        context.get().VerifyIssuedNumber(openingNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
         // that list.
-        context.It().CloseCronItem(openingNumber);
-        context.It().ConsumeIssued(openingNumber);
+        context.get().CloseCronItem(openingNumber);
+        context.get().ConsumeIssued(openingNumber);
 
         if (!DropFinalReceiptToNymbox(
                 GetSenderNymID(),
                 newTransactionNumber,
                 strOrigCronItem,
                 GetOriginType(),
+                reason,
                 note,
                 attachment)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -942,7 +957,7 @@ void OTTrade::onFinalReceipt(
     // ASSET ACCT
     //
     if ((closingAssetNumber > 0) &&
-        context.It().VerifyIssuedNumber(closingAssetNumber)) {
+        context.get().VerifyIssuedNumber(closingAssetNumber)) {
         DropFinalReceiptToInbox(
             GetSenderNymID(),
             GetSenderAcctID(),
@@ -951,6 +966,7 @@ void OTTrade::onFinalReceipt(
                                  // receipt.
             strOrigCronItem,
             GetOriginType(),
+            reason,
             note,
             attachment);
     } else {
@@ -964,7 +980,7 @@ void OTTrade::onFinalReceipt(
 
     // CURRENCY ACCT
     if ((closingCurrencyNumber > 0) &&
-        context.It().VerifyIssuedNumber(closingCurrencyNumber)) {
+        context.get().VerifyIssuedNumber(closingCurrencyNumber)) {
         DropFinalReceiptToInbox(
             GetSenderNymID(),
             GetCurrencyAcctID(),
@@ -973,6 +989,7 @@ void OTTrade::onFinalReceipt(
                                     // receipt.
             strOrigCronItem,
             GetOriginType(),
+            reason,
             note,
             attachment);
     } else {
@@ -999,7 +1016,7 @@ void OTTrade::onFinalReceipt(
 // OTCron calls this regularly, which is my chance to expire, etc.
 // Return True if I should stay on the Cron list for more processing.
 // Return False if I should be removed and deleted.
-bool OTTrade::ProcessCron()
+bool OTTrade::ProcessCron(const PasswordPrompt& reason)
 {
     // Right now Cron is called 10 times per second.
     // I'm going to slow down all trades so they are once every
@@ -1021,7 +1038,7 @@ bool OTTrade::ProcessCron()
     // PAST END DATE?
     // First call the parent's version (which this overrides) so it has
     // a chance to check its stuff. Currently it checks IsExpired().
-    if (!ot_super::ProcessCron())
+    if (!ot_super::ProcessCron(reason))
         return false;  // It's expired or flagged for removal--remove it from
                        // Cron.
 
@@ -1054,7 +1071,7 @@ bool OTTrade::ProcessCron()
     // the offer on the market and then sets the pointer and returns. If it
     // can't find it, IT TRIES TO ADD IT TO THE MARKET and sets the pointer and
     // returns it.
-    auto offer = GetOffer(OFFER_MARKET_ID, &market);
+    auto offer = GetOffer(OFFER_MARKET_ID, reason, &market);
 
     // In this case, the offer is NOT on the market.
     // Perhaps it wasn't ready to activate yet.
@@ -1090,7 +1107,8 @@ bool OTTrade::ProcessCron()
         {
             LogVerbose("Processing trade: ")(GetTransactionNum()).Flush();
 
-            bStayOnMarket = market->ProcessTrade(api_.Wallet(), *this, *offer);
+            bStayOnMarket =
+                market->ProcessTrade(api_.Wallet(), *this, *offer, reason);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.
         }

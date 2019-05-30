@@ -64,7 +64,8 @@ public:
     std::int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
     std::int64_t GetAmountReturned() { return m_lAmountReturned; }
 
-    bool Trigger(const Account& theAccount) override;
+    bool Trigger(const Account& theAccount, const PasswordPrompt& reason)
+        override;
 
     virtual ~PayDividendVisitor();
 };

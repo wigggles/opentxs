@@ -19,47 +19,61 @@ class EcdsaProvider : virtual public AsymmetricProvider
 {
 public:
     EXPORT virtual bool AsymmetricKeyToECPrivatekey(
+        const api::Core& api,
         const crypto::key::EllipticCurve& asymmetricKey,
-        const OTPasswordData& passwordData,
+        const PasswordPrompt& reason,
         OTPassword& privkey) const = 0;
     EXPORT virtual bool DecryptSessionKeyECDH(
+        const api::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
-        const OTPasswordData& password,
         crypto::key::Symmetric& sessionKey,
-        OTPassword& plaintextKey) const = 0;
+        PasswordPrompt& sessionKeyPassword,
+        OTPassword& plaintextKey,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool DecryptSessionKeyECDH(
+        const api::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
-        const OTPasswordData& password,
-        crypto::key::Symmetric& sessionKey) const = 0;
+        crypto::key::Symmetric& sessionKey,
+        PasswordPrompt& sessionKeyPassword,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool ECPrivatekeyToAsymmetricKey(
+        const api::Core& api,
         const OTPassword& privkey,
-        const OTPasswordData& passwordData,
+        const PasswordPrompt& reason,
         crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool ECPubkeyToAsymmetricKey(
         const Data& pubkey,
         crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool EncryptSessionKeyECDH(
+        const api::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
-        const OTPasswordData& passwordData,
         crypto::key::Symmetric& sessionKey,
-        OTPassword& newKeyPassword) const = 0;
+        const PasswordPrompt& sessionKeyPassword,
+        OTPassword& newKeyPassword,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool ExportECPrivatekey(
+        const api::Core& api,
         const OTPassword& privkey,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool ImportECPrivatekey(
+        const api::Core& api,
         const proto::Ciphertext& asymmetricKey,
-        const OTPasswordData& password,
+        const PasswordPrompt& reason,
         OTPassword& privkey) const = 0;
     EXPORT virtual bool PrivateToPublic(
+        const api::Core& api,
         const proto::AsymmetricKey& privateKey,
-        proto::AsymmetricKey& publicKey) const = 0;
+        proto::AsymmetricKey& publicKey,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool PrivateToPublic(
+        const api::Core& api,
         const proto::Ciphertext& privateKey,
-        Data& publicKey) const = 0;
+        Data& publicKey,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool RandomKeypair(OTPassword& privateKey, Data& publicKey)
         const = 0;
     EXPORT virtual bool SeedToCurveKey(

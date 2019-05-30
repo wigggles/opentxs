@@ -38,13 +38,14 @@ public:
         const api::Core& api,
         const mapOfAsymmetricKeys& RecipPubKeys,
         const String& theInput,
-        Data& dataOutput);
+        Data& dataOutput,
+        const PasswordPrompt& reason);
     static bool Open(
         const api::Core& api,
         const Data& dataInput,
         const identity::Nym& theRecipient,
-        const OTPasswordData& keyPassword,
-        String& theOutput);
+        String& theOutput,
+        const PasswordPrompt& reason);
 
     ~Letter() = default;
 
@@ -55,8 +56,9 @@ private:
         const api::Core& api,
         const mapOfAsymmetricKeys& recipients,
         const crypto::key::Symmetric& sessionKey,
-        proto::Envelope& envelope);
-    static bool DefaultPassword(OTPasswordData& password);
+        proto::Envelope& envelope,
+        const PasswordPrompt& reason);
+    static bool DefaultPassword(PasswordPrompt& reason);
     static bool SortRecipients(
         const mapOfAsymmetricKeys& recipients,
         mapOfAsymmetricKeys& RSARecipients,

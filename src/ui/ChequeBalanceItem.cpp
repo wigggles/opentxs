@@ -11,6 +11,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -18,6 +19,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -99,13 +101,13 @@ opentxs::Amount ChequeBalanceItem::effective_amount() const
     return amount * sign;
 }
 
-bool ChequeBalanceItem::get_contract() const
+bool ChequeBalanceItem::get_contract(const PasswordPrompt& reason) const
 {
     if (contract_) { return true; }
 
     eLock lock(shared_lock_);
     const auto& contractID = cheque_->GetInstrumentDefinitionID();
-    contract_ = api_.Wallet().UnitDefinition(contractID);
+    contract_ = api_.Wallet().UnitDefinition(contractID, reason);
 
     if (contract_) { return true; }
 
@@ -136,15 +138,17 @@ void ChequeBalanceItem::startup(const CustomData& custom)
 {
     OT_ASSERT(2 == custom.size())
 
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
-    cheque_ = api::client::Workflow::InstantiateCheque(api_, workflow).second;
+    cheque_ =
+        api::client::Workflow::InstantiateCheque(api_, workflow, reason).second;
 
     OT_ASSERT(cheque_)
 
     lock.unlock();
-    get_contract();
+    get_contract(reason);
     std::string name{""};
     std::string text{""};
     auto number = std::to_string(cheque_->GetTransactionNum());

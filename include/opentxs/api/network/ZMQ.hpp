@@ -36,7 +36,8 @@ public:
     EXPORT virtual void RefreshConfig() const = 0;
     EXPORT virtual std::chrono::seconds SendTimeout() const = 0;
     EXPORT virtual opentxs::network::ServerConnection& Server(
-        const std::string& id) const = 0;
+        const std::string& id,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
     EXPORT virtual std::string SocksProxy() const = 0;
     EXPORT virtual bool SocksProxy(std::string& proxy) const = 0;

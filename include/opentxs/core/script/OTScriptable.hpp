@@ -52,7 +52,8 @@ public:
     EXPORT virtual bool AddBylaw(OTBylaw& theBylaw);  // takes ownership.
     EXPORT virtual bool ConfirmParty(
         OTParty& theParty,  // Takes ownership.
-        ServerContext& context);
+        ServerContext& context,
+        const PasswordPrompt& reason);
     EXPORT bool RemoveParty(std::string str_Name);
     EXPORT bool RemoveBylaw(std::string str_Name);
     EXPORT OTParty* GetParty(std::string str_party_name) const;
@@ -100,7 +101,8 @@ public:
     //
     EXPORT virtual bool VerifyNymAsAgent(
         const identity::Nym& theNym,
-        const identity::Nym& theSignerNym) const;
+        const identity::Nym& theSignerNym,
+        const PasswordPrompt& reason) const;
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -117,8 +119,9 @@ public:
                             // supposedly executed agreement.
         const identity::Nym& theSignerNym,  // For verifying signature on the
                                             // authorizing Nym, when loading it
-        const String& strNotaryID,   // For verifying issued num, need the
-                                     // notaryID the # goes with.
+        const String& strNotaryID,  // For verifying issued num, need the
+                                    // notaryID the # goes with.
+        const PasswordPrompt& reason,
         bool bBurnTransNo = false);  // In Server::VerifySmartContract(), it
                                      // not only wants to
     // verify the # is properly issued, but it additionally
@@ -127,6 +130,7 @@ public:
     // you to tell the function whether or not to do that.
 
     bool VerifyPartyAcctAuthorization(
+        const PasswordPrompt& reason,
         OTPartyAccount& thePartyAcct,  // The party is assumed to have been
                                        // verified already via
                                        // VerifyPartyAuthorization()
@@ -139,7 +143,8 @@ public:
     // AND it wants to burn it, so it can't be used again!  This
     // bool allows you to tell the function whether or not to do
     // that.
-    EXPORT bool VerifyThisAgainstAllPartiesSignedCopies();
+    EXPORT bool VerifyThisAgainstAllPartiesSignedCopies(
+        const PasswordPrompt& reason);
     EXPORT bool AllPartiesHaveSupposedlyConfirmed();
 
     void ClearTemporaryPointers();
@@ -177,6 +182,7 @@ public:
         // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
         identity::Nym* pActualNym = nullptr) const;
@@ -233,7 +239,7 @@ public:
 
     void Release() override;
     void Release_Scriptable();
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
     virtual ~OTScriptable();
 
@@ -331,7 +337,9 @@ protected:
     bool m_bSpecifyParties{false};  // Serialized. See above note.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
     OTString m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
                           // us to use it in the OTScriptable methods where any

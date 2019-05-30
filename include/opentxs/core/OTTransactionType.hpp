@@ -96,33 +96,36 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(const identity::Nym& theNym);
+    virtual bool VerifyAccount(
+        const identity::Nym& theNym,
+        const PasswordPrompt& reason);
 
     void InitTransactionType();
     void Release() override;
     void Release_TransactionType();
 
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    //    virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    //    void UpdateContents(); // I don't think I need this here. My parent
-    // and child classes do well enough.
-
     // need to know the transaction number of this transaction? Call this.
     EXPORT std::int64_t GetTransactionNum() const;
     void SetTransactionNum(std::int64_t lTransactionNum);
 
-    EXPORT virtual void CalculateNumberOfOrigin();    // Calculates number of
-                                                      // origin.
-    EXPORT virtual std::int64_t GetNumberOfOrigin();  // Calculates IF
-                                                      // NECESSARY.
+    EXPORT virtual void CalculateNumberOfOrigin(
+        const PasswordPrompt& reason);  // Calculates number of
+                                        // origin.
+    EXPORT virtual std::int64_t GetNumberOfOrigin(
+        const PasswordPrompt& reason);  // Calculates IF
+                                        // NECESSARY.
 
     EXPORT std::int64_t GetRawNumberOfOrigin() const;  // Gets WITHOUT
                                                        // calculating.
 
     EXPORT void SetNumberOfOrigin(std::int64_t lTransactionNum);
-    EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
+    EXPORT void SetNumberOfOrigin(
+        OTTransactionType& setFrom,
+        const PasswordPrompt& reason);
 
-    EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
+    EXPORT bool VerifyNumberOfOrigin(
+        OTTransactionType& compareTo,
+        const PasswordPrompt& reason);
     // --------------------------------------------------------
     originType GetOriginType() const;  // NOTE: used for GUI display purposes
                                        // only.

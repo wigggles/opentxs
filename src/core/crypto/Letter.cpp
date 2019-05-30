@@ -15,7 +15,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -23,6 +22,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -42,7 +42,6 @@
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #endif
 #include "opentxs/crypto/library/Sodium.hpp"
-#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/Nym.hpp"
@@ -68,7 +67,8 @@ bool Letter::AddRSARecipients(
     [[maybe_unused]] const api::Core& api,
     [[maybe_unused]] const mapOfAsymmetricKeys& recipients,
     [[maybe_unused]] const crypto::key::Symmetric& sessionKey,
-    [[maybe_unused]] proto::Envelope& envelope)
+    [[maybe_unused]] proto::Envelope& envelope,
+    [[maybe_unused]] const PasswordPrompt& reason)
 {
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_USING_OPENSSL
@@ -92,7 +92,7 @@ bool Letter::AddRSARecipients(
 
     auto binary = proto::ProtoAsData(serializedSessionKey);
     const bool haveSessionKey =
-        engine.EncryptSessionKey(recipients, binary, encrypted);
+        engine.EncryptSessionKey(recipients, binary, encrypted, reason);
 
     if (haveSessionKey) {
         envelope.set_rsakey(encrypted->data(), encrypted->size());
@@ -114,11 +114,12 @@ bool Letter::AddRSARecipients(
 #endif
 }
 
-bool Letter::DefaultPassword(OTPasswordData& password)
+bool Letter::DefaultPassword(PasswordPrompt& password)
 {
     OTPassword defaultPassword;
     defaultPassword.setPassword("opentxs");
-    return password.SetOverride(defaultPassword);
+
+    return password.SetPassword(defaultPassword);
 }
 
 bool Letter::SortRecipients(
@@ -168,7 +169,8 @@ bool Letter::Seal(
     const api::Core& api,
     const mapOfAsymmetricKeys& RecipPubKeys,
     const String& theInput,
-    Data& dataOutput)
+    Data& dataOutput,
+    const PasswordPrompt& reason)
 {
     mapOfAsymmetricKeys RSARecipients;
     mapOfECKeys secp256k1Recipients;
@@ -186,9 +188,9 @@ bool Letter::Seal(
     [[maybe_unused]] const bool haveRecipientsED25519 =
         (0 < ed25519Recipients.size());
 
-    OTPasswordData defaultPassword("");
+    auto defaultPassword = api.Factory().PasswordPrompt("");
     DefaultPassword(defaultPassword);
-    auto sessionKey = api.Crypto().Symmetric().Key(defaultPassword);
+    auto sessionKey = api.Symmetric().Key(defaultPassword);
 
     proto::Envelope output;
     VersionNumber highestKeyVersion{1};
@@ -203,7 +205,7 @@ bool Letter::Seal(
     }
 
     if (0 < RSARecipients.size()) {
-        if (!AddRSARecipients(api, RSARecipients, sessionKey, output)) {
+        if (!AddRSARecipients(api, RSARecipients, sessionKey, output, reason)) {
             return false;
         }
     }
@@ -223,7 +225,8 @@ bool Letter::Seal(
             proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->GetSerialized(false);
-        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(true));
+        dhRawKey = api.Factory().AsymmetricKey(
+            *dhKeypair->GetSerialized(true), reason);
         dhPrivateKey =
             dynamic_cast<const crypto::key::Secp256k1*>(&dhRawKey.get());
 
@@ -235,11 +238,13 @@ bool Letter::Seal(
         for (auto it : secp256k1Recipients) {
             OTPassword newKeyPassword;
             const bool haveSessionKey = engine.EncryptSessionKeyECDH(
+                api,
                 *dhPrivateKey,
                 *it.second,
-                defaultPassword,
                 sessionKey,
-                newKeyPassword);
+                defaultPassword,
+                newKeyPassword,
+                reason);
 
             if (haveSessionKey) {
                 auto& serializedSessionKey = *output.add_sessionkey();
@@ -256,8 +261,8 @@ bool Letter::Seal(
         }
 #else
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Attempting to Seal to "
-            "secp256k1 recipients without crypto::Secp256k1 support.")
+            ": Attempting to Seal to secp256k1 recipients without "
+            "crypto::Secp256k1 support.")
             .Flush();
 
         return false;
@@ -276,23 +281,25 @@ bool Letter::Seal(
             proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->GetSerialized(false);
-        dhRawKey = api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(true));
+        dhRawKey = api.Factory().AsymmetricKey(
+            *dhKeypair->GetSerialized(true), reason);
         dhPrivateKey =
             dynamic_cast<const crypto::key::Ed25519*>(&dhRawKey.get());
 
         OT_ASSERT(nullptr != dhPrivateKey);
 
-        // Individually encrypt the session key to each recipient and add
-        // the encrypted key to the global list of session keys for this
-        // letter.
+        // Individually encrypt the session key to each recipient and add the
+        // encrypted key to the global list of session keys for this letter.
         for (auto it : ed25519Recipients) {
             OTPassword newKeyPassword;
             const bool haveSessionKey = engine.EncryptSessionKeyECDH(
+                api,
                 *dhPrivateKey,
                 *it.second,
-                defaultPassword,
                 sessionKey,
-                newKeyPassword);
+                defaultPassword,
+                newKeyPassword,
+                reason);
 
             if (haveSessionKey) {
                 auto& serializedSessionKey = *output.add_sessionkey();
@@ -321,8 +328,8 @@ bool Letter::Open(
     const api::Core& api,
     const Data& dataInput,
     const identity::Nym& theRecipient,
-    const OTPasswordData& keyPassword,
-    String& theOutput)
+    String& theOutput,
+    const PasswordPrompt& reason)
 {
     auto serialized = proto::DataToProto<proto::Envelope>(dataInput);
 
@@ -388,7 +395,8 @@ bool Letter::Open(
             return false;
         }
 
-        const auto dhRawKey = api.Factory().AsymmetricKey(ephemeralPubkey);
+        const auto dhRawKey =
+            api.Factory().AsymmetricKey(ephemeralPubkey, reason);
         const crypto::key::EllipticCurve* dhPublicKey{nullptr};
 
         if (secp256k1) {
@@ -405,13 +413,14 @@ bool Letter::Open(
 
         OT_ASSERT(nullptr != dhPublicKey)
 
+        auto sessionKeyPassword = api.Factory().PasswordPrompt("");
+        DefaultPassword(sessionKeyPassword);
         // The only way to know which session key (might) belong to us to
         // try them all
         for (auto& it : serialized.sessionkey()) {
-            key = api.Crypto().Symmetric().Key(
-                it, serialized.ciphertext().mode());
+            key = api.Symmetric().Key(it, serialized.ciphertext().mode());
             haveSessionKey = ecKey->ECDSA().DecryptSessionKeyECDH(
-                *ecKey, *dhPublicKey, keyPassword, key);
+                api, *ecKey, *dhPublicKey, key, sessionKeyPassword, reason);
 
             if (haveSessionKey) { break; }
         }
@@ -427,13 +436,13 @@ bool Letter::Open(
             serialized.rsakey().data(), serialized.rsakey().size());
         auto sessionKey = Data::Factory();
         haveSessionKey = engine.DecryptSessionKey(
-            serializedKey, theRecipient, sessionKey, nullptr);
+            serializedKey, theRecipient, sessionKey, reason);
     }
 #endif
 
     if (haveSessionKey) {
         auto plaintext = Data::Factory();
-        OTPasswordData defaultPassword("");
+        auto defaultPassword = api.Factory().PasswordPrompt("");
         DefaultPassword(defaultPassword);
         const bool decrypted =
             key->Decrypt(serialized.ciphertext(), defaultPassword, plaintext);

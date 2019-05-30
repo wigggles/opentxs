@@ -7,10 +7,8 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/Native.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/util/stacktrace.h"
@@ -19,7 +17,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/RSA.hpp"
-#include "opentxs/OT.hpp"
 
 #include "internal/api/Api.hpp"
 #if OT_CRYPTO_USING_OPENSSL
@@ -64,25 +61,14 @@ void RSA::d::SetX509(X509* x509)
 
 void RSA::d::SetKeyAsCopyOf(
     EVP_PKEY& theKey,
+    const PasswordPrompt& reason,
     bool bIsPrivateKey,
-    const OTPasswordData* pPWData,
     const OTPassword* pImportPassword)
 {
     backlink->Release();
-    OTPasswordData thePWData(
-        !pImportPassword ? "Enter your wallet's master passphrase. "
-                           "(RSA::SetKeyAsCopyOf)"
-                         : "Enter your exported Nym's passphrase.  "
-                           "(RSA::SetKeyAsCopyOf)");
-
-    m_pKey = bIsPrivateKey ? RSA::d::CopyPrivateKey(
-                                 theKey,
-                                 nullptr == pPWData ? &thePWData : pPWData,
-                                 pImportPassword)
-                           : RSA::d::CopyPublicKey(
-                                 theKey,
-                                 nullptr == pPWData ? &thePWData : pPWData,
-                                 pImportPassword);
+    m_pKey = bIsPrivateKey
+                 ? RSA::d::CopyPrivateKey(api_, theKey, reason, pImportPassword)
+                 : RSA::d::CopyPublicKey(api_, theKey, reason, pImportPassword);
     OT_ASSERT_MSG(
         nullptr != m_pKey,
         "RSA::SetKeyAsCopyOf: "
@@ -95,10 +81,11 @@ void RSA::d::SetKeyAsCopyOf(
 
     if (backlink->has_private_) {
         RSA::d::ArmorPrivateKey(
+            api_,
             *m_pKey,
             backlink->m_p_ascKey,
             backlink->m_timer,
-            nullptr == pPWData ? &thePWData : pPWData,
+            reason,
             pImportPassword);
     }
     // NOTE: Timer is already set INSIDE ArmorPrivateKey. No need to set twice.
@@ -115,7 +102,7 @@ void RSA::d::SetKeyAsCopyOf(
 
 EVP_PKEY* RSA::d::GetKeyLowLevel() const { return m_pKey; }
 
-const EVP_PKEY* RSA::d::GetKey(const OTPasswordData* pPWData)
+const EVP_PKEY* RSA::d::GetKey(const PasswordPrompt& reason)
 {
     if (backlink->m_timer.getElapsedTimeInSec() > OT_KEY_TIMER)
         backlink->Release();  // This releases the actual loaded key,
@@ -125,23 +112,23 @@ const EVP_PKEY* RSA::d::GetKey(const OTPasswordData* pPWData)
     // again.)
 
     if (nullptr == m_pKey)
-        return InstantiateKey(pPWData);  // this is the ONLY place, currently,
-                                         // that this private method is called.
+        return InstantiateKey(reason);  // this is the ONLY place, currently,
+                                        // that this private method is called.
 
     return m_pKey;
 }
 
-EVP_PKEY* RSA::d::InstantiateKey(const OTPasswordData* pPWData)
+EVP_PKEY* RSA::d::InstantiateKey(const PasswordPrompt& reason)
 {
     if (backlink->HasPublic())
-        return InstantiatePublicKey(pPWData);  // this is the ONLY place,
-                                               // currently, that this private
-                                               // method is called.
+        return InstantiatePublicKey(reason);  // this is the ONLY place,
+                                              // currently, that this private
+                                              // method is called.
 
     else if (backlink->HasPrivate())
-        return InstantiatePrivateKey(pPWData);  // this is the ONLY place,
-                                                // currently, that this private
-                                                // method is called.
+        return InstantiatePrivateKey(reason);  // this is the ONLY place,
+                                               // currently, that this private
+                                               // method is called.
 
     else
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -152,8 +139,9 @@ EVP_PKEY* RSA::d::InstantiateKey(const OTPasswordData* pPWData)
 }
 
 EVP_PKEY* RSA::d::CopyPublicKey(
+    const api::internal::Core& api,
     EVP_PKEY& theKey,
-    const OTPasswordData* pPWData,
+    const PasswordPrompt& reason,
     const OTPassword* pImportPassword)
 {
     // Create a new memory buffer on the OpenSSL side
@@ -210,24 +198,12 @@ EVP_PKEY* RSA::d::CopyPublicKey(
 
                 // Next we load up the key from the BIO string into an
                 // instantiated key object.
-                //
-                OTPasswordData thePWData(
-                    nullptr == pImportPassword
-                        ? "Enter your wallet master passphrase. "
-                          "(RSA::CopyPublicKey is calling "
-                          "PEM_read_bio_PUBKEY...)"
-                        : "Enter the passphrase for your exported Nym.");
-
                 if (nullptr == pImportPassword) {
-                    const auto& native =
-                        dynamic_cast<const api::internal::Native&>(OT::App());
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio,
                         nullptr,
-                        native.GetInternalPasswordCallback(),
-                        nullptr == pPWData
-                            ? &thePWData
-                            : const_cast<OTPasswordData*>(pPWData));
+                        api.GetInternalPasswordCallback(),
+                        const_cast<PasswordPrompt*>(&reason));
                 } else {
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio,
@@ -274,8 +250,9 @@ EVP_PKEY* RSA::d::CopyPublicKey(
 // OTPassword can accommodate a bit larger size than what it does now.
 //
 EVP_PKEY* RSA::d::CopyPrivateKey(
+    const api::internal::Core& api,
     EVP_PKEY& theKey,
-    const OTPasswordData* pPWData,
+    const PasswordPrompt& reason,
     const OTPassword* pImportPassword)
 {
     const EVP_CIPHER* pCipher =
@@ -289,9 +266,6 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
 
     // write a private key to that buffer, from theKey
     //
-    OTPasswordData thePWDataWrite("RSA::CopyPrivateKey is "
-                                  "calling PEM_write_bio_PrivateKey...");
-
     // todo optimization: might just remove the password callback here, and just
     // write the private key in the clear,
     // and then load it up again, saving the encrypt/decrypt step that otherwise
@@ -299,7 +273,6 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
     // the BIO, then it SHOULD stil be safe, right?
     //
     std::int32_t nWriteBio = false;
-    const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
 
     if (nullptr == pImportPassword) {
         nWriteBio = PEM_write_bio_PrivateKey(
@@ -308,9 +281,8 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
             pCipher,
             nullptr,
             0,
-            native.GetInternalPasswordCallback(),
-            nullptr == pPWData ? &thePWDataWrite
-                               : const_cast<OTPasswordData*>(pPWData));
+            api.GetInternalPasswordCallback(),
+            const_cast<PasswordPrompt*>(&reason));
     } else {
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem,
@@ -371,21 +343,12 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
 
                 // Next we load up the key from the BIO string into an
                 // instantiated key object.
-                //
-                OTPasswordData thePWData("RSA::"
-                                         "CopyPrivateKey is calling "
-                                         "PEM_read_bio_PUBKEY...");
-                const auto& native =
-                    dynamic_cast<const api::internal::Native&>(OT::App());
-
                 if (nullptr == pImportPassword) {
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio,
                         nullptr,
-                        native.GetInternalPasswordCallback(),
-                        nullptr == pPWData
-                            ? &thePWData
-                            : const_cast<OTPasswordData*>(pPWData));
+                        api.GetInternalPasswordCallback(),
+                        const_cast<PasswordPrompt*>(&reason));
                 } else {
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio,
@@ -482,7 +445,7 @@ bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
 
 // (Internal) ASCII-Armored key ====> (Internal) Actual loaded OpenSSL key.
 //
-EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
+EVP_PKEY* RSA::d::InstantiatePublicKey(const PasswordPrompt& reason)
 {
     OT_ASSERT(m_pKey == nullptr);
     OT_ASSERT(backlink->HasPublic());
@@ -509,22 +472,11 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
             "InstantiatePublicKey: Assert: nullptr != "
             "keyBio \n");
 
-        // Next we load up the key from the BIO string into an instantiated key
-        // object.
-        //
-        OTPasswordData thePWData("RSA::"
-                                 "InstantiatePublicKey is calling "
-                                 "PEM_read_bio_PUBKEY...");
-
-        if (nullptr == pPWData) { pPWData = &thePWData; }
-
-        const auto& native =
-            dynamic_cast<const api::internal::Native&>(OT::App());
         pReturnKey = PEM_read_bio_PUBKEY(
             keyBio,
             nullptr,
-            native.GetInternalPasswordCallback(),
-            const_cast<OTPasswordData*>(pPWData));
+            api_.GetInternalPasswordCallback(),
+            const_cast<PasswordPrompt*>(&reason));
 
         backlink->Release();  // Release whatever loaded key I might
                               // have already had.
@@ -547,7 +499,7 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
     return nullptr;
 }
 
-EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
+EVP_PKEY* RSA::d::InstantiatePrivateKey(const PasswordPrompt& reason)
 {
     OT_ASSERT(m_pKey == nullptr);
     OT_ASSERT(backlink->HasPrivate());
@@ -587,21 +539,11 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
             "InstantiatePrivateKey: Assert: nullptr != "
             "keyBio \n");
 
-        // Here's thePWData we use if we didn't have anything else:
-        //
-        OTPasswordData thePWData("RSA::"
-                                 "InstantiatePrivateKey is calling "
-                                 "PEM_read_bio_PrivateKey...");
-
-        if (nullptr == pPWData) { pPWData = &thePWData; }
-
-        const auto& native =
-            dynamic_cast<const api::internal::Native&>(OT::App());
         pReturnKey = PEM_read_bio_PrivateKey(
             keyBio,
             nullptr,
-            native.GetInternalPasswordCallback(),
-            const_cast<OTPasswordData*>(pPWData));
+            api_.GetInternalPasswordCallback(),
+            const_cast<PasswordPrompt*>(&reason));
 
         // Free the BIO and related buffers, filters, etc.
         backlink->Release();
@@ -639,10 +581,11 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
 }
 
 bool RSA::d::ArmorPrivateKey(
+    const api::internal::Core& api,
     EVP_PKEY& theKey,
     Armored& ascKey,
     Timer& theTimer,
-    const OTPasswordData* pPWData,
+    const PasswordPrompt& reason,
     const OTPassword* pImportPassword)
 {
     bool bReturnVal = false;
@@ -653,15 +596,7 @@ bool RSA::d::ArmorPrivateKey(
     crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
     OT_ASSERT(nullptr != bmem);
 
-    // write a private key to that buffer, from theKey
-    //
-    OTPasswordData thePWData("RSA::ArmorPrivateKey is "
-                             "calling PEM_write_bio_PrivateKey...");
-
-    if (nullptr == pPWData) pPWData = &thePWData;
-
     std::int32_t nWriteBio = 0;
-    const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
 
     if (nullptr == pImportPassword) {
         nWriteBio = PEM_write_bio_PrivateKey(
@@ -670,8 +605,8 @@ bool RSA::d::ArmorPrivateKey(
             EVP_des_ede3_cbc(),  // todo should this algorithm be hardcoded?
             nullptr,
             0,
-            native.GetInternalPasswordCallback(),
-            const_cast<OTPasswordData*>(pPWData));
+            api.GetInternalPasswordCallback(),
+            const_cast<PasswordPrompt*>(&reason));
     } else {
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem,

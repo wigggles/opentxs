@@ -31,19 +31,29 @@ extern "C" {
 
 template class opentxs::Pimpl<opentxs::Data>;
 
+namespace std
+{
+bool less<opentxs::Pimpl<opentxs::Data>>::operator()(
+    const opentxs::OTData& lhs,
+    const opentxs::OTData& rhs) const
+{
+    return lhs.get() < rhs.get();
+}
+}  // namespace std
+
 namespace opentxs
 {
-bool operator==(OTData& lhs, const Data& rhs) { return lhs.get() == rhs; }
+bool operator==(const OTData& lhs, const Data& rhs) { return lhs.get() == rhs; }
 
-bool operator!=(OTData& lhs, const Data& rhs) { return lhs.get() != rhs; }
+bool operator!=(const OTData& lhs, const Data& rhs) { return lhs.get() != rhs; }
 
-bool operator<(OTData& lhs, const Data& rhs) { return lhs.get() < rhs; }
+bool operator<(const OTData& lhs, const Data& rhs) { return lhs.get() < rhs; }
 
-bool operator>(OTData& lhs, const Data& rhs) { return lhs.get() > rhs; }
+bool operator>(const OTData& lhs, const Data& rhs) { return lhs.get() > rhs; }
 
-bool operator<=(OTData& lhs, const Data& rhs) { return lhs.get() <= rhs; }
+bool operator<=(const OTData& lhs, const Data& rhs) { return lhs.get() <= rhs; }
 
-bool operator>=(OTData& lhs, const Data& rhs) { return lhs.get() >= rhs; }
+bool operator>=(const OTData& lhs, const Data& rhs) { return lhs.get() >= rhs; }
 
 OTData& operator+=(OTData& lhs, const OTData& rhs)
 {

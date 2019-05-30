@@ -23,6 +23,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -79,12 +80,13 @@ bool OTCron::LoadCron()
 {
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
     OT_ASSERT(nullptr != GetServerNym());
 
-    bool bSuccess = LoadContract(szFoldername, szFilename);
+    bool bSuccess = LoadContract(szFoldername, szFilename, reason);
 
-    if (bSuccess) bSuccess = VerifySignature(*(GetServerNym()));
+    if (bSuccess) bSuccess = VerifySignature(*(GetServerNym()), reason);
 
     return bSuccess;
 }
@@ -93,6 +95,7 @@ bool OTCron::SaveCron()
 {
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
     OT_ASSERT(nullptr != GetServerNym());
 
@@ -100,7 +103,7 @@ bool OTCron::SaveCron()
 
     // Sign it, save it internally to string, and then save that out to the
     // file.
-    if (!SignContract(*m_pServerNym) || !SaveContract() ||
+    if (!SignContract(*m_pServerNym, reason) || !SaveContract() ||
         !SaveContract(szFoldername, szFilename)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving main Cronfile: ")(
             szFoldername)(Log::PathSeparator())(szFilename)(".")
@@ -353,7 +356,9 @@ std::int64_t OTCron::GetNextTransactionNumber()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTCron::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != GetServerNym());
 
@@ -414,7 +419,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 .Flush();
             return (-1);  // error condition
         } else {
-            auto pItem{api_.Factory().CronItem(strData)};
+            auto pItem{api_.Factory().CronItem(strData, reason)};
 
             if (false == bool(pItem)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -429,7 +434,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // ITERATION of ProcessCron().
             //
             std::shared_ptr<OTCronItem> item{pItem.release()};
-            if (!item->VerifySignature(*m_pServerNym)) {
+            if (!item->VerifySignature(*m_pServerNym, reason)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR SECURITY: Server "
                     "signature failed to "
@@ -500,8 +505,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // AddMarket normally saves to file, but we don't want that when
         // we're LOADING from file, now do we?
         std::shared_ptr<OTMarket> market{pMarket.release()};
-        if (!market->LoadMarket() ||
-            !market->VerifySignature(*GetServerNym()) ||
+        if (!market->LoadMarket(reason) ||
+            !market->VerifySignature(*GetServerNym(), reason) ||
             !AddMarket(market, false))  // bSaveFile=false: don't save this
                                         // file WHILE loading it!!!
         {
@@ -522,7 +527,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-void OTCron::UpdateContents()
+void OTCron::UpdateContents(const PasswordPrompt& reason)
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();
@@ -596,6 +601,7 @@ std::int64_t OTCron::computeTimeout()
 // expire.
 void OTCron::ProcessCronItems()
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     if (!m_bIsActivated) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Not activated yet. (Skipping).")
             .Flush();
@@ -649,12 +655,12 @@ void OTCron::ProcessCronItems()
             pItem->GetTransactionNum())
             .Flush();
 
-        if (pItem->ProcessCron()) {
+        if (pItem->ProcessCron(reason)) {
             it++;
             continue;
         }
         pItem->HookRemovalFromCron(
-            api_.Wallet(), nullptr, GetNextTransactionNumber());
+            api_.Wallet(), nullptr, GetNextTransactionNumber(), reason);
         LogNormal(OT_METHOD)(__FUNCTION__)(": Removing cron item: ")(
             pItem->GetTransactionNum())(".")
             .Flush();
@@ -677,6 +683,7 @@ bool OTCron::AddCronItem(
     time64_t tDateAdded)
 {
     OT_ASSERT(nullptr != GetServerNym());
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
     // See if there's something else already there with the same transaction
     // number.
@@ -695,15 +702,16 @@ bool OTCron::AddCronItem(
         // real problem.
         //
         if (bSaveReceipt &&
-            (!theItem->SignContract(*GetServerNym()) ||  // Notice the server
-                                                         // adds its signature
-             // before saving the cron receipt to local
-             // storage. This way, the server can
-             // verify its own signature later, as
-             // evidence the file hasn't been tampered
-             // with. (BOTH signatures are there
-             // now--user's and server's.)
-             !theItem->SaveContract() || !theItem->SaveCronReceipt())) {
+            (!theItem->SignContract(
+                 *GetServerNym(),
+                 reason) ||  // Notice the
+                             // server adds its signature before saving the cron
+                             // receipt to local storage. This way, the server
+                             // can verify its own signature later, as evidence
+                             // the file hasn't been tampered with. (BOTH
+                             // signatures are there now--user's and server's.)
+             !theItem->SaveContract() ||
+             !theItem->SaveCronReceipt())) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error saving receipt while adding new "
                 "CronItem to Cron.")
@@ -730,9 +738,10 @@ bool OTCron::AddCronItem(
 
         bool bSuccess = true;
 
-        theItem->HookActivationOnCron(bSaveReceipt);  // If merely being
-                                                      // reloaded after server
-                                                      // reboot, this is false.
+        theItem->HookActivationOnCron(reason, bSaveReceipt);  // If merely being
+                                                              // reloaded after
+                                                              // server reboot,
+                                                              // this is false.
         // But if actually being activated for the first time, then this is
         // true.
 
@@ -789,8 +798,9 @@ bool OTCron::AddCronItem(
 
 bool OTCron::RemoveCronItem(
     std::int64_t lTransactionNum,
-    Nym_p theRemover)  // if returns false, item
-                       // wasn't found.
+    Nym_p theRemover,
+    const PasswordPrompt& reason)  // if returns false, item
+                                   // wasn't found.
 {
     // See if there's a cron item with that transaction number.
     auto it_map = FindItemOnMap(lTransactionNum);
@@ -815,7 +825,7 @@ bool OTCron::RemoveCronItem(
                                                               // multimap also.
 
         pItem->HookRemovalFromCron(
-            api_.Wallet(), theRemover, GetNextTransactionNumber());
+            api_.Wallet(), theRemover, GetNextTransactionNumber(), reason);
 
         m_mapCronItems.erase(it_map);            // Remove from MAP.
         m_multimapCronItems.erase(it_multimap);  // Remove from MULTIMAP.
@@ -966,6 +976,7 @@ bool OTCron::AddMarket(
     bool bSaveMarketFile)
 {
     OT_ASSERT(nullptr != GetServerNym());
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
     theMarket->SetCronPointer(*this);  // This way every Market has a pointer to
                                        // Cron.
@@ -983,7 +994,7 @@ bool OTCron::AddMarket(
         // successfully save the market
         //  (to its own file), then return false.  This will happen if
         // filesystem problems.
-        if (bSaveMarketFile && !theMarket->SaveMarket()) {
+        if (bSaveMarketFile && !theMarket->SaveMarket(reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error saving market file while adding new Market to Cron: ")(
                 std_MARKET_ID)(".")

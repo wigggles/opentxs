@@ -101,7 +101,8 @@ Lucre::Lucre(
 bool Lucre::AddDenomination(
     const identity::Nym& theNotary,
     const std::int64_t denomination,
-    const std::size_t keySize)
+    const std::size_t keySize,
+    const PasswordPrompt& reason)
 {
     bool bReturnValue = false;
 
@@ -182,9 +183,8 @@ bool Lucre::AddDenomination(
     // Seal the private bank info up into an encrypted Envelope
     // and set it onto pPrivate
     OTEnvelope theEnvelope(api_);
-    theEnvelope.Seal(theNotary, strPrivateBank);  // Todo check the return
-                                                  // values on these two
-                                                  // functions
+    theEnvelope.Seal(theNotary, strPrivateBank, reason);
+    // TODO check the return values on these twofunctions
     theEnvelope.GetCiphertext(pPrivate);
 
     // Add the new key pair to the maps, using denomination as the key
@@ -206,7 +206,10 @@ bool Lucre::AddDenomination(
 
 // Lucre step 3: the mint signs the token
 //
-bool Lucre::SignToken(const identity::Nym& notary, blind::Token& token)
+bool Lucre::SignToken(
+    const identity::Nym& notary,
+    blind::Token& token,
+    const PasswordPrompt& reason)
 {
 #if OT_LUCRE_DEBUG
     LucreDumper setDumper;
@@ -239,7 +242,7 @@ bool Lucre::SignToken(const identity::Nym& notary, blind::Token& token)
     OTEnvelope envelope(api_, armoredPrivate);
     auto privateKey = String::Factory();
 
-    if (false == envelope.Open(notary, privateKey)) {
+    if (false == envelope.Open(notary, privateKey, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt private key")
             .Flush();
 
@@ -253,7 +256,7 @@ bool Lucre::SignToken(const identity::Nym& notary, blind::Token& token)
     Bank bank(bioBank);
     auto prototoken = String::Factory();
 
-    if (false == lToken.GetPublicPrototoken(prototoken)) {
+    if (false == lToken.GetPublicPrototoken(prototoken, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract prototoken")
             .Flush();
 
@@ -304,7 +307,10 @@ bool Lucre::SignToken(const identity::Nym& notary, blind::Token& token)
     return true;
 }
 
-bool Lucre::VerifyToken(const identity::Nym& notary, const blind::Token& token)
+bool Lucre::VerifyToken(
+    const identity::Nym& notary,
+    const blind::Token& token,
+    const PasswordPrompt& reason)
 {
 
     if (proto::CASHTYPE_LUCRE != token.Type()) {
@@ -324,7 +330,7 @@ bool Lucre::VerifyToken(const identity::Nym& notary, const blind::Token& token)
     crypto::implementation::OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());
     auto spendable = String::Factory();
 
-    if (false == lucreToken.GetSpendable(spendable)) {
+    if (false == lucreToken.GetSpendable(spendable, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract").Flush();
 
         return false;
@@ -336,7 +342,7 @@ bool Lucre::VerifyToken(const identity::Nym& notary, const blind::Token& token)
     OTEnvelope envelope(api_, armoredPrivate);
     auto privateKey = String::Factory();
 
-    if (false == envelope.Open(notary, privateKey)) {
+    if (false == envelope.Open(notary, privateKey, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to decrypt private mint key")
             .Flush();

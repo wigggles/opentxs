@@ -10,12 +10,10 @@
 
 #if OT_CRYPTO_USING_OPENSSL
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #endif
 #include "opentxs/crypto/library/HashingProvider.hpp"
-#if OT_CRYPTO_SUPPORTED_ALGO_AES
-#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
-#endif
 
 namespace opentxs::crypto
 {
@@ -24,22 +22,19 @@ class OpenSSL : virtual public HashingProvider
     ,
                 virtual public AsymmetricProvider
 #endif
-#if OT_CRYPTO_SUPPORTED_ALGO_AES
-    ,
-                virtual public LegacySymmetricProvider
-#endif
 {
 public:
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     virtual bool EncryptSessionKey(
         const mapOfAsymmetricKeys& RecipPubKeys,
         Data& plaintext,
-        Data& dataOutput) const = 0;
+        Data& dataOutput,
+        const PasswordPrompt& reason) const = 0;
     virtual bool DecryptSessionKey(
         Data& dataInput,
         const identity::Nym& theRecipient,
         Data& plaintext,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const PasswordPrompt& reason) const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     virtual void Cleanup() = 0;

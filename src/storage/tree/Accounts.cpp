@@ -88,8 +88,7 @@ Accounts::Accounts(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = ACCOUNT_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(ACCOUNT_VERSION);
     }
 }
 
@@ -324,10 +323,7 @@ void Accounts::init(const std::string& hash)
         OT_FAIL;
     }
 
-    version_ = serialized->version();
-
-    // Upgrade version
-    if (ACCOUNT_VERSION > version_) { version_ = ACCOUNT_VERSION; }
+    init_version(ACCOUNT_VERSION, *serialized);
 
     for (const auto& it : serialized->account()) {
         item_map_.emplace(

@@ -26,8 +26,9 @@ private:
 public:
     RSA* backlink;
     // cppcheck-suppress uninitMemberVar
-    explicit d()
+    explicit d(const api::internal::Core& api)
         : backlink(0)
+        , api_(api)
     {
     }
 
@@ -37,42 +38,46 @@ public:
     // (Without bookends.)
     //
     static bool ArmorPrivateKey(
+        const api::internal::Core& api,
         EVP_PKEY& theKey,
         Armored& ascKey,
         Timer& theTimer,
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr);
     static bool ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey);
     static EVP_PKEY* CopyPublicKey(
+        const api::internal::Core& api,
         EVP_PKEY& theKey,
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr);  // CALLER must
                                                        // EVP_pkey_free!
     static EVP_PKEY* CopyPrivateKey(
+        const api::internal::Core& api,
         EVP_PKEY& theKey,
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr);  // CALLER must
                                                        // EVP_pkey_free!
 private:
     // INSTANCES...
     // PRIVATE MEMBER DATA
+    const api::internal::Core& api_;
     X509* m_pX509{nullptr};
     EVP_PKEY* m_pKey{nullptr};  // Instantiated form of key. (For private keys
                                 // especially, we don't want it instantiated for
                                 // any longer than absolutely necessary, when we
                                 // have to use it.)
     // PRIVATE METHODS
-    EVP_PKEY* InstantiateKey(const OTPasswordData* pPWData = nullptr);
-    EVP_PKEY* InstantiatePublicKey(const OTPasswordData* pPWData = nullptr);
-    EVP_PKEY* InstantiatePrivateKey(const OTPasswordData* pPWData = nullptr);
+    EVP_PKEY* InstantiateKey(const PasswordPrompt& reason);
+    EVP_PKEY* InstantiatePublicKey(const PasswordPrompt& reason);
+    EVP_PKEY* InstantiatePrivateKey(const PasswordPrompt& reason);
     // HIGH LEVEL (internal) METHODS
     //
-    EXPORT const EVP_PKEY* GetKey(const OTPasswordData* pPWData = nullptr);
+    EXPORT const EVP_PKEY* GetKey(const PasswordPrompt& reason);
 
     void SetKeyAsCopyOf(
         EVP_PKEY& theKey,
+        const PasswordPrompt& reason,
         bool bIsPrivateKey = false,
-        const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
     // LOW LEVEL (internal) METHODS
     //
@@ -80,6 +85,8 @@ private:
 
     X509* GetX509() const { return m_pX509; }
     void SetX509(X509* x509);
+
+    d() = delete;
 };
 }  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

@@ -46,7 +46,9 @@ class Wallet
 public:
     using AccountCallback = std::function<void(const Account&)>;
 
-    EXPORT virtual SharedAccount Account(const Identifier& accountID) const = 0;
+    EXPORT virtual SharedAccount Account(
+        const Identifier& accountID,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual OTIdentifier AccountPartialMatch(
         const std::string& hint) const = 0;
     EXPORT virtual ExclusiveAccount CreateAccount(
@@ -55,24 +57,32 @@ public:
         const identifier::UnitDefinition& instrumentDefinitionID,
         const identity::Nym& signer,
         Account::AccountType type,
-        TransactionNumber stash) const = 0;
-    EXPORT virtual bool DeleteAccount(const Identifier& accountID) const = 0;
+        TransactionNumber stash,
+        const PasswordPrompt& reason) const = 0;
+    EXPORT virtual bool DeleteAccount(
+        const Identifier& accountID,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual SharedAccount IssuerAccount(
-        const identifier::UnitDefinition& unitID) const = 0;
+        const identifier::UnitDefinition& unitID,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual ExclusiveAccount mutable_Account(
         const Identifier& accountID,
+        const PasswordPrompt& reason,
         const AccountCallback callback = nullptr) const = 0;
     EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
-        const String& serialized) const = 0;
+        const String& serialized,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
-        const std::string& label) const = 0;
+        const std::string& label,
+        const PasswordPrompt& reason) const = 0;
     [[deprecated]] virtual bool ImportAccount(
-        std::unique_ptr<opentxs::Account>& imported) const = 0;
+        std::unique_ptr<opentxs::Account>& imported,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Load a read-only copy of a Context object
      *
@@ -87,7 +97,8 @@ public:
      */
     EXPORT virtual std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const = 0;
+        const identifier::Nym& clientNymID,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Load a read-only copy of a ClientContext object
      *
@@ -97,7 +108,8 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     EXPORT virtual std::shared_ptr<const opentxs::ClientContext> ClientContext(
-        const identifier::Nym& remoteNymID) const = 0;
+        const identifier::Nym& remoteNymID,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Load a read-only copy of a ServerContext object
      *
@@ -109,7 +121,8 @@ public:
      */
     EXPORT virtual std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const = 0;
+        const Identifier& remoteID,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Load an existing Context object
      *
@@ -126,7 +139,8 @@ public:
      */
     EXPORT virtual Editor<opentxs::Context> mutable_Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const = 0;
+        const identifier::Nym& clientNymID,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Load or create a ClientContext object
      *
@@ -134,7 +148,8 @@ public:
      *                           nym id)
      */
     EXPORT virtual Editor<opentxs::ClientContext> mutable_ClientContext(
-        const identifier::Nym& remoteNymID) const = 0;
+        const identifier::Nym& remoteNymID,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Load or create a ServerContext object
      *
@@ -144,7 +159,8 @@ public:
      */
     EXPORT virtual Editor<opentxs::ServerContext> mutable_ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const = 0;
+        const Identifier& remoteID,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Returns a list of all issuers associated with a local nym */
     EXPORT virtual std::set<OTNymID> IssuerList(
@@ -197,6 +213,7 @@ public:
      */
     EXPORT virtual Nym_p Nym(
         const identifier::Nym& id,
+        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
 
@@ -207,25 +224,31 @@ public:
      *
      *    \param[in] nym the serialized version of the contract
      */
-    EXPORT virtual Nym_p Nym(const identity::Nym::Serialized& nym) const = 0;
+    EXPORT virtual Nym_p Nym(
+        const identity::Nym::Serialized& nym,
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual Nym_p Nym(
         const NymParameters& nymParameters,
+        const PasswordPrompt& reason,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const = 0;
 
-    EXPORT virtual NymData mutable_Nym(const identifier::Nym& id) const = 0;
+    EXPORT virtual NymData mutable_Nym(
+        const identifier::Nym& id,
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
         const identifier::Nym& id,
-        const OTPasswordData& reason) const = 0;
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
         const identifier::Nym& id,
-        const OTPasswordData& reason) const = 0;
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual Nym_p NymByIDPartialMatch(
-        const std::string& partialId) const = 0;
+        const std::string& partialId,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Returns a list of all known nyms and their aliases
      */
@@ -463,6 +486,7 @@ public:
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
+        const PasswordPrompt& reason,
         const proto::CashType = proto::CASHTYPE_LUCRE) const = 0;
 #endif
 
@@ -508,6 +532,7 @@ public:
      */
     EXPORT virtual ConstServerContract Server(
         const identifier::Server& id,
+        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
 
@@ -519,7 +544,8 @@ public:
      *    \param[in] contract the serialized version of the contract
      */
     EXPORT virtual ConstServerContract Server(
-        const proto::ServerContract& contract) const = 0;
+        const proto::ServerContract& contract,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Create a new server contract
      *
@@ -537,6 +563,7 @@ public:
         const std::string& name,
         const std::string& terms,
         const std::list<ServerContract::Endpoint>& endpoints,
+        const PasswordPrompt& reason,
         const VersionNumber version =
             OPENTXS_DEFAULT_SERVER_CONTRACT_VERSION) const = 0;
 
@@ -609,6 +636,7 @@ public:
      */
     EXPORT virtual const ConstUnitDefinition UnitDefinition(
         const identifier::UnitDefinition& id,
+        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
 
@@ -620,7 +648,8 @@ public:
      *    \param[in] contract the serialized version of the contract
      */
     EXPORT virtual ConstUnitDefinition UnitDefinition(
-        const proto::UnitDefinition& contract) const = 0;
+        const proto::UnitDefinition& contract,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Create a new currency contract
      *
@@ -647,7 +676,8 @@ public:
         const std::string& terms,
         const std::string& tla,
         const std::uint32_t power,
-        const std::string& fraction) const = 0;
+        const std::string& fraction,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Create a new security contract
      *
@@ -666,10 +696,12 @@ public:
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms) const = 0;
+        const std::string& terms,
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual proto::ContactItemType CurrencyTypeBasedOnUnitType(
-        const identifier::UnitDefinition& contractID) const = 0;
+        const identifier::UnitDefinition& contractID,
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual bool LoadCredential(
         const std::string& id,

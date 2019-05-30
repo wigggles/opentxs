@@ -60,6 +60,7 @@ private:
     proto::StorageRoot serialize() const;
     class Tree* tree() const;
 
+    void blank(const VersionNumber version) override;
     void cleanup() const;
     void collect_garbage(const opentxs::api::storage::Driver* to) const;
     void init(const std::string& hash) override;

@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -15,6 +16,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -45,6 +47,7 @@ template class opentxs::SharedPimpl<opentxs::ui::AccountListItem>;
 namespace opentxs
 {
 ui::implementation::AccountListRowInternal* Factory::AccountListItem(
+    const opentxs::PasswordPrompt& reason,
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
@@ -53,13 +56,14 @@ ui::implementation::AccountListRowInternal* Factory::AccountListItem(
     const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::AccountListItem(
-        parent, api, publisher, rowID, sortKey, custom);
+        reason, parent, api, publisher, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 AccountListItem::AccountListItem(
+    const opentxs::PasswordPrompt& reason,
     const AccountListInternalInterface& parent,
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
@@ -70,9 +74,13 @@ AccountListItem::AccountListItem(
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)
     , balance_(extract_custom<Amount>(custom, 0))
-    , contract_(
-          api_.Wallet().UnitDefinition(extract_custom<OTUnitID>(custom, 1)))
-    , notary_(api_.Wallet().Server(identifier::Server::Factory(sortKey.second)))
+    , contract_(api_.Wallet().UnitDefinition(
+
+          extract_custom<OTUnitID>(custom, 1),
+          reason))
+    , notary_(api_.Wallet().Server(
+          identifier::Server::Factory(sortKey.second),
+          reason))
     , name_(extract_custom<std::string>(custom, 2))
 {
     OT_ASSERT(contract_);

@@ -22,7 +22,9 @@ public:
 
     const identifier::Server& GetNotaryID() const { return notaryID_; }
 
-    virtual bool Trigger(const Account& account) = 0;
+    virtual bool Trigger(
+        const Account& account,
+        const PasswordPrompt& reason) = 0;
 
     const api::Wallet& Wallet() const { return wallet_; }
 

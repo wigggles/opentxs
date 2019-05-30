@@ -48,7 +48,8 @@ public:
     EXPORT static bool FinalizeTemplate(
         const api::Wallet& wallet,
         const Nym_p& nym,
-        proto::UnitDefinition& serialized);
+        proto::UnitDefinition& serialized,
+        const PasswordPrompt& reason);
 
     EXPORT OTIdentifier BasketID() const;
     EXPORT const MapOfSubcontracts& Currencies() const { return subcontracts_; }

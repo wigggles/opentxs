@@ -18,8 +18,10 @@ public:
     const identifier::Server& Server() const override { return server_; }
     proto::ServerRequestType Type() const override { return type_; }
 
-    bool SetIncludeNym(const bool include) override;
-    bool SetNumber(const RequestNumber number) override;
+    bool SetIncludeNym(const bool include, const PasswordPrompt& reason)
+        override;
+    bool SetNumber(const RequestNumber number, const PasswordPrompt& reason)
+        override;
 
     ~Request() = default;
 
@@ -34,7 +36,8 @@ private:
 
     static Nym_p extract_nym(
         const api::Core& api,
-        const proto::ServerRequest serialized);
+        const proto::ServerRequest serialized,
+        const PasswordPrompt& reason);
 
     Request* clone() const override { return new Request(*this); }
     OTIdentifier GetID(const Lock& lock) const override;
@@ -43,17 +46,24 @@ private:
     std::string Name() const override { return {}; }
     OTData Serialize() const override;
     proto::ServerRequest signature_version(const Lock& lock) const;
-    bool update_signature(const Lock& lock) override;
-    bool validate(const Lock& lock) const override;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
+        override;
+    bool validate(const Lock& lock, const PasswordPrompt& reason)
         const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature,
+        const PasswordPrompt& reason) const override;
 
     Request(
         const Nym_p signer,
         const identifier::Nym& initiator,
         const identifier::Server& server,
         const proto::ServerRequestType type);
-    Request(const api::Core& api, const proto::ServerRequest serialized);
+    Request(
+        const api::Core& api,
+        const proto::ServerRequest serialized,
+        const PasswordPrompt& reason);
     Request() = delete;
     Request(const Request& rhs);
     Request(Request&& rhs) = delete;

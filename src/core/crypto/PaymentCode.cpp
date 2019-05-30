@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "PaymentCode.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -16,7 +16,7 @@
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
@@ -41,6 +41,8 @@
 #include <ostream>
 #include <string>
 #include <tuple>
+
+#include "PaymentCode.hpp"
 
 template class opentxs::Pimpl<opentxs::PaymentCode>;
 
@@ -72,48 +74,50 @@ template class opentxs::Pimpl<opentxs::PaymentCode>;
 
 namespace opentxs
 {
-OTPaymentCode PaymentCode::Factory(const PaymentCode& rhs)
-{
-    return OTPaymentCode(rhs.clone());
-}
-
-OTPaymentCode PaymentCode::Factory(
+opentxs::PaymentCode* Factory::PaymentCode(
     const api::Core& api,
-    const std::string& base58)
+    const std::string& base58,
+    const opentxs::PasswordPrompt& reason)
 {
-    return OTPaymentCode(new implementation::PaymentCode(api, base58));
+    return new implementation::PaymentCode(api, reason, base58);
 }
 
-OTPaymentCode PaymentCode::Factory(
+opentxs::PaymentCode* Factory::PaymentCode(
     const api::Core& api,
-    const proto::PaymentCode& serialized)
+    const proto::PaymentCode& serialized,
+    const opentxs::PasswordPrompt& reason)
 {
-    return OTPaymentCode(new implementation::PaymentCode(api, serialized));
+    return new implementation::PaymentCode(api, reason, serialized);
 }
 
-OTPaymentCode PaymentCode::Factory(
+opentxs::PaymentCode* Factory::PaymentCode(
     const api::Core& api,
     const std::string& seed,
     const Bip32Index nym,
     const std::uint8_t version,
+    const opentxs::PasswordPrompt& reason,
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
     const std::uint8_t bitmessageStream)
 {
-    return OTPaymentCode(new implementation::PaymentCode(
+    return new implementation::PaymentCode(
         api,
+        reason,
         seed,
         nym,
         version,
         bitmessage,
         bitmessageVersion,
-        bitmessageStream));
+        bitmessageStream);
 }
 }  // namespace opentxs
 
 namespace opentxs::implementation
 {
-PaymentCode::PaymentCode(const api::Core& api, const std::string& base58)
+PaymentCode::PaymentCode(
+    const api::Core& api,
+    const PasswordPrompt& reason,
+    const std::string& base58)
     : api_(api)
     , version_(0)
     , seed_("")
@@ -139,7 +143,7 @@ PaymentCode::PaymentCode(const api::Core& api, const std::string& base58)
 
         chain_code_->setMemory(&rawCode[CHAIN_CODE_OFFSET], CHAIN_CODE_BYTES);
 
-        ConstructKey(key);
+        ConstructKey(key, reason);
 
         if (hasBitmessage_) {
             bitmessage_version_ = rawCode[BITMESSAGE_VERSION_OFFSET];
@@ -156,6 +160,7 @@ PaymentCode::PaymentCode(const api::Core& api, const std::string& base58)
 
 PaymentCode::PaymentCode(
     const api::Core& api,
+    const PasswordPrompt& reason,
     const proto::PaymentCode& paycode)
     : api_(api)
     , version_(paycode.version())
@@ -174,7 +179,7 @@ PaymentCode::PaymentCode(
         paycode.chaincode().c_str(), paycode.chaincode().size());
 
     auto key = Data::Factory(paycode.key().c_str(), paycode.key().size());
-    ConstructKey(key);
+    ConstructKey(key, reason);
 
     if (paycode.has_bitmessageversion()) {
         bitmessage_version_ = paycode.bitmessageversion();
@@ -187,6 +192,7 @@ PaymentCode::PaymentCode(
 
 PaymentCode::PaymentCode(
     const api::Core& api,
+    const PasswordPrompt& reason,
     const std::string& seed,
     const Bip32Index nym,
     const std::uint8_t version,
@@ -204,11 +210,12 @@ PaymentCode::PaymentCode(
     , bitmessage_version_(bitmessageVersion)
     , bitmessage_stream_(bitmessageStream)
 {
-    auto [success, chainCode, publicKey] = make_key(api_, seed_, index_);
+    auto [success, chainCode, publicKey] =
+        make_key(api_, seed_, index_, reason);
 
     if (success) {
         chain_code_.swap(chainCode);
-        ConstructKey(publicKey);
+        ConstructKey(publicKey, reason);
     }
 }
 
@@ -254,7 +261,8 @@ PaymentCode::operator const crypto::key::Asymmetric&() const
 
 bool PaymentCode::AddPrivateKeys(
     const std::string& seed,
-    const Bip32Index index)
+    const Bip32Index index,
+    const PasswordPrompt& reason)
 {
     if (false == seed_.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Seed already set.").Flush();
@@ -270,6 +278,7 @@ bool PaymentCode::AddPrivateKeys(
 
     const PaymentCode candidate(
         api_,
+        reason,
         seed,
         index,
         version_,
@@ -323,7 +332,9 @@ const std::string PaymentCode::asBase58() const
 
 PaymentCode* PaymentCode::clone() const { return new PaymentCode(*this); }
 
-void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
+void PaymentCode::ConstructKey(
+    const opentxs::Data& pubkey,
+    const PasswordPrompt& reason)
 {
     proto::AsymmetricKey newKey;
     newKey.set_version(1);
@@ -331,7 +342,7 @@ void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
     newKey.set_mode(proto::KEYMODE_PUBLIC);
     newKey.set_role(proto::KEYROLE_SIGN);
     newKey.set_key(pubkey.data(), pubkey.size());
-    asymmetric_key_ = api_.Factory().AsymmetricKey(newKey);
+    asymmetric_key_ = api_.Factory().AsymmetricKey(newKey, reason);
 
     if (asymmetric_key_.get()) {
         pubkey_ = dynamic_cast<crypto::key::Secp256k1*>(&asymmetric_key_.get());
@@ -375,13 +386,14 @@ const OTNymID PaymentCode::ID() const
 std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
     const api::Core& api,
     const std::string& seed,
-    const Bip32Index index)
+    const Bip32Index index,
+    const PasswordPrompt& reason)
 {
     std::tuple<bool, std::unique_ptr<OTPassword>, OTData> output{
         false, new OTPassword, Data::Factory()};
     auto& [success, chainCode, publicKey] = output;
     auto fingerprint{seed};
-    auto privatekey = api.Seeds().GetPaymentCode(fingerprint, index);
+    auto privatekey = api.Seeds().GetPaymentCode(fingerprint, index, reason);
 
     OT_ASSERT(seed == fingerprint)
 
@@ -389,16 +401,14 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         OT_ASSERT(chainCode)
 
         OTPassword privkey{};
-        auto symmetricKey = api.Crypto().Symmetric().Key(
+        auto symmetricKey = api.Symmetric().Key(
             privatekey->encryptedkey().key(),
             privatekey->encryptedkey().mode());
-        OTPasswordData password(__FUNCTION__);
-        symmetricKey->Decrypt(privatekey->chaincode(), password, *chainCode);
+        symmetricKey->Decrypt(privatekey->chaincode(), reason, *chainCode);
         proto::AsymmetricKey key{};
         bool haveKey{false};
-        haveKey =
-            dynamic_cast<const crypto::EcdsaProvider&>(api.Crypto().SECP256K1())
-                .PrivateToPublic(*privatekey, key);
+        haveKey = api.Crypto().SECP256K1().PrivateToPublic(
+            api, *privatekey, key, reason);
 
         if (haveKey) {
             publicKey = Data::Factory(key.key().c_str(), key.key().size());
@@ -450,9 +460,9 @@ SerializedPaymentCode PaymentCode::Serialize() const
 bool PaymentCode::Sign(
     const identity::credential::Base& credential,
     proto::Signature& sig,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
-    const auto signingKey = signing_key();
+    const auto signingKey = signing_key(reason);
 
     if (false == bool(signingKey.get())) { return false; }
 
@@ -463,8 +473,8 @@ bool PaymentCode::Sign(
         proto::SIGROLE_NYMIDSOURCE,
         signature,
         ID(),
-        proto::KEYROLE_SIGN,
-        pPWData);
+        reason,
+        proto::KEYROLE_SIGN);
     sig.CopyFrom(signature);
 
     return goodSig;
@@ -473,19 +483,19 @@ bool PaymentCode::Sign(
 bool PaymentCode::Sign(
     const Data& data,
     Data& output,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
-    const auto signingKey = signing_key();
+    const auto signingKey = signing_key(reason);
 
     if (false == bool(signingKey.get())) { return false; }
 
     auto success = signingKey->engine().Sign(
-        data, signingKey.get(), proto::HASHTYPE_SHA256, output, pPWData);
+        api_, data, signingKey.get(), proto::HASHTYPE_SHA256, output, reason);
 
     return success;
 }
 
-OTAsymmetricKey PaymentCode::signing_key() const
+OTAsymmetricKey PaymentCode::signing_key(const PasswordPrompt& reason) const
 {
     if (nullptr == pubkey_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Payment code not instantiated.")
@@ -512,7 +522,7 @@ OTAsymmetricKey PaymentCode::signing_key() const
 
     std::string fingerprint = seed_;
     std::shared_ptr<proto::AsymmetricKey> privatekey =
-        api_.Seeds().GetPaymentCode(fingerprint, index_);
+        api_.Seeds().GetPaymentCode(fingerprint, index_, reason);
 
     if (fingerprint != seed_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -533,9 +543,8 @@ OTAsymmetricKey PaymentCode::signing_key() const
     auto existingKeyData = Data::Factory();
     auto compareKeyData = Data::Factory();
     proto::AsymmetricKey compareKey;
-    const bool haveKey =
-        dynamic_cast<const crypto::EcdsaProvider&>(api_.Crypto().SECP256K1())
-            .PrivateToPublic(*privatekey, compareKey);
+    const bool haveKey = api_.Crypto().SECP256K1().PrivateToPublic(
+        api_, *privatekey, compareKey, reason);
 
     if (!haveKey) { return crypto::key::Asymmetric::Factory(); }
 
@@ -551,14 +560,15 @@ OTAsymmetricKey PaymentCode::signing_key() const
         return crypto::key::Asymmetric::Factory();
     }
 
-    const auto signingKey = api_.Factory().AsymmetricKey(*privatekey);
+    const auto signingKey = api_.Factory().AsymmetricKey(*privatekey, reason);
 
     return signingKey;
 }
 
 bool PaymentCode::Verify(
     const proto::Credential& master,
-    const proto::Signature& sourceSignature) const
+    const proto::Signature& sourceSignature,
+    const PasswordPrompt& reason) const
 {
     if (!proto::Validate<proto::Credential>(
             master,
@@ -597,7 +607,7 @@ bool PaymentCode::Verify(
     signature.CopyFrom(sourceSignature);
     signature.clear_signature();
 
-    return pubkey_->Verify(proto::ProtoAsData(copy), sourceSignature);
+    return pubkey_->Verify(proto::ProtoAsData(copy), sourceSignature, reason);
 }
 
 bool PaymentCode::VerifyInternally() const

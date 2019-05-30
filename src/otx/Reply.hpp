@@ -20,8 +20,10 @@ public:
     bool Success() const override { return success_; }
     proto::ServerReplyType Type() const override { return type_; }
 
-    bool SetNumber(const RequestNumber number) override;
-    bool SetPush(const proto::OTXPush& push) override;
+    bool SetNumber(const RequestNumber number, const PasswordPrompt& reason)
+        override;
+    bool SetPush(const proto::OTXPush& push, const PasswordPrompt& reason)
+        override;
 
     ~Reply() = default;
 
@@ -37,7 +39,8 @@ private:
 
     static Nym_p extract_nym(
         const api::Core& api,
-        const proto::ServerReply serialized);
+        const proto::ServerReply serialized,
+        const PasswordPrompt& reason);
 
     Reply* clone() const override { return new Reply(*this); }
     OTIdentifier GetID(const Lock& lock) const override;
@@ -46,10 +49,14 @@ private:
     std::string Name() const override { return {}; }
     OTData Serialize() const override;
     proto::ServerReply signature_version(const Lock& lock) const;
-    bool update_signature(const Lock& lock) override;
-    bool validate(const Lock& lock) const override;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
+        override;
+    bool validate(const Lock& lock, const PasswordPrompt& reason)
         const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature,
+        const PasswordPrompt& reason) const override;
 
     Reply(
         const Nym_p signer,
@@ -57,7 +64,10 @@ private:
         const identifier::Server& server,
         const proto::ServerReplyType type,
         const bool success);
-    Reply(const api::Core& api, const proto::ServerReply serialized);
+    Reply(
+        const api::Core& api,
+        const proto::ServerReply serialized,
+        const PasswordPrompt& reason);
     Reply() = delete;
     Reply(const Reply& rhs);
     Reply(Reply&& rhs) = delete;

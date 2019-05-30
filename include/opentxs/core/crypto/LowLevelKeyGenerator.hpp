@@ -46,6 +46,7 @@ private:
     class LowLevelKeyGeneratorOpenSSLdp;
 #endif
 
+    const api::Core& api_;
     std::unique_ptr<LowLevelKeyGeneratordp> dp;
     std::unique_ptr<NymParameters> pkeyData_;
 
@@ -59,12 +60,12 @@ public:
      * this to false, it will NOT cleanup. */
     bool m_bCleanup = true;
 
-    explicit LowLevelKeyGenerator(const NymParameters& pkeyData);
+    LowLevelKeyGenerator(const api::Core& api, const NymParameters& pkeyData);
 
     bool MakeNewKeypair();
     bool SetOntoKeypair(
         crypto::key::Keypair& theKeypair,
-        OTPasswordData& passwordData);
+        const PasswordPrompt& passwordData);
 
     ~LowLevelKeyGenerator();
 };

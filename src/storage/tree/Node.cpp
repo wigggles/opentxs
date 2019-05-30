@@ -23,6 +23,13 @@ Node::Node(const opentxs::api::storage::Driver& storage, const std::string& key)
 {
 }
 
+void Node::blank(const VersionNumber version)
+{
+    version_ = version;
+    original_version_ = version_;
+    root_ = BLANK_HASH;
+}
+
 bool Node::check_hash(const std::string& hash) const
 {
     const bool empty = hash.empty();

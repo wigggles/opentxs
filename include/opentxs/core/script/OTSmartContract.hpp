@@ -106,10 +106,11 @@ public:
     void HarvestClosingNumbers(ServerContext& context) override;
 
     // Server-side. Similar to below:
-    void CloseoutOpeningNumbers();
+    void CloseoutOpeningNumbers(const PasswordPrompt& reason);
     using ot_super::HarvestClosingNumbers;
     void HarvestClosingNumbers(
         const identity::Nym& pSignerNym,
+        const PasswordPrompt& reason,
         std::set<OTParty*>* pFailedParties = nullptr);  // Used on server-side.
                                                         // Assumes the
     // related Nyms are already loaded and
@@ -123,8 +124,11 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    bool ProcessCron() override;  // OTCron calls this regularly, which is my
-                                  // chance to expire, etc.
+    bool ProcessCron(const PasswordPrompt& reason) override;  // OTCron calls
+                                                              // this regularly,
+                                                              // which is my
+                                                              // chance to
+                                                              // expire, etc.
 
     bool HasTransactionNum(const std::int64_t& lInput) const override;
     void GetAllTransactionNumbers(NumList& numlistOutput) const override;
@@ -132,7 +136,8 @@ public:
     bool AddParty(OTParty& theParty) override;  // Takes ownership.
     bool ConfirmParty(
         OTParty& theParty,
-        ServerContext& context) override;  // Takes ownership.
+        ServerContext& context,
+        const PasswordPrompt& reason) override;  // Takes ownership.
     // Returns true if it was empty (and thus successfully set).
     EXPORT bool SetNotaryIDIfEmpty(const identifier::Server& theID);
 
@@ -140,6 +145,7 @@ public:
         const identity::Nym& theNym,
         const Account& theAcct,
         const identity::Nym& theServerNym,
+        const PasswordPrompt& reason,
         bool bBurnTransNo = false);
 
     // theNym is trying to activate the smart contract, and has
@@ -220,8 +226,7 @@ public:
     bool MoveAcctFundsStr(
         std::string from_acct_name,
         std::string to_acct_name,
-        std::string str_Amount);  // calls
-                                  // OTCronItem::MoveFunds()
+        std::string str_Amount);  // calls OTCronItem::MoveFunds()
     bool StashAcctFunds(
         std::string from_acct_name,
         std::string to_stash_name,
@@ -229,21 +234,26 @@ public:
     bool UnstashAcctFunds(
         std::string to_acct_name,
         std::string from_stash_name,
-        std::string str_Amount);  // calls StashFunds(
-                                  // lAmount * (-1) )
-    std::string GetAcctBalance(std::string from_acct_name);
+        std::string str_Amount);  // calls StashFunds(lAmount * (-1) )
+    std::string GetAcctBalance(
+        std::string from_acct_name,
+        const PasswordPrompt& reason);
     std::string GetStashBalance(
         std::string stash_name,
         std::string instrument_definition_id);
 
-    std::string GetInstrumentDefinitionIDofAcct(std::string from_acct_name);
+    std::string GetUnitTypeIDofAcct(
+        std::string from_acct_name,
+        const PasswordPrompt& reason);
 
     // Todo: someday add "rejection notice" here too.
     // (Might be a demand for smart contracts to send failure notices.)
     // We already send a failure notice to all parties in the cash where
     // the smart contract fails to activate.
-    bool SendNoticeToParty(std::string party_name);
-    bool SendANoticeToAllParties();
+    bool SendNoticeToParty(
+        std::string party_name,
+        const PasswordPrompt& reason);
+    bool SendANoticeToAllParties(const PasswordPrompt& reason);
 
     void DeactivateSmartContract();
 
@@ -267,6 +277,7 @@ public:
     // Low-level.
     EXPORT void ExecuteClauses(
         mapOfClauses& theClauses,
+        const PasswordPrompt& reason,
         OTString pParam = String::Factory());
 
     // Low level.
@@ -284,7 +295,8 @@ public:
                                       // means STASH.
         const Identifier& PARTY_ACCT_ID,
         const identifier::Nym& PARTY_NYM_ID,
-        OTStash& theStash);
+        OTStash& theStash,
+        const PasswordPrompt& reason);
 
     void InitSmartContract();
 
@@ -298,24 +310,29 @@ public:
         const identifier::Nym& theNymID) const override;
     std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the ledger saves its
-                                     // contents
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or
+                   // serialization, this is where the
+                   // ledger saves its contents
 
     EXPORT virtual ~OTSmartContract();
 
 protected:
-    void onActivate() override;  // called by
-                                 // OTCronItem::HookActivationOnCron().
+    void onActivate(const PasswordPrompt& reason)
+        override;  // called by
+                   // OTCronItem::HookActivationOnCron().
 
     void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
         Nym_p theOriginator,
-        Nym_p pRemover) override;
-    void onRemovalFromCron() override;
+        Nym_p pRemover,
+        const PasswordPrompt& reason) override;
+    void onRemovalFromCron(const PasswordPrompt& reason) override;
     // Above are stored the user and acct IDs of the last sender and recipient
     // of funds.
     // (It's stored there so that the info will be available on receipts.)
@@ -391,7 +408,8 @@ private:
         const Identifier& SOURCE_ACCT_ID,
         const identifier::Nym& SENDER_NYM_ID,
         const Identifier& RECIPIENT_ACCT_ID,
-        const identifier::Nym& RECIPIENT_NYM_ID);
+        const identifier::Nym& RECIPIENT_NYM_ID,
+        const PasswordPrompt& reason);
 
     EXPORT OTSmartContract(const api::Core& core);
     EXPORT OTSmartContract(

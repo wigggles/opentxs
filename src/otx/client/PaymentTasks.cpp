@@ -8,6 +8,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Cheque.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "PaymentTasks.hpp"
@@ -80,13 +81,14 @@ OTIdentifier PaymentTasks::get_payment_id(const OTPayment& payment) const
 
     switch (payment.GetType()) {
         case OTPayment::CHEQUE: {
+            auto reason = parent_.api().Factory().PasswordPrompt(__FUNCTION__);
             auto pCheque = parent_.api().Factory().Cheque();
 
             OT_ASSERT(pCheque);
 
             auto& cheque = *pCheque;
             const auto loaded =
-                cheque.LoadContractFromString(payment.Payment());
+                cheque.LoadContractFromString(payment.Payment(), reason);
 
             if (false == loaded) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid cheque.").Flush();

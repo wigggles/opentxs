@@ -138,11 +138,14 @@ public:
     void Release_Offer();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the ledger saves its
-                                     // contents
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or
+                   // serialization, this is where the
+                   // ledger saves its contents
 
     EXPORT virtual ~OTOffer();
 

@@ -41,7 +41,12 @@ public:
     Editor<storage::Servers> mutable_Servers();
     Editor<storage::Units> mutable_Units();
 
+    bool Load(
+        std::shared_ptr<proto::Ciphertext>& output,
+        const bool checking = false) const;
     bool Migrate(const opentxs::api::storage::Driver& to) const override;
+
+    bool Store(const proto::Ciphertext& serialized);
 
     ~Tree();
 
@@ -77,6 +82,8 @@ private:
     mutable std::unique_ptr<storage::Servers> servers_;
     mutable std::mutex unit_lock_;
     mutable std::unique_ptr<storage::Units> units_;
+    mutable std::mutex master_key_lock_;
+    mutable std::shared_ptr<proto::Ciphertext> master_key_;
 
     template <typename T, typename... Args>
     T* get_child(

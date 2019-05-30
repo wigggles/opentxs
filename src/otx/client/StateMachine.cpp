@@ -16,6 +16,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -108,7 +109,8 @@ StateMachine::StateMachine(
     const UniqueQueue<CheckNymTask>& missingnyms,
     const UniqueQueue<CheckNymTask>& outdatednyms,
     const UniqueQueue<OTServerID>& missingservers,
-    const UniqueQueue<OTUnitID>& missingUnitDefinitions)
+    const UniqueQueue<OTUnitID>& missingUnitDefinitions,
+    const PasswordPrompt& reason)
     : opentxs::internal::StateMachine(
           std::bind(&implementation::StateMachine::state_machine, this))
     , payment_tasks_(*this)
@@ -119,7 +121,8 @@ StateMachine::StateMachine(
     , outdated_nyms_(outdatednyms)
     , missing_servers_(missingservers)
     , missing_unit_definitions_(missingUnitDefinitions)
-    , pOp_(opentxs::Factory::Operation(api, id.first, id.second))
+    , reason_(reason)
+    , pOp_(opentxs::Factory::Operation(api, id.first, id.second, reason_))
     , op_(*pOp_)
 
     , check_nym_()
@@ -230,7 +233,7 @@ bool StateMachine::check_registration(
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
 
-    auto context = client_.Wallet().ServerContext(nymID, serverID);
+    auto context = client_.Wallet().ServerContext(nymID, serverID, reason_);
     RequestNumber request{0};
 
     if (context) {
@@ -259,7 +262,7 @@ bool StateMachine::check_registration(
             " is now registered on server ")(serverID)
             .Flush();
         state_ = State::ready;
-        context = client_.Wallet().ServerContext(nymID, serverID);
+        context = client_.Wallet().ServerContext(nymID, serverID, reason_);
 
         OT_ASSERT(context)
 
@@ -276,7 +279,7 @@ bool StateMachine::check_server_contract(
 {
     OT_ASSERT(false == serverID.empty())
 
-    const auto serverContract = client_.Wallet().Server(serverID);
+    const auto serverContract = client_.Wallet().Server(serverID, reason_);
 
     if (serverContract) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Server contract ")(serverID)(
@@ -299,12 +302,12 @@ bool StateMachine::check_server_contract(
 
 bool StateMachine::check_server_name(const ServerContext& context) const
 {
-    const auto server = client_.Wallet().Server(op_.ServerID());
+    const auto server = client_.Wallet().Server(op_.ServerID(), reason_);
 
     OT_ASSERT(server)
 
     const auto myName = server->Alias();
-    const auto hisName = server->EffectiveName();
+    const auto hisName = server->EffectiveName(reason_);
 
     if (myName == hisName) { return true; }
 
@@ -362,7 +365,8 @@ bool StateMachine::deposit_cheque(
 
     OT_ASSERT(cheque);
 
-    const auto loaded = cheque->LoadContractFromString(payment->Payment());
+    const auto loaded =
+        cheque->LoadContractFromString(payment->Payment(), reason_);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid cheque.").Flush();
@@ -429,12 +433,12 @@ bool StateMachine::download_nym(const TaskID taskID, const CheckNymTask& id)
 bool StateMachine::download_nymbox(const TaskID taskID) const
 {
     op_.join();
-    auto contextE =
-        client_.Wallet().mutable_ServerContext(op_.NymID(), op_.ServerID());
-    auto& context = contextE.It();
+    auto contextE = client_.Wallet().mutable_ServerContext(
+        op_.NymID(), op_.ServerID(), reason_);
+    auto& context = contextE.get();
     context.Join();
     context.ResetThread();
-    auto future = context.RefreshNymbox(client_);
+    auto future = context.RefreshNymbox(client_, reason_);
 
     if (false == bool(future)) {
 
@@ -593,7 +597,7 @@ bool StateMachine::issue_unit_definition(
     const IssueUnitDefinitionTask& task) const
 {
     const auto& [unitID, label] = task;
-    auto unitDefinition = client_.Wallet().UnitDefinition(unitID);
+    auto unitDefinition = client_.Wallet().UnitDefinition(unitID, reason_);
 
     if (false == bool(unitDefinition)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unit definition not found.")
@@ -636,7 +640,7 @@ bool StateMachine::main_loop() noexcept
     UniqueQueue<DepositPaymentTask> retryDepositPayment{};
     UniqueQueue<RegisterNymTask> retryRegisterNym{};
     UniqueQueue<SendChequeTask> retrySendCheque{};
-    auto pContext = client_.Wallet().ServerContext(nymID, serverID);
+    auto pContext = client_.Wallet().ServerContext(nymID, serverID, reason_);
 
     OT_ASSERT(pContext)
 
@@ -691,6 +695,11 @@ bool StateMachine::main_loop() noexcept
     Lock lock(decision_lock_);
     const bool run = 0 < (task_count_.load() + tasks + next);
     increment_counter(run);
+
+    if (false == run) {
+        op_.join();
+        context.Join();
+    }
 
     return run;
 }
@@ -829,7 +838,7 @@ bool StateMachine::register_account(
 
     OT_ASSERT(false == unitID->empty())
 
-    auto contract = client_.Wallet().UnitDefinition(unitID);
+    auto contract = client_.Wallet().UnitDefinition(unitID, reason_);
 
     if (false == bool(contract)) {
         DO_OPERATION(DownloadContract, unitID, ContractType::UNIT);
@@ -1086,7 +1095,8 @@ StateMachine::TaskDone StateMachine::write_and_send_cheque(
         return task_done(finish_task(taskID, false, error_result()));
     }
 
-    auto context = client_.Wallet().ServerContext(op_.NymID(), op_.ServerID());
+    auto context =
+        client_.Wallet().ServerContext(op_.NymID(), op_.ServerID(), reason_);
 
     OT_ASSERT(context);
 
@@ -1121,7 +1131,7 @@ StateMachine::TaskDone StateMachine::write_and_send_cheque(
         return task_done(finish_task(taskID, false, error_result()));
     }
 
-    if (false == payment->SetTempValues()) {
+    if (false == payment->SetTempValues(reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payment.").Flush();
 
         return task_done(finish_task(taskID, false, error_result()));

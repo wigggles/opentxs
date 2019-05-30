@@ -21,9 +21,11 @@ public:
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig) const override;
+        const proto::Signature& masterSig,
+        const PasswordPrompt& reason) const override;
 
-    bool New(const NymParameters& nymParameters) override;
+    bool New(const NymParameters& nymParameters, const PasswordPrompt& reason)
+        override;
 
     virtual ~Primary() = default;
 
@@ -36,18 +38,22 @@ private:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const override;
-    bool verify_against_source(const Lock& lock) const;
-    bool verify_internally(const Lock& lock) const override;
+    bool verify_against_source(const Lock& lock, const PasswordPrompt& reason)
+        const;
+    bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
+        const override;
 
     Primary(
         const api::Core& api,
+        const PasswordPrompt& reason,
         identity::internal::Authority& theOwner,
         const proto::Credential& serializedCred);
     Primary(
         const api::Core& api,
         identity::internal::Authority& theOwner,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
     Primary() = delete;
     Primary(const Primary&) = delete;
     Primary(Primary&&) = delete;

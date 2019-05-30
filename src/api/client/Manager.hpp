@@ -19,6 +19,7 @@ public:
 #endif
     const api::client::Contacts& Contacts() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
+    using Core::Lock;
     std::recursive_mutex& Lock(
         const identifier::Nym& nymID,
         const identifier::Server& serverID) const override;
@@ -30,9 +31,8 @@ public:
     const client::Workflow& Workflow() const override;
     const api::network::ZMQ& ZMQ() const override;
 
-    void StartActivity() override;
-    void StartContacts() override;
-    opentxs::OTWallet* StartWallet() override;
+    void StartActivity(const PasswordPrompt& reason) override;
+    void StartContacts(const PasswordPrompt& reason) override;
 
     ~Manager();
 
@@ -60,10 +60,10 @@ private:
     std::recursive_mutex& get_lock(const ContextID context) const;
 
     void Cleanup();
-    void Init();
+    void Init(const PasswordPrompt& reason);
 
     Manager(
-        const api::Native& parent,
+        const api::internal::Native& parent,
         Flag& running,
         const ArgList& args,
         const api::Settings& config,

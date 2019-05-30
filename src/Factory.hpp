@@ -13,13 +13,15 @@ public:
     static identity::internal::Authority* Authority(
         const api::Core& api,
         const proto::KeyMode mode,
-        const proto::CredentialSet& serialized);
+        const proto::CredentialSet& serialized,
+        const opentxs::PasswordPrompt& reason);
     static identity::internal::Authority* Authority(
         const api::Core& api,
         const NymParameters& nymParameters,
         const VersionNumber nymVersion,
-        const OTPasswordData* pPWData = nullptr);
+        const opentxs::PasswordPrompt& reason);
     static ui::implementation::AccountListRowInternal* AccountListItem(
+        const opentxs::PasswordPrompt& reason,
         const ui::implementation::AccountListInternalInterface& parent,
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
@@ -39,6 +41,7 @@ public:
 #endif
     );
     static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
+        const opentxs::PasswordPrompt& reason,
         const ui::implementation::IssuerItemInternalInterface& parent,
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
@@ -57,24 +60,8 @@ public:
         const ui::implementation::ActivitySummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
         const Flag& running);
-    static api::crypto::Asymmetric* AsymmetricAPI(
-        const api::crypto::Encode& encode,
-        const api::crypto::Hash& hash,
-        const api::crypto::Util& util,
-        const api::crypto::Symmetric& symmetric,
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-        const crypto::Bip32& bip32,
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        const crypto::EcdsaProvider& ed25519,
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-        const crypto::AsymmetricProvider& rsa,
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        const crypto::EcdsaProvider& secp256k1
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    );
+    static api::crypto::internal::Asymmetric* AsymmetricAPI(
+        const api::internal::Core& api);
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
         const api::client::Manager& api,
@@ -102,7 +89,7 @@ public:
         const Nym_p& remote,
         const identifier::Server& server);
     static api::client::internal::Manager* ClientManager(
-        const api::Native& parent,
+        const api::internal::Native& parent,
         Flag& running,
         const ArgList& args,
         const api::Settings& config,
@@ -112,13 +99,15 @@ public:
         const int instance);
     static identity::credential::internal::Contact* ContactCredential(
         const api::Core& api,
+        const opentxs::PasswordPrompt& reason,
         identity::internal::Authority& parent,
         const proto::Credential& credential);
     static identity::credential::internal::Contact* ContactCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static ui::implementation::ContactListRowInternal* ContactListItem(
         const ui::implementation::ContactListInternalInterface& parent,
         const api::client::Manager& api,
@@ -168,14 +157,16 @@ public:
         identity::internal::Authority& owner,
         const VersionNumber version,
         const NymParameters& nymParameters,
-        const proto::CredentialRole role);
+        const proto::CredentialRole role,
+        const opentxs::PasswordPrompt& reason);
     template <class C>
     static C* Credential(
         const api::Core& api,
         identity::internal::Authority& parent,
         const proto::Credential& serialized,
         const proto::KeyMode mode,
-        const proto::CredentialRole role);
+        const proto::CredentialRole role,
+        const opentxs::PasswordPrompt& reason);
     static api::Crypto* Crypto(const api::Settings& settings);
     static api::crypto::Config* CryptoConfig(const api::Settings& settings);
     static api::network::Dht* Dht(
@@ -188,17 +179,18 @@ public:
         std::int64_t& unitPublishInterval,
         std::int64_t& unitRefreshInterval);
     static crypto::key::Ed25519* Ed25519Key(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey);
+        const proto::AsymmetricKey& serializedKey,
+        const opentxs::PasswordPrompt& reason);
     static crypto::key::Ed25519* Ed25519Key(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static crypto::key::Ed25519* Ed25519Key(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const OTPassword& privateKey,
         const OTPassword& chainCode,
@@ -206,14 +198,16 @@ public:
         const proto::HDPath& path,
         const Bip32Fingerprint parent,
         const proto::KeyRole role,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     static api::crypto::Encode* Encode(const crypto::EncodingProvider& base58);
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
         const int instance);
-    static api::Factory* FactoryAPI(const api::Core& api);
-    static api::Factory* FactoryAPIClient(const api::client::Manager& api);
+    static api::internal::Factory* FactoryAPI(const api::internal::Core& api);
+    static api::internal::Factory* FactoryAPIClient(
+        const api::client::internal::Manager& api);
     static api::crypto::Hash* Hash(
         const api::crypto::Encode& encode,
         const crypto::HashingProvider& ssl,
@@ -225,12 +219,12 @@ public:
     );
 #if OT_CRYPTO_WITH_BIP39
     static api::HDSeed* HDSeed(
+        const api::Factory& factory,
         const api::crypto::Asymmetric& asymmetric,
         const api::crypto::Symmetric& symmetric,
         const api::storage::Storage& storage,
         const crypto::Bip32& bip32,
-        const crypto::Bip39& bip39,
-        const crypto::LegacySymmetricProvider& aes);
+        const crypto::Bip39& bip39);
 #endif
     static api::Identity* Identity(const api::Core& api);
     static api::client::Issuer* Issuer(
@@ -263,10 +257,12 @@ public:
         const proto::KeyRole role);
     static crypto::key::Keypair* Keypair(
         const api::Core& api,
+        const opentxs::PasswordPrompt& reason,
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey);
     static crypto::key::Keypair* Keypair(
         const api::Core& api,
+        const opentxs::PasswordPrompt& reason,
         const proto::AsymmetricKey& serializedPubkey);
     static api::Legacy* Legacy();
     static api::internal::Log* Log(
@@ -324,7 +320,8 @@ public:
     static OTCallback* NullCallback();
     static identity::internal::Nym* Nym(
         const api::Core& api,
-        const NymParameters& nymParameters);
+        const NymParameters& nymParameters,
+        const opentxs::PasswordPrompt& reason);
     static identity::internal::Nym* Nym(
         const api::Core& api,
         const identifier::Nym& nymID,
@@ -337,12 +334,16 @@ public:
     static otx::client::internal::Operation* Operation(
         const api::client::Manager& api,
         const identifier::Nym& nym,
-        const identifier::Server& server);
+        const identifier::Server& server,
+        const opentxs::PasswordPrompt& reason);
     static api::client::OTX* OTX(
         const Flag& running,
         const api::client::Manager& api,
         OTClient& otclient,
         const ContextLockCallback& lockCallback);
+    static PasswordPrompt* PasswordPrompt(
+        const api::internal::Core& api,
+        const std::string& text);
     static api::client::Pair* Pair(
         const Flag& running,
         const api::client::Manager& client);
@@ -366,6 +367,23 @@ public:
         const ui::implementation::PayableListSortKey& key,
         const std::string& paymentcode,
         const proto::ContactItemType& currency);
+    static opentxs::PaymentCode* PaymentCode(
+        const api::Core& api,
+        const std::string& base58,
+        const opentxs::PasswordPrompt& reason);
+    static opentxs::PaymentCode* PaymentCode(
+        const api::Core& api,
+        const proto::PaymentCode& serialized,
+        const opentxs::PasswordPrompt& reason);
+    static opentxs::PaymentCode* PaymentCode(
+        const api::Core& api,
+        const std::string& seed,
+        const Bip32Index nym,
+        const std::uint8_t version,
+        const opentxs::PasswordPrompt& reason,
+        const bool bitmessage = false,
+        const std::uint8_t bitmessageVersion = 0,
+        const std::uint8_t bitmessageStream = 0);
     static ui::implementation::ActivityThreadRowInternal* PaymentItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
@@ -377,37 +395,44 @@ public:
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
         const Nym_p& senderNym,
-        const std::string& message);
+        const std::string& message,
+        const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment);
+        const bool isPayment,
+        const opentxs::PasswordPrompt& reason);
 #if OT_CASH
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse);
+        const std::shared_ptr<blind::Purse> purse,
+        const opentxs::PasswordPrompt& reason);
 #endif
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
         const api::Core& api,
         const Nym_p& signerNym,
-        const proto::PeerObject& serialized);
+        const proto::PeerObject& serialized,
+        const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
         const api::Core& api,
         const Nym_p& recipientNym,
-        const Armored& encrypted);
+        const Armored& encrypted,
+        const opentxs::PasswordPrompt& reason);
     static ui::implementation::ActivityThreadRowInternal* PendingSend(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
@@ -419,13 +444,15 @@ public:
     static opentxs::PIDFile* PIDFile(const std::string& path);
     static identity::credential::internal::Primary* PrimaryCredential(
         const api::Core& api,
+        const opentxs::PasswordPrompt& reason,
         identity::internal::Authority& parent,
         const proto::Credential& credential);
     static identity::credential::internal::Primary* PrimaryCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
         const api::client::Manager& api,
@@ -471,7 +498,8 @@ public:
         const opentxs::ServerContext& context,
         const proto::CashType type,
         const blind::Mint& mint,
-        const Amount totalValue);
+        const Amount totalValue,
+        const opentxs::PasswordPrompt& reason);
     static blind::Purse* Purse(
         const api::Core& api,
         const identity::Nym& owner,
@@ -479,54 +507,60 @@ public:
         const identity::Nym& serverNym,
         const proto::CashType type,
         const blind::Mint& mint,
-        const Amount totalValue);
+        const Amount totalValue,
+        const opentxs::PasswordPrompt& reason);
     static blind::Purse* Purse(
         const api::Core& api,
         const blind::Purse& request,
-        const identity::Nym& requester);
+        const identity::Nym& requester,
+        const opentxs::PasswordPrompt& reason);
     static blind::Purse* Purse(
         const api::Core& api,
         const identity::Nym& owner,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
-        const proto::CashType type);
+        const proto::CashType type,
+        const opentxs::PasswordPrompt& reason);
 #endif
     static rpc::internal::RPC* RPC(const api::Native& native);
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     static crypto::key::RSA* RSAKey(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::AsymmetricKey& serializedKey);
     static crypto::key::RSA* RSAKey(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::KeyRole role);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
     static identity::credential::internal::Secondary* SecondaryCredential(
         const api::Core& api,
+        const opentxs::PasswordPrompt& reason,
         identity::internal::Authority& parent,
         const proto::Credential& credential);
     static identity::credential::internal::Secondary* SecondaryCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static crypto::Secp256k1* Secp256k1(
         const api::Crypto& crypto,
         const api::crypto::Util& util,
         const crypto::EcdsaProvider& ecdsa);
     static crypto::key::Secp256k1* Secp256k1Key(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey);
+        const proto::AsymmetricKey& serializedKey,
+        const opentxs::PasswordPrompt& reason);
     static crypto::key::Secp256k1* Secp256k1Key(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static crypto::key::Secp256k1* Secp256k1Key(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const OTPassword& privateKey,
         const OTPassword& chainCode,
@@ -534,7 +568,8 @@ public:
         const proto::HDPath& path,
         const Bip32Fingerprint parent,
         const proto::KeyRole role,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::ServerAction* ServerAction(
         const api::client::Manager& api,
@@ -556,7 +591,7 @@ public:
         const Nym_p& remote,
         network::ServerConnection& connection);
     static api::server::Manager* ServerManager(
-        const api::Native& parent,
+        const api::internal::Native& parent,
         Flag& running,
         const ArgList& args,
         const api::Crypto& crypto,
@@ -624,7 +659,30 @@ public:
         const Random& random,
         const Flag& bucket);
 #endif
-    static api::crypto::Symmetric* Symmetric(crypto::SymmetricProvider& sodium);
+    static api::crypto::Symmetric* Symmetric(const api::Core& api);
+    static crypto::key::Symmetric* SymmetricKey();
+    static crypto::key::Symmetric* SymmetricKey(
+        const api::internal::Core& api,
+        const crypto::SymmetricProvider& engine,
+        const opentxs::PasswordPrompt& reason,
+        const proto::SymmetricMode mode);
+    static crypto::key::Symmetric* SymmetricKey(
+        const api::internal::Core& api,
+        const crypto::SymmetricProvider& engine,
+        const proto::SymmetricKey serialized);
+    static crypto::key::Symmetric* SymmetricKey(
+        const api::internal::Core& api,
+        const crypto::SymmetricProvider& engine,
+        const OTPassword& seed,
+        const std::uint64_t operations,
+        const std::uint64_t difficulty,
+        const std::size_t size,
+        const proto::SymmetricKeyType type);
+    static crypto::key::Symmetric* SymmetricKey(
+        const api::internal::Core& api,
+        const crypto::SymmetricProvider& engine,
+        const OTPassword& raw,
+        const opentxs::PasswordPrompt& reason);
 #if OT_CASH
     static blind::Token* Token(
         const api::Core& api,
@@ -656,7 +714,8 @@ public:
         const api::Core& api,
         identity::internal::Authority& parent,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static api::Wallet* Wallet(const api::client::Manager& client);
     static api::Wallet* Wallet(const api::server::Manager& server);
     static api::client::Workflow* Workflow(

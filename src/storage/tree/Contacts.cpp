@@ -28,8 +28,7 @@ Contacts::Contacts(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = CURRENT_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(CURRENT_VERSION);
     }
 }
 
@@ -118,17 +117,7 @@ void Contacts::init(const std::string& hash)
         abort();
     }
 
-    original_version_ = serialized->version();
-
-    // Upgrade version
-    if (CURRENT_VERSION > original_version_) {
-        version_ = CURRENT_VERSION;
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Upgrading from version ")(
-            original_version_)(" to ")(version_)(".")
-            .Flush();
-    } else {
-        version_ = original_version_;
-    }
+    init_version(CURRENT_VERSION, *serialized);
 
     for (const auto& parent : serialized->merge()) {
         auto& list = merge_[parent.id()];

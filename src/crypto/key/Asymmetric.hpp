@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "internal/api/Api.hpp"
+
 namespace opentxs::crypto::key::implementation
 {
 class Asymmetric : virtual public key::Asymmetric
@@ -39,7 +41,7 @@ public:
     bool Sign(
         const Data& plaintext,
         proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
         const String& credID = String::Factory(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const override;
@@ -48,11 +50,13 @@ public:
         const proto::SignatureRole role,
         proto::Signature& signature,
         const Identifier& credential,
+        const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
-    bool Verify(const Data& plaintext, const proto::Signature& sig)
-        const override;
+    bool Verify(
+        const Data& plaintext,
+        const proto::Signature& sig,
+        const PasswordPrompt& reason) const override;
 
     void Release() override;
     void ReleaseKey() override { Release(); }
@@ -77,7 +81,7 @@ public:
 protected:
     friend OTAsymmetricKey;
 
-    const api::crypto::Asymmetric& crypto_;
+    const api::internal::Core& api_;
     const crypto::AsymmetricProvider& provider_;
     const VersionNumber version_;
     const proto::AsymmetricKeyType type_;
@@ -90,7 +94,7 @@ protected:
     virtual bool get_public_key(String& strKey) const = 0;
 
     Asymmetric(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role,
@@ -98,17 +102,17 @@ protected:
         const bool hasPrivate,
         const VersionNumber version) noexcept;
     Asymmetric(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::AsymmetricKey& serializedKey) noexcept;
     Asymmetric(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::AsymmetricKey& serializedKey,
         const bool hasPublic,
         const bool hasPrivate) noexcept;
     Asymmetric(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role,

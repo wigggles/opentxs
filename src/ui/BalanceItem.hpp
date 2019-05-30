@@ -65,7 +65,7 @@ private:
         const proto::PaymentWorkflow& workflow);
 
     virtual opentxs::Amount effective_amount() const = 0;
-    virtual bool get_contract() const = 0;
+    virtual bool get_contract(const PasswordPrompt& reason) const = 0;
 
     BalanceItem(const BalanceItem&) = delete;
     BalanceItem(BalanceItem&&) = delete;

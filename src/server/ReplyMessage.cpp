@@ -32,11 +32,13 @@ ReplyMessage::ReplyMessage(
     const Message& input,
     Server& server,
     const MessageType& type,
-    Message& output)
+    Message& output,
+    const PasswordPrompt& reason)
     : parent_(parent)
     , wallet_(wallet)
     , signer_(signer)
     , original_(input)
+    , reason_(reason)
     , notary_id_(notaryID)
     , message_(output)
     , server_(server)
@@ -159,7 +161,7 @@ ClientContext& ReplyMessage::Context()
 {
     OT_ASSERT(context_);
 
-    return context_->It();
+    return context_->get();
 }
 
 // REPLY NOTICE TO NYMBOX
@@ -198,16 +200,17 @@ bool ReplyMessage::init()
 
 const bool& ReplyMessage::Init() const { return init_; }
 
-bool ReplyMessage::init_nym()
+bool ReplyMessage::init_nym(const PasswordPrompt& reason)
 {
-    sender_nym_ = wallet_.Nym(identifier::Nym::Factory(original_.m_strNymID));
+    sender_nym_ =
+        wallet_.Nym(identifier::Nym::Factory(original_.m_strNymID), reason);
 
     return bool(sender_nym_);
 }
 
-bool ReplyMessage::LoadContext()
+bool ReplyMessage::LoadContext(const PasswordPrompt& reason)
 {
-    if (false == init_nym()) {
+    if (false == init_nym(reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym (")(original_.m_strNymID)(
             ") does not exist")
             .Flush();
@@ -216,7 +219,7 @@ bool ReplyMessage::LoadContext()
     }
 
     context_.reset(new Editor<ClientContext>(
-        wallet_.mutable_ClientContext(sender_nym_->ID())));
+        wallet_.mutable_ClientContext(sender_nym_->ID(), reason)));
 
     return bool(context_);
 }
@@ -326,13 +329,13 @@ ReplyMessage::~ReplyMessage()
             message_,
             original_.m_strRequestNum->ToLong(),
             drop_status_,
-            context_->It(),
+            context_->get(),
             server_);
     }
 
-    if (context_) { SetNymboxHash(context_->It().LocalNymboxHash()); }
+    if (context_) { SetNymboxHash(context_->get().LocalNymboxHash()); }
 
-    message_.SignContract(signer_);
+    message_.SignContract(signer_, reason_);
     message_.SaveContract();
 }
 }  // namespace opentxs::server

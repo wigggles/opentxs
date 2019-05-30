@@ -9,29 +9,21 @@
 set(MODULE_NAME opentxs-client)
 
 set(cxx-sources
-  Helpers.cpp
   NymData.cpp
   OT_API.cpp
   OTAPI_Exec.cpp
   OTAPI_Func.cpp
   OTClient.cpp
-  OTMessageOutbuffer.cpp
-  OTWallet.cpp
   SwigWrap.cpp
-  Utility.cpp
 )
 
 set(cxx-install-headers
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/Helpers.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/NymData.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTAPI_Exec.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_API.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTClient.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTMessageOutbuffer.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTWallet.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/SwigWrap.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/Utility.hpp
 )
 
 set(cxx-headers

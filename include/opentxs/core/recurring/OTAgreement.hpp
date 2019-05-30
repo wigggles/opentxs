@@ -72,8 +72,9 @@ protected:
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
         Nym_p theOriginator,
-        Nym_p pRemover) override;
-    void onRemovalFromCron() override;
+        Nym_p pRemover,
+        const PasswordPrompt& reason) override;
+    void onRemovalFromCron(const PasswordPrompt& reason) override;
 
     // Numbers used for CLOSING a transaction. (finalReceipt.)
     std::deque<TransactionNumber> m_dequeRecipientClosingNumbers;
@@ -116,6 +117,7 @@ public:
         ServerContext& context,
         const Account& PAYER_ACCT,
         const identifier::Nym& p_id_MERCHANT_NYM,
+        const PasswordPrompt& reason,
         const identity::Nym* pMERCHANT_NYM = nullptr);
 
     // What should be the process here?
@@ -233,7 +235,8 @@ public:
     //
     virtual bool VerifyAgreement(
         const ClientContext& recipient,
-        const ClientContext& sender) const = 0;
+        const ClientContext& sender,
+        const PasswordPrompt& reason) const = 0;
 
     virtual bool CompareAgreement(const OTAgreement& rhs) const;
 
@@ -296,8 +299,11 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    bool ProcessCron() override;  // OTCron calls this regularly, which is my
-                                  // chance to expire, etc.
+    bool ProcessCron(const PasswordPrompt& reason) override;  // OTCron calls
+                                                              // this regularly,
+                                                              // which is my
+                                                              // chance to
+                                                              // expire, etc.
 
     // From OTTrackable (parent class of OTCronItem, parent class of this)
     /*
@@ -359,7 +365,8 @@ public:
     //
     bool VerifyNymAsAgent(
         const identity::Nym& theNym,
-        const identity::Nym& theSignerNym) const override;
+        const identity::Nym& theSignerNym,
+        const PasswordPrompt& reason) const override;
 
     bool VerifyNymAsAgentForAccount(
         const identity::Nym& theNym,
@@ -380,6 +387,7 @@ public:
         // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
         identity::Nym* pActualNym = nullptr) const;
@@ -397,7 +405,8 @@ public:
         originType theOriginType,
         OTString pstrNote,
         OTString pstrAttachment,
-        const identifier::Nym& actualNymID);
+        const identifier::Nym& actualNymID,
+        const PasswordPrompt& reason);
 
     virtual ~OTAgreement();
 
@@ -410,10 +419,13 @@ public:
         const identifier::Nym& theNymID) const override;
     std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the ledger saves its contents
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or serialization,
+                   // this
+                   // is where the ledger saves its contents
 
 protected:
     OTAgreement(const api::Core& core);

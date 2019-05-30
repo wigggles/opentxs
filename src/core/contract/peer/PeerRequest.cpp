@@ -10,7 +10,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentNotice.hpp"
 #include "opentxs/core/contract/peer/BailmentRequest.hpp"
@@ -18,13 +17,12 @@
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 
 #define OT_METHOD "opentxs::PeerRequest::"
 
@@ -80,7 +78,10 @@ PeerRequest::PeerRequest(
     , type_(type)
     , api_(api)
 {
-    auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
+    auto random = api_.Factory().BinarySecret();
+
+    OT_ASSERT(random);
+
     random->randomizeMemory(32);
     cookie_->CalculateDigest(
         Data::Factory(random->getMemory(), random->getMemorySize()));
@@ -102,7 +103,10 @@ PeerRequest::PeerRequest(
     , type_(type)
     , api_(api)
 {
-    auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
+    auto random = api_.Factory().BinarySecret();
+
+    OT_ASSERT(random);
+
     random->randomizeMemory(32);
     cookie_->CalculateDigest(
         Data::Factory(random->getMemory(), random->getMemorySize()));
@@ -112,7 +116,7 @@ proto::PeerRequest PeerRequest::contract(const Lock& lock) const
 {
     auto contract = SigVersion(lock);
     if (0 < signatures_.size()) {
-    	*(contract.mutable_signature()) = *(signatures_.front());
+        *(contract.mutable_signature()) = *(signatures_.front());
     }
 
     return contract;
@@ -134,9 +138,10 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const identifier::Nym& recipient,
     const Identifier& requestID,
     const std::string& txid,
-    const Amount& amount)
+    const Amount& amount,
+    const PasswordPrompt& reason)
 {
-    auto unit = api.Wallet().UnitDefinition(unitID);
+    auto unit = api.Wallet().UnitDefinition(unitID, reason);
 
     if (!unit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load unit definition.")
@@ -168,7 +173,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
@@ -176,9 +181,10 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const Nym_p& nym,
     const proto::PeerRequestType& type,
     const identifier::UnitDefinition& unitID,
-    const identifier::Server& serverID)
+    const identifier::Server& serverID,
+    const PasswordPrompt& reason)
 {
-    auto unit = api.Wallet().UnitDefinition(unitID);
+    auto unit = api.Wallet().UnitDefinition(unitID, reason);
 
     if (!unit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load unit definition.")
@@ -203,7 +209,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
@@ -213,9 +219,10 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const identifier::UnitDefinition& unitID,
     const identifier::Server& serverID,
     const std::uint64_t& amount,
-    const std::string& terms)
+    const std::string& terms,
+    const PasswordPrompt& reason)
 {
-    auto unit = api.Wallet().UnitDefinition(unitID);
+    auto unit = api.Wallet().UnitDefinition(unitID, reason);
 
     if (!unit) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load unit definition.")
@@ -239,7 +246,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
@@ -248,7 +255,8 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const proto::PeerRequestType& type,
     const proto::ConnectionInfoType connectionType,
     const identifier::Nym& recipient,
-    const identifier::Server& serverID)
+    const identifier::Server& serverID,
+    const PasswordPrompt& reason)
 {
     std::unique_ptr<PeerRequest> contract;
 
@@ -265,7 +273,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
@@ -276,7 +284,8 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const identifier::Nym& recipient,
     const std::string& primary,
     const std::string& secondary,
-    const identifier::Server& serverID)
+    const identifier::Server& serverID,
+    const PasswordPrompt& reason)
 {
     std::unique_ptr<PeerRequest> contract;
 
@@ -299,13 +308,14 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
         }
     }
 
-    return Finish(contract);
+    return Finish(contract, reason);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Factory(
     const api::Core& api,
     const Nym_p& nym,
-    const proto::PeerRequest& serialized)
+    const proto::PeerRequest& serialized,
+    const PasswordPrompt& reason)
 {
     if (!proto::Validate(serialized, VERBOSE)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid protobuf.").Flush();
@@ -348,7 +358,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock)) {
+    if (!contract->validate(lock, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request.").Flush();
 
         return nullptr;
@@ -373,7 +383,9 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
     return contract;
 }
 
-bool PeerRequest::FinalizeContract(PeerRequest& contract)
+bool PeerRequest::FinalizeContract(
+    PeerRequest& contract,
+    const PasswordPrompt& reason)
 {
     Lock lock(contract.lock_);
 
@@ -383,13 +395,14 @@ bool PeerRequest::FinalizeContract(PeerRequest& contract)
         return false;
     }
 
-    if (!contract.update_signature(lock)) { return false; }
+    if (!contract.update_signature(lock, reason)) { return false; }
 
-    return contract.validate(lock);
+    return contract.validate(lock, reason);
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Finish(
-    std::unique_ptr<PeerRequest>& contract)
+    std::unique_ptr<PeerRequest>& contract,
+    const PasswordPrompt& reason)
 {
     std::unique_ptr<PeerRequest> output(contract.release());
 
@@ -400,7 +413,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Finish(
         return nullptr;
     }
 
-    if (FinalizeContract(*output)) {
+    if (FinalizeContract(*output, reason)) {
 
         return output;
     } else {
@@ -463,16 +476,18 @@ proto::PeerRequest PeerRequest::SigVersion(const Lock& lock) const
     return contract;
 }
 
-bool PeerRequest::update_signature(const Lock& lock)
+bool PeerRequest::update_signature(
+    const Lock& lock,
+    const PasswordPrompt& reason)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock, reason)) { return false; }
 
     bool success = false;
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success =
-        nym_->SignProto(serialized, proto::SIGROLE_PEERREQUEST, signature);
+    success = nym_->SignProto(
+        serialized, proto::SIGROLE_PEERREQUEST, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -484,12 +499,12 @@ bool PeerRequest::update_signature(const Lock& lock)
     return success;
 }
 
-bool PeerRequest::validate(const Lock& lock) const
+bool PeerRequest::validate(const Lock& lock, const PasswordPrompt& reason) const
 {
     bool validNym = false;
 
     if (nym_) {
-        validNym = nym_->VerifyPseudonym();
+        validNym = nym_->VerifyPseudonym(reason);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym.").Flush();
     }
@@ -509,7 +524,7 @@ bool PeerRequest::validate(const Lock& lock) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature); }
+    if (signature) { validSig = verify_signature(lock, *signature, reason); }
 
     if (!validSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
@@ -520,14 +535,15 @@ bool PeerRequest::validate(const Lock& lock) const
 
 bool PeerRequest::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature,
+    const PasswordPrompt& reason) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature, reason)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);
+    return nym_->VerifyProto(serialized, sigProto, reason);
 }
 }  // namespace opentxs

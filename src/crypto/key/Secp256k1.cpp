@@ -8,11 +8,10 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/core/util/Timer.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -32,26 +31,28 @@
 namespace opentxs
 {
 crypto::key::Secp256k1* Factory::Secp256k1Key(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& input)
+    const proto::AsymmetricKey& input,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new crypto::key::implementation::Secp256k1(crypto, ecdsa, input);
+    return new crypto::key::implementation::Secp256k1(
+        api, ecdsa, input, reason);
 }
 
 crypto::key::Secp256k1* Factory::Secp256k1Key(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole input,
     const VersionNumber version)
 {
     return new crypto::key::implementation::Secp256k1(
-        crypto, ecdsa, input, version);
+        api, ecdsa, input, version);
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 crypto::key::Secp256k1* Factory::Secp256k1Key(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const OTPassword& privateKey,
     const OTPassword& chainCode,
@@ -59,13 +60,13 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
     const proto::HDPath& path,
     const Bip32Fingerprint parent,
     const proto::KeyRole role,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
-    const auto reason = OTPasswordData(__FUNCTION__);
-    auto sessionKey = crypto.Symmetric().Key(__FUNCTION__);
+    auto sessionKey = api.Symmetric().Key(reason);
 
     return new crypto::key::implementation::Secp256k1(
-        crypto,
+        api,
         ecdsa,
         privateKey,
         chainCode,
@@ -83,25 +84,26 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
 namespace opentxs::crypto::key::implementation
 {
 Secp256k1::Secp256k1(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& serializedKey) noexcept
-    : ot_super(crypto, ecdsa, serializedKey)
+    const proto::AsymmetricKey& serializedKey,
+    const opentxs::PasswordPrompt& reason) noexcept
+    : ot_super(api, ecdsa, serializedKey, reason)
 {
 }
 
 Secp256k1::Secp256k1(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole role,
     const VersionNumber version) noexcept
-    : ot_super(crypto, ecdsa, proto::AKEYTYPE_SECP256K1, role, version)
+    : ot_super(api, ecdsa, proto::AKEYTYPE_SECP256K1, role, version)
 {
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 Secp256k1::Secp256k1(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const OTPassword& privateKey,
     const OTPassword& chainCode,
@@ -111,9 +113,9 @@ Secp256k1::Secp256k1(
     const proto::KeyRole role,
     const VersionNumber version,
     key::Symmetric& sessionKey,
-    const OTPasswordData& reason) noexcept
+    const opentxs::PasswordPrompt& reason) noexcept
     : ot_super(
-          crypto,
+          api,
           ecdsa,
           proto::AKEYTYPE_SECP256K1,
           privateKey,

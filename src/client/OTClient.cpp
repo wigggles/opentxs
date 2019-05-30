@@ -21,9 +21,6 @@
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Purse.hpp"
 #endif  // OT_CASH
-#include "opentxs/client/Helpers.hpp"
-#include "opentxs/client/OTMessageOutbuffer.hpp"
-#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
@@ -33,7 +30,6 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -75,7 +71,6 @@ namespace opentxs
 {
 OTClient::OTClient(const api::Core& core)
     : api_(core)
-    , m_MessageOutbuffer(api_)
 {
     // WARNING: do not access api_.Wallet() during construction
 }
@@ -98,9 +93,12 @@ std::int32_t OTClient::ProcessUserCommand(
     Message& theMessage,
     const Identifier& pHisNymID,
     const Identifier& pHisAcctID,
+    const PasswordPrompt& reason,
     const Amount lTransactionAmount,
     const Account* pAccount,
-    const UnitDefinition* pMyUnitDefinition)
+    const UnitDefinition* pMyUnitDefinition
+
+)
 {
     // This is all preparatory work to get the various pieces of data
     // together
@@ -162,7 +160,7 @@ std::int32_t OTClient::ProcessUserCommand(
             theMessage.SetAcknowledgments(context);
 
             // (2) Sign the Message
-            theMessage.SignContract(nym);
+            theMessage.SignContract(nym, reason);
 
             // (3) Save the Message (with signatures and all, back to its
             // internal
@@ -192,7 +190,7 @@ std::int32_t OTClient::ProcessUserCommand(
             }
 
             // (2) Sign the Message
-            theMessage.SignContract(nym);
+            theMessage.SignContract(nym, reason);
 
             // (3) Save the Message (with signatures and all, back to its
             // internal
@@ -226,7 +224,7 @@ std::int32_t OTClient::ProcessUserCommand(
             }
 
             // (2) Sign the Message
-            theMessage.SignContract(nym);
+            theMessage.SignContract(nym, reason);
 
             // (3) Save the Message (with signatures and all, back to its
             // internal member m_strRawFile.)
@@ -241,40 +239,4 @@ std::int32_t OTClient::ProcessUserCommand(
 
     return static_cast<std::int32_t>(lReturnValue);
 }
-
-void OTClient::QueueOutgoingMessage(const Message& theMessage)
-{
-    auto serialized = String::Factory();
-    const bool saved = theMessage.SaveContractRaw(serialized);
-
-    OT_ASSERT(saved)
-
-    // WHAT DOES THIS MEAN?
-
-    // It means that later, if a message with a certain request number
-    // fails to reply, or show its face in the replies box, then I will
-    // have the option to look it up in the Outbuffer, based on that
-    // same request number, and send a re-try, or claw back any transaction
-    // numbers that might be on that message.
-
-    // Should probably add an API call for specifically doing this, agnostic
-    // to whatever kind of transaction it actually is. Something like,
-    // OT_API_Message_HarvestClosingNumbers, and
-    // OT_API_Message_HarvestAllNumbers
-
-    // So I can save the request number when sending a message, check for it
-    // later in the Nymbox, and then worst case, look it up in the Outbuffer
-    // and get my fucking transaction numbers back again!
-    auto pMsg = api_.Factory().Message();
-
-    OT_ASSERT((pMsg));
-
-    if (pMsg->LoadContractFromString(serialized)) {
-        std::shared_ptr<Message> msg{pMsg.release()};
-        m_MessageOutbuffer.AddSentMessage(msg);
-    } else {
-        OT_FAIL
-    }
-}
-
 }  // namespace opentxs

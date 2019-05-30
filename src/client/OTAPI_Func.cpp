@@ -14,7 +14,6 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/Utility.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
@@ -35,6 +34,8 @@
 #include <vector>
 
 #define OT_METHOD "opentxs::OTAPI_Func::"
+
+bool VerifyStringVal(const std::string& nValue) { return 0 < nValue.length(); }
 
 namespace opentxs
 {
@@ -80,6 +81,7 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
 };
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     std::recursive_mutex& apiLock,
     const api::client::Manager& api,
     const identifier::Nym& nymID,
@@ -122,8 +124,9 @@ OTAPI_Func::OTAPI_Func(
     , nRequestNum_(-1)
     , nTransNumsNeeded_(0)
     , api_(api)
-    , context_editor_(api_.Wallet().mutable_ServerContext(nymID, serverID))
-    , context_(context_editor_.It())
+    , context_editor_(
+          api_.Wallet().mutable_ServerContext(nymID, serverID, reason))
+    , context_(context_editor_.get())
     , last_attempt_()
     , is_transaction_(type_type_.at(type))
     , peer_reply_(nullptr)
@@ -142,12 +145,13 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     if (theType == DELETE_NYM) {
         nTransNumsNeeded_ = 0;
@@ -159,6 +163,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -166,7 +171,7 @@ OTAPI_Func::OTAPI_Func(
     const identifier::Server& serverID,
     const proto::UnitDefinition& unitDefinition,
     const std::string& label)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case (ISSUE_BASKET): {
@@ -183,13 +188,14 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identifier::Nym& nymID2)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case GET_MARKET_RECENT_TRADES: {
@@ -208,6 +214,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -215,7 +222,7 @@ OTAPI_Func::OTAPI_Func(
     const identifier::Server& serverID,
     const Identifier& recipientID,
     std::unique_ptr<OTPaymentPlan>& paymentPlan)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -236,6 +243,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -243,7 +251,7 @@ OTAPI_Func::OTAPI_Func(
     const identifier::Server& serverID,
     const identifier::Nym& nymID2,
     const std::int64_t& int64val)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case ADJUST_USAGE_CREDITS: {
@@ -270,6 +278,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -278,7 +287,7 @@ OTAPI_Func::OTAPI_Func(
     const TransactionNumber& transactionNumber,
     const std::string& clause,
     const std::string& parameter)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -307,6 +316,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -315,7 +325,7 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& accountID,
     const std::string& agentName,
     std::unique_ptr<OTSmartContract>& contract)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -348,6 +358,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -357,7 +368,7 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& targetID,
     const Amount& amount,
     const std::string& message)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     amount_ = amount;
     nTransNumsNeeded_ = 0;
@@ -383,6 +394,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -393,7 +405,7 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& accountID,
     bool direction,
     std::int32_t nTransNumsNeeded)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     if (EXCHANGE_BASKET == theType) {
         // FYI. This is a transaction.
@@ -408,6 +420,7 @@ OTAPI_Func::OTAPI_Func(
 }
 
 OTAPI_Func::OTAPI_Func(
+    const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
     const api::client::Manager& api,
@@ -423,7 +436,7 @@ OTAPI_Func::OTAPI_Func(
     const time64_t lifetime,
     const Amount& activationPrice,
     const std::string& stopSign)
-    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+    : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
 {
     if (VerifyStringVal(stopSign)) { stopSign_ = stopSign; }
 

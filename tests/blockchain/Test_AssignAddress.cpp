@@ -15,9 +15,11 @@ class Test_Blockchain : public ::testing::Test
 {
 public:
     const opentxs::api::client::Manager& client_;
+    opentxs::OTPasswordPrompt reason_;
 
     Test_Blockchain()
         : client_(opentxs::OT::App().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
     {
     }
 };
@@ -35,7 +37,8 @@ TEST_F(Test_Blockchain, testAssignIncomingAddress)
     OTIdentifier AliceAccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Alice),
         BlockchainAccountType::BIP44,
-        proto::CITEMTYPE_BTC);
+        proto::CITEMTYPE_BTC,
+        reason_);
     std::shared_ptr<proto::Bip44Account> AliceAccount =
         client_.Blockchain().Account(
             identifier::Nym::Factory(Alice), AliceAccountID);
@@ -54,6 +57,7 @@ TEST_F(Test_Blockchain, testAssignIncomingAddress)
         client_.Blockchain().AllocateAddress(
             identifier::Nym::Factory(Alice),
             Identifier::Factory(AliceAccountID),
+            reason_,
             label,
             proto::CITEMTYPE_BTC);
     proto::Bip44Address Address = *AccountAddress.get();

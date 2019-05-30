@@ -11,6 +11,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -18,6 +19,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -121,8 +123,9 @@ BalanceItem::BalanceItem(
 std::string BalanceItem::DisplayAmount() const
 {
     sLock lock(shared_lock_);
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    if (get_contract()) {
+    if (get_contract(reason)) {
         const auto amount = effective_amount();
         std::string output{};
         const auto formatted =
@@ -140,11 +143,12 @@ std::vector<std::string> BalanceItem::extract_contacts(
     const api::client::Manager& api,
     const proto::PaymentWorkflow& workflow)
 {
+    auto reason = api.Factory().PasswordPrompt(__FUNCTION__);
     std::vector<std::string> output{};
 
     for (const auto& party : workflow.party()) {
-        const auto contactID =
-            api.Contacts().NymToContact(identifier::Nym::Factory(party));
+        const auto contactID = api.Contacts().NymToContact(
+            identifier::Nym::Factory(party), reason);
         output.emplace_back(contactID->str());
     }
 

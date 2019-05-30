@@ -11,6 +11,8 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Lockable.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <cstdint>
 #include <list>
 #include <memory>
@@ -39,20 +41,20 @@ public:
     virtual ~Scheduler();
 
 protected:
+    const api::internal::Native& parent_;
     std::int64_t nym_publish_interval_{0};
     std::int64_t nym_refresh_interval_{0};
     std::int64_t server_publish_interval_{0};
     std::int64_t server_refresh_interval_{0};
     std::int64_t unit_publish_interval_{0};
     std::int64_t unit_refresh_interval_{0};
-    const api::Native& parent_;
     Flag& running_;
 
     void Start(
         const api::storage::Storage* const storage,
         const api::network::Dht* const dht);
 
-    Scheduler(const api::Native& parent, Flag& running);
+    Scheduler(const api::internal::Native& parent, Flag& running);
 
 private:
     std::thread periodic_;

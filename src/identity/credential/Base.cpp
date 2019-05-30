@@ -68,7 +68,7 @@ Base::Base(
     }
 }
 
-bool Base::New(const NymParameters&)
+bool Base::New(const NymParameters&, const PasswordPrompt& reason)
 {
     Lock lock(lock_);
     bool output = false;
@@ -78,7 +78,7 @@ bool Base::New(const NymParameters&)
     OT_ASSERT(output);
 
     if (output && (proto::CREDROLE_MASTERKEY != role_)) {
-        output = AddMasterSignature(lock);
+        output = AddMasterSignature(lock, reason);
     }
 
     OT_ASSERT(output);
@@ -107,7 +107,8 @@ bool Base::VerifyMasterID() const
 
 /** Verifies the cryptographic integrity of a credential. Assumes the
  * Authority specified by owner_backlink_ is valid. */
-bool Base::verify_internally(const Lock& lock) const
+bool Base::verify_internally(const Lock& lock, const PasswordPrompt& reason)
+    const
 {
     OT_ASSERT(nullptr != owner_backlink_);
 
@@ -151,7 +152,7 @@ bool Base::verify_internally(const Lock& lock) const
     if (proto::CREDROLE_MASTERKEY == role_) {
         GoodMasterSignature = true;  // Covered by VerifySignedBySelf()
     } else {
-        GoodMasterSignature = verify_master_signature(lock);
+        GoodMasterSignature = verify_master_signature(lock, reason);
     }
 
     if (!GoodMasterSignature) {
@@ -165,7 +166,9 @@ bool Base::verify_internally(const Lock& lock) const
     return true;
 }
 
-bool Base::verify_master_signature(const Lock& lock) const
+bool Base::verify_master_signature(
+    const Lock& lock,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(owner_backlink_);
 
@@ -181,7 +184,11 @@ bool Base::verify_master_signature(const Lock& lock) const
     }
 
     return (owner_backlink_->GetMasterCredential().Verify(
-        *serialized, role_, Identifier::Factory(MasterID()), *masterSig));
+        *serialized,
+        role_,
+        Identifier::Factory(MasterID()),
+        *masterSig,
+        reason));
 }
 
 SerializedSignature Base::MasterSignature() const
@@ -229,20 +236,20 @@ bool Base::isValid(
         true);  // with signatures
 }
 
-bool Base::validate(const Lock& lock) const
+bool Base::validate(const Lock& lock, const PasswordPrompt& reason) const
 {
     // Check syntax
     if (!isValid(lock)) { return false; }
 
     // Check cryptographic requirements
-    return verify_internally(lock);
+    return verify_internally(lock, reason);
 }
 
-bool Base::Validate() const
+bool Base::Validate(const PasswordPrompt& reason) const
 {
     Lock lock(lock_);
 
-    return validate(lock);
+    return validate(lock, reason);
 }
 
 OTIdentifier Base::GetID(const Lock& lock) const
@@ -424,7 +431,7 @@ void Base::ReleaseSignatures(const bool onlyPrivate)
     }
 }
 
-bool Base::AddMasterSignature(const Lock& lock)
+bool Base::AddMasterSignature(const Lock& lock, const PasswordPrompt& reason)
 {
     if (nullptr == owner_backlink_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing master credential.")
@@ -443,7 +450,8 @@ bool Base::AddMasterSignature(const Lock& lock)
             return proto::ProtoAsString(*serialized);
         },
         proto::SIGROLE_PUBCREDENTIAL,
-        signature);
+        signature,
+        reason);
 
     if (!havePublicSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -476,8 +484,11 @@ bool Base::GetVerificationSet(std::unique_ptr<proto::VerificationSet>&) const
 }
 
 /** Override this method for credentials capable of verifying signatures */
-bool Base::Verify(const Data&, const proto::Signature&, const proto::KeyRole)
-    const
+bool Base::Verify(
+    const Data&,
+    const proto::Signature&,
+    const PasswordPrompt&,
+    const proto::KeyRole) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.");
 
@@ -490,7 +501,8 @@ bool Base::Verify(
     const proto::Credential&,
     const proto::CredentialRole&,
     const Identifier&,
-    const proto::Signature&) const
+    const proto::Signature&,
+    const PasswordPrompt&) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.");
 
@@ -498,7 +510,7 @@ bool Base::Verify(
 }
 
 /** Override this method for credentials capable of deriving transport keys */
-bool Base::TransportKey(Data&, OTPassword&) const
+bool Base::TransportKey(Data&, OTPassword&, const PasswordPrompt&) const
 {
     OT_ASSERT_MSG(false, "This method was called on the wrong credential.");
 

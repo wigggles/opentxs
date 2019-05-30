@@ -84,7 +84,9 @@ OTPaymentPlan::OTPaymentPlan(
     InitPaymentPlan();
 }
 
-std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTPaymentPlan::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 
@@ -96,7 +98,8 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
-    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml))) return nReturnVal;
+    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml, reason)))
+        return nReturnVal;
 
     // Note: the closing transaction numbers are read in
     // OTCronItem::ProcessXMLNode,
@@ -182,7 +185,7 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-void OTPaymentPlan::UpdateContents()
+void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();
@@ -360,12 +363,14 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 }
 
 bool OTPaymentPlan::VerifyMerchantSignature(
-    const identity::Nym& RECIPIENT_NYM) const
+    const identity::Nym& RECIPIENT_NYM,
+    const PasswordPrompt& reason) const
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy{api_};
     if (!m_strMerchantSignedCopy->Exists() ||
-        !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy)) {
+        !theMerchantCopy.LoadContractFromString(
+            m_strMerchantSignedCopy, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Expected Merchant's signed copy to be inside the "
             "payment plan, but unable to load.")
@@ -384,7 +389,7 @@ bool OTPaymentPlan::VerifyMerchantSignature(
 
     // Verify recipient's signature on merchant's copy.
     //
-    if (!theMerchantCopy.VerifySignature(RECIPIENT_NYM)) {
+    if (!theMerchantCopy.VerifySignature(RECIPIENT_NYM, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Merchant's signature failed to verify on "
             "internal merchant copy of agreement.")
@@ -396,9 +401,10 @@ bool OTPaymentPlan::VerifyMerchantSignature(
 }
 
 bool OTPaymentPlan::VerifyCustomerSignature(
-    const identity::Nym& SENDER_NYM) const
+    const identity::Nym& SENDER_NYM,
+    const PasswordPrompt& reason) const
 {
-    if (!VerifySignature(SENDER_NYM)) {
+    if (!VerifySignature(SENDER_NYM, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Customer's signature failed to verify.")
             .Flush();
@@ -413,9 +419,10 @@ bool OTPaymentPlan::VerifyCustomerSignature(
 // function tries to verify they are the same, and properly signed.
 bool OTPaymentPlan::VerifyAgreement(
     const ClientContext& recipient,
-    const ClientContext& sender) const
+    const ClientContext& sender,
+    const PasswordPrompt& reason) const
 {
-    if (!VerifyMerchantSignature(recipient.RemoteNym())) {
+    if (!VerifyMerchantSignature(recipient.RemoteNym(), reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Merchant's signature failed to verify.")
             .Flush();
@@ -423,7 +430,7 @@ bool OTPaymentPlan::VerifyAgreement(
         return false;
     }
 
-    if (!VerifyCustomerSignature(sender.RemoteNym())) {
+    if (!VerifyCustomerSignature(sender.RemoteNym(), reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Customer's signature failed to verify.")
             .Flush();
@@ -579,7 +586,8 @@ bool OTPaymentPlan::SetInitialPaymentDone()
 // code. true == success, false == failure.
 bool OTPaymentPlan::ProcessPayment(
     const api::Wallet& wallet,
-    const Amount& amount)
+    const Amount& amount,
+    const PasswordPrompt& reason)
 {
     const OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -627,7 +635,7 @@ bool OTPaymentPlan::ProcessPayment(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem{
-        OTCronItem::LoadCronReceipt(api_, GetTransactionNum())};
+        OTCronItem::LoadCronReceipt(api_, GetTransactionNum(), reason)};
 
     OT_ASSERT(false != bool(pOrigCronItem));  // How am I processing it now if
                                               // the receipt wasn't saved in the
@@ -670,7 +678,7 @@ bool OTPaymentPlan::ProcessPayment(
         pSenderNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID);
+        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID, reason);
         if (nullptr == pSenderNym) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failure loading Sender Nym in: ")(SENDER_NYM_ID)(".")
@@ -690,7 +698,7 @@ bool OTPaymentPlan::ProcessPayment(
         pRecipientNym = pSenderNym;  // theSenderNym is pSenderNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID);
+        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID, reason);
         if (nullptr == pRecipientNym) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failure loading Recipient Nym in: ")(RECIPIENT_NYM_ID)(".")
@@ -707,8 +715,9 @@ bool OTPaymentPlan::ProcessPayment(
 
     OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pOrigCronItem.get());
 
-    if ((nullptr == pPlan) || !pPlan->VerifyMerchantSignature(*pRecipientNym) ||
-        !pPlan->VerifyCustomerSignature(*pSenderNym)) {
+    if ((nullptr == pPlan) ||
+        !pPlan->VerifyMerchantSignature(*pRecipientNym, reason) ||
+        !pPlan->VerifyCustomerSignature(*pSenderNym, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying original signatures on Payment plan (while "
             "attempting to process...) "
@@ -732,7 +741,7 @@ bool OTPaymentPlan::ProcessPayment(
     // worry about deleting it, either.) I know for a fact they have both
     // signed pOrigCronItem...
 
-    auto sourceAccount = wallet.mutable_Account(SOURCE_ACCT_ID);
+    auto sourceAccount = wallet.mutable_Account(SOURCE_ACCT_ID, reason);
 
     if (false == bool(sourceAccount)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -743,7 +752,7 @@ bool OTPaymentPlan::ProcessPayment(
         return false;
     }
 
-    auto recipientAccount = wallet.mutable_Account(RECIPIENT_ACCT_ID);
+    auto recipientAccount = wallet.mutable_Account(RECIPIENT_ACCT_ID, reason);
 
     if (false == bool(recipientAccount)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -781,7 +790,7 @@ bool OTPaymentPlan::ProcessPayment(
     // LoadExistingAccount().
     else if (
         !sourceAccount.get().VerifyOwner(*pSenderNym) ||
-        !sourceAccount.get().VerifySignature(*pServerNym)) {
+        !sourceAccount.get().VerifySignature(*pServerNym, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on source account.")
             .Flush();
@@ -790,7 +799,7 @@ bool OTPaymentPlan::ProcessPayment(
         return false;
     } else if (
         !recipientAccount.get().VerifyOwner(*pRecipientNym) ||
-        !recipientAccount.get().VerifySignature(*pServerNym)) {
+        !recipientAccount.get().VerifySignature(*pServerNym, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on "
             "recipient account.")
@@ -819,29 +828,32 @@ bool OTPaymentPlan::ProcessPayment(
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox();
-        bool bSuccessLoadingRecipientInbox = theRecipientInbox->LoadInbox();
+        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox(reason);
+        bool bSuccessLoadingRecipientInbox =
+            theRecipientInbox->LoadInbox(reason);
 
         // ...or generate them otherwise...
         //
         if (true == bSuccessLoadingSenderInbox)
             bSuccessLoadingSenderInbox =
-                theSenderInbox->VerifyAccount(*pServerNym);
+                theSenderInbox->VerifyAccount(*pServerNym, reason);
         else
             bSuccessLoadingSenderInbox = theSenderInbox->GenerateLedger(
                 SOURCE_ACCT_ID,
                 NOTARY_ID,
                 ledgerType::inbox,
+                reason,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
             bSuccessLoadingRecipientInbox =
-                theRecipientInbox->VerifyAccount(*pServerNym);
+                theRecipientInbox->VerifyAccount(*pServerNym, reason);
         else
             bSuccessLoadingRecipientInbox = theRecipientInbox->GenerateLedger(
                 RECIPIENT_ACCT_ID,
                 NOTARY_ID,
                 ledgerType::inbox,
+                reason,
                 true);  // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||
@@ -1075,7 +1087,7 @@ bool OTPaymentPlan::ProcessPayment(
             // signatures on it. Nice, eh?)
 
             ReleaseSignatures();
-            SignContract(*pServerNym);
+            SignContract(*pServerNym, reason);
             SaveContract();
 
             // No need to save Cron here, since both caller functions call
@@ -1147,8 +1159,8 @@ bool OTPaymentPlan::ProcessPayment(
             // on success.
 
             // sign the item
-            pItemSend->SignContract(*pServerNym);
-            pItemRecip->SignContract(*pServerNym);
+            pItemSend->SignContract(*pServerNym, reason);
+            pItemRecip->SignContract(*pServerNym, reason);
 
             pItemSend->SaveContract();
             pItemRecip->SaveContract();
@@ -1158,8 +1170,8 @@ bool OTPaymentPlan::ProcessPayment(
             pTransSend->AddItem(itemSend);
             pTransRecip->AddItem(itemRecip);
 
-            pTransSend->SignContract(*pServerNym);
-            pTransRecip->SignContract(*pServerNym);
+            pTransSend->SignContract(*pServerNym, reason);
+            pTransRecip->SignContract(*pServerNym, reason);
 
             pTransSend->SaveContract();
             pTransRecip->SaveContract();
@@ -1179,8 +1191,8 @@ bool OTPaymentPlan::ProcessPayment(
             theRecipientInbox->ReleaseSignatures();
 
             // Sign both of them.
-            theSenderInbox->SignContract(*pServerNym);
-            theRecipientInbox->SignContract(*pServerNym);
+            theSenderInbox->SignContract(*pServerNym, reason);
+            theRecipientInbox->SignContract(*pServerNym, reason);
 
             // Save both of them internally
             theSenderInbox->SaveContract();
@@ -1219,12 +1231,14 @@ bool OTPaymentPlan::ProcessPayment(
 // Assumes we're due for this payment. Execution oriented.
 // NOTE: there used to be more to this function, but it ended up like this. Que
 // sera sera.
-void OTPaymentPlan::ProcessInitialPayment(const api::Wallet& wallet)
+void OTPaymentPlan::ProcessInitialPayment(
+    const api::Wallet& wallet,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != GetCron());
 
     m_bProcessingInitialPayment = true;
-    ProcessPayment(wallet, GetInitialPaymentAmount());
+    ProcessPayment(wallet, GetInitialPaymentAmount(), reason);
     m_bProcessingInitialPayment = false;
 
     // No need to save the Payment Plan itself since it's already
@@ -1310,7 +1324,9 @@ void OTPaymentPlan::onRemovalFromCron()
 // Assumes we're due for a payment. Execution oriented.
 // NOTE: There used to be more to this function, but it ended up like this. Que
 // sera sera.
-void OTPaymentPlan::ProcessPaymentPlan(const api::Wallet& wallet)
+void OTPaymentPlan::ProcessPaymentPlan(
+    const api::Wallet& wallet,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != GetCron());
 
@@ -1320,7 +1336,7 @@ void OTPaymentPlan::ProcessPaymentPlan(const api::Wallet& wallet)
     // :-(
     // But the member could be useful in the future anyway.
     m_bProcessingPaymentPlan = true;
-    ProcessPayment(wallet, GetPaymentPlanAmount());
+    ProcessPayment(wallet, GetPaymentPlanAmount(), reason);
     m_bProcessingPaymentPlan = false;
 
     // No need to save the Payment Plan itself since it's already
@@ -1338,7 +1354,7 @@ void OTPaymentPlan::ProcessPaymentPlan(const api::Wallet& wallet)
 // OTCron calls this regularly, which is my chance to expire, etc.
 // Return True if I should stay on the Cron list for more processing.
 // Return False if I should be removed and deleted.
-bool OTPaymentPlan::ProcessCron()
+bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != GetCron());
 
@@ -1363,7 +1379,7 @@ bool OTPaymentPlan::ProcessCron()
     // a chance to check its stuff.
     // Currently it calls OTCronItem::ProcessCron, which checks IsExpired().
     //
-    if (!ot_super::ProcessCron()) {
+    if (!ot_super::ProcessCron(reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Cron job has expired.").Flush();
         return false;  // It's expired or flagged for removal--remove it from
                        // Cron.
@@ -1408,7 +1424,7 @@ bool OTPaymentPlan::ProcessCron()
             ": Cron: Processing initial payment...")
             .Flush();
 
-        ProcessInitialPayment(api_.Wallet());
+        ProcessInitialPayment(api_.Wallet(), reason);
     }
     // ----------------------------------------------
     // Next, process the payment plan...
@@ -1539,7 +1555,7 @@ bool OTPaymentPlan::ProcessCron()
 
             // This function assumes the payment is due, and it only fails in
             // the case of the payer's account having insufficient funds.
-            ProcessPaymentPlan(api_.Wallet());
+            ProcessPaymentPlan(api_.Wallet(), reason);
         }
     }
 

@@ -7,11 +7,16 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NymFile.hpp"
 
 namespace opentxs
 {
+template <>
+struct make_blank<OTData> {
+    static OTData value() { return Data::Factory(); }
+};
 template <>
 struct make_blank<OTIdentifier> {
     static OTIdentifier value() { return Identifier::Factory(); }
@@ -21,7 +26,7 @@ struct make_blank<OTIdentifier> {
 namespace opentxs::internal
 {
 struct NymFile : virtual public opentxs::NymFile {
-    virtual bool LoadSignedNymFile() = 0;
-    virtual bool SaveSignedNymFile() = 0;
+    virtual bool LoadSignedNymFile(const PasswordPrompt& reason) = 0;
+    virtual bool SaveSignedNymFile(const PasswordPrompt& reason) = 0;
 };
 }  // namespace opentxs::internal

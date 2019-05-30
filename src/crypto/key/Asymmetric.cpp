@@ -7,9 +7,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
@@ -73,7 +71,7 @@ const std::map<proto::SignatureRole, VersionNumber> Asymmetric::sig_version_{
 };
 
 Asymmetric::Asymmetric(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::AsymmetricProvider& engine,
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
@@ -81,7 +79,7 @@ Asymmetric::Asymmetric(
     const bool hasPrivate,
     const VersionNumber version) noexcept
     : key::Asymmetric()
-    , crypto_(crypto)
+    , api_(api)
     , provider_(engine)
     , version_(version)
     , type_(keyType)
@@ -96,11 +94,11 @@ Asymmetric::Asymmetric(
 }
 
 Asymmetric::Asymmetric(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::AsymmetricProvider& engine,
     const proto::AsymmetricKey& key) noexcept
     : Asymmetric(
-          crypto,
+          api,
           engine,
           key.type(),
           key.role(),
@@ -111,13 +109,13 @@ Asymmetric::Asymmetric(
 }
 
 Asymmetric::Asymmetric(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::AsymmetricProvider& engine,
     const proto::AsymmetricKey& serialized,
     const bool hasPublic,
     const bool hasPrivate) noexcept
     : Asymmetric(
-          crypto,
+          api,
           engine,
           serialized.type(),
           serialized.role(),
@@ -128,18 +126,18 @@ Asymmetric::Asymmetric(
 }
 
 Asymmetric::Asymmetric(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::AsymmetricProvider& engine,
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
     const VersionNumber version) noexcept
-    : Asymmetric(crypto, engine, keyType, role, false, false, version)
+    : Asymmetric(api, engine, keyType, role, false, false, version)
 {
 }
 
 Asymmetric::Asymmetric(const Asymmetric& rhs) noexcept
     : Asymmetric(
-          rhs.crypto_,
+          rhs.api_,
           rhs.provider_,
           rhs.type_,
           rhs.role_,
@@ -268,7 +266,7 @@ OTData Asymmetric::SerializeKeyToData(
 bool Asymmetric::Sign(
     const Data& plaintext,
     proto::Signature& sig,
-    const OTPasswordData* pPWData,
+    const PasswordPrompt& reason,
     const OTPassword* exportPassword,
     const String& credID,
     const proto::SignatureRole role) const
@@ -283,7 +281,7 @@ bool Asymmetric::Sign(
     const auto hash = SigHashType();
 
     bool goodSig = engine().Sign(
-        plaintext, *this, hash, signature, pPWData, exportPassword);
+        api_, plaintext, *this, hash, signature, reason, exportPassword);
 
     if (goodSig) {
         sig.set_version(1);
@@ -301,8 +299,8 @@ bool Asymmetric::Sign(
     const proto::SignatureRole role,
     proto::Signature& signature,
     const Identifier& credential,
+    const PasswordPrompt& reason,
     proto::KeyRole key,
-    const OTPasswordData* pPWData,
     const proto::HashType hash) const
 {
     if (false == HasPrivate()) {
@@ -323,7 +321,7 @@ bool Asymmetric::Sign(
     const auto raw = input();
     const auto preimage = Data::Factory(raw.data(), raw.size());
     bool goodSig = engine().Sign(
-        preimage, *this, signature.hashtype(), sig, pPWData, nullptr);
+        api_, preimage, *this, signature.hashtype(), sig, reason, nullptr);
 
     if (goodSig) {
         signature.set_signature(sig->data(), sig->size());
@@ -334,8 +332,10 @@ bool Asymmetric::Sign(
     return goodSig;
 }
 
-bool Asymmetric::Verify(const Data& plaintext, const proto::Signature& sig)
-    const
+bool Asymmetric::Verify(
+    const Data& plaintext,
+    const proto::Signature& sig,
+    const PasswordPrompt& reason) const
 {
     if (false == HasPublic()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public key").Flush();
@@ -346,8 +346,7 @@ bool Asymmetric::Verify(const Data& plaintext, const proto::Signature& sig)
     auto signature = Data::Factory();
     signature->Assign(sig.signature().c_str(), sig.signature().size());
 
-    return engine().Verify(
-        plaintext, *this, signature, sig.hashtype(), nullptr);
+    return engine().Verify(plaintext, *this, signature, sig.hashtype(), reason);
 }
 
 Asymmetric::~Asymmetric()

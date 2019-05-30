@@ -34,7 +34,7 @@ public:
     EXPORT virtual OTIdentifier LocalNymboxHash() const = 0;
     EXPORT virtual bool NymboxHashMatch() const = 0;
     EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
-        const OTPasswordData& reason) const = 0;
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual const identity::Nym& RemoteNym() const = 0;
     EXPORT virtual OTIdentifier RemoteNymboxHash() const = 0;
     EXPORT virtual RequestNumber Request() const = 0;
@@ -53,15 +53,15 @@ public:
     EXPORT virtual bool ConsumeAvailable(const TransactionNumber& number) = 0;
     EXPORT virtual bool ConsumeIssued(const TransactionNumber& number) = 0;
     EXPORT virtual RequestNumber IncrementRequest() = 0;
-    EXPORT virtual bool InitializeNymbox() = 0;
+    EXPORT virtual bool InitializeNymbox(const PasswordPrompt& reason) = 0;
     EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
-        const OTPasswordData& reason) = 0;
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool OpenCronItem(const TransactionNumber) = 0;
     EXPORT virtual bool RecoverAvailableNumber(
         const TransactionNumber& number) = 0;
     EXPORT virtual bool RemoveAcknowledgedNumber(const RequestNumbers& req) = 0;
     EXPORT virtual void Reset() = 0;
-    EXPORT virtual proto::Context Refresh() = 0;
+    EXPORT virtual proto::Context Refresh(const PasswordPrompt& reason) = 0;
     EXPORT virtual void SetLocalNymboxHash(const Identifier& hash) = 0;
     EXPORT virtual void SetRemoteNymboxHash(const Identifier& hash) = 0;
     EXPORT virtual void SetRequest(const RequestNumber req) = 0;

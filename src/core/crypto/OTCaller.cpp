@@ -10,113 +10,34 @@
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 
-#include <cstdint>
-#include <ostream>
-
-#define OT_METHOD "opentxs::OTCaller"
+// #define OT_METHOD "opentxs::OTCaller"
 
 namespace opentxs
 {
-
-OTCaller::~OTCaller() { delCallback(); }
-
-// A display string is set here before the Java dialog is shown, so that the
-// string can be displayed on that dialog.
-//
-const char* OTCaller::GetDisplay() const
+OTCaller::OTCaller()
+    : callback_(nullptr)
 {
-    // I'm using the OTPassword class to store the display string, in addition
-    // to
-    // storing the password itself. (For convenience.)
-    //
-    return reinterpret_cast<const char*>(m_Display.getPassword_uint8());
 }
 
-// A display string is set here before the Java dialog is shown, so that the
-// string can be displayed on that dialog.
-//
-void OTCaller::SetDisplay(const char* szDisplay, std::int32_t nLength)
+void OTCaller::AskOnce(const PasswordPrompt& prompt, OTPassword& output)
 {
-    // I'm using the OTPassword class to store the display string, in addition
-    // to
-    // storing the password itself. (For convenience.)
-    //
-    m_Display.setPassword_uint8(
-        reinterpret_cast<const std::uint8_t*>(szDisplay), nLength);
+    OT_ASSERT(callback_);
+
+    callback_->runOne(prompt.GetDisplayString(), output);
 }
 
-// The password will be stored here by the Java dialog, so that the C callback
-// can retrieve it and pass it to OpenSSL
-//
-bool OTCaller::GetPassword(OTPassword& theOutput) const  // Get the password....
+void OTCaller::AskTwice(const PasswordPrompt& prompt, OTPassword& output)
 {
-    theOutput.setPassword_uint8(
-        m_Password.getPassword_uint8(), m_Password.getPasswordSize());
+    OT_ASSERT(callback_);
 
-    return true;
+    callback_->runTwo(prompt.GetDisplayString(), output);
 }
 
-void OTCaller::ZeroOutPassword()  // Then ZERO IT OUT so copies aren't floating
-                                  // around.
-{
-    if (m_Password.getPasswordSize() > 0) m_Password.zeroMemory();
-}
+bool OTCaller::HaveCallback() const { return nullptr != callback_; }
 
-void OTCaller::delCallback()
-{
-    if (isCallbackSet()) { _callback = nullptr; }
-}
+void OTCaller::SetCallback(OTCallback* callback) { callback_ = callback; }
 
-void OTCaller::setCallback(OTCallback* cb)
-{
-    if (nullptr == cb) {
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": ERROR: nullptr password OTCallback "
-            "object passed in. (Returning).")
-            .Flush();
-        return;
-    }
-
-    delCallback();  // Sets _callback to nullptr, but LOGS first, if it was
-                    // already set.
-    _callback = cb;
-}
-
-bool OTCaller::isCallbackSet() const
-{
-    return (nullptr == _callback) ? false : true;
-}
-
-void OTCaller::callOne()
-{
-    ZeroOutPassword();  // Make sure there isn't some old password still in
-                        // here.
-
-    if (isCallbackSet()) {
-        _callback->runOne(GetDisplay(), m_Password);
-    } else {
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": WARNING: Failed attempt to trigger "
-            "password callback (one), due to it hasn't been set "
-            "yet.")
-            .Flush();
-    }
-}
-
-void OTCaller::callTwo()
-{
-    ZeroOutPassword();  // Make sure there isn't some old password still in
-                        // here.
-
-    if (isCallbackSet()) {
-        _callback->runTwo(GetDisplay(), m_Password);
-    } else {
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": WARNING: Failed attempt to trigger "
-            "password callback (two), due to it hasn't been set "
-            "yet.")
-            .Flush();
-    }
-}
+OTCaller::~OTCaller() { callback_ = nullptr; }
 }  // namespace opentxs

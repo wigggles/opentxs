@@ -25,7 +25,7 @@ public:
     void Release_Trackable();
 
     void Release() override;
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
     virtual bool HasTransactionNum(const TransactionNumber& lInput) const;
     virtual void GetAllTransactionNumbers(NumList& numlistOutput) const;

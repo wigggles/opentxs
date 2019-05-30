@@ -29,7 +29,7 @@ private:
     std::unique_ptr<const opentxs::Item> transfer_{nullptr};
 
     opentxs::Amount effective_amount() const override;
-    bool get_contract() const override;
+    bool get_contract(const PasswordPrompt& reason) const override;
 
     void startup(const CustomData& custom);
 

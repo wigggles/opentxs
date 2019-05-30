@@ -65,18 +65,19 @@ public:
     bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
         const override;
     bool Sign(
+        const api::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const override;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
 #endif  // OPENTXS_TREZOR_PROVIDES_ECDSA
 
     ~Trezor() = default;

@@ -62,15 +62,17 @@ public:
     bool Open(
         const proto::SessionKey& input,
         crypto::key::Symmetric& key,
-        OTPassword& password) const override;
+        OTPassword& password,
+        const PasswordPrompt& reason) const override;
     bool Path(proto::HDPath& output) const override;
-    std::string PaymentCode() const override;
+    std::string PaymentCode(const PasswordPrompt& reason) const override;
     std::string PhoneNumbers(bool active) const override;
     std::uint64_t Revision() const override;
     bool Seal(
         const OTPassword& password,
         crypto::key::Symmetric& key,
-        proto::SessionKey& output) const override;
+        proto::SessionKey& output,
+        const PasswordPrompt& reason) const override;
     Serialized SerializeCredentialIndex(const Mode mode) const override;
     void SerializeNymIDSource(Tag& parent) const override;
     std::string SocialMediaProfiles(
@@ -79,53 +81,69 @@ public:
     const std::set<proto::ContactItemType> SocialMediaProfileTypes()
         const override;
     const NymIDSource& Source() const override { return *source_; }
-    std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const override;
+    std::unique_ptr<OTPassword> TransportKey(
+        Data& pubkey,
+        const PasswordPrompt& reason) const override;
     bool Unlock(
         const proto::Ciphertext& input,
         crypto::key::Symmetric& key,
         OTPassword& password) const override;
     VersionNumber VerificationCredentialVersion() const override;
     std::unique_ptr<proto::VerificationSet> VerificationSet() const override;
-    bool VerifyPseudonym() const override;
+    bool VerifyPseudonym(const PasswordPrompt& reason) const override;
     bool WriteCredentials() const override;
 
     std::string AddChildKeyCredential(
         const Identifier& strMasterID,
-        const NymParameters& nymParameters) override;
-    bool AddClaim(const Claim& claim) override;
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason) override;
+    bool AddClaim(const Claim& claim, const PasswordPrompt& reason) override;
     bool AddContract(
         const identifier::UnitDefinition& instrumentDefinitionID,
         const proto::ContactItemType currency,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) override;
     bool AddEmail(
         const std::string& value,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) override;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddPaymentCode(
         const class PaymentCode& code,
         const proto::ContactItemType currency,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) override;
 #endif
-    bool AddPreferredOTServer(const Identifier& id, const bool primary)
-        override;
+    bool AddPreferredOTServer(
+        const Identifier& id,
+        const PasswordPrompt& reason,
+        const bool primary) override;
     bool AddPhoneNumber(
         const std::string& value,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) override;
     bool AddSocialMediaProfile(
         const std::string& value,
         const proto::ContactItemType type,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) override;
-    bool DeleteClaim(const Identifier& id) override;
-    bool LoadCredentialIndex(const Serialized& index) override;
+    bool DeleteClaim(const Identifier& id, const PasswordPrompt& reason)
+        override;
+    bool LoadCredentialIndex(
+        const Serialized& index,
+        const PasswordPrompt& reason) override;
     void SetAlias(const std::string& alias) override;
     void SetAliasStartup(const std::string& alias) override { alias_ = alias; }
-    bool SetCommonName(const std::string& name) override;
-    bool SetContactData(const proto::ContactData& data) override;
+    bool SetCommonName(const std::string& name, const PasswordPrompt& reason)
+        override;
+    bool SetContactData(
+        const proto::ContactData& data,
+        const PasswordPrompt& reason) override;
     void SetDescription(const String& strLocation) override
     {
         eLock lock(shared_lock_);
@@ -135,16 +153,21 @@ public:
     bool SetScope(
         const proto::ContactItemType type,
         const std::string& name,
+        const PasswordPrompt& reason,
         const bool primary) override;
-    bool SetVerificationSet(const proto::VerificationSet& data) override;
+    bool SetVerificationSet(
+        const proto::VerificationSet& data,
+        const PasswordPrompt& reason) override;
     bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         const proto::HashType hash,
         proto::Signature& signature,
-        const OTPasswordData* pPWData) const override;
-    bool Verify(const Data& plaintext, const proto::Signature& sig)
-        const override;
+        const PasswordPrompt& reason) const override;
+    bool Verify(
+        const Data& plaintext,
+        const proto::Signature& sig,
+        const PasswordPrompt& reason) const override;
 
     ~Nym() override;
 
@@ -191,23 +214,37 @@ private:
     bool has_capability(const eLock& lock, const NymCapability& capability)
         const;
     void init_claims(const eLock& lock) const;
-    bool set_contact_data(const eLock& lock, const proto::ContactData& data);
-    bool verify_pseudonym(const eLock& lock) const;
+    bool set_contact_data(
+        const eLock& lock,
+        const proto::ContactData& data,
+        const PasswordPrompt& reason);
+    bool verify_pseudonym(const eLock& lock, const PasswordPrompt& reason)
+        const;
 
     bool add_contact_credential(
         const eLock& lock,
-        const proto::ContactData& data);
+        const proto::ContactData& data,
+        const PasswordPrompt& reason);
     bool add_verification_credential(
         const eLock& lock,
-        const proto::VerificationSet& data);
+        const proto::VerificationSet& data,
+        const PasswordPrompt& reason);
     void clear_credentials(const eLock& lock);
     void ClearCredentials();
-    bool load_credential_index(const eLock& lock, const Serialized& index);
+    bool load_credential_index(
+        const eLock& lock,
+        const Serialized& index,
+        const PasswordPrompt& reason);
     void revoke_contact_credentials(const eLock& lock);
     void revoke_verification_credentials(const eLock& lock);
-    bool update_nym(const eLock& lock, const std::int32_t version);
+    bool update_nym(
+        const eLock& lock,
+        const std::int32_t version,
+        const PasswordPrompt& reason);
 
-    Nym(const api::Core& api, const NymParameters& nymParameters);
+    Nym(const api::Core& api,
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason);
     Nym(const api::Core& api,
         const identifier::Nym& nymID,
         const proto::CredentialIndexMode mode,

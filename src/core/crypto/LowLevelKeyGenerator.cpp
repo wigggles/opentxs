@@ -8,7 +8,7 @@
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/mkcert.hpp"
 #endif
@@ -34,7 +34,6 @@
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #endif
 #include "opentxs/crypto/library/Sodium.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -95,8 +94,11 @@ LowLevelKeyGenerator::~LowLevelKeyGenerator()
     if (pkeyData_) { pkeyData_.release(); }
 }
 
-LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
-    : m_bCleanup(true)
+LowLevelKeyGenerator::LowLevelKeyGenerator(
+    const api::Core& api,
+    const NymParameters& pkeyData)
+    : api_(api)
+    , m_bCleanup(true)
 {
     pkeyData_.reset(const_cast<NymParameters*>(&pkeyData));
 
@@ -165,7 +167,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (NymParameterType::ED25519): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                OT::App().Crypto().ED25519());
+                api_.Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
@@ -176,7 +178,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                OT::App().Crypto().SECP256K1());
+                api_.Crypto().SECP256K1());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
@@ -254,7 +256,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 
 bool LowLevelKeyGenerator::SetOntoKeypair(
     crypto::key::Keypair& input,
-    OTPasswordData& passwordData)
+    const PasswordPrompt& reason)
 {
     if (false == bool(pkeyData_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing creation parameters")
@@ -269,7 +271,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (NymParameterType::ED25519): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                OT::App().Crypto().ED25519());
+                api_.Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
@@ -304,7 +306,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
             const bool pubkeySet =
                 engine.ECPubkeyToAsymmetricKey(ldp.publicKey_, *pPublicKey);
             const bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
-                ldp.privateKey_, passwordData, *pPrivateKey);
+                api_, ldp.privateKey_, reason, *pPrivateKey);
 
             return (pubkeySet && privkeySet);
         }
@@ -312,7 +314,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                OT::App().Crypto().SECP256K1());
+                api_.Crypto().SECP256K1());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
@@ -347,7 +349,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
             const bool pubkeySet =
                 engine.ECPubkeyToAsymmetricKey(ldp.publicKey_, *pPublicKey);
             const bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
-                ldp.privateKey_, passwordData, *pPrivateKey);
+                api_, ldp.privateKey_, reason, *pPrivateKey);
 
             return (pubkeySet && privkeySet);
         }
@@ -386,11 +388,11 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
             // Now we can call OpenSSL-specific methods on these keys...
             //
             pPublicKey->SetAsPublic();
-            pPublicKey->dp->SetKeyAsCopyOf(*ldp.m_pKey);
+            pPublicKey->dp->SetKeyAsCopyOf(*ldp.m_pKey, reason);
             pPublicKey->dp->SetX509(ldp.m_pX509);
             ldp.m_pX509 = nullptr;
             pPrivateKey->SetAsPrivate();
-            pPrivateKey->dp->SetKeyAsCopyOf(*ldp.m_pKey, true);
+            pPrivateKey->dp->SetKeyAsCopyOf(*ldp.m_pKey, reason, true);
             EVP_PKEY_free(ldp.m_pKey);
             ldp.m_pKey = nullptr;
 

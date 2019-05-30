@@ -12,81 +12,90 @@ namespace opentxs::crypto::key::implementation
 class SymmetricNull final : virtual public key::Symmetric
 {
 public:
-    bool ChangePassword(const OTPasswordData&, const OTPassword&) override
+    const api::Core& api() const final { throw; }
+
+    bool ChangePassword(const PasswordPrompt&, const OTPassword&) final
     {
         return false;
     }
-    bool Decrypt(const proto::Ciphertext&, const OTPasswordData&, std::string&)
-        override
+    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, std::string&)
+        const final
     {
         return false;
     }
-    bool Decrypt(const proto::Ciphertext&, const OTPasswordData&, String&)
-        override
+    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, String&)
+        const final
     {
         return false;
     }
-    bool Decrypt(const proto::Ciphertext&, const OTPasswordData&, Data&)
-        override
+    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, Data&)
+        const final
     {
         return false;
     }
-    bool Decrypt(const proto::Ciphertext&, const OTPasswordData&, OTPassword&)
-        override
+    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, OTPassword&)
+        const final
     {
         return false;
     }
     bool Encrypt(
         const std::string&,
         const Data&,
-        const OTPasswordData&,
+        const PasswordPrompt&,
         proto::Ciphertext&,
         const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) override
+        const proto::SymmetricMode = proto::SMODE_ERROR) const final
     {
         return false;
     }
     bool Encrypt(
         const String&,
         const Data&,
-        const OTPasswordData&,
+        const PasswordPrompt&,
         proto::Ciphertext&,
         const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) override
+        const proto::SymmetricMode = proto::SMODE_ERROR) const final
     {
         return false;
     }
     bool Encrypt(
         const OTPassword&,
         const Data&,
-        const OTPasswordData&,
+        const PasswordPrompt&,
         proto::Ciphertext&,
         const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) override
+        const proto::SymmetricMode = proto::SMODE_ERROR) const final
     {
         return false;
     }
     bool Encrypt(
         const Data&,
         const Data&,
-        const OTPasswordData&,
+        const PasswordPrompt&,
         proto::Ciphertext&,
         const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) override
+        const proto::SymmetricMode = proto::SMODE_ERROR) const final
     {
         return false;
     }
-    OTIdentifier ID() override { return Identifier::Factory(); }
-    bool Serialize(proto::SymmetricKey&) const override { return false; }
-    bool Unlock(const OTPasswordData&) override { return false; }
+    OTIdentifier ID(const PasswordPrompt&) const final
+    {
+        return Identifier::Factory();
+    }
+    bool RawKey(const PasswordPrompt&, OTPassword&) const final
+    {
+        return false;
+    }
+    bool Serialize(proto::SymmetricKey&) const final { return false; }
+    bool Unlock(const PasswordPrompt&) const final { return false; }
 
-    operator bool() const override { return false; }
+    operator bool() const final { return false; }
 
     SymmetricNull() = default;
     ~SymmetricNull() = default;
 
 private:
-    SymmetricNull* clone() const override { return nullptr; }
+    SymmetricNull* clone() const final { return nullptr; }
 
     SymmetricNull(const SymmetricNull&) = delete;
     SymmetricNull(SymmetricNull&&) = delete;

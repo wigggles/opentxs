@@ -217,6 +217,9 @@ public:
         const std::string& threadId,
         std::shared_ptr<proto::StorageThread>& thread) const override;
     bool Load(
+        std::shared_ptr<proto::Ciphertext>& output,
+        const bool checking = false) const override;
+    bool Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         const bool checking = false) const override;
@@ -358,6 +361,7 @@ public:
     bool Store(
         const proto::ServerContract& data,
         const std::string& alias = std::string("")) const override;
+    bool Store(const proto::Ciphertext& serialized) const override;
     bool Store(
         const proto::UnitDefinition& data,
         const std::string& alias = std::string("")) const override;

@@ -16,9 +16,8 @@ namespace opentxs::crypto::key::implementation
 class Null : virtual public key::Asymmetric
 {
 public:
-    OTData CalculateHash(
-        const proto::HashType hashType,
-        const OTPasswordData& password) const override
+    OTData CalculateHash(const proto::HashType, const PasswordPrompt&)
+        const override
     {
         return Data::Factory();
     }
@@ -38,7 +37,8 @@ public:
     bool Open(
         crypto::key::Asymmetric&,
         crypto::key::Symmetric&,
-        OTPasswordData&) const override
+        PasswordPrompt&,
+        const PasswordPrompt&) const override
     {
         return false;
     }
@@ -60,7 +60,7 @@ public:
     bool Sign(
         const Data&,
         proto::Signature&,
-        const OTPasswordData* = nullptr,
+        const PasswordPrompt&,
         const OTPassword* = nullptr,
         const String& = String::Factory(""),
         const proto::SignatureRole = proto::SIGROLE_ERROR) const override
@@ -72,14 +72,19 @@ public:
         const proto::SignatureRole,
         proto::Signature&,
         const Identifier&,
-        proto::KeyRole key,
-        const OTPasswordData* pPWData,
-        const proto::HashType hash) const override
+        const PasswordPrompt&,
+        proto::KeyRole,
+        const proto::HashType) const override
     {
         return false;
     }
-    bool TransportKey(Data&, OTPassword&) const override { return false; }
-    bool Verify(const Data&, const proto::Signature&) const override
+    bool TransportKey(Data&, OTPassword&, const PasswordPrompt& reason)
+        const override
+    {
+        return false;
+    }
+    bool Verify(const Data&, const proto::Signature&, const PasswordPrompt&)
+        const override
     {
         return false;
     }
@@ -90,7 +95,8 @@ public:
         const opentxs::api::Core&,
         OTAsymmetricKey&,
         crypto::key::Symmetric&,
-        OTPasswordData&) const override
+        const PasswordPrompt&,
+        PasswordPrompt&) const override
     {
         return false;
     }
@@ -129,9 +135,19 @@ public:
     {
         return {};
     }
-    bool GetTransportKey(Data&, OTPassword&) const override { return false; }
-    OTData PrivateKey() const override { return Data::Factory(); }
-    OTData PublicKey() const override { return Data::Factory(); }
+    bool GetTransportKey(Data&, OTPassword&, const PasswordPrompt&)
+        const override
+    {
+        return false;
+    }
+    OTData PrivateKey(const PasswordPrompt&) const override
+    {
+        return Data::Factory();
+    }
+    OTData PublicKey(const PasswordPrompt&) const override
+    {
+        return Data::Factory();
+    }
 
     bool SetKey(const Data&) override { return {}; }
     bool SetKey(std::unique_ptr<proto::Ciphertext>&) override { return {}; }
@@ -143,11 +159,17 @@ public:
 class NullHD : virtual public key::HD, public NullEC
 {
 public:
-    OTData Chaincode() const override { return Data::Factory(); }
+    OTData Chaincode(const PasswordPrompt& reason) const override
+    {
+        return Data::Factory();
+    }
     int Depth() const override { return {}; }
-    Bip32Fingerprint Fingerprint() const override { return {}; }
-    std::string Xprv() const override { return {}; }
-    std::string Xpub() const override { return {}; }
+    Bip32Fingerprint Fingerprint(const PasswordPrompt& reason) const override
+    {
+        return {};
+    }
+    std::string Xprv(const PasswordPrompt& reason) const override { return {}; }
+    std::string Xpub(const PasswordPrompt& reason) const override { return {}; }
 
     NullHD() = default;
     ~NullHD() = default;

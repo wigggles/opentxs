@@ -9,10 +9,11 @@
 #if OT_CASH_USING_LUCRE
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Purse.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 
@@ -190,12 +191,14 @@ bool Lucre::AddSignature(const String& signature)
     return true;
 }
 
-bool Lucre::ChangeOwner(crypto::key::Symmetric& key)
+bool Lucre::ChangeOwner(
+    crypto::key::Symmetric& key,
+    const PasswordPrompt& reason)
 {
     // NOTE: private_ is never re-encrypted
 
     if (public_) {
-        if (false == reencrypt(key, *public_)) {
+        if (false == reencrypt(key, *public_, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to re-encrypt public prototoken")
                 .Flush();
@@ -205,7 +208,7 @@ bool Lucre::ChangeOwner(crypto::key::Symmetric& key)
     }
 
     if (spend_) {
-        if (false == reencrypt(key, *spend_)) {
+        if (false == reencrypt(key, *spend_, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to re-encrypt spendable token")
                 .Flush();
@@ -275,10 +278,10 @@ bool Lucre::GenerateTokenRequest(
 
     private_ = std::make_shared<proto::Ciphertext>();
     public_ = std::make_shared<proto::Ciphertext>();
-    OTPasswordData primaryKeyPassword{""};
-    OTPasswordData secondaryKeyPassword{""};
-    primaryKeyPassword.SetOverride(primaryPassword);
-    secondaryKeyPassword.SetOverride(secondaryPassword);
+    auto primaryKeyPassword = api_.Factory().PasswordPrompt("");
+    auto secondaryKeyPassword = api_.Factory().PasswordPrompt("");
+    primaryKeyPassword->SetPassword(primaryPassword);
+    secondaryKeyPassword->SetPassword(secondaryPassword);
 
     if (false == bool(private_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -331,7 +334,7 @@ bool Lucre::GenerateTokenRequest(
     return true;
 }
 
-bool Lucre::GetPublicPrototoken(String& output)
+bool Lucre::GetPublicPrototoken(String& output, const PasswordPrompt& reason)
 {
     if (false == bool(public_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public prototoken")
@@ -344,7 +347,7 @@ bool Lucre::GetPublicPrototoken(String& output)
     bool decrypted{false};
 
     try {
-        decrypted = purse_.PrimaryKey().Decrypt(ciphertext, "", output);
+        decrypted = purse_.PrimaryKey().Decrypt(ciphertext, reason, output);
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing primary key").Flush();
 
@@ -359,7 +362,7 @@ bool Lucre::GetPublicPrototoken(String& output)
     return decrypted;
 }
 
-bool Lucre::GetSpendable(String& output) const
+bool Lucre::GetSpendable(String& output, const PasswordPrompt& reason) const
 {
     if (false == bool(spend_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing spendable token").Flush();
@@ -371,7 +374,7 @@ bool Lucre::GetSpendable(String& output) const
     bool decrypted{false};
 
     try {
-        decrypted = purse_.PrimaryKey().Decrypt(ciphertext, "", output);
+        decrypted = purse_.PrimaryKey().Decrypt(ciphertext, reason, output);
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing primary key").Flush();
 
@@ -387,11 +390,11 @@ bool Lucre::GetSpendable(String& output) const
     return decrypted;
 }
 
-std::string Lucre::ID() const
+std::string Lucre::ID(const PasswordPrompt& reason) const
 {
     auto spendable = String::Factory();
 
-    if (false == GetSpendable(spendable)) {
+    if (false == GetSpendable(spendable, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing spendable string")
             .Flush();
 
@@ -411,7 +414,7 @@ std::string Lucre::ID() const
     return output;
 }
 
-bool Lucre::IsSpent() const
+bool Lucre::IsSpent(const PasswordPrompt& reason) const
 {
     switch (state_) {
         case proto::TOKENSTATE_SPENT: {
@@ -431,7 +434,7 @@ bool Lucre::IsSpent() const
         }
     }
 
-    const auto id = ID();
+    const auto id = ID(reason);
 
     if (id.empty()) {
         throw std::runtime_error("failed to calculate token ID");
@@ -440,14 +443,14 @@ bool Lucre::IsSpent() const
     return api_.Storage().CheckTokenSpent(notary_, unit_, series_, id);
 }
 
-bool Lucre::MarkSpent()
+bool Lucre::MarkSpent(const PasswordPrompt& reason)
 {
     if (proto::TOKENSTATE_READY != state_) {
         throw std::runtime_error("invalid token state");
     }
 
     bool output{false};
-    const auto id = ID();
+    const auto id = ID(reason);
 
     if (id.empty()) {
         throw std::runtime_error("failed to calculate token ID");
@@ -465,7 +468,10 @@ bool Lucre::MarkSpent()
     return output;
 }
 
-bool Lucre::Process(const identity::Nym& owner, const Mint& mint)
+bool Lucre::Process(
+    const identity::Nym& owner,
+    const Mint& mint,
+    const PasswordPrompt& reason)
 {
     if (proto::TOKENSTATE_SIGNED != state_) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect token state.").Flush();
@@ -525,7 +531,7 @@ bool Lucre::Process(const identity::Nym& owner, const Mint& mint)
 
     try {
         auto& key = purse_.SecondaryKey(owner);
-        const auto decrypted = key.Decrypt(*private_, "", prototoken);
+        const auto decrypted = key.Decrypt(*private_, reason, prototoken);
 
         if (false == decrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt prototoken")
@@ -584,7 +590,7 @@ bool Lucre::Process(const identity::Nym& owner, const Mint& mint)
     try {
         auto& key = purse_.PrimaryKey();
         const auto encrypted =
-            key.Encrypt(spend, Data::Factory(), "", *spend_, false, mode_);
+            key.Encrypt(spend, Data::Factory(), reason, *spend_, false, mode_);
 
         if (false == encrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(

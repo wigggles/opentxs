@@ -43,91 +43,16 @@ class Manager;
 class OT_API : Lockable
 {
 public:
-    using ProcessInbox = std::tuple<
-        std::unique_ptr<Ledger>,
-        std::unique_ptr<Ledger>,
-        TransactionNumber>;
     using ProcessInboxOnly =
         std::pair<std::unique_ptr<Ledger>, TransactionNumber>;
 
-    EXPORT bool GetWalletFilename(String& strPath) const;
-    EXPORT bool SetWalletFilename(const String& strPath) const;
-    EXPORT OTWallet* GetWallet(const char* szFuncName = nullptr) const;
+    EXPORT OTClient* GetClient() const { return m_pClient.get(); }
 
-    inline OTClient* GetClient() const { return m_pClient.get(); }
-
-    EXPORT bool SetWallet(const String& strFilename) const;
-    EXPORT bool WalletExists() const;
-    EXPORT bool LoadWallet() const;
-
-    EXPORT time64_t GetTime() const;
-    EXPORT bool NumList_Add(NumList& theList, const NumList& theNewNumbers)
-        const;
-    EXPORT bool NumList_Remove(NumList& theList, const NumList& theOldNumbers)
-        const;
-    EXPORT bool NumList_VerifyQuery(
-        const NumList& theList,
-        const NumList& theQueryNumbers) const;
-    EXPORT bool NumList_VerifyAll(
-        const NumList& theList,
-        const NumList& theQueryNumbers) const;
-    EXPORT std::int32_t NumList_Count(const NumList& theList) const;
-    // Reading data about the local wallet.. presumably already loaded.
-
-    EXPORT std::int32_t GetNymCount() const;
-    EXPORT std::set<OTNymID> LocalNymList() const;
-
-    EXPORT bool GetNym(
-        std::int32_t iIndex,
-        identifier::Nym& NYM_ID,
-        String& NYM_NAME) const;
     // In this case, the ID is input, the pointer is output.
     // Gets the data from Wallet.
     EXPORT const BasketContract* GetBasketContract(
         const identifier::UnitDefinition& THE_ID,
         const char* szFuncName = nullptr) const;
-
-    EXPORT std::string NymIDFromPaymentCode(
-        const std::string& paymentCode) const;
-    /**   Add a single claim to the target nym's contact credential
-     *    \param[in]  nymID the indentifier of the target nym
-     *    \param[in]  section section containing the claim
-     *    \param[in]  type claim type
-     *    \param[in]  value claim value
-     *    \param[in]  active true if the claim should have an active attribute
-     *    \param[in]  primary true if the claim should have a primary attribute
-     *    \param[in]  start beginning of valid time for the claim
-     *    \param[in]  end end of valid time for the claim
-     *    \return true for success, false for error
-     */
-    EXPORT bool AddClaim(
-        NymData& nym,
-        const proto::ContactSectionName& section,
-        const proto::ContactItemType& type,
-        const std::string& value,
-        const bool primary = false,
-        const bool active = true,
-        const std::uint64_t start = 0,
-        const std::uint64_t end = 0,
-        const VersionNumber version = 1) const;
-
-    // The name is basically just a client-side label.
-    // This function lets you change it.
-    EXPORT bool SetNym_Alias(
-        const identifier::Nym& targetNymID,
-        const identifier::Nym& walletNymID,
-        const String& name) const;
-
-    EXPORT bool Rename_Nym(
-        const identifier::Nym& nymID,
-        const std::string& name,
-        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
-        const bool primary = true) const;
-
-    EXPORT bool SetAccount_Name(
-        const Identifier& ACCT_ID,
-        const identifier::Nym& SIGNER_NYM_ID,
-        const String& ACCT_NEW_NAME) const;
 
     // This works by checking to see if the Nym has a request number for the
     // given server.
@@ -139,116 +64,7 @@ public:
     EXPORT bool IsNym_RegisteredAtServer(
         const identifier::Nym& NYM_ID,
         const identifier::Server& NOTARY_ID) const;
-    EXPORT bool Wallet_ChangePassphrase() const;
-    EXPORT std::string Wallet_GetPhrase() const;
-    EXPORT std::string Wallet_GetSeed() const;
-    EXPORT std::string Wallet_GetWords() const;
-    EXPORT std::string Wallet_ImportSeed(
-        const OTPassword& words,
-        const OTPassword& passphrase) const;
-    EXPORT bool Wallet_CanRemoveServer(
-        const identifier::Server& NOTARY_ID) const;
-    EXPORT bool Wallet_CanRemoveAssetType(
-        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const;
-    EXPORT bool Wallet_CanRemoveNym(const identifier::Nym& NYM_ID) const;
-    EXPORT bool Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const;
-    // OT has the capability to export a Nym (normally stored in several files)
-    // as an encoded
-    // object (in base64-encoded form) and then import it again.
-    //
-    // Returns bool on success, and strOutput will contain the exported data.
-    EXPORT bool Wallet_ExportNym(
-        const identifier::Nym& NYM_ID,
-        String& strOutput) const;
 
-    // OT has the capability to export a Nym (normally stored in several files)
-    // as an encoded object (in base64-encoded form) and then import it again.
-    //
-    // Returns bool on success, and if pNymID is passed in, will set it to the
-    // new NymID. Also on failure, if the Nym was already there with that ID,
-    // and if pNymID is passed, then it will be set to the ID that was already
-    // there.
-    EXPORT bool Wallet_ImportNym(const String& FILE_CONTENTS) const;
-    EXPORT bool Wallet_ImportNym(
-        const String& FILE_CONTENTS,
-        identifier::Nym& pNymID) const;
-
-    // ENCODE, DECODE, SIGN, VERIFY, ENCRYPT, DECRYPT
-
-    /** OT-encode a plaintext string.
-     This will pack, compress, and base64-encode a plain string.
-     Returns the base64-encoded string, or nullptr.
-     */
-    EXPORT bool Encode(
-        const String& strPlaintext,
-        String& strOutput,
-        bool bLineBreaks = true) const;
-    /** Decode an OT-encoded string (back to plaintext.)
-    This will base64-decode, uncompress, and unpack an OT-encoded string.
-    Returns the plaintext string, or nullptr.
-    */
-    EXPORT bool Decode(
-        const String& strEncoded,
-        String& strOutput,
-        bool bLineBreaks = true) const;
-    /** OT-ENCRYPT a plaintext string.
-    This will encode, ENCRYPT, and encode a plain string.
-    Returns the base64-encoded ciphertext, or nullptr.
-    */
-    EXPORT bool Encrypt(
-        const identifier::Nym& theRecipientNymID,
-        const String& strPlaintext,
-        String& strOutput) const;
-    /** OT-DECRYPT an OT-encrypted string back to plaintext.
-    Decrypts the base64-encoded ciphertext back into a normal string plaintext.
-    Returns the plaintext string, or nullptr.
-    */
-    EXPORT bool Decrypt(
-        const identifier::Nym& theRecipientNymID,
-        const String& strCiphertext,
-        String& strOutput) const;
-    /** OT-Sign a piece of flat text. (With no discernible bookends around it.)
-        strType contains the OT type. For example, if you are trying to sign a
-        ledger (which does not have any existing signatures on it) then you
-       would
-        pass LEDGER for strType, resulting in -----BEGIN OT SIGNED LEDGER-----
-     */
-    bool FlatSign(
-        const identifier::Nym& theSignerNymID,
-        const String& strInput,
-        const String& strContractType,
-        String& strOutput) const;
-    /** OT-Sign a CONTRACT.  (First signature)
-    Tries to instantiate the contract object, based on the string passed in.
-    Then it releases ALL signatures, and then signs the contract.
-    Returns the signed contract, or nullptr if failure.
-    */
-    EXPORT bool SignContract(
-        const identifier::Nym& theSignerNymID,
-        const String& strContract,
-        String& strOutput) const;
-    /** OT-Sign a CONTRACT.  (Add a signature)
-    Tries to instantiate the contract object, based on the string passed in.
-    Signs the contract, WITHOUT releasing any signatures that are already there.
-    Returns the signed contract, or nullptr if failure.
-    */
-    EXPORT bool AddSignature(
-        const identifier::Nym& theSignerNymID,
-        const String& strContract,
-        String& strOutput) const;
-    /** OT-Verify the signature on a CONTRACT.
-     Returns true/false (success/fail)
-     */
-    EXPORT bool VerifySignature(
-        const String& strContract,
-        const identifier::Nym& theSignerNymID,
-        std::unique_ptr<Contract>* ppContract = nullptr) const;
-
-    /// Verify and Retrieve XML Contents.
-    EXPORT bool VerifyAndRetrieveXMLContents(
-        const String& strContract,
-        const identifier::Nym& theSignerNymID,
-        String& strOutput) const;
     /// === Verify Account Receipt ===
     /// Returns bool. Verifies any asset account (intermediary files) against
     /// its own last signed receipt.
@@ -270,14 +86,6 @@ public:
         const identifier::Nym& SENDER_NYM_ID,
         const String& CHEQUE_MEMO,
         const identifier::Nym& pRECIPIENT_NYM_ID) const;
-
-    // DISCARD CHEQUE (recover the transaction number for re-use, so the
-    // cheque itself can be discarded.)
-    EXPORT bool DiscardCheque(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCT_ID,
-        const String& THE_CHEQUE) const;
 
     // PROPOSE PAYMENT PLAN (called by Merchant)
     //
@@ -353,133 +161,6 @@ public:
         const identifier::Server& NOTARY_ID,
         const identifier::Nym& NYM_ID) const;
 
-    EXPORT std::unique_ptr<Ledger> LoadNymboxNoVerify(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID) const;
-
-    EXPORT std::unique_ptr<Ledger> LoadInbox(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCOUNT_ID) const;
-
-    EXPORT std::unique_ptr<Ledger> LoadInboxNoVerify(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCOUNT_ID) const;
-
-    EXPORT std::unique_ptr<Ledger> LoadOutbox(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCOUNT_ID) const;
-
-    EXPORT std::unique_ptr<Ledger> LoadOutboxNoVerify(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCOUNT_ID) const;
-    EXPORT std::unique_ptr<Ledger> LoadPaymentInbox(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID) const;
-
-    EXPORT std::unique_ptr<Ledger> LoadPaymentInboxNoVerify(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID) const;
-    // LoadRecordBox
-    // Note: depending on the record type, the Account ID may contain the User
-    // ID.
-    EXPORT std::unique_ptr<Ledger> LoadRecordBox(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCOUNT_ID) const;
-
-    EXPORT std::unique_ptr<Ledger> LoadRecordBoxNoVerify(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCOUNT_ID) const;
-
-    EXPORT bool ClearRecord(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Identifier& ACCOUNT_ID,  // NYM_ID can be passed here as well.
-        std::int32_t nIndex,
-        bool bClearAll = false  // if true, nIndex is ignored.
-        ) const;
-    EXPORT std::unique_ptr<Ledger> LoadExpiredBox(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID) const;
-
-    EXPORT std::unique_ptr<Ledger> LoadExpiredBoxNoVerify(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID) const;
-
-    EXPORT bool ClearExpired(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        std::int32_t nIndex,
-        bool bClearAll = false  // if true, nIndex is
-                                // ignored.
-        ) const;
-
-    EXPORT std::int32_t Ledger_GetCount(const Ledger& theLedger) const;
-    EXPORT std::set<std::int64_t> Ledger_GetTransactionNums(
-        const Ledger& theLedger) const;
-
-    EXPORT ProcessInbox Ledger_CreateResponse(
-        const identifier::Server& theNotaryID,
-        const identifier::Nym& theNymID,
-        const Identifier& theAccountID) const;
-
-    EXPORT bool Transaction_CreateResponse(
-        const identifier::Server& theNotaryID,
-        const identifier::Nym& theNymID,
-        const Identifier& theAcctID,
-        Ledger& responseLedger,
-        OTTransaction& originalTransaction,  // Responding to
-        const bool& BOOL_DO_I_ACCEPT) const;
-
-    EXPORT bool Ledger_FinalizeResponse(
-        const identifier::Server& theNotaryID,
-        const identifier::Nym& theNymID,
-        const Identifier& theAcctID,
-        Ledger& responseLedger) const;
-
-    EXPORT OTTransaction* Ledger_GetTransactionByIndex(
-        Ledger& theLedger,
-        const std::int32_t& nIndex) const;
-
-    EXPORT OTTransaction* Ledger_GetTransactionByID(
-        Ledger& theLedger,
-        const std::int64_t& TRANSACTION_NUMBER) const;
-
-    EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrument(
-        const identifier::Nym& theNymID,
-        const Ledger& theLedger,
-        const std::int32_t& nIndex) const;
-    // The functions immediately above and blow this comment
-    // have good reason for having their parameters in a different order.
-    EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
-        const Ledger& theLedger,
-        const identifier::Nym& theNymID,
-        const std::int64_t& lReceiptId) const;
-
-    EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
-        const identifier::Nym& theNymID,
-        const Ledger& theLedger,
-        const std::int64_t& lReceiptId) const;
-
-    EXPORT std::int64_t Ledger_GetTransactionIDByIndex(
-        const Ledger& theLedger,
-        const std::int32_t& nIndex) const;
-
-    EXPORT bool Ledger_AddTransaction(
-        const identifier::Nym& theNymID,
-        Ledger& theLedger,  // theLedger takes ownership of pTransaction.
-        std::unique_ptr<OTTransaction>& pTransaction) const;
-
-    // These 3 functions are lower level:
-
-    EXPORT ProcessInbox CreateProcessInbox(
-        const Identifier& accountID,
-        ServerContext& context) const;
     EXPORT ProcessInboxOnly CreateProcessInbox(
         const Identifier& accountID,
         ServerContext& context,
@@ -496,54 +177,9 @@ public:
         const Identifier& accountID,
         ServerContext& context,
         Ledger& processInbox,
-        Ledger& inbox) const;
-    EXPORT bool FinalizeProcessInbox(
-        const Identifier& accountID,
-        ServerContext& context,
-        Ledger& processInbox,
         Ledger& inbox,
-        Ledger& outbox) const;
-
-    // Note: if instrument is expired BEFORE being recorded, it will go into the
-    // expired box instead of the record box.
-    EXPORT bool RecordPayment(
-        const identifier::Server& TRANSPORT_NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        bool bIsInbox,  // true == payments inbox. false == payments outbox.
-        std::int32_t nIndex,  // removes payment instrument (from payments in or
-                              // out
-                              // box) and moves to record box.
-        bool bSaveCopy) const;  // If false, copy of instrument will NOT be
-                                // saved.
-    // So the client side knows which ones he has in storage, vs which ones he
-    // still needs to download.
-    EXPORT bool DoesBoxReceiptExist(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,  // Unused here for now, but still
-                                        // convention.
-        const Identifier& ACCOUNT_ID,   // If for Nymbox (vs inbox/outbox) then
-                                        // pass NYM_ID in this field also.
-        std::int32_t nBoxType,          // 0/nymbox, 1/inbox, 2/outbox
-        const TransactionNumber& lTransactionNum) const;
-    // Outgoing
-    EXPORT Message* GetSentMessage(
-        const std::int64_t& lRequestNumber,
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID) const;
-    EXPORT bool RemoveSentMessage(
-        const std::int64_t& lRequestNumber,
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID) const;
-    EXPORT void FlushSentMessages(
-        bool bHarvestingForRetry,
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const Ledger& THE_NYMBOX) const;
-
-    EXPORT bool HaveAlreadySeenReply(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const RequestNumber& lRequestNumber) const;
+        Ledger& outbox,
+        const PasswordPrompt& reason) const;
 
     // These commands below send messages to the server:
 
@@ -553,13 +189,6 @@ public:
         ServerContext& context,
         const identifier::Nym& NYM_ID_CHECK,
         std::int64_t lAdjustment = 0) const;
-
-    EXPORT CommandResult sendNymObject(
-        ServerContext& context,
-        std::unique_ptr<Message>& request,
-        const identifier::Nym& recipientNymID,
-        const PeerObject& object,
-        const RequestNumber provided) const;
 
     EXPORT CommandResult queryInstrumentDefinitions(
         ServerContext& context,
@@ -891,25 +520,6 @@ public:
         String& strOutput) const;  // ===> AS WELL AS for the default AGENT of
                                    // that
                                    // party. (For now, until I code entities)
-    EXPORT bool Msg_HarvestTransactionNumbers(
-        const Message& theMsg,
-        const identifier::Nym& NYM_ID,
-        bool bHarvestingForRetry,
-        bool bReplyWasSuccess,
-        bool bReplyWasFailure,
-        bool bTransactionWasSuccess,
-        bool bTransactionWasFailure) const;
-
-    EXPORT bool HarvestClosingNumbers(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const String& THE_CRON_ITEM) const;
-
-    EXPORT bool HarvestAllNumbers(
-        const identifier::Server& NOTARY_ID,
-        const identifier::Nym& NYM_ID,
-        const String& THE_CRON_ITEM) const;
-
     EXPORT CommandResult activateSmartContract(
         ServerContext& context,
         const String& THE_SMART_CONTRACT) const;
@@ -955,35 +565,6 @@ public:
         const Identifier& ASSET_ACCT_ID,
         const TransactionNumber& lTransactionNum) const;
 
-    EXPORT CommandResult initiatePeerRequest(
-        ServerContext& context,
-        const identifier::Nym& recipient,
-        const std::shared_ptr<PeerRequest>& request) const;
-
-    EXPORT CommandResult initiatePeerReply(
-        ServerContext& context,
-        const identifier::Nym& recipient,
-        const Identifier& request,
-        const std::shared_ptr<PeerReply>& reply) const;
-
-    EXPORT ConnectionState CheckConnection(const std::string& server) const;
-
-    EXPORT std::string AddChildKeyCredential(
-        const identifier::Nym& nymID,
-        const Identifier& masterID,
-        const NymParameters& nymParameters) const;
-
-    EXPORT std::unique_ptr<proto::ContactData> GetContactData(
-        const identifier::Nym& nymID) const;
-
-    EXPORT std::list<std::string> BoxItemCount(
-        const identifier::Nym& NYM_ID,
-        const StorageBox box) const;
-    EXPORT std::string BoxContents(
-        const identifier::Nym& NYM_ID,
-        const Identifier& nIndex,
-        const StorageBox box) const;
-
     EXPORT ~OT_API();  // calls Cleanup();
 
 private:
@@ -996,23 +577,21 @@ private:
     const api::network::ZMQ& zmq_;
     bool m_bDefaultStore{false};
     OTString m_strDataPath;
-    mutable OTString m_strWalletFilename;
-    OTString m_strWalletFilePath;
     OTString m_strConfigFilename;
     OTString m_strConfigFilePath;
-    OTWallet* m_pWallet{nullptr};
     std::unique_ptr<OTClient> m_pClient;
     ContextLockCallback lock_callback_;
 
     void AddHashesToTransaction(
         OTTransaction& transaction,
         const Context& context,
-        const Account& account) const;
-
+        const Account& account,
+        const PasswordPrompt& reason) const;
     void AddHashesToTransaction(
         OTTransaction& transaction,
         const Context& context,
-        const Identifier& accountid) const;
+        const Identifier& accountid,
+        const PasswordPrompt& reason) const;
 
     bool add_accept_item(
         const itemType type,
@@ -1047,16 +626,9 @@ private:
         const identifier::Server& notaryID,
         const OTTransaction& source,
         String& note) const;
-    bool load_wallet(const Lock& lock) const;
+    time64_t GetTime() const;
     itemType response_type(const transactionType sourceType, const bool success)
         const;
-
-    std::set<std::unique_ptr<Cheque>> extract_cheques(
-        const identifier::Nym& nymID,
-        const Identifier& accountID,
-        const identifier::Server& serverID,
-        const String& serializedProcessInbox,
-        Ledger& inbox) const;
 
     bool Cleanup();
     bool Init();

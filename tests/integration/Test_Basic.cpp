@@ -106,6 +106,10 @@ public:
     const opentxs::api::client::Manager& bob_client_;
     const opentxs::api::server::Manager& server_1_;
     const opentxs::api::client::Manager& issuer_client_;
+    opentxs::OTPasswordPrompt reason_a_;
+    opentxs::OTPasswordPrompt reason_b_;
+    opentxs::OTPasswordPrompt reason_i_;
+    opentxs::OTPasswordPrompt reason_s_;
     OTZMQSubscribeSocket alice_ui_update_listener_;
     OTZMQSubscribeSocket bob_ui_update_listener_;
 
@@ -114,6 +118,10 @@ public:
         , bob_client_(OT::App().StartClient(args_, 1))
         , server_1_(OT::App().StartServer(args_, 0, true))
         , issuer_client_(OT::App().StartClient(args_, 2))
+        , reason_a_(alice_client_.Factory().PasswordPrompt(__FUNCTION__))
+        , reason_b_(bob_client_.Factory().PasswordPrompt(__FUNCTION__))
+        , reason_i_(issuer_client_.Factory().PasswordPrompt(__FUNCTION__))
+        , reason_s_(server_1_.Factory().PasswordPrompt(__FUNCTION__))
         , alice_ui_update_listener_(
               alice_client_.ZeroMQ().SubscribeSocket(alice_ui_update_callback_))
         , bob_ui_update_listener_(
@@ -172,8 +180,9 @@ public:
         const ServerContract& contract,
         const opentxs::api::client::Manager& client)
     {
+        auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
         auto clientVersion =
-            client.Wallet().Server(server_contract_->PublicContract());
+            client.Wallet().Server(server_contract_->PublicContract(), reason);
 
         OT_ASSERT(clientVersion)
 
@@ -210,7 +219,7 @@ public:
         const_cast<OTServerID&>(server_1_id_) =
             identifier::Server::Factory(server_1_.ID().str());
         const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
-            server_1_.Wallet().Server(server_1_id_);
+            server_1_.Wallet().Server(server_1_id_, reason_s_);
 
         OT_ASSERT(server_contract_);
         OT_ASSERT(false == server_1_id_->empty());
@@ -367,9 +376,10 @@ const Test_Basic::StateMap Test_Basic::state_{
           {
               {0,
                []() -> bool {
+                   auto reason = alice_->Factory().PasswordPrompt(__FUNCTION__);
                    const auto& widget = alice_->UI().Profile(alice_nym_id_);
                    auto paymentCode =
-                       alice_->Factory().PaymentCode(SeedA_, 0, 1);
+                       alice_->Factory().PaymentCode(SeedA_, 0, 1, reason);
 
                    EXPECT_EQ(paymentCode->asBase58(), widget.PaymentCode());
                    EXPECT_STREQ(ALICE, widget.DisplayName().c_str());
@@ -1036,6 +1046,7 @@ const Test_Basic::StateMap Test_Basic::state_{
                }},
               {1,
                []() -> bool {
+                   auto reason = alice_->Factory().PasswordPrompt(__FUNCTION__);
                    const auto& widget = alice_->UI().AccountList(alice_nym_id_);
                    auto row = widget.First();
 
@@ -1053,7 +1064,8 @@ const Test_Basic::StateMap Test_Basic::state_{
                    EXPECT_STREQ("", row->Name().c_str());
                    EXPECT_EQ(server_1_id_->str(), row->NotaryID());
                    EXPECT_EQ(
-                       server_contract_->EffectiveName(), row->NotaryName());
+                       server_contract_->EffectiveName(reason),
+                       row->NotaryName());
                    EXPECT_EQ(AccountType::Custodial, row->Type());
                    EXPECT_EQ(proto::CITEMTYPE_USD, row->Unit());
 
@@ -1086,8 +1098,10 @@ const Test_Basic::StateMap Test_Basic::state_{
           {
               {0,
                []() -> bool {
+                   auto reason = bob_->Factory().PasswordPrompt(__FUNCTION__);
                    const auto& widget = bob_->UI().Profile(bob_nym_id_);
-                   auto paymentCode = bob_->Factory().PaymentCode(SeedB_, 0, 1);
+                   auto paymentCode =
+                       bob_->Factory().PaymentCode(SeedB_, 0, 1, reason);
 
                    EXPECT_EQ(paymentCode->asBase58(), widget.PaymentCode());
                    EXPECT_STREQ(BOB, widget.DisplayName().c_str());
@@ -1623,47 +1637,75 @@ TEST_F(Test_Basic, initial_state)
 
 TEST_F(Test_Basic, payment_codes)
 {
-    auto alice = alice_client_.Wallet().mutable_Nym(alice_nym_id_);
-    auto bob = bob_client_.Wallet().mutable_Nym(bob_nym_id_);
-    auto issuer = issuer_client_.Wallet().mutable_Nym(issuer_nym_id_);
+    auto alice = alice_client_.Wallet().mutable_Nym(alice_nym_id_, reason_a_);
+    auto bob = bob_client_.Wallet().mutable_Nym(bob_nym_id_, reason_b_);
+    auto issuer =
+        issuer_client_.Wallet().mutable_Nym(issuer_nym_id_, reason_i_);
 
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, alice.Type());
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, bob.Type());
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, issuer.Type());
 
-    auto aliceScopeSet =
-        alice.SetScope(opentxs::proto::CITEMTYPE_INDIVIDUAL, ALICE, true);
-    auto bobScopeSet = bob.SetScope(proto::CITEMTYPE_INDIVIDUAL, BOB, true);
+    auto aliceScopeSet = alice.SetScope(
+        opentxs::proto::CITEMTYPE_INDIVIDUAL, ALICE, true, reason_a_);
+    auto bobScopeSet =
+        bob.SetScope(proto::CITEMTYPE_INDIVIDUAL, BOB, true, reason_b_);
     auto issuerScopeSet =
-        issuer.SetScope(proto::CITEMTYPE_INDIVIDUAL, ISSUER, true);
+        issuer.SetScope(proto::CITEMTYPE_INDIVIDUAL, ISSUER, true, reason_i_);
 
     EXPECT_TRUE(aliceScopeSet);
     EXPECT_TRUE(bobScopeSet);
     EXPECT_TRUE(issuerScopeSet);
 
-    alice_payment_code_ =
-        alice_client_.Factory().PaymentCode(SeedA_, 0, 1)->asBase58();
+    alice_payment_code_ = alice_client_.Factory()
+                              .PaymentCode(SeedA_, 0, 1, reason_a_)
+                              ->asBase58();
     bob_payment_code_ =
-        bob_client_.Factory().PaymentCode(SeedB_, 0, 1)->asBase58();
-    issuer_payment_code_ =
-        issuer_client_.Factory().PaymentCode(SeedC_, 0, 1)->asBase58();
+        bob_client_.Factory().PaymentCode(SeedB_, 0, 1, reason_b_)->asBase58();
+    issuer_payment_code_ = issuer_client_.Factory()
+                               .PaymentCode(SeedC_, 0, 1, reason_i_)
+                               ->asBase58();
 
     EXPECT_FALSE(alice_payment_code_.empty());
     EXPECT_FALSE(bob_payment_code_.empty());
     EXPECT_FALSE(issuer_payment_code_.empty());
 
     alice.AddPaymentCode(
-        alice_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
+        alice_payment_code_,
+        opentxs::proto::CITEMTYPE_BTC,
+        true,
+        true,
+        reason_a_);
     bob.AddPaymentCode(
-        bob_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
+        bob_payment_code_,
+        opentxs::proto::CITEMTYPE_BTC,
+        true,
+        true,
+        reason_b_);
     issuer.AddPaymentCode(
-        issuer_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
+        issuer_payment_code_,
+        opentxs::proto::CITEMTYPE_BTC,
+        true,
+        true,
+        reason_i_);
     alice.AddPaymentCode(
-        alice_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
+        alice_payment_code_,
+        opentxs::proto::CITEMTYPE_BCH,
+        true,
+        true,
+        reason_a_);
     bob.AddPaymentCode(
-        bob_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
+        bob_payment_code_,
+        opentxs::proto::CITEMTYPE_BCH,
+        true,
+        true,
+        reason_b_);
     issuer.AddPaymentCode(
-        issuer_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
+        issuer_payment_code_,
+        opentxs::proto::CITEMTYPE_BCH,
+        true,
+        true,
+        reason_i_);
 
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BTC).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BTC).empty());
@@ -1698,8 +1740,8 @@ TEST_F(Test_Basic, introduction_server)
 TEST_F(Test_Basic, add_contact_preconditions)
 {
     // Neither alice nor bob should know about each other yet
-    auto alice = bob_client_.Wallet().Nym(alice_nym_id_);
-    auto bob = alice_client_.Wallet().Nym(bob_nym_id_);
+    auto alice = bob_client_.Wallet().Nym(alice_nym_id_, reason_b_);
+    auto bob = alice_client_.Wallet().Nym(bob_nym_id_, reason_a_);
 
     EXPECT_FALSE(alice);
     EXPECT_FALSE(bob);
@@ -1861,7 +1903,8 @@ TEST_F(Test_Basic, issue_dollars)
         UNIT_DEFINITION_SYMBOL,
         UNIT_DEFINITION_TLA,
         UNIT_DEFINITION_POWER,
-        UNIT_DEFINITION_FRACTIONAL_UNIT_NAME);
+        UNIT_DEFINITION_FRACTIONAL_UNIT_NAME,
+        reason_i_);
 
     ASSERT_TRUE(contract);
     EXPECT_EQ(proto::UNITTYPE_CURRENCY, contract->Type());
@@ -1872,9 +1915,11 @@ TEST_F(Test_Basic, issue_dollars)
     EXPECT_FALSE(unit_id_->empty());
 
     {
-        auto issuer = issuer_client_.Wallet().mutable_Nym(issuer_nym_id_);
-        issuer.AddPreferredOTServer(server_1_id_->str(), true);
-        issuer.AddContract(unit_id_->str(), proto::CITEMTYPE_USD, true, true);
+        auto issuer =
+            issuer_client_.Wallet().mutable_Nym(issuer_nym_id_, reason_i_);
+        issuer.AddPreferredOTServer(server_1_id_->str(), true, reason_i_);
+        issuer.AddContract(
+            unit_id_->str(), proto::CITEMTYPE_USD, true, true, reason_i_);
     }
 
     auto task = issuer_client_.OTX().IssueUnitDefinition(
@@ -1895,9 +1940,10 @@ TEST_F(Test_Basic, issue_dollars)
 
 TEST_F(Test_Basic, add_alice_contact_to_issuer)
 {
-    const auto alice = alice_client_.Factory().PaymentCode(alice_payment_code_);
+    const auto alice =
+        alice_client_.Factory().PaymentCode(alice_payment_code_, reason_a_);
     contact_id_issuer_alice_ =
-        issuer_client_.Contacts().NymToContact(alice->ID());
+        issuer_client_.Contacts().NymToContact(alice->ID(), reason_i_);
 
     EXPECT_FALSE(contact_id_issuer_alice_->empty());
 
@@ -2012,7 +2058,8 @@ TEST_F(Test_Basic, process_inbox_issuer)
     EXPECT_EQ(proto::LASTREPLYSTATUS_MESSAGESUCCESS, status);
     ASSERT_TRUE(message);
 
-    const auto account = issuer_client_.Wallet().Account(issuer_account_id_);
+    const auto account =
+        issuer_client_.Wallet().Account(issuer_account_id_, reason_i_);
 
     EXPECT_EQ(-1 * CHEQUE_AMOUNT_1, account.get().GetBalance());
 }

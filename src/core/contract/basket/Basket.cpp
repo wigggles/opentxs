@@ -209,7 +209,9 @@ std::int32_t Basket::Count() const
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Basket::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -287,7 +289,7 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
 // Before transmission or serialization, this is where the basket updates its
 // contents
-void Basket::UpdateContents()
+void Basket::UpdateContents(const PasswordPrompt& reason)
 {
     GenerateContents(m_xmlUnsigned, m_bHideAccountID);
 }

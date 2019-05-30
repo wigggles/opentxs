@@ -13,7 +13,6 @@
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -23,7 +22,6 @@
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
-#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/Trezor.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
@@ -470,11 +468,12 @@ bool Trezor::ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
 }
 
 bool Trezor::Sign(
+    const api::Core& api,
     const Data& plaintext,
     const key::Asymmetric& theKey,
     const proto::HashType hashType,
     Data& signature,
-    const OTPasswordData* pPWData,
+    const PasswordPrompt& reason,
     const OTPassword* exportPassword) const
 {
     auto hash = Data::Factory();
@@ -493,7 +492,7 @@ bool Trezor::Sign(
     OTPassword privKey{};
     bool havePrivateKey{false};
 
-    // FIXME
+    // TODO
     OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
 
     const crypto::key::EllipticCurve* key =
@@ -501,14 +500,7 @@ bool Trezor::Sign(
 
     if (nullptr == key) { return false; }
 
-    if (nullptr == pPWData) {
-        OTPasswordData passwordData(
-            "Please enter your password to sign this document.");
-        havePrivateKey =
-            AsymmetricKeyToECPrivatekey(*key, passwordData, privKey);
-    } else {
-        havePrivateKey = AsymmetricKeyToECPrivatekey(*key, *pPWData, privKey);
-    }
+    havePrivateKey = AsymmetricKeyToECPrivatekey(api, *key, reason, privKey);
 
     if (havePrivateKey) {
         OT_ASSERT(nullptr != privKey.getMemory());
@@ -549,7 +541,7 @@ bool Trezor::Verify(
     const key::Asymmetric& theKey,
     const Data& signature,
     const proto::HashType hashType,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
     auto hash = Data::Factory();
     bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);

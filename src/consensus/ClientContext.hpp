@@ -23,9 +23,10 @@ public:
         const std::set<TransactionNumber>& exclude) const override;
     std::size_t OpenCronItems() const override;
     proto::ConsensusType Type() const override;
-    bool ValidateContext(const Lock& lock) const override
+    bool ValidateContext(const Lock& lock, const PasswordPrompt& reason)
+        const override
     {
-        return validate(lock);
+        return validate(lock, reason);
     }
     bool Verify(
         const TransactionStatement& statement,
@@ -43,9 +44,10 @@ public:
     std::mutex& GetLock() override { return lock_; }
     bool IssueNumber(const TransactionNumber& number) override;
     bool OpenCronItem(const TransactionNumber number) override;
-    bool UpdateSignature(const Lock& lock) override
+    bool UpdateSignature(const Lock& lock, const PasswordPrompt& reason)
+        override
     {
-        return update_signature(lock);
+        return update_signature(lock, reason);
     }
 
     ~ClientContext() = default;

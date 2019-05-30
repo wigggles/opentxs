@@ -50,7 +50,9 @@ protected:
     // The date, in seconds, when the instrument expires.
     time64_t m_VALID_TO{0};
 
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
     inline void SetValidFrom(time64_t TIME_FROM) { m_VALID_FROM = TIME_FROM; }
     inline void SetValidTo(time64_t TIME_TO) { m_VALID_TO = TIME_TO; }

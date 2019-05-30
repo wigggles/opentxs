@@ -32,6 +32,7 @@ public:
         const std::int64_t& lClosingNumber,
         const String& strOrigCronItem,
         const originType theOriginType,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
 
@@ -42,6 +43,7 @@ public:
         const TransactionNumber& lNewTransactionNumber,
         const String& strOrigCronItem,
         const originType theOriginType,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
     virtual bool CanRemoveItemFromCron(const ClientContext& context);
@@ -52,17 +54,20 @@ public:
     // choose.
 
     // Called in OTCron::AddCronItem.
-    void HookActivationOnCron(bool bForTheFirstTime = false);  // This calls
-                                                               // onActivate,
-                                                               // which is
-                                                               // virtual.
+    void HookActivationOnCron(
+        const PasswordPrompt& reason,
+        bool bForTheFirstTime = false);  // This calls
+                                         // onActivate,
+                                         // which is
+                                         // virtual.
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
     // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
     void HookRemovalFromCron(
         const api::Wallet& wallet,
         Nym_p pRemover,
-        std::int64_t newTransactionNo);
+        std::int64_t newTransactionNo,
+        const PasswordPrompt& reason);
 
     inline bool IsFlaggedForRemoval() const { return m_bRemovalFlag; }
     inline void FlagForRemoval() { m_bRemovalFlag = true; }
@@ -70,11 +75,13 @@ public:
 
     EXPORT static std::unique_ptr<OTCronItem> LoadCronReceipt(
         const api::Core& core,
-        const TransactionNumber& lTransactionNum);  // Server-side only.
+        const TransactionNumber& lTransactionNum,
+        const PasswordPrompt& reason);  // Server-side only.
     EXPORT static std::unique_ptr<OTCronItem> LoadActiveCronReceipt(
         const api::Core& core,
         const TransactionNumber& lTransactionNum,
-        const identifier::Server& notaryID);  // Client-side only.
+        const identifier::Server& notaryID,
+        const PasswordPrompt& reason);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
         const std::string& dataFolder,
         const TransactionNumber& lTransactionNum,
@@ -126,9 +133,12 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    virtual bool ProcessCron();  // OTCron calls this regularly, which is my
-                                 // chance to expire, etc.
-                                 // From OTTrackable (parent class of this)
+    virtual bool ProcessCron(
+        const PasswordPrompt& reason);  // OTCron calls this
+                                        // regularly, which is my
+                                        // chance to expire, etc.
+                                        // From OTTrackable
+                                        // (parent class of this)
     virtual ~OTCronItem();
 
     void InitCronItem();
@@ -140,7 +150,9 @@ public:
 
     // When canceling a cron item before it
     // has been activated, use this.
-    EXPORT bool CancelBeforeActivation(const identity::Nym& theCancelerNym);
+    EXPORT bool CancelBeforeActivation(
+        const identity::Nym& theCancelerNym,
+        const PasswordPrompt& reason);
 
     // These are for     std::deque<std::int64_t> m_dequeClosingNumbers;
     // They are numbers used for CLOSING a transaction. (finalReceipt.)
@@ -158,7 +170,9 @@ public:
     virtual std::int64_t GetOpeningNumber(
         const identifier::Nym& theNymID) const;
     virtual std::int64_t GetClosingNumber(const Identifier& theAcctID) const;
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
 protected:
     std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING
@@ -178,16 +192,19 @@ protected:
     bool m_bRemovalFlag{false};  // Set this to true and the cronitem will be
                                  // removed from Cron on next process.
     // (And its offer will be removed from the Market as well, if appropriate.)
-    virtual void onActivate() {}  // called by HookActivationOnCron().
+    virtual void onActivate(const PasswordPrompt& reason) {
+    }  // called by HookActivationOnCron().
 
     virtual void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
         Nym_p theOriginator,
-        Nym_p pRemover) = 0;  // called by
-                              // HookRemovalFromCron().
+        Nym_p pRemover,
+        const PasswordPrompt& reason) = 0;  // called by
+                                            // HookRemovalFromCron().
 
-    virtual void onRemovalFromCron() {}  // called by HookRemovalFromCron().
+    virtual void onRemovalFromCron(const PasswordPrompt& reason) {
+    }  // called by HookRemovalFromCron().
     void ClearClosingNumbers();
 
     OTCronItem(

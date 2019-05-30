@@ -34,7 +34,10 @@ public:
         const ContactData& data,
         const proto::ContactItemType currency);
 
-    Contact(const api::Core& api, const proto::Contact& serialized);
+    Contact(
+        const PasswordPrompt& reason,
+        const api::Core& api,
+        const proto::Contact& serialized);
     Contact(const api::Core& api, const std::string& label);
 
     operator proto::Contact() const;
@@ -92,7 +95,9 @@ public:
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
     bool RemoveNym(const identifier::Nym& nymID);
     void SetLabel(const std::string& label);
-    void Update(const identity::Nym::Serialized& nym);
+    void Update(
+        const identity::Nym::Serialized& nym,
+        const PasswordPrompt& reason);
 
     ~Contact() = default;
 
@@ -132,7 +137,7 @@ private:
     void add_verified_claim(
         const Lock& lock,
         const std::shared_ptr<ContactItem>& item);
-    void init_nyms();
+    void init_nyms(const PasswordPrompt& reason);
     void update_label(const Lock& lock, const identity::Nym& nym);
 
     Contact() = delete;

@@ -65,7 +65,7 @@ Cheque::Cheque(
     InitCheque();
 }
 
-void Cheque::UpdateContents()
+void Cheque::UpdateContents(const PasswordPrompt& reason)
 {
     auto INSTRUMENT_DEFINITION_ID =
              String::Factory(GetInstrumentDefinitionID()),
@@ -116,7 +116,9 @@ void Cheque::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
+std::int32_t Cheque::ProcessXMLNode(
+    IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 

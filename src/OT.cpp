@@ -7,9 +7,11 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 
 #include "internal/api/Api.hpp"
 
@@ -67,14 +69,14 @@ const api::client::Manager& OT::RecoverClient(
 {
     auto& ot = Start(args, gcInterval, externalPasswordCallback);
     auto& client = ot.StartClient(args, 0);
+    auto reason = client.Factory().PasswordPrompt("Recovering a BIP-39 seed");
 
     if (0 < words.size()) {
-        auto& api = client.OTAPI();
         OTPassword wordList{};
         OTPassword phrase{};
         wordList.setPassword(words);
         phrase.setPassword(passphrase);
-        api.Wallet_ImportSeed(wordList, phrase);
+        client.Seeds().ImportSeed(wordList, phrase, reason);
     }
 
     return client;

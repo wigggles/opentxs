@@ -116,6 +116,7 @@ private:
     static const std::map<Type, std::size_t> transaction_numbers_;
 
     const api::client::Manager& api_;
+    const OTPasswordPrompt reason_;
     const OTNymID nym_id_;
     const OTServerID server_id_;
     std::atomic<Type> type_;
@@ -158,7 +159,8 @@ private:
     static void set_consensus_hash(
         OTTransaction& transaction,
         const Context& context,
-        const Account& account);
+        const Account& account,
+        const PasswordPrompt& reason);
 
     Editor<ServerContext> context() const;
     bool evaluate_transaction_reply(
@@ -264,7 +266,8 @@ private:
     Operation(
         const api::client::Manager& api,
         const identifier::Nym& nym,
-        const identifier::Server& server);
+        const identifier::Server& server,
+        const PasswordPrompt& reason);
     Operation() = delete;
     Operation(const Operation&) = delete;
     Operation(Operation&&) = delete;

@@ -35,8 +35,7 @@ Notary::Notary(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = STORAGE_NOTARY_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(STORAGE_NOTARY_VERSION);
     }
 }
 
@@ -128,13 +127,8 @@ void Notary::init(const std::string& hash)
         OT_FAIL;
     }
 
-    version_ = serialized->version();
+    init_version(STORAGE_NOTARY_VERSION, *serialized);
     id_ = serialized->id();
-
-    // Upgrade version
-    if (STORAGE_NOTARY_VERSION > version_) {
-        version_ = STORAGE_NOTARY_VERSION;
-    }
 
 #if OT_CASH
     for (const auto& it : serialized->series()) {

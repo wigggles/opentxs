@@ -29,8 +29,10 @@ private:
 
     proto::UnitDefinition contract(const Lock& lock) const;
     OTIdentifier GetID(const Lock& lock) const override;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature,
+        const PasswordPrompt& reason) const override;
 
 protected:
     const api::Wallet& wallet_;
@@ -40,9 +42,11 @@ protected:
 
     virtual proto::UnitDefinition IDVersion(const Lock& lock) const;
     virtual proto::UnitDefinition SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock) const override;
+    bool validate(const Lock& lock, const PasswordPrompt& reason)
+        const override;
 
-    bool update_signature(const Lock& lock) override;
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
+        override;
 
     UnitDefinition(
         const api::Wallet& wallet,
@@ -66,7 +70,8 @@ public:
         const std::string& terms,
         const std::string& tla,
         const std::uint32_t power,
-        const std::string& fraction);
+        const std::string& fraction,
+        const PasswordPrompt& reason);
     EXPORT static UnitDefinition* Create(
         const api::Wallet& wallet,
         const Nym_p& nym,
@@ -81,11 +86,13 @@ public:
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms);
+        const std::string& terms,
+        const PasswordPrompt& reason);
     EXPORT static UnitDefinition* Factory(
         const api::Wallet& wallet,
         const Nym_p& nym,
-        const proto::UnitDefinition& serialized);
+        const proto::UnitDefinition& serialized,
+        const PasswordPrompt& reason);
 
     // Some instrument definitions keep a list of "user" accounts (the
     // complete set of
@@ -108,7 +115,8 @@ public:
 
     EXPORT bool VisitAccountRecords(
         const std::string& dataFolder,
-        AccountVisitor& visitor) const;
+        AccountVisitor& visitor,
+        const PasswordPrompt& reason) const;
 
     EXPORT static std::string formatLongAmount(
         std::int64_t lValue,

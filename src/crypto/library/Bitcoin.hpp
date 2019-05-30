@@ -98,14 +98,14 @@ public:
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const override;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
 
     ~Bitcoin() = default;
 
