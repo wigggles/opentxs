@@ -45,6 +45,7 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 
 #include "internal/api/Api.hpp"
 
@@ -877,6 +878,13 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
         .Flush();
 
     return {};
+}
+
+OTZMQPipeline Factory::Pipeline(
+    std::function<void(opentxs::network::zeromq::Message&)> callback) const
+{
+    return OTZMQPipeline{
+        opentxs::Factory::Pipeline(api_, api_.ZeroMQ(), callback)};
 }
 
 #if OT_CASH

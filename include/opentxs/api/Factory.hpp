@@ -232,6 +232,10 @@ public:
         const Armored& encrypted,
         const opentxs::PasswordPrompt& reason) const = 0;
 
+    EXPORT virtual OTZMQPipeline Pipeline(
+        std::function<void(opentxs::network::zeromq::Message&)> callback)
+        const = 0;
+
 #if OT_CASH
     EXPORT virtual std::unique_ptr<blind::Purse> Purse(
         const ServerContext& context,

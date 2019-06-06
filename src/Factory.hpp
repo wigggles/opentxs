@@ -442,6 +442,10 @@ public:
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static opentxs::PIDFile* PIDFile(const std::string& path);
+    static opentxs::network::zeromq::Pipeline* Pipeline(
+        const api::Core& api,
+        const network::zeromq::Context& context,
+        std::function<void(network::zeromq::Message&)> callback);
     static identity::credential::internal::Primary* PrimaryCredential(
         const api::Core& api,
         const opentxs::PasswordPrompt& reason,
