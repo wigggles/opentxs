@@ -8,7 +8,6 @@
 
 #if OT_CASH
 #include "opentxs/blind/Purse.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 
@@ -164,10 +163,11 @@ Token::Token(
 
 bool Token::reencrypt(
     crypto::key::Symmetric& key,
-    proto::Ciphertext& ciphertext)
+    proto::Ciphertext& ciphertext,
+    const PasswordPrompt& reason)
 {
     auto plaintext = Data::Factory();
-    auto output = purse_.PrimaryKey().Decrypt(ciphertext, "", plaintext);
+    auto output = purse_.PrimaryKey().Decrypt(ciphertext, reason, plaintext);
 
     if (false == output) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt ciphertext.")
@@ -179,7 +179,7 @@ bool Token::reencrypt(
     output = key.Encrypt(
         plaintext,
         Data::Factory(),
-        "",
+        reason,
         ciphertext,
         false,
         proto::SMODE_CHACHA20POLY1305);

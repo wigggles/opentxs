@@ -41,11 +41,15 @@ public:
     EXPORT virtual proto::PurseType State() const = 0;
     EXPORT virtual proto::CashType Type() const = 0;
     EXPORT virtual const identifier::UnitDefinition& Unit() const = 0;
-    EXPORT virtual bool Unlock(const identity::Nym& nym) const = 0;
+    EXPORT virtual bool Unlock(
+        const identity::Nym& nym,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Verify(const api::server::Manager& server) const = 0;
     EXPORT virtual Amount Value() const = 0;
 
-    EXPORT virtual bool AddNym(const identity::Nym& nym) = 0;
+    EXPORT virtual bool AddNym(
+        const identity::Nym& nym,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual Token& at(const std::size_t position) = 0;
     EXPORT virtual iterator begin() noexcept = 0;
     EXPORT virtual iterator end() noexcept = 0;
@@ -53,8 +57,11 @@ public:
     EXPORT virtual std::shared_ptr<Token> Pop() = 0;
     EXPORT virtual bool Process(
         const identity::Nym& owner,
-        const Mint& mint) = 0;
-    EXPORT virtual bool Push(std::shared_ptr<Token> token) = 0;
+        const Mint& mint,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool Push(
+        std::shared_ptr<Token> token,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual crypto::key::Symmetric& SecondaryKey(
         const identity::Nym& owner) = 0;
 

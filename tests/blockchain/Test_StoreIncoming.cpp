@@ -16,12 +16,14 @@ class Test_StoreIncoming : public ::testing::Test
 {
 public:
     const opentxs::api::client::Manager& client_;
+    opentxs::OTPasswordPrompt reason_;
     std::string Alice, Bob, Charly;
     OTIdentifier AccountID;
 
     // these fingerprints are deterministic so we can share them among tests
     Test_StoreIncoming()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , Alice(client_.Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreIncoming_A",
@@ -40,7 +42,8 @@ public:
         , AccountID(client_.Blockchain().NewAccount(
               identifier::Nym::Factory(Alice),
               BlockchainAccountType::BIP44,
-              proto::CITEMTYPE_BTC))
+              proto::CITEMTYPE_BTC,
+              reason_))
     {
     }
 };
@@ -71,6 +74,7 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit1)
         client_.Blockchain().AllocateAddress(
             identifier::Nym::Factory(Alice),
             Identifier::Factory(AccountID),
+            reason_,
             "Deposit 1",
             EXTERNAL_CHAIN);
 
@@ -155,6 +159,7 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit1)
         client_.Blockchain().AllocateAddress(
             identifier::Nym::Factory(Alice),
             Identifier::Factory(AccountID),
+            reason_,
             "Deposit 2",
             EXTERNAL_CHAIN);
 
@@ -207,8 +212,8 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit_UnknownContact)
     std::cout << "Started Uknown contact test !!!\n";
 
     // test: Alice has activity record with Bob
-    ObjectList AThreads =
-        client_.Activity().Threads(identifier::Nym::Factory(Alice), false);
+    ObjectList AThreads = client_.Activity().Threads(
+        identifier::Nym::Factory(Alice), reason_, false);
     ASSERT_EQ(1, AThreads.size());
 
     std::shared_ptr<proto::Bip44Account> Account = client_.Blockchain().Account(
@@ -220,6 +225,7 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit_UnknownContact)
         client_.Blockchain().AllocateAddress(
             identifier::Nym::Factory(Alice),
             Identifier::Factory(AccountID),
+            reason_,
             "Deposit 2",
             EXTERNAL_CHAIN);
     std::cout << "Created Address " << Address->address() << "\n";

@@ -12,11 +12,11 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -34,6 +34,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -91,7 +92,8 @@
         return output;                                                         \
     }                                                                          \
                                                                                \
-    [[maybe_unused]] auto& session = get_session(command.session());
+    [[maybe_unused]] auto& session = get_session(command.session());           \
+    [[maybe_unused]] auto reason = session.Factory().PasswordPrompt("RPC");
 
 #define INIT_CLIENT_ONLY()                                                     \
     INIT_SESSION();                                                            \
@@ -133,7 +135,7 @@
 
 namespace opentxs
 {
-rpc::internal::RPC* Factory::RPC(const api::Native& native)
+rpc::internal::RPC* Factory::RPC(const api::Context& native)
 {
     return new rpc::implementation::RPC(native);
 }
@@ -141,7 +143,7 @@ rpc::internal::RPC* Factory::RPC(const api::Native& native)
 
 namespace opentxs::rpc::implementation
 {
-RPC::RPC(const api::Native& native)
+RPC::RPC(const api::Context& native)
     : Lockable()
     , ot_(native)
     , task_lock_()
@@ -198,7 +200,7 @@ proto::RPCResponse RPC::accept_pending_payments(
             case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
                 auto chequeState =
                     opentxs::api::client::Workflow::InstantiateCheque(
-                        client, *paymentWorkflow);
+                        client, *paymentWorkflow, reason);
                 const auto& [state, cheque] = chequeState;
 
                 if (false == bool(cheque)) {
@@ -212,7 +214,8 @@ proto::RPCResponse RPC::accept_pending_payments(
                     continue;
                 }
 
-                payment.reset(client.Factory().Payment(*cheque).release());
+                payment.reset(
+                    client.Factory().Payment(*cheque, reason).release());
             } break;
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
@@ -248,7 +251,7 @@ proto::RPCResponse RPC::accept_pending_payments(
                 nymID,
                 std::to_string(taskID),
                 [&](const Result& result, proto::TaskComplete& output) -> void {
-                    evaluate_deposit_payment(client, result, output);
+                    evaluate_deposit_payment(client, result, output, reason);
                 },
                 std::move(future),
                 output);
@@ -264,8 +267,8 @@ proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
     CHECK_OWNER();
     CHECK_INPUT(claim, proto::RPCRESPONSE_INVALID);
 
-    auto nymdata =
-        session.Wallet().mutable_Nym(identifier::Nym::Factory(command.owner()));
+    auto nymdata = session.Wallet().mutable_Nym(
+        identifier::Nym::Factory(command.owner()), reason);
 
     for (const auto& addclaim : command.claim()) {
         const auto& contactitem = addclaim.item();
@@ -280,7 +283,7 @@ proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
             contactitem.end(),
             attributes);
 
-        if (nymdata.AddClaim(claim)) {
+        if (nymdata.AddClaim(claim, reason)) {
             add_output_status(output, proto::RPCRESPONSE_SUCCESS);
         } else {
             add_output_status(output, proto::RPCRESPONSE_ADD_CLAIM_FAILED);
@@ -299,7 +302,8 @@ proto::RPCResponse RPC::add_contact(const proto::RPCCommand& command) const
         const auto contact = client.Contacts().NewContact(
             addContact.label(),
             identifier::Nym::Factory(addContact.nymid()),
-            client.Factory().PaymentCode(addContact.paymentcode()));
+            client.Factory().PaymentCode(addContact.paymentcode(), reason),
+            reason);
 
         if (false == bool(contact)) {
             add_output_status(output, proto::RPCRESPONSE_ADD_CONTACT_FAILED);
@@ -374,7 +378,7 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
         return output;
     }
 
-    if (immediate_create_account(client, ownerID, notaryID, unitID)) {
+    if (immediate_create_account(client, ownerID, notaryID, unitID, reason)) {
         evaluate_register_account(future.get(), output);
     } else {
         queue_task(
@@ -415,7 +419,7 @@ proto::RPCResponse RPC::create_compatible_account(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE: {
             auto chequeState =
                 opentxs::api::client::Workflow::InstantiateCheque(
-                    client, workflow);
+                    client, workflow, reason);
             const auto& [state, cheque] = chequeState;
 
             if (false == bool(cheque)) {
@@ -442,7 +446,7 @@ proto::RPCResponse RPC::create_compatible_account(
         return output;
     }
 
-    if (immediate_create_account(client, ownerID, notaryID, unitID)) {
+    if (immediate_create_account(client, ownerID, notaryID, unitID, reason)) {
         evaluate_register_account(future.get(), output);
     } else {
         queue_task(
@@ -467,7 +471,7 @@ proto::RPCResponse RPC::create_issuer_account(
     std::string label{};
     auto notaryID = identifier::Server::Factory(command.notary());
     auto unitID = identifier::UnitDefinition::Factory(command.unit());
-    const auto unitdefinition = client.Wallet().UnitDefinition(unitID);
+    const auto unitdefinition = client.Wallet().UnitDefinition(unitID, reason);
 
     if (0 < command.identifier_size()) { label = command.identifier(0); }
 
@@ -478,7 +482,7 @@ proto::RPCResponse RPC::create_issuer_account(
         return output;
     }
 
-    const auto account = client.Wallet().IssuerAccount(unitID);
+    const auto account = client.Wallet().IssuerAccount(unitID, reason);
 
     if (account) {
         add_output_status(output, proto::RPCRESPONSE_UNNECESSARY);
@@ -528,8 +532,9 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
     }
 
     if (0 < createnym.claims_size()) {
-        auto nymdata =
-            client.Wallet().mutable_Nym(identifier::Nym::Factory(identifier));
+        auto nymdata = client.Wallet().mutable_Nym(
+
+            identifier::Nym::Factory(identifier), reason);
 
         for (const auto& addclaim : createnym.claims()) {
             const auto& contactitem = addclaim.item();
@@ -543,7 +548,7 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
                 contactitem.start(),
                 contactitem.end(),
                 attributes);
-            nymdata.AddClaim(claim);
+            nymdata.AddClaim(claim, reason);
         }
     }
 
@@ -568,7 +573,8 @@ proto::RPCResponse RPC::create_unit_definition(
         createunit.terms(),
         createunit.tla(),
         createunit.power(),
-        createunit.fractionalunitname());
+        createunit.fractionalunitname(),
+        reason);
 
     if (unitdefinition) {
         output.add_identifier(unitdefinition->ID()->str());
@@ -587,11 +593,12 @@ proto::RPCResponse RPC::delete_claim(const proto::RPCCommand& command) const
     CHECK_OWNER();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
-    auto nymdata =
-        session.Wallet().mutable_Nym(identifier::Nym::Factory(command.owner()));
+    auto nymdata = session.Wallet().mutable_Nym(
+
+        identifier::Nym::Factory(command.owner()), reason);
 
     for (const auto& id : command.identifier()) {
-        auto deleted = nymdata.DeleteClaim(Identifier::Factory(id));
+        auto deleted = nymdata.DeleteClaim(Identifier::Factory(id), reason);
 
         if (deleted) {
             add_output_status(output, proto::RPCRESPONSE_SUCCESS);
@@ -606,7 +613,8 @@ proto::RPCResponse RPC::delete_claim(const proto::RPCCommand& command) const
 void RPC::evaluate_deposit_payment(
     const api::client::Manager& client,
     const api::client::OTX::Result& result,
-    proto::TaskComplete& output) const
+    proto::TaskComplete& output,
+    const PasswordPrompt& reason) const
 {
     // TODO use structured binding
     // const auto& [status, pReply] = result;
@@ -623,14 +631,15 @@ void RPC::evaluate_deposit_payment(
         OT_ASSERT(pReply);
 
         const auto& reply = *pReply;
-        evaluate_transaction_reply(client, reply, output);
+        evaluate_transaction_reply(client, reply, output, reason);
     }
 }
 
 void RPC::evaluate_move_funds(
     const api::client::Manager& client,
     const api::client::OTX::Result& result,
-    proto::RPCResponse& output) const
+    proto::RPCResponse& output,
+    const PasswordPrompt& reason) const
 {
     // TODO use structured binding
     // const auto& [status, pReply] = result;
@@ -647,7 +656,7 @@ void RPC::evaluate_move_funds(
         OT_ASSERT(pReply);
 
         const auto& reply = *pReply;
-        evaluate_transaction_reply(client, reply, output);
+        evaluate_transaction_reply(client, reply, output, reason);
     }
 }
 
@@ -673,7 +682,8 @@ void RPC::evaluate_send_payment_cheque(
 void RPC::evaluate_send_payment_transfer(
     const api::client::Manager& client,
     const api::client::OTX::Result& result,
-    proto::RPCResponse& output) const
+    proto::RPCResponse& output,
+    const PasswordPrompt& reason) const
 {
     // TODO use structured binding
     // const auto& [status, pReply] = result;
@@ -690,7 +700,7 @@ void RPC::evaluate_send_payment_transfer(
         OT_ASSERT(pReply);
 
         const auto& reply = *pReply;
-        evaluate_transaction_reply(client, reply, output);
+        evaluate_transaction_reply(client, reply, output, reason);
     }
 }
 
@@ -777,7 +787,7 @@ proto::RPCResponse RPC::get_account_balance(
 
     for (const auto& id : command.identifier()) {
         const auto accountid = Identifier::Factory(id);
-        const auto account = session.Wallet().Account(accountid);
+        const auto account = session.Wallet().Account(accountid, reason);
 
         if (account) {
             auto& accountdata = *output.add_balance();
@@ -866,7 +876,7 @@ proto::RPCResponse RPC::get_compatible_accounts(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
             auto chequeState =
                 opentxs::api::client::Workflow::InstantiateCheque(
-                    client, workflow);
+                    client, workflow, reason);
             const auto& [state, cheque] = chequeState;
 
             if (false == bool(cheque)) {
@@ -918,7 +928,7 @@ proto::RPCResponse RPC::get_nyms(const proto::RPCCommand& command) const
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
     for (const auto& id : command.identifier()) {
-        auto pNym = session.Wallet().Nym(identifier::Nym::Factory(id));
+        auto pNym = session.Wallet().Nym(identifier::Nym::Factory(id), reason);
 
         if (pNym) {
             const auto& nym = *pNym;
@@ -961,7 +971,7 @@ proto::RPCResponse RPC::get_pending_payments(
         if (false == bool(paymentWorkflow)) { continue; }
 
         auto chequeState = opentxs::api::client::Workflow::InstantiateCheque(
-            client, *paymentWorkflow);
+            client, *paymentWorkflow, reason);
 
         const auto& [state, cheque] = chequeState;
 
@@ -1008,8 +1018,8 @@ proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
     const auto& hdseeds = session.Seeds();
 
     for (const auto& id : command.identifier()) {
-        auto words = hdseeds.Words(id);
-        auto passphrase = hdseeds.Passphrase(id);
+        auto words = hdseeds.Words(reason, id);
+        auto passphrase = hdseeds.Passphrase(reason, id);
 
         if (false == words.empty() || false == passphrase.empty()) {
             auto& seed = *output.add_seed();
@@ -1072,7 +1082,7 @@ proto::RPCResponse RPC::get_server_contracts(
 
     for (const auto& id : command.identifier()) {
         const auto pContract =
-            session.Wallet().Server(identifier::Server::Factory(id));
+            session.Wallet().Server(identifier::Server::Factory(id), reason);
 
         if (pContract) {
             const auto& contract = *pContract;
@@ -1133,7 +1143,7 @@ proto::RPCResponse RPC::get_unit_definitions(
 
     for (const auto& id : command.identifier()) {
         const auto contract = session.Wallet().UnitDefinition(
-            identifier::UnitDefinition::Factory(id));
+            identifier::UnitDefinition::Factory(id), reason);
 
         if (contract) {
             *output.add_unit() = contract->PublicContract();
@@ -1172,11 +1182,12 @@ bool RPC::immediate_create_account(
     const api::client::Manager& client,
     const identifier::Nym& owner,
     const identifier::Server& notary,
-    const identifier::UnitDefinition& unit) const
+    const identifier::UnitDefinition& unit,
+    const PasswordPrompt& reason) const
 {
     const auto registered =
         client.OTAPI().IsNym_RegisteredAtServer(owner, notary);
-    const auto unitdefinition = client.Wallet().UnitDefinition(unit);
+    const auto unitdefinition = client.Wallet().UnitDefinition(unit, reason);
 
     return registered && bool(unitdefinition);
 }
@@ -1191,9 +1202,10 @@ bool RPC::immediate_register_issuer_account(
 
 bool RPC::immediate_register_nym(
     const api::client::Manager& client,
-    const identifier::Server& notary) const
+    const identifier::Server& notary,
+    const PasswordPrompt& reason) const
 {
-    return bool(client.Wallet().Server(notary));
+    return bool(client.Wallet().Server(notary, reason));
 }
 
 proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
@@ -1205,7 +1217,8 @@ proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
     words.setPassword(seed.words());
     OTPassword passphrase;
     passphrase.setPassword(seed.passphrase());
-    const auto identifier = session.Seeds().ImportSeed(words, passphrase);
+    const auto identifier =
+        session.Seeds().ImportSeed(words, passphrase, reason);
 
     if (identifier.empty()) {
         add_output_status(output, proto::RPCRESPONSE_INVALID);
@@ -1224,7 +1237,7 @@ proto::RPCResponse RPC::import_server_contract(
     CHECK_INPUT(server, proto::RPCRESPONSE_INVALID);
 
     for (const auto& servercontract : command.server()) {
-        auto server = session.Wallet().Server(servercontract);
+        auto server = session.Wallet().Server(servercontract, reason);
 
         if (false == bool(server)) {
             add_output_status(output, proto::RPCRESPONSE_NONE);
@@ -1478,7 +1491,7 @@ proto::RPCResponse RPC::move_funds(const proto::RPCCommand& command) const
                 return output;
             }
 
-            evaluate_move_funds(client, future.get(), output);
+            evaluate_move_funds(client, future.get(), output, reason);
         } break;
         case proto::RPCPAYMENTTYPE_CHEQUE:
             [[fallthrough]];
@@ -1680,7 +1693,7 @@ proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
         return output;
     }
 
-    if (immediate_register_nym(client, notaryID)) {
+    if (immediate_register_nym(client, notaryID, reason)) {
         evaluate_register_nym(future.get(), output);
     } else {
         queue_task(
@@ -1703,7 +1716,7 @@ proto::RPCResponse RPC::rename_account(const proto::RPCCommand& command) const
 
     for (const auto& rename : command.modifyaccount()) {
         const auto accountID = Identifier::Factory(rename.accountid());
-        auto account = client.Wallet().mutable_Account(accountID);
+        auto account = client.Wallet().mutable_Account(accountID, reason);
 
         if (account) {
             account.get().SetAlias(rename.label());
@@ -1725,7 +1738,7 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
                sourceaccountid =
                    Identifier::Factory(sendpayment.sourceaccount());
     auto& contacts = client.Contacts();
-    const auto contact = contacts.Contact(contactid);
+    const auto contact = contacts.Contact(contactid, reason);
 
     if (false == bool(contact)) {
         add_output_status(output, proto::RPCRESPONSE_CONTACT_NOT_FOUND);
@@ -1812,7 +1825,8 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
                 return output;
             }
 
-            evaluate_send_payment_transfer(client, future.get(), output);
+            evaluate_send_payment_transfer(
+                client, future.get(), output, reason);
         } break;
         case proto::RPCPAYMENTTYPE_VOUCHER:
             // TODO

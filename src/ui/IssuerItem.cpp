@@ -10,10 +10,12 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -121,15 +123,23 @@ IssuerItem::IssuerItem(
     OT_ASSERT(startup_)
 }
 
+std::string IssuerItem::Debug() const
+{
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
+    return issuer_->toString(reason);
+}
+
 void IssuerItem::construct_row(
     const IssuerItemRowID& id,
     const IssuerItemSortKey& index,
     const CustomData& custom) const
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     items_[index].emplace(
         id,
         Factory::AccountSummaryItem(
-            *this, api_, publisher_, id, index, custom));
+            reason, *this, api_, publisher_, id, index, custom));
     names_.emplace(id, index);
 }
 
@@ -142,7 +152,9 @@ std::string IssuerItem::Name() const
 
 void IssuerItem::process_account(const Identifier& accountID)
 {
-    const auto account = api_.Wallet().Account(accountID);
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
+    const auto account = api_.Wallet().Account(accountID, reason);
 
     if (false == bool(account)) { return; }
 

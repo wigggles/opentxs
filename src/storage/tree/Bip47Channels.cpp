@@ -70,8 +70,7 @@ Bip47Channels::Bip47Channels(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = CHANNEL_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(CHANNEL_VERSION);
     }
 }
 
@@ -231,10 +230,7 @@ void Bip47Channels::init(const std::string& hash)
         OT_FAIL
     }
 
-    version_ = serialized->version();
-
-    // Upgrade version
-    if (CHANNEL_VERSION > version_) { version_ = CHANNEL_VERSION; }
+    init_version(CHANNEL_VERSION, *serialized);
 
     for (const auto& it : serialized->context()) {
         item_map_.emplace(

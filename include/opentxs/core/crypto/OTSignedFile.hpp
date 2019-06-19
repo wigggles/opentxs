@@ -28,7 +28,7 @@ class Factory;
 class OTSignedFile : public Contract
 {
 public:
-    EXPORT bool LoadFile();
+    EXPORT bool LoadFile(const PasswordPrompt& reason);
     EXPORT bool SaveFile();
     bool VerifyFile();  // Returns true or false, whether actual subdir/file
                         // matches purported subdir/file.
@@ -42,7 +42,7 @@ public:
     EXPORT virtual ~OTSignedFile();
     void Release() override;
     void Release_SignedFile();
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
 protected:
     OTString m_strSignedFilePayload;  // This class exists to wrap another and
@@ -78,7 +78,9 @@ protected:
     // the attacker has write/erase access to the filesystem. I'd like to make
     // it impervious even to that.
 
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;

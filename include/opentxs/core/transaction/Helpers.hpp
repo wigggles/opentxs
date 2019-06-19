@@ -55,11 +55,13 @@ EXPORT bool VerifyBoxReceiptExists(
 
 std::unique_ptr<OTTransaction> LoadBoxReceipt(
     OTTransaction& theAbbrev,
-    Ledger& theLedger);
+    Ledger& theLedger,
+    const PasswordPrompt& reason);
 
 EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
     OTTransaction& theAbbrev,
-    std::int64_t lLedgerType);
+    std::int64_t lLedgerType,
+    const PasswordPrompt& reason);
 
 bool SetupBoxReceiptFilename(
     std::int64_t lLedgerType,

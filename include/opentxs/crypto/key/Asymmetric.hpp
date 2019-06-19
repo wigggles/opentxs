@@ -37,7 +37,7 @@ public:
 
     EXPORT virtual OTData CalculateHash(
         const proto::HashType hashType,
-        const OTPasswordData& password) const = 0;
+        const PasswordPrompt& reason) const = 0;
     /** Only works for public keys. */
     EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
     EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
@@ -51,7 +51,8 @@ public:
     EXPORT virtual bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
-        OTPasswordData& password) const = 0;
+        PasswordPrompt& sessionKeyPassword,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual const std::string Path() const = 0;
     EXPORT virtual bool Path(proto::HDPath& output) const = 0;
     EXPORT virtual const proto::KeyRole& Role() const = 0;
@@ -59,7 +60,8 @@ public:
         const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
-        OTPasswordData& password) const = 0;
+        const PasswordPrompt& reason,
+        PasswordPrompt& sessionPassword) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize() const = 0;
     EXPORT virtual OTData SerializeKeyToData(
         const proto::AsymmetricKey& rhs) const = 0;
@@ -67,7 +69,7 @@ public:
     EXPORT virtual bool Sign(
         const Data& plaintext,
         proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
         const String& credID = String::Factory(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const = 0;
@@ -76,14 +78,17 @@ public:
         const proto::SignatureRole role,
         proto::Signature& signature,
         const Identifier& credential,
+        const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
-    EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
-        const = 0;
+    EXPORT virtual bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Verify(
         const Data& plaintext,
-        const proto::Signature& sig) const = 0;
+        const proto::Signature& sig,
+        const PasswordPrompt& reason) const = 0;
 
     // Only used for RSA keys
     EXPORT [[deprecated]] virtual void Release() = 0;

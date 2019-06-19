@@ -14,7 +14,7 @@ class Symmetric final : virtual public api::crypto::Symmetric
 public:
     virtual std::size_t IvSize(const proto::SymmetricMode mode) const override;
     OTSymmetricKey Key(
-        const OTPasswordData& password,
+        const PasswordPrompt& password,
         const proto::SymmetricMode mode =
             proto::SMODE_CHACHA20POLY1305) const override;
     OTSymmetricKey Key(
@@ -33,12 +33,12 @@ public:
 private:
     friend opentxs::Factory;
 
-    opentxs::crypto::SymmetricProvider& sodium_;
+    const api::Core& api_;
 
-    opentxs::crypto::SymmetricProvider* GetEngine(
+    const opentxs::crypto::SymmetricProvider* GetEngine(
         const proto::SymmetricMode mode) const;
 
-    Symmetric(opentxs::crypto::SymmetricProvider& sodium);
+    Symmetric(const api::Core& api);
     Symmetric() = delete;
     Symmetric(const Symmetric&) = delete;
     Symmetric(Symmetric&&) = delete;

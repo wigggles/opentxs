@@ -42,7 +42,8 @@ identity::credential::internal::Verification* Factory::VerificationCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
     const NymParameters& parameters,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
     return new identity::credential::implementation::Verification(
         api, parent, parameters, version);
@@ -142,15 +143,17 @@ std::shared_ptr<Base::SerializedType> Verification::serialize(
     return serializedCredential;
 }
 
-bool Verification::verify_internally(const Lock& lock) const
+bool Verification::verify_internally(
+    const Lock& lock,
+    const opentxs::PasswordPrompt& reason) const
 {
     // Perform common Credential verifications
-    if (!Base::verify_internally(lock)) { return false; }
+    if (!Base::verify_internally(lock, reason)) { return false; }
 
     if (data_) {
         for (auto& nym : data_->internal().identity()) {
             for (auto& claim : nym.verification()) {
-                bool valid = owner_backlink_->Verify(claim);
+                bool valid = owner_backlink_->Verify(claim, reason);
 
                 if (!valid) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(

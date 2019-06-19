@@ -7,10 +7,12 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -67,8 +69,10 @@ void PayableListItem::reindex(
     const ContactListSortKey& key,
     const CustomData& custom)
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
     ot_super::reindex(key, custom);
-    const auto contact = api_.Contacts().Contact(row_id_);
+    const auto contact = api_.Contacts().Contact(row_id_, reason);
 
     OT_ASSERT(contact);
 

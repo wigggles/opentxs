@@ -16,7 +16,7 @@ class EllipticCurve : virtual public key::EllipticCurve, public Asymmetric
 public:
     OTData CalculateHash(
         const proto::HashType hashType,
-        const OTPasswordData& password) const override;
+        const PasswordPrompt& password) const override;
     bool CheckCapability(const NymCapability& cap) const override
     {
         return hasCapability(cap);
@@ -34,25 +34,33 @@ public:
     bool get_public_key(String& strKey) const override;
     std::shared_ptr<proto::AsymmetricKey> GetSerialized(
         bool getPrivate) const override;
-    bool GetTransportKey(Data& publicKey, OTPassword& privateKey) const override
+    bool GetTransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const override
     {
-        return TransportKey(publicKey, privateKey);
+        return TransportKey(publicKey, privateKey, reason);
     }
     bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
-        OTPasswordData& password) const override;
+        PasswordPrompt& sessionKeyPassword,
+        const PasswordPrompt& reason) const override;
     const std::string Path() const override { return {}; }
     bool Path(proto::HDPath& output) const override { return {}; }
-    OTData PrivateKey() const override;
-    OTData PublicKey() const override;
+    OTData PrivateKey(const PasswordPrompt& reason) const override;
+    OTData PublicKey(const PasswordPrompt& reason) const override;
     bool Seal(
         const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
-        OTPasswordData& password) const override;
+        const PasswordPrompt& reason,
+        PasswordPrompt& sessionPassword) const override;
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
+    bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const override;
 
     bool SetKey(const Data& key) override;
     bool SetKey(std::unique_ptr<proto::Ciphertext>& key) override;
@@ -66,7 +74,7 @@ protected:
 
     static std::unique_ptr<proto::Ciphertext> encrypt_key(
         key::Symmetric& sessionKey,
-        const OTPasswordData& reason,
+        const PasswordPrompt& reason,
         const bool attach,
         const OTPassword& plaintext);
     static std::shared_ptr<proto::AsymmetricKey> serialize_public(
@@ -76,18 +84,19 @@ protected:
     virtual void erase_private_data();
 
     EllipticCurve(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey) noexcept;
+        const proto::AsymmetricKey& serializedKey,
+        const PasswordPrompt& reason) noexcept;
     EllipticCurve(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role,
         const VersionNumber version) noexcept;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EllipticCurve(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKeyType keyType,
         const OTPassword& privateKey,
@@ -95,7 +104,7 @@ protected:
         const proto::KeyRole role,
         const VersionNumber version,
         key::Symmetric& sessionKey,
-        const OTPasswordData& reason) noexcept;
+        const PasswordPrompt& reason) noexcept;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EllipticCurve(const EllipticCurve&) noexcept;
 
@@ -103,9 +112,11 @@ private:
     friend class crypto::EcdsaProvider;
 
     static std::unique_ptr<proto::Ciphertext> extract_key(
+        const api::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKey& serialized,
-        Data& publicKey);
+        Data& publicKey,
+        const PasswordPrompt& reason);
 
     EllipticCurve() = delete;
     EllipticCurve(EllipticCurve&&) = delete;

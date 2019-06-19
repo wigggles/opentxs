@@ -71,8 +71,9 @@ public:
     EXPORT bool AddBlankNumbersToItem(const NumList& theAddition);
     std::int64_t GetClosingNum() const;
     void SetClosingNum(std::int64_t lClosingNum);
-    EXPORT std::int64_t GetNumberOfOrigin() override;
-    EXPORT void CalculateNumberOfOrigin() override;
+    EXPORT std::int64_t GetNumberOfOrigin(
+        const PasswordPrompt& reason) override;
+    EXPORT void CalculateNumberOfOrigin(const PasswordPrompt& reason) override;
     // used for looping through the items in a few places.
     inline listOfItems& GetItemList() { return m_listItems; }
     std::shared_ptr<const Item> GetItem(std::int32_t nIndex) const;
@@ -133,6 +134,7 @@ public:
         const Account& THE_ACCOUNT,
         const OTTransaction& TARGET_TRANSACTION,
         const std::set<TransactionNumber>& excluded,
+        const PasswordPrompt& reason,
         TransactionNumber outboxNum = 0) const;  // Used in special case of
                                                  // transfers (the user didn't
                                                  // know the outbox trans# when
@@ -203,10 +205,12 @@ protected:
     TransactionNumber m_lClosingTransactionNo{0};
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
     // Before transmission or serialization, this is where the ledger saves its
     // contents
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;

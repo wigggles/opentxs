@@ -133,11 +133,16 @@ public:
     //
     bool VerifyAgreement(
         const ClientContext& recipient,
-        const ClientContext& sender) const override;
+        const ClientContext& sender,
+        const PasswordPrompt& reason) const override;
     bool CompareAgreement(const OTAgreement& rh) const override;
 
-    bool VerifyMerchantSignature(const identity::Nym& RECIPIENT_NYM) const;
-    bool VerifyCustomerSignature(const identity::Nym& SENDER_NYM) const;
+    bool VerifyMerchantSignature(
+        const identity::Nym& RECIPIENT_NYM,
+        const PasswordPrompt& reason) const;
+    bool VerifyCustomerSignature(
+        const identity::Nym& SENDER_NYM,
+        const PasswordPrompt& reason) const;
 
     // ************ "INITIAL PAYMENT" public GET METHODS **************
     inline bool HasInitialPayment() const { return m_bInitialPayment; }
@@ -204,16 +209,22 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    bool ProcessCron() override;  // OTCron calls this regularly, which is my
-                                  // chance to expire, etc.
+    bool ProcessCron(const PasswordPrompt& reason) override;  // OTCron calls
+                                                              // this regularly,
+                                                              // which is my
+                                                              // chance to
+                                                              // expire, etc.
     void InitPaymentPlan();
     void Release() override;
     void Release_PaymentPlan();
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the ledger saves its contents
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or serialization,
+                   // this
+                   // is where the ledger saves its contents
 
     EXPORT virtual ~OTPaymentPlan();
 
@@ -309,9 +320,16 @@ protected:
     inline void IncrementNoPaymentsDone() { m_nNoPaymentsDone++; }
     inline void IncrementNoFailedPayments() { m_nNoFailedPayments++; }
 
-    bool ProcessPayment(const api::Wallet& wallet, const Amount& amount);
-    void ProcessInitialPayment(const api::Wallet& wallet);
-    void ProcessPaymentPlan(const api::Wallet& wallet);
+    bool ProcessPayment(
+        const api::Wallet& wallet,
+        const Amount& amount,
+        const PasswordPrompt& reason);
+    void ProcessInitialPayment(
+        const api::Wallet& wallet,
+        const PasswordPrompt& reason);
+    void ProcessPaymentPlan(
+        const api::Wallet& wallet,
+        const PasswordPrompt& reason);
 
 private:
     typedef OTAgreement ot_super;

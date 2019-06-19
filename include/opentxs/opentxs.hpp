@@ -34,12 +34,12 @@
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/server/Manager.hpp>
 #include <opentxs/api/storage/Storage.hpp>
+#include <opentxs/api/Context.hpp>
 #include <opentxs/api/Core.hpp>
 #include <opentxs/api/Endpoints.hpp>
 #include <opentxs/api/Factory.hpp>
 #include <opentxs/api/HDSeed.hpp>
 #include <opentxs/api/Legacy.hpp>
-#include <opentxs/api/Native.hpp>
 #include <opentxs/api/Periodic.hpp>
 #include <opentxs/api/Wallet.hpp>
 #if OT_CASH
@@ -47,12 +47,11 @@
 #include <opentxs/blind/Purse.hpp>
 #include <opentxs/blind/Token.hpp>
 #endif
+#include <opentxs/client/NymData.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OTWallet.hpp>
 #include <opentxs/client/OT_API.hpp>
 #include <opentxs/client/ServerAction.hpp>
 #include <opentxs/client/SwigWrap.hpp>
-#include <opentxs/client/Utility.hpp>
 #include <opentxs/consensus/ClientContext.hpp>
 #include <opentxs/consensus/Context.hpp>
 #include <opentxs/consensus/ManagedNumber.hpp>
@@ -65,12 +64,10 @@
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/contract/UnitDefinition.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
-#include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCallback.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
 #include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
-#include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include <opentxs/core/crypto/PaymentCode.hpp>
@@ -100,6 +97,7 @@
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/OTTransactionType.hpp>
+#include <opentxs/core/PasswordPrompt.hpp>
 #include <opentxs/core/String.hpp>
 #include <opentxs/crypto/key/Asymmetric.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -110,7 +108,6 @@
 #include <opentxs/crypto/key/HD.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/crypto/key/Keypair.hpp>
-#include <opentxs/crypto/key/LegacySymmetric.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include <opentxs/crypto/key/RSA.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -122,7 +119,6 @@
 #include <opentxs/crypto/library/EcdsaProvider.hpp>
 #include <opentxs/crypto/library/EncodingProvider.hpp>
 #include <opentxs/crypto/library/HashingProvider.hpp>
-#include <opentxs/crypto/library/LegacySymmetricProvider.hpp>
 #include <opentxs/crypto/library/SymmetricProvider.hpp>
 #include <opentxs/crypto/Bip32.hpp>
 #include <opentxs/crypto/Bip39.hpp>

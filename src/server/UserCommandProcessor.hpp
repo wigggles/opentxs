@@ -69,6 +69,7 @@ private:
     };
 
     Server& server_;
+    const PasswordPrompt& reason_;
     const opentxs::api::server::Manager& manager_;
 
     bool add_numbers_to_nymbox(
@@ -166,6 +167,7 @@ private:
 
     UserCommandProcessor(
         Server& server,
+        const PasswordPrompt& reason,
         const opentxs::api::server::Manager& manager);
     UserCommandProcessor() = delete;
     UserCommandProcessor(const UserCommandProcessor&) = delete;

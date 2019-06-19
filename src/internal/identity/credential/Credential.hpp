@@ -17,7 +17,9 @@
 namespace opentxs::identity::credential::internal
 {
 struct Base : virtual public identity::credential::Base {
-    virtual bool New(const NymParameters& nymParameters) = 0;
+    virtual bool New(
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason) = 0;
     virtual void ReleaseSignatures(const bool onlyPrivate) = 0;
 
     virtual ~Base() = default;
@@ -29,8 +31,8 @@ struct Contact : virtual public Base,
 };
 struct Key : virtual public Base, virtual public identity::credential::Key {
     virtual bool SelfSign(
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
-        const OTPasswordData* pPWData = nullptr,
         const bool onlyPrivate = false) = 0;
 
     virtual ~Key() = default;

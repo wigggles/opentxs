@@ -97,7 +97,7 @@ const std::string& Signable::Terms() const
     return conditions_;
 }
 
-bool Signable::update_signature(const Lock& lock)
+bool Signable::update_signature(const Lock& lock, const PasswordPrompt& reason)
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -110,11 +110,11 @@ bool Signable::update_signature(const Lock& lock)
     return true;
 }
 
-bool Signable::Validate() const
+bool Signable::Validate(const PasswordPrompt& reason) const
 {
     Lock lock(lock_);
 
-    return validate(lock);
+    return validate(lock, reason);
 }
 
 bool Signable::verify_write_lock(const Lock& lock) const
@@ -134,7 +134,10 @@ bool Signable::verify_write_lock(const Lock& lock) const
     return true;
 }
 
-bool Signable::verify_signature(const Lock& lock, const proto::Signature&) const
+bool Signable::verify_signature(
+    const Lock& lock,
+    const proto::Signature&,
+    const PasswordPrompt&) const
 {
     OT_ASSERT(verify_write_lock(lock));
 

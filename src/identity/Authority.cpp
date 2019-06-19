@@ -10,7 +10,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -48,19 +47,21 @@ Function for_each(Range& range, Function f)
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
     const proto::KeyMode mode,
-    const proto::CredentialSet& serialized)
+    const proto::CredentialSet& serialized,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new identity::implementation::Authority(api, mode, serialized);
+    return new identity::implementation::Authority(
+        api, mode, serialized, reason);
 }
 
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
     const NymParameters& nymParameters,
     const VersionNumber nymVersion,
-    const OTPasswordData* pPWData)
+    const opentxs::PasswordPrompt& reason)
 {
     return new identity::implementation::Authority(
-        api, nymParameters, nymVersion, pPWData);
+        api, nymParameters, nymVersion, reason);
 }
 }  // namespace opentxs
 
@@ -132,7 +133,8 @@ Authority::Authority(
 Authority::Authority(
     const api::Core& api,
     const proto::KeyMode mode,
-    const Serialized& serialized) noexcept
+    const Serialized& serialized,
+    const opentxs::PasswordPrompt& reason) noexcept
     : Authority(
           api,
           serialized.version(),
@@ -143,10 +145,11 @@ Authority::Authority(
     if (proto::CREDSETMODE_INDEX == serialized.mode()) {
         Load_Master(
             String::Factory(serialized.nymid()),
-            String::Factory(serialized.masterid()));
+            String::Factory(serialized.masterid()),
+            reason);
 
         for (auto& it : serialized.activechildids()) {
-            LoadChildKeyCredential(String::Factory(it));
+            LoadChildKeyCredential(String::Factory(it), reason);
         }
     } else {
         std::unique_ptr<credential::internal::Primary> master{
@@ -155,12 +158,13 @@ Authority::Authority(
                 *this,
                 serialized.mastercredential(),
                 mode,
-                proto::CREDROLE_MASTERKEY)};
+                proto::CREDROLE_MASTERKEY,
+                reason)};
 
         if (master) { master_.reset(master.release()); }
 
         for (auto& it : serialized.activechildren()) {
-            LoadChildKeyCredential(it);
+            LoadChildKeyCredential(it, reason);
         }
     }
 }
@@ -169,10 +173,10 @@ Authority::Authority(
     const api::Core& api,
     const NymParameters& nymParameters,
     VersionNumber nymVersion,
-    const OTPasswordData*) noexcept
+    const opentxs::PasswordPrompt& reason) noexcept
     : Authority(api, nym_to_authority_.at(nymVersion))
 {
-    CreateMasterCredential(nymParameters);
+    CreateMasterCredential(nymParameters, reason);
 
     OT_ASSERT(master_);
 
@@ -185,7 +189,8 @@ Authority::Authority(
             ": Creating an ed25519 child key credential.")
             .Flush();
         revisedParameters.setNymParameterType(NymParameterType::ED25519);
-        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+        haveChildCredential =
+            !AddChildKeyCredential(revisedParameters, reason).empty();
     }
 #endif
 
@@ -195,7 +200,8 @@ Authority::Authority(
             ": Creating an secp256k1 child key credential.")
             .Flush();
         revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
-        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+        haveChildCredential =
+            !AddChildKeyCredential(revisedParameters, reason).empty();
     }
 #endif
 
@@ -205,14 +211,17 @@ Authority::Authority(
             ": Creating an RSA child key credential.")
             .Flush();
         revisedParameters.setNymParameterType(NymParameterType::RSA);
-        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+        haveChildCredential =
+            !AddChildKeyCredential(revisedParameters, reason).empty();
     }
 #endif
 
     OT_ASSERT(haveChildCredential);
 }
 
-std::string Authority::AddChildKeyCredential(const NymParameters& nymParameters)
+std::string Authority::AddChildKeyCredential(
+    const NymParameters& nymParameters,
+    const opentxs::PasswordPrompt& reason)
 {
     auto output = api_.Factory().Identifier();
     NymParameters revisedParameters{nymParameters};
@@ -225,7 +234,8 @@ std::string Authority::AddChildKeyCredential(const NymParameters& nymParameters)
             *this,
             authority_to_secondary_.at(version_),
             revisedParameters,
-            proto::CREDROLE_CHILDKEY)};
+            proto::CREDROLE_CHILDKEY,
+            reason)};
 
     if (!child) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -241,7 +251,9 @@ std::string Authority::AddChildKeyCredential(const NymParameters& nymParameters)
     return output->str();
 }
 
-bool Authority::AddContactCredential(const proto::ContactData& contactData)
+bool Authority::AddContactCredential(
+    const proto::ContactData& contactData,
+    const opentxs::PasswordPrompt& reason)
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Adding a contact credential.")
         .Flush();
@@ -256,7 +268,8 @@ bool Authority::AddContactCredential(const proto::ContactData& contactData)
             *this,
             authority_to_contact_.at(version_),
             nymParameters,
-            proto::CREDROLE_CONTACT)};
+            proto::CREDROLE_CONTACT,
+            reason)};
 
     if (false == bool(credential)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct credential")
@@ -276,7 +289,8 @@ bool Authority::AddContactCredential(const proto::ContactData& contactData)
 }
 
 bool Authority::AddVerificationCredential(
-    const proto::VerificationSet& verificationSet)
+    const proto::VerificationSet& verificationSet,
+    const opentxs::PasswordPrompt& reason)
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Adding a verification credential.")
         .Flush();
@@ -291,7 +305,8 @@ bool Authority::AddVerificationCredential(
             *this,
             authority_to_verification_.at(version_),
             nymParameters,
-            proto::CREDROLE_VERIFY)};
+            proto::CREDROLE_VERIFY,
+            reason)};
 
     if (false == bool(credential)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct credential")
@@ -306,7 +321,9 @@ bool Authority::AddVerificationCredential(
     return true;
 }
 
-bool Authority::CreateMasterCredential(const NymParameters& nymParameters)
+bool Authority::CreateMasterCredential(
+    const NymParameters& nymParameters,
+    const opentxs::PasswordPrompt& reason)
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     if (0 != index_) {
@@ -340,7 +357,8 @@ bool Authority::CreateMasterCredential(const NymParameters& nymParameters)
         *this,
         authority_to_primary_.at(version_),
         nymParameters,
-        proto::CREDROLE_MASTERKEY));
+        proto::CREDROLE_MASTERKEY,
+        reason));
 
     if (master_) {
         index_++;
@@ -533,7 +551,9 @@ bool Authority::is_revoked(
            plistRevokedIDs->end();
 }
 
-bool Authority::LoadChildKeyCredential(const String& strSubID)
+bool Authority::LoadChildKeyCredential(
+    const String& strSubID,
+    const opentxs::PasswordPrompt& reason)
 {
 
     OT_ASSERT(!GetNymID().empty());
@@ -548,10 +568,12 @@ bool Authority::LoadChildKeyCredential(const String& strSubID)
         return false;
     }
 
-    return LoadChildKeyCredential(*child);
+    return LoadChildKeyCredential(*child, reason);
 }
 
-bool Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
+bool Authority::LoadChildKeyCredential(
+    const proto::Credential& serializedCred,
+    const opentxs::PasswordPrompt& reason)
 {
     bool validProto = proto::Validate<proto::Credential>(
         serializedCred, VERBOSE, mode_, proto::CREDROLE_ERROR, true);
@@ -578,7 +600,8 @@ bool Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
                     *this,
                     serializedCred,
                     mode_,
-                    proto::CREDROLE_CHILDKEY)};
+                    proto::CREDROLE_CHILDKEY,
+                    reason)};
 
             if (false == bool(child)) { return false; }
 
@@ -593,7 +616,8 @@ bool Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
                     *this,
                     serializedCred,
                     mode_,
-                    proto::CREDROLE_CONTACT)};
+                    proto::CREDROLE_CONTACT,
+                    reason)};
 
             if (false == bool(child)) { return false; }
 
@@ -609,7 +633,8 @@ bool Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
                     *this,
                     serializedCred,
                     mode_,
-                    proto::CREDROLE_VERIFY)};
+                    proto::CREDROLE_VERIFY,
+                    reason)};
 
             if (false == bool(child)) { return false; }
 
@@ -631,7 +656,7 @@ bool Authority::LoadChildKeyCredential(const proto::Credential& serializedCred)
 bool Authority::Load_Master(
     const String& strNymID,
     const String& strMasterCredID,
-    const OTPasswordData*)
+    const opentxs::PasswordPrompt& reason)
 {
     std::shared_ptr<proto::Credential> serialized;
     bool loaded =
@@ -647,7 +672,12 @@ bool Authority::Load_Master(
 
     std::unique_ptr<credential::internal::Primary> master{
         opentxs::Factory::Credential<credential::internal::Primary>(
-            api_, *this, *serialized, mode_, proto::CREDROLE_MASTERKEY)};
+            api_,
+            *this,
+            *serialized,
+            mode_,
+            proto::CREDROLE_MASTERKEY,
+            reason)};
 
     if (master) {
         master_.reset(master.release());
@@ -746,24 +776,23 @@ void Authority::SetSource(const std::shared_ptr<NymIDSource>& source)
 bool Authority::Sign(
     const credential::Primary& credential,
     proto::Signature& sig,
-    const OTPasswordData* pPWData) const
+    const opentxs::PasswordPrompt& reason) const
 {
-    return nym_id_source_->Sign(credential, sig, pPWData);
+    return nym_id_source_->Sign(credential, sig, reason);
 }
 
 bool Authority::Sign(
     const GetPreimage input,
     const proto::SignatureRole role,
     proto::Signature& signature,
+    const opentxs::PasswordPrompt& reason,
     proto::KeyRole key,
-    const OTPasswordData* pPWData,
     const proto::HashType hash) const
 {
     switch (role) {
         case (proto::SIGROLE_PUBCREDENTIAL): {
             if (master_->hasCapability(NymCapability::SIGN_CHILDCRED)) {
-                return master_->Sign(
-                    input, role, signature, key, pPWData, hash);
+                return master_->Sign(input, role, signature, reason, key, hash);
             }
 
             break;
@@ -792,7 +821,7 @@ bool Authority::Sign(
                 }
 
                 if (credential.Sign(
-                        input, role, signature, key, pPWData, hash)) {
+                        input, role, signature, reason, key, hash)) {
 
                     return true;
                 }
@@ -803,7 +832,10 @@ bool Authority::Sign(
     return false;
 }
 
-bool Authority::TransportKey(Data& publicKey, OTPassword& privateKey) const
+bool Authority::TransportKey(
+    Data& publicKey,
+    OTPassword& privateKey,
+    const opentxs::PasswordPrompt& reason) const
 {
     for (const auto& [id, pCredential] : key_credentials_) {
         OT_ASSERT(pCredential);
@@ -815,7 +847,9 @@ bool Authority::TransportKey(Data& publicKey, OTPassword& privateKey) const
             continue;
         }
 
-        if (credential.TransportKey(publicKey, privateKey)) { return true; }
+        if (credential.TransportKey(publicKey, privateKey, reason)) {
+            return true;
+        }
     }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": No child credentials are capable of "
@@ -826,7 +860,9 @@ bool Authority::TransportKey(Data& publicKey, OTPassword& privateKey) const
 }
 
 template <typename Item>
-bool Authority::validate_credential(const Item& item) const
+bool Authority::validate_credential(
+    const Item& item,
+    const opentxs::PasswordPrompt& reason) const
 {
     const auto& [id, pCredential] = item;
 
@@ -839,7 +875,7 @@ bool Authority::validate_credential(const Item& item) const
 
     const auto& credential = *pCredential;
 
-    if (credential.Validate()) { return true; }
+    if (credential.Validate(reason)) { return true; }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid credential ")(id).Flush();
 
@@ -849,6 +885,7 @@ bool Authority::validate_credential(const Item& item) const
 bool Authority::Verify(
     const Data& plaintext,
     const proto::Signature& sig,
+    const opentxs::PasswordPrompt& reason,
     const proto::KeyRole key) const
 {
     std::string signerID(sig.credentialid());
@@ -872,10 +909,12 @@ bool Authority::Verify(
         return false;
     }
 
-    return credential->Verify(plaintext, sig, key);
+    return credential->Verify(plaintext, sig, reason, key);
 }
 
-bool Authority::Verify(const proto::Verification& item) const
+bool Authority::Verify(
+    const proto::Verification& item,
+    const opentxs::PasswordPrompt& reason) const
 {
     auto serialized = credential::Verification::SigningForm(item);
     auto& signature = *serialized.mutable_sig();
@@ -883,10 +922,10 @@ bool Authority::Verify(const proto::Verification& item) const
     signatureCopy.CopyFrom(signature);
     signature.clear_signature();
 
-    return Verify(proto::ProtoAsData(serialized), signatureCopy);
+    return Verify(proto::ProtoAsData(serialized), signatureCopy, reason);
 }
 
-bool Authority::VerifyInternally() const
+bool Authority::VerifyInternally(const opentxs::PasswordPrompt& reason) const
 {
     if (false == bool(master_)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Missing master credential.")
@@ -894,7 +933,7 @@ bool Authority::VerifyInternally() const
         return false;
     }
 
-    if (false == master_->Validate()) {
+    if (false == master_->Validate(reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Master Credential failed to verify: ")(GetMasterCredID())(
             " NymID: ")(GetNymID())(".")
@@ -905,7 +944,7 @@ bool Authority::VerifyInternally() const
 
     bool output{true};
     const auto validate = [&](const auto& item) -> void {
-        output &= validate_credential(item);
+        output &= validate_credential(item, reason);
     };
 
     for_each(key_credentials_, validate);

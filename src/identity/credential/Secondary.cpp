@@ -29,21 +29,23 @@ namespace opentxs
 {
 identity::credential::internal::Secondary* Factory::SecondaryCredential(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     identity::internal::Authority& parent,
     const proto::Credential& serialized)
 {
     return new identity::credential::implementation::Secondary(
-        api, parent, serialized);
+        api, reason, parent, serialized);
 }
 
 identity::credential::internal::Secondary* Factory::SecondaryCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
     const NymParameters& parameters,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
     return new identity::credential::implementation::Secondary(
-        api, parent, parameters, version);
+        api, parent, parameters, version, reason);
 }
 }  // namespace opentxs
 
@@ -51,10 +53,11 @@ namespace opentxs::identity::credential::implementation
 {
 Secondary::Secondary(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     identity::internal::Authority& owner,
     const proto::Credential& serialized)
     : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Key(api, owner, serialized)
+    , credential::implementation::Key(api, reason, owner, serialized)
 {
     role_ = proto::CREDROLE_CHILDKEY;
     master_id_ = serialized.childdata().masterid();
@@ -64,9 +67,15 @@ Secondary::Secondary(
     const api::Core& api,
     identity::internal::Authority& owner,
     const NymParameters& nymParameters,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
     : Signable({}, version)  // TODO Signable
-    , credential::implementation::Key(api, owner, nymParameters, version)
+    , credential::implementation::Key(
+          api,
+          owner,
+          nymParameters,
+          version,
+          reason)
 {
     role_ = proto::CREDROLE_CHILDKEY;
     nym_id_ = owner.GetNymID();

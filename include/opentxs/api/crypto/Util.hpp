@@ -16,7 +16,6 @@ namespace api
 {
 namespace crypto
 {
-
 class Util
 {
 public:

@@ -6,8 +6,10 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -19,28 +21,28 @@
 
 namespace opentxs
 {
-api::crypto::Symmetric* Factory::Symmetric(crypto::SymmetricProvider& sodium)
+api::crypto::Symmetric* Factory::Symmetric(const api::Core& api)
 {
-    return new api::crypto::implementation::Symmetric(sodium);
+    return new api::crypto::implementation::Symmetric(api);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
 {
-Symmetric::Symmetric(opentxs::crypto::SymmetricProvider& sodium)
-    : sodium_(sodium)
+Symmetric::Symmetric(const api::Core& api)
+    : api_(api)
 {
 }
 
-opentxs::crypto::SymmetricProvider* Symmetric::GetEngine(
+const opentxs::crypto::SymmetricProvider* Symmetric::GetEngine(
     const proto::SymmetricMode mode) const
 {
-    opentxs::crypto::SymmetricProvider* engine = nullptr;
+    const opentxs::crypto::SymmetricProvider* engine{nullptr};
 
     // Add support for other crypto engines here
     switch (mode) {
         default: {
-            engine = &sodium_;
+            engine = &api_.Crypto().Sodium();
         }
     }
 
@@ -63,14 +65,14 @@ std::size_t Symmetric::IvSize(const proto::SymmetricMode mode) const
 }
 
 OTSymmetricKey Symmetric::Key(
-    const OTPasswordData& password,
+    const PasswordPrompt& password,
     const proto::SymmetricMode mode) const
 {
     auto engine = GetEngine(mode);
 
     OT_ASSERT(nullptr != engine);
 
-    return opentxs::crypto::key::Symmetric::Factory(*engine, password, mode);
+    return api_.Factory().SymmetricKey(*engine, password, mode);
 }
 
 OTSymmetricKey Symmetric::Key(
@@ -81,7 +83,7 @@ OTSymmetricKey Symmetric::Key(
 
     OT_ASSERT(nullptr != engine);
 
-    return opentxs::crypto::key::Symmetric::Factory(*engine, serialized);
+    return api_.Factory().SymmetricKey(*engine, serialized);
 }
 
 OTSymmetricKey Symmetric::Key(
@@ -95,7 +97,7 @@ OTSymmetricKey Symmetric::Key(
 
     OT_ASSERT(nullptr != engine);
 
-    return opentxs::crypto::key::Symmetric::Factory(
+    return api_.Factory().SymmetricKey(
         *engine, seed, operations, difficulty, engine->KeySize(mode), type);
 }
 }  // namespace opentxs::api::crypto::implementation

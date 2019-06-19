@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
@@ -17,6 +18,7 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -99,15 +101,19 @@ void AccountList::construct_row(
     const AccountListSortKey& index,
     const CustomData& custom) const
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     items_[index].emplace(
         id,
-        Factory::AccountListItem(*this, api_, publisher_, id, index, custom));
+        Factory::AccountListItem(
+            reason, *this, api_, publisher_, id, index, custom));
     names_.emplace(id, index);
 }
 
 #if OT_QT
 QVariant AccountList::data(const QModelIndex& index, int role) const
 {
+    PasswordPrompt reason(__FUNCTION__);
+
     const auto [valid, pRow] = check_index(index);
 
     if (false == valid) { return {}; }
@@ -137,7 +143,7 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
             return row.NotaryID().c_str();
         }
         case AccountListQt::NotaryNameRole: {
-            return row.NotaryName().c_str();
+            return row.NotaryName(reason).c_str();
         }
         case AccountListQt::TypeRole: {
             return static_cast<int>(row.Type());
@@ -156,13 +162,15 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
 
 void AccountList::process_account(const Identifier& id)
 {
-    auto account = api_.Wallet().Account(id);
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+    auto account = api_.Wallet().Account(id, reason);
     process_account(id, account.get().GetBalance(), account.get().Alias());
 }
 
 void AccountList::process_account(const Identifier& id, const Amount balance)
 {
-    auto account = api_.Wallet().Account(id);
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+    auto account = api_.Wallet().Account(id, reason);
     process_account(id, balance, account.get().Alias());
 }
 

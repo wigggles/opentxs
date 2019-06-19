@@ -17,6 +17,7 @@ class Test_PaymentCode : public ::testing::Test
 {
 public:
     const opentxs::api::client::Manager& client_;
+    OTPasswordPrompt reason_;
     std::string seed, fingerprint, nymID_0, paycode_0, nymID_1, paycode_1,
         nymID_2, paycode_2, nymID_3, paycode_3;
     opentxs::NymData nymData_0, nymData_1, nymData_2, nymData_3;
@@ -25,7 +26,8 @@ public:
 
     /* Is evaluated every test, therefore indexes are fixed to 0,1,2,3 */
     Test_PaymentCode()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , seed("trim thunder unveil reduce crop cradle zone inquiry anchor "
                "skate property fringe obey butter text tank drama palm guilt "
                "pudding laundry stay axis prosper")
@@ -50,14 +52,18 @@ public:
               "PaycodeNym_3",
               fingerprint,
               3))
-        , nymData_0(
-              client_.Wallet().mutable_Nym(identifier::Nym::Factory(nymID_0)))
-        , nymData_1(
-              client_.Wallet().mutable_Nym(identifier::Nym::Factory(nymID_1)))
-        , nymData_2(
-              client_.Wallet().mutable_Nym(identifier::Nym::Factory(nymID_2)))
-        , nymData_3(
-              client_.Wallet().mutable_Nym(identifier::Nym::Factory(nymID_3)))
+        , nymData_0(client_.Wallet().mutable_Nym(
+              identifier::Nym::Factory(nymID_0),
+              reason_))
+        , nymData_1(client_.Wallet().mutable_Nym(
+              identifier::Nym::Factory(nymID_1),
+              reason_))
+        , nymData_2(client_.Wallet().mutable_Nym(
+              identifier::Nym::Factory(nymID_2),
+              reason_))
+        , nymData_3(client_.Wallet().mutable_Nym(
+              identifier::Nym::Factory(nymID_3),
+              reason_))
         , paycode_0(
               "PM8TJhB2CxWDqR8c5y4kWoJwSGRNYaVATdJM85kqfn2dZ9TdSihbFJraQzjYUMYx"
               "bsrnMfjPK6oZFAPQ1tWqzwTfKbtunvLFCzDJFVXVGbUAKxhsz7P5")
@@ -71,25 +77,29 @@ public:
               "PM8TJbNzqDcdqCcpkMLLa9H83CjoWdHMTQ4Lk11qSpThkyrmDFA4AeGd2kFeLK2s"
               "T6UVXy2jwWABsfLd7JmcS4hMAy9zUdWRFRhmu33RiRJCS6qRmGew")
     {
-        nymData_0.AddPaymentCode(paycode_0, currency, true, true);
+        nymData_0.AddPaymentCode(paycode_0, currency, true, true, reason_);
 
-        nymData_1.AddPaymentCode(paycode_0, currency, true, true);
+        nymData_1.AddPaymentCode(paycode_0, currency, true, true, reason_);
         nymData_1.AddPaymentCode(
-            paycode_1, currency, true, false);  // reset nymdata_1 to
-                                                // paymentcode_1
+            paycode_1, currency, true, false, reason_);  // reset nymdata_1 to
+                                                         // paymentcode_1
 
         nymData_2.AddPaymentCode(
-            paycode_2, currency_2, false, true);  // nymdata_2 resets paycode_2
-                                                  // to primary
+            paycode_2, currency_2, false, true, reason_);  // nymdata_2 resets
+                                                           // paycode_2 to
+                                                           // primary
         nymData_2.AddPaymentCode(
-            paycode_0, currency_2, false, true);  // fail to reset nymdata_2
-                                                  // with primary = false
+            paycode_0, currency_2, false, true, reason_);  // fail to reset
+                                                           // nymdata_2 with
+                                                           // primary = false
 
         nymData_3.AddPaymentCode(
-            paycode_3, currency_2, false, false);  // nymdata_3 resets paycode_3
-                                                   // to primary
+            paycode_3, currency_2, false, false, reason_);  // nymdata_3 resets
+                                                            // paycode_3 to
+                                                            // primary
         nymData_3.AddPaymentCode(
-            paycode_0, currency_2, false, false);  // fail to be primary
+            paycode_0, currency_2, false, false, reason_);  // fail to be
+                                                            // primary
     }
 };
 
@@ -113,15 +123,19 @@ TEST_F(Test_PaymentCode, primary_paycodes)
         nymData_3.PaymentCode(currency_2).c_str());  // not primary nor active
                                                      // defaults to primary
 
-    auto nym0 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
-    auto nym1 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_1));
-    auto nym2 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_2));
-    auto nym3 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_3));
+    auto nym0 =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0), reason_);
+    auto nym1 =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_1), reason_);
+    auto nym2 =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_2), reason_);
+    auto nym3 =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_3), reason_);
 
-    ASSERT_STREQ(nym0->PaymentCode().c_str(), paycode_0.c_str());
-    ASSERT_STREQ(nym1->PaymentCode().c_str(), paycode_1.c_str());
-    ASSERT_STREQ(nym2->PaymentCode().c_str(), paycode_2.c_str());
-    ASSERT_STREQ(nym3->PaymentCode().c_str(), paycode_3.c_str());
+    ASSERT_STREQ(nym0->PaymentCode(reason_).c_str(), paycode_0.c_str());
+    ASSERT_STREQ(nym1->PaymentCode(reason_).c_str(), paycode_1.c_str());
+    ASSERT_STREQ(nym2->PaymentCode(reason_).c_str(), paycode_2.c_str());
+    ASSERT_STREQ(nym3->PaymentCode(reason_).c_str(), paycode_3.c_str());
 }
 
 /* Test: by setting primary = true it resets best payment code
@@ -130,10 +144,12 @@ TEST_F(Test_PaymentCode, test_new_primary)
 {
     ASSERT_STREQ(paycode_0.c_str(), nymData_0.PaymentCode(currency).c_str());
 
-    ASSERT_TRUE(nymData_0.AddPaymentCode(paycode_2, currency, true, true));
+    ASSERT_TRUE(
+        nymData_0.AddPaymentCode(paycode_2, currency, true, true, reason_));
     ASSERT_STREQ(paycode_2.c_str(), nymData_0.PaymentCode(currency).c_str());
 
-    ASSERT_TRUE(nymData_0.AddPaymentCode(paycode_3, currency, true, false));
+    ASSERT_TRUE(
+        nymData_0.AddPaymentCode(paycode_3, currency, true, false, reason_));
     ASSERT_STREQ(paycode_3.c_str(), nymData_0.PaymentCode(currency).c_str());
 }
 
@@ -143,8 +159,10 @@ TEST_F(Test_PaymentCode, test_secondary_doesnt_replace)
 {
     ASSERT_STREQ(paycode_0.c_str(), nymData_0.PaymentCode(currency).c_str());
 
-    ASSERT_TRUE(nymData_0.AddPaymentCode(paycode_2, currency, false, false));
-    ASSERT_TRUE(nymData_0.AddPaymentCode(paycode_3, currency, false, true));
+    ASSERT_TRUE(
+        nymData_0.AddPaymentCode(paycode_2, currency, false, false, reason_));
+    ASSERT_TRUE(
+        nymData_0.AddPaymentCode(paycode_3, currency, false, true, reason_));
 
     ASSERT_STREQ(paycode_0.c_str(), nymData_0.PaymentCode(currency).c_str());
 }
@@ -153,10 +171,14 @@ TEST_F(Test_PaymentCode, test_secondary_doesnt_replace)
  */
 TEST_F(Test_PaymentCode, valid_paycodes)
 {
-    ASSERT_TRUE(client_.Factory().PaymentCode(paycode_0)->VerifyInternally());
-    ASSERT_TRUE(client_.Factory().PaymentCode(paycode_1)->VerifyInternally());
-    ASSERT_TRUE(client_.Factory().PaymentCode(paycode_2)->VerifyInternally());
-    ASSERT_TRUE(client_.Factory().PaymentCode(paycode_3)->VerifyInternally());
+    ASSERT_TRUE(
+        client_.Factory().PaymentCode(paycode_0, reason_)->VerifyInternally());
+    ASSERT_TRUE(
+        client_.Factory().PaymentCode(paycode_1, reason_)->VerifyInternally());
+    ASSERT_TRUE(
+        client_.Factory().PaymentCode(paycode_2, reason_)->VerifyInternally());
+    ASSERT_TRUE(
+        client_.Factory().PaymentCode(paycode_3, reason_)->VerifyInternally());
 }
 
 /* Test: Invalid paycodes should not be saved
@@ -165,8 +187,9 @@ TEST_F(Test_PaymentCode, empty_paycode)
 {
     ASSERT_STREQ(paycode_0.c_str(), nymData_0.PaymentCode(currency).c_str());
 
-    ASSERT_FALSE(client_.Factory().PaymentCode("")->VerifyInternally());
-    bool added = nymData_0.AddPaymentCode("", currency, true, true);
+    ASSERT_FALSE(
+        client_.Factory().PaymentCode("", reason_)->VerifyInternally());
+    bool added = nymData_0.AddPaymentCode("", currency, true, true, reason_);
     ASSERT_FALSE(added);
 
     ASSERT_STREQ(paycode_0.c_str(), nymData_0.PaymentCode(currency).c_str());
@@ -174,10 +197,12 @@ TEST_F(Test_PaymentCode, empty_paycode)
     std::string invalid_paycode =
         "XM8TJS2JxQ5ztXUpBBRnpTbcUXbUHy2T1abfrb3KkAAtMEGNbey4oumH7Hc578WgQJhPjB"
         "xteQ5GHHToTYHE3A1w6p7tU6KSoFmWBVbFGjKPisZDbP97";
-    ASSERT_FALSE(
-        client_.Factory().PaymentCode(invalid_paycode)->VerifyInternally());
+    ASSERT_FALSE(client_.Factory()
+                     .PaymentCode(invalid_paycode, reason_)
+                     ->VerifyInternally());
 
-    added = nymData_0.AddPaymentCode(invalid_paycode, currency, true, true);
+    added = nymData_0.AddPaymentCode(
+        invalid_paycode, currency, true, true, reason_);
     ASSERT_FALSE(added);
     ASSERT_STRNE("", nymData_0.PaymentCode(currency).c_str());
 
@@ -188,7 +213,8 @@ TEST_F(Test_PaymentCode, empty_paycode)
  */
 TEST_F(Test_PaymentCode, paycode_equals)
 {
-    OTPaymentCode payment_code = client_.Factory().PaymentCode(paycode_0);
+    OTPaymentCode payment_code =
+        client_.Factory().PaymentCode(paycode_0, reason_);
     PaymentCode& rep1 = payment_code.get();
     auto serializedPaymentcode = payment_code->Serialize();
     proto::PaymentCode& rep2 = *serializedPaymentcode;
@@ -199,7 +225,7 @@ TEST_F(Test_PaymentCode, paycode_equals)
  */
 TEST_F(Test_PaymentCode, asBase58)
 {
-    auto pcode = client_.Factory().PaymentCode(paycode_0);
+    auto pcode = client_.Factory().PaymentCode(paycode_0, reason_);
     ASSERT_STREQ(paycode_0.c_str(), pcode->asBase58().c_str());
 }
 
@@ -208,13 +234,13 @@ TEST_F(Test_PaymentCode, asBase58)
 TEST_F(Test_PaymentCode, paycode_derivation_matches_nymidsource)
 {
     auto nym_0_paycode = client_.Factory().PaymentCode(
-        fingerprint, 0, 1);  // seed, nym, paycode version
+        fingerprint, 0, 1, reason_);  // seed, nym, paycode version
     auto nym_1_paycode = client_.Factory().PaymentCode(
-        fingerprint, 1, 1);  // seed, nym, paycode version
+        fingerprint, 1, 1, reason_);  // seed, nym, paycode version
     auto nym_2_paycode = client_.Factory().PaymentCode(
-        fingerprint, 2, 1);  // seed, nym, paycode version
+        fingerprint, 2, 1, reason_);  // seed, nym, paycode version
     auto nym_3_paycode = client_.Factory().PaymentCode(
-        fingerprint, 3, 1);  // seed, nym, paycode version
+        fingerprint, 3, 1, reason_);  // seed, nym, paycode version
 
     ASSERT_STREQ(paycode_0.c_str(), nym_0_paycode->asBase58().c_str());
     ASSERT_STREQ(paycode_1.c_str(), nym_1_paycode->asBase58().c_str());
@@ -237,40 +263,41 @@ TEST_F(Test_PaymentCode, paycode_derivation_matches_nymidsource)
 TEST_F(Test_PaymentCode, factory)
 {
     // Factory 0: PaymentCode&
-    auto factory_0 =
-        PaymentCode::Factory(client_.Factory().PaymentCode(paycode_0).get());
+    auto factory_0 = client_.Factory().PaymentCode(paycode_0, reason_);
     ASSERT_STREQ(paycode_0.c_str(), factory_0->asBase58().c_str());
 
-    auto factory_0b =
-        PaymentCode::Factory(client_.Factory().PaymentCode(paycode_1).get());
+    auto factory_0b = client_.Factory().PaymentCode(paycode_1, reason_);
     ASSERT_STREQ(paycode_1.c_str(), factory_0b->asBase58().c_str());
 
     // Factory 1: std::string
-    OTPaymentCode factory_1 = client_.Factory().PaymentCode(paycode_0);
+    OTPaymentCode factory_1 = client_.Factory().PaymentCode(paycode_0, reason_);
     ASSERT_STREQ(paycode_0.c_str(), factory_1->asBase58().c_str());
 
-    auto factory_1b = client_.Factory().PaymentCode(paycode_1);
+    auto factory_1b = client_.Factory().PaymentCode(paycode_1, reason_);
     ASSERT_STREQ(paycode_1.c_str(), factory_1b->asBase58().c_str());
 
     // Factory 2: proto::PaymentCode&
-    auto factory_2 = client_.Factory().PaymentCode(*factory_1->Serialize());
+    auto factory_2 =
+        client_.Factory().PaymentCode(*factory_1->Serialize(), reason_);
     ASSERT_STREQ(paycode_0.c_str(), factory_2->asBase58().c_str());
 
-    auto factory_2b = client_.Factory().PaymentCode(*factory_1b->Serialize());
+    auto factory_2b =
+        client_.Factory().PaymentCode(*factory_1b->Serialize(), reason_);
     ASSERT_STREQ(paycode_1.c_str(), factory_2b->asBase58().c_str());
 
     // Factory 3: std:
     proto::HDPath path;
-    const Nym_p nym = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
+    const Nym_p nym =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0), reason_);
     EXPECT_TRUE(nym.get()->Path(path));
     std::string fingerprint = path.root();
 
     auto factory_3 = client_.Factory().PaymentCode(
-        fingerprint, 0, 1);  // seed, nym, paycode version
+        fingerprint, 0, 1, reason_);  // seed, nym, paycode version
     ASSERT_STREQ(paycode_0.c_str(), factory_3->asBase58().c_str());
 
     auto factory_3b = client_.Factory().PaymentCode(
-        fingerprint, 1, 1);  // seed, nym, paycode version
+        fingerprint, 1, 1, reason_);  // seed, nym, paycode version
 
     ASSERT_STREQ(paycode_1.c_str(), factory_3b->asBase58().c_str());
 }
@@ -286,12 +313,13 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
     std::uint8_t bitmessage_version = 0;
     std::uint8_t bitmessage_stream = 0;
 
-    const Nym_p nym = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
+    const Nym_p nym =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0), reason_);
     proto::HDPath path;
     EXPECT_TRUE(nym.get()->Path(path));
 
     std::string fingerprint = path.root();
-    auto privatekey = client_.Seeds().GetPaymentCode(fingerprint, 10);
+    auto privatekey = client_.Seeds().GetPaymentCode(fingerprint, 10, reason_);
     proto::AsymmetricKey privKey = *privatekey;
     ASSERT_TRUE(bool(privatekey));
 }
@@ -300,13 +328,15 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
  */
 TEST_F(Test_PaymentCode, two_nyms)
 {
-    const Nym_p nym_0 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
-    const Nym_p nym_1 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_1));
+    const Nym_p nym_0 =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0), reason_);
+    const Nym_p nym_1 =
+        client_.Wallet().Nym(identifier::Nym::Factory(nymID_1), reason_);
 
     NymIDSource idsource_0(
-        client_.Factory(), client_.Factory().PaymentCode(paycode_0));
+        client_.Factory(), client_.Factory().PaymentCode(paycode_0, reason_));
     NymIDSource idsource_1(
-        client_.Factory(), client_.Factory().PaymentCode(paycode_1));
+        client_.Factory(), client_.Factory().PaymentCode(paycode_1, reason_));
 
     ASSERT_STREQ(nym_0->ID().str().c_str(), idsource_0.NymID()->str().c_str());
     ASSERT_STREQ(nym_1->ID().str().c_str(), idsource_1.NymID()->str().c_str());

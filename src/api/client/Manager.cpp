@@ -23,12 +23,11 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
-#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/SwigWrap.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 
 #include "api/Core.hpp"
 #include "internal/api/client/Client.hpp"
@@ -46,7 +45,7 @@
 namespace opentxs
 {
 api::client::internal::Manager* Factory::ClientManager(
-    const api::Native& parent,
+    const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
     const api::Settings& config,
@@ -63,7 +62,7 @@ api::client::internal::Manager* Factory::ClientManager(
 namespace opentxs::api::client::implementation
 {
 Manager::Manager(
-    const api::Native& parent,
+    const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
     const api::Settings& config,
@@ -71,7 +70,8 @@ Manager::Manager(
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
-    : Core(
+    : client::internal::Manager()
+    , Core(
           parent,
           running,
           args,
@@ -150,7 +150,9 @@ Manager::Manager(
         OT_ASSERT(nullptr != SwigWrap::client_)
     }
 
-    Init();
+    auto reason = factory_.PasswordPrompt(__FUNCTION__);
+
+    Init(reason);
 }
 
 const api::client::Activity& Manager::Activity() const
@@ -211,15 +213,13 @@ const OTAPI_Exec& Manager::Exec(const std::string&) const
     return *otapi_exec_;
 }
 
-void Manager::Init()
+void Manager::Init(const PasswordPrompt& reason)
 {
-    StartWallet();
-
     OT_ASSERT(seeds_)
 
-    StorageParent::init(*seeds_);
-    StartContacts();
-    StartActivity();
+    StorageParent::init(factory_, *seeds_);
+    StartContacts(reason);
+    StartActivity(reason);
 }
 
 std::recursive_mutex& Manager::Lock(
@@ -257,39 +257,22 @@ const api::client::ServerAction& Manager::ServerAction() const
     return *server_action_;
 }
 
-void Manager::StartActivity()
+void Manager::StartActivity(const PasswordPrompt& reason)
 {
     OT_ASSERT(activity_)
 
-    activity_->MigrateLegacyThreads();
+    activity_->MigrateLegacyThreads(reason);
 
     OT_ASSERT(dht_)
 
     Scheduler::Start(storage_.get(), dht_.get());
 }
 
-void Manager::StartContacts()
+void Manager::StartContacts(const PasswordPrompt& reason)
 {
     OT_ASSERT(contacts_);
 
-    contacts_->start();
-}
-
-opentxs::OTWallet* Manager::StartWallet()
-{
-    OT_ASSERT(ot_api_)
-
-    const bool loaded = ot_api_->LoadWallet();
-
-    OT_ASSERT(loaded);
-
-    auto wallet = ot_api_->GetWallet(nullptr);
-
-    OT_ASSERT(nullptr != wallet);
-
-    wallet->SaveWallet();
-
-    return wallet;
+    contacts_->start(reason);
 }
 
 const api::client::UI& Manager::UI() const

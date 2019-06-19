@@ -27,7 +27,8 @@ private:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const override;
-    bool verify_internally(const Lock& lock) const override;
+    bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
+        const override;
 
     Verification(
         const api::Core& api,

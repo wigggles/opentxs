@@ -60,7 +60,8 @@ public:
     EXPORT virtual std::unique_ptr<Message> Mail(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box) const = 0;
+        const StorageBox& box,
+        const PasswordPrompt& reason) const = 0;
     /**   Store a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -72,7 +73,8 @@ public:
     EXPORT virtual std::string Mail(
         const identifier::Nym& nym,
         const Message& mail,
-        const StorageBox box) const = 0;
+        const StorageBox box,
+        const PasswordPrompt& reason) const = 0;
     /**   Obtain a list of mail objects in a specified box
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -104,7 +106,8 @@ public:
     EXPORT virtual std::shared_ptr<const std::string> MailText(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box) const = 0;
+        const StorageBox& box,
+        const PasswordPrompt& reason) const = 0;
     /**   Mark a thread item as read
      *
      *    \param[in] nymId the identifier of the nym who owns the thread
@@ -131,12 +134,14 @@ public:
     EXPORT virtual ChequeData Cheque(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const = 0;
+        const std::string& workflow,
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual TransferData Transfer(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const = 0;
+        const std::string& workflow,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Summarize a payment workflow event in human-friendly test form
      *
@@ -149,7 +154,8 @@ public:
     EXPORT virtual std::shared_ptr<const std::string> PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const = 0;
+        const std::string& workflow,
+        const PasswordPrompt& reason) const = 0;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
@@ -158,7 +164,8 @@ public:
      */
     EXPORT virtual void PreloadActivity(
         const identifier::Nym& nymID,
-        const std::size_t count) const = 0;
+        const std::size_t count,
+        const PasswordPrompt& reason) const = 0;
     /**   Asynchronously cache the items in an activity thread
      *
      *    \param[in] nymID the identifier of the nym who owns the thread
@@ -170,7 +177,8 @@ public:
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const std::size_t start,
-        const std::size_t count) const = 0;
+        const std::size_t count,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::shared_ptr<proto::StorageThread> Thread(
         const identifier::Nym& nymID,
         const Identifier& threadID) const = 0;
@@ -181,6 +189,7 @@ public:
      */
     EXPORT virtual ObjectList Threads(
         const identifier::Nym& nym,
+        const PasswordPrompt& reason,
         const bool unreadOnly = false) const = 0;
     /**   Return the total number of unread thread items for a nym
      *

@@ -219,6 +219,9 @@ public:
         const std::string& threadId,
         std::shared_ptr<proto::StorageThread>& thread) const = 0;
     virtual bool Load(
+        std::shared_ptr<proto::Ciphertext>& output,
+        const bool checking = false) const = 0;
+    virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::UnitDefinition>& contract,
         const bool checking = false) const = 0;
@@ -366,6 +369,7 @@ public:
     virtual bool Store(
         const proto::ServerContract& data,
         const std::string& alias = std::string("")) const = 0;
+    virtual bool Store(const proto::Ciphertext& serialized) const = 0;
     virtual bool Store(
         const proto::UnitDefinition& data,
         const std::string& alias = std::string("")) const = 0;

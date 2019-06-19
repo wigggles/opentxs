@@ -39,7 +39,11 @@ private:
     class Finalize
     {
     public:
-        Finalize(const identity::Nym& signer, Item& item, Item& balanceItem);
+        Finalize(
+            const identity::Nym& signer,
+            Item& item,
+            Item& balanceItem,
+            const PasswordPrompt& reason);
         Finalize() = delete;
 
         ~Finalize();
@@ -48,9 +52,11 @@ private:
         const identity::Nym& signer_;
         Item& item_;
         Item& balance_item_;
+        const PasswordPrompt& reason_;
     };
 
     Server& server_;
+    const PasswordPrompt& reason_;
     const opentxs::api::server::Manager& manager_;
     OTZMQPushSocket notification_socket_;
 
@@ -235,8 +241,9 @@ private:
     bool verify_token(blind::Mint& mint, blind::Token& token);
 #endif
 
-    explicit Notary(
+    Notary(
         Server& server,
+        const PasswordPrompt& reason,
         const opentxs::api::server::Manager& manager);
     Notary() = delete;
     Notary(const Notary&) = delete;

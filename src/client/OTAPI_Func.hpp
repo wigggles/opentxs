@@ -56,12 +56,14 @@ class OTAPI_Func : virtual public opentxs::client::ServerAction, Lockable
 {
 public:
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
         const identifier::Nym& nymID,
         const identifier::Server& serverID);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -70,6 +72,7 @@ public:
         const proto::UnitDefinition& unitDefinition,
         const std::string& label);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -77,6 +80,7 @@ public:
         const identifier::Server& serverID,
         const identifier::Nym& nymID2);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -85,6 +89,7 @@ public:
         const identifier::Nym& nymID2,
         const std::int64_t& int64Val);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -93,6 +98,7 @@ public:
         const Identifier& recipientID,
         std::unique_ptr<OTPaymentPlan>& paymentPlan);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -102,6 +108,7 @@ public:
         const std::string& clause,
         const std::string& parameter);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -111,6 +118,7 @@ public:
         const std::string& agentName,
         std::unique_ptr<OTSmartContract>& contract);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -120,6 +128,7 @@ public:
         const Identifier& requestID,
         const bool ack);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -130,6 +139,7 @@ public:
         const Amount& amount,
         const std::string& message);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -140,6 +150,7 @@ public:
         const std::string& secondary,
         const proto::SecretType& secretType);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -151,6 +162,7 @@ public:
         const std::string& txid,
         const Amount& amount);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -162,6 +174,7 @@ public:
         bool direction,
         std::int32_t nTransNumsNeeded);
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
@@ -262,6 +275,7 @@ private:
         bool& bCanRetryAfterThis);
 
     explicit OTAPI_Func(
+        const PasswordPrompt& reason,
         std::recursive_mutex& apilock,
         const api::client::Manager& api,
         const identifier::Nym& nymID,

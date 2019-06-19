@@ -96,9 +96,11 @@ public:
     EXPORT virtual bool Open(
         const proto::SessionKey& input,
         crypto::key::Symmetric& key,
-        OTPassword& password) const = 0;
+        OTPassword& password,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Path(proto::HDPath& output) const = 0;
-    EXPORT virtual std::string PaymentCode() const = 0;
+    EXPORT virtual std::string PaymentCode(
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::string PhoneNumbers(bool active = true) const = 0;
     EXPORT virtual std::uint64_t Revision() const = 0;
 
@@ -112,21 +114,22 @@ public:
     EXPORT virtual bool Seal(
         const OTPassword& password,
         crypto::key::Symmetric& key,
-        proto::SessionKey& output) const = 0;
+        proto::SessionKey& output,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual void SerializeNymIDSource(Tag& parent) const = 0;
     template <typename T>
     EXPORT bool SignProto(
         T& input,
         const proto::SignatureRole role,
         proto::Signature& signature,
-        const OTPasswordData* pPWData = nullptr,
+        const PasswordPrompt& reason,
         const proto::HashType hash = proto::HASHTYPE_ERROR) const
     {
         auto preimage = [&]() -> std::string {
             return proto::ProtoAsString<T>(input);
         };
 
-        return Sign(preimage, role, hash, signature, pPWData);
+        return Sign(preimage, role, hash, signature, reason);
     }
     EXPORT virtual std::string SocialMediaProfiles(
         const proto::ContactItemType type,
@@ -135,7 +138,8 @@ public:
     SocialMediaProfileTypes() const = 0;
     EXPORT virtual const NymIDSource& Source() const = 0;
     EXPORT virtual std::unique_ptr<OTPassword> TransportKey(
-        Data& pubkey) const = 0;
+        Data& pubkey,
+        const PasswordPrompt& reason) const = 0;
 
     /* Decrypt a symmetric key's password, then use that password to decrypt the
      * symmetric key itself
@@ -152,57 +156,77 @@ public:
     EXPORT virtual std::unique_ptr<proto::VerificationSet> VerificationSet()
         const = 0;
     template <typename T>
-    EXPORT bool VerifyProto(T& input, proto::Signature& signature) const
+    EXPORT bool VerifyProto(
+        T& input,
+        proto::Signature& signature,
+        const PasswordPrompt& reason) const
     {
         const auto copy{signature};
         signature.clear_signature();
 
-        return Verify(proto::ProtoAsData<T>(input), copy);
+        return Verify(proto::ProtoAsData<T>(input), copy, reason);
     }
-    EXPORT virtual bool VerifyPseudonym() const = 0;
+    EXPORT virtual bool VerifyPseudonym(const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual std::string AddChildKeyCredential(
         const Identifier& strMasterID,
-        const NymParameters& nymParameters) = 0;
-    EXPORT virtual bool AddClaim(const Claim& claim) = 0;
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool AddClaim(
+        const Claim& claim,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool AddContract(
         const identifier::UnitDefinition& instrumentDefinitionID,
         const proto::ContactItemType currency,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active = true) = 0;
     EXPORT virtual bool AddEmail(
         const std::string& value,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) = 0;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPORT virtual bool AddPaymentCode(
         const class PaymentCode& code,
         const proto::ContactItemType currency,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active = true) = 0;
 #endif
     EXPORT virtual bool AddPhoneNumber(
         const std::string& value,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) = 0;
     EXPORT virtual bool AddPreferredOTServer(
         const Identifier& id,
+        const PasswordPrompt& reason,
         const bool primary) = 0;
     EXPORT virtual bool AddSocialMediaProfile(
         const std::string& value,
         const proto::ContactItemType type,
+        const PasswordPrompt& reason,
         const bool primary,
         const bool active) = 0;
-    EXPORT virtual bool DeleteClaim(const Identifier& id) = 0;
-    EXPORT virtual bool SetCommonName(const std::string& name) = 0;
-    EXPORT virtual bool SetContactData(const proto::ContactData& data) = 0;
+    EXPORT virtual bool DeleteClaim(
+        const Identifier& id,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool SetCommonName(
+        const std::string& name,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool SetContactData(
+        const proto::ContactData& data,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual void SetDescription(const String& strLocation) = 0;
     EXPORT virtual bool SetScope(
         const proto::ContactItemType type,
         const std::string& name,
+        const PasswordPrompt& reason,
         const bool primary) = 0;
     EXPORT virtual bool SetVerificationSet(
-        const proto::VerificationSet& data) = 0;
+        const proto::VerificationSet& data,
+        const PasswordPrompt& reason) = 0;
 
     EXPORT virtual ~Nym() = default;
 
@@ -215,9 +239,11 @@ private:
         const proto::SignatureRole role,
         const proto::HashType hash,
         proto::Signature& signature,
-        const OTPasswordData* pPWData = nullptr) const = 0;
-    virtual bool Verify(const Data& plaintext, const proto::Signature& sig)
-        const = 0;
+        const PasswordPrompt& reason) const = 0;
+    virtual bool Verify(
+        const Data& plaintext,
+        const proto::Signature& sig,
+        const PasswordPrompt& reason) const = 0;
 
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;

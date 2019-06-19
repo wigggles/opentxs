@@ -35,6 +35,7 @@ private:
     mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
 
     AccountSummaryItem(
+        const PasswordPrompt& reason,
         const IssuerItemInternalInterface& parent,
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,

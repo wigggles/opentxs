@@ -8,7 +8,6 @@
 #include "opentxs/core/script/OTAgent.hpp"
 
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -29,7 +28,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -121,7 +119,9 @@ OTAgent::OTAgent(
     }
 }
 
-bool OTAgent::VerifySignature(const Contract& theContract) const
+bool OTAgent::VerifySignature(
+    const Contract& theContract,
+    const PasswordPrompt& reason) const
 {
     // Only individual agents can sign for things, not groups (groups vote, they
     // don't sign.)
@@ -175,7 +175,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
         return false;
     }
 
-    return theContract.VerifySignature(*m_pNym);
+    return theContract.VerifySignature(*m_pNym, reason);
 }
 
 // Low-level.
@@ -187,13 +187,13 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 // This call may always fail for a specific agent, if the agent isn't a Nym
 // (the agent could be a voting group.)
 //
-Nym_p OTAgent::LoadNym()
+Nym_p OTAgent::LoadNym(const PasswordPrompt& reason)
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
-        m_pNym = wallet_.Nym(theAgentNymID);
+        m_pNym = wallet_.Nym(theAgentNymID, reason);
         OT_ASSERT(m_pNym);
 
         return m_pNym;
@@ -560,6 +560,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lClosingNumber,
     const String& strOrigCronItem,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment)
 {
@@ -576,7 +577,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     if (bNymID) {
         // IsAnIndividual() is definitely true.
 
-        auto context = wallet_.ClientContext(theAgentNymID);
+        auto context = wallet_.ClientContext(theAgentNymID, reason);
 
         OT_ASSERT(context);
 
@@ -589,6 +590,7 @@ bool OTAgent::DropFinalReceiptToInbox(
                 lClosingNumber,
                 strOrigCronItem,
                 theSmartContract.GetOriginType(),
+                reason,
                 pstrNote,
                 pstrAttachment);  // pActualAcct=nullptr here. (This call will
                                   // load
@@ -613,6 +615,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
     OTSmartContract& theSmartContract,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment)
 {
@@ -627,6 +630,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
             lNewTransactionNumber,
             strOrigCronItem,
             theSmartContract.GetOriginType(),
+            reason,
             pstrNote,
             pstrAttachment);
     }
@@ -647,6 +651,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lInReferenceTo,
     const String& strReference,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment,
     identity::Nym* pActualNym)
@@ -670,7 +675,8 @@ bool OTAgent::DropServerNoticeToNymbox(
             originType::origin_smart_contract,
             pstrNote,
             pstrAttachment,
-            theAgentNymID);
+            theAgentNymID,
+            reason);
     }
 
     // TODO: When entites and roles are added, this function may change a bit to
@@ -679,7 +685,8 @@ bool OTAgent::DropServerNoticeToNymbox(
     return false;
 }
 
-bool OTAgent::SignContract(Contract& theInput) const
+bool OTAgent::SignContract(Contract& theInput, const PasswordPrompt& reason)
+    const
 {
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Entities and roles are not yet "
@@ -696,12 +703,13 @@ bool OTAgent::SignContract(Contract& theInput) const
         return false;
     }  // todo: when adding entities, this will change.
 
-    return theInput.SignContract(*m_pNym);
+    return theInput.SignContract(*m_pNym, reason);
 }
 
 bool OTAgent::VerifyIssuedNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID)
+    const String& strNotaryID,
+    const PasswordPrompt& reason)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -714,7 +722,7 @@ bool OTAgent::VerifyIssuedNumber(
 
     if (nullptr != m_pNym) {
         auto context = wallet_.Context(
-            identifier::Server::Factory(strNotaryID), m_pNym->ID());
+            identifier::Server::Factory(strNotaryID), m_pNym->ID(), reason);
 
         OT_ASSERT(context);
 
@@ -730,7 +738,8 @@ bool OTAgent::VerifyIssuedNumber(
 
 bool OTAgent::VerifyTransactionNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID)
+    const String& strNotaryID,
+    const PasswordPrompt& reason)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -743,7 +752,7 @@ bool OTAgent::VerifyTransactionNumber(
 
     if (nullptr != m_pNym) {
         auto context = wallet_.Context(
-            identifier::Server::Factory(strNotaryID), m_pNym->ID());
+            identifier::Server::Factory(strNotaryID), m_pNym->ID(), reason);
 
         OT_ASSERT(context);
 
@@ -803,13 +812,14 @@ bool OTAgent::RecoverTransactionNumber(
 
 bool OTAgent::RecoverTransactionNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID)
+    const String& strNotaryID,
+    const PasswordPrompt& reason)
 {
     if (nullptr != m_pNym) {
         auto context = wallet_.mutable_Context(
-            identifier::Server::Factory(strNotaryID), m_pNym->ID());
+            identifier::Server::Factory(strNotaryID), m_pNym->ID(), reason);
 
-        return RecoverTransactionNumber(lNumber, context.It());
+        return RecoverTransactionNumber(lNumber, context.get());
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error: m_pNym was nullptr. For agent: ")(m_strName)(".")
@@ -824,7 +834,8 @@ bool OTAgent::RecoverTransactionNumber(
 // cron items, which the server keeps track of (for opening AND closing numbers)
 bool OTAgent::RemoveTransactionNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID)
+    const String& strNotaryID,
+    const PasswordPrompt& reason)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -844,10 +855,10 @@ bool OTAgent::RemoveTransactionNumber(
     }
 
     auto context = wallet_.mutable_Context(
-        identifier::Server::Factory(strNotaryID), m_pNym->ID());
+        identifier::Server::Factory(strNotaryID), m_pNym->ID(), reason);
 
-    if (context.It().ConsumeAvailable(lNumber)) {
-        context.It().OpenCronItem(lNumber);
+    if (context.get().ConsumeAvailable(lNumber)) {
+        context.get().OpenCronItem(lNumber);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error, should never happen. (I'd assume you aren't "
@@ -865,7 +876,8 @@ bool OTAgent::RemoveTransactionNumber(
 //
 bool OTAgent::RemoveIssuedNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID)
+    const String& strNotaryID,
+    const PasswordPrompt& reason)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -886,10 +898,10 @@ bool OTAgent::RemoveIssuedNumber(
     }
 
     auto context = wallet_.mutable_Context(
-        identifier::Server::Factory(strNotaryID), m_pNym->ID());
+        identifier::Server::Factory(strNotaryID), m_pNym->ID(), reason);
 
-    if (context.It().ConsumeIssued(lNumber)) {
-        context.It().CloseCronItem(lNumber);
+    if (context.get().ConsumeIssued(lNumber)) {
+        context.get().CloseCronItem(lNumber);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error, should never happen. (I'd assume you aren't "

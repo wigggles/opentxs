@@ -10,7 +10,10 @@
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -30,6 +33,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -121,7 +125,7 @@ bool Pair::AddIssuer(
     }
 
     auto editor = client_.Wallet().mutable_Issuer(localNymID, issuerNymID);
-    auto& issuer = editor.It();
+    auto& issuer = editor.get();
     const bool needPairingCode = issuer.PairingCode().empty();
     const bool havePairingCode = (false == pairingCode.empty());
 
@@ -138,7 +142,10 @@ bool Pair::CheckIssuer(
     const identifier::Nym& localNymID,
     const identifier::UnitDefinition& unitDefinitionID) const
 {
-    const auto contract = client_.Wallet().UnitDefinition(unitDefinitionID);
+    auto reason = client_.Factory().PasswordPrompt("Looking up an issuer");
+
+    const auto contract =
+        client_.Wallet().UnitDefinition(unitDefinitionID, reason);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -186,7 +193,7 @@ void Pair::check_refresh() const
 std::map<OTNymID, std::set<OTNymID>> Pair::create_issuer_map() const
 {
     std::map<OTNymID, std::set<OTNymID>> output;
-    const auto nymList = client_.OTAPI().LocalNymList();
+    const auto nymList = client_.Wallet().LocalNyms();
 
     for (const auto& nymID : nymList) {
         output[nymID] = client_.Wallet().IssuerList(nymID);
@@ -222,9 +229,11 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
     const identifier::Nym& issuerID,
     const identifier::UnitDefinition& unitID) const
 {
+    auto reason = client_.Factory().PasswordPrompt("Initiating bailment");
+
     std::pair<bool, OTIdentifier> output(false, Identifier::Factory());
     auto& success = std::get<0>(output);
-    const auto contract = client_.Wallet().UnitDefinition(unitID);
+    const auto contract = client_.Wallet().UnitDefinition(unitID, reason);
 
     if (false == bool(contract)) {
         queue_unit_definition(nymID, serverID, unitID);
@@ -248,11 +257,13 @@ std::string Pair::IssuerDetails(
     const identifier::Nym& localNymID,
     const identifier::Nym& issuerNymID) const
 {
+    auto reason = client_.Factory().PasswordPrompt("Getting issuer details");
+
     auto issuer = client_.Wallet().Issuer(localNymID, issuerNymID);
 
     if (false == bool(issuer)) { return {}; }
 
-    return *issuer;
+    return issuer->toString(reason);
 }
 
 std::set<OTNymID> Pair::IssuerList(
@@ -280,10 +291,11 @@ std::set<OTNymID> Pair::IssuerList(
 }
 
 bool Pair::need_registration(
+    const PasswordPrompt& reason,
     const identifier::Nym& localNymID,
     const identifier::Server& serverID) const
 {
-    auto context = client_.Wallet().ServerContext(localNymID, serverID);
+    auto context = client_.Wallet().ServerContext(localNymID, serverID, reason);
 
     if (context) { return (0 == context->Request()); }
 
@@ -303,7 +315,7 @@ void Pair::process_connection_info(
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
-    auto& issuer = editor.It();
+    auto& issuer = editor.get();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_CONNECTIONINFO, requestID, replyID);
 
@@ -430,7 +442,7 @@ void Pair::process_pending_bailment(
     const auto issuerNymID = identifier::Nym::Factory(request.initiator());
     const auto serverID = identifier::Server::Factory(request.server());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
-    auto& issuer = editor.It();
+    auto& issuer = editor.get();
     const auto added =
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
 
@@ -485,7 +497,7 @@ void Pair::process_request_bailment(
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
-    auto& issuer = editor.It();
+    auto& issuer = editor.get();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_BAILMENT, requestID, replyID);
 
@@ -510,7 +522,7 @@ void Pair::process_request_outbailment(
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
-    auto& issuer = editor.It();
+    auto& issuer = editor.get();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_OUTBAILMENT, requestID, replyID);
 
@@ -535,7 +547,7 @@ void Pair::process_store_secret(
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = identifier::Nym::Factory(reply.recipient());
     auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
-    auto& issuer = editor.It();
+    auto& issuer = editor.get();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_STORESECRET, requestID, replyID);
 
@@ -606,9 +618,11 @@ std::pair<bool, OTIdentifier> Pair::register_account(
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID) const
 {
+    auto reason = client_.Factory().PasswordPrompt("Registering account");
+
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, accountID] = output;
-    const auto contract = client_.Wallet().UnitDefinition(unitID);
+    const auto contract = client_.Wallet().UnitDefinition(unitID, reason);
 
     if (false == bool(contract)) {
         queue_unit_definition(nymID, serverID, unitID);
@@ -638,13 +652,15 @@ void Pair::state_machine(
     const identifier::Nym& localNymID,
     const identifier::Nym& issuerNymID) const
 {
+    auto reason = client_.Factory().PasswordPrompt("Pairing state machine");
+
     LogDetail(OT_METHOD)(__FUNCTION__)(": Local nym: ")(localNymID)(
         " Issuer Nym: ")(issuerNymID)
         .Flush();
     Lock lock(status_lock_);
     auto& [status, trusted] = pair_status_[{localNymID, issuerNymID}];
     lock.unlock();
-    const auto issuerNym = client_.Wallet().Nym(issuerNymID);
+    const auto issuerNym = client_.Wallet().Nym(issuerNymID, reason);
 
     if (false == bool(issuerNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Issuer nym not yet downloaded.")
@@ -688,7 +704,7 @@ void Pair::state_machine(
     }
 
     auto editor = client_.Wallet().mutable_Issuer(localNymID, issuerNymID);
-    auto& issuer = editor.It();
+    auto& issuer = editor.get();
     trusted = issuer.Paired();
     bool needStoreSecret{false};
 
@@ -703,11 +719,11 @@ void Pair::state_machine(
             [[fallthrough]];
         }
         case Status::Started: {
-            if (need_registration(localNymID, serverID)) {
+            if (need_registration(reason, localNymID, serverID)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Local nym not registered on issuer's notary.")
                     .Flush();
-                auto contract = client_.Wallet().Server(serverID);
+                auto contract = client_.Wallet().Server(serverID, reason);
 
                 SHUTDOWN()
 
@@ -742,14 +758,14 @@ void Pair::state_machine(
                 needStoreSecret = (false == issuer.StoreSecretComplete()) &&
                                   (false == issuer.StoreSecretInitiated());
                 auto editor = client_.Wallet().mutable_ServerContext(
-                    localNymID, serverID);
-                auto& context = editor.It();
+                    localNymID, serverID, reason);
+                auto& context = editor.get();
 
                 if (context.AdminPassword() != issuer.PairingCode()) {
                     context.SetAdminPassword(issuer.PairingCode());
                 }
 
-                if (context.ShouldRename()) {
+                if (context.ShouldRename(reason)) {
                     proto::PairEvent event;
                     event.set_version(1);
                     event.set_type(proto::PAIREVENT_RENAME);
@@ -882,6 +898,8 @@ std::pair<bool, OTIdentifier> Pair::store_secret(
     const identifier::Nym& issuerNymID,
     const identifier::Server& serverID) const
 {
+    auto reason = client_.Factory().PasswordPrompt(
+        "Backing up BIP-39 data to paired node");
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, requestID] = output;
 
@@ -891,8 +909,8 @@ std::pair<bool, OTIdentifier> Pair::store_secret(
         serverID,
         issuerNymID,
         proto::SECRETTYPE_BIP39,
-        client_.Exec().Wallet_GetWords(),
-        client_.Exec().Wallet_GetPassphrase(),
+        client_.Seeds().Words(reason, client_.Storage().DefaultSeed()),
+        client_.Seeds().Passphrase(reason, client_.Storage().DefaultSeed()),
         setID);
 
     if (0 == taskID) { return output; }

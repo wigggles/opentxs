@@ -9,9 +9,7 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/Context.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -32,7 +30,6 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -148,7 +145,10 @@ char const* Account::_GetTypeString(AccountType accountType)
 
 std::string Account::Alias() const { return alias_; }
 
-bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
+bool Account::ConsensusHash(
+    const Context& context,
+    Identifier& theOutput,
+    const PasswordPrompt& reason) const
 {
     auto preimage = Data::Factory();
 
@@ -181,12 +181,12 @@ bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
         LogOutput(OT_METHOD)(__FUNCTION__)(": No account balance.").Flush();
     }
 
-    const auto nymfile = context.Nymfile(__FUNCTION__);
+    const auto nymfile = context.Nymfile(reason);
 
     auto inboxhash{api_.Factory().Identifier()};
     auto loaded = nymfile->GetInboxHash(accountid->str(), inboxhash);
     if (false == loaded) {
-        const_cast<Account&>(*this).GetInboxHash(inboxhash);
+        const_cast<Account&>(*this).GetInboxHash(inboxhash, reason);
     }
     if (false == inboxhash->empty()) {
         preimage->Concatenate(inboxhash->data(), inboxhash->size());
@@ -197,7 +197,7 @@ bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
     auto outboxhash{api_.Factory().Identifier()};
     loaded = nymfile->GetOutboxHash(accountid->str(), outboxhash);
     if (false == loaded) {
-        const_cast<Account&>(*this).GetOutboxHash(outboxhash);
+        const_cast<Account&>(*this).GetOutboxHash(outboxhash, reason);
     }
     if (false == outboxhash->empty()) {
         preimage->Concatenate(outboxhash->data(), outboxhash->size());
@@ -227,7 +227,8 @@ bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
 bool Account::create_box(
     std::unique_ptr<Ledger>& box,
     const identity::Nym& signer,
-    const ledgerType type)
+    const ledgerType type,
+    const PasswordPrompt& reason)
 {
     const auto& nymID = GetNymID();
     const auto& accountID = GetRealAccountID();
@@ -250,7 +251,7 @@ bool Account::create_box(
         return false;
     }
 
-    const auto signature = box->SignContract(signer);
+    const auto signature = box->SignContract(signer, reason);
 
     if (false == signature) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign box.").Flush();
@@ -270,19 +271,25 @@ bool Account::create_box(
     return true;
 }
 
-bool Account::LoadContractFromString(const String& theStr)
+bool Account::LoadContractFromString(
+    const String& theStr,
+    const PasswordPrompt& reason)
 {
-    return OTTransactionType::LoadContractFromString(theStr);
+    return OTTransactionType::LoadContractFromString(theStr, reason);
 }
 
-std::unique_ptr<Ledger> Account::LoadInbox(const identity::Nym& nym) const
+std::unique_ptr<Ledger> Account::LoadInbox(
+    const identity::Nym& nym,
+    const PasswordPrompt& reason) const
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(false != bool(box));
 
-    if (box->LoadInbox() && box->VerifyAccount(nym)) { return box; }
+    if (box->LoadInbox(reason) && box->VerifyAccount(nym, reason)) {
+        return box;
+    }
 
     auto strNymID = String::Factory(GetNymID()),
          strAcctID = String::Factory(GetRealAccountID());
@@ -295,14 +302,18 @@ std::unique_ptr<Ledger> Account::LoadInbox(const identity::Nym& nym) const
     return nullptr;
 }
 
-std::unique_ptr<Ledger> Account::LoadOutbox(const identity::Nym& nym) const
+std::unique_ptr<Ledger> Account::LoadOutbox(
+    const identity::Nym& nym,
+    const PasswordPrompt& reason) const
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(false != bool(box));
 
-    if (box->LoadOutbox() && box->VerifyAccount(nym)) { return box; }
+    if (box->LoadOutbox(reason) && box->VerifyAccount(nym, reason)) {
+        return box;
+    }
 
     auto strNymID = String::Factory(GetNymID()),
          strAcctID = String::Factory(GetRealAccountID());
@@ -365,7 +376,7 @@ bool Account::SaveOutbox(Ledger& box, Identifier& hash)
 
 void Account::SetInboxHash(const Identifier& input) { inboxHash_ = input; }
 
-bool Account::GetInboxHash(Identifier& output)
+bool Account::GetInboxHash(Identifier& output, const PasswordPrompt& reason)
 {
     output.Release();
 
@@ -380,7 +391,7 @@ bool Account::GetInboxHash(Identifier& output)
 
         OT_ASSERT(false != bool(inbox));
 
-        if (inbox->LoadInbox() && inbox->CalculateInboxHash(output)) {
+        if (inbox->LoadInbox(reason) && inbox->CalculateInboxHash(output)) {
             SetInboxHash(output);
             return true;
         }
@@ -391,7 +402,7 @@ bool Account::GetInboxHash(Identifier& output)
 
 void Account::SetOutboxHash(const Identifier& input) { outboxHash_ = input; }
 
-bool Account::GetOutboxHash(Identifier& output)
+bool Account::GetOutboxHash(Identifier& output, const PasswordPrompt& reason)
 {
     output.Release();
 
@@ -406,7 +417,7 @@ bool Account::GetOutboxHash(Identifier& output)
 
         OT_ASSERT(false != bool(outbox));
 
-        if (outbox->LoadOutbox() && outbox->CalculateOutboxHash(output)) {
+        if (outbox->LoadOutbox(reason) && outbox->CalculateOutboxHash(output)) {
             SetOutboxHash(output);
             return true;
         }
@@ -415,11 +426,13 @@ bool Account::GetOutboxHash(Identifier& output)
     return false;
 }
 
-bool Account::InitBoxes(const identity::Nym& signer)
+bool Account::InitBoxes(
+    const identity::Nym& signer,
+    const PasswordPrompt& reason)
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Generating inbox/outbox.").Flush();
-    std::unique_ptr<Ledger> inbox{LoadInbox(signer)};
-    std::unique_ptr<Ledger> outbox{LoadInbox(signer)};
+    std::unique_ptr<Ledger> inbox{LoadInbox(signer, reason)};
+    std::unique_ptr<Ledger> outbox{LoadInbox(signer, reason)};
 
     if (inbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Inbox already exists.").Flush();
@@ -427,7 +440,7 @@ bool Account::InitBoxes(const identity::Nym& signer)
         return false;
     }
 
-    if (false == create_box(inbox, signer, ledgerType::inbox)) {
+    if (false == create_box(inbox, signer, ledgerType::inbox, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create inbox.").Flush();
 
         return false;
@@ -447,7 +460,7 @@ bool Account::InitBoxes(const identity::Nym& signer)
         return false;
     }
 
-    if (false == create_box(outbox, signer, ledgerType::outbox)) {
+    if (false == create_box(outbox, signer, ledgerType::outbox, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create outbox.")
             .Flush();
 
@@ -473,11 +486,13 @@ bool Account::InitBoxes(const identity::Nym& signer)
 // account.
 //
 // Overriding this so I can set the filename automatically inside based on ID.
-bool Account::LoadContract()
+bool Account::LoadContract(const PasswordPrompt& reason)
 {
     auto id = String::Factory();
     GetIdentifier(id);
-    return Contract::LoadContract(OTFolders::Account().Get(), id->Get());
+
+    return Contract::LoadContract(
+        OTFolders::Account().Get(), id->Get(), reason);
 }
 
 bool Account::SaveAccount()
@@ -589,7 +604,8 @@ bool Account::VerifyOwnerByID(const identifier::Nym& nymId) const
 Account* Account::LoadExistingAccount(
     const api::Core& core,
     const Identifier& accountId,
-    const identifier::Server& notaryID)
+    const identifier::Server& notaryID,
+    const PasswordPrompt& reason)
 {
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
@@ -635,7 +651,7 @@ Account* Account::LoadExistingAccount(
         return nullptr;
     }
 
-    if (account->LoadContract() && account->VerifyContractID()) {
+    if (account->LoadContract(reason) && account->VerifyContractID()) {
 
         return account.release();
     }
@@ -650,6 +666,7 @@ Account* Account::GenerateNewAccount(
     const identity::Nym& serverNym,
     const Identifier& userNymID,
     const identifier::UnitDefinition& instrumentDefinitionID,
+    const PasswordPrompt& reason,
     Account::AccountType acctType,
     std::int64_t stashTransNum)
 {
@@ -661,6 +678,7 @@ Account* Account::GenerateNewAccount(
                          userNymID,
                          notaryID,
                          instrumentDefinitionID,
+                         reason,
                          acctType,
                          stashTransNum)) {
             output.reset();
@@ -681,6 +699,7 @@ bool Account::GenerateNewAccount(
     const Identifier& userNymID,
     const identifier::Server& notaryID,
     const identifier::UnitDefinition& instrumentDefinitionID,
+    const PasswordPrompt& reason,
     Account::AccountType acctType,
     std::int64_t stashTransNum)
 {
@@ -773,7 +792,7 @@ bool Account::GenerateNewAccount(
     // account file on the server if the code wasn't designed to verify the
     // signature on the
     // account.
-    SignContract(server);
+    SignContract(server, reason);
     SaveContract();
 
     // Save the Account to storage (based on its ID.)
@@ -878,7 +897,7 @@ bool Account::SaveContractWallet(Tag& parent) const
 // from the file and then kept read-only, since contracts do not normally
 // change. But as accounts change in balance, they must be re-signed to keep the
 // signatures valid.
-void Account::UpdateContents()
+void Account::UpdateContents(const PasswordPrompt& reason)
 {
     auto strAssetTYPEID = String::Factory(acctInstrumentDefinitionID_);
     auto ACCOUNT_ID = String::Factory(GetPurportedAccountID());
@@ -938,7 +957,9 @@ void Account::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
+std::int32_t Account::ProcessXMLNode(
+    IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t retval = 0;
 

@@ -37,12 +37,6 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 
 #define OT_ERROR_AMOUNT INT64_MIN
 
-#ifdef ANDROID
-#define ANDROID_UNUSED __attribute__((unused))
-#else
-#define ANDROID_UNUSED
-#endif
-
 #define OT_TIME_YEAR_IN_SECONDS                                                \
     OTTimeGetTimeFromSeconds(31536000)  // 60 * 60 * 24 * 365
 #define OT_TIME_SIX_MONTHS_IN_SECONDS                                          \

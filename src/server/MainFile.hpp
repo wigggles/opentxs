@@ -16,14 +16,13 @@ namespace server
 class MainFile
 {
 public:
-    explicit MainFile(Server& server);
+    explicit MainFile(Server& server, const PasswordPrompt& reason);
 
     bool CreateMainFile(
         const std::string& strContract,
         const std::string& strNotaryID,
         const std::string& strCert,
-        const std::string& strNymID,
-        const std::string& strCachedKey);
+        const std::string& strNymID);
     bool LoadMainFile(bool readOnly = false);
     bool LoadServerUserAndContract();
     bool SaveMainFile();
@@ -31,6 +30,7 @@ public:
 
 private:
     Server& server_;
+    const PasswordPrompt& reason_;
     std::string version_;
 
     MainFile() = delete;

@@ -28,7 +28,8 @@ public:
         const Message& input,
         Server& server,
         const MessageType& type,
-        Message& output);
+        Message& output,
+        const PasswordPrompt& reason);
 
     std::set<RequestNumber> Acknowledged() const;
     bool HaveContext() const;
@@ -39,7 +40,7 @@ public:
     ClientContext& Context();
     void ClearRequest();
     void DropToNymbox(const bool success);
-    bool LoadContext();
+    bool LoadContext(const PasswordPrompt& reason);
     void OverrideType(const String& accountID);
     void SetAccount(const String& accountID);
     void SetAcknowledgments(const ClientContext& context);
@@ -67,6 +68,7 @@ private:
     const opentxs::api::Wallet& wallet_;
     const identity::Nym& signer_;
     const Message& original_;
+    const PasswordPrompt& reason_;
     const OTServerID notary_id_;
     Message& message_;
     Server& server_;
@@ -79,7 +81,7 @@ private:
     void attach_request();
     void clear_request();
     bool init();
-    bool init_nym();
+    bool init_nym(const PasswordPrompt& reason);
 
     ReplyMessage() = delete;
     ReplyMessage(const ReplyMessage&) = delete;

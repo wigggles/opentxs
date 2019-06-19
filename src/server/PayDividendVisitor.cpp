@@ -60,9 +60,10 @@ PayDividendVisitor::PayDividendVisitor(
 // OTUnitDefinition::VisitAccountRecords()
 // cppcheck-suppress unusedFunction
 bool PayDividendVisitor::Trigger(
-    const Account& theSharesAccount)  // theSharesAccount
-                                      // is, say, a Pepsi
-                                      // shares
+    const Account& theSharesAccount,
+    const PasswordPrompt& reason)  // theSharesAccount
+                                   // is, say, a Pepsi
+                                   // shares
 // account.  Here, we'll send a dollars voucher
 // to its owner.
 {
@@ -123,10 +124,10 @@ bool PayDividendVisitor::Trigger(
     // Todo hardcoding.
     TransactionNumber lNewTransactionNumber = 0;
     auto context =
-        server_.API().Wallet().mutable_ClientContext(theServerNym.ID());
+        server_.API().Wallet().mutable_ClientContext(theServerNym.ID(), reason);
     bool bGotNextTransNum =
         server_.GetTransactor().issueNextTransactionNumberToNym(
-            context.It(), lNewTransactionNumber);  // We save the transaction
+            context.get(), lNewTransactionNumber);  // We save the transaction
     // number on the server Nym (normally we'd discard it) because
     // when the cheque is deposited, the server nym, as the owner of
     // the voucher account, needs to verify the transaction # on the
@@ -167,7 +168,7 @@ bool PayDividendVisitor::Trigger(
             // case of dividends.
             //
             theVoucher->SetAsVoucher(theServerNymID, theVoucherAcctID);
-            theVoucher->SignContract(theServerNym);
+            theVoucher->SignContract(theServerNym, reason);
             theVoucher->SaveContract();
 
             // Send the voucher to the payments inbox of the recipient.
@@ -233,7 +234,7 @@ bool PayDividendVisitor::Trigger(
                 //
                 theReturnVoucher->SetAsVoucher(
                     theServerNymID, theVoucherAcctID);
-                theReturnVoucher->SignContract(theServerNym);
+                theReturnVoucher->SignContract(theServerNym, reason);
                 theReturnVoucher->SaveContract();
 
                 // Return the voucher back to the payments inbox of the original

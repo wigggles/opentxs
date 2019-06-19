@@ -288,6 +288,7 @@ bool Item::VerifyBalanceStatement(
     const Account& THE_ACCOUNT,
     const OTTransaction& TARGET_TRANSACTION,
     const std::set<TransactionNumber>& excluded,
+    const PasswordPrompt& reason,
     TransactionNumber outboxNum) const  // Only used in the case of transfer,
                                         // where the user doesn't know the
                                         // outbox trans# in advance, so he sends
@@ -484,7 +485,8 @@ bool Item::VerifyBalanceStatement(
             return false;
         }
 
-        std::int64_t lTransactionAmount = pTransaction->GetReceiptAmount();
+        std::int64_t lTransactionAmount =
+            pTransaction->GetReceiptAmount(reason);
         lTransactionAmount *= lReceiptAmountMultiplier;
 
         if (pSubItem->GetAmount() != lTransactionAmount) {
@@ -492,8 +494,8 @@ bool Item::VerifyBalanceStatement(
                 pSubItem->GetTransactionNum())(
                 ") amounts don't match: report amount is ")(
                 pSubItem->GetAmount())(", but expected ")(lTransactionAmount)(
-                ". Trans Receipt Amt: ")(pTransaction->GetReceiptAmount())(
-                " (GetAmount() == ")(GetAmount())(").")
+                ". Trans Receipt Amt: ")(pTransaction->GetReceiptAmount(
+                reason))(" (GetAmount() == ")(GetAmount())(").")
                 .Flush();
 
             return false;
@@ -814,7 +816,7 @@ bool Item::AddBlankNumbersToItem(const NumList& theAddition)
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-std::int64_t Item::GetNumberOfOrigin()
+std::int64_t Item::GetNumberOfOrigin(const PasswordPrompt& reason)
 {
 
     if (0 == m_lNumberOfOrigin) {
@@ -867,14 +869,14 @@ std::int64_t Item::GetNumberOfOrigin()
                 break;
         }
 
-        CalculateNumberOfOrigin();
+        CalculateNumberOfOrigin(reason);
     }
 
     return m_lNumberOfOrigin;
 }
 
 // virtual
-void Item::CalculateNumberOfOrigin()
+void Item::CalculateNumberOfOrigin(const PasswordPrompt& reason)
 {
     switch (GetType()) {
         case itemType::acceptTransaction:  // this item is a client-side
@@ -976,7 +978,7 @@ void Item::CalculateNumberOfOrigin()
             auto strAttachment = String::Factory();
             GetAttachment(strAttachment);
 
-            if (!theCheque->LoadContractFromString(strAttachment))
+            if (!theCheque->LoadContractFromString(strAttachment, reason))
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR loading cheque from string: ")(strAttachment)(".")
                     .Flush();
@@ -1012,7 +1014,11 @@ void Item::CalculateNumberOfOrigin()
             // of origin as its transaction number.
             //
             const auto pOriginalItem{api_.Factory().Item(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum())};
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum(),
+                reason)};
+
             OT_ASSERT(false != bool(pOriginalItem));
 
             if (((m_Type == itemType::atDepositCheque) &&
@@ -1049,7 +1055,7 @@ void Item::CalculateNumberOfOrigin()
             }
 
             // Else:
-            SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin());
+            SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin(reason));
         } break;
 
         // FEEs
@@ -1370,7 +1376,9 @@ itemType Item::GetItemTypeFromString(const String& strType)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Item::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     if (!strcmp("item", xml->getNodeName())) {
         auto strType = String::Factory(), strStatus = String::Factory();
@@ -1844,8 +1852,11 @@ void Item::GetStringFromType(itemType theType, String& strType)
     }
 }
 
-void Item::UpdateContents()  // Before transmission or serialization, this is
-                             // where the ledger saves its contents
+void Item::UpdateContents(const PasswordPrompt& reason)  // Before transmission
+                                                         // or serialization,
+                                                         // this is where the
+                                                         // ledger saves its
+                                                         // contents
 {
     auto strFromAcctID = String::Factory(GetPurportedAccountID()),
          strToAcctID = String::Factory(GetDestinationAcctID()),

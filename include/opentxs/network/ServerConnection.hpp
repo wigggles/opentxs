@@ -37,6 +37,7 @@ public:
     EXPORT virtual NetworkReplyMessage Send(
         const ServerContext& context,
         const Message& message,
+        const PasswordPrompt& reason,
         const Push push = Push::Enable) = 0;
     EXPORT virtual bool Status() const = 0;
 

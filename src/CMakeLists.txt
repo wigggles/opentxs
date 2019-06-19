@@ -11,10 +11,6 @@ set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../deps/
 )
 
-if(KEYRING_GNOME)
-  set(keyring libgnome-keyring.so)
-endif()
-
 add_subdirectory(iterator)
 add_subdirectory(storage)
 add_subdirectory(crypto)
@@ -297,7 +293,6 @@ if(OT_SHARED)
     ${OT_SSL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${OPENTXS_SYSTEM_LIBRARIES}
-    ${keyring}
     ${CMAKE_DL_LIBS}
   )
 
@@ -370,7 +365,6 @@ if(OT_STATIC)
     ${OPENSSL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${OPENTXS_SYSTEM_LIBRARIES}
-    ${keyring}
     ${CMAKE_DL_LIBS}
   )
 

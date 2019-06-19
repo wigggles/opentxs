@@ -53,9 +53,9 @@ bool Identity::AddInternalVerification(
     const std::string& claimantNymID,
     const std::string& claimID,
     const ClaimPolarity polarity,
+    const PasswordPrompt& reason,
     const std::int64_t start,
-    const std::int64_t end,
-    const OTPasswordData* pPWData) const
+    const std::int64_t end) const
 {
     auto& internal =
         GetOrCreateInternalGroup(verifications, verifications.version());
@@ -85,7 +85,7 @@ bool Identity::AddInternalVerification(
 
         changed = true;
 
-        return Sign(newVerification, onNym, pPWData);
+        return Sign(newVerification, onNym, reason);
     }
 
     return true;
@@ -247,12 +247,12 @@ bool Identity::RemoveInternalVerification(
 bool Identity::Sign(
     proto::Verification& plaintext,
     const identity::Nym& nym,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
     plaintext.clear_sig();
     auto& signature = *plaintext.mutable_sig();
 
-    return nym.SignProto(plaintext, proto::SIGROLE_CLAIM, signature, pPWData);
+    return nym.SignProto(plaintext, proto::SIGROLE_CLAIM, signature, reason);
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::Verifications(
@@ -282,9 +282,9 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
     const std::string& claimantNymID,
     const std::string& claimID,
     const ClaimPolarity polarity,
+    const PasswordPrompt& reason,
     const std::int64_t start,
-    const std::int64_t end,
-    const OTPasswordData* pPWData) const
+    const std::int64_t end) const
 {
     changed = false;
     std::unique_ptr<proto::VerificationSet> revised;
@@ -312,17 +312,17 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             claimantNymID,
             claimID,
             polarity,
+            reason,
             start,
-            end,
-            pPWData);
+            end);
     }
 
     if (finished) {
         if (changed) {
-            const bool updated = onNym.SetVerificationSet(*revised);
+            const bool updated = onNym.SetVerificationSet(*revised, reason);
 
             if (updated) {
-                api_.Wallet().Nym(onNym.asPublicNym());
+                api_.Wallet().Nym(onNym.asPublicNym(), reason);
 
                 return revised;
             } else {

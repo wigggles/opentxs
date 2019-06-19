@@ -39,21 +39,23 @@ namespace opentxs
 {
 identity::credential::internal::Primary* Factory::PrimaryCredential(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     identity::internal::Authority& parent,
     const proto::Credential& serialized)
 {
     return new identity::credential::implementation::Primary(
-        api, parent, serialized);
+        api, reason, parent, serialized);
 }
 
 identity::credential::internal::Primary* Factory::PrimaryCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
     const NymParameters& parameters,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
     return new identity::credential::implementation::Primary(
-        api, parent, parameters, version);
+        api, parent, parameters, version, reason);
 }
 }  // namespace opentxs
 
@@ -61,14 +63,15 @@ namespace opentxs::identity::credential::implementation
 {
 Primary::Primary(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     identity::internal::Authority& theOwner,
     const proto::Credential& serialized)
     : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Key(api, theOwner, serialized)
+    , credential::implementation::Key(api, reason, theOwner, serialized)
 {
     role_ = proto::CREDROLE_MASTERKEY;
     auto source = std::make_shared<NymIDSource>(
-        api_.Factory(), serialized.masterdata().source());
+        api_.Factory(), serialized.masterdata().source(), reason);
     owner_backlink_->SetSource(source);
     source_proof_.reset(
         new proto::SourceProof(serialized.masterdata().sourceproof()));
@@ -78,9 +81,15 @@ Primary::Primary(
     const api::Core& api,
     identity::internal::Authority& theOwner,
     const NymParameters& nymParameters,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
     : Signable({}, version)  // TODO Signable
-    , credential::implementation::Key(api, theOwner, nymParameters, version)
+    , credential::implementation::Key(
+          api,
+          theOwner,
+          nymParameters,
+          version,
+          reason)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 
@@ -97,7 +106,8 @@ Primary::Primary(
         source = std::make_shared<NymIDSource>(
             api_.Factory(),
             nymParameters,
-            *(signing_key_->GetPublicKey().Serialize()));
+            *(signing_key_->GetPublicKey().Serialize()),
+            reason);
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
@@ -108,7 +118,10 @@ Primary::Primary(
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
 
         auto bip47Source = api_.Factory().PaymentCode(
-            nymParameters.Seed(), nymParameters.Nym(), PAYMENT_CODE_VERSION);
+            nymParameters.Seed(),
+            nymParameters.Nym(),
+            PAYMENT_CODE_VERSION,
+            reason);
         source = std::make_shared<NymIDSource>(api_.Factory(), bip47Source);
     }
 #endif
@@ -123,13 +136,15 @@ Primary::Primary(
 /** Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
  * verify that *this == owner_backlink_->GetMasterCredential() (the master
  * credential.) Verify the (self-signed) signature on *this. */
-bool Primary::verify_internally(const Lock& lock) const
+bool Primary::verify_internally(
+    const Lock& lock,
+    const opentxs::PasswordPrompt& reason) const
 {
     // Perform common Key Credential verifications
-    if (!Key::verify_internally(lock)) { return false; }
+    if (!Key::verify_internally(lock, reason)) { return false; }
 
     // Check that the source validates this credential
-    if (!verify_against_source(lock)) {
+    if (!verify_against_source(lock, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying master credential against "
             "nym id source.")
@@ -141,7 +156,9 @@ bool Primary::verify_internally(const Lock& lock) const
     return true;
 }
 
-bool Primary::verify_against_source(const Lock& lock) const
+bool Primary::verify_against_source(
+    const Lock& lock,
+    const opentxs::PasswordPrompt& reason) const
 {
     std::shared_ptr<proto::Credential> serialized;
 
@@ -168,16 +185,18 @@ bool Primary::verify_against_source(const Lock& lock) const
         return false;
     }
 
-    return owner_backlink_->Source().Verify(*serialized, *sourceSig);
+    return owner_backlink_->Source().Verify(*serialized, *sourceSig, reason);
 }
 
-bool Primary::New(const NymParameters& nymParameters)
+bool Primary::New(
+    const NymParameters& nymParameters,
+    const opentxs::PasswordPrompt& reason)
 {
-    if (!Key::New(nymParameters)) { return false; }
+    if (!Key::New(nymParameters, reason)) { return false; }
 
     if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_->type()) {
         SerializedSignature sig = std::make_shared<proto::Signature>();
-        bool haveSourceSig = owner_backlink_->Sign(*this, *sig);
+        bool haveSourceSig = owner_backlink_->Sign(*this, *sig, reason);
 
         if (haveSourceSig) {
             signatures_.push_back(sig);
@@ -217,7 +236,8 @@ bool Primary::Verify(
     const proto::Credential& credential,
     const proto::CredentialRole& role,
     const Identifier& masterID,
-    const proto::Signature& masterSig) const
+    const proto::Signature& masterSig,
+    const opentxs::PasswordPrompt& reason) const
 {
     if (!proto::Validate<proto::Credential>(
             credential, VERBOSE, proto::KEYMODE_PUBLIC, role, false)) {
@@ -244,7 +264,7 @@ bool Primary::Verify(
     signature.CopyFrom(masterSig);
     signature.clear_signature();
 
-    return Verify(proto::ProtoAsData(copy), masterSig);
+    return Verify(proto::ProtoAsData(copy), masterSig, reason);
 }
 
 bool Primary::hasCapability(const NymCapability& capability) const

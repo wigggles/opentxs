@@ -89,9 +89,10 @@ public:
     void InitCheque();
     void Release() override;
     void Release_Cheque();
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the token saves its
-                                     // contents
+    void UpdateContents(
+        const PasswordPrompt& reason) override;  // Before transmission or
+                                                 // serialization, this is where
+                                                 // the token saves its contents
 
     EXPORT virtual ~Cheque();
 
@@ -106,7 +107,9 @@ protected:
     OTIdentifier m_REMITTER_ACCT_ID;
     bool m_bHasRemitter{false};
 
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;

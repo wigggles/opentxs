@@ -28,27 +28,33 @@ public:
         const VersionNumber version =
             opentxs::crypto::key::Asymmetric::DefaultVersion) const = 0;
     EXPORT virtual OTAsymmetricKey AsymmetricKey(
-        const proto::AsymmetricKey& serialized) const = 0;
+        const proto::AsymmetricKey& serialized,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Basket> Basket() const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Basket> Basket(
         std::int32_t nCount,
         std::int64_t lMinimumTransferAmount) const = 0;
 
+    EXPORT virtual std::unique_ptr<OTPassword> BinarySecret() const = 0;
+
     EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque(
-        const OTTransaction& receipt) const = 0;
+        const OTTransaction& receipt,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque() const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque(
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Contract> Contract(
-        const String& strCronItem) const = 0;
+        const String& strCronItem,
+        const opentxs::PasswordPrompt& reason) const = 0;
 
     EXPORT virtual std::unique_ptr<OTCron> Cron(
         const api::Core& server) const = 0;
 
     EXPORT virtual std::unique_ptr<OTCronItem> CronItem(
-        const String& strCronItem) const = 0;
+        const String& strCronItem,
+        const opentxs::PasswordPrompt& reason) const = 0;
 
     EXPORT virtual OTIdentifier Identifier() const = 0;
     EXPORT virtual OTIdentifier Identifier(
@@ -60,9 +66,11 @@ public:
     EXPORT virtual OTIdentifier Identifier(const opentxs::Item& item) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
-        const String& serialized) const = 0;
+        const String& serialized,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
-        const std::string& serialized) const = 0;
+        const std::string& serialized,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
         const identifier::Nym& theNymID,
         const opentxs::Item& theOwner) const = 0;  // From owner we can get acct
@@ -81,7 +89,8 @@ public:
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
         const String& strItem,
         const identifier::Server& theNotaryID,
-        std::int64_t lTransactionNumber) const = 0;
+        std::int64_t lTransactionNumber,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
         const OTTransaction& theOwner,
         itemType theType,
@@ -92,10 +101,14 @@ public:
         const VersionNumber version,
         const proto::KeyRole role) const = 0;
     EXPORT virtual OTKeypair Keypair(
+        const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey) const = 0;
+        const proto::AsymmetricKey& serializedPrivkey,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual OTKeypair Keypair(
-        const proto::AsymmetricKey& serializedPubkey) const = 0;
+        const api::Core& api,
+        const proto::AsymmetricKey& serializedPubkey,
+        const opentxs::PasswordPrompt& reason) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,
@@ -147,21 +160,28 @@ public:
         const identifier::UnitDefinition& CURRENCY_ID,
         const std::int64_t& MARKET_SCALE) const = 0;
 
+    EXPORT virtual OTPasswordPrompt PasswordPrompt(
+        const std::string& text) const = 0;
+
     EXPORT virtual std::unique_ptr<OTPayment> Payment() const = 0;
     EXPORT virtual std::unique_ptr<OTPayment> Payment(
         const String& strPayment) const = 0;
     EXPORT virtual std::unique_ptr<OTPayment> Payment(
-        const opentxs::Contract& contract) const = 0;
+        const opentxs::Contract& contract,
+        const opentxs::PasswordPrompt& reason) const = 0;
 
 #if OT_CRYPTO_WITH_BIP39
     EXPORT virtual OTPaymentCode PaymentCode(
-        const std::string& base58) const = 0;
+        const std::string& base58,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual OTPaymentCode PaymentCode(
-        const proto::PaymentCode& serialized) const = 0;
+        const proto::PaymentCode& serialized,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual OTPaymentCode PaymentCode(
         const std::string& seed,
         const Bip32Index nym,
         const std::uint8_t version,
+        const opentxs::PasswordPrompt& reason,
         const bool bitmessage = false,
         const std::uint8_t bitmessageVersion = 0,
         const std::uint8_t bitmessageStream = 0) const = 0;
@@ -181,29 +201,36 @@ public:
 
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::string& message) const = 0;
+        const std::string& message,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment) const = 0;
+        const bool isPayment,
+        const opentxs::PasswordPrompt& reason) const = 0;
 #if OT_CASH
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse) const = 0;
+        const std::shared_ptr<blind::Purse> purse,
+        const opentxs::PasswordPrompt& reason) const = 0;
 #endif
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const VersionNumber version) const = 0;
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
-        const VersionNumber version) const = 0;
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& signerNym,
-        const proto::PeerObject& serialized) const = 0;
+        const proto::PeerObject& serialized,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& recipientNym,
-        const Armored& encrypted) const = 0;
+        const Armored& encrypted,
+        const opentxs::PasswordPrompt& reason) const = 0;
 
 #if OT_CASH
     EXPORT virtual std::unique_ptr<blind::Purse> Purse(
@@ -211,6 +238,7 @@ public:
         const identifier::UnitDefinition& unit,
         const blind::Mint& mint,
         const Amount totalValue,
+        const opentxs::PasswordPrompt& reason,
         const proto::CashType type = proto::CASHTYPE_LUCRE) const = 0;
     EXPORT virtual std::unique_ptr<blind::Purse> Purse(
         const proto::Purse& serialized) const = 0;
@@ -218,11 +246,13 @@ public:
         const identity::Nym& owner,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
+        const opentxs::PasswordPrompt& reason,
         const proto::CashType type = proto::CASHTYPE_LUCRE) const = 0;
 #endif  // OT_CASH
 
     EXPORT virtual std::unique_ptr<OTScriptable> Scriptable(
-        const String& strCronItem) const = 0;
+        const String& strCronItem,
+        const opentxs::PasswordPrompt& reason) const = 0;
 
     EXPORT virtual OTServerID ServerID() const = 0;
     EXPORT virtual OTServerID ServerID(const std::string& serialized) const = 0;
@@ -244,6 +274,58 @@ public:
     EXPORT virtual std::unique_ptr<OTSmartContract> SmartContract(
         const identifier::Server& NOTARY_ID) const = 0;
 
+    /** Generate a blank, invalid key */
+    EXPORT virtual OTSymmetricKey SymmetricKey() const = 0;
+    /** Derive a new, random symmetric key
+     *
+     *  \param[in] engine A reference to the crypto library to be bound to the
+     *                    instance
+     *  \param[in] keyPassword Optional key password information.
+     *  \param[in] mode The symmetric algorithm for which to generate an
+     *                  appropriate key
+     */
+    EXPORT virtual OTSymmetricKey SymmetricKey(
+        const opentxs::crypto::SymmetricProvider& engine,
+        const opentxs::PasswordPrompt& password,
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
+    /** Instantiate a symmetric key from serialized form
+     *
+     *  \param[in] engine A reference to the crypto library to be bound to the
+     *                    instance
+     *  \param[in] serialized The symmetric key in protobuf form
+     */
+    EXPORT virtual OTSymmetricKey SymmetricKey(
+        const opentxs::crypto::SymmetricProvider& engine,
+        const proto::SymmetricKey serialized) const = 0;
+    /** Derive a symmetric key from a seed
+     *
+     *  \param[in] seed A binary or text seed to be expanded into a secret key
+     *  \param[in] operations The number of iterations/operations the KDF should
+     *                        perform
+     *  \param[in] difficulty A type-specific difficulty parameter used by the
+     *                        KDF.
+     *  \param[in] size       The target number of bytes for the derived secret
+     *                        key
+     *  \param[in] type       The KDF to be used for the derivation process
+     */
+    EXPORT virtual OTSymmetricKey SymmetricKey(
+        const opentxs::crypto::SymmetricProvider& engine,
+        const OTPassword& seed,
+        const std::uint64_t operations,
+        const std::uint64_t difficulty,
+        const std::size_t size,
+        const proto::SymmetricKeyType type) const = 0;
+    /** Construct a symmetric key from an existing OTPassword
+     *
+     *  \param[in] engine A reference to the crypto library to be bound to the
+     *                    instance
+     *  \param[in] raw An existing, unencrypted binary or text secret
+     */
+    EXPORT virtual OTSymmetricKey SymmetricKey(
+        const opentxs::crypto::SymmetricProvider& engine,
+        const OTPassword& raw,
+        const opentxs::PasswordPrompt& reason) const = 0;
+
     EXPORT virtual std::unique_ptr<OTTrade> Trade() const = 0;
     EXPORT virtual std::unique_ptr<OTTrade> Trade(
         const identifier::Server& notaryID,
@@ -254,7 +336,8 @@ public:
         const opentxs::Identifier& currencyAcctId) const = 0;
 
     EXPORT virtual std::unique_ptr<OTTransactionType> Transaction(
-        const String& strCronItem) const = 0;
+        const String& strCronItem,
+        const opentxs::PasswordPrompt& reason) const = 0;
 
     EXPORT virtual std::unique_ptr<OTTransaction> Transaction(
         const opentxs::Ledger& theOwner) const = 0;

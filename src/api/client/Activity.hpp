@@ -43,7 +43,8 @@ public:
     std::unique_ptr<Message> Mail(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box) const override;
+        const StorageBox& box,
+        const PasswordPrompt& reason) const override;
 
     /**   Store a mail object
      *
@@ -56,7 +57,8 @@ public:
     std::string Mail(
         const identifier::Nym& nym,
         const Message& mail,
-        const StorageBox box) const override;
+        const StorageBox box,
+        const PasswordPrompt& reason) const override;
 
     /**   Obtain a list of mail objects in a specified box
      *
@@ -90,7 +92,8 @@ public:
     std::shared_ptr<const std::string> MailText(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box) const override;
+        const StorageBox& box,
+        const PasswordPrompt& reason) const override;
 
     /**   Mark a thread item as read
      *
@@ -119,12 +122,14 @@ public:
     ChequeData Cheque(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const override;
+        const std::string& workflow,
+        const PasswordPrompt& reason) const override;
 
     TransferData Transfer(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const override;
+        const std::string& workflow,
+        const PasswordPrompt& reason) const override;
 
     /**   Summarize a payment workflow event in human-friendly test form
      *
@@ -137,15 +142,18 @@ public:
     std::shared_ptr<const std::string> PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow) const override;
+        const std::string& workflow,
+        const PasswordPrompt& reason) const override;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
      *    \param[in] nymID the identifier of the nym who owns the thread
      *    \param[in] count the number of items to preload in each thread
      */
-    void PreloadActivity(const identifier::Nym& nymID, const std::size_t count)
-        const override;
+    void PreloadActivity(
+        const identifier::Nym& nymID,
+        const std::size_t count,
+        const PasswordPrompt& reason) const override;
 
     /**   Asynchronously cache the items in an activity thread
      *
@@ -158,7 +166,8 @@ public:
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const std::size_t start,
-        const std::size_t count) const override;
+        const std::size_t count,
+        const PasswordPrompt& reason) const override;
 
     std::shared_ptr<proto::StorageThread> Thread(
         const identifier::Nym& nymID,
@@ -171,6 +180,7 @@ public:
      */
     ObjectList Threads(
         const identifier::Nym& nym,
+        const PasswordPrompt& reason,
         const bool unreadOnly = false) const override;
 
     /**   Return the total number of unread thread items for a nym
@@ -200,21 +210,25 @@ private:
      *
      *    This method should only be called by the Contacts on startup
      */
-    void MigrateLegacyThreads() const override;
+    void MigrateLegacyThreads(const PasswordPrompt& reason) const override;
     void activity_preload_thread(
+        OTPasswordPrompt reason,
         const OTIdentifier nymID,
         const std::size_t count) const;
     void preload(
+        OTPasswordPrompt reason,
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox box) const;
     void thread_preload_thread(
+        OTPasswordPrompt reason,
         const std::string nymID,
         const std::string threadID,
         const std::size_t start,
         const std::size_t count) const;
 
     std::shared_ptr<const Contact> nym_to_contact(
+        const PasswordPrompt& reason,
         const std::string& nymID) const;
     const opentxs::network::zeromq::PublishSocket& get_publisher(
         const identifier::Nym& nymID) const;

@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactSection.hpp"
@@ -15,6 +16,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -178,6 +180,7 @@ void Contact::process_contact(const opentxs::Contact& contact)
 
 void Contact::process_contact(const network::zeromq::Message& message)
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     wait_for_startup();
 
     OT_ASSERT(1 == message.Body().size());
@@ -189,7 +192,7 @@ void Contact::process_contact(const network::zeromq::Message& message)
 
     if (contactID != primary_id_) { return; }
 
-    const auto contact = api_.Contacts().Contact(contactID);
+    const auto contact = api_.Contacts().Contact(contactID, reason);
 
     OT_ASSERT(contact)
 
@@ -205,7 +208,8 @@ void Contact::startup()
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading contact ")(primary_id_)
         .Flush();
-    const auto contact = api_.Contacts().Contact(primary_id_);
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+    const auto contact = api_.Contacts().Contact(primary_id_, reason);
 
     OT_ASSERT(contact)
 

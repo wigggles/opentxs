@@ -34,9 +34,9 @@ public:
     {
         return reply_;
     }
-    proto::PeerObject Serialize() const override;
+    proto::PeerObject Serialize(const PasswordPrompt& reason) const override;
     proto::PeerObjectType Type() const override { return type_; }
-    bool Validate() const override;
+    bool Validate(const PasswordPrompt& reason) const override;
 
     std::unique_ptr<std::string>& Message() override { return message_; }
     std::unique_ptr<std::string>& Payment() override { return payment_; }
@@ -65,30 +65,36 @@ private:
         const api::client::Contacts& contacts,
         const api::Core& api,
         const Nym_p& signerNym,
-        const proto::PeerObject serialized);
+        const proto::PeerObject serialized,
+        const PasswordPrompt& reason);
     Object(
         const api::Core& api,
         const Nym_p& senderNym,
-        const std::string& message);
+        const std::string& message,
+        const PasswordPrompt& reason);
 #if OT_CASH
     Object(
         const api::Core& api,
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse);
+        const std::shared_ptr<blind::Purse> purse,
+        const PasswordPrompt& reason);
 #endif
     Object(
         const api::Core& api,
         const std::string& payment,
-        const Nym_p& senderNym);
+        const Nym_p& senderNym,
+        const PasswordPrompt& reason);
     Object(
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
     Object(
         const api::Core& api,
         const std::shared_ptr<const PeerRequest> request,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
     Object(
         const api::Core& api,
         const Nym_p& nym,
@@ -100,7 +106,8 @@ private:
         const std::shared_ptr<blind::Purse> purse,
 #endif
         const proto::PeerObjectType type,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
     Object() = delete;
 };
 }  // namespace opentxs::peer::implementation

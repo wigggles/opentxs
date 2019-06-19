@@ -20,6 +20,7 @@ public:
     std::unique_ptr<proto::Bip44Address> AllocateAddress(
         const identifier::Nym& nymID,
         const Identifier& accountID,
+        const PasswordPrompt& reason,
         const std::string& label = "",
         const BIP44Chain chain = EXTERNAL_CHAIN) const override;
     bool AssignAddress(
@@ -36,7 +37,8 @@ public:
     OTIdentifier NewAccount(
         const identifier::Nym& nymID,
         const BlockchainAccountType standard,
-        const proto::ContactItemType type) const override;
+        const proto::ContactItemType type,
+        const PasswordPrompt& reason) const override;
     bool StoreIncoming(
         const identifier::Nym& nymID,
         const Identifier& accountID,
@@ -71,6 +73,7 @@ private:
 
     Bip44Type bip44_type(const proto::ContactItemType type) const;
     std::string calculate_address(
+        const PasswordPrompt& reason,
         const proto::Bip44Account& account,
         const BIP44Chain chain,
         const Bip32Index index) const;

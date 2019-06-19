@@ -98,7 +98,7 @@ void OTTrackable::SetSenderNymID(const identifier::Nym& NYM_ID)
     m_SENDER_NYM_ID = NYM_ID;
 }
 
-void OTTrackable::UpdateContents() {}
+void OTTrackable::UpdateContents(const PasswordPrompt& reason) {}
 
 OTTrackable::~OTTrackable() { Release_Trackable(); }
 }  // namespace opentxs

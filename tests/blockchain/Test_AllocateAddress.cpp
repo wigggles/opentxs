@@ -22,7 +22,7 @@ public:
 
     // these fingerprints are deterministic so we can share them among tests
     Test_AllocateAddress()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , SeedA_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
@@ -41,11 +41,13 @@ public:
 
 TEST_F(Test_AllocateAddress, testBip32_SeedA)
 {
+    auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
     const auto Alice = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
 
     // Check m / 0'
-    const Nym_p NymA = client_.Wallet().Nym(identifier::Nym::Factory(Alice));
+    const Nym_p NymA =
+        client_.Wallet().Nym(identifier::Nym::Factory(Alice), reason);
     proto::HDPath pathA;
     ASSERT_TRUE(NymA.get()->Path(pathA));
     ASSERT_EQ(
@@ -54,7 +56,8 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     OTIdentifier AccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Alice),
         BlockchainAccountType::BIP32,
-        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BTC));
+        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BTC),
+        reason);
     std::shared_ptr<proto::Bip44Account> Account = client_.Blockchain().Account(
         identifier::Nym::Factory(Alice), AccountID);
     ASSERT_EQ((*Account.get()).internalindex(), 0);
@@ -64,18 +67,21 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 1",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
         (*AddressOut.get()).address().c_str(),
         "1K9teXNg8iKYwUPregT8QTmMepb376oTuX");
-    ASSERT_EQ((*AddressOut.get()).index(), 0);
+
+    ASSERT_EQ(AddressOut.get()->index(), 0);
 
     // Check change address m / 0' / 1 / 0
 
     const auto AddressIn = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 1",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -88,6 +94,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut2 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 2",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -99,6 +106,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn2 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 2",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -110,6 +118,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut3 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 3",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -119,6 +128,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut4 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 4",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -128,6 +138,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut5 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 5",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -137,6 +148,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut6 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 6",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -146,6 +158,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut7 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 7",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -155,6 +168,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut8 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 8",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -164,6 +178,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut9 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 9",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -173,6 +188,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressOut10 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 10",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -184,6 +200,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn3 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 3",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -193,6 +210,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn4 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 4",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -202,6 +220,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn5 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 5",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -211,6 +230,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn6 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 6",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -220,6 +240,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn7 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 7",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -229,6 +250,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn8 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 8",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -238,6 +260,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn9 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 9",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -247,6 +270,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
     const auto AddressIn10 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Alice),
         Identifier::Factory(AccountID),
+        reason,
         "Change 10",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -263,12 +287,14 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
 
 TEST_F(Test_AllocateAddress, testBip32_SeedB)
 {
+    auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
     // create account
     const auto Bob = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0);
 
     // Check m / 0'
-    const Nym_p NymB = client_.Wallet().Nym(identifier::Nym::Factory(Bob));
+    const Nym_p NymB =
+        client_.Wallet().Nym(identifier::Nym::Factory(Bob), reason);
     proto::HDPath pathB;
     ASSERT_TRUE(NymB.get()->Path(pathB));
     ASSERT_EQ(
@@ -277,7 +303,8 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     OTIdentifier AccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Bob),
         BlockchainAccountType::BIP32,
-        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BTC));
+        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BTC),
+        reason);
     std::shared_ptr<proto::Bip44Account> Account =
         client_.Blockchain().Account(identifier::Nym::Factory(Bob), AccountID);
     ASSERT_EQ((*Account.get()).internalindex(), 0);
@@ -287,6 +314,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressOut = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 1",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -299,6 +327,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 1",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -311,6 +340,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressOut2 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 2",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -322,6 +352,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn2 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 2",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -333,6 +364,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address3 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 3",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -343,6 +375,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address4 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 4",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -352,6 +385,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address5 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 5",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -361,6 +395,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address6 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 6",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -370,6 +405,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address7 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 7",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -379,6 +415,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address8 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 8",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -388,6 +425,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address9 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 9",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -397,6 +435,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto Address10 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Deposit 10",
         EXTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -407,6 +446,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn3 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 3",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -416,6 +456,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn4 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 4",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -425,6 +466,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn5 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 5",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -434,6 +476,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn6 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 6",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -443,6 +486,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn7 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 7",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -452,6 +496,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn8 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 8",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -461,6 +506,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn9 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 9",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -470,6 +516,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
     const auto AddressIn10 = client_.Blockchain().AllocateAddress(
         identifier::Nym::Factory(Bob),
         Identifier::Factory(AccountID),
+        reason,
         "Change 10",
         INTERNAL_CHAIN);
     EXPECT_STREQ(
@@ -485,25 +532,30 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
 
 TEST_F(Test_AllocateAddress, testBip44_SeedC)
 {
+    auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
     const auto Charly = client_.Exec().CreateNymHD(
         opentxs::proto::CITEMTYPE_INDIVIDUAL, "Charly", SeedC_, 0);
     OTIdentifier BTCAccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Charly),
         BlockchainAccountType::BIP44,
-        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BTC));
+        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BTC),
+        reason);
 
     OTIdentifier BCHAccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Charly),
         BlockchainAccountType::BIP44,
-        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BCH));
+        static_cast<proto::ContactItemType>(proto::CITEMTYPE_BCH),
+        reason);
 
     OTIdentifier LTCAccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(Charly),
         BlockchainAccountType::BIP44,
-        static_cast<proto::ContactItemType>(proto::CITEMTYPE_LTC));
+        static_cast<proto::ContactItemType>(proto::CITEMTYPE_LTC),
+        reason);
 
     // Check m / 44 ' / 0'
-    const Nym_p NymC = client_.Wallet().Nym(identifier::Nym::Factory(Charly));
+    const Nym_p NymC =
+        client_.Wallet().Nym(identifier::Nym::Factory(Charly), reason);
     proto::HDPath pathC;
     ASSERT_TRUE(NymC.get()->Path(pathC));
     ASSERT_EQ(
@@ -529,6 +581,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BTCAccountID,
+                reason,
                 "BTC Deposit 1",
                 EXTERNAL_CHAIN)
             .get()
@@ -541,6 +594,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BTCAccountID,
+                reason,
                 "BTC Change 1",
                 INTERNAL_CHAIN)
             .get()
@@ -554,6 +608,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BTCAccountID,
+                reason,
                 "BTC Deposit 1",
                 EXTERNAL_CHAIN)
             .get()
@@ -566,6 +621,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BTCAccountID,
+                reason,
                 "BTC Change 2",
                 INTERNAL_CHAIN)
             .get()
@@ -579,6 +635,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BCHAccountID,
+                reason,
                 "BCH Deposit 1",
                 EXTERNAL_CHAIN)
             .get()
@@ -591,6 +648,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BCHAccountID,
+                reason,
                 "BCH Change 1",
                 INTERNAL_CHAIN)
             .get()
@@ -604,6 +662,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BCHAccountID,
+                reason,
                 "BCH Deposit 2",
                 EXTERNAL_CHAIN)
             .get()
@@ -616,6 +675,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
             .AllocateAddress(
                 identifier::Nym::Factory(Charly),
                 BCHAccountID,
+                reason,
                 "BCH Change 2",
                 INTERNAL_CHAIN)
             .get()
@@ -628,6 +688,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
         (client_.Blockchain().AllocateAddress(
              identifier::Nym::Factory(Charly),
              LTCAccountID,
+             reason,
              "LTC Deposit 1",
              EXTERNAL_CHAIN))
             .get()
@@ -639,6 +700,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
         (client_.Blockchain().AllocateAddress(
              identifier::Nym::Factory(Charly),
              LTCAccountID,
+             reason,
              "LTC Change 1",
              INTERNAL_CHAIN))
             .get()
@@ -651,6 +713,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
         (client_.Blockchain().AllocateAddress(
              identifier::Nym::Factory(Charly),
              LTCAccountID,
+             reason,
              "LTC Deposit 2",
              EXTERNAL_CHAIN))
             .get()
@@ -663,6 +726,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
         (client_.Blockchain().AllocateAddress(
              identifier::Nym::Factory(Charly),
              LTCAccountID,
+             reason,
              "LTC Change 2",
              INTERNAL_CHAIN))
             .get()

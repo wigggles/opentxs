@@ -21,7 +21,6 @@ public:
 private:
     friend api::Factory;
 
-    const opentxs::network::zeromq::Context& zmq_;
     OTZMQListenCallback callback_;
     OTZMQPullSocket socket_;
     OTZMQPublishSocket publish_socket_;

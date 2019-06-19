@@ -21,9 +21,9 @@ public:
         const std::string& claimantNymID,
         const std::string& claimID,
         const ClaimPolarity polarity,
+        const PasswordPrompt& reason,
         const std::int64_t start = 0,
-        const std::int64_t end = 0,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const std::int64_t end = 0) const override;
 
     ~Identity() = default;
 
@@ -39,9 +39,9 @@ private:
         const std::string& claimantNymID,
         const std::string& claimID,
         const ClaimPolarity polarity,
+        const PasswordPrompt& reason,
         const std::int64_t start = 0,
-        const std::int64_t end = 0,
-        const OTPasswordData* pPWData = nullptr) const;
+        const std::int64_t end = 0) const;
     void DeleteVerification(
         bool& changed,
         proto::VerificationIdentity& identity,
@@ -79,7 +79,7 @@ private:
     bool Sign(
         proto::Verification& plaintext,
         const identity::Nym& nym,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
 
     Identity(const api::Core& api);
     Identity() = delete;

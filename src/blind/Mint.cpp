@@ -170,16 +170,17 @@ void Mint::InitMint()
     m_EXPIRATION = OT_TIME_ZERO;
 }
 
-bool Mint::LoadContract()
+bool Mint::LoadContract(const PasswordPrompt& reason)
 {
-    LogNormal(OT_METHOD)(__FUNCTION__)(": OVERRIDE.").Flush();
-    return LoadMint();
+    return LoadMint(reason);
 }
 
-bool Mint::LoadMint(const char* szAppend)  // todo: server should
-                                           // always pass something
-                                           // here. client never
-                                           // should. Enforcement?
+bool Mint::LoadMint(
+    const PasswordPrompt& reason,
+    const char* szAppend)  // todo: server should
+                           // always pass something
+                           // here. client never
+                           // should. Enforcement?
 {
     if (!m_strFoldername->Exists())
         m_strFoldername->Set(OTFolders::Mint().Get());
@@ -254,7 +255,7 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
     auto strRawFile = String::Factory(strFileContents.c_str());
 
     bool bSuccess = LoadContractFromString(
-        strRawFile);  // Note: This handles OT ARMORED file format.
+        strRawFile, reason);  // Note: This handles OT ARMORED file format.
 
     return bSuccess;
 }
@@ -345,7 +346,9 @@ bool Mint::SaveMint(const char* szAppend)
 
 // Make sure this contract checks out. Very high level.
 // Verifies ID and signature.
-bool Mint::VerifyMint(const identity::Nym& theOperator)
+bool Mint::VerifyMint(
+    const identity::Nym& theOperator,
+    const PasswordPrompt& reason)
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -354,7 +357,7 @@ bool Mint::VerifyMint(const identity::Nym& theOperator)
             ": Error comparing Mint ID to Asset Contract ID.")
             .Flush();
         return false;
-    } else if (!VerifySignature(theOperator)) {
+    } else if (!VerifySignature(theOperator, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error verifying signature on mint.")
             .Flush();
@@ -473,7 +476,7 @@ std::int64_t Mint::GetDenomination(std::int32_t nIndex) const
 // serializes the public keys, and it is safe to send the object to the client.
 // If the server needs to save the private keys, then call SetSavePrivateKeys()
 // first.
-void Mint::UpdateContents()
+void Mint::UpdateContents(const PasswordPrompt& reason)
 {
     auto NOTARY_ID = String::Factory(m_NotaryID),
          NOTARY_NYM_ID = String::Factory(m_ServerNymID),
@@ -523,7 +526,9 @@ void Mint::UpdateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t Mint::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 
@@ -680,7 +685,8 @@ void Mint::GenerateNewMint(
     const std::int64_t nDenom8,
     const std::int64_t nDenom9,
     const std::int64_t nDenom10,
-    const std::size_t keySize)
+    const std::size_t keySize,
+    const PasswordPrompt& reason)
 {
     Release();
     m_InstrumentDefinitionID = theInstrumentDefinitionID;
@@ -697,7 +703,8 @@ void Mint::GenerateNewMint(
         theInstrumentDefinitionID,
         theNotary,
         Account::mint,
-        0);
+        0,
+        reason);
 
     if (account) {
         account.get().GetIdentifier(m_CashAccountID);
@@ -712,16 +719,18 @@ void Mint::GenerateNewMint(
 
     account.Release();
 
-    if (0 != nDenom1) { AddDenomination(theNotary, nDenom1, keySize); }
-    if (0 != nDenom2) { AddDenomination(theNotary, nDenom2, keySize); }
-    if (0 != nDenom3) { AddDenomination(theNotary, nDenom3, keySize); }
-    if (0 != nDenom4) { AddDenomination(theNotary, nDenom4, keySize); }
-    if (0 != nDenom5) { AddDenomination(theNotary, nDenom5, keySize); }
-    if (0 != nDenom6) { AddDenomination(theNotary, nDenom6, keySize); }
-    if (0 != nDenom7) { AddDenomination(theNotary, nDenom7, keySize); }
-    if (0 != nDenom8) { AddDenomination(theNotary, nDenom8, keySize); }
-    if (0 != nDenom9) { AddDenomination(theNotary, nDenom9, keySize); }
-    if (0 != nDenom10) { AddDenomination(theNotary, nDenom10, keySize); }
+    if (0 != nDenom1) { AddDenomination(theNotary, nDenom1, keySize, reason); }
+    if (0 != nDenom2) { AddDenomination(theNotary, nDenom2, keySize, reason); }
+    if (0 != nDenom3) { AddDenomination(theNotary, nDenom3, keySize, reason); }
+    if (0 != nDenom4) { AddDenomination(theNotary, nDenom4, keySize, reason); }
+    if (0 != nDenom5) { AddDenomination(theNotary, nDenom5, keySize, reason); }
+    if (0 != nDenom6) { AddDenomination(theNotary, nDenom6, keySize, reason); }
+    if (0 != nDenom7) { AddDenomination(theNotary, nDenom7, keySize, reason); }
+    if (0 != nDenom8) { AddDenomination(theNotary, nDenom8, keySize, reason); }
+    if (0 != nDenom9) { AddDenomination(theNotary, nDenom9, keySize, reason); }
+    if (0 != nDenom10) {
+        AddDenomination(theNotary, nDenom10, keySize, reason);
+    }
 }
 
 Mint::~Mint() { Release_Mint(); }

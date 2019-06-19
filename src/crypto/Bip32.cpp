@@ -10,13 +10,11 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/crypto/Bip39.hpp"
-#include "opentxs/OT.hpp"
 
 #include <cstdint>
 #include <iomanip>
@@ -54,9 +52,14 @@ std::string Print(const proto::HDPath& node)
 
 namespace opentxs::crypto::implementation
 {
+Bip32::Bip32(const api::Crypto& crypto)
+    : crypto_(crypto)
+{
+}
+
 OTData Bip32::decode(const std::string& serialized) const
 {
-    auto input = OT::App().Crypto().Encode().IdentifierDecode(serialized);
+    auto input = crypto_.Encode().IdentifierDecode(serialized);
 
     return Data::Factory(input.c_str(), input.size());
 }
@@ -201,7 +204,7 @@ std::string Bip32::SerializePublic(
 
     OT_ASSERT_MSG(78 == output->size(), std::to_string(output->size()).c_str());
 
-    return OT::App().Crypto().Encode().IdentifierEncode(output);
+    return crypto_.Encode().IdentifierEncode(output);
 }
 }  // namespace opentxs::crypto::implementation
 #endif

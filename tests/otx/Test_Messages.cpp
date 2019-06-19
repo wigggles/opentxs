@@ -24,11 +24,15 @@ public:
 
     const opentxs::api::client::Manager& client_;
     const opentxs::api::server::Manager& server_;
+    opentxs::OTPasswordPrompt reason_c_;
+    opentxs::OTPasswordPrompt reason_s_;
     const identifier::Server& server_id_;
 
     Test_Messages()
-        : client_(OT::App().StartClient(args_, 0))
-        , server_(OT::App().StartServer(args_, 0, true))
+        : client_(Context().StartClient(args_, 0))
+        , server_(Context().StartServer(args_, 0, true))
+        , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
+        , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
         , server_id_(server_.ID())
     {
         if (false == init_) { init(); }
@@ -38,8 +42,8 @@ public:
         const ServerContract& contract,
         const opentxs::api::client::Manager& client)
     {
-        auto clientVersion =
-            client.Wallet().Server(server_contract_->PublicContract());
+        auto clientVersion = client.Wallet().Server(
+            server_contract_->PublicContract(), reason_c_);
 
         OT_ASSERT(clientVersion)
 
@@ -56,7 +60,7 @@ public:
             proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
         const_cast<OTNymID&>(alice_nym_id_) = identifier::Nym::Factory(Alice_);
         const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
-            server_.Wallet().Server(server_id_);
+            server_.Wallet().Server(server_id_, reason_s_);
 
         OT_ASSERT(server_contract_);
         OT_ASSERT(false == server_id_.empty());
@@ -79,11 +83,12 @@ TEST_F(Test_Messages, activateRequest)
 {
     const proto::ServerRequestType type{proto::SERVERREQUEST_ACTIVATE};
     auto requestID = Identifier::Factory();
-    const auto alice = client_.Wallet().Nym(alice_nym_id_);
+    const auto alice = client_.Wallet().Nym(alice_nym_id_, reason_c_);
 
     ASSERT_TRUE(alice);
 
-    auto request = opentxs::otx::Request::Factory(alice, server_id_, type);
+    auto request =
+        opentxs::otx::Request::Factory(alice, server_id_, type, reason_c_);
 
     ASSERT_TRUE(request->Nym());
     EXPECT_EQ(alice_nym_id_.get(), request->Nym()->ID());
@@ -95,7 +100,7 @@ TEST_F(Test_Messages, activateRequest)
     requestID = request->ID();
 
     EXPECT_FALSE(requestID->empty());
-    EXPECT_TRUE(request->Validate());
+    EXPECT_TRUE(request->Validate(reason_c_));
 
     auto serialized = request->Contract();
 
@@ -109,23 +114,24 @@ TEST_F(Test_Messages, activateRequest)
     EXPECT_TRUE(serialized.has_signature());
     EXPECT_EQ(proto::SIGROLE_SERVERREQUEST, serialized.signature().role());
 
-    request->SetNumber(1);
+    request->SetNumber(1, reason_c_);
 
-    EXPECT_TRUE(request->Validate());
+    EXPECT_TRUE(request->Validate(reason_c_));
     EXPECT_EQ(1, request->Number());
 
     serialized = request->Contract();
 
     EXPECT_EQ(1, serialized.request());
 
-    request->SetIncludeNym(true);
+    request->SetIncludeNym(true, reason_c_);
 
-    EXPECT_TRUE(request->Validate());
+    EXPECT_TRUE(request->Validate(reason_c_));
 
     serialized = request->Contract();
     EXPECT_TRUE(serialized.has_credentials());
 
-    const auto serverCopy = opentxs::otx::Request::Factory(server_, serialized);
+    const auto serverCopy =
+        opentxs::otx::Request::Factory(server_, serialized, reason_s_);
 
     ASSERT_TRUE(serverCopy->Nym());
     EXPECT_EQ(alice_nym_id_.get(), serverCopy->Nym()->ID());
@@ -134,7 +140,7 @@ TEST_F(Test_Messages, activateRequest)
     EXPECT_EQ(type, serverCopy->Type());
     EXPECT_EQ(1, serverCopy->Number());
     EXPECT_EQ(requestID.get(), serverCopy->ID());
-    EXPECT_TRUE(serverCopy->Validate());
+    EXPECT_TRUE(serverCopy->Validate(reason_s_));
 }
 
 TEST_F(Test_Messages, pushReply)
@@ -142,12 +148,12 @@ TEST_F(Test_Messages, pushReply)
     const std::string payload{"TEST PAYLOAD"};
     const proto::ServerReplyType type{proto::SERVERREPLY_PUSH};
     auto replyID = Identifier::Factory();
-    const auto server = server_.Wallet().Nym(server_.NymID());
+    const auto server = server_.Wallet().Nym(server_.NymID(), reason_s_);
 
     ASSERT_TRUE(server);
 
     auto reply = opentxs::otx::Reply::Factory(
-        server, alice_nym_id_, server_id_, type, true);
+        server, alice_nym_id_, server_id_, type, true, reason_s_);
 
     ASSERT_TRUE(reply->Nym());
     EXPECT_EQ(server_.NymID(), reply->Nym()->ID());
@@ -161,11 +167,11 @@ TEST_F(Test_Messages, pushReply)
     push.set_version(1);
     push.set_type(proto::OTXPUSH_NYMBOX);
     push.set_item(payload);
-    reply->SetPush(push);
+    reply->SetPush(push, reason_s_);
     replyID = reply->ID();
 
     EXPECT_FALSE(replyID->empty());
-    EXPECT_TRUE(reply->Validate());
+    EXPECT_TRUE(reply->Validate(reason_s_));
 
     auto serialized = reply->Contract();
 
@@ -179,9 +185,9 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_TRUE(serialized.has_signature());
     EXPECT_EQ(proto::SIGROLE_SERVERREPLY, serialized.signature().role());
 
-    reply->SetNumber(1);
+    reply->SetNumber(1, reason_s_);
 
-    EXPECT_TRUE(reply->Validate());
+    EXPECT_TRUE(reply->Validate(reason_s_));
     EXPECT_EQ(1, reply->Number());
 
     serialized = reply->Contract();
@@ -189,13 +195,14 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(1, serialized.request());
     ASSERT_TRUE(reply->Push());
     EXPECT_EQ(payload, reply->Push()->item());
-    EXPECT_TRUE(reply->Validate());
+    EXPECT_TRUE(reply->Validate(reason_s_));
 
     serialized = reply->Contract();
 
     EXPECT_EQ(payload, serialized.push().item());
 
-    const auto aliceCopy = opentxs::otx::Reply::Factory(client_, serialized);
+    const auto aliceCopy =
+        opentxs::otx::Reply::Factory(client_, serialized, reason_c_);
 
     ASSERT_TRUE(aliceCopy->Nym());
     EXPECT_EQ(server_.NymID(), aliceCopy->Nym()->ID());
@@ -206,6 +213,6 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(replyID.get(), aliceCopy->ID());
     ASSERT_TRUE(aliceCopy->Push());
     EXPECT_EQ(payload, aliceCopy->Push()->item());
-    EXPECT_TRUE(aliceCopy->Validate());
+    EXPECT_TRUE(aliceCopy->Validate(reason_c_));
 }
 }  // namespace

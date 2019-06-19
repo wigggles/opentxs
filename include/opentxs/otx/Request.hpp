@@ -27,10 +27,12 @@ public:
     EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const Nym_p signer,
         const identifier::Server& server,
-        const proto::ServerRequestType type);
+        const proto::ServerRequestType type,
+        const PasswordPrompt& reason);
     EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const api::Core& api,
-        const proto::ServerRequest serialized);
+        const proto::ServerRequest serialized,
+        const PasswordPrompt& reason);
 
     EXPORT virtual proto::ServerRequest Contract() const = 0;
     EXPORT virtual const identifier::Nym& Initiator() const = 0;
@@ -38,8 +40,12 @@ public:
     EXPORT virtual const identifier::Server& Server() const = 0;
     EXPORT virtual proto::ServerRequestType Type() const = 0;
 
-    EXPORT virtual bool SetIncludeNym(const bool include) = 0;
-    EXPORT virtual bool SetNumber(const RequestNumber number) = 0;
+    EXPORT virtual bool SetIncludeNym(
+        const bool include,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool SetNumber(
+        const RequestNumber number,
+        const PasswordPrompt& reason) = 0;
 
     EXPORT virtual ~Request() = default;
 

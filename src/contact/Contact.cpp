@@ -13,7 +13,6 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
@@ -25,7 +24,6 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <sstream>
@@ -37,7 +35,10 @@
 
 namespace opentxs
 {
-Contact::Contact(const api::Core& api, const proto::Contact& serialized)
+Contact::Contact(
+    const PasswordPrompt& reason,
+    const api::Core& api,
+    const proto::Contact& serialized)
     : api_(api)
     , version_(check_version(serialized.version(), OT_CONTACT_VERSION))
     , label_(serialized.label())
@@ -68,7 +69,7 @@ Contact::Contact(const api::Core& api, const proto::Contact& serialized)
         merged_children_.emplace(api_.Factory().Identifier(child));
     }
 
-    init_nyms();
+    init_nyms(reason);
 }
 
 Contact::Contact(const api::Core& api, const std::string& label)
@@ -76,7 +77,7 @@ Contact::Contact(const api::Core& api, const std::string& label)
     , version_(OT_CONTACT_VERSION)
     , label_(label)
     , lock_()
-    , id_(generate_id())
+    , id_(generate_id(api_))
     , parent_(api_.Factory().Identifier())
     , primary_nym_(api_.Factory().NymID())
     , nyms_()
@@ -513,12 +514,12 @@ std::shared_ptr<ContactData> Contact::Data() const
     return merged_data(lock);
 }
 
-OTIdentifier Contact::generate_id() const
+OTIdentifier Contact::generate_id(const api::Core& api)
 {
-    auto& crypto = OT::App().Crypto().Encode();
+    auto& encode = api.Crypto().Encode();
     auto random = Data::Factory();
-    crypto.Nonce(ID_BYTES, random);
-    auto output = api_.Factory().Identifier();
+    encode.Nonce(ID_BYTES, random);
+    auto output = api.Factory().Identifier();
     output->CalculateDigest(random);
 
     return output;
@@ -547,7 +548,7 @@ proto::ContactItemType Contact::ExtractType(const identity::Nym& nym)
 
 const Identifier& Contact::ID() const { return id_; }
 
-void Contact::init_nyms()
+void Contact::init_nyms(const PasswordPrompt& reason)
 {
     OT_ASSERT(contact_data_);
 
@@ -566,7 +567,7 @@ void Contact::init_nyms()
 
         const auto nymID = api_.Factory().NymID(item->Value());
         auto& nym = nyms_[nymID];
-        nym = api_.Wallet().Nym(nymID);
+        nym = api_.Wallet().Nym(nymID, reason);
 
         if (false == bool(nym)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load nym ")(nymID)(
@@ -861,9 +862,11 @@ proto::ContactItemType Contact::Type() const
     return type(lock);
 }
 
-void Contact::Update(const proto::CredentialIndex& serialized)
+void Contact::Update(
+    const proto::CredentialIndex& serialized,
+    const PasswordPrompt& reason)
 {
-    auto nym = api_.Wallet().Nym(serialized);
+    auto nym = api_.Wallet().Nym(serialized, reason);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid serialized nym.").Flush();

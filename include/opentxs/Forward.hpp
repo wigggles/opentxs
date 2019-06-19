@@ -42,6 +42,11 @@ class Symmetric;
 class Util;
 }  // namespace crypto
 
+namespace internal
+{
+struct Core;
+}
+
 namespace network
 {
 class Dht;
@@ -59,6 +64,7 @@ namespace storage
 class Storage;
 }  // namespace storage
 
+class Context;
 class Core;
 class Crypto;
 class Endpoints;
@@ -66,7 +72,7 @@ class Factory;
 class HDSeed;
 class Identity;
 class Legacy;
-class Native;
+class Context;
 class Periodic;
 class Settings;
 class Wallet;
@@ -96,7 +102,6 @@ class Ed25519;
 class EllipticCurve;
 class Keypair;
 class HD;
-class LegacySymmetric;
 class RSA;
 class Secp256k1;
 class Symmetric;
@@ -108,7 +113,6 @@ class Bip39;
 class Bitcoin;
 class EcdsaProvider;
 class EncodingProvider;
-class LegacySymmetricProvider;
 class HashingProvider;
 class OpenSSL;
 class Secp256k1;
@@ -268,7 +272,6 @@ class ContactSection;
 class Context;
 class Contract;
 class CurrencyContract;
-class CryptoSymmetricDecryptOutput;
 class Data;
 class Factory;
 class Flag;
@@ -285,13 +288,11 @@ class NymData;
 class NymFile;
 class NymIDSource;
 class NymParameters;
-class OT;
 class OT_API;
 class OTAgent;
 class OTAgreement;
 class OTAPI_Exec;
 class OTBylaw;
-class OTCachedKey;
 class OTCallback;
 class OTCaller;
 class OTClause;
@@ -307,7 +308,6 @@ class OTOffer;
 class OTParty;
 class OTPartyAccount;
 class OTPassword;
-class OTPasswordData;
 class OTPaths;
 class OTPayment;
 class OTPaymentPlan;
@@ -324,6 +324,7 @@ class OTTransactionType;
 class OTVariable;
 class OTWallet;
 class PairEventCallbackSwig;
+class PasswordPrompt;
 class PayDividendVisitor;
 class PaymentCode;
 class PeerObject;
@@ -349,9 +350,9 @@ using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
 using OTHDKey = Pimpl<crypto::key::HD>;
 using OTIdentifier = Pimpl<Identifier>;
-using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
 using OTManagedNumber = Pimpl<ManagedNumber>;
 using OTNymID = Pimpl<identifier::Nym>;
+using OTPasswordPrompt = Pimpl<PasswordPrompt>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTPeerObject = Pimpl<PeerObject>;
 #if OT_CASH
@@ -371,8 +372,6 @@ using OTZMQDealerSocket = Pimpl<network::zeromq::DealerSocket>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQFrame = Pimpl<network::zeromq::Frame>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
-using OTServerID = Pimpl<identifier::Server>;
-using OTUnitID = Pimpl<identifier::UnitDefinition>;
 using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
 using OTZMQPairSocket = Pimpl<network::zeromq::PairSocket>;
 using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
@@ -414,6 +413,11 @@ using OTUIProfileSubsection = SharedPimpl<ui::ProfileSubsection>;
 
 namespace std
 {
+template <>
+struct less<opentxs::OTData> {
+    bool operator()(const opentxs::OTData& lhs, const opentxs::OTData& rhs)
+        const;
+};
 template <>
 struct less<opentxs::OTIdentifier> {
     bool operator()(

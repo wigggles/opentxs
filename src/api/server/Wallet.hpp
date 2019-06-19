@@ -11,15 +11,19 @@ class Wallet final : public api::implementation::Wallet
 {
 public:
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
-        const identifier::Nym& remoteNymID) const override;
+        const identifier::Nym& remoteNymID,
+        const PasswordPrompt& reason) const override;
     std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const override;
+        const identifier::Nym& clientNymID,
+        const PasswordPrompt& reason) const override;
     Editor<opentxs::ClientContext> mutable_ClientContext(
-        const identifier::Nym& remoteNymID) const override;
+        const identifier::Nym& remoteNymID,
+        const PasswordPrompt& reason) const override;
     Editor<opentxs::Context> mutable_Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const override;
+        const identifier::Nym& clientNymID,
+        const PasswordPrompt& reason) const override;
 
     ~Wallet() = default;
 
@@ -36,10 +40,12 @@ private:
         const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const override;
     bool load_legacy_account(
+        const PasswordPrompt& reason,
         const Identifier& accountID,
         const eLock& lock,
         AccountLock& row) const override;
-    Nym_p signer_nym(const identifier::Nym& id) const override;
+    Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
+        const override;
 
     Wallet(const api::server::Manager& server);
     Wallet() = delete;

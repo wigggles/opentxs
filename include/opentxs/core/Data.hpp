@@ -42,12 +42,12 @@
 
 namespace opentxs
 {
-bool operator==(OTData& lhs, const Data& rhs);
-bool operator!=(OTData& lhs, const Data& rhs);
-bool operator<(OTData& lhs, const Data& rhs);
-bool operator>(OTData& lhs, const Data& rhs);
-bool operator<=(OTData& lhs, const Data& rhs);
-bool operator>=(OTData& lhs, const Data& rhs);
+bool operator==(const OTData& lhs, const Data& rhs);
+bool operator!=(const OTData& lhs, const Data& rhs);
+bool operator<(const OTData& lhs, const Data& rhs);
+bool operator>(const OTData& lhs, const Data& rhs);
+bool operator<=(const OTData& lhs, const Data& rhs);
+bool operator>=(const OTData& lhs, const Data& rhs);
 OTData& operator+=(OTData& lhs, const OTData& rhs);
 OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
 OTData& operator+=(OTData& lhs, const std::uint32_t rhs);

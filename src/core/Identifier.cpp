@@ -8,8 +8,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -21,7 +20,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
 
@@ -260,16 +258,6 @@ OTIdentifier Identifier::Factory(const Item& item)
         implementation::Identifier::contract_contents_to_identifier(item));
 }
 
-OTIdentifier Identifier::Factory(const crypto::key::LegacySymmetric& key)
-{
-    return OTIdentifier(new implementation::Identifier(key));
-}
-
-OTIdentifier Identifier::Factory(const OTCachedKey& key)
-{
-    return OTIdentifier(new implementation::Identifier(key));
-}
-
 OTIdentifier Identifier::Factory(
     const proto::ContactItemType type,
     const proto::HDPath& path)
@@ -281,7 +269,7 @@ OTIdentifier Identifier::Random()
 {
     OTIdentifier output{new implementation::Identifier};
     auto nonce = Data::Factory();
-    OT::App().Crypto().Encode().Nonce(32, nonce);
+    Context().Crypto().Encode().Nonce(32, nonce);
 
     OT_ASSERT(32 == nonce->size());
 
@@ -331,29 +319,6 @@ Identifier::Identifier(const identity::Nym& theNym)
     : ot_super()  // Get the Nym's ID into this identifier.
 {
     (const_cast<identity::Nym&>(theNym)).GetIdentifier(*this);
-}
-
-Identifier::Identifier(const crypto::key::LegacySymmetric& theKey)
-    : ot_super()  // Get the Symmetric Key's ID into *this. (It's a hash of the
-                  // encrypted form of the symmetric key.)
-{
-    (const_cast<crypto::key::LegacySymmetric&>(theKey)).GetIdentifier(*this);
-}
-
-Identifier::Identifier(const OTCachedKey& theKey)
-    : ot_super()  // Cached Key stores a symmetric key inside, so this actually
-                  // captures the ID for that symmetrickey.
-{
-    const bool bSuccess =
-        (const_cast<OTCachedKey&>(theKey)).GetIdentifier(*this);
-
-    OT_ASSERT(bSuccess);  // should never fail. If it does, then we are calling
-    // this function at a time we shouldn't, when we aren't
-    // sure the master key has even been generated yet. (If
-    // this asserts, need to examine the line of code that
-    // tried to do this, and figure out where its logic
-    // went wrong, since it should have made sure this
-    // would not happen, before constructing like this.)
 }
 
 Identifier::Identifier(
@@ -413,7 +378,7 @@ bool Identifier::CalculateDigest(const String& strInput, const ID type)
 {
     type_ = type;
 
-    return OT::App().Crypto().Hash().Digest(
+    return Context().Crypto().Hash().Digest(
         IDToHashType(type_), strInput, *this);
 }
 
@@ -421,7 +386,7 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
 {
     type_ = type;
 
-    return OT::App().Crypto().Hash().Digest(
+    return Context().Crypto().Hash().Digest(
         IDToHashType(type_), dataInput, *this);
 }
 
@@ -457,7 +422,7 @@ void Identifier::GetString(String& id) const
 
     auto output = String::Factory("ot");
     output->Concatenate(String::Factory(
-        OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
+        Context().Crypto().Encode().IdentifierEncode(data).c_str()));
     id.swap(output);
 }
 
@@ -506,7 +471,7 @@ void Identifier::SetString(const std::string& encoded)
     if ('t' != encoded.at(1)) { return; }
 
     std::string input(encoded.data() + 2, encoded.size() - 2);
-    auto data = OT::App().Crypto().Encode().IdentifierDecode(input);
+    auto data = Context().Crypto().Encode().IdentifierDecode(input);
 
     if (!data.empty()) {
         type_ = static_cast<ID>(data[0]);

@@ -97,7 +97,8 @@ Issuer::Issuer(
     }
 }
 
-Issuer::operator std::string() const
+std::string Issuer::toString(const PasswordPrompt& reason) const
+// Issuer::operator std::string() const
 {
     Lock lock(lock_);
     std::stringstream output{};
@@ -109,7 +110,7 @@ Issuer::operator std::string() const
         output << "* Pairing code: " << pairing_code_ << "\n";
     }
 
-    const auto nym = wallet_.Nym(issuer_id_);
+    const auto nym = wallet_.Nym(issuer_id_, reason);
 
     if (false == bool(nym)) {
         output << "* The credentials for the issuer nym are not yet downloaded."
@@ -556,11 +557,11 @@ bool Issuer::Paired() const { return paired_.get(); }
 
 const std::string& Issuer::PairingCode() const { return pairing_code_; }
 
-OTServerID Issuer::PrimaryServer() const
+OTServerID Issuer::PrimaryServer(const PasswordPrompt& reason) const
 {
     Lock lock(lock_);
 
-    auto nym = wallet_.Nym(issuer_id_);
+    auto nym = wallet_.Nym(issuer_id_, reason);
 
     if (false == bool(nym)) { return identifier::Server::Factory(); }
 

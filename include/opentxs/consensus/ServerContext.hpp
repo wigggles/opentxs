@@ -28,28 +28,35 @@ public:
     EXPORT virtual std::vector<OTIdentifier> Accounts() const = 0;
     EXPORT virtual const std::string& AdminPassword() const = 0;
     EXPORT virtual bool AdminAttempted() const = 0;
-    EXPORT virtual bool FinalizeServerCommand(Message& command) const = 0;
+    EXPORT virtual bool FinalizeServerCommand(
+        Message& command,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool HaveAdminPassword() const = 0;
     EXPORT virtual bool HaveSufficientNumbers(
         const MessageType reason) const = 0;
     EXPORT virtual TransactionNumber Highest() const = 0;
     EXPORT virtual bool isAdmin() const = 0;
+    EXPORT virtual void Join() const = 0;
 #if OT_CASH
     EXPORT virtual std::shared_ptr<const blind::Purse> Purse(
         const identifier::UnitDefinition& id) const = 0;
 #endif
     EXPORT virtual std::uint64_t Revision() const = 0;
     EXPORT virtual bool ShouldRename(
+        const PasswordPrompt& reason,
         const std::string& defaultName = "") const = 0;
     EXPORT virtual bool StaleNym() const = 0;
     EXPORT virtual std::unique_ptr<Item> Statement(
-        const OTTransaction& owner) const = 0;
+        const OTTransaction& owner,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
-        const TransactionNumbers& adding) const = 0;
+        const TransactionNumbers& adding,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<TransactionStatement> Statement(
         const TransactionNumbers& adding,
-        const TransactionNumbers& without) const = 0;
+        const TransactionNumbers& without,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Verify(const TransactionStatement& statement) const = 0;
     EXPORT virtual bool VerifyTentativeNumber(
         const TransactionNumber& number) const = 0;
@@ -80,20 +87,23 @@ public:
         const RequestNumber provided,
         const bool withAcknowledgments = true,
         const bool withNymboxHash = false) = 0;
-    EXPORT virtual void Join() = 0;
 #if OT_CASH
     EXPORT virtual Editor<blind::Purse> mutable_Purse(
-        const identifier::UnitDefinition& id) = 0;
+        const identifier::UnitDefinition& id,
+        const PasswordPrompt& reason) = 0;
 #endif
     EXPORT virtual OTManagedNumber NextTransactionNumber(
         const MessageType reason) = 0;
-    EXPORT virtual NetworkReplyMessage PingNotary() = 0;
+    EXPORT virtual NetworkReplyMessage PingNotary(
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool ProcessNotification(
         const api::client::Manager& client,
-        const otx::Reply& notification) = 0;
+        const otx::Reply& notification,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual QueueResult Queue(
         const api::client::Manager& client,
         std::shared_ptr<Message> message,
+        const PasswordPrompt& reason,
         const ExtraArgs& args = ExtraArgs{}) = 0;
     EXPORT virtual QueueResult Queue(
         const api::client::Manager& client,
@@ -101,9 +111,11 @@ public:
         std::shared_ptr<Ledger> inbox,
         std::shared_ptr<Ledger> outbox,
         std::set<OTManagedNumber>* numbers,
+        const PasswordPrompt& reason,
         const ExtraArgs& args = ExtraArgs{}) = 0;
     EXPORT virtual QueueResult RefreshNymbox(
-        const api::client::Manager& client) = 0;
+        const api::client::Manager& client,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool RemoveTentativeNumber(
         const TransactionNumber& number) = 0;
     EXPORT virtual void ResetThread() = 0;
@@ -113,6 +125,7 @@ public:
         const std::set<OTManagedNumber>& pending,
         ServerContext& context,
         const Message& message,
+        const PasswordPrompt& reason,
         const std::string& label = "",
         const bool resync = false) = 0;
     EXPORT virtual void SetAdminAttempted() = 0;
@@ -125,9 +138,14 @@ public:
         const TransactionNumbers& numbers,
         TransactionNumbers& good,
         TransactionNumbers& bad) = 0;
-    EXPORT virtual RequestNumber UpdateRequestNumber() = 0;
-    EXPORT virtual RequestNumber UpdateRequestNumber(bool& sendStatus) = 0;
-    EXPORT virtual bool UpdateRequestNumber(Message& command) = 0;
+    EXPORT virtual RequestNumber UpdateRequestNumber(
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual RequestNumber UpdateRequestNumber(
+        bool& sendStatus,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool UpdateRequestNumber(
+        Message& command,
+        const PasswordPrompt& reason) = 0;
 
     EXPORT virtual ~ServerContext() override = default;
 

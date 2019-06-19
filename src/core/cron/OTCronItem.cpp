@@ -116,7 +116,8 @@ OTCronItem::OTCronItem(
 
 std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
     const api::Core& core,
-    const TransactionNumber& lTransactionNum)
+    const TransactionNumber& lTransactionNum,
+    const PasswordPrompt& reason)
 {
     auto strFilename = String::Factory();
     strFilename->Format("%" PRId64 ".crn", lTransactionNum);
@@ -149,14 +150,15 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return core.Factory().CronItem(strFileContents);
+        return core.Factory().CronItem(strFileContents, reason);
 }
 
 // static
 std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
     const api::Core& core,
     const TransactionNumber& lTransactionNum,
-    const identifier::Server& notaryID)  // Client-side only.
+    const identifier::Server& notaryID,
+    const PasswordPrompt& reason)  // Client-side only.
 {
     auto strFilename = String::Factory(),
          strNotaryID = String::Factory(notaryID);
@@ -199,7 +201,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return core.Factory().CronItem(strFileContents);
+        return core.Factory().CronItem(strFileContents, reason);
 }
 
 // static
@@ -721,7 +723,7 @@ bool OTCronItem::CanRemoveItemFromCron(const ClientContext& context)
 // Return False:    REMOVE this Cron Item from Cron.
 // Return True:        KEEP this Cron Item on Cron (for now.)
 //
-bool OTCronItem::ProcessCron()
+bool OTCronItem::ProcessCron(const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != m_pCron);
 
@@ -752,16 +754,18 @@ bool OTCronItem::ProcessCron()
 // activated for the very first time. (Versus being re-added
 // to cron after a server reboot.)
 //
-void OTCronItem::HookActivationOnCron(bool bForTheFirstTime)
+void OTCronItem::HookActivationOnCron(
+    const PasswordPrompt& reason,
+    bool bForTheFirstTime)
 {
     // Put anything else in here, that needs to be done in the
     // cron item base class, upon activation. (This executes
     // no matter what, even if onActivate() is overridden.)
 
     if (bForTheFirstTime)
-        onActivate();  // Subclasses may override this.
-                       //
-                       // MOST NOTABLY,
+        onActivate(reason);  // Subclasses may override this.
+                             //
+                             // MOST NOTABLY,
     // OTSmartContract overrides this, so it can allow the SCRIPT
     // a chance to hook onActivate() as well.
 }
@@ -773,13 +777,13 @@ void OTCronItem::HookActivationOnCron(bool bForTheFirstTime)
 void OTCronItem::HookRemovalFromCron(
     const api::Wallet& wallet,
     Nym_p pRemover,
-    std::int64_t newTransactionNo)
+    std::int64_t newTransactionNo,
+    const PasswordPrompt& reason)
 {
     auto pServerNym = serverNym_;
     OT_ASSERT(nullptr != pServerNym);
 
     // Generate new transaction number for these new inbox receipts.
-    //
     const std::int64_t lNewTransactionNumber = newTransactionNo;
 
     //    OT_ASSERT(lNewTransactionNumber > 0); // this can be my reminder.
@@ -823,7 +827,7 @@ void OTCronItem::HookRemovalFromCron(
         // containing the ORIGINAL SIGNED REQUEST.
         //
         std::unique_ptr<OTCronItem> pOrigCronItem =
-            OTCronItem::LoadCronReceipt(api_, GetTransactionNum());
+            OTCronItem::LoadCronReceipt(api_, GetTransactionNum(), reason);
         // OTCronItem::LoadCronReceipt loads the original version with the
         // user's signature.
         // (Updated versions, as processing occurs, are signed by the server.)
@@ -835,7 +839,8 @@ void OTCronItem::HookRemovalFromCron(
         // first saved, so it has two signatures on it.)
         //
         {
-            bool bValidSignture = pOrigCronItem->VerifySignature(*pServerNym);
+            bool bValidSignture =
+                pOrigCronItem->VerifySignature(*pServerNym, reason);
             if (!bValidSignture) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failure verifying signature of "
@@ -895,7 +900,7 @@ void OTCronItem::HookRemovalFromCron(
             // version. Sue me.
             //
             const OTNymID NYM_ID = pOrigCronItem->GetSenderNymID();
-            pOriginator = api_.Wallet().Nym(NYM_ID);
+            pOriginator = api_.Wallet().Nym(NYM_ID, reason);
         }
 
         // pOriginator should NEVER be nullptr by this point, unless there was
@@ -909,7 +914,11 @@ void OTCronItem::HookRemovalFromCron(
             // obtained above.
             //
             onFinalReceipt(
-                *pOrigCronItem, lNewTransactionNumber, pOriginator, pRemover);
+                *pOrigCronItem,
+                lNewTransactionNumber,
+                pOriginator,
+                pRemover,
+                reason);
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": MAJOR ERROR in OTCronItem::HookRemovalFromCron!! Failed "
@@ -920,7 +929,7 @@ void OTCronItem::HookRemovalFromCron(
 
     // Remove corresponding offer from market, if applicable.
     //
-    onRemovalFromCron();
+    onRemovalFromCron(reason);
 }
 
 // This function is overridden in OTTrade, OTAgreement, and OTSmartContract.
@@ -933,13 +942,13 @@ void OTCronItem::onFinalReceipt(
     OTCronItem& theOrigCronItem,
     const std::int64_t& lNewTransactionNumber,
     Nym_p theOriginator,
-    Nym_p pRemover)  // may already point to
-                     // theOriginator... or
-                     // someone else...
+    Nym_p pRemover,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    auto context = api_.Wallet().mutable_ClientContext(theOriginator->ID());
+    auto context =
+        api_.Wallet().mutable_ClientContext(theOriginator->ID(), reason);
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
@@ -965,12 +974,12 @@ void OTCronItem::onFinalReceipt(
     // are the cases where pRemover is someone other than theOriginator.
     // That's why they have a different version of onFinalReceipt.
     if ((lOpeningNumber > 0) &&
-        context.It().VerifyIssuedNumber(lOpeningNumber)) {
+        context.get().VerifyIssuedNumber(lOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
         // that list.
-        context.It().CloseCronItem(lOpeningNumber);
-        context.It().ConsumeIssued(lOpeningNumber);
+        context.get().CloseCronItem(lOpeningNumber);
+        context.get().ConsumeIssued(lOpeningNumber);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED.
@@ -987,6 +996,7 @@ void OTCronItem::onFinalReceipt(
                 lNewTransactionNumber,
                 strOrigCronItem,
                 GetOriginType(),
+                reason,
                 String::Factory(),  // note
                 pstrAttachment)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1001,7 +1011,7 @@ void OTCronItem::onFinalReceipt(
     }
 
     if ((lClosingNumber > 0) &&
-        context.It().VerifyIssuedNumber(lClosingNumber)) {
+        context.get().VerifyIssuedNumber(lClosingNumber)) {
         // SENDER only. (CronItem has no recipient. That's in the subclass.)
         if (!DropFinalReceiptToInbox(
                 GetSenderNymID(),
@@ -1011,6 +1021,7 @@ void OTCronItem::onFinalReceipt(
                                  // put on the receipt.
                 strOrigCronItem,
                 GetOriginType(),
+                reason,
                 String::Factory(),  // note
                 pstrAttachment))    // pActualAcct = nullptr by default.
                                     // (This call will load it up in order
@@ -1056,6 +1067,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const std::int64_t& lClosingNumber,
     const String& strOrigCronItem,
     const originType theOriginType,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment)
 {
@@ -1068,12 +1080,12 @@ bool OTCronItem::DropFinalReceiptToInbox(
     OT_ASSERT(false != bool(theInbox));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theInbox->LoadInbox();
+    bool bSuccessLoading = theInbox->LoadInbox(reason);
 
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theInbox->VerifyAccount(pServerNym);
+        bSuccessLoading = theInbox->VerifyAccount(pServerNym, reason);
     else
         LogOutput(OT_METHOD)(__FUNCTION__)(": ERROR loading inbox ledger.")
             .Flush();
@@ -1161,13 +1173,13 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // sign the item
 
-        pItem1->SignContract(pServerNym);
+        pItem1->SignContract(pServerNym, reason);
         pItem1->SaveContract();
 
         std::shared_ptr<Item> item1{pItem1.release()};
         pTrans1->AddItem(item1);
 
-        pTrans1->SignContract(pServerNym);
+        pTrans1->SignContract(pServerNym, reason);
         pTrans1->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
@@ -1179,11 +1191,11 @@ bool OTCronItem::DropFinalReceiptToInbox(
         theInbox->ReleaseSignatures();
 
         // Sign and save.
-        theInbox->SignContract(pServerNym);
+        theInbox->SignContract(pServerNym, reason);
         theInbox->SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
-        auto account = api_.Wallet().mutable_Account(ACCOUNT_ID);
+        auto account = api_.Wallet().mutable_Account(ACCOUNT_ID, reason);
 
         // Save inbox to storage. (File, DB, wherever it goes.)
         if (account) {
@@ -1235,6 +1247,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     const TransactionNumber& lNewTransactionNumber,
     const String& strOrigCronItem,
     const originType theOriginType,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment)
 {
@@ -1247,12 +1260,12 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     OT_ASSERT(false != bool(theLedger));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theLedger->LoadNymbox();
+    bool bSuccessLoading = theLedger->LoadNymbox(reason);
 
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theLedger->VerifyAccount(*pServerNym);
+        bSuccessLoading = theLedger->VerifyAccount(*pServerNym, reason);
     else
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load Nymbox.").Flush();
     //    else
@@ -1347,13 +1360,13 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // sign the item
 
-        pItem1->SignContract(*pServerNym);
+        pItem1->SignContract(*pServerNym, reason);
         pItem1->SaveContract();
 
         std::shared_ptr<Item> item1{pItem1.release()};
         pTransaction->AddItem(item1);
 
-        pTransaction->SignContract(*pServerNym);
+        pTransaction->SignContract(*pServerNym, reason);
         pTransaction->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
@@ -1365,7 +1378,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         theLedger->ReleaseSignatures();
 
         // Sign and save.
-        theLedger->SignContract(*pServerNym);
+        theLedger->SignContract(*pServerNym, reason);
         theLedger->SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
@@ -1382,8 +1395,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // Update the NymboxHash (in the nymfile.)
         //
-        auto context = api_.Wallet().mutable_ClientContext(NYM_ID);
-        context.It().SetLocalNymboxHash(theNymboxHash);
+        auto context = api_.Wallet().mutable_ClientContext(NYM_ID, reason);
+        context.get().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions
         // returning true. Right?
@@ -1491,7 +1504,9 @@ bool OTCronItem::GetCancelerID(identifier::Nym& theOutput) const
 
 // When canceling a cron item before it has been activated, use this.
 //
-bool OTCronItem::CancelBeforeActivation(const identity::Nym& theCancelerNym)
+bool OTCronItem::CancelBeforeActivation(
+    const identity::Nym& theCancelerNym,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(!m_pCancelerNymID->empty());
 
@@ -1501,7 +1516,7 @@ bool OTCronItem::CancelBeforeActivation(const identity::Nym& theCancelerNym)
     m_pCancelerNymID = theCancelerNym.ID();
 
     ReleaseSignatures();
-    SignContract(theCancelerNym);
+    SignContract(theCancelerNym, reason);
     SaveContract();
 
     return true;
@@ -1537,7 +1552,9 @@ void OTCronItem::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTCronItem::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 
@@ -1550,7 +1567,7 @@ std::int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // you don't want to use any of those xml tags.
     //
 
-    nReturnVal = ot_super::ProcessXMLNode(xml);
+    nReturnVal = ot_super::ProcessXMLNode(xml, reason);
 
     if (nReturnVal != 0)    // -1 is error, and 1 is "found it". Either way,
                             // return.

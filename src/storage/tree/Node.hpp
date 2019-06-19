@@ -203,6 +203,22 @@ protected:
         proto::StorageItemHash& output,
         const proto::StorageHashType type = proto::STORAGEHASH_PROTO) const;
 
+    virtual void blank(const VersionNumber version);
+    template <typename Serialized>
+    void init_version(const VersionNumber version, const Serialized& serialized)
+    {
+        original_version_ = serialized.version();
+
+        // Upgrade version
+        if (version > original_version_) {
+            LogOutput("opentxs::storage::Node::")(__FUNCTION__)(
+                ": Upgrading to version ")(version)
+                .Flush();
+            version_ = version;
+        } else {
+            version_ = original_version_;
+        }
+    }
     bool delete_item(const std::string& id);
     bool delete_item(const Lock& lock, const std::string& id);
     bool set_alias(const std::string& id, const std::string& alias);

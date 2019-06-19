@@ -65,21 +65,11 @@ set(PACKAGE_CONTACT        ""                             CACHE STRING  "Package
 set(PACKAGE_VENDOR         "Open Transactions Developers" CACHE STRING  "Package Vendor")
 option(AUTOCOMPLETION      "CL autocompletion to opentxs CL client" OFF)
 
-option(KEYRING_WINDOWS     "Build with Windows Keyring" OFF)
-option(KEYRING_MAC         "Build with Mac OSX Keyring" OFF)
-option(KEYRING_IOS         "Build with iOS Keyring" OFF)
-option(KEYRING_GNOME       "Build with Gnome Keyring" OFF)
-option(KEYRING_KWALLET     "Build with KWallet Keyring" OFF)
-option(KEYRING_FLATFILE    "Build with Flatfile Keyring" OFF)
-option(NO_PASSWORD         "Use default password for all prompts" OFF)
-
 option(OT_STORAGE_FS       "Enable filesystem backend for storage" OFF)
 option(OT_STORAGE_SQLITE   "Enable sqlite backend for storage" OFF)
 option(OT_STORAGE_LMDB     "Enable LMDB backend for storage" ON)
 
 option(OT_DHT    "Enable OpenDHT support" OFF)
-
-option(OT_CRYPTO_SUPPORTED_ALGO_AES     "Enable AES encryption algorithm" ON)
 
 option(OT_CRYPTO_SUPPORTED_SOURCE_BIP47     "Enable support for BIP-47 nyms" ON)
 
@@ -165,15 +155,6 @@ message(STATUS "Package Vendor:         ${PACKAGE_VENDOR}")
 
 message(STATUS "CL autocompletion:      ${AUTOCOMPLETION}")
 
-message(STATUS "Keyrings ------------------------------------")
-message(STATUS "Keyring Windows:        ${KEYRING_WINDOWS}")
-message(STATUS "Keyring MAC:            ${KEYRING_MAC}")
-message(STATUS "Keyring iOS:            ${KEYRING_IOS}")
-message(STATUS "Keyring Gnome:          ${KEYRING_GNOME}")
-message(STATUS "Keyring KWallet:        ${KEYRING_KWALLET}")
-message(STATUS "Keyring flatfile:       ${KEYRING_FLATFILE}")
-message(STATUS "No password:            ${NO_PASSWORD}")
-
 message(STATUS "Network plugins------------------------------")
 message(STATUS "DHT:                    ${OT_DHT}")
 
@@ -184,9 +165,6 @@ message(STATUS "LMDB                    ${OT_STORAGE_LMDB}")
 
 message(STATUS "Nym ID sources------------------------------")
 message(STATUS "BIP-47:                 ${OT_CRYPTO_SUPPORTED_SOURCE_BIP47}")
-
-message(STATUS "Encryption algorithms------------------------")
-message(STATUS "AES:                    ${OT_CRYPTO_SUPPORTED_ALGO_AES}")
 
 message(STATUS "Key algorithms-------------------------------")
 message(STATUS "HD derivation:          ${OT_CRYPTO_SUPPORTED_KEY_HD}")
@@ -590,17 +568,6 @@ else()
   set(BIP47_EXPORT 0)
 endif()
 
-#Encryption algorithms
-
-if (OT_CRYPTO_SUPPORTED_ALGO_AES)
-  if (NOT OT_CRYPTO_USING_OPENSSL)
-    message(FATAL_ERROR "AES support requires OpenSSL")
-  endif()
-  set(AES_EXPORT 1)
-else()
-  set(AES_EXPORT 0)
-endif()
-
 #Key types
 
 if(OT_CRYPTO_SUPPORTED_KEY_HD)
@@ -721,35 +688,6 @@ else()
     set(CASH_MM_EXPORT 0)
 endif()
 
-#Keyrings
-if(KEYRING_WINDOWS AND WIN32)
-  add_definitions(-DOT_KEYRING_WINDOWS)
-endif()
-
-if(KEYRING_MAC AND APPLE)
-  add_definitions(-DOT_KEYRING_MAC)
-endif()
-
-if(KEYRING_IOS)
-  add_definitions(-DOT_KEYRING_IOS)
-endif()
-
-if(KEYRING_GNOME)
-  add_definitions(-DOT_KEYRING_GNOME)
-endif()
-
-if(KEYRING_KWALLET)
-  add_definitions(-DOT_KEYRING_KWALLET)
-endif()
-
-if(KEYRING_FLATFILE)
-  add_definitions(-DOT_KEYRING_FLATFILE)
-endif()
-
-if(NO_PASSWORD)
-  add_definitions(-DOT_NO_PASSWORD)
-endif()
-
 if(WIN32)
   add_definitions("-DEXPORT=__declspec(dllexport)")
 else()
@@ -757,7 +695,7 @@ else()
 endif()
 
 #Script engines
-if(OT_SCRIPT_USING_CHAI AND NOT ANDROID AND NOT KEYRING_IOS)
+if(OT_SCRIPT_USING_CHAI AND NOT ANDROID)
   set(SCRIPT_CHAI_EXPORT 1)
 else()
   set(SCRIPT_CHAI_EXPORT 0)

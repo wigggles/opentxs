@@ -8,49 +8,23 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/OTPassword.hpp"
-
-#include <cstdint>
-
 namespace opentxs
 {
-class OTCaller
+class OTCaller final
 {
-protected:
-    OTPassword m_Password;  // The password will be stored here by the Java
-    // dialog, so that the C callback can retrieve it and
-    // pass it to OpenSSL
-    OTPassword m_Display;  // A display string is set here before the Java
-                           // dialog
-                           // is shown. (OTPassword used here only for
-                           // convenience.)
-
-    OTCallback* _callback{nullptr};
-
 public:
-    OTCaller()
-        : _callback(nullptr)
-    {
-    }
+    EXPORT bool HaveCallback() const;
+
+    EXPORT void AskOnce(const PasswordPrompt& prompt, OTPassword& output);
+    EXPORT void AskTwice(const PasswordPrompt& prompt, OTPassword& output);
+    EXPORT void SetCallback(OTCallback* callback);
+
+    EXPORT OTCaller();
+
     EXPORT ~OTCaller();
 
-    EXPORT bool GetPassword(OTPassword& theOutput) const;  // Grab the password
-                                                           // when it is needed.
-    EXPORT void ZeroOutPassword();  // Then ZERO IT OUT so copies aren't
-                                    // floating
-                                    // around...
-
-    EXPORT const char* GetDisplay() const;
-    EXPORT void SetDisplay(const char* szDisplay, std::int32_t nLength);
-
-    EXPORT void delCallback();
-    EXPORT void setCallback(OTCallback* cb);
-    EXPORT bool isCallbackSet() const;
-
-    EXPORT void callOne();  // Asks for password once. (For authentication when
-                            // using the Nym's private key.)
-    EXPORT void callTwo();  // Asks for password twice. (For confirmation during
-                            // nym creation and password change.)
+private:
+    OTCallback* callback_{nullptr};
 };
 }  // namespace opentxs
 #endif

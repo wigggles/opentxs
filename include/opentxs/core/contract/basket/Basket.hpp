@@ -77,7 +77,7 @@ class Basket : public Contract
 public:
     EXPORT virtual ~Basket();
 
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
     EXPORT void CalculateContractID(Identifier& newID) const override;
 
@@ -175,7 +175,9 @@ protected:
     // For the main (basket) account, in a request basket (for exchanges.)
     TransactionNumber m_lClosingTransactionNo{0};
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
 private:
     friend api::implementation::Factory;

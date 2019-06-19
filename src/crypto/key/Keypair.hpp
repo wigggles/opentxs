@@ -21,8 +21,10 @@ public:
         bool bInclusive = false) const override;
     std::shared_ptr<proto::AsymmetricKey> GetSerialized(
         bool privateKey = false) const override;
-    bool GetTransportKey(Data& publicKey, OTPassword& privateKey)
-        const override;
+    bool GetTransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const override;
 
     ~Keypair() = default;
 
@@ -31,6 +33,7 @@ private:
     friend key::Keypair;
     friend opentxs::Factory;
 
+    const api::Core& api_;
     OTAsymmetricKey m_pkeyPublic;
     OTAsymmetricKey m_pkeyPrivate;
     const proto::KeyRole role_{proto::KEYROLE_ERROR};
@@ -41,6 +44,7 @@ private:
 
     Keypair(
         const api::Core& api,
+        const PasswordPrompt& reason,
         const proto::AsymmetricKey& serializedPubkey) noexcept;
     Keypair(
         const api::Core& api,
@@ -49,6 +53,7 @@ private:
         const proto::KeyRole role = proto::KEYROLE_ERROR) noexcept;
     Keypair(
         const api::Core& api,
+        const PasswordPrompt& reason,
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey) noexcept;
     Keypair() = delete;

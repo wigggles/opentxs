@@ -23,17 +23,14 @@
 #include "opentxs/blind/Purse.hpp"
 #include "opentxs/blind/Token.hpp"
 #endif  // OT_CASH
-#include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTClient.hpp"
-#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -52,6 +49,7 @@
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -237,7 +235,8 @@ bool ServerContext::accept_entire_nymbox(
     Ledger& nymbox,
     Message& output,
     ReplyNoticeOutcomes& notices,
-    std::size_t& alreadySeenNotices)
+    std::size_t& alreadySeenNotices,
+    const PasswordPrompt& reason)
 {
     alreadySeenNotices = 0;
     const auto& nym = *nym_;
@@ -249,7 +248,7 @@ bool ServerContext::accept_entire_nymbox(
         return false;
     }
 
-    if (false == nymbox.VerifyAccount(nym)) {
+    if (false == nymbox.VerifyAccount(nym, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nymbox").Flush();
 
         return false;
@@ -266,7 +265,8 @@ bool ServerContext::accept_entire_nymbox(
 
     OT_ASSERT(processLedger);
 
-    processLedger->GenerateLedger(nymID, server_id_, ledgerType::message);
+    processLedger->GenerateLedger(
+        nymID, server_id_, ledgerType::message, reason);
     std::shared_ptr<OTTransaction> acceptTransaction{api_.Factory().Transaction(
         nymID,
         nymID,
@@ -303,20 +303,32 @@ bool ServerContext::accept_entire_nymbox(
         switch (transaction.GetType()) {
             case transactionType::message: {
                 make_accept_item(
-                    itemType::acceptMessage, transaction, *acceptTransaction);
+                    reason,
+                    itemType::acceptMessage,
+                    transaction,
+                    *acceptTransaction);
             } break;
             case transactionType::instrumentNotice: {
                 make_accept_item(
-                    itemType::acceptNotice, transaction, *acceptTransaction);
+                    reason,
+                    itemType::acceptNotice,
+                    transaction,
+                    *acceptTransaction);
             } break;
             case transactionType::notice: {
                 make_accept_item(
-                    itemType::acceptNotice, transaction, *acceptTransaction);
+                    reason,
+                    itemType::acceptNotice,
+                    transaction,
+                    *acceptTransaction);
             } break;
             case transactionType::successNotice: {
                 verify_success(lock, transaction, setNoticeNumbers);
                 make_accept_item(
-                    itemType::acceptNotice, transaction, *acceptTransaction);
+                    reason,
+                    itemType::acceptNotice,
+                    transaction,
+                    *acceptTransaction);
             } break;
             case transactionType::replyNotice: {
                 const bool seen = verify_acknowledged_number(
@@ -328,7 +340,8 @@ bool ServerContext::accept_entire_nymbox(
                     auto item = transaction.GetItem(itemType::replyNotice);
 
                     if (item) {
-                        process_unseen_reply(lock, client, *item, notices);
+                        process_unseen_reply(
+                            lock, client, *item, notices, reason);
                     } else {
                         LogNormal(OT_METHOD)(__FUNCTION__)(
                             ": Missing reply notice item")
@@ -336,6 +349,7 @@ bool ServerContext::accept_entire_nymbox(
                     }
 
                     make_accept_item(
+                        reason,
                         itemType::acceptNotice,
                         transaction,
                         *acceptTransaction);
@@ -344,6 +358,7 @@ bool ServerContext::accept_entire_nymbox(
             case transactionType::blank: {
                 verify_blank(lock, transaction, verifiedNumbers);
                 make_accept_item(
+                    reason,
                     itemType::acceptTransaction,
                     transaction,
                     *acceptTransaction,
@@ -368,6 +383,7 @@ bool ServerContext::accept_entire_nymbox(
                 OTCronItem::EraseActiveCronReceipt(
                     api_.DataFolder(), number, nymID, server_id_);
                 make_accept_item(
+                    reason,
                     itemType::acceptFinalReceipt,
                     transaction,
                     *acceptTransaction);
@@ -401,7 +417,7 @@ bool ServerContext::accept_entire_nymbox(
     }
 
     std::shared_ptr<Item> balanceItem{
-        statement(lock, *acceptTransaction, verifiedNumbers)};
+        statement(lock, *acceptTransaction, verifiedNumbers, reason)};
 
     OT_ASSERT(balanceItem)
 
@@ -409,7 +425,7 @@ bool ServerContext::accept_entire_nymbox(
 
     OT_ASSERT((acceptedItems + 1) == acceptTransaction->GetItemCount())
 
-    ready &= acceptTransaction->SignContract(nym);
+    ready &= acceptTransaction->SignContract(nym, reason);
 
     OT_ASSERT(ready)
 
@@ -417,7 +433,7 @@ bool ServerContext::accept_entire_nymbox(
 
     OT_ASSERT(ready)
 
-    ready &= processLedger->SignContract(nym);
+    ready &= processLedger->SignContract(nym, reason);
 
     OT_ASSERT(ready)
 
@@ -429,7 +445,7 @@ bool ServerContext::accept_entire_nymbox(
     initialize_server_command(
         lock, MessageType::processNymbox, -1, true, true, output);
     ready &= output.m_ascPayload->SetString(serialized);
-    finalize_server_command(output);
+    finalize_server_command(output, reason);
 
     OT_ASSERT(ready)
 
@@ -565,12 +581,13 @@ std::vector<OTIdentifier> ServerContext::Accounts() const
 
 bool ServerContext::add_item_to_payment_inbox(
     const TransactionNumber number,
-    const std::string& payment) const
+    const std::string& payment,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
     const auto& nym = *nym_;
-    auto paymentInbox = load_or_create_payment_inbox();
+    auto paymentInbox = load_or_create_payment_inbox(reason);
 
     if (false == bool(paymentInbox)) { return false; }
 
@@ -591,9 +608,9 @@ bool ServerContext::add_item_to_payment_inbox(
 
     transaction->SetReferenceToNum(number);
     transaction->SetReferenceString(String::Factory(payment));
-    transaction->SignContract(nym);
+    transaction->SignContract(nym, reason);
     transaction->SaveContract();
-    add_transaction_to_ledger(number, transaction, *paymentInbox);
+    add_transaction_to_ledger(number, transaction, *paymentInbox, reason);
 
     return true;
 }
@@ -602,7 +619,8 @@ bool ServerContext::add_item_to_workflow(
     const Lock& lock,
     const api::client::Manager& client,
     const Message& transportItem,
-    const std::string& item) const
+    const std::string& item,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -612,7 +630,7 @@ bool ServerContext::add_item_to_workflow(
     OT_ASSERT(message);
 
     const auto loaded =
-        message->LoadContractFromString(String::Factory(item.c_str()));
+        message->LoadContractFromString(String::Factory(item.c_str()), reason);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate message.")
@@ -623,7 +641,7 @@ bool ServerContext::add_item_to_workflow(
 
     OTEnvelope envelope(api_, message->m_ascPayload);
     auto plaintext = String::Factory();
-    const auto decrypted = envelope.Open(nym, plaintext);
+    const auto decrypted = envelope.Open(nym, plaintext, reason);
 
     if (false == decrypted) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt message.")
@@ -642,14 +660,14 @@ bool ServerContext::add_item_to_workflow(
 
     if (false == payment->IsCheque()) { return false; }
 
-    if (payment->IsCancelledCheque()) { return false; }
+    if (payment->IsCancelledCheque(reason)) { return false; }
 
     auto pCheque = api_.Factory().Cheque();
 
     OT_ASSERT(pCheque);
 
     auto& cheque = *pCheque;
-    cheque.LoadContractFromString(payment->Payment());
+    cheque.LoadContractFromString(payment->Payment(), reason);
     // The sender nym and notary of the cheque may not match the sender nym and
     // notary of the message which conveyed the cheque.
     find_nym_->Push(cheque.GetSenderNymID().str());
@@ -658,9 +676,9 @@ bool ServerContext::add_item_to_workflow(
 
     // We already made sure a contact exists for the sender of the message, but
     // it's possible the sender of the cheque is a different nym
-    client.Contacts().NymToContact(cheque.GetSenderNymID());
-    const auto workflow =
-        client.Workflow().ReceiveCheque(nym.ID(), cheque, transportItem);
+    client.Contacts().NymToContact(cheque.GetSenderNymID(), reason);
+    const auto workflow = client.Workflow().ReceiveCheque(
+        nym.ID(), cheque, transportItem, reason);
 
     if (workflow->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create workflow.")
@@ -691,7 +709,8 @@ bool ServerContext::add_tentative_number(
 bool ServerContext::add_transaction_to_ledger(
     const TransactionNumber number,
     std::shared_ptr<OTTransaction> transaction,
-    Ledger& ledger) const
+    Ledger& ledger,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -711,7 +730,7 @@ bool ServerContext::add_transaction_to_ledger(
     }
 
     ledger.ReleaseSignatures();
-    ledger.SignContract(*nym_);
+    ledger.SignContract(*nym_, reason);
     ledger.SaveContract();
     bool saved{false};
 
@@ -772,12 +791,14 @@ NetworkReplyMessage ServerContext::attempt_delivery(
     const Lock& contextLock,
     const Lock& messageLock,
     const api::client::Manager& client,
-    Message& message)
+    Message& message,
+    const PasswordPrompt& reason)
 {
     request_sent_.Publish(message.m_strCommand->Get());
     auto output = connection_.Send(
         *this,
         message,
+        reason,
         static_cast<opentxs::network::ServerConnection::Push>(
             enable_otx_push_.load()));
     auto& [status, reply] = output;
@@ -796,7 +817,7 @@ NetworkReplyMessage ServerContext::attempt_delivery(
 
             OT_ASSERT(nullptr != numbers);
 
-            process_reply(contextLock, client, *numbers, *reply);
+            process_reply(contextLock, client, *numbers, *reply, reason);
 
             if (reply->m_bSuccess) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(": Success delivering ")(
@@ -809,7 +830,8 @@ NetworkReplyMessage ServerContext::attempt_delivery(
             if (false == needRequestNumber) { break; }
 
             bool sent{false};
-            auto number = update_request_number(contextLock, messageLock, sent);
+            auto number =
+                update_request_number(reason, contextLock, messageLock, sent);
 
             if ((0 == number) || (false == sent)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -825,7 +847,8 @@ NetworkReplyMessage ServerContext::attempt_delivery(
                     .Flush();
             }
 
-            const auto updated = update_request_number(contextLock, message);
+            const auto updated =
+                update_request_number(reason, contextLock, message);
 
             if (false == updated) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to update ")(
@@ -846,6 +869,7 @@ NetworkReplyMessage ServerContext::attempt_delivery(
             output = connection_.Send(
                 *this,
                 message,
+                reason,
                 static_cast<opentxs::network::ServerConnection::Push>(
                     enable_otx_push_.load()));
 
@@ -853,7 +877,7 @@ NetworkReplyMessage ServerContext::attempt_delivery(
                 LogVerbose(OT_METHOD)(__FUNCTION__)(": Success delivering ")(
                     message.m_strCommand)(" (second attempt)")
                     .Flush();
-                process_reply(contextLock, client, {}, *reply);
+                process_reply(contextLock, client, {}, *reply, reason);
 
                 return output;
             }
@@ -901,11 +925,12 @@ bool ServerContext::create_instrument_notice_from_peer_object(
     const api::client::Manager& client,
     const Message& message,
     const PeerObject& peerObject,
-    const TransactionNumber number) const
+    const TransactionNumber number,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(proto::PEEROBJECT_PAYMENT == peerObject.Type());
 
-    if (false == peerObject.Validate()) {
+    if (false == peerObject.Validate(reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid peer object.").Flush();
 
         return false;
@@ -924,12 +949,12 @@ bool ServerContext::create_instrument_notice_from_peer_object(
 
     // Extract the OTPayment so that we know whether to use the new Workflow
     // code or the old payment inbox code
-    if (add_item_to_workflow(lock, client, message, payment)) {
+    if (add_item_to_workflow(lock, client, message, payment, reason)) {
 
         return true;
     } else {
 
-        return add_item_to_payment_inbox(number, payment);
+        return add_item_to_payment_inbox(number, payment, reason);
     }
 }
 
@@ -937,7 +962,8 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
     const String& serialized,
     const identity::Nym& signer,
     const identifier::Nym& owner,
-    const TransactionNumber target)
+    const TransactionNumber target,
+    const PasswordPrompt& reason)
 {
     if (false == serialized.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input").Flush();
@@ -946,7 +972,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
     }
 
     std::shared_ptr<OTTransactionType> transaction{
-        api_.Factory().Transaction(serialized)};
+        api_.Factory().Transaction(serialized, reason)};
 
     if (false == bool(transaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -965,7 +991,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
         return {};
     }
 
-    if (false == receipt->VerifyAccount(signer)) {
+    if (false == receipt->VerifyAccount(signer, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid receipt").Flush();
 
         return {};
@@ -990,7 +1016,8 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
 std::unique_ptr<Ledger> ServerContext::extract_ledger(
     const Armored& armored,
     const Identifier& accountID,
-    const identity::Nym& signer) const
+    const identity::Nym& signer,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -1009,7 +1036,7 @@ std::unique_ptr<Ledger> ServerContext::extract_ledger(
     auto serialized = String::Factory();
     armored.GetString(serialized);
 
-    if (false == output->LoadLedgerFromString(serialized)) {
+    if (false == output->LoadLedgerFromString(serialized, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Error: Failed to instantiate ledger")
             .Flush();
@@ -1017,7 +1044,7 @@ std::unique_ptr<Ledger> ServerContext::extract_ledger(
         return {};
     }
 
-    if (false == output->VerifySignature(signer)) {
+    if (false == output->VerifySignature(signer, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Invalid signature")
             .Flush();
 
@@ -1029,7 +1056,8 @@ std::unique_ptr<Ledger> ServerContext::extract_ledger(
 
 std::unique_ptr<Message> ServerContext::extract_message(
     const Armored& armored,
-    const identity::Nym& signer) const
+    const identity::Nym& signer,
+    const PasswordPrompt& reason) const
 {
     auto output = api_.Factory().Message();
 
@@ -1044,7 +1072,7 @@ std::unique_ptr<Message> ServerContext::extract_message(
     auto serialized = String::Factory();
     armored.GetString(serialized);
 
-    if (false == output->LoadContractFromString(serialized)) {
+    if (false == output->LoadContractFromString(serialized, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Error: Failed to instantiate message")
             .Flush();
@@ -1052,7 +1080,7 @@ std::unique_ptr<Message> ServerContext::extract_message(
         return {};
     }
 
-    if (false == output->VerifySignature(signer)) {
+    if (false == output->VerifySignature(signer, reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Invalid signature")
             .Flush();
 
@@ -1074,7 +1102,8 @@ ServerContext::TransactionNumbers ServerContext::extract_numbers(
 }
 
 std::unique_ptr<Item> ServerContext::extract_original_item(
-    const Item& response) const
+    const Item& response,
+    const PasswordPrompt& reason) const
 {
     auto serialized = String::Factory();
     response.GetReferenceString(serialized);
@@ -1087,7 +1116,7 @@ std::unique_ptr<Item> ServerContext::extract_original_item(
         return {};
     }
 
-    auto transaction = api_.Factory().Transaction(serialized);
+    auto transaction = api_.Factory().Transaction(serialized, reason);
 
     if (false == bool(transaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1110,15 +1139,127 @@ std::unique_ptr<Item> ServerContext::extract_original_item(
     return output;
 }
 
+std::shared_ptr<OTPayment> ServerContext::
+    extract_payment_instrument_from_notice(
+        const api::Core& api,
+        const identity::Nym& theNym,
+        std::shared_ptr<OTTransaction> pTransaction,
+        const PasswordPrompt& reason)
+{
+    const bool bValidNotice =
+        (transactionType::instrumentNotice == pTransaction->GetType()) ||
+        (transactionType::payDividend == pTransaction->GetType()) ||
+        (transactionType::notice == pTransaction->GetType());
+    OT_NEW_ASSERT_MSG(
+        bValidNotice, "Invalid receipt type passed to this function.");
+    // ----------------------------------------------------------------
+    if ((transactionType::instrumentNotice ==
+         pTransaction->GetType()) ||  // It's encrypted.
+        (transactionType::payDividend == pTransaction->GetType())) {
+        auto strMsg = String::Factory();
+        pTransaction->GetReferenceString(strMsg);
+
+        if (!strMsg->Exists()) {
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Expected OTTransaction::instrumentNotice to "
+                "contain an 'in reference to' string, but it was empty. "
+                "(Returning).")
+                .Flush();
+            return nullptr;
+        }
+        // --------------------
+        auto pMsg{pTransaction->API().Factory().Message()};
+        if (false == bool(pMsg)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Null: Assert while allocating memory "
+                "for an OTMessage!")
+                .Flush();
+            OT_FAIL;
+        }
+        if (!pMsg->LoadContractFromString(strMsg, reason)) {
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed trying to load OTMessage from string: ")(strMsg)(".")
+                .Flush();
+            return nullptr;
+        }
+        // --------------------
+        // By this point, the original OTMessage has been loaded from string
+        // successfully.
+        // Now we need to decrypt the payment on that message (which contains
+        // the instrument
+        // itself that we need to return.) We decrypt it the same way as we do
+        // in SwigWrap::GetNym_MailContentsByIndex():
+        //
+
+        // SENDER:     pMsg->m_strNymID
+        // RECIPIENT:  pMsg->m_strNymID2
+        // INSTRUMENT: pMsg->m_ascPayload (in an OTEnvelope)
+        //
+        OTEnvelope theEnvelope(api_);
+        auto strEnvelopeContents = String::Factory();
+
+        // Decrypt the Envelope.
+        if (!theEnvelope.SetCiphertext(pMsg->m_ascPayload))
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed trying to set ASCII-armored data for envelope: ")(
+                strMsg)(".")
+                .Flush();
+        else if (!theEnvelope.Open(*nym_, strEnvelopeContents, reason))
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed trying to decrypt the financial instrument "
+                "that was supposedly attached as a payload to this "
+                "payment message: ")(strMsg)(".")
+                .Flush();
+        else if (!strEnvelopeContents->Exists())
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed: after decryption, cleartext is empty. From: ")(
+                strMsg)(".")
+                .Flush();
+        else {
+            // strEnvelopeContents contains a PURSE or CHEQUE
+            // (etc) and not specifically a generic "PAYMENT".
+            //
+            auto pPayment{
+                pTransaction->API().Factory().Payment(strEnvelopeContents)};
+            if (false == bool(pPayment) || !pPayment->IsValid())
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failed: after decryption, payment is invalid. "
+                    "Contents: ")(strEnvelopeContents)(".")
+                    .Flush();
+            else  // success.
+            {
+                std::shared_ptr<OTPayment> payment{pPayment.release()};
+                return payment;
+            }
+        }
+    } else if (transactionType::notice == pTransaction->GetType()) {
+        auto strNotice = String::Factory(*pTransaction);
+        auto pPayment{pTransaction->API().Factory().Payment(strNotice)};
+
+        if (false == bool(pPayment) || !pPayment->IsValid())
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed: the notice is invalid. Contents: ")(strNotice)(".")
+                .Flush();
+        else  // success.
+        {
+            std::shared_ptr<OTPayment> payment{pPayment.release()};
+            return payment;
+        }
+    }
+
+    return nullptr;
+}
+
 std::unique_ptr<Item> ServerContext::extract_transfer(
-    const OTTransaction& receipt) const
+    const OTTransaction& receipt,
+    const PasswordPrompt& reason) const
 {
     if (transactionType::transferReceipt == receipt.GetType()) {
 
-        return extract_transfer_receipt(receipt);
+        return extract_transfer_receipt(receipt, reason);
     } else if (transactionType::pending == receipt.GetType()) {
 
-        return extract_transfer_pending(receipt);
+        return extract_transfer_pending(receipt, reason);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect receipt type: ")(
             receipt.GetTypeString())
@@ -1129,7 +1270,8 @@ std::unique_ptr<Item> ServerContext::extract_transfer(
 }
 
 std::unique_ptr<Item> ServerContext::extract_transfer_pending(
-    const OTTransaction& receipt) const
+    const OTTransaction& receipt,
+    const PasswordPrompt& reason) const
 {
     if (transactionType::pending != receipt.GetType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect receipt type: ")(
@@ -1149,7 +1291,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer_pending(
         return nullptr;
     }
 
-    auto transfer = api_.Factory().Item(serializedTransfer);
+    auto transfer = api_.Factory().Item(serializedTransfer, reason);
 
     if (false == bool(transfer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1170,7 +1312,8 @@ std::unique_ptr<Item> ServerContext::extract_transfer_pending(
 }
 
 std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
-    const OTTransaction& receipt) const
+    const OTTransaction& receipt,
+    const PasswordPrompt& reason) const
 {
     auto serializedAcceptPending = String::Factory();
     receipt.GetReferenceString(serializedAcceptPending);
@@ -1183,7 +1326,8 @@ std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
         return nullptr;
     }
 
-    const auto acceptPending = api_.Factory().Item(serializedAcceptPending);
+    const auto acceptPending =
+        api_.Factory().Item(serializedAcceptPending, reason);
 
     if (false == bool(acceptPending)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1225,7 +1369,8 @@ std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
         return nullptr;
     }
 
-    const bool loaded = pending->LoadContractFromString(serializedPending);
+    const bool loaded =
+        pending->LoadContractFromString(serializedPending, reason);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1253,7 +1398,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
         return nullptr;
     }
 
-    auto transfer = api_.Factory().Item(serializedTransfer);
+    auto transfer = api_.Factory().Item(serializedTransfer, reason);
 
     if (false == bool(transfer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1273,11 +1418,13 @@ std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
     return transfer;
 }
 
-bool ServerContext::finalize_server_command(Message& command) const
+bool ServerContext::finalize_server_command(
+    Message& command,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
-    if (false == command.SignContract(*nym_)) {
+    if (false == command.SignContract(*nym_, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign server message.")
             .Flush();
 
@@ -1295,9 +1442,11 @@ bool ServerContext::finalize_server_command(Message& command) const
     return true;
 }
 
-bool ServerContext::FinalizeServerCommand(Message& command) const
+bool ServerContext::FinalizeServerCommand(
+    Message& command,
+    const PasswordPrompt& reason) const
 {
-    return finalize_server_command(command);
+    return finalize_server_command(command, reason);
 }
 
 std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
@@ -1330,6 +1479,102 @@ std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
         String::Factory(server_id_)->Get(), issued, available));
 
     return output;
+}
+
+std::shared_ptr<OTPayment> ServerContext::get_instrument(
+    const api::Core& api,
+    const identity::Nym& theNym,
+    Ledger& ledger,
+    std::shared_ptr<OTTransaction> pTransaction,
+    const PasswordPrompt& reason)
+{
+    OT_ASSERT(false != bool(pTransaction));
+
+    const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
+
+    // Update: for transactions in ABBREVIATED form, the string is empty,
+    // since it has never actually been signed (in fact the whole postd::int32_t
+    // with abbreviated transactions in a ledger is that they take up very
+    // little room, and have no signature of their own, but exist merely as
+    // XML tags on their parent ledger.)
+    //
+    // THEREFORE I must check to see if this transaction is abbreviated and
+    // if so, sign it in order to force the UpdateContents() call, so the
+    // programmatic user of this API will be able to load it up.
+    //
+    if (pTransaction->IsAbbreviated()) {
+        ledger.LoadBoxReceipt(
+            static_cast<std::int64_t>(lTransactionNum),
+            reason);  // I don't check return val here because I still
+                      // want it to send the abbreviated form, if this
+                      // fails.
+        pTransaction =
+            ledger.GetTransaction(static_cast<std::int64_t>(lTransactionNum));
+
+        if (false == bool(pTransaction)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Good index but uncovered nullptr "
+                "after trying to load full version of abbreviated receipt "
+                "with transaction number: ")(lTransactionNum)(".")
+                .Flush();
+            return nullptr;  // Weird. Clearly I need the full box receipt, if
+                             // I'm to get the instrument out of it.
+        }
+    }
+    // ------------------------------------------------------------
+    /*
+    TO EXTRACT INSTRUMENT FROM PAYMENTS INBOX:
+    -- Iterate through the transactions in the payments inbox.
+    -- (They should all be "instrumentNotice" transactions.)
+    -- Each transaction contains an
+       OTMessage in the "in ref to" field, which in turn contains
+           an encrypted OTPayment in the payload field, which contains
+           the actual financial instrument.
+    -- Therefore, this function, based purely on ledger index (as we iterate):
+     1. extracts the OTMessage from the Transaction at each index,
+        from its "in ref to" field.
+     2. then decrypts the payload on that message, producing an OTPayment
+    object, 3. ...which contains the actual instrument.
+    */
+
+    if ((transactionType::instrumentNotice != pTransaction->GetType()) &&
+        (transactionType::payDividend != pTransaction->GetType()) &&
+        (transactionType::notice != pTransaction->GetType())) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: Expected OTTransaction::instrumentNotice, "
+            "::payDividend or ::notice, "
+            "but found: OTTransaction::")(pTransaction->GetTypeString())(".")
+            .Flush();
+
+        return nullptr;
+    }
+    // ------------------------------------------------------------
+    // By this point, we know the transaction is loaded up, it's
+    // not abbreviated, and is one of the accepted receipt types
+    // that would contain the sort of instrument we're looking for.
+    //
+    return extract_payment_instrument_from_notice(
+        api, theNym, pTransaction, reason);
+}
+
+std::shared_ptr<OTPayment> ServerContext::get_instrument_by_receipt_id(
+    const api::Core& api,
+    const identity::Nym& theNym,
+    const TransactionNumber lReceiptId,
+    Ledger& ledger,
+    const PasswordPrompt& reason)
+{
+    OT_VERIFY_MIN_BOUND(lReceiptId, 1);
+
+    auto pTransaction = ledger.GetTransaction(lReceiptId);
+    if (false == bool(pTransaction)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Supposedly good receipt ID, but uncovered nullptr "
+            "transaction: ")(lReceiptId)(".")
+            .Flush();
+        return nullptr;  // Weird.
+    }
+    return get_instrument(api, theNym, ledger, pTransaction, reason);
 }
 
 ServerContext::Exit ServerContext::get_item_type(
@@ -1403,7 +1648,8 @@ ServerContext::BoxType ServerContext::get_type(const std::int64_t depth)
 
 bool ServerContext::harvest_unused(
     const Lock& lock,
-    const api::client::Manager& client)
+    const api::client::Manager& client,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(verify_write_lock(lock));
     OT_ASSERT(nym_);
@@ -1467,7 +1713,8 @@ bool ServerContext::harvest_unused(
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE: {
                 [[maybe_unused]] auto [state, cheque] =
-                    api::client::Workflow::InstantiateCheque(api_, *workflow);
+                    api::client::Workflow::InstantiateCheque(
+                        api_, *workflow, reason);
 
                 if (false == bool(cheque)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1483,7 +1730,8 @@ bool ServerContext::harvest_unused(
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
             case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
                 [[maybe_unused]] auto [state, pTransfer] =
-                    api::client::Workflow::InstantiateTransfer(api_, *workflow);
+                    api::client::Workflow::InstantiateTransfer(
+                        api_, *workflow, reason);
 
                 if (false == bool(pTransfer)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1544,16 +1792,18 @@ TransactionNumber ServerContext::Highest() const
     return highest_transaction_number_.load();
 }
 
-bool ServerContext::init_new_account(const Identifier& accountID)
+bool ServerContext::init_new_account(
+    const Identifier& accountID,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
     const auto& nym = *nym_;
-    auto account = api_.Wallet().mutable_Account(accountID);
+    auto account = api_.Wallet().mutable_Account(accountID, reason);
 
     OT_ASSERT(account);
 
-    if (false == account.get().InitBoxes(nym)) {
+    if (false == account.get().InitBoxes(nym, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error initializing boxes for account ")(accountID)(".")
             .Flush();
@@ -1563,7 +1813,7 @@ bool ServerContext::init_new_account(const Identifier& accountID)
 
     auto inboxHash = api_.Factory().Identifier();
     auto outboxHash = api_.Factory().Identifier();
-    auto haveHash = account.get().GetInboxHash(inboxHash);
+    auto haveHash = account.get().GetInboxHash(inboxHash, reason);
 
     if (false == haveHash) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to get inbox hash.")
@@ -1572,7 +1822,7 @@ bool ServerContext::init_new_account(const Identifier& accountID)
         return false;
     }
 
-    haveHash = account.get().GetOutboxHash(outboxHash);
+    haveHash = account.get().GetOutboxHash(outboxHash, reason);
 
     if (false == haveHash) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to get outbox hash.")
@@ -1582,8 +1832,8 @@ bool ServerContext::init_new_account(const Identifier& accountID)
     }
 
     account.Release();
-    auto nymfile = mutable_Nymfile("");
-    auto hashSet = nymfile.It().SetInboxHash(accountID.str(), inboxHash);
+    auto nymfile = mutable_Nymfile(reason);
+    auto hashSet = nymfile.get().SetInboxHash(accountID.str(), inboxHash);
 
     if (false == hashSet) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1593,7 +1843,7 @@ bool ServerContext::init_new_account(const Identifier& accountID)
         return false;
     }
 
-    hashSet = nymfile.It().SetOutboxHash(accountID.str(), outboxHash);
+    hashSet = nymfile.get().SetOutboxHash(accountID.str(), outboxHash);
 
     if (false == hashSet) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1774,6 +2024,8 @@ std::unique_ptr<opentxs::Message> ServerContext::instantiate_message(
     const api::Core& api,
     const std::string& serialized)
 {
+    auto reason = api.Factory().PasswordPrompt("Loading server context");
+
     if (serialized.empty()) { return {}; }
 
     auto output = api.Factory().Message();
@@ -1781,7 +2033,7 @@ std::unique_ptr<opentxs::Message> ServerContext::instantiate_message(
     OT_ASSERT(output);
 
     const auto loaded =
-        output->LoadContractFromString(String::Factory(serialized));
+        output->LoadContractFromString(String::Factory(serialized), reason);
 
     if (false == loaded) { return {}; }
 
@@ -1813,9 +2065,10 @@ bool ServerContext::is_internal_transfer(const Item& item) const
     return sourceOwner == destinationOwner;
 }
 
-void ServerContext::Join() { Wait().get(); }
+void ServerContext::Join() const { Wait().get(); }
 
 const Item& ServerContext::make_accept_item(
+    const PasswordPrompt& reason,
     const itemType type,
     const OTTransaction& input,
     OTTransaction& acceptTransaction,
@@ -1833,14 +2086,15 @@ const Item& ServerContext::make_accept_item(
         acceptItem->AddBlankNumbersToItem(NumList{accept});
     }
 
-    acceptItem->SignContract(*nym_);
+    acceptItem->SignContract(*nym_, reason);
     acceptItem->SaveContract();
 
     return *acceptItem;
 }
 
 std::unique_ptr<Ledger> ServerContext::load_account_inbox(
-    const Identifier& accountID) const
+    const Identifier& accountID,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -1857,8 +2111,8 @@ std::unique_ptr<Ledger> ServerContext::load_account_inbox(
         accountID.str().c_str(),
         "");
 
-    if (output && inbox->LoadInbox()) {
-        output = inbox->VerifyAccount(nym);
+    if (output && inbox->LoadInbox(reason)) {
+        output = inbox->VerifyAccount(nym, reason);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load inbox").Flush();
     }
@@ -1871,7 +2125,8 @@ std::unique_ptr<Ledger> ServerContext::load_account_inbox(
 }
 
 std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
-    const Identifier& accountID) const
+    const Identifier& accountID,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -1891,14 +2146,14 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
     if (false == output) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Creating recordbox").Flush();
         output = recordBox->GenerateLedger(
-            accountID, server_id_, ledgerType::recordBox, true);
+            accountID, server_id_, ledgerType::recordBox, reason, true);
         recordBox->ReleaseSignatures();
-        output &= recordBox->SignContract(nym);
+        output &= recordBox->SignContract(nym, reason);
         output &= recordBox->SaveContract();
         output &= recordBox->SaveRecordBox();
     }
 
-    if (output && recordBox->LoadRecordBox()) {
+    if (output && recordBox->LoadRecordBox(reason)) {
         output &= recordBox->VerifyContractID();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load recordbox")
@@ -1907,7 +2162,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
         return {};
     }
 
-    if (output && recordBox->VerifySignature(nym)) {
+    if (output && recordBox->VerifySignature(nym, reason)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Recordbox verified").Flush();
 
         return recordBox;
@@ -1918,7 +2173,8 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
     return {};
 }
 
-std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox() const
+std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox(
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -1938,14 +2194,14 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox() const
     if (false == output) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Creating payment inbox").Flush();
         output = paymentInbox->GenerateLedger(
-            nymID, server_id_, ledgerType::paymentInbox, true);
+            nymID, server_id_, ledgerType::paymentInbox, reason, true);
         paymentInbox->ReleaseSignatures();
-        output &= paymentInbox->SignContract(nym);
+        output &= paymentInbox->SignContract(nym, reason);
         output &= paymentInbox->SaveContract();
         output &= paymentInbox->SavePaymentInbox();
     }
 
-    if (output && paymentInbox->LoadPaymentInbox()) {
+    if (output && paymentInbox->LoadPaymentInbox(reason)) {
         output &= paymentInbox->VerifyContractID();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load payment inbox")
@@ -1954,7 +2210,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox() const
         return {};
     }
 
-    if (output && paymentInbox->VerifySignature(nym)) {
+    if (output && paymentInbox->VerifySignature(nym, reason)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Payment inbox verified").Flush();
 
         return paymentInbox;
@@ -1968,13 +2224,16 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox() const
 
 #if OT_CASH
 Editor<blind::Purse> ServerContext::mutable_Purse(
-    const identifier::UnitDefinition& id)
+    const identifier::UnitDefinition& id,
+    const PasswordPrompt& reason)
 {
-    return api_.Wallet().mutable_Purse(nym_->ID(), server_id_, id);
+    return api_.Wallet().mutable_Purse(nym_->ID(), server_id_, id, reason);
 }
 #endif
 
-void ServerContext::need_box_items(const api::client::Manager& client)
+void ServerContext::need_box_items(
+    const api::client::Manager& client,
+    const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
     Lock contextLock(lock_, std::defer_lock);
@@ -1984,7 +2243,7 @@ void ServerContext::need_box_items(const api::client::Manager& client)
 
     OT_ASSERT(nymbox);
 
-    const auto loaded = nymbox->LoadNymbox();
+    const auto loaded = nymbox->LoadNymbox(reason);
 
     if (false == loaded) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load nymbox").Flush();
@@ -1992,7 +2251,7 @@ void ServerContext::need_box_items(const api::client::Manager& client)
         return;
     }
 
-    const auto verified = nymbox->VerifyAccount(*nym_);
+    const auto verified = nymbox->VerifyAccount(*nym_, reason);
 
     if (false == verified) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to verify nymbox").Flush();
@@ -2038,12 +2297,12 @@ void ServerContext::need_box_items(const api::client::Manager& client)
         message->m_strAcctID = String::Factory(nym_->ID());
         message->m_lDepth = NYMBOX_BOX_TYPE;
         message->m_lTransactionNum = number;
-        const auto finalized = FinalizeServerCommand(*message);
+        const auto finalized = FinalizeServerCommand(*message, reason);
 
         OT_ASSERT(finalized);
 
-        auto result =
-            attempt_delivery(contextLock, messageLock, client, *message);
+        auto result = attempt_delivery(
+            contextLock, messageLock, client, *message, reason);
 
         switch (result.first) {
             case SendResult::SHUTDOWN: {
@@ -2059,7 +2318,8 @@ void ServerContext::need_box_items(const api::client::Manager& client)
                 } else {
                     // Downloading a box receipt shouldn't fail. If it does, the
                     // only reasonable option is to download the nymbox again.
-                    update_state(contextLock, proto::DELIVERTYSTATE_NEEDNYMBOX);
+                    update_state(
+                        contextLock, proto::DELIVERTYSTATE_NEEDNYMBOX, reason);
                 }
 
                 [[fallthrough]];
@@ -2077,11 +2337,14 @@ void ServerContext::need_box_items(const api::client::Manager& client)
     }
 
     if (nymbox->GetTransactionMap().size() == have) {
-        update_state(contextLock, proto::DELIVERTYSTATE_NEEDPROCESSNYMBOX);
+        update_state(
+            contextLock, proto::DELIVERTYSTATE_NEEDPROCESSNYMBOX, reason);
     }
 }
 
-void ServerContext::need_nymbox(const api::client::Manager& client)
+void ServerContext::need_nymbox(
+    const api::client::Manager& client,
+    const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
     Lock contextLock(lock_, std::defer_lock);
@@ -2091,11 +2354,12 @@ void ServerContext::need_nymbox(const api::client::Manager& client)
 
     OT_ASSERT(message);
 
-    const auto finalized = FinalizeServerCommand(*message);
+    const auto finalized = FinalizeServerCommand(*message, reason);
 
     OT_ASSERT(finalized);
 
-    auto result = attempt_delivery(contextLock, messageLock, client, *message);
+    auto result =
+        attempt_delivery(contextLock, messageLock, client, *message, reason);
 
     switch (result.first) {
         case SendResult::SHUTDOWN: {
@@ -2110,7 +2374,8 @@ void ServerContext::need_nymbox(const api::client::Manager& client)
                     pending_message_ = result.second;
                 }
 
-                update_state(contextLock, proto::DELIVERTYSTATE_NEEDBOXITEMS);
+                update_state(
+                    contextLock, proto::DELIVERTYSTATE_NEEDBOXITEMS, reason);
 
                 return;
             }
@@ -2128,7 +2393,9 @@ void ServerContext::need_nymbox(const api::client::Manager& client)
     }
 }
 
-void ServerContext::need_process_nymbox(const api::client::Manager& client)
+void ServerContext::need_process_nymbox(
+    const api::client::Manager& client,
+    const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
     Lock contextLock(lock_, std::defer_lock);
@@ -2138,7 +2405,7 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
 
     OT_ASSERT(nymbox);
 
-    const auto loaded = nymbox->LoadNymbox();
+    const auto loaded = nymbox->LoadNymbox(reason);
 
     if (false == loaded) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load nymbox").Flush();
@@ -2146,7 +2413,7 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
         return;
     }
 
-    const auto verified = nymbox->VerifyAccount(*nym_);
+    const auto verified = nymbox->VerifyAccount(*nym_, reason);
 
     if (false == verified) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to verify nymbox").Flush();
@@ -2165,10 +2432,14 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
             DeliveryResult result{proto::LASTREPLYSTATUS_MESSAGESUCCESS,
                                   pending_message_};
             resolve_queue(
-                contextLock, std::move(result), proto::DELIVERTYSTATE_IDLE);
+                contextLock,
+                std::move(result),
+                reason,
+                proto::DELIVERTYSTATE_IDLE);
         } else {
             // The server never received the original message.
-            update_state(contextLock, proto::DELIVERTYSTATE_PENDINGSEND);
+            update_state(
+                contextLock, proto::DELIVERTYSTATE_PENDINGSEND, reason);
         }
 
         return;
@@ -2181,7 +2452,7 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
     ReplyNoticeOutcomes outcomes{};
     std::size_t alreadySeen{0};
     const auto accepted = accept_entire_nymbox(
-        contextLock, client, *nymbox, *message, outcomes, alreadySeen);
+        contextLock, client, *nymbox, *message, outcomes, alreadySeen, reason);
 
     if (pending_message_) {
         const RequestNumber targetNumber =
@@ -2189,7 +2460,7 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
 
         for (auto& [number, status] : outcomes) {
             if (number == targetNumber) {
-                resolve_queue(contextLock, std::move(status));
+                resolve_queue(contextLock, std::move(status), reason);
             }
         }
     }
@@ -2200,17 +2471,21 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
                 DeliveryResult result{proto::LASTREPLYSTATUS_MESSAGESUCCESS,
                                       pending_message_};
                 resolve_queue(
-                    contextLock, std::move(result), proto::DELIVERTYSTATE_IDLE);
+                    contextLock,
+                    std::move(result),
+                    reason,
+                    proto::DELIVERTYSTATE_IDLE);
             } else {
                 // The server never received the original message.
-                update_state(contextLock, proto::DELIVERTYSTATE_PENDINGSEND);
+                update_state(
+                    contextLock, proto::DELIVERTYSTATE_PENDINGSEND, reason);
             }
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed trying to accept the "
                 "entire Nymbox. (And no, it's not empty).")
                 .Flush();
-            update_state(contextLock, proto::DELIVERTYSTATE_NEEDNYMBOX);
+            update_state(contextLock, proto::DELIVERTYSTATE_NEEDNYMBOX, reason);
         }
 
         return;
@@ -2218,7 +2493,7 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
 
     local_nymbox_hash_->GetString(message->m_strNymboxHash);
 
-    if (false == finalize_server_command(*message)) {
+    if (false == finalize_server_command(*message, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to finalize server message.")
             .Flush();
@@ -2226,7 +2501,8 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
         return;
     }
 
-    auto result = attempt_delivery(contextLock, messageLock, client, *message);
+    auto result =
+        attempt_delivery(contextLock, messageLock, client, *message, reason);
 
     switch (result.first) {
         case SendResult::SHUTDOWN: {
@@ -2244,12 +2520,12 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
 
                 OT_ASSERT(message);
 
-                const auto finalized = FinalizeServerCommand(*message);
+                const auto finalized = FinalizeServerCommand(*message, reason);
 
                 OT_ASSERT(finalized);
 
                 auto again = attempt_delivery(
-                    contextLock, messageLock, client, *message);
+                    contextLock, messageLock, client, *message, reason);
 
                 if (process_nymbox_) {
                     DeliveryResult result{proto::LASTREPLYSTATUS_MESSAGESUCCESS,
@@ -2257,11 +2533,12 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
                     resolve_queue(
                         contextLock,
                         std::move(result),
+                        reason,
                         proto::DELIVERTYSTATE_IDLE);
                 } else {
                     // The server never received the original message.
                     update_state(
-                        contextLock, proto::DELIVERTYSTATE_PENDINGSEND);
+                        contextLock, proto::DELIVERTYSTATE_PENDINGSEND, reason);
                 }
 
                 return;
@@ -2277,7 +2554,7 @@ void ServerContext::need_process_nymbox(const api::client::Manager& client)
             // we might have actually processed it without realizig it.
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error processing nymbox")
                 .Flush();
-            update_state(contextLock, proto::DELIVERTYSTATE_NEEDNYMBOX);
+            update_state(contextLock, proto::DELIVERTYSTATE_NEEDNYMBOX, reason);
 
             return;
         }
@@ -2333,7 +2610,9 @@ OTManagedNumber ServerContext::NextTransactionNumber(const MessageType reason)
     return next_transaction_number(lock, reason);
 }
 
-void ServerContext::pending_send(const api::client::Manager& client)
+void ServerContext::pending_send(
+    const api::client::Manager& client,
+    const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
     Lock contextLock(lock_, std::defer_lock);
@@ -2341,8 +2620,8 @@ void ServerContext::pending_send(const api::client::Manager& client)
 
     OT_ASSERT(pending_message_);
 
-    auto result =
-        attempt_delivery(contextLock, messageLock, client, *pending_message_);
+    auto result = attempt_delivery(
+        contextLock, messageLock, client, *pending_message_, reason);
     const auto needRequestNumber = need_request_number(
         Message::Type(pending_message_->m_strCommand->Get()));
 
@@ -2365,7 +2644,10 @@ void ServerContext::pending_send(const api::client::Manager& client)
             }
 
             resolve_queue(
-                contextLock, std::move(output), proto::DELIVERTYSTATE_IDLE);
+                contextLock,
+                std::move(output),
+                reason,
+                proto::DELIVERTYSTATE_IDLE);
 
         } break;
         case SendResult::TIMEOUT:
@@ -2374,6 +2656,7 @@ void ServerContext::pending_send(const api::client::Manager& client)
                 update_state(
                     contextLock,
                     proto::DELIVERTYSTATE_NEEDNYMBOX,
+                    reason,
                     proto::LASTREPLYSTATUS_UNKNOWN);
             }
         } break;
@@ -2382,7 +2665,7 @@ void ServerContext::pending_send(const api::client::Manager& client)
     }
 }
 
-NetworkReplyMessage ServerContext::PingNotary()
+NetworkReplyMessage ServerContext::PingNotary(const PasswordPrompt& reason)
 {
     Lock lock(message_lock_);
 
@@ -2424,7 +2707,7 @@ NetworkReplyMessage ServerContext::PingNotary()
     request->m_strNymID2 = proto::ProtoAsArmored(
         serializedEncryptKey, String::Factory("ASYMMETRIC KEY"));
 
-    if (false == finalize_server_command(*request)) {
+    if (false == finalize_server_command(*request, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to finalize server message.")
             .Flush();
@@ -2435,13 +2718,15 @@ NetworkReplyMessage ServerContext::PingNotary()
     return connection_.Send(
         *this,
         *request,
+        reason,
         static_cast<opentxs::network::ServerConnection::Push>(
             enable_otx_push_.load()));
 }
 
 bool ServerContext::ProcessNotification(
     const api::client::Manager& client,
-    const otx::Reply& notification)
+    const otx::Reply& notification,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -2460,10 +2745,10 @@ bool ServerContext::ProcessNotification(
         case proto::OTXPUSH_NYMBOX: {
             // Nymbox items don't have an intrinsic account ID. Use nym ID
             // instead.
-            return process_box_item(lock, client, nym_->ID(), push);
+            return process_box_item(lock, client, nym_->ID(), push, reason);
         } break;
         case proto::OTXPUSH_INBOX: {
-            return process_account_push(lock, client, push);
+            return process_account_push(lock, client, push, reason);
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported push type")
@@ -2488,7 +2773,8 @@ void ServerContext::process_accept_basket_receipt_reply(
 void ServerContext::process_accept_cron_receipt_reply(
     const Lock& lock,
     const Identifier& accountID,
-    OTTransaction& inboxTransaction)
+    OTTransaction& inboxTransaction,
+    const PasswordPrompt& reason)
 {
     auto pServerItem = inboxTransaction.GetItem(itemType::marketReceipt);
 
@@ -2512,8 +2798,10 @@ void ServerContext::process_accept_cron_receipt_reply(
     OT_ASSERT((theTrade));
 
     api_.Factory().Trade();
-    bool bLoadOfferFromString = theOffer->LoadContractFromString(strOffer);
-    bool bLoadTradeFromString = theTrade->LoadContractFromString(strTrade);
+    bool bLoadOfferFromString =
+        theOffer->LoadContractFromString(strOffer, reason);
+    bool bLoadTradeFromString =
+        theTrade->LoadContractFromString(strTrade, reason);
 
     if (bLoadOfferFromString && bLoadTradeFromString) {
         std::unique_ptr<OTDB::TradeDataNym> pData(
@@ -2533,7 +2821,7 @@ void ServerContext::process_accept_cron_receipt_reply(
             to_string<std::int64_t>(pServerItem->GetTransactionNum());
         pData->completed_count =
             to_string<std::int32_t>(theTrade->GetCompletedCount());
-        auto account = api_.Wallet().Account(accountID);
+        auto account = api_.Wallet().Account(accountID, reason);
 
         OT_ASSERT(account)
 
@@ -2726,7 +3014,8 @@ void ServerContext::process_accept_item_receipt_reply(
     const api::client::Manager& client,
     const Identifier& accountID,
     const Message& reply,
-    const OTTransaction& inboxTransaction)
+    const OTTransaction& inboxTransaction,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -2735,7 +3024,10 @@ void ServerContext::process_accept_item_receipt_reply(
     auto serializedOriginal = String::Factory();
     inboxTransaction.GetReferenceString(serializedOriginal);
     auto pOriginalItem = api_.Factory().Item(
-        serializedOriginal, server_id_, inboxTransaction.GetReferenceToNum());
+        serializedOriginal,
+        server_id_,
+        inboxTransaction.GetReferenceToNum(),
+        reason);
 
     if (false == bool(pOriginalItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -2758,7 +3050,7 @@ void ServerContext::process_accept_item_receipt_reply(
 
             OT_ASSERT(cheque);
 
-            if (false == cheque->LoadContractFromString(serialized)) {
+            if (false == cheque->LoadContractFromString(serialized, reason)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed to deserialize cheque")
                     .Flush();
@@ -2770,7 +3062,7 @@ void ServerContext::process_accept_item_receipt_reply(
             consume_issued(lock, number);
         } break;
         case itemType::acceptPending: {
-            consume_issued(lock, originalItem.GetNumberOfOrigin());
+            consume_issued(lock, originalItem.GetNumberOfOrigin(reason));
 
             auto serialized = String::Factory();
             originalItem.GetAttachment(serialized);
@@ -2788,7 +3080,7 @@ void ServerContext::process_accept_item_receipt_reply(
             OT_ASSERT(transferReceipt);
 
             const auto loaded =
-                transferReceipt->LoadContractFromString(serialized);
+                transferReceipt->LoadContractFromString(serialized, reason);
 
             if (false == loaded) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -2798,7 +3090,7 @@ void ServerContext::process_accept_item_receipt_reply(
                 break;
             }
 
-            const auto pTransfer = extract_transfer(*transferReceipt);
+            const auto pTransfer = extract_transfer(*transferReceipt, reason);
 
             if (pTransfer) {
                 const auto& transfer = *pTransfer;
@@ -2814,7 +3106,7 @@ void ServerContext::process_accept_item_receipt_reply(
                 }
 
                 client.Workflow().CompleteTransfer(
-                    nymID, server_id_, *transferReceipt, reply);
+                    nymID, server_id_, *transferReceipt, reply, reason);
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer")
                     .Flush();
@@ -2833,7 +3125,8 @@ void ServerContext::process_accept_pending_reply(
     const api::client::Manager& client,
     const Identifier& accountID,
     const Item& acceptItemReceipt,
-    const Message& reply) const
+    const Message& reply,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -2862,7 +3155,7 @@ void ServerContext::process_accept_pending_reply(
 
     OT_ASSERT(pending);
 
-    const auto loaded = pending->LoadContractFromString(attachment);
+    const auto loaded = pending->LoadContractFromString(attachment, reason);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate").Flush();
@@ -2876,7 +3169,7 @@ void ServerContext::process_accept_pending_reply(
         return;
     }
 
-    const auto pTransfer = extract_transfer(*pending);
+    const auto pTransfer = extract_transfer(*pending, reason);
 
     if (pTransfer) {
         const auto& transfer = *pTransfer;
@@ -2885,7 +3178,7 @@ void ServerContext::process_accept_pending_reply(
             LogDetail(OT_METHOD)(__FUNCTION__)(": Accepting incoming transfer")
                 .Flush();
             client.Workflow().AcceptTransfer(
-                nym_->ID(), server_id_, *pending, reply);
+                nym_->ID(), server_id_, *pending, reply, reason);
         }
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer").Flush();
@@ -2899,13 +3192,15 @@ bool ServerContext::process_account_data(
     const Identifier& inboxHash,
     const String& inbox,
     const Identifier& outboxHash,
-    const String& outbox)
+    const String& outbox,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
 
     const auto& nymID = nym_->ID();
-    const auto updated = api_.Wallet().UpdateAccount(accountID, *this, account);
+    const auto updated =
+        api_.Wallet().UpdateAccount(accountID, *this, account, reason);
 
     if (updated) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Saved updated account file.")
@@ -2926,24 +3221,24 @@ bool ServerContext::process_account_data(
     OT_ASSERT(inbox_);
     OT_ASSERT(ledgerType::inbox == inbox_->GetType());
 
-    if (false == inbox_->LoadInboxFromString(inbox)) {
+    if (false == inbox_->LoadInboxFromString(inbox, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialize inbox")
             .Flush();
 
         return false;
     }
 
-    if (false == inbox_->VerifySignature(*remote_nym_)) {
+    if (false == inbox_->VerifySignature(*remote_nym_, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid inbox signature").Flush();
 
         return false;
     }
 
-    auto nymfile = mutable_Nymfile("");
+    auto nymfile = mutable_Nymfile(reason);
 
     if (false == inboxHash.empty()) {
         const bool hashSet =
-            nymfile.It().SetInboxHash(accountID.str(), inboxHash);
+            nymfile.get().SetInboxHash(accountID.str(), inboxHash);
 
         if (false == hashSet) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -2996,7 +3291,7 @@ bool ServerContext::process_account_data(
     }
 
     inbox_->ReleaseSignatures();
-    inbox_->SignContract(*nym_);
+    inbox_->SignContract(*nym_, reason);
     inbox_->SaveContract();
     inbox_->SaveInbox(api_.Factory().Identifier());
 
@@ -3010,14 +3305,14 @@ bool ServerContext::process_account_data(
     OT_ASSERT(outbox_);
     OT_ASSERT(ledgerType::outbox == outbox_->GetType());
 
-    if (false == outbox_->LoadOutboxFromString(outbox)) {
+    if (false == outbox_->LoadOutboxFromString(outbox, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialize outbox")
             .Flush();
 
         return false;
     }
 
-    if (false == outbox_->VerifySignature(*remote_nym_)) {
+    if (false == outbox_->VerifySignature(*remote_nym_, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid outbox signature")
             .Flush();
 
@@ -3026,7 +3321,7 @@ bool ServerContext::process_account_data(
 
     if (false == outboxHash.empty()) {
         const bool hashSet =
-            nymfile.It().SetOutboxHash(accountID.str(), outboxHash);
+            nymfile.get().SetOutboxHash(accountID.str(), outboxHash);
 
         if (false == hashSet) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3037,7 +3332,7 @@ bool ServerContext::process_account_data(
     }
 
     outbox_->ReleaseSignatures();
-    outbox_->SignContract(*nym_);
+    outbox_->SignContract(*nym_, reason);
     outbox_->SaveContract();
     outbox_->SaveOutbox(api_.Factory().Identifier());
 
@@ -3047,7 +3342,8 @@ bool ServerContext::process_account_data(
 bool ServerContext::process_account_push(
     const Lock& lock,
     const api::client::Manager& client,
-    const proto::OTXPush& push)
+    const proto::OTXPush& push,
+    const PasswordPrompt& reason)
 {
     const auto accountID = api_.Factory().Identifier(push.accountid());
     const auto inboxHash = api_.Factory().Identifier(push.inboxhash());
@@ -3057,7 +3353,7 @@ bool ServerContext::process_account_push(
     const auto outbox = String::Factory(push.outbox());
 
     const auto processed = process_account_data(
-        lock, accountID, account, inboxHash, inbox, outboxHash, outbox);
+        lock, accountID, account, inboxHash, inbox, outboxHash, outbox, reason);
 
     if (processed) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
@@ -3070,14 +3366,15 @@ bool ServerContext::process_account_push(
         return false;
     }
 
-    return process_box_item(lock, client, accountID, push);
+    return process_box_item(lock, client, accountID, push, reason);
 }
 
 bool ServerContext::process_box_item(
     const Lock& lock,
     const api::client::Manager& client,
     const Identifier& accountID,
-    const proto::OTXPush& push)
+    const proto::OTXPush& push,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -3113,7 +3410,7 @@ bool ServerContext::process_box_item(
     }
 
     std::shared_ptr<OTTransactionType> base{
-        api_.Factory().Transaction(String::Factory(payload))};
+        api_.Factory().Transaction(String::Factory(payload), reason)};
 
     if (false == bool(base)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payload").Flush();
@@ -3136,7 +3433,7 @@ bool ServerContext::process_box_item(
         return false;
     }
 
-    if (false == receipt->VerifyAccount(remoteNym)) {
+    if (false == receipt->VerifyAccount(remoteNym, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to verify box receipt")
             .Flush();
 
@@ -3153,12 +3450,14 @@ bool ServerContext::process_box_item(
         accountID,
         receipt,
         String::Factory(payload.c_str()),
-        box);
+        box,
+        reason);
 }
 
 bool ServerContext::process_get_nymbox_response(
     const Lock& lock,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -3168,7 +3467,7 @@ bool ServerContext::process_get_nymbox_response(
 
     OT_ASSERT(nymbox);
 
-    if (false == nymbox->LoadNymboxFromString(serialized)) {
+    if (false == nymbox->LoadNymboxFromString(serialized, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading or verifying nymbox")
             .Flush();
@@ -3178,7 +3477,7 @@ bool ServerContext::process_get_nymbox_response(
 
     auto nymboxHash = api_.Factory().Identifier();
     nymbox->ReleaseSignatures();
-    nymbox->SignContract(*nym_);
+    nymbox->SignContract(*nym_, reason);
     nymbox->SaveContract();
     nymbox->SaveNymbox(nymboxHash);
     update_nymbox_hash(lock, reply, UpdateHash::Both);
@@ -3188,6 +3487,7 @@ bool ServerContext::process_get_nymbox_response(
 
 bool ServerContext::process_check_nym_response(
     const Lock& lock,
+    const PasswordPrompt& reason,
     const api::client::Manager& client,
     const Message& reply)
 {
@@ -3204,10 +3504,10 @@ bool ServerContext::process_check_nym_response(
     auto serialized = proto::DataToProto<proto::CredentialIndex>(
         Data::Factory(reply.m_ascPayload));
 
-    auto nym = client.Wallet().Nym(serialized);
+    auto nym = client.Wallet().Nym(serialized, reason);
 
     if (nym) {
-        client.Contacts().Update(serialized);
+        client.Contacts().Update(serialized, reason);
 
         return true;
     } else {
@@ -3222,7 +3522,8 @@ bool ServerContext::process_check_nym_response(
 
 bool ServerContext::process_get_account_data(
     const Lock& lock,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
     auto serializedAccount = String::Factory();
@@ -3263,13 +3564,15 @@ bool ServerContext::process_get_account_data(
         api_.Factory().Identifier(reply.m_strInboxHash),
         serializedInbox,
         api_.Factory().Identifier(reply.m_strOutboxHash),
-        serializedOutbox);
+        serializedOutbox,
+        reason);
 }
 
 bool ServerContext::process_get_box_receipt_response(
     const Lock& lock,
     const api::client::Manager& client,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -3284,7 +3587,7 @@ bool ServerContext::process_get_box_receipt_response(
 
     auto serialized = String::Factory(reply.m_ascPayload);
     auto boxReceipt = extract_box_receipt(
-        serialized, serverNym, nymID, reply.m_lTransactionNum);
+        serialized, serverNym, nymID, reply.m_lTransactionNum, reason);
 
     if (false == bool(boxReceipt)) { return false; }
 
@@ -3294,7 +3597,8 @@ bool ServerContext::process_get_box_receipt_response(
         api_.Factory().Identifier(reply.m_strAcctID),
         boxReceipt,
         serialized,
-        type);
+        type,
+        reason);
 }
 
 bool ServerContext::process_get_box_receipt_response(
@@ -3303,7 +3607,8 @@ bool ServerContext::process_get_box_receipt_response(
     const Identifier& accountID,
     const std::shared_ptr<OTTransaction> receipt,
     const String& serialized,
-    const BoxType type)
+    const BoxType type,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(receipt);
@@ -3314,16 +3619,16 @@ bool ServerContext::process_get_box_receipt_response(
 
     switch (receipt->GetType()) {
         case transactionType::message: {
-            process_incoming_message(lock, client, *receipt);
+            process_incoming_message(lock, client, *receipt, reason);
         } break;
         case transactionType::instrumentNotice:
         case transactionType::instrumentRejection: {
             processInbox = true;
-            process_incoming_instrument(receipt);
+            process_incoming_instrument(receipt, reason);
         } break;
         case transactionType::transferReceipt: {
             processInbox = true;
-            const auto pTransfer = extract_transfer(*receipt);
+            const auto pTransfer = extract_transfer(*receipt, reason);
 
             if (pTransfer) {
                 const auto& transfer = *pTransfer;
@@ -3338,7 +3643,8 @@ bool ServerContext::process_get_box_receipt_response(
                         .Flush();
                 }
 
-                client.Workflow().ClearTransfer(nymID, server_id_, *receipt);
+                client.Workflow().ClearTransfer(
+                    nymID, server_id_, *receipt, reason);
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer")
                     .Flush();
@@ -3346,7 +3652,7 @@ bool ServerContext::process_get_box_receipt_response(
         } break;
         case transactionType::pending: {
             processInbox = true;
-            const auto pTransfer = extract_transfer(*receipt);
+            const auto pTransfer = extract_transfer(*receipt, reason);
 
             if (pTransfer) {
                 const auto& transfer = *pTransfer;
@@ -3356,14 +3662,14 @@ bool ServerContext::process_get_box_receipt_response(
                         ": Conveying internal transfer")
                         .Flush();
                     client.Workflow().ConveyTransfer(
-                        nymID, server_id_, *receipt);
+                        nymID, server_id_, *receipt, reason);
                 } else if (transfer.GetNymID() != nymID) {
 
                     LogDetail(OT_METHOD)(__FUNCTION__)(
                         ": Conveying incoming transfer")
                         .Flush();
                     client.Workflow().ConveyTransfer(
-                        nymID, server_id_, *receipt);
+                        nymID, server_id_, *receipt, reason);
                 }
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer")
@@ -3688,7 +3994,8 @@ bool ServerContext::process_get_market_recent_trades_response(
 #if OT_CASH
 bool ServerContext::process_get_mint_response(
     const Lock& lock,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     auto serialized = String::Factory(reply.m_ascPayload);
 
@@ -3698,7 +4005,7 @@ bool ServerContext::process_get_mint_response(
     OT_ASSERT(mint);
 
     // TODO check the server signature on the mint here...
-    if (false == mint->LoadContractFromString(serialized)) {
+    if (false == mint->LoadContractFromString(serialized, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading mint from message payload.")
             .Flush();
@@ -3799,22 +4106,24 @@ bool ServerContext::process_get_nym_market_offers_response(
 }
 
 void ServerContext::process_incoming_instrument(
-    const std::shared_ptr<OTTransaction> receipt) const
+    const std::shared_ptr<OTTransaction> receipt,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(receipt);
 
-    auto paymentInbox = load_or_create_payment_inbox();
+    auto paymentInbox = load_or_create_payment_inbox(reason);
 
     if (false == bool(paymentInbox)) { return; }
 
     add_transaction_to_ledger(
-        receipt->GetTransactionNum(), receipt, *paymentInbox);
+        receipt->GetTransactionNum(), receipt, *paymentInbox, reason);
 }
 
 void ServerContext::process_incoming_message(
     const Lock& lock,
     const api::client::Manager& client,
-    const OTTransaction& receipt) const
+    const OTTransaction& receipt,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -3825,7 +4134,7 @@ void ServerContext::process_incoming_message(
 
     OT_ASSERT(message);
 
-    if (false == message->LoadContractFromString(serialized)) {
+    if (false == message->LoadContractFromString(serialized, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to decode peer object: failed to deserialize message.")
             .Flush();
@@ -3839,12 +4148,12 @@ void ServerContext::process_incoming_message(
     if (senderNymID->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing sender nym ID").Flush();
     } else {
-        client.Contacts().NymToContact(senderNymID);
+        client.Contacts().NymToContact(senderNymID, reason);
     }
 
     if (recipientNymId == nymID) {
         const auto pPeerObject =
-            api_.Factory().PeerObject(nym_, message->m_ascPayload);
+            api_.Factory().PeerObject(nym_, message->m_ascPayload, reason);
 
         if (false == bool(pPeerObject)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate object")
@@ -3858,7 +4167,7 @@ void ServerContext::process_incoming_message(
         switch (peerObject.Type()) {
             case (proto::PEEROBJECT_MESSAGE): {
                 client.Activity().Mail(
-                    recipientNymId, *message, StorageBox::MAILINBOX);
+                    recipientNymId, *message, StorageBox::MAILINBOX, reason);
             } break;
 #if OT_CASH
             case (proto::PEEROBJECT_CASH): {
@@ -3867,7 +4176,8 @@ void ServerContext::process_incoming_message(
                     client,
                     receipt.GetTransactionNum(),
                     peerObject,
-                    *message);
+                    *message,
+                    reason);
             } break;
 #endif
             case (proto::PEEROBJECT_PAYMENT): {
@@ -3876,7 +4186,8 @@ void ServerContext::process_incoming_message(
                     client,
                     *message,
                     peerObject,
-                    receipt.GetTransactionNum());
+                    receipt.GetTransactionNum(),
+                    reason);
 
                 if (!created) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3903,6 +4214,7 @@ void ServerContext::process_incoming_message(
 
 bool ServerContext::process_get_unit_definition_response(
     const Lock& lock,
+    const PasswordPrompt& reason,
     const Message& reply)
 {
     update_nymbox_hash(lock, reply);
@@ -3923,21 +4235,21 @@ bool ServerContext::process_get_unit_definition_response(
         case ContractType::NYM: {
             auto serialized =
                 proto::DataToProto<proto::CredentialIndex>(raw.get());
-            auto contract = api_.Wallet().Nym(serialized);
+            auto contract = api_.Wallet().Nym(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.nymid()); }
         } break;
         case ContractType::SERVER: {
             auto serialized =
                 proto::DataToProto<proto::ServerContract>(raw.get());
-            auto contract = api_.Wallet().Server(serialized);
+            auto contract = api_.Wallet().Server(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.id()); }
         } break;
         case ContractType::UNIT: {
             auto serialized =
                 proto::DataToProto<proto::UnitDefinition>(raw.get());
-            auto contract = api_.Wallet().UnitDefinition(serialized);
+            auto contract = api_.Wallet().UnitDefinition(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.id()); }
         } break;
@@ -3945,7 +4257,7 @@ bool ServerContext::process_get_unit_definition_response(
         default: {
             auto serialized =
                 proto::DataToProto<proto::UnitDefinition>(raw.get());
-            auto contract = api_.Wallet().UnitDefinition(serialized);
+            auto contract = api_.Wallet().UnitDefinition(serialized, reason);
 
             if (contract) {
 
@@ -3955,7 +4267,7 @@ bool ServerContext::process_get_unit_definition_response(
                 auto serialized =
                     proto::DataToProto<proto::ServerContract>(raw.get());
 
-                auto contract = api_.Wallet().Server(serialized);
+                auto contract = api_.Wallet().Server(serialized, reason);
 
                 if (contract) { return (unitID->str() == serialized.id()); }
             }
@@ -3967,7 +4279,8 @@ bool ServerContext::process_get_unit_definition_response(
 
 bool ServerContext::process_issue_unit_definition_response(
     const Lock& lock,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     update_nymbox_hash(lock, reply);
     const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
@@ -3982,13 +4295,13 @@ bool ServerContext::process_issue_unit_definition_response(
 
     auto serialized = String::Factory(reply.m_ascPayload);
     const auto updated = api_.Wallet().UpdateAccount(
-        accountID, *this, serialized, std::get<0>(pending_args_));
+        accountID, *this, serialized, std::get<0>(pending_args_), reason);
 
     if (updated) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Saved new issuer account.")
             .Flush();
 
-        return init_new_account(accountID);
+        return init_new_account(accountID, reason);
     }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save account.").Flush();
@@ -3999,7 +4312,8 @@ bool ServerContext::process_issue_unit_definition_response(
 bool ServerContext::process_notarize_transaction_response(
     const Lock& lock,
     const api::client::Manager& client,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -4014,9 +4328,9 @@ bool ServerContext::process_notarize_transaction_response(
     OT_ASSERT(responseLedger);
 
     bool loaded = responseLedger->LoadLedgerFromString(
-        String::Factory(reply.m_ascPayload));
+        String::Factory(reply.m_ascPayload), reason);
 
-    if (loaded) { loaded &= responseLedger->VerifyAccount(serverNym); }
+    if (loaded) { loaded &= responseLedger->VerifyAccount(serverNym, reason); }
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4052,7 +4366,7 @@ bool ServerContext::process_notarize_transaction_response(
             continue;
         }
 
-        if (false == transaction.VerifyAccount(serverNym)) {
+        if (false == transaction.VerifyAccount(serverNym, reason)) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Unable to verify transaction ")(transactionNumber)
                 .Flush();
@@ -4060,7 +4374,7 @@ bool ServerContext::process_notarize_transaction_response(
             return false;
         }
 
-        process_response_transaction(lock, client, reply, transaction);
+        process_response_transaction(lock, client, reply, transaction, reason);
     }
 
     return true;
@@ -4071,25 +4385,27 @@ bool ServerContext::process_process_box_response(
     const api::client::Manager& client,
     const Message& reply,
     const BoxType type,
-    const Identifier& accountID)
+    const Identifier& accountID,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
 
     update_nymbox_hash(lock, reply);
-    auto originalMessage = extract_message(reply.m_ascInReferenceTo, *nym_);
+    auto originalMessage =
+        extract_message(reply.m_ascInReferenceTo, *nym_, reason);
 
     if (false == bool(originalMessage)) { return false; }
 
     OT_ASSERT(originalMessage);
 
     auto ledger =
-        extract_ledger(originalMessage->m_ascPayload, accountID, *nym_);
+        extract_ledger(originalMessage->m_ascPayload, accountID, *nym_, reason);
 
     if (false == bool(ledger)) { return false; }
 
     auto responseLedger =
-        extract_ledger(reply.m_ascPayload, accountID, *remote_nym_);
+        extract_ledger(reply.m_ascPayload, accountID, *remote_nym_, reason);
 
     if (false == bool(responseLedger)) { return false; }
 
@@ -4104,7 +4420,8 @@ bool ServerContext::process_process_box_response(
             *ledger,
             *responseLedger,
             transaction,
-            replyTransaction);
+            replyTransaction,
+            reason);
     } else {
         process_process_nymbox_response(
             lock,
@@ -4112,7 +4429,8 @@ bool ServerContext::process_process_box_response(
             *ledger,
             *responseLedger,
             transaction,
-            replyTransaction);
+            replyTransaction,
+            reason);
     }
 
     if (false == (transaction && replyTransaction)) {
@@ -4187,7 +4505,8 @@ bool ServerContext::process_process_inbox_response(
     Ledger& ledger,
     Ledger& responseLedger,
     std::shared_ptr<OTTransaction>& transaction,
-    std::shared_ptr<OTTransaction>& replyTransaction)
+    std::shared_ptr<OTTransaction>& replyTransaction,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -4211,11 +4530,11 @@ bool ServerContext::process_process_inbox_response(
     }
 
     consume_issued(lock, transaction->GetTransactionNum());
-    auto inbox = load_account_inbox(accountID);
+    auto inbox = load_account_inbox(accountID, reason);
 
     OT_ASSERT(inbox);
 
-    auto recordBox = load_or_create_account_recordbox(accountID);
+    auto recordBox = load_or_create_account_recordbox(accountID, reason);
 
     OT_ASSERT(recordBox);
 
@@ -4284,7 +4603,10 @@ bool ServerContext::process_process_inbox_response(
         auto serializedOriginalItem = String::Factory();
         replyItem.GetReferenceString(serializedOriginalItem);
         auto pReferenceItem = api_.Factory().Item(
-            serializedOriginalItem, server_id_, replyItem.GetReferenceToNum());
+            serializedOriginalItem,
+            server_id_,
+            replyItem.GetReferenceToNum(),
+            reason);
         auto pItem = (pReferenceItem) ? transaction->GetItemInRefTo(
                                             pReferenceItem->GetReferenceToNum())
                                       : nullptr;
@@ -4336,15 +4658,15 @@ bool ServerContext::process_process_inbox_response(
         switch (replyItem.GetType()) {
             case itemType::atAcceptPending: {
                 process_accept_pending_reply(
-                    lock, client, accountID, referenceItem, reply);
+                    lock, client, accountID, referenceItem, reply, reason);
             } break;
             case itemType::atAcceptItemReceipt: {
                 process_accept_item_receipt_reply(
-                    lock, client, accountID, reply, inboxTransaction);
+                    lock, client, accountID, reply, inboxTransaction, reason);
             } break;
             case itemType::atAcceptCronReceipt: {
                 process_accept_cron_receipt_reply(
-                    lock, accountID, inboxTransaction);
+                    lock, accountID, inboxTransaction, reason);
             } break;
             case itemType::atAcceptFinalReceipt: {
                 process_accept_final_receipt_reply(lock, inboxTransaction);
@@ -4358,7 +4680,7 @@ bool ServerContext::process_process_inbox_response(
 
         if (recordBox->AddTransaction(pInboxTransaction)) {
             recordBox->ReleaseSignatures();
-            recordBox->SignContract(nym);
+            recordBox->SignContract(nym, reason);
             recordBox->SaveContract();
             recordBox->SaveRecordBox();
 
@@ -4380,7 +4702,7 @@ bool ServerContext::process_process_inbox_response(
     }
 
     inbox->ReleaseSignatures();
-    inbox->SignContract(nym);
+    inbox->SignContract(nym, reason);
     inbox->SaveContract();
     inbox->SaveInbox(api_.Factory().Identifier());
 
@@ -4393,7 +4715,8 @@ bool ServerContext::process_process_nymbox_response(
     Ledger& ledger,
     Ledger& responseLedger,
     std::shared_ptr<OTTransaction>& transaction,
-    std::shared_ptr<OTTransaction>& replyTransaction)
+    std::shared_ptr<OTTransaction>& replyTransaction,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -4411,19 +4734,19 @@ bool ServerContext::process_process_nymbox_response(
     OT_ASSERT((nymbox));
 
     bool loadedNymbox{true};
-    loadedNymbox &= nymbox->LoadNymbox();
-    loadedNymbox &= nymbox->VerifyAccount(nym);
+    loadedNymbox &= nymbox->LoadNymbox(reason);
+    loadedNymbox &= nymbox->VerifyAccount(nym, reason);
 
     OT_ASSERT(loadedNymbox);
 
     for (const auto& item : replyTransaction->GetItemList()) {
         OT_ASSERT(item);
 
-        remove_nymbox_item(lock, *item, *nymbox, *transaction);
+        remove_nymbox_item(lock, *item, *nymbox, *transaction, reason);
     }
 
     nymbox->ReleaseSignatures();
-    nymbox->SignContract(nym);
+    nymbox->SignContract(nym, reason);
     nymbox->SaveContract();
     auto nymboxHash = api_.Factory().Identifier();
     nymbox->SaveNymbox(nymboxHash);
@@ -4434,7 +4757,8 @@ bool ServerContext::process_process_nymbox_response(
 
 bool ServerContext::process_register_account_response(
     const Lock& lock,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     update_nymbox_hash(lock, reply);
     const auto accountID = api_.Factory().Identifier(reply.m_strAcctID);
@@ -4449,13 +4773,13 @@ bool ServerContext::process_register_account_response(
 
     auto serialized = String::Factory(reply.m_ascPayload);
     const auto updated = api_.Wallet().UpdateAccount(
-        accountID, *this, serialized, std::get<0>(pending_args_));
+        accountID, *this, serialized, std::get<0>(pending_args_), reason);
 
     if (updated) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Saved new issuer account.")
             .Flush();
 
-        return init_new_account(accountID);
+        return init_new_account(accountID, reason);
     }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save account.").Flush();
@@ -4488,7 +4812,8 @@ bool ServerContext::process_request_admin_response(
 bool ServerContext::process_register_nym_response(
     const Lock& lock,
     const api::client::Manager& client,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     auto serialized =
         proto::DataToProto<proto::Context>(Data::Factory(reply.m_ascPayload));
@@ -4501,7 +4826,7 @@ bool ServerContext::process_register_nym_response(
     }
 
     auto output = resync(lock, serialized);
-    output &= harvest_unused(lock, client);
+    output &= harvest_unused(lock, client, reason);
 
     return output;
 }
@@ -4510,7 +4835,8 @@ bool ServerContext::process_reply(
     const Lock& lock,
     const api::client::Manager& client,
     const std::set<OTManagedNumber>& managed,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -4523,7 +4849,7 @@ bool ServerContext::process_reply(
         reply.m_bSuccess ? "success" : "failure")(")")
         .Flush();
 
-    if (false == reply.VerifySignature(serverNym)) {
+    if (false == reply.VerifySignature(serverNym, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error: Server reply signature failed to verify.")
             .Flush();
@@ -4551,16 +4877,17 @@ bool ServerContext::process_reply(
 
     switch (Message::Type(reply.m_strCommand->Get())) {
         case MessageType::checkNymResponse: {
-            return process_check_nym_response(lock, client, reply);
+            return process_check_nym_response(lock, reason, client, reply);
         }
         case MessageType::getAccountDataResponse: {
-            return process_get_account_data(lock, reply);
+            return process_get_account_data(lock, reply, reason);
         }
         case MessageType::getBoxReceiptResponse: {
-            return process_get_box_receipt_response(lock, client, reply);
+            return process_get_box_receipt_response(
+                lock, client, reply, reason);
         }
         case MessageType::getInstrumentDefinitionResponse: {
-            return process_get_unit_definition_response(lock, reply);
+            return process_get_unit_definition_response(lock, reason, reply);
         }
         case MessageType::getMarketListResponse: {
             return process_get_market_list_response(lock, reply);
@@ -4573,17 +4900,18 @@ bool ServerContext::process_reply(
         }
 #if OT_CASH
         case MessageType::getMintResponse: {
-            return process_get_mint_response(lock, reply);
+            return process_get_mint_response(lock, reply, reason);
         }
 #endif
         case MessageType::getNymboxResponse: {
-            return process_get_nymbox_response(lock, reply);
+            return process_get_nymbox_response(lock, reply, reason);
         }
         case MessageType::getNymMarketOffersResponse: {
             return process_get_nym_market_offers_response(lock, reply);
         }
         case MessageType::notarizeTransactionResponse: {
-            return process_notarize_transaction_response(lock, client, reply);
+            return process_notarize_transaction_response(
+                lock, client, reply, reason);
         }
         case MessageType::processInboxResponse: {
             return process_process_box_response(
@@ -4591,20 +4919,21 @@ bool ServerContext::process_reply(
                 client,
                 reply,
                 BoxType::Inbox,
-                api_.Factory().Identifier(reply.m_strAcctID));
+                api_.Factory().Identifier(reply.m_strAcctID),
+                reason);
         }
         case MessageType::processNymboxResponse: {
             return process_process_box_response(
-                lock, client, reply, BoxType::Nymbox, nymID);
+                lock, client, reply, BoxType::Nymbox, nymID, reason);
         }
         case MessageType::registerAccountResponse: {
-            return process_register_account_response(lock, reply);
+            return process_register_account_response(lock, reply, reason);
         }
         case MessageType::requestAdminResponse: {
             return process_request_admin_response(lock, reply);
         }
         case MessageType::registerInstrumentDefinitionResponse: {
-            return process_issue_unit_definition_response(lock, reply);
+            return process_issue_unit_definition_response(lock, reply, reason);
         }
         case MessageType::registerNymResponse: {
             update_nymbox_hash(lock, reply);
@@ -4612,7 +4941,8 @@ bool ServerContext::process_reply(
             const auto& resync = std::get<1>(pending_args_);
 
             if (resync) {
-                return process_register_nym_response(lock, client, reply);
+                return process_register_nym_response(
+                    lock, client, reply, reason);
             }
 
             return true;
@@ -4622,10 +4952,10 @@ bool ServerContext::process_reply(
             return true;
         }
         case MessageType::unregisterAccountResponse: {
-            return process_unregister_account_response(lock, reply);
+            return process_unregister_account_response(lock, reply, reason);
         }
         case MessageType::unregisterNymResponse: {
-            return process_unregister_nym_response(lock, reply);
+            return process_unregister_nym_response(lock, reply, reason);
         }
         default: {
             update_nymbox_hash(lock, reply);
@@ -4639,7 +4969,8 @@ void ServerContext::process_response_transaction(
     const Lock& lock,
     const api::client::Manager& client,
     const Message& reply,
-    OTTransaction& response)
+    OTTransaction& response,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -4651,7 +4982,7 @@ void ServerContext::process_response_transaction(
     switch (response.GetType()) {
         case transactionType::atDeposit: {
             process_response_transaction_deposit(
-                lock, client, reply, type, response);
+                lock, client, reply, type, response, reason);
         } break;
         case transactionType::atPayDividend: {
             process_response_transaction_pay_dividend(
@@ -4659,25 +4990,27 @@ void ServerContext::process_response_transaction(
         } break;
         case transactionType::atExchangeBasket: {
             process_response_transaction_exchange_basket(
-                lock, reply, type, response);
+                lock, reply, type, response, reason);
         } break;
         case transactionType::atCancelCronItem: {
-            process_response_transaction_cancel(lock, reply, type, response);
+            process_response_transaction_cancel(
+                lock, reply, type, response, reason);
         } break;
         case transactionType::atWithdrawal: {
 #if OT_CASH
             process_response_transaction_withdrawal(
-                lock, client, reply, type, response);
+                lock, client, reply, type, response, reason);
 #endif  // OT_CASH
         } break;
         case transactionType::atTransfer: {
             process_response_transaction_transfer(
-                lock, client, reply, type, response);
+                lock, client, reply, type, response, reason);
         } break;
         case transactionType::atMarketOffer:
         case transactionType::atPaymentPlan:
         case transactionType::atSmartContract: {
-            process_response_transaction_cron(lock, reply, type, response);
+            process_response_transaction_cron(
+                lock, reply, type, response, reason);
         } break;
         default:
             LogOutput(OT_METHOD)(__FUNCTION__)(": wrong transaction type: ")(
@@ -4751,13 +5084,14 @@ void ServerContext::process_response_transaction_cancel(
     const Lock& lock,
     const Message& reply,
     const itemType type,
-    OTTransaction& response)
+    OTTransaction& response,
+    const PasswordPrompt& reason)
 {
     consume_issued(lock, response.GetTransactionNum());
     auto item = response.GetItem(type);
 
     if (item && Item::acknowledgement == item->GetStatus()) {
-        auto originalItem = extract_original_item(*item);
+        auto originalItem = extract_original_item(*item, reason);
 
         if (originalItem) {
             const auto originalNumber = originalItem->GetReferenceToNum();
@@ -4773,7 +5107,9 @@ void ServerContext::process_response_transaction_cancel(
 }
 
 #if OT_CASH
-void ServerContext::process_response_transaction_cash_deposit(Item& replyItem)
+void ServerContext::process_response_transaction_cash_deposit(
+    Item& replyItem,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -4789,7 +5125,7 @@ void ServerContext::process_response_transaction_cash_deposit(Item& replyItem)
         return;
     }
 
-    auto pItem = api_.Factory().Item(serializedRequest);
+    auto pItem = api_.Factory().Item(serializedRequest, reason);
 
     if (false == bool(pItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate request")
@@ -4821,7 +5157,7 @@ void ServerContext::process_response_transaction_cash_deposit(Item& replyItem)
 
     auto& purse = *pPurse;
 
-    if (false == purse.Unlock(nym)) {
+    if (false == purse.Unlock(nym, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to unlock request purse")
             .Flush();
 
@@ -4831,12 +5167,12 @@ void ServerContext::process_response_transaction_cash_deposit(Item& replyItem)
     std::set<std::string> spentTokens{};
     std::vector<std::shared_ptr<blind::Token>> keepTokens{};
 
-    for (const auto& token : purse) { spentTokens.insert(token.ID()); }
+    for (const auto& token : purse) { spentTokens.insert(token.ID(reason)); }
 
-    auto purseEditor = mutable_Purse(purse.Unit());
-    auto& walletPurse = purseEditor.It();
+    auto purseEditor = mutable_Purse(purse.Unit(), reason);
+    auto& walletPurse = purseEditor.get();
 
-    if (false == walletPurse.Unlock(nym)) {
+    if (false == walletPurse.Unlock(nym, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to unlock wallet purse")
             .Flush();
 
@@ -4846,7 +5182,7 @@ void ServerContext::process_response_transaction_cash_deposit(Item& replyItem)
     auto token = walletPurse.Pop();
 
     while (token) {
-        const auto id = token->ID();
+        const auto id = token->ID(reason);
 
         if (1 == spentTokens.count(id)) {
             LogTrace(OT_METHOD)(__FUNCTION__)(": Removing spent token ")(id)(
@@ -4862,7 +5198,7 @@ void ServerContext::process_response_transaction_cash_deposit(Item& replyItem)
         token = walletPurse.Pop();
     }
 
-    for (auto& token : keepTokens) { walletPurse.Push(token); }
+    for (auto& token : keepTokens) { walletPurse.Push(token, reason); }
 }
 #endif
 
@@ -4870,7 +5206,8 @@ void ServerContext::process_response_transaction_cheque_deposit(
     const api::client::Manager& client,
     const Identifier& accountID,
     const Message* reply,
-    const Item& replyItem)
+    const Item& replyItem,
+    const PasswordPrompt& reason)
 {
     auto empty = client.Factory().Message();
 
@@ -4880,14 +5217,15 @@ void ServerContext::process_response_transaction_cheque_deposit(
     const auto& request = (pending_message_) ? *pending_message_ : *empty;
     const auto& nym = *nym_;
     const auto& nymID = nym.ID();
-    auto paymentInbox = load_or_create_payment_inbox();
+    auto paymentInbox = load_or_create_payment_inbox(reason);
 
     if (false == bool(paymentInbox)) { return; }
 
     auto serializedOriginal = String::Factory();
     Item* pOriginal{nullptr};
     replyItem.GetReferenceString(serializedOriginal);
-    auto instantiatedOriginal = api_.Factory().Transaction(serializedOriginal);
+    auto instantiatedOriginal =
+        api_.Factory().Transaction(serializedOriginal, reason);
 
     if (false == bool(instantiatedOriginal)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4916,7 +5254,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
     auto serializedCheque = String::Factory();
     originalItem.GetAttachment(serializedCheque);
 
-    if (false == cheque.LoadContractFromString(serializedCheque)) {
+    if (false == cheque.LoadContractFromString(serializedCheque, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR loading cheque from string: ")(serializedCheque)(".")
             .Flush();
@@ -4927,7 +5265,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
     if (0 < cheque.GetAmount()) {
         // Cheque or voucher
         const auto workflowUpdated = client.Workflow().DepositCheque(
-            nymID, accountID, cheque, request, reply);
+            nymID, accountID, cheque, request, reply, reason);
 
         if (workflowUpdated) {
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -4947,10 +5285,10 @@ void ServerContext::process_response_transaction_cheque_deposit(
 
     for (auto& receipt_id : receipt_ids) {
         TransactionNumber number{0};
-        auto pPayment =
-            GetInstrumentByReceiptID(api_, nym, receipt_id, *paymentInbox);
+        auto pPayment = get_instrument_by_receipt_id(
+            api_, nym, receipt_id, *paymentInbox, reason);
 
-        if (false == bool(pPayment) || !pPayment->SetTempValues() ||
+        if (false == bool(pPayment) || !pPayment->SetTempValues(reason) ||
             !pPayment->GetTransactionNum(number) || (number != chequeNumber)) {
             continue;
         }
@@ -4973,7 +5311,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
 
             if (paymentInbox->RemoveTransaction(lRemoveTransaction)) {
                 paymentInbox->ReleaseSignatures();
-                paymentInbox->SignContract(nym);
+                paymentInbox->SignContract(nym, reason);
                 paymentInbox->SaveContract();
 
                 if (!paymentInbox->SavePaymentInbox()) {
@@ -4995,11 +5333,12 @@ void ServerContext::process_response_transaction_cheque_deposit(
 
         // TODO how many record boxes should exist? One per nym, or one per
         // account?
-        auto recordBox = load_or_create_account_recordbox(nymID);
+        auto recordBox = load_or_create_account_recordbox(nymID, reason);
 
         OT_ASSERT(recordBox);
 
-        add_transaction_to_ledger(lRemoveTransaction, pTransaction, *recordBox);
+        add_transaction_to_ledger(
+            lRemoveTransaction, pTransaction, *recordBox, reason);
     }
 }
 
@@ -5007,7 +5346,8 @@ void ServerContext::process_response_transaction_cron(
     const Lock& lock,
     const Message& reply,
     const itemType type,
-    OTTransaction& response)
+    OTTransaction& response,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -5022,7 +5362,7 @@ void ServerContext::process_response_transaction_cron(
     }
 
     auto& replyItem = *pReplyItem;
-    auto pOriginalItem = extract_original_item(replyItem);
+    auto pOriginalItem = extract_original_item(replyItem, reason);
 
     if (false == bool(pOriginalItem)) { return; }
 
@@ -5038,7 +5378,7 @@ void ServerContext::process_response_transaction_cron(
         return;
     }
 
-    auto pCronItem = api_.Factory().CronItem(serialized);
+    auto pCronItem = api_.Factory().CronItem(serialized, reason);
 
     if (false == bool(pCronItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5083,12 +5423,12 @@ void ServerContext::process_response_transaction_cron(
     }
 
     NumList numlistOutpayment(openingNumber);
-    auto nymfile = mutable_Nymfile("");
-    auto pMsg = nymfile.It().GetOutpaymentsByTransNum(openingNumber);
+    auto nymfile = mutable_Nymfile(reason);
+    auto pMsg = nymfile.get().GetOutpaymentsByTransNum(openingNumber, reason);
 
     if ((pMsg)) {
         const bool bRemovedOutpayment =
-            nymfile.It().RemoveOutpaymentsByTransNum(openingNumber);
+            nymfile.get().RemoveOutpaymentsByTransNum(openingNumber, reason);
         if (!bRemovedOutpayment) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed trying to remove outpayment with "
@@ -5154,13 +5494,15 @@ void ServerContext::process_response_transaction_cron(
 
         OT_ASSERT((theRecordBox));
 
-        bool bSuccessLoading1 = (bExists1 && thePmntInbox->LoadPaymentInbox());
-        bool bSuccessLoading2 = (bExists2 && theRecordBox->LoadRecordBox());
+        bool bSuccessLoading1 =
+            (bExists1 && thePmntInbox->LoadPaymentInbox(reason));
+        bool bSuccessLoading2 =
+            (bExists2 && theRecordBox->LoadRecordBox(reason));
 
         if (bExists1 && bSuccessLoading1)
             bSuccessLoading1 =
                 (thePmntInbox->VerifyContractID() &&
-                 thePmntInbox->VerifySignature(nym));
+                 thePmntInbox->VerifySignature(nym, reason));
         // (thePmntInbox->VerifyAccount(*pNym));
         // (No need to load all the Box
         // Receipts using VerifyAccount)
@@ -5169,11 +5511,12 @@ void ServerContext::process_response_transaction_cron(
                 nymID,
                 server_id_,
                 ledgerType::paymentInbox,
+                reason,
                 true);  // bGenerateFile=true
         if (bExists2 && bSuccessLoading2)
             bSuccessLoading2 =
                 (theRecordBox->VerifyContractID() &&
-                 theRecordBox->VerifySignature(nym));
+                 theRecordBox->VerifySignature(nym, reason));
         // (theRecordBox->VerifyAccount(*pNym));
         // (No need to load all the Box
         // Receipts using VerifyAccount)
@@ -5182,6 +5525,7 @@ void ServerContext::process_response_transaction_cron(
                 nymID,
                 server_id_,
                 ledgerType::recordBox,
+                reason,
                 true);  // bGenerateFile=true
         // By this point, the boxes DEFINITELY exist -- or not. (generation
         // might have failed, or verification.)
@@ -5245,15 +5589,16 @@ void ServerContext::process_response_transaction_cron(
 
             if (strInstrument->Exists() &&
                 theOutpayment->SetPayment(strInstrument) &&
-                theOutpayment->SetTempValues()) {
-                theOutpayment->GetAllTransactionNumbers(numlistOutpayment);
+                theOutpayment->SetTempValues(reason)) {
+                theOutpayment->GetAllTransactionNumbers(
+                    numlistOutpayment, reason);
             }
 
             const std::set<std::int64_t> set_receipt_ids{
                 thePmntInbox->GetTransactionNums()};
             for (const auto& receipt_id : set_receipt_ids) {
-                auto pPayment = GetInstrumentByReceiptID(
-                    api_, nym, receipt_id, *thePmntInbox);
+                auto pPayment = get_instrument_by_receipt_id(
+                    api_, nym, receipt_id, *thePmntInbox, reason);
 
                 if (false == bool(pPayment)) {
                     LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -5262,7 +5607,7 @@ void ServerContext::process_response_transaction_cron(
                         receipt_id)(" (skipping).")
                         .Flush();
                     continue;
-                } else if (false == pPayment->SetTempValues()) {
+                } else if (false == pPayment->SetTempValues(reason)) {
                     LogNormal(OT_METHOD)(__FUNCTION__)(
                         ": While looping payments inbox to remove a "
                         "payment, unable to set temp values for "
@@ -5275,7 +5620,8 @@ void ServerContext::process_response_transaction_cron(
 
                 NumList numlistIncomingPayment;
 
-                pPayment->GetAllTransactionNumbers(numlistIncomingPayment);
+                pPayment->GetAllTransactionNumbers(
+                    numlistIncomingPayment, reason);
 
                 if (numlistOutpayment.VerifyAny(numlistIncomingPayment)) {
                     // ** It's the same instrument.**
@@ -5327,7 +5673,7 @@ void ServerContext::process_response_transaction_cron(
                     }
                     if (thePmntInbox->RemoveTransaction(receipt_id)) {
                         thePmntInbox->ReleaseSignatures();
-                        thePmntInbox->SignContract(nym);
+                        thePmntInbox->SignContract(nym, reason);
                         thePmntInbox->SaveContract();
 
                         if (!thePmntInbox->SavePaymentInbox()) {
@@ -5422,7 +5768,7 @@ void ServerContext::process_response_transaction_cron(
                     // Since I am the last signer, the note contains the
                     // final version of the agreement.
                     pNewItem->SetNote(serialized);
-                    pNewItem->SignContract(nym);
+                    pNewItem->SignContract(nym, reason);
                     pNewItem->SaveContract();
 
                     std::shared_ptr<Item> newItem{pNewItem.release()};
@@ -5437,7 +5783,7 @@ void ServerContext::process_response_transaction_cron(
                     if (response.IsCancelled())
                         pNewTransaction->SetAsCancelled();
 
-                    pNewTransaction->SignContract(nym);
+                    pNewTransaction->SignContract(nym, reason);
                     pNewTransaction->SaveContract();
 
                     std::shared_ptr<OTTransaction> newTransaction{
@@ -5455,7 +5801,7 @@ void ServerContext::process_response_transaction_cron(
                             .Flush();
                     } else {
                         theRecordBox->ReleaseSignatures();
-                        theRecordBox->SignContract(nym);
+                        theRecordBox->SignContract(nym, reason);
                         theRecordBox->SaveContract();
                         // todo log failure.
                         theRecordBox->SaveRecordBox();
@@ -5503,7 +5849,8 @@ void ServerContext::process_response_transaction_deposit(
     const api::client::Manager& client,
     const Message& reply,
     const itemType type,
-    OTTransaction& response)
+    OTTransaction& response,
+    const PasswordPrompt& reason)
 {
     for (auto& it : response.GetItemList()) {
         auto pReplyItem = it;
@@ -5523,10 +5870,14 @@ void ServerContext::process_response_transaction_deposit(
                     .Flush();
                 if (itemType::atDepositCheque == item.GetType()) {
                     process_response_transaction_cheque_deposit(
-                        client, response.GetPurportedAccountID(), &reply, item);
+                        client,
+                        response.GetPurportedAccountID(),
+                        &reply,
+                        item,
+                        reason);
                 } else if (itemType::atDeposit == item.GetType()) {
 #if OT_CASH
-                    process_response_transaction_cash_deposit(item);
+                    process_response_transaction_cash_deposit(item, reason);
 #endif
                 }
             } else {
@@ -5544,13 +5895,14 @@ void ServerContext::process_response_transaction_exchange_basket(
     const Lock& lock,
     const Message& reply,
     const itemType type,
-    OTTransaction& response)
+    OTTransaction& response,
+    const PasswordPrompt& reason)
 {
     consume_issued(lock, response.GetTransactionNum());
     auto item = response.GetItem(type);
 
     if (item && Item::rejection == item->GetStatus()) {
-        auto originalItem = extract_original_item(*item);
+        auto originalItem = extract_original_item(*item, reason);
 
         if (originalItem) {
             auto serialized = String::Factory();
@@ -5570,7 +5922,7 @@ void ServerContext::process_response_transaction_exchange_basket(
 
             auto& basket = *pBasket;
 
-            if (false == basket.LoadContractFromString(serialized)) {
+            if (false == basket.LoadContractFromString(serialized, reason)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed to instantiate basket")
                     .Flush();
@@ -5638,7 +5990,8 @@ void ServerContext::process_response_transaction_transfer(
     const api::client::Manager& client,
     const Message& reply,
     const itemType type,
-    OTTransaction& response)
+    OTTransaction& response,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -5675,7 +6028,8 @@ void ServerContext::process_response_transaction_transfer(
     auto pTransfer = api_.Factory().Item(
         serialized,
         responseItem.GetRealNotaryID(),
-        responseItem.GetReferenceToNum());
+        responseItem.GetReferenceToNum(),
+        reason);
 
     if (false == bool(pTransfer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5710,7 +6064,8 @@ void ServerContext::process_response_transaction_withdrawal(
     const api::client::Manager& client,
     const Message& reply,
     const itemType type,
-    OTTransaction& response)
+    OTTransaction& response,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -5735,7 +6090,7 @@ void ServerContext::process_response_transaction_withdrawal(
 
             pItem->GetAttachment(strVoucher);
 
-            if (theVoucher->LoadContractFromString(strVoucher)) {
+            if (theVoucher->LoadContractFromString(strVoucher, reason)) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(
                     " Received voucher from server:  ")
                     .Flush();
@@ -5750,7 +6105,7 @@ void ServerContext::process_response_transaction_withdrawal(
         else if (
             (itemType::atWithdrawal == pItem->GetType()) &&
             (Item::acknowledgement == pItem->GetStatus())) {
-            process_incoming_cash_withdrawal(*pItem);
+            process_incoming_cash_withdrawal(*pItem, reason);
         }
     }
 
@@ -5762,12 +6117,13 @@ bool ServerContext::process_incoming_cash(
     const api::client::Manager& client,
     const TransactionNumber number,
     const PeerObject& incoming,
-    const Message& message) const
+    const Message& message,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
     OT_ASSERT(proto::PEEROBJECT_CASH == incoming.Type());
 
-    if (false == incoming.Validate()) {
+    if (false == incoming.Validate(reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid peer object.").Flush();
 
         return false;
@@ -5803,7 +6159,9 @@ bool ServerContext::process_incoming_cash(
     return true;
 }
 
-void ServerContext::process_incoming_cash_withdrawal(const Item& item) const
+void ServerContext::process_incoming_cash_withdrawal(
+    const Item& item,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -5838,7 +6196,7 @@ void ServerContext::process_incoming_cash_withdrawal(const Item& item) const
 
     auto& requestPurse = *pPurse;
 
-    if (requestPurse.Unlock(nym)) {
+    if (requestPurse.Unlock(nym, reason)) {
         LogInsane(OT_METHOD)(__FUNCTION__)(": Purse unlocked").Flush();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to unlock purse").Flush();
@@ -5858,7 +6216,8 @@ void ServerContext::process_incoming_cash_withdrawal(const Item& item) const
     }
 
     auto& mint = *pMint;
-    const bool validMint = mint.LoadMint() && mint.VerifyMint(serverNym);
+    const bool validMint =
+        mint.LoadMint(reason) && mint.VerifyMint(serverNym, reason);
 
     if (validMint) {
         LogInsane(OT_METHOD)(__FUNCTION__)(": Mint is valid").Flush();
@@ -5868,20 +6227,20 @@ void ServerContext::process_incoming_cash_withdrawal(const Item& item) const
         return;
     }
 
-    const auto processed = requestPurse.Process(nym, mint);
+    const auto processed = requestPurse.Process(nym, mint, reason);
 
     if (processed) {
         LogInsane(OT_METHOD)(__FUNCTION__)(": Token processed").Flush();
         auto purseEditor = api_.Wallet().mutable_Purse(
-            nymID, requestPurse.Notary(), requestPurse.Unit());
-        auto& walletPurse = purseEditor.It();
+            nymID, requestPurse.Notary(), requestPurse.Unit(), reason);
+        auto& walletPurse = purseEditor.get();
 
-        OT_ASSERT(walletPurse.Unlock(nym));
+        OT_ASSERT(walletPurse.Unlock(nym, reason));
 
         auto token = requestPurse.Pop();
 
         while (token) {
-            walletPurse.Push(token);
+            walletPurse.Push(token, reason);
             token = requestPurse.Pop();
         }
     } else {
@@ -5892,7 +6251,8 @@ void ServerContext::process_incoming_cash_withdrawal(const Item& item) const
 
 bool ServerContext::process_unregister_account_response(
     const Lock& lock,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     auto serialized = String::Factory();
 
@@ -5905,18 +6265,18 @@ bool ServerContext::process_unregister_account_response(
     OT_ASSERT((originalMessage));
 
     if (serialized->Exists() &&
-        originalMessage->LoadContractFromString(serialized) &&
-        originalMessage->VerifySignature(*Nym()) &&
+        originalMessage->LoadContractFromString(serialized, reason) &&
+        originalMessage->VerifySignature(*Nym(), reason) &&
         originalMessage->m_strNymID->Compare(reply.m_strNymID) &&
         originalMessage->m_strAcctID->Compare(reply.m_strAcctID) &&
         originalMessage->m_strCommand->Compare("unregisterAccount")) {
 
         const auto theAccountID = api_.Factory().Identifier(reply.m_strAcctID);
-        auto account = api_.Wallet().mutable_Account(theAccountID);
+        auto account = api_.Wallet().mutable_Account(theAccountID, reason);
 
         if (account) {
             account.Release();
-            api_.Wallet().DeleteAccount(theAccountID);
+            api_.Wallet().DeleteAccount(theAccountID, reason);
         }
 
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -5936,7 +6296,8 @@ bool ServerContext::process_unregister_account_response(
 
 bool ServerContext::process_unregister_nym_response(
     const Lock& lock,
-    const Message& reply)
+    const Message& reply,
+    const PasswordPrompt& reason)
 {
     auto serialized = String::Factory();
     auto originalMessage = api_.Factory().Message();
@@ -5948,8 +6309,8 @@ bool ServerContext::process_unregister_nym_response(
     }
 
     if (serialized->Exists() &&
-        originalMessage->LoadContractFromString(serialized) &&
-        originalMessage->VerifySignature(*Nym()) &&
+        originalMessage->LoadContractFromString(serialized, reason) &&
+        originalMessage->VerifySignature(*Nym(), reason) &&
         originalMessage->m_strNymID->Compare(reply.m_strNymID) &&
         originalMessage->m_strCommand->Compare("unregisterNym")) {
         Reset();
@@ -5973,7 +6334,8 @@ void ServerContext::process_unseen_reply(
     const Lock& lock,
     const api::client::Manager& client,
     const Item& input,
-    ReplyNoticeOutcomes& notices)
+    ReplyNoticeOutcomes& notices,
+    const PasswordPrompt& reason)
 {
     if (Item::acknowledgement != input.GetStatus()) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Reply item incorrect status")
@@ -5997,7 +6359,7 @@ void ServerContext::process_unseen_reply(
 
     OT_ASSERT(message);
 
-    if (false == message->LoadContractFromString(serializedReply)) {
+    if (false == message->LoadContractFromString(serializedReply, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed loading original server "
             "reply message from replyNotice: ")(serializedReply)
@@ -6014,7 +6376,7 @@ void ServerContext::process_unseen_reply(
                                    : proto::LASTREPLYSTATUS_MESSAGEFAILED;
     reply = message;
     notices.emplace_back(outcome);
-    process_reply(lock, client, {}, *reply);
+    process_reply(lock, client, {}, *reply, reason);
 }
 
 #if OT_CASH
@@ -6028,11 +6390,12 @@ std::shared_ptr<const blind::Purse> ServerContext::Purse(
 ServerContext::QueueResult ServerContext::Queue(
     const api::client::Manager& client,
     std::shared_ptr<Message> message,
+    const PasswordPrompt& reason,
     const ExtraArgs& args)
 {
     START();
 
-    return start(lock, client, message, args);
+    return start(lock, reason, client, message, args);
 }
 
 ServerContext::QueueResult ServerContext::Queue(
@@ -6041,6 +6404,7 @@ ServerContext::QueueResult ServerContext::Queue(
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
     std::set<OTManagedNumber>* numbers,
+    const PasswordPrompt& reason,
     const ExtraArgs& args)
 {
     START();
@@ -6061,6 +6425,7 @@ ServerContext::QueueResult ServerContext::Queue(
 
     return start(
         lock,
+        reason,
         client,
         message,
         args,
@@ -6072,12 +6437,14 @@ ServerContext::QueueResult ServerContext::Queue(
 }
 
 ServerContext::QueueResult ServerContext::RefreshNymbox(
-    const api::client::Manager& client)
+    const api::client::Manager& client,
+    const PasswordPrompt& reason)
 {
     START();
 
     return start(
         lock,
+        reason,
         client,
         nullptr,
         {},
@@ -6102,7 +6469,8 @@ bool ServerContext::remove_nymbox_item(
     const Lock& lock,
     const Item& replyItem,
     Ledger& nymbox,
-    OTTransaction& transaction)
+    OTTransaction& transaction,
+    const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_);
 
@@ -6155,7 +6523,8 @@ bool ServerContext::remove_nymbox_item(
         .Flush();
     auto serialized = String::Factory();
     replyItem.GetReferenceString(serialized);
-    auto processNymboxItem = api_.Factory().Item(serialized, server_id_, 0);
+    auto processNymboxItem =
+        api_.Factory().Item(serialized, server_id_, 0, reason);
 
     if (false == bool(processNymboxItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -6234,11 +6603,11 @@ bool ServerContext::remove_nymbox_item(
 
             auto pOriginalCronItem =
                 (strOriginalCronItem->Exists()
-                     ? api_.Factory().CronItem(strOriginalCronItem)
+                     ? api_.Factory().CronItem(strOriginalCronItem, reason)
                      : nullptr);
             auto pUpdatedCronItem =
                 (strUpdatedCronItem->Exists()
-                     ? api_.Factory().CronItem(strUpdatedCronItem)
+                     ? api_.Factory().CronItem(strUpdatedCronItem, reason)
                      : nullptr);
             std::unique_ptr<OTCronItem>& pCronItem =
                 ((pUpdatedCronItem) ? pUpdatedCronItem : pOriginalCronItem);
@@ -6286,13 +6655,14 @@ bool ServerContext::remove_nymbox_item(
 
                 NumList numlistOutpayment(openingNumber);
                 auto strSentInstrument = String::Factory();
-                auto nymfile = mutable_Nymfile("");
-                auto pMsg =
-                    nymfile.It().GetOutpaymentsByTransNum(openingNumber);
+                auto nymfile = mutable_Nymfile(reason);
+                auto pMsg = nymfile.get().GetOutpaymentsByTransNum(
+                    openingNumber, reason);
 
                 if (pMsg) {
                     const bool bRemovedOutpayment =
-                        nymfile.It().RemoveOutpaymentsByTransNum(openingNumber);
+                        nymfile.get().RemoveOutpaymentsByTransNum(
+                            openingNumber, reason);
 
                     if (!bRemovedOutpayment) {
                         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -6333,25 +6703,30 @@ bool ServerContext::remove_nymbox_item(
 
                 OT_ASSERT((recordBox));
 
-                bool loaded1 = (exists1 && paymentInbox->LoadPaymentInbox());
-                bool loaded2 = (exists2 && recordBox->LoadRecordBox());
+                bool loaded1 =
+                    (exists1 && paymentInbox->LoadPaymentInbox(reason));
+                bool loaded2 = (exists2 && recordBox->LoadRecordBox(reason));
 
                 if (exists1 && loaded1) {
                     loaded1 =
                         (paymentInbox->VerifyContractID() &&
-                         paymentInbox->VerifySignature(nym));
+                         paymentInbox->VerifySignature(nym, reason));
                 } else if (!exists1) {
                     loaded1 = paymentInbox->GenerateLedger(
-                        nymID, server_id_, ledgerType::paymentInbox, true);
+                        nymID,
+                        server_id_,
+                        ledgerType::paymentInbox,
+                        reason,
+                        true);
                 }
 
                 if (exists2 && loaded2) {
                     loaded2 =
                         (recordBox->VerifyContractID() &&
-                         recordBox->VerifySignature(nym));
+                         recordBox->VerifySignature(nym, reason));
                 } else if (!exists2) {
                     loaded2 = recordBox->GenerateLedger(
-                        nymID, server_id_, ledgerType::recordBox, true);
+                        nymID, server_id_, ledgerType::recordBox, reason, true);
                 }
 
                 if (!loaded1 || !loaded2) {
@@ -6368,9 +6743,9 @@ bool ServerContext::remove_nymbox_item(
 
                     if (strSentInstrument->Exists() &&
                         theOutpayment->SetPayment(strSentInstrument) &&
-                        theOutpayment->SetTempValues()) {
+                        theOutpayment->SetTempValues(reason)) {
                         theOutpayment->GetAllTransactionNumbers(
-                            numlistOutpayment);
+                            numlistOutpayment, reason);
                     }
 
                     auto tempPayment = api_.Factory().Payment();
@@ -6383,17 +6758,17 @@ bool ServerContext::remove_nymbox_item(
 
                     if (strCronItem.Exists() &&
                         tempPayment->SetPayment(strCronItem) &&
-                        tempPayment->SetTempValues()) {
+                        tempPayment->SetTempValues(reason)) {
                         tempPayment->GetAllTransactionNumbers(
-                            numlistOutpayment);
+                            numlistOutpayment, reason);
                     }
 
                     const std::set<std::int64_t> set_receipt_ids{
                         paymentInbox->GetTransactionNums()};
 
                     for (const auto& receipt_id : set_receipt_ids) {
-                        auto pPayment = GetInstrumentByReceiptID(
-                            api_, nym, receipt_id, *paymentInbox);
+                        auto pPayment = get_instrument_by_receipt_id(
+                            api_, nym, receipt_id, *paymentInbox, reason);
 
                         if (false == bool(pPayment)) {
                             LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -6403,7 +6778,7 @@ bool ServerContext::remove_nymbox_item(
                                 " (skipping).")
                                 .Flush();
                             continue;
-                        } else if (false == pPayment->SetTempValues()) {
+                        } else if (false == pPayment->SetTempValues(reason)) {
                             LogNormal(OT_METHOD)(__FUNCTION__)(
                                 ": (Upon receiving notice) While looping "
                                 "payments inbox to remove a payment, unable to "
@@ -6415,7 +6790,7 @@ bool ServerContext::remove_nymbox_item(
 
                         NumList numlistIncomingPayment;
                         pPayment->GetAllTransactionNumbers(
-                            numlistIncomingPayment);
+                            numlistIncomingPayment, reason);
 
                         if (numlistOutpayment.VerifyAny(
                                 numlistIncomingPayment)) {
@@ -6435,7 +6810,7 @@ bool ServerContext::remove_nymbox_item(
 
                             if (paymentInbox->RemoveTransaction(receipt_id)) {
                                 paymentInbox->ReleaseSignatures();
-                                paymentInbox->SignContract(nym);
+                                paymentInbox->SignContract(nym, reason);
                                 paymentInbox->SaveContract();
 
                                 if (!paymentInbox->SavePaymentInbox()) {
@@ -6477,7 +6852,7 @@ bool ServerContext::remove_nymbox_item(
 
                             newItem->SetStatus(pNoticeItem->GetStatus());
                             newItem->SetNote(strUpdatedCronItem);
-                            newItem->SignContract(nym);
+                            newItem->SignContract(nym, reason);
                             newItem->SaveContract();
                             newTransaction->AddItem(newItem);
                         }
@@ -6498,7 +6873,7 @@ bool ServerContext::remove_nymbox_item(
 
                             if (strCronItem.Exists() &&
                                 tempPayment->SetPayment(strCronItem) &&
-                                tempPayment->SetTempValues()) {
+                                tempPayment->SetTempValues(reason)) {
                                 tempPayment->GetTransNumDisplay(
                                     lTransNumForDisplay);
                             }
@@ -6516,7 +6891,7 @@ bool ServerContext::remove_nymbox_item(
 
                         if (bCancelling) { newTransaction->SetAsCancelled(); }
 
-                        newTransaction->SignContract(nym);
+                        newTransaction->SignContract(nym, reason);
                         newTransaction->SaveContract();
                         const bool bAdded =
                             recordBox->AddTransaction(newTransaction);
@@ -6534,7 +6909,7 @@ bool ServerContext::remove_nymbox_item(
                         }
 
                         recordBox->ReleaseSignatures();
-                        recordBox->SignContract(nym);
+                        recordBox->SignContract(nym, reason);
                         recordBox->SaveContract();
                         recordBox->SaveRecordBox();
 
@@ -6629,6 +7004,7 @@ void ServerContext::ResetThread() { Join(); }
 void ServerContext::resolve_queue(
     const Lock& contextLock,
     DeliveryResult&& result,
+    const PasswordPrompt& reason,
     const proto::DeliveryState state)
 {
     OT_ASSERT(verify_write_lock(contextLock));
@@ -6644,7 +7020,7 @@ void ServerContext::resolve_queue(
     pending_message_.reset();
     pending_args_ = {"", false};
     process_nymbox_.store(false);
-    const auto saved = save(contextLock);
+    const auto saved = save(contextLock, reason);
 
     OT_ASSERT(saved);
 }
@@ -6698,6 +7074,7 @@ std::uint64_t ServerContext::Revision() const { return revision_.load(); }
 void ServerContext::update_state(
     const Lock& contextLock,
     const proto::DeliveryState state,
+    const PasswordPrompt& reason,
     const proto::LastReplyStatus status)
 {
     state_.store(state);
@@ -6706,7 +7083,7 @@ void ServerContext::update_state(
         last_status_.store(status);
     }
 
-    const auto saved = save(contextLock);
+    const auto saved = save(contextLock, reason);
 
     OT_ASSERT(saved);
 }
@@ -6730,17 +7107,17 @@ NetworkReplyMessage ServerContext::SendMessage(
     const std::set<OTManagedNumber>& pending,
     opentxs::ServerContext& context,
     const Message& message,
+    const PasswordPrompt& reason,
     const std::string& label,
     const bool resync)
 {
     Lock lock(lock_);
     pending_args_ = {label, resync};
-    client.OTAPI().GetClient()->QueueOutgoingMessage(message);
     request_sent_.Publish(message.m_strCommand->Get());
-    auto result = context.Connection().Send(context, message);
+    auto result = context.Connection().Send(context, message, reason);
 
     if (SendResult::VALID_REPLY == result.first) {
-        process_reply(lock, client, pending, *result.second);
+        process_reply(lock, client, pending, *result.second, reason);
         reply_received_.Publish(message.m_strCommand->Get());
     }
 
@@ -6838,17 +7215,20 @@ bool ServerContext::StaleNym() const
     return revision_.load() < nym_->Revision();
 }
 
-std::unique_ptr<Item> ServerContext::Statement(const OTTransaction& owner) const
+std::unique_ptr<Item> ServerContext::Statement(
+    const OTTransaction& owner,
+    const PasswordPrompt& reason) const
 {
     const TransactionNumbers empty;
 
-    return Statement(owner, empty);
+    return Statement(owner, empty, reason);
 }
 
 std::unique_ptr<Item> ServerContext::statement(
     const Lock& lock,
     const OTTransaction& transaction,
-    const TransactionNumbers& adding) const
+    const TransactionNumbers& adding,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -6902,7 +7282,7 @@ std::unique_ptr<Item> ServerContext::statement(
     // anything.  Todo.
 
     output->SetAttachment(OTString(*statement));
-    output->SignContract(*nym_);
+    output->SignContract(*nym_, reason);
     // OTTransactionType needs to weasel in a "date signed" variable.
     output->SaveContract();
 
@@ -6911,23 +7291,27 @@ std::unique_ptr<Item> ServerContext::statement(
 
 std::unique_ptr<Item> ServerContext::Statement(
     const OTTransaction& transaction,
-    const TransactionNumbers& adding) const
+    const TransactionNumbers& adding,
+    const PasswordPrompt& reason) const
 {
     Lock lock(lock_);
 
-    return statement(lock, transaction, adding);
+    return statement(lock, transaction, adding, reason);
 }
 
 std::unique_ptr<TransactionStatement> ServerContext::Statement(
     const TransactionNumbers& adding,
-    const TransactionNumbers& without) const
+    const TransactionNumbers& without,
+    const PasswordPrompt& reason) const
 {
     Lock lock(lock_);
 
     return generate_statement(lock, adding, without);
 }
 
-bool ServerContext::ShouldRename(const std::string& defaultName) const
+bool ServerContext::ShouldRename(
+    const PasswordPrompt& reason,
+    const std::string& defaultName) const
 {
     const auto& name = defaultName.empty() ? default_node_name_ : defaultName;
 
@@ -6938,7 +7322,7 @@ bool ServerContext::ShouldRename(const std::string& defaultName) const
         return false;
     }
 
-    auto contract = api_.Wallet().Server(server_id_);
+    auto contract = api_.Wallet().Server(server_id_, reason);
 
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing server contract.")
@@ -6952,6 +7336,7 @@ bool ServerContext::ShouldRename(const std::string& defaultName) const
 
 ServerContext::QueueResult ServerContext::start(
     const Lock& decisionLock,
+    const PasswordPrompt& reason,
     const api::client::Manager& client,
     std::shared_ptr<Message> message,
     const ExtraArgs& args,
@@ -6972,7 +7357,7 @@ ServerContext::QueueResult ServerContext::start(
     outbox_ = outbox;
     numbers_ = numbers;
     failure_counter_.store(0);
-    update_state(contextLock, state);
+    update_state(contextLock, state, reason);
 
     if (trigger(decisionLock)) {
         return std::make_unique<SendFuture>(pending_result_.get_future());
@@ -6989,26 +7374,27 @@ bool ServerContext::state_machine() noexcept
 
     OT_ASSERT(nullptr != pClient);
 
+    auto reason = api_.Factory().PasswordPrompt("Sending server message");
     const auto& client = *pClient;
 
     switch (state_.load()) {
         case proto::DELIVERTYSTATE_PENDINGSEND: {
             LogDetail(OT_METHOD)(__FUNCTION__)(": Attempting to send message")
                 .Flush();
-            pending_send(client);
+            pending_send(client, reason);
         } break;
         case proto::DELIVERTYSTATE_NEEDNYMBOX: {
             LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading nymbox").Flush();
-            need_nymbox(client);
+            need_nymbox(client, reason);
         } break;
         case proto::DELIVERTYSTATE_NEEDBOXITEMS: {
             LogDetail(OT_METHOD)(__FUNCTION__)(": Downloading box items")
                 .Flush();
-            need_box_items(client);
+            need_box_items(client, reason);
         } break;
         case proto::DELIVERTYSTATE_NEEDPROCESSNYMBOX: {
             LogDetail(OT_METHOD)(__FUNCTION__)(": Processing nymbox").Flush();
-            need_process_nymbox(client);
+            need_process_nymbox(client, reason);
         } break;
         case proto::DELIVERTYSTATE_IDLE:
         default: {
@@ -7027,6 +7413,7 @@ bool ServerContext::state_machine() noexcept
         resolve_queue(
             lock,
             DeliveryResult{proto::LASTREPLYSTATUS_NOTSENT, nullptr},
+            reason,
             proto::DELIVERTYSTATE_IDLE);
     } else if (shutdown().load()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Shutting down").Flush();
@@ -7034,6 +7421,7 @@ bool ServerContext::state_machine() noexcept
         resolve_queue(
             lock,
             DeliveryResult{proto::LASTREPLYSTATUS_NOTSENT, nullptr},
+            reason,
             proto::DELIVERTYSTATE_IDLE);
     } else {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Continuing").Flush();
@@ -7129,6 +7517,7 @@ bool ServerContext::update_nymbox_hash(
 }
 
 RequestNumber ServerContext::update_request_number(
+    const PasswordPrompt& reason,
     const Lock& contextLock,
     [[maybe_unused]] const Lock& messageLock,
     bool& sendStatus)
@@ -7148,7 +7537,7 @@ RequestNumber ServerContext::update_request_number(
     request->m_strRequestNum =
         String::Factory(std::to_string(FIRST_REQUEST_NUMBER).c_str());
 
-    if (false == finalize_server_command(*request)) {
+    if (false == finalize_server_command(*request, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to finalize server message.")
             .Flush();
@@ -7156,11 +7545,9 @@ RequestNumber ServerContext::update_request_number(
         return {};
     }
 
-    const auto response = connection_.Send(
-        *this,
-        *request,
-        static_cast<opentxs::network::ServerConnection::Push>(
-            enable_otx_push_.load()));
+    const auto push = static_cast<opentxs::network::ServerConnection::Push>(
+        enable_otx_push_.load());
+    const auto response = connection_.Send(*this, *request, reason, push);
     const auto& status = response.first;
     const auto& reply = response.second;
 
@@ -7197,14 +7584,17 @@ RequestNumber ServerContext::update_request_number(
     return newNumber;
 }
 
-bool ServerContext::update_request_number(const Lock& lock, Message& command)
+bool ServerContext::update_request_number(
+    const PasswordPrompt& reason,
+    const Lock& lock,
+    Message& command)
 {
     OT_ASSERT(verify_write_lock(lock));
 
     command.m_strRequestNum =
         String::Factory(std::to_string(request_number_++).c_str());
 
-    return finalize_server_command(command);
+    return finalize_server_command(command, reason);
 }
 
 TransactionNumber ServerContext::UpdateHighest(
@@ -7217,11 +7607,13 @@ TransactionNumber ServerContext::UpdateHighest(
     return update_highest(lock, numbers, good, bad);
 }
 
-bool ServerContext::UpdateRequestNumber(Message& command)
+bool ServerContext::UpdateRequestNumber(
+    Message& command,
+    const PasswordPrompt& reason)
 {
     Lock lock(lock_);
 
-    return update_request_number(lock, command);
+    return update_request_number(reason, lock, command);
 }
 
 void ServerContext::validate_number_set(
@@ -7299,20 +7691,22 @@ void ServerContext::verify_success(
     }
 }
 
-RequestNumber ServerContext::UpdateRequestNumber()
+RequestNumber ServerContext::UpdateRequestNumber(const PasswordPrompt& reason)
 {
     bool notUsed{false};
 
-    return UpdateRequestNumber(notUsed);
+    return UpdateRequestNumber(notUsed, reason);
 }
 
-RequestNumber ServerContext::UpdateRequestNumber(bool& sendStatus)
+RequestNumber ServerContext::UpdateRequestNumber(
+    bool& sendStatus,
+    const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
     Lock contextLock(lock_, std::defer_lock);
     std::lock(messageLock, contextLock);
 
-    return update_request_number(contextLock, messageLock, sendStatus);
+    return update_request_number(reason, contextLock, messageLock, sendStatus);
 }
 
 // This is called by VerifyTransactionReceipt and VerifyBalanceReceipt.
@@ -7370,6 +7764,7 @@ bool ServerContext::VerifyTentativeNumber(const TransactionNumber& number) const
 
 ServerContext::~ServerContext()
 {
+    auto reason = api_.Factory().PasswordPrompt("Shutting down server context");
     Stop().get();
     const bool needPromise = (false == pending_result_set_.load()) &&
                              (proto::DELIVERTYSTATE_IDLE != state_.load());
@@ -7379,6 +7774,7 @@ ServerContext::~ServerContext()
         resolve_queue(
             lock,
             DeliveryResult{proto::LASTREPLYSTATUS_UNKNOWN, nullptr},
+            reason,
             proto::DELIVERTYSTATE_IDLE);
     }
 }

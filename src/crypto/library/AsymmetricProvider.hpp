@@ -15,17 +15,18 @@ class AsymmetricProvider : virtual public crypto::AsymmetricProvider
 {
 public:
     bool SignContract(
+        const api::Core& api,
         const String& strContractUnsigned,
         const key::Asymmetric& theKey,
         Signature& theSignature,  // output
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
     bool VerifyContractSignature(
         const String& strContractToVerify,
         const key::Asymmetric& theKey,
         const Signature& theSignature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
 
     virtual ~AsymmetricProvider() = default;
 

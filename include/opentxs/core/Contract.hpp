@@ -129,7 +129,8 @@ public:
      * sign it and calculate its new ID from the finished result. */
     EXPORT virtual bool CreateContract(
         const String& strContract,
-        const identity::Nym& theSigner);
+        const identity::Nym& theSigner,
+        const PasswordPrompt& reason);
 
     /** CreateContract is great if you already know what kind of contract to
      * instantiate and have already done so. Otherwise this function will take
@@ -137,10 +138,12 @@ public:
      * write it to strOutput. This is due to the fact that OT was never really
      * designed for signing flat text, only contracts. */
     EXPORT static bool SignFlatText(
+        const api::Core& api,
         String& strFlatText,
         const String& strContractType,  // "LEDGER" or "PURSE" etc.
         const identity::Nym& theSigner,
-        String& strOutput);
+        String& strOutput,
+        const PasswordPrompt& reason);
     EXPORT inline void GetName(String& strName) const
     {
         strName.Set(m_strName->Get());
@@ -155,7 +158,7 @@ public:
      * GetContractPublicNym, and uses it to verify the signature on the
      * contract. So the contract is self-verifying. Right now only public keys
      * are supported, but soon contracts will also support x509 certs. */
-    EXPORT virtual bool VerifyContract() const;
+    EXPORT virtual bool VerifyContract(const PasswordPrompt& reason) const;
 
     /** Overriden for example in OTOffer, OTMarket. You can get it in string or
      * binary form. */
@@ -167,20 +170,20 @@ public:
 
     /** assumes m_strFilename is already set. Then it reads that file into a
      * string. Then it parses that string into the object. */
-    EXPORT virtual bool LoadContract();
-    EXPORT bool LoadContract(const char* szFoldername, const char* szFilename);
+    EXPORT virtual bool LoadContract(const PasswordPrompt& reason);
+    EXPORT bool LoadContract(
+        const char* szFoldername,
+        const char* szFilename,
+        const PasswordPrompt& reason);
 
     /** Just like it says. If you have a contract in string form, pass it in
      * here to import it. */
-    EXPORT virtual bool LoadContractFromString(const String& theStr);
+    EXPORT virtual bool LoadContractFromString(
+        const String& theStr,
+        const PasswordPrompt& reason);
 
     /** fopens m_strFilename and reads it off the disk into m_strRawFile */
     bool LoadContractRawFile();
-
-    /** parses m_strRawFile into the various member variables. Separating these
-     * into two steps allows us to load contracts from other sources besides
-     * files. */
-    EXPORT bool ParseRawFile();
 
     /** data_folder/contracts/Contract-ID */
     EXPORT bool SaveToContractFolder();
@@ -211,7 +214,7 @@ public:
 
     /** Update the internal unsigned contents based on the member variables
      * default behavior does nothing. */
-    EXPORT virtual void UpdateContents();
+    EXPORT virtual void UpdateContents(const PasswordPrompt& reason);
 
     /** Only used when first generating an asset or server contract. Meant for
      * contracts which never change after that point. Otherwise does the same
@@ -235,28 +238,28 @@ public:
     EXPORT virtual bool SaveContents(String& strContents) const;
     EXPORT virtual bool SignContract(
         const identity::Nym& theNym,
-        const OTPasswordData* pPWData = nullptr);
+        const PasswordPrompt& reason);
     EXPORT bool SignContractAuthent(
         const identity::Nym& theNym,
-        const OTPasswordData* pPWData = nullptr);
+        const PasswordPrompt& reason);
     EXPORT bool SignWithKey(
         const crypto::key::Asymmetric& theKey,
-        const OTPasswordData* pPWData = nullptr);
+        const PasswordPrompt& reason);
     EXPORT bool SignContract(
         const identity::Nym& theNym,
         Signature& theSignature,
-        const OTPasswordData* pPWData = nullptr);
+        const PasswordPrompt& reason);
 
     /** Uses authentication key instead of signing key. */
     EXPORT bool SignContractAuthent(
         const identity::Nym& theNym,
         Signature& theSignature,
-        const OTPasswordData* pPWData = nullptr);
+        const PasswordPrompt& reason);
     EXPORT bool SignContract(
         const crypto::key::Asymmetric& theKey,
         Signature& theSignature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr);
+        const PasswordPrompt& reason);
 
     /** Calculates a hash of m_strRawFile (the xml portion of the contract plus
     the signatures) and compares to m_ID (supposedly the same. The ID is
@@ -280,28 +283,28 @@ public:
     /** So far not overridden anywhere (used to be OTTrade.) */
     EXPORT virtual bool VerifySignature(
         const identity::Nym& theNym,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
     EXPORT virtual bool VerifySigAuthent(
         const identity::Nym& theNym,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
     EXPORT virtual bool VerifyWithKey(
         const crypto::key::Asymmetric& theKey,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
     EXPORT bool VerifySignature(
         const identity::Nym& theNym,
         const Signature& theSignature,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
 
     /** Uses authentication key instead of signing key. */
     EXPORT bool VerifySigAuthent(
         const identity::Nym& theNym,
         const Signature& theSignature,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
     EXPORT bool VerifySignature(
         const crypto::key::Asymmetric& theKey,
         const Signature& theSignature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const;
+        const PasswordPrompt& reason) const;
     EXPORT Nym_p GetContractPublicNym() const;
 
 protected:
@@ -364,10 +367,17 @@ protected:
 
     /** The XML file is in m_xmlUnsigned-> Load it from there into members here.
      */
-    bool LoadContractXML();
+    bool LoadContractXML(const PasswordPrompt& reason);
+
+    /** parses m_strRawFile into the various member variables. Separating these
+     * into two steps allows us to load contracts from other sources besides
+     * files. */
+    bool ParseRawFile(const PasswordPrompt& reason);
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    virtual std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason);
 
     explicit Contract(const api::Core& core);
     explicit Contract(

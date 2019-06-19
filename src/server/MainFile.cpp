@@ -12,8 +12,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -46,8 +44,9 @@
 namespace opentxs::server
 {
 
-MainFile::MainFile(Server& server)
+MainFile::MainFile(Server& server, const PasswordPrompt& reason)
     : server_(server)
+    , reason_(reason)
     , version_()
 {
 }
@@ -56,26 +55,12 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
 {
     Tag tag("notaryServer");
 
-    // We're on version 2.0 since adding the master key.
-    auto& cachedKey = server_.API().Crypto().DefaultKey();
-    tag.add_attribute("version", cachedKey.IsGenerated() ? "2.0" : version_);
+    tag.add_attribute("version", "3.0");
     tag.add_attribute("notaryID", server_.GetServerID().str());
     tag.add_attribute("serverNymID", server_.GetServerNym().ID().str());
     tag.add_attribute(
         "transactionNum",
         formatLong(server_.GetTransactor().transactionNumber()));
-
-    if (cachedKey.IsGenerated())  // If it exists, then serialize it.
-    {
-        auto ascMasterContents = Armored::Factory();
-
-        if (cachedKey.SerializeTo(ascMasterContents)) {
-            tag.add_tag("cachedKey", ascMasterContents->Get());
-        } else
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed trying to write master key to notary file.")
-                .Flush();
-    }
 
     // Save the basket account information
 
@@ -173,8 +158,7 @@ bool MainFile::CreateMainFile(
     const std::string& strContract,
     const std::string& strNotaryID,
     const std::string& strCert,
-    const std::string& strNymID,
-    const std::string& strCachedKey)
+    const std::string& strNymID)
 {
     if (!OTDB::StorePlainString(
             strContract,
@@ -208,9 +192,6 @@ bool MainFile::CreateMainFile(
         " serverNymID=\"%s\"\n"
         " transactionNum=\"%ld\" >\n"
         "\n"
-        "<cachedKey>\n"
-        "%s</cachedKey>\n"
-        "\n"
         "<accountList type=\"voucher\" count=\"0\" >\n"
         "\n"
         "</accountList>\n"
@@ -221,11 +202,7 @@ bool MainFile::CreateMainFile(
 
     auto strNotaryFile = String::Factory();
     strNotaryFile->Format(
-        szBlankFile,
-        strNotaryID.c_str(),
-        strNymID.c_str(),
-        lTransNum,
-        strCachedKey.c_str());
+        szBlankFile, strNotaryID.c_str(), strNymID.c_str(), lTransNum);
 
     std::string str_Notary(strNotaryFile->Get());
 
@@ -242,22 +219,7 @@ bool MainFile::CreateMainFile(
             .Flush();
         return false;
     }
-    auto ascCachedKey = Armored::Factory();
-    ascCachedKey->Set(strCachedKey.c_str());
-    auto& cachedKey =
-        server_.API().Crypto().LoadDefaultKey(server_.API(), ascCachedKey);
 
-    if (!cachedKey.HasHashCheck()) {
-        OTPassword tempPassword;
-        tempPassword.zeroMemory();
-        cachedKey.GetMasterPassword(
-            cachedKey,
-            tempPassword,
-            "We do not have a check hash yet for this password, "
-            "please enter your password",
-            true);
-        if (!SaveMainFile()) { OT_FAIL; }
-    }
     // At this point, the contract is saved, the cert is saved, and the
     // notaryServer.xml file
     // is saved. All we have left is the Nymfile, which we'll create.
@@ -364,35 +326,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             .Flush();
                         LogNormal("* Server Nym ID: ")(server_.ServerNymID())
                             .Flush();
-                    } else if (strNodeName->Compare("cachedKey")) {
-                        auto ascCachedKey = Armored::Factory();
-
-                        if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
-                            auto& cachedKey =
-                                server_.API().Crypto().LoadDefaultKey(
-                                    server_.API(), ascCachedKey);
-
-                            if (!cachedKey.HasHashCheck()) {
-                                OTPassword tempPassword;
-                                tempPassword.zeroMemory();
-                                bNeedToSaveAgain = cachedKey.GetMasterPassword(
-                                    cachedKey,
-                                    tempPassword,
-                                    "We do not have a check hash yet for this "
-                                    "password, please enter your password",
-                                    true);
-                            }
-                        }
-                        {
-                            LogVerbose(OT_METHOD)(__FUNCTION__)(
-                                ": Loading cachedKey: ")(ascCachedKey->Get())(
-                                ".")
-                                .Flush();
-                        }
-
-                    }
-                    // the voucher reserve account IDs.
-                    else if (strNodeName->Compare("accountList")) {
+                        // the voucher reserve account IDs.
+                    } else if (strNodeName->Compare("accountList")) {
                         const auto strAcctType =
                             String::Factory(xml->getAttributeValue("type"));
                         const auto strAcctCount =
@@ -494,7 +429,7 @@ bool MainFile::LoadServerUserAndContract()
     OT_ASSERT(!server_.ServerNymID().empty());
 
     serverNym = server_.API().Wallet().Nym(
-        server_.API().Factory().NymID(server_.ServerNymID()));
+        server_.API().Factory().NymID(server_.ServerNymID()), reason_);
 
     if (serverNym->HasCapability(NymCapability::SIGN_MESSAGE)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Server nym is viable.").Flush();
@@ -525,7 +460,7 @@ bool MainFile::LoadServerUserAndContract()
     }
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading the server contract...")
         .Flush();
-    auto pContract = server_.API().Wallet().Server(NOTARY_ID);
+    auto pContract = server_.API().Wallet().Server(NOTARY_ID, reason_);
 
     if (pContract) {
         LogDetail(OT_METHOD)(__FUNCTION__)(

@@ -12,16 +12,20 @@ class Wallet final : public api::implementation::Wallet
 public:
     std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const override;
+        const identifier::Nym& clientNymID,
+        const PasswordPrompt& reason) const override;
     Editor<opentxs::Context> mutable_Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID) const override;
+        const identifier::Nym& clientNymID,
+        const PasswordPrompt& reason) const override;
     Editor<opentxs::ServerContext> mutable_ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const override;
+        const Identifier& remoteID,
+        const PasswordPrompt& reason) const override;
     std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const override;
+        const Identifier& remoteID,
+        const PasswordPrompt& reason) const override;
 
     ~Wallet() = default;
 
@@ -35,11 +39,13 @@ private:
     OTZMQPublishSocket reply_received_;
 
     void instantiate_server_context(
+        const PasswordPrompt& reason,
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const override;
-    Nym_p signer_nym(const identifier::Nym& id) const override;
+    Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
+        const override;
 
     Wallet(const api::client::Manager& client);
     Wallet() = delete;

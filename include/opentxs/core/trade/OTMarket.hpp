@@ -59,9 +59,12 @@ public:
     bool AddOffer(
         OTTrade* pTrade,
         OTOffer& theOffer,
+        const PasswordPrompt& reason,
         bool bSaveFile = true,
         time64_t tDateAddedToMarket = OT_TIME_ZERO);
-    bool RemoveOffer(const std::int64_t& lTransactionNum);
+    bool RemoveOffer(
+        const std::int64_t& lTransactionNum,
+        const PasswordPrompt& reason);
     // returns general information about offers on the market
     EXPORT bool GetOfferList(
         Armored& ascOutput,
@@ -87,11 +90,13 @@ public:
         const api::Wallet& wallet,
         OTTrade& theTrade,
         OTOffer& theOffer,
-        OTOffer& theOtherOffer);
+        OTOffer& theOtherOffer,
+        const PasswordPrompt& reason);
     bool ProcessTrade(
         const api::Wallet& wallet,
         OTTrade& theTrade,
-        OTOffer& theOffer);
+        OTOffer& theOffer,
+        const PasswordPrompt& reason);
 
     std::int64_t GetHighestBidPrice();
     std::int64_t GetLowestAskPrice();
@@ -147,8 +152,8 @@ public:
 
     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
     inline OTCron* GetCron() { return m_pCron; }
-    bool LoadMarket();
-    bool SaveMarket();
+    bool LoadMarket(const PasswordPrompt& reason);
+    bool SaveMarket(const PasswordPrompt& reason);
 
     void InitMarket();
 
@@ -156,11 +161,14 @@ public:
     void Release_Market();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the ledger saves its
-                                     // contents
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or
+                   // serialization, this is where the
+                   // ledger saves its contents
 
     virtual ~OTMarket();
 

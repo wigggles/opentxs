@@ -5,7 +5,6 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -14,7 +13,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -22,6 +20,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
@@ -47,30 +46,30 @@ const VersionNumber EllipticCurve::MaxVersion{2};
 
 namespace opentxs::crypto::key::implementation
 {
-
 EllipticCurve::EllipticCurve(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& serialized) noexcept
+    const proto::AsymmetricKey& serialized,
+    const PasswordPrompt& reason) noexcept
     : Asymmetric(
-          crypto,
+          api,
           ecdsa,
           serialized,
           true,
           proto::KEYMODE_PRIVATE == serialized.mode())
     , ecdsa_(ecdsa)
     , key_(Data::Factory())
-    , encrypted_key_(extract_key(ecdsa, serialized, key_))
+    , encrypted_key_(extract_key(api, ecdsa, serialized, key_, reason))
 {
 }
 
 EllipticCurve::EllipticCurve(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
     const VersionNumber version) noexcept
-    : Asymmetric(crypto, ecdsa, keyType, role, version)
+    : Asymmetric(api, ecdsa, keyType, role, version)
     , ecdsa_(ecdsa)
     , key_(Data::Factory())
     , encrypted_key_(nullptr)
@@ -79,7 +78,7 @@ EllipticCurve::EllipticCurve(
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 EllipticCurve::EllipticCurve(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKeyType keyType,
     const OTPassword& privateKey,
@@ -87,8 +86,8 @@ EllipticCurve::EllipticCurve(
     const proto::KeyRole role,
     const VersionNumber version,
     key::Symmetric& sessionKey,
-    const OTPasswordData& reason) noexcept
-    : Asymmetric(crypto, ecdsa, keyType, role, true, true, version)
+    const PasswordPrompt& reason) noexcept
+    : Asymmetric(api, ecdsa, keyType, role, true, true, version)
     , ecdsa_(ecdsa)
     , key_(publicKey)
     , encrypted_key_(encrypt_key(sessionKey, reason, true, privateKey))
@@ -109,7 +108,7 @@ EllipticCurve::EllipticCurve(const EllipticCurve& rhs) noexcept
 
 OTData EllipticCurve::CalculateHash(
     const proto::HashType hashType,
-    const OTPasswordData& password) const
+    const PasswordPrompt& password) const
 {
     const auto isPrivate = key_->empty();
 
@@ -117,7 +116,7 @@ OTData EllipticCurve::CalculateHash(
         OTPassword key{};
         OTPassword output{};
         const auto decrypted =
-            ECDSA().AsymmetricKeyToECPrivatekey(*this, password, key);
+            ECDSA().AsymmetricKeyToECPrivatekey(api_, *this, password, key);
 
         if (false == decrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -127,7 +126,7 @@ OTData EllipticCurve::CalculateHash(
             return Data::Factory();
         }
 
-        const auto hashed = crypto_.Hash().Digest(hashType, key, output);
+        const auto hashed = api_.Crypto().Hash().Digest(hashType, key, output);
 
         if (false == hashed) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hash")
@@ -139,7 +138,7 @@ OTData EllipticCurve::CalculateHash(
         return Data::Factory(output.getMemory(), output.getMemorySize());
     } else {
         auto output = Data::Factory();
-        const auto hashed = crypto_.Hash().Digest(hashType, key_, output);
+        const auto hashed = api_.Crypto().Hash().Digest(hashType, key_, output);
 
         if (false == hashed) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hash")
@@ -154,7 +153,7 @@ OTData EllipticCurve::CalculateHash(
 
 std::unique_ptr<proto::Ciphertext> EllipticCurve::encrypt_key(
     key::Symmetric& sessionKey,
-    const OTPasswordData& reason,
+    const PasswordPrompt& reason,
     const bool attach,
     const OTPassword& plaintext)
 {
@@ -188,9 +187,11 @@ void EllipticCurve::erase_private_data()
 }
 
 std::unique_ptr<proto::Ciphertext> EllipticCurve::extract_key(
+    const api::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKey& serialized,
-    Data& publicKey)
+    Data& publicKey,
+    const PasswordPrompt& reason)
 {
     if (proto::KEYMODE_PUBLIC == serialized.mode()) {
         publicKey.Assign(serialized.key().c_str(), serialized.key().size());
@@ -202,7 +203,7 @@ std::unique_ptr<proto::Ciphertext> EllipticCurve::extract_key(
 
         OT_ASSERT(output);
 
-        ecdsa.PrivateToPublic(*output, publicKey);
+        ecdsa.PrivateToPublic(api, *output, publicKey, reason);
 
         return output;
     } else {
@@ -213,7 +214,7 @@ std::unique_ptr<proto::Ciphertext> EllipticCurve::extract_key(
 bool EllipticCurve::get_public_key(String& strKey) const
 {
     strKey.reset();
-    strKey.Set(crypto_.Encode().DataEncode(key_.get()).c_str());
+    strKey.Set(api_.Crypto().Encode().DataEncode(key_.get()).c_str());
 
     return true;
 }
@@ -317,7 +318,8 @@ std::shared_ptr<proto::AsymmetricKey> EllipticCurve::serialize_public(
 bool EllipticCurve::Open(
     crypto::key::Asymmetric& dhPublic,
     crypto::key::Symmetric& sessionKey,
-    OTPasswordData& password) const
+    PasswordPrompt& sessionKeyPassword,
+    const PasswordPrompt& reason) const
 {
     if (false == HasPrivate()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Not a private key").Flush();
@@ -327,13 +329,13 @@ bool EllipticCurve::Open(
 
     const auto& engine =
         dynamic_cast<const crypto::EcdsaProvider&>(this->engine());
-    OTPassword plaintextKey{};
     const bool haveSessionKey = engine.DecryptSessionKeyECDH(
+        api_,
         *this,
         dynamic_cast<crypto::key::EllipticCurve&>(dhPublic),
-        password,
         sessionKey,
-        plaintextKey);
+        sessionKeyPassword,
+        reason);
 
     if (false == haveSessionKey) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
@@ -342,12 +344,10 @@ bool EllipticCurve::Open(
         return false;
     }
 
-    password.SetOverride(plaintextKey);
-
     return true;
 }
 
-OTData EllipticCurve::PrivateKey() const
+OTData EllipticCurve::PrivateKey(const PasswordPrompt& reason) const
 {
     auto output = Data::Factory();
 
@@ -356,8 +356,8 @@ OTData EllipticCurve::PrivateKey() const
     const auto& privateKey = *encrypted_key_;
     // Private key data and chain code are encrypted to the same session key,
     // and this session key is only embedded in the private key ciphertext
-    auto sessionKey = crypto_.Symmetric().Key(
-        privateKey.key(), proto::SMODE_CHACHA20POLY1305);
+    auto sessionKey =
+        api_.Symmetric().Key(privateKey.key(), proto::SMODE_CHACHA20POLY1305);
 
     if (false == sessionKey.get()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract session key.")
@@ -366,7 +366,7 @@ OTData EllipticCurve::PrivateKey() const
         return Data::Factory();
     }
 
-    if (false == sessionKey->Decrypt(privateKey, __FUNCTION__, output)) {
+    if (false == sessionKey->Decrypt(privateKey, reason, output)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt private key")
             .Flush();
 
@@ -376,7 +376,7 @@ OTData EllipticCurve::PrivateKey() const
     return output;
 }
 
-OTData EllipticCurve::PublicKey() const
+OTData EllipticCurve::PublicKey(const PasswordPrompt& reason) const
 {
     auto output = Data::Factory();
 
@@ -384,7 +384,7 @@ OTData EllipticCurve::PublicKey() const
 
     const auto& privateKey = *encrypted_key_;
 
-    if (false == ECDSA().PrivateToPublic(privateKey, output)) {
+    if (false == ECDSA().PrivateToPublic(api_, privateKey, output, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate public key")
             .Flush();
 
@@ -398,7 +398,8 @@ bool EllipticCurve::Seal(
     const opentxs::api::Core& api,
     OTAsymmetricKey& dhPublic,
     crypto::key::Symmetric& key,
-    OTPasswordData& password) const
+    const PasswordPrompt& reason,
+    PasswordPrompt& sessionPassword) const
 {
     if (false == HasPublic()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public key").Flush();
@@ -413,13 +414,14 @@ bool EllipticCurve::Seal(
     auto dhKeypair =
         api.Factory().Keypair(parameters, version_, proto::KEYROLE_ENCRYPT);
     auto dhRawKey =
-        api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(true));
-    dhPublic = api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(false));
+        api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(true), reason);
+    dhPublic =
+        api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(false), reason);
     auto& dhPrivate =
         dynamic_cast<const crypto::key::EllipticCurve&>(dhRawKey.get());
     OTPassword newPassword{};
     const bool haveSessionKey = engine.EncryptSessionKeyECDH(
-        dhPrivate, *this, password, key, newPassword);
+        api_, dhPrivate, *this, key, sessionPassword, newPassword, reason);
 
     if (false == haveSessionKey) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to re-encrypt session key")
@@ -428,7 +430,7 @@ bool EllipticCurve::Seal(
         return false;
     }
 
-    password.SetOverride(newPassword);
+    sessionPassword.SetPassword(newPassword);
 
     return true;
 }
@@ -474,14 +476,17 @@ bool EllipticCurve::SetKey(std::unique_ptr<proto::Ciphertext>& key)
     return true;
 }
 
-bool EllipticCurve::TransportKey(Data& publicKey, OTPassword& privateKey) const
+bool EllipticCurve::TransportKey(
+    Data& publicKey,
+    OTPassword& privateKey,
+    const PasswordPrompt& reason) const
 {
     if (false == HasPrivate()) { return false; }
 
     if (!encrypted_key_) { return false; }
 
     OTPassword seed;
-    ECDSA().AsymmetricKeyToECPrivatekey(*this, "Get transport key", seed);
+    ECDSA().AsymmetricKeyToECPrivatekey(api_, *this, reason, seed);
 
     return ECDSA().SeedToCurveKey(seed, privateKey, publicKey);
 }

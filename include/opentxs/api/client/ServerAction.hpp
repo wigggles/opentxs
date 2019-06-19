@@ -26,21 +26,25 @@ public:
     using Action = Pimpl<opentxs::client::ServerAction>;
 
     EXPORT virtual Action ActivateSmartContract(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,
         const std::string& agentName,
         std::unique_ptr<OTSmartContract>& contract) const = 0;
     EXPORT virtual Action AdjustUsageCredits(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
         const Amount adjustment) const = 0;
     EXPORT virtual Action CancelPaymentPlan(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         std::unique_ptr<OTPaymentPlan>& plan) const = 0;
     EXPORT virtual Action CreateMarketOffer(
+        const PasswordPrompt& reason,
         const Identifier& assetAccountID,
         const Identifier& currencyAccountID,
         const Amount scale,
@@ -52,25 +56,31 @@ public:
         const std::string& stopSign,
         const Amount activationPrice) const = 0;
     EXPORT virtual Action DepositPaymentPlan(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         std::unique_ptr<OTPaymentPlan>& plan) const = 0;
     EXPORT virtual Action DownloadMarketList(
-        const identifier::Nym& localNymID, const identifier::Server& serverID)
-        const = 0;
+        const PasswordPrompt& reason,
+        const identifier::Nym& localNymID,
+        const identifier::Server& serverID) const = 0;
     EXPORT virtual Action DownloadMarketOffers(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& marketID,
         const Amount depth) const = 0;
     EXPORT virtual Action DownloadMarketRecentTrades(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& marketID) const = 0;
     EXPORT virtual Action DownloadNymMarketOffers(
-        const identifier::Nym& localNymID, const identifier::Server& serverID)
-        const = 0;
+        const PasswordPrompt& reason,
+        const identifier::Nym& localNymID,
+        const identifier::Server& serverID) const = 0;
     EXPORT virtual Action ExchangeBasketCurrency(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& instrumentDefinitionID,
@@ -78,21 +88,25 @@ public:
         const Identifier& basketID,
         const bool direction) const = 0;
     EXPORT virtual Action IssueBasketCurrency(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const proto::UnitDefinition& basket,
         const std::string& label = "") const = 0;
     EXPORT virtual Action KillMarketOffer(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,
         const TransactionNumber number) const = 0;
     EXPORT virtual Action KillPaymentPlan(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,
         const TransactionNumber number) const = 0;
     EXPORT virtual Action PayDividend(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& instrumentDefinitionID,
@@ -100,19 +114,23 @@ public:
         const std::string& memo,
         const Amount amountPerShare) const = 0;
     EXPORT virtual Action TriggerClause(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const TransactionNumber transactionNumber,
         const std::string& clause,
         const std::string& parameter) const = 0;
     EXPORT virtual Action UnregisterAccount(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID) const = 0;
     EXPORT virtual Action UnregisterNym(
-        const identifier::Nym& localNymID, const identifier::Server& serverID)
-        const = 0;
+        const PasswordPrompt& reason,
+        const identifier::Nym& localNymID,
+        const identifier::Server& serverID) const = 0;
     EXPORT virtual Action WithdrawVoucher(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,

@@ -24,12 +24,14 @@ public:
         const std::int32_t nIndex) const = 0;
     EXPORT virtual std::shared_ptr<Message> GetOutpaymentsByTransNum(
         const std::int64_t lTransNum,
+        const PasswordPrompt& reason,
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
         std::int32_t* pnReturnIndex = nullptr) const = 0;
     EXPORT virtual std::int32_t GetOutpaymentsCount() const = 0;
     EXPORT virtual const std::int64_t& GetUsageCredits() const = 0;
     EXPORT virtual const identifier::Nym& ID() const = 0;
-    EXPORT virtual std::string PaymentCode() const = 0;
+    EXPORT virtual std::string PaymentCode(
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool SerializeNymFile(String& output) const = 0;
 
     // Whenever a Nym sends a payment, a copy is dropped std::into his
@@ -45,7 +47,8 @@ public:
     EXPORT virtual std::set<std::string>& GetSetAssetAccounts() = 0;
     EXPORT virtual bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) = 0;
     EXPORT virtual bool RemoveOutpaymentsByTransNum(
-        const std::int64_t lTransNum) = 0;
+        const std::int64_t lTransNum,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool SetInboxHash(
         const std::string& acct_id,
         const Identifier& theInput) = 0;  // client-side

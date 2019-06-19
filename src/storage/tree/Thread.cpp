@@ -38,8 +38,7 @@ Thread::Thread(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 1;
-        root_ = Node::BLANK_HASH;
+        blank(1);
     }
 }
 
@@ -55,8 +54,7 @@ Thread::Thread(
     , mail_outbox_(mailOutbox)
     , participants_(participants)
 {
-    version_ = 1;
-    root_ = Node::BLANK_HASH;
+    blank(1);
 }
 
 bool Thread::Add(
@@ -163,9 +161,7 @@ void Thread::init(const std::string& hash)
         OT_FAIL;
     }
 
-    version_ = serialized->version();
-
-    if (1 > version_) { version_ = 1; }
+    init_version(1, *serialized);
 
     for (const auto& participant : serialized->participant()) {
         participants_.emplace(participant);

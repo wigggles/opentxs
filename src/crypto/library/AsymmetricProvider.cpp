@@ -66,17 +66,18 @@ EcdsaCurve AsymmetricProvider::KeyTypeToCurve(
 namespace opentxs::crypto::implementation
 {
 bool AsymmetricProvider::SignContract(
+    const api::Core& api,
     const String& strContractUnsigned,
     const key::Asymmetric& theKey,
     Signature& theSignature,  // output
     const proto::HashType hashType,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
     auto plaintext = Data::Factory(
         strContractUnsigned.Get(),
         strContractUnsigned.GetLength() + 1);  // include null terminator
     auto signature = Data::Factory();
-    bool success = Sign(plaintext, theKey, hashType, signature, pPWData);
+    bool success = Sign(api, plaintext, theKey, hashType, signature, reason);
     theSignature.SetData(signature, true);  // true means, "yes, with newlines
                                             // in the b64-encoded output,
                                             // please."
@@ -93,7 +94,7 @@ bool AsymmetricProvider::VerifyContractSignature(
     const key::Asymmetric& theKey,
     const Signature& theSignature,
     const proto::HashType hashType,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
     auto plaintext = Data::Factory(
         strContractToVerify.Get(),
@@ -101,6 +102,6 @@ bool AsymmetricProvider::VerifyContractSignature(
     auto signature = Data::Factory();
     theSignature.GetData(signature);
 
-    return Verify(plaintext, theKey, signature, hashType, pPWData);
+    return Verify(plaintext, theKey, signature, hashType, reason);
 }
 }  // namespace opentxs::crypto::implementation

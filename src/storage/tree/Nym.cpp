@@ -124,8 +124,7 @@ Nym::Nym(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = CURRENT_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(CURRENT_VERSION);
     }
 }
 
@@ -254,10 +253,7 @@ void Nym::init(const std::string& hash)
         OT_FAIL;
     }
 
-    version_ = serialized->version();
-
-    // Upgrade version
-    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
+    init_version(CURRENT_VERSION, *serialized);
 
     nymid_ = serialized->nymid();
     credentials_ = normalize_hash(serialized->credlist().hash());

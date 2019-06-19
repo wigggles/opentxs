@@ -8,11 +8,10 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/core/util/Timer.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -29,26 +28,26 @@
 namespace opentxs
 {
 crypto::key::Ed25519* Factory::Ed25519Key(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& input)
+    const proto::AsymmetricKey& input,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new crypto::key::implementation::Ed25519(crypto, ecdsa, input);
+    return new crypto::key::implementation::Ed25519(api, ecdsa, input, reason);
 }
 
 crypto::key::Ed25519* Factory::Ed25519Key(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole input,
     const VersionNumber version)
 {
-    return new crypto::key::implementation::Ed25519(
-        crypto, ecdsa, input, version);
+    return new crypto::key::implementation::Ed25519(api, ecdsa, input, version);
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 crypto::key::Ed25519* Factory::Ed25519Key(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const OTPassword& privateKey,
     const OTPassword& chainCode,
@@ -56,13 +55,13 @@ crypto::key::Ed25519* Factory::Ed25519Key(
     const proto::HDPath& path,
     const Bip32Fingerprint parent,
     const proto::KeyRole role,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
-    const auto reason = OTPasswordData(__FUNCTION__);
-    auto sessionKey = crypto.Symmetric().Key(__FUNCTION__);
+    auto sessionKey = api.Symmetric().Key(reason);
 
     return new crypto::key::implementation::Ed25519(
-        crypto,
+        api,
         ecdsa,
         privateKey,
         chainCode,
@@ -80,25 +79,26 @@ crypto::key::Ed25519* Factory::Ed25519Key(
 namespace opentxs::crypto::key::implementation
 {
 Ed25519::Ed25519(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& serializedKey) noexcept
-    : ot_super(crypto, ecdsa, serializedKey)
+    const proto::AsymmetricKey& serializedKey,
+    const PasswordPrompt& reason) noexcept
+    : ot_super(api, ecdsa, serializedKey, reason)
 {
 }
 
 Ed25519::Ed25519(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole role,
     const VersionNumber version) noexcept
-    : ot_super(crypto, ecdsa, proto::AKEYTYPE_ED25519, role, version)
+    : ot_super(api, ecdsa, proto::AKEYTYPE_ED25519, role, version)
 {
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 Ed25519::Ed25519(
-    const api::crypto::Asymmetric& crypto,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const OTPassword& privateKey,
     const OTPassword& chainCode,
@@ -108,9 +108,9 @@ Ed25519::Ed25519(
     const proto::KeyRole role,
     const VersionNumber version,
     key::Symmetric& sessionKey,
-    const OTPasswordData& reason) noexcept
+    const PasswordPrompt& reason) noexcept
     : ot_super(
-          crypto,
+          api,
           ecdsa,
           proto::AKEYTYPE_ED25519,
           privateKey,

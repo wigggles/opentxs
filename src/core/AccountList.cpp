@@ -166,6 +166,7 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     const identifier::UnitDefinition& instrumentDefinitionID,
     const identifier::Server& notaryID,
     bool& wasAcctCreated,
+    const PasswordPrompt& reason,
     std::int64_t stashTransNum)
 {
     ExclusiveAccount account{};
@@ -191,7 +192,8 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
         const auto& accountID = acctIDsIt->second;
-        account = api_.Wallet().mutable_Account(Identifier::Factory(accountID));
+        account = api_.Wallet().mutable_Account(
+            Identifier::Factory(accountID), reason);
 
         if (account) {
 
@@ -212,7 +214,8 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
         instrumentDefinitionID,
         serverNym,
         acctType_,
-        stashTransNum);
+        stashTransNum,
+        reason);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed trying to generate ")(

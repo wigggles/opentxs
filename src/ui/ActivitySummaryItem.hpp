@@ -47,7 +47,9 @@ private:
     std::atomic<int> next_task_id_;
     std::atomic<bool> break_;
 
-    std::string find_text(const ItemLocator& locator) const;
+    std::string find_text(
+        const PasswordPrompt& reason,
+        const ItemLocator& locator) const;
 
     void get_text();
     void startup(const CustomData& custom, UniqueQueue<ItemLocator>& queue);

@@ -105,6 +105,7 @@ bool OTAgreement::SendNoticeToAllParties(
     const TransactionNumber& lNewTransactionNumber,
     // Each party has its own opening trans #.
     const String& strReference,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment,
     identity::Nym* pActualNym) const
@@ -125,7 +126,8 @@ bool OTAgreement::SendNoticeToAllParties(
             originType::origin_payment_plan,
             pstrNote,
             pstrAttachment,
-            GetSenderNymID()))
+            GetSenderNymID(),
+            reason))
         bSuccess = false;
     // Notice I don't break here -- I still allow it to try to notice ALL
     // parties, even if one fails.
@@ -143,7 +145,8 @@ bool OTAgreement::SendNoticeToAllParties(
             originType::origin_payment_plan,
             pstrNote,
             pstrAttachment,
-            GetRecipientNymID()))
+            GetRecipientNymID(),
+            reason))
         bSuccess = false;
 
     return bSuccess;
@@ -164,20 +167,25 @@ bool OTAgreement::DropServerNoticeToNymbox(
     originType theOriginType,
     OTString pstrNote,
     OTString pstrAttachment,
-    const identifier::Nym& actualNymID)
+    const identifier::Nym& actualNymID,
+    const PasswordPrompt& reason)
 {
     auto theLedger{core.Factory().Ledger(NYM_ID, NYM_ID, NOTARY_ID)};
 
     OT_ASSERT(false != bool(theLedger));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theLedger->LoadNymbox();
+    bool bSuccessLoading = theLedger->LoadNymbox(reason);
 
     if (true == bSuccessLoading) {
-        bSuccessLoading = theLedger->VerifyAccount(theServerNym);
+        bSuccessLoading = theLedger->VerifyAccount(theServerNym, reason);
     } else {
         bSuccessLoading = theLedger->GenerateLedger(
-            NYM_ID, NOTARY_ID, ledgerType::nymbox, true);  // bGenerateFile=true
+            NYM_ID,
+            NOTARY_ID,
+            ledgerType::nymbox,
+            reason,
+            true);  // bGenerateFile=true
     }
 
     if (!bSuccessLoading) {
@@ -245,14 +253,14 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // sign the item
         //
-        pItem1->SignContract(theServerNym);
+        pItem1->SignContract(theServerNym, reason);
         pItem1->SaveContract();
 
         // the Transaction "owns" the item now and will handle cleaning it up.
         std::shared_ptr<Item> item{pItem1.release()};
         pTransaction->AddItem(item);
 
-        pTransaction->SignContract(theServerNym);
+        pTransaction->SignContract(theServerNym, reason);
         pTransaction->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
@@ -264,7 +272,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         theLedger->ReleaseSignatures();
 
         // Sign and save.
-        theLedger->SignContract(theServerNym);
+        theLedger->SignContract(theServerNym, reason);
         theLedger->SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
@@ -279,8 +287,10 @@ bool OTAgreement::DropServerNoticeToNymbox(
         //
         transaction->SaveBoxReceipt(*theLedger);
 
-        auto context = core.Wallet().mutable_ClientContext(actualNymID);
-        context.It().SetLocalNymboxHash(theNymboxHash);
+        auto context = core.Wallet().mutable_ClientContext(
+
+            actualNymID, reason);
+        context.get().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions
         // returning true. Right?
@@ -340,9 +350,10 @@ void OTAgreement::GetAllTransactionNumbers(NumList& numlistOutput) const
 // parties and agents, etc.
 bool OTAgreement::VerifyNymAsAgent(
     const identity::Nym& theNym,
-    const identity::Nym&) const
+    const identity::Nym&,
+    const PasswordPrompt& reason) const
 {
-    return VerifySignature(theNym);
+    return VerifySignature(theNym, reason);
 }
 
 // This is an override. See note above.
@@ -361,7 +372,8 @@ void OTAgreement::onFinalReceipt(
     OTCronItem& theOrigCronItem,
     const std::int64_t& lNewTransactionNumber,
     Nym_p theOriginator,
-    Nym_p pRemover)
+    Nym_p pRemover,
+    const PasswordPrompt& reason)
 {
     OTCron* pCron = GetCron();
 
@@ -395,15 +407,17 @@ void OTAgreement::onFinalReceipt(
             : 0;  // index 0 is closing number for sender, since
                   // GetTransactionNum() is his opening #.
     const auto strNotaryID = String::Factory(GetNotaryID());
-    auto oContext = api_.Wallet().mutable_ClientContext(theOriginator->ID());
+    auto oContext = api_.Wallet().mutable_ClientContext(
+
+        theOriginator->ID(), reason);
 
     if ((lSenderOpeningNumber > 0) &&
-        oContext.It().VerifyIssuedNumber(lSenderOpeningNumber)) {
+        oContext.get().VerifyIssuedNumber(lSenderOpeningNumber)) {
 
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
         // that list.
-        oContext.It().CloseCronItem(lSenderOpeningNumber);
+        oContext.get().CloseCronItem(lSenderOpeningNumber);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED. But the Transaction itself is still
@@ -411,13 +425,14 @@ void OTAgreement::onFinalReceipt(
         // closing number is also USED, since the NotarizePaymentPlan or
         // NotarizeMarketOffer call, but it remains ISSUED, until the final
         // receipt itself is accepted during a process inbox.
-        oContext.It().ConsumeIssued(lSenderOpeningNumber);
+        oContext.get().ConsumeIssued(lSenderOpeningNumber);
 
         if (!DropFinalReceiptToNymbox(
                 GetSenderNymID(),
                 lNewTransactionNumber,
                 strOrigCronItem,
                 GetOriginType(),
+                reason,
                 String::Factory(),
                 pstrAttachment)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -431,7 +446,7 @@ void OTAgreement::onFinalReceipt(
     }
 
     if ((lSenderClosingNumber > 0) &&
-        oContext.It().VerifyIssuedNumber(lSenderClosingNumber)) {
+        oContext.get().VerifyIssuedNumber(lSenderClosingNumber)) {
         // In this case, I'm passing nullptr for pstrNote, since there is no
         // note. (Additional information would normally be stored in the note.)
         if (!DropFinalReceiptToInbox(
@@ -442,6 +457,7 @@ void OTAgreement::onFinalReceipt(
                                        // on the receipt.
                 strOrigCronItem,
                 GetOriginType(),
+                reason,
                 String::Factory(),
                 pstrAttachment))  // pActualAcct=nullptr by default. (This
                                   // call will load it up and update its
@@ -465,14 +481,16 @@ void OTAgreement::onFinalReceipt(
             .Flush();
     }
 
-    auto rContext = api_.Wallet().mutable_ClientContext(GetRecipientNymID());
+    auto rContext = api_.Wallet().mutable_ClientContext(
+
+        GetRecipientNymID(), reason);
 
     if ((lRecipientOpeningNumber > 0) &&
-        rContext.It().VerifyIssuedNumber(lRecipientOpeningNumber)) {
+        rContext.get().VerifyIssuedNumber(lRecipientOpeningNumber)) {
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
         // thatlist.
-        rContext.It().CloseCronItem(lRecipientOpeningNumber);
+        rContext.get().CloseCronItem(lRecipientOpeningNumber);
 
         // the RemoveIssued call means the original transaction# (to find this
         // cron item on cron) is now CLOSED. But the Transaction itself is still
@@ -480,7 +498,7 @@ void OTAgreement::onFinalReceipt(
         // closing number is also USED, since the NotarizePaymentPlan or
         // NotarizeMarketOffer call, but it remains ISSUED, until the final
         // receipt itself is accepted during a process inbox.
-        rContext.It().ConsumeIssued(lRecipientOpeningNumber);
+        rContext.get().ConsumeIssued(lRecipientOpeningNumber);
 
         // NymboxHash is updated here in recipient.
         const bool dropped = DropFinalReceiptToNymbox(
@@ -488,6 +506,7 @@ void OTAgreement::onFinalReceipt(
             lNewTransactionNumber,
             strOrigCronItem,
             GetOriginType(),
+            reason,
             String::Factory(),
             pstrAttachment);
 
@@ -507,7 +526,7 @@ void OTAgreement::onFinalReceipt(
     }
 
     if ((lRecipientClosingNumber > 0) &&
-        rContext.It().VerifyIssuedNumber(lRecipientClosingNumber)) {
+        rContext.get().VerifyIssuedNumber(lRecipientClosingNumber)) {
         if (!DropFinalReceiptToInbox(
                 GetRecipientNymID(),
                 GetRecipientAcctID(),
@@ -516,6 +535,7 @@ void OTAgreement::onFinalReceipt(
                                           // put on the receipt.
                 strOrigCronItem,
                 GetOriginType(),
+                reason,
                 String::Factory(),
                 pstrAttachment)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -545,7 +565,7 @@ bool OTAgreement::IsValidOpeningNumber(const std::int64_t& lOpeningNum) const
     return ot_super::IsValidOpeningNumber(lOpeningNum);
 }
 
-void OTAgreement::onRemovalFromCron()
+void OTAgreement::onRemovalFromCron(const PasswordPrompt& reason)
 {
     // Not much needed here.
     // Actually: Todo:  (unless it goes in payment plan code) need to set
@@ -679,12 +699,12 @@ void OTAgreement::AddRecipientClosingTransactionNo(
 
 // OTCron calls this regularly, which is my chance to expire, etc.
 // Child classes will override this, AND call it (to verify valid date range.)
-bool OTAgreement::ProcessCron()
+bool OTAgreement::ProcessCron(const PasswordPrompt& reason)
 {
     // END DATE --------------------------------
     // First call the parent's version (which this overrides) so it has
     // a chance to check its stuff. Currently it checks IsExpired().
-    if (!ot_super::ProcessCron())
+    if (!ot_super::ProcessCron(reason))
         return false;  // It's expired or flagged--removed it from Cron.
 
     // START DATE --------------------------------
@@ -957,6 +977,7 @@ bool OTAgreement::Confirm(
     ServerContext& context,
     const Account& PAYER_ACCT,
     const identifier::Nym& p_id_MERCHANT_NYM,
+    const PasswordPrompt& reason,
     const identity::Nym* pMERCHANT_NYM)
 {
     auto nym = context.Nym();
@@ -1025,7 +1046,7 @@ bool OTAgreement::Confirm(
     // Supposedly merchant has already signed.  Let's verify this!!
     //
     if ((nullptr != pMERCHANT_NYM) &&
-        (false == VerifySignature(*pMERCHANT_NYM))) {
+        (false == VerifySignature(*pMERCHANT_NYM, reason))) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Merchant's signature failed to verify.")
             .Flush();
@@ -1143,13 +1164,15 @@ void OTAgreement::Release()
     InitAgreement();
 }
 
-void OTAgreement::UpdateContents()
+void OTAgreement::UpdateContents(const PasswordPrompt& reason)
 {
     // See OTPaymentPlan::UpdateContents.
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTAgreement::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 
@@ -1161,7 +1184,9 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
-    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml))) return nReturnVal;
+    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml, reason))) {
+        return nReturnVal;
+    }
 
     if (!strcmp("agreement", xml->getNodeName())) {
         m_strVersion = String::Factory(xml->getAttributeValue("version"));

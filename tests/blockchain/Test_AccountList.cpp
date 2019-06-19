@@ -15,9 +15,11 @@ class Test_AccountList : public ::testing::Test
 {
 public:
     const opentxs::api::client::Manager& client_;
+    opentxs::OTPasswordPrompt reason_;
 
     Test_AccountList()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
     {
     }
 };
@@ -48,14 +50,16 @@ TEST_F(Test_AccountList, testList)
     OTIdentifier AliceAccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
-        proto::CITEMTYPE_BTC);
+        proto::CITEMTYPE_BTC,
+        reason_);
     std::cout << "Created Alice's Account: "
               << String::Factory(AliceAccountID)->Get() << " !!\n";
 
     OTIdentifier AliceAccountID2 = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(AliceNymID2),
         BlockchainAccountType::BIP32,
-        proto::CITEMTYPE_BTC);
+        proto::CITEMTYPE_BTC,
+        reason_);
     std::cout << "Created Alice's 2nd Account: "
               << String::Factory(AliceAccountID2)->Get() << " !!\n";
 
@@ -69,7 +73,8 @@ TEST_F(Test_AccountList, testList)
     OTIdentifier BobAccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(BobNymID),
         BlockchainAccountType::BIP44,
-        proto::CITEMTYPE_BTC);
+        proto::CITEMTYPE_BTC,
+        reason_);
 
     const std::set<OTIdentifier> bcs = client_.Blockchain().AccountList(
         identifier::Nym::Factory(BobNymID), proto::CITEMTYPE_BTC);
@@ -78,7 +83,8 @@ TEST_F(Test_AccountList, testList)
     OTIdentifier AliceLTCAccountID = client_.Blockchain().NewAccount(
         identifier::Nym::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
-        proto::CITEMTYPE_LTC);
+        proto::CITEMTYPE_LTC,
+        reason_);
 
     const std::set<OTIdentifier> als = client_.Blockchain().AccountList(
         identifier::Nym::Factory(AliceNymID), proto::CITEMTYPE_LTC);

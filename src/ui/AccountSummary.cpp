@@ -11,11 +11,13 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -156,6 +158,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     const identifier::Nym& nymID,
     const identifier::Nym& issuerID)
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     AccountSummarySortKey output{false, DEFAULT_ISSUER_NAME};
     auto& [state, name] = output;
 
@@ -163,11 +166,11 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (false == bool(issuer)) { return output; }
 
-    const auto serverID = issuer->PrimaryServer();
+    const auto serverID = issuer->PrimaryServer(reason);
 
     if (serverID->empty()) { return output; }
 
-    auto server = api_.Wallet().Server(serverID);
+    auto server = api_.Wallet().Server(serverID, reason);
 
     if (false == bool(server)) { return output; }
 

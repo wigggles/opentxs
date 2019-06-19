@@ -46,7 +46,10 @@ protected:
     const Time valid_from_;
     const Time valid_to_;
 
-    bool reencrypt(crypto::key::Symmetric& key, proto::Ciphertext& ciphertext);
+    bool reencrypt(
+        crypto::key::Symmetric& key,
+        proto::Ciphertext& ciphertext,
+        const PasswordPrompt& reason);
 
     proto::Token Serialize() const override;
 

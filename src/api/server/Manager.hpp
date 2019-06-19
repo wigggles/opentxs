@@ -56,6 +56,7 @@ private:
     typedef std::map<std::string, std::shared_ptr<blind::Mint>> MintSeries;
 #endif  // OT_CASH
 
+    const OTPasswordPrompt reason_;
     std::unique_ptr<opentxs::server::Server> server_p_;
     opentxs::server::Server& server_;
     std::unique_ptr<opentxs::server::MessageProcessor> message_processor_p_;
@@ -82,19 +83,19 @@ private:
         const std::string& serverID,
         const std::string& unitID) const;
     std::shared_ptr<blind::Mint> load_private_mint(
-        const Lock& lock,
+        const opentxs::Lock& lock,
         const std::string& unitID,
         const std::string seriesID) const;
     std::shared_ptr<blind::Mint> load_public_mint(
-        const Lock& lock,
+        const opentxs::Lock& lock,
         const std::string& unitID,
         const std::string seriesID) const;
     void mint() const;
 #endif  // OT_CASH
-    bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
+    bool verify_lock(const opentxs::Lock& lock, const std::mutex& mutex) const;
 #if OT_CASH
     std::shared_ptr<blind::Mint> verify_mint(
-        const Lock& lock,
+        const opentxs::Lock& lock,
         const std::string& unitID,
         const std::string seriesID,
         std::shared_ptr<blind::Mint>& mint) const;
@@ -106,7 +107,7 @@ private:
     void Start() override;
 
     Manager(
-        const api::Native& parent,
+        const api::internal::Context& parent,
         Flag& running,
         const ArgList& args,
         const api::Crypto& crypto,

@@ -34,8 +34,7 @@ Nyms::Nyms(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = CURRENT_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(CURRENT_VERSION);
     }
 }
 
@@ -58,17 +57,7 @@ void Nyms::init(const std::string& hash)
         abort();
     }
 
-    original_version_ = serialized->version();
-
-    // Upgrade version
-    if (CURRENT_VERSION > original_version_) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Upgrading to version ")(
-            CURRENT_VERSION)(".")
-            .Flush();
-        version_ = CURRENT_VERSION;
-    } else {
-        version_ = original_version_;
-    }
+    init_version(CURRENT_VERSION, *serialized);
 
     for (const auto& it : serialized->nym()) {
         item_map_.emplace(
@@ -176,11 +165,11 @@ bool Nyms::RelabelThread(const std::string& threadID, const std::string label)
 
     for (const auto& nymID : nyms) {
         auto nym = mutable_Nym(nymID);
-        output |= nym.It()
+        output |= nym.get()
                       .mutable_Threads()
-                      .It()
+                      .get()
                       .mutable_Thread(threadID)
-                      .It()
+                      .get()
                       .SetAlias(label);
     }
 

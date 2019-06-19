@@ -113,7 +113,10 @@ public:
         bool bSaveReceipt,
         time64_t tDateAdded);  // Date it was FIRST added to Cron.
     /** if returns false, item wasn't found. */
-    bool RemoveCronItem(std::int64_t lTransactionNum, Nym_p theRemover);
+    bool RemoveCronItem(
+        std::int64_t lTransactionNum,
+        Nym_p theRemover,
+        const PasswordPrompt& reason);
     std::shared_ptr<OTCronItem> GetItemByOfficialNum(
         std::int64_t lTransactionNum);
     std::shared_ptr<OTCronItem> GetItemByValidOpeningNum(
@@ -182,10 +185,12 @@ public:
     void Release() override;
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
     /** Before transmission or serialization, this is where the ledger saves its
      * contents */
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 };
 
 }  // namespace opentxs

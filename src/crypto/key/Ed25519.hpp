@@ -42,17 +42,18 @@ private:
     }
 
     Ed25519(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey) noexcept;
+        const proto::AsymmetricKey& serializedKey,
+        const PasswordPrompt& reason) noexcept;
     Ed25519(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version) noexcept;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Ed25519(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const OTPassword& privateKey,
         const OTPassword& chainCode,
@@ -62,7 +63,7 @@ private:
         const proto::KeyRole role,
         const VersionNumber version,
         key::Symmetric& sessionKey,
-        const OTPasswordData& reason) noexcept;
+        const PasswordPrompt& reason) noexcept;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     Ed25519() = delete;
     Ed25519(const Ed25519&) noexcept;

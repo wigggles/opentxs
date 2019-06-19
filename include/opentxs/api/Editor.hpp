@@ -17,18 +17,18 @@
 namespace opentxs
 {
 
-template <class C>
+template <class ChildType, class MutexType = std::mutex>
 class Editor
 {
 public:
-    using OptionalCallback = std::function<void(const C&)>;
-    using Lock = std::unique_lock<std::mutex>;
-    using LockedSave = std::function<void(C*, Lock&)>;
-    using UnlockedSave = std::function<void(C*)>;
+    using OptionalCallback = std::function<void(const ChildType&)>;
+    using Lock = std::unique_lock<MutexType>;
+    using LockedSave = std::function<void(ChildType*, Lock&)>;
+    using UnlockedSave = std::function<void(ChildType*)>;
 
     Editor(
-        std::mutex& objectMutex,
-        C* object,
+        MutexType& objectMutex,
+        ChildType* object,
         LockedSave save,
         OptionalCallback callback = nullptr)
         : object_(object)
@@ -43,7 +43,10 @@ public:
         OT_ASSERT(locked_save_callback_);
     }
 
-    Editor(C* object, UnlockedSave save, OptionalCallback callback = nullptr)
+    Editor(
+        ChildType* object,
+        UnlockedSave save,
+        OptionalCallback callback = nullptr)
         : object_(object)
         , locked_(false)
         , object_lock_(nullptr)
@@ -66,7 +69,7 @@ public:
         rhs.object_ = nullptr;
     }
 
-    C& It() { return *object_; }
+    ChildType& get() { return *object_; }
 
     ~Editor()
     {
@@ -89,7 +92,7 @@ public:
     }
 
 private:
-    C* object_{nullptr};
+    ChildType* object_{nullptr};
     bool locked_{true};
     std::unique_ptr<Lock> object_lock_{nullptr};
     std::unique_ptr<LockedSave> locked_save_callback_{nullptr};

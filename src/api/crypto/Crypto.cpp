@@ -7,15 +7,9 @@
 
 #include "Crypto.hpp"
 
-#include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/crypto/Symmetric.hpp"
-#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#endif
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -43,6 +37,8 @@
 #include "opentxs/crypto/Bip39.hpp"
 #endif
 
+#include "internal/api/crypto/Crypto.hpp"
+
 #include <functional>
 #include <ostream>
 #include <vector>
@@ -69,9 +65,7 @@ api::Crypto* Factory::Crypto(const api::Settings& settings)
 namespace opentxs::api::implementation
 {
 Crypto::Crypto(const api::Settings& settings)
-    : cached_key_lock_()
-    , primary_key_(nullptr)
-    , config_(opentxs::Factory::CryptoConfig(settings))
+    : config_(opentxs::Factory::CryptoConfig(settings))
 #if OT_CRYPTO_USING_LIBBITCOIN
     , bitcoin_(opentxs::Factory::Bitcoin(*this))
 #endif
@@ -114,25 +108,6 @@ Crypto::Crypto(const api::Settings& settings)
           ripemd160_
 #endif  // OT_CRYPTO_USING_TREZOR
           ))
-    , symmetric_(opentxs::Factory::Symmetric(*sodium_))
-    , asymmetric_(opentxs::Factory::AsymmetricAPI(
-          *encode_,
-          *hash_,
-          util_,
-          *symmetric_,
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-          bip32_,
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-          *sodium_,
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-          *ssl_,
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-          secp256k1_provider_
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-          ))
 {
 #if OT_CRYPTO_USING_LIBBITCOIN
     OT_ASSERT(bitcoin_)
@@ -151,22 +126,6 @@ Crypto::Crypto(const api::Settings& settings)
     Init();
 }
 
-#if OT_CRYPTO_SUPPORTED_ALGO_AES
-const opentxs::crypto::LegacySymmetricProvider& Crypto::AES() const
-{
-    OT_ASSERT(nullptr != ssl_);
-
-    return *ssl_;
-}
-#endif
-
-const crypto::Asymmetric& Crypto::Asymmetric() const
-{
-    OT_ASSERT(asymmetric_);
-
-    return *asymmetric_;
-}
-
 #if OT_CRYPTO_WITH_BIP32
 const opentxs::crypto::Bip32& Crypto::BIP32() const { return bip32_; }
 #endif
@@ -177,9 +136,6 @@ const opentxs::crypto::Bip39& Crypto::BIP39() const { return bip39_; }
 
 void Crypto::Cleanup()
 {
-    primary_key_.reset();
-    asymmetric_.reset();
-    symmetric_.reset();
     hash_.reset();
     encode_.reset();
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -203,36 +159,6 @@ const crypto::Config& Crypto::Config() const
     OT_ASSERT(config_);
 
     return *config_;
-}
-
-const OTCachedKey& Crypto::DefaultKey() const
-{
-    Lock lock(cached_key_lock_);
-
-    OT_ASSERT(primary_key_);
-
-    return *primary_key_;
-}
-
-const OTCachedKey& Crypto::DefaultKey(const api::Core& api) const
-{
-    Lock lock(cached_key_lock_);
-
-    if (false == bool(primary_key_)) { init_default_key(lock, api); }
-
-    OT_ASSERT(primary_key_);
-
-    return *primary_key_;
-}
-
-Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
-{
-    OT_ASSERT(primary_key_);
-
-    std::function<void(OTCachedKey*, Lock&)> callback = [&](OTCachedKey*,
-                                                            Lock&) -> void {};
-
-    return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -287,28 +213,6 @@ void Crypto::Init()
 #endif
 }
 
-void Crypto::init_default_key(const Lock&, const api::Core& api) const
-{
-    if (false == bool(primary_key_)) {
-        primary_key_.reset(new OTCachedKey(api, OT_MASTER_KEY_TIMEOUT));
-    }
-}
-
-const OTCachedKey& Crypto::LoadDefaultKey(
-    const api::Core& api,
-    const Armored& serialized) const
-{
-    Lock lock(cached_key_lock_);
-
-    init_default_key(lock, api);
-
-    OT_ASSERT(primary_key_);
-
-    primary_key_->SetCachedKey(serialized);
-
-    return *primary_key_;
-}
-
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
 {
@@ -325,48 +229,14 @@ const opentxs::crypto::EcdsaProvider& Crypto::SECP256K1() const
 }
 #endif
 
-void Crypto::SetTimeout(const std::chrono::seconds& timeout) const
+const opentxs::crypto::SymmetricProvider& Crypto::Sodium() const
 {
-    Lock lock(cached_key_lock_);
+    OT_ASSERT(sodium_);
 
-    OT_ASSERT(primary_key_);
-
-    primary_key_->SetTimeoutSeconds(timeout.count());
-}
-
-void Crypto::SetSystemKeyring(const bool useKeyring) const
-{
-    Lock lock(cached_key_lock_);
-
-    OT_ASSERT(primary_key_);
-
-    primary_key_->UseSystemKeyring(useKeyring);
-}
-
-const crypto::Symmetric& Crypto::Symmetric() const
-{
-    OT_ASSERT(symmetric_);
-
-    return *symmetric_;
+    return *sodium_;
 }
 
 const crypto::Util& Crypto::Util() const { return util_; }
-
-OTSymmetricKey Crypto::GetStorageKey(const proto::AsymmetricKey& raw) const
-{
-    OTPassword keySource{};
-    auto sessionKey =
-        Symmetric().Key(raw.encryptedkey().key(), raw.encryptedkey().mode());
-    OTPasswordData blank(__FUNCTION__);
-    const bool decrypted =
-        sessionKey->Decrypt(raw.encryptedkey(), blank, keySource);
-
-    if (false == decrypted) {
-        return opentxs::crypto::key::Symmetric::Factory();
-    }
-
-    return Symmetric().Key(keySource);
-}
 
 Crypto::~Crypto() { Cleanup(); }
 }  // namespace opentxs::api::implementation

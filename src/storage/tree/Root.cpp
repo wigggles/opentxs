@@ -45,14 +45,18 @@ Root::Root(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = CURRENT_VERSION;
-        root_ = Node::BLANK_HASH;
-        gc_root_ = Node::BLANK_HASH;
-        current_bucket_.Off();
-        last_gc_.store(static_cast<std::int64_t>(std::time(nullptr)));
-        sequence_.store(0);
-        tree_root_ = Node::BLANK_HASH;
+        blank(CURRENT_VERSION);
     }
+}
+
+void Root::blank(const VersionNumber version)
+{
+    Node::blank(version);
+    gc_root_ = Node::BLANK_HASH;
+    current_bucket_.Off();
+    last_gc_.store(static_cast<std::int64_t>(std::time(nullptr)));
+    sequence_.store(0);
+    tree_root_ = Node::BLANK_HASH;
 }
 
 void Root::cleanup() const
@@ -122,11 +126,7 @@ void Root::init(const std::string& hash)
         OT_FAIL;
     }
 
-    version_ = serialized->version();
-
-    // Upgrade version
-    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
-
+    init_version(CURRENT_VERSION, *serialized);
     gc_root_ = normalize_hash(serialized->gcroot());
     current_bucket_.Set(serialized->altlocation());
     gc_running_->Off();

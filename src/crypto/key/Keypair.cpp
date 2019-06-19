@@ -10,7 +10,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -18,6 +17,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
@@ -44,18 +44,21 @@ crypto::key::Keypair* Factory::Keypair(
 
 crypto::key::Keypair* Factory::Keypair(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey)
 {
     return new crypto::key::implementation::Keypair(
-        api, serializedPubkey, serializedPrivkey);
+        api, reason, serializedPubkey, serializedPrivkey);
 }
 
 crypto::key::Keypair* Factory::Keypair(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     const proto::AsymmetricKey& serializedPubkey)
 {
-    return new crypto::key::implementation::Keypair(api, serializedPubkey);
+    return new crypto::key::implementation::Keypair(
+        api, reason, serializedPubkey);
 }
 }  // namespace opentxs
 
@@ -66,7 +69,8 @@ Keypair::Keypair(
     const NymParameters& params,
     const VersionNumber version,
     const proto::KeyRole role) noexcept
-    : m_pkeyPublic(api.Factory().AsymmetricKey(params, role, version))
+    : api_(api)
+    , m_pkeyPublic(api.Factory().AsymmetricKey(params, role, version))
     , m_pkeyPrivate(api.Factory().AsymmetricKey(params, role, version))
     , role_(role)
 {
@@ -79,10 +83,12 @@ Keypair::Keypair(
 
 Keypair::Keypair(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey) noexcept
-    : m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey))
-    , m_pkeyPrivate(api.Factory().AsymmetricKey(serializedPrivkey))
+    : api_(api)
+    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
+    , m_pkeyPrivate(api.Factory().AsymmetricKey(serializedPrivkey, reason))
     , role_(m_pkeyPrivate->Role())
 {
     OT_ASSERT(m_pkeyPublic.get());
@@ -91,8 +97,10 @@ Keypair::Keypair(
 
 Keypair::Keypair(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     const proto::AsymmetricKey& serializedPubkey) noexcept
-    : m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey))
+    : api_(api)
+    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
     , m_pkeyPrivate(Asymmetric::Factory())
     , role_(m_pkeyPublic->Role())
 {
@@ -102,6 +110,7 @@ Keypair::Keypair(
 
 Keypair::Keypair(const Keypair& rhs) noexcept
     : key::Keypair()
+    , api_(rhs.api_)
     , m_pkeyPublic(rhs.m_pkeyPublic)
     , m_pkeyPrivate(rhs.m_pkeyPrivate)
     , role_(rhs.role_)
@@ -193,14 +202,17 @@ std::shared_ptr<proto::AsymmetricKey> Keypair::GetSerialized(
     }
 }
 
-bool Keypair::GetTransportKey(Data& publicKey, OTPassword& privateKey) const
+bool Keypair::GetTransportKey(
+    Data& publicKey,
+    OTPassword& privateKey,
+    const opentxs::PasswordPrompt& reason) const
 {
-    return m_pkeyPrivate->TransportKey(publicKey, privateKey);
+    return m_pkeyPrivate->TransportKey(publicKey, privateKey, reason);
 }
 
 bool Keypair::make_new_keypair(const NymParameters& nymParameters)
 {
-    LowLevelKeyGenerator lowLevelKeys(nymParameters);
+    LowLevelKeyGenerator lowLevelKeys(api_, nymParameters);
 
     if (!lowLevelKeys.MakeNewKeypair()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -209,8 +221,9 @@ bool Keypair::make_new_keypair(const NymParameters& nymParameters)
         return false;
     }
 
-    OTPasswordData passwordData("Enter or set the wallet master password.");
+    auto reason = api_.Factory().PasswordPrompt(
+        "Enter or set the wallet master password.");
 
-    return lowLevelKeys.SetOntoKeypair(*this, passwordData);
+    return lowLevelKeys.SetOntoKeypair(*this, reason);
 }
 }  // namespace opentxs::crypto::key::implementation

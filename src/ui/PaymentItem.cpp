@@ -16,6 +16,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 
@@ -162,6 +163,7 @@ std::string PaymentItem::DisplayAmount() const
 
 void PaymentItem::load()
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     std::shared_ptr<const std::string> text{nullptr};
     std::string displayAmount{};
     std::string memo{};
@@ -172,9 +174,9 @@ void PaymentItem::load()
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
             text = api_.Activity().PaymentText(
-                nym_id_, item_id_.str(), account_id_.str());
+                nym_id_, item_id_.str(), account_id_.str(), reason);
             const auto [cheque, contract] = api_.Activity().Cheque(
-                nym_id_, item_id_.str(), account_id_.str());
+                nym_id_, item_id_.str(), account_id_.str(), reason);
 
             if (cheque) {
                 memo = cheque->GetMemo().Get();
@@ -189,7 +191,7 @@ void PaymentItem::load()
 
                 OT_ASSERT(payment);
 
-                payment->SetTempValues();
+                payment->SetTempValues(reason);
             }
         } break;
         case StorageBox::SENTPEERREQUEST:

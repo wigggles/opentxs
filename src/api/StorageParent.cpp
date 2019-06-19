@@ -9,12 +9,13 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/OT.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 
 #include "StorageParent.hpp"
 
@@ -67,7 +68,9 @@ StorageParent::StorageParent(
     OT_ASSERT(false == data_folder_.empty())
 }
 
-void StorageParent::init([[maybe_unused]] const api::HDSeed& seeds)
+void StorageParent::init(
+    [[maybe_unused]] const api::Factory& factory,
+    [[maybe_unused]] const api::HDSeed& seeds)
 {
     if (encrypted_directory_->empty()) { return; }
 
@@ -81,18 +84,12 @@ void StorageParent::init([[maybe_unused]] const api::HDSeed& seeds)
             .Flush();
     }
 
-    auto rawKey = seeds.GetStorageKey(seed);
-
-    if (false == bool(rawKey)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load encryption key.")
-            .Flush();
-    }
-
-    storage_encryption_key_ = crypto_.GetStorageKey(*rawKey);
+    auto reason = factory.PasswordPrompt("Initializaing storage encryption");
+    storage_encryption_key_ = seeds.GetStorageKey(seed, reason);
 
     if (storage_encryption_key_.get()) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Obtained storage key ")(
-            storage_encryption_key_->ID())
+            storage_encryption_key_->ID(reason))
             .Flush();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load storage key ")(

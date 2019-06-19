@@ -19,7 +19,7 @@
 #include "Servers.hpp"
 #include "Units.hpp"
 
-#define TREE_VERSION 5
+#define TREE_VERSION 6
 
 #define OT_METHOD "opentxs::storage::Tree::"
 
@@ -55,12 +55,13 @@ Tree::Tree(
     , servers_(nullptr)
     , unit_lock_()
     , units_(nullptr)
+    , master_key_lock_()
+    , master_key_(nullptr)
 {
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = TREE_VERSION;
-        root_ = Node::BLANK_HASH;
+        blank(TREE_VERSION);
     }
 }
 
@@ -92,6 +93,8 @@ Tree::Tree(const Tree& rhs)
     , servers_(nullptr)
     , unit_lock_()
     , units_(nullptr)
+    , master_key_lock_()
+    , master_key_(nullptr)
 {
     Lock lock(rhs.write_lock_);
     version_ = rhs.version_;
@@ -105,6 +108,7 @@ Tree::Tree(const Tree& rhs)
     seed_root_ = rhs.seed_root_;
     server_root_ = rhs.server_root_;
     unit_root_ = rhs.unit_root_;
+    master_key_ = rhs.master_key_;
 }
 
 storage::Accounts* Tree::accounts() const
@@ -193,11 +197,7 @@ void Tree::init(const std::string& hash)
         OT_FAIL
     }
 
-    version_ = serialized->version();
-
-    // Upgrade version
-    if (TREE_VERSION > version_) { version_ = TREE_VERSION; }
-
+    init_version(TREE_VERSION, *serialized);
     account_root_ = normalize_hash(serialized->accounts());
     blockchain_root_ = normalize_hash(serialized->blockchaintransactions());
     contact_root_ = normalize_hash(serialized->contacts());
@@ -207,6 +207,33 @@ void Tree::init(const std::string& hash)
     seed_root_ = normalize_hash(serialized->seeds());
     server_root_ = normalize_hash(serialized->servers());
     unit_root_ = normalize_hash(serialized->units());
+
+    if (serialized->has_master_secret()) {
+        master_key_.reset(new proto::Ciphertext(serialized->master_secret()));
+
+        OT_ASSERT(master_key_);
+    }
+}
+
+bool Tree::Load(std::shared_ptr<proto::Ciphertext>& output, const bool checking)
+    const
+{
+    Lock lock(master_key_lock_);
+
+    const bool have = bool(master_key_);
+
+    if (have) {
+        output = master_key_;
+
+        return true;
+    } else {
+        if (checking) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Master key does not exist.")
+                .Flush();
+        }
+    }
+
+    return false;
 }
 
 bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
@@ -381,6 +408,12 @@ proto::StorageItems Tree::serialize() const
     serialized.set_units(unit_root_);
     unitLock.unlock();
 
+    Lock masterLock(master_key_lock_);
+
+    if (master_key_) { *serialized.mutable_master_secret() = *master_key_; }
+
+    masterLock.unlock();
+
     return serialized;
 }
 
@@ -389,6 +422,17 @@ const storage::Servers& Tree::Servers() const { return *servers(); }
 storage::Servers* Tree::servers() const
 {
     return get_child<storage::Servers>(server_lock_, servers_, server_root_);
+}
+
+bool Tree::Store(const proto::Ciphertext& serialized)
+{
+    Lock masterLock(master_key_lock_, std::defer_lock);
+    Lock writeLock(write_lock_, std::defer_lock);
+    std::lock(masterLock, writeLock);
+    master_key_ = std::make_shared<proto::Ciphertext>(serialized);
+    masterLock.unlock();
+
+    return save(writeLock);
 }
 
 const storage::Units& Tree::Units() const { return *units(); }

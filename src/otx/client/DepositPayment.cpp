@@ -12,6 +12,7 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 
 #include "DepositPayment.hpp"
 #include "PaymentTasks.hpp"
@@ -24,19 +25,20 @@ DepositPayment::DepositPayment(
     client::internal::StateMachine& parent,
     const TaskID taskID,
     const DepositPaymentTask& payment,
-	PaymentTasks& paymenttasks)
+    PaymentTasks& paymenttasks)
     : StateMachine(std::bind(&DepositPayment::deposit, this))
     , parent_(parent)
     , task_id_(taskID)
     , payment_(payment)
     , state_(Depositability::UNKNOWN)
     , result_(parent.error_result())
-	, payment_tasks_(paymenttasks)
+    , payment_tasks_(paymenttasks)
 {
 }
 
 bool DepositPayment::deposit()
 {
+    auto reason = parent_.api().Factory().PasswordPrompt(__FUNCTION__);
     bool error{false};
     bool repeat{true};
     auto& [unitID, accountID, pPayment] = payment_;
@@ -58,7 +60,7 @@ bool DepositPayment::deposit()
             }
         } break;
         case Depositability::NO_ACCOUNT: {
-            accountID = get_account_id(unitID);
+            accountID = get_account_id(reason, unitID);
 
             if (accountID->empty()) {
                 error = true;
@@ -123,6 +125,7 @@ exit:
 }
 
 OTIdentifier DepositPayment::get_account_id(
+    const PasswordPrompt& reason,
     const identifier::UnitDefinition& unit)
 {
     Lock lock(payment_tasks_.GetAccountLock(unit));
@@ -138,7 +141,7 @@ OTIdentifier DepositPayment::get_account_id(
 
     if (1 == accounts.size()) { return *accounts.begin(); }
 
-    const auto contract = parent_.api().Wallet().UnitDefinition(unit);
+    const auto contract = parent_.api().Wallet().UnitDefinition(unit, reason);
 
     if (false == bool(contract)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Downloading unit definition")

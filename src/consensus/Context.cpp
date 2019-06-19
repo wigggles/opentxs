@@ -265,7 +265,7 @@ RequestNumber Context::IncrementRequest()
     return ++request_number_;
 }
 
-bool Context::InitializeNymbox()
+bool Context::InitializeNymbox(const PasswordPrompt& reason)
 {
     Lock lock(lock_);
     const auto& ownerNymID = client_nym_id(lock);
@@ -281,7 +281,7 @@ bool Context::InitializeNymbox()
     }
 
     const auto generated = nymbox->GenerateLedger(
-        ownerNymID, server_id_, ledgerType::nymbox, true);
+        ownerNymID, server_id_, ledgerType::nymbox, reason, true);
 
     if (false == generated) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
@@ -295,7 +295,7 @@ bool Context::InitializeNymbox()
 
     OT_ASSERT(nym_)
 
-    if (false == nymbox->SignContract(*nym_)) {
+    if (false == nymbox->SignContract(*nym_, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
             "Unable to sign nymbox for ")(ownerNymID)(".")
             .Flush();
@@ -373,7 +373,7 @@ OTIdentifier Context::LocalNymboxHash() const
     return local_nymbox_hash_;
 }
 
-Editor<opentxs::NymFile> Context::mutable_Nymfile(const OTPasswordData& reason)
+Editor<opentxs::NymFile> Context::mutable_Nymfile(const PasswordPrompt& reason)
 {
     OT_ASSERT(nym_)
 
@@ -399,7 +399,7 @@ bool Context::NymboxHashMatch() const
 }
 
 std::unique_ptr<const opentxs::NymFile> Context::Nymfile(
-    const OTPasswordData& reason) const
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_);
 
@@ -428,10 +428,10 @@ bool Context::RecoverAvailableNumber(const TransactionNumber& number)
     return recover_available_number(lock, number);
 }
 
-proto::Context Context::Refresh()
+proto::Context Context::Refresh(const PasswordPrompt& reason)
 {
     Lock lock(lock_);
-    update_signature(lock);
+    update_signature(lock, reason);
 
     return contract(lock);
 }
@@ -482,12 +482,12 @@ void Context::Reset()
     request_number_.store(0);
 }
 
-bool Context::save(const Lock& lock)
+bool Context::save(const Lock& lock, const PasswordPrompt& reason)
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (false == UpdateSignature(lock)) { return false; }
-    if (false == ValidateContext(lock)) { return false; }
+    if (false == UpdateSignature(lock, reason)) { return false; }
+    if (false == ValidateContext(lock, reason)) { return false; }
 
     return api_.Storage().Store(GetContract(lock));
 }
@@ -585,11 +585,11 @@ proto::Context Context::SigVersion(const Lock& lock) const
     return output;
 }
 
-bool Context::update_signature(const Lock& lock)
+bool Context::update_signature(const Lock& lock, const PasswordPrompt& reason)
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (!Signable::update_signature(lock)) { return false; }
+    if (!Signable::update_signature(lock, reason)) { return false; }
 
     if (version_ < target_version_) { version_ = target_version_; }
 
@@ -597,7 +597,8 @@ bool Context::update_signature(const Lock& lock)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success = nym_->SignProto(serialized, proto::SIGROLE_CONTEXT, signature);
+    success =
+        nym_->SignProto(serialized, proto::SIGROLE_CONTEXT, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -610,7 +611,7 @@ bool Context::update_signature(const Lock& lock)
     return success;
 }
 
-bool Context::validate(const Lock& lock) const
+bool Context::validate(const Lock& lock, const PasswordPrompt& reason) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -622,7 +623,7 @@ bool Context::validate(const Lock& lock) const
         return false;
     }
 
-    return verify_signature(lock, *signatures_.front());
+    return verify_signature(lock, *signatures_.front(), reason);
 }
 
 bool Context::verify_acknowledged_number(
@@ -654,11 +655,12 @@ bool Context::verify_issued_number(
 
 bool Context::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (!Signable::verify_signature(lock, signature)) {
+    if (!Signable::verify_signature(lock, signature, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
             "Error: invalid signature.")
             .Flush();
@@ -670,7 +672,7 @@ bool Context::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);
+    return nym_->VerifyProto(serialized, sigProto, reason);
 }
 
 bool Context::VerifyAcknowledgedNumber(const RequestNumber& req) const

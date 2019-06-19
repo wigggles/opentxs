@@ -13,21 +13,25 @@ class ServerAction : virtual public opentxs::api::client::ServerAction
 {
 public:
     Action ActivateSmartContract(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,
         const std::string& agentName,
         std::unique_ptr<OTSmartContract>& contract) const override;
     Action AdjustUsageCredits(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
         const Amount adjustment) const override;
     Action CancelPaymentPlan(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         std::unique_ptr<OTPaymentPlan>& plan) const override;
     Action CreateMarketOffer(
+        const PasswordPrompt& reason,
         const Identifier& assetAccountID,
         const Identifier& currencyAccountID,
         const Amount scale,
@@ -39,25 +43,31 @@ public:
         const std::string& stopSign,
         const Amount activationPrice) const override;
     Action DepositPaymentPlan(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         std::unique_ptr<OTPaymentPlan>& plan) const override;
     Action DownloadMarketList(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const override;
     Action DownloadMarketOffers(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& marketID,
         const Amount depth) const override;
     Action DownloadMarketRecentTrades(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& marketID) const override;
     Action DownloadNymMarketOffers(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const override;
     Action ExchangeBasketCurrency(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& instrumentDefinitionID,
@@ -65,21 +75,25 @@ public:
         const Identifier& basketID,
         const bool direction) const override;
     Action IssueBasketCurrency(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const proto::UnitDefinition& basket,
         const std::string& label) const override;
     Action KillMarketOffer(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,
         const TransactionNumber number) const override;
     Action KillPaymentPlan(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,
         const TransactionNumber number) const override;
     Action PayDividend(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& instrumentDefinitionID,
@@ -87,19 +101,23 @@ public:
         const std::string& memo,
         const Amount amountPerShare) const override;
     Action TriggerClause(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const TransactionNumber transactionNumber,
         const std::string& clause,
         const std::string& parameter) const override;
     Action UnregisterAccount(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID) const override;
     Action UnregisterNym(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const override;
     Action WithdrawVoucher(
+        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID,

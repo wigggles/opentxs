@@ -51,8 +51,8 @@ public:
     // with bad addresses.
     //
     void ClearTemporaryPointers();
-    bool SignContract(Contract& theInput) const;  // The party will use its
-                                                  // authorizing agent.
+    // The party will use its authorizing agent.
+    bool SignContract(Contract& theInput, const PasswordPrompt& reason) const;
     // See if a certain transaction number is present.
     // Checks opening number on party, and closing numbers on his accounts.
     bool HasTransactionNum(const std::int64_t& lInput) const;
@@ -64,14 +64,19 @@ public:
     void HarvestAllTransactionNumbers(ServerContext& context);
     void HarvestOpeningNumber(const String& strNotaryID);
     void HarvestOpeningNumber(ServerContext& context);
-    void CloseoutOpeningNumber(const String& strNotaryID);
-    void HarvestClosingNumbers(const String& strNotaryID);
+    void CloseoutOpeningNumber(
+        const String& strNotaryID,
+        const PasswordPrompt& reason);
+    void HarvestClosingNumbers(
+        const String& strNotaryID,
+        const PasswordPrompt& reason);
     void HarvestClosingNumbers(ServerContext& context);
     // Iterates through the agents.
     //
     bool DropFinalReceiptToNymboxes(
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
     // Iterates through the accounts.
@@ -80,6 +85,7 @@ public:
         const String& strNotaryID,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
     bool SendNoticeToParty(
@@ -91,6 +97,7 @@ public:
         // const std::int64_t& lInReferenceTo,
         // We use GetOpenTransNo() now.
         const String& strReference,
+        const PasswordPrompt& reason,
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory(),
         identity::Nym* pActualNym = nullptr);
@@ -191,6 +198,7 @@ public:
     //
     Nym_p LoadAuthorizingAgentNym(
         const identity::Nym& theSignerNym,
+        const PasswordPrompt& reason,
         OTAgent** ppAgent = nullptr);
     bool AddAccount(OTPartyAccount& thePartyAcct);
     EXPORT bool AddAccount(
@@ -232,6 +240,7 @@ public:
     bool VerifyOwnershipOfAccount(const Account& theAccount) const;
     bool VerifyAccountsWithTheirAgents(
         const String& strNotaryID,
+        const PasswordPrompt& reason,
         bool bBurnTransNo = false);
     EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
         const;  // When confirming a party, a new version replaces the original.
@@ -241,7 +250,8 @@ public:
     bool LoadAndVerifyAssetAccounts(
         const String& strNotaryID,
         mapOfAccounts& map_Accts_Already_Loaded,
-        mapOfAccounts& map_NewlyLoaded);
+        mapOfAccounts& map_NewlyLoaded,
+        const PasswordPrompt& reason);
 
     // ------------- OPERATIONS -------------
 

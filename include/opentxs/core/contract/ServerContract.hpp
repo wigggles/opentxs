@@ -38,11 +38,13 @@ public:
         const std::list<Endpoint>& endpoints,
         const std::string& terms,
         const std::string& name,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
     static ServerContract* Factory(
         const api::Wallet& wallet,
         const Nym_p& nym,
-        const proto::ServerContract& serialized);
+        const proto::ServerContract& serialized,
+        const PasswordPrompt& reason);
 
     bool ConnectInfo(
         std::string& strHostname,
@@ -50,14 +52,16 @@ public:
         proto::AddressType& actual,
         const proto::AddressType& preferred) const;
     proto::ServerContract Contract() const;
-    std::string EffectiveName() const;
+    std::string EffectiveName(const PasswordPrompt& reason) const;
     std::string Name() const override { return name_; }
     proto::ServerContract PublicContract() const;
     bool Statistics(String& strContents) const;
     const unsigned char* PublicTransportKey() const;
     OTData Serialize() const override;
     const Data& TransportKey() const;
-    std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
+    std::unique_ptr<OTPassword> TransportKey(
+        Data& pubkey,
+        const PasswordPrompt& reason) const;
 
     void SetAlias(const std::string& alias) override;
 
@@ -75,11 +79,15 @@ private:
     OTIdentifier GetID(const Lock& lock) const override;
     proto::ServerContract IDVersion(const Lock& lock) const;
     proto::ServerContract SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock) const override;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+    bool validate(const Lock& lock, const PasswordPrompt& reason)
         const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature,
+        const PasswordPrompt& reason) const override;
 
-    bool update_signature(const Lock& lock) override;
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
+        override;
 
     ServerContract() = delete;
     ServerContract(const api::Wallet& wallet, const Nym_p& nym);

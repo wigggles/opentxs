@@ -27,7 +27,7 @@
 // -----------------------------------------------------
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
-static inline void print_stacktrace(ANDROID_UNUSED FILE* out = stderr)
+static inline void print_stacktrace([[maybe_unused]] FILE* out = stderr)
 {
 #ifdef _WIN32
     // TODO: Write Winodws Code

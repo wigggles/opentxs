@@ -8,10 +8,12 @@
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -33,6 +35,7 @@ template class opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem>;
 namespace opentxs
 {
 ui::implementation::IssuerItemRowInternal* Factory::AccountSummaryItem(
+    const opentxs::PasswordPrompt& reason,
     const ui::implementation::IssuerItemInternalInterface& parent,
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
@@ -41,13 +44,14 @@ ui::implementation::IssuerItemRowInternal* Factory::AccountSummaryItem(
     const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::AccountSummaryItem(
-        parent, api, publisher, rowID, sortKey, custom);
+        reason, parent, api, publisher, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 AccountSummaryItem::AccountSummaryItem(
+    const opentxs::PasswordPrompt& reason,
     const IssuerItemInternalInterface& parent,
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
@@ -60,16 +64,19 @@ AccountSummaryItem::AccountSummaryItem(
     , balance_{extract_custom<Amount>(custom)}
     , name_{sortKey}
     , contract_{api_.Wallet().UnitDefinition(
-          api_.Storage().AccountContract(account_id_))}
+          api_.Storage().AccountContract(account_id_),
+          reason)}
 {
 }
 
 std::string AccountSummaryItem::DisplayBalance() const
 {
+    auto reason = api_.Factory().PasswordPrompt("Loading account balance");
+
     if (false == bool(contract_)) {
         eLock lock(shared_lock_);
         contract_ = api_.Wallet().UnitDefinition(
-            api_.Storage().AccountContract(account_id_));
+            api_.Storage().AccountContract(account_id_), reason);
     }
 
     sLock lock(shared_lock_);

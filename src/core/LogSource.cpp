@@ -7,7 +7,7 @@
 
 #include "opentxs/core/LogSource.hpp"
 
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -39,7 +39,6 @@ const LogSource& LogSource::operator()() const { return *this; }
 
 const LogSource& LogSource::operator()(char* in) const
 {
-
     return operator()(std::string(in));
 }
 
@@ -157,7 +156,7 @@ LogSource::Source& LogSource::get_buffer(std::string& out)
         Lock lock(buffer_lock_);
         auto it = buffer_.emplace(
             id,
-            Source{OT::App().ZMQ().PushSocket(zmq::Socket::Direction::Connect),
+            Source{Context().ZMQ().PushSocket(zmq::Socket::Direction::Connect),
                    std::stringstream{}});
         auto& source = std::get<0>(it)->second;
         auto& socket = std::get<0>(source).get();

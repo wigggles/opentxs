@@ -7,12 +7,9 @@
 
 #include "ConfigLoader.hpp"
 
-#include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/crypto/OTKeyring.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -26,14 +23,13 @@
 
 #define SERVER_WALLET_FILENAME "notaryServer.xml"
 #define SERVER_MASTER_KEY_TIMEOUT_DEFAULT -1
-#define SERVER_USE_SYSTEM_KEYRING false
 #define OT_METHOD "opentxs::Configloader::"
 
 namespace opentxs::server
 {
 
 bool ConfigLoader::load(
-    const api::Crypto& crypto,
+    const api::Core& api,
     const api::Settings& config,
     String& walletFilename)
 {
@@ -263,44 +259,11 @@ bool ConfigLoader::load(
             lValue,
             bIsNewKey,
             String::Factory(szComment));
-        crypto.SetTimeout(std::chrono::seconds(lValue));
-    }
-
-    // Use System Keyring
-    {
-        bool bIsNewKey = false;
-        bool bValue = false;
-        config.CheckSet_bool(
-            String::Factory("security"),
-            String::Factory("use_system_keyring"),
-            SERVER_USE_SYSTEM_KEYRING,
-            bValue,
-            bIsNewKey);
-        crypto.SetSystemKeyring(bValue);
-
-#if defined(OT_KEYRING_FLATFILE)
-        // Is there a password folder? (There shouldn't be, but we allow it...)
-        //
-        if (bValue) {
-            bool bIsNewKey2 = false;
-            auto strValue = String::Factory();
-            App::Me().Config().CheckSet_str(
-                "security", "password_folder", "", strValue, bIsNewKey2);
-            if (strValue.Exists()) {
-                OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
-                {
-                    LogNormal(OT_METHOD)(__FUNCTION__)(
-                        ": Using server password folder: ")(stringvalue)(".")
-                        .Flush();
-                }
-            }
-        }
-#endif
+        api.SetMasterKeyTimeout(std::chrono::seconds(lValue));
     }
 
     // (#defined right above this function.)
     //
-
     config.SetOption_bool(
         String::Factory("permissions"),
         String::Factory("admin_usage_credits"),

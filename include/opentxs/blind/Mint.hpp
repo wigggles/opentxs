@@ -42,7 +42,8 @@ public:
     EXPORT virtual bool AddDenomination(
         const identity::Nym& theNotary,
         const std::int64_t denomination,
-        const std::size_t keySize) = 0;
+        const std::size_t keySize,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual void GenerateNewMint(
         const api::Wallet& wallet,
         std::int32_t nSeries,
@@ -62,8 +63,11 @@ public:
         const std::int64_t nDenom8,
         const std::int64_t nDenom9,
         const std::int64_t nDenom10,
-        const std::size_t keySize) = 0;
-    EXPORT virtual bool LoadMint(const char* szAppend = nullptr) = 0;
+        const std::size_t keySize,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool LoadMint(
+        const PasswordPrompt& reason,
+        const char* szAppend = nullptr) = 0;
     EXPORT virtual void Release_Mint() = 0;
     EXPORT virtual void ReleaseDenominations() = 0;
     EXPORT virtual bool SaveMint(const char* szAppend = nullptr) = 0;
@@ -72,11 +76,15 @@ public:
     EXPORT virtual void SetSavePrivateKeys(bool bDoIt = true) = 0;
     EXPORT virtual bool SignToken(
         const identity::Nym& notary,
-        blind::Token& token) = 0;
-    EXPORT virtual bool VerifyMint(const identity::Nym& theOperator) = 0;
+        blind::Token& token,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool VerifyMint(
+        const identity::Nym& theOperator,
+        const PasswordPrompt& reason) = 0;
     EXPORT virtual bool VerifyToken(
         const identity::Nym& notary,
-        const blind::Token& token) = 0;
+        const blind::Token& token,
+        const PasswordPrompt& reason) = 0;
 
     EXPORT ~Mint() override = default;
 

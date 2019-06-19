@@ -8,10 +8,12 @@
 #include "Internal.hpp"
 
 #if OT_STORAGE_FS
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
@@ -153,7 +155,8 @@ std::string StorageFSArchive::prepare_read(const std::string& input) const
     OT_ASSERT(encryption_key_);
 
     std::string output{};
-    OTPasswordData reason("");
+    auto reason =
+        encryption_key_.api().Factory().PasswordPrompt("Storage read");
 
     if (false == encryption_key_.Decrypt(ciphertext, reason, output)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt value.")
@@ -171,7 +174,8 @@ std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
 
     proto::Ciphertext ciphertext{};
     auto iv = Data::Factory();
-    OTPasswordData reason("");
+    auto reason =
+        encryption_key_.api().Factory().PasswordPrompt("Storage write");
     const bool encrypted =
         encryption_key_.Encrypt(plaintext, iv, reason, ciphertext, false);
 

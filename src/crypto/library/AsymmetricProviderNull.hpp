@@ -15,21 +15,23 @@ class AsymmetricProviderNull final : virtual public crypto::AsymmetricProvider
 {
 public:
     bool Sign(
+        const api::Core& api,
         const Data&,
         const key::Asymmetric&,
         const proto::HashType,
         Data& signature,
-        const OTPasswordData* = nullptr,
+        const PasswordPrompt&,
         const OTPassword* = nullptr) const override
     {
         return false;
     }
     bool SignContract(
+        const api::Core& api,
         const String&,
         const key::Asymmetric&,
         Signature&,  // output
         const proto::HashType,
-        const OTPasswordData* = nullptr) const override
+        const PasswordPrompt&) const override
     {
         return false;
     }
@@ -38,7 +40,7 @@ public:
         const key::Asymmetric&,
         const Data&,
         const proto::HashType,
-        const OTPasswordData* = nullptr) const override
+        const PasswordPrompt&) const override
     {
         return false;
     }
@@ -47,7 +49,7 @@ public:
         const key::Asymmetric&,
         const Signature&,
         const proto::HashType,
-        const OTPasswordData* = nullptr) const override
+        const PasswordPrompt&) const override
     {
         return false;
     }

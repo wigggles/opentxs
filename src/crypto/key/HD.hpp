@@ -10,14 +10,14 @@ namespace opentxs::crypto::key::implementation
 class HD : virtual public key::HD, public EllipticCurve
 {
 public:
-    OTData Chaincode() const override;
+    OTData Chaincode(const PasswordPrompt& reason) const override;
     int Depth() const override;
-    Bip32Fingerprint Fingerprint() const override;
+    Bip32Fingerprint Fingerprint(const PasswordPrompt& reason) const override;
     const std::string Path() const override;
     bool Path(proto::HDPath& output) const override;
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
-    std::string Xprv() const override;
-    std::string Xpub() const override;
+    std::string Xprv(const PasswordPrompt& reason) const override;
+    std::string Xpub(const PasswordPrompt& reason) const override;
 
 protected:
     std::shared_ptr<proto::HDPath> path_{nullptr};
@@ -25,18 +25,19 @@ protected:
 
     void erase_private_data() override;
 
-    HD(const api::crypto::Asymmetric& crypto,
+    HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,
-       const proto::AsymmetricKey& serializedKey)
+       const proto::AsymmetricKey& serializedKey,
+       const PasswordPrompt& reason)
     noexcept;
-    HD(const api::crypto::Asymmetric& crypto,
+    HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,
        const proto::AsymmetricKeyType keyType,
        const proto::KeyRole role,
        const VersionNumber version)
     noexcept;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    HD(const api::crypto::Asymmetric& crypto,
+    HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,
        const proto::AsymmetricKeyType keyType,
        const OTPassword& privateKey,
@@ -47,7 +48,7 @@ protected:
        const proto::KeyRole role,
        const VersionNumber version,
        key::Symmetric& sessionKey,
-       const OTPasswordData& reason)
+       const PasswordPrompt& reason)
     noexcept;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     HD(const HD&) noexcept;

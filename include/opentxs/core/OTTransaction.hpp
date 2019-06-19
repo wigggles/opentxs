@@ -334,13 +334,16 @@ public:
     // See transactionType in Types.hpp.
 
     void Release() override;
-    EXPORT std::int64_t GetNumberOfOrigin() override;
-    EXPORT void CalculateNumberOfOrigin() override;
+    EXPORT std::int64_t GetNumberOfOrigin(
+        const PasswordPrompt& reason) override;
+    EXPORT void CalculateNumberOfOrigin(const PasswordPrompt& reason) override;
 
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    bool VerifyAccount(const identity::Nym& theNym) override;
+    bool VerifyAccount(
+        const identity::Nym& theNym,
+        const PasswordPrompt& reason) override;
 
     void InitTransaction();
 
@@ -385,8 +388,9 @@ public:
     // These are used for finalReceipt and basketReceipt
     EXPORT std::int64_t GetClosingNum() const;
     EXPORT void SetClosingNum(std::int64_t lClosingNum);
-    EXPORT std::int64_t GetReferenceNumForDisplay();  /// For display purposes.
-                                                      /// The
+    EXPORT std::int64_t GetReferenceNumForDisplay(
+        const PasswordPrompt& reason);  /// For display purposes.
+                                        /// The
     /// "ref #" you actually display
     /// (versus the one you use
     /// internally) might change
@@ -395,12 +399,20 @@ public:
     /// you actually have to load up
     /// the original cheque.)
 
-    EXPORT bool GetSenderNymIDForDisplay(Identifier& theReturnID);
-    EXPORT bool GetRecipientNymIDForDisplay(Identifier& theReturnID);
+    EXPORT bool GetSenderNymIDForDisplay(
+        Identifier& theReturnID,
+        const PasswordPrompt& reason);
+    EXPORT bool GetRecipientNymIDForDisplay(
+        Identifier& theReturnID,
+        const PasswordPrompt& reason);
 
-    EXPORT bool GetSenderAcctIDForDisplay(Identifier& theReturnID);
-    EXPORT bool GetRecipientAcctIDForDisplay(Identifier& theReturnID);
-    EXPORT bool GetMemo(String& strMemo);
+    EXPORT bool GetSenderAcctIDForDisplay(
+        Identifier& theReturnID,
+        const PasswordPrompt& reason);
+    EXPORT bool GetRecipientAcctIDForDisplay(
+        Identifier& theReturnID,
+        const PasswordPrompt& reason);
+    EXPORT bool GetMemo(String& strMemo, const PasswordPrompt& reason);
 
     inline time64_t GetDateSigned() const { return m_DATE_SIGNED; }
 
@@ -430,8 +442,11 @@ public:
         bool* pbHasSuccess = nullptr,
         bool* pbIsSuccess = nullptr);
 
-    EXPORT std::int64_t GetReceiptAmount();  // Tries to determine IF there is
-                                             // an
+    EXPORT std::int64_t GetReceiptAmount(
+        const PasswordPrompt& reason);  // Tries to
+                                        // determine
+                                        // IF there
+                                        // is an
     // amount (depending on type) and return
     // it.
 
@@ -448,15 +463,21 @@ public:
     EXPORT bool DeleteBoxReceipt(Ledger& theLedger);
 
     // Call on abbreviated version, and pass in the purported full version.
-    bool VerifyBoxReceipt(OTTransaction& theFullVersion);
+    bool VerifyBoxReceipt(
+        OTTransaction& theFullVersion,
+        const PasswordPrompt& reason);
 
-    EXPORT bool VerifyBalanceReceipt(const ServerContext& context);
+    EXPORT bool VerifyBalanceReceipt(
+        const ServerContext& context,
+        const PasswordPrompt& reason);
 
     // First VerifyContractID() is performed already on all the items when
     // they are first loaded up. NotaryID and AccountID have been verified.
     // Now we check ownership, and signatures, and transaction #s, etc.
     // (We go deeper.)
-    EXPORT bool VerifyItems(const identity::Nym& theNym);
+    EXPORT bool VerifyItems(
+        const identity::Nym& theNym,
+        const PasswordPrompt& reason);
 
     inline std::int32_t GetItemCount() const
     {
@@ -487,14 +508,20 @@ public:
     // Because all of the actual receipts cannot fit into the single inbox
     // file, you must put their hash, and then store the receipt itself
     // separately...
-    void SaveAbbreviatedNymboxRecord(Tag& parent);
-    void SaveAbbreviatedOutboxRecord(Tag& parent);
-    void SaveAbbreviatedInboxRecord(Tag& parent);
-    void SaveAbbrevPaymentInboxRecord(Tag& parent);
-    void SaveAbbrevRecordBoxRecord(Tag& parent);
-    void SaveAbbrevExpiredBoxRecord(Tag& parent);
-    void ProduceInboxReportItem(Item& theBalanceItem);
-    void ProduceOutboxReportItem(Item& theBalanceItem);
+    void SaveAbbreviatedNymboxRecord(Tag& parent, const PasswordPrompt& reason);
+    void SaveAbbreviatedOutboxRecord(Tag& parent, const PasswordPrompt& reason);
+    void SaveAbbreviatedInboxRecord(Tag& parent, const PasswordPrompt& reason);
+    void SaveAbbrevPaymentInboxRecord(
+        Tag& parent,
+        const PasswordPrompt& reason);
+    void SaveAbbrevRecordBoxRecord(Tag& parent, const PasswordPrompt& reason);
+    void SaveAbbrevExpiredBoxRecord(Tag& parent, const PasswordPrompt& reason);
+    void ProduceInboxReportItem(
+        Item& theBalanceItem,
+        const PasswordPrompt& reason);
+    void ProduceOutboxReportItem(
+        Item& theBalanceItem,
+        const PasswordPrompt& reason);
 
     static transactionType GetTypeFromString(const String& strType);
 
@@ -511,15 +538,16 @@ public:
     // when you tell it the circumstances (bools!)
     bool HarvestOpeningNumber(
         ServerContext& context,
-        bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
-                                       // clawback the opening # because it
-                                       // will be using another opening # the
-                                       // next time OT_API_exchangeBasket() is
-                                       // called.
-        bool bReplyWasSuccess,         // false until positively asserted.
-        bool bReplyWasFailure,         // false until positively asserted.
-        bool bTransactionWasSuccess,   // false until positively asserted.
-        bool bTransactionWasFailure);  // false until positively asserted.
+        bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
+                                      // clawback the opening # because it
+                                      // will be using another opening # the
+                                      // next time OT_API_exchangeBasket() is
+                                      // called.
+        bool bReplyWasSuccess,        // false until positively asserted.
+        bool bReplyWasFailure,        // false until positively asserted.
+        bool bTransactionWasSuccess,  // false until positively asserted.
+        bool bTransactionWasFailure,
+        const PasswordPrompt& reason);  // false until positively asserted.
 
     // NOTE: IN CASE it's not obvious, the NYM is harvesting numbers from the
     // TRANSACTION, and not the other way around!
@@ -529,15 +557,16 @@ public:
     // but any others are still salvageable.)
     bool HarvestClosingNumbers(
         ServerContext& context,
-        bool bHarvestingForRetry,      // exchangeBasket, on retry, needs to
-                                       // clawback the opening # because it
-                                       // will be using another opening # the
-                                       // next time OT_API_exchangeBasket() is
-                                       // called.
-        bool bReplyWasSuccess,         // false until positively asserted.
-        bool bReplyWasFailure,         // false until positively asserted.
-        bool bTransactionWasSuccess,   // false until positively asserted.
-        bool bTransactionWasFailure);  // false until positively asserted.
+        bool bHarvestingForRetry,     // exchangeBasket, on retry, needs to
+                                      // clawback the opening # because it
+                                      // will be using another opening # the
+                                      // next time OT_API_exchangeBasket() is
+                                      // called.
+        bool bReplyWasSuccess,        // false until positively asserted.
+        bool bReplyWasFailure,        // false until positively asserted.
+        bool bTransactionWasSuccess,  // false until positively asserted.
+        bool bTransactionWasFailure,
+        const PasswordPrompt& reason);  // false until positively asserted.
 
     OTIdentifier GetAccountHash() const { return m_accounthash; }
     OTIdentifier GetInboxHash() const { return m_inboxhash; }
@@ -681,11 +710,14 @@ protected:
     OTIdentifier m_accounthash;
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the transaction saves its
-                                     // contents
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or
+                   // serialization, this is where the
+                   // transaction saves its contents
 
 private:
     friend api::implementation::Factory;

@@ -29,15 +29,19 @@ private:
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
     static std::unique_ptr<PeerRequest> Finish(
-        std::unique_ptr<PeerRequest>& contract);
+        std::unique_ptr<PeerRequest>& contract,
+        const PasswordPrompt& reason);
     static OTIdentifier GetID(const proto::PeerRequest& contract);
-    static bool FinalizeContract(PeerRequest& contract);
+    static bool FinalizeContract(
+        PeerRequest& contract,
+        const PasswordPrompt& reason);
 
     proto::PeerRequest contract(const Lock& lock) const;
     OTIdentifier GetID(const Lock& lock) const override;
     proto::PeerRequest SigVersion(const Lock& lock) const;
 
-    bool update_signature(const Lock& lock) override;
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
+        override;
 
     PeerRequest() = delete;
 
@@ -45,9 +49,12 @@ protected:
     const api::Core& api_;
 
     virtual proto::PeerRequest IDVersion(const Lock& lock) const;
-    bool validate(const Lock& lock) const override;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+    bool validate(const Lock& lock, const PasswordPrompt& reason)
         const override;
+    bool verify_signature(
+        const Lock& lock,
+        const proto::Signature& signature,
+        const PasswordPrompt& reason) const override;
 
     PeerRequest(
         const api::Core& api,
@@ -80,7 +87,8 @@ public:
         const Nym_p& nym,
         const proto::PeerRequestType& type,
         const identifier::UnitDefinition& unitID,
-        const identifier::Server& serverID);
+        const identifier::Server& serverID,
+        const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
         const Nym_p& sender,
@@ -90,7 +98,8 @@ public:
         const identifier::Nym& recipient,
         const Identifier& requestID,
         const std::string& txid,
-        const Amount& amount);
+        const Amount& amount,
+        const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
         const Nym_p& nym,
@@ -98,14 +107,16 @@ public:
         const identifier::UnitDefinition& unitID,
         const identifier::Server& serverID,
         const std::uint64_t& amount,
-        const std::string& terms);
+        const std::string& terms,
+        const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
         const Nym_p& sender,
         const proto::PeerRequestType& type,
         const proto::ConnectionInfoType connectionType,
         const identifier::Nym& recipient,
-        const identifier::Server& serverID);
+        const identifier::Server& serverID,
+        const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
         const api::Core& api,
         const Nym_p& sender,
@@ -114,11 +125,13 @@ public:
         const identifier::Nym& recipient,
         const std::string& primary,
         const std::string& secondary,
-        const identifier::Server& serverID);
+        const identifier::Server& serverID,
+        const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Factory(
         const api::Core& api,
         const Nym_p& nym,
-        const proto::PeerRequest& serialized);
+        const proto::PeerRequest& serialized,
+        const PasswordPrompt& reason);
 
     std::string Alias() const override { return Name(); }
     proto::PeerRequest Contract() const;

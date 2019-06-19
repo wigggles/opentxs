@@ -32,19 +32,23 @@ public:
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
+        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
     bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
+        const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
+    bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const override;
 
     bool SelfSign(
+        const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
-        const OTPasswordData* pPWData = nullptr,
         const bool onlyPrivate = false) override;
 
     virtual ~Key() = default;
@@ -59,15 +63,19 @@ protected:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const override;
-    bool verify_internally(const Lock& lock) const override;
+    bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
+        const override;
 
-    bool New(const NymParameters& nymParameters) override;
+    bool New(const NymParameters& nymParameters, const PasswordPrompt& reason)
+        override;
 
     Key(const api::Core& api,
         identity::internal::Authority& owner,
         const NymParameters& nymParameters,
-        const VersionNumber version) noexcept;
+        const VersionNumber version,
+        const PasswordPrompt& reason) noexcept;
     Key(const api::Core& api,
+        const PasswordPrompt& reason,
         identity::internal::Authority& owner,
         const proto::Credential& serializedCred) noexcept;
 
@@ -77,6 +85,7 @@ private:
 
     static OTKeypair deserialize_key(
         const api::Core& api,
+        const PasswordPrompt& reason,
         const int index,
         const proto::Credential& credential);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -89,13 +98,15 @@ private:
         const Bip32Index credindex,
         const EcdsaCurve& curve,
         const proto::KeyRole role,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
 #endif
     static OTKeypair new_key(
         const api::Core& api,
         const proto::KeyRole role,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason);
 
     bool addKeytoSerializedKeyCredential(
         proto::KeyCredential& credential,
@@ -107,8 +118,10 @@ private:
     bool VerifySig(
         const Lock& lock,
         const proto::Signature& sig,
+        const PasswordPrompt& reason,
         const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
-    bool VerifySignedBySelf(const Lock& lock) const;
+    bool VerifySignedBySelf(const Lock& lock, const PasswordPrompt& reason)
+        const;
 
     Key() = delete;
     Key(const Key&) = delete;

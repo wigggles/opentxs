@@ -24,7 +24,7 @@ public:
     EXPORT virtual std::size_t IvSize(
         const proto::SymmetricMode mode) const = 0;
     EXPORT virtual OTSymmetricKey Key(
-        const OTPasswordData& password,
+        const PasswordPrompt& password,
         const proto::SymmetricMode mode =
             proto::SMODE_CHACHA20POLY1305) const = 0;
     EXPORT virtual OTSymmetricKey Key(

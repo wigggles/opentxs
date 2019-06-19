@@ -271,6 +271,7 @@ private:
     mutable std::atomic<TaskID> next_task_id_;
     mutable std::atomic<bool> shutdown_;
     mutable std::mutex shutdown_lock_;
+    mutable OTPasswordPrompt reason_;
 
     static BackgroundTask error_task();
     static Result error_result()

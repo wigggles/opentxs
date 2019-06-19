@@ -25,61 +25,9 @@ public:
     /** Generate a blank, invalid key */
     EXPORT static OTSymmetricKey Factory();
 
-    /** Derive a new, random symmetric key
-     *
-     *  \param[in] engine A reference to the crypto library to be bound to the
-     *                    instance
-     *  \param[in] keyPassword Optional key password information.
-     *  \param[in] mode The symmetric algorithm for which to generate an
-     *                  appropriate key
-     */
-    EXPORT static OTSymmetricKey Factory(
-        const crypto::SymmetricProvider& engine,
-        const OTPasswordData& password,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR);
+    EXPORT virtual operator bool() const = 0;
 
-    /** Instantiate a symmetric key from serialized form
-     *
-     *  \param[in] engine A reference to the crypto library to be bound to the
-     *                    instance
-     *  \param[in] serialized The symmetric key in protobuf form
-     */
-    EXPORT static OTSymmetricKey Factory(
-        const crypto::SymmetricProvider& engine,
-        const proto::SymmetricKey serialized);
-
-    /** Derive a symmetric key from a seed
-     *
-     *  \param[in] seed A binary or text seed to be expanded into a secret key
-     *  \param[in] operations The number of iterations/operations the KDF should
-     *                        perform
-     *  \param[in] difficulty A type-specific difficulty parameter used by the
-     *                        KDF.
-     *  \param[in] size       The target number of bytes for the derived secret
-     *                        key
-     *  \param[in] type       The KDF to be used for the derivation process
-     */
-    EXPORT static OTSymmetricKey Factory(
-        const crypto::SymmetricProvider& engine,
-        const OTPassword& seed,
-        const std::uint64_t operations,
-        const std::uint64_t difficulty,
-        const std::size_t size,
-        const proto::SymmetricKeyType type);
-
-    /** Construct a symmetric key from an existing OTPassword
-     *
-     *  \param[in] engine A reference to the crypto library to be bound to the
-     *                    instance
-     *  \param[in] raw An existing, unencrypted binary or text secret
-     */
-    EXPORT static OTSymmetricKey Factory(
-        const crypto::SymmetricProvider& engine,
-        const OTPassword& raw);
-
-    EXPORT virtual bool ChangePassword(
-        const OTPasswordData& oldPassword,
-        const OTPassword& newPassword) = 0;
+    EXPORT virtual const api::Core& api() const = 0;
 
     /** Decrypt ciphertext using the symmetric key
      *
@@ -89,21 +37,20 @@ public:
      */
     EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
-        const OTPasswordData& keyPassword,
-        std::string& plaintext) = 0;
+        const PasswordPrompt& reason,
+        std::string& plaintext) const = 0;
     EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
-        const OTPasswordData& keyPassword,
-        String& plaintext) = 0;
+        const PasswordPrompt& reason,
+        String& plaintext) const = 0;
     EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
-        const OTPasswordData& keyPassword,
-        Data& plaintext) = 0;
+        const PasswordPrompt& reason,
+        Data& plaintext) const = 0;
     EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
-        const OTPasswordData& keyPassword,
-        OTPassword& plaintext) = 0;
-
+        const PasswordPrompt& reason,
+        OTPassword& plaintext) const = 0;
     /** Encrypt plaintext using the symmetric key
      *
      *  \param[in] plaintext The data to be encrypted
@@ -117,39 +64,40 @@ public:
     EXPORT virtual bool Encrypt(
         const std::string& plaintext,
         const Data& iv,
-        const OTPasswordData& keyPassword,
+        const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
     EXPORT virtual bool Encrypt(
         const String& plaintext,
         const Data& iv,
-        const OTPasswordData& keyPassword,
+        const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
     EXPORT virtual bool Encrypt(
         const OTPassword& plaintext,
         const Data& iv,
-        const OTPasswordData& keyPassword,
+        const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
     EXPORT virtual bool Encrypt(
         const Data& plaintext,
         const Data& iv,
-        const OTPasswordData& keyPassword,
+        const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
-
-    EXPORT virtual OTIdentifier ID() = 0;
-
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
+    EXPORT virtual OTIdentifier ID(const PasswordPrompt& reason) const = 0;
+    EXPORT virtual bool RawKey(const PasswordPrompt& reason, OTPassword& output)
+        const = 0;
     EXPORT virtual bool Serialize(proto::SymmetricKey& output) const = 0;
+    EXPORT virtual bool Unlock(const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual bool Unlock(const OTPasswordData& keyPassword) = 0;
-
-    EXPORT virtual operator bool() const = 0;
+    EXPORT virtual bool ChangePassword(
+        const PasswordPrompt& reason,
+        const OTPassword& newPassword) = 0;
 
     EXPORT virtual ~Symmetric() = default;
 

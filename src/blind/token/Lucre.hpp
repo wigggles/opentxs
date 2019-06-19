@@ -17,21 +17,25 @@ namespace opentxs::blind::token::implementation
 class Lucre final : public Token
 {
 public:
-    bool GetSpendable(String& output) const;
-    std::string ID() const override;
-    bool IsSpent() const override;
+    bool GetSpendable(String& output, const PasswordPrompt& reason) const;
+    std::string ID(const PasswordPrompt& reason) const override;
+    bool IsSpent(const PasswordPrompt& reason) const override;
     proto::Token Serialize() const override;
 
     bool AddSignature(const String& signature);
-    bool ChangeOwner(crypto::key::Symmetric& key) override;
+    bool ChangeOwner(crypto::key::Symmetric& key, const PasswordPrompt& reason)
+        override;
     bool GenerateTokenRequest(
         const identity::Nym& owner,
         const OTPassword& primaryPassword,
         const OTPassword& secondaryPassword,
         const Mint& mint) override;
-    bool GetPublicPrototoken(String& output);
-    bool MarkSpent() override;
-    bool Process(const identity::Nym& owner, const Mint& mint) override;
+    bool GetPublicPrototoken(String& output, const PasswordPrompt& reason);
+    bool MarkSpent(const PasswordPrompt& reason) override;
+    bool Process(
+        const identity::Nym& owner,
+        const Mint& mint,
+        const PasswordPrompt& reason) override;
 
     Lucre(const api::Core& api, Purse& purse, const proto::Token& serialized);
     Lucre(

@@ -41,17 +41,18 @@ private:
     }
 
     Secp256k1(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey) noexcept;
+        const proto::AsymmetricKey& serializedKey,
+        const PasswordPrompt& reason) noexcept;
     Secp256k1(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
         const VersionNumber version) noexcept;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Secp256k1(
-        const api::crypto::Asymmetric& crypto,
+        const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const OTPassword& privateKey,
         const OTPassword& chainCode,
@@ -61,7 +62,7 @@ private:
         const proto::KeyRole role,
         const VersionNumber version,
         key::Symmetric& sessionKey,
-        const OTPasswordData& reason) noexcept;
+        const PasswordPrompt& reason) noexcept;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     Secp256k1() = delete;
     Secp256k1(const Secp256k1&) noexcept;

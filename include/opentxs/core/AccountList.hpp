@@ -46,6 +46,7 @@ public:
         const identifier::Server& NOTARY_ID,
         bool& wasAcctCreated,  // this will be set to true if the acct is
                                // created here. Otherwise set to false;
+        const PasswordPrompt& reason,
         std::int64_t stashTransNum = 0);
 
     explicit AccountList(const api::Core& core);

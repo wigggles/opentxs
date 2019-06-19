@@ -55,23 +55,28 @@ NymData::NymData(const NymData& rhs)
 
 std::string NymData::AddChildKeyCredential(
     const Identifier& strMasterID,
-    const NymParameters& nymParameters)
+    const NymParameters& nymParameters,
+    const PasswordPrompt& reason)
 {
-    return nym().AddChildKeyCredential(strMasterID, nymParameters);
+    return nym().AddChildKeyCredential(strMasterID, nymParameters, reason);
 }
 
-bool NymData::AddClaim(const Claim& claim) { return nym().AddClaim(claim); }
-
-bool NymData::DeleteClaim(const Identifier& id)
+bool NymData::AddClaim(const Claim& claim, const PasswordPrompt& reason)
 {
-    return nym().DeleteClaim(id);
+    return nym().AddClaim(claim, reason);
+}
+
+bool NymData::DeleteClaim(const Identifier& id, const PasswordPrompt& reason)
+{
+    return nym().DeleteClaim(id, reason);
 }
 
 bool NymData::AddContract(
     const std::string& instrumentDefinitionID,
     const proto::ContactItemType currency,
     const bool primary,
-    const bool active)
+    const bool active,
+    const PasswordPrompt& reason)
 {
     auto id = factory_.UnitID(instrumentDefinitionID);
 
@@ -83,25 +88,27 @@ bool NymData::AddContract(
         return false;
     }
 
-    return nym().AddContract(id, currency, primary, active);
+    return nym().AddContract(id, currency, reason, primary, active);
 }
 
 bool NymData::AddEmail(
     const std::string& value,
     const bool primary,
-    const bool active)
+    const bool active,
+    const PasswordPrompt& reason)
 {
-    return nym().AddEmail(value, primary, active);
+    return nym().AddEmail(value, reason, primary, active);
 }
 
 bool NymData::AddPaymentCode(
     [[maybe_unused]] const std::string& code,
     [[maybe_unused]] const proto::ContactItemType currency,
     [[maybe_unused]] const bool primary,
-    [[maybe_unused]] const bool active)
+    [[maybe_unused]] const bool active,
+    const PasswordPrompt& reason)
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto paymentCode = factory_.PaymentCode(code);
+    auto paymentCode = factory_.PaymentCode(code, reason);
 
     if (false == paymentCode->VerifyInternally()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payment code.").Flush();
@@ -109,7 +116,7 @@ bool NymData::AddPaymentCode(
         return false;
     }
 
-    return nym().AddPaymentCode(paymentCode, currency, primary, active);
+    return nym().AddPaymentCode(paymentCode, currency, reason, primary, active);
 #endif
 
     return false;
@@ -118,12 +125,16 @@ bool NymData::AddPaymentCode(
 bool NymData::AddPhoneNumber(
     const std::string& value,
     const bool primary,
-    const bool active)
+    const bool active,
+    const PasswordPrompt& reason)
 {
-    return nym().AddPhoneNumber(value, primary, active);
+    return nym().AddPhoneNumber(value, reason, primary, active);
 }
 
-bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
+bool NymData::AddPreferredOTServer(
+    const std::string& id,
+    const bool primary,
+    const PasswordPrompt& reason)
 {
     if (id.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server id.").Flush();
@@ -131,16 +142,17 @@ bool NymData::AddPreferredOTServer(const std::string& id, const bool primary)
         return false;
     }
 
-    return nym().AddPreferredOTServer(factory_.ServerID(id), primary);
+    return nym().AddPreferredOTServer(factory_.ServerID(id), reason, primary);
 }
 
 bool NymData::AddSocialMediaProfile(
     const std::string& value,
     const proto::ContactItemType type,
     const bool primary,
-    const bool active)
+    const bool active,
+    const PasswordPrompt& reason)
 {
-    return nym().AddSocialMediaProfile(value, type, primary, active);
+    return nym().AddSocialMediaProfile(value, type, reason, primary, active);
 }
 
 identity::Nym::Serialized NymData::asPublicNym() const
@@ -253,27 +265,34 @@ void NymData::release()
     nym_.reset();
 }
 
-bool NymData::SetCommonName(const std::string& name)
+bool NymData::SetCommonName(
+    const std::string& name,
+    const PasswordPrompt& reason)
 {
-    return nym().SetCommonName(name);
+    return nym().SetCommonName(name, reason);
 }
 
-bool NymData::SetContactData(const proto::ContactData& data)
+bool NymData::SetContactData(
+    const proto::ContactData& data,
+    const PasswordPrompt& reason)
 {
-    return nym().SetContactData(data);
+    return nym().SetContactData(data, reason);
 }
 
 bool NymData::SetScope(
     const proto::ContactItemType type,
     const std::string& name,
-    const bool primary)
+    const bool primary,
+    const PasswordPrompt& reason)
 {
-    return nym().SetScope(type, name, primary);
+    return nym().SetScope(type, name, reason, primary);
 }
 
-bool NymData::SetVerificationSet(const proto::VerificationSet& data)
+bool NymData::SetVerificationSet(
+    const proto::VerificationSet& data,
+    const PasswordPrompt& reason)
 {
-    return nym().SetVerificationSet(data);
+    return nym().SetVerificationSet(data, reason);
 }
 
 std::string NymData::SocialMediaProfiles(

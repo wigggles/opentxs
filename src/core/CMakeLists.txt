@@ -40,6 +40,7 @@ set(cxx-sources
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
+  PasswordPrompt.cpp
   StateMachine.cpp
   String.cpp
   StringXML.cpp
@@ -71,6 +72,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTrackable.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransaction.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransactionType.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/PasswordPrompt.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/String.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/StringXML.hpp"
 )
@@ -89,16 +91,6 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/String.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/StringXML.hpp"
 )
-
-if(KEYRING_GNOME)
-  include(GNUInstallDirs)
-  target_include_directories( ${MODULE_NAME}
-    PRIVATE
-    ${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/glib-2.0/
-    /usr/${CMAKE_INSTALL_LIBDIR}/glib-2.0/include/
-    ${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/gnome-keyring-1/
-  )
-endif()
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)

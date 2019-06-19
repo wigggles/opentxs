@@ -85,10 +85,10 @@ public:
     const opentxs::api::client::Manager& issuer_client_;
 
     Test_DepositCheques()
-        : alice_client_(OT::App().StartClient(args_, 0))
-        , bob_client_(OT::App().StartClient(args_, 1))
-        , server_1_(OT::App().StartServer(args_, 0, true))
-        , issuer_client_(OT::App().StartClient(args_, 2))
+        : alice_client_(Context().StartClient(args_, 0))
+        , bob_client_(Context().StartClient(args_, 1))
+        , server_1_(Context().StartServer(args_, 0, true))
+        , issuer_client_(Context().StartClient(args_, 2))
     {
 #if OT_CASH
         server_1_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
@@ -101,8 +101,9 @@ public:
         const ServerContract& contract,
         const opentxs::api::client::Manager& client)
     {
+        auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
         auto clientVersion =
-            client.Wallet().Server(server_contract_->PublicContract());
+            client.Wallet().Server(server_contract_->PublicContract(), reason);
 
         OT_ASSERT(clientVersion)
 
@@ -138,8 +139,9 @@ public:
             identifier::Nym::Factory(Issuer_);
         const_cast<OTServerID&>(server_1_id_) =
             identifier::Server::Factory(server_1_.ID().str());
+        auto reason = server_1_.Factory().PasswordPrompt(__FUNCTION__);
         const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
-            server_1_.Wallet().Server(server_1_id_);
+            server_1_.Wallet().Server(server_1_id_, reason);
 
         OT_ASSERT(server_contract_);
         OT_ASSERT(false == server_1_id_->empty());
@@ -189,47 +191,67 @@ OTIdentifier Test_DepositCheques::issuer_account_id_{Identifier::Factory()};
 
 TEST_F(Test_DepositCheques, payment_codes)
 {
-    auto alice = alice_client_.Wallet().mutable_Nym(alice_nym_id_);
-    auto bob = bob_client_.Wallet().mutable_Nym(bob_nym_id_);
-    auto issuer = issuer_client_.Wallet().mutable_Nym(issuer_nym_id_);
+    auto reasonA = alice_client_.Factory().PasswordPrompt(__FUNCTION__);
+    auto reasonB = bob_client_.Factory().PasswordPrompt(__FUNCTION__);
+    auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
+    auto alice = alice_client_.Wallet().mutable_Nym(alice_nym_id_, reasonA);
+    auto bob = bob_client_.Wallet().mutable_Nym(bob_nym_id_, reasonB);
+    auto issuer = issuer_client_.Wallet().mutable_Nym(issuer_nym_id_, reasonI);
 
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, alice.Type());
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, bob.Type());
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, issuer.Type());
 
-    auto aliceScopeSet =
-        alice.SetScope(opentxs::proto::CITEMTYPE_INDIVIDUAL, ALICE, true);
-    auto bobScopeSet = bob.SetScope(proto::CITEMTYPE_INDIVIDUAL, BOB, true);
+    auto aliceScopeSet = alice.SetScope(
+        opentxs::proto::CITEMTYPE_INDIVIDUAL, ALICE, true, reasonA);
+    auto bobScopeSet =
+        bob.SetScope(proto::CITEMTYPE_INDIVIDUAL, BOB, true, reasonB);
     auto issuerScopeSet =
-        issuer.SetScope(proto::CITEMTYPE_INDIVIDUAL, ISSUER, true);
+        issuer.SetScope(proto::CITEMTYPE_INDIVIDUAL, ISSUER, true, reasonI);
 
     EXPECT_TRUE(aliceScopeSet);
     EXPECT_TRUE(bobScopeSet);
     EXPECT_TRUE(issuerScopeSet);
 
     alice_payment_code_ =
-        alice_client_.Factory().PaymentCode(SeedA_, 0, 1)->asBase58();
+        alice_client_.Factory().PaymentCode(SeedA_, 0, 1, reasonA)->asBase58();
     bob_payment_code_ =
-        bob_client_.Factory().PaymentCode(SeedB_, 0, 1)->asBase58();
+        bob_client_.Factory().PaymentCode(SeedB_, 0, 1, reasonB)->asBase58();
     issuer_payment_code_ =
-        issuer_client_.Factory().PaymentCode(SeedC_, 0, 1)->asBase58();
+        issuer_client_.Factory().PaymentCode(SeedC_, 0, 1, reasonI)->asBase58();
 
     EXPECT_FALSE(alice_payment_code_.empty());
     EXPECT_FALSE(bob_payment_code_.empty());
     EXPECT_FALSE(issuer_payment_code_.empty());
 
     alice.AddPaymentCode(
-        alice_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
+        alice_payment_code_,
+        opentxs::proto::CITEMTYPE_BTC,
+        true,
+        true,
+        reasonA);
     bob.AddPaymentCode(
-        bob_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
+        bob_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true, reasonB);
     issuer.AddPaymentCode(
-        issuer_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true);
+        issuer_payment_code_,
+        opentxs::proto::CITEMTYPE_BTC,
+        true,
+        true,
+        reasonI);
     alice.AddPaymentCode(
-        alice_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
+        alice_payment_code_,
+        opentxs::proto::CITEMTYPE_BCH,
+        true,
+        true,
+        reasonA);
     bob.AddPaymentCode(
-        bob_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
+        bob_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true, reasonB);
     issuer.AddPaymentCode(
-        issuer_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true);
+        issuer_payment_code_,
+        opentxs::proto::CITEMTYPE_BCH,
+        true,
+        true,
+        reasonI);
 
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BTC).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BTC).empty());
@@ -263,30 +285,39 @@ TEST_F(Test_DepositCheques, introduction_server)
 
 TEST_F(Test_DepositCheques, add_contacts)
 {
+    auto reasonA = alice_client_.Factory().PasswordPrompt(__FUNCTION__);
+    auto reasonB = bob_client_.Factory().PasswordPrompt(__FUNCTION__);
+    auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
     const auto aliceBob = alice_client_.Contacts().NewContact(
         BOB,
         bob_nym_id_,
-        alice_client_.Factory().PaymentCode(bob_payment_code_));
+        alice_client_.Factory().PaymentCode(bob_payment_code_, reasonA),
+        reasonA);
     const auto aliceIssuer = alice_client_.Contacts().NewContact(
         ISSUER,
         issuer_nym_id_,
-        alice_client_.Factory().PaymentCode(issuer_payment_code_));
+        alice_client_.Factory().PaymentCode(issuer_payment_code_, reasonA),
+        reasonA);
     const auto bobAlice = bob_client_.Contacts().NewContact(
         ALICE,
         alice_nym_id_,
-        bob_client_.Factory().PaymentCode(alice_payment_code_));
+        bob_client_.Factory().PaymentCode(alice_payment_code_, reasonB),
+        reasonB);
     const auto bobIssuer = bob_client_.Contacts().NewContact(
         ISSUER,
         issuer_nym_id_,
-        bob_client_.Factory().PaymentCode(issuer_payment_code_));
+        bob_client_.Factory().PaymentCode(issuer_payment_code_, reasonB),
+        reasonB);
     const auto issuerAlice = issuer_client_.Contacts().NewContact(
         ALICE,
         alice_nym_id_,
-        issuer_client_.Factory().PaymentCode(alice_payment_code_));
+        issuer_client_.Factory().PaymentCode(alice_payment_code_, reasonI),
+        reasonI);
     const auto issuerBob = issuer_client_.Contacts().NewContact(
         BOB,
         bob_nym_id_,
-        issuer_client_.Factory().PaymentCode(bob_payment_code_));
+        issuer_client_.Factory().PaymentCode(bob_payment_code_, reasonI),
+        reasonI);
 
     ASSERT_TRUE(aliceBob);
     ASSERT_TRUE(aliceIssuer);
@@ -303,21 +334,29 @@ TEST_F(Test_DepositCheques, add_contacts)
     contact_id_issuer_bob_ = issuerAlice->ID();
 
     EXPECT_TRUE(alice_client_.Wallet().Nym(
-        bob_client_.Wallet().Nym(bob_nym_id_)->asPublicNym()));
+        bob_client_.Wallet().Nym(bob_nym_id_, reasonB)->asPublicNym(),
+        reasonB));
+
     EXPECT_TRUE(alice_client_.Wallet().Nym(
-        issuer_client_.Wallet().Nym(issuer_nym_id_)->asPublicNym()));
+        issuer_client_.Wallet().Nym(issuer_nym_id_, reasonI)->asPublicNym(),
+        reasonI));
     EXPECT_TRUE(bob_client_.Wallet().Nym(
-        alice_client_.Wallet().Nym(alice_nym_id_)->asPublicNym()));
+        alice_client_.Wallet().Nym(alice_nym_id_, reasonA)->asPublicNym(),
+        reasonA));
     EXPECT_TRUE(bob_client_.Wallet().Nym(
-        issuer_client_.Wallet().Nym(issuer_nym_id_)->asPublicNym()));
+        issuer_client_.Wallet().Nym(issuer_nym_id_, reasonB)->asPublicNym(),
+        reasonB));
     EXPECT_TRUE(issuer_client_.Wallet().Nym(
-        alice_client_.Wallet().Nym(alice_nym_id_)->asPublicNym()));
+        alice_client_.Wallet().Nym(alice_nym_id_, reasonA)->asPublicNym(),
+        reasonA));
     EXPECT_TRUE(issuer_client_.Wallet().Nym(
-        bob_client_.Wallet().Nym(bob_nym_id_)->asPublicNym()));
+        bob_client_.Wallet().Nym(bob_nym_id_, reasonB)->asPublicNym(),
+        reasonB));
 }
 
 TEST_F(Test_DepositCheques, issue_dollars)
 {
+    auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
     const auto contract = issuer_client_.Wallet().UnitDefinition(
         issuer_nym_id_->str(),
         UNIT_DEFINITION_CONTRACT_NAME,
@@ -326,7 +365,8 @@ TEST_F(Test_DepositCheques, issue_dollars)
         UNIT_DEFINITION_SYMBOL,
         UNIT_DEFINITION_TLA,
         UNIT_DEFINITION_POWER,
-        UNIT_DEFINITION_FRACTIONAL_UNIT_NAME);
+        UNIT_DEFINITION_FRACTIONAL_UNIT_NAME,
+        reasonI);
 
     ASSERT_TRUE(contract);
     EXPECT_EQ(proto::UNITTYPE_CURRENCY, contract->Type());
@@ -337,9 +377,11 @@ TEST_F(Test_DepositCheques, issue_dollars)
     EXPECT_FALSE(unit_id_->empty());
 
     {
-        auto issuer = issuer_client_.Wallet().mutable_Nym(issuer_nym_id_);
-        issuer.AddPreferredOTServer(server_1_id_->str(), true);
-        issuer.AddContract(unit_id_->str(), proto::CITEMTYPE_USD, true, true);
+        auto issuer =
+            issuer_client_.Wallet().mutable_Nym(issuer_nym_id_, reasonI);
+        issuer.AddPreferredOTServer(server_1_id_->str(), true, reasonI);
+        issuer.AddContract(
+            unit_id_->str(), proto::CITEMTYPE_USD, true, true, reasonI);
     }
 
     auto task = issuer_client_.OTX().IssueUnitDefinition(
@@ -386,6 +428,7 @@ TEST_F(Test_DepositCheques, accept_cheque_alice)
 
 TEST_F(Test_DepositCheques, process_inbox_issuer)
 {
+    auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
     auto task = issuer_client_.OTX().ProcessInbox(
         issuer_nym_id_, server_1_id_, issuer_account_id_);
     auto& [id, future] = task;
@@ -397,7 +440,8 @@ TEST_F(Test_DepositCheques, process_inbox_issuer)
     EXPECT_EQ(proto::LASTREPLYSTATUS_MESSAGESUCCESS, status);
     ASSERT_TRUE(message);
 
-    const auto account = issuer_client_.Wallet().Account(issuer_account_id_);
+    const auto account =
+        issuer_client_.Wallet().Account(issuer_account_id_, reasonI);
 
     EXPECT_EQ(-1 * CHEQUE_AMOUNT_1, account.get().GetBalance());
 }

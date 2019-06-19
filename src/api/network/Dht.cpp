@@ -153,39 +153,36 @@ Dht::Dht(DhtConfig& config, const api::Core& api)
 }
 
 void Dht::Insert(
-    __attribute__((unused)) const std::string& key,
-    __attribute__((unused)) const std::string& value) const
+    [[maybe_unused]] const std::string& key,
+    [[maybe_unused]] const std::string& value) const
 {
 #if OT_DHT
     node_->Insert(key, value);
 #endif
 }
 
-void Dht::Insert(__attribute__((unused))
-                 const identity::Nym::Serialized& nym) const
+void Dht::Insert([[maybe_unused]] const identity::Nym::Serialized& nym) const
 {
 #if OT_DHT
     node_->Insert(nym.nymid(), proto::ProtoAsString(nym));
 #endif
 }
 
-void Dht::Insert(__attribute__((unused))
-                 const proto::ServerContract& contract) const
+void Dht::Insert([[maybe_unused]] const proto::ServerContract& contract) const
 {
 #if OT_DHT
     node_->Insert(contract.id(), proto::ProtoAsString(contract));
 #endif
 }
 
-void Dht::Insert(__attribute__((unused))
-                 const proto::UnitDefinition& contract) const
+void Dht::Insert([[maybe_unused]] const proto::UnitDefinition& contract) const
 {
 #if OT_DHT
     node_->Insert(contract.id(), proto::ProtoAsString(contract));
 #endif
 }
 
-void Dht::GetPublicNym(__attribute__((unused)) const std::string& key) const
+void Dht::GetPublicNym([[maybe_unused]] const std::string& key) const
 {
 #if OT_DHT
     auto it = callback_map_.find(Dht::Callback::PUBLIC_NYM);
@@ -203,8 +200,7 @@ void Dht::GetPublicNym(__attribute__((unused)) const std::string& key) const
 #endif
 }
 
-void Dht::GetServerContract(__attribute__((unused))
-                            const std::string& key) const
+void Dht::GetServerContract([[maybe_unused]] const std::string& key) const
 {
 #if OT_DHT
     auto it = callback_map_.find(Dht::Callback::SERVER_CONTRACT);
@@ -222,8 +218,7 @@ void Dht::GetServerContract(__attribute__((unused))
 #endif
 }
 
-void Dht::GetUnitDefinition(__attribute__((unused))
-                            const std::string& key) const
+void Dht::GetUnitDefinition([[maybe_unused]] const std::string& key) const
 {
 #if OT_DHT
     auto it = callback_map_.find(Dht::Callback::ASSET_CONTRACT);

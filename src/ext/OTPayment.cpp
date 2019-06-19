@@ -155,14 +155,15 @@ bool OTPayment::SetTempRecipientNymID(const identifier::Nym& id)
 // values will
 // be available thereafter.
 //
-bool OTPayment::SetTempValues()  // This version for OTTrackable
+bool OTPayment::SetTempValues(const PasswordPrompt& reason)  // This version for
+                                                             // OTTrackable
 {
     if (OTPayment::NOTICE == m_Type) {
         // Perform instantiation of a notice (OTTransaction), then use it to set
         // the temp values, then clean it up again before returning
         // success/fail.
         //
-        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice(reason));
 
         if (!pNotice) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -172,9 +173,9 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable
             return false;
         }
 
-        return SetTempValuesFromNotice(*pNotice);
+        return SetTempValuesFromNotice(*pNotice, reason);
     } else {
-        OTTrackable* pTrackable = Instantiate();
+        OTTrackable* pTrackable = Instantiate(reason);
 
         if (nullptr == pTrackable) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -314,7 +315,9 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
     return false;
 }
 
-bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
+bool OTPayment::SetTempValuesFromNotice(
+    const OTTransaction& theInput,
+    const PasswordPrompt& reason)
 {
     if (OTPayment::NOTICE == m_Type) {
         m_bAreTempValuesSet = true;
@@ -357,7 +360,7 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
             new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
-            !pCronItemPayment->SetTempValues()) {
+            !pCronItemPayment->SetTempValues(reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": 1 Failed instantiating or verifying a "
                 "(purported) cron item: ")(strCronItem)(".")
@@ -365,7 +368,7 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
             return false;
         }
         // -------------------------------------------
-        OTTrackable* pTrackable = pCronItemPayment->Instantiate();
+        OTTrackable* pTrackable = pCronItemPayment->Instantiate(reason);
 
         if (nullptr == pTrackable) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -604,7 +607,9 @@ bool OTPayment::GetAmount(std::int64_t& lOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
+bool OTPayment::GetAllTransactionNumbers(
+    NumList& numlistOutput,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT_MSG(
         m_bAreTempValuesSet,
@@ -624,7 +629,7 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
                                               // m_Type we can't know the
                                               // type...
     {  // ===> UPDATE: m_Type IS set!! This comment is wrong!
-        OTTrackable* pTrackable = Instantiate();
+        OTTrackable* pTrackable = Instantiate(reason);
         if (nullptr == pTrackable) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating OTPayment containing cron item: ")(
@@ -653,7 +658,7 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
     // which is in reference to a sent payment plan or smart contract.
     //
     else if (OTPayment::NOTICE == m_Type) {
-        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice(reason));
 
         if (!pNotice) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -689,7 +694,7 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
             new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
-            !pCronItemPayment->SetTempValues()) {
+            !pCronItemPayment->SetTempValues(reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating or verifying a "
                 "(purported) cron item: ")(strCronItem)(".")
@@ -706,7 +711,8 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
         // a different transaction number than the numbers on the instrument it
         // has attached.
         //
-        return pCronItemPayment->GetAllTransactionNumbers(numlistOutput);
+        return pCronItemPayment->GetAllTransactionNumbers(
+            numlistOutput, reason);
     }
     // ------------------------------------------------------
     // Next: ALL OTHER payment types...
@@ -738,7 +744,9 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
 // This works with a cheque who has a transaction number.
 // It also works with a payment plan or smart contract, for opening AND closing
 // numbers.
-bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
+bool OTPayment::HasTransactionNum(
+    const std::int64_t& lInput,
+    const PasswordPrompt& reason) const
 {
     OT_ASSERT_MSG(
         m_bAreTempValuesSet,
@@ -751,7 +759,7 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
     if (  // (false == m_bAreTempValuesSet)     ||
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
-        OTTrackable* pTrackable = Instantiate();
+        OTTrackable* pTrackable = Instantiate(reason);
         if (nullptr == pTrackable) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating OTPayment containing: ")(m_strPayment)(
@@ -779,7 +787,7 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
     // which is in reference to a sent payment plan or smart contract.
     //
     else if (OTPayment::NOTICE == m_Type) {
-        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice(reason));
 
         if (!pNotice) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -815,7 +823,7 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
             new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
-            !pCronItemPayment->SetTempValues()) {
+            !pCronItemPayment->SetTempValues(reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating or verifying a "
                 "(purported) cron item: ")(strCronItem)(".")
@@ -823,7 +831,7 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
             return false;
         }
         // -------------------------------------------
-        return pCronItemPayment->HasTransactionNum(lInput);
+        return pCronItemPayment->HasTransactionNum(lInput, reason);
     }
     // ------------------------------------------------------
     // Next: ALL OTHER payment types...
@@ -853,7 +861,8 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
 
 bool OTPayment::GetClosingNum(
     std::int64_t& lOutput,
-    const Identifier& theAcctID) const
+    const Identifier& theAcctID,
+    const PasswordPrompt& reason) const
 {
     lOutput = 0;
 
@@ -863,7 +872,7 @@ bool OTPayment::GetClosingNum(
     if ((false == m_bAreTempValuesSet) ||  // m_Type isn't set if this is false.
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
-        OTTrackable* pTrackable = Instantiate();
+        OTTrackable* pTrackable = Instantiate(reason);
         if (nullptr == pTrackable) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating OTPayment containing: ")(m_strPayment)(
@@ -898,7 +907,7 @@ bool OTPayment::GetClosingNum(
     if (!m_bAreTempValuesSet) return false;
     // --------------------------------------
     if (OTPayment::NOTICE == m_Type) {
-        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice(reason));
 
         if (!pNotice) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -934,7 +943,7 @@ bool OTPayment::GetClosingNum(
             new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
-            !pCronItemPayment->SetTempValues()) {
+            !pCronItemPayment->SetTempValues(reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating or verifying a "
                 "(purported) cron item: ")(strCronItem)(".")
@@ -942,7 +951,7 @@ bool OTPayment::GetClosingNum(
             return false;
         }
         // -------------------------------------------
-        return pCronItemPayment->GetClosingNum(lOutput, theAcctID);
+        return pCronItemPayment->GetClosingNum(lOutput, theAcctID, reason);
     }
     // --------------------------------------
     // Next: ALL OTHER payment types...
@@ -971,7 +980,8 @@ bool OTPayment::GetClosingNum(
 
 bool OTPayment::GetOpeningNum(
     std::int64_t& lOutput,
-    const identifier::Nym& theNymID) const
+    const identifier::Nym& theNymID,
+    const PasswordPrompt& reason) const
 {
     lOutput = 0;
 
@@ -982,7 +992,7 @@ bool OTPayment::GetOpeningNum(
                                            // false.
         (OTPayment::SMART_CONTRACT == m_Type) ||
         (OTPayment::PAYMENT_PLAN == m_Type)) {
-        OTTrackable* pTrackable = Instantiate();
+        OTTrackable* pTrackable = Instantiate(reason);
         if (nullptr == pTrackable) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating OTPayment containing: ")(m_strPayment)(
@@ -1017,7 +1027,7 @@ bool OTPayment::GetOpeningNum(
     if (!m_bAreTempValuesSet) return false;
     // --------------------------------------
     if (OTPayment::NOTICE == m_Type) {
-        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice());
+        std::unique_ptr<OTTransaction> pNotice(InstantiateNotice(reason));
 
         if (!pNotice) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1053,7 +1063,7 @@ bool OTPayment::GetOpeningNum(
             new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
-            !pCronItemPayment->SetTempValues()) {
+            !pCronItemPayment->SetTempValues(reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed instantiating or verifying a "
                 "(purported) cron item: ")(strCronItem)(".")
@@ -1061,7 +1071,7 @@ bool OTPayment::GetOpeningNum(
             return false;
         }
         // -------------------------------------------
-        return pCronItemPayment->GetOpeningNum(lOutput, theNymID);
+        return pCronItemPayment->GetOpeningNum(lOutput, theNymID, reason);
     }
     // --------------------------------------
     // Next: ALL OTHER payment types...
@@ -1573,7 +1583,7 @@ void OTPayment::InitPayment()
 
 // CALLER is responsible to delete.
 //
-OTTrackable* OTPayment::Instantiate() const
+OTTrackable* OTPayment::Instantiate(const PasswordPrompt& reason) const
 {
     std::unique_ptr<Contract> pContract;
     OTTrackable* pTrackable = nullptr;
@@ -1585,7 +1595,7 @@ OTTrackable* OTPayment::Instantiate() const
         case CHEQUE:
         case VOUCHER:
         case INVOICE:
-            pContract = api_.Factory().Contract(m_strPayment);
+            pContract = api_.Factory().Contract(m_strPayment, reason);
 
             if (false != bool(pContract)) {
                 pCheque = dynamic_cast<Cheque*>(pContract.release());
@@ -1605,7 +1615,7 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case PAYMENT_PLAN:
-            pContract = api_.Factory().Contract(m_strPayment);
+            pContract = api_.Factory().Contract(m_strPayment, reason);
 
             if (false != bool(pContract)) {
                 pPaymentPlan =
@@ -1627,7 +1637,7 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case SMART_CONTRACT:
-            pContract = api_.Factory().Contract(m_strPayment);
+            pContract = api_.Factory().Contract(m_strPayment, reason);
 
             if (false != bool(pContract)) {
                 pSmartContract =
@@ -1666,14 +1676,18 @@ OTTrackable* OTPayment::Instantiate() const
     return pTrackable;
 }
 
-OTTrackable* OTPayment::Instantiate(const String& strPayment)
+OTTrackable* OTPayment::Instantiate(
+    const String& strPayment,
+    const PasswordPrompt& reason)
 {
-    if (SetPayment(strPayment)) return Instantiate();
+    if (SetPayment(strPayment)) return Instantiate(reason);
 
     return nullptr;
 }
 
-OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
+OTTransaction* OTPayment::InstantiateNotice(
+    const String& strNotice,
+    const PasswordPrompt& reason)
 {
     if (!SetPayment(strNotice))
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1686,15 +1700,15 @@ OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
                                            "provided string: ")(strNotice)(".")
             .Flush();
     else
-        return InstantiateNotice();
+        return InstantiateNotice(reason);
 
     return nullptr;
 }
 
-OTTransaction* OTPayment::InstantiateNotice() const
+OTTransaction* OTPayment::InstantiateNotice(const PasswordPrompt& reason) const
 {
     if (m_strPayment->Exists() && (OTPayment::NOTICE == GetType())) {
-        auto pType = api_.Factory().Transaction(m_strPayment);
+        auto pType = api_.Factory().Transaction(m_strPayment, reason);
 
         if (false == bool(pType)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1726,10 +1740,10 @@ OTTransaction* OTPayment::InstantiateNotice() const
     return nullptr;
 }
 
-bool OTPayment::IsCancelledCheque()
+bool OTPayment::IsCancelledCheque(const PasswordPrompt& reason)
 {
     if (false == m_bAreTempValuesSet) {
-        if (false == SetTempValues()) {
+        if (false == SetTempValues(reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set temp values.")
                 .Flush();
 
@@ -1772,7 +1786,9 @@ bool OTPayment::IsCancelledCheque()
     return true;
 }
 
-std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTPayment::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -1903,7 +1919,7 @@ bool OTPayment::SetPayment(const String& strPayment)
     return true;
 }
 
-void OTPayment::UpdateContents()
+void OTPayment::UpdateContents(const PasswordPrompt& reason)
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();

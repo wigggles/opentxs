@@ -79,6 +79,7 @@ private:
     const std::uint32_t MAX_TCP_PORT = 63356;
 
     const opentxs::api::server::Manager& manager_;
+    const PasswordPrompt& reason_;
     MainFile mainFile_;
     Notary notary_;
     Transactor transactor_;
@@ -130,7 +131,9 @@ private:
         const identifier::Nym& recipientNymID,
         const Message& msg);
 
-    Server(const opentxs::api::server::Manager& manager);
+    Server(
+        const opentxs::api::server::Manager& manager,
+        const PasswordPrompt& reason);
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;

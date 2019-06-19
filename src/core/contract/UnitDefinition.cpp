@@ -300,10 +300,10 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
 // reserve accounts, or cash reserve accounts, are not included on this list.
 bool UnitDefinition::VisitAccountRecords(
     const std::string& dataFolder,
-    AccountVisitor& visitor) const
+    AccountVisitor& visitor,
+    const PasswordPrompt& reason) const
 {
     Lock lock(lock_);
-
     const auto strInstrumentDefinitionID = String::Factory(id(lock));
     auto strAcctRecordFile = String::Factory();
     strAcctRecordFile->Format("%s.a", strInstrumentDefinitionID->Get());
@@ -352,7 +352,7 @@ bool UnitDefinition::VisitAccountRecords(
             } else {
                 const auto& wallet = wallet_;
                 const auto accountID = Identifier::Factory(str_acct_id);
-                auto account = wallet.Account(accountID);
+                auto account = wallet.Account(accountID, reason);
 
                 if (false == bool(account)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -362,7 +362,7 @@ bool UnitDefinition::VisitAccountRecords(
                     continue;
                 }
 
-                if (false == visitor.Trigger(account.get())) {
+                if (false == visitor.Trigger(account.get(), reason)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Error: Trigger failed for account ")(str_acct_id)(
                         ".")
@@ -617,7 +617,8 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& terms,
     const std::string& tla,
     const std::uint32_t power,
-    const std::string& fraction)
+    const std::string& fraction,
+    const PasswordPrompt& reason)
 {
     std::unique_ptr<UnitDefinition> contract(new CurrencyContract(
         wallet, nym, shortname, name, symbol, terms, tla, power, fraction));
@@ -633,10 +634,10 @@ UnitDefinition* UnitDefinition::Create(
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
 
-        if (!contract->update_signature(lock)) { return nullptr; }
+        if (!contract->update_signature(lock, reason)) { return nullptr; }
     }
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock, reason)) { return nullptr; }
 
     contract->alias_ = contract->short_name_;
 
@@ -649,7 +650,8 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
-    const std::string& terms)
+    const std::string& terms,
+    const PasswordPrompt& reason)
 {
     std::unique_ptr<UnitDefinition> contract(
         new SecurityContract(wallet, nym, shortname, name, symbol, terms));
@@ -665,10 +667,10 @@ UnitDefinition* UnitDefinition::Create(
         std::shared_ptr<proto::Signature> sig =
             std::make_shared<proto::Signature>();
 
-        if (!contract->update_signature(lock)) { return nullptr; }
+        if (!contract->update_signature(lock, reason)) { return nullptr; }
     }
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock, reason)) { return nullptr; }
 
     contract->alias_ = contract->short_name_;
 
@@ -696,7 +698,8 @@ UnitDefinition* UnitDefinition::Create(
 UnitDefinition* UnitDefinition::Factory(
     const api::Wallet& wallet,
     const Nym_p& nym,
-    const proto::UnitDefinition& serialized)
+    const proto::UnitDefinition& serialized,
+    const PasswordPrompt& reason)
 {
     if (!proto::Validate<proto::UnitDefinition>(serialized, VERBOSE, true)) {
 
@@ -727,7 +730,7 @@ UnitDefinition* UnitDefinition::Factory(
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock)) { return nullptr; }
+    if (!contract->validate(lock, reason)) { return nullptr; }
 
     contract->alias_ = contract->short_name_;
 
@@ -813,16 +816,18 @@ void UnitDefinition::SetAlias(const std::string& alias)
         alias);  // TODO conversion
 }
 
-bool UnitDefinition::update_signature(const Lock& lock)
+bool UnitDefinition::update_signature(
+    const Lock& lock,
+    const PasswordPrompt& reason)
 {
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!ot_super::update_signature(lock, reason)) { return false; }
 
     bool success = false;
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success =
-        nym_->SignProto(serialized, proto::SIGROLE_UNITDEFINITION, signature);
+    success = nym_->SignProto(
+        serialized, proto::SIGROLE_UNITDEFINITION, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -834,11 +839,12 @@ bool UnitDefinition::update_signature(const Lock& lock)
     return success;
 }
 
-bool UnitDefinition::validate(const Lock& lock) const
+bool UnitDefinition::validate(const Lock& lock, const PasswordPrompt& reason)
+    const
 {
     bool validNym = false;
 
-    if (nym_) { validNym = nym_->VerifyPseudonym(); }
+    if (nym_) { validNym = nym_->VerifyPseudonym(reason); }
 
     const bool validSyntax = proto::Validate(contract(lock), VERBOSE, true);
 
@@ -851,22 +857,23 @@ bool UnitDefinition::validate(const Lock& lock) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature); }
+    if (signature) { validSig = verify_signature(lock, *signature, reason); }
 
     return (validNym && validSyntax && validSig);
 }
 
 bool UnitDefinition::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature) const
+    const proto::Signature& signature,
+    const PasswordPrompt& reason) const
 {
-    if (!ot_super::verify_signature(lock, signature)) { return false; }
+    if (!ot_super::verify_signature(lock, signature, reason)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto);
+    return nym_->VerifyProto(serialized, sigProto, reason);
     ;
 }
 

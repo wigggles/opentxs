@@ -105,9 +105,14 @@ public:
     }
 
     // optionally returns the offer's market ID and a pointer to the market.
-    OTOffer* GetOffer(OTMarket** market = nullptr);
+    OTOffer* GetOffer(
+        const PasswordPrompt& reason,
+        OTMarket** market = nullptr);
     // optionally returns the offer's market ID and a pointer to the market.
-    OTOffer* GetOffer(Identifier& offerMarketId, OTMarket** market = nullptr);
+    OTOffer* GetOffer(
+        Identifier& offerMarketId,
+        const PasswordPrompt& reason,
+        OTMarket** market = nullptr);
 
     inline const identifier::UnitDefinition& GetCurrencyID() const
     {
@@ -138,8 +143,11 @@ public:
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
-    bool ProcessCron() override;  // OTCron calls this regularly, which is my
-                                  // chance to expire, etc.
+    bool ProcessCron(const PasswordPrompt& reason) override;  // OTCron calls
+                                                              // this regularly,
+                                                              // which is my
+                                                              // chance to
+                                                              // expire, etc.
     bool CanRemoveItemFromCron(const ClientContext& context) override;
 
     // From OTScriptable, we override this function. OTScriptable now does fancy
@@ -152,7 +160,8 @@ public:
     //
     bool VerifyNymAsAgent(
         const identity::Nym& nym,
-        const identity::Nym& signerNym) const override;
+        const identity::Nym& signerNym,
+        const PasswordPrompt& reason) const override;
 
     bool VerifyNymAsAgentForAccount(
         const identity::Nym& nym,
@@ -163,11 +172,14 @@ public:
     void Release() override;
     std::int64_t GetClosingNumber(const Identifier& acctId) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the ledger saves its
-                                     // contents
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or
+                   // serialization, this is where the
+                   // ledger saves its contents
 
     EXPORT virtual ~OTTrade();
 
@@ -176,8 +188,9 @@ protected:
         OTCronItem& origCronItem,
         const std::int64_t& newTransactionNumber,
         Nym_p originator,
-        Nym_p remover) override;
-    void onRemovalFromCron() override;
+        Nym_p remover,
+        const PasswordPrompt& reason) override;
+    void onRemovalFromCron(const PasswordPrompt& reason) override;
 
 private:
     friend api::implementation::Factory;

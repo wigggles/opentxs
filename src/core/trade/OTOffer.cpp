@@ -155,7 +155,9 @@ bool OTOffer::IsMarketOrder() const { return (0 == GetPriceLimit()); }
 bool OTOffer::IsLimitOrder() const { return (0 != GetPriceLimit()); }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTOffer::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 
@@ -333,7 +335,7 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
-void OTOffer::UpdateContents()
+void OTOffer::UpdateContents(const PasswordPrompt& reason)
 {
     const auto NOTARY_ID = String::Factory(GetNotaryID()),
                INSTRUMENT_DEFINITION_ID =

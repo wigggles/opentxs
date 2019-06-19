@@ -28,7 +28,8 @@ public:
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Contact(
-        const Identifier& id) const = 0;
+        const Identifier& id,
+        const PasswordPrompt& reason) const = 0;
     /** Returns the contact ID for a nym, if it exists */
     EXPORT virtual OTIdentifier ContactID(
         const identifier::Nym& nymID) const = 0;
@@ -37,9 +38,11 @@ public:
         const Identifier& contactID) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Merge(
         const Identifier& parent,
-        const Identifier& child) const = 0;
+        const Identifier& child,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<Editor<class Contact>> mutable_Contact(
-        const Identifier& id) const = 0;
+        const Identifier& id,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> NewContact(
         const std::string& label) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> NewContact(
@@ -49,16 +52,20 @@ public:
         ,
         const PaymentCode& paymentCode
 #endif
-        ) const = 0;
+        ,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
+        const PasswordPrompt& reason,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
     /** Returns an existing contact ID if it exists, or creates a new one */
     EXPORT virtual OTIdentifier NymToContact(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Update(
-        const identity::Nym::Serialized& nym) const = 0;
+        const identity::Nym::Serialized& nym,
+        const PasswordPrompt& reason) const = 0;
 
     virtual ~Contacts() = default;
 

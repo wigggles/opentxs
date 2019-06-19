@@ -37,44 +37,49 @@ class RSA final : virtual public key::RSA, public Asymmetric
 public:
     OTData CalculateHash(
         const proto::HashType hashType,
-        const OTPasswordData& password) const override;
+        const PasswordPrompt& password) const override;
     bool GetPrivateKey(
         String& strOutput,
         const key::Asymmetric* pPubkey,
-        const String& pstrReason = String::Factory(),
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr) const override;
     bool get_public_key(String& strKey) const override;
     bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
-        OTPasswordData& password) const override;
+        PasswordPrompt& sessionKeyPassword,
+        const PasswordPrompt& reason) const override;
     /** Don't ever call this. It's only here because it's impossible to get rid
      * of unless and until RSA key support is removed entirely. */
     bool SaveCertToString(
         String& strOutput,
-        const String& pstrReason = String::Factory(),
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr) const override;
     bool Seal(
         const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
-        OTPasswordData& password) const override;
+        const PasswordPrompt& reason,
+        PasswordPrompt& sessionPassword) const override;
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     proto::HashType SigHashType() const override
     {
         return proto::HASHTYPE_SHA256;
     }
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
+    bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const override;
 
     void Release() override;
     bool SetPrivateKey(
         const String& strCert,
-        const String& pstrReason = String::Factory(),
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr) override;
     bool SetPublicKey(const String& strKey) override;
     bool SetPublicKeyFromPrivateKey(
         const String& strCert,
-        const String& pstrReason = String::Factory(),
+        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr) override;
 
     ~RSA();
@@ -99,11 +104,11 @@ private:
     void Release_AsymmetricKey_OpenSSL();
     void ReleaseKeyLowLevel_Hook() override;
 
-    RSA(const api::crypto::Asymmetric& crypto,
+    RSA(const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::AsymmetricKey& serializedKey)
     noexcept;
-    RSA(const api::crypto::Asymmetric& crypto,
+    RSA(const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
         const proto::KeyRole role)
     noexcept;

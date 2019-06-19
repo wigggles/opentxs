@@ -31,6 +31,7 @@ class Test_ContactList : public ::testing::Test
 public:
     using WidgetUpdateCounter = std::map<std::string, int>;
     const opentxs::api::client::Manager& client_;
+    opentxs::OTPasswordPrompt reason_;
 
     const std::string fingerprint_;
     const OTNymID nym_id_;
@@ -48,7 +49,8 @@ public:
     OTIdentifier chris_contact_id_;
 
     Test_ContactList()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
@@ -70,9 +72,11 @@ public:
         , contact_list_(client_.UI().ContactList(nym_id_))
         , loop_(&Test_ContactList::loop, this)
         , shutdown_(false)
-        , bob_payment_code_(client_.Factory().PaymentCode(BOB_PAYMENT_CODE))
+        , bob_payment_code_(
+              client_.Factory().PaymentCode(BOB_PAYMENT_CODE, reason_))
         , bob_contact_id_(Identifier::Factory())
-        , chris_payment_code_(client_.Factory().PaymentCode(CHRIS_PAYMENT_CODE))
+        , chris_payment_code_(
+              client_.Factory().PaymentCode(CHRIS_PAYMENT_CODE, reason_))
         , chris_contact_id_(Identifier::Factory())
     {
     }
@@ -231,7 +235,7 @@ TEST_F(Test_ContactList, Contact_List)
     while (GetCounter(contact_widget_id_) < 2) { ; }
 
     const auto bob = client_.Contacts().NewContact(
-        BOB_NYM_NAME, bob_payment_code_->ID(), bob_payment_code_);
+        BOB_NYM_NAME, bob_payment_code_->ID(), bob_payment_code_, reason_);
 
     ASSERT_EQ(true, bool(bob));
 
@@ -242,7 +246,10 @@ TEST_F(Test_ContactList, Contact_List)
     while (GetCounter(contact_widget_id_) < 4) { ; }
 
     const auto chris = client_.Contacts().NewContact(
-        CHRIS_NYM_NAME, chris_payment_code_->ID(), chris_payment_code_);
+        CHRIS_NYM_NAME,
+        chris_payment_code_->ID(),
+        chris_payment_code_,
+        reason_);
 
     ASSERT_EQ(true, bool(chris));
 

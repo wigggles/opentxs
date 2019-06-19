@@ -821,6 +821,7 @@ bool OTParty::HasAuthorizingAgentByNymID(
 // ppAgent lets you get the agent ptr if it was there.
 Nym_p OTParty::LoadAuthorizingAgentNym(
     const identity::Nym& theSignerNym,
+    const PasswordPrompt& reason,
     OTAgent** ppAgent)
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
@@ -838,7 +839,7 @@ Nym_p OTParty::LoadAuthorizingAgentNym(
                     ": This agent is not "
                     "an individual--there's no Nym to load.")
                     .Flush();
-            else if (nullptr == (pNym = pAgent->LoadNym()))
+            else if (nullptr == (pNym = pAgent->LoadNym(reason)))
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading "
                                                    "Nym.")
                     .Flush();
@@ -898,6 +899,7 @@ bool OTParty::DropFinalReceiptToInboxes(
     const String& strNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment)
 {
@@ -932,6 +934,7 @@ bool OTParty::DropFinalReceiptToInboxes(
                          *pSmartContract,
                          lNewTransactionNumber,
                          strOrigCronItem,
+                         reason,
                          pstrNote,
                          pstrAttachment)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -950,6 +953,7 @@ bool OTParty::DropFinalReceiptToInboxes(
 bool OTParty::DropFinalReceiptToNymboxes(
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment)
 {
@@ -984,6 +988,7 @@ bool OTParty::DropFinalReceiptToNymboxes(
                          *pSmartContract,
                          lNewTransactionNumber,
                          strOrigCronItem,
+                         reason,
                          pstrNote,
                          pstrAttachment))
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1004,6 +1009,7 @@ bool OTParty::SendNoticeToParty(
     const identifier::Server& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const String& strReference,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment,
     identity::Nym* pActualNym)
@@ -1035,6 +1041,7 @@ bool OTParty::SendNoticeToParty(
                              lNewTransactionNumber,
                              lOpeningTransNo,  // lInReferenceTo
                              strReference,
+                             reason,
                              pstrNote,
                              pstrAttachment,
                              pActualNym))
@@ -1051,7 +1058,8 @@ bool OTParty::SendNoticeToParty(
 bool OTParty::LoadAndVerifyAssetAccounts(
     const String& strNotaryID,
     mapOfAccounts& map_Accts_Already_Loaded,
-    mapOfAccounts& map_NewlyLoaded)
+    mapOfAccounts& map_NewlyLoaded,
+    const PasswordPrompt& reason)
 {
     std::set<std::string> theAcctIDSet;  // Make sure all the acct IDs are
                                          // unique.
@@ -1126,7 +1134,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         // Let's load it up...
         //
         if (bHadToLoadtheAcctMyself == true) {
-            if ((account = pPartyAcct->LoadAccount())) {
+            if ((account = pPartyAcct->LoadAccount(reason))) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Failed loading "
                                                    "Account with name: ")(
                     str_acct_name)(" and ID: ")(strAcctID)(".")
@@ -1150,6 +1158,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
 //
 bool OTParty::VerifyAccountsWithTheirAgents(
     const String& strNotaryID,
+    const PasswordPrompt& reason,
     bool bBurnTransNo)
 {
     OT_ASSERT(nullptr != m_pOwnerAgreement);
@@ -1168,6 +1177,7 @@ bool OTParty::VerifyAccountsWithTheirAgents(
             "Unexpected nullptr partyaccount pointer in party map.");
 
         const bool bVerified = m_pOwnerAgreement->VerifyPartyAcctAuthorization(
+            reason,
             *pAcct,  // The party is assumed to have been verified already via
                      // VerifyPartyAuthorization()
             strNotaryID,    // For verifying issued num, need the notaryID the #
@@ -1201,7 +1211,8 @@ bool OTParty::VerifyAccountsWithTheirAgents(
 // Done
 // The party will use its authorizing agent.
 //
-bool OTParty::SignContract(Contract& theInput) const
+bool OTParty::SignContract(Contract& theInput, const PasswordPrompt& reason)
+    const
 {
     if (GetAuthorizingAgentName().size() <= 0) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1220,13 +1231,15 @@ bool OTParty::SignContract(Contract& theInput) const
         return false;
     }
 
-    return pAgent->SignContract(theInput);
+    return pAgent->SignContract(theInput, reason);
 }
 
 // for whichever partyaccounts have agents that happen to be loaded, this will
 // harvest the closing trans#s.
 // Calls OTAgent::HarvestTransactionNumber
-void OTParty::HarvestClosingNumbers(const String& strNotaryID)
+void OTParty::HarvestClosingNumbers(
+    const String& strNotaryID,
+    const PasswordPrompt& reason)
 {
     for (auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -1258,7 +1271,7 @@ void OTParty::HarvestClosingNumbers(const String& strNotaryID)
                 .Flush();
         } else {
             pAgent->RecoverTransactionNumber(
-                pAcct->GetClosingTransNo(), strNotaryID);
+                pAcct->GetClosingTransNo(), strNotaryID, reason);
         }
     }
 }
@@ -1349,7 +1362,9 @@ void OTParty::HarvestAllTransactionNumbers(ServerContext& context)
 }
 
 // Calls OTAgent::RemoveIssuedNumber (above)
-void OTParty::CloseoutOpeningNumber(const String& strNotaryID)
+void OTParty::CloseoutOpeningNumber(
+    const String& strNotaryID,
+    const PasswordPrompt& reason)
 {
     if (GetAuthorizingAgentName().size() <= 0) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1366,7 +1381,7 @@ void OTParty::CloseoutOpeningNumber(const String& strNotaryID)
             GetAuthorizingAgentName())(") for party: ")(GetPartyName())(".")
             .Flush();
     } else if (GetOpeningTransNo() > 0) {
-        pAgent->RemoveIssuedNumber(GetOpeningTransNo(), strNotaryID);
+        pAgent->RemoveIssuedNumber(GetOpeningTransNo(), strNotaryID, reason);
     } else {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Nothing to closeout, it was already 0 for party: ")(

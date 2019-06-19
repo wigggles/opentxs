@@ -57,15 +57,48 @@ void RPC::evaluate_transaction_reply(
     const api::client::Manager& client,
     const Message& reply,
     T& output,
+    const PasswordPrompt& reason,
     const proto::RPCResponseCode code) const
 {
-    auto success = client.Exec().Message_GetTransactionSuccess(
-        reply.m_strNotaryID->Get(),
-        reply.m_strNymID->Get(),
-        reply.m_strAcctID->Get(),
-        String::Factory(reply)->Get());
+    bool success{true};
+    const auto notaryID = client.Factory().ServerID(reply.m_strNotaryID);
+    const auto nymID = client.Factory().NymID(reply.m_strNymID);
+    const auto accountID = client.Factory().Identifier(reply.m_strAcctID);
+    const bool transaction =
+        reply.m_strCommand->Compare("notarizeTransactionResponse") ||
+        reply.m_strCommand->Compare("processInboxResponse") ||
+        reply.m_strCommand->Compare("processNymboxResponse");
 
-    if (1 == success) {
+    if (transaction) {
+        if (const auto sLedger = String::Factory(reply.m_ascPayload);
+            sLedger->Exists()) {
+            if (auto ledger{
+                    client.Factory().Ledger(nymID, accountID, notaryID)};
+                ledger->LoadContractFromString(sLedger, reason)) {
+                if (ledger->GetTransactionCount() > 0) {
+                    for (const auto& [key, value] :
+                         ledger->GetTransactionMap()) {
+                        if (false == bool(value)) {
+                            success = false;
+                            break;
+                        } else {
+                            success &= value->GetSuccess();
+                        }
+                    }
+                } else {
+                    success = false;
+                }
+            } else {
+                success = false;
+            }
+        } else {
+            success = false;
+        }
+    } else {
+        success = false;
+    }
+
+    if (success) {
         add_output_status(output, proto::RPCRESPONSE_SUCCESS);
     } else {
         add_output_status(output, code);

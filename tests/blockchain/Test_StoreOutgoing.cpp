@@ -16,12 +16,14 @@ class Test_StoreOutgoing : public ::testing::Test
 {
 public:
     const opentxs::api::client::Manager& client_;
+    opentxs::OTPasswordPrompt reason_;
     std::string Alice, Bob, Charly;
     OTIdentifier AccountID;
 
     // these fingerprints are deterministic so we can share them among tests
     Test_StoreOutgoing()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
+        , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , Alice(client_.Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreOutgoing_A",
@@ -40,7 +42,8 @@ public:
         , AccountID(client_.Blockchain().NewAccount(
               identifier::Nym::Factory(Alice),
               BlockchainAccountType::BIP44,
-              proto::CITEMTYPE_BTC))
+              proto::CITEMTYPE_BTC,
+              reason_))
     {
     }
 };
@@ -61,8 +64,8 @@ proto::BlockchainTransaction* MakeTransaction(const std::string id)
 TEST_F(Test_StoreOutgoing, testDeposit)
 {
     // test: Alice has no activity records
-    ObjectList AThreads =
-        client_.Activity().Threads(identifier::Nym::Factory(Alice), false);
+    ObjectList AThreads = client_.Activity().Threads(
+        identifier::Nym::Factory(Alice), reason_, false);
     ASSERT_EQ(0, AThreads.size());
 
     // test:: Activity::Thread has deposit
@@ -76,6 +79,7 @@ TEST_F(Test_StoreOutgoing, testDeposit)
         client_.Blockchain().AllocateAddress(
             identifier::Nym::Factory(Alice),
             Identifier::Factory(AccountID),
+            reason_,
             "Deposit 1",
             EXTERNAL_CHAIN);
 
@@ -137,8 +141,8 @@ TEST_F(Test_StoreOutgoing, testDeposit)
 TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
 {
     // test: Alice has acvitiy with previous contact
-    ObjectList AThreads =
-        client_.Activity().Threads(identifier::Nym::Factory(Alice), false);
+    ObjectList AThreads = client_.Activity().Threads(
+        identifier::Nym::Factory(Alice), reason_, false);
     EXPECT_EQ(1, AThreads.size());
 
     // test:: account contains an outgoing tx
@@ -151,6 +155,7 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
         client_.Blockchain().AllocateAddress(
             identifier::Nym::Factory(Alice),
             Identifier::Factory(AccountID),
+            reason_,
             "Deposit 1",
             EXTERNAL_CHAIN);
 
@@ -208,8 +213,8 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
     EXPECT_STREQ(Charly.c_str(), Thread_AC->id().c_str());
 
     // test: Alice has acvitiy with Bob (from previous test) and Charly
-    ObjectList AThreads_ =
-        client_.Activity().Threads(identifier::Nym::Factory(Alice), false);
+    ObjectList AThreads_ = client_.Activity().Threads(
+        identifier::Nym::Factory(Alice), reason_, false);
     EXPECT_EQ(2, AThreads_.size());
 
     proto::StorageThreadItem DepositToCharly = Thread_AC->item(0);

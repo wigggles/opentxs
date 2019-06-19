@@ -63,16 +63,20 @@ public:
         const OTTransaction& theOwner,
         const ServerContext& context,
         const Account& theAccount,
-        Ledger& theOutbox) const;
+        Ledger& theOutbox,
+        const PasswordPrompt& reason) const;
     EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
         const ServerContext& context,
         const Account& theAccount,
         Ledger& theOutbox,
-        const std::set<TransactionNumber>& without) const;
+        const std::set<TransactionNumber>& without,
+        const PasswordPrompt& reason) const;
 
-    EXPORT void ProduceOutboxReport(Item& theBalanceItem);
+    EXPORT void ProduceOutboxReport(
+        Item& theBalanceItem,
+        const PasswordPrompt& reason);
 
     EXPORT bool AddTransaction(std::shared_ptr<OTTransaction> theTransaction);
     EXPORT bool RemoveTransaction(
@@ -93,9 +97,11 @@ public:
     EXPORT std::shared_ptr<OTTransaction> GetFinalReceipt(
         std::int64_t lReferenceNum);
     EXPORT std::shared_ptr<OTTransaction> GetTransferReceipt(
-        std::int64_t lNumberOfOrigin);
+        std::int64_t lNumberOfOrigin,
+        const PasswordPrompt& reason);
     EXPORT std::shared_ptr<OTTransaction> GetChequeReceipt(
-        std::int64_t lChequeNum);
+        std::int64_t lChequeNum,
+        const PasswordPrompt& reason);
     EXPORT std::int32_t GetTransactionIndex(
         const TransactionNumber number);  // if not
                                           // found,
@@ -113,9 +119,12 @@ public:
     // expects/uses a pubkey from inside the contract in order to verify
     // it.
     //
-    EXPORT bool VerifyAccount(const identity::Nym& theNym) override;
+    EXPORT bool VerifyAccount(
+        const identity::Nym& theNym,
+        const PasswordPrompt& reason) override;
     // For ALL abbreviated transactions, load the actual box receipt for each.
     EXPORT bool LoadBoxReceipts(
+        const PasswordPrompt& reason,
         std::set<std::int64_t>* psetUnloaded = nullptr);  // if psetUnloaded
                                                           // passed
                                                           // in, then use it to
@@ -126,15 +135,17 @@ public:
     // Verifies the abbreviated form exists first, and then loads the
     // full version and compares the two. Returns success / fail.
     //
-    EXPORT bool LoadBoxReceipt(const std::int64_t& lTransactionNum);
+    EXPORT bool LoadBoxReceipt(
+        const std::int64_t& lTransactionNum,
+        const PasswordPrompt& reason);
     // Saves the Box Receipt separately.
     EXPORT bool SaveBoxReceipt(const std::int64_t& lTransactionNum);
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
     EXPORT bool DeleteBoxReceipt(const std::int64_t& lTransactionNum);
 
-    EXPORT bool LoadInbox();
-    EXPORT bool LoadNymbox();
-    EXPORT bool LoadOutbox();
+    EXPORT bool LoadInbox(const PasswordPrompt& reason);
+    EXPORT bool LoadNymbox(const PasswordPrompt& reason);
+    EXPORT bool LoadOutbox(const PasswordPrompt& reason);
 
     // If you pass the identifier in, the hash is recorded there
     EXPORT bool SaveInbox();
@@ -149,22 +160,36 @@ public:
     EXPORT bool CalculateOutboxHash(Identifier& theOutput) const;
     EXPORT bool CalculateNymboxHash(Identifier& theOutput) const;
     EXPORT bool SavePaymentInbox();
-    EXPORT bool LoadPaymentInbox();
+    EXPORT bool LoadPaymentInbox(const PasswordPrompt& reason);
 
     EXPORT bool SaveRecordBox();
-    EXPORT bool LoadRecordBox();
+    EXPORT bool LoadRecordBox(const PasswordPrompt& reason);
 
     EXPORT bool SaveExpiredBox();
-    EXPORT bool LoadExpiredBox();
-    EXPORT bool LoadLedgerFromString(const String& theStr);  // Auto-detects
-                                                             // ledger type.
+    EXPORT bool LoadExpiredBox(const PasswordPrompt& reason);
+    EXPORT bool LoadLedgerFromString(
+        const String& theStr,
+        const PasswordPrompt& reason);  // Auto-detects
+                                        // ledger type.
     // (message/nymbox/inbox/outbox)
-    EXPORT bool LoadInboxFromString(const String& strBox);
-    EXPORT bool LoadOutboxFromString(const String& strBox);
-    EXPORT bool LoadNymboxFromString(const String& strBox);
-    EXPORT bool LoadPaymentInboxFromString(const String& strBox);
-    EXPORT bool LoadRecordBoxFromString(const String& strBox);
-    EXPORT bool LoadExpiredBoxFromString(const String& strBox);
+    EXPORT bool LoadInboxFromString(
+        const String& strBox,
+        const PasswordPrompt& reason);
+    EXPORT bool LoadOutboxFromString(
+        const String& strBox,
+        const PasswordPrompt& reason);
+    EXPORT bool LoadNymboxFromString(
+        const String& strBox,
+        const PasswordPrompt& reason);
+    EXPORT bool LoadPaymentInboxFromString(
+        const String& strBox,
+        const PasswordPrompt& reason);
+    EXPORT bool LoadRecordBoxFromString(
+        const String& strBox,
+        const PasswordPrompt& reason);
+    EXPORT bool LoadExpiredBoxFromString(
+        const String& strBox,
+        const PasswordPrompt& reason);
     // inline for the top one only.
     inline std::int32_t GetTransactionCount() const
     {
@@ -172,8 +197,9 @@ public:
     }
     EXPORT std::int32_t GetTransactionCountInRefTo(
         std::int64_t lReferenceNum) const;
-    EXPORT std::int64_t GetTotalPendingValue();  // for inbox only, allows you
-                                                 // to
+    EXPORT std::int64_t GetTotalPendingValue(
+        const PasswordPrompt& reason);  // for inbox only, allows you
+                                        // to
     // lookup the total value of pending
     // transfers within.
     EXPORT const mapOfTransactions& GetTransactionMap() const;
@@ -196,6 +222,7 @@ public:
         const Identifier& theAcctID,
         const identifier::Server& theNotaryID,
         ledgerType theType,
+        const PasswordPrompt& reason,
         bool bCreateFile = false);
     EXPORT bool CreateLedger(
         const identifier::Nym& theNymID,
@@ -212,13 +239,17 @@ public:
 protected:
     bool LoadGeneric(
         ledgerType theType,
+        const PasswordPrompt& reason,
         const String& pString = String::Factory());
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
     bool SaveGeneric(ledgerType theType);
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the ledger saves its
-                                     // contents
+    void UpdateContents(const PasswordPrompt& reason)
+        override;  // Before transmission or
+                   // serialization, this is where the
+                   // ledger saves its contents
 
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;

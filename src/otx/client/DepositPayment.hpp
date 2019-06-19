@@ -38,7 +38,9 @@ private:
     PaymentTasks& payment_tasks_;
 
     bool deposit();
-    OTIdentifier get_account_id(const identifier::UnitDefinition& unit);
+    OTIdentifier get_account_id(
+        const PasswordPrompt& reason,
+        const identifier::UnitDefinition& unit);
 
     DepositPayment() = delete;
 };

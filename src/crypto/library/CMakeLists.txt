@@ -11,7 +11,6 @@ set(cxx-sources
   Bitcoin.cpp
   EcdsaProvider.cpp
   HashingProvider.cpp
-  LegacySymmetricProvider.cpp
   OpenSSL.cpp
   OpenSSL_BIO.cpp
   Secp256k1.cpp
@@ -24,7 +23,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/EcdsaProvider.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/EncodingProvider.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/HashingProvider.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/LegacySymmetricProvider.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/SymmetricProvider.hpp"
 )
 

@@ -122,7 +122,8 @@ public:
     static std::string ExtractTransfer(const proto::PaymentWorkflow& workflow);
     static Cheque InstantiateCheque(
         const api::Core& core,
-        const proto::PaymentWorkflow& workflow);
+        const proto::PaymentWorkflow& workflow,
+        const PasswordPrompt& reason);
 #if OT_CASH
     static Purse InstantiatePurse(
         const api::Core& core,
@@ -130,10 +131,12 @@ public:
 #endif
     static Transfer InstantiateTransfer(
         const api::Core& core,
-        const proto::PaymentWorkflow& workflow);
+        const proto::PaymentWorkflow& workflow,
+        const PasswordPrompt& reason);
     static OTIdentifier UUID(
         const api::Core& core,
-        const proto::PaymentWorkflow& workflow);
+        const proto::PaymentWorkflow& workflow,
+        const PasswordPrompt& reason);
     static OTIdentifier UUID(
         const Identifier& notary,
         const TransactionNumber& number);
@@ -148,7 +151,8 @@ public:
         const identifier::Nym& nymID,
         const identifier::Server& notaryID,
         const OTTransaction& pending,
-        const Message& reply) const = 0;
+        const Message& reply,
+        const PasswordPrompt& reason) const = 0;
     /** Record a successful transfer attempt */
     EXPORT virtual bool AcknowledgeTransfer(
         const identifier::Nym& nymID,
@@ -167,36 +171,42 @@ public:
     /** Record a cheque deposit receipt */
     EXPORT virtual bool ClearCheque(
         const identifier::Nym& recipientNymID,
-        const OTTransaction& receipt) const = 0;
+        const OTTransaction& receipt,
+        const PasswordPrompt& reason) const = 0;
     /** Record receipt of a transfer receipt */
     EXPORT virtual bool ClearTransfer(
         const identifier::Nym& nymID,
         const identifier::Server& notaryID,
-        const OTTransaction& receipt) const = 0;
+        const OTTransaction& receipt,
+        const PasswordPrompt& reason) const = 0;
     /** Record a process inbox for sender that accepts a transfer receipt */
     EXPORT virtual bool CompleteTransfer(
         const identifier::Nym& nymID,
         const identifier::Server& notaryID,
         const OTTransaction& receipt,
-        const Message& reply) const = 0;
+        const Message& reply,
+        const PasswordPrompt& reason) const = 0;
     /** Create a new incoming transfer workflow, or update an existing internal
      *  transfer workflow. */
     EXPORT virtual OTIdentifier ConveyTransfer(
         const identifier::Nym& nymID,
         const identifier::Server& notaryID,
-        const OTTransaction& pending) const = 0;
+        const OTTransaction& pending,
+        const PasswordPrompt& reason) const = 0;
     /** Record a new outgoing or internal "sent transfer" (or attempt) workflow
      */
     EXPORT virtual OTIdentifier CreateTransfer(
         const Item& transfer,
-        const Message& request) const = 0;
+        const Message& request,
+        const PasswordPrompt& reason) const = 0;
     /** Record a cheque deposit or deposit attempt */
     EXPORT virtual bool DepositCheque(
         const identifier::Nym& nymID,
         const Identifier& accountID,
         const opentxs::Cheque& cheque,
         const Message& request,
-        const Message* reply) const = 0;
+        const Message* reply,
+        const PasswordPrompt& reason) const = 0;
     /** Mark a cheque workflow as expired */
     EXPORT virtual bool ExpireCheque(
         const identifier::Nym& nymID,
@@ -211,23 +221,28 @@ public:
     /** Create a new incoming cheque workflow from an out of band cheque */
     EXPORT virtual OTIdentifier ImportCheque(
         const identifier::Nym& nymID,
-        const opentxs::Cheque& cheque) const = 0;
+        const opentxs::Cheque& cheque,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::set<OTIdentifier> List(
         const identifier::Nym& nymID,
         const proto::PaymentWorkflowType type,
         const proto::PaymentWorkflowState state) const = 0;
     EXPORT virtual Cheque LoadCheque(
         const identifier::Nym& nymID,
-        const Identifier& chequeID) const = 0;
+        const Identifier& chequeID,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual Cheque LoadChequeByWorkflow(
         const identifier::Nym& nymID,
-        const Identifier& workflowID) const = 0;
+        const Identifier& workflowID,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual Transfer LoadTransfer(
         const identifier::Nym& nymID,
-        const Identifier& transferID) const = 0;
+        const Identifier& transferID,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual Transfer LoadTransferByWorkflow(
         const identifier::Nym& nymID,
-        const Identifier& workflowID) const = 0;
+        const Identifier& workflowID,
+        const PasswordPrompt& reason) const = 0;
     /** Load a serialized workflow, if it exists*/
     EXPORT virtual std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
         const identifier::Nym& nymID,
@@ -242,7 +257,8 @@ public:
     EXPORT virtual OTIdentifier ReceiveCheque(
         const identifier::Nym& nymID,
         const opentxs::Cheque& cheque,
-        const Message& message) const = 0;
+        const Message& message,
+        const PasswordPrompt& reason) const = 0;
 #if OT_CASH
     EXPORT virtual bool SendCash(
         const identifier::Nym& sender,
@@ -262,7 +278,8 @@ public:
         const Identifier& accountID) const = 0;
     /** Create a new outgoing cheque workflow */
     EXPORT virtual OTIdentifier WriteCheque(
-        const opentxs::Cheque& cheque) const = 0;
+        const opentxs::Cheque& cheque,
+        const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual ~Workflow() = default;
 

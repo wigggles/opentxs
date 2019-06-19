@@ -6,12 +6,14 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ui/ProfileItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -51,9 +53,11 @@ ProfileItem::ProfileItem(
 
 bool ProfileItem::add_claim(const Claim& claim) const
 {
-    auto nym = api_.Wallet().mutable_Nym(parent_.NymID());
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    return nym.AddClaim(claim);
+    auto nym = api_.Wallet().mutable_Nym(parent_.NymID(), reason);
+
+    return nym.AddClaim(claim, reason);
 }
 
 Claim ProfileItem::as_claim() const
@@ -79,9 +83,11 @@ Claim ProfileItem::as_claim() const
 
 bool ProfileItem::Delete() const
 {
-    auto nym = api_.Wallet().mutable_Nym(parent_.NymID());
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    return nym.DeleteClaim(row_id_);
+    auto nym = api_.Wallet().mutable_Nym(parent_.NymID(), reason);
+
+    return nym.DeleteClaim(row_id_, reason);
 }
 
 void ProfileItem::reindex(

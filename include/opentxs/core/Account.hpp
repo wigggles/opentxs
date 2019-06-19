@@ -57,8 +57,10 @@ public:
     EXPORT static char const* _GetTypeString(AccountType accountType);
 
     EXPORT std::string Alias() const;
-    EXPORT bool ConsensusHash(const Context& context, Identifier& theOutput)
-        const;
+    EXPORT bool ConsensusHash(
+        const Context& context,
+        Identifier& theOutput,
+        const PasswordPrompt& reason) const;
     EXPORT bool DisplayStatistics(String& contents) const override;
     EXPORT Amount GetBalance() const;
     EXPORT const identifier::UnitDefinition& GetInstrumentDefinitionID() const;
@@ -74,8 +76,12 @@ public:
     EXPORT bool IsIssuer() const;
     // For accounts used by smart contracts, to stash funds while running.
     EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
-    EXPORT std::unique_ptr<Ledger> LoadInbox(const identity::Nym& nym) const;
-    EXPORT std::unique_ptr<Ledger> LoadOutbox(const identity::Nym& nym) const;
+    EXPORT std::unique_ptr<Ledger> LoadInbox(
+        const identity::Nym& nym,
+        const PasswordPrompt& reason) const;
+    EXPORT std::unique_ptr<Ledger> LoadOutbox(
+        const identity::Nym& nym,
+        const PasswordPrompt& reason) const;
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
     EXPORT bool VerifyOwner(const identity::Nym& candidate) const;
@@ -87,9 +93,11 @@ public:
     // Credit a certain amount from the account (presumably the same amount is
     // being subtracted somewhere)
     EXPORT bool Credit(const Amount amount);
-    EXPORT bool GetInboxHash(Identifier& output);
-    EXPORT bool GetOutboxHash(Identifier& output);
-    EXPORT bool InitBoxes(const identity::Nym& signer);
+    EXPORT bool GetInboxHash(Identifier& output, const PasswordPrompt& reason);
+    EXPORT bool GetOutboxHash(Identifier& output, const PasswordPrompt& reason);
+    EXPORT bool InitBoxes(
+        const identity::Nym& signer,
+        const PasswordPrompt& reason);
     // If you pass the identifier in, the inbox hash is recorded there
     EXPORT bool SaveInbox(Ledger& box);
     EXPORT bool SaveInbox(Ledger& box, Identifier& hash);
@@ -137,6 +145,7 @@ private:
         const identity::Nym& serverNym,
         const Identifier& userNymID,
         const identifier::UnitDefinition& instrumentDefinitionID,
+        const PasswordPrompt& reason,
         AccountType acctType = user,
         TransactionNumber stashTransNum = 0);
     // Let's say you don't have or know the NymID, and you just want to load
@@ -144,27 +153,34 @@ private:
     static Account* LoadExistingAccount(
         const api::Core& core,
         const Identifier& accountId,
-        const identifier::Server& notaryID);
+        const identifier::Server& notaryID,
+        const PasswordPrompt& reason);
 
     bool SaveContractWallet(Tag& parent) const override;
 
     bool create_box(
         std::unique_ptr<Ledger>& box,
         const identity::Nym& signer,
-        const ledgerType type);
+        const ledgerType type,
+        const PasswordPrompt& reason);
     bool GenerateNewAccount(
         const identity::Nym& server,
         const Identifier& userNymID,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
+        const PasswordPrompt& reason,
         AccountType acctType = user,
         std::int64_t stashTransNum = 0);
     void InitAccount();
     // overriding this so I can set filename automatically inside based on ID.
-    bool LoadContract() override;
-    bool LoadContractFromString(const String& theStr) override;
+    bool LoadContract(const PasswordPrompt& reason) override;
+    bool LoadContractFromString(
+        const String& theStr,
+        const PasswordPrompt& reason) override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
     void Release() override;
     void Release_Account();
     // generates filename based on accounts path and account ID. Saves to the
@@ -177,7 +193,7 @@ private:
         bool (Ledger::*save)(Identifier&),
         void (Account::*set)(const Identifier&));
 
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
     Account(
         const api::Core& core,

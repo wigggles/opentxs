@@ -7,7 +7,6 @@
 
 #include "opentxs/core/script/OTPartyAccount.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTParty.hpp"
@@ -19,7 +18,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -94,11 +92,11 @@ OTPartyAccount::OTPartyAccount(
 {
 }
 
-SharedAccount OTPartyAccount::get_account() const
+SharedAccount OTPartyAccount::get_account(const PasswordPrompt& reason) const
 {
     if (!m_strAcctID->Exists()) { return {}; }
 
-    return wallet_.Account(Identifier::Factory(m_strAcctID));
+    return wallet_.Account(Identifier::Factory(m_strAcctID), reason);
 }
 
 // Every partyaccount has its own authorized agent's name.
@@ -199,7 +197,7 @@ bool OTPartyAccount::IsAccount(const Account& theAccount)
 
 // I have a ptr to my owner (party), as well as to the actual account.
 // I will ask him to verify whether he actually owns it.
-bool OTPartyAccount::VerifyOwnership() const
+bool OTPartyAccount::VerifyOwnership(const PasswordPrompt& reason) const
 {
     if (nullptr == m_pForParty) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: nullptr pointer to "
@@ -208,7 +206,7 @@ bool OTPartyAccount::VerifyOwnership() const
         return false;
     }
 
-    auto account = get_account();
+    auto account = get_account(reason);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -234,9 +232,9 @@ bool OTPartyAccount::VerifyOwnership() const
 
 // I can get a ptr to my agent, and I have one to the actual account.
 // I will ask him to verify whether he actually has agency over it.
-bool OTPartyAccount::VerifyAgency()
+bool OTPartyAccount::VerifyAgency(const PasswordPrompt& reason)
 {
-    auto account = get_account();
+    auto account = get_account(reason);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -277,6 +275,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
     OTSmartContract& theSmartContract,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
+    const PasswordPrompt& reason,
     OTString pstrNote,
     OTString pstrAttachment)
 {
@@ -313,6 +312,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
             lNewTransactionNumber,
             m_lClosingTransNo,  // closing_no from this.
             strOrigCronItem,
+            reason,
             pstrNote,
             pstrAttachment);
     }
@@ -324,7 +324,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // This is very low-level. (It's better to use OTPartyAccount through it's
 // interface, than to just load up its account directly.) But this is here
 // because it is appropriate in certain cases.
-SharedAccount OTPartyAccount::LoadAccount()
+SharedAccount OTPartyAccount::LoadAccount(const PasswordPrompt& reason)
 {
     if (!m_strAcctID->Exists()) {
         {
@@ -336,7 +336,7 @@ SharedAccount OTPartyAccount::LoadAccount()
         return {};
     }
 
-    auto account = wallet_.Account(Identifier::Factory(m_strAcctID));
+    auto account = wallet_.Account(Identifier::Factory(m_strAcctID), reason);
 
     if (false == bool(account)) {
         {

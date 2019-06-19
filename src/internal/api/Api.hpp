@@ -7,7 +7,9 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Context.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 
 namespace
 {
@@ -28,13 +30,35 @@ namespace opentxs::internal
 
 namespace opentxs::api::internal
 {
-struct Native : virtual public api::Native {
-    virtual INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const = 0;
+struct Context : virtual public api::Context {
     virtual OTCaller& GetPasswordCaller() const = 0;
     virtual void Init() = 0;
     virtual void shutdown() = 0;
 
-    virtual ~Native() = default;
+    virtual ~Context() = default;
+};
+
+struct Core : virtual public api::Core {
+    const proto::Ciphertext encrypted_secret_{};
+
+    virtual INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const = 0;
+    virtual bool GetSecret(
+        const opentxs::Lock& lock,
+        OTPassword& secret,
+        const PasswordPrompt& reason,
+        const bool twice) const = 0;
+    virtual std::mutex& Lock() const = 0;
+    virtual const opentxs::crypto::key::Symmetric& MasterKey(
+        const opentxs::Lock& lock) const = 0;
+
+    virtual ~Core() = default;
+};
+
+struct Factory : virtual public api::Factory {
+    virtual const api::crypto::internal::Asymmetric& Asymmetric() const = 0;
+    virtual const api::crypto::Symmetric& Symmetric() const = 0;
+
+    virtual ~Factory() = default;
 };
 
 struct Log {

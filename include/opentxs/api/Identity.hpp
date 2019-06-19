@@ -31,9 +31,9 @@ public:
         const std::string& claimantNymID,
         const std::string& claimID,
         const ClaimPolarity polarity,
+        const PasswordPrompt& reason,
         const std::int64_t start = 0,
-        const std::int64_t end = 0,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+        const std::int64_t end = 0) const = 0;
 
     virtual ~Identity() = default;
 

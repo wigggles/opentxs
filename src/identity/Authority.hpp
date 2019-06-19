@@ -64,16 +64,19 @@ public:
     bool Sign(
         const credential::Primary& credential,
         proto::Signature& sig,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
     bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
+        const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const OTPasswordData* pPWData = nullptr,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
     const NymIDSource& Source() const override { return *nym_id_source_; }
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
+    bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const override;
     VersionNumber VerificationCredentialVersion() const override
     {
         return authority_to_verification_.at(version_);
@@ -81,15 +84,21 @@ public:
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
+        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
-    bool Verify(const proto::Verification& item) const override;
-    bool VerifyInternally() const override;
+    bool Verify(const proto::Verification& item, const PasswordPrompt& reason)
+        const override;
+    bool VerifyInternally(const PasswordPrompt& reason) const override;
 
     std::string AddChildKeyCredential(
-        const NymParameters& nymParameters) override;
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason) override;
     bool AddVerificationCredential(
-        const proto::VerificationSet& verificationSet) override;
-    bool AddContactCredential(const proto::ContactData& contactData) override;
+        const proto::VerificationSet& verificationSet,
+        const PasswordPrompt& reason) override;
+    bool AddContactCredential(
+        const proto::ContactData& contactData,
+        const PasswordPrompt& reason) override;
     void RevokeContactCredentials(
         std::list<std::string>& contactCredentialIDs) override;
     void RevokeVerificationCredentials(
@@ -143,15 +152,22 @@ private:
         const String::List* plistRevokedIDs = nullptr) const;
 
     template <typename Item>
-    bool validate_credential(const Item& item) const;
+    bool validate_credential(const Item& item, const PasswordPrompt& reason)
+        const;
 
-    bool CreateMasterCredential(const NymParameters& nymParameters);
+    bool CreateMasterCredential(
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason);
     bool Load_Master(
         const String& strNymID,
         const String& strMasterCredID,
-        const OTPasswordData* pPWData = nullptr);
-    bool LoadChildKeyCredential(const String& strSubID);
-    bool LoadChildKeyCredential(const proto::Credential& serializedCred);
+        const PasswordPrompt& reason);
+    bool LoadChildKeyCredential(
+        const String& strSubID,
+        const PasswordPrompt& reason);
+    bool LoadChildKeyCredential(
+        const proto::Credential& serializedCred,
+        const PasswordPrompt& reason);
 
     Authority() = delete;
     Authority(
@@ -163,11 +179,12 @@ private:
     Authority(
         const api::Core& api,
         const proto::KeyMode mode,
-        const Serialized& serializedAuthority) noexcept;
+        const Serialized& serializedAuthority,
+        const PasswordPrompt& reason) noexcept;
     Authority(
         const api::Core& api,
         const NymParameters& nymParameters,
         VersionNumber nymVersion,
-        const OTPasswordData* pPWData = nullptr) noexcept;
+        const PasswordPrompt& reason) noexcept;
 };
 }  // namespace opentxs::identity::implementation

@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/Types.hpp"
 
@@ -22,26 +21,21 @@ namespace opentxs
 class OTClient
 {
 public:
-    inline OTMessageOutbuffer& GetMessageOutbuffer()
-    {
-        return m_MessageOutbuffer;
-    }
     std::int32_t ProcessUserCommand(
         const MessageType requestedCommand,
         ServerContext& context,
         Message& theMessage,
         const Identifier& pHisNymID,
         const Identifier& pHisAcctID,
+        const PasswordPrompt& reason,
         const Amount lTransactionAmount = 0,
         const Account* pAccount = nullptr,
         const UnitDefinition* pMyUnitDefinition = nullptr);
-    void QueueOutgoingMessage(const Message& theMessage);
 
     explicit OTClient(const api::Core& api);
 
-private:
+protected:
     const api::Core& api_;
-    OTMessageOutbuffer m_MessageOutbuffer;
 };
 }  // namespace opentxs
 #endif

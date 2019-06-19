@@ -27,7 +27,7 @@ class IssuerItem final : public IssuerItemList, public IssuerItemRow
 {
 public:
     bool ConnectionState() const override { return connection_.load(); }
-    std::string Debug() const override { return *issuer_; }
+    std::string Debug() const override;
     std::string Name() const override;
     bool Trusted() const override { return issuer_->Paired(); }
 

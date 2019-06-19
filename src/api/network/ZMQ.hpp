@@ -22,7 +22,8 @@ public:
     std::chrono::seconds SendTimeout() const override;
 
     opentxs::network::ServerConnection& Server(
-        const std::string& id) const override;
+        const std::string& id,
+        const PasswordPrompt& reason) const override;
     bool SetSocksProxy(const std::string& proxy) const override;
     std::string SocksProxy() const override;
     bool SocksProxy(std::string& proxy) const override;

@@ -30,7 +30,7 @@ public:
     Nym_p Nym() const;
     virtual const std::string& Terms() const;
     virtual OTData Serialize() const = 0;
-    bool Validate() const;
+    bool Validate(const PasswordPrompt& reason) const;
     VersionNumber Version() const;
 
     virtual void SetAlias(const std::string& alias);
@@ -51,15 +51,19 @@ protected:
     /** Calculate the ID and verify that it matches the existing id_ value */
     bool CheckID(const Lock& lock) const;
     virtual OTIdentifier id(const Lock& lock) const;
-    virtual bool validate(const Lock& lock) const = 0;
+    virtual bool validate(const Lock& lock, const PasswordPrompt& reason)
+        const = 0;
     virtual bool verify_signature(
         const Lock& lock,
-        const proto::Signature& signature) const;
+        const proto::Signature& signature,
+        const PasswordPrompt& reason) const;
     bool verify_write_lock(const Lock& lock) const;
 
     /** Calculate and unconditionally set id_ */
     bool CalculateID(const Lock& lock);
-    virtual bool update_signature(const Lock& lock);
+    virtual bool update_signature(
+        const Lock& lock,
+        const PasswordPrompt& reason);
 
     /** Calculate identifier */
     virtual OTIdentifier GetID(const Lock& lock) const = 0;

@@ -178,6 +178,7 @@ std::uint8_t Blockchain::address_prefix(const proto::ContactItemType type) const
 std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
     const identifier::Nym& nymID,
     const Identifier& accountID,
+    const PasswordPrompt& reason,
     const std::string& label,
     const BIP44Chain chain) const
 {
@@ -207,7 +208,7 @@ std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
     auto& newAddress = add_address(index, *account, chain);
     newAddress.set_version(BLOCKCHAIN_VERSION);
     newAddress.set_index(index);
-    newAddress.set_address(calculate_address(*account, chain, index));
+    newAddress.set_address(calculate_address(reason, *account, chain, index));
 
     OT_ASSERT(false == newAddress.address().empty());
 
@@ -359,13 +360,14 @@ Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
 }
 
 std::string Blockchain::calculate_address(
+    const PasswordPrompt& reason,
     const proto::Bip44Account& account,
     const BIP44Chain chain,
     const Bip32Index index) const
 {
     const auto& path = account.path();
     auto fingerprint = path.root();
-    auto serialized = api_.Seeds().AccountChildKey(path, chain, index);
+    auto serialized = api_.Seeds().AccountChildKey(path, chain, index, reason);
 
     if (false == bool(serialized)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to derive key.").Flush();
@@ -373,7 +375,7 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    const auto key{api_.Factory().AsymmetricKey(*serialized)};
+    const auto key{api_.Factory().AsymmetricKey(*serialized, reason)};
     const opentxs::crypto::key::Secp256k1* ecKey{
         dynamic_cast<const opentxs::crypto::key::Secp256k1*>(&key.get())};
 
@@ -390,7 +392,7 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    auto pubkey = ecKey->PublicKey();
+    auto pubkey = ecKey->PublicKey(reason);
 
     if (pubkey->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to extract public key.")
@@ -555,7 +557,8 @@ bool Blockchain::move_transactions(
 OTIdentifier Blockchain::NewAccount(
     const identifier::Nym& nymID,
     const BlockchainAccountType standard,
-    const proto::ContactItemType type) const
+    const proto::ContactItemType type,
+    const PasswordPrompt& reason) const
 {
     LOCK_NYM()
 
@@ -568,7 +571,7 @@ OTIdentifier Blockchain::NewAccount(
         return Identifier::Factory(*existing.begin());
     }
 
-    auto nym = api_.Wallet().Nym(nymID);
+    auto nym = api_.Wallet().Nym(nymID, reason);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym does not exist.").Flush();

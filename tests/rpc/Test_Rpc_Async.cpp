@@ -28,7 +28,7 @@ public:
     using PushChecker = std::function<bool(const opentxs::proto::RPCPush&)>;
 
     Test_Rpc_Async()
-        : ot_{opentxs::OT::App()}
+        : ot_{opentxs::Context()}
     {
         if (false == bool(notification_callback_)) {
             notification_callback_.reset(new OTZMQListenCallback(
@@ -44,7 +44,7 @@ public:
     }
 
 protected:
-    const opentxs::api::Native& ot_;
+    const opentxs::api::Context& ot_;
 
     static int sender_session_;
     static int receiver_session_;
@@ -144,9 +144,9 @@ const api::Core& Test_Rpc_Async::get_session(const std::int32_t instance)
     auto is_server = instance % 2;
 
     if (is_server) {
-        return opentxs::OT::App().Server(get_index(instance));
+        return opentxs::Context().Server(get_index(instance));
     } else {
-        return opentxs::OT::App().Client(get_index(instance));
+        return opentxs::Context().Client(get_index(instance));
     }
 };
 
@@ -196,19 +196,21 @@ bool Test_Rpc_Async::default_push_callback(const opentxs::proto::RPCPush& push)
 
 void Test_Rpc_Async::setup()
 {
-    const api::Native& ot = opentxs::OT::App();
+    const api::Context& ot = opentxs::Context();
 
     auto& intro_server = ot.StartServer(ArgList(), ot.Servers(), true);
     auto& server = ot.StartServer(ArgList(), ot.Servers(), true);
+    auto reasonServer = server.Factory().PasswordPrompt(__FUNCTION__);
 #if OT_CASH
     intro_server.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
     server.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
 #endif
-    auto server_contract = server.Wallet().Server(server.ID());
-    intro_server.Wallet().Server(server_contract->PublicContract());
+    auto server_contract = server.Wallet().Server(server.ID(), reasonServer);
+    intro_server.Wallet().Server(
+        server_contract->PublicContract(), reasonServer);
     server_id_ = identifier::Server::Factory(server_contract->ID()->str());
     auto intro_server_contract =
-        intro_server.Wallet().Server(intro_server.ID());
+        intro_server.Wallet().Server(intro_server.ID(), reasonServer);
     intro_server_id_ =
         identifier::Server::Factory(intro_server_contract->ID()->str());
     auto cookie = opentxs::Identifier::Random()->str();
@@ -224,6 +226,7 @@ void Test_Rpc_Async::setup()
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     auto& senderClient = ot.Client(get_index(response.session()));
+    auto reasonS = senderClient.Factory().PasswordPrompt(__FUNCTION__);
 
     cookie = opentxs::Identifier::Random()->str();
     command.set_cookie(cookie);
@@ -236,13 +239,14 @@ void Test_Rpc_Async::setup()
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     auto& receiverClient = ot.Client(get_index(response.session()));
+    auto reasonR = receiverClient.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto client_a_server_contract =
-        senderClient.Wallet().Server(intro_server_contract->PublicContract());
+    auto client_a_server_contract = senderClient.Wallet().Server(
+        intro_server_contract->PublicContract(), reasonS);
     senderClient.OTX().SetIntroductionServer(*client_a_server_contract);
 
-    auto client_b_server_contract =
-        receiverClient.Wallet().Server(intro_server_contract->PublicContract());
+    auto client_b_server_contract = receiverClient.Wallet().Server(
+        intro_server_contract->PublicContract(), reasonR);
     receiverClient.OTX().SetIntroductionServer(*client_b_server_contract);
 
     auto started = notification_socket_->get().Start(
@@ -265,7 +269,8 @@ void Test_Rpc_Async::setup()
         "Google Test Dollars",
         "GTD",
         2,
-        "gcent");
+        "gcent",
+        reasonS);
 
     ASSERT_TRUE(bool(unit_definition));
 
@@ -280,12 +285,14 @@ void Test_Rpc_Async::setup()
 TEST_F(Test_Rpc_Async, Setup)
 {
     setup();
-    const auto& ot = opentxs::OT::App();
+    const auto& ot = opentxs::Context();
     auto& senderClient = get_session(sender_session_);
     auto& receiverClient = get_session(receiver_session_);
+    auto reasonS = senderClient.Factory().PasswordPrompt(__FUNCTION__);
+    auto reasonR = receiverClient.Factory().PasswordPrompt(__FUNCTION__);
 
-    EXPECT_FALSE(senderClient.Wallet().Server(server_id_));
-    EXPECT_FALSE(receiverClient.Wallet().Server(server_id_));
+    EXPECT_FALSE(senderClient.Wallet().Server(server_id_, reasonS));
+    EXPECT_FALSE(receiverClient.Wallet().Server(server_id_, reasonR));
     EXPECT_NE(sender_session_, receiver_session_);
 }
 
@@ -368,6 +375,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Contact)
 TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
 {
     auto& client_a = ot_.Client(get_index(sender_session_));
+    auto reason = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
 
@@ -381,7 +389,8 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
         identifier::Nym::Factory(),
-        client_a.Factory().PaymentCode(""));
+        client_a.Factory().PaymentCode("", reason),
+        reason);
 
     auto sendpayment = command.mutable_sendpayment();
 
@@ -408,6 +417,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
 TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
 {
     auto& client_a = ot_.Client(get_index(sender_session_));
+    auto reason = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
 
@@ -421,7 +431,8 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
         identifier::Nym::Factory(),
-        client_a.Factory().PaymentCode(""));
+        client_a.Factory().PaymentCode("", reason),
+        reason);
 
     auto sendpayment = command.mutable_sendpayment();
 
@@ -448,13 +459,15 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
 TEST_F(Test_Rpc_Async, Send_Payment_Cheque)
 {
     auto& client_a = ot_.Client(get_index(sender_session_));
+    auto reasonA = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
     auto& client_b = get_session(receiver_session_);
+    auto reasonB = client_b.Factory().PasswordPrompt(__FUNCTION__);
 
     ASSERT_FALSE(receiver_nym_id_->empty());
 
-    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_);
+    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_, reasonB);
 
     ASSERT_TRUE(bool(nym5));
 
@@ -462,7 +475,8 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque)
     const auto contact = contacts.NewContact(
         std::string(TEST_NYM_5),
         receiver_nym_id_,
-        client_a.Factory().PaymentCode(nym5->PaymentCode()));
+        client_a.Factory().PaymentCode(nym5->PaymentCode(reasonA), reasonA),
+        reasonA);
 
     ASSERT_TRUE(contact);
 
@@ -821,13 +835,15 @@ TEST_F(Test_Rpc_Async, Accept_2_Pending_Payments)
     // Send 1 payment
 
     auto& client_a = ot_.Client(get_index(sender_session_));
+    auto reasonA = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
     auto& client_b = ot_.Client(get_index(receiver_session_));
+    auto reasonB = client_b.Factory().PasswordPrompt(__FUNCTION__);
 
     ASSERT_FALSE(receiver_nym_id_->empty());
 
-    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_);
+    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_, reasonB);
 
     ASSERT_TRUE(bool(nym5));
 
@@ -835,7 +851,8 @@ TEST_F(Test_Rpc_Async, Accept_2_Pending_Payments)
     const auto contact = contacts.NewContact(
         std::string(TEST_NYM_5),
         receiver_nym_id_,
-        client_a.Factory().PaymentCode(nym5->PaymentCode()));
+        client_a.Factory().PaymentCode(nym5->PaymentCode(reasonA), reasonA),
+        reasonA);
 
     ASSERT_TRUE(contact);
 

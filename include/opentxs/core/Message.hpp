@@ -64,9 +64,11 @@ private:
 class Message : public Contract
 {
 protected:
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    std::int32_t ProcessXMLNode(
+        irr::io::IrrXMLReader*& xml,
+        const PasswordPrompt& reason) override;
 
-    void UpdateContents() override;
+    void UpdateContents(const PasswordPrompt& reason) override;
 
     bool m_bIsSigned{false};
 
@@ -108,18 +110,20 @@ public:
 
     EXPORT bool SignContract(
         const identity::Nym& theNym,
-        const OTPasswordData* pPWData = nullptr) override;
+        const PasswordPrompt& reason) override;
     EXPORT bool VerifySignature(
         const identity::Nym& theNym,
-        const OTPasswordData* pPWData = nullptr) const override;
+        const PasswordPrompt& reason) const override;
 
     EXPORT bool HarvestTransactionNumbers(
         ServerContext& context,
-        bool bHarvestingForRetry,            // false until positively asserted.
-        bool bReplyWasSuccess,               // false until positively asserted.
-        bool bReplyWasFailure,               // false until positively asserted.
-        bool bTransactionWasSuccess,         // false until positively asserted.
-        bool bTransactionWasFailure) const;  // false until positively asserted.
+        bool bHarvestingForRetry,     // false until positively asserted.
+        bool bReplyWasSuccess,        // false until positively asserted.
+        bool bReplyWasFailure,        // false until positively asserted.
+        bool bTransactionWasSuccess,  // false until positively asserted.
+        bool bTransactionWasFailure,
+        const PasswordPrompt& reason) const;  // false until positively
+                                              // asserted.
 
     // So the message can get the list of numbers from the Nym, before sending,
     // that should be listed as acknowledged that the server reply has already

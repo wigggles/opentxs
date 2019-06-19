@@ -53,3 +53,7 @@ typedef uint16_t USHORT;
 #ifndef OT_USE_CHAI_STDLIB
 #define OT_USE_CHAI_STDLIB
 #endif
+
+#ifndef OPENTXS_PASSWORD_LEN
+#define OPENTXS_PASSWORD_LEN 128
+#endif

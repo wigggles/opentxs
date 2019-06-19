@@ -160,7 +160,8 @@ public:
         const UniqueQueue<CheckNymTask>& missingNyms,
         const UniqueQueue<CheckNymTask>& outdatedNyms,
         const UniqueQueue<OTServerID>& missingServers,
-        const UniqueQueue<OTUnitID>& missingUnitDefinitions);
+        const UniqueQueue<OTUnitID>& missingUnitDefinitions,
+        const PasswordPrompt& reason);
     ~StateMachine() override = default;
 
 private:
@@ -174,6 +175,7 @@ private:
     const UniqueQueue<CheckNymTask>& outdated_nyms_;
     const UniqueQueue<OTServerID>& missing_servers_;
     const UniqueQueue<OTUnitID>& missing_unit_definitions_;
+    const OTPasswordPrompt reason_;
     std::unique_ptr<otx::client::internal::Operation> pOp_;
     otx::client::internal::Operation& op_;
     UniqueQueue<CheckNymTask> check_nym_;

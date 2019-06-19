@@ -31,6 +31,7 @@ public:
 
     explicit MessageProcessor(
         Server& server,
+        const PasswordPrompt& reason,
         const network::zeromq::Context& context,
         const Flag& running);
 
@@ -38,6 +39,7 @@ public:
 
 private:
     Server& server_;
+    const PasswordPrompt& reason_;
     const Flag& running_;
     [[maybe_unused]] const network::zeromq::Context& context_;
     OTZMQListenCallback frontend_callback_;

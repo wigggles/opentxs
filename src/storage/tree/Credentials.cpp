@@ -21,8 +21,7 @@ Credentials::Credentials(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = 2;
-        root_ = Node::BLANK_HASH;
+        blank(2);
     }
 }
 
@@ -76,10 +75,7 @@ void Credentials::init(const std::string& hash)
         abort();
     }
 
-    version_ = serialized->version();
-
-    // Upgrade to version 2
-    if (2 > version_) { version_ = 2; }
+    init_version(2, *serialized);
 
     for (const auto& it : serialized->cred()) {
         item_map_.emplace(

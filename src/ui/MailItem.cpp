@@ -7,11 +7,13 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -136,12 +138,14 @@ MailItem::MailItem(
 
 void MailItem::load()
 {
+    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
     std::shared_ptr<const std::string> text{nullptr};
 
     switch (box_) {
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
-            text = api_.Activity().MailText(nym_id_, item_id_, box_);
+            text = api_.Activity().MailText(nym_id_, item_id_, box_, reason);
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:

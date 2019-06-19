@@ -10,7 +10,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
@@ -41,25 +40,26 @@ const VersionConversionMap NymIDSource::key_to_source_version_{
 
 NymIDSource::NymIDSource(
     const api::Factory& factory,
-    const proto::NymIDSource& serializedSource) noexcept
+    const proto::NymIDSource& serializedSource,
+    const PasswordPrompt& reason) noexcept
     : factory_(factory)
     , version_(serializedSource.version())
     , type_(serializedSource.type())
     , pubkey_(crypto::key::Asymmetric::Factory())
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    , payment_code_(factory_.PaymentCode(""))
+    , payment_code_(factory_.PaymentCode("", reason))
 #endif
 {
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY: {
-            pubkey_ = factory_.AsymmetricKey(serializedSource.key());
+            pubkey_ = factory_.AsymmetricKey(serializedSource.key(), reason);
 
             break;
         }
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47: {
             payment_code_ =
-                factory_.PaymentCode(serializedSource.paymentcode());
+                factory_.PaymentCode(serializedSource.paymentcode(), reason);
 
             break;
         }
@@ -71,21 +71,26 @@ NymIDSource::NymIDSource(
 
 NymIDSource::NymIDSource(
     const api::Factory& factory,
-    const String& source) noexcept
-    : NymIDSource(factory, *ExtractArmoredSource(Armored::Factory(source)))
+    const String& source,
+    const PasswordPrompt& reason) noexcept
+    : NymIDSource(
+          factory,
+          *ExtractArmoredSource(Armored::Factory(source)),
+          reason)
 {
 }
 
 NymIDSource::NymIDSource(
     const api::Factory& factory,
     const NymParameters& nymParameters,
-    proto::AsymmetricKey& pubkey) noexcept
+    proto::AsymmetricKey& pubkey,
+    const PasswordPrompt& reason) noexcept
     : factory_{factory}
     , version_(key_to_source_version_.at(pubkey.version()))
     , type_(nymParameters.SourceType())
-    , pubkey_(factory_.AsymmetricKey(pubkey))
+    , pubkey_(factory_.AsymmetricKey(pubkey, reason))
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    , payment_code_(factory_.PaymentCode(""))
+    , payment_code_(factory_.PaymentCode("", reason))
 #endif
 
 {
@@ -105,8 +110,10 @@ NymIDSource::NymIDSource(
 }
 #endif
 
-NymIDSource::NymIDSource(const NymIDSource& rhs) noexcept
-    : NymIDSource(rhs.factory_, *rhs.Serialize())
+NymIDSource::NymIDSource(
+    const NymIDSource& rhs,
+    const PasswordPrompt& reason) noexcept
+    : NymIDSource(rhs.factory_, *rhs.Serialize(), reason)
 {
 }
 
@@ -204,7 +211,8 @@ serializedNymIDSource NymIDSource::Serialize() const
 // except for the source proof
 bool NymIDSource::Verify(
     const proto::Credential& master,
-    __attribute__((unused)) const proto::Signature& sourceSignature) const
+    [[maybe_unused]] const proto::Signature& sourceSignature,
+    [[maybe_unused]] const PasswordPrompt& reason) const
 {
     std::shared_ptr<identity::credential::Base::SerializedType>
         serializedMaster;
@@ -250,7 +258,7 @@ bool NymIDSource::Verify(
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case proto::SOURCETYPE_BIP47:
-            if (!payment_code_->Verify(master, sourceSignature)) {
+            if (!payment_code_->Verify(master, sourceSignature, reason)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Invalid source signature.")
                     .Flush();
@@ -270,7 +278,7 @@ bool NymIDSource::Verify(
 bool NymIDSource::Sign(
     [[maybe_unused]] const identity::credential::Primary& credential,
     [[maybe_unused]] proto::Signature& sig,
-    [[maybe_unused]] const OTPasswordData* pPWData) const
+    [[maybe_unused]] const PasswordPrompt& reason) const
 {
     bool goodsig = false;
 
@@ -281,7 +289,7 @@ bool NymIDSource::Sign(
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case (proto::SOURCETYPE_BIP47):
-            goodsig = payment_code_->Sign(credential, sig, pPWData);
+            goodsig = payment_code_->Sign(credential, sig, reason);
 
             break;
 #endif

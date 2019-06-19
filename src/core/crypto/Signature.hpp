@@ -15,7 +15,7 @@ public:
     const OTSignatureMetadata& getMetaData() const { return metadata_; }
     OTSignatureMetadata& getMetaData() { return metadata_; }
 
-    Signature();
+    Signature(const api::Core& api);
 
     ~Signature() = default;
 

@@ -9,7 +9,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
@@ -267,15 +267,14 @@ std::string Armored::decompress_string(const std::string& str) const
 }
 
 // Base64-decode
-bool Armored::GetData(Data& theData,
-                      bool bLineBreaks) const  // linebreaks=true
+bool Armored::GetData(Data& theData, bool bLineBreaks) const
 {
     theData.Release();
 
     if (GetLength() < 1) return true;
 
     auto decoded =
-        OT::App().Crypto().Encode().DataDecode(std::string(Get(), GetLength()));
+        Context().Crypto().Encode().DataDecode(std::string(Get(), GetLength()));
 
     theData.Assign(decoded.c_str(), decoded.size());
 
@@ -289,7 +288,7 @@ bool Armored::GetString(opentxs::String& strData, bool bLineBreaks) const
 
     if (GetLength() < 1) { return true; }
 
-    std::string str_decoded = OT::App().Crypto().Encode().DataDecode(Get());
+    std::string str_decoded = Context().Crypto().Encode().DataDecode(Get());
 
     if (str_decoded.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Base58CheckDecode failed.")
@@ -471,7 +470,7 @@ bool Armored::SetData(const Data& theData, bool bLineBreaks)
 
     if (theData.size() < 1) return true;
 
-    auto string = OT::App().Crypto().Encode().DataEncode(theData);
+    auto string = Context().Crypto().Encode().DataEncode(theData);
 
     if (string.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Base64Encode failed.").Flush();
@@ -538,7 +537,7 @@ bool Armored::SetString(
         return false;
     }
 
-    auto pString = OT::App().Crypto().Encode().DataEncode(str_compressed);
+    auto pString = Context().Crypto().Encode().DataEncode(str_compressed);
 
     if (pString.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Base64Encode failed.").Flush();

@@ -111,7 +111,7 @@ void OTSignedFile::SetSignerNymID(const String& strArg)
     m_strSignerNymID = strArg;
 }
 
-void OTSignedFile::UpdateContents()
+void OTSignedFile::UpdateContents(const PasswordPrompt& reason)
 {
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();
@@ -137,7 +137,9 @@ void OTSignedFile::UpdateContents()
     m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
-std::int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
+std::int32_t OTSignedFile::ProcessXMLNode(
+    irr::io::IrrXMLReader*& xml,
+    const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 
@@ -225,7 +227,7 @@ bool OTSignedFile::SaveFile()
 }
 
 // Assumes SetFilename() has already been set.
-bool OTSignedFile::LoadFile()
+bool OTSignedFile::LoadFile(const PasswordPrompt& reason)
 {
     //    otOut << "DEBUG LoadFile (Signed) folder: %s file: %s \n",
     // m_strFoldername.Get(), m_strFilename.Get());
@@ -236,7 +238,7 @@ bool OTSignedFile::LoadFile()
             m_strFilename->Get(),
             "",
             ""))
-        return LoadContract();
+        return LoadContract(reason);
 
     return false;
 }

@@ -44,7 +44,7 @@ public:
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 
     Test_Signatures()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
@@ -72,6 +72,7 @@ public:
         const std::string& fingerprint,
         const EcdsaCurve& curve)
     {
+        auto reason = api.Factory().PasswordPrompt(__FUNCTION__);
         std::string id{fingerprint};
 
         return OTAsymmetricKey{
@@ -83,7 +84,8 @@ public:
                      HDIndex{0, Bip32Child::HARDENED},
                      HDIndex{0, Bip32Child::HARDENED},
                      HDIndex{0, Bip32Child::HARDENED},
-                     HDIndex{Bip32Child::SIGN_KEY, Bip32Child::HARDENED}})
+                     HDIndex{Bip32Child::SIGN_KEY, Bip32Child::HARDENED}},
+                    reason)
                 .release()};
     }
 
@@ -93,9 +95,11 @@ public:
         const crypto::key::Asymmetric& key,
         const proto::HashType hash)
     {
+        auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
         auto sig = Data::Factory();
-        const auto haveSig = lib.Sign(plaintext, key, hash, sig);
-        const auto verified = lib.Verify(plaintext, key, sig, hash);
+        const auto haveSig =
+            lib.Sign(client_, plaintext, key, hash, sig, reason);
+        const auto verified = lib.Verify(plaintext, key, sig, hash, reason);
 
         return haveSig || verified;
     }
@@ -105,9 +109,10 @@ public:
         const crypto::key::Asymmetric& key,
         const proto::HashType hash)
     {
+        auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
         auto sig = Data::Factory();
-        lib.Sign(plaintext_1, key, hash, sig);
-        const auto verified = lib.Verify(plaintext_2, key, sig, hash);
+        lib.Sign(client_, plaintext_1, key, hash, sig, reason);
+        const auto verified = lib.Verify(plaintext_2, key, sig, hash, reason);
 
         return !verified;
     }
@@ -119,9 +124,12 @@ public:
         const crypto::key::Asymmetric& key,
         const proto::HashType hash)
     {
+        auto reason = client_.Factory().PasswordPrompt(__FUNCTION__);
         auto sig = Data::Factory();
-        const auto haveSig = signer.Sign(plaintext, key, hash, sig);
-        const auto verified = verifier.Verify(plaintext, key, sig, hash);
+        const auto haveSig =
+            signer.Sign(client_, plaintext, key, hash, sig, reason);
+        const auto verified =
+            verifier.Verify(plaintext, key, sig, hash, reason);
 
         return haveSig || verified;
     }

@@ -162,7 +162,7 @@ public:
     std::string BestPhoneNumber() const;
     std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
     const class ContactData& Claims() const;
-    bool DeleteClaim(const Identifier& id);
+    bool DeleteClaim(const Identifier& id, const PasswordPrompt& reason);
     std::string EmailAddresses(bool active = true) const;
     bool HaveContract(
         const identifier::UnitDefinition& id,
@@ -185,42 +185,56 @@ public:
 
     std::string AddChildKeyCredential(
         const Identifier& strMasterID,
-        const NymParameters& nymParameters);
-    bool AddClaim(const Claim& claim);
+        const NymParameters& nymParameters,
+        const PasswordPrompt& reason);
+    bool AddClaim(const Claim& claim, const PasswordPrompt& reason);
     bool AddContract(
         const std::string& instrumentDefinitionID,
         const proto::ContactItemType currency,
         const bool primary,
-        const bool active);
+        const bool active,
+        const PasswordPrompt& reason);
     bool AddEmail(
         const std::string& value,
         const bool primary,
-        const bool active);
+        const bool active,
+        const PasswordPrompt& reason);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddPaymentCode(
         const std::string& code,
         const proto::ContactItemType currency,
         const bool primary,
-        const bool active);
+        const bool active,
+        const PasswordPrompt& reason);
 #endif
     bool AddPhoneNumber(
         const std::string& value,
         const bool primary,
-        const bool active);
-    bool AddPreferredOTServer(const std::string& id, const bool primary);
+        const bool active,
+        const PasswordPrompt& reason);
+    bool AddPreferredOTServer(
+        const std::string& id,
+        const bool primary,
+        const PasswordPrompt& reason);
     bool AddSocialMediaProfile(
         const std::string& value,
         const proto::ContactItemType type,
         const bool primary,
-        const bool active);
+        const bool active,
+        const PasswordPrompt& reason);
     void Release();
-    bool SetCommonName(const std::string& name);
-    bool SetContactData(const proto::ContactData& data);
+    bool SetCommonName(const std::string& name, const PasswordPrompt& reason);
+    bool SetContactData(
+        const proto::ContactData& data,
+        const PasswordPrompt& reason);
     bool SetScope(
         const proto::ContactItemType type,
         const std::string& name,
-        const bool primary);
-    bool SetVerificationSet(const proto::VerificationSet& data);
+        const bool primary,
+        const PasswordPrompt& reason);
+    bool SetVerificationSet(
+        const proto::VerificationSet& data,
+        const PasswordPrompt& reason);
 
     ~NymData();
 

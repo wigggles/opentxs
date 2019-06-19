@@ -11,9 +11,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -23,9 +21,7 @@
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
-#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/Trezor.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -59,19 +55,6 @@ extern "C" {
 
 #define OT_METHOD "opentxs::crypto::implementation::Trezor::"
 
-extern "C" {
-uint32_t random32(void)
-{
-    uint32_t output{0};
-    const auto done = opentxs::OT::App().Crypto().Util().RandomizeMemory(
-        &output, sizeof(output));
-
-    OT_ASSERT(done)
-
-    return output;
-}
-}
-
 namespace opentxs
 {
 crypto::Trezor* Factory::Trezor(const api::Crypto& crypto)
@@ -84,7 +67,7 @@ namespace opentxs::crypto::implementation
 {
 Trezor::Trezor(const api::Crypto& crypto)
 #if OT_CRYPTO_WITH_BIP32
-    : Bip32()
+    : Bip32(crypto)
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OPENTXS_TREZOR_PROVIDES_ECDSA
 #if OT_CRYPTO_WITH_BIP32
@@ -470,15 +453,17 @@ bool Trezor::ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
 }
 
 bool Trezor::Sign(
+    const api::Core& api,
     const Data& plaintext,
     const key::Asymmetric& theKey,
     const proto::HashType hashType,
     Data& signature,
-    const OTPasswordData* pPWData,
+    const PasswordPrompt& reason,
     const OTPassword* exportPassword) const
 {
     auto hash = Data::Factory();
-    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest =
+        EcdsaProvider::crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -493,7 +478,7 @@ bool Trezor::Sign(
     OTPassword privKey{};
     bool havePrivateKey{false};
 
-    // FIXME
+    // TODO
     OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
 
     const crypto::key::EllipticCurve* key =
@@ -501,14 +486,7 @@ bool Trezor::Sign(
 
     if (nullptr == key) { return false; }
 
-    if (nullptr == pPWData) {
-        OTPasswordData passwordData(
-            "Please enter your password to sign this document.");
-        havePrivateKey =
-            AsymmetricKeyToECPrivatekey(*key, passwordData, privKey);
-    } else {
-        havePrivateKey = AsymmetricKeyToECPrivatekey(*key, *pPWData, privKey);
-    }
+    havePrivateKey = AsymmetricKeyToECPrivatekey(api, *key, reason, privKey);
 
     if (havePrivateKey) {
         OT_ASSERT(nullptr != privKey.getMemory());
@@ -549,10 +527,11 @@ bool Trezor::Verify(
     const key::Asymmetric& theKey,
     const Data& signature,
     const proto::HashType hashType,
-    const OTPasswordData* pPWData) const
+    const PasswordPrompt& reason) const
 {
     auto hash = Data::Factory();
-    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest =
+        EcdsaProvider::crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) { return false; }
 

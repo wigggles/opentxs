@@ -581,7 +581,7 @@ namespace
 #endif
 
 // invoke set_terminate as part of global constant initialization
-static const bool SET_TERMINATE __attribute__((unused)) =
+static const bool SET_TERMINATE [[maybe_unused]] =
     std::set_terminate(ot_terminate);
 
 #ifdef _MSC_VER

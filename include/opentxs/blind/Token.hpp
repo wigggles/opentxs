@@ -25,8 +25,8 @@ public:
     using Denomination = std::uint64_t;
     using MintSeries = std::uint64_t;
 
-    EXPORT virtual std::string ID() const = 0;
-    EXPORT virtual bool IsSpent() const = 0;
+    EXPORT virtual std::string ID(const PasswordPrompt& reason) const = 0;
+    EXPORT virtual bool IsSpent(const PasswordPrompt& reason) const = 0;
     EXPORT virtual const identifier::Server& Notary() const = 0;
     EXPORT virtual proto::Token Serialize() const = 0;
     EXPORT virtual MintSeries Series() const = 0;
@@ -37,11 +37,14 @@ public:
     EXPORT virtual Time ValidTo() const = 0;
     EXPORT virtual Denomination Value() const = 0;
 
-    EXPORT virtual bool ChangeOwner(crypto::key::Symmetric& key) = 0;
-    EXPORT virtual bool MarkSpent() = 0;
+    EXPORT virtual bool ChangeOwner(
+        crypto::key::Symmetric& key,
+        const PasswordPrompt& reason) = 0;
+    EXPORT virtual bool MarkSpent(const PasswordPrompt& reason) = 0;
     EXPORT virtual bool Process(
         const identity::Nym& owner,
-        const Mint& mint) = 0;
+        const Mint& mint,
+        const PasswordPrompt& reason) = 0;
 
     EXPORT virtual ~Token() = default;
 

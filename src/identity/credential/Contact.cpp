@@ -28,6 +28,7 @@ namespace opentxs
 {
 identity::credential::internal::Contact* Factory::ContactCredential(
     const api::Core& api,
+    const opentxs::PasswordPrompt& reason,
     identity::internal::Authority& parent,
     const proto::Credential& serialized)
 {
@@ -39,7 +40,8 @@ identity::credential::internal::Contact* Factory::ContactCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
     const NymParameters& parameters,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
     return new identity::credential::implementation::Contact(
         api, parent, parameters, version);

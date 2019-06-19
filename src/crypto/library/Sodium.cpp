@@ -6,7 +6,6 @@
 #include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -14,7 +13,6 @@
 #include "opentxs/crypto/key/Ed25519.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/library/Sodium.hpp"
-#include "opentxs/OT.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "AsymmetricProvider.hpp"
@@ -475,11 +473,12 @@ bool Sodium::SeedToCurveKey(
 }
 
 bool Sodium::Sign(
+    const api::Core& api,
     const Data& plaintext,
     const key::Asymmetric& theKey,
     const proto::HashType hashType,
     Data& signature,
-    const OTPasswordData* pPWData,
+    const PasswordPrompt& reason,
     const OTPassword* exportPassword) const
 {
     if (proto::HASHTYPE_BLAKE2B256 != hashType) {
@@ -493,7 +492,7 @@ bool Sodium::Sign(
     OTPassword seed;
     bool havePrivateKey = false;
 
-    // FIXME
+    // TODO
     OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
 
     const crypto::key::EllipticCurve* key =
@@ -505,13 +504,7 @@ bool Sodium::Sign(
         return false;
     }
 
-    if (nullptr == pPWData) {
-        OTPasswordData passwordData(
-            "Please enter your password to sign this  document.");
-        havePrivateKey = AsymmetricKeyToECPrivatekey(*key, passwordData, seed);
-    } else {
-        havePrivateKey = AsymmetricKeyToECPrivatekey(*key, *pPWData, seed);
-    }
+    havePrivateKey = AsymmetricKeyToECPrivatekey(api, *key, reason, seed);
 
     if (!havePrivateKey) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -575,7 +568,7 @@ bool Sodium::Verify(
     const key::Asymmetric& theKey,
     const Data& signature,
     const proto::HashType hashType,
-    __attribute__((unused)) const OTPasswordData* pPWData) const
+    [[maybe_unused]] const PasswordPrompt& reason) const
 {
     if (proto::HASHTYPE_BLAKE2B256 != hashType) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid hash function: ")(

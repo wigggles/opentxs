@@ -13,11 +13,17 @@ public:
     bool AddDenomination(
         const identity::Nym& theNotary,
         const std::int64_t denomination,
-        const std::size_t keySize) override;
+        const std::size_t keySize,
+        const PasswordPrompt& reason) override;
 
-    bool SignToken(const identity::Nym& notary, blind::Token& token) override;
-    bool VerifyToken(const identity::Nym& notary, const blind::Token& token)
-        override;
+    bool SignToken(
+        const identity::Nym& notary,
+        blind::Token& token,
+        const PasswordPrompt& reason) override;
+    bool VerifyToken(
+        const identity::Nym& notary,
+        const blind::Token& token,
+        const PasswordPrompt& reason) override;
 
     ~Lucre() = default;
 

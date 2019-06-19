@@ -29,8 +29,8 @@ public:
     EXPORT virtual const crypto::EcdsaProvider& ECDSA() const = 0;
     EXPORT virtual bool GetKey(Data& key) const = 0;
     EXPORT virtual bool GetKey(proto::Ciphertext& key) const = 0;
-    EXPORT virtual OTData PrivateKey() const = 0;
-    EXPORT virtual OTData PublicKey() const = 0;
+    EXPORT virtual OTData PrivateKey(const PasswordPrompt& reason) const = 0;
+    EXPORT virtual OTData PublicKey(const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual bool SetKey(const Data& key) = 0;
     EXPORT virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) = 0;

@@ -33,8 +33,9 @@
 namespace opentxs::server
 {
 
-Transactor::Transactor(Server& server)
+Transactor::Transactor(Server& server, const PasswordPrompt& reason)
     : server_(server)
+    , reason_(reason)
     , transactionNumber_(0)
     , idToBasketMap_()
     , contractIdToBasketAccountId_()
@@ -234,7 +235,8 @@ ExclusiveAccount Transactor::getVoucherAccount(
         NOTARY_NYM_ID,
         INSTRUMENT_DEFINITION_ID,
         NOTARY_ID,
-        bWasAcctCreated);
+        bWasAcctCreated,
+        reason_);
     if (bWasAcctCreated) {
         auto strAcctID = String::Factory();
         pAccount.get().GetIdentifier(strAcctID);

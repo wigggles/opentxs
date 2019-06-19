@@ -22,7 +22,12 @@ public:
     std::string DisplayUnit() const override { return contract_->TLA(); }
     std::string Name() const override { return name_; }
     std::string NotaryID() const override { return notary_->ID()->str(); }
-    std::string NotaryName() const override { return notary_->EffectiveName(); }
+    std::string NotaryName() const override
+    {
+        auto reason = api_.Factory().PasswordPrompt("Loading notary contract");
+
+        return notary_->EffectiveName(reason);
+    }
     void reindex(const AccountListSortKey& key, const CustomData& custom)
         override{};
     AccountType Type() const override { return type_; }
@@ -41,6 +46,7 @@ private:
     const std::string name_;
 
     AccountListItem(
+        const PasswordPrompt& reason,
         const AccountListInternalInterface& parent,
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,

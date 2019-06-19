@@ -30,34 +30,45 @@ public:
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
-        const Bip32Index index) const = 0;
+        const Bip32Index index,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::string Bip32Root(
+        const PasswordPrompt& reason,
         const std::string& fingerprint = "") const = 0;
     EXPORT virtual std::string DefaultSeed() const = 0;
     EXPORT virtual std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
         std::string& fingerprint,
         const EcdsaCurve& curve,
         const Path& path,
+        const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
-        const Bip32Index nym) const = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetStorageKey(
-        std::string& seed) const = 0;
+        const Bip32Index nym,
+        const PasswordPrompt& reason) const = 0;
+    EXPORT virtual OTSymmetricKey GetStorageKey(
+        std::string& seed,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::string ImportSeed(
         const OTPassword& words,
-        const OTPassword& passphrase) const = 0;
-    EXPORT virtual std::string NewSeed() const = 0;
+        const OTPassword& passphrase,
+        const PasswordPrompt& reason) const = 0;
+    EXPORT virtual std::string NewSeed(const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::string Passphrase(
+        const PasswordPrompt& reason,
         const std::string& fingerprint = "") const = 0;
     EXPORT virtual std::shared_ptr<OTPassword> Seed(
         std::string& fingerprint,
-        Bip32Index& index) const = 0;
-    EXPORT virtual bool UpdateIndex(std::string& seed, const Bip32Index index)
-        const = 0;
+        Bip32Index& index,
+        const PasswordPrompt& reason) const = 0;
+    EXPORT virtual bool UpdateIndex(
+        std::string& seed,
+        const Bip32Index index,
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::string Words(
+        const PasswordPrompt& reason,
         const std::string& fingerprint = "") const = 0;
 
     EXPORT virtual ~HDSeed() = default;

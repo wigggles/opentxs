@@ -27,7 +27,9 @@ namespace opentxs::api::implementation
 class Wallet : virtual public opentxs::api::Wallet, public Lockable
 {
 public:
-    SharedAccount Account(const Identifier& accountID) const override;
+    SharedAccount Account(
+        const Identifier& accountID,
+        const PasswordPrompt& reason) const override;
     OTIdentifier AccountPartialMatch(const std::string& hint) const override;
     ExclusiveAccount CreateAccount(
         const identifier::Nym& ownerNymID,
@@ -35,34 +37,46 @@ public:
         const identifier::UnitDefinition& instrumentDefinitionID,
         const identity::Nym& signer,
         Account::AccountType type,
-        TransactionNumber stash) const override;
-    bool DeleteAccount(const Identifier& accountID) const override;
+        TransactionNumber stash,
+        const PasswordPrompt& reason) const override;
+    bool DeleteAccount(
+        const Identifier& accountID,
+        const PasswordPrompt& reason) const override;
     SharedAccount IssuerAccount(
-        const identifier::UnitDefinition& unitID) const override;
+        const identifier::UnitDefinition& unitID,
+        const PasswordPrompt& reason) const override;
     ExclusiveAccount mutable_Account(
         const Identifier& accountID,
+        const PasswordPrompt& reason,
         const AccountCallback callback) const override;
     bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
-        const String& serialized) const override;
+        const String& serialized,
+        const PasswordPrompt& reason) const override;
     bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
-        const std::string& label) const override;
+        const std::string& label,
+        const PasswordPrompt& reason) const override;
     bool ImportAccount(
-        std::unique_ptr<opentxs::Account>& imported) const override;
+        std::unique_ptr<opentxs::Account>& imported,
+        const PasswordPrompt& reason) const override;
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
-        const identifier::Nym& remoteNymID) const override;
+        const identifier::Nym& remoteNymID,
+        const PasswordPrompt& reason) const override;
     std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const override;
+        const Identifier& remoteID,
+        const PasswordPrompt& reason) const override;
     Editor<opentxs::ClientContext> mutable_ClientContext(
-        const identifier::Nym& remoteNymID) const override;
+        const identifier::Nym& remoteNymID,
+        const PasswordPrompt& reason) const override;
     Editor<opentxs::ServerContext> mutable_ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID) const override;
+        const Identifier& remoteID,
+        const PasswordPrompt& reason) const override;
     std::set<OTNymID> IssuerList(const identifier::Nym& nymID) const override;
     std::shared_ptr<const api::client::Issuer> Issuer(
         const identifier::Nym& nymID,
@@ -75,21 +89,27 @@ public:
     std::set<OTNymID> LocalNyms() const override;
     Nym_p Nym(
         const identifier::Nym& id,
+        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const override;
-    Nym_p Nym(const proto::CredentialIndex& nym) const override;
+    Nym_p Nym(const proto::CredentialIndex& nym, const PasswordPrompt& reason)
+        const override;
     Nym_p Nym(
         const NymParameters& nymParameters,
+        const PasswordPrompt& reason,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const override;
-    NymData mutable_Nym(const identifier::Nym& id) const override;
+    NymData mutable_Nym(const identifier::Nym& id, const PasswordPrompt& reason)
+        const override;
     std::unique_ptr<const opentxs::NymFile> Nymfile(
         const identifier::Nym& id,
-        const OTPasswordData& reason) const override;
+        const PasswordPrompt& reason) const override;
     Editor<opentxs::NymFile> mutable_Nymfile(
         const identifier::Nym& id,
-        const OTPasswordData& reason) const override;
-    Nym_p NymByIDPartialMatch(const std::string& partialId) const override;
+        const PasswordPrompt& reason) const override;
+    Nym_p NymByIDPartialMatch(
+        const std::string& partialId,
+        const PasswordPrompt& reason) const override;
     ObjectList NymList() const override;
     bool NymNameByIndex(const std::size_t index, String& name) const override;
     std::shared_ptr<proto::PeerReply> PeerReply(
@@ -152,6 +172,7 @@ public:
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
+        const PasswordPrompt& reason,
         const proto::CashType type) const override;
 #endif
     bool RemoveServer(const identifier::Server& id) const override;
@@ -159,15 +180,18 @@ public:
         const identifier::UnitDefinition& id) const override;
     ConstServerContract Server(
         const identifier::Server& id,
+        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const override;
     ConstServerContract Server(
-        const proto::ServerContract& contract) const override;
+        const proto::ServerContract& contract,
+        const PasswordPrompt& reason) const override;
     ConstServerContract Server(
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
         const std::list<ServerContract::Endpoint>& endpoints,
+        const PasswordPrompt& reason,
         const VersionNumber version) const override;
     ObjectList ServerList() const override;
     bool SetNymAlias(const identifier::Nym& id, const std::string& alias)
@@ -180,10 +204,12 @@ public:
     ObjectList UnitDefinitionList() const override;
     const ConstUnitDefinition UnitDefinition(
         const identifier::UnitDefinition& id,
+        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const override;
     ConstUnitDefinition UnitDefinition(
-        const proto::UnitDefinition& contract) const override;
+        const proto::UnitDefinition& contract,
+        const PasswordPrompt& reason) const override;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
@@ -192,15 +218,18 @@ public:
         const std::string& terms,
         const std::string& tla,
         const std::uint32_t power,
-        const std::string& fraction) const override;
+        const std::string& fraction,
+        const PasswordPrompt& reason) const override;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms) const override;
+        const std::string& terms,
+        const PasswordPrompt& reason) const override;
     proto::ContactItemType CurrencyTypeBasedOnUnitType(
-        const identifier::UnitDefinition& contractID) const override;
+        const identifier::UnitDefinition& contractID,
+        const PasswordPrompt& reason) const override;
 
     bool LoadCredential(
         const std::string& id,
@@ -222,13 +251,18 @@ protected:
 
     std::shared_ptr<opentxs::Context> context(
         const identifier::Nym& localNymID,
-        const identifier::Nym& remoteNymID) const;
+        const identifier::Nym& remoteNymID,
+        const PasswordPrompt& reason) const;
     proto::ContactItemType extract_unit(
+        const PasswordPrompt& reason,
         const identifier::UnitDefinition& contractID) const;
     proto::ContactItemType extract_unit(
         const opentxs::UnitDefinition& contract) const;
-    void save(opentxs::internal::Context* context) const;
-    OTNymID server_to_nym(Identifier& nymOrNotaryID) const;
+    void save(const PasswordPrompt& reason, opentxs::internal::Context* context)
+        const;
+    OTNymID server_to_nym(
+        const PasswordPrompt& reason,
+        Identifier& nymOrNotaryID) const;
 
     Wallet(const api::Core& core);
 
@@ -291,7 +325,8 @@ private:
     opentxs::Account* account_factory(
         const Identifier& accountID,
         const std::string& alias,
-        const std::string& serialized) const;
+        const std::string& serialized,
+        const PasswordPrompt& reason) const;
 #if OT_CASH
     std::mutex& get_purse_lock(
         const identifier::Nym& nym,
@@ -306,6 +341,7 @@ private:
     {
     }
     virtual void instantiate_server_context(
+        const PasswordPrompt& reason,
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
@@ -313,6 +349,7 @@ private:
     {
     }
     virtual bool load_legacy_account(
+        const PasswordPrompt& reason,
         const Identifier& accountID,
         const eLock& lock,
         AccountLock& row) const
@@ -323,7 +360,7 @@ private:
         const Nym_p& targetNym,
         const Nym_p& signerNym,
         const identifier::Nym& id,
-        const OTPasswordData& reason) const;
+        const PasswordPrompt& reason) const;
     std::mutex& nymfile_lock(const identifier::Nym& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
     void publish_server(const identifier::Server& id) const;
@@ -335,6 +372,7 @@ private:
         const bool checking) const;
 #endif
     void save(
+        const PasswordPrompt& reason,
         const std::string id,
         std::unique_ptr<opentxs::Account>& in,
         eLock& lock,
@@ -344,13 +382,19 @@ private:
     void save(const Lock& lock, const OTNymID nym, blind::Purse* in) const;
 #endif
     void save(NymData* nymData, const Lock& lock) const;
-    void save(opentxs::NymFile* nym, const Lock& lock) const;
+    void save(
+        const PasswordPrompt& reason,
+        opentxs::NymFile* nym,
+        const Lock& lock) const;
     bool SaveCredentialIDs(const identity::Nym& nym) const;
-    virtual Nym_p signer_nym(const identifier::Nym& id) const = 0;
+    virtual Nym_p signer_nym(
+        const identifier::Nym& id,
+        const PasswordPrompt& reason) const = 0;
 
     /* Throws std::out_of_range for missing accounts */
     AccountLock& account(
         const Lock& lock,
+        const PasswordPrompt& reason,
         const Identifier& accountID,
         const bool create) const;
     IssuerLock& issuer(
@@ -366,7 +410,9 @@ private:
      *
      *    \param[in] contract the instantiated ServerContract object
      */
-    ConstServerContract Server(std::unique_ptr<ServerContract>& contract) const;
+    ConstServerContract Server(
+        std::unique_ptr<ServerContract>& contract,
+        const PasswordPrompt& reason) const;
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.
@@ -377,7 +423,8 @@ private:
      *    \param[in] contract the instantiated UnitDefinition object
      */
     ConstUnitDefinition UnitDefinition(
-        std::unique_ptr<opentxs::UnitDefinition>& contract) const;
+        std::unique_ptr<opentxs::UnitDefinition>& contract,
+        const PasswordPrompt& reason) const;
 
     Wallet() = delete;
     Wallet(const Wallet&) = delete;

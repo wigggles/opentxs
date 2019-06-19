@@ -33,18 +33,20 @@ public:
     static std::chrono::system_clock::time_point valid_to_;
 
     const opentxs::api::client::Manager& api_;
+    opentxs::OTPasswordPrompt reason_;
     opentxs::Nym_p alice_;
     opentxs::Nym_p bob_;
 
     Test_Basic()
-        : api_(opentxs::OT::App().StartClient(args_, 0))
+        : api_(opentxs::Context().StartClient(args_, 0))
+        , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
         , alice_()
         , bob_()
     {
         if (false == init_) { init(); }
 
-        alice_ = api_.Wallet().Nym(alice_nym_id_);
-        bob_ = api_.Wallet().Nym(bob_nym_id_);
+        alice_ = api_.Wallet().Nym(alice_nym_id_, reason_);
+        bob_ = api_.Wallet().Nym(bob_nym_id_, reason_);
     }
 
     void init()
@@ -125,7 +127,8 @@ TEST_F(Test_Basic, generateMint)
         10000000,
         100000000,
         1000000000,
-        OT_MINT_KEY_SIZE_TEST);
+        OT_MINT_KEY_SIZE_TEST,
+        reason_);
 }
 
 TEST_F(Test_Basic, requestPurse)
@@ -141,7 +144,8 @@ TEST_F(Test_Basic, requestPurse)
         *bob_,
         opentxs::proto::CASHTYPE_LUCRE,
         *mint_,
-        REQUEST_PURSE_VALUE));
+        REQUEST_PURSE_VALUE,
+        reason_));
 
     ASSERT_TRUE(request_purse_);
 
@@ -287,10 +291,11 @@ TEST_F(Test_Basic, sign)
     auto& alice = *alice_;
     auto& bob = *bob_;
 
-    EXPECT_TRUE(requestPurse.Unlock(bob));
+    EXPECT_TRUE(requestPurse.Unlock(bob, reason_));
     ASSERT_TRUE(requestPurse.IsUnlocked());
 
-    issue_purse_.reset(opentxs::Factory::Purse(api_, requestPurse, alice));
+    issue_purse_.reset(
+        opentxs::Factory::Purse(api_, requestPurse, alice, reason_));
 
     ASSERT_TRUE(issue_purse_);
 
@@ -300,18 +305,18 @@ TEST_F(Test_Basic, sign)
 
     auto& mint = *mint_;
     auto pToken = requestPurse.Pop();
-    const auto added = issuePurse.AddNym(bob);
+    const auto added = issuePurse.AddNym(bob, reason_);
 
     EXPECT_TRUE(added);
 
     while (pToken) {
         auto& token = *pToken;
-        const auto signature = mint.SignToken(bob, token);
+        const auto signature = mint.SignToken(bob, token, reason_);
 
         EXPECT_TRUE(signature);
         EXPECT_TRUE(opentxs::proto::TOKENSTATE_SIGNED == token.State());
 
-        const auto push = issuePurse.Push(pToken);
+        const auto push = issuePurse.Push(pToken, reason_);
 
         EXPECT_TRUE(push);
 
@@ -342,9 +347,9 @@ TEST_F(Test_Basic, process)
     auto& mint = *mint_;
     auto& alice = *alice_;
 
-    EXPECT_TRUE(purse.Unlock(alice));
+    EXPECT_TRUE(purse.Unlock(alice, reason_));
     ASSERT_TRUE(purse.IsUnlocked());
-    EXPECT_TRUE(purse.Process(alice, mint));
+    EXPECT_TRUE(purse.Process(alice, mint, reason_));
     EXPECT_TRUE(opentxs::proto::PURSETYPE_NORMAL == purse.State());
 
     issue_purse_ = std::move(restored);
@@ -359,7 +364,7 @@ TEST_F(Test_Basic, verify)
     auto& issuePurse = *issue_purse_;
     auto& bob = *bob_;
 
-    EXPECT_TRUE(issuePurse.Unlock(bob));
+    EXPECT_TRUE(issuePurse.Unlock(bob, reason_));
     ASSERT_TRUE(issuePurse.IsUnlocked());
 
     std::unique_ptr<opentxs::blind::Purse> restored{
@@ -369,15 +374,15 @@ TEST_F(Test_Basic, verify)
 
     auto& purse = *restored;
 
-    EXPECT_TRUE(purse.Unlock(bob));
+    EXPECT_TRUE(purse.Unlock(bob, reason_));
     ASSERT_TRUE(purse.IsUnlocked());
 
     auto& mint = *mint_;
 
     for (const auto& token : purse) {
-        EXPECT_FALSE(token.IsSpent());
+        EXPECT_FALSE(token.IsSpent(reason_));
 
-        const auto verified = mint.VerifyToken(bob, token);
+        const auto verified = mint.VerifyToken(bob, token, reason_);
 
         EXPECT_TRUE(verified);
     }
@@ -399,6 +404,7 @@ TEST_F(Test_Basic, wallet)
             alice_nym_id_,
             server_id_,
             unit_id_,
+            reason_,
             opentxs::proto::CASHTYPE_LUCRE);
     }
 
@@ -413,25 +419,29 @@ TEST_F(Test_Basic, wallet)
 TEST_F(Test_Basic, PushPop)
 {
     auto purseEditor = api_.Wallet().mutable_Purse(
-        alice_nym_id_, server_id_, unit_id_, opentxs::proto::CASHTYPE_LUCRE);
-    auto& purse = purseEditor.It();
+        alice_nym_id_,
+        server_id_,
+        unit_id_,
+        reason_,
+        opentxs::proto::CASHTYPE_LUCRE);
+    auto& purse = purseEditor.get();
 
     ASSERT_TRUE(issue_purse_);
 
     auto& issuePurse = *issue_purse_;
     auto& alice = *alice_;
-    const auto unlocked = issuePurse.Unlock(alice);
+    const auto unlocked = issuePurse.Unlock(alice, reason_);
 
     ASSERT_TRUE(unlocked);
-    ASSERT_TRUE(purse.Unlock(alice));
+    ASSERT_TRUE(purse.Unlock(alice, reason_));
     ASSERT_TRUE(purse.IsUnlocked());
 
     auto token = issuePurse.Pop();
 
     while (token) {
-        EXPECT_TRUE(token->MarkSpent());
-        EXPECT_TRUE(token->IsSpent());
-        EXPECT_TRUE(purse.Push(token));
+        EXPECT_TRUE(token->MarkSpent(reason_));
+        EXPECT_TRUE(token->IsSpent(reason_));
+        EXPECT_TRUE(purse.Push(token, reason_));
 
         token = issuePurse.Pop();
     }

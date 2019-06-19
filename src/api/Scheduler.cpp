@@ -21,15 +21,15 @@
 
 namespace opentxs::api::implementation
 {
-Scheduler::Scheduler(const api::Native& parent, Flag& running)
+Scheduler::Scheduler(const api::internal::Context& parent, Flag& running)
     : Lockable()
+    , parent_(parent)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , nym_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , server_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , server_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_publish_interval_(std::numeric_limits<std::int64_t>::max())
     , unit_refresh_interval_(std::numeric_limits<std::int64_t>::max())
-    , parent_(parent)
     , running_(running)
     , periodic_()
 {
