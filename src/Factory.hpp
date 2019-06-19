@@ -341,7 +341,7 @@ public:
         const api::client::Manager& api,
         OTClient& otclient,
         const ContextLockCallback& lockCallback);
-    static PasswordPrompt* PasswordPrompt(
+    static opentxs::PasswordPrompt* PasswordPrompt(
         const api::internal::Core& api,
         const std::string& text);
     static api::client::Pair* Pair(
