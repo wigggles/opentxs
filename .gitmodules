@@ -7,9 +7,9 @@
 [submodule "deps/ChaiScript"]
 	path = deps/ChaiScript
 	url = https://github.com/ChaiScript/ChaiScript.git
-[submodule "deps/trezor-crypto"]
-	path = deps/trezor-crypto
-	url = https://github.com/trezor/trezor-crypto.git
+[submodule "deps/trezor"]
+	path = deps/trezor
+	url = https://github.com/Open-Transactions/trezor-firmware.git
 [submodule "deps/protobuf"]
 	path = deps/protobuf
 	url = https://github.com/google/protobuf.git

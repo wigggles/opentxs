@@ -34,7 +34,7 @@
 #include "EcdsaProvider.hpp"
 
 extern "C" {
-#include "secp256k1.h"
+#include "secp256k1/include/secp256k1.h"
 }
 
 #include <cstdint>

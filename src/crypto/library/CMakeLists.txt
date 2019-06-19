@@ -77,7 +77,13 @@ install(FILES ${cxx-install-headers}
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
-target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")
+
+target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")
+
+if(TREZORCRYPTO_EXPORT)
+  target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/trezor/crypto")
+endif()
+
 target_include_directories(${MODULE_NAME} PRIVATE ${OT_SODIUM_HEADERS})
 target_include_directories(${MODULE_NAME} PRIVATE ${OT_SSL_HEADERS})
 
