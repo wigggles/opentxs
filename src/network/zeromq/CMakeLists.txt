@@ -13,6 +13,7 @@ set(cxx-sources
   socket/Bidirectional.cpp
   socket/Dealer.cpp
   socket/Pair.cpp
+  socket/Pipeline.cpp
   socket/Publish.cpp
   socket/Pull.cpp
   socket/Push.cpp
@@ -47,6 +48,7 @@ set(cxx-headers
   socket/Bidirectional.hpp
   socket/Dealer.hpp
   socket/Pair.hpp
+  socket/Pipeline.hpp
   socket/Publish.hpp
   socket/Pull.hpp
   socket/Push.hpp

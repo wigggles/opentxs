@@ -69,6 +69,7 @@ public:
         std::size_t size);
     EXPORT static OTData Factory(const Armored& source);
     EXPORT static OTData Factory(const std::vector<unsigned char>& source);
+    EXPORT static OTData Factory(const std::vector<std::byte>& source);
     EXPORT static OTData Factory(const network::zeromq::Frame& message);
     EXPORT static OTData Factory(const std::uint8_t in);
     EXPORT static OTData Factory(const std::uint32_t in);
@@ -135,6 +136,7 @@ public:
     EXPORT virtual void Release() = 0;
     EXPORT virtual void reset() = 0;
     EXPORT virtual void SetSize(const std::size_t& size) = 0;
+    EXPORT virtual std::string str() const = 0;
     EXPORT virtual void swap(Data&& rhs) = 0;
     EXPORT virtual void zeroMemory() = 0;
 

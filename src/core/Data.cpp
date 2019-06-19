@@ -98,6 +98,11 @@ OTData Data::Factory(const std::vector<unsigned char>& source)
     return OTData(new implementation::Data(source));
 }
 
+OTData Data::Factory(const std::vector<std::byte>& source)
+{
+    return OTData(new implementation::Data(source));
+}
+
 OTData Data::Factory(const network::zeromq::Frame& message)
 {
     return OTData(new implementation::Data(message.data(), message.size()));
@@ -143,6 +148,11 @@ Data::Data(const void* data, std::size_t size)
 }
 
 Data::Data(const std::vector<unsigned char>& sourceVector)
+{
+    Assign(sourceVector.data(), sourceVector.size());
+}
+
+Data::Data(const std::vector<std::byte>& sourceVector)
 {
     Assign(sourceVector.data(), sourceVector.size());
 }
@@ -453,6 +463,13 @@ void Data::SetSize(const std::size_t& size)
     Release();
 
     if (size > 0) { data_.assign(size, 0); }
+}
+
+std::string Data::str() const
+{
+    if (data_.empty()) { return {}; }
+
+    return std::string{reinterpret_cast<const char*>(&data_[0]), data_.size()};
 }
 
 void Data::swap(opentxs::Data&& rhs)

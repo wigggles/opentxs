@@ -66,6 +66,7 @@ public:
     void Release() override;
     void reset() override { position_ = 0; }
     void SetSize(const std::size_t& size) override;
+    std::string str() const override;
     void swap(opentxs::Data&& rhs) override;
     void zeroMemory() override;
 
@@ -83,6 +84,7 @@ protected:
     explicit Data(const void* data, std::size_t size);
     explicit Data(const Armored& source);
     explicit Data(const std::vector<unsigned char>& sourceVector);
+    explicit Data(const std::vector<std::byte>& sourceVector);
     explicit Data(const Vector& rhs, const std::size_t size);
 
 private:

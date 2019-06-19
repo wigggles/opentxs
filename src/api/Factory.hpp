@@ -220,6 +220,10 @@ public:
         const Armored& encrypted,
         const opentxs::PasswordPrompt& reason) const override;
 
+    OTZMQPipeline Pipeline(
+        std::function<void(opentxs::network::zeromq::Message&)> callback)
+        const override;
+
 #if OT_CASH
     std::unique_ptr<blind::Purse> Purse(
         const ServerContext& context,

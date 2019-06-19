@@ -97,7 +97,6 @@ public:
 #ifndef SWIG
     EXPORT virtual void GetString(String& theStr) const = 0;
 #endif
-    EXPORT virtual std::string str() const = 0;
     EXPORT virtual const ID& Type() const = 0;
 
     EXPORT virtual bool CalculateDigest(

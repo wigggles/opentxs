@@ -151,6 +151,7 @@
 #include <opentxs/network/zeromq/Message.hpp>
 #include <opentxs/network/zeromq/PairEventCallback.hpp>
 #include <opentxs/network/zeromq/PairSocket.hpp>
+#include <opentxs/network/zeromq/Pipeline.hpp>
 #include <opentxs/network/zeromq/Proxy.hpp>
 #include <opentxs/network/zeromq/PublishSocket.hpp>
 #include <opentxs/network/zeromq/PullSocket.hpp>
