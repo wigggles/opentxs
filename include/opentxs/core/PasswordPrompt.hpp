@@ -11,6 +11,13 @@
 #include <string>
 #include <memory>
 
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::PasswordPrompt::api;
+%ignore opentxs::PasswordPrompt::Password;
+// clang-format on
+#endif
+
 namespace opentxs
 {
 /*

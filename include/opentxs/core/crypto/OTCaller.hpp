@@ -10,7 +10,7 @@
 
 namespace opentxs
 {
-class OTCaller final
+class OTCaller
 {
 public:
     EXPORT bool HaveCallback() const;

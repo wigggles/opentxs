@@ -44,6 +44,7 @@ namespace zeromq {
 
 typedef int64_t time64_t;
 
+%include "../../include/opentxs/core/PasswordPrompt.hpp"
 %include "../../include/opentxs/client/NymData.hpp"
 %include "../../include/opentxs/Pimpl.hpp"
 %include "../../include/opentxs/SharedPimpl.hpp"
@@ -51,6 +52,8 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/core/Data.hpp"
 %include "../../include/opentxs/core/Identifier.hpp"
 %include "../../include/opentxs/core/identifier/Nym.hpp"
+%include "../../include/opentxs/core/identifier/Server.hpp"
+%include "../../include/opentxs/core/identifier/UnitDefinition.hpp"
 %include "../../include/opentxs/core/crypto/OTPassword.hpp"
 %include "../../include/opentxs/core/crypto/OTCallback.hpp"
 %include "../../include/opentxs/core/crypto/OTCaller.hpp"
@@ -102,7 +105,6 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/network/zeromq/RouterSocket.hpp"
 %include "../../include/opentxs/network/zeromq/Context.hpp"
 %include "../../include/opentxs/api/Endpoints.hpp"
-%include "../../include/opentxs/client/SwigWrap.hpp"
 
 // add the following to every .cxx file.
 %inline %{
