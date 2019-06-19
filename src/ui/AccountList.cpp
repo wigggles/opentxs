@@ -112,8 +112,6 @@ void AccountList::construct_row(
 #if OT_QT
 QVariant AccountList::data(const QModelIndex& index, int role) const
 {
-    PasswordPrompt reason(__FUNCTION__);
-
     const auto [valid, pRow] = check_index(index);
 
     if (false == valid) { return {}; }
@@ -143,7 +141,7 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
             return row.NotaryID().c_str();
         }
         case AccountListQt::NotaryNameRole: {
-            return row.NotaryName(reason).c_str();
+            return row.NotaryName().c_str();
         }
         case AccountListQt::TypeRole: {
             return static_cast<int>(row.Type());

@@ -22,6 +22,8 @@
 #include <cstdlib>
 #include <mutex>
 
+bool VerifyStringVal(const std::string&);
+
 namespace opentxs
 {
 typedef enum {

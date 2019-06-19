@@ -433,3 +433,5 @@ endif()
 install(FILES ${cxx-install-headers}
         DESTINATION include/opentxs
         COMPONENT dev)
+
+target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../deps/")

@@ -18,6 +18,12 @@
 
 #include "internal/api/Api.hpp"
 
+#if OT_CRYPTO_USING_TREZOR
+extern "C" {
+#include <trezor-crypto/rand.h>
+}
+#endif  // OT_CRYPTO_USING_TREZOR
+
 #include <atomic>
 #include <cstdint>
 #include <map>
@@ -26,18 +32,13 @@
 
 #include "opentxs/OT.hpp"
 
-namespace opentxs
-{
-api::internal::Context* instance_pointer_{nullptr};
-OTFlag running_{Flag::Factory(true)};
-
 #if OT_CRYPTO_USING_TREZOR
 extern "C" {
 uint32_t random32(void)
 {
     uint32_t output{0};
-    const auto done =
-        Context().Crypto().Util().RandomizeMemory(&output, sizeof(output));
+    const auto done = opentxs::Context().Crypto().Util().RandomizeMemory(
+        &output, sizeof(output));
 
     OT_ASSERT(done)
 
@@ -45,6 +46,11 @@ uint32_t random32(void)
 }
 }
 #endif  // OT_CRYPTO_USING_TREZOR
+
+namespace opentxs
+{
+api::internal::Context* instance_pointer_{nullptr};
+OTFlag running_{Flag::Factory(true)};
 
 const api::Context& Context()
 {
