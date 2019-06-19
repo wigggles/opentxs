@@ -64,6 +64,7 @@ namespace storage
 class Storage;
 }  // namespace storage
 
+class Context;
 class Core;
 class Crypto;
 class Endpoints;
@@ -71,7 +72,7 @@ class Factory;
 class HDSeed;
 class Identity;
 class Legacy;
-class Native;
+class Context;
 class Periodic;
 class Settings;
 class Wallet;

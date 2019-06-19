@@ -14,8 +14,6 @@ namespace opentxs
 class OTSignatureMetadata
 {
 public:
-    OTSignatureMetadata();
-
     bool operator==(const OTSignatureMetadata& rhs) const;
 
     bool operator!=(const OTSignatureMetadata& rhs) const
@@ -39,7 +37,11 @@ public:
 
     inline char FirstCharChildCredID() const { return metaChildCredID_; }
 
+    OTSignatureMetadata(const api::Core& api);
+    OTSignatureMetadata& operator=(const OTSignatureMetadata& rhs);
+
 private:
+    const api::Core& api_;
     // Defaults to false. Is set true by calling SetMetadata
     bool hasMetadata_{false};
     // Can be A, E, or S (authentication, encryption, or signing.
@@ -56,7 +58,5 @@ private:
     // first letter of a Credential ID (signed by that Master.)
     char metaChildCredID_{0x0};
 };
-
 }  // namespace opentxs
-
 #endif

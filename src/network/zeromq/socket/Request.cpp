@@ -10,7 +10,6 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/OT.hpp"
 
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/Message.hpp"

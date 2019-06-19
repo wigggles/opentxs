@@ -10,7 +10,6 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"

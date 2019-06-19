@@ -34,12 +34,12 @@
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/server/Manager.hpp>
 #include <opentxs/api/storage/Storage.hpp>
+#include <opentxs/api/Context.hpp>
 #include <opentxs/api/Core.hpp>
 #include <opentxs/api/Endpoints.hpp>
 #include <opentxs/api/Factory.hpp>
 #include <opentxs/api/HDSeed.hpp>
 #include <opentxs/api/Legacy.hpp>
-#include <opentxs/api/Native.hpp>
 #include <opentxs/api/Periodic.hpp>
 #include <opentxs/api/Wallet.hpp>
 #if OT_CASH

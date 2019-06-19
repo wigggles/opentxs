@@ -6,12 +6,10 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/crypto/Config.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/OT.hpp"
 
 #include <ostream>
 #include <string>

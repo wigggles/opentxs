@@ -7,8 +7,8 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/api/HDSeed.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
@@ -19,10 +19,10 @@
 
 namespace opentxs
 {
-api::Native* OT::instance_pointer_{nullptr};
+api::Context* OT::instance_pointer_{nullptr};
 OTFlag OT::running_{Flag::Factory(true)};
 
-const api::Native& OT::App()
+const api::Context& OT::App()
 {
     OT_ASSERT(nullptr != instance_pointer_);
 
@@ -32,7 +32,7 @@ const api::Native& OT::App()
 void OT::Cleanup()
 {
     if (nullptr != instance_pointer_) {
-        auto ot = dynamic_cast<api::internal::Native*>(instance_pointer_);
+        auto ot = dynamic_cast<api::internal::Context*>(instance_pointer_);
 
         if (nullptr != ot) { ot->shutdown(); }
 
@@ -92,7 +92,7 @@ const api::server::Manager& OT::ServerFactory(
     return ot.StartServer(args, 0, false);
 }
 
-const api::Native& OT::Start(
+const api::Context& OT::Start(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
@@ -100,11 +100,11 @@ const api::Native& OT::Start(
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ =
-        Factory::Native(running_, args, gcInterval, externalPasswordCallback);
+        Factory::Context(running_, args, gcInterval, externalPasswordCallback);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
-    auto ot = dynamic_cast<api::internal::Native*>(instance_pointer_);
+    auto ot = dynamic_cast<api::internal::Context*>(instance_pointer_);
 
     OT_ASSERT(nullptr != ot);
 

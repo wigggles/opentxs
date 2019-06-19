@@ -12,11 +12,11 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -135,7 +135,7 @@
 
 namespace opentxs
 {
-rpc::internal::RPC* Factory::RPC(const api::Native& native)
+rpc::internal::RPC* Factory::RPC(const api::Context& native)
 {
     return new rpc::implementation::RPC(native);
 }
@@ -143,7 +143,7 @@ rpc::internal::RPC* Factory::RPC(const api::Native& native)
 
 namespace opentxs::rpc::implementation
 {
-RPC::RPC(const api::Native& native)
+RPC::RPC(const api::Context& native)
     : Lockable()
     , ot_(native)
     , task_lock_()

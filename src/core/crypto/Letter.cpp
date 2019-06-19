@@ -12,7 +12,6 @@
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -45,7 +44,6 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>

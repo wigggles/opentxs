@@ -12,6 +12,7 @@ add_subdirectory(server)
 add_subdirectory(storage)
 
 set(cxx-sources
+  Context.cpp
   Core.cpp
   Endpoints.cpp
   Factory.cpp
@@ -19,7 +20,6 @@ set(cxx-sources
   Identity.cpp
   Legacy.cpp
   Log.cpp
-  Native.cpp
   Periodic.cpp
   Scheduler.cpp
   Settings.cpp
@@ -27,13 +27,24 @@ set(cxx-sources
   Wallet.cpp
 )
 
-file(GLOB cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/*.hpp"
+set(cxx-install-headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Context.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Core.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Editor.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Endpoints.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Factory.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/HDSeed.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Identity.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Legacy.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Periodic.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Settings.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/api/Wallet.hpp
 )
 
 set(cxx-headers
   ${cxx-install-headers}
   ${CMAKE_CURRENT_SOURCE_DIR}/../internal/api/Api.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Context.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Core.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Endpoints.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
@@ -41,7 +52,6 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Identity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Log.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Periodic.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Scheduler.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp

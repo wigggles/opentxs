@@ -45,7 +45,7 @@
 namespace opentxs
 {
 api::client::internal::Manager* Factory::ClientManager(
-    const api::internal::Native& parent,
+    const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
     const api::Settings& config,
@@ -62,7 +62,7 @@ api::client::internal::Manager* Factory::ClientManager(
 namespace opentxs::api::client::implementation
 {
 Manager::Manager(
-    const api::internal::Native& parent,
+    const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
     const api::Settings& config,

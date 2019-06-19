@@ -56,7 +56,6 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/Types.hpp"
-#include "opentxs/OT.hpp"
 
 #include <cinttypes>
 #include <cstdint>

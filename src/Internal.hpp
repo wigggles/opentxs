@@ -55,16 +55,16 @@ struct Asymmetric;
 namespace implementation
 {
 class Core;
-class Native;
+class Context;
 class Storage;
 }  // namespace implementation
 
 namespace internal
 {
+struct Context;
 struct Core;
 struct Factory;
 struct Log;
-struct Native;
 }  // namespace internal
 
 namespace network

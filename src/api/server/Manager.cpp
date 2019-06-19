@@ -24,7 +24,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include "api/Core.hpp"
@@ -59,7 +58,7 @@
 namespace opentxs
 {
 api::server::Manager* Factory::ServerManager(
-    const api::internal::Native& parent,
+    const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
     const api::Crypto& crypto,
@@ -107,7 +106,7 @@ api::server::Manager* Factory::ServerManager(
 namespace opentxs::api::server::implementation
 {
 Manager::Manager(
-    const api::internal::Native& parent,
+    const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
     const api::Crypto& crypto,

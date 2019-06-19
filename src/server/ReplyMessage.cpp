@@ -7,7 +7,6 @@
 
 #include "ReplyMessage.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/identifier/Nym.hpp"

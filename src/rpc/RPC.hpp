@@ -30,7 +30,7 @@ private:
         std::function<void(const Result& result, proto::TaskComplete& output)>;
     using TaskData = std::tuple<Future, Finish, OTNymID>;
 
-    const api::Native& ot_;
+    const api::Context& ot_;
     mutable std::mutex task_lock_;
     mutable std::map<TaskID, TaskData> queued_tasks_;
     const OTZMQListenCallback task_callback_;
@@ -181,7 +181,7 @@ private:
 
     void task_handler(const zmq::Message& message);
 
-    RPC(const api::Native& native);
+    RPC(const api::Context& native);
     RPC() = delete;
     RPC(const RPC&) = delete;
     RPC(RPC&&) = delete;

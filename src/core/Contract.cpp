@@ -349,7 +349,7 @@ bool Contract::SignContract(
     const identity::Nym& theNym,
     const PasswordPrompt& reason)
 {
-    auto sig = Signature::Factory();
+    auto sig = Signature::Factory(api_);
     bool bSigned = SignContract(theNym, sig, reason);
 
     if (bSigned) {
@@ -369,7 +369,7 @@ bool Contract::SignContractAuthent(
     const identity::Nym& theNym,
     const PasswordPrompt& reason)
 {
-    auto sig = Signature::Factory();
+    auto sig = Signature::Factory(api_);
     bool bSigned = SignContractAuthent(theNym, sig, reason);
 
     if (bSigned) {
@@ -425,7 +425,7 @@ bool Contract::SignWithKey(
     const crypto::key::Asymmetric& theKey,
     const PasswordPrompt& reason)
 {
-    auto sig = Signature::Factory();
+    auto sig = Signature::Factory(api_);
     m_strSigHashType = theKey.SigHashType();
     bool bSigned = SignContract(theKey, sig, m_strSigHashType, reason);
 
@@ -844,7 +844,7 @@ bool Contract::SignFlatText(
     else
         strInput->Format("%s\n", strFlatText.Get());
 
-    auto theSignature = Signature::Factory();
+    auto theSignature = Signature::Factory(api);
 
     auto& key = theSigner.GetPrivateSignKey();
     auto& engine = key.engine();
@@ -1226,7 +1226,7 @@ bool Contract::ParseRawFile(const PasswordPrompt& reason)
                 line.at(1) == '-' && line.at(2) == '-' && line.at(3) == '-') {
                 bSignatureMode = true;
                 bContentMode = false;
-                m_listSignatures.emplace_back(Signature::Factory());
+                m_listSignatures.emplace_back(Signature::Factory(api_));
                 pSig = &(m_listSignatures.rbegin()->get());
 
                 continue;

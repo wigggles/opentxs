@@ -15,7 +15,7 @@ namespace opentxs
 class Signature : virtual public Armored
 {
 public:
-    EXPORT static Pimpl<opentxs::Signature> Factory();
+    EXPORT static Pimpl<opentxs::Signature> Factory(const api::Core& api);
 
     EXPORT virtual const OTSignatureMetadata& getMetaData() const = 0;
 

@@ -12,7 +12,6 @@
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include "internal/api/Api.hpp"

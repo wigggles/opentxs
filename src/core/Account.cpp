@@ -9,7 +9,6 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -31,7 +30,6 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 

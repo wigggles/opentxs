@@ -8,7 +8,6 @@
 #include "opentxs/core/script/OTAgent.hpp"
 
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -29,7 +28,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>

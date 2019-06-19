@@ -11,7 +11,6 @@
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -27,7 +26,6 @@
 #endif
 #include "opentxs/crypto/library/OpenSSL.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/OT.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "crypto/key/RSA.hpp"

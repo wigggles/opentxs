@@ -21,7 +21,7 @@
 
 namespace opentxs::api::implementation
 {
-Scheduler::Scheduler(const api::internal::Native& parent, Flag& running)
+Scheduler::Scheduler(const api::internal::Context& parent, Flag& running)
     : Lockable()
     , parent_(parent)
     , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())

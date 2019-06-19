@@ -89,7 +89,7 @@ public:
         const Nym_p& remote,
         const identifier::Server& server);
     static api::client::internal::Manager* ClientManager(
-        const api::internal::Native& parent,
+        const api::internal::Context& parent,
         Flag& running,
         const ArgList& args,
         const api::Settings& config,
@@ -312,7 +312,7 @@ public:
         const String& strServerNymID,
         const String& strInstrumentDefinitionID);
 #endif
-    static api::internal::Native* Native(
+    static api::internal::Context* Context(
         Flag& running,
         const ArgList& args,
         const std::chrono::seconds gcInterval,
@@ -522,7 +522,7 @@ public:
         const proto::CashType type,
         const opentxs::PasswordPrompt& reason);
 #endif
-    static rpc::internal::RPC* RPC(const api::Native& native);
+    static rpc::internal::RPC* RPC(const api::Context& native);
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     static crypto::key::RSA* RSAKey(
         const api::internal::Core& api,
@@ -591,7 +591,7 @@ public:
         const Nym_p& remote,
         network::ServerConnection& connection);
     static api::server::Manager* ServerManager(
-        const api::internal::Native& parent,
+        const api::internal::Context& parent,
         Flag& running,
         const ArgList& args,
         const api::Crypto& crypto,

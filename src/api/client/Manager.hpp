@@ -63,7 +63,7 @@ private:
     void Init(const PasswordPrompt& reason);
 
     Manager(
-        const api::internal::Native& parent,
+        const api::internal::Context& parent,
         Flag& running,
         const ArgList& args,
         const api::Settings& config,

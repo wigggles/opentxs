@@ -9,9 +9,8 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/OT.hpp"
 
 #include <ostream>
 #include <string>
@@ -20,6 +19,29 @@
 
 namespace opentxs
 {
+OTSignatureMetadata::OTSignatureMetadata(const api::Core& api)
+    : api_(api)
+    , hasMetadata_(false)
+    , metaKeyType_(0)
+    , metaNymID_(0)
+    , metaMasterCredID_(0)
+    , metaChildCredID_(0)
+{
+}
+
+OTSignatureMetadata& OTSignatureMetadata::operator=(
+    const OTSignatureMetadata& rhs)
+{
+    if (this != &rhs) {
+        hasMetadata_ = rhs.hasMetadata_;
+        metaKeyType_ = rhs.metaKeyType_;
+        metaNymID_ = rhs.metaNymID_;
+        metaMasterCredID_ = rhs.metaMasterCredID_;
+        metaChildCredID_ = rhs.metaChildCredID_;
+    }
+
+    return *this;
+}
 
 bool OTSignatureMetadata::SetMetadata(
     char metaKeyType,
@@ -52,7 +74,7 @@ bool OTSignatureMetadata::SetMetadata(
     str_verify_base62 += metaMasterCredID;
     str_verify_base62 += metaChildCredID;
 
-    if (!OT::App().Crypto().Encode().IsBase62(str_verify_base62)) {
+    if (false == api_.Crypto().Encode().IsBase62(str_verify_base62)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Metadata for signature failed base62 validation: ")(
             str_verify_base62)(".")
@@ -69,15 +91,6 @@ bool OTSignatureMetadata::SetMetadata(
     return true;
 }
 
-OTSignatureMetadata::OTSignatureMetadata()
-    : hasMetadata_(false)
-    , metaKeyType_(0)
-    , metaNymID_(0)
-    , metaMasterCredID_(0)
-    , metaChildCredID_(0)
-{
-}
-
 bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
 {
     return (
@@ -87,5 +100,4 @@ bool OTSignatureMetadata::operator==(const OTSignatureMetadata& rhs) const
         (FirstCharMasterCredID() == rhs.FirstCharMasterCredID()) &&
         (FirstCharChildCredID() == rhs.FirstCharChildCredID()));
 }
-
 }  // namespace opentxs

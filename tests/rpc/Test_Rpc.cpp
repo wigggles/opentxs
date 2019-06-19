@@ -46,7 +46,7 @@ public:
     }
 
 protected:
-    const opentxs::api::Native& ot_;
+    const opentxs::api::Context& ot_;
 
     static OTUnitID unit_definition_id_;
     static std::string issuer_account_id_;

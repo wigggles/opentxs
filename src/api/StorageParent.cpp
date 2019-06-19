@@ -16,7 +16,6 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/OT.hpp"
 
 #include "StorageParent.hpp"
 

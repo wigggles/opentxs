@@ -7,7 +7,6 @@
 
 #include "opentxs/core/script/OTPartyAccount.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTParty.hpp"
@@ -19,7 +18,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #include <cstdint>
 #include <memory>

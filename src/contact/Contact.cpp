@@ -13,7 +13,6 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
@@ -25,7 +24,6 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <sstream>
@@ -79,7 +77,7 @@ Contact::Contact(const api::Core& api, const std::string& label)
     , version_(OT_CONTACT_VERSION)
     , label_(label)
     , lock_()
-    , id_(generate_id())
+    , id_(generate_id(api_))
     , parent_(api_.Factory().Identifier())
     , primary_nym_(api_.Factory().NymID())
     , nyms_()
@@ -516,12 +514,12 @@ std::shared_ptr<ContactData> Contact::Data() const
     return merged_data(lock);
 }
 
-OTIdentifier Contact::generate_id() const
+OTIdentifier Contact::generate_id(const api::Core& api)
 {
-    auto& crypto = OT::App().Crypto().Encode();
+    auto& encode = api.Crypto().Encode();
     auto random = Data::Factory();
-    crypto.Nonce(ID_BYTES, random);
-    auto output = api_.Factory().Identifier();
+    encode.Nonce(ID_BYTES, random);
+    auto output = api.Factory().Identifier();
     output->CalculateDigest(random);
 
     return output;

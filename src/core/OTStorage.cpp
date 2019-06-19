@@ -7,13 +7,11 @@
 
 #include "opentxs/core/OTStorage.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStoragePB.hpp"
-#include "opentxs/OT.hpp"
 
 #include <fstream>
 #include <sstream>

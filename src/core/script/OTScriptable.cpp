@@ -9,7 +9,6 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -31,7 +30,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #if OT_SCRIPT_CHAI
 #pragma GCC diagnostic push

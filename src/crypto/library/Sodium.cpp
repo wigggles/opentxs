@@ -13,7 +13,6 @@
 #include "opentxs/crypto/key/Ed25519.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/library/Sodium.hpp"
-#include "opentxs/OT.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "AsymmetricProvider.hpp"

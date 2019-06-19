@@ -14,11 +14,11 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/network/ZAP.hpp"
+#include "opentxs/api/Context.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -44,7 +44,6 @@
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/util/PIDFile.hpp"
 #include "opentxs/util/Signals.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -65,31 +64,31 @@
 #include <string>
 #include <vector>
 
-#include "Native.hpp"
+#include "Context.hpp"
 
-// #define OT_METHOD "opentxs::api::implementation::Native::"
+// #define OT_METHOD "opentxs::api::implementation::Context::"
 
 namespace opentxs
 {
-api::internal::Native* Factory::Native(
+api::internal::Context* Factory::Context(
     Flag& running,
     const ArgList& args,
     const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
 {
-    return new api::implementation::Native(
+    return new api::implementation::Context(
         running, args, gcInterval, externalPasswordCallback);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
-Native::Native(
+Context::Context(
     Flag& running,
     const ArgList& args,
     const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
-    : api::internal::Native()
+    : api::internal::Context()
     , Lockable()
     , Periodic(running)
     , gc_interval_(gcInterval)
@@ -136,14 +135,14 @@ Native::Native(
     assert(rpc_);
 }
 
-int Native::client_instance(const int count)
+int Context::client_instance(const int count)
 {
     // NOTE: Instance numbers must not collide between clients and servers.
     // Clients use even numbers and servers use odd numbers.
     return (2 * count);
 }
 
-const api::client::Manager& Native::Client(const int instance) const
+const api::client::Manager& Context::Client(const int instance) const
 {
     auto& output = client_.at(instance);
 
@@ -152,7 +151,7 @@ const api::client::Manager& Native::Client(const int instance) const
     return *output;
 }
 
-const api::Settings& Native::Config(const std::string& path) const
+const api::Settings& Context::Config(const std::string& path) const
 {
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
@@ -168,14 +167,14 @@ const api::Settings& Native::Config(const std::string& path) const
     return *config;
 }
 
-const api::Crypto& Native::Crypto() const
+const api::Crypto& Context::Crypto() const
 {
     OT_ASSERT(crypto_)
 
     return *crypto_;
 }
 
-std::string Native::get_arg(const ArgList& args, const std::string& argName)
+std::string Context::get_arg(const ArgList& args, const std::string& argName)
 {
     auto argIt = args.find(argName);
 
@@ -191,14 +190,14 @@ std::string Native::get_arg(const ArgList& args, const std::string& argName)
     return {};
 }
 
-OTCaller& Native::GetPasswordCaller() const
+OTCaller& Context::GetPasswordCaller() const
 {
     OT_ASSERT(nullptr != external_password_callback_)
 
     return *external_password_callback_;
 }
 
-void Native::HandleSignals(ShutdownCallback* callback) const
+void Context::HandleSignals(ShutdownCallback* callback) const
 {
     Lock lock(signal_handler_lock_);
 
@@ -209,7 +208,7 @@ void Native::HandleSignals(ShutdownCallback* callback) const
     }
 }
 
-void Native::Init()
+void Context::Init()
 {
     std::int32_t argLevel{-2};
 
@@ -223,13 +222,13 @@ void Native::Init()
     Init_Zap();
 }
 
-void Native::Init_Crypto()
+void Context::Init_Crypto()
 {
     crypto_.reset(
         opentxs::Factory::Crypto(Config(legacy_->CryptoConfigFilePath())));
 }
 
-void Native::Init_Log(const std::int32_t argLevel)
+void Context::Init_Log(const std::int32_t argLevel)
 {
     OT_ASSERT(legacy_)
 
@@ -259,7 +258,7 @@ void Native::Init_Log(const std::int32_t argLevel)
     if (false == init) { abort(); }
 }
 
-void Native::init_pid(const Lock& lock) const
+void Context::init_pid(const Lock& lock) const
 {
     if (false == bool(pid_)) {
         OT_ASSERT(legacy_);
@@ -275,14 +274,14 @@ void Native::init_pid(const Lock& lock) const
     OT_ASSERT(pid_->isOpen());
 }
 
-void Native::Init_Zap()
+void Context::Init_Zap()
 {
     zap_.reset(opentxs::Factory::ZAP(zmq_context_));
 
     OT_ASSERT(zap_);
 }
 
-const ArgList Native::merge_arglist(const ArgList& args) const
+const ArgList Context::merge_arglist(const ArgList& args) const
 {
     ArgList arguments{args_};
 
@@ -291,21 +290,21 @@ const ArgList Native::merge_arglist(const ArgList& args) const
     return arguments;
 }
 
-proto::RPCResponse Native::RPC(const proto::RPCCommand& command) const
+proto::RPCResponse Context::RPC(const proto::RPCCommand& command) const
 {
     OT_ASSERT(rpc_);
 
     return rpc_->Process(command);
 }
 
-int Native::server_instance(const int count)
+int Context::server_instance(const int count)
 {
     // NOTE: Instance numbers must not collide between clients and servers.
     // Clients use even numbers and servers use odd numbers.
     return (2 * count) + 1;
 }
 
-const api::server::Manager& Native::Server(const int instance) const
+const api::server::Manager& Context::Server(const int instance) const
 {
     auto& output = server_.at(instance);
 
@@ -314,7 +313,7 @@ const api::server::Manager& Native::Server(const int instance) const
     return *output;
 }
 
-void Native::setup_default_external_password_callback()
+void Context::setup_default_external_password_callback()
 {
     // NOTE: OT_ASSERT is not available yet because we're too early
     // in the startup process
@@ -334,7 +333,7 @@ void Native::setup_default_external_password_callback()
     external_password_callback_ = default_external_password_callback_.get();
 }
 
-void Native::shutdown()
+void Context::shutdown()
 {
     running_.Off();
 
@@ -353,7 +352,7 @@ void Native::shutdown()
     config_.clear();
 }
 
-void Native::start_client(const Lock& lock, const ArgList& args) const
+void Context::start_client(const Lock& lock, const ArgList& args) const
 {
     OT_ASSERT(verify_lock(lock))
     OT_ASSERT(crypto_);
@@ -374,7 +373,7 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
         instance));
 }
 
-const api::client::Manager& Native::StartClient(
+const api::client::Manager& Context::StartClient(
     const ArgList& args,
     const int instance) const
 {
@@ -395,7 +394,7 @@ const api::client::Manager& Native::StartClient(
     return *output;
 }
 
-void Native::start_server(const Lock& lock, const ArgList& args) const
+void Context::start_server(const Lock& lock, const ArgList& args) const
 {
     OT_ASSERT(verify_lock(lock))
     OT_ASSERT(crypto_);
@@ -415,7 +414,7 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
         instance));
 }
 
-const api::server::Manager& Native::StartServer(
+const api::server::Manager& Context::StartServer(
     const ArgList& args,
     const int instance,
     const bool inproc) const
@@ -444,14 +443,14 @@ const api::server::Manager& Native::StartServer(
     return *output;
 }
 
-const api::network::ZAP& Native::ZAP() const
+const api::network::ZAP& Context::ZAP() const
 {
     OT_ASSERT(zap_);
 
     return *zap_;
 }
 
-Native::~Native()
+Context::~Context()
 {
     client_.clear();
     server_.clear();

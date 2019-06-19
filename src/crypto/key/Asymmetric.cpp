@@ -87,7 +87,7 @@ Asymmetric::Asymmetric(
     , has_public_(hasPublic)
     , has_private_(hasPrivate)
     , m_timer()
-    , m_pMetadata(new OTSignatureMetadata)
+    , m_pMetadata(new OTSignatureMetadata(api_))
 {
     OT_ASSERT(0 < version);
     OT_ASSERT(nullptr != m_pMetadata);

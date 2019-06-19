@@ -45,6 +45,11 @@ public:
         const Data& chainCode,
         const Data& key) const override;
 
+protected:
+    const api::Crypto& crypto_;
+
+    Bip32(const api::Crypto& crypto);
+
 private:
     OTData decode(const std::string& serialized) const;
     bool extract(
@@ -54,5 +59,11 @@ private:
         Bip32Fingerprint& parent,
         Bip32Index& index,
         Data& chainCode) const;
+
+    Bip32() = delete;
+    Bip32(const Bip32&) = delete;
+    Bip32(Bip32&&) = delete;
+    Bip32& operator=(const Bip32&) = delete;
+    Bip32& operator=(Bip32&&) = delete;
 };
 }  // namespace opentxs::crypto::implementation

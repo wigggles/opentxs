@@ -46,7 +46,6 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
-#include "opentxs/OT.hpp"
 
 #include "Macros.hpp"
 #include "Server.hpp"

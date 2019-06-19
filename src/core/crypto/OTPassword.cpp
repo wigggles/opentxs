@@ -9,7 +9,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"

@@ -7,9 +7,9 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Context.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Native.hpp"
 
 namespace
 {
@@ -30,6 +30,14 @@ namespace opentxs::internal
 
 namespace opentxs::api::internal
 {
+struct Context : virtual public api::Context {
+    virtual OTCaller& GetPasswordCaller() const = 0;
+    virtual void Init() = 0;
+    virtual void shutdown() = 0;
+
+    virtual ~Context() = default;
+};
+
 struct Core : virtual public api::Core {
     const proto::Ciphertext encrypted_secret_{};
 
@@ -44,14 +52,6 @@ struct Core : virtual public api::Core {
         const opentxs::Lock& lock) const = 0;
 
     virtual ~Core() = default;
-};
-
-struct Native : virtual public api::Native {
-    virtual OTCaller& GetPasswordCaller() const = 0;
-    virtual void Init() = 0;
-    virtual void shutdown() = 0;
-
-    virtual ~Native() = default;
 };
 
 struct Factory : virtual public api::Factory {

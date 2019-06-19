@@ -11,7 +11,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -29,7 +28,6 @@
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/crypto/library/Trezor.hpp"
 #endif
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include "AsymmetricProvider.hpp"

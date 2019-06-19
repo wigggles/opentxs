@@ -7,7 +7,6 @@
 
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -25,7 +24,6 @@
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/crypto/library/OpenSSL.hpp"
 #endif
-#include "opentxs/OT.hpp"
 
 #include "Hash.hpp"
 

@@ -3,10 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-/** \defgroup native Native API */
-
-#ifndef OPENTXS_API_NATIVE_HPP
-#define OPENTXS_API_NATIVE_HPP
+#ifndef OPENTXS_API_CONTEXT_HPP
+#define OPENTXS_API_CONTEXT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -22,7 +20,7 @@ namespace opentxs
 {
 namespace api
 {
-class Native : virtual public Periodic
+class Context : virtual public Periodic
 {
 public:
     using ShutdownCallback = std::function<void()>;
@@ -64,16 +62,16 @@ public:
     EXPORT virtual const api::network::ZAP& ZAP() const = 0;
     EXPORT virtual const opentxs::network::zeromq::Context& ZMQ() const = 0;
 
-    EXPORT virtual ~Native() = default;
+    EXPORT virtual ~Context() = default;
 
 protected:
-    Native() = default;
+    Context() = default;
 
 private:
-    Native(const Native&) = delete;
-    Native(Native&&) = delete;
-    Native& operator=(const Native&) = delete;
-    Native& operator=(Native&&) = delete;
+    Context(const Context&) = delete;
+    Context(Context&&) = delete;
+    Context& operator=(const Context&) = delete;
+    Context& operator=(Context&&) = delete;
 };
 }  // namespace api
 }  // namespace opentxs

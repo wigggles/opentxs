@@ -85,7 +85,7 @@ protected:
         const api::internal::Core& me,
         api::internal::Factory* provided);
     static OTSymmetricKey make_master_key(
-        const api::internal::Native& parent,
+        const api::internal::Context& parent,
         const api::Factory& factory,
         const proto::Ciphertext& encrypted_secret_,
         std::unique_ptr<OTPassword>& master_secret_,
@@ -95,7 +95,7 @@ protected:
     void cleanup();
 
     Core(
-        const api::internal::Native& parent,
+        const api::internal::Context& parent,
         Flag& running,
         const ArgList& args,
         const api::Crypto& crypto,

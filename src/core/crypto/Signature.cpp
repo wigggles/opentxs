@@ -16,16 +16,18 @@
 
 namespace opentxs
 {
-OTSignature Signature::Factory()
+OTSignature Signature::Factory(const api::Core& api)
 {
-    return OTSignature(new implementation::Signature());
+    return OTSignature(new implementation::Signature(api));
 }
 }  // namespace opentxs
 
 namespace opentxs::implementation
 {
-Signature::Signature()
-    : Armored()
+Signature::Signature(const api::Core& api)
+    : opentxs::Signature()
+    , Armored()
+    , metadata_(api)
 {
 }
 }  // namespace opentxs::implementation

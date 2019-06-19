@@ -118,11 +118,11 @@ private:
     static VersionNumber check_version(
         const VersionNumber in,
         const VersionNumber targetVersion);
+    static OTIdentifier generate_id(const api::Core& api);
 
     std::shared_ptr<ContactGroup> payment_codes(
         const Lock& lock,
         const proto::ContactItemType currency) const;
-    OTIdentifier generate_id() const;
     std::shared_ptr<ContactData> merged_data(const Lock& lock) const;
     proto::ContactItemType type(const Lock& lock) const;
     bool verify_write_lock(const Lock& lock) const;

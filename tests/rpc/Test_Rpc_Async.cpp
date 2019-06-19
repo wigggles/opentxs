@@ -44,7 +44,7 @@ public:
     }
 
 protected:
-    const opentxs::api::Native& ot_;
+    const opentxs::api::Context& ot_;
 
     static int sender_session_;
     static int receiver_session_;
@@ -196,7 +196,7 @@ bool Test_Rpc_Async::default_push_callback(const opentxs::proto::RPCPush& push)
 
 void Test_Rpc_Async::setup()
 {
-    const api::Native& ot = opentxs::OT::App();
+    const api::Context& ot = opentxs::OT::App();
 
     auto& intro_server = ot.StartServer(ArgList(), ot.Servers(), true);
     auto& server = ot.StartServer(ArgList(), ot.Servers(), true);

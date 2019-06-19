@@ -11,7 +11,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Context.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
@@ -82,7 +82,7 @@ namespace opentxs::crypto::implementation
 {
 Trezor::Trezor(const api::Crypto& crypto)
 #if OT_CRYPTO_WITH_BIP32
-    : Bip32()
+    : Bip32(crypto)
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OPENTXS_TREZOR_PROVIDES_ECDSA
 #if OT_CRYPTO_WITH_BIP32
@@ -477,7 +477,8 @@ bool Trezor::Sign(
     const OTPassword* exportPassword) const
 {
     auto hash = Data::Factory();
-    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest =
+        EcdsaProvider::crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -544,7 +545,8 @@ bool Trezor::Verify(
     const PasswordPrompt& reason) const
 {
     auto hash = Data::Factory();
-    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest =
+        EcdsaProvider::crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) { return false; }
 

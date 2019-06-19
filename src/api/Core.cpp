@@ -19,10 +19,10 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/OT.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -80,7 +80,7 @@ extern "C" std::int32_t internal_password_cb(
 namespace opentxs::api::implementation
 {
 Core::Core(
-    const api::internal::Native& parent,
+    const api::internal::Context& parent,
     Flag& running,
     const ArgList& args,
     const api::Crypto& crypto,
@@ -258,7 +258,7 @@ std::unique_ptr<api::internal::Factory> Core::make_factory(
 }
 
 OTSymmetricKey Core::make_master_key(
-    const api::internal::Native& parent,
+    const api::internal::Context& parent,
     const api::Factory& factory,
     const proto::Ciphertext& encrypted_secret_,
     std::unique_ptr<OTPassword>& master_secret_,
