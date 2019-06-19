@@ -76,45 +76,54 @@
         const std::string& instrumentDefinitionID,
         const int currency,
         const bool primary,
-        const bool active)
+        const bool active,
+        const PasswordPrompt& reason)
     {
         return $self->AddContract(
             instrumentDefinitionID,
             static_cast<opentxs::proto::ContactItemType>(currency),
             primary,
-            active);
+            active,
+            reason);
     }
     bool AddPaymentCode(
         const std::string& code,
         const int currency,
         const bool primary,
-        const bool active)
+        const bool active,
+        const PasswordPrompt& reason)
     {
         return $self->AddPaymentCode(
             code,
             static_cast<opentxs::proto::ContactItemType>(currency),
             primary,
-            active);
+            active,
+            reason);
     }
     bool AddSocialMediaProfile(
         const std::string& value,
         const int type,
         const bool primary,
-        const bool active)
+        const bool active,
+        const PasswordPrompt& reason)
     {
         return $self->AddSocialMediaProfile(
             value,
             static_cast<opentxs::proto::ContactItemType>(type),
             primary,
-            active);
+            active, reason);
     }
     bool SetScope(
         const int type,
         const std::string& name,
-        const bool primary)
+        const bool primary,
+        const PasswordPrompt& reason)
     {
         return $self->SetScope(
-            static_cast<opentxs::proto::ContactItemType>(type), name, primary);
+            static_cast<opentxs::proto::ContactItemType>(type),
+            name,
+            primary,
+            reason);
     }
 }
 
