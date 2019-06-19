@@ -33,17 +33,16 @@
 
 extern "C" {
 #if OT_CRYPTO_WITH_BIP39
-#include <trezor-crypto/bip39.h>
+#include <trezor/crypto/bip39.h>
 #if OT_CRYPTO_WITH_BIP32
-#include <trezor-crypto/bignum.h>
-#include <trezor-crypto/bip32.h>
-#include <trezor-crypto/curves.h>
+#include <trezor/crypto/bignum.h>
+#include <trezor/crypto/bip32.h>
+#include <trezor/crypto/curves.h>
 #endif
 #endif
-#include <trezor-crypto/base58.h>
-#include <trezor-crypto/ecdsa.h>
-#include <trezor-crypto/rand.h>
-#include <trezor-crypto/ripemd160.h>
+#include <trezor/crypto/base58.h>
+#include <trezor/crypto/ecdsa.h>
+#include <trezor/crypto/ripemd160.h>
 }
 
 #include <array>

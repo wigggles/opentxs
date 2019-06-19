@@ -20,7 +20,7 @@
 
 #if OT_CRYPTO_USING_TREZOR
 extern "C" {
-#include <trezor-crypto/rand.h>
+#include <trezor/crypto/rand.h>
 }
 #endif  // OT_CRYPTO_USING_TREZOR
 

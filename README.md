@@ -1,16 +1,14 @@
 ## Open-Transactions Library Project
 
-[![Stories in Ready](https://badge.waffle.io/open-transactions/opentxs.svg?label=ready&title=Ready)](http://waffle.io/open-transactions/opentxs)
 [![License](http://img.shields.io/:License-MPLv2-yellow.svg)](LICENSE)
 
 
-The Open-Transactions project is a collaborative effort to develop
-a robust, commercial-grade, fully-featured, free-software toolkit
-implementing the OTX protocol as well as a full-strength financial
-cryptography library, API, CLI, and prototype server. The project
-is managed by a worldwide community of volunteers that use the
-Internet to communicate, plan, and develop the Open-Transactions
-toolkit and its related documentation.
+The Open-Transactions project is a collaborative effort to develop a robust,
+commercial-grade, fully-featured, free-software toolkit implementing the OTX
+protocol as well as a full-strength financial cryptography library, API, CLI,
+and prototype server. The project is managed by a worldwide community of
+volunteers that use the Internet to communicate, plan, and develop the
+Open-Transactions toolkit and its related documentation.
 
 ### Official Wiki
 
@@ -18,20 +16,18 @@ http://opentransactions.org/
 
 ### About
 
-Open-Transactions democratizes financial and monetary actions. You
-can use it for issuing currencies/stock, paying dividends, creating
-asset accounts, sending/receiving digital cash, writing/depositing
-cheques, cashier's cheques, creating basket currencies, trading on
-markets, scripting custom agreements, recurring payments, escrow,
-etc.
+Open-Transactions democratizes financial and monetary actions. You can use it
+for issuing currencies/stock, paying dividends, creating asset accounts,
+sending/receiving digital cash, writing/depositing cheques, cashier's cheques,
+creating basket currencies, trading on markets, scripting custom agreements,
+recurring payments, escrow, etc.
 
-Open-Transactions uses strong crypto. The balances are unchangeable
-(even by a malicious server.) The receipts are destructible and
-redundant. The transactions are unforgeable. The cash is untraceable.
-The cheques are non-repudiable. Etc.
+Open-Transactions uses strong crypto. The balances are unchangeable (even by a
+malicious server.) The receipts are destructible and redundant. The transactions
+are unforgeable. The cash is untraceable. The cheques are non-repudiable. Etc.
 
-This product includes software developed by Ben Laurie for use in
-the Lucre project.
+This product includes software developed by Ben Laurie for use in the Lucre
+project.
 
 ### Contributing
 
@@ -40,17 +36,13 @@ master.
 
 Please do *NOT* use an editor that automatically reformats.
 
-As part of our Continuous Integration system
-we run [cppcheck](https://github.com/danmar/cppcheck/) and
-[clang-format](http://clang.llvm.org/docs/ClangFormat.html). The build will fail
-if either of them finds problems.
-
 #### Running the tests
-  
-The OT directory in `~/.ot` is deleted on every `make test` in the `build` directory.
-  
-BE ADVISED: Run `make test` in *development only*.
-  
+
+The OT directory in `~/.ot` is deleted on every `ninja test` in the `build`
+directory.
+
+BE ADVISED: Run `ninja test` in *development only*.
+
 #### CppCheck and clang-format Git hooks
 
 For convenience please enable the git hooks which will trigger cppcheck and
@@ -63,62 +55,55 @@ clang-format each time you push or commit. To do so type in the repo directory:
 To check your code without pushing the following command can be used:
 
     git push -n
+
 ### Dependencies
 
-* [opentxs-proto](https://github.com/open-transactions/opentxs-proto)
+The default build configuration will compile all dependencies into the library.
 
-### Optional Features
+If this behavior is not desired, modify the CMake command line as follows:
 
-* SQLite driver for new storage engine
-  * Default: enabled
-  * Adds dependency: [SQLite 3](https://www.sqlite.org)
-  * CMake symbol: OT_STORAGE_SQLITE
-* Filesystem driver for new storage engine
-  * Default: disabled
-  * Adds dependency: [Boost::Filesystem](http://www.boost.org)
-  * CMake symbol: OT_STORAGE_FS
+#### System opentxs-proto
 
-* OpenDHT network driver
-  * Default: enabled
-  * Adds dependency: [OpenDHT](https://github.com/savoirfairelinux/opendht)
-  * CMake symbol: OT_DHT
+Requires opentxs-proto (https://github.com/open-transactions/opentxs-proto)
+
+    cmake -DOT_BUNDLED_OPENTXS_PROTO=OFF
+
+#### System protobuf
+
+Requires Google Protocol Buffers
+
+    cmake -DOT_BUNDLED_PROTOBUF=OFF -DOT_GENERATE_PROTO=ON
+
+#### System OpenSSL
+
+Requires OpenSSL or compatible library installed
+
+    cmake -DOT_BUNDLED_SSL=OFF
+
+#### System Sodium
+
+Requires Libsodium
+
+    cmake -DOT_BUNDLED_SODIUM=OFF
+
+#### System LMDB
+
+Requires lmbd
+
+    cmake -DOT_BUNDLED_LMDB=OFF
+
+#### System ZeroMQ
+
+Requires zeromq
+
+    cmake -DOT_BUNDLED_LIBZMQ=OFF
 
 ### Build Instructions
 
-OpenTransactions uses the CMake build system. The basic steps are
+OpenTransactions uses the CMake build system. The basic steps are:
 
     mkdir build
     cd build
-    cmake ..
-    make
-    make install
-
-More detailed instructions are listed below
-
-#### Docker
-
-You can get started with opentxs cli and build setup quickly. It is possible to build this in a docker container, once you have docker installed on your system, just run the following commands;
-
-        cd in your git dir
-        cd opentxs
-        docker build --rm=true .
-        docker run -i -t <image ID> /bin/bash
-
-Don't forget to "Detach" correctly or you will lose the state of the container. e.g Ctrl + P, I
-
-More detailed instructions are listed below
-
-#### Linux
-
- * [Generic Linux](docs/INSTALL-MEMO-Linux.txt)
- * [Debian and Ubuntu](docs/INSTALL-Debian_Ubuntu.txt)
- * [Fedora](docs/INSTALL-Fedora.txt)
- * [OpenSUSE](docs/INSTALL-openSUSE.txt)
-
-#### OSX
-
- * [OSX Homebrew](docs/INSTALL-OSX-Homebrew.txt)
-
-#### Windows
-
- * [Windows (Vista SP2+)](docs/INSTALL-Windows.txt)
+    cmake -GNinja ..
+    ninja
+    ninja install
