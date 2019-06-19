@@ -44,7 +44,7 @@ public:
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 
     Test_Signatures()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",

@@ -18,7 +18,7 @@ public:
     opentxs::OTPasswordPrompt reason_;
 
     Test_NewAccount()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
     {
     }

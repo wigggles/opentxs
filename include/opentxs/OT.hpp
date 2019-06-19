@@ -8,64 +8,45 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Flag.hpp"
 #include "opentxs/Types.hpp"
 
-#include <atomic>
 #include <chrono>
-#include <map>
-#include <string>
 
 namespace opentxs
 {
-/** \brief Static methods for starting up the native api.
- *  \ingroup native
+/** Context accessor
+ *
+ *  Returns a reference to the context
+ *
+ *  \throws std::runtime_error if the context is not initialized
  */
-class OT
-{
-public:
-    /** Context accessor
-     *
-     *  Returns a reference to the context singleton after it has been
-     *  initialized.
-     */
-    static const api::Context& App();
-    /** OT shutdown method
-     *
-     *  Call this when the application is closing, after all OT operations
-     *  are complete.
-     */
-    static void Cleanup();
-    static const api::client::Manager& ClientFactory(
-        const ArgList& args,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        OTCaller* externalPasswordCallback = nullptr);
-    static const api::client::Manager& RecoverClient(
-        const ArgList& args,
-        const std::string& words,
-        const std::string& passphrase,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        OTCaller* externalPasswordCallback = nullptr);
-    static void Join();
-    static const opentxs::Flag& Running();
-    static const api::server::Manager& ServerFactory(
-        const ArgList& args,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        OTCaller* externalPasswordCallback = nullptr);
-    static const api::Context& Start(
-        const ArgList& args,
-        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        OTCaller* externalPasswordCallback = nullptr);
+const api::Context& Context();
 
-private:
-    static api::Context* instance_pointer_;
-    static OTFlag running_;
+/** Shut down context
+ *
+ *  Call this when the application is closing, after all OT operations
+ *  are complete.
+ */
+void Cleanup();
 
-    OT() = delete;
-    OT(const OT&) = delete;
-    OT(OT&&) = delete;
-    OT& operator=(const OT&) = delete;
-    OT& operator=(OT&&) = delete;
-};
+/** Start up context
+ *
+ *  Returns a reference to the context singleton after it has been
+ *  initialized.
+ *
+ *  Call this during application startup, before attempting any OT operation
+ *
+ *  \throws std::runtime_error if the context is already initialized
+ */
+const api::Context& InitContext(
+    const ArgList& args = {},
+    const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+    OTCaller* externalPasswordCallback = nullptr);
+
+/** Wait on context shutdown
+ *
+ *  Blocks until the context has been shut down
+ */
+void Join();
 }  // namespace opentxs
 #endif

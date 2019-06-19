@@ -38,7 +38,7 @@ public:
     opentxs::Nym_p bob_;
 
     Test_Basic()
-        : api_(opentxs::OT::App().StartClient(args_, 0))
+        : api_(opentxs::Context().StartClient(args_, 0))
         , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
         , alice_()
         , bob_()

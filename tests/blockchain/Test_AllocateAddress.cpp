@@ -22,7 +22,7 @@ public:
 
     // these fingerprints are deterministic so we can share them among tests
     Test_AllocateAddress()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , SeedA_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",

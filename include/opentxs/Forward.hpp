@@ -288,7 +288,6 @@ class NymData;
 class NymFile;
 class NymIDSource;
 class NymParameters;
-class OT;
 class OT_API;
 class OTAgent;
 class OTAgreement;

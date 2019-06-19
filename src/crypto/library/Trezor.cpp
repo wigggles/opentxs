@@ -11,7 +11,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/api/Context.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
@@ -23,7 +22,6 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/library/Trezor.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -56,19 +54,6 @@ extern "C" {
 #include "Trezor.hpp"
 
 #define OT_METHOD "opentxs::crypto::implementation::Trezor::"
-
-extern "C" {
-uint32_t random32(void)
-{
-    uint32_t output{0};
-    const auto done = opentxs::OT::App().Crypto().Util().RandomizeMemory(
-        &output, sizeof(output));
-
-    OT_ASSERT(done)
-
-    return output;
-}
-}
 
 namespace opentxs
 {

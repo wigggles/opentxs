@@ -33,6 +33,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -392,6 +393,26 @@ const api::client::Manager& Context::StartClient(
     OT_ASSERT(output)
 
     return *output;
+}
+
+const api::client::Manager& Context::StartClient(
+    const ArgList& args,
+    const int instance,
+    const std::string& recoverWords,
+    const std::string& recoverPassphrase) const
+{
+    const auto& client = StartClient(args, instance);
+    auto reason = client.Factory().PasswordPrompt("Recovering a BIP-39 seed");
+
+    if (0 < recoverWords.size()) {
+        OTPassword wordList{};
+        OTPassword phrase{};
+        wordList.setPassword(recoverWords);
+        phrase.setPassword(recoverPassphrase);
+        client.Seeds().ImportSeed(wordList, phrase, reason);
+    }
+
+    return client;
 }
 
 void Context::start_server(const Lock& lock, const ArgList& args) const

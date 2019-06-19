@@ -26,7 +26,7 @@ public:
 
     /* Is evaluated every test, therefore indexes are fixed to 0,1,2,3 */
     Test_PaymentCode()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , seed("trim thunder unveil reduce crop cradle zone inquiry anchor "
                "skate property fringe obey butter text tank drama palm guilt "

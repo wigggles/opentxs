@@ -112,10 +112,10 @@ public:
     const opentxs::ServerContext::ExtraArgs extra_args_;
 
     Test_Basic()
-        : client_1_(OT::App().StartClient(args_, 0))
-        , client_2_(OT::App().StartClient(args_, 1))
-        , server_1_(OT::App().StartServer(args_, 0, true))
-        , server_2_(OT::App().StartServer(args_, 1, true))
+        : client_1_(Context().StartClient(args_, 0))
+        , client_2_(Context().StartClient(args_, 1))
+        , server_1_(Context().StartServer(args_, 0, true))
+        , server_2_(Context().StartServer(args_, 1, true))
         , reason_c1_(client_1_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_c2_(client_2_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s1_(server_1_.Factory().PasswordPrompt(__FUNCTION__))

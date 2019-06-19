@@ -41,7 +41,7 @@ class Test_Rpc : public ::testing::Test
 {
 public:
     Test_Rpc()
-        : ot_{opentxs::OT::App()}
+        : ot_{opentxs::Context()}
     {
     }
 
@@ -235,9 +235,9 @@ const api::Core& Test_Rpc::get_session(const std::int32_t instance)
     auto is_server = instance % 2;
 
     if (is_server) {
-        return opentxs::OT::App().Server(get_index(instance));
+        return opentxs::Context().Server(get_index(instance));
     } else {
-        return opentxs::OT::App().Client(get_index(instance));
+        return opentxs::Context().Client(get_index(instance));
     }
 };
 

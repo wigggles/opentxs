@@ -156,7 +156,7 @@ LogSource::Source& LogSource::get_buffer(std::string& out)
         Lock lock(buffer_lock_);
         auto it = buffer_.emplace(
             id,
-            Source{OT::App().ZMQ().PushSocket(zmq::Socket::Direction::Connect),
+            Source{Context().ZMQ().PushSocket(zmq::Socket::Direction::Connect),
                    std::stringstream{}});
         auto& source = std::get<0>(it)->second;
         auto& socket = std::get<0>(source).get();

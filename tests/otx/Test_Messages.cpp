@@ -29,8 +29,8 @@ public:
     const identifier::Server& server_id_;
 
     Test_Messages()
-        : client_(OT::App().StartClient(args_, 0))
-        , server_(OT::App().StartServer(args_, 0, true))
+        : client_(Context().StartClient(args_, 0))
+        , server_(Context().StartServer(args_, 0, true))
         , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
         , server_id_(server_.ID())

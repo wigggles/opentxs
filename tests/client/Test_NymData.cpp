@@ -32,7 +32,7 @@ public:
     }
 
     Test_NymData()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , nymData_(client_.Wallet().mutable_Nym(
               opentxs::identifier::Nym::Factory(client_.Exec().CreateNymHD(

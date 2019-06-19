@@ -25,7 +25,7 @@ public:
     std::string Alice, Bob;
 
     Test_CreateNymHD()
-        : client_(opentxs::OT::App().StartClient({}, 0))
+        : client_(opentxs::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         // these fingerprints are deterministic so we can share them among tests
         , SeedA_(client_.Exec().Wallet_ImportSeed(

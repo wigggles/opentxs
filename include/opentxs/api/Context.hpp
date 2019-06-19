@@ -48,6 +48,11 @@ public:
     EXPORT virtual const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance) const = 0;
+    EXPORT virtual const api::client::Manager& StartClient(
+        const ArgList& args,
+        const int instance,
+        const std::string& recoverWords,
+        const std::string& recoverPassphrase) const = 0;
     /** Start up a new server
      *
      *  If the specified instance exists, it will be returned.

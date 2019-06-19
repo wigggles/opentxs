@@ -7,109 +7,86 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Context.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 
 #include "internal/api/Api.hpp"
 
+#include <atomic>
+#include <cstdint>
+#include <map>
+#include <stdexcept>
+#include <string>
+
 #include "opentxs/OT.hpp"
 
 namespace opentxs
 {
-api::Context* OT::instance_pointer_{nullptr};
-OTFlag OT::running_{Flag::Factory(true)};
+api::internal::Context* instance_pointer_{nullptr};
+OTFlag running_{Flag::Factory(true)};
 
-const api::Context& OT::App()
+#if OT_CRYPTO_USING_TREZOR
+extern "C" {
+uint32_t random32(void)
 {
-    OT_ASSERT(nullptr != instance_pointer_);
+    uint32_t output{0};
+    const auto done =
+        Context().Crypto().Util().RandomizeMemory(&output, sizeof(output));
+
+    OT_ASSERT(done)
+
+    return output;
+}
+}
+#endif  // OT_CRYPTO_USING_TREZOR
+
+const api::Context& Context()
+{
+    if (nullptr == instance_pointer_) {
+        std::runtime_error("Context is not initialized");
+    }
 
     return *instance_pointer_;
 }
 
-void OT::Cleanup()
+void Cleanup()
 {
     if (nullptr != instance_pointer_) {
-        auto ot = dynamic_cast<api::internal::Context*>(instance_pointer_);
-
-        if (nullptr != ot) { ot->shutdown(); }
-
+        instance_pointer_->shutdown();
         delete instance_pointer_;
         instance_pointer_ = nullptr;
     }
 }
 
-const api::client::Manager& OT::ClientFactory(
+const api::Context& InitContext(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
 {
-    auto& ot = Start(args, gcInterval, externalPasswordCallback);
-
-    return ot.StartClient(args, 0);
-}
-
-void OT::Join()
-{
-    while (nullptr != instance_pointer_) {
-        Log::Sleep(std::chrono::milliseconds(250));
+    if (nullptr != instance_pointer_) {
+        std::runtime_error("Context is not initialized");
     }
-}
-
-const opentxs::Flag& OT::Running() { return running_; }
-
-const api::client::Manager& OT::RecoverClient(
-    const ArgList& args,
-    const std::string& words,
-    const std::string& passphrase,
-    const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback)
-{
-    auto& ot = Start(args, gcInterval, externalPasswordCallback);
-    auto& client = ot.StartClient(args, 0);
-    auto reason = client.Factory().PasswordPrompt("Recovering a BIP-39 seed");
-
-    if (0 < words.size()) {
-        OTPassword wordList{};
-        OTPassword phrase{};
-        wordList.setPassword(words);
-        phrase.setPassword(passphrase);
-        client.Seeds().ImportSeed(wordList, phrase, reason);
-    }
-
-    return client;
-}
-
-const api::server::Manager& OT::ServerFactory(
-    const ArgList& args,
-    const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback)
-{
-    auto& ot = Start(args, gcInterval, externalPasswordCallback);
-
-    return ot.StartServer(args, 0, false);
-}
-
-const api::Context& OT::Start(
-    const ArgList& args,
-    const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback)
-{
-    OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ =
         Factory::Context(running_, args, gcInterval, externalPasswordCallback);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
-    auto ot = dynamic_cast<api::internal::Context*>(instance_pointer_);
-
-    OT_ASSERT(nullptr != ot);
-
-    ot->Init();
+    instance_pointer_->Init();
 
     return *instance_pointer_;
+}
+
+void Join()
+{
+    while (nullptr != instance_pointer_) {
+        Log::Sleep(std::chrono::milliseconds(250));
+    }
 }
 }  // namespace opentxs

@@ -85,10 +85,10 @@ public:
     const opentxs::api::client::Manager& issuer_client_;
 
     Test_DepositCheques()
-        : alice_client_(OT::App().StartClient(args_, 0))
-        , bob_client_(OT::App().StartClient(args_, 1))
-        , server_1_(OT::App().StartServer(args_, 0, true))
-        , issuer_client_(OT::App().StartClient(args_, 2))
+        : alice_client_(Context().StartClient(args_, 0))
+        , bob_client_(Context().StartClient(args_, 1))
+        , server_1_(Context().StartServer(args_, 0, true))
+        , issuer_client_(Context().StartClient(args_, 2))
     {
 #if OT_CASH
         server_1_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);

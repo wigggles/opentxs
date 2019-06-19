@@ -736,7 +736,7 @@ bool OTPassword::randomizeMemory_uint8(
     std::uint8_t* szDestination,
     std::uint32_t nNewSize)
 {
-    return OT::App().Crypto().Util().RandomizeMemory(szDestination, nNewSize);
+    return Context().Crypto().Util().RandomizeMemory(szDestination, nNewSize);
 }
 
 // Returns size of memory (in case truncation is necessary.)

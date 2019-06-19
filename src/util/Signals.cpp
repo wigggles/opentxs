@@ -89,7 +89,8 @@ bool Signals::process(const int signal)
 
 bool Signals::shutdown()
 {
-    OT::Cleanup();
+    Cleanup();
+
     return true;
 }
 

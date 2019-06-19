@@ -21,6 +21,11 @@ public:
     const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance) const override;
+    const api::client::Manager& StartClient(
+        const ArgList& args,
+        const int instance,
+        const std::string& recoverWords,
+        const std::string& recoverPassphrase) const override;
     const api::server::Manager& StartServer(
         const ArgList& args,
         const int instance,
@@ -35,7 +40,6 @@ public:
 
 private:
     friend opentxs::Factory;
-    friend class opentxs::OT;
 
     typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
 

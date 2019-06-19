@@ -114,10 +114,10 @@ public:
     OTZMQSubscribeSocket bob_ui_update_listener_;
 
     Test_Basic()
-        : alice_client_(OT::App().StartClient(args_, 0))
-        , bob_client_(OT::App().StartClient(args_, 1))
-        , server_1_(OT::App().StartServer(args_, 0, true))
-        , issuer_client_(OT::App().StartClient(args_, 2))
+        : alice_client_(Context().StartClient(args_, 0))
+        , bob_client_(Context().StartClient(args_, 1))
+        , server_1_(Context().StartServer(args_, 0, true))
+        , issuer_client_(Context().StartClient(args_, 2))
         , reason_a_(alice_client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_b_(bob_client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_i_(issuer_client_.Factory().PasswordPrompt(__FUNCTION__))

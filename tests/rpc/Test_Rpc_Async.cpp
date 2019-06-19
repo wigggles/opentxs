@@ -28,7 +28,7 @@ public:
     using PushChecker = std::function<bool(const opentxs::proto::RPCPush&)>;
 
     Test_Rpc_Async()
-        : ot_{opentxs::OT::App()}
+        : ot_{opentxs::Context()}
     {
         if (false == bool(notification_callback_)) {
             notification_callback_.reset(new OTZMQListenCallback(
@@ -144,9 +144,9 @@ const api::Core& Test_Rpc_Async::get_session(const std::int32_t instance)
     auto is_server = instance % 2;
 
     if (is_server) {
-        return opentxs::OT::App().Server(get_index(instance));
+        return opentxs::Context().Server(get_index(instance));
     } else {
-        return opentxs::OT::App().Client(get_index(instance));
+        return opentxs::Context().Client(get_index(instance));
     }
 };
 
@@ -196,7 +196,7 @@ bool Test_Rpc_Async::default_push_callback(const opentxs::proto::RPCPush& push)
 
 void Test_Rpc_Async::setup()
 {
-    const api::Context& ot = opentxs::OT::App();
+    const api::Context& ot = opentxs::Context();
 
     auto& intro_server = ot.StartServer(ArgList(), ot.Servers(), true);
     auto& server = ot.StartServer(ArgList(), ot.Servers(), true);
@@ -285,7 +285,7 @@ void Test_Rpc_Async::setup()
 TEST_F(Test_Rpc_Async, Setup)
 {
     setup();
-    const auto& ot = opentxs::OT::App();
+    const auto& ot = opentxs::Context();
     auto& senderClient = get_session(sender_session_);
     auto& receiverClient = get_session(receiver_session_);
     auto reasonS = senderClient.Factory().PasswordPrompt(__FUNCTION__);

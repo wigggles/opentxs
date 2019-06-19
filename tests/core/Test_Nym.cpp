@@ -33,7 +33,7 @@ struct Test_Symmetric : public ::testing::Test {
     opentxs::Nym_p bob_;
 
     Test_Symmetric()
-        : api_(opentxs::OT::App().StartClient(args_, 0))
+        : api_(opentxs::Context().StartClient(args_, 0))
         , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
     {
         if (false == init_) { init(); }

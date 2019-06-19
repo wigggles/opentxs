@@ -269,7 +269,7 @@ OTIdentifier Identifier::Random()
 {
     OTIdentifier output{new implementation::Identifier};
     auto nonce = Data::Factory();
-    OT::App().Crypto().Encode().Nonce(32, nonce);
+    Context().Crypto().Encode().Nonce(32, nonce);
 
     OT_ASSERT(32 == nonce->size());
 
@@ -378,7 +378,7 @@ bool Identifier::CalculateDigest(const String& strInput, const ID type)
 {
     type_ = type;
 
-    return OT::App().Crypto().Hash().Digest(
+    return Context().Crypto().Hash().Digest(
         IDToHashType(type_), strInput, *this);
 }
 
@@ -386,7 +386,7 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
 {
     type_ = type;
 
-    return OT::App().Crypto().Hash().Digest(
+    return Context().Crypto().Hash().Digest(
         IDToHashType(type_), dataInput, *this);
 }
 
@@ -422,7 +422,7 @@ void Identifier::GetString(String& id) const
 
     auto output = String::Factory("ot");
     output->Concatenate(String::Factory(
-        OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
+        Context().Crypto().Encode().IdentifierEncode(data).c_str()));
     id.swap(output);
 }
 
@@ -471,7 +471,7 @@ void Identifier::SetString(const std::string& encoded)
     if ('t' != encoded.at(1)) { return; }
 
     std::string input(encoded.data() + 2, encoded.size() - 2);
-    auto data = OT::App().Crypto().Encode().IdentifierDecode(input);
+    auto data = Context().Crypto().Encode().IdentifierDecode(input);
 
     if (!data.empty()) {
         type_ = static_cast<ID>(data[0]);
