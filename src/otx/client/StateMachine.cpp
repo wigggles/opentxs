@@ -965,8 +965,7 @@ bool StateMachine::run_task(
 template <typename T>
 bool StateMachine::run_task(std::function<bool(const TaskID, const T&)> func)
 {
-    auto& param = get_param<T>();
-    new (&param) T(make_blank<T>::value());
+    auto& param = param_.emplace<T>(make_blank<T>::value());
 
     while (get_task<T>().Pop(task_id_, param)) {
         LogInsane(OT_METHOD)(__FUNCTION__)(": ")(--task_count_).Flush();
@@ -975,8 +974,6 @@ bool StateMachine::run_task(std::function<bool(const TaskID, const T&)> func)
 
         func(task_id_, param);
     }
-
-    param.~T();
 
     return true;
 }
