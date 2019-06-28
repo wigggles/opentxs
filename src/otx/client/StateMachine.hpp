@@ -18,7 +18,6 @@
 #include <functional>
 #include <future>
 #include <tuple>
-#include <variant>
 
 namespace std
 {
@@ -93,36 +92,37 @@ public:
     using TaskID = api::client::OTX::TaskID;
     using Thread = std::function<void()>;
 
-    using Params = std::variant<
-        std::monostate,
-        CheckNymTask,
-        DepositPaymentTask,
-        DownloadContractTask,
+    union Params {
+        CheckNymTask check_nym_;
+        DepositPaymentTask deposit_payment_;
+        DownloadContractTask download_contract_;
 #if OT_CASH
-        DownloadMintTask,
+        DownloadMintTask download_mint_;
 #endif
-        DownloadNymboxTask,
-        DownloadUnitDefinitionTask,
-        GetTransactionNumbersTask,
-        IssueUnitDefinitionTask,
-        MessageTask,
+        DownloadNymboxTask download_nymbox_;
+        DownloadUnitDefinitionTask download_unit_definition_;
+        GetTransactionNumbersTask get_transaction_numbers_;
+        IssueUnitDefinitionTask issue_unit_definition_;
+        MessageTask send_message_;
 #if OT_CASH
-        PayCashTask,
+        PayCashTask send_cash_;
 #endif
-        PaymentTask,
-        PeerReplyTask,
-        PeerRequestTask,
-        ProcessInboxTask,
-        PublishServerContractTask,
-        RegisterAccountTask,
-        RegisterNymTask,
-        SendChequeTask,
-        SendTransferTask
+        PaymentTask send_payment_;
+        PeerReplyTask peer_reply_;
+        PeerRequestTask peer_request_;
+        ProcessInboxTask process_inbox_;
+        PublishServerContractTask publish_server_contract_;
+        RegisterAccountTask register_account_;
+        RegisterNymTask register_nym_;
+        SendChequeTask send_cheque_;
+        SendTransferTask send_transfer_;
 #if OT_CASH
-        ,
-        WithdrawCashTask
+        WithdrawCashTask withdraw_cash_;
 #endif
-        >;
+
+        Params() { memset(static_cast<void*>(this), 0, sizeof(Params)); }
+        ~Params() {}
+    };
 
     otx::client::implementation::PaymentTasks payment_tasks_;
 
