@@ -18,7 +18,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
@@ -922,7 +922,7 @@ bool Authority::Verify(
     signatureCopy.CopyFrom(signature);
     signature.clear_signature();
 
-    return Verify(proto::ProtoAsData(serialized), signatureCopy, reason);
+    return Verify(api_.Factory().Data(serialized), signatureCopy, reason);
 }
 
 bool Authority::VerifyInternally(const opentxs::PasswordPrompt& reason) const

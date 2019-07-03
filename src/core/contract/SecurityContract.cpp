@@ -16,21 +16,21 @@
 namespace opentxs
 {
 SecurityContract::SecurityContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
-    : ot_super(wallet, nym, serialized)
+    : ot_super(api, nym, serialized)
 {
 }
 
 SecurityContract::SecurityContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
     const std::string& terms)
-    : ot_super(wallet, nym, shortname, name, symbol, terms)
+    : ot_super(api, nym, shortname, name, symbol, terms)
 {
 }
 

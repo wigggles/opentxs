@@ -191,7 +191,7 @@
 #include <opentxs/ui/Widget.hpp>
 #include <opentxs/util/Signals.hpp>
 #include <opentxs/OT.hpp>
-#include <opentxs/Proto.hpp>
+#include <opentxs/Proto.tpp>
 #include <opentxs/Qt.hpp>
 #include <opentxs/Types.hpp>
 #endif

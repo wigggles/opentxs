@@ -36,6 +36,7 @@ public:
 
     EXPORT virtual bool Publish(const std::string& data) const = 0;
     EXPORT virtual bool Publish(const opentxs::Data& data) const = 0;
+    EXPORT virtual bool Publish(const ProtobufType& data) const = 0;
     EXPORT virtual bool Publish(network::zeromq::Message& data) const = 0;
 
     EXPORT virtual ~PublishSocket() = default;

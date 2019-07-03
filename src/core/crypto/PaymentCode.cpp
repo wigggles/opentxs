@@ -32,7 +32,7 @@
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/credential/Primary.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include <array>
@@ -248,8 +248,8 @@ bool PaymentCode::operator==(const proto::PaymentCode& rhs) const
 {
     SerializedPaymentCode tempPaycode = Serialize();
 
-    auto LHData = proto::ProtoAsData(*tempPaycode);
-    auto RHData = proto::ProtoAsData(rhs);
+    auto LHData = api_.Factory().Data(*tempPaycode);
+    auto RHData = api_.Factory().Data(rhs);
 
     return (LHData == RHData);
 }
@@ -469,7 +469,7 @@ bool PaymentCode::Sign(
     auto serialized = credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     const bool goodSig = signingKey->Sign(
-        [&]() -> std::string { return proto::ProtoAsString(*serialized); },
+        [&]() -> std::string { return proto::ToString(*serialized); },
         proto::SIGROLE_NYMIDSOURCE,
         signature,
         ID(),
@@ -607,7 +607,7 @@ bool PaymentCode::Verify(
     signature.CopyFrom(sourceSignature);
     signature.clear_signature();
 
-    return pubkey_->Verify(proto::ProtoAsData(copy), sourceSignature, reason);
+    return pubkey_->Verify(api_.Factory().Data(copy), sourceSignature, reason);
 }
 
 bool PaymentCode::VerifyInternally() const

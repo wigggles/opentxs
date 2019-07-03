@@ -22,7 +22,7 @@
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
@@ -264,7 +264,7 @@ bool Primary::Verify(
     signature.CopyFrom(masterSig);
     signature.clear_signature();
 
-    return Verify(proto::ProtoAsData(copy), masterSig, reason);
+    return Verify(api_.Factory().Data(copy), masterSig, reason);
 }
 
 bool Primary::hasCapability(const NymCapability& capability) const

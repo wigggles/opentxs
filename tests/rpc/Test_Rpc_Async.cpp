@@ -156,8 +156,7 @@ void Test_Rpc_Async::process_notification(
     if (1 < incoming.Body().size()) { return; }
 
     const auto& frame = incoming.Body().at(0);
-    const auto data = Data::Factory(frame.data(), frame.size());
-    const auto rpcpush = proto::DataToProto<proto::RPCPush>(data.get());
+    const auto rpcpush = proto::Factory<proto::RPCPush>(frame);
 
     if (push_checker_) {
         push_results_.emplace_back(push_checker_(rpcpush));

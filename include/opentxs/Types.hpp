@@ -93,6 +93,8 @@ typedef bool BlockMode;
 static const BlockMode BLOCK_MODE = true;
 static const BlockMode NOBLOCK_MODE = false;
 
+enum class StringStyle : bool { Hex = true, Raw = false };
+
 using GetPreimage = std::function<std::string()>;
 using SimpleCallback = std::function<void()>;
 #if OT_QT

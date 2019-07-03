@@ -22,6 +22,17 @@ namespace api
 class Factory
 {
 public:
+    EXPORT virtual OTArmored Armored() const = 0;
+    EXPORT virtual OTArmored Armored(const std::string& input) const = 0;
+    EXPORT virtual OTArmored Armored(const opentxs::Data& input) const = 0;
+    EXPORT virtual OTArmored Armored(const opentxs::String& input) const = 0;
+    EXPORT virtual OTArmored Armored(
+        const opentxs::OTEnvelope& input) const = 0;
+    EXPORT virtual OTArmored Armored(const ProtobufType& input) const = 0;
+    EXPORT virtual OTString Armored(
+        const ProtobufType& input,
+        const std::string& header) const = 0;
+
     EXPORT virtual OTAsymmetricKey AsymmetricKey(
         const NymParameters& params,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
@@ -55,6 +66,19 @@ public:
     EXPORT virtual std::unique_ptr<OTCronItem> CronItem(
         const String& strCronItem,
         const opentxs::PasswordPrompt& reason) const = 0;
+
+    EXPORT virtual OTData Data() const = 0;
+    EXPORT virtual OTData Data(const opentxs::Armored& input) const = 0;
+    EXPORT virtual OTData Data(const ProtobufType& input) const = 0;
+    EXPORT virtual OTData Data(
+        const opentxs::network::zeromq::Frame& input) const = 0;
+    EXPORT virtual OTData Data(const std::uint8_t input) const = 0;
+    EXPORT virtual OTData Data(const std::uint32_t input) const = 0;
+    EXPORT virtual OTData Data(const std::string input, const StringStyle mode)
+        const = 0;
+    EXPORT virtual OTData Data(
+        const std::vector<unsigned char>& input) const = 0;
+    EXPORT virtual OTData Data(const std::vector<std::byte>& input) const = 0;
 
     EXPORT virtual OTIdentifier Identifier() const = 0;
     EXPORT virtual OTIdentifier Identifier(
@@ -229,7 +253,7 @@ public:
         const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& recipientNym,
-        const Armored& encrypted,
+        const opentxs::Armored& encrypted,
         const opentxs::PasswordPrompt& reason) const = 0;
 
     EXPORT virtual OTZMQPipeline Pipeline(

@@ -159,14 +159,14 @@ public:
         const proto::VerificationSet& data,
         const PasswordPrompt& reason) override;
     bool Sign(
-        const GetPreimage input,
+        const ProtobufType& input,
         const proto::SignatureRole role,
-        const proto::HashType hash,
         proto::Signature& signature,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason,
+        const proto::HashType hash) const override;
     bool Verify(
-        const Data& plaintext,
-        const proto::Signature& sig,
+        const ProtobufType& input,
+        proto::Signature& signature,
         const PasswordPrompt& reason) const override;
 
     ~Nym() override;

@@ -33,7 +33,7 @@ public:
         Endpoint;
 
     static ServerContract* Create(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::list<Endpoint>& endpoints,
         const std::string& terms,
@@ -41,7 +41,7 @@ public:
         const VersionNumber version,
         const PasswordPrompt& reason);
     static ServerContract* Factory(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::ServerContract& serialized,
         const PasswordPrompt& reason);
@@ -70,7 +70,7 @@ public:
 private:
     typedef Signable ot_super;
 
-    const api::Wallet& wallet_;
+    const api::Core& api_;
     std::list<Endpoint> listen_params_{};
     std::string name_{""};
     OTData transport_key_;
@@ -90,9 +90,9 @@ private:
         override;
 
     ServerContract() = delete;
-    ServerContract(const api::Wallet& wallet, const Nym_p& nym);
+    ServerContract(const api::Core& api, const Nym_p& nym);
     ServerContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::ServerContract& serialized);
 };

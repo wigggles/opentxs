@@ -7,6 +7,8 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/peer/BailmentReply.hpp"
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
@@ -18,13 +20,14 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/Proto.tpp"
 
 #define OT_METHOD "opentxs::PeerReply::"
 
 namespace opentxs
 {
 PeerReply::PeerReply(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::PeerReply& serialized)
     : ot_super(nym)
@@ -33,7 +36,7 @@ PeerReply::PeerReply(
     , server_(identifier::Server::Factory(serialized.server()))
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
-    , wallet_{wallet}
+    , api_{api}
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -42,7 +45,7 @@ PeerReply::PeerReply(
 }
 
 PeerReply::PeerReply(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const VersionNumber version,
     const identifier::Nym& initiator,
@@ -55,7 +58,7 @@ PeerReply::PeerReply(
     , server_(server)
     , cookie_(Identifier::Factory(request))
     , type_(type)
-    , wallet_{wallet}
+    , api_{api}
 {
 }
 
@@ -77,7 +80,7 @@ proto::PeerReply PeerReply::Contract() const
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::PeerRequestType& type,
     const Identifier& requestID,
@@ -85,7 +88,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const std::string& terms,
     const PasswordPrompt& reason)
 {
-    auto peerRequest = LoadRequest(wallet, nym, requestID);
+    auto peerRequest = LoadRequest(api, nym, requestID);
 
     if (!peerRequest) { return nullptr; }
 
@@ -94,7 +97,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     switch (type) {
         case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(new BailmentReply(
-                wallet,
+                api,
                 nym,
                 identifier::Nym::Factory(peerRequest->initiator()),
                 requestID,
@@ -103,7 +106,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         } break;
         case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentReply(
-                wallet,
+                api,
                 nym,
                 identifier::Nym::Factory(peerRequest->initiator()),
                 requestID,
@@ -122,14 +125,14 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const Identifier& requestID,
     const identifier::Server& server,
     const bool& ack,
     const PasswordPrompt& reason)
 {
-    auto peerRequest = LoadRequest(wallet, nym, requestID);
+    auto peerRequest = LoadRequest(api, nym, requestID);
 
     if (!peerRequest) { return nullptr; }
 
@@ -140,7 +143,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         case (proto::PEERREQUEST_PENDINGBAILMENT):
         case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new NoticeAcknowledgement(
-                wallet,
+                api,
                 nym,
                 identifier::Nym::Factory(peerRequest->initiator()),
                 requestID,
@@ -160,7 +163,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const Identifier& request,
     const identifier::Server& server,
@@ -171,7 +174,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const std::string& key,
     const PasswordPrompt& reason)
 {
-    auto peerRequest = LoadRequest(wallet, nym, request);
+    auto peerRequest = LoadRequest(api, nym, request);
 
     if (!peerRequest) { return nullptr; }
 
@@ -181,7 +184,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     switch (type) {
         case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionReply(
-                wallet,
+                api,
                 nym,
                 identifier::Nym::Factory(peerRequest->initiator()),
                 request,
@@ -204,7 +207,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Factory(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::PeerReply& serialized,
     const PasswordPrompt& reason)
@@ -220,17 +223,17 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
 
     switch (serialized.type()) {
         case (proto::PEERREQUEST_BAILMENT): {
-            contract.reset(new BailmentReply(wallet, nym, serialized));
+            contract.reset(new BailmentReply(api, nym, serialized));
         } break;
         case (proto::PEERREQUEST_OUTBAILMENT): {
-            contract.reset(new OutBailmentReply(wallet, nym, serialized));
+            contract.reset(new OutBailmentReply(api, nym, serialized));
         } break;
         case (proto::PEERREQUEST_PENDINGBAILMENT):
         case (proto::PEERREQUEST_STORESECRET): {
-            contract.reset(new NoticeAcknowledgement(wallet, nym, serialized));
+            contract.reset(new NoticeAcknowledgement(api, nym, serialized));
         } break;
         case (proto::PEERREQUEST_CONNECTIONINFO): {
-            contract.reset(new ConnectionReply(wallet, nym, serialized));
+            contract.reset(new ConnectionReply(api, nym, serialized));
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid reply type.").Flush();
@@ -312,13 +315,16 @@ std::unique_ptr<PeerReply> PeerReply::Finish(
 
 OTIdentifier PeerReply::GetID(const Lock& lock) const
 {
-    return GetID(IDVersion(lock));
+    return GetID(api_, IDVersion(lock));
 }
 
-OTIdentifier PeerReply::GetID(const proto::PeerReply& contract)
+OTIdentifier PeerReply::GetID(
+    const api::Core& api,
+    const proto::PeerReply& contract)
 {
     auto id = Identifier::Factory();
-    id->CalculateDigest(proto::ProtoAsData(contract));
+    id->CalculateDigest(api.Factory().Data(contract));
+
     return id;
 }
 
@@ -346,18 +352,18 @@ proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
 }
 
 std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const Identifier& requestID)
 {
     std::shared_ptr<proto::PeerRequest> output;
     std::time_t notUsed = 0;
 
-    output = wallet.PeerRequest(
+    output = api.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, notUsed);
 
     if (!output) {
-        output = wallet.PeerRequest(
+        output = api.Wallet().PeerRequest(
             nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST, notUsed);
 
         if (output) {
@@ -379,7 +385,7 @@ OTData PeerReply::Serialize() const
 {
     Lock lock(lock_);
 
-    return proto::ProtoAsData(contract(lock));
+    return api_.Factory().Data(contract(lock));
 }
 
 proto::PeerReply PeerReply::SigVersion(const Lock& lock) const
@@ -398,8 +404,8 @@ bool PeerReply::update_signature(const Lock& lock, const PasswordPrompt& reason)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success = nym_->SignProto(
-        serialized, proto::SIGROLE_PEERREPLY, signature, reason);
+    success =
+        nym_->Sign(serialized, proto::SIGROLE_PEERREPLY, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -466,7 +472,7 @@ bool PeerReply::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto, reason);
     ;
 }
 }  // namespace opentxs

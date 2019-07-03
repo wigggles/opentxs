@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/Proto.hpp"
+
 #include <string>
 
 struct zmq_msg_t;
@@ -40,6 +42,8 @@ public:
         const opentxs::Data& input);
     EXPORT static Pimpl<opentxs::network::zeromq::Frame> Factory(
         const std::string& input);
+    EXPORT static Pimpl<opentxs::network::zeromq::Frame> Factory(
+        const ProtobufType& input);
 
     EXPORT virtual operator std::string() const = 0;
 

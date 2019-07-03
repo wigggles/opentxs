@@ -27,11 +27,11 @@ private:
     std::uint64_t weight_;
 
     EXPORT BasketContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::UnitDefinition serialized);
     EXPORT BasketContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -44,9 +44,10 @@ private:
 
 public:
     EXPORT static OTIdentifier CalculateBasketID(
+        const api::Core& api,
         const proto::UnitDefinition& serialized);
     EXPORT static bool FinalizeTemplate(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         proto::UnitDefinition& serialized,
         const PasswordPrompt& reason);

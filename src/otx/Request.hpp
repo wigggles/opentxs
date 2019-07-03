@@ -28,6 +28,7 @@ public:
 private:
     friend otx::Request;
 
+    const api::Core& api_;
     const OTNymID initiator_;
     const OTServerID server_;
     const proto::ServerRequestType type_{proto::SERVERREQUEST_ERROR};
@@ -56,6 +57,7 @@ private:
         const PasswordPrompt& reason) const override;
 
     Request(
+        const api::Core& api,
         const Nym_p signer,
         const identifier::Nym& initiator,
         const identifier::Server& server,

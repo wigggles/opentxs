@@ -150,7 +150,7 @@ std::string StorageFSArchive::prepare_read(const std::string& input) const
 {
     if (false == encrypted_) { return input; }
 
-    const auto ciphertext = proto::TextToProto<proto::Ciphertext>(input);
+    const auto ciphertext = proto::Factory<proto::Ciphertext>(input);
 
     OT_ASSERT(encryption_key_);
 
@@ -184,7 +184,7 @@ std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
             .Flush();
     }
 
-    return proto::ProtoAsString(ciphertext);
+    return proto::ToString(ciphertext);
 }
 
 std::string StorageFSArchive::root_filename() const

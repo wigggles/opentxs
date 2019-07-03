@@ -7,6 +7,8 @@
 
 #include "opentxs/core/OTStorage.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
@@ -776,7 +778,7 @@ Storable* QueryObject(
 
 // Store/Retrieve a Storable object to/from an Armored object.
 
-std::string EncodeObject(Storable& theContents)
+std::string EncodeObject(const api::Core& api, Storable& theContents)
 {
     Storage* pStorage = details::s_pStorage;
 
@@ -786,7 +788,7 @@ std::string EncodeObject(Storable& theContents)
             .Flush();
         return "";
     }
-    return pStorage->EncodeObject(theContents);
+    return pStorage->EncodeObject(api, theContents);
 }
 
 // Use %newobject Storage::DecodeObject();
@@ -2420,7 +2422,7 @@ Storable* Storage::QueryObject(
     return pStorable;  // caller is responsible to delete.
 }
 
-std::string Storage::EncodeObject(Storable& theContents)
+std::string Storage::EncodeObject(const api::Core& api, Storable& theContents)
 {
     std::string strReturnValue("");
 
@@ -2454,7 +2456,7 @@ std::string Storage::EncodeObject(Storable& theContents)
     }
 
     const auto theData = Data::Factory(pNewData, nNewSize);
-    const auto theArmor = Armored::Factory(theData.get());
+    const auto theArmor = api.Factory().Armored(theData);
 
     strReturnValue.assign(theArmor->Get(), theArmor->GetLength());
 

@@ -25,6 +25,7 @@ class ContactItem
 {
 public:
     ContactItem(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber parentVersion,
@@ -35,17 +36,18 @@ public:
         const std::time_t start,
         const std::time_t end);
     ContactItem(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber parentVersion,
         const Claim& claim);
     ContactItem(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const proto::ContactItem& serialized);
-    ContactItem(const ContactItem&) = default;
-    ContactItem(ContactItem&&) = default;
+    ContactItem(const ContactItem&);
 
     bool operator==(const ContactItem& rhs) const;
 
@@ -73,6 +75,7 @@ public:
     ~ContactItem() = default;
 
 private:
+    const api::Core& api_;
     const VersionNumber version_{0};
     const std::string nym_{};
     const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
@@ -96,6 +99,7 @@ private:
         const bool value) const;
 
     ContactItem() = delete;
+    ContactItem(ContactItem&&) = delete;
     ContactItem& operator=(const ContactItem&) = delete;
     ContactItem& operator=(ContactItem&&) = delete;
 };

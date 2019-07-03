@@ -23,7 +23,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/credential/Primary.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include <memory>
@@ -121,7 +121,7 @@ OTData NymIDSource::asData() const
 {
     serializedNymIDSource serializedSource = Serialize();
 
-    return proto::ProtoAsData(*serializedSource);
+    return factory_.Data(*serializedSource);
 }
 
 std::unique_ptr<proto::AsymmetricKey> NymIDSource::ExtractKey(
@@ -302,7 +302,7 @@ bool NymIDSource::Sign(
 
 OTString NymIDSource::asString() const
 {
-    return OTString(Armored::Factory(asData()));
+    return OTString(factory_.Armored(asData()));
 }
 
 // static

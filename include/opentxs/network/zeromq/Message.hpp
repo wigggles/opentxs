@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/Proto.hpp"
+
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::Pimpl<opentxs::network::zeromq::Message>::Pimpl(opentxs::network::zeromq::Message const &);
@@ -33,6 +35,7 @@ class Message
 public:
     EXPORT static Pimpl<Message> Factory();
     EXPORT static Pimpl<Message> Factory(const Data& input);
+    EXPORT static Pimpl<Message> Factory(const ProtobufType& input);
     EXPORT static Pimpl<Message> Factory(const std::string& input);
     EXPORT static Pimpl<Message> ReplyFactory(const Message& request);
 
@@ -51,6 +54,7 @@ public:
 
     EXPORT virtual Frame& AddFrame() = 0;
     EXPORT virtual Frame& AddFrame(const opentxs::Data& input) = 0;
+    EXPORT virtual Frame& AddFrame(const ProtobufType& input) = 0;
     EXPORT virtual Frame& AddFrame(const std::string& input) = 0;
     EXPORT virtual Frame& at(const std::size_t index) = 0;
 

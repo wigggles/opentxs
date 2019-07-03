@@ -46,6 +46,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "Macros.hpp"
 #include "Server.hpp"
@@ -8429,7 +8430,7 @@ void Notary::process_cash_deposit(
     } else {
         auto rawPurse = Data::Factory();
         depositItem.GetAttachment(rawPurse);
-        const auto serializedPurse = proto::DataToProto<proto::Purse>(rawPurse);
+        const auto serializedPurse = proto::Factory<proto::Purse>(rawPurse);
 
         if (false == proto::Validate(serializedPurse, VERBOSE)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
@@ -8555,7 +8556,7 @@ void Notary::process_cash_withdrawal(
 
     auto rawPurse = Data::Factory();
     requestItem.GetAttachment(rawPurse);
-    const auto serializedPurse = proto::DataToProto<proto::Purse>(rawPurse);
+    const auto serializedPurse = proto::Factory<proto::Purse>(rawPurse);
 
     if (false == proto::Validate(serializedPurse, VERBOSE)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
@@ -8657,7 +8658,8 @@ void Notary::process_cash_withdrawal(
 
     if (bSuccess) {
         // Add the digital cash token to the response message
-        responseItem.SetAttachment(proto::ProtoAsData(replyPurse.Serialize()));
+        responseItem.SetAttachment(
+            server_.API().Factory().Data(replyPurse.Serialize()));
         responseItem.SetStatus(Item::acknowledgement);
         success = true;  // The cash withdrawal was successful.
         account.get().GetIdentifier(accountHash);
@@ -8806,7 +8808,7 @@ void Notary::send_push_notification(
         return;
     }
 
-    message->AddFrame(proto::ProtoAsString(push));
+    message->AddFrame(push);
     notification_socket_->Push(message);
 }
 

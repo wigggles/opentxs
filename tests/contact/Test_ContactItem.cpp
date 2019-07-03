@@ -15,7 +15,9 @@ class Test_ContactItem : public ::testing::Test
 {
 public:
     Test_ContactItem()
-        : contactItem_(
+        : api_(opentxs::Context().StartClient({}, 0))
+        , contactItem_(
+              api_,
               std::string("testNym"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
@@ -28,6 +30,7 @@ public:
     {
     }
 
+    const opentxs::api::client::Manager& api_;
     const opentxs::ContactItem contactItem_;
 };
 
@@ -36,6 +39,7 @@ public:
 TEST_F(Test_ContactItem, first_constructor)
 {
     const opentxs::ContactItem contactItem1(
+        api_,
         std::string("testContactItemNym"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -48,6 +52,7 @@ TEST_F(Test_ContactItem, first_constructor)
 
     const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            api_,
             "testContactItemNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
@@ -74,6 +79,7 @@ TEST_F(Test_ContactItem, first_constructor)
 TEST_F(Test_ContactItem, first_constructor_different_versions)
 {
     const opentxs::ContactItem contactItem1(
+        api_,
         std::string("testContactItemNym"),
         CONTACT_CONTACT_DATA_VERSION - 1,  // previous version
         CONTACT_CONTACT_DATA_VERSION,
@@ -89,6 +95,7 @@ TEST_F(Test_ContactItem, first_constructor_different_versions)
 TEST_F(Test_ContactItem, second_constructor)
 {
     const opentxs::ContactItem contactItem1(
+        api_,
         std::string("testContactItemNym"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -103,6 +110,7 @@ TEST_F(Test_ContactItem, second_constructor)
 
     const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            api_,
             "testContactItemNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
@@ -137,6 +145,7 @@ TEST_F(Test_ContactItem, third_constructor)
     data.set_end(NULL_END);
 
     const opentxs::ContactItem contactItem1(
+        api_,
         std::string("testContactItemNym"),
         CONTACT_CONTACT_DATA_VERSION,
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
@@ -144,6 +153,7 @@ TEST_F(Test_ContactItem, third_constructor)
 
     const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            api_,
             "testContactItemNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
@@ -184,36 +194,6 @@ TEST_F(Test_ContactItem, copy_constructor)
     ASSERT_EQ(contactItem_.isPrimary(), copiedContactItem.isPrimary());
 }
 
-TEST_F(Test_ContactItem, move_constructor)
-{
-    opentxs::ContactItem movedContactItem(
-        std::move<opentxs::ContactItem>(contactItem_.SetPrimary(true)));
-
-    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
-            "testNym",
-            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
-            NULL_START,
-            NULL_END,
-            "testValue")));
-    ASSERT_EQ(identifier, movedContactItem.ID());
-    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, movedContactItem.Version());
-    ASSERT_EQ(
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        movedContactItem.Section());
-    ASSERT_EQ(
-        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
-        movedContactItem.Type());
-    ASSERT_EQ("testValue", movedContactItem.Value());
-    ASSERT_EQ(NULL_START, movedContactItem.Start());
-    ASSERT_EQ(NULL_END, movedContactItem.End());
-
-    ASSERT_TRUE(movedContactItem.isActive());
-    ASSERT_FALSE(movedContactItem.isLocal());
-    ASSERT_TRUE(movedContactItem.isPrimary());
-}
-
 TEST_F(Test_ContactItem, operator_equal_true)
 {
     ASSERT_EQ(contactItem_, contactItem_);
@@ -222,6 +202,7 @@ TEST_F(Test_ContactItem, operator_equal_true)
 TEST_F(Test_ContactItem, operator_equal_false)
 {
     opentxs::ContactItem contactItem2(
+        api_,
         std::string("testNym2"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -261,6 +242,7 @@ TEST_F(Test_ContactItem, public_accessors)
 {
     const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            api_,
             "testNym",
             opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,

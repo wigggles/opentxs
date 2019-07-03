@@ -25,7 +25,7 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -2031,9 +2031,7 @@ void Contract::CreateInnerContents(Tag& parent)
                 pTag->add_attribute("nymID", strNymID->Get());
                 pTag->add_attribute(
                     "publicNym",
-                    proto::ProtoAsArmored(
-                        publicNym, String::Factory("PUBLIC NYM"))
-                        ->Get());
+                    api_.Factory().Armored(publicNym, "PUBLIC NYM")->Get());
 
                 parent.add_tag(pTag);
             }  // "signer"

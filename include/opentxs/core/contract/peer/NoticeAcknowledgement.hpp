@@ -26,11 +26,11 @@ private:
     proto::PeerReply IDVersion(const Lock& lock) const override;
 
     NoticeAcknowledgement(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::PeerReply& serialized);
     NoticeAcknowledgement(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const identifier::Nym& initiator,
         const Identifier& request,

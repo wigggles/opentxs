@@ -13,6 +13,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Request.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "Request.hpp"
 
@@ -26,6 +27,7 @@ const VersionNumber Request::DefaultVersion{2};
 const VersionNumber Request::MaxVersion{2};
 
 OTXRequest Request::Factory(
+    const api::Core& api,
     const Nym_p signer,
     const identifier::Server& server,
     const proto::ServerRequestType type,
@@ -34,7 +36,7 @@ OTXRequest Request::Factory(
     OT_ASSERT(signer);
 
     std::unique_ptr<implementation::Request> output{
-        new implementation::Request(signer, signer->ID(), server, type)};
+        new implementation::Request(api, signer, signer->ID(), server, type)};
 
     OT_ASSERT(output);
 
@@ -59,11 +61,14 @@ OTXRequest Request::Factory(
 namespace opentxs::otx::implementation
 {
 Request::Request(
+    const api::Core& api,
     const Nym_p signer,
     const identifier::Nym& initiator,
     const identifier::Server& server,
     const proto::ServerRequestType type)
     : Signable(signer, DefaultVersion, "")
+    , otx::Request()
+    , api_(api)
     , initiator_(initiator)
     , server_(server)
     , type_(type)
@@ -77,6 +82,8 @@ Request::Request(
     const proto::ServerRequest serialized,
     const PasswordPrompt& reason)
     : Signable(extract_nym(api, serialized, reason), serialized.version(), "")
+    , otx::Request()
+    , api_(api)
     , initiator_((nym_) ? nym_->ID() : api.Factory().NymID().get())
     , server_(api.Factory().ServerID(serialized.server()))
     , type_(serialized.type())
@@ -91,6 +98,7 @@ Request::Request(
 Request::Request(const Request& rhs)
     : Signable(rhs.nym_, rhs.version_, rhs.conditions_)
     , otx::Request()
+    , api_(rhs.api_)
     , initiator_(rhs.initiator_)
     , server_(rhs.server_)
     , type_(rhs.type_)
@@ -142,7 +150,7 @@ OTIdentifier Request::GetID(const Lock& lock) const
 {
     auto contract = id_version(lock);
     auto id = Identifier::Factory();
-    id->CalculateDigest(proto::ProtoAsData(contract));
+    id->CalculateDigest(api_.Factory().Data(contract));
 
     return id;
 }
@@ -172,7 +180,7 @@ OTData Request::Serialize() const
 {
     Lock lock(lock_);
 
-    return proto::ProtoAsData(full_version(lock));
+    return api_.Factory().Data(full_version(lock));
 }
 
 bool Request::SetIncludeNym(const bool include, const PasswordPrompt& reason)
@@ -214,8 +222,8 @@ bool Request::update_signature(const Lock& lock, const PasswordPrompt& reason)
     signatures_.clear();
     auto serialized = signature_version(lock);
     auto& signature = *serialized.mutable_signature();
-    success = nym_->SignProto(
-        serialized, proto::SIGROLE_SERVERREQUEST, signature, reason);
+    success =
+        nym_->Sign(serialized, proto::SIGROLE_SERVERREQUEST, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -281,6 +289,6 @@ bool Request::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto, reason);
 }
 }  // namespace opentxs::otx::implementation

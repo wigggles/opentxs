@@ -43,6 +43,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "Macros.hpp"
 #include "MainFile.hpp"
@@ -523,7 +524,7 @@ bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
         identifier::Nym::Factory(targetNym), reason_);
 
     if (nym) {
-        reply.SetPayload(proto::ProtoAsData(nym->asPublicNym()));
+        reply.SetPayload(manager_.Factory().Data(nym->asPublicNym()));
         reply.SetBool(true);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(targetNym)(
@@ -910,11 +911,12 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         auto server = server_.API().Wallet().Server(serverID, reason_);
 
         if (unitDefiniton) {
-            serialized = proto::ProtoAsData(unitDefiniton->PublicContract());
+            serialized =
+                manager_.Factory().Data(unitDefiniton->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
         } else if (server) {
-            serialized = proto::ProtoAsData(server->PublicContract());
+            serialized = manager_.Factory().Data(server->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
         }
@@ -922,7 +924,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         auto contract = server_.API().Wallet().Nym(nymID, reason_);
 
         if (contract) {
-            serialized = proto::ProtoAsData(contract->asPublicNym());
+            serialized = manager_.Factory().Data(contract->asPublicNym());
             reply.SetPayload(serialized);
             reply.SetBool(true);
         }
@@ -930,7 +932,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         auto contract = server_.API().Wallet().Server(serverID, reason_);
 
         if (contract) {
-            serialized = proto::ProtoAsData(contract->PublicContract());
+            serialized = manager_.Factory().Data(contract->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
         }
@@ -938,7 +940,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         auto contract = server_.API().Wallet().UnitDefinition(unitID, reason_);
 
         if (contract) {
-            serialized = proto::ProtoAsData(contract->PublicContract());
+            serialized = manager_.Factory().Data(contract->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
         }
@@ -1261,7 +1263,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_basket);
 
-    auto serialized = proto::DataToProto<proto::UnitDefinition>(
+    auto serialized = proto::Factory<proto::UnitDefinition>(
         Data::Factory(msgIn.m_ascPayload));
 
     if (false == proto::Validate(serialized, VERBOSE)) {
@@ -1283,7 +1285,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // of the contract (so it is unique on every server) and for the same
     // reason_ with the AccountID removed before calculating.
     auto basketAccountID = Identifier::Factory();
-    const auto BASKET_ID = BasketContract::CalculateBasketID(serialized);
+    const auto BASKET_ID =
+        BasketContract::CalculateBasketID(server_.API(), serialized);
 
     const bool exists = server_.GetTransactor().lookupBasketAccountID(
         BASKET_ID, basketAccountID);
@@ -1349,7 +1352,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     }
 
     if (false == BasketContract::FinalizeTemplate(
-                     server_.API().Wallet(), serverNym, serialized, reason_)) {
+                     server_.API(), serverNym, serialized, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to finalize basket contract.")
             .Flush();
@@ -1841,7 +1844,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
     }
 
     map.swap(newMap);
-    const auto output = OTDB::EncodeObject(*inputMap);
+    const auto output = OTDB::EncodeObject(server_.API(), *inputMap);
 
     if (false == output.empty()) {
         reply.SetSuccess(true);
@@ -1988,14 +1991,14 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
 
     switch (type) {
         case (ContractType::NYM): {
-            const auto nym = proto::DataToProto<proto::CredentialIndex>(
+            const auto nym = proto::Factory<proto::CredentialIndex>(
                 Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(bool(server_.API().Wallet().Nym(nym, reason_)));
 
             break;
         }
         case (ContractType::SERVER): {
-            const auto server = proto::DataToProto<proto::ServerContract>(
+            const auto server = proto::Factory<proto::ServerContract>(
                 Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(
                 bool(server_.API().Wallet().Server(server, reason_)));
@@ -2003,7 +2006,7 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
             break;
         }
         case (ContractType::UNIT): {
-            const auto unit = proto::DataToProto<proto::UnitDefinition>(
+            const auto unit = proto::Factory<proto::UnitDefinition>(
                 Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(
                 bool(server_.API().Wallet().UnitDefinition(unit, reason_)));
@@ -2042,7 +2045,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
-    const auto serialized = proto::DataToProto<proto::UnitDefinition>(
+    const auto serialized = proto::Factory<proto::UnitDefinition>(
         Data::Factory(msgIn.m_ascPayload));
 
     if (proto::UNITTYPE_BASKET == serialized.type()) {
@@ -2117,7 +2120,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_user_acct);
 
-    auto serialized = proto::DataToProto<proto::CredentialIndex>(
+    auto serialized = proto::Factory<proto::CredentialIndex>(
         Data::Factory(reply.Original().m_ascPayload));
     auto sender_nym = server_.API().Wallet().Nym(serialized, reason_);
 
@@ -3000,7 +3003,7 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
         return false;
     }
 
-    reply.SetPayload(proto::ProtoAsData(context.Refresh(reason_)));
+    reply.SetPayload(manager_.Factory().Data(context.Refresh(reason_)));
     reply.SetSuccess(true);
 
     return true;

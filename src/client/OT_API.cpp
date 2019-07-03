@@ -76,7 +76,7 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include <signal.h>
 #include <stdlib.h>
@@ -2577,7 +2577,7 @@ CommandResult OT_API::issueBasket(
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::issueBasket,
-        Armored::Factory(proto::ProtoAsData(basket)),
+        api_.Factory().Armored(api_.Factory().Data(basket)),
         api_.Factory().Identifier(),
         requestNum);
     requestNum = newRequestNumber;

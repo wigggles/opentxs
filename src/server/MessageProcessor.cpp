@@ -32,6 +32,7 @@
 #include "opentxs/network/zeromq/RouterSocket.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "Server.hpp"
 #include "UserCommandProcessor.hpp"
@@ -145,8 +146,7 @@ void MessageProcessor::DropOutgoing(const int count) const
 proto::ServerRequest MessageProcessor::extract_proto(
     const zmq::Frame& incoming) const
 {
-    return proto::RawToProto<proto::ServerRequest>(
-        incoming.data(), incoming.size());
+    return proto::Factory<proto::ServerRequest>(incoming);
 }
 
 OTData MessageProcessor::get_connection(
@@ -413,17 +413,18 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
 
     const auto& payload = incoming.Body().at(1);
     auto message = otx::Reply::Factory(
+        server_.API(),
         nym,
         nymID,
         server_.GetServerID(),
         proto::SERVERREPLY_PUSH,
         true,
         reason_);
-    message->SetPush(proto::TextToProto<proto::OTXPush>(payload), reason_);
+    message->SetPush(proto::Factory<proto::OTXPush>(payload), reason_);
 
     OT_ASSERT(message->Validate(reason_));
 
-    const auto reply = proto::ProtoAsData(message->Contract());
+    const auto reply = server_.API().Factory().Data(message->Contract());
     auto pushNotification = zmq::Message::Factory();
     pushNotification->AddFrame(connection);
     pushNotification->AddFrame();

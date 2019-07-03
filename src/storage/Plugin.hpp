@@ -10,7 +10,7 @@
 #include "opentxs/api/storage/Plugin.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include <atomic>
@@ -141,7 +141,7 @@ bool opentxs::api::storage::Driver::StoreProto(
 {
     if (!proto::Validate<T>(data, VERBOSE)) { return false; }
 
-    plaintext = proto::ProtoAsString<T>(data);
+    plaintext = proto::ToString(data);
 
     return Store(true, plaintext, key);
 }

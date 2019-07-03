@@ -28,7 +28,9 @@ private:
     OTIdentifier cookie_;
     proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
 
-    static OTIdentifier GetID(const proto::PeerReply& contract);
+    static OTIdentifier GetID(
+        const api::Core& api,
+        const proto::PeerReply& contract);
     static bool FinalizeContract(
         PeerReply& contract,
         const PasswordPrompt& reason);
@@ -36,7 +38,7 @@ private:
         std::unique_ptr<PeerReply>& contract,
         const PasswordPrompt& reason);
     static std::shared_ptr<proto::PeerRequest> LoadRequest(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const Identifier& requestID);
 
@@ -50,7 +52,7 @@ private:
     PeerReply() = delete;
 
 protected:
-    const api::Wallet& wallet_;
+    const api::Core& api_;
 
     virtual proto::PeerReply IDVersion(const Lock& lock) const;
     bool validate(const Lock& lock, const PasswordPrompt& reason)
@@ -61,11 +63,11 @@ protected:
         const PasswordPrompt& reason) const override;
 
     PeerReply(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::PeerReply& serialized);
     PeerReply(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const VersionNumber version,
         const identifier::Nym& initiator,
@@ -75,7 +77,7 @@ protected:
 
 public:
     static std::unique_ptr<PeerReply> Create(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::PeerRequestType& type,
         const Identifier& request,
@@ -83,14 +85,14 @@ public:
         const std::string& terms,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerReply> Create(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const Identifier& request,
         const identifier::Server& server,
         const bool& ack,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerReply> Create(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const Identifier& request,
         const identifier::Server& server,
@@ -101,7 +103,7 @@ public:
         const std::string& key,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerReply> Factory(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::PeerReply& serialized,
         const PasswordPrompt& reason);

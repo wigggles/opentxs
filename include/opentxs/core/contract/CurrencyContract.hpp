@@ -27,11 +27,11 @@ private:
     std::string fractional_unit_name_;
 
     EXPORT CurrencyContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::UnitDefinition serialized);
     EXPORT CurrencyContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,

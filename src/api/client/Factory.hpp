@@ -13,37 +13,37 @@ public:
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
         const std::string& message,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
         const std::string& payment,
         const bool isPayment,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 #if OT_CASH
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 #endif
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const std::shared_ptr<const PeerRequest> request,
         const VersionNumber version,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& signerNym,
         const proto::PeerObject& serialized,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& recipientNym,
-        const Armored& encrypted,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::Armored& encrypted,
+        const opentxs::PasswordPrompt& reason) const final;
 
-    ~Factory() override = default;
+    ~Factory() final = default;
 
 private:
     friend opentxs::Factory;

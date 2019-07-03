@@ -5,9 +5,11 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "PairEventCallback.hpp"
 
@@ -43,7 +45,7 @@ void PairEventCallback::Process(zeromq::Message& message) const
 {
     OT_ASSERT(1 == message.Body().size());
 
-    const auto event = proto::TextToProto<proto::PairEvent>(message.Body_at(0));
+    const auto event = proto::Factory<proto::PairEvent>(message.Body_at(0));
     callback_(event);
 }
 

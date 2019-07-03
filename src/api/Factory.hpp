@@ -12,158 +12,176 @@ namespace opentxs::api::implementation
 class Factory : virtual public api::internal::Factory
 {
 public:
-    const api::crypto::internal::Asymmetric& Asymmetric() const override
+    OTArmored Armored() const final;
+    OTArmored Armored(const std::string& input) const final;
+    OTArmored Armored(const opentxs::Data& input) const final;
+    OTArmored Armored(const opentxs::String& input) const final;
+    OTArmored Armored(const opentxs::OTEnvelope& input) const final;
+    OTArmored Armored(const ProtobufType& input) const final;
+    OTString Armored(const ProtobufType& input, const std::string& header)
+        const final;
+
+    const api::crypto::internal::Asymmetric& Asymmetric() const final
     {
         return asymmetric_;
     }
     OTAsymmetricKey AsymmetricKey(
         const NymParameters& params,
         const proto::KeyRole role,
-        const VersionNumber version) const override;
+        const VersionNumber version) const final;
     OTAsymmetricKey AsymmetricKey(
         const proto::AsymmetricKey& serialized,
-        const opentxs::PasswordPrompt& reason) const override;
-    std::unique_ptr<opentxs::Basket> Basket() const override;
+        const opentxs::PasswordPrompt& reason) const final;
+    std::unique_ptr<opentxs::Basket> Basket() const final;
     std::unique_ptr<opentxs::Basket> Basket(
         std::int32_t nCount,
-        std::int64_t lMinimumTransferAmount) const override;
+        std::int64_t lMinimumTransferAmount) const final;
 
-    std::unique_ptr<OTPassword> BinarySecret() const override;
+    std::unique_ptr<OTPassword> BinarySecret() const final;
 
     std::unique_ptr<opentxs::Cheque> Cheque(
         const OTTransaction& receipt,
-        const opentxs::PasswordPrompt& reason) const override;
-    std::unique_ptr<opentxs::Cheque> Cheque() const override;
+        const opentxs::PasswordPrompt& reason) const final;
+    std::unique_ptr<opentxs::Cheque> Cheque() const final;
     std::unique_ptr<opentxs::Cheque> Cheque(
         const identifier::Server& NOTARY_ID,
-        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
-        const override;
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const final;
 
     std::unique_ptr<opentxs::Contract> Contract(
         const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 
-    std::unique_ptr<OTCron> Cron(const api::Core& server) const override;
+    std::unique_ptr<OTCron> Cron(const api::Core& server) const final;
 
     std::unique_ptr<OTCronItem> CronItem(
         const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 
-    OTIdentifier Identifier() const override;
-    OTIdentifier Identifier(const std::string& serialized) const override;
-    OTIdentifier Identifier(const opentxs::String& serialized) const override;
-    OTIdentifier Identifier(const opentxs::Contract& contract) const override;
-    OTIdentifier Identifier(const opentxs::Item& item) const override;
+    OTData Data() const final;
+    OTData Data(const opentxs::Armored& input) const final;
+    OTData Data(const ProtobufType& input) const final;
+    OTData Data(const opentxs::network::zeromq::Frame& input) const final;
+    OTData Data(const std::uint8_t input) const final;
+    OTData Data(const std::uint32_t input) const final;
+    OTData Data(const std::string input, const StringStyle mode) const final;
+    OTData Data(const std::vector<unsigned char>& input) const final;
+    OTData Data(const std::vector<std::byte>& input) const final;
+
+    OTIdentifier Identifier() const final;
+    OTIdentifier Identifier(const std::string& serialized) const final;
+    OTIdentifier Identifier(const opentxs::String& serialized) const final;
+    OTIdentifier Identifier(const opentxs::Contract& contract) const final;
+    OTIdentifier Identifier(const opentxs::Item& item) const final;
 
     std::unique_ptr<opentxs::Item> Item(
         const String& serialized,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::Item> Item(
         const std::string& serialized,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::Item> Item(
         const identifier::Nym& theNymID,
-        const opentxs::Item& theOwner) const override;  // From owner we can get
-                                                        // acct ID, server ID,
-                                                        // and transaction Num
+        const opentxs::Item& theOwner) const final;  // From owner we can get
+                                                     // acct ID, server ID,
+                                                     // and transaction Num
     std::unique_ptr<opentxs::Item> Item(
         const identifier::Nym& theNymID,
-        const OTTransaction& theOwner) const override;  // From owner we can get
-                                                        // acct ID, server ID,
-                                                        // and transaction Num
+        const OTTransaction& theOwner) const final;  // From owner we can get
+                                                     // acct ID, server ID,
+                                                     // and transaction Num
     std::unique_ptr<opentxs::Item> Item(
         const identifier::Nym& theNymID,
         const OTTransaction& theOwner,
         itemType theType,
-        const opentxs::Identifier& pDestinationAcctID) const override;
+        const opentxs::Identifier& pDestinationAcctID) const final;
     std::unique_ptr<opentxs::Item> Item(
         const String& strItem,
         const identifier::Server& theNotaryID,
         std::int64_t lTransactionNumber,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::Item> Item(
         const OTTransaction& theOwner,
         itemType theType,
-        const opentxs::Identifier& pDestinationAcctID) const override;
+        const opentxs::Identifier& pDestinationAcctID) const final;
 
     OTKeypair Keypair(
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const proto::KeyRole role) const override;
+        const proto::KeyRole role) const final;
     OTKeypair Keypair(
         const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     OTKeypair Keypair(
         const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 
     std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,
-        const identifier::Server& theNotaryID) const override;
+        const identifier::Server& theNotaryID) const final;
     std::unique_ptr<opentxs::Ledger> Ledger(
         const identifier::Nym& theNymID,
         const opentxs::Identifier& theAccountID,
-        const identifier::Server& theNotaryID) const override;
+        const identifier::Server& theNotaryID) const final;
     std::unique_ptr<opentxs::Ledger> Ledger(
         const identifier::Nym& theNymID,
         const opentxs::Identifier& theAcctID,
         const identifier::Server& theNotaryID,
         ledgerType theType,
-        bool bCreateFile = false) const override;
+        bool bCreateFile = false) const final;
 
-    std::unique_ptr<OTMarket> Market() const override;
-    std::unique_ptr<OTMarket> Market(const char* szFilename) const override;
+    std::unique_ptr<OTMarket> Market() const final;
+    std::unique_ptr<OTMarket> Market(const char* szFilename) const final;
     virtual std::unique_ptr<OTMarket> Market(
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const identifier::UnitDefinition& CURRENCY_TYPE_ID,
-        const std::int64_t& lScale) const override;
+        const std::int64_t& lScale) const final;
 
-    std::unique_ptr<opentxs::Message> Message() const override;
+    std::unique_ptr<opentxs::Message> Message() const final;
 
 #if OT_CASH
-    std::unique_ptr<blind::Mint> Mint() const override;
+    std::unique_ptr<blind::Mint> Mint() const final;
     std::unique_ptr<blind::Mint> Mint(
         const String& strNotaryID,
-        const String& strInstrumentDefinitionID) const override;
+        const String& strInstrumentDefinitionID) const final;
     std::unique_ptr<blind::Mint> Mint(
         const String& strNotaryID,
         const String& strServerNymID,
-        const String& strInstrumentDefinitionID) const override;
+        const String& strInstrumentDefinitionID) const final;
 #endif
 
-    OTNymID NymID() const override;
-    OTNymID NymID(const std::string& serialized) const override;
-    OTNymID NymID(const opentxs::String& serialized) const override;
+    OTNymID NymID() const final;
+    OTNymID NymID(const std::string& serialized) const final;
+    OTNymID NymID(const opentxs::String& serialized) const final;
 
-    std::unique_ptr<OTOffer> Offer() const override;  // The constructor
-                                                      // contains the 3
-                                                      // variables needed to
-                                                      // identify any market.
+    std::unique_ptr<OTOffer> Offer() const final;  // The constructor
+                                                   // contains the 3
+                                                   // variables needed to
+                                                   // identify any market.
     std::unique_ptr<OTOffer> Offer(
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const identifier::UnitDefinition& CURRENCY_ID,
-        const std::int64_t& MARKET_SCALE) const override;
+        const std::int64_t& MARKET_SCALE) const final;
 
-    OTPasswordPrompt PasswordPrompt(const std::string& text) const override;
+    OTPasswordPrompt PasswordPrompt(const std::string& text) const final;
 
-    std::unique_ptr<OTPayment> Payment() const override;
-    std::unique_ptr<OTPayment> Payment(const String& strPayment) const override;
+    std::unique_ptr<OTPayment> Payment() const final;
+    std::unique_ptr<OTPayment> Payment(const String& strPayment) const final;
     std::unique_ptr<OTPayment> Payment(
         const opentxs::Contract& contract,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 
 #if OT_CRYPTO_WITH_BIP39
     OTPaymentCode PaymentCode(
         const std::string& base58,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     OTPaymentCode PaymentCode(
         const proto::PaymentCode& serialized,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
     OTPaymentCode PaymentCode(
         const std::string& seed,
         const Bip32Index nym,
@@ -171,21 +189,20 @@ public:
         const opentxs::PasswordPrompt& reason,
         const bool bitmessage,
         const std::uint8_t bitmessageVersion,
-        const std::uint8_t bitmessageStream) const override;
+        const std::uint8_t bitmessageStream) const final;
 #endif
 
-    std::unique_ptr<OTPaymentPlan> PaymentPlan() const override;
+    std::unique_ptr<OTPaymentPlan> PaymentPlan() const final;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
         const identifier::Server& NOTARY_ID,
-        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
-        const override;
+        const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID) const final;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const opentxs::Identifier& SENDER_ACCT_ID,
         const identifier::Nym& SENDER_NYM_ID,
         const opentxs::Identifier& RECIPIENT_ACCT_ID,
-        const identifier::Nym& RECIPIENT_NYM_ID) const override;
+        const identifier::Nym& RECIPIENT_NYM_ID) const final;
 
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
@@ -217,12 +234,12 @@ public:
         const opentxs::PasswordPrompt& reason) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& recipientNym,
-        const Armored& encrypted,
+        const opentxs::Armored& encrypted,
         const opentxs::PasswordPrompt& reason) const override;
 
     OTZMQPipeline Pipeline(
         std::function<void(opentxs::network::zeromq::Message&)> callback)
-        const override;
+        const final;
 
 #if OT_CASH
     std::unique_ptr<blind::Purse> Purse(
@@ -231,91 +248,88 @@ public:
         const blind::Mint& mint,
         const Amount totalValue,
         const opentxs::PasswordPrompt& reason,
-        const proto::CashType type) const override;
+        const proto::CashType type) const final;
     std::unique_ptr<blind::Purse> Purse(
-        const proto::Purse& serialized) const override;
+        const proto::Purse& serialized) const final;
     std::unique_ptr<blind::Purse> Purse(
         const identity::Nym& owner,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const opentxs::PasswordPrompt& reason,
-        const proto::CashType type) const override;
+        const proto::CashType type) const final;
 #endif  // OT_CASH
 
     std::unique_ptr<OTScriptable> Scriptable(
         const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 
-    OTServerID ServerID() const override;
-    OTServerID ServerID(const std::string& serialized) const override;
-    OTServerID ServerID(const opentxs::String& serialized) const override;
+    OTServerID ServerID() const final;
+    OTServerID ServerID(const std::string& serialized) const final;
+    OTServerID ServerID(const opentxs::String& serialized) const final;
 
-    std::unique_ptr<OTSignedFile> SignedFile() const override;
+    std::unique_ptr<OTSignedFile> SignedFile() const final;
     std::unique_ptr<OTSignedFile> SignedFile(
         const String& LOCAL_SUBDIR,
-        const String& FILE_NAME) const override;
+        const String& FILE_NAME) const final;
     std::unique_ptr<OTSignedFile> SignedFile(
         const char* LOCAL_SUBDIR,
-        const String& FILE_NAME) const override;
+        const String& FILE_NAME) const final;
     std::unique_ptr<OTSignedFile> SignedFile(
         const char* LOCAL_SUBDIR,
-        const char* FILE_NAME) const override;
+        const char* FILE_NAME) const final;
 
-    std::unique_ptr<OTSmartContract> SmartContract() const override;
+    std::unique_ptr<OTSmartContract> SmartContract() const final;
     std::unique_ptr<OTSmartContract> SmartContract(
-        const identifier::Server& NOTARY_ID) const override;
+        const identifier::Server& NOTARY_ID) const final;
 
-    const api::crypto::Symmetric& Symmetric() const override
-    {
-        return symmetric_;
-    }
+    const api::crypto::Symmetric& Symmetric() const final { return symmetric_; }
 
-    OTSymmetricKey SymmetricKey() const override;
+    OTSymmetricKey SymmetricKey() const final;
     OTSymmetricKey SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
         const opentxs::PasswordPrompt& password,
-        const proto::SymmetricMode mode) const override;
+        const proto::SymmetricMode mode) const final;
     OTSymmetricKey SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
-        const proto::SymmetricKey serialized) const override;
+        const proto::SymmetricKey serialized) const final;
     OTSymmetricKey SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
         const OTPassword& seed,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
         const std::size_t size,
-        const proto::SymmetricKeyType type) const override;
+        const proto::SymmetricKeyType type) const final;
     OTSymmetricKey SymmetricKey(
         const opentxs::crypto::SymmetricProvider& engine,
         const OTPassword& raw,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 
-    std::unique_ptr<OTTrade> Trade() const override;
+    std::unique_ptr<OTTrade> Trade() const final;
     std::unique_ptr<OTTrade> Trade(
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
         const opentxs::Identifier& assetAcctId,
         const identifier::Nym& nymID,
         const identifier::UnitDefinition& currencyId,
-        const opentxs::Identifier& currencyAcctId) const override;
+        const opentxs::Identifier& currencyAcctId) const final;
 
     std::unique_ptr<OTTransactionType> Transaction(
         const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const override;
+        const opentxs::PasswordPrompt& reason) const final;
 
     std::unique_ptr<OTTransaction> Transaction(
-        const opentxs::Ledger& theOwner) const override;
+        const opentxs::Ledger& theOwner) const final;
     std::unique_ptr<OTTransaction> Transaction(
         const identifier::Nym& theNymID,
         const opentxs::Identifier& theAccountID,
         const identifier::Server& theNotaryID,
-        originType theOriginType = originType::not_applicable) const override;
+        originType theOriginType = originType::not_applicable) const final;
     std::unique_ptr<OTTransaction> Transaction(
         const identifier::Nym& theNymID,
         const opentxs::Identifier& theAccountID,
         const identifier::Server& theNotaryID,
         std::int64_t lTransactionNum,
-        originType theOriginType = originType::not_applicable) const override;
+        originType theOriginType = originType::not_applicable) const final;
     // THIS factory only used when loading an abbreviated box receipt
     // (inbox, nymbox, or outbox receipt).
     // The full receipt is loaded only after the abbreviated ones are loaded,
@@ -337,23 +351,23 @@ public:
         const std::int64_t& lClosingNum,
         const std::int64_t& lRequestNum,
         bool bReplyTransSuccess,
-        NumList* pNumList = nullptr) const override;
+        NumList* pNumList = nullptr) const final;
     std::unique_ptr<OTTransaction> Transaction(
         const identifier::Nym& theNymID,
         const opentxs::Identifier& theAccountID,
         const identifier::Server& theNotaryID,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
-        std::int64_t lTransactionNum = 0) const override;
+        std::int64_t lTransactionNum = 0) const final;
     std::unique_ptr<OTTransaction> Transaction(
         const opentxs::Ledger& theOwner,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
-        std::int64_t lTransactionNum = 0) const override;
+        std::int64_t lTransactionNum = 0) const final;
 
-    OTUnitID UnitID() const override;
-    OTUnitID UnitID(const std::string& serialized) const override;
-    OTUnitID UnitID(const opentxs::String& serialized) const override;
+    OTUnitID UnitID() const final;
+    OTUnitID UnitID(const std::string& serialized) const final;
+    OTUnitID UnitID(const opentxs::String& serialized) const final;
 
     ~Factory() override = default;
 

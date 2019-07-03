@@ -44,7 +44,7 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -88,7 +88,7 @@ bool Letter::AddRSARecipients(
         return false;
     }
 
-    auto binary = proto::ProtoAsData(serializedSessionKey);
+    auto binary = api.Factory().Data(serializedSessionKey);
     const bool haveSessionKey =
         engine.EncryptSessionKey(recipients, binary, encrypted, reason);
 
@@ -316,7 +316,7 @@ bool Letter::Seal(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
     output.set_version(akey_to_envelope_version_.at(highestKeyVersion));
-    auto temp = proto::ProtoAsData(output);
+    auto temp = api.Factory().Data(output);
     dataOutput.Assign(temp->data(), temp->size());
 
     return true;
@@ -329,7 +329,7 @@ bool Letter::Open(
     String& theOutput,
     const PasswordPrompt& reason)
 {
-    auto serialized = proto::DataToProto<proto::Envelope>(dataInput);
+    auto serialized = proto::Factory<proto::Envelope>(dataInput);
 
     const bool haveInput = proto::Validate(serialized, VERBOSE);
 

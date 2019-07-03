@@ -7,7 +7,9 @@
 
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/Types.hpp"

@@ -23,11 +23,13 @@
 namespace opentxs
 {
 ContactData::ContactData(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber targetVersion,
     const SectionMap& sections)
-    : version_(check_version(version, targetVersion))
+    : api_(api)
+    , version_(check_version(version, targetVersion))
     , nym_(nym)
     , sections_(sections)
 {
@@ -38,15 +40,25 @@ ContactData::ContactData(
     }
 }
 
+ContactData::ContactData(const ContactData& rhs)
+    : api_(rhs.api_)
+    , version_(rhs.version_)
+    , nym_(rhs.nym_)
+    , sections_(rhs.sections_)
+{
+}
+
 ContactData::ContactData(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber targetVersion,
     const proto::ContactData& serialized)
     : ContactData(
+          api,
           nym,
           serialized.version(),
           targetVersion,
-          extract_sections(nym, targetVersion, serialized))
+          extract_sections(api, nym, targetVersion, serialized))
 {
 }
 
@@ -82,7 +94,7 @@ ContactData ContactData::operator+(const ContactData& rhs) const
 
     const auto version = std::max(version_, rhs.Version());
 
-    return ContactData(nym_, version, version, map);
+    return ContactData(api_, nym_, version, version, map);
 }
 
 ContactData::operator std::string() const
@@ -113,6 +125,7 @@ ContactData ContactData::AddContract(
     auto version = proto::RequiredVersion(section, currency, version_);
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version,
         version,
@@ -152,6 +165,7 @@ ContactData ContactData::AddEmail(
     auto version = proto::RequiredVersion(section, type, version_);
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version,
         version,
@@ -174,7 +188,8 @@ ContactData ContactData::AddItem(const ClaimTuple& claim) const
         static_cast<proto::ContactItemType>(std::get<2>(claim)),
         version_);
 
-    auto item = std::make_shared<ContactItem>(nym_, version, version, claim);
+    auto item =
+        std::make_shared<ContactItem>(api_, nym_, version, version, claim);
 
     return AddItem(item);
 }
@@ -192,7 +207,7 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
     if (map.end() == it) {
         auto& section = map[sectionID];
         section.reset(
-            new ContactSection(nym_, version, version, sectionID, item));
+            new ContactSection(api_, nym_, version, version, sectionID, item));
 
         OT_ASSERT(section);
     } else {
@@ -205,7 +220,7 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
         OT_ASSERT(section);
     }
 
-    return ContactData(nym_, version, version, map);
+    return ContactData(api_, nym_, version, version, map);
 }
 
 ContactData ContactData::AddPaymentCode(
@@ -231,6 +246,7 @@ ContactData ContactData::AddPaymentCode(
     auto version = proto::RequiredVersion(section, currency, version_);
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version,
         version,
@@ -270,6 +286,7 @@ ContactData ContactData::AddPhoneNumber(
     auto version = proto::RequiredVersion(section, type, version_);
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version,
         version,
@@ -304,6 +321,7 @@ ContactData ContactData::AddPreferredOTServer(
     auto version = proto::RequiredVersion(section, type, version_);
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version,
         version,
@@ -348,6 +366,7 @@ ContactData ContactData::AddSocialMediaProfile(
         proto::RequiredVersion(proto::CONTACTSECTION_PROFILE, type, version_);
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version,
         version,
@@ -364,7 +383,7 @@ ContactData ContactData::AddSocialMediaProfile(
         section.reset(new ContactSection(section->AddItem(item)));
     } else {
         section.reset(new ContactSection(
-            nym_, version, version, proto::CONTACTSECTION_PROFILE, item));
+            api_, nym_, version, version, proto::CONTACTSECTION_PROFILE, item));
     }
 
     OT_ASSERT(section);
@@ -393,6 +412,7 @@ ContactData ContactData::AddSocialMediaProfile(
         }
 
         item = std::make_shared<ContactItem>(
+            api_,
             nym_,
             version,
             version,
@@ -409,6 +429,7 @@ ContactData ContactData::AddSocialMediaProfile(
             commSection.reset(new ContactSection(commSection->AddItem(item)));
         } else {
             commSection.reset(new ContactSection(
+                api_,
                 nym_,
                 version,
                 version,
@@ -443,6 +464,7 @@ ContactData ContactData::AddSocialMediaProfile(
         }
 
         item = std::make_shared<ContactItem>(
+            api_,
             nym_,
             version,
             version,
@@ -460,6 +482,7 @@ ContactData ContactData::AddSocialMediaProfile(
                 new ContactSection(identifierSection->AddItem(item)));
         } else {
             identifierSection.reset(new ContactSection(
+                api_,
                 nym_,
                 version,
                 version,
@@ -470,7 +493,7 @@ ContactData ContactData::AddSocialMediaProfile(
         OT_ASSERT(identifierSection);
     }
 
-    return ContactData(nym_, version, version, map);
+    return ContactData(api_, nym_, version, version, map);
 }
 
 std::string ContactData::BestEmail() const
@@ -595,7 +618,7 @@ ContactData ContactData::Delete(const Identifier& id) const
 
     if (false == deleted) { return *this; }
 
-    return ContactData(nym_, version_, version_, map);
+    return ContactData(api_, nym_, version_, version_, map);
 }
 
 std::string ContactData::EmailAddresses(bool active) const
@@ -624,6 +647,7 @@ std::string ContactData::EmailAddresses(bool active) const
 }
 
 ContactData::SectionMap ContactData::extract_sections(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber targetVersion,
     const proto::ContactData& serialized)
@@ -633,7 +657,10 @@ ContactData::SectionMap ContactData::extract_sections(
     for (const auto it : serialized.section()) {
         if ((0 != it.version()) && (it.item_size() > 0)) {
             sectionMap[it.name()].reset(new ContactSection(
-                nym, check_version(serialized.version(), targetVersion), it));
+                api,
+                nym,
+                check_version(serialized.version(), targetVersion),
+                it));
         }
     }
 
@@ -787,6 +814,7 @@ ContactData ContactData::SetCommonName(const std::string& name) const
                                                  proto::CITEMATTR_PRIMARY};
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version_,
         version_,
@@ -817,6 +845,7 @@ ContactData ContactData::SetName(const std::string& name, const bool primary)
     if (primary) { attrib.emplace(proto::CITEMATTR_PRIMARY); }
 
     auto item = std::make_shared<ContactItem>(
+        api_,
         nym_,
         version_,
         version_,
@@ -849,6 +878,7 @@ ContactData ContactData::SetScope(
         auto version = proto::RequiredVersion(section, type, version_);
 
         auto item = std::make_shared<ContactItem>(
+            api_,
             nym_,
             version,
             version,
@@ -862,15 +892,16 @@ ContactData ContactData::SetScope(
         OT_ASSERT(item);
 
         auto newSection = std::make_shared<ContactSection>(
-            nym_, version, version, section, item);
+            api_, nym_, version, version, section, item);
 
         OT_ASSERT(newSection);
 
         mapCopy[section] = newSection;
 
-        return ContactData(nym_, version, version, mapCopy);
+        return ContactData(api_, nym_, version, version, mapCopy);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Scope already set.").Flush();
+
         return *this;
     }
 }

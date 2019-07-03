@@ -15,12 +15,14 @@ class Test_ContactGroup : public ::testing::Test
 {
 public:
     Test_ContactGroup()
-        : contactGroup_(
+        : api_(opentxs::Context().StartClient({}, 0))
+        , contactGroup_(
               std::string("testContactGroupNym1"),
               opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
               opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
               {})
         , primary_(new opentxs::ContactItem(
+              api_,
               std::string("primaryContactItem"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
@@ -31,6 +33,7 @@ public:
               NULL_START,
               NULL_END))
         , active_(new opentxs::ContactItem(
+              api_,
               std::string("activeContactItem"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
@@ -43,6 +46,7 @@ public:
     {
     }
 
+    const opentxs::api::client::Manager& api_;
     const opentxs::ContactGroup contactGroup_;
     const std::shared_ptr<opentxs::ContactItem> primary_;
     const std::shared_ptr<opentxs::ContactItem> active_;
@@ -55,6 +59,7 @@ TEST_F(Test_ContactGroup, first_constructor)
     // Test constructing a group with a map containing two primary items.
     const std::shared_ptr<opentxs::ContactItem> primary2(
         new opentxs::ContactItem(
+            api_,
             std::string("primaryContactItemNym2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -154,6 +159,7 @@ TEST_F(Test_ContactGroup, operator_plus)
     // Test adding a group with 2 items to a group with 1 item.
     const std::shared_ptr<opentxs::ContactItem> primary2(
         new opentxs::ContactItem(
+            api_,
             std::string("primaryContactItemNym2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -261,6 +267,7 @@ TEST_F(Test_ContactGroup, Best_primary)
 TEST_F(Test_ContactGroup, Best_active_and_local)
 {
     const std::shared_ptr<opentxs::ContactItem> local(new opentxs::ContactItem(
+        api_,
         std::string("localContactItemNym"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,

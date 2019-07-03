@@ -56,21 +56,6 @@ OTArmored Armored::Factory(const opentxs::String& value)
     return OTArmored(new implementation::Armored(value));
 }
 
-OTArmored Armored::Factory(const Data& value)
-{
-    return OTArmored(new implementation::Armored(value));
-}
-
-OTArmored Armored::Factory(const OTEnvelope& value)
-{
-    return OTArmored(new implementation::Armored(value));
-}
-
-OTArmored Armored::Factory(const char* value)
-{
-    return OTArmored(new implementation::Armored(value));
-}
-
 bool Armored::LoadFromString(
     Armored& ascArmor,
     const String& strInput,
@@ -99,6 +84,23 @@ bool Armored::LoadFromString(
         ascArmor.Set(strInput.Get());
 
     return true;
+}
+
+opentxs::Armored* Factory::Armored() { return new implementation::Armored(); }
+
+opentxs::Armored* Factory::Armored(const Data& input)
+{
+    return new implementation::Armored(input);
+}
+
+opentxs::Armored* Factory::Armored(const String& input)
+{
+    return new implementation::Armored(input);
+}
+
+opentxs::Armored* Factory::Armored(const OTEnvelope& input)
+{
+    return new implementation::Armored(input);
 }
 }  // namespace opentxs
 
@@ -130,13 +132,6 @@ Armored::Armored(const OTEnvelope& theEnvelope)
     : Armored()
 {
     theEnvelope.GetCiphertext(*this);
-}
-
-// copies (already encoded)
-Armored::Armored(const char* szValue)
-    : Armored()
-{
-    Set(szValue);
 }
 
 // Copies (already encoded)

@@ -77,6 +77,46 @@ Factory::Factory(const api::internal::Core& api)
     OT_ASSERT(pSymmetric_);
 }
 
+OTArmored Factory::Armored() const
+{
+    return OTArmored{opentxs::Factory::Armored()};
+}
+
+OTArmored Factory::Armored(const std::string& input) const
+{
+    return OTArmored{opentxs::Factory::Armored(String::Factory(input.c_str()))};
+}
+
+OTArmored Factory::Armored(const opentxs::Data& input) const
+{
+    return OTArmored{opentxs::Factory::Armored(input)};
+}
+
+OTArmored Factory::Armored(const opentxs::String& input) const
+{
+    return OTArmored{opentxs::Factory::Armored(input)};
+}
+
+OTArmored Factory::Armored(const opentxs::OTEnvelope& input) const
+{
+    return OTArmored{opentxs::Factory::Armored(input)};
+}
+
+OTArmored Factory::Armored(const ProtobufType& input) const
+{
+    return OTArmored{opentxs::Factory::Armored(Data(input))};
+}
+
+OTString Factory::Armored(const ProtobufType& input, const std::string& header)
+    const
+{
+    auto armored = Armored(Data(input));
+    auto output = String::Factory();
+    armored->WriteArmoredString(output, header);
+
+    return output;
+}
+
 OTAsymmetricKey Factory::AsymmetricKey(
     const NymParameters& params,
     const proto::KeyRole role,
@@ -323,6 +363,52 @@ std::unique_ptr<OTCronItem> Factory::CronItem(
     if (pItem->LoadContractFromString(strContract, reason)) { return pItem; }
 
     return nullptr;
+}
+
+OTData Factory::Data() const { return Data::Factory(); }
+
+OTData Factory::Data(const opentxs::Armored& input) const
+{
+    return Data::Factory(input);
+}
+
+OTData Factory::Data(const ProtobufType& input) const
+{
+    auto output = Data::Factory();
+    output->SetSize(input.ByteSize());
+    input.SerializeToArray(output->data(), output->size());
+
+    return output;
+}
+
+OTData Factory::Data(const opentxs::network::zeromq::Frame& input) const
+{
+    return Data::Factory(input);
+}
+
+OTData Factory::Data(const std::uint8_t input) const
+{
+    return Data::Factory(input);
+}
+
+OTData Factory::Data(const std::uint32_t input) const
+{
+    return Data::Factory(input);
+}
+
+OTData Factory::Data(const std::string input, const StringStyle mode) const
+{
+    return Data::Factory(input, static_cast<Data::Mode>(mode));
+}
+
+OTData Factory::Data(const std::vector<unsigned char>& input) const
+{
+    return Data::Factory(input);
+}
+
+OTData Factory::Data(const std::vector<std::byte>& input) const
+{
+    return Data::Factory(input);
 }
 
 OTIdentifier Factory::Identifier() const { return Identifier::Factory(); }
@@ -870,7 +956,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     [[maybe_unused]] const Nym_p& recipientNym,
-    [[maybe_unused]] const Armored& encrypted,
+    [[maybe_unused]] const opentxs::Armored& encrypted,
     [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
     LogOutput(OT_METHOD)(__FUNCTION__)(

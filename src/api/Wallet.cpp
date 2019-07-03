@@ -2088,7 +2088,7 @@ ConstServerContract Wallet::Server(
             if (nym) {
                 auto& pServer = server_map_[server];
                 pServer.reset(
-                    ServerContract::Factory(*this, nym, *serialized, reason));
+                    ServerContract::Factory(api_, nym, *serialized, reason));
 
                 if (pServer) {
                     valid = true;  // Factory() performs validation
@@ -2197,7 +2197,7 @@ ConstServerContract Wallet::Server(
 
     if (nym) {
         std::unique_ptr<ServerContract> candidate{
-            ServerContract::Factory(*this, nym, contract, reason)};
+            ServerContract::Factory(api_, nym, contract, reason)};
 
         if (candidate) {
             if (candidate->Validate(reason)) {
@@ -2239,7 +2239,7 @@ ConstServerContract Wallet::Server(
     if (nym) {
         std::unique_ptr<ServerContract> contract;
         contract.reset(ServerContract::Create(
-            *this, nym, endpoints, terms, name, version, reason));
+            api_, nym, endpoints, terms, name, version, reason));
 
         if (contract) {
 
@@ -2370,7 +2370,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
             if (nym) {
                 auto& pUnit = unit_map_[unit];
                 pUnit.reset(
-                    UnitDefinition::Factory(*this, nym, *serialized, reason));
+                    UnitDefinition::Factory(api_, nym, *serialized, reason));
 
                 if (pUnit) {
                     valid = true;  // Factory() performs validation
@@ -2443,7 +2443,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
     if (nym) {
         std::unique_ptr<opentxs::UnitDefinition> candidate(
-            UnitDefinition::Factory(*this, nym, contract, reason));
+            UnitDefinition::Factory(api_, nym, contract, reason));
 
         if (candidate) {
             if (candidate->Validate(reason)) {
@@ -2477,7 +2477,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     if (nym) {
         std::unique_ptr<opentxs::UnitDefinition> contract;
         contract.reset(UnitDefinition::Create(
-            *this,
+            api_,
             nym,
             shortname,
             name,
@@ -2517,7 +2517,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     if (nym) {
         std::unique_ptr<opentxs::UnitDefinition> contract;
         contract.reset(UnitDefinition::Create(
-            *this, nym, shortname, name, symbol, terms, reason));
+            api_, nym, shortname, name, symbol, terms, reason));
 
         if (contract) {
 

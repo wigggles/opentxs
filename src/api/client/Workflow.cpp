@@ -29,7 +29,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include <algorithm>
 #include <chrono>
@@ -190,7 +190,7 @@ std::unique_ptr<proto::Purse> Workflow::ExtractPurse(
     OT_ASSERT(output);
 
     const auto& serialized = workflow.source(0).item();
-    *output = proto::TextToProto<proto::Purse>(serialized);
+    *output = proto::Factory<proto::Purse>(serialized);
 
     return output;
 }
@@ -621,7 +621,7 @@ OTIdentifier Workflow::AllocateCash(
     source.set_version(OUTGOING_CASH_SOURCE_VERSION);
     source.set_id(workflowID->str());
     source.set_revision(1);
-    source.set_item(proto::ProtoAsString(purse.Serialize()));
+    source.set_item(proto::ToString(purse.Serialize()));
     workflow.set_notary(purse.Notary().str());
     auto& event = *workflow.add_event();
     event.set_version(OUTGOING_CASH_EVENT_VERSION);
@@ -2476,7 +2476,7 @@ OTIdentifier Workflow::ReceiveCash(
     source.set_version(INCOMING_CASH_SOURCE_VERSION);
     source.set_id(workflowID->str());
     source.set_revision(1);
-    source.set_item(proto::ProtoAsString(purse.Serialize()));
+    source.set_item(proto::ToString(purse.Serialize()));
     workflow.set_notary(purse.Notary().str());
     auto& event = *workflow.add_event();
     event.set_version(INCOMING_CASH_EVENT_VERSION);
@@ -2780,7 +2780,7 @@ void Workflow::update_rpc(
     auto message = zmq::Message::Factory();
     message->AddFrame();
     message->AddFrame(localNymID);
-    message->AddFrame(proto::ProtoAsData(push));
+    message->AddFrame(push);
     const auto instance = api_.Instance();
     message->AddFrame(Data::Factory(&instance, sizeof(instance)));
     rpc_publisher_->Push(message);
