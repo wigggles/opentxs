@@ -18,10 +18,10 @@ namespace opentxs
 {
 
 CurrencyContract::CurrencyContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
-    : ot_super(wallet, nym, serialized)
+    : ot_super(api, nym, serialized)
     , tla_(serialized.currency().tla())
     , power_(serialized.currency().power())
     , fractional_unit_name_(serialized.currency().fraction())
@@ -29,7 +29,7 @@ CurrencyContract::CurrencyContract(
 }
 
 CurrencyContract::CurrencyContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
@@ -38,7 +38,7 @@ CurrencyContract::CurrencyContract(
     const std::string& tla,
     const std::uint32_t power,
     const std::string& fraction)
-    : ot_super(wallet, nym, shortname, name, symbol, terms)
+    : ot_super(api, nym, shortname, name, symbol, terms)
     , tla_(tla)
     , fractional_unit_name_(fraction)
 {

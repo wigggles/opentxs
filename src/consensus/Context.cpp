@@ -17,6 +17,7 @@
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "Context.hpp"
 
@@ -197,7 +198,7 @@ OTIdentifier Context::GetID(const Lock& lock) const
 
     auto contract = IDVersion(lock);
     auto id = Identifier::Factory();
-    id->CalculateDigest(proto::ProtoAsData(contract));
+    id->CalculateDigest(api_.Factory().Data(contract));
 
     return id;
 }
@@ -525,7 +526,7 @@ proto::Context Context::serialize(
     return output;
 }
 
-OTData Context::Serialize() const { return proto::ProtoAsData(Serialized()); }
+OTData Context::Serialize() const { return api_.Factory().Data(Serialized()); }
 
 proto::Context Context::Serialized() const
 {
@@ -597,8 +598,7 @@ bool Context::update_signature(const Lock& lock, const PasswordPrompt& reason)
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success =
-        nym_->SignProto(serialized, proto::SIGROLE_CONTEXT, signature, reason);
+    success = nym_->Sign(serialized, proto::SIGROLE_CONTEXT, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -672,7 +672,7 @@ bool Context::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto, reason);
 }
 
 bool Context::VerifyAcknowledgedNumber(const RequestNumber& req) const

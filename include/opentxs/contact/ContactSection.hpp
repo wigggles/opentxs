@@ -16,10 +16,6 @@
 
 namespace opentxs
 {
-
-class ContactGroup;
-class ContactItem;
-
 class ContactSection
 {
 public:
@@ -27,23 +23,25 @@ public:
         GroupMap;
 
     ContactSection(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const GroupMap& groups);
     ContactSection(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const std::shared_ptr<ContactItem>& item);
     ContactSection(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber parentVersion,
         const proto::ContactSection& serialized);
-    ContactSection(const ContactSection&) = default;
-    ContactSection(ContactSection&&) = default;
+    ContactSection(const ContactSection&);
 
     ContactSection operator+(const ContactSection& rhs) const;
 
@@ -64,6 +62,7 @@ public:
     ~ContactSection() = default;
 
 private:
+    const api::Core& api_;
     const VersionNumber version_{0};
     const std::string nym_{};
     const proto::ContactSectionName section_{proto::CONTACTSECTION_ERROR};
@@ -77,6 +76,7 @@ private:
         const proto::ContactSectionName section,
         const std::shared_ptr<ContactItem>& item);
     static GroupMap extract_groups(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber parentVersion,
         const proto::ContactSection& serialized);
@@ -84,6 +84,7 @@ private:
     ContactSection add_scope(const std::shared_ptr<ContactItem>& item) const;
 
     ContactSection() = delete;
+    ContactSection(ContactSection&&) = delete;
     ContactSection& operator=(const ContactSection&) = delete;
     ContactSection& operator=(ContactSection&&) = delete;
 };

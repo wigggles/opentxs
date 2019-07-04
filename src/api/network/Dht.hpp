@@ -43,17 +43,17 @@ private:
 
 #if OT_DHT
     static bool ProcessPublicNym(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessServerContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);

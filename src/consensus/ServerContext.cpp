@@ -60,6 +60,7 @@
 #include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "core/StateMachine.hpp"
 #include "Context.hpp"
@@ -2702,10 +2703,10 @@ NetworkReplyMessage ServerContext::PingNotary(const PasswordPrompt& reason)
     const auto& serializedEncryptKey = *pEncr;
     request->m_strRequestNum =
         String::Factory(std::to_string(FIRST_REQUEST_NUMBER).c_str());
-    request->m_strNymPublicKey = proto::ProtoAsArmored(
-        serializedAuthKey, String::Factory("ASYMMETRIC KEY"));
-    request->m_strNymID2 = proto::ProtoAsArmored(
-        serializedEncryptKey, String::Factory("ASYMMETRIC KEY"));
+    request->m_strNymPublicKey =
+        api_.Factory().Armored(serializedAuthKey, "ASYMMETRIC KEY");
+    request->m_strNymID2 =
+        api_.Factory().Armored(serializedEncryptKey, "ASYMMETRIC KEY");
 
     if (false == finalize_server_command(*request, reason)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3501,7 +3502,7 @@ bool ServerContext::process_check_nym_response(
         return true;
     }
 
-    auto serialized = proto::DataToProto<proto::CredentialIndex>(
+    auto serialized = proto::Factory<proto::CredentialIndex>(
         Data::Factory(reply.m_ascPayload));
 
     auto nym = client.Wallet().Nym(serialized, reason);
@@ -4233,30 +4234,26 @@ bool ServerContext::process_get_unit_definition_response(
 
     switch (static_cast<ContractType>(reply.enum_)) {
         case ContractType::NYM: {
-            auto serialized =
-                proto::DataToProto<proto::CredentialIndex>(raw.get());
+            auto serialized = proto::Factory<proto::CredentialIndex>(raw);
             auto contract = api_.Wallet().Nym(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.nymid()); }
         } break;
         case ContractType::SERVER: {
-            auto serialized =
-                proto::DataToProto<proto::ServerContract>(raw.get());
+            auto serialized = proto::Factory<proto::ServerContract>(raw);
             auto contract = api_.Wallet().Server(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.id()); }
         } break;
         case ContractType::UNIT: {
-            auto serialized =
-                proto::DataToProto<proto::UnitDefinition>(raw.get());
+            auto serialized = proto::Factory<proto::UnitDefinition>(raw);
             auto contract = api_.Wallet().UnitDefinition(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.id()); }
         } break;
         case ContractType::ERROR:
         default: {
-            auto serialized =
-                proto::DataToProto<proto::UnitDefinition>(raw.get());
+            auto serialized = proto::Factory<proto::UnitDefinition>(raw);
             auto contract = api_.Wallet().UnitDefinition(serialized, reason);
 
             if (contract) {
@@ -4264,8 +4261,7 @@ bool ServerContext::process_get_unit_definition_response(
                 return (unitID->str() == serialized.id());
             } else {
                 // Maybe it's actually a server contract?
-                auto serialized =
-                    proto::DataToProto<proto::ServerContract>(raw.get());
+                auto serialized = proto::Factory<proto::ServerContract>(raw);
 
                 auto contract = api_.Wallet().Server(serialized, reason);
 
@@ -4816,7 +4812,7 @@ bool ServerContext::process_register_nym_response(
     const PasswordPrompt& reason)
 {
     auto serialized =
-        proto::DataToProto<proto::Context>(Data::Factory(reply.m_ascPayload));
+        proto::Factory<proto::Context>(Data::Factory(reply.m_ascPayload));
     auto verified = proto::Validate(serialized, VERBOSE);
 
     if (false == verified) {
@@ -5137,7 +5133,7 @@ void ServerContext::process_response_transaction_cash_deposit(
     const auto& item = *pItem;
     auto rawPurse = Data::Factory();
     item.GetAttachment(rawPurse);
-    const auto serializedPurse = proto::DataToProto<proto::Purse>(rawPurse);
+    const auto serializedPurse = proto::Factory<proto::Purse>(rawPurse);
 
     if (false == proto::Validate(serializedPurse, VERBOSE)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
@@ -6171,7 +6167,7 @@ void ServerContext::process_incoming_cash_withdrawal(
     const auto& nymID = nym.ID();
     auto rawPurse = Data::Factory();
     item.GetAttachment(rawPurse);
-    const auto serializedPurse = proto::DataToProto<proto::Purse>(rawPurse);
+    const auto serializedPurse = proto::Factory<proto::Purse>(rawPurse);
     std::shared_ptr<blind::Purse> pPurse{};
 
     if (proto::Validate(serializedPurse, VERBOSE)) {

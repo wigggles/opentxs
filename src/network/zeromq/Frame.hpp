@@ -34,7 +34,9 @@ private:
 
     Frame();
     explicit Frame(const Data& input);
+    explicit Frame(const ProtobufType& input);
     explicit Frame(const std::string& input);
+    explicit Frame(const std::size_t bytes);
     Frame(const Frame&) = delete;
     Frame(Frame&&) = delete;
     Frame& operator=(Frame&&) = delete;

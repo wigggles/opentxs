@@ -19,12 +19,6 @@
 
 namespace opentxs
 {
-
-class ContactGroup;
-class ContactItem;
-class ContactSection;
-class Identifier;
-
 class ContactData
 {
 public:
@@ -34,16 +28,17 @@ public:
     static std::string PrintContactData(const proto::ContactData& data);
 
     ContactData(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber targetVersion,
         const SectionMap& sections);
     ContactData(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber targetVersion,
         const proto::ContactData& serialized);
-    ContactData(const ContactData&) = default;
-    ContactData(ContactData&&) = default;
+    ContactData(const ContactData&);
 
     ContactData operator+(const ContactData& rhs) const;
 
@@ -121,6 +116,7 @@ private:
         pair<proto::ContactItemType, std::shared_ptr<const ContactGroup>>
             Scope;
 
+    const api::Core& api_;
     const VersionNumber version_{0};
     const std::string nym_{};
     const SectionMap sections_{};
@@ -129,6 +125,7 @@ private:
         const VersionNumber in,
         const VersionNumber targetVersion);
     static SectionMap extract_sections(
+        const api::Core& api,
         const std::string& nym,
         const VersionNumber targetVersion,
         const proto::ContactData& serialized);
@@ -136,6 +133,7 @@ private:
     Scope scope() const;
 
     ContactData() = delete;
+    ContactData(ContactData&&) = delete;
     ContactData& operator=(const ContactData&) = delete;
     ContactData& operator=(ContactData&&) = delete;
 };

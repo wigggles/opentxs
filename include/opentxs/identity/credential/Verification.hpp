@@ -22,7 +22,9 @@ class Verification : virtual public Base
 public:
     EXPORT static proto::Verification SigningForm(
         const proto::Verification& item);
-    EXPORT static std::string VerificationID(const proto::Verification& item);
+    EXPORT static std::string VerificationID(
+        const api::Core& api,
+        const proto::Verification& item);
 
     EXPORT ~Verification() override = default;
 

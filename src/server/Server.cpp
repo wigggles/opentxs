@@ -41,6 +41,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PushSocket.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "ConfigLoader.hpp"
 #include "Transactor.hpp"
@@ -452,8 +453,9 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     OT_ASSERT(m_nymServer)
 
-    const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
-    auto ascContract = Armored::Factory(signedContract.get());
+    const auto signedContract =
+        manager_.Factory().Data(pContract->PublicContract());
+    auto ascContract = manager_.Factory().Armored(signedContract);
     auto strBookended = String::Factory();
     ascContract->WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(
@@ -964,7 +966,7 @@ OTZMQMessage Server::nymbox_push(
     push.set_version(OTX_PUSH_VERSION);
     push.set_type(proto::OTXPUSH_NYMBOX);
     push.set_item(String::Factory(item)->Get());
-    output->AddFrame(proto::ProtoAsString(push));
+    output->AddFrame(push);
 
     return output;
 }

@@ -264,6 +264,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/OT.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Pimpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Proto.tpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Qt.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/Shared.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/SharedPimpl.hpp"
@@ -285,6 +286,7 @@ if(OT_SHARED)
     ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Globals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Proto.cpp
   )
 
   target_link_libraries(${MODULE_NAME}

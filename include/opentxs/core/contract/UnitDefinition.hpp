@@ -35,10 +35,12 @@ private:
         const PasswordPrompt& reason) const override;
 
 protected:
-    const api::Wallet& wallet_;
+    const api::Core& api_;
     std::string primary_unit_symbol_;
 
-    static OTIdentifier GetID(const proto::UnitDefinition& contract);
+    static OTIdentifier GetID(
+        const api::Core& api,
+        const proto::UnitDefinition& contract);
 
     virtual proto::UnitDefinition IDVersion(const Lock& lock) const;
     virtual proto::UnitDefinition SigVersion(const Lock& lock) const;
@@ -49,11 +51,11 @@ protected:
         override;
 
     UnitDefinition(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::UnitDefinition serialized);
     UnitDefinition(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -62,7 +64,7 @@ protected:
 
 public:
     EXPORT static UnitDefinition* Create(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -73,7 +75,7 @@ public:
         const std::string& fraction,
         const PasswordPrompt& reason);
     EXPORT static UnitDefinition* Create(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -81,7 +83,7 @@ public:
         const std::string& terms,
         const std::uint64_t weight);
     EXPORT static UnitDefinition* Create(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -89,7 +91,7 @@ public:
         const std::string& terms,
         const PasswordPrompt& reason);
     EXPORT static UnitDefinition* Factory(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::UnitDefinition& serialized,
         const PasswordPrompt& reason);

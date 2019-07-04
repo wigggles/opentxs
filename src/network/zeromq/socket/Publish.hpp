@@ -22,6 +22,10 @@ public:
     {
         return Publish(Message::Factory(data));
     }
+    bool Publish(const ProtobufType& data) const override
+    {
+        return Publish(Message::Factory(data));
+    }
     bool Publish(zeromq::Message& data) const override { return deliver(data); }
 
     ~PublishSocket();

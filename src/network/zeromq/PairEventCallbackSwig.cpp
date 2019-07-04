@@ -12,6 +12,7 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PairEventCallbackSwig.hpp"
+#include "opentxs/Proto.tpp"
 
 #define OT_METHOD                                                              \
     "opentxs::network::zeromq::implementation::PairEventCallbackSwig::"
@@ -50,7 +51,7 @@ void PairEventCallbackSwig::Process(zeromq::Message& message) const
     OT_ASSERT(nullptr != callback_)
     OT_ASSERT(1 == message.Body().size());
 
-    const auto event = proto::TextToProto<proto::PairEvent>(message.Body_at(0));
+    const auto event = proto::Factory<proto::PairEvent>(message.Body_at(0));
 
     switch (event.type()) {
         case proto::PAIREVENT_RENAME: {

@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -24,6 +25,17 @@ OTZMQMessage Message::Factory()
 }
 
 OTZMQMessage Message::Factory(const Data& input)
+{
+    auto multipartMessage = new implementation::Message();
+
+    OT_ASSERT(nullptr != multipartMessage);
+
+    multipartMessage->AddFrame(input);
+
+    return OTZMQMessage(multipartMessage);
+}
+
+OTZMQMessage Message::Factory(const ProtobufType& input)
 {
     auto multipartMessage = new implementation::Message();
 
@@ -75,25 +87,29 @@ Message::Message(const Message& rhs)
 
 Frame& Message::AddFrame()
 {
-    OTZMQFrame message = Frame::Factory();
+    messages_.emplace_back(Frame::Factory());
 
-    messages_.emplace_back(message);
     return messages_.back().get();
 }
 
 Frame& Message::AddFrame(const opentxs::Data& input)
 {
-    OTZMQFrame message = Frame::Factory(input);
+    messages_.emplace_back(Frame::Factory(input));
 
-    messages_.emplace_back(message);
+    return messages_.back().get();
+}
+
+Frame& Message::AddFrame(const ProtobufType& input)
+{
+    messages_.emplace_back(Frame::Factory(input));
+
     return messages_.back().get();
 }
 
 Frame& Message::AddFrame(const std::string& input)
 {
-    OTZMQFrame message = Frame::Factory(input);
+    messages_.emplace_back(Frame::Factory(input));
 
-    messages_.emplace_back(message);
     return messages_.back().get();
 }
 

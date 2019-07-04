@@ -6,12 +6,14 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "Reply.hpp"
 
@@ -25,6 +27,7 @@ const VersionNumber Reply::DefaultVersion{1};
 const VersionNumber Reply::MaxVersion{1};
 
 OTXReply Reply::Factory(
+    const api::Core& api,
     const Nym_p signer,
     const identifier::Nym& recipient,
     const identifier::Server& server,
@@ -34,8 +37,8 @@ OTXReply Reply::Factory(
 {
     OT_ASSERT(signer);
 
-    std::unique_ptr<implementation::Reply> output{
-        new implementation::Reply(signer, recipient, server, type, success)};
+    std::unique_ptr<implementation::Reply> output{new implementation::Reply(
+        api, signer, recipient, server, type, success)};
 
     OT_ASSERT(output);
 
@@ -60,12 +63,15 @@ OTXReply Reply::Factory(
 namespace opentxs::otx::implementation
 {
 Reply::Reply(
+    const api::Core& api,
     const Nym_p signer,
     const identifier::Nym& recipient,
     const identifier::Server& server,
     const proto::ServerReplyType type,
     const bool success)
     : Signable(signer, DefaultVersion, "")
+    , otx::Reply()
+    , api_(api)
     , recipient_(recipient)
     , server_(server)
     , type_(type)
@@ -80,6 +86,8 @@ Reply::Reply(
     const proto::ServerReply serialized,
     const PasswordPrompt& reason)
     : Signable(extract_nym(api, serialized, reason), serialized.version(), "")
+    , otx::Reply()
+    , api_(api)
     , recipient_(identifier::Nym::Factory(serialized.nym()))
     , server_(identifier::Server::Factory(serialized.server()))
     , type_(serialized.type())
@@ -95,6 +103,7 @@ Reply::Reply(
 Reply::Reply(const Reply& rhs)
     : Signable(rhs.nym_, rhs.version_, rhs.conditions_)
     , otx::Reply()
+    , api_(rhs.api_)
     , recipient_(rhs.recipient_)
     , server_(rhs.server_)
     , type_(rhs.type_)
@@ -144,7 +153,7 @@ OTIdentifier Reply::GetID(const Lock& lock) const
 {
     auto contract = id_version(lock);
     auto id = Identifier::Factory();
-    id->CalculateDigest(proto::ProtoAsData(contract));
+    id->CalculateDigest(api_.Factory().Data(contract));
 
     return id;
 }
@@ -185,7 +194,7 @@ OTData Reply::Serialize() const
 {
     Lock lock(lock_);
 
-    return proto::ProtoAsData(full_version(lock));
+    return api_.Factory().Data(full_version(lock));
 }
 
 bool Reply::SetNumber(const RequestNumber number, const PasswordPrompt& reason)
@@ -220,8 +229,8 @@ bool Reply::update_signature(const Lock& lock, const PasswordPrompt& reason)
     signatures_.clear();
     auto serialized = signature_version(lock);
     auto& signature = *serialized.mutable_signature();
-    success = nym_->SignProto(
-        serialized, proto::SIGROLE_SERVERREPLY, signature, reason);
+    success =
+        nym_->Sign(serialized, proto::SIGROLE_SERVERREPLY, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -287,6 +296,6 @@ bool Reply::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto, reason);
 }
 }  // namespace opentxs::otx::implementation

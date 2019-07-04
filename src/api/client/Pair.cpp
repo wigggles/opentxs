@@ -38,6 +38,7 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/Proto.tpp"
 
 #include <atomic>
 #include <memory>
@@ -447,7 +448,7 @@ void Pair::process_pending_bailment(
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
 
     if (added) {
-        pending_bailment_->Publish(proto::ProtoAsString(request));
+        pending_bailment_->Publish(request);
         const OTIdentifier originalRequest =
             Identifier::Factory(request.pendingbailment().requestid());
         if (!originalRequest->empty()) {
@@ -558,8 +559,7 @@ void Pair::process_store_secret(
         event.set_version(1);
         event.set_type(proto::PAIREVENT_STORESECRET);
         event.set_issuer(issuerNymID->str());
-        const auto published =
-            pair_event_->Publish(proto::ProtoAsString(event));
+        const auto published = pair_event_->Publish(event);
 
         if (published) {
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -770,8 +770,7 @@ void Pair::state_machine(
                     event.set_version(1);
                     event.set_type(proto::PAIREVENT_RENAME);
                     event.set_issuer(issuerNymID.str());
-                    const auto published =
-                        pair_event_->Publish(proto::ProtoAsString(event));
+                    const auto published = pair_event_->Publish(event);
 
                     if (published) {
                         LogDetail(OT_METHOD)(__FUNCTION__)(

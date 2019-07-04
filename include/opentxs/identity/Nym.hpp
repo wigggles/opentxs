@@ -117,20 +117,12 @@ public:
         proto::SessionKey& output,
         const PasswordPrompt& reason) const = 0;
     EXPORT virtual void SerializeNymIDSource(Tag& parent) const = 0;
-    template <typename T>
-    EXPORT bool SignProto(
-        T& input,
+    EXPORT virtual bool Sign(
+        const ProtobufType& input,
         const proto::SignatureRole role,
         proto::Signature& signature,
         const PasswordPrompt& reason,
-        const proto::HashType hash = proto::HASHTYPE_ERROR) const
-    {
-        auto preimage = [&]() -> std::string {
-            return proto::ProtoAsString<T>(input);
-        };
-
-        return Sign(preimage, role, hash, signature, reason);
-    }
+        const proto::HashType hash = proto::HASHTYPE_ERROR) const = 0;
     EXPORT virtual std::string SocialMediaProfiles(
         const proto::ContactItemType type,
         bool active = true) const = 0;
@@ -155,17 +147,10 @@ public:
     EXPORT virtual VersionNumber VerificationCredentialVersion() const = 0;
     EXPORT virtual std::unique_ptr<proto::VerificationSet> VerificationSet()
         const = 0;
-    template <typename T>
-    EXPORT bool VerifyProto(
-        T& input,
+    EXPORT virtual bool Verify(
+        const ProtobufType& input,
         proto::Signature& signature,
-        const PasswordPrompt& reason) const
-    {
-        const auto copy{signature};
-        signature.clear_signature();
-
-        return Verify(proto::ProtoAsData<T>(input), copy, reason);
-    }
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool VerifyPseudonym(const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual std::string AddChildKeyCredential(
@@ -234,17 +219,6 @@ protected:
     Nym() = default;
 
 private:
-    virtual bool Sign(
-        const GetPreimage input,
-        const proto::SignatureRole role,
-        const proto::HashType hash,
-        proto::Signature& signature,
-        const PasswordPrompt& reason) const = 0;
-    virtual bool Verify(
-        const Data& plaintext,
-        const proto::Signature& sig,
-        const PasswordPrompt& reason) const = 0;
-
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;
     Nym& operator=(const Nym&) = delete;

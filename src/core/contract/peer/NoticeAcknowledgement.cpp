@@ -14,23 +14,23 @@
 namespace opentxs
 {
 NoticeAcknowledgement::NoticeAcknowledgement(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::PeerReply& serialized)
-    : ot_super(wallet, nym, serialized)
+    : ot_super(api, nym, serialized)
     , ack_(serialized.notice().ack())
 {
 }
 
 NoticeAcknowledgement::NoticeAcknowledgement(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const identifier::Nym& initiator,
     const Identifier& request,
     const identifier::Server& server,
     const proto::PeerRequestType type,
     const bool& ack)
-    : ot_super(wallet, nym, CURRENT_VERSION, initiator, server, type, request)
+    : ot_super(api, nym, CURRENT_VERSION, initiator, server, type, request)
     , ack_(ack)
 {
 }

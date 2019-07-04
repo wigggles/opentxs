@@ -10,6 +10,10 @@ namespace opentxs
 class Factory
 {
 public:
+    static opentxs::Armored* Armored();
+    static opentxs::Armored* Armored(const opentxs::Data& input);
+    static opentxs::Armored* Armored(const opentxs::String& input);
+    static opentxs::Armored* Armored(const opentxs::OTEnvelope& input);
     static identity::internal::Authority* Authority(
         const api::Core& api,
         const proto::KeyMode mode,
@@ -431,7 +435,7 @@ public:
         const api::client::Contacts& contacts,
         const api::Core& api,
         const Nym_p& recipientNym,
-        const Armored& encrypted,
+        const opentxs::Armored& encrypted,
         const opentxs::PasswordPrompt& reason);
     static ui::implementation::ActivityThreadRowInternal* PendingSend(
         const ui::implementation::ActivityThreadInternalInterface& parent,

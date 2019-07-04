@@ -19,11 +19,11 @@ private:
     friend ot_super;
 
     SecurityContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::UnitDefinition serialized);
     SecurityContract(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,

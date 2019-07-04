@@ -5,6 +5,9 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Data.hpp"
@@ -13,6 +16,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include "internal/identity/credential/Credential.hpp"
@@ -62,10 +66,12 @@ proto::Verification Verification::SigningForm(const proto::Verification& item)
 }
 
 // static
-std::string Verification::VerificationID(const proto::Verification& item)
+std::string Verification::VerificationID(
+    const api::Core& api,
+    const proto::Verification& item)
 {
     auto id = Identifier::Factory();
-    id->CalculateDigest(proto::ProtoAsData<proto::Verification>(item));
+    id->CalculateDigest(api.Factory().Data(item));
 
     return String::Factory(id)->Get();
 }

@@ -32,6 +32,7 @@
 #include "opentxs/crypto/Bip32.hpp"
 #endif
 #include "opentxs/identity/credential/Base.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -545,9 +546,7 @@ bool Key::SelfSign(
             serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
         auto& signature = *publicVersion->add_signature();
         havePublicSig = Sign(
-            [&]() -> std::string {
-                return proto::ProtoAsString(*publicVersion);
-            },
+            [&]() -> std::string { return proto::ToString(*publicVersion); },
             proto::SIGROLE_PUBCREDENTIAL,
             signature,
             reason,
@@ -564,7 +563,7 @@ bool Key::SelfSign(
     auto privateVersion = serialize(lock, AS_PRIVATE, WITHOUT_SIGNATURES);
     auto& signature = *privateVersion->add_signature();
     const bool havePrivateSig = Sign(
-        [&]() -> std::string { return proto::ProtoAsString(*privateVersion); },
+        [&]() -> std::string { return proto::ToString(*privateVersion); },
         proto::SIGROLE_PRIVCREDENTIAL,
         signature,
         reason,
@@ -604,7 +603,7 @@ bool Key::VerifySig(
     auto& signature = *serialized->add_signature();
     signature.CopyFrom(sig);
     signature.clear_signature();
-    auto plaintext = proto::ProtoAsData(*serialized);
+    auto plaintext = api_.Factory().Data(*serialized);
 
     return Verify(plaintext, sig, reason);
 }

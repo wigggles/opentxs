@@ -23,6 +23,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/Proto.tpp"
 
 #define OT_METHOD "opentxs::PeerRequest::"
 
@@ -426,13 +427,15 @@ std::unique_ptr<PeerRequest> PeerRequest::Finish(
 
 OTIdentifier PeerRequest::GetID(const Lock& lock) const
 {
-    return GetID(IDVersion(lock));
+    return GetID(api_, IDVersion(lock));
 }
 
-OTIdentifier PeerRequest::GetID(const proto::PeerRequest& contract)
+OTIdentifier PeerRequest::GetID(
+    const api::Core& api,
+    const proto::PeerRequest& contract)
 {
     auto id = Identifier::Factory();
-    id->CalculateDigest(proto::ProtoAsData(contract));
+    id->CalculateDigest(api.Factory().Data(contract));
     return id;
 }
 
@@ -465,7 +468,7 @@ OTData PeerRequest::Serialize() const
 {
     Lock lock(lock_);
 
-    return proto::ProtoAsData(contract(lock));
+    return api_.Factory().Data(contract(lock));
 }
 
 proto::PeerRequest PeerRequest::SigVersion(const Lock& lock) const
@@ -486,8 +489,8 @@ bool PeerRequest::update_signature(
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success = nym_->SignProto(
-        serialized, proto::SIGROLE_PEERREQUEST, signature, reason);
+    success =
+        nym_->Sign(serialized, proto::SIGROLE_PEERREQUEST, signature, reason);
 
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
@@ -544,6 +547,6 @@ bool PeerRequest::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto, reason);
 }
 }  // namespace opentxs

@@ -507,7 +507,9 @@ public:
         const std::string& threeStr);
     // Store/Retrieve a Storable object inside an Armored object.
 
-    EXPORT std::string EncodeObject(Storable& theContents);
+    EXPORT std::string EncodeObject(
+        const api::Core& api,
+        Storable& theContents);
 
     // Use %newobject OTDB::Storage::DecodeObject();
     EXPORT Storable* DecodeObject(
@@ -641,7 +643,7 @@ EXPORT Storable* QueryObject(
     const std::string& threeStr);
 
 // Store/Retrieve a Storable object inside an Armored object.
-EXPORT std::string EncodeObject(Storable& theContents);
+EXPORT std::string EncodeObject(const api::Core& api, Storable& theContents);
 
 // Use %newobject OTDB::Storage::DecodeObject();
 EXPORT Storable* DecodeObject(

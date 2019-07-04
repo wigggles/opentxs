@@ -19,10 +19,10 @@
 namespace opentxs
 {
 BasketContract::BasketContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
-    : ot_super(wallet, nym, serialized)
+    : ot_super(api, nym, serialized)
 {
     if (serialized.has_basket()) {
 
@@ -38,19 +38,20 @@ BasketContract::BasketContract(
 }
 
 BasketContract::BasketContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
     const std::uint64_t weight)
-    : ot_super(wallet, nym, shortname, name, symbol, terms)
+    : ot_super(api, nym, shortname, name, symbol, terms)
     , weight_(weight)
 {
 }
 
 OTIdentifier BasketContract::CalculateBasketID(
+    const api::Core& api,
     const proto::UnitDefinition& serialized)
 {
     auto contract(serialized);
@@ -62,17 +63,17 @@ OTIdentifier BasketContract::CalculateBasketID(
         item.clear_account();
     }
 
-    return GetID(contract);
+    return GetID(api, contract);
 }
 
 bool BasketContract::FinalizeTemplate(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     proto::UnitDefinition& serialized,
     const PasswordPrompt& reason)
 {
     std::unique_ptr<BasketContract> contract(
-        new BasketContract(wallet, nym, serialized));
+        new BasketContract(api, nym, serialized));
 
     if (!contract) { return false; }
 

@@ -48,6 +48,7 @@
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/identity/Identity.hpp"
 
@@ -813,7 +814,7 @@ void Nym::init_claims(const eLock& lock) const
     const auto nymID{m_nymID->str()};
     const auto dataVersion = ContactDataVersion();
     contact_data_.reset(new opentxs::ContactData(
-        nymID, dataVersion, dataVersion, ContactData::SectionMap()));
+        api_, nymID, dataVersion, dataVersion, ContactData::SectionMap()));
 
     OT_ASSERT(contact_data_);
 
@@ -829,7 +830,8 @@ void Nym::init_claims(const eLock& lock) const
             OT_ASSERT(
                 proto::Validate(*serialized, VERBOSE, proto::CLAIMS_NORMAL));
 
-            opentxs::ContactData claimCred(nymID, dataVersion, *serialized);
+            opentxs::ContactData claimCred(
+                api_, nymID, dataVersion, *serialized);
             contact_data_.reset(
                 new opentxs::ContactData(*contact_data_ + claimCred));
             serialized.reset();
@@ -1397,7 +1399,7 @@ bool Nym::SetContactData(
 {
     eLock lock(shared_lock_);
     contact_data_.reset(
-        new ContactData(m_nymID->str(), ContactDataVersion(), data));
+        new ContactData(api_, m_nymID->str(), ContactDataVersion(), data));
 
     return set_contact_data(lock, data, reason);
 }
@@ -1449,20 +1451,24 @@ bool Nym::SetVerificationSet(
 }
 
 bool Nym::Sign(
-    const GetPreimage input,
+    const ProtobufType& input,
     const proto::SignatureRole role,
-    const proto::HashType hash,
     proto::Signature& signature,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason,
+    const proto::HashType hash) const
 {
     sLock lock(shared_lock_);
 
     bool haveSig = false;
 
+    auto preimage = [&input]() -> std::string {
+        return proto::ToString(input);
+    };
+
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
             bool success = it.second->Sign(
-                input, role, signature, reason, proto::KEYROLE_SIGN, hash);
+                preimage, role, signature, reason, proto::KEYROLE_SIGN, hash);
 
             if (success) {
                 haveSig = true;
@@ -1633,13 +1639,17 @@ std::unique_ptr<proto::VerificationSet> Nym::VerificationSet() const
 }
 
 bool Nym::Verify(
-    const Data& plaintext,
-    const proto::Signature& sig,
-    const opentxs::PasswordPrompt& reason) const
+    const ProtobufType& input,
+    proto::Signature& signature,
+    const PasswordPrompt& reason) const
 {
+    const auto copy{signature};
+    signature.clear_signature();
+    const auto plaintext = api_.Factory().Data(input);
+
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
-            if (it.second->Verify(plaintext, sig, reason)) { return true; }
+            if (it.second->Verify(plaintext, copy, reason)) { return true; }
         }
     }
 

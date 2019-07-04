@@ -25,6 +25,7 @@ public:
     EXPORT static const VersionNumber MaxVersion;
 
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
+        const api::Core& api,
         const Nym_p signer,
         const identifier::Nym& recipient,
         const identifier::Server& server,

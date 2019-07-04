@@ -87,8 +87,8 @@ TEST_F(Test_Messages, activateRequest)
 
     ASSERT_TRUE(alice);
 
-    auto request =
-        opentxs::otx::Request::Factory(alice, server_id_, type, reason_c_);
+    auto request = opentxs::otx::Request::Factory(
+        client_, alice, server_id_, type, reason_c_);
 
     ASSERT_TRUE(request->Nym());
     EXPECT_EQ(alice_nym_id_.get(), request->Nym()->ID());
@@ -153,7 +153,7 @@ TEST_F(Test_Messages, pushReply)
     ASSERT_TRUE(server);
 
     auto reply = opentxs::otx::Reply::Factory(
-        server, alice_nym_id_, server_id_, type, true, reason_s_);
+        server_, server, alice_nym_id_, server_id_, type, true, reason_s_);
 
     ASSERT_TRUE(reply->Nym());
     EXPECT_EQ(server_.NymID(), reply->Nym()->ID());

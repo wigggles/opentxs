@@ -31,7 +31,9 @@ private:
     static std::unique_ptr<PeerRequest> Finish(
         std::unique_ptr<PeerRequest>& contract,
         const PasswordPrompt& reason);
-    static OTIdentifier GetID(const proto::PeerRequest& contract);
+    static OTIdentifier GetID(
+        const api::Core& api,
+        const proto::PeerRequest& contract);
     static bool FinalizeContract(
         PeerRequest& contract,
         const PasswordPrompt& reason);

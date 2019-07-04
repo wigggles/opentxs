@@ -25,18 +25,23 @@ class Contact : virtual public Base
 {
 public:
     EXPORT static std::string ClaimID(
+        const api::Core& api,
         const std::string& nymid,
         const std::uint32_t section,
         const proto::ContactItem& item);
     EXPORT static std::string ClaimID(
+        const api::Core& api,
         const std::string& nymid,
         const proto::ContactSectionName section,
         const proto::ContactItemType type,
         const std::int64_t start,
         const std::int64_t end,
         const std::string& value);
-    EXPORT static OTIdentifier ClaimID(const proto::Claim& preimage);
+    EXPORT static OTIdentifier ClaimID(
+        const api::Core& api,
+        const proto::Claim& preimage);
     EXPORT static Claim asClaim(
+        const api::Core& api,
         const String& nymid,
         const std::uint32_t section,
         const proto::ContactItem& item);

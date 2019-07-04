@@ -3116,7 +3116,7 @@ TEST_F(Test_Basic, initiate_and_acknowledge_bailment)
     ASSERT_TRUE(bobNym);
 
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_.Wallet(),
+        client_2_,
         bobNym,
         proto::PEERREQUEST_BAILMENT,
         peerrequest->ID(),
@@ -3167,7 +3167,7 @@ TEST_F(Test_Basic, initiate_and_acknowledge_outbailment)
     ASSERT_TRUE(bobNym);
 
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_.Wallet(),
+        client_2_,
         bobNym,
         proto::PEERREQUEST_OUTBAILMENT,
         peerrequest->ID(),
@@ -3219,12 +3219,7 @@ TEST_F(Test_Basic, notify_bailment_and_acknowledge_notice)
     ASSERT_TRUE(bobNym);
 
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_.Wallet(),
-        bobNym,
-        peerrequest->ID(),
-        server_1_id_,
-        true,
-        reason_c2_)};
+        client_2_, bobNym, peerrequest->ID(), server_1_id_, true, reason_c2_)};
 
     ASSERT_TRUE(peerreply);
 
@@ -3270,7 +3265,7 @@ TEST_F(Test_Basic, initiate_request_connection_and_acknowledge_connection)
     ASSERT_TRUE(bobNym);
 
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_.Wallet(),
+        client_2_,
         bobNym,
         peerrequest->ID(),
         server_1_id_,
@@ -3327,12 +3322,7 @@ TEST_F(Test_Basic, initiate_store_secret_and_acknowledge_notice)
     ASSERT_TRUE(bobNym);
 
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_.Wallet(),
-        bobNym,
-        peerrequest->ID(),
-        server_1_id_,
-        true,
-        reason_c2_)};
+        client_2_, bobNym, peerrequest->ID(), server_1_id_, true, reason_c2_)};
 
     ASSERT_TRUE(peerreply);
 

@@ -26,23 +26,42 @@ OTZMQFrame Frame::Factory(const std::string& input)
 {
     return OTZMQFrame(new implementation::Frame(input));
 }
+
+OTZMQFrame Frame::Factory(const ProtobufType& input)
+{
+    return OTZMQFrame(new implementation::Frame(input));
+}
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
 Frame::Frame()
-    : message_()
+    : zeromq::Frame()
+    , message_()
 {
     const auto init = zmq_msg_init(&message_);
 
     OT_ASSERT(0 == init);
 }
 
-Frame::Frame(const Data& input)
-    : message_()
+Frame::Frame(const std::size_t bytes)
+    : zeromq::Frame()
+    , message_()
 {
-    const auto init = zmq_msg_init_size(&message_, input.size());
+    const auto init = zmq_msg_init_size(&message_, bytes);
 
+    OT_ASSERT(0 == init);
+}
+
+Frame::Frame(const ProtobufType& input)
+    : Frame(input.ByteSize())
+{
+    input.SerializeToArray(zmq_msg_data(&message_), zmq_msg_size(&message_));
+}
+
+Frame::Frame(const Data& input)
+    : Frame(input.size())
+{
     if (0 < input.size()) {
         OTPassword::safe_memcpy(
             zmq_msg_data(&message_),
@@ -51,22 +70,19 @@ Frame::Frame(const Data& input)
             input.size(),
             false);
     }
-
-    OT_ASSERT(0 == init);
 }
 
 Frame::Frame(const std::string& input)
-    : message_()
+    : Frame(input.size())
 {
-    const auto init = zmq_msg_init_size(&message_, input.size());
-    OTPassword::safe_memcpy(
-        zmq_msg_data(&message_),
-        zmq_msg_size(&message_),
-        input.data(),
-        input.size(),
-        false);
-
-    OT_ASSERT(0 == init);
+    if (0 < input.size()) {
+        OTPassword::safe_memcpy(
+            zmq_msg_data(&message_),
+            zmq_msg_size(&message_),
+            input.data(),
+            input.size(),
+            false);
+    }
 }
 
 Frame::operator zmq_msg_t*() { return &message_; }

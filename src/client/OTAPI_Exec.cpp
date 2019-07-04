@@ -63,6 +63,7 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -2827,19 +2828,11 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     if (!serverContract) { return {}; }
 
     auto basketTemplate = UnitDefinition::Create(
-        api_.Wallet(),
-        serverContract->Nym(),
-        shortname,
-        name,
-        symbol,
-        terms,
-        weight);
+        api_, serverContract->Nym(), shortname, name, symbol, terms, weight);
 
-    std::string str_return = (proto::ProtoAsArmored<proto::UnitDefinition>(
-                                  basketTemplate->PublicContract(),
-                                  String::Factory("BASKET CONTRACT")))
-                                 ->Get();
-    return str_return;
+    return api_.Factory()
+        .Armored(basketTemplate->PublicContract(), "BASKET CONTRACT")
+        ->Get();
 }
 
 // ADD BASKET CREATION ITEM
@@ -2873,8 +2866,7 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 
     if (!bAdded) { return {}; }
 
-    return proto::ProtoAsArmored(contract, String::Factory("BASKET CONTRACT"))
-        ->Get();
+    return api_.Factory().Armored(contract, "BASKET CONTRACT")->Get();
 }
 
 // GENERATE BASKET EXCHANGE REQUEST

@@ -17,25 +17,38 @@
 namespace opentxs
 {
 ContactSection::ContactSection(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
     const proto::ContactSectionName section,
     const GroupMap& groups)
-    : version_(check_version(version, parentVersion))
+    : api_(api)
+    , version_(check_version(version, parentVersion))
     , nym_(nym)
     , section_(section)
     , groups_(groups)
 {
 }
 
+ContactSection::ContactSection(const ContactSection& rhs)
+    : api_(rhs.api_)
+    , version_(rhs.version_)
+    , nym_(rhs.nym_)
+    , section_(rhs.section_)
+    , groups_(rhs.groups_)
+{
+}
+
 ContactSection::ContactSection(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
     const proto::ContactSectionName section,
     const std::shared_ptr<ContactItem>& item)
     : ContactSection(
+          api,
           nym,
           version,
           parentVersion,
@@ -50,15 +63,17 @@ ContactSection::ContactSection(
 }
 
 ContactSection::ContactSection(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber parentVersion,
     const proto::ContactSection& serialized)
     : ContactSection(
+          api,
           nym,
           serialized.version(),
           parentVersion,
           serialized.name(),
-          extract_groups(nym, parentVersion, serialized))
+          extract_groups(api, nym, parentVersion, serialized))
 {
 }
 
@@ -93,7 +108,7 @@ ContactSection ContactSection::operator+(const ContactSection& rhs) const
 
     const auto version = std::max(version_, rhs.Version());
 
-    return ContactSection(nym_, version, version, section_, map);
+    return ContactSection(api_, nym_, version, version, section_, map);
 }
 
 ContactSection ContactSection::add_scope(
@@ -123,7 +138,7 @@ ContactSection ContactSection::add_scope(
 
     auto version = proto::RequiredVersion(section_, item->Type(), version_);
 
-    return ContactSection(nym_, version, version, section_, groups);
+    return ContactSection(api_, nym_, version, version, section_, groups);
 }
 
 ContactSection ContactSection::AddItem(
@@ -151,7 +166,7 @@ ContactSection ContactSection::AddItem(
 
     auto version = proto::RequiredVersion(section_, item->Type(), version_);
 
-    return ContactSection(nym_, version, version, section_, map);
+    return ContactSection(api_, nym_, version, version, section_, map);
 }
 
 ContactSection::GroupMap::const_iterator ContactSection::begin() const
@@ -219,7 +234,7 @@ ContactSection ContactSection::Delete(const Identifier& id) const
 
     if (false == deleted) { return *this; }
 
-    return ContactSection(nym_, version_, version_, section_, map);
+    return ContactSection(api_, nym_, version_, version_, section_, map);
 }
 
 ContactSection::GroupMap::const_iterator ContactSection::end() const
@@ -228,6 +243,7 @@ ContactSection::GroupMap::const_iterator ContactSection::end() const
 }
 
 ContactSection::GroupMap ContactSection::extract_groups(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber parentVersion,
     const proto::ContactSection& serialized)
@@ -239,6 +255,7 @@ ContactSection::GroupMap ContactSection::extract_groups(
     for (const auto& item : serialized.item()) {
         const auto& itemType = item.type();
         auto instantiated = std::make_shared<ContactItem>(
+            api,
             nym,
             check_version(serialized.version(), parentVersion),
             section,

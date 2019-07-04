@@ -30,11 +30,11 @@ private:
     proto::PeerReply IDVersion(const Lock& lock) const override;
 
     ConnectionReply(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const proto::PeerReply& serialized);
     ConnectionReply(
-        const api::Wallet& wallet,
+        const api::Core& api,
         const Nym_p& nym,
         const identifier::Nym& initiator,
         const Identifier& request,

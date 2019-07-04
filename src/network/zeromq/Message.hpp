@@ -27,6 +27,7 @@ public:
 
     Frame& AddFrame() override;
     Frame& AddFrame(const opentxs::Data& input) override;
+    Frame& AddFrame(const ProtobufType& input) override;
     Frame& AddFrame(const std::string& input) override;
     Frame& at(const std::size_t index) override;
 

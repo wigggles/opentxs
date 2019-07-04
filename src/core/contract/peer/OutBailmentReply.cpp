@@ -14,23 +14,23 @@
 namespace opentxs
 {
 OutBailmentReply::OutBailmentReply(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::PeerReply& serialized)
-    : ot_super(wallet, nym, serialized)
+    : ot_super(api, nym, serialized)
 {
     conditions_ = serialized.outbailment().instructions();
 }
 
 OutBailmentReply::OutBailmentReply(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const identifier::Nym& initiator,
     const Identifier& request,
     const identifier::Server& server,
     const std::string& terms)
     : ot_super(
-          wallet,
+          api,
           nym,
           CURRENT_VERSION,
           initiator,

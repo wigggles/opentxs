@@ -24,6 +24,7 @@
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "PeerObject.hpp"
 
@@ -135,7 +136,7 @@ opentxs::PeerObject* Factory::PeerObject(
     const api::client::Contacts& contacts,
     const api::Core& api,
     const Nym_p& recipientNym,
-    const Armored& encrypted,
+    const opentxs::Armored& encrypted,
     const opentxs::PasswordPrompt& reason)
 {
     Nym_p notUsed{nullptr};
@@ -239,8 +240,8 @@ Object::Object(
                     reason);
             }
 
-            reply_ = PeerReply::Factory(
-                api_.Wallet(), nym_, serialized.otreply(), reason);
+            reply_ =
+                PeerReply::Factory(api_, nym_, serialized.otreply(), reason);
         } break;
         case (proto::PEEROBJECT_PAYMENT): {
             payment_.reset(new std::string(serialized.otpayment()));

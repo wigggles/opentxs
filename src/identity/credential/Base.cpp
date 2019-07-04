@@ -7,6 +7,7 @@
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -16,7 +17,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Authority.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
@@ -260,7 +261,7 @@ OTIdentifier Base::GetID(const Lock& lock) const
 
     if (idVersion->has_id()) { idVersion->clear_id(); }
 
-    auto serializedData = proto::ProtoAsData(*idVersion);
+    auto serializedData = api_.Factory().Data(*idVersion);
     auto id = Identifier::Factory();
 
     if (!id->CalculateDigest(serializedData)) {
@@ -403,7 +404,7 @@ OTData Base::Serialize() const
     auto serialized =
         Serialized(Private() ? AS_PRIVATE : AS_PUBLIC, WITH_SIGNATURES);
 
-    return proto::ProtoAsData<proto::Credential>(*serialized);
+    return api_.Factory().Data(*serialized);
 }
 
 std::string Base::asString(const bool asPrivate) const
@@ -412,8 +413,8 @@ std::string Base::asString(const bool asPrivate) const
     auto dataCredential = Data::Factory();
     auto stringCredential = String::Factory();
     credenial = Serialized(asPrivate, WITH_SIGNATURES);
-    dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
-    auto armoredCredential = Armored::Factory(dataCredential);
+    dataCredential = api_.Factory().Data(*credenial);
+    auto armoredCredential = api_.Factory().Armored(dataCredential);
     armoredCredential->WriteArmoredString(stringCredential, "Credential");
 
     return stringCredential->Get();
@@ -446,9 +447,7 @@ bool Base::AddMasterSignature(const Lock& lock, const PasswordPrompt& reason)
     auto& signature = *serialized->add_signature();
 
     bool havePublicSig = owner_backlink_->Sign(
-        [&serialized]() -> std::string {
-            return proto::ProtoAsString(*serialized);
-        },
+        [&serialized]() -> std::string { return proto::ToString(*serialized); },
         proto::SIGROLE_PUBCREDENTIAL,
         signature,
         reason);

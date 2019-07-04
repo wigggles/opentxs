@@ -37,6 +37,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "core/StateMachine.hpp"
 #include "internal/api/client/Client.hpp"
@@ -639,7 +640,7 @@ std::shared_ptr<Message> Operation::construct_deposit_cash()
         return {};
     }
 
-    item.SetAttachment(proto::ProtoAsData(purse.Serialize()));
+    item.SetAttachment(api_.Factory().Data(purse.Serialize()));
 
     FINISH_TRANSACTION();
 }
@@ -827,8 +828,7 @@ std::shared_ptr<Message> Operation::construct_issue_unit_definition()
 
     auto id = contract->ID();
     id->GetString(message.m_strInstrumentDefinitionID);
-    message.m_ascPayload->SetData(
-        proto::ProtoAsData(contract->PublicContract()));
+    message.m_ascPayload = api_.Factory().Armored(contract->PublicContract());
 
     FINISH_MESSAGE(__FUNCTION__, registerInstrumentDefinition);
 }
@@ -848,7 +848,7 @@ std::shared_ptr<Message> Operation::construct_publish_nym()
     CREATE_MESSAGE(registerContract, -1, true, true);
 
     message.enum_ = static_cast<std::uint8_t>(ContractType::NYM);
-    message.m_ascPayload->SetData(proto::ProtoAsData(contract->asPublicNym()));
+    message.m_ascPayload = api_.Factory().Armored(contract->asPublicNym());
 
     FINISH_MESSAGE(__FUNCTION__, registerContract);
 }
@@ -869,8 +869,7 @@ std::shared_ptr<Message> Operation::construct_publish_server()
     CREATE_MESSAGE(registerContract, -1, true, true);
 
     message.enum_ = static_cast<std::uint8_t>(ContractType::SERVER);
-    message.m_ascPayload->SetData(
-        proto::ProtoAsData(contract->PublicContract()));
+    message.m_ascPayload = api_.Factory().Armored(contract->PublicContract());
 
     FINISH_MESSAGE(__FUNCTION__, registerContract);
 }
@@ -892,7 +891,7 @@ std::shared_ptr<Message> Operation::construct_publish_unit()
     CREATE_MESSAGE(registerContract, -1, true, true);
 
     message.enum_ = static_cast<std::uint8_t>(ContractType::UNIT);
-    message.m_ascPayload->SetData(proto::ProtoAsData(contract->Contract()));
+    message.m_ascPayload = api_.Factory().Armored(contract->Contract());
 
     FINISH_MESSAGE(__FUNCTION__, registerContract);
 }
@@ -933,7 +932,7 @@ std::shared_ptr<Message> Operation::construct_register_nym()
     PREPARE_CONTEXT();
     CREATE_MESSAGE(registerNym, -1, true, true);
 
-    message.m_ascPayload->SetData(proto::ProtoAsData(nym.asPublicNym()));
+    message.m_ascPayload = api_.Factory().Armored(nym.asPublicNym());
 
     FINISH_MESSAGE(__FUNCTION__, registerNym);
 }
@@ -956,8 +955,8 @@ std::shared_ptr<Message> Operation::construct_send_nym_object(
 {
     CREATE_MESSAGE(sendNymMessage, recipient.ID(), number, true, true);
 
-    const auto plaintext(proto::ProtoAsArmored(
-        object.Serialize(reason_), String::Factory("PEER OBJECT")));
+    auto plaintext =
+        api_.Factory().Armored(object.Serialize(reason_), "PEER OBJECT");
     OTEnvelope envelope{api_};
     auto sealed = envelope.Seal(recipient, plaintext, reason_);
 
@@ -1074,8 +1073,8 @@ std::shared_ptr<Message> Operation::construct_send_message()
     }
 
     const auto& copy = *pCopy;
-    const auto plaintext(proto::ProtoAsArmored(
-        copy.Serialize(reason_), String::Factory("PEER OBJECT")));
+    auto plaintext =
+        api_.Factory().Armored(copy.Serialize(reason_), "PEER OBJECT");
     OTEnvelope envelope{api_};
 
     if (false == envelope.Seal(nym, plaintext, reason_)) {
@@ -1339,7 +1338,7 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
 
     auto& purse = *pPurse;
     item.SetNote(String::Factory("Gimme cash!"));
-    item.SetAttachment(proto::ProtoAsData(purse.Serialize()));
+    item.SetAttachment(api_.Factory().Data(purse.Serialize()));
 
     FINISH_TRANSACTION();
 }

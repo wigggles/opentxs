@@ -7,6 +7,8 @@
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -17,15 +19,15 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #define OT_METHOD "opentxs::ServerContract::"
 
 namespace opentxs
 {
-ServerContract::ServerContract(const api::Wallet& wallet, const Nym_p& nym)
+ServerContract::ServerContract(const api::Core& api, const Nym_p& nym)
     : ot_super(nym)
-    , wallet_{wallet}
+    , api_{api}
     , listen_params_()
     , name_()
     , transport_key_(Data::Factory())
@@ -33,10 +35,10 @@ ServerContract::ServerContract(const api::Wallet& wallet, const Nym_p& nym)
 }
 
 ServerContract::ServerContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::ServerContract& serialized)
-    : ServerContract(wallet, nym)
+    : ServerContract(api, nym)
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -61,7 +63,7 @@ ServerContract::ServerContract(
 }
 
 ServerContract* ServerContract::Create(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
@@ -72,7 +74,7 @@ ServerContract* ServerContract::Create(
     OT_ASSERT(nym);
     OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));
 
-    ServerContract* contract = new ServerContract(wallet, nym);
+    ServerContract* contract = new ServerContract(api, nym);
 
     if (nullptr != contract) {
         contract->version_ = version;
@@ -121,7 +123,7 @@ std::string ServerContract::EffectiveName(const PasswordPrompt& reason) const
     // TODO The version stored in nym_ might be out of date so load it from the
     // wallet. This can be fixed correctly by implementing in-place updates of
     // Nym credentials
-    const auto nym = wallet_.Nym(nym_->ID(), reason);
+    const auto nym = api_.Wallet().Nym(nym_->ID(), reason);
     const auto output = nym->Name();
 
     if (output.empty()) { return name_; }
@@ -130,7 +132,7 @@ std::string ServerContract::EffectiveName(const PasswordPrompt& reason) const
 }
 
 ServerContract* ServerContract::Factory(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const Nym_p& nym,
     const proto::ServerContract& serialized,
     const PasswordPrompt& reason)
@@ -140,7 +142,7 @@ ServerContract* ServerContract::Factory(
     }
 
     std::unique_ptr<ServerContract> contract(
-        new ServerContract(wallet, nym, serialized));
+        new ServerContract(api, nym, serialized));
 
     if (!contract) { return nullptr; }
 
@@ -157,7 +159,7 @@ OTIdentifier ServerContract::GetID(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
     auto id = Identifier::Factory();
-    id->CalculateDigest(proto::ProtoAsData(contract));
+    id->CalculateDigest(api_.Factory().Data(contract));
     return id;
 }
 
@@ -256,7 +258,7 @@ void ServerContract::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    wallet_.SetServerAlias(
+    api_.Wallet().SetServerAlias(
         identifier::Server::Factory(id_->str()), alias);  // TODO conversion
 }
 
@@ -300,7 +302,7 @@ OTData ServerContract::Serialize() const
 {
     Lock lock(lock_);
 
-    return proto::ProtoAsData(contract(lock));
+    return api_.Factory().Data(contract(lock));
 }
 
 const Data& ServerContract::TransportKey() const
@@ -327,7 +329,7 @@ bool ServerContract::update_signature(
     signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
-    success = nym_->SignProto(
+    success = nym_->Sign(
         serialized, proto::SIGROLE_SERVERCONTRACT, signature, reason);
 
     if (success) {
@@ -392,6 +394,6 @@ bool ServerContract::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->VerifyProto(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto, reason);
 }
 }  // namespace opentxs

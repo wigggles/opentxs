@@ -51,6 +51,7 @@
 #include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/otx/Reply.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/api/client/Client.hpp"
 #include "otx/client/StateMachine.hpp"
@@ -287,7 +288,7 @@ OTX::BackgroundTask OTX::AcknowledgeBailment(
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_.Wallet(),
+        client_,
         nym,
         proto::PEERREQUEST_BAILMENT,
         requestID,
@@ -376,7 +377,7 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
     }
 
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_.Wallet(),
+        client_,
         nym,
         requestID,
         serverID,
@@ -440,8 +441,8 @@ OTX::BackgroundTask OTX::AcknowledgeNotice(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_.Wallet(), nym, requestID, serverID, ack, reason_)};
+    std::shared_ptr<const PeerReply> peerreply{
+        PeerReply::Create(client_, nym, requestID, serverID, ack, reason_)};
 
     if (false == bool(peerreply)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create reply.").Flush();
@@ -497,7 +498,7 @@ OTX::BackgroundTask OTX::AcknowledgeOutbailment(
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
     std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_.Wallet(),
+        client_,
         nym,
         proto::PEERREQUEST_OUTBAILMENT,
         requestID,
@@ -1704,9 +1705,7 @@ void OTX::process_notification(const zmq::Message& message) const
 
     const auto& frame = message.Body().at(0);
     const auto notification = otx::Reply::Factory(
-        client_,
-        proto::RawToProto<proto::ServerReply>(frame.data(), frame.size()),
-        reason_);
+        client_, proto::Factory<proto::ServerReply>(frame), reason_);
     const auto& nymID = notification->Recipient();
     const auto& serverID = notification->Server();
 

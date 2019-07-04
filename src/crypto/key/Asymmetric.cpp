@@ -26,6 +26,7 @@
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include "Null.hpp"
@@ -260,7 +261,7 @@ std::shared_ptr<proto::AsymmetricKey> Asymmetric::Serialize() const
 OTData Asymmetric::SerializeKeyToData(
     const proto::AsymmetricKey& serializedKey) const
 {
-    return proto::ProtoAsData(serializedKey);
+    return api_.Factory().Data(serializedKey);
 }
 
 bool Asymmetric::Sign(

@@ -49,6 +49,7 @@ Contact::Contact(
     , nyms_()
     , merged_children_()
     , contact_data_(new ContactData(
+          api_,
           serialized.id(),
           CONTACT_CONTACT_DATA_VERSION,
           CONTACT_CONTACT_DATA_VERSION,
@@ -58,6 +59,7 @@ Contact::Contact(
 {
     if (serialized.has_contactdata()) {
         contact_data_.reset(new ContactData(
+            api_,
             serialized.id(),
             CONTACT_CONTACT_DATA_VERSION,
             serialized.contactdata()));
@@ -87,6 +89,7 @@ Contact::Contact(const api::Core& api, const std::string& label)
     , revision_(1)
 {
     contact_data_.reset(new ContactData(
+        api_,
         String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -240,6 +243,7 @@ void Contact::add_nym_claim(
 
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
+        api_,
         String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -276,6 +280,7 @@ bool Contact::AddBlockchainAddress(
 
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
+        api_,
         String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -348,6 +353,7 @@ bool Contact::AddPaymentCode(
     const std::string value = code.asBase58();
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
+        api_,
         String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -886,6 +892,7 @@ void Contact::Update(
 
     update_label(lock, *nym);
     std::shared_ptr<ContactItem> claim(new ContactItem(
+        api_,
         String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,

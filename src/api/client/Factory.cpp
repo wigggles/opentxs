@@ -99,7 +99,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     const Nym_p& recipientNym,
-    const Armored& encrypted,
+    const opentxs::Armored& encrypted,
     const opentxs::PasswordPrompt& reason) const
 {
     return std::unique_ptr<opentxs::PeerObject>{opentxs::Factory::PeerObject(

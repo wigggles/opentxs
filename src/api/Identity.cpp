@@ -215,7 +215,7 @@ void Identity::PopulateVerificationIDs(proto::VerificationGroup& group) const
     for (auto& identity : *group.mutable_identity()) {
         for (auto& item : *identity.mutable_verification()) {
             const auto id =
-                identity::credential::Verification::VerificationID(item);
+                identity::credential::Verification::VerificationID(api_, item);
             item.set_id(id);
         }
     }
@@ -252,7 +252,7 @@ bool Identity::Sign(
     plaintext.clear_sig();
     auto& signature = *plaintext.mutable_sig();
 
-    return nym.SignProto(plaintext, proto::SIGROLE_CLAIM, signature, reason);
+    return nym.Sign(plaintext, proto::SIGROLE_CLAIM, signature, reason);
 }
 
 std::unique_ptr<proto::VerificationSet> Identity::Verifications(

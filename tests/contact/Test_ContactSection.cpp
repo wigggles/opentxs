@@ -15,7 +15,9 @@ class Test_ContactSection : public ::testing::Test
 {
 public:
     Test_ContactSection()
-        : contactSection_(
+        : api_(opentxs::Context().StartClient({}, 0))
+        , contactSection_(
+              api_,
               std::string("testContactSectionNym1"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
@@ -27,6 +29,7 @@ public:
               opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
               {}))
         , activeContactItem_(new opentxs::ContactItem(
+              api_,
               std::string("activeContactItem"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
@@ -39,6 +42,7 @@ public:
     {
     }
 
+    const opentxs::api::client::Manager& api_;
     const opentxs::ContactSection contactSection_;
     const std::shared_ptr<opentxs::ContactGroup> contactGroup_;
     const std::shared_ptr<opentxs::ContactItem> activeContactItem_;
@@ -54,6 +58,7 @@ TEST_F(Test_ContactSection, first_constructor)
         {opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE, group1}};
 
     const opentxs::ContactSection section1(
+        api_,
         "testContactSectionNym1",
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -75,6 +80,7 @@ TEST_F(Test_ContactSection, first_constructor_different_versions)
 {
     // Test private static method check_version.
     const opentxs::ContactSection section2(
+        api_,
         "testContactSectionNym2",
         CONTACT_CONTACT_DATA_VERSION - 1,  // previous version
         CONTACT_CONTACT_DATA_VERSION,
@@ -86,6 +92,7 @@ TEST_F(Test_ContactSection, first_constructor_different_versions)
 TEST_F(Test_ContactSection, second_constructor)
 {
     const opentxs::ContactSection section1(
+        api_,
         "testContactSectionNym1",
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -115,6 +122,7 @@ TEST_F(Test_ContactSection, third_constructor)
     //    opentxs::proto::ContactItem * item = protoContactSection.add_item();
 
     const opentxs::ContactSection section1(
+        api_,
         "deserializedContactSectionNym1",
         CONTACT_CONTACT_DATA_VERSION,
         protoContactSection);
@@ -144,29 +152,6 @@ TEST_F(Test_ContactSection, copy_constructor)
     ASSERT_NE(copiedContactSection.end(), copiedContactSection.begin());
 }
 
-TEST_F(Test_ContactSection, move_constructor)
-{
-    opentxs::ContactSection movedContactSection(
-        std::move<opentxs::ContactSection>(
-            contactSection_.AddItem(activeContactItem_)));
-
-    ASSERT_EQ(
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        movedContactSection.Type());
-    ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, movedContactSection.Version());
-    ASSERT_EQ(1, movedContactSection.Size());
-    ASSERT_NE(
-        nullptr,
-        movedContactSection.Group(
-            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE));
-    ASSERT_EQ(
-        1,
-        movedContactSection
-            .Group(opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE)
-            ->Size());
-    ASSERT_NE(movedContactSection.end(), movedContactSection.begin());
-}
-
 TEST_F(Test_ContactSection, operator_plus)
 {
     // Combine two sections with one item each of the same type.
@@ -174,6 +159,7 @@ TEST_F(Test_ContactSection, operator_plus)
 
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -184,6 +170,7 @@ TEST_F(Test_ContactSection, operator_plus)
             NULL_START,
             NULL_END));
     const opentxs::ContactSection section2(
+        api_,
         "testContactSectionNym2",
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -203,6 +190,7 @@ TEST_F(Test_ContactSection, operator_plus)
     // another group with one item of a different type.
     const std::shared_ptr<opentxs::ContactItem> contactItem3(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem3"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -214,6 +202,7 @@ TEST_F(Test_ContactSection, operator_plus)
             NULL_END));
     const std::shared_ptr<opentxs::ContactItem> contactItem4(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem4"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -224,6 +213,7 @@ TEST_F(Test_ContactSection, operator_plus)
             NULL_START,
             NULL_END));
     const opentxs::ContactSection section4(
+        api_,
         "testContactSectionNym4",
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -249,6 +239,7 @@ TEST_F(Test_ContactSection, operator_plus_different_versions)
 {
     // rhs version less than lhs
     const opentxs::ContactSection section2(
+        api_,
         "testContactSectionNym2",
         CONTACT_CONTACT_DATA_VERSION - 1,
         CONTACT_CONTACT_DATA_VERSION - 1,
@@ -270,6 +261,7 @@ TEST_F(Test_ContactSection, AddItem)
     // Add an item to a SCOPE section.
     const std::shared_ptr<opentxs::ContactItem> scopeContactItem(
         new opentxs::ContactItem(
+            api_,
             std::string("scopeContactItem"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -280,6 +272,7 @@ TEST_F(Test_ContactSection, AddItem)
             NULL_START,
             NULL_END));
     const opentxs::ContactSection section1(
+        api_,
         "testContactSectionNym2",
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
@@ -304,6 +297,7 @@ TEST_F(Test_ContactSection, AddItem)
     // Add a second item of the same type.
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -324,6 +318,7 @@ TEST_F(Test_ContactSection, AddItem)
     // Add an item of a different type.
     const std::shared_ptr<opentxs::ContactItem> contactItem3(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem3"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -347,6 +342,7 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
     // Add an item with a newer version to a SCOPE section.
     const std::shared_ptr<opentxs::ContactItem> scopeContactItem(
         new opentxs::ContactItem(
+            api_,
             std::string("scopeContactItem"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -357,6 +353,7 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
             NULL_START,
             NULL_END));
     const opentxs::ContactSection section1(
+        api_,
         "testContactSectionNym2",
         3,  // version of CONTACTSECTION_SCOPE section before CITEMTYPE_BOT was
             // added
@@ -377,6 +374,7 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
     // Add an item with a newer version to a non-scope section.
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
         new opentxs::ContactItem(
+            api_,
             std::string("contactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -387,6 +385,7 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
             NULL_START,
             NULL_END));
     const opentxs::ContactSection section3(
+        api_,
         "testContactSectionNym3",
         3,  // version of CONTACTSECTION_RELATIONSHIP section before
             // CITEMTYPE_OWNER was added
@@ -433,6 +432,7 @@ TEST_F(Test_ContactSection, Claim_found)
     // Find a claim in a different group.
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -496,6 +496,7 @@ TEST_F(Test_ContactSection, HaveClaim_true)
     // Find a claim in a different group.
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -522,6 +523,7 @@ TEST_F(Test_ContactSection, Delete)
     // Add a second item to help testing the size after trying to delete twice.
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -555,6 +557,7 @@ TEST_F(Test_ContactSection, Delete)
     // Add an item of a different type.
     const std::shared_ptr<opentxs::ContactItem> contactItem3(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem3"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -631,6 +634,7 @@ TEST_F(Test_ContactSection, Size)
     // Add a second item of the same type.
     const std::shared_ptr<opentxs::ContactItem> contactItem2(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
@@ -647,6 +651,7 @@ TEST_F(Test_ContactSection, Size)
     // Add an item of a different type.
     const std::shared_ptr<opentxs::ContactItem> contactItem3(
         new opentxs::ContactItem(
+            api_,
             std::string("activeContactItem3"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,

@@ -10,16 +10,19 @@
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
 #include "network/DhtConfig.hpp"
@@ -164,21 +167,21 @@ void Dht::Insert(
 void Dht::Insert([[maybe_unused]] const identity::Nym::Serialized& nym) const
 {
 #if OT_DHT
-    node_->Insert(nym.nymid(), proto::ProtoAsString(nym));
+    node_->Insert(nym.nymid(), proto::ToString(nym));
 #endif
 }
 
 void Dht::Insert([[maybe_unused]] const proto::ServerContract& contract) const
 {
 #if OT_DHT
-    node_->Insert(contract.id(), proto::ProtoAsString(contract));
+    node_->Insert(contract.id(), proto::ToString(contract));
 #endif
 }
 
 void Dht::Insert([[maybe_unused]] const proto::UnitDefinition& contract) const
 {
 #if OT_DHT
-    node_->Insert(contract.id(), proto::ProtoAsString(contract));
+    node_->Insert(contract.id(), proto::ToString(contract));
 #endif
 }
 
@@ -193,7 +196,7 @@ void Dht::GetPublicNym([[maybe_unused]] const std::string& key) const
 
     DhtResultsCallback gcb(
         [this, notifyCB, key](const DhtResults& values) -> bool {
-            return ProcessPublicNym(api_.Wallet(), key, values, notifyCB);
+            return ProcessPublicNym(api_, key, values, notifyCB);
         });
 
     node_->Retrieve(key, gcb);
@@ -211,7 +214,7 @@ void Dht::GetServerContract([[maybe_unused]] const std::string& key) const
 
     DhtResultsCallback gcb(
         [this, notifyCB, key](const DhtResults& values) -> bool {
-            return ProcessServerContract(api_.Wallet(), key, values, notifyCB);
+            return ProcessServerContract(api_, key, values, notifyCB);
         });
 
     node_->Retrieve(key, gcb);
@@ -229,7 +232,7 @@ void Dht::GetUnitDefinition([[maybe_unused]] const std::string& key) const
 
     DhtResultsCallback gcb(
         [this, notifyCB, key](const DhtResults& values) -> bool {
-            return ProcessUnitDefinition(api_.Wallet(), key, values, notifyCB);
+            return ProcessUnitDefinition(api_, key, values, notifyCB);
         });
 
     node_->Retrieve(key, gcb);
@@ -263,11 +266,12 @@ OTZMQMessage Dht::process_request(
 
 #if OT_DHT
 bool Dht::ProcessPublicNym(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
 {
+    auto reason = api.Factory().PasswordPrompt("DHT background task");
     std::string theresult;
     bool foundData = false;
     bool foundValid = false;
@@ -282,18 +286,17 @@ bool Dht::ProcessPublicNym(
 
         if (0 == data.size()) { continue; }
 
-        auto publicNym = proto::DataToProto<proto::CredentialIndex>(
-            Data::Factory(data.c_str(), data.size()));
+        auto publicNym = proto::Factory<proto::CredentialIndex>(data);
 
         if (key != publicNym.nymid()) { continue; }
 
-        auto existing = wallet.Nym(Identifier::Factory(key));
+        auto existing = api.Wallet().Nym(api.Factory().NymID(key), reason);
 
         if (existing) {
             if (existing->Revision() >= publicNym.revision()) { continue; }
         }
 
-        auto saved = wallet.Nym(publicNym);
+        auto saved = api.Wallet().Nym(publicNym, reason);
 
         if (!saved) { continue; }
 
@@ -318,11 +321,12 @@ bool Dht::ProcessPublicNym(
 }
 
 bool Dht::ProcessServerContract(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
 {
+    auto reason = api.Factory().PasswordPrompt("DHT background task");
     std::string theresult;
     bool foundData = false;
     bool foundValid = false;
@@ -337,12 +341,11 @@ bool Dht::ProcessServerContract(
 
         if (0 == data.size()) { continue; }
 
-        auto contract = proto::DataToProto<proto::ServerContract>(
-            Data::Factory(data.c_str(), data.size()));
+        auto contract = proto::Factory<proto::ServerContract>(data);
 
         if (key != contract.id()) { continue; }
 
-        auto saved = wallet.Server(contract);
+        auto saved = api.Wallet().Server(contract, reason);
 
         if (!saved) { continue; }
 
@@ -368,11 +371,12 @@ bool Dht::ProcessServerContract(
 }
 
 bool Dht::ProcessUnitDefinition(
-    const api::Wallet& wallet,
+    const api::Core& api,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
 {
+    auto reason = api.Factory().PasswordPrompt("DHT background task");
     std::string theresult;
     bool foundData = false;
     bool foundValid = false;
@@ -387,12 +391,11 @@ bool Dht::ProcessUnitDefinition(
 
         if (0 == data.size()) { continue; }
 
-        auto contract = proto::DataToProto<proto::UnitDefinition>(
-            Data::Factory(data.c_str(), data.size()));
+        auto contract = proto::Factory<proto::UnitDefinition>(data);
 
         if (key != contract.id()) { continue; }
 
-        auto saved = wallet.UnitDefinition(contract);
+        auto saved = api.Wallet().UnitDefinition(contract, reason);
 
         if (!saved) { continue; }
 

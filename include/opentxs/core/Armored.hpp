@@ -56,12 +56,12 @@ extern const char* OT_BEGIN_SIGNED_escaped;
 class Armored : virtual public String
 {
 public:
-    EXPORT static opentxs::Pimpl<opentxs::Armored> Factory();
-    EXPORT static opentxs::Pimpl<opentxs::Armored> Factory(const char* in);
-    EXPORT static opentxs::Pimpl<opentxs::Armored> Factory(const Data& in);
-    EXPORT static opentxs::Pimpl<opentxs::Armored> Factory(const String& in);
-    EXPORT static opentxs::Pimpl<opentxs::Armored> Factory(
-        const OTEnvelope& in);
+    EXPORT [[deprecated(
+        "Use api::Factory::Armored")]] static opentxs::Pimpl<opentxs::Armored>
+    Factory();
+    EXPORT [[deprecated(
+        "Use api::Factory::Armored")]] static opentxs::Pimpl<opentxs::Armored>
+    Factory(const String& in);
 
     /** Let's say you don't know if the input string is raw base64, or if it has
      * bookends on it like -----BEGIN BLAH BLAH ... And if it DOES have

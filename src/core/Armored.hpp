@@ -45,6 +45,7 @@ protected:
 private:
     friend OTArmored;
     friend opentxs::Armored;
+    friend opentxs::Factory;
 
     static std::unique_ptr<OTDB::OTPacker> s_pPacker;
 
@@ -54,7 +55,6 @@ private:
         std::int32_t compressionlevel) const;
     std::string decompress_string(const std::string& str) const;
 
-    Armored(const char* szValue);
     explicit Armored(const Data& theValue);
     explicit Armored(const opentxs::String& strValue);
     explicit Armored(const OTEnvelope& theEnvelope);

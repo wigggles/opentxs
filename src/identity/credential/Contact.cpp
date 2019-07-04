@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Data.hpp"
@@ -12,6 +14,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Authority.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
@@ -52,6 +55,7 @@ namespace opentxs::identity::credential
 {
 // static
 std::string Contact::ClaimID(
+    const api::Core& api,
     const std::string& nymid,
     const std::uint32_t section,
     const proto::ContactItem& item)
@@ -65,11 +69,12 @@ std::string Contact::ClaimID(
     preimage.set_end(item.end());
     preimage.set_value(item.value());
 
-    return String::Factory(ClaimID(preimage))->Get();
+    return String::Factory(ClaimID(api, preimage))->Get();
 }
 
 // static
 std::string Contact::ClaimID(
+    const api::Core& api,
     const std::string& nymid,
     const proto::ContactSectionName section,
     const proto::ContactItemType type,
@@ -86,20 +91,23 @@ std::string Contact::ClaimID(
     preimage.set_end(end);
     preimage.set_value(value);
 
-    return String::Factory(ClaimID(preimage))->Get();
+    return String::Factory(ClaimID(api, preimage))->Get();
 }
 
 // static
-OTIdentifier Contact::ClaimID(const proto::Claim& preimage)
+OTIdentifier Contact::ClaimID(
+    const api::Core& api,
+    const proto::Claim& preimage)
 {
     auto output = Identifier::Factory();
-    output->CalculateDigest(proto::ProtoAsData<proto::Claim>(preimage));
+    output->CalculateDigest(api.Factory().Data(preimage));
 
     return output;
 }
 
 // static
 Claim Contact::asClaim(
+    const api::Core& api,
     const String& nymid,
     const std::uint32_t section,
     const proto::ContactItem& item)
@@ -108,7 +116,7 @@ Claim Contact::asClaim(
 
     for (auto& attrib : item.attribute()) { attributes.insert(attrib); }
 
-    return Claim{ClaimID(nymid.Get(), section, item),
+    return Claim{ClaimID(api, nymid.Get(), section, item),
                  section,
                  item.type(),
                  item.value(),

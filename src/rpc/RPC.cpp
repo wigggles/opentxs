@@ -46,7 +46,7 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/rpc/RPC.hpp"
 
@@ -1973,7 +1973,7 @@ void RPC::task_handler(const zmq::Message& in)
     task.set_result(success);
 
     auto output = zmq::Message::Factory();
-    output->AddFrame(proto::ProtoAsData(message));
+    output->AddFrame(message);
     rpc_publisher_->Publish(output);
 }
 }  // namespace opentxs::rpc::implementation

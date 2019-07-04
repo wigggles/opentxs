@@ -30,6 +30,7 @@ public:
 private:
     friend otx::Reply;
 
+    const api::Core& api_;
     const OTNymID recipient_;
     const OTServerID server_;
     const proto::ServerReplyType type_{proto::SERVERREPLY_ERROR};
@@ -59,6 +60,7 @@ private:
         const PasswordPrompt& reason) const override;
 
     Reply(
+        const api::Core& api,
         const Nym_p signer,
         const identifier::Nym& recipient,
         const identifier::Server& server,

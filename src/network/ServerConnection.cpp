@@ -33,7 +33,7 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/Proto.tpp"
 
 #include <atomic>
 #include <chrono>
@@ -160,10 +160,9 @@ bool ServerConnection::ChangeAddressType(const proto::AddressType type)
 std::pair<bool, proto::ServerReply> ServerConnection::check_for_protobuf(
     const zeromq::Frame& frame)
 {
-    const auto candidate = Data::Factory(frame.data(), frame.size());
     std::pair<bool, proto::ServerReply> output{false, {}};
     auto& [valid, serialized] = output;
-    serialized = proto::DataToProto<proto::ServerReply>(candidate);
+    serialized = proto::Factory<proto::ServerReply>(frame);
     valid = proto::Validate(serialized, VERBOSE);
 
     return output;
@@ -282,7 +281,7 @@ void ServerConnection::process_incoming(
         return;
     }
 
-    notification_socket_->Push(proto::ProtoAsData(message->Contract()));
+    notification_socket_->Push(api_.Factory().Data(message->Contract()));
 }
 
 void ServerConnection::process_incoming(
@@ -351,11 +350,15 @@ void ServerConnection::register_for_push(
     if (isRegistered) { return; }
 
     auto request = otx::Request::Factory(
-        context.Nym(), context.Server(), proto::SERVERREQUEST_ACTIVATE, reason);
+        api_,
+        context.Nym(),
+        context.Server(),
+        proto::SERVERREQUEST_ACTIVATE,
+        reason);
     request->SetIncludeNym(true, reason);
     auto message = zmq::Message::Factory();
     message->AddFrame();
-    message->AddFrame(proto::ProtoAsData(request->Contract()));
+    message->AddFrame(request->Contract());
     message->AddFrame();
     Lock socketLock(lock_);
     isRegistered = get_async(socketLock).Send(message);

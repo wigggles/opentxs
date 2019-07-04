@@ -73,6 +73,7 @@ TEST_F(Test_NymData, AddContract)
 
     const auto identifier1(opentxs::identifier::UnitDefinition::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            client_,
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -131,6 +132,7 @@ TEST_F(Test_NymData, AddPreferredOTServer)
 {
     const auto identifier(opentxs::identifier::Server::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            client_,
             "testNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -226,6 +228,7 @@ TEST_F(Test_NymData, DeleteClaim)
 
     const auto identifier(opentxs::identifier::UnitDefinition::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            client_,
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -265,6 +268,7 @@ TEST_F(Test_NymData, HaveContract)
 {
     const auto identifier1(opentxs::identifier::UnitDefinition::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            client_,
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -298,6 +302,7 @@ TEST_F(Test_NymData, HaveContract)
 
     const auto identifier2(opentxs::identifier::UnitDefinition::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            client_,
             "testNym",
             opentxs::proto::CONTACTSECTION_CONTRACT,
             opentxs::proto::CITEMTYPE_USD,
@@ -385,6 +390,7 @@ TEST_F(Test_NymData, PreferredOTServer)
 
     const auto identifier(opentxs::identifier::Server::Factory(
         opentxs::identity::credential::Contact::ClaimID(
+            client_,
             "testNym",
             opentxs::proto::CONTACTSECTION_COMMUNICATION,
             opentxs::proto::CITEMTYPE_OPENTXS,
@@ -412,6 +418,7 @@ TEST_F(Test_NymData, PrintContactData)
 TEST_F(Test_NymData, SetContactData)
 {
     const opentxs::ContactData contactData(
+        client_,
         std::string("contactData"),
         nymData_.Nym().ContactDataVersion(),
         nymData_.Nym().ContactDataVersion(),

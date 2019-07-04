@@ -16,6 +16,7 @@
 namespace opentxs
 {
 ContactItem::ContactItem(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
@@ -25,7 +26,8 @@ ContactItem::ContactItem(
     const std::set<proto::ContactItemAttribute>& attributes,
     const std::time_t start,
     const std::time_t end)
-    : version_(check_version(version, parentVersion))
+    : api_(api)
+    , version_(check_version(version, parentVersion))
     , nym_(nym)
     , section_(section)
     , type_(type)
@@ -34,6 +36,7 @@ ContactItem::ContactItem(
     , end_(end)
     , attributes_(attributes)
     , id_(Identifier::Factory(identity::credential::Contact::ClaimID(
+          api,
           nym,
           section,
           type,
@@ -48,12 +51,28 @@ ContactItem::ContactItem(
     }
 }
 
+ContactItem::ContactItem(const ContactItem& rhs)
+    : api_(rhs.api_)
+    , version_(rhs.version_)
+    , nym_(rhs.nym_)
+    , section_(rhs.section_)
+    , type_(rhs.type_)
+    , value_(rhs.value_)
+    , start_(rhs.start_)
+    , end_(rhs.end_)
+    , attributes_(rhs.attributes_)
+    , id_(rhs.id_)
+{
+}
+
 ContactItem::ContactItem(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
     const Claim& claim)
     : ContactItem(
+          api,
           nym,
           version,
           parentVersion,
@@ -67,11 +86,13 @@ ContactItem::ContactItem(
 }
 
 ContactItem::ContactItem(
+    const api::Core& api,
     const std::string& nym,
     const VersionNumber parentVersion,
     const proto::ContactSectionName section,
     const proto::ContactItem& data)
     : ContactItem(
+          api,
           nym,
           data.version(),
           parentVersion,
@@ -207,6 +228,7 @@ ContactItem ContactItem::set_attribute(
     }
 
     return ContactItem(
+        api_,
         nym_,
         version_,
         version_,
@@ -228,6 +250,7 @@ ContactItem ContactItem::SetEnd(const std::time_t end) const
     if (end_ == end) { return *this; }
 
     return ContactItem(
+        api_,
         nym_,
         version_,
         version_,
@@ -254,6 +277,7 @@ ContactItem ContactItem::SetStart(const std::time_t start) const
     if (start_ == start) { return *this; }
 
     return ContactItem(
+        api_,
         nym_,
         version_,
         version_,
@@ -270,6 +294,7 @@ ContactItem ContactItem::SetValue(const std::string& value) const
     if (value_ == value) { return *this; }
 
     return ContactItem(
+        api_,
         nym_,
         version_,
         version_,
