@@ -5,36 +5,44 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::api::crypto::implementation
 {
-class Hash : public api::crypto::Hash
+class Hash final : public api::crypto::Hash
 {
 public:
     bool Digest(
         const proto::HashType hashType,
         const OTPassword& data,
-        OTPassword& digest) const override;
+        OTPassword& digest) const noexcept final;
     bool Digest(const proto::HashType hashType, const Data& data, Data& digest)
-        const override;
+        const noexcept final;
     bool Digest(
         const proto::HashType hashType,
         const String& data,
-        Data& digest) const override;
+        Data& digest) const noexcept final;
     bool Digest(
         const proto::HashType hashType,
         const std::string& data,
-        Data& digest) const override;
+        Data& digest) const noexcept final;
     bool Digest(
         const std::uint32_t type,
         const std::string& data,
-        std::string& encodedDigest) const override;
+        std::string& encodedDigest) const noexcept final;
     bool HMAC(
         const proto::HashType hashType,
         const OTPassword& key,
         const Data& data,
-        OTPassword& digest) const override;
+        OTPassword& digest) const noexcept final;
+    void MurmurHash3_32(
+        const std::uint32_t& key,
+        const Data& data,
+        std::uint32_t& output) const noexcept final;
+    bool SipHash(
+        const OTPassword& key,
+        const Data& data,
+        std::uint64_t& output,
+        const int c,
+        const int d) const noexcept final;
 
     ~Hash() = default;
 
@@ -48,14 +56,16 @@ private:
     const opentxs::crypto::Ripemd160& bitcoin_;
 #endif
 
-    static bool Allocate(const proto::HashType hashType, OTPassword& input);
-    static bool Allocate(const proto::HashType hashType, Data& input);
+    static bool Allocate(
+        const proto::HashType hashType,
+        OTPassword& input) noexcept;
+    static bool Allocate(const proto::HashType hashType, Data& input) noexcept;
 
     bool Digest(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
-        std::uint8_t* output) const;
+        std::uint8_t* output) const noexcept;
     Hash(
         const api::crypto::Encode& encode,
         const opentxs::crypto::HashingProvider& ssl,
@@ -64,16 +74,16 @@ private:
         ,
         const opentxs::crypto::Ripemd160& bitcoin
 #endif
-    );
+        ) noexcept;
     bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
         const std::uint8_t* key,
         const size_t keySize,
-        std::uint8_t* output) const;
-    const opentxs::crypto::HashingProvider& SHA2() const;
-    const opentxs::crypto::HashingProvider& Sodium() const;
+        std::uint8_t* output) const noexcept;
+    const opentxs::crypto::HashingProvider& SHA2() const noexcept;
+    const opentxs::crypto::HashingProvider& Sodium() const noexcept;
 
     Hash(const Hash&) = delete;
     Hash(Hash&&) = delete;

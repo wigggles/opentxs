@@ -206,6 +206,7 @@ set(object-deps
   $<TARGET_OBJECTS:irrxml>
   ${lucre}
   ${trezor}
+  $<TARGET_OBJECTS:external-hashes>
   $<TARGET_OBJECTS:otprotob>
   $<TARGET_OBJECTS:opentxs-api-client>
   $<TARGET_OBJECTS:opentxs-api-crypto>

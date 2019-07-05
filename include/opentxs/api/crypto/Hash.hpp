@@ -23,36 +23,46 @@ namespace crypto
 class Hash
 {
 public:
-    virtual bool Digest(
+    EXPORT virtual bool Digest(
         const proto::HashType hashType,
         const OTPassword& data,
-        OTPassword& digest) const = 0;
-    virtual bool Digest(
+        OTPassword& digest) const noexcept = 0;
+    EXPORT virtual bool Digest(
         const proto::HashType hashType,
         const Data& data,
-        Data& digest) const = 0;
-    virtual bool Digest(
+        Data& digest) const noexcept = 0;
+    EXPORT virtual bool Digest(
         const proto::HashType hashType,
         const String& data,
-        Data& digest) const = 0;
-    virtual bool Digest(
+        Data& digest) const noexcept = 0;
+    EXPORT virtual bool Digest(
         const proto::HashType hashType,
         const std::string& data,
-        Data& digest) const = 0;
-    virtual bool Digest(
+        Data& digest) const noexcept = 0;
+    EXPORT virtual bool Digest(
         const std::uint32_t type,
         const std::string& data,
-        std::string& encodedDigest) const = 0;
-    virtual bool HMAC(
+        std::string& encodedDigest) const noexcept = 0;
+    EXPORT virtual bool HMAC(
         const proto::HashType hashType,
         const OTPassword& key,
         const Data& data,
-        OTPassword& digest) const = 0;
+        OTPassword& digest) const noexcept = 0;
+    EXPORT virtual void MurmurHash3_32(
+        const std::uint32_t& key,
+        const Data& data,
+        std::uint32_t& output) const noexcept = 0;
+    EXPORT virtual bool SipHash(
+        const OTPassword& key,
+        const Data& data,
+        std::uint64_t& output,
+        const int c = 2,
+        const int d = 4) const noexcept = 0;
 
-    virtual ~Hash() = default;
+    EXPORT virtual ~Hash() = default;
 
 protected:
-    Hash() = default;
+    Hash() noexcept = default;
 
 private:
     Hash(const Hash&) = delete;
