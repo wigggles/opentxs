@@ -367,4 +367,21 @@ else()
     set(bundled-lmdb-path "" CACHE INTERNAL "" FORCE)
 endif()
 
+set(hashes-sources
+  ${CMAKE_CURRENT_SOURCE_DIR}/siphash/src/siphash.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/smhasher/src/MurmurHash3.cpp
+)
+
+set(hashes-headers
+  ${CMAKE_CURRENT_SOURCE_DIR}/siphash/src/siphash.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/smhasher/src/MurmurHash3.h
+)
+
+add_library(external-hashes OBJECT
+  ${hashes-sources}
+  ${hashes-headers}
+)
+
+set_property(TARGET external-hashes PROPERTY POSITION_INDEPENDENT_CODE 1)
+
 #clang-format on

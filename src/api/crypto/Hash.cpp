@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -24,6 +26,9 @@
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/crypto/library/OpenSSL.hpp"
 #endif
+
+#include "siphash/src/siphash.h"
+#include "smhasher/src/MurmurHash3.h"
 
 #include "Hash.hpp"
 
@@ -63,7 +68,7 @@ Hash::Hash(
     ,
     const opentxs::crypto::Ripemd160& bitcoin
 #endif
-    )
+    ) noexcept
     : encode_(encode)
     , ssl_(ssl)
     , sodium_(sodium)
@@ -73,7 +78,7 @@ Hash::Hash(
 {
 }
 
-const opentxs::crypto::HashingProvider& Hash::SHA2() const
+const opentxs::crypto::HashingProvider& Hash::SHA2() const noexcept
 {
 #if OT_CRYPTO_SHA2_VIA_OPENSSL
     return ssl_;
@@ -82,15 +87,18 @@ const opentxs::crypto::HashingProvider& Hash::SHA2() const
 #endif
 }
 
-const opentxs::crypto::HashingProvider& Hash::Sodium() const { return sodium_; }
+const opentxs::crypto::HashingProvider& Hash::Sodium() const noexcept
+{
+    return sodium_;
+}
 
-bool Hash::Allocate(const proto::HashType hashType, OTPassword& input)
+bool Hash::Allocate(const proto::HashType hashType, OTPassword& input) noexcept
 {
     return input.randomizeMemory(
         opentxs::crypto::HashingProvider::HashSize(hashType));
 }
 
-bool Hash::Allocate(const proto::HashType hashType, Data& input)
+bool Hash::Allocate(const proto::HashType hashType, Data& input) noexcept
 {
     return input.Randomize(
         opentxs::crypto::HashingProvider::HashSize(hashType));
@@ -100,7 +108,7 @@ bool Hash::Digest(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
-    std::uint8_t* output) const
+    std::uint8_t* output) const noexcept
 {
     switch (hashType) {
         case (proto::HASHTYPE_SHA256):
@@ -136,7 +144,7 @@ bool Hash::HMAC(
     const size_t inputSize,
     const std::uint8_t* key,
     const size_t keySize,
-    std::uint8_t* output) const
+    std::uint8_t* output) const noexcept
 {
     switch (hashType) {
         case (proto::HASHTYPE_SHA256):
@@ -162,7 +170,7 @@ bool Hash::HMAC(
 bool Hash::Digest(
     const proto::HashType hashType,
     const OTPassword& data,
-    OTPassword& digest) const
+    OTPassword& digest) const noexcept
 {
     if (false == Allocate(hashType, digest)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
@@ -187,7 +195,7 @@ bool Hash::Digest(
 bool Hash::Digest(
     const proto::HashType hashType,
     const Data& data,
-    Data& digest) const
+    Data& digest) const noexcept
 {
     if (false == Allocate(hashType, digest)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
@@ -206,7 +214,7 @@ bool Hash::Digest(
 bool Hash::Digest(
     const proto::HashType hashType,
     const String& data,
-    Data& digest) const
+    Data& digest) const noexcept
 {
     if (false == Allocate(hashType, digest)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
@@ -225,7 +233,7 @@ bool Hash::Digest(
 bool Hash::Digest(
     const proto::HashType hashType,
     const std::string& data,
-    Data& digest) const
+    Data& digest) const noexcept
 {
     if (false == Allocate(hashType, digest)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
@@ -244,7 +252,7 @@ bool Hash::Digest(
 bool Hash::Digest(
     const std::uint32_t type,
     const std::string& data,
-    std::string& encodedDigest) const
+    std::string& encodedDigest) const noexcept
 {
     proto::HashType hashType = static_cast<proto::HashType>(type);
     auto result = Data::Factory();
@@ -271,7 +279,7 @@ bool Hash::HMAC(
     const proto::HashType hashType,
     const OTPassword& key,
     const Data& data,
-    OTPassword& digest) const
+    OTPassword& digest) const noexcept
 {
     if (false == Allocate(hashType, digest)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
@@ -293,5 +301,55 @@ bool Hash::HMAC(
         static_cast<const std::uint8_t*>(key.getMemory()),
         key.getMemorySize(),
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
+}
+
+void Hash::MurmurHash3_32(
+    const std::uint32_t& key,
+    const Data& data,
+    std::uint32_t& output) const noexcept
+{
+    MurmurHash3_x86_32(data.data(), data.size(), key, &output);
+}
+
+bool Hash::SipHash(
+    const OTPassword& key,
+    const Data& data,
+    std::uint64_t& output,
+    const int c,
+    const int d) const noexcept
+{
+    const bool validKey =
+        16 == (key.isMemory() ? key.getMemorySize() : key.getPasswordSize());
+
+    if (false == validKey) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key size").Flush();
+
+        return false;
+    }
+
+    if (1 > c) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid c").Flush();
+
+        return false;
+    }
+
+    if (1 > d) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid d").Flush();
+
+        return false;
+    }
+
+    ::SipHash hasher{const_cast<char*>(static_cast<const char*>(
+                         key.isMemory() ? key.getMemory() : key.getPassword())),
+                     c,
+                     d};
+
+    for (const auto& byte : data) {
+        hasher.update(std::to_integer<char>(byte));
+    }
+
+    output = hasher.digest();
+
+    return true;
 }
 }  // namespace opentxs::api::crypto::implementation

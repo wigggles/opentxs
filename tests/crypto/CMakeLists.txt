@@ -9,6 +9,7 @@ set(cxx-sources
         ${PROJECT_SOURCE_DIR}/tests/main.cpp
         Test_AsymmetricProvider.cpp
         Test_BitcoinProviders.cpp
+        Test_Hash.cpp
         ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
         )
 

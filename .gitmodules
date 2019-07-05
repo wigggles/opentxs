@@ -32,3 +32,9 @@
 	path = deps/lmdb
 	url = https://github.com/LMDB/lmdb
 	branch = mdb.master
+[submodule "deps/siphash"]
+	path = deps/siphash
+	url = https://github.com/whitfin/siphash-cpp
+[submodule "deps/smhasher"]
+	path = deps/smhasher
+	url = https://github.com/aappleby/smhasher
