@@ -12,65 +12,66 @@ namespace opentxs::implementation
 class Data : virtual public opentxs::Data
 {
 public:
-    bool operator==(const opentxs::Data& rhs) const override;
-    bool operator!=(const opentxs::Data& rhs) const override;
-    bool operator<(const opentxs::Data& rhs) const override;
-    bool operator>(const opentxs::Data& rhs) const override;
-    bool operator<=(const opentxs::Data& rhs) const override;
-    bool operator>=(const opentxs::Data& rhs) const override;
-    Data& operator+=(const opentxs::Data& rhs) override;
-    Data& operator+=(const std::uint8_t rhs) override;
-    Data& operator+=(const std::uint32_t rhs) override;
+    bool operator==(const opentxs::Data& rhs) const final;
+    bool operator!=(const opentxs::Data& rhs) const final;
+    bool operator<(const opentxs::Data& rhs) const final;
+    bool operator>(const opentxs::Data& rhs) const final;
+    bool operator<=(const opentxs::Data& rhs) const final;
+    bool operator>=(const opentxs::Data& rhs) const final;
+    Data& operator+=(const opentxs::Data& rhs) final;
+    Data& operator+=(const std::uint8_t rhs) final;
+    Data& operator+=(const std::uint32_t rhs) final;
 
-    std::string asHex() const override;
-    const std::byte& at(const std::size_t position) const override
+    std::string asHex() const final;
+    const std::byte& at(const std::size_t position) const final
     {
         return reinterpret_cast<const std::byte&>(data_.at(position));
     }
-    const_iterator begin() const override { return const_iterator(this, 0); }
-    const_iterator cbegin() const override { return const_iterator(this, 0); }
-    const_iterator cend() const override
+    const_iterator begin() const final { return const_iterator(this, 0); }
+    const_iterator cbegin() const final { return const_iterator(this, 0); }
+    const_iterator cend() const final
     {
         return const_iterator(this, data_.size());
     }
-    bool empty() const override { return data_.empty(); }
-    const void* data() const override { return data_.data(); }
-    const_iterator end() const override
+    bool empty() const final { return data_.empty(); }
+    const void* data() const final { return data_.data(); }
+    const_iterator end() const final
     {
         return const_iterator(this, data_.size());
     }
     bool Extract(
         const std::size_t amount,
         opentxs::Data& output,
-        const std::size_t pos) const override;
-    bool Extract(std::uint8_t& output, const std::size_t pos) const override;
-    bool Extract(std::uint32_t& output, const std::size_t pos) const override;
-    bool IsEmpty() const override { return empty(); }
-    const void* GetPointer() const override { return data_.data(); }
-    std::size_t GetSize() const override { return size(); }
-    std::size_t size() const override { return data_.size(); }
+        const std::size_t pos) const final;
+    bool Extract(std::uint8_t& output, const std::size_t pos) const final;
+    bool Extract(std::uint32_t& output, const std::size_t pos) const final;
+    bool IsEmpty() const final { return empty(); }
+    bool IsNull() const final;
+    const void* GetPointer() const final { return data_.data(); }
+    std::size_t GetSize() const final { return size(); }
+    std::size_t size() const final { return data_.size(); }
 
-    void Assign(const opentxs::Data& source) override;
-    void Assign(const void* data, const std::size_t& size) override;
-    std::byte& at(const std::size_t position) override
+    void Assign(const opentxs::Data& source) final;
+    void Assign(const void* data, const std::size_t& size) final;
+    std::byte& at(const std::size_t position) final
     {
         return reinterpret_cast<std::byte&>(data_.at(position));
     }
-    iterator begin() override { return iterator(this, 0); }
-    void Concatenate(const void* data, const std::size_t& size) override;
-    void* data() override { return data_.data(); }
-    bool DecodeHex(const std::string& hex) override;
-    iterator end() override { return iterator(this, data_.size()); }
-    std::size_t OTfread(std::uint8_t* data, const std::size_t& size) override;
-    bool Randomize(const std::size_t& size) override;
-    void Release() override;
-    void reset() override { position_ = 0; }
-    void SetSize(const std::size_t& size) override;
+    iterator begin() final { return iterator(this, 0); }
+    void Concatenate(const void* data, const std::size_t& size) final;
+    void* data() final { return data_.data(); }
+    bool DecodeHex(const std::string& hex) final;
+    iterator end() final { return iterator(this, data_.size()); }
+    std::size_t OTfread(std::uint8_t* data, const std::size_t& size) final;
+    bool Randomize(const std::size_t& size) final;
+    void Release() final;
+    void reset() final { position_ = 0; }
+    void SetSize(const std::size_t& size) final;
     std::string str() const override;
-    void swap(opentxs::Data&& rhs) override;
-    void zeroMemory() override;
+    void swap(opentxs::Data&& rhs) final;
+    void zeroMemory() final;
 
-    virtual ~Data() = default;
+    ~Data() override = default;
 
 protected:
     using Vector = std::vector<std::uint8_t>;

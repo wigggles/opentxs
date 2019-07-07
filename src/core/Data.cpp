@@ -171,7 +171,7 @@ bool Data::operator==(const opentxs::Data& in) const
 
     for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
         const auto& lhs = *i;
-        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
 
         if (lhs != rhs) { return false; }
     }
@@ -187,7 +187,7 @@ bool Data::operator!=(const opentxs::Data& in) const
 
     for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
         const auto& lhs = *i;
-        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
 
         if (lhs != rhs) { return true; }
     }
@@ -205,12 +205,15 @@ bool Data::operator<(const opentxs::Data& in) const
 
     for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
         const auto& lhs = *i;
-        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
 
         if (lhs < rhs) { return true; }
+        if (lhs > rhs) { return false; }
     }
 
-    return false;
+    --x;
+
+    return at(x) < in.at(x);
 }
 
 bool Data::operator>(const opentxs::Data& in) const
@@ -223,12 +226,15 @@ bool Data::operator>(const opentxs::Data& in) const
 
     for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
         const auto& lhs = *i;
-        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
 
         if (lhs > rhs) { return true; }
+        if (lhs < rhs) { return false; }
     }
 
-    return false;
+    --x;
+
+    return at(x) > in.at(x);
 }
 
 bool Data::operator<=(const opentxs::Data& in) const
@@ -241,14 +247,13 @@ bool Data::operator<=(const opentxs::Data& in) const
 
     for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
         const auto& lhs = *i;
-        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
 
         if (lhs < rhs) { return true; }
+        if (lhs > rhs) { return false; }
     }
 
-    --x;
-
-    return at(x) == in.at(x);
+    return true;
 }
 
 bool Data::operator>=(const opentxs::Data& in) const
@@ -261,14 +266,13 @@ bool Data::operator>=(const opentxs::Data& in) const
 
     for (auto i = data_.begin(); i != data_.end(); ++x, ++i) {
         const auto& lhs = *i;
-        const auto& rhs = reinterpret_cast<const std::uint8_t&>(in.at(x));
+        const auto rhs = std::to_integer<std::uint8_t>(in.at(x));
 
         if (lhs > rhs) { return true; }
+        if (lhs < rhs) { return false; }
     }
 
-    --x;
-
-    return at(x) == in.at(x);
+    return true;
 }
 
 Data& Data::operator+=(const opentxs::Data& rhs)
@@ -415,6 +419,17 @@ void Data::Initialize()
 {
     data_.clear();
     reset();
+}
+
+bool Data::IsNull() const
+{
+    if (data_.empty()) { return true; }
+
+    for (const auto& byte : data_) {
+        if (0 != byte) { return false; }
+    }
+
+    return true;
 }
 
 // First use reset() to set the internal position to 0. Then you pass in the
