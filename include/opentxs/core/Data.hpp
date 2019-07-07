@@ -108,6 +108,7 @@ public:
 #ifndef SWIG
     [[deprecated]] EXPORT virtual bool IsEmpty() const = 0;
 #endif
+    EXPORT virtual bool IsNull() const = 0;
     EXPORT virtual std::size_t size() const = 0;
 
     EXPORT virtual Data& operator+=(const Data& rhs) = 0;

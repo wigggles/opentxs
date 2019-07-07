@@ -179,3 +179,104 @@ TEST(Data, copy_from_interface)
     std::string value(static_cast<const char*>(other->data()), other->size());
     ASSERT_EQ(value, "abcd");
 }
+
+TEST(Data, map_1)
+{
+    const auto one = Data::Factory(
+        "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000",
+        Data::Mode::Hex);
+    const auto two = Data::Factory(
+        "bddd99ccfda39da1b108ce1a5d70038d0a967bacb68b6b63065f626a00000000",
+        Data::Mode::Hex);
+
+    EXPECT_FALSE(one == two);
+    EXPECT_TRUE(one != two);
+    EXPECT_TRUE(one < two);
+    EXPECT_TRUE(one <= two);
+    EXPECT_FALSE(one > two);
+    EXPECT_FALSE(one >= two);
+
+    EXPECT_FALSE(two == one);
+    EXPECT_TRUE(two != one);
+    EXPECT_FALSE(two < one);
+    EXPECT_FALSE(two <= one);
+    EXPECT_TRUE(two > one);
+    EXPECT_TRUE(two >= one);
+
+    std::map<OTData, std::string> map{};
+
+    EXPECT_EQ(0, map.size());
+    EXPECT_EQ(0, map.count(one));
+    EXPECT_EQ(0, map.count(two));
+
+    map.emplace(one, "foo");
+
+    EXPECT_EQ(1, map.size());
+    EXPECT_EQ(1, map.count(one));
+    EXPECT_EQ(0, map.count(two));
+
+    map.emplace(two, "bar");
+
+    EXPECT_EQ(2, map.size());
+    EXPECT_EQ(1, map.count(one));
+    EXPECT_EQ(1, map.count(two));
+}
+
+TEST(Data, map_2)
+{
+    const auto one = Data::Factory(
+        "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000000",
+        Data::Mode::Hex);
+    const auto two = Data::Factory(
+        "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000001",
+        Data::Mode::Hex);
+
+    EXPECT_FALSE(one == two);
+    EXPECT_TRUE(one != two);
+    EXPECT_TRUE(one < two);
+    EXPECT_TRUE(one <= two);
+    EXPECT_FALSE(one > two);
+    EXPECT_FALSE(one >= two);
+
+    EXPECT_FALSE(two == one);
+    EXPECT_TRUE(two != one);
+    EXPECT_FALSE(two < one);
+    EXPECT_FALSE(two <= one);
+    EXPECT_TRUE(two > one);
+    EXPECT_TRUE(two >= one);
+
+    std::map<OTData, std::string> map{};
+
+    EXPECT_EQ(0, map.size());
+    EXPECT_EQ(0, map.count(one));
+    EXPECT_EQ(0, map.count(two));
+
+    map.emplace(one, "foo");
+
+    EXPECT_EQ(1, map.size());
+    EXPECT_EQ(1, map.count(one));
+    EXPECT_EQ(0, map.count(two));
+
+    map.emplace(two, "bar");
+
+    EXPECT_EQ(2, map.size());
+    EXPECT_EQ(1, map.count(one));
+    EXPECT_EQ(1, map.count(two));
+}
+
+TEST(Data, is_null)
+{
+    const auto one = Data::Factory("00000000", Data::Mode::Hex);
+    const auto two = Data::Factory(
+        "4860eb18bf1b1620e37e9490fc8a427514416fd75159ab86688e9a8300000001",
+        Data::Mode::Hex);
+    const auto three = Data::Factory(
+        "0000000000000000000000000000000000000000000000000000000000000001",
+        Data::Mode::Hex);
+    const auto four = Data::Factory();
+
+    EXPECT_TRUE(one->IsNull());
+    EXPECT_FALSE(two->IsNull());
+    EXPECT_FALSE(three->IsNull());
+    EXPECT_TRUE(four->IsNull());
+}
