@@ -24,17 +24,25 @@ public:
     {
         return peer_.AddPeer(address);
     }
-    const blockchain::internal::Database& Database() const noexcept final
+    Type Chain() const noexcept final { return chain_; }
+    const network::zeromq::Pipeline& FilterPipeline() const noexcept final
     {
-        return database_;
+        return new_filters_;
     }
     ChainHeight GetConfirmations(const std::string& txid) const noexcept final;
     ChainHeight GetHeight() const noexcept final
     {
         return local_chain_height_.load();
     }
-    std::size_t GetPeerCount() const noexcept final;
+    std::size_t GetPeerCount() const noexcept final
+    {
+        return peer_.GetPeerCount();
+    }
     Type GetType() const noexcept final { return chain_; }
+    const internal::HeaderOracle& HeaderOracle() const noexcept final
+    {
+        return header_;
+    }
     const network::zeromq::Pipeline& HeaderPipeline() const noexcept final
     {
         return new_headers_;
@@ -43,6 +51,10 @@ public:
     {
         return local_chain_height_.load() >= remote_chain_height_.load();
     }
+    void RequestFilters(
+        const filter::Type type,
+        const block::Height start,
+        const block::Hash& stop) const noexcept final;
     std::string SendToAddress(
         const std::string& address,
         const Amount amount,
@@ -56,8 +68,9 @@ public:
     void UpdateHeight(const block::Height height) const noexcept final;
     void UpdateLocalHeight(const block::Position position) const noexcept final;
 
-    bool Connect() noexcept final;
+    bool Connect() noexcept final { return peer_.Connect(); }
     bool Disconnect() noexcept final;
+    internal::HeaderOracle& HeaderOracle() noexcept final { return header_; }
     bool Shutdown() noexcept final;
 
     ~Network() override;
@@ -73,12 +86,12 @@ protected:
     const api::internal::Core& api_;
     const Type chain_;
     blockchain::internal::Database& database_;
+    internal::FilterOracle& filters_;
     internal::HeaderOracle& header_;
     internal::PeerManager& peer_;
 
     // NOTE call init in every final constructor body
     void init() noexcept;
-    void cleanup() noexcept;
 
     Network(
         const api::internal::Core& api,
@@ -89,10 +102,12 @@ private:
     mutable std::atomic<block::Height> local_chain_height_;
     mutable std::atomic<block::Height> remote_chain_height_;
     OTZMQPipeline new_headers_;
+    OTZMQPipeline new_filters_;
 
     virtual std::unique_ptr<block::Header> instantiate_header(
         const network::zeromq::Frame& payload) const noexcept = 0;
 
+    void process_filter(network::zeromq::Message& in) noexcept;
     void process_header(network::zeromq::Message& in) noexcept;
     bool state_machine() noexcept;
 

@@ -48,8 +48,16 @@ Database::Database(
     const client::internal::Network& network,
     const blockchain::Type type) noexcept
     : internal::Database()
+    , filters_()
     , headers_(api, network, type)
     , peers_()
+{
+}
+
+Database::Filters::Filters() noexcept
+    : lock_()
+    , tip_()
+    , filters_()
 {
 }
 
@@ -78,6 +86,63 @@ Database::Peers::Peers() noexcept
     , services_()
     , networks_()
 {
+}
+
+block::Position Database::Filters::CurrentTip(const filter::Type type) const
+    noexcept
+{
+    Lock lock(lock_);
+
+    try {
+
+        return tip_.at(type);
+    } catch (...) {
+
+        return make_blank<block::Position>::value();
+    }
+}
+
+bool Database::Filters::HaveFilter(
+    const filter::Type type,
+    const block::Hash& block) const noexcept
+{
+    Lock lock(lock_);
+
+    try {
+
+        return 0 < filters_.at(type).count(block);
+    } catch (...) {
+
+        return false;
+    }
+}
+
+bool Database::Filters::SetTip(
+    const filter::Type type,
+    const block::Position position) const noexcept
+{
+    Lock lock(lock_);
+    auto it = tip_.find(type);
+
+    if (tip_.end() == it) {
+        tip_.emplace(type, position);
+    } else {
+        it->second = position;
+    }
+
+    return true;
+}
+
+bool Database::Filters::StoreFilter(
+    const filter::Type type,
+    const block::Hash& block,
+    std::unique_ptr<const blockchain::internal::GCS> filter) const noexcept
+{
+    Lock lock(lock_);
+    auto& map = filters_[type];
+    map.emplace(block, std::move(filter));
+
+    return 0 < map.count(block);
 }
 
 bool Database::Headers::ApplyUpdate(

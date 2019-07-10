@@ -32,6 +32,7 @@ struct Address : virtual public p2p::Address {
 struct Peer : virtual public p2p::Peer {
     virtual OTIdentifier AddressID() const noexcept = 0;
     virtual void Heartbeat() const noexcept = 0;
+    virtual void Shutdown() noexcept = 0;
 
     virtual ~Peer() override = default;
 };

@@ -8,7 +8,12 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include "core/StateMachine.hpp"
 #include "internal/api/Api.hpp"
@@ -36,12 +41,13 @@ namespace opentxs
 blockchain::client::internal::PeerManager* Factory::BlockchainPeerManager(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
+    const blockchain::client::internal::PeerDatabase& database,
     const blockchain::Type type,
     const std::string& seednode)
 {
     using ReturnType = blockchain::client::implementation::PeerManager;
 
-    return new ReturnType{api, network, type, seednode};
+    return new ReturnType{api, network, database, type, seednode};
 }
 }  // namespace opentxs
 
@@ -69,13 +75,18 @@ const std::map<Type, p2p::Protocol> PeerManager::protocol_map_{
 PeerManager::PeerManager(
     const api::internal::Core& api,
     const internal::Network& network,
+    const internal::PeerDatabase& database,
     const Type chain,
     const std::string& seednode) noexcept
     : internal::PeerManager()
     , StateMachine(std::bind(&PeerManager::state_machine, this))
     , api_(api)
+    , database_(database)
+    , shutdown_()
+    , running_(Flag::Factory(true))
     , io_context_()
-    , peers_(api, network, *this, chain, seednode, io_context_)
+    , peers_(api, network, database_, *this, chain, seednode, io_context_)
+    , jobs_(api)
     , heartbeat_task_()
 {
 }
@@ -93,15 +104,29 @@ PeerManager::IO::IO() noexcept
     }
 }
 
+PeerManager::Jobs::Jobs(const api::internal::Core& api) noexcept
+    : getcfilters_(
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
+    , endpoint_map_()
+    , socket_map_({
+          {Task::Getcfilters, &getcfilters_.get()},
+      })
+{
+    // NOTE endpoint_map_ should never be modified after construction
+    listen(Task::Getcfilters, getcfilters_);
+}
+
 PeerManager::Peers::Peers(
     const api::internal::Core& api,
     const internal::Network& network,
+    const internal::PeerDatabase& database,
     const internal::PeerManager& parent,
     const Type chain,
     const std::string& seednode,
     boost::asio::io_context& context) noexcept
     : api_(api)
     , network_(network)
+    , database_(database)
     , parent_(parent)
     , chain_(chain)
     , default_peer_(set_default_peer(seednode))
@@ -113,6 +138,7 @@ PeerManager::Peers::Peers(
     , disconnect_peers_()
     , peers_()
     , active_()
+    , dying_peers_()
 {
 }
 
@@ -120,6 +146,44 @@ void PeerManager::IO::Shutdown() noexcept
 {
     work_.reset();
     thread_pool_.join_all();
+}
+
+void PeerManager::Jobs::Dispatch(const Task type, zmq::Message& work) noexcept
+{
+    socket_map_.at(type)->Send(work);
+}
+
+std::string PeerManager::Jobs::Endpoint(const Task type) const noexcept
+{
+    try {
+
+        return endpoint_map_.at(type);
+    } catch (...) {
+
+        return {};
+    }
+}
+
+void PeerManager::Jobs::listen(
+    const Task type,
+    const zmq::socket::Push& socket) noexcept
+{
+    auto& map = const_cast<EndpointMap&>(endpoint_map_);
+    auto [it, added] = map.emplace(
+        type,
+        std::string{"inproc://opentxs//blockchain/peer_tasks/"} +
+            Identifier::Random()->str());
+
+    OT_ASSERT(added);
+
+    const auto listen = socket.Start(it->second);
+
+    OT_ASSERT(listen);
+}
+
+void PeerManager::Jobs::Shutdown() noexcept
+{
+    for (auto [type, socket] : socket_map_) { socket->Close(); }
 }
 
 void PeerManager::Peers::add_peer(const Lock& lock, Endpoint endpoint) noexcept
@@ -163,11 +227,18 @@ bool PeerManager::Peers::AddPeer(const p2p::Address& address) noexcept
     return true;
 }
 
+std::size_t PeerManager::Peers::Count() const noexcept
+{
+    Lock lock(lock_);
+
+    return peers_.size();
+}
+
 PeerManager::Peers::Endpoint PeerManager::Peers::get_peer() const noexcept
 {
     const auto protocol = protocol_map_.at(chain_);
 
-    auto pAddress = network_.Database().Get(
+    auto pAddress = database_.Get(
         protocol,
         {p2p::Network::ipv4},  // TODO
         {});                   // TODO
@@ -229,6 +300,22 @@ OTData PeerManager::Peers::set_default_peer(const std::string node) noexcept
     return Data::Factory("0x7f000001", Data::Mode::Hex);
 }
 
+void PeerManager::Peers::purge() noexcept
+{
+    if (dying_peers_.empty()) { return; }
+
+    const auto limit = std::chrono::milliseconds(100);
+    auto time = dying_peers_.front().first;
+
+    while ((Clock::now() - time) > limit) {
+        dying_peers_.pop();
+
+        if (dying_peers_.empty()) { return; }
+
+        time = dying_peers_.front().first;
+    }
+}
+
 void PeerManager::Peers::QueueDisconnect(const int id) noexcept
 {
     Lock lock(queue_lock_);
@@ -250,21 +337,35 @@ bool PeerManager::Peers::Run() noexcept
         if (peers_.end() == it) { continue; }
 
         const auto address = it->second->AddressID();
+        it->second->Shutdown();
+        dying_peers_.push(DyingPeer{Clock::now(), it->second.release()});
         peers_.erase(it);
         --active_.at(address);
     }
 
+    purge();
     const auto target = minimum_peers_.load();
 
     if (target > peers_.size()) { add_peer(peerLock, get_peer()); }
 
-    return target > peers_.size();
+    const auto repeat =
+        (target > peers_.size()) || (false == dying_peers_.empty());
+
+    return repeat;
 }
 
 void PeerManager::Peers::Shutdown() noexcept
 {
     Lock lock(lock_);
+
+    for (auto& [id, peer] : peers_) {
+        peer->Shutdown();
+        dying_peers_.push(DyingPeer{Clock::now(), peer.release()});
+    }
+
     peers_.clear();
+
+    while (false == dying_peers_.empty()) { purge(); }
 }
 
 bool PeerManager::AddPeer(const p2p::Address& address) const noexcept
@@ -288,12 +389,46 @@ void PeerManager::init() noexcept
         std::chrono::seconds(1), [this]() -> void { this->Heartbeat(); });
 }
 
-bool PeerManager::state_machine() noexcept { return peers_.Run(); }
+void PeerManager::RequestFilters(
+    const filter::Type type,
+    const block::Height start,
+    const block::Hash& stop) const noexcept
+{
+    Lock lock(shutdown_, std::try_to_lock);
+
+    if (false == lock.owns_lock()) { return; }
+    if (false == running_.get()) { return; }
+    if (0 == peers_.Count()) { return; }
+
+    auto work = zmq::Message::Factory();
+    work->AddFrame(Data::Factory(&type, sizeof(type)));
+    work->AddFrame(Data::Factory(&start, sizeof(start)));
+    work->AddFrame(stop);
+    jobs_.Dispatch(Task::Getcfilters, work);
+}
+
+void PeerManager::Shutdown() noexcept
+{
+    Lock lock(shutdown_);
+    running_->Off();
+    Stop().get();
+    peers_.Shutdown();
+}
+
+bool PeerManager::state_machine() noexcept
+{
+    if (false == running_.get()) { return false; }
+
+    return peers_.Run();
+}
 
 PeerManager::~PeerManager()
 {
-    api_.Cancel(heartbeat_task_);
+    Lock lock(shutdown_);
+    running_->Off();
     Stop().get();
+    api_.Cancel(heartbeat_task_);
+    jobs_.Shutdown();
     peers_.Shutdown();
     io_context_.Shutdown();
 }

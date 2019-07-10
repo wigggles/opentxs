@@ -83,7 +83,7 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
 
     const bool haveElementCount =
         blockchain::bitcoin::DecodeCompactSizeFromPayload(
-            it, expectedSize, size, filterSize, csBytes);
+            it, expectedSize, size, elementCount, csBytes);
 
     if (false == haveElementCount) {
         LogOutput(__FUNCTION__)(": CompactSize incomplete").Flush();
@@ -93,9 +93,9 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
 
     const auto filterType = raw.Type();
     const auto blockHash = raw.Hash();
-    std::array<std::byte, 16> key{};
+    auto key = std::array<std::byte, 16>{};
 
-    OT_ASSERT(key.size() == blockHash->size());
+    OT_ASSERT(key.size() <= blockHash->size());
 
     std::memcpy(key.data(), blockHash->data(), key.size());
     std::unique_ptr<blockchain::internal::GCS> gcs{};

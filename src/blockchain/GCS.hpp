@@ -30,7 +30,7 @@ private:
     const api::internal::Core& api_;
     const std::uint32_t bits_;
     const std::uint32_t false_positive_rate_;
-    const OTPassword key_;
+    const OTData key_;
     const std::size_t filter_elements_;
     const OTData filter_;
 
@@ -38,7 +38,7 @@ private:
         const api::internal::Core& api,
         const std::uint32_t bits,
         const std::uint32_t fpRate,
-        const OTPassword& key,
+        const Data& key,
         const std::vector<OTData>& elements) noexcept;
     static void golomb_encode(
         const std::uint32_t bits,
@@ -46,18 +46,18 @@ private:
         std::uint64_t delta) noexcept;
     static std::uint64_t hash_to_range(
         const api::internal::Core& api,
-        const OTPassword& key,
+        const Data& key,
         const std::uint64_t maxRange,
         const Data& item) noexcept;
     static std::set<std::uint64_t> hashed_set_construct(
         const api::internal::Core& api,
         const std::uint32_t fpRate,
         const std::size_t elementCount,
-        const OTPassword& key,
+        const Data& key,
         const std::vector<OTData>& elements) noexcept;
     static std::uint64_t siphash(
         const api::internal::Core& api,
-        const OTPassword& key,
+        const Data& key,
         const Data& item) noexcept;
 
     std::uint64_t golomb_decode(BitReader& stream) const noexcept;
@@ -70,16 +70,16 @@ private:
     GCS(const api::internal::Core& api,
         const std::uint32_t bits,
         const std::uint32_t fpRate,
-        OTPassword& key,
+        const Data& key,
         const std::size_t filterElementCount,
         const Data& filter)
-    noexcept;
+    noexcept(false);
     GCS(const api::internal::Core& api,
         const std::uint32_t bits,
         const std::uint32_t fpRate,
-        OTPassword& key,
+        const Data& key,
         const std::vector<OTData>& elements)
-    noexcept;
+    noexcept(false);
     GCS() = delete;
     GCS(const GCS&) = delete;
     GCS(GCS&&) = delete;

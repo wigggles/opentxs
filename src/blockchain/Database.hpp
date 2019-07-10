@@ -41,6 +41,10 @@ public:
     {
         return headers_.CurrentCheckpoint();
     }
+    block::Position CurrentTip(const filter::Type type) const noexcept final
+    {
+        return filters_.CurrentTip(type);
+    }
     client::DisconnectedList DisconnectedHashes() const noexcept final
     {
         return headers_.DisconnectedHashes();
@@ -60,6 +64,11 @@ public:
     {
         return headers_.HaveCheckpoint();
     }
+    bool HaveFilter(const filter::Type type, const block::Hash& block) const
+        noexcept final
+    {
+        return filters_.HaveFilter(type, block);
+    }
     bool HeaderExists(const block::Hash& hash) const noexcept final
     {
         return headers_.HeaderExists(hash);
@@ -78,9 +87,22 @@ public:
     {
         return headers_.RecentHashes();
     }
+    bool SetTip(const filter::Type type, const block::Position position) const
+        noexcept final
+    {
+        return filters_.SetTip(type, position);
+    }
     client::Hashes SiblingHashes() const noexcept final
     {
         return headers_.SiblingHashes();
+    }
+    bool StoreFilter(
+        const filter::Type type,
+        const block::Hash& block,
+        std::unique_ptr<const blockchain::internal::GCS> filter) const
+        noexcept final
+    {
+        return filters_.StoreFilter(type, block, std::move(filter));
     }
     // Returns null pointer if the header does not exist
     std::unique_ptr<block::Header> TryLoadHeader(const block::Hash& hash) const
@@ -93,6 +115,31 @@ public:
 
 private:
     friend opentxs::Factory;
+
+    struct Filters {
+        block::Position CurrentTip(const filter::Type type) const noexcept;
+        bool HaveFilter(const filter::Type type, const block::Hash& block) const
+            noexcept;
+        bool SetTip(const filter::Type type, const block::Position position)
+            const noexcept;
+        bool StoreFilter(
+            const filter::Type type,
+            const block::Hash& block,
+            std::unique_ptr<const blockchain::internal::GCS> filter) const
+            noexcept;
+
+        Filters() noexcept;
+
+    private:
+        mutable std::mutex lock_;
+        mutable std::map<filter::Type, block::Position> tip_;
+        mutable std::map<
+            filter::Type,
+            std::map<
+                block::pHash,
+                std::shared_ptr<const blockchain::internal::GCS>>>
+            filters_;
+    };
 
     struct Headers {
         using HeaderMap =
@@ -171,6 +218,7 @@ private:
         Peers() noexcept;
     };
 
+    mutable Filters filters_;
     mutable Headers headers_;
     mutable Peers peers_;
 

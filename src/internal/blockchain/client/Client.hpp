@@ -49,7 +49,32 @@ using DisconnectedList = std::multimap<block::pHash, block::pHash>;
 
 namespace opentxs::blockchain::client::internal
 {
+struct FilterDatabase {
+    virtual block::Position CurrentTip(const filter::Type type) const
+        noexcept = 0;
+    virtual bool HaveFilter(const filter::Type type, const block::Hash& block)
+        const noexcept = 0;
+    virtual bool SetTip(const filter::Type type, const block::Position position)
+        const noexcept = 0;
+    virtual bool StoreFilter(
+        const filter::Type type,
+        const block::Hash& block,
+        std::unique_ptr<const blockchain::internal::GCS> filter) const
+        noexcept = 0;
+
+    virtual ~FilterDatabase() = default;
+};
+
 struct FilterOracle {
+    virtual void AddFilter(
+        const filter::Type type,
+        const block::Hash& block,
+        const Data& filter) const noexcept = 0;
+    virtual void CheckBlocks() const noexcept = 0;
+
+    virtual void Start() noexcept = 0;
+    virtual void Shutdown() noexcept = 0;
+
     virtual ~FilterOracle() = default;
 };
 
@@ -87,13 +112,22 @@ struct HeaderDatabase {
 };
 
 struct Network : virtual public opentxs::blockchain::Network {
-    virtual const blockchain::internal::Database& Database() const noexcept = 0;
+    virtual Type Chain() const noexcept = 0;
+    virtual const network::zeromq::Pipeline& FilterPipeline() const
+        noexcept = 0;
+    virtual const client::HeaderOracle& HeaderOracle() const noexcept = 0;
     virtual const network::zeromq::Pipeline& HeaderPipeline() const
         noexcept = 0;
     virtual bool IsSynchronized() const noexcept = 0;
+    virtual void RequestFilters(
+        const filter::Type type,
+        const block::Height start,
+        const block::Hash& stop) const noexcept = 0;
     virtual void UpdateHeight(const block::Height height) const noexcept = 0;
     virtual void UpdateLocalHeight(const block::Position position) const
         noexcept = 0;
+
+    virtual client::HeaderOracle& HeaderOracle() noexcept = 0;
 
     virtual ~Network() = default;
 };
@@ -114,10 +148,23 @@ struct PeerDatabase {
 };
 
 struct PeerManager {
+    enum class Task {
+        Getcfilters,
+    };
+
     virtual bool AddPeer(const p2p::Address& address) const noexcept = 0;
+    virtual bool Connect() noexcept = 0;
+    virtual const PeerDatabase& Database() const noexcept = 0;
     virtual void Disconnect(const int id) const noexcept = 0;
+    virtual std::string Endpoint(const Task type) const noexcept = 0;
+    virtual std::size_t GetPeerCount() const noexcept = 0;
+    virtual void RequestFilters(
+        const filter::Type type,
+        const block::Height start,
+        const block::Hash& stop) const noexcept = 0;
 
     virtual void init() noexcept = 0;
+    virtual void Shutdown() noexcept = 0;
 
     virtual ~PeerManager() = default;
 };

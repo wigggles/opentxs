@@ -126,7 +126,6 @@ Peer::Peer(
     std::unique_ptr<internal::Address> address,
     boost::asio::io_context& context,
     const bool relay,
-    const std::set<p2p::Service>& remoteServices,
     const std::set<p2p::Service>& localServices,
     const ProtocolVersion protocol) noexcept
     : p2p::implementation::Peer(
@@ -143,7 +142,6 @@ Peer::Peer(
     , nonce_(nonce(api_))
     , magic_(GetMagic(chain_))
     , local_services_(get_local_services(protocol_, chain_, localServices))
-    , remote_services_(get_remote_services(protocol_, chain_, localServices))
     , relay_(relay)
 {
     init();
@@ -167,26 +165,6 @@ std::set<p2p::Service> Peer::get_local_services(
     const std::set<p2p::Service>& input) noexcept
 {
     auto output{input};
-    output.emplace(p2p::Service::Limited);
-
-    if (blockchain::Type::BitcoinCash == network) {
-        output.emplace(p2p::Service::BitcoinCash);
-    }
-
-    if (blockchain::Type::BitcoinCash_testnet3 == network) {
-        output.emplace(p2p::Service::BitcoinCash);
-    }
-
-    return output;
-}
-
-std::set<p2p::Service> Peer::get_remote_services(
-    const ProtocolVersion version,
-    const blockchain::Type network,
-    const std::set<p2p::Service>& input) noexcept
-{
-    auto output{input};
-    output.emplace(p2p::Service::Network);
 
     if (blockchain::Type::BitcoinCash == network) {
         output.emplace(p2p::Service::BitcoinCash);
@@ -270,7 +248,7 @@ void Peer::process_addr(
         OT_ASSERT(pAddress);
 
         pAddress->SetLastConnected({});
-        network_.Database().AddOrUpdate(std::move(pAddress));
+        manager_.Database().AddOrUpdate(std::move(pAddress));
     }
 }
 
@@ -381,7 +359,13 @@ void Peer::process_cfilter(
         return;
     }
 
-    // TODO
+    const auto& message = *pMessage;
+    const auto type = message.Type();
+    auto work = zmq::Message::Factory();
+    work->AddFrame(Data::Factory(&type, sizeof(type)));
+    work->AddFrame(message.Hash());
+    work->AddFrame(message.Filter()->Serialize());
+    network_.FilterPipeline().Push(work);
 }
 
 void Peer::process_cmpctblock(
@@ -636,11 +620,6 @@ void Peer::process_getdata(
     }
 
     // TODO
-
-    else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Decoded Getdata msg payload")
-            .Flush();
-    }
 }
 
 void Peer::process_getheaders(
@@ -776,9 +755,9 @@ void Peer::process_message(const zmq::Message& message) noexcept
 
     if (2 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
-        disconnect();
 
-        return;
+        OT_FAIL;
+        ;
     }
 
     const auto& headerBytes = body.at(0);
@@ -815,7 +794,7 @@ void Peer::process_message(const zmq::Message& message) noexcept
         return;
     }
 
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Received ")(
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Received ")(
         blockchain::internal::DisplayString(chain_))(" ")(CommandName(command))(
         " command")
         .Flush();
@@ -823,7 +802,12 @@ void Peer::process_message(const zmq::Message& message) noexcept
     try {
         (this->*command_map_.at(command))(std::move(pHeader), payloadBytes);
     } catch (...) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": No handler for command").Flush();
+        auto raw = Data::Factory(headerBytes);
+        auto unknown = Data::Factory();
+        raw->Extract(12, unknown, 4);
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No handler for command ")(
+            unknown->str())
+            .Flush();
 
         return;
     }
@@ -849,11 +833,6 @@ void Peer::process_notfound(
     }
 
     // TODO
-
-    else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Decoded Notfound msg payload")
-            .Flush();
-    }
 }
 
 void Peer::process_ping(
@@ -947,11 +926,6 @@ void Peer::process_sendcmpct(
     }
 
     // TODO
-
-    else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Decoded Sendcmpct msg payload")
-            .Flush();
-    }
 }
 
 void Peer::process_sendheaders(
@@ -1032,7 +1006,21 @@ void Peer::process_version(
     const auto& version = *pVersion;
     network_.UpdateHeight(version.Height());
     protocol_.store(std::min(protocol_.load(), version.ProtocolVersion()));
-    update_address_services(version.RemoteServices());
+    const auto services = version.RemoteServices();
+    update_address_services(services);
+    const bool unsuitable = (0 == services.count(p2p::Service::Network)) &&
+                            (0 == services.count(p2p::Service::Limited));
+
+    if (unsuitable) {
+        disconnect();
+
+        return;
+    }
+
+    if (1 == services.count(p2p::Service::CompactFilters)) {
+        cfilter_worker_.Start(manager_.Endpoint(Task::Getcfilters));
+    }
+
     std::unique_ptr<Message> pVerack{Factory::BitcoinP2PVerack(api_, chain_)};
 
     if (false == bool(pVerack)) {
@@ -1063,6 +1051,39 @@ void Peer::request_addresses() noexcept
     send(message.Encode());
 }
 
+void Peer::request_cfilter(zmq::Message& in) noexcept
+{
+    const auto& body = in.Body();
+
+    if (3 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
+
+        return;
+    }
+
+    try {
+        std::unique_ptr<Message> pMessage{Factory::BitcoinP2PGetcfilters(
+            api_,
+            chain_,
+            body.at(0).as<filter::Type>(),
+            body.at(1).as<block::Height>(),
+            Data::Factory(body.at(2)))};
+
+        if (false == bool(pMessage)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to construct getcfilters")
+                .Flush();
+
+            return;
+        }
+
+        const auto& message = *pMessage;
+        send(message.Encode());
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid parameters").Flush();
+    }
+}
+
 void Peer::request_headers() noexcept
 {
     request_headers(api_.Factory().Data());
@@ -1074,7 +1095,7 @@ void Peer::request_headers(const block::Hash& hash) noexcept
         api_,
         chain_,
         protocol_.load(),
-        network_.Database().RecentHashes(),
+        network_.HeaderOracle().RecentHashes(),
         hash)};
 
     if (false == bool(pMessage)) {
@@ -1091,7 +1112,13 @@ void Peer::request_headers(const block::Hash& hash) noexcept
 void Peer::start_handshake() noexcept
 {
     try {
-        Connected().get();
+        const auto status = Connected().wait_for(std::chrono::seconds(5));
+
+        if (std::future_status::ready != status) {
+            disconnect();
+
+            return;
+        }
     } catch (...) {
         disconnect();
 
@@ -1099,7 +1126,7 @@ void Peer::start_handshake() noexcept
     }
 
     try {
-        const auto local = socket_.local_endpoint();
+        const auto local = local_endpoint();
         std::unique_ptr<Message> pVersion{Factory::BitcoinP2PVersion(
             api_,
             chain_,
@@ -1107,7 +1134,7 @@ void Peer::start_handshake() noexcept
             local_services_,
             local.address().to_v6().to_string(),
             local.port(),
-            remote_services_,
+            address_.Services(),
             endpoint_.address().to_v6().to_string(),
             endpoint_.port(),
             nonce_,
@@ -1124,9 +1151,5 @@ void Peer::start_handshake() noexcept
     }
 }
 
-Peer::~Peer()
-{
-    cleanup();
-    Stop().get();
-}
+Peer::~Peer() { Shutdown(); }
 }  // namespace opentxs::blockchain::p2p::bitcoin::implementation

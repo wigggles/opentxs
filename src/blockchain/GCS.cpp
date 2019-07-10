@@ -45,12 +45,15 @@ blockchain::internal::GCS* Factory::GCS(
     const std::vector<OTData>& elements)
 {
     using ReturnType = blockchain::implementation::GCS;
-    auto password = OTPassword{key.data(), key.size()};
-    auto filter = ReturnType::build_gcs(api, bits, fpRate, password, elements);
 
-    OTPassword pw{key.data(), key.size()};
+    try {
+        return new ReturnType(
+            api, bits, fpRate, Data::Factory(key.data(), key.size()), elements);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::GCS::")(__FUNCTION__)(e.what()).Flush();
 
-    return new ReturnType(api, bits, fpRate, pw, elements);
+        return nullptr;
+    }
 }
 
 blockchain::internal::GCS* Factory::GCS(
@@ -59,15 +62,19 @@ blockchain::internal::GCS* Factory::GCS(
 {
     using ReturnType = blockchain::implementation::GCS;
 
-    OTPassword pw{in.key().data(), in.key().size()};
+    try {
+        return new ReturnType(
+            api,
+            in.bits(),
+            in.fprate(),
+            Data::Factory(in.key().data(), in.key().size()),
+            in.count(),
+            Data::Factory(in.filter(), Data::Mode::Raw));
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::GCS::")(__FUNCTION__)(e.what()).Flush();
 
-    return new ReturnType(
-        api,
-        in.bits(),
-        in.fprate(),
-        pw,
-        in.count(),
-        Data::Factory(in.filter(), Data::Mode::Raw));
+        return nullptr;
+    }
 }
 
 blockchain::internal::GCS* Factory::GCS(
@@ -80,10 +87,19 @@ blockchain::internal::GCS* Factory::GCS(
 {
     using ReturnType = blockchain::implementation::GCS;
 
-    OTPassword pw{key.data(), key.size()};
+    try {
+        return new ReturnType(
+            api,
+            bits,
+            fpRate,
+            Data::Factory(key.data(), key.size()),
+            filterElementCount,
+            Data::Factory(filter));
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::GCS::")(__FUNCTION__)(e.what()).Flush();
 
-    return new ReturnType(
-        api, bits, fpRate, pw, filterElementCount, Data::Factory(filter));
+        return nullptr;
+    }
 }
 }  // namespace opentxs
 
@@ -93,9 +109,9 @@ GCS::GCS(
     const api::internal::Core& api,
     const std::uint32_t bits,
     const std::uint32_t fpRate,
-    OTPassword& key,
+    const Data& key,
     const std::size_t filterElementCount,
-    const Data& filter) noexcept
+    const Data& filter) noexcept(false)
     : version_(1)
     , api_(api)
     , bits_(bits)
@@ -104,10 +120,9 @@ GCS::GCS(
     , filter_elements_(filterElementCount)
     , filter_((filter))
 {
-    if (key_.isPassword()) {
-        OT_ASSERT(16 == key_.getPasswordSize());
-    } else {
-        OT_ASSERT(16 == key_.getMemorySize());
+    if (16 != key_->size()) {
+        throw std::runtime_error(
+            "Invalid key size: " + std::to_string(key_->size()));
     }
 }
 
@@ -115,8 +130,8 @@ GCS::GCS(
     const api::internal::Core& api,
     const std::uint32_t bits,
     const std::uint32_t fpRate,
-    OTPassword& key,
-    const std::vector<OTData>& elements) noexcept
+    const Data& key,
+    const std::vector<OTData>& elements) noexcept(false)
     : GCS(api,
           bits,
           fpRate,
@@ -130,7 +145,7 @@ OTData GCS::build_gcs(
     const api::internal::Core& api,
     const std::uint32_t bits,
     const std::uint32_t fpRate,
-    const OTPassword& key,
+    const Data& key,
     const std::vector<OTData>& elements) noexcept
 {
     auto output = Data::Factory();
@@ -201,7 +216,7 @@ void GCS::golomb_encode(
 
 std::uint64_t GCS::hash_to_range(
     const api::internal::Core& api,
-    const OTPassword& key,
+    const Data& key,
     const std::uint64_t maxRange,
     const Data& item) noexcept
 {
@@ -264,7 +279,7 @@ std::set<std::uint64_t> GCS::hashed_set_construct(
     const api::internal::Core& api,
     const std::uint32_t fpRate,
     const std::size_t elementCount,
-    const OTPassword& key,
+    const Data& key,
     const std::vector<OTData>& elements) noexcept
 {
     // Original spec says: let F = N * M
@@ -296,7 +311,7 @@ proto::GCS GCS::Serialize() const noexcept
     output.set_version(version_);
     output.set_bits(bits_);
     output.set_fprate(false_positive_rate_);
-    output.set_key(key_.getMemory(), key_.getMemorySize());
+    output.set_key(key_->data(), key_->size());
     output.set_count(static_cast<std::uint32_t>(filter_elements_));
     output.set_filter(filter_->str());
 
@@ -305,12 +320,21 @@ proto::GCS GCS::Serialize() const noexcept
 
 std::uint64_t GCS::siphash(
     const api::internal::Core& api,
-    const OTPassword& key,
+    const Data& key,
     const Data& item) noexcept
 {
-    std::uint64_t output{};
-    const bool hashed =
-        api.Crypto().Hash().SipHash(key, item, output, siphash_c_, siphash_d_);
+    auto output = std::uint64_t{};
+    auto pPassword = api.Factory().BinarySecret();
+
+    OT_ASSERT(pPassword);
+
+    auto& password = *pPassword;
+    password.setMemory(key);
+
+    OT_ASSERT(16 == password.getMemorySize());
+
+    const auto hashed = api.Crypto().Hash().SipHash(
+        password, item, output, siphash_c_, siphash_d_);
 
     if (hashed) { return output; }
 

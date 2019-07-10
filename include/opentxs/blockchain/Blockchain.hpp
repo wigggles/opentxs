@@ -30,6 +30,11 @@ namespace filter
 using Hash = blockchain::Hash;
 using pHash = blockchain::pHash;
 }  // namespace filter
+
+namespace p2p
+{
+std::string DisplayService(const Service service) noexcept;
+}  // namespace p2p
 }  // namespace blockchain
 }  // namespace opentxs
 #endif

@@ -30,11 +30,12 @@ namespace opentxs
 blockchain::client::internal::HeaderOracle* Factory::HeaderOracle(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
+    const blockchain::client::internal::HeaderDatabase& database,
     const blockchain::Type type)
 {
     using ReturnType = blockchain::client::implementation::HeaderOracle;
 
-    return new ReturnType(api, network, type);
+    return new ReturnType(api, network, database, type);
 }
 }  // namespace opentxs
 
@@ -78,10 +79,13 @@ namespace opentxs::blockchain::client::implementation
 HeaderOracle::HeaderOracle(
     const api::internal::Core& api,
     const internal::Network& network,
+    const internal::HeaderDatabase& database,
     const blockchain::Type type) noexcept
     : internal::HeaderOracle()
     , api_(api)
     , network_(network)
+    , database_(database)
+    , chain_(type)
     , lock_()
 {
 }
@@ -99,32 +103,32 @@ bool HeaderOracle::AddCheckpoint(
 
     auto& update = *pUpdate;
 
-    if (network_.Database().HaveCheckpoint()) {
+    if (database_.HaveCheckpoint()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Checkpoint already exists")
             .Flush();
 
         return false;
     }
 
-    if (network_.Database().HeaderExists(requiredHash)) {
+    if (database_.HeaderExists(requiredHash)) {
         try {
-            auto& header = update.ModifyExistingBlock(
-                network_.Database().LoadHeader(requiredHash));
+            auto& header =
+                update.ModifyExistingBlock(database_.LoadHeader(requiredHash));
             header.CompareToCheckpoint(checkpoint);
         } catch (...) {
             return false;
         }
     }
 
-    const auto currentPosition = network_.Database().CurrentBest()->Position();
+    const auto currentPosition = database_.CurrentBest()->Position();
     const auto [height, hash] = currentPosition;
 
     if (position <= height) {
         try {
-            if (requiredHash != network_.Database().BestBlock(position)) {
+            if (requiredHash != database_.BestBlock(position)) {
                 update.AddSibling(currentPosition);
-                auto& header = update.ModifyExistingBlock(
-                    network_.Database().LoadHeader(hash));
+                auto& header =
+                    update.ModifyExistingBlock(database_.LoadHeader(hash));
                 blacklist_to_checkpoint(lock, checkpoint, header, update);
                 reorg_to_checkpoint(lock, checkpoint, update);
                 update.SetReorg(true);
@@ -136,7 +140,7 @@ bool HeaderOracle::AddCheckpoint(
 
     update.SetCheckpoint(std::move(checkpoint));
 
-    return network_.Database().ApplyUpdate(std::move(pUpdate));
+    return database_.ApplyUpdate(std::move(pUpdate));
 }
 
 bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
@@ -151,7 +155,7 @@ bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
     Lock lock(lock_);
     const auto& incomingHash = header.Hash();
     const auto& incomingParent = header.ParentHash();
-    auto pCurrent = network_.Database().CurrentBest();
+    auto pCurrent = database_.CurrentBest();
     const auto& current = *pCurrent;
     const auto [currentHeight, currentHash] = current.Position();
     std::unique_ptr<internal::UpdateTransaction> pUpdate{
@@ -161,14 +165,14 @@ bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
 
     auto& update = *pUpdate;
 
-    if (network_.Database().HeaderExists(incomingHash)) {
+    if (database_.HeaderExists(incomingHash)) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Header already exists").Flush();
 
         return true;
     }
 
     bool addDisconnected{false};
-    const auto pParent = network_.Database().TryLoadHeader(incomingParent);
+    const auto pParent = database_.TryLoadHeader(incomingParent);
 
     if (pParent) {
         addDisconnected = pParent->IsDisconnected();
@@ -187,7 +191,7 @@ bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
     const auto& parent = *pParent;
     auto isCandidate = connect_to_parent(lock, parent, header);
     const bool extendsCurrentBest = (incomingParent == currentHash);
-    const bool extendsSibling = network_.Database().IsSibling(incomingParent);
+    const bool extendsSibling = database_.IsSibling(incomingParent);
 
     if (extendsSibling) { update.RemoveSibling(incomingParent); }
 
@@ -195,7 +199,7 @@ bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
 
     std::unique_ptr<const block::Header> pCandidate{header.clone()};
 
-    if (network_.Database().HasDisconnectedChildren(incomingHash)) {
+    if (database_.HasDisconnectedChildren(incomingHash)) {
         try {
             auto tip = scan_disconnected(
                 lock, isCandidate, header, update, pCandidate);
@@ -235,23 +239,27 @@ bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
         update.AddSibling({header.Height(), incomingHash});
     }
 
-    return network_.Database().ApplyUpdate(
-        std::move(pHeader), std::move(pUpdate));
+    return database_.ApplyUpdate(std::move(pHeader), std::move(pUpdate));
 }
 
-block::Position HeaderOracle::BestChain() noexcept
+block::Position HeaderOracle::best_chain(const Lock& lock) const noexcept
+{
+    return database_.CurrentBest()->Position();
+}
+
+block::Position HeaderOracle::BestChain() const noexcept
 {
     Lock lock(lock_);
 
-    return network_.Database().CurrentBest()->Position();
+    return best_chain(lock);
 }
 
-block::pHash HeaderOracle::BestHash(const block::Height height) noexcept
+block::pHash HeaderOracle::BestHash(const block::Height height) const noexcept
 {
     Lock lock(lock_);
 
     try {
-        return network_.Database().BestBlock(height);
+        return database_.BestBlock(height);
     } catch (...) {
         return make_blank<block::pHash>::value();
     }
@@ -272,8 +280,8 @@ void HeaderOracle::blacklist_to_checkpoint(
         return;
     }
 
-    auto& parent = update.ModifyExistingBlock(
-        network_.Database().LoadHeader(header.ParentHash()));
+    auto& parent =
+        update.ModifyExistingBlock(database_.LoadHeader(header.ParentHash()));
     blacklist_to_checkpoint(lock, checkpoint, parent, update);
     header.InheritState(parent);
 }
@@ -291,7 +299,7 @@ bool HeaderOracle::calculate_reorg(
 
     while (true) {
         try {
-            if (network_.Database().BestBlock(height) == hash) {
+            if (database_.BestBlock(height) == hash) {
                 update.SetReorgParent({height, hash});
                 break;
             } else {
@@ -314,7 +322,7 @@ bool HeaderOracle::calculate_reorg(
             hash = update.Header(hash).ParentHash();
         } catch (...) {
             try {
-                hash = network_.Database().LoadHeader(hash)->ParentHash();
+                hash = database_.LoadHeader(hash)->ParentHash();
             } catch (...) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load header")
                     .Flush();
@@ -329,13 +337,45 @@ bool HeaderOracle::calculate_reorg(
     return true;
 }
 
+std::pair<block::Position, block::Position> HeaderOracle::CommonParent(
+    const block::Position& position) const noexcept
+{
+    Lock lock(lock_);
+    const auto& database = database_;
+    std::pair<block::Position, block::Position> output{
+        {0, GenesisBlockHash(chain_)}, best_chain(lock)};
+    auto& [parent, best] = output;
+    auto test{position};
+    auto pHeader = database.TryLoadHeader(test.second);
+
+    if (false == bool(pHeader)) { return output; }
+
+    while (0 < test.first) {
+        if (is_in_best_chain(lock, test.second)) {
+            parent = test;
+
+            return output;
+        }
+
+        pHeader = database.TryLoadHeader(pHeader->ParentHash());
+
+        if (pHeader) {
+            test = pHeader->Position();
+        } else {
+            return output;
+        }
+    }
+
+    return output;
+}
+
 void HeaderOracle::connect_children(
     const Lock& lock,
     block::Header& parentHeader,
     std::vector<std::unique_ptr<block::Header>>& reconnectedTips,
     internal::UpdateTransaction& update)
 {
-    const auto disconnected = network_.Database().DisconnectedHashes();
+    const auto disconnected = database_.DisconnectedHashes();
     const auto [first, last] = disconnected.equal_range(parentHeader.Hash());
     const auto children = std::distance(first, last);
 
@@ -345,8 +385,8 @@ void HeaderOracle::connect_children(
         std::for_each(first, last, [&](const auto& in) -> void {
             const auto& [parentHash, childHash] = in;
             update.ConnectBlock({parentHash, childHash});
-            auto& childHeader = update.ModifyExistingBlock(
-                network_.Database().LoadHeader(childHash));
+            auto& childHeader =
+                update.ModifyExistingBlock(database_.LoadHeader(childHash));
             connect_to_parent(lock, parentHeader, childHeader);
             connect_children(lock, childHeader, reconnectedTips, update);
         });
@@ -361,7 +401,7 @@ bool HeaderOracle::connect_to_parent(
     child.InheritWork(parent.Work());
     child.InheritState(parent);
     child.InheritHeight(parent);
-    child.CompareToCheckpoint(network_.Database().CurrentCheckpoint());
+    child.CompareToCheckpoint(database_.CurrentCheckpoint());
 
     if (child.IsBlacklisted()) { return false; }
 
@@ -372,7 +412,7 @@ bool HeaderOracle::DeleteCheckpoint() noexcept
 {
     Lock lock(lock_);
 
-    if (false == network_.Database().HaveCheckpoint()) {
+    if (false == database_.HaveCheckpoint()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No checkpoint").Flush();
 
         return false;
@@ -385,17 +425,17 @@ bool HeaderOracle::DeleteCheckpoint() noexcept
 
     auto& update = *pUpdate;
     update.ClearCheckpoint();
-    const auto checkpoint = network_.Database().CurrentCheckpoint();
+    const auto checkpoint = database_.CurrentCheckpoint();
 
     try {
-        if (network_.Database().HeaderExists(checkpoint.second)) {
+        if (database_.HeaderExists(checkpoint.second)) {
             auto& checkpointBlock = update.ModifyExistingBlock(
-                network_.Database().LoadHeader(checkpoint.second));
+                database_.LoadHeader(checkpoint.second));
             checkpointBlock.RemoveCheckpointState();
             std::vector<block::Position> candidateTips{};
 
-            for (const auto& hash : network_.Database().SiblingHashes()) {
-                auto pHeader = network_.Database().LoadHeader(hash);
+            for (const auto& hash : database_.SiblingHashes()) {
+                auto pHeader = database_.LoadHeader(hash);
                 auto& header = *pHeader;
                 const auto blacklisted = header.IsBlacklisted();
 
@@ -407,14 +447,14 @@ bool HeaderOracle::DeleteCheckpoint() noexcept
                 }
             }
 
-            auto pPrevious = network_.Database().CurrentBest();
+            auto pPrevious = database_.CurrentBest();
             const auto& previous = *pPrevious;
             update.SetTip(previous.Position());
             const auto current = update.Tip();
             auto& tip = update.Tip();
 
             for (const auto& position : candidateTips) {
-                auto pHeader = network_.Database().LoadHeader(position.second);
+                auto pHeader = database_.LoadHeader(position.second);
                 auto& header = *pHeader;
 
                 if (evaluate_candidate(previous, header)) {
@@ -425,7 +465,7 @@ bool HeaderOracle::DeleteCheckpoint() noexcept
 
             if (current != tip) {
                 calculate_reorg(
-                    lock, *network_.Database().LoadHeader(tip.second), update);
+                    lock, *database_.LoadHeader(tip.second), update);
                 update.SetReorg(true);
                 update.AddSibling(current);
             }
@@ -434,7 +474,7 @@ bool HeaderOracle::DeleteCheckpoint() noexcept
         return false;
     }
 
-    return network_.Database().ApplyUpdate(std::move(pUpdate));
+    return database_.ApplyUpdate(std::move(pUpdate));
 }
 
 bool HeaderOracle::evaluate_candidate(
@@ -444,11 +484,11 @@ bool HeaderOracle::evaluate_candidate(
     return candidate.Work() > current.Work();
 }
 
-block::Position HeaderOracle::GetCheckpoint() noexcept
+block::Position HeaderOracle::GetCheckpoint() const noexcept
 {
     Lock lock(lock_);
 
-    return network_.Database().CurrentCheckpoint();
+    return database_.CurrentCheckpoint();
 }
 
 bool HeaderOracle::insert_disconnected_block(
@@ -463,14 +503,38 @@ bool HeaderOracle::insert_disconnected_block(
     header->SetDisconnectedState();
     update.DisconnectBlock(*header);
 
-    return network_.Database().ApplyUpdate(
-        std::move(header), std::move(pUpdate));
+    return database_.ApplyUpdate(std::move(header), std::move(pUpdate));
+}
+
+bool HeaderOracle::IsInBestChain(const block::Hash& hash) const noexcept
+{
+    Lock lock(lock_);
+
+    return is_in_best_chain(lock, hash);
+}
+
+bool HeaderOracle::is_in_best_chain(const Lock& lock, const block::Hash& hash)
+    const noexcept
+{
+    const auto pHeader = database_.TryLoadHeader(hash);
+
+    if (false == bool(pHeader)) { return false; }
+
+    const auto& header = *pHeader;
+
+    try {
+        return hash == database_.BestBlock(header.Height());
+
+    } catch (...) {
+
+        return false;
+    }
 }
 
 std::unique_ptr<block::Header> HeaderOracle::LoadHeader(
-    const block::Hash& hash) noexcept
+    const block::Hash& hash) const noexcept
 {
-    return network_.Database().TryLoadHeader(hash);
+    return database_.TryLoadHeader(hash);
 }
 
 bool HeaderOracle::reorg_to_checkpoint(
@@ -482,8 +546,8 @@ bool HeaderOracle::reorg_to_checkpoint(
     bool checkpointIsBest{false};
     std::vector<block::Position> candidateTips{};
 
-    for (const auto& hash : network_.Database().SiblingHashes()) {
-        auto pHeader = network_.Database().LoadHeader(hash);
+    for (const auto& hash : database_.SiblingHashes()) {
+        auto pHeader = database_.LoadHeader(hash);
         const auto& header = *pHeader;
 
         if (header.Height() < checkpoint.first) { continue; }
@@ -511,14 +575,12 @@ bool HeaderOracle::reorg_to_checkpoint(
         update.SetTip(checkpoint);
     } else {
         const block::Height beforeCheckpoint{checkpoint.first - 1};
-        update.SetTip({beforeCheckpoint,
-                       network_.Database().BestBlock(beforeCheckpoint)});
+        update.SetTip(
+            {beforeCheckpoint, database_.BestBlock(beforeCheckpoint)});
 
         for (const auto& position : candidateTips) {
-            const auto currentHeader =
-                network_.Database().LoadHeader(tip.second);
-            const auto candidateHeader =
-                network_.Database().LoadHeader(position.second);
+            const auto currentHeader = database_.LoadHeader(tip.second);
+            const auto candidateHeader = database_.LoadHeader(position.second);
 
             if (evaluate_candidate(*currentHeader, *candidateHeader)) {
                 update.SetTip(position);
@@ -526,8 +588,7 @@ bool HeaderOracle::reorg_to_checkpoint(
         }
     }
 
-    return calculate_reorg(
-        lock, *network_.Database().LoadHeader(tip.second), update);
+    return calculate_reorg(lock, *database_.LoadHeader(tip.second), update);
 }
 
 void HeaderOracle::reverse_blacklist(
@@ -542,7 +603,7 @@ void HeaderOracle::reverse_blacklist(
 
     if (recurse) {
         auto& parent = update.ModifyExistingBlock(
-            network_.Database().LoadHeader(header.ParentHash()));
+            database_.LoadHeader(header.ParentHash()));
         reverse_blacklist(lock, parent, update);
     }
 }
@@ -604,13 +665,13 @@ bool HeaderOracle::scan_for_checkpoint(
     if (height == checkpoint.first) { return hash == checkpoint.second; }
 
     return scan_for_checkpoint(
-        lock, checkpoint, *network_.Database().LoadHeader(parentHash));
+        lock, checkpoint, *database_.LoadHeader(parentHash));
 }
 
-std::set<block::pHash> HeaderOracle::Siblings() noexcept
+std::set<block::pHash> HeaderOracle::Siblings() const noexcept
 {
     Lock lock(lock_);
 
-    return network_.Database().SiblingHashes();
+    return database_.SiblingHashes();
 }
 }  // namespace opentxs::blockchain::client::implementation

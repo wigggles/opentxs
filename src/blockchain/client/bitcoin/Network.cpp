@@ -52,5 +52,5 @@ std::unique_ptr<block::Header> Network::instantiate_header(
         api_, proto::Factory<Type>(payload))};
 }
 
-Network::~Network() { cleanup(); }
+Network::~Network() { Shutdown(); }
 }  // namespace opentxs::blockchain::client::bitcoin::implementation

@@ -31,14 +31,9 @@ private:
     const Nonce nonce_;
     const Magic magic_;
     const std::set<p2p::Service> local_services_;
-    const std::set<p2p::Service> remote_services_;
     std::atomic<bool> relay_;
 
     static std::set<p2p::Service> get_local_services(
-        const ProtocolVersion version,
-        const blockchain::Type network,
-        const std::set<p2p::Service>& input) noexcept;
-    static std::set<p2p::Service> get_remote_services(
         const ProtocolVersion version,
         const blockchain::Type network,
         const std::set<p2p::Service>& input) noexcept;
@@ -49,6 +44,7 @@ private:
     void pong() noexcept final;
     void process_message(const zmq::Message& message) noexcept final;
     void request_addresses() noexcept final;
+    void request_cfilter(zmq::Message& message) noexcept final;
     using p2p::implementation::Peer::request_headers;
     void request_headers() noexcept final;
     void request_headers(const block::Hash& hash) noexcept;
@@ -159,7 +155,6 @@ private:
         std::unique_ptr<internal::Address> address,
         boost::asio::io_context& context,
         const bool relay = true,
-        const std::set<p2p::Service>& remoteServices = {},
         const std::set<p2p::Service>& localServices = {},
         const ProtocolVersion protocol = 0) noexcept;
 
