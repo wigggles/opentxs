@@ -17,11 +17,11 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
@@ -134,21 +134,21 @@ Dht::Dht(DhtConfig& config, const api::Core& api)
           })}
     , request_nym_socket_{api_.ZeroMQ().ReplySocket(
           request_nym_callback_,
-          zmq::Socket::Direction::Bind)}
+          zmq::socket::Socket::Direction::Bind)}
     , request_server_callback_{zmq::ReplyCallback::Factory(
           [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_request(incoming, &Dht::GetServerContract);
           })}
     , request_server_socket_{api_.ZeroMQ().ReplySocket(
           request_server_callback_,
-          zmq::Socket::Direction::Bind)}
+          zmq::socket::Socket::Direction::Bind)}
     , request_unit_callback_{zmq::ReplyCallback::Factory(
           [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_request(incoming, &Dht::GetUnitDefinition);
           })}
     , request_unit_socket_{api_.ZeroMQ().ReplySocket(
           request_unit_callback_,
-          zmq::Socket::Direction::Bind)}
+          zmq::socket::Socket::Direction::Bind)}
 {
     request_nym_socket_->Start(api_.Endpoints().DhtRequestNym());
     request_server_socket_->Start(api_.Endpoints().DhtRequestServer());
@@ -261,7 +261,7 @@ OTZMQMessage Dht::process_request(
         }
     }
 
-    return zmq::Message::Factory(Data::Factory(&output, sizeof(output)));
+    return api_.ZeroMQ().Message(output);
 }
 
 #if OT_DHT

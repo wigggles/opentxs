@@ -7,43 +7,41 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 
 #include "network/zeromq/curve/Client.hpp"
-#include "Receiver.hpp"
-#include "Socket.hpp"
+#include "Receiver.tpp"
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-class SubscribeSocket : virtual public zeromq::SubscribeSocket,
-                        public Receiver<zeromq::Message>,
-                        zeromq::curve::implementation::Client
+class Subscribe : public Receiver<zeromq::socket::Subscribe>,
+                  public zeromq::curve::implementation::Client
 {
 public:
-    bool SetSocksProxy(const std::string& proxy) const override;
+    bool SetSocksProxy(const std::string& proxy) const noexcept final;
 
-    virtual ~SubscribeSocket();
+    ~Subscribe() override;
 
 protected:
     const ListenCallback& callback_;
 
-    SubscribeSocket(
+    Subscribe(
         const zeromq::Context& context,
-        const zeromq::ListenCallback& callback);
+        const zeromq::ListenCallback& callback) noexcept;
 
 private:
-    friend opentxs::network::zeromq::SubscribeSocket;
+    friend opentxs::Factory;
 
-    SubscribeSocket* clone() const override;
-    bool have_callback() const override;
+    Subscribe* clone() const noexcept override;
+    bool have_callback() const noexcept final;
 
-    void init() override;
-    void process_incoming(const Lock& lock, Message& message) override;
+    void init() noexcept final;
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
 
-    SubscribeSocket() = delete;
-    SubscribeSocket(const SubscribeSocket&) = delete;
-    SubscribeSocket(SubscribeSocket&&) = delete;
-    SubscribeSocket& operator=(const SubscribeSocket&) = delete;
-    SubscribeSocket& operator=(SubscribeSocket&&) = delete;
+    Subscribe() = delete;
+    Subscribe(const Subscribe&) = delete;
+    Subscribe(Subscribe&&) = delete;
+    Subscribe& operator=(const Subscribe&) = delete;
+    Subscribe& operator=(Subscribe&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

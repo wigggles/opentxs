@@ -5,59 +5,48 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Types.hpp"
-
-#include "Receiver.hpp"
-
-#include <memory>
-#include <mutex>
-#include <thread>
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class Bidirectional : public Receiver<zeromq::Message>
+template <typename InterfaceType, typename MessageType = zeromq::Message>
+class Bidirectional
+    : virtual public Receiver<InterfaceType, MessageType>,
+      virtual public Sender<InterfaceType, Receiver<InterfaceType, MessageType>>
 {
 protected:
-    void* push_socket_{nullptr};
-
     Bidirectional(
         const zeromq::Context& context,
-        const SocketType type,
-        const zeromq::Socket::Direction direction,
-        const bool startThread);
+        const bool startThread) noexcept;
 
-    void init() override;
-    bool queue_message(zeromq::Message& message) const;
-    void shutdown(const Lock& lock) override;
+    void init() noexcept override;
+    void shutdown(const Lock& lock) noexcept final;
 
-    virtual ~Bidirectional() = default;
+    ~Bidirectional() override = default;
 
 private:
     const bool bidirectional_start_thread_{true};
     const std::string endpoint_;
+    void* push_socket_{nullptr};
     void* pull_socket_{nullptr};
     mutable int linger_{0};
     mutable int send_timeout_{-1};
     mutable int receive_timeout_{-1};
     mutable std::mutex send_lock_;
 
-    bool apply_timeouts(void* socket, std::mutex& socket_mutex) const;
+    bool apply_timeouts(void* socket, std::mutex& socket_mutex) const noexcept;
     bool bind(
         void* socket,
         std::mutex& socket_mutex,
-        const std::string& endpoint) const;
+        const std::string& endpoint) const noexcept;
     bool connect(
         void* socket,
         std::mutex& socket_mutex,
-        const std::string& endpoint) const;
+        const std::string& endpoint) const noexcept;
 
-    bool process_pull_socket(const Lock& lock);
-    bool process_receiver_socket(const Lock& lock);
-    bool send(const Lock& lock, zeromq::Message& message);
-    void thread() override;
+    bool process_pull_socket(const Lock& lock) noexcept;
+    bool process_receiver_socket(const Lock& lock) noexcept;
+    bool send(zeromq::Message& message) const noexcept final;
+    bool send(const Lock& lock, zeromq::Message& message) noexcept;
+    void thread() noexcept final;
 
     Bidirectional() = delete;
     Bidirectional(const Bidirectional&) = delete;

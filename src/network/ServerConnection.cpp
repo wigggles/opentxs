@@ -20,16 +20,16 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/DealerSocket.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
@@ -48,9 +48,6 @@
 
 namespace zmq = opentxs::network::zeromq;
 
-template class opentxs::Pimpl<opentxs::network::ServerConnection>;
-template class opentxs::Pimpl<zmq::RequestSocket>;
-
 #define OT_METHOD "opentxs::ServerConnection::"
 
 namespace opentxs::network
@@ -58,7 +55,7 @@ namespace opentxs::network
 OTServerConnection ServerConnection::Factory(
     const api::Core& api,
     const api::network::ZMQ& zmq,
-    const zeromq::PublishSocket& updates,
+    const zeromq::socket::Publish& updates,
     const std::shared_ptr<const ServerContract>& contract)
 {
     OT_ASSERT(contract)
@@ -73,7 +70,7 @@ namespace opentxs::network::implementation
 ServerConnection::ServerConnection(
     const api::Core& api,
     const api::network::ZMQ& zmq,
-    const zeromq::PublishSocket& updates,
+    const zeromq::socket::Publish& updates,
     const std::shared_ptr<const ServerContract>& contract)
     : zmq_(zmq)
     , api_(api)
@@ -90,10 +87,10 @@ ServerConnection::ServerConnection(
           }))
     , registration_socket_(zmq.Context().DealerSocket(
           callback_,
-          zmq::Socket::Direction::Connect))
+          zmq::socket::Socket::Direction::Connect))
     , socket_(zmq.Context().RequestSocket())
     , notification_socket_(
-          zmq.Context().PushSocket(zmq::Socket::Direction::Connect))
+          zmq.Context().PushSocket(zmq::socket::Socket::Direction::Connect))
     , last_activity_(std::time(nullptr))
     , sockets_ready_(Flag::Factory(false))
     , status_(Flag::Factory(false))
@@ -120,7 +117,7 @@ void ServerConnection::activity_timer()
 
         if (duration > limit) {
             if (limit > std::chrono::seconds(0)) {
-                const auto result = socket_->SendRequest(std::string(""));
+                const auto result = socket_->Send(std::string(""));
 
                 if (SendResult::TIMEOUT != result.first) {
                     reset_timer();
@@ -138,8 +135,8 @@ void ServerConnection::activity_timer()
 
 OTZMQDealerSocket ServerConnection::async_socket(const Lock& lock) const
 {
-    auto output =
-        zmq_.Context().DealerSocket(callback_, zmq::Socket::Direction::Connect);
+    auto output = zmq_.Context().DealerSocket(
+        callback_, zmq::socket::Socket::Direction::Connect);
     set_proxy(lock, output);
     set_timeouts(lock, output);
     set_curve(lock, output);
@@ -236,7 +233,7 @@ std::string ServerConnection::form_endpoint(
     return output;
 }
 
-zeromq::DealerSocket& ServerConnection::get_async(const Lock& lock)
+zeromq::socket::Dealer& ServerConnection::get_async(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -249,7 +246,7 @@ zeromq::DealerSocket& ServerConnection::get_async(const Lock& lock)
     return registration_socket_;
 }
 
-zeromq::RequestSocket& ServerConnection::get_sync(const Lock& lock)
+zeromq::socket::Request& ServerConnection::get_sync(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -281,7 +278,7 @@ void ServerConnection::process_incoming(
         return;
     }
 
-    notification_socket_->Push(api_.Factory().Data(message->Contract()));
+    notification_socket_->Send(api_.Factory().Data(message->Contract()));
 }
 
 void ServerConnection::process_incoming(
@@ -329,7 +326,7 @@ void ServerConnection::publish() const
     auto message = zmq::Message::Factory();
     message->AddFrame(server_id_);
     message->AddFrame(Data::Factory(&state, sizeof(state)));
-    updates_.Publish(message);
+    updates_.Send(message);
 }
 
 void ServerConnection::register_for_push(
@@ -442,8 +439,8 @@ NetworkReplyMessage ServerConnection::Send(
 
     Lock socketLock(lock_);
     Cleanup cleanup(socketLock, *this, status, reply);
-    auto request = zmq::Message::Factory(std::string(envelope->Get()));
-    auto sendresult = get_sync(socketLock).SendRequest(request);
+    auto request = api_.ZeroMQ().Message(std::string(envelope->Get()));
+    auto sendresult = get_sync(socketLock).Send(request);
 
     if (status_->On()) { publish(); }
 
@@ -507,8 +504,9 @@ NetworkReplyMessage ServerConnection::Send(
     return output;
 }
 
-void ServerConnection::set_curve(const Lock& lock, zeromq::CurveClient& socket)
-    const
+void ServerConnection::set_curve(
+    const Lock& lock,
+    zeromq::curve::Client& socket) const
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -517,8 +515,9 @@ void ServerConnection::set_curve(const Lock& lock, zeromq::CurveClient& socket)
     OT_ASSERT(set);
 }
 
-void ServerConnection::set_proxy(const Lock& lock, zeromq::DealerSocket& socket)
-    const
+void ServerConnection::set_proxy(
+    const Lock& lock,
+    zeromq::socket::Dealer& socket) const
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -535,8 +534,9 @@ void ServerConnection::set_proxy(const Lock& lock, zeromq::DealerSocket& socket)
     }
 }
 
-void ServerConnection::set_timeouts(const Lock& lock, zeromq::Socket& socket)
-    const
+void ServerConnection::set_timeouts(
+    const Lock& lock,
+    zeromq::socket::Socket& socket) const
 {
     OT_ASSERT(verify_lock(lock));
 

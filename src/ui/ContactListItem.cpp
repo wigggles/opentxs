@@ -8,13 +8,13 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 
 #include <locale>
@@ -33,7 +33,7 @@ namespace opentxs
 ui::internal::ContactListItem* Factory::ContactListItem(
     const ui::implementation::ContactListInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactListRowID& rowID,
     const ui::implementation::ContactListSortKey& key)
 {
@@ -47,7 +47,7 @@ namespace opentxs::ui::implementation
 ContactListItem::ContactListItem(
     const ContactListInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ContactListRowID& rowID,
     const ContactListSortKey& key)
     : ContactListItemRow(parent, api, publisher, rowID, true)

@@ -5,24 +5,11 @@
 
 set(MODULE_NAME opentxs-network-zeromq)
 
+add_subdirectory(curve)
+add_subdirectory(socket)
 add_subdirectory(zap)
 
 set(cxx-sources
-  curve/Client.cpp
-  curve/Server.cpp
-  socket/Bidirectional.cpp
-  socket/Dealer.cpp
-  socket/Pair.cpp
-  socket/Pipeline.cpp
-  socket/Publish.cpp
-  socket/Pull.cpp
-  socket/Push.cpp
-  socket/Reply.cpp
-  socket/Request.cpp
-  socket/Router.cpp
-  socket/Sender.cpp
-  socket/Socket.cpp
-  socket/Subscribe.cpp
   Context.cpp
   Frame.cpp
   FrameIterator.cpp
@@ -43,24 +30,6 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  curve/Client.hpp
-  curve/Server.hpp
-  socket/Bidirectional.hpp
-  socket/Dealer.hpp
-  socket/Pair.hpp
-  socket/Pipeline.hpp
-  socket/Publish.hpp
-  socket/Pull.hpp
-  socket/Push.hpp
-  socket/Receiver.hpp
-  socket/Receiver.tpp
-  socket/Reply.hpp
-  socket/Request.hpp
-  socket/Router.hpp
-  socket/Send.hpp
-  socket/Sender.hpp
-  socket/Socket.hpp
-  socket/Subscribe.hpp
   Context.hpp
   Frame.hpp
   ListenCallback.hpp

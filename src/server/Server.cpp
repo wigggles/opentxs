@@ -38,9 +38,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/Proto.tpp"
 
 #include "ConfigLoader.hpp"
@@ -104,7 +104,7 @@ Server::Server(
     , m_nymServer(nullptr)
     , m_Cron(manager.Factory().Cron(manager))
     , notification_socket_(
-          manager_.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+          manager_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
 {
     const auto bound = notification_socket_->Start(
         manager_.Endpoints().InternalPushNotification());
@@ -889,7 +889,7 @@ bool Server::DropMessageToNymbox(
             // is removed from a box.
             //
             transaction->SaveBoxReceipt(*theLedger);
-            notification_socket_->Push(
+            notification_socket_->Send(
                 nymbox_push(RECIPIENT_NYM_ID, *transaction));
 
             return true;

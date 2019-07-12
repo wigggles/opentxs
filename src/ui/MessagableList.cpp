@@ -13,13 +13,13 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/MessagableList.hpp"
 
@@ -42,7 +42,7 @@ namespace opentxs
 {
 ui::implementation::MessagableExternalInterface* Factory::MessagableList(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID
 #if OT_QT
     ,
@@ -70,7 +70,7 @@ namespace opentxs::ui::implementation
 {
 MessagableList::MessagableList(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID
 #if OT_QT
     ,

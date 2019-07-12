@@ -17,8 +17,8 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -661,7 +661,7 @@ void Contacts::refresh_indices(
     const auto& id = contact.ID();
     contact_name_map_[id] = contact.Label();
     const std::string rawID{id.str()};
-    publisher_->Publish(rawID);
+    publisher_->Send(rawID);
 }
 
 void Contacts::save(const PasswordPrompt& reason, opentxs::Contact* contact)

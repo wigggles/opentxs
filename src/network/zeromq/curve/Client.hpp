@@ -7,7 +7,7 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/network/zeromq/CurveClient.hpp"
+#include "opentxs/network/zeromq/curve/Client.hpp"
 #include "opentxs/Types.hpp"
 
 #include "network/zeromq/socket/Socket.hpp"
@@ -16,37 +16,37 @@
 
 namespace opentxs::network::zeromq::curve::implementation
 {
-class Client : virtual public zeromq::CurveClient
+class Client : virtual public zeromq::curve::Client
 {
 public:
     bool SetKeysZ85(
         const std::string& serverPublic,
         const std::string& clientPrivate,
-        const std::string& clientPublic) const override;
-    bool SetServerPubkey(const ServerContract& contract) const override;
-    bool SetServerPubkey(const Data& key) const override;
+        const std::string& clientPublic) const noexcept final;
+    bool SetServerPubkey(const ServerContract& contract) const noexcept final;
+    bool SetServerPubkey(const Data& key) const noexcept final;
 
 protected:
-    bool set_public_key(const ServerContract& contract) const;
-    bool set_public_key(const Data& key) const;
+    bool set_public_key(const ServerContract& contract) const noexcept;
+    bool set_public_key(const Data& key) const noexcept;
 
-    Client(zeromq::socket::implementation::Socket& socket);
+    Client(zeromq::socket::implementation::Socket& socket) noexcept;
 
-    virtual ~Client() = default;
+    ~Client() override = default;
 
 private:
     zeromq::socket::implementation::Socket& parent_;
 
-    bool set_local_keys() const;
+    bool set_local_keys() const noexcept;
     bool set_local_keys(
         const std::string& privateKey,
-        const std::string& publicKey) const;
+        const std::string& publicKey) const noexcept;
     bool set_local_keys(
         const void* privateKey,
         const std::size_t privateKeySize,
         const void* publicKey,
-        const std::size_t publicKeySize) const;
-    bool set_remote_key(const void* key, const std::size_t size) const;
+        const std::size_t publicKeySize) const noexcept;
+    bool set_remote_key(const void* key, const std::size_t size) const noexcept;
 
     Client() = delete;
     Client(const Client&) = delete;

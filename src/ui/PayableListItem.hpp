@@ -33,7 +33,7 @@ private:
     PayableListItem(
         const PayableInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const PayableListRowID& rowID,
         const PayableListSortKey& key,
         const std::string& paymentcode,

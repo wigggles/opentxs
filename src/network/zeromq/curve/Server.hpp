@@ -7,7 +7,7 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/network/zeromq/CurveServer.hpp"
+#include "opentxs/network/zeromq/curve/Server.hpp"
 
 #include "network/zeromq/socket/Socket.hpp"
 
@@ -15,19 +15,20 @@
 
 namespace opentxs::network::zeromq::curve::implementation
 {
-class Server : virtual public zeromq::CurveServer
+class Server : virtual public zeromq::curve::Server
 {
 public:
-    bool SetDomain(const std::string& domain) const override;
-    bool SetPrivateKey(const OTPassword& key) const override;
-    bool SetPrivateKey(const std::string& z85) const override;
+    bool SetDomain(const std::string& domain) const noexcept final;
+    bool SetPrivateKey(const OTPassword& key) const noexcept final;
+    bool SetPrivateKey(const std::string& z85) const noexcept final;
 
 protected:
-    bool set_private_key(const void* key, const std::size_t keySize) const;
+    bool set_private_key(const void* key, const std::size_t keySize) const
+        noexcept;
 
-    Server(zeromq::socket::implementation::Socket& socket);
+    Server(zeromq::socket::implementation::Socket& socket) noexcept;
 
-    virtual ~Server() = default;
+    ~Server() override = default;
 
 private:
     zeromq::socket::implementation::Socket& parent_;

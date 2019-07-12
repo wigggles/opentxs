@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "Internal.hpp"
 
 #include <gtest/gtest.h>
 
@@ -13,11 +14,10 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace
 {
-
 class Test_DealerReply : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
     const std::string testMessage_{"zeromq test message"};
     const std::string testMessage2_{"zeromq test message 2"};
@@ -26,16 +26,16 @@ public:
     const std::string endpoint_{"inproc://opentxs/test/dealer_reply_test"};
 
     void dealerSocketThread(const std::string& msg);
-};
 
-OTZMQContext Test_DealerReply::context_{zmq::Context::Factory()};
+    Test_DealerReply()
+        : context_(Context().ZMQ())
+    {
+    }
+};
 
 void Test_DealerReply::dealerSocketThread(const std::string& msg)
 {
-    ASSERT_NE(nullptr, &Test_DealerReply::context_.get());
-
     bool replyProcessed{false};
-
     auto listenCallback = zmq::ListenCallback::Factory(
         [this, &replyProcessed](zmq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
@@ -48,10 +48,8 @@ void Test_DealerReply::dealerSocketThread(const std::string& msg)
 
     ASSERT_NE(nullptr, &listenCallback.get());
 
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerReply::context_,
-        zmq::Socket::Direction::Connect,
-        listenCallback);
+    auto dealerSocket = context_.DealerSocket(
+        listenCallback, zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -62,7 +60,7 @@ void Test_DealerReply::dealerSocketThread(const std::string& msg)
         std::chrono::milliseconds(30000));
     dealerSocket->Start(endpoint_);
 
-    auto message = zmq::Message::Factory(msg);
+    auto message = context_.Message(msg);
     message->PrependEmptyFrame();
     auto sent = dealerSocket->Send(message);
 
@@ -75,33 +73,43 @@ void Test_DealerReply::dealerSocketThread(const std::string& msg)
 
     EXPECT_TRUE(replyProcessed);
 }
-
 }  // namespace
 
 TEST_F(Test_DealerReply, Dealer_Reply)
 {
-    ASSERT_NE(nullptr, &Test_DealerReply::context_.get());
-
     bool replyReturned{false};
-
     auto replyCallback = zmq::ReplyCallback::Factory(
         [this, &replyReturned](const zmq::Message& input) -> OTZMQMessage {
-            const std::string& inputString = *input.Body().begin();
+            EXPECT_EQ(1, input.size());
+            EXPECT_EQ(0, input.Header().size());
+            EXPECT_EQ(1, input.Body().size());
+
+            const std::string inputString{*input.Body().begin()};
 
             EXPECT_EQ(testMessage_, inputString);
 
-            auto reply = zmq::Message::ReplyFactory(input);
+            auto reply = context_.ReplyMessage(input);
+
+            EXPECT_EQ(0, reply->size());
+            EXPECT_EQ(0, reply->Header().size());
+            EXPECT_EQ(0, reply->Body().size());
+
             reply->AddFrame(inputString);
+
+            EXPECT_EQ(1, reply->size());
+            EXPECT_EQ(0, reply->Header().size());
+            EXPECT_EQ(1, reply->Body().size());
+            EXPECT_EQ(inputString, std::string(reply->Body_at(0)));
+
             replyReturned = true;
+
             return reply;
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket = zmq::ReplySocket::Factory(
-        Test_DealerReply::context_,
-        zmq::Socket::Direction::Bind,
-        replyCallback);
+    auto replySocket = context_.ReplySocket(
+        replyCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -116,6 +124,10 @@ TEST_F(Test_DealerReply, Dealer_Reply)
 
     auto dealerCallback = zmq::ListenCallback::Factory(
         [this, &replyProcessed](zmq::Message& input) -> void {
+            EXPECT_EQ(2, input.size());
+            EXPECT_EQ(0, input.Header().size());
+            EXPECT_EQ(1, input.Body().size());
+
             const std::string& inputString = *input.Body().begin();
 
             EXPECT_EQ(testMessage_, inputString);
@@ -125,10 +137,8 @@ TEST_F(Test_DealerReply, Dealer_Reply)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerReply::context_,
-        zmq::Socket::Direction::Connect,
-        dealerCallback);
+    auto dealerSocket = context_.DealerSocket(
+        dealerCallback, zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -139,8 +149,20 @@ TEST_F(Test_DealerReply, Dealer_Reply)
         std::chrono::milliseconds(30000));
     dealerSocket->Start(endpoint_);
 
-    auto message = zmq::Message::Factory(testMessage_);
+    auto message = context_.Message(testMessage_);
+
+    ASSERT_TRUE(1 == message->size());
+    ASSERT_TRUE(0 == message->Header().size());
+    ASSERT_TRUE(1 == message->Body().size());
+    ASSERT_EQ(testMessage_, std::string(message->Body_at(0)));
+    ASSERT_EQ(testMessage_, std::string(message->at(0)));
+
     message->PrependEmptyFrame();
+
+    ASSERT_TRUE(2 == message->size());
+    ASSERT_TRUE(0 == message->Header().size());
+    ASSERT_TRUE(1 == message->Body().size());
+
     auto sent = dealerSocket->Send(message);
 
     ASSERT_TRUE(sent);
@@ -162,8 +184,6 @@ TEST_F(Test_DealerReply, Dealer_Reply)
 
 TEST_F(Test_DealerReply, Dealer_2_Reply_1)
 {
-    ASSERT_NE(nullptr, &Test_DealerReply::context_.get());
-
     auto replyCallback = zmq::ReplyCallback::Factory(
         [this](const zmq::Message& input) -> OTZMQMessage {
             const std::string& inputString = *input.Body().begin();
@@ -171,17 +191,15 @@ TEST_F(Test_DealerReply, Dealer_2_Reply_1)
                 inputString == testMessage2_ || inputString == testMessage3_;
             EXPECT_TRUE(match);
 
-            auto reply = zmq::Message::ReplyFactory(input);
+            auto reply = context_.ReplyMessage(input);
             reply->AddFrame(inputString);
             return reply;
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket = zmq::ReplySocket::Factory(
-        Test_DealerReply::context_,
-        zmq::Socket::Direction::Bind,
-        replyCallback);
+    auto replySocket = context_.ReplySocket(
+        replyCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -203,10 +221,7 @@ TEST_F(Test_DealerReply, Dealer_2_Reply_1)
 
 TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
 {
-    ASSERT_NE(nullptr, &Test_DealerReply::context_.get());
-
     bool replyReturned{false};
-
     auto replyCallback = zmq::ReplyCallback::Factory(
         [this, &replyReturned](const zmq::Message& input) -> OTZMQMessage {
             // ReplySocket removes the delimiter frame.
@@ -224,7 +239,7 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
                 EXPECT_TRUE(match);
             }
 
-            auto reply = zmq::Message::ReplyFactory(input);
+            auto reply = context_.ReplyMessage(input);
             for (const auto& frame : input.Body()) { reply->AddFrame(frame); }
             replyReturned = true;
             return reply;
@@ -232,10 +247,8 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket = zmq::ReplySocket::Factory(
-        Test_DealerReply::context_,
-        zmq::Socket::Direction::Bind,
-        replyCallback);
+    auto replySocket = context_.ReplySocket(
+        replyCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -272,10 +285,8 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerReply::context_,
-        zmq::Socket::Direction::Connect,
-        dealerCallback);
+    auto dealerSocket = context_.DealerSocket(
+        dealerCallback, zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -286,7 +297,7 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
         std::chrono::milliseconds(30000));
     dealerSocket->Start(endpoint_);
 
-    auto multipartMessage = zmq::Message::Factory(testMessage_);
+    auto multipartMessage = context_.Message(testMessage_);
     multipartMessage->AddFrame();
     multipartMessage->AddFrame(testMessage2_);
     multipartMessage->AddFrame(testMessage3_);

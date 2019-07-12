@@ -17,23 +17,23 @@ namespace
 class Test_PushPull : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
     const std::string testMessage_{"zeromq test message"};
     const std::string testMessage2_{"zeromq test message 2"};
     const std::string testMessage3_{"zeromq test message 3"};
 
     const std::string endpoint_{"inproc://opentxs/test/push_pull_test"};
+
+    Test_PushPull()
+        : context_(Context().ZMQ())
+    {
+    }
 };
-
-OTZMQContext Test_PushPull::context_{zmq::Context::Factory()};
-
 }  // namespace
 
 TEST_F(Test_PushPull, Push_Pull)
 {
-    ASSERT_NE(nullptr, &Test_PushPull::context_.get());
-
     bool callbackFinished{false};
 
     auto pullCallback = zmq::ListenCallback::Factory(
@@ -48,8 +48,8 @@ TEST_F(Test_PushPull, Push_Pull)
 
     ASSERT_NE(nullptr, &pullCallback.get());
 
-    auto pullSocket = zmq::PullSocket::Factory(
-        Test_PushPull::context_, zmq::Socket::Direction::Bind, pullCallback);
+    auto pullSocket =
+        context_.PullSocket(pullCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &pullSocket.get());
     ASSERT_EQ(SocketType::Pull, pullSocket->Type());
@@ -60,8 +60,8 @@ TEST_F(Test_PushPull, Push_Pull)
         std::chrono::milliseconds(-1));
     pullSocket->Start(endpoint_);
 
-    auto pushSocket = zmq::PushSocket::Factory(
-        Test_PushPull::context_, zmq::Socket::Direction::Connect);
+    auto pushSocket =
+        context_.PushSocket(zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &pushSocket.get());
     ASSERT_EQ(SocketType::Push, pushSocket->Type());
@@ -72,7 +72,7 @@ TEST_F(Test_PushPull, Push_Pull)
         std::chrono::milliseconds(30000));
     pushSocket->Start(endpoint_);
 
-    auto sent = pushSocket->Push(testMessage_);
+    auto sent = pushSocket->Send(testMessage_);
 
     ASSERT_TRUE(sent);
 

@@ -26,7 +26,7 @@ namespace opentxs
 ui::implementation::ProfileSubsectionRowInternal* Factory::ProfileItemWidget(
     const ui::implementation::ProfileSubsectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
     const ui::implementation::CustomData& custom)
@@ -41,7 +41,7 @@ namespace opentxs::ui::implementation
 ProfileItem::ProfileItem(
     const ProfileSubsectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ProfileSubsectionRowID& rowID,
     const ProfileSubsectionSortKey& sortKey,
     const CustomData& custom)

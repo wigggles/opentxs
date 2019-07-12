@@ -7,8 +7,8 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/network/zeromq/PairEventCallback.hpp"
 
 #include "PairEventListener.hpp"
@@ -39,7 +39,7 @@ PairEventListener::PairEventListener(
     LogVerbose(OT_METHOD)(__FUNCTION__)(": listening on ")(endpoint).Flush();
 }
 
-PairEventListener* PairEventListener::clone() const
+PairEventListener* PairEventListener::clone() const noexcept
 {
     return new PairEventListener(
         context_,

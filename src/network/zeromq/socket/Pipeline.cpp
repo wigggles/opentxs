@@ -8,11 +8,12 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 
 #include "Pipeline.hpp"
 
@@ -37,11 +38,11 @@ namespace opentxs::network::zeromq::socket::implementation
 {
 Pipeline::Pipeline(
     const api::Core& api,
-    const Context& context,
-    std::function<void(zeromq::Message&)> callback)
+    const zeromq::Context& context,
+    std::function<void(zeromq::Message&)> callback) noexcept
     : callback_(ListenCallback::Factory(callback))
-    , pull_(PullSocket::Factory(context, Socket::Direction::Bind, callback_))
-    , push_(PushSocket::Factory(context, Socket::Direction::Connect))
+    , pull_(context.PullSocket(callback_, Socket::Direction::Bind))
+    , push_(context.PushSocket(Socket::Direction::Connect))
 {
     const auto endpoint = std::string("inproc://opentxs/") +
                           api.Crypto().Encode().Nonce(32)->Get();
@@ -49,6 +50,11 @@ Pipeline::Pipeline(
     started &= push_->Start(endpoint);
 
     OT_ASSERT(started);
+}
+
+bool Pipeline::Close() const noexcept
+{
+    return push_->Close() && pull_->Close();
 }
 
 Pipeline::~Pipeline() { Close(); }

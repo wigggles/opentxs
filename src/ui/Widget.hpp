@@ -7,9 +7,9 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/network/zeromq/socket/Request.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/Widget.hpp"
 
 namespace opentxs::ui::implementation
@@ -88,7 +88,7 @@ protected:
     using ListenerDefinitions = std::vector<ListenerDefinition>;
 
     const api::client::Manager& api_;
-    const network::zeromq::PublishSocket& publisher_;
+    const network::zeromq::socket::Publish& publisher_;
     const OTIdentifier widget_id_;
 
     void setup_listeners(const ListenerDefinitions& definitions);
@@ -96,11 +96,11 @@ protected:
 
     Widget(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const Identifier& id);
     Widget(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher);
+        const network::zeromq::socket::Publish& publisher);
 
 private:
     std::vector<OTZMQListenCallback> callbacks_;

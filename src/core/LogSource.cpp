@@ -15,9 +15,9 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/StringXML.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/OT.hpp"
 
 #define LOG_SINK "inproc://opentxs/logsink/1"
@@ -136,11 +136,11 @@ void LogSource::Flush() const
         std::string id{};
         auto& [socket, buffer] = get_buffer(id);
         auto message = zmq::Message::Factory();
-        message->AddFrame();
+        message->PrependEmptyFrame();
         message->AddFrame(std::to_string(level_));
         message->AddFrame(buffer.str());
         message->AddFrame(id);
-        socket->Push(message);
+        socket->Send(message);
         buffer = std::stringstream{};
     }
 }
@@ -157,7 +157,8 @@ LogSource::Source& LogSource::get_buffer(std::string& out)
         Lock lock(buffer_lock_);
         auto it = buffer_.emplace(
             id,
-            Source{Context().ZMQ().PushSocket(zmq::Socket::Direction::Connect),
+            Source{Context().ZMQ().PushSocket(
+                       zmq::socket::Socket::Direction::Connect),
                    std::stringstream{}});
         auto& source = std::get<0>(it)->second;
         auto& socket = std::get<0>(source).get();

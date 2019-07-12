@@ -5,26 +5,30 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
+#include "Socket.hpp"
+
 #include "Sender.hpp"
 
 //#define OT_METHOD "opentxs::network::zeromq::socket::implementation::Sender::"
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-Sender::Sender(
-    const zeromq::Context& context,
-    const SocketType type,
-    const zeromq::Socket::Direction direction)
-    : Socket(context, type, direction)
+template <typename Interface, typename ImplementationParent>
+Sender<Interface, ImplementationParent>::Sender() noexcept
+    : Interface()
 {
 }
 
-bool Sender::deliver(zeromq::Message& message) const
+template <typename Interface, typename ImplementationParent>
+bool Sender<Interface, ImplementationParent>::send(
+    zeromq::Message& message) const noexcept
 {
-    Lock lock(lock_);
+    Lock lock(this->lock_);
 
-    if (false == running_.get()) { return false; }
+    if (false == this->running_.get()) { return false; }
 
-    return send_message(lock, message);
+    return this->send_message(lock, message);
 }
 }  // namespace opentxs::network::zeromq::socket::implementation

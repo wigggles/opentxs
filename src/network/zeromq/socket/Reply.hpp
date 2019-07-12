@@ -5,35 +5,32 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class ReplySocket final : virtual public zeromq::ReplySocket,
-                          public Receiver<zeromq::Message>,
-                          zeromq::curve::implementation::Server
+class Reply final : public Receiver<zeromq::socket::Reply>,
+                    public zeromq::curve::implementation::Server
 {
 public:
-    virtual ~ReplySocket();
+    ~Reply() final;
 
 private:
-    friend opentxs::network::zeromq::ReplySocket;
+    friend opentxs::Factory;
 
     const ReplyCallback& callback_;
 
-    ReplySocket* clone() const override;
-    bool have_callback() const override;
+    Reply* clone() const noexcept final;
+    bool have_callback() const noexcept final;
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
 
-    ReplySocket(
+    Reply(
         const zeromq::Context& context,
         const Socket::Direction direction,
-        const ReplyCallback& callback);
-    ReplySocket() = delete;
-    ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = delete;
-    ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = delete;
+        const ReplyCallback& callback) noexcept;
+    Reply() = delete;
+    Reply(const Reply&) = delete;
+    Reply(Reply&&) = delete;
+    Reply& operator=(const Reply&) = delete;
+    Reply& operator=(Reply&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

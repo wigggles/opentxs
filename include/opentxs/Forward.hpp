@@ -13,6 +13,8 @@
 #include "opentxs/Shared.hpp"
 #include "opentxs/SharedPimpl.hpp"
 
+#include <type_traits>
+
 namespace opentxs
 {
 namespace api
@@ -150,6 +152,27 @@ namespace network
 {
 namespace zeromq
 {
+namespace curve
+{
+class Client;
+class Server;
+}  // namespace curve
+
+namespace socket
+{
+class Dealer;
+class Pair;
+class Publish;
+class Pull;
+class Push;
+class Reply;
+class Request;
+class Router;
+class Sender;
+class Socket;
+class Subscribe;
+}  // namespace socket
+
 namespace zap
 {
 class Callback;
@@ -159,27 +182,15 @@ class Request;
 }  // namespace zap
 
 class Context;
-class CurveClient;
-class CurveServer;
-class DealerSocket;
 class FrameIterator;
 class FrameSection;
 class ListenCallback;
 class Frame;
 class Message;
 class PairEventCallback;
-class PairSocket;
 class Pipeline;
 class Proxy;
-class PublishSocket;
-class PullSocket;
-class PushSocket;
 class ReplyCallback;
-class ReplySocket;
-class RequestSocket;
-class RouterSocket;
-class Socket;
-class SubscribeSocket;
 }  // namespace zeromq
 
 class Dht;
@@ -369,22 +380,22 @@ using OTUnitID = Pimpl<identifier::UnitDefinition>;
 using OTXReply = Pimpl<otx::Reply>;
 using OTXRequest = Pimpl<otx::Request>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
-using OTZMQDealerSocket = Pimpl<network::zeromq::DealerSocket>;
+using OTZMQDealerSocket = Pimpl<network::zeromq::socket::Dealer>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQFrame = Pimpl<network::zeromq::Frame>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
 using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
-using OTZMQPairSocket = Pimpl<network::zeromq::PairSocket>;
+using OTZMQPairSocket = Pimpl<network::zeromq::socket::Pair>;
 using OTZMQPipeline = Pimpl<network::zeromq::Pipeline>;
 using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
-using OTZMQPublishSocket = Pimpl<network::zeromq::PublishSocket>;
-using OTZMQPullSocket = Pimpl<network::zeromq::PullSocket>;
-using OTZMQPushSocket = Pimpl<network::zeromq::PushSocket>;
+using OTZMQPublishSocket = Pimpl<network::zeromq::socket::Publish>;
+using OTZMQPullSocket = Pimpl<network::zeromq::socket::Pull>;
+using OTZMQPushSocket = Pimpl<network::zeromq::socket::Push>;
 using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
-using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
-using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
-using OTZMQRouterSocket = Pimpl<network::zeromq::RouterSocket>;
-using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
+using OTZMQReplySocket = Pimpl<network::zeromq::socket::Reply>;
+using OTZMQRequestSocket = Pimpl<network::zeromq::socket::Request>;
+using OTZMQRouterSocket = Pimpl<network::zeromq::socket::Router>;
+using OTZMQSubscribeSocket = Pimpl<network::zeromq::socket::Subscribe>;
 #if OT_CASH
 using OTToken = Pimpl<blind::Token>;
 #endif

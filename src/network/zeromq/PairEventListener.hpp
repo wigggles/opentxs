@@ -11,19 +11,18 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class PairEventListener final
-    : public zeromq::socket::implementation::SubscribeSocket
+class PairEventListener final : public zeromq::socket::implementation::Subscribe
 {
 public:
-    ~PairEventListener() = default;
+    ~PairEventListener() final = default;
 
 private:
     friend zeromq::implementation::Context;
-    typedef SubscribeSocket ot_super;
+    typedef socket::implementation::Subscribe ot_super;
 
     const int instance_;
 
-    PairEventListener* clone() const override;
+    PairEventListener* clone() const noexcept final;
 
     PairEventListener(
         const zeromq::Context& context,

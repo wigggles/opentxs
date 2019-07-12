@@ -7,31 +7,35 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::Frame>;
 
-namespace opentxs::network::zeromq
+namespace opentxs
 {
-OTZMQFrame Frame::Factory() { return OTZMQFrame(new implementation::Frame()); }
+network::zeromq::Frame* Factory::ZMQFrame()
+{
+    using ReturnType = network::zeromq::implementation::Frame;
 
-OTZMQFrame Frame::Factory(const Data& input)
-{
-    return OTZMQFrame(new implementation::Frame(input));
+    return new ReturnType();
 }
 
-OTZMQFrame Frame::Factory(const std::string& input)
+network::zeromq::Frame* Factory::ZMQFrame(
+    const void* data,
+    const std::size_t size)
 {
-    return OTZMQFrame(new implementation::Frame(input));
+    using ReturnType = network::zeromq::implementation::Frame;
+
+    return new ReturnType(data, size);
 }
 
-OTZMQFrame Frame::Factory(const ProtobufType& input)
+network::zeromq::Frame* Factory::ZMQFrame(const ProtobufType& data)
 {
-    return OTZMQFrame(new implementation::Frame(input));
+    using ReturnType = network::zeromq::implementation::Frame;
+
+    return new ReturnType(data);
 }
-}  // namespace opentxs::network::zeromq
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -45,8 +49,7 @@ Frame::Frame()
 }
 
 Frame::Frame(const std::size_t bytes)
-    : zeromq::Frame()
-    , message_()
+    : Frame()
 {
     const auto init = zmq_msg_init_size(&message_, bytes);
 
@@ -59,30 +62,10 @@ Frame::Frame(const ProtobufType& input)
     input.SerializeToArray(zmq_msg_data(&message_), zmq_msg_size(&message_));
 }
 
-Frame::Frame(const Data& input)
-    : Frame(input.size())
+Frame::Frame(const void* data, const std::size_t bytes)
+    : Frame(bytes)
 {
-    if (0 < input.size()) {
-        OTPassword::safe_memcpy(
-            zmq_msg_data(&message_),
-            zmq_msg_size(&message_),
-            input.data(),
-            input.size(),
-            false);
-    }
-}
-
-Frame::Frame(const std::string& input)
-    : Frame(input.size())
-{
-    if (0 < input.size()) {
-        OTPassword::safe_memcpy(
-            zmq_msg_data(&message_),
-            zmq_msg_size(&message_),
-            input.data(),
-            input.size(),
-            false);
-    }
+    std::memcpy(zmq_msg_data(&message_), data, zmq_msg_size(&message_));
 }
 
 Frame::operator zmq_msg_t*() { return &message_; }
@@ -94,7 +77,10 @@ Frame::operator std::string() const
     return output;
 }
 
-Frame* Frame::clone() const { return new Frame(std::string(*this)); }
+Frame* Frame::clone() const
+{
+    return new Frame(zmq_msg_data(&message_), zmq_msg_size(&message_));
+}
 
 const void* Frame::data() const { return zmq_msg_data(&message_); }
 

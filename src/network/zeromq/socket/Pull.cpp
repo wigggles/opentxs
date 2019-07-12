@@ -5,13 +5,15 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
 
 #include "network/zeromq/curve/Server.hpp"
-#include "Receiver.hpp"
+#include "Receiver.tpp"
 #include "Socket.hpp"
 
 #include <chrono>
@@ -20,38 +22,45 @@
 
 #include "Pull.hpp"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::PullSocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::socket::Pull>;
 
 //#define OT_METHOD
-//"opentxs::network::zeromq::socket::implementation::PullSocket::"
+//"opentxs::network::zeromq::socket::implementation::Pull::"
 
-namespace opentxs::network::zeromq
+namespace opentxs
 {
-OTZMQPullSocket PullSocket::Factory(
-    const class Context& context,
-    const Socket::Direction direction,
-    const ListenCallback& callback)
+network::zeromq::socket::Pull* Factory::PullSocket(
+    const network::zeromq::Context& context,
+    const bool direction)
 {
-    return OTZMQPullSocket(
-        new socket::implementation::PullSocket(context, direction, callback));
+    using ReturnType = network::zeromq::socket::implementation::Pull;
+
+    return new ReturnType(
+        context,
+        static_cast<network::zeromq::socket::Socket::Direction>(direction));
 }
 
-OTZMQPullSocket PullSocket::Factory(
-    const class Context& context,
-    const Socket::Direction direction)
+network::zeromq::socket::Pull* Factory::PullSocket(
+    const network::zeromq::Context& context,
+    const bool direction,
+    const network::zeromq::ListenCallback& callback)
 {
-    return OTZMQPullSocket(
-        new socket::implementation::PullSocket(context, direction));
+    using ReturnType = network::zeromq::socket::implementation::Pull;
+
+    return new ReturnType(
+        context,
+        static_cast<network::zeromq::socket::Socket::Direction>(direction),
+        callback);
 }
-}  // namespace opentxs::network::zeromq
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-PullSocket::PullSocket(
+Pull::Pull(
     const zeromq::Context& context,
     const Socket::Direction direction,
     const zeromq::ListenCallback& callback,
-    const bool startThread)
+    const bool startThread) noexcept
     : Receiver(context, SocketType::Pull, direction, startThread)
     , Server(this->get())
     , callback_(callback)
@@ -59,34 +68,34 @@ PullSocket::PullSocket(
     init();
 }
 
-PullSocket::PullSocket(
+Pull::Pull(
     const zeromq::Context& context,
     const Socket::Direction direction,
-    const zeromq::ListenCallback& callback)
-    : PullSocket(context, direction, callback, true)
+    const zeromq::ListenCallback& callback) noexcept
+    : Pull(context, direction, callback, true)
 {
 }
 
-PullSocket::PullSocket(
+Pull::Pull(
     const zeromq::Context& context,
-    const Socket::Direction direction)
-    : PullSocket(context, direction, ListenCallback::Factory(), false)
+    const Socket::Direction direction) noexcept
+    : Pull(context, direction, ListenCallback::Factory(), false)
 {
 }
 
-PullSocket* PullSocket::clone() const
+Pull* Pull::clone() const noexcept
 {
-    return new PullSocket(context_, direction_, callback_);
+    return new Pull(context_, direction_, callback_);
 }
 
-bool PullSocket::have_callback() const { return true; }
+bool Pull::have_callback() const noexcept { return true; }
 
-void PullSocket::process_incoming(const Lock& lock, Message& message)
+void Pull::process_incoming(const Lock& lock, Message& message) noexcept
 {
     OT_ASSERT(verify_lock(lock))
 
     callback_.Process(message);
 }
 
-PullSocket::~PullSocket() SHUTDOWN
+Pull::~Pull() SHUTDOWN
 }  // namespace opentxs::network::zeromq::socket::implementation

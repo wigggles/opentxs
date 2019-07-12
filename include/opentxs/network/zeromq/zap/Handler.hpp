@@ -9,7 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/zap/ZAP.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
 
 namespace opentxs
 {
@@ -19,7 +19,7 @@ namespace zeromq
 {
 namespace zap
 {
-class Handler : virtual public zeromq::ReplySocket
+class Handler : virtual public zeromq::socket::Reply
 {
 public:
     EXPORT static OTZMQZAPHandler Factory(
@@ -34,7 +34,7 @@ protected:
 private:
     friend OTZMQZAPHandler;
 
-    virtual Handler* clone() const = 0;
+    virtual Handler* clone() const noexcept override = 0;
 
     Handler(const Handler&) = delete;
     Handler(Handler&&) = delete;

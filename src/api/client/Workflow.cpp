@@ -24,11 +24,11 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/Proto.tpp"
 
 #include <algorithm>
@@ -435,7 +435,8 @@ Workflow::Workflow(
     , activity_(activity)
     , contact_(contact)
     , account_publisher_(api_.ZeroMQ().PublishSocket())
-    , rpc_publisher_(api_.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , rpc_publisher_(
+          api_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
 {
     // WARNING: do not access api_.Wallet() during construction
     const auto endpoint = api_.Endpoints().WorkflowAccountUpdate();
@@ -2591,7 +2592,7 @@ bool Workflow::save_workflow(
 
     OT_ASSERT(saved)
 
-    if (false == accountID.empty()) { account_publisher_->Publish(accountID); }
+    if (false == accountID.empty()) { account_publisher_->Send(accountID); }
 
     return valid && saved;
 }
@@ -2778,12 +2779,12 @@ void Workflow::update_rpc(
     OT_ASSERT(proto::Validate(push, VERBOSE));
 
     auto message = zmq::Message::Factory();
-    message->AddFrame();
+    message->PrependEmptyFrame();
     message->AddFrame(localNymID);
     message->AddFrame(push);
     const auto instance = api_.Instance();
     message->AddFrame(Data::Factory(&instance, sizeof(instance)));
-    rpc_publisher_->Push(message);
+    rpc_publisher_->Send(message);
 }
 
 bool Workflow::validate_recipient(

@@ -36,14 +36,14 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 #include "opentxs/Proto.tpp"
@@ -151,10 +151,11 @@ RPC::RPC(const api::Context& native)
     , task_callback_(zmq::ListenCallback::Factory(
           std::bind(&RPC::task_handler, this, std::placeholders::_1)))
     , push_callback_(zmq::ListenCallback::Factory([&](const zmq::Message& in) {
-        rpc_publisher_->Publish(OTZMQMessage{in});
+        rpc_publisher_->Send(OTZMQMessage{in});
     }))
-    , push_receiver_(
-          ot_.ZMQ().PullSocket(push_callback_, zmq::Socket::Direction::Bind))
+    , push_receiver_(ot_.ZMQ().PullSocket(
+          push_callback_,
+          zmq::socket::Socket::Direction::Bind))
     , rpc_publisher_(ot_.ZMQ().PublishSocket())
     , task_subscriber_(ot_.ZMQ().SubscribeSocket(task_callback_))
 {
@@ -1974,6 +1975,6 @@ void RPC::task_handler(const zmq::Message& in)
 
     auto output = zmq::Message::Factory();
     output->AddFrame(message);
-    rpc_publisher_->Publish(output);
+    rpc_publisher_->Send(output);
 }
 }  // namespace opentxs::rpc::implementation

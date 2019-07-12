@@ -31,8 +31,8 @@ class Proxy
 public:
     static OTZMQProxy Factory(
         const Context& context,
-        Socket& frontend,
-        Socket& backend);
+        socket::Socket& frontend,
+        socket::Socket& backend);
 
     EXPORT virtual ~Proxy() = default;
 

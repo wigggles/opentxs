@@ -97,7 +97,7 @@ Context::Context(
     , task_list_lock_()
     , signal_handler_lock_()
     , config_()
-    , zmq_context_(opentxs::network::zeromq::Context::Factory())
+    , zmq_context_(opentxs::Factory::ZMQContext())
     , signal_handler_(nullptr)
     , log_(opentxs::Factory::Log(
           zmq_context_,

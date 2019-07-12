@@ -16,23 +16,20 @@ namespace
 class Test_DealerSocket : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
-    //    const std::string testMessage_{"zeromq test message"};
+    Test_DealerSocket()
+        : context_(Context().ZMQ())
+    {
+    }
 };
-
-OTZMQContext Test_DealerSocket::context_{zmq::Context::Factory()};
-
 }  // namespace
 
-TEST(DealerSocket, DealerSocket_Factory)
+TEST_F(Test_DealerSocket, DealerSocket_Factory)
 {
-    ASSERT_NE(nullptr, &Test_DealerSocket::context_.get());
-
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerSocket::context_,
-        zmq::Socket::Direction::Connect,
-        zmq::ListenCallback::Factory());
+    auto dealerSocket = context_.DealerSocket(
+        zmq::ListenCallback::Factory(),
+        zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());

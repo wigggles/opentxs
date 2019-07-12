@@ -23,7 +23,7 @@ TEST(ReplyCallback, ReplyCallback_Factory)
 {
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
-            return network::zeromq::Message::ReplyFactory(input);
+            return Context().ZMQ().ReplyMessage(input);
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
@@ -36,7 +36,7 @@ TEST_F(Test_ReplyCallback, ReplyCallback_Process)
             const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
 
-            auto reply = network::zeromq::Message::ReplyFactory(input);
+            auto reply = Context().ZMQ().ReplyMessage(input);
             reply->AddFrame(inputString);
             return reply;
         });

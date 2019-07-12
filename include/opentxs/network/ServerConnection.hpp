@@ -28,7 +28,7 @@ public:
     EXPORT static OTServerConnection Factory(
         const api::Core& api,
         const api::network::ZMQ& zmq,
-        const zeromq::PublishSocket& updates,
+        const zeromq::socket::Publish& updates,
         const std::shared_ptr<const ServerContract>& contract);
 
     EXPORT virtual bool ChangeAddressType(const proto::AddressType type) = 0;

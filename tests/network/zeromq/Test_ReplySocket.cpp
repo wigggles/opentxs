@@ -16,17 +16,17 @@ namespace
 class Test_ReplySocket : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
+
+    Test_ReplySocket()
+        : context_(Context().ZMQ())
+    {
+    }
 };
-
-OTZMQContext Test_ReplySocket::context_{zmq::Context::Factory()};
-
 }  // namespace
 
-TEST(ReplySocket, ReplySocket_Factory)
+TEST_F(Test_ReplySocket, ReplySocket_Factory)
 {
-    ASSERT_NE(nullptr, &Test_ReplySocket::context_.get());
-
     auto replyCallback = zmq::ReplyCallback::Factory(
         [this](const zmq::Message& input) -> OTZMQMessage {
             return zmq::Message::Factory();
@@ -34,10 +34,8 @@ TEST(ReplySocket, ReplySocket_Factory)
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket = zmq::ReplySocket::Factory(
-        Test_ReplySocket::context_,
-        zmq::Socket::Direction::Bind,
-        replyCallback);
+    auto replySocket = context_.ReplySocket(
+        replyCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());

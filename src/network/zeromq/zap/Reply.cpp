@@ -62,13 +62,13 @@ Reply::Reply(
         }
     }
 
-    messages_.emplace_back(Frame::Factory());
-    messages_.emplace_back(Frame::Factory(version));
-    messages_.emplace_back(Frame::Factory(request.RequestID()));
-    messages_.emplace_back(Frame::Factory(code_to_string(code)));
-    messages_.emplace_back(Frame::Factory(status));
-    messages_.emplace_back(Frame::Factory(userID));
-    messages_.emplace_back(Frame::Factory(metadata));
+    AddFrame();
+    zeromq::Message::AddFrame(version);
+    zeromq::Message::AddFrame(request.RequestID());
+    zeromq::Message::AddFrame(code_to_string(code));
+    zeromq::Message::AddFrame(status);
+    zeromq::Message::AddFrame(userID);
+    zeromq::Message::AddFrame(metadata);
 }
 
 Reply::Reply(const Reply& rhs)

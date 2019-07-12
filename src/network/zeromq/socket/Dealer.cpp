@@ -5,60 +5,64 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/DealerSocket.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #include "network/zeromq/curve/Client.hpp"
-#include "Bidirectional.hpp"
-#include "Send.hpp"
-#include "Socket.hpp"
+#include "Bidirectional.tpp"
 
 #include <zmq.h>
 
 #include "Dealer.hpp"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::DealerSocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::socket::Dealer>;
 
-#define OT_METHOD                                                              \
-    "opentxs::network::zeromq::socket::implementation::DealerSocket::"
+#define OT_METHOD "opentxs::network::zeromq::socket::implementation::Dealer::"
 
-namespace opentxs::network::zeromq
+namespace opentxs
 {
-OTZMQDealerSocket DealerSocket::Factory(
-    const class Context& context,
-    const Socket::Direction direction,
-    const ListenCallback& callback)
+network::zeromq::socket::Dealer* Factory::DealerSocket(
+    const network::zeromq::Context& context,
+    const bool direction,
+    const network::zeromq::ListenCallback& callback)
 {
-    return OTZMQDealerSocket(
-        new socket::implementation::DealerSocket(context, direction, callback));
+    using ReturnType = network::zeromq::socket::implementation::Dealer;
+
+    return new ReturnType(
+        context,
+        static_cast<network::zeromq::socket::Socket::Direction>(direction),
+        callback);
 }
-}  // namespace opentxs::network::zeromq
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-DealerSocket::DealerSocket(
+Dealer::Dealer(
     const zeromq::Context& context,
     const Socket::Direction direction,
-    const zeromq::ListenCallback& callback)
-    : _Bidirectional(context, SocketType::Dealer, direction, true)
+    const zeromq::ListenCallback& callback) noexcept
+    : Receiver(context, SocketType::Dealer, direction, false)
+    , Bidirectional(context, true)
     , Client(this->get())
     , callback_(callback)
 {
     init();
 }
 
-DealerSocket* DealerSocket::clone() const
+Dealer* Dealer::clone() const noexcept
 {
-    return new DealerSocket(context_, direction_, callback_);
+    return new Dealer(context_, direction_, callback_);
 }
 
-void DealerSocket::process_incoming(
+void Dealer::process_incoming(
     const Lock& lock,
-    opentxs::network::zeromq::Message& message)
+    opentxs::network::zeromq::Message& message) noexcept
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -69,5 +73,5 @@ void DealerSocket::process_incoming(
     LogDetail(OT_METHOD)(__FUNCTION__)(": Done.").Flush();
 }
 
-DealerSocket::~DealerSocket() SHUTDOWN
+Dealer::~Dealer() SHUTDOWN
 }  // namespace opentxs::network::zeromq::socket::implementation

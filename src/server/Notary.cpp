@@ -43,9 +43,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/Proto.tpp"
 
 #include "Macros.hpp"
@@ -82,7 +82,7 @@ Notary::Notary(
     , reason_(reason)
     , manager_(manager)
     , notification_socket_(
-          manager_.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+          manager_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
 {
     const auto bound = notification_socket_->Start(
         manager_.Endpoints().InternalPushNotification());
@@ -8809,7 +8809,7 @@ void Notary::send_push_notification(
     }
 
     message->AddFrame(push);
-    notification_socket_->Push(message);
+    notification_socket_->Send(message);
 }
 
 #if OT_CASH

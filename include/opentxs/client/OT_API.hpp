@@ -17,7 +17,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>

@@ -5,33 +5,29 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class RequestSocket final : virtual public zeromq::RequestSocket,
-                            public Sender,
-                            zeromq::curve::implementation::Client
+class Request final : virtual public zeromq::socket::Request,
+                      public Socket,
+                      public zeromq::curve::implementation::Client
 {
 public:
-    SendResult SendRequest(opentxs::Data& message) const override;
-    SendResult SendRequest(const std::string& message) const override;
-    SendResult SendRequest(zeromq::Message& message) const override;
-    bool SetSocksProxy(const std::string& proxy) const override;
+    bool SetSocksProxy(const std::string& proxy) const noexcept final;
 
-    ~RequestSocket();
+    ~Request() final;
 
 private:
-    friend opentxs::network::zeromq::RequestSocket;
+    friend opentxs::Factory;
 
-    RequestSocket* clone() const override;
-    bool wait(const Lock& lock) const;
+    Request* clone() const noexcept final;
+    SendResult send_request(zeromq::Message& message) const noexcept final;
+    bool wait(const Lock& lock) const noexcept;
 
-    RequestSocket(const zeromq::Context& context);
-    RequestSocket() = delete;
-    RequestSocket(const RequestSocket&) = delete;
-    RequestSocket(RequestSocket&&) = delete;
-    RequestSocket& operator=(const RequestSocket&) = delete;
-    RequestSocket& operator=(RequestSocket&&) = delete;
+    Request(const zeromq::Context& context) noexcept;
+    Request() = delete;
+    Request(const Request&) = delete;
+    Request(Request&&) = delete;
+    Request& operator=(const Request&) = delete;
+    Request& operator=(Request&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

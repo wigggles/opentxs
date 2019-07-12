@@ -31,13 +31,16 @@ public:
     using reference = Frame&;
     using iterator_category = std::forward_iterator_tag;
 
-    FrameSection(const FrameSection&);
-    FrameSection(const Message* parent, std::size_t position, std::size_t size);
-
     EXPORT const Frame& at(const std::size_t index) const;
     EXPORT FrameIterator begin() const;
     EXPORT FrameIterator end() const;
     EXPORT std::size_t size() const;
+
+    EXPORT FrameSection(
+        const Message* parent,
+        std::size_t position,
+        std::size_t size);
+    EXPORT FrameSection(const FrameSection&);
 
     EXPORT virtual ~FrameSection() = default;
 

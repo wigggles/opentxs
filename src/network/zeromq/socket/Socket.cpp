@@ -38,7 +38,7 @@ const std::map<SocketType, int> Socket::types_{
 Socket::Socket(
     const zeromq::Context& context,
     const SocketType type,
-    const Socket::Direction direction)
+    const Socket::Direction direction) noexcept
     : context_(context)
     , direction_(direction)
     , socket_(zmq_socket(context, types_.at(type)))
@@ -58,22 +58,22 @@ Socket::Socket(
     OT_ASSERT(nullptr != socket_);
 }
 
-Socket::operator void*() const { return socket_; }
+Socket::operator void*() const noexcept { return socket_; }
 
-void Socket::add_endpoint(const std::string& endpoint) const
+void Socket::add_endpoint(const std::string& endpoint) const noexcept
 {
     Lock lock(endpoint_lock_);
     endpoints_.emplace(endpoint);
 }
 
-bool Socket::apply_socket(SocketCallback&& cb) const
+bool Socket::apply_socket(SocketCallback&& cb) const noexcept
 {
     Lock lock(lock_);
 
     return cb(lock);
 }
 
-bool Socket::apply_timeouts(const Lock& lock) const
+bool Socket::apply_timeouts(const Lock& lock) const noexcept
 {
     OT_ASSERT(nullptr != socket_)
     OT_ASSERT(verify_lock(lock))
@@ -116,7 +116,7 @@ bool Socket::apply_timeouts(const Lock& lock) const
     return true;
 }
 
-bool Socket::bind(const Lock& lock, const std::string& endpoint) const
+bool Socket::bind(const Lock& lock, const std::string& endpoint) const noexcept
 {
     if (false == apply_timeouts(lock)) { return false; }
 
@@ -134,6 +134,7 @@ bool Socket::bind(const Lock& lock, const std::string& endpoint) const
 }
 
 bool Socket::connect(const Lock& lock, const std::string& endpoint) const
+    noexcept
 {
     if (false == apply_timeouts(lock)) { return false; }
 
@@ -150,7 +151,7 @@ bool Socket::connect(const Lock& lock, const std::string& endpoint) const
     return output;
 }
 
-bool Socket::Close() const
+bool Socket::Close() const noexcept
 {
     running_->Off();
     Lock lock(lock_);
@@ -165,7 +166,7 @@ bool Socket::Close() const
 bool Socket::receive_message(
     const Lock& lock,
     void* socket,
-    zeromq::Message& message)
+    zeromq::Message& message) noexcept
 {
     bool receiving{true};
 
@@ -211,7 +212,10 @@ bool Socket::receive_message(
     return true;
 }
 
-bool Socket::send_message(const Lock& lock, void* socket, Message& message)
+bool Socket::send_message(
+    const Lock& lock,
+    void* socket,
+    Message& message) noexcept
 {
     bool sent{true};
     const auto parts = message.size();
@@ -234,12 +238,12 @@ bool Socket::send_message(const Lock& lock, void* socket, Message& message)
     return sent;
 }
 
-bool Socket::send_message(const Lock& lock, Message& message) const
+bool Socket::send_message(const Lock& lock, Message& message) const noexcept
 {
     return send_message(lock, socket_, message);
 }
 
-std::string Socket::random_inproc_endpoint()
+std::string Socket::random_inproc_endpoint() noexcept
 {
     std::random_device seed;
     std::mt19937 generator(seed());
@@ -249,12 +253,12 @@ std::string Socket::random_inproc_endpoint()
            std::to_string(rand(generator));
 }
 
-bool Socket::receive_message(const Lock& lock, Message& message) const
+bool Socket::receive_message(const Lock& lock, Message& message) const noexcept
 {
     return receive_message(lock, socket_, message);
 }
 
-bool Socket::set_socks_proxy(const std::string& proxy) const
+bool Socket::set_socks_proxy(const std::string& proxy) const noexcept
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -271,7 +275,7 @@ bool Socket::set_socks_proxy(const std::string& proxy) const
 bool Socket::SetTimeouts(
     const std::chrono::milliseconds& linger,
     const std::chrono::milliseconds& send,
-    const std::chrono::milliseconds& receive) const
+    const std::chrono::milliseconds& receive) const noexcept
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -284,7 +288,7 @@ bool Socket::SetTimeouts(
     return apply_socket(std::move(cb));
 }
 
-void Socket::shutdown(const Lock& lock)
+void Socket::shutdown(const Lock& lock) noexcept
 {
     if (nullptr == socket_) { return; }
 
@@ -301,7 +305,7 @@ void Socket::shutdown(const Lock& lock)
     if (0 == zmq_close(socket_)) { socket_ = nullptr; }
 }
 
-bool Socket::Start(const std::string& endpoint) const
+bool Socket::Start(const std::string& endpoint) const noexcept
 {
     SocketCallback cb{
         [&](const Lock& lock) -> bool { return start(lock, endpoint); }};
@@ -309,7 +313,7 @@ bool Socket::Start(const std::string& endpoint) const
     return apply_socket(std::move(cb));
 }
 
-bool Socket::start(const Lock& lock, const std::string& endpoint) const
+bool Socket::start(const Lock& lock, const std::string& endpoint) const noexcept
 {
     if (Socket::Direction::Connect == direction_) {
 
@@ -320,5 +324,5 @@ bool Socket::start(const Lock& lock, const std::string& endpoint) const
     }
 }
 
-SocketType Socket::Type() const { return type_; }
+SocketType Socket::Type() const noexcept { return type_; }
 }  // namespace opentxs::network::zeromq::socket::implementation

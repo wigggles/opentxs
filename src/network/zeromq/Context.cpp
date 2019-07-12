@@ -10,16 +10,21 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
-#include "opentxs/network/zeromq/DealerSocket.hpp"
-#include "opentxs/network/zeromq/PairSocket.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#include "opentxs/network/zeromq/socket/Pair.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
+#include "opentxs/network/zeromq/socket/Router.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/network/zeromq/Proxy.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
-#include "opentxs/network/zeromq/RouterSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
 #include "PairEventListener.hpp"
 
@@ -33,14 +38,20 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 #define PATH_SEPERATOR "/"
 #define OT_METHOD "opentxs::Context::"
 
+namespace opentxs
+{
+network::zeromq::Context* Factory::ZMQContext()
+{
+    using ReturnType = network::zeromq::implementation::Context;
+
+    return new ReturnType;
+}
+}  // namespace opentxs
+
 namespace opentxs::network::zeromq
 {
-OTZMQContext Context::Factory()
-{
-    return OTZMQContext(new implementation::Context());
-}
-
-std::string Context::EncodePrivateZ85(const opentxs::crypto::key::Ed25519& key)
+std::string Context::EncodePrivateZ85(
+    const opentxs::crypto::key::Ed25519& key) noexcept
 {
     auto data = opentxs::Data::Factory();
     const auto retrieved = key.GetKey(data);
@@ -50,7 +61,9 @@ std::string Context::EncodePrivateZ85(const opentxs::crypto::key::Ed25519& key)
     return RawToZ85(data->data(), data->size());
 }
 
-std::string Context::RawToZ85(const void* input, const std::size_t size)
+std::string Context::RawToZ85(
+    const void* input,
+    const std::size_t size) noexcept
 {
     if (0 != size % 4) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input size.").Flush();
@@ -69,7 +82,7 @@ std::string Context::RawToZ85(const void* input, const std::size_t size)
     return {output.data(), output.size()};
 }
 
-OTData Context::Z85ToRaw(const void* input, const std::size_t size)
+OTData Context::Z85ToRaw(const void* input, const std::size_t size) noexcept
 {
     if (0 != size % 5) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input size.").Flush();
@@ -91,14 +104,14 @@ OTData Context::Z85ToRaw(const void* input, const std::size_t size)
 
 namespace opentxs::network::zeromq::implementation
 {
-Context::Context()
+Context::Context() noexcept
     : context_(zmq_ctx_new())
 {
     OT_ASSERT(nullptr != context_);
     OT_ASSERT(1 == zmq_has("curve"));
 }
 
-Context::operator void*() const
+Context::operator void*() const noexcept
 {
     OT_ASSERT(nullptr != context_)
 
@@ -108,7 +121,7 @@ Context::operator void*() const
 std::string Context::BuildEndpoint(
     const std::string& path,
     const int instance,
-    const int version) const
+    const int version) const noexcept
 {
     return std::string(INPROC_PREFIX) + std::to_string(instance) +
            PATH_SEPERATOR + path + PATH_SEPERATOR + std::to_string(version);
@@ -118,100 +131,145 @@ std::string Context::BuildEndpoint(
     const std::string& path,
     const int instance,
     const int version,
-    const std::string& suffix) const
+    const std::string& suffix) const noexcept
 {
     return BuildEndpoint(path, instance, version) + PATH_SEPERATOR + suffix;
 }
 
-Context* Context::clone() const { return new Context; }
-
 OTZMQDealerSocket Context::DealerSocket(
     const ListenCallback& callback,
-    const Socket::Direction direction) const
+    const socket::Socket::Direction direction) const noexcept
 {
-    return DealerSocket::Factory(*this, direction, callback);
+    return OTZMQDealerSocket{
+        Factory::DealerSocket(*this, static_cast<bool>(direction), callback)};
+}
+
+OTZMQMessage Context::Message() const noexcept
+{
+    return OTZMQMessage{Factory::ZMQMessage()};
+}
+
+OTZMQMessage Context::Message(const ProtobufType& input) const noexcept
+{
+    return OTZMQMessage{Factory::ZMQMessage(input)};
+}
+
+OTZMQMessage Context::Message(const void* input, const std::size_t size) const
+    noexcept
+{
+    return OTZMQMessage{Factory::ZMQMessage(input, size)};
 }
 
 OTZMQSubscribeSocket Context::PairEventListener(
     const PairEventCallback& callback,
-    const int instance) const
+    const int instance) const noexcept
 {
     return OTZMQSubscribeSocket(
         new class PairEventListener(*this, callback, instance));
 }
 
 OTZMQPairSocket Context::PairSocket(
-    const opentxs::network::zeromq::ListenCallback& callback) const
+    const opentxs::network::zeromq::ListenCallback& callback) const noexcept
 {
-    return PairSocket::Factory(*this, callback);
+    return OTZMQPairSocket{Factory::PairSocket(*this, callback, true)};
 }
 
 OTZMQPairSocket Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback,
-    const opentxs::network::zeromq::PairSocket& peer) const
+    const opentxs::network::zeromq::socket::Pair& peer) const noexcept
 {
-    return PairSocket::Factory(callback, peer);
+    return OTZMQPairSocket{Factory::PairSocket(callback, peer, true)};
 }
 
 OTZMQPairSocket Context::PairSocket(
     const opentxs::network::zeromq::ListenCallback& callback,
-    const std::string& endpoint) const
+    const std::string& endpoint) const noexcept
 {
-    return PairSocket::Factory(*this, callback, endpoint);
+    return OTZMQPairSocket{Factory::PairSocket(*this, callback, endpoint)};
+}
+
+OTZMQPipeline Context::Pipeline(
+    const api::Core& api,
+    std::function<void(zeromq::Message&)> callback) const noexcept
+{
+    return OTZMQPipeline{opentxs::Factory::Pipeline(api, *this, callback)};
 }
 
 OTZMQProxy Context::Proxy(
-    network::zeromq::Socket& frontend,
-    network::zeromq::Socket& backend) const
+    network::zeromq::socket::Socket& frontend,
+    network::zeromq::socket::Socket& backend) const noexcept
 {
     return opentxs::network::zeromq::Proxy::Factory(*this, frontend, backend);
 }
 
-OTZMQPublishSocket Context::PublishSocket() const
+OTZMQPublishSocket Context::PublishSocket() const noexcept
 {
-    return PublishSocket::Factory(*this);
+    return OTZMQPublishSocket{Factory::PublishSocket(*this)};
 }
 
-OTZMQPullSocket Context::PullSocket(const Socket::Direction direction) const
+OTZMQPullSocket Context::PullSocket(
+    const socket::Socket::Direction direction) const noexcept
 {
-    return PullSocket::Factory(*this, direction);
+    return OTZMQPullSocket{
+        Factory::PullSocket(*this, static_cast<bool>(direction))};
 }
 
 OTZMQPullSocket Context::PullSocket(
     const ListenCallback& callback,
-    const Socket::Direction direction) const
+    const socket::Socket::Direction direction) const noexcept
 {
-    return PullSocket::Factory(*this, direction, callback);
+    return OTZMQPullSocket{
+        Factory::PullSocket(*this, static_cast<bool>(direction), callback)};
 }
 
-OTZMQPushSocket Context::PushSocket(const Socket::Direction direction) const
+OTZMQPushSocket Context::PushSocket(
+    const socket::Socket::Direction direction) const noexcept
 {
-    return PushSocket::Factory(*this, direction);
+    return OTZMQPushSocket{
+        Factory::PushSocket(*this, static_cast<bool>(direction))};
+}
+
+OTZMQMessage Context::ReplyMessage(const zeromq::Message& request) const
+    noexcept
+{
+    auto output = Message();
+
+    if (0 < request.Header().size()) {
+        for (const auto& frame : request.Header()) { output->AddFrame(frame); }
+
+        output->AddFrame();
+    }
+
+    OT_ASSERT(0 == output->Body().size());
+
+    return output;
 }
 
 OTZMQReplySocket Context::ReplySocket(
     const ReplyCallback& callback,
-    const Socket::Direction direction) const
+    const socket::Socket::Direction direction) const noexcept
 {
-    return ReplySocket::Factory(*this, direction, callback);
+    return OTZMQReplySocket{
+        Factory::ReplySocket(*this, static_cast<bool>(direction), callback)};
 }
 
-OTZMQRequestSocket Context::RequestSocket() const
+OTZMQRequestSocket Context::RequestSocket() const noexcept
 {
-    return RequestSocket::Factory(*this);
+    return OTZMQRequestSocket{Factory::RequestSocket(*this)};
 }
 
 OTZMQRouterSocket Context::RouterSocket(
     const ListenCallback& callback,
-    const Socket::Direction direction) const
+    const socket::Socket::Direction direction) const noexcept
 {
-    return RouterSocket::Factory(*this, direction, callback);
+    return OTZMQRouterSocket{
+        Factory::RouterSocket(*this, static_cast<bool>(direction), callback)};
 }
 
 OTZMQSubscribeSocket Context::SubscribeSocket(
-    const ListenCallback& callback) const
+    const ListenCallback& callback) const noexcept
 {
-    return SubscribeSocket::Factory(*this, callback);
+    return OTZMQSubscribeSocket{Factory::SubscribeSocket(*this, callback)};
 }
 
 Context::~Context()

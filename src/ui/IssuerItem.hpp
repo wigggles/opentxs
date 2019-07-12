@@ -59,7 +59,7 @@ private:
     IssuerItem(
         const AccountSummaryInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const AccountSummaryRowID& rowID,
         const AccountSummarySortKey& sortKey,
         const CustomData& custom,

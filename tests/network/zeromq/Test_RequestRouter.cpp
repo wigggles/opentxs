@@ -17,7 +17,7 @@ namespace
 class Test_RequestRouter : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
     const std::string testMessage_{"zeromq test message"};
     const std::string testMessage2_{"zeromq test message 2"};
@@ -31,16 +31,16 @@ public:
 
     void requestSocketThread(const std::string& msg);
     void requestSocketThreadMultipart();
-};
 
-OTZMQContext Test_RequestRouter::context_{zmq::Context::Factory()};
+    Test_RequestRouter()
+        : context_(Context().ZMQ())
+    {
+    }
+};
 
 void Test_RequestRouter::requestSocketThread(const std::string& msg)
 {
-    ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
-
-    auto requestSocket =
-        zmq::RequestSocket::Factory(Test_RequestRouter::context_);
+    auto requestSocket = context_.RequestSocket();
 
     ASSERT_NE(nullptr, &requestSocket.get());
     ASSERT_EQ(SocketType::Request, requestSocket->Type());
@@ -51,7 +51,7 @@ void Test_RequestRouter::requestSocketThread(const std::string& msg)
         std::chrono::milliseconds(30000));
     requestSocket->Start(endpoint_);
 
-    auto [result, message] = requestSocket->SendRequest(msg);
+    auto [result, message] = requestSocket->Send(msg);
 
     ASSERT_EQ(result, SendResult::VALID_REPLY);
     // RouterSocket removes the identity frame and RequestSocket removes the
@@ -64,10 +64,7 @@ void Test_RequestRouter::requestSocketThread(const std::string& msg)
 
 void Test_RequestRouter::requestSocketThreadMultipart()
 {
-    ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
-
-    auto requestSocket =
-        zmq::RequestSocket::Factory(Test_RequestRouter::context_);
+    auto requestSocket = context_.RequestSocket();
 
     ASSERT_NE(nullptr, &requestSocket.get());
     ASSERT_EQ(SocketType::Request, requestSocket->Type());
@@ -78,12 +75,12 @@ void Test_RequestRouter::requestSocketThreadMultipart()
         std::chrono::milliseconds(30000));
     requestSocket->Start(endpoint_);
 
-    auto multipartMessage = zmq::Message::Factory(testMessage_);
+    auto multipartMessage = context_.Message(testMessage_);
     multipartMessage->AddFrame();
     multipartMessage->AddFrame(testMessage2_);
     multipartMessage->AddFrame(testMessage3_);
 
-    auto [result, message] = requestSocket->SendRequest(multipartMessage);
+    auto [result, message] = requestSocket->Send(multipartMessage);
 
     ASSERT_EQ(result, SendResult::VALID_REPLY);
     // RouterSocket removes the identity frame and RequestSocket removes the
@@ -104,9 +101,7 @@ void Test_RequestRouter::requestSocketThreadMultipart()
 
 TEST_F(Test_RequestRouter, Request_Router)
 {
-    ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
-
-    auto replyMessage = zmq::Message::Factory();
+    auto replyMessage = context_.Message();
 
     auto routerCallback = zmq::ListenCallback::Factory(
         [this, &replyMessage](zmq::Message& input) -> void {
@@ -120,7 +115,7 @@ TEST_F(Test_RequestRouter, Request_Router)
 
             EXPECT_EQ(testMessage_, inputString);
 
-            replyMessage = zmq::Message::ReplyFactory(input);
+            replyMessage = context_.ReplyMessage(input);
             for (const std::string& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
@@ -130,10 +125,8 @@ TEST_F(Test_RequestRouter, Request_Router)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = zmq::RouterSocket::Factory(
-        Test_RequestRouter::context_,
-        zmq::Socket::Direction::Bind,
-        routerCallback);
+    auto routerSocket = context_.RouterSocket(
+        routerCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -164,13 +157,10 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
 {
     callbackCount_ = 2;
 
-    ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
-
     std::map<std::string, OTZMQMessage> replyMessages{
+        std::pair<std::string, OTZMQMessage>(testMessage2_, context_.Message()),
         std::pair<std::string, OTZMQMessage>(
-            testMessage2_, zmq::Message::Factory()),
-        std::pair<std::string, OTZMQMessage>(
-            testMessage3_, zmq::Message::Factory())};
+            testMessage3_, context_.Message())};
 
     auto routerCallback = zmq::ListenCallback::Factory(
         [this, &replyMessages](zmq::Message& input) -> void {
@@ -186,7 +176,7 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
             EXPECT_TRUE(match);
 
             auto& replyMessage = replyMessages.at(inputString);
-            replyMessage = zmq::Message::ReplyFactory(input);
+            replyMessage = context_.ReplyMessage(input);
             for (const std::string& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
@@ -196,10 +186,8 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = zmq::RouterSocket::Factory(
-        Test_RequestRouter::context_,
-        zmq::Socket::Direction::Bind,
-        routerCallback);
+    auto routerSocket = context_.RouterSocket(
+        routerCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -248,9 +236,7 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
 
 TEST_F(Test_RequestRouter, Request_Router_Multipart)
 {
-    ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
-
-    auto replyMessage = zmq::Message::Factory();
+    auto replyMessage = context_.Message();
 
     auto routerCallback = zmq::ListenCallback::Factory(
         [this, &replyMessage](zmq::Message& input) -> void {
@@ -268,16 +254,14 @@ TEST_F(Test_RequestRouter, Request_Router_Multipart)
                 EXPECT_TRUE(match || frame.size() == 0);
             }
 
-            replyMessage = zmq::Message::ReplyFactory(input);
+            replyMessage = context_.ReplyMessage(input);
             for (auto& frame : input.Body()) { replyMessage->AddFrame(frame); }
         });
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = zmq::RouterSocket::Factory(
-        Test_RequestRouter::context_,
-        zmq::Socket::Direction::Bind,
-        routerCallback);
+    auto routerSocket = context_.RouterSocket(
+        routerCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());

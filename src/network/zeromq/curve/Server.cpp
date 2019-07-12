@@ -18,12 +18,12 @@
 
 namespace opentxs::network::zeromq::curve::implementation
 {
-Server::Server(zeromq::socket::implementation::Socket& socket)
+Server::Server(zeromq::socket::implementation::Socket& socket) noexcept
     : parent_(socket)
 {
 }
 
-bool Server::SetDomain(const std::string& domain) const
+bool Server::SetDomain(const std::string& domain) const noexcept
 {
     auto set =
         zmq_setsockopt(parent_, ZMQ_ZAP_DOMAIN, domain.data(), domain.size());
@@ -37,7 +37,7 @@ bool Server::SetDomain(const std::string& domain) const
     return true;
 }
 
-bool Server::SetPrivateKey(const OTPassword& key) const
+bool Server::SetPrivateKey(const OTPassword& key) const noexcept
 {
     if (CURVE_KEY_BYTES != key.getMemorySize()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key.").Flush();
@@ -48,7 +48,7 @@ bool Server::SetPrivateKey(const OTPassword& key) const
     return set_private_key(key.getMemory(), key.getMemorySize());
 }
 
-bool Server::SetPrivateKey(const std::string& z85) const
+bool Server::SetPrivateKey(const std::string& z85) const noexcept
 {
     if (CURVE_KEY_Z85_BYTES > z85.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key size (")(
@@ -65,6 +65,7 @@ bool Server::SetPrivateKey(const std::string& z85) const
 }
 
 bool Server::set_private_key(const void* key, const std::size_t keySize) const
+    noexcept
 {
     OT_ASSERT(nullptr != parent_);
 

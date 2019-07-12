@@ -5,41 +5,39 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class DealerSocket final : public _Bidirectional<zeromq::DealerSocket>,
-                           zeromq::curve::implementation::Client
+class Dealer final : public Bidirectional<zeromq::socket::Dealer>,
+                     public zeromq::curve::implementation::Client
 {
 public:
-    bool SetSocksProxy(const std::string& proxy) const override
+    bool SetSocksProxy(const std::string& proxy) const noexcept final
     {
         return set_socks_proxy(proxy);
     }
 
-    virtual ~DealerSocket();
+    virtual ~Dealer();
 
 protected:
     const ListenCallback& callback_;
 
-    DealerSocket(
+    Dealer(
         const zeromq::Context& context,
         const Socket::Direction direction,
-        const zeromq::ListenCallback& callback);
+        const zeromq::ListenCallback& callback) noexcept;
 
 private:
-    friend opentxs::network::zeromq::DealerSocket;
+    friend opentxs::Factory;
 
-    DealerSocket* clone() const override;
-    bool have_callback() const override { return true; }
+    Dealer* clone() const noexcept final;
+    bool have_callback() const noexcept final { return true; }
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
 
-    DealerSocket() = delete;
-    DealerSocket(const DealerSocket&) = delete;
-    DealerSocket(DealerSocket&&) = delete;
-    DealerSocket& operator=(const DealerSocket&) = delete;
-    DealerSocket& operator=(DealerSocket&&) = delete;
+    Dealer() = delete;
+    Dealer(const Dealer&) = delete;
+    Dealer(Dealer&&) = delete;
+    Dealer& operator=(const Dealer&) = delete;
+    Dealer& operator=(Dealer&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

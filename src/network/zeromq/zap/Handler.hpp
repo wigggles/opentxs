@@ -7,27 +7,38 @@
 
 namespace opentxs::network::zeromq::zap::implementation
 {
-class Handler final : virtual zap::Handler,
-                      zeromq::socket::implementation::Receiver<zap::Request>,
-                      zeromq::curve::implementation::Server
+class Handler final
+    : virtual zap::Handler,
+      zeromq::socket::implementation::Receiver<zap::Handler, zap::Request>,
+      zeromq::curve::implementation::Server
 {
 public:
-    bool Start(const std::string& endpoint) const override { return false; }
+    bool Start(const std::string& endpoint) const noexcept final
+    {
+        return false;
+    }
 
-    ~Handler();
+    ~Handler() final;
 
 private:
     friend zap::Handler;
 
     const zap::Callback& callback_;
 
-    Handler* clone() const override { return new Handler(context_, callback_); }
-    bool have_callback() const override { return true; }
+    Handler* clone() const noexcept final
+    {
+        return new Handler(context_, callback_);
+    }
+    bool have_callback() const noexcept final { return true; }
 
-    void init() override;
-    void process_incoming(const Lock& lock, zap::Request& message) override;
+    void init() noexcept final;
+    void process_incoming(
+        const Lock& lock,
+        zap::Request& message) noexcept final;
 
-    Handler(const zeromq::Context& context, const zap::Callback& callback);
+    Handler(
+        const zeromq::Context& context,
+        const zap::Callback& callback) noexcept;
     Handler() = delete;
     Handler(const Handler&) = delete;
     Handler(Handler&&) = delete;

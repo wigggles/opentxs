@@ -18,13 +18,13 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/AccountSummary.hpp"
 #include "opentxs/ui/IssuerItem.hpp"
 #include "opentxs/Types.hpp"
@@ -53,7 +53,7 @@ namespace opentxs
 {
 ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const proto::ContactItemType currency
 #if OT_QT
@@ -83,7 +83,7 @@ namespace opentxs::ui::implementation
 {
 AccountSummary::AccountSummary(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const proto::ContactItemType currency
 #if OT_QT

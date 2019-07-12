@@ -41,7 +41,7 @@ public:
 
     Frame& AddCredential(const Data& credential) override
     {
-        return AddFrame(credential);
+        return zeromq::Message::AddFrame(credential);
     };
 
     ~Request() = default;

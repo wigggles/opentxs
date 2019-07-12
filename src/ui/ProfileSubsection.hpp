@@ -70,7 +70,7 @@ private:
     ProfileSubsection(
         const ProfileSectionInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ProfileSectionRowID& rowID,
         const ProfileSectionSortKey& key,
         const CustomData& custom

@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "Internal.hpp"
 
 #include <gtest/gtest.h>
 
@@ -17,7 +18,7 @@ namespace
 class Test_DealerRouter : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
     const std::string testMessage_{"zeromq test message"};
     const std::string testMessage2_{"zeromq test message 2"};
@@ -32,14 +33,15 @@ public:
 
     void dealerSocketThread(const std::string& msg);
     void routerSocketThread(const std::string& endpoint);
-};
 
-OTZMQContext Test_DealerRouter::context_{zmq::Context::Factory()};
+    Test_DealerRouter()
+        : context_(Context().ZMQ())
+    {
+    }
+};
 
 void Test_DealerRouter::dealerSocketThread(const std::string& msg)
 {
-    ASSERT_NE(nullptr, &Test_DealerRouter::context_.get());
-
     bool replyProcessed{false};
 
     auto dealerCallback = zmq::ListenCallback::Factory(
@@ -56,10 +58,8 @@ void Test_DealerRouter::dealerSocketThread(const std::string& msg)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Connect,
-        dealerCallback);
+    auto dealerSocket = context_.DealerSocket(
+        dealerCallback, zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -84,9 +84,7 @@ void Test_DealerRouter::dealerSocketThread(const std::string& msg)
 
 void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
 {
-    ASSERT_NE(nullptr, &Test_DealerRouter::context_.get());
-
-    auto replyMessage = zmq::Message::Factory();
+    auto replyMessage = context_.Message();
 
     bool replyProcessed{false};
 
@@ -99,7 +97,7 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
                 inputString == testMessage2_ || inputString == testMessage3_;
             EXPECT_TRUE(match);
 
-            replyMessage = zmq::Message::ReplyFactory(input);
+            replyMessage = context_.ReplyMessage(input);
             for (const std::string& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
@@ -109,10 +107,8 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = zmq::RouterSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Bind,
-        routerCallback);
+    auto routerSocket = context_.RouterSocket(
+        routerCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -135,14 +131,11 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
     // Give the router socket time to send the message.
     Log::Sleep(std::chrono::milliseconds(500));
 }
-
 }  // namespace
 
 TEST_F(Test_DealerRouter, Dealer_Router)
 {
-    ASSERT_NE(nullptr, &Test_DealerRouter::context_.get());
-
-    auto replyMessage = zmq::Message::Factory();
+    auto replyMessage = context_.Message();
 
     auto routerCallback = zmq::ListenCallback::Factory(
         [this, &replyMessage](zmq::Message& input) -> void {
@@ -151,16 +144,14 @@ TEST_F(Test_DealerRouter, Dealer_Router)
 
             EXPECT_EQ(testMessage_, inputString);
 
-            replyMessage = zmq::Message::ReplyFactory(input);
+            replyMessage = context_.ReplyMessage(input);
             for (auto& frame : input.Body()) { replyMessage->AddFrame(frame); }
         });
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = zmq::RouterSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Bind,
-        routerCallback);
+    auto routerSocket = context_.RouterSocket(
+        routerCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -185,10 +176,8 @@ TEST_F(Test_DealerRouter, Dealer_Router)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Connect,
-        dealerCallback);
+    auto dealerSocket = context_.DealerSocket(
+        dealerCallback, zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -226,13 +215,10 @@ TEST_F(Test_DealerRouter, Dealer_2_Router_1)
 {
     callbackCount_ = 2;
 
-    ASSERT_NE(nullptr, &Test_DealerRouter::context_.get());
-
     std::map<std::string, OTZMQMessage> replyMessages{
+        std::pair<std::string, OTZMQMessage>(testMessage2_, context_.Message()),
         std::pair<std::string, OTZMQMessage>(
-            testMessage2_, zmq::Message::Factory()),
-        std::pair<std::string, OTZMQMessage>(
-            testMessage3_, zmq::Message::Factory())};
+            testMessage3_, context_.Message())};
 
     auto routerCallback = zmq::ListenCallback::Factory(
         [this, &replyMessages](zmq::Message& input) -> void {
@@ -244,7 +230,7 @@ TEST_F(Test_DealerRouter, Dealer_2_Router_1)
             EXPECT_TRUE(match);
 
             auto& replyMessage = replyMessages.at(inputString);
-            replyMessage = zmq::Message::ReplyFactory(input);
+            replyMessage = context_.ReplyMessage(input);
             for (const std::string& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
@@ -254,10 +240,8 @@ TEST_F(Test_DealerRouter, Dealer_2_Router_1)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = zmq::RouterSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Bind,
-        routerCallback);
+    auto routerSocket = context_.RouterSocket(
+        routerCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -308,8 +292,6 @@ TEST_F(Test_DealerRouter, Dealer_1_Router_2)
 {
     callbackCount_ = 2;
 
-    ASSERT_NE(nullptr, &Test_DealerRouter::context_.get());
-
     std::thread routerSocketThread1(
         &Test_DealerRouter::routerSocketThread, this, endpoint_);
     std::thread routerSocketThread2(
@@ -328,10 +310,8 @@ TEST_F(Test_DealerRouter, Dealer_1_Router_2)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Connect,
-        dealerCallback);
+    auto dealerSocket = context_.DealerSocket(
+        dealerCallback, zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -363,9 +343,7 @@ TEST_F(Test_DealerRouter, Dealer_1_Router_2)
 
 TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
 {
-    ASSERT_NE(nullptr, &Test_DealerRouter::context_.get());
-
-    auto replyMessage = zmq::Message::Factory();
+    auto replyMessage = context_.Message();
 
     auto routerCallback = zmq::ListenCallback::Factory(
         [this, &replyMessage](zmq::Message& input) -> void {
@@ -386,16 +364,14 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
                 EXPECT_TRUE(match);
             }
 
-            replyMessage = zmq::Message::ReplyFactory(input);
+            replyMessage = context_.ReplyMessage(input);
             for (auto& frame : input.Body()) { replyMessage->AddFrame(frame); }
         });
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = zmq::RouterSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Bind,
-        routerCallback);
+    auto routerSocket = context_.RouterSocket(
+        routerCallback, zmq::socket::Socket::Direction::Bind);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -426,10 +402,8 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = zmq::DealerSocket::Factory(
-        Test_DealerRouter::context_,
-        zmq::Socket::Direction::Connect,
-        dealerCallback);
+    auto dealerSocket = context_.DealerSocket(
+        dealerCallback, zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -440,7 +414,7 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
         std::chrono::milliseconds(30000));
     dealerSocket->Start(endpoint_);
 
-    auto multipartMessage = zmq::Message::Factory(testMessage_);
+    auto multipartMessage = context_.Message(testMessage_);
     multipartMessage->AddFrame();
     multipartMessage->AddFrame(testMessage2_);
     multipartMessage->AddFrame(testMessage3_);

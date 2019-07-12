@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "Internal.hpp"
 
 #include <gtest/gtest.h>
 
@@ -39,7 +40,8 @@ TEST_F(Test_ListenCallback, ListenCallback_Process)
 
     ASSERT_NE(nullptr, &listenCallback.get());
 
-    auto testMessage = network::zeromq::Message::Factory(testMessage_);
+    auto testMessage = OTZMQMessage{
+        Factory::ZMQMessage(testMessage_.data(), testMessage_.size())};
 
     ASSERT_NE(nullptr, &testMessage.get());
 

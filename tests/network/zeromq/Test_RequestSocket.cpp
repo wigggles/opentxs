@@ -9,26 +9,27 @@
 
 using namespace opentxs;
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace
 {
 class Test_RequestSocket : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
     const std::string testMessage_{"zeromq test message"};
+
+    Test_RequestSocket()
+        : context_(Context().ZMQ())
+    {
+    }
 };
-
-OTZMQContext Test_RequestSocket::context_{network::zeromq::Context::Factory()};
-
 }  // namespace
 
-TEST(RequestSocket, RequestSocket_Factory)
+TEST_F(Test_RequestSocket, RequestSocket_Factory)
 {
-    ASSERT_NE(nullptr, &Test_RequestSocket::context_.get());
-
-    auto requestSocket =
-        network::zeromq::RequestSocket::Factory(Test_RequestSocket::context_);
+    auto requestSocket = context_.RequestSocket();
 
     ASSERT_NE(nullptr, &requestSocket.get());
     ASSERT_EQ(SocketType::Request, requestSocket->Type());

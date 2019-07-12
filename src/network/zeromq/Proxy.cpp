@@ -6,11 +6,10 @@
 #include "stdafx.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Pair.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
-#include "opentxs/network/zeromq/Socket.hpp"
-
-#include "network/zeromq/socket/Pair.hpp"
 
 #include <zmq.h>
 
@@ -23,9 +22,9 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Proxy>;
 namespace opentxs::network::zeromq
 {
 OTZMQProxy Proxy::Factory(
-    const Context& context,
-    Socket& frontend,
-    Socket& backend)
+    const zeromq::Context& context,
+    socket::Socket& frontend,
+    socket::Socket& backend)
 {
     return OTZMQProxy(new implementation::Proxy(context, frontend, backend));
 }
@@ -35,18 +34,16 @@ namespace opentxs::network::zeromq::implementation
 {
 Proxy::Proxy(
     const zeromq::Context& context,
-    zeromq::Socket& frontend,
-    zeromq::Socket& backend)
+    zeromq::socket::Socket& frontend,
+    zeromq::socket::Socket& backend)
     : context_(context)
     , frontend_(frontend)
     , backend_(backend)
     , null_callback_(opentxs::network::zeromq::ListenCallback::Factory(
           [](const zeromq::Message&) -> void {}))
-    , control_listener_(new socket::implementation::PairSocket(
-          context,
-          null_callback_,
-          false))
-    , control_sender_(new socket::implementation::PairSocket(
+    , control_listener_(
+          opentxs::Factory::PairSocket(context, null_callback_, false))
+    , control_sender_(opentxs::Factory::PairSocket(
           null_callback_,
           control_listener_,
           false))

@@ -4,18 +4,34 @@
 
 #pragma once
 
+#include "Internal.hpp"
+
 #include "stdafx.hpp"
+
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/Types.hpp"
+
+#include "Socket.hpp"
+
+#include <zmq.h>
+
+#include <memory>
+#include <mutex>
+#include <thread>
 
 #include "Receiver.hpp"
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-template <typename T>
-Receiver<T>::Receiver(
+template <typename InterfaceType, typename MessageType>
+Receiver<InterfaceType, MessageType>::Receiver(
     const zeromq::Context& context,
     const SocketType type,
     const Socket::Direction direction,
-    const bool startThread)
+    const bool startThread) noexcept
     : Socket(context, type, direction)
     , receiver_thread_()
     , start_thread_(startThread)
@@ -25,8 +41,9 @@ Receiver<T>::Receiver(
 {
 }
 
-template <typename T>
-int Receiver<T>::add_task(SocketCallback&& cb) const
+template <typename InterfaceType, typename MessageType>
+int Receiver<InterfaceType, MessageType>::add_task(SocketCallback&& cb) const
+    noexcept
 {
     Lock lock(task_lock_);
     auto [it, success] = socket_tasks_.emplace(++next_task_, std::move(cb));
@@ -36,8 +53,9 @@ int Receiver<T>::add_task(SocketCallback&& cb) const
     return it->first;
 }
 
-template <typename T>
-bool Receiver<T>::apply_socket(SocketCallback&& cb) const
+template <typename InterfaceType, typename MessageType>
+bool Receiver<InterfaceType, MessageType>::apply_socket(
+    SocketCallback&& cb) const noexcept
 {
     const auto id = add_task(std::move(cb));
 
@@ -48,8 +66,18 @@ bool Receiver<T>::apply_socket(SocketCallback&& cb) const
     return task_result(id);
 }
 
-template <typename T>
-void Receiver<T>::init()
+template <typename InterfaceType, typename MessageType>
+bool Receiver<InterfaceType, MessageType>::Close() const noexcept
+{
+    running_->Off();
+
+    if (receiver_thread_.joinable()) { receiver_thread_.join(); }
+
+    return Socket::Close();
+}
+
+template <typename InterfaceType, typename MessageType>
+void Receiver<InterfaceType, MessageType>::init() noexcept
 {
     Socket::init();
 
@@ -58,8 +86,9 @@ void Receiver<T>::init()
     }
 }
 
-template <typename T>
-void Receiver<T>::run_tasks(const Lock& lock) const
+template <typename InterfaceType, typename MessageType>
+void Receiver<InterfaceType, MessageType>::run_tasks(const Lock& lock) const
+    noexcept
 {
     Lock task_lock(task_lock_);
     auto i = socket_tasks_.begin();
@@ -71,16 +100,17 @@ void Receiver<T>::run_tasks(const Lock& lock) const
     }
 }
 
-template <typename T>
-void Receiver<T>::shutdown(const Lock& lock)
+template <typename InterfaceType, typename MessageType>
+void Receiver<InterfaceType, MessageType>::shutdown(const Lock& lock) noexcept
 {
     if (receiver_thread_.joinable()) { receiver_thread_.join(); }
 
     Socket::shutdown(lock);
 }
 
-template <typename T>
-bool Receiver<T>::task_result(const int id) const
+template <typename InterfaceType, typename MessageType>
+bool Receiver<InterfaceType, MessageType>::task_result(const int id) const
+    noexcept
 {
     Lock lock(task_lock_);
     const auto it = task_result_.find(id);
@@ -93,16 +123,17 @@ bool Receiver<T>::task_result(const int id) const
     return output;
 }
 
-template <typename T>
-bool Receiver<T>::task_running(const int id) const
+template <typename InterfaceType, typename MessageType>
+bool Receiver<InterfaceType, MessageType>::task_running(const int id) const
+    noexcept
 {
     Lock lock(task_lock_);
 
     return (1 == socket_tasks_.count(id));
 }
 
-template <typename T>
-void Receiver<T>::thread()
+template <typename InterfaceType, typename MessageType>
+void Receiver<InterfaceType, MessageType>::thread() noexcept
 {
     while (running_.get()) {
         if (have_callback()) { break; }
@@ -134,7 +165,7 @@ void Receiver<T>::thread()
 
         if (false == running_.get()) { return; }
 
-        auto reply = T::Factory();
+        auto reply = MessageType::Factory();
         const auto received = Socket::receive_message(lock, socket_, reply);
 
         if (false == received) {
@@ -150,8 +181,8 @@ void Receiver<T>::thread()
     }
 }
 
-template <typename T>
-Receiver<T>::~Receiver()
+template <typename InterfaceType, typename MessageType>
+Receiver<InterfaceType, MessageType>::~Receiver()
 {
     if (receiver_thread_.joinable()) { receiver_thread_.join(); }
 }

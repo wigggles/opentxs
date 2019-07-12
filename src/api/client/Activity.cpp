@@ -24,8 +24,8 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Types.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -290,7 +290,7 @@ Activity::TransferData Activity::Transfer(
     return output;
 }
 
-const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
+const opentxs::network::zeromq::socket::Publish& Activity::get_publisher(
     const identifier::Nym& nymID) const
 {
     std::string endpoint{};
@@ -298,7 +298,7 @@ const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
     return get_publisher(nymID, endpoint);
 }
 
-const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
+const opentxs::network::zeromq::socket::Publish& Activity::get_publisher(
     const identifier::Nym& nymID,
     std::string& endpoint) const
 {
@@ -773,7 +773,7 @@ void Activity::publish(
     const std::string& threadID) const
 {
     auto& publisher = get_publisher(nymID);
-    publisher.Publish(threadID);
+    publisher.Send(threadID);
 }
 
 std::shared_ptr<proto::StorageThread> Activity::Thread(
