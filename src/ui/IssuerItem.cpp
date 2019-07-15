@@ -16,13 +16,13 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/IssuerItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -43,7 +43,7 @@ namespace opentxs
 ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const ui::implementation::AccountSummaryInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     const ui::implementation::CustomData& custom,
@@ -79,7 +79,7 @@ namespace opentxs::ui::implementation
 IssuerItem::IssuerItem(
     const AccountSummaryInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const AccountSummaryRowID& rowID,
     const AccountSummarySortKey& sortKey,
     [[maybe_unused]] const CustomData& custom,

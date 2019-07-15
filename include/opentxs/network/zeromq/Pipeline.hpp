@@ -8,7 +8,10 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/Proto.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -26,20 +29,24 @@ namespace zeromq
 class Pipeline
 {
 public:
-    EXPORT virtual bool Close() const = 0;
-    EXPORT virtual bool Push(const std::string& data) const = 0;
-    EXPORT virtual bool Push(const opentxs::Data& data) const = 0;
-    EXPORT virtual bool Push(network::zeromq::Message& data) const = 0;
+    EXPORT virtual bool Close() const noexcept = 0;
+    template <typename Input>
+    EXPORT bool Push(const Input& data) const noexcept
+    {
+        return push(Context().Message(data));
+    }
+    EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
 
     EXPORT virtual ~Pipeline() = default;
 
 protected:
-    Pipeline() = default;
+    Pipeline() noexcept = default;
 
 private:
     friend OTZMQPipeline;
 
-    virtual Pipeline* clone() const = 0;
+    virtual Pipeline* clone() const noexcept = 0;
+    virtual bool push(network::zeromq::Message& data) const noexcept = 0;
 
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&) = delete;

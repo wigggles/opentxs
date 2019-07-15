@@ -9,7 +9,7 @@
 
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <atomic>

@@ -36,7 +36,7 @@ private:
     ChequeBalanceItem(
         const AccountActivityInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,

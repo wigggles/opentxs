@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -17,57 +18,43 @@
 
 template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 
+namespace opentxs
+{
+network::zeromq::Message* Factory::ZMQMessage()
+{
+    using ReturnType = opentxs::network::zeromq::implementation::Message;
+
+    return new ReturnType();
+}
+
+network::zeromq::Message* Factory::ZMQMessage(
+    const void* data,
+    const std::size_t size)
+{
+    using ReturnType = opentxs::network::zeromq::implementation::Message;
+    auto output = new ReturnType();
+
+    if (nullptr != output) { output->AddFrame(data, size); }
+
+    return output;
+}
+
+network::zeromq::Message* Factory::ZMQMessage(const ProtobufType& data)
+{
+    using ReturnType = opentxs::network::zeromq::implementation::Message;
+    auto output = new ReturnType();
+
+    if (nullptr != output) { output->AddFrame(data); }
+
+    return output;
+}
+}  // namespace opentxs
+
 namespace opentxs::network::zeromq
 {
 OTZMQMessage Message::Factory()
 {
-    return OTZMQMessage(new implementation::Message());
-}
-
-OTZMQMessage Message::Factory(const Data& input)
-{
-    auto multipartMessage = new implementation::Message();
-
-    OT_ASSERT(nullptr != multipartMessage);
-
-    multipartMessage->AddFrame(input);
-
-    return OTZMQMessage(multipartMessage);
-}
-
-OTZMQMessage Message::Factory(const ProtobufType& input)
-{
-    auto multipartMessage = new implementation::Message();
-
-    OT_ASSERT(nullptr != multipartMessage);
-
-    multipartMessage->AddFrame(input);
-
-    return OTZMQMessage(multipartMessage);
-}
-
-OTZMQMessage Message::Factory(const std::string& input)
-{
-    auto multipartMessage = new implementation::Message();
-
-    OT_ASSERT(nullptr != multipartMessage);
-
-    multipartMessage->AddFrame(input);
-
-    return OTZMQMessage(multipartMessage);
-}
-
-OTZMQMessage Message::ReplyFactory(const Message& request)
-{
-    auto output = new implementation::Message();
-
-    if (0 < request.Header().size()) {
-        for (const auto& frame : request.Header()) { output->AddFrame(frame); }
-
-        output->AddFrame();
-    }
-
-    return OTZMQMessage(output);
+    return OTZMQMessage{new implementation::Message()};
 }
 }  // namespace opentxs::network::zeromq
 
@@ -87,28 +74,21 @@ Message::Message(const Message& rhs)
 
 Frame& Message::AddFrame()
 {
-    messages_.emplace_back(Frame::Factory());
+    messages_.emplace_back(Factory::ZMQFrame());
 
     return messages_.back().get();
 }
 
-Frame& Message::AddFrame(const opentxs::Data& input)
+Frame& Message::AddFrame(const void* input, const std::size_t size)
 {
-    messages_.emplace_back(Frame::Factory(input));
+    messages_.emplace_back(Factory::ZMQFrame(input, size));
 
     return messages_.back().get();
 }
 
 Frame& Message::AddFrame(const ProtobufType& input)
 {
-    messages_.emplace_back(Frame::Factory(input));
-
-    return messages_.back().get();
-}
-
-Frame& Message::AddFrame(const std::string& input)
-{
-    messages_.emplace_back(Frame::Factory(input));
+    messages_.emplace_back(Factory::ZMQFrame(input));
 
     return messages_.back().get();
 }
@@ -166,14 +146,14 @@ void Message::EnsureDelimiter()
 {
     if (1 < messages_.size() && !hasDivider()) {
         auto it = messages_.begin();
-        messages_.emplace(++it, Frame::Factory());
+        messages_.emplace(++it, Factory::ZMQFrame());
     }
     // These cases should never happen.  When this function is called, there
     // should always be at least two frames.
     else if (0 < messages_.size() && !hasDivider()) {
-        messages_.emplace(messages_.begin(), Frame::Factory());
+        messages_.emplace(messages_.begin(), Factory::ZMQFrame());
     } else if (!hasDivider()) {
-        messages_.emplace_back(Frame::Factory());
+        messages_.emplace_back(Factory::ZMQFrame());
     }
 }
 
@@ -219,11 +199,22 @@ FrameIterator Message::Header_end() const { return Header().end(); }
 
 void Message::PrependEmptyFrame()
 {
-    OTZMQFrame message = Frame::Factory();
+    OTZMQFrame message{Factory::ZMQFrame()};
 
     auto it = messages_.emplace(messages_.begin(), message);
 
     OT_ASSERT(messages_.end() != it);
+}
+
+bool Message::set_field(const std::size_t position, const zeromq::Frame& input)
+{
+    const auto effectivePosition = body_position() + position;
+
+    if (effectivePosition >= messages_.size()) { return false; }
+
+    messages_[effectivePosition] = input;
+
+    return true;
 }
 
 std::size_t Message::size() const { return messages_.size(); }

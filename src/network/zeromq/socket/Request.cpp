@@ -5,63 +5,52 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
 
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/Message.hpp"
-#include "Sender.hpp"
+#include "Socket.hpp"
 
 #include <zmq.h>
 
 #include "Request.hpp"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::socket::Request>;
 
 #define POLL_MILLISECONDS 10
 
-#define OT_METHOD                                                              \
-    "opentxs::network::zeromq::socket::implementation::RequestSocket::"
+#define OT_METHOD "opentxs::network::zeromq::socket::implementation::Request::"
 
-namespace opentxs::network::zeromq
+namespace opentxs
 {
-OTZMQRequestSocket RequestSocket::Factory(const class Context& context)
+network::zeromq::socket::Request* Factory::RequestSocket(
+    const network::zeromq::Context& context)
 {
-    return OTZMQRequestSocket(
-        new socket::implementation::RequestSocket(context));
+    using ReturnType = network::zeromq::socket::implementation::Request;
+
+    return new ReturnType(context);
 }
-}  // namespace opentxs::network::zeromq
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-RequestSocket::RequestSocket(const zeromq::Context& context)
-    : Sender(context, SocketType::Request, Socket::Direction::Connect)
+Request::Request(const zeromq::Context& context) noexcept
+    : Socket(context, SocketType::Request, Socket::Direction::Connect)
     , Client(this->get())
 {
     init();
 }
 
-RequestSocket* RequestSocket::clone() const
-{
-    return new RequestSocket(context_);
-}
+Request* Request::clone() const noexcept { return new Request(context_); }
 
-Socket::SendResult RequestSocket::SendRequest(opentxs::Data& input) const
-{
-    return SendRequest(Message::Factory(input));
-}
-
-Socket::SendResult RequestSocket::SendRequest(const std::string& input) const
-{
-    auto copy = input;
-
-    return SendRequest(Message::Factory(copy));
-}
-
-Socket::SendResult RequestSocket::SendRequest(zeromq::Message& request) const
+Socket::SendResult Request::send_request(zeromq::Message& request) const
+    noexcept
 {
     OT_ASSERT(nullptr != socket_);
 
@@ -94,12 +83,12 @@ Socket::SendResult RequestSocket::SendRequest(zeromq::Message& request) const
     return output;
 }
 
-bool RequestSocket::SetSocksProxy(const std::string& proxy) const
+bool Request::SetSocksProxy(const std::string& proxy) const noexcept
 {
     return set_socks_proxy(proxy);
 }
 
-bool RequestSocket::wait(const Lock& lock) const
+bool Request::wait(const Lock& lock) const noexcept
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -140,5 +129,5 @@ bool RequestSocket::wait(const Lock& lock) const
     return false;
 }
 
-RequestSocket::~RequestSocket() SHUTDOWN
+Request::~Request() SHUTDOWN
 }  // namespace opentxs::network::zeromq::socket::implementation

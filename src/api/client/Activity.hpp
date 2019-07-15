@@ -230,9 +230,9 @@ private:
     std::shared_ptr<const Contact> nym_to_contact(
         const PasswordPrompt& reason,
         const std::string& nymID) const;
-    const opentxs::network::zeromq::PublishSocket& get_publisher(
+    const opentxs::network::zeromq::socket::Publish& get_publisher(
         const identifier::Nym& nymID) const;
-    const opentxs::network::zeromq::PublishSocket& get_publisher(
+    const opentxs::network::zeromq::socket::Publish& get_publisher(
         const identifier::Nym& nymID,
         std::string& endpoint) const;
     void publish(const identifier::Nym& nymID, const std::string& threadID)

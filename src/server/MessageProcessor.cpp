@@ -19,17 +19,17 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
+#include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/DealerSocket.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
-#include "opentxs/network/zeromq/ReplySocket.hpp"
-#include "opentxs/network/zeromq/RouterSocket.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/otx/Request.hpp"
 #include "opentxs/Proto.tpp"
@@ -48,9 +48,6 @@
 
 namespace zmq = opentxs::network::zeromq;
 
-template class opentxs::Pimpl<zmq::ReplySocket>;
-template class opentxs::Pimpl<zmq::ReplyCallback>;
-
 namespace opentxs::server
 {
 MessageProcessor::MessageProcessor(
@@ -68,27 +65,28 @@ MessageProcessor::MessageProcessor(
           }))
     , frontend_socket_(context.RouterSocket(
           frontend_callback_,
-          zmq::Socket::Direction::Bind))
+          zmq::socket::Socket::Direction::Bind))
     , backend_callback_(zmq::ReplyCallback::Factory(
           [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_backend(incoming);
           }))
-    , backend_socket_(
-          context.ReplySocket(backend_callback_, zmq::Socket::Direction::Bind))
+    , backend_socket_(context.ReplySocket(
+          backend_callback_,
+          zmq::socket::Socket::Direction::Bind))
     , internal_callback_(zmq::ListenCallback::Factory(
           [=](const zmq::Message& incoming) -> void {
               this->process_internal(incoming);
           }))
     , internal_socket_(context.DealerSocket(
           internal_callback_,
-          zmq::Socket::Direction::Connect))
+          zmq::socket::Socket::Direction::Connect))
     , notification_callback_(zmq::ListenCallback::Factory(
           [=](const zmq::Message& incoming) -> void {
               this->process_notification(incoming);
           }))
     , notification_socket_(context.PullSocket(
           notification_callback_,
-          zmq::Socket::Direction::Bind))
+          zmq::socket::Socket::Direction::Bind))
     , thread_()
     , internal_endpoint_(
           std::string("inproc://opentxs/notary/") + Identifier::Random()->str())
@@ -229,7 +227,7 @@ OTZMQMessage MessageProcessor::process_backend(const zmq::Message& incoming)
 
     if (error) { reply = ""; }
 
-    auto output = zmq::Message::ReplyFactory(incoming);
+    auto output = server_.API().ZeroMQ().ReplyMessage(incoming);
     output->AddFrame(reply);
 
     return output;

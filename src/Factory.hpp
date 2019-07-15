@@ -28,13 +28,13 @@ public:
         const opentxs::PasswordPrompt& reason,
         const ui::implementation::AccountListInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::AccountListRowID& rowID,
         const ui::implementation::AccountListSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const proto::ContactItemType currency
 #if OT_QT
@@ -48,7 +48,7 @@ public:
         const opentxs::PasswordPrompt& reason,
         const ui::implementation::IssuerItemInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::IssuerItemRowID& rowID,
         const ui::implementation::IssuerItemSortKey& sortKey,
         const ui::implementation::CustomData& custom);
@@ -58,7 +58,7 @@ public:
     static ui::implementation::ActivitySummaryRowInternal* ActivitySummaryItem(
         const ui::implementation::ActivitySummaryInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivitySummaryRowID& rowID,
         const ui::implementation::ActivitySummarySortKey& sortKey,
@@ -69,7 +69,7 @@ public:
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::AccountActivityRowID& rowID,
         const ui::implementation::AccountActivitySortKey& sortKey,
         const ui::implementation::CustomData& custom,
@@ -115,21 +115,21 @@ public:
     static ui::implementation::ContactListRowInternal* ContactListItem(
         const ui::implementation::ContactListInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactListRowID& rowID,
         const ui::implementation::ContactListSortKey& key);
     static api::client::internal::Contacts* Contacts(const api::Core& api);
     static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
         const ui::implementation::ContactSubsectionInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactSubsectionRowID& rowID,
         const ui::implementation::ContactSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static ui::implementation::ContactRowInternal* ContactSectionWidget(
         const ui::implementation::ContactInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactRowID& rowID,
         const ui::implementation::ContactSortKey& key,
         const ui::implementation::CustomData& custom
@@ -144,7 +144,7 @@ public:
     ContactSubsectionWidget(
         const ui::implementation::ContactSectionInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactSectionRowID& rowID,
         const ui::implementation::ContactSectionSortKey& key,
         const ui::implementation::CustomData& custom
@@ -155,6 +155,11 @@ public:
         const RowCallbacks removeCallback = {}
 #endif
     );
+    static api::internal::Context* Context(
+        Flag& running,
+        const ArgList& args,
+        const std::chrono::seconds gcInterval,
+        OTCaller* externalPasswordCallback = nullptr);
     template <class C>
     static C* Credential(
         const api::Core& api,
@@ -173,6 +178,10 @@ public:
         const opentxs::PasswordPrompt& reason);
     static api::Crypto* Crypto(const api::Settings& settings);
     static api::crypto::Config* CryptoConfig(const api::Settings& settings);
+    static network::zeromq::socket::Dealer* DealerSocket(
+        const network::zeromq::Context& context,
+        const bool direction,
+        const network::zeromq::ListenCallback& callback);
     static api::network::Dht* Dht(
         const bool defaultEnable,
         const api::Core& api,
@@ -242,7 +251,7 @@ public:
     static ui::implementation::AccountSummaryRowInternal* IssuerItem(
         const ui::implementation::AccountSummaryInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::AccountSummaryRowID& rowID,
         const ui::implementation::AccountSummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
@@ -275,7 +284,7 @@ public:
     static ui::implementation::ActivityThreadRowInternal* MailItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -285,7 +294,7 @@ public:
     static ui::implementation::ActivityThreadRowInternal* MailItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -295,7 +304,7 @@ public:
         opentxs::ServerContext& context);
     static ui::implementation::MessagableExternalInterface* MessagableList(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID
 #if OT_QT
         ,
@@ -316,11 +325,6 @@ public:
         const String& strServerNymID,
         const String& strInstrumentDefinitionID);
 #endif
-    static api::internal::Context* Context(
-        Flag& running,
-        const ArgList& args,
-        const std::chrono::seconds gcInterval,
-        OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();
     static identity::internal::Nym* Nym(
         const api::Core& api,
@@ -351,9 +355,21 @@ public:
     static api::client::Pair* Pair(
         const Flag& running,
         const api::client::Manager& client);
+    static network::zeromq::socket::Pair* PairSocket(
+        const network::zeromq::Context& context,
+        const network::zeromq::ListenCallback& callback,
+        const bool startThread);
+    static network::zeromq::socket::Pair* PairSocket(
+        const network::zeromq::ListenCallback& callback,
+        const network::zeromq::socket::Pair& peer,
+        const bool startThread);
+    static network::zeromq::socket::Pair* PairSocket(
+        const network::zeromq::Context& context,
+        const network::zeromq::ListenCallback& callback,
+        const std::string& endpoint);
     static ui::implementation::PayableExternalInterface* PayableList(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const proto::ContactItemType& currency
 #if OT_QT
@@ -366,7 +382,7 @@ public:
     static ui::implementation::PayableListRowInternal* PayableListItem(
         const ui::implementation::PayableInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::PayableListRowID& rowID,
         const ui::implementation::PayableListSortKey& key,
         const std::string& paymentcode,
@@ -391,7 +407,7 @@ public:
     static ui::implementation::ActivityThreadRowInternal* PaymentItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -440,7 +456,7 @@ public:
     static ui::implementation::ActivityThreadRowInternal* PendingSend(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -464,14 +480,14 @@ public:
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ProfileSubsectionRowID& rowID,
         const ui::implementation::ProfileSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static ui::implementation::ProfileRowInternal* ProfileSectionWidget(
         const ui::implementation::ProfileInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ProfileRowID& rowID,
         const ui::implementation::ProfileSortKey& key,
         const ui::implementation::CustomData& custom
@@ -486,7 +502,7 @@ public:
     ProfileSubsectionWidget(
         const ui::implementation::ProfileSectionInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ProfileSectionRowID& rowID,
         const ui::implementation::ProfileSectionSortKey& key,
         const ui::implementation::CustomData& custom
@@ -530,6 +546,24 @@ public:
         const proto::CashType type,
         const opentxs::PasswordPrompt& reason);
 #endif
+    static network::zeromq::socket::Publish* PublishSocket(
+        const network::zeromq::Context& context);
+    static network::zeromq::socket::Pull* PullSocket(
+        const network::zeromq::Context& context,
+        const bool direction);
+    static network::zeromq::socket::Pull* PullSocket(
+        const network::zeromq::Context& context,
+        const bool direction,
+        const network::zeromq::ListenCallback& callback);
+    static network::zeromq::socket::Push* PushSocket(
+        const network::zeromq::Context& context,
+        const bool direction);
+    static network::zeromq::socket::Reply* ReplySocket(
+        const network::zeromq::Context& context,
+        const bool direction,
+        const network::zeromq::ReplyCallback& callback);
+    static network::zeromq::socket::Request* RequestSocket(
+        const network::zeromq::Context& context);
     static rpc::internal::RPC* RPC(const api::Context& native);
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     static crypto::key::RSA* RSAKey(
@@ -541,6 +575,10 @@ public:
         const crypto::AsymmetricProvider& engine,
         const proto::KeyRole role);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+    static network::zeromq::socket::Router* RouterSocket(
+        const network::zeromq::Context& context,
+        const bool direction,
+        const network::zeromq::ListenCallback& callback);
     static identity::credential::internal::Secondary* SecondaryCredential(
         const api::Core& api,
         const opentxs::PasswordPrompt& reason,
@@ -584,16 +622,16 @@ public:
         const ContextLockCallback& lockCallback);
     static internal::ServerContext* ServerContext(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& requestSent,
-        const network::zeromq::PublishSocket& replyReceived,
+        const network::zeromq::socket::Publish& requestSent,
+        const network::zeromq::socket::Publish& replyReceived,
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server,
         network::ServerConnection& connection);
     static internal::ServerContext* ServerContext(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& requestSent,
-        const network::zeromq::PublishSocket& replyReceived,
+        const network::zeromq::socket::Publish& requestSent,
+        const network::zeromq::socket::Publish& replyReceived,
         const proto::Context& serialized,
         const Nym_p& local,
         const Nym_p& remote,
@@ -667,6 +705,9 @@ public:
         const Random& random,
         const Flag& bucket);
 #endif
+    static network::zeromq::socket::Subscribe* SubscribeSocket(
+        const network::zeromq::Context& context,
+        const network::zeromq::ListenCallback& callback);
     static api::crypto::Symmetric* Symmetric(const api::Core& api);
     static crypto::key::Symmetric* SymmetricKey();
     static crypto::key::Symmetric* SymmetricKey(
@@ -732,5 +773,16 @@ public:
         const api::client::Contacts& contact);
     static api::network::ZAP* ZAP(const network::zeromq::Context& context);
     static api::network::ZMQ* ZMQ(const api::Core& api, const Flag& running);
+    static network::zeromq::Context* ZMQContext();
+    static network::zeromq::Frame* ZMQFrame();
+    static network::zeromq::Frame* ZMQFrame(
+        const void* data,
+        const std::size_t size);
+    static network::zeromq::Frame* ZMQFrame(const ProtobufType& data);
+    static network::zeromq::Message* ZMQMessage();
+    static network::zeromq::Message* ZMQMessage(
+        const void* data,
+        const std::size_t size);
+    static network::zeromq::Message* ZMQMessage(const ProtobufType& data);
 };
 }  // namespace opentxs

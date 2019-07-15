@@ -19,7 +19,7 @@
 
 namespace opentxs::network::zeromq
 {
-std::pair<std::string, std::string> CurveClient::RandomKeypair()
+std::pair<std::string, std::string> curve::Client::RandomKeypair() noexcept
 {
     std::pair<std::string, std::string> output{};
     auto& [privKey, pubKey] = output;
@@ -44,7 +44,7 @@ std::pair<std::string, std::string> CurveClient::RandomKeypair()
 
 namespace opentxs::network::zeromq::curve::implementation
 {
-Client::Client(socket::implementation::Socket& socket)
+Client::Client(socket::implementation::Socket& socket) noexcept
     : parent_(socket)
 {
 }
@@ -52,7 +52,7 @@ Client::Client(socket::implementation::Socket& socket)
 bool Client::SetKeysZ85(
     const std::string& serverPublic,
     const std::string& clientPrivate,
-    const std::string& clientPublic) const
+    const std::string& clientPublic) const noexcept
 {
     if (CURVE_KEY_Z85_BYTES > serverPublic.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server key size (")(
@@ -75,17 +75,17 @@ bool Client::SetKeysZ85(
     return set_local_keys(clientPrivate, clientPublic);
 }
 
-bool Client::SetServerPubkey(const ServerContract& contract) const
+bool Client::SetServerPubkey(const ServerContract& contract) const noexcept
 {
     return set_public_key(contract);
 }
 
-bool Client::SetServerPubkey(const Data& key) const
+bool Client::SetServerPubkey(const Data& key) const noexcept
 {
     return set_public_key(key);
 }
 
-bool Client::set_public_key(const ServerContract& contract) const
+bool Client::set_public_key(const ServerContract& contract) const noexcept
 {
     const auto& key = contract.TransportKey();
 
@@ -98,14 +98,14 @@ bool Client::set_public_key(const ServerContract& contract) const
     return set_public_key(key);
 }
 
-bool Client::set_public_key(const Data& key) const
+bool Client::set_public_key(const Data& key) const noexcept
 {
     if (false == set_remote_key(key.data(), key.size())) { return false; }
 
     return set_local_keys();
 }
 
-bool Client::set_local_keys() const
+bool Client::set_local_keys() const noexcept
 {
     OT_ASSERT(nullptr != parent_);
 
@@ -123,7 +123,7 @@ bool Client::set_local_keys() const
 
 bool Client::set_local_keys(
     const std::string& privateKey,
-    const std::string& publicKey) const
+    const std::string& publicKey) const noexcept
 {
     OT_ASSERT(nullptr != parent_);
 
@@ -160,7 +160,7 @@ bool Client::set_local_keys(
     const void* privateKey,
     const std::size_t privateKeySize,
     const void* publicKey,
-    const std::size_t publicKeySize) const
+    const std::size_t publicKeySize) const noexcept
 {
     OT_ASSERT(nullptr != parent_);
 
@@ -192,6 +192,7 @@ bool Client::set_local_keys(
 }
 
 bool Client::set_remote_key(const void* key, const std::size_t size) const
+    noexcept
 {
     OT_ASSERT(nullptr != parent_);
 

@@ -36,8 +36,8 @@
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.tpp"
 
 #include <atomic>
@@ -60,7 +60,7 @@
 
 #define OT_METHOD "opentxs::api::client::implementation::Pair::"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::PublishSocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::socket::Publish>;
 
 namespace opentxs
 {
@@ -448,7 +448,7 @@ void Pair::process_pending_bailment(
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
 
     if (added) {
-        pending_bailment_->Publish(request);
+        pending_bailment_->Send(request);
         const OTIdentifier originalRequest =
             Identifier::Factory(request.pendingbailment().requestid());
         if (!originalRequest->empty()) {
@@ -559,7 +559,7 @@ void Pair::process_store_secret(
         event.set_version(1);
         event.set_type(proto::PAIREVENT_STORESECRET);
         event.set_issuer(issuerNymID->str());
-        const auto published = pair_event_->Publish(event);
+        const auto published = pair_event_->Send(event);
 
         if (published) {
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -770,7 +770,7 @@ void Pair::state_machine(
                     event.set_version(1);
                     event.set_type(proto::PAIREVENT_RENAME);
                     event.set_issuer(issuerNymID.str());
-                    const auto published = pair_event_->Publish(event);
+                    const auto published = pair_event_->Send(event);
 
                     if (published) {
                         LogDetail(OT_METHOD)(__FUNCTION__)(

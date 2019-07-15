@@ -23,8 +23,8 @@ private:
     friend opentxs::network::zeromq::Proxy;
 
     const zeromq::Context& context_;
-    zeromq::Socket& frontend_;
-    zeromq::Socket& backend_;
+    zeromq::socket::Socket& frontend_;
+    zeromq::socket::Socket& backend_;
     OTZMQListenCallback null_callback_;
     OTZMQPairSocket control_listener_;
     OTZMQPairSocket control_sender_;
@@ -35,8 +35,8 @@ private:
 
     Proxy(
         const zeromq::Context& context,
-        zeromq::Socket& frontend,
-        zeromq::Socket& backend);
+        zeromq::socket::Socket& frontend,
+        zeromq::socket::Socket& backend);
     Proxy() = delete;
     Proxy(const Proxy&) = delete;
     Proxy(Proxy&&) = delete;

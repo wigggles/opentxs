@@ -17,13 +17,13 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactSection.hpp"
 
@@ -71,7 +71,7 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
 
 Contact::Contact(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const Identifier& contactID
 #if OT_QT
     ,

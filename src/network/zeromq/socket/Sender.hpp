@@ -5,26 +5,19 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "network/zeromq/socket/Socket.hpp"
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class Sender : public Socket
+template <typename Interface, typename ImplementationParent = Socket>
+class Sender : virtual public Interface, virtual public ImplementationParent
 {
 protected:
-    bool deliver(zeromq::Message& message) const;
+    Sender() noexcept;
 
-    Sender(
-        const zeromq::Context& context,
-        const SocketType type,
-        const zeromq::Socket::Direction direction);
-
-    virtual ~Sender() = default;
+    ~Sender() override = default;
 
 private:
-    Sender() = delete;
+    bool send(zeromq::Message& data) const noexcept override;
+
     Sender(const Sender&) = delete;
     Sender(Sender&&) = delete;
     Sender& operator=(const Sender&) = delete;

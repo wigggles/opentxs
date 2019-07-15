@@ -73,7 +73,7 @@ private:
 
     ContactList(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID
 #if OT_QT
         ,

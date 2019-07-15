@@ -13,8 +13,8 @@
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/RequestSocket.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
 
 #include "internal/consensus/Consensus.hpp"
 #include "internal/identity/Identity.hpp"

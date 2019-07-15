@@ -30,7 +30,7 @@ protected:
     ContactListItem(
         const ContactListInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ContactListRowID& rowID,
         const ContactListSortKey& key);
 

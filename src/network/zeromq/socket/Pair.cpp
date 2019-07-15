@@ -5,71 +5,82 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Pair.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
+#include "Bidirectional.tpp"
+
 #include <zmq.h>
 
 #include "Pair.hpp"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::socket::Pair>;
 
 // #define OT_METHOD
-// "opentxs::network::zeromq::socket::implementation::PairSocket::"
+// "opentxs::network::zeromq::socket::implementation::Pair::"
 
-namespace opentxs::network::zeromq
+namespace opentxs
 {
-OTZMQPairSocket PairSocket::Factory(
-    const class Context& context,
-    const ListenCallback& callback)
+network::zeromq::socket::Pair* Factory::PairSocket(
+    const network::zeromq::Context& context,
+    const network::zeromq::ListenCallback& callback,
+    const bool startThread)
 {
-    return OTZMQPairSocket(
-        new socket::implementation::PairSocket(context, callback));
+    using ReturnType = network::zeromq::socket::implementation::Pair;
+
+    return new ReturnType(context, callback, startThread);
 }
 
-OTZMQPairSocket PairSocket::Factory(
-    const ListenCallback& callback,
-    const PairSocket& peer)
+network::zeromq::socket::Pair* Factory::PairSocket(
+    const network::zeromq::ListenCallback& callback,
+    const network::zeromq::socket::Pair& peer,
+    const bool startThread)
 {
-    return OTZMQPairSocket(
-        new socket::implementation::PairSocket(callback, peer));
+    using ReturnType = network::zeromq::socket::implementation::Pair;
+
+    return new ReturnType(callback, peer, startThread);
 }
 
-OTZMQPairSocket PairSocket::Factory(
-    const class Context& context,
-    const ListenCallback& callback,
+network::zeromq::socket::Pair* Factory::PairSocket(
+    const network::zeromq::Context& context,
+    const network::zeromq::ListenCallback& callback,
     const std::string& endpoint)
 {
-    return OTZMQPairSocket(
-        new socket::implementation::PairSocket(context, callback, endpoint));
+    using ReturnType = network::zeromq::socket::implementation::Pair;
+
+    return new ReturnType(context, callback, endpoint);
 }
-}  // namespace opentxs::network::zeromq
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-PairSocket::PairSocket(
+Pair::Pair(
     const zeromq::Context& context,
     const zeromq::ListenCallback& callback,
     const std::string& endpoint,
     const Socket::Direction direction,
-    const bool startThread)
-    : Bidirectional(context, SocketType::Pair, direction, startThread)
+    const bool startThread) noexcept
+    : Receiver(context, SocketType::Pair, direction, startThread)
+    , Bidirectional(context, true)
     , callback_(callback)
     , endpoint_(endpoint)
 {
     init();
 }
 
-PairSocket::PairSocket(
+Pair::Pair(
     const zeromq::Context& context,
     const zeromq::ListenCallback& callback,
-    const bool startThread)
-    : PairSocket(
+    const bool startThread) noexcept
+    : Pair(
           context,
           callback,
           Socket::random_inproc_endpoint(),
@@ -78,11 +89,11 @@ PairSocket::PairSocket(
 {
 }
 
-PairSocket::PairSocket(
+Pair::Pair(
     const zeromq::ListenCallback& callback,
-    const zeromq::PairSocket& peer,
-    const bool startThread)
-    : PairSocket(
+    const zeromq::socket::Pair& peer,
+    const bool startThread) noexcept
+    : Pair(
           peer.Context(),
           callback,
           peer.Endpoint(),
@@ -91,24 +102,24 @@ PairSocket::PairSocket(
 {
 }
 
-PairSocket::PairSocket(
+Pair::Pair(
     const zeromq::Context& context,
     const zeromq::ListenCallback& callback,
-    const std::string& endpoint)
-    : PairSocket(context, callback, endpoint, Socket::Direction::Connect, true)
+    const std::string& endpoint) noexcept
+    : Pair(context, callback, endpoint, Socket::Direction::Connect, true)
 {
 }
 
-PairSocket* PairSocket::clone() const
+Pair* Pair::clone() const noexcept
 {
-    return new PairSocket(context_, callback_, endpoint_, direction_, false);
+    return new Pair(context_, callback_, endpoint_, direction_, false);
 }
 
-const std::string& PairSocket::Endpoint() const { return endpoint_; }
+const std::string& Pair::Endpoint() const noexcept { return endpoint_; }
 
-bool PairSocket::have_callback() const { return true; }
+bool Pair::have_callback() const noexcept { return true; }
 
-void PairSocket::init()
+void Pair::init() noexcept
 {
     Bidirectional::init();
 
@@ -119,27 +130,12 @@ void PairSocket::init()
     OT_ASSERT(init)
 }
 
-void PairSocket::process_incoming(const Lock& lock, Message& message)
+void Pair::process_incoming(const Lock& lock, Message& message) noexcept
 {
     OT_ASSERT(verify_lock(lock))
 
     callback_.Process(message);
 }
 
-bool PairSocket::Send(const std::string& data) const
-{
-    return Send(Message::Factory(data));
-}
-
-bool PairSocket::Send(const opentxs::Data& data) const
-{
-    return Send(Message::Factory(data));
-}
-
-bool PairSocket::Send(zeromq::Message& data) const
-{
-    return queue_message(data);
-}
-
-PairSocket::~PairSocket() SHUTDOWN
+Pair::~Pair() SHUTDOWN
 }  // namespace opentxs::network::zeromq::socket::implementation

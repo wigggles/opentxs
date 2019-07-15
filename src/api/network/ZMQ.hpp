@@ -15,7 +15,6 @@ public:
     std::chrono::seconds KeepAlive() const override;
     void KeepAlive(const std::chrono::seconds duration) const override;
     std::chrono::seconds Linger() const override;
-    OTZMQContext NewContext() const override;
     std::chrono::seconds ReceiveTimeout() const override;
     void RefreshConfig() const override;
     const Flag& Running() const override;

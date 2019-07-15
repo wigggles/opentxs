@@ -13,10 +13,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
 
@@ -43,7 +43,7 @@ namespace opentxs
 ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
     const ui::implementation::ProfileSectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
     const ui::implementation::CustomData& custom
@@ -77,7 +77,7 @@ namespace opentxs::ui::implementation
 ProfileSubsection::ProfileSubsection(
     const ProfileSectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ProfileSectionRowID& rowID,
     const ProfileSectionSortKey& key,
     const CustomData& custom

@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "Internal.hpp"
 
 #include <gtest/gtest.h>
 
@@ -16,23 +17,20 @@ namespace
 class Test_RouterSocket : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
-    //    const std::string testMessage_{"zeromq test message"};
+    Test_RouterSocket()
+        : context_(Context().ZMQ())
+    {
+    }
 };
-
-OTZMQContext Test_RouterSocket::context_{zmq::Context::Factory()};
-
 }  // namespace
 
-TEST(RouterSocket, RouterSocket_Factory)
+TEST_F(Test_RouterSocket, RouterSocket_Factory)
 {
-    ASSERT_NE(nullptr, &Test_RouterSocket::context_.get());
-
-    auto dealerSocket = zmq::RouterSocket::Factory(
-        Test_RouterSocket::context_,
-        zmq::Socket::Direction::Connect,
-        zmq::ListenCallback::Factory());
+    auto dealerSocket = context_.RouterSocket(
+        zmq::ListenCallback::Factory(),
+        zmq::socket::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Router, dealerSocket->Type());

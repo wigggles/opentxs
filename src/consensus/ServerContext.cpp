@@ -52,12 +52,12 @@
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/Proto.tpp"
@@ -95,8 +95,8 @@ namespace opentxs
 {
 internal::ServerContext* Factory::ServerContext(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& requestSent,
-    const network::zeromq::PublishSocket& replyReceived,
+    const network::zeromq::socket::Publish& requestSent,
+    const network::zeromq::socket::Publish& replyReceived,
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server,
@@ -108,8 +108,8 @@ internal::ServerContext* Factory::ServerContext(
 
 internal::ServerContext* Factory::ServerContext(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& requestSent,
-    const network::zeromq::PublishSocket& replyReceived,
+    const network::zeromq::socket::Publish& requestSent,
+    const network::zeromq::socket::Publish& replyReceived,
     const proto::Context& serialized,
     const Nym_p& local,
     const Nym_p& remote,
@@ -131,8 +131,8 @@ const std::set<MessageType> ServerContext::do_not_need_request_number_{
 
 ServerContext::ServerContext(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& requestSent,
-    const network::zeromq::PublishSocket& replyReceived,
+    const network::zeromq::socket::Publish& requestSent,
+    const network::zeromq::socket::Publish& replyReceived,
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server,
@@ -161,18 +161,20 @@ ServerContext::ServerContext(
     , inbox_()
     , outbox_()
     , numbers_(nullptr)
-    , find_nym_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
-    , find_server_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_nym_(
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
+    , find_server_(
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
     , find_unit_definition_(
-          api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
 {
     init_sockets();
 }
 
 ServerContext::ServerContext(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& requestSent,
-    const network::zeromq::PublishSocket& replyReceived,
+    const network::zeromq::socket::Publish& requestSent,
+    const network::zeromq::socket::Publish& replyReceived,
     const proto::Context& serialized,
     const Nym_p& local,
     const Nym_p& remote,
@@ -213,10 +215,12 @@ ServerContext::ServerContext(
     , inbox_()
     , outbox_()
     , numbers_(nullptr)
-    , find_nym_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
-    , find_server_(api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+    , find_nym_(
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
+    , find_server_(
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
     , find_unit_definition_(
-          api.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
 {
     for (const auto& it : serialized.servercontext().tentativerequestnumber()) {
         tentative_transaction_numbers_.insert(it);
@@ -671,9 +675,9 @@ bool ServerContext::add_item_to_workflow(
     cheque.LoadContractFromString(payment->Payment(), reason);
     // The sender nym and notary of the cheque may not match the sender nym and
     // notary of the message which conveyed the cheque.
-    find_nym_->Push(cheque.GetSenderNymID().str());
-    find_server_->Push(cheque.GetNotaryID().str());
-    find_unit_definition_->Push(cheque.GetInstrumentDefinitionID().str());
+    find_nym_->Send(cheque.GetSenderNymID().str());
+    find_server_->Send(cheque.GetNotaryID().str());
+    find_unit_definition_->Send(cheque.GetInstrumentDefinitionID().str());
 
     // We already made sure a contact exists for the sender of the message, but
     // it's possible the sender of the cheque is a different nym
@@ -795,7 +799,7 @@ NetworkReplyMessage ServerContext::attempt_delivery(
     Message& message,
     const PasswordPrompt& reason)
 {
-    request_sent_.Publish(message.m_strCommand->Get());
+    request_sent_.Send(message.m_strCommand->Get());
     auto output = connection_.Send(
         *this,
         message,
@@ -810,7 +814,7 @@ NetworkReplyMessage ServerContext::attempt_delivery(
         case SendResult::VALID_REPLY: {
             OT_ASSERT(reply);
 
-            reply_received_.Publish(message.m_strCommand->Get());
+            reply_received_.Send(message.m_strCommand->Get());
             static std::set<OTManagedNumber> empty{};
             std::set<OTManagedNumber>* numbers = numbers_;
 
@@ -7109,12 +7113,12 @@ NetworkReplyMessage ServerContext::SendMessage(
 {
     Lock lock(lock_);
     pending_args_ = {label, resync};
-    request_sent_.Publish(message.m_strCommand->Get());
+    request_sent_.Send(message.m_strCommand->Get());
     auto result = context.Connection().Send(context, message, reason);
 
     if (SendResult::VALID_REPLY == result.first) {
         process_reply(lock, client, pending, *result.second, reason);
-        reply_received_.Publish(message.m_strCommand->Get());
+        reply_received_.Send(message.m_strCommand->Get());
     }
 
     return result;

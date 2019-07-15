@@ -34,10 +34,6 @@ class Message
 {
 public:
     EXPORT static Pimpl<Message> Factory();
-    EXPORT static Pimpl<Message> Factory(const Data& input);
-    EXPORT static Pimpl<Message> Factory(const ProtobufType& input);
-    EXPORT static Pimpl<Message> Factory(const std::string& input);
-    EXPORT static Pimpl<Message> ReplyFactory(const Message& request);
 
     EXPORT virtual const Frame& at(const std::size_t index) const = 0;
     EXPORT virtual FrameIterator begin() const = 0;
@@ -53,9 +49,34 @@ public:
     EXPORT virtual std::size_t size() const = 0;
 
     EXPORT virtual Frame& AddFrame() = 0;
-    EXPORT virtual Frame& AddFrame(const opentxs::Data& input) = 0;
     EXPORT virtual Frame& AddFrame(const ProtobufType& input) = 0;
-    EXPORT virtual Frame& AddFrame(const std::string& input) = 0;
+    template <
+        typename Input,
+        std::enable_if_t<
+            std::is_pointer<decltype(std::declval<Input&>().data())>::value,
+            int> = 0,
+        std::enable_if_t<
+            std::is_integral<decltype(std::declval<Input&>().size())>::value,
+            int> = 0>
+    EXPORT Frame& AddFrame(const Input& input)
+    {
+        return AddFrame(input.data(), input.size());
+    }
+    template <
+        typename Input,
+        std::enable_if_t<std::is_trivially_copyable<Input>::value, int> = 0>
+    EXPORT Frame& AddFrame(const Input& input)
+    {
+        return AddFrame(&input, sizeof(input));
+    }
+    template <typename Input>
+    EXPORT Frame& AddFrame(const Pimpl<Input>& input)
+    {
+        return AddFrame(input.get());
+    }
+    EXPORT virtual Frame& AddFrame(
+        const void* input,
+        const std::size_t size) = 0;
     EXPORT virtual Frame& at(const std::size_t index) = 0;
 
     EXPORT virtual void EnsureDelimiter() = 0;

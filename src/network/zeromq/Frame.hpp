@@ -26,6 +26,7 @@ public:
     ~Frame();
 
 private:
+    friend opentxs::Factory;
     friend network::zeromq::Frame;
 
     mutable zmq_msg_t message_;
@@ -33,10 +34,9 @@ private:
     Frame* clone() const override;
 
     Frame();
-    explicit Frame(const Data& input);
     explicit Frame(const ProtobufType& input);
-    explicit Frame(const std::string& input);
     explicit Frame(const std::size_t bytes);
+    Frame(const void* data, const std::size_t bytes);
     Frame(const Frame&) = delete;
     Frame(Frame&&) = delete;
     Frame& operator=(Frame&&) = delete;

@@ -5,61 +5,54 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
-#include "opentxs/network/zeromq/PairSocket.hpp"
-
-#include "Bidirectional.hpp"
-#include "Socket.hpp"
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class PairSocket final : virtual public zeromq::PairSocket, public Bidirectional
+class Pair final : public Bidirectional<zeromq::socket::Pair>
 {
 public:
-    const std::string& Endpoint() const override;
-    bool Send(const std::string& data) const override;
-    bool Send(const opentxs::Data& data) const override;
-    bool Send(network::zeromq::Message& data) const override;
-    bool Start(const std::string& endpoint) const override { return false; }
+    const std::string& Endpoint() const noexcept final;
+    bool Start(const std::string& endpoint) const noexcept final
+    {
+        return false;
+    }
 
-    ~PairSocket();
+    ~Pair();
 
 private:
-    friend opentxs::network::zeromq::PairSocket;
-    friend zeromq::implementation::Proxy;
+    friend opentxs::Factory;
+    friend opentxs::network::zeromq::socket::Pair;
 
     const ListenCallback& callback_;
     const std::string endpoint_;
 
-    PairSocket* clone() const override;
-    bool have_callback() const override;
-    void process_incoming(const Lock& lock, Message& message) override;
+    Pair* clone() const noexcept final;
+    bool have_callback() const noexcept final;
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
 
-    void init() override;
+    void init() noexcept final;
 
-    PairSocket(
+    Pair(
         const zeromq::Context& context,
         const zeromq::ListenCallback& callback,
         const std::string& endpoint,
         const Socket::Direction direction,
-        const bool startThread);
-    PairSocket(
+        const bool startThread) noexcept;
+    Pair(
         const zeromq::Context& context,
         const zeromq::ListenCallback& callback,
-        const bool startThread = true);
-    PairSocket(
+        const bool startThread = true) noexcept;
+    Pair(
         const zeromq::ListenCallback& callback,
-        const zeromq::PairSocket& peer,
-        const bool startThread = true);
-    PairSocket(
+        const zeromq::socket::Pair& peer,
+        const bool startThread = true) noexcept;
+    Pair(
         const zeromq::Context& context,
         const zeromq::ListenCallback& callback,
-        const std::string& endpoint);
-    PairSocket() = delete;
-    PairSocket(const PairSocket&) = delete;
-    PairSocket(PairSocket&&) = delete;
-    PairSocket& operator=(const PairSocket&) = delete;
-    PairSocket& operator=(PairSocket&&) = delete;
+        const std::string& endpoint) noexcept;
+    Pair() = delete;
+    Pair(const Pair&) = delete;
+    Pair(Pair&&) = delete;
+    Pair& operator=(const Pair&) = delete;
+    Pair& operator=(Pair&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

@@ -18,13 +18,13 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/AccountListItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -50,7 +50,7 @@ ui::implementation::AccountListRowInternal* Factory::AccountListItem(
     const opentxs::PasswordPrompt& reason,
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
     const ui::implementation::CustomData& custom)
@@ -66,7 +66,7 @@ AccountListItem::AccountListItem(
     const opentxs::PasswordPrompt& reason,
     const AccountListInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const AccountListRowID& rowID,
     const AccountListSortKey& sortKey,
     const CustomData& custom)

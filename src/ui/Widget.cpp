@@ -8,9 +8,9 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include "Widget.hpp"
 
@@ -20,7 +20,7 @@ namespace opentxs::ui::implementation
 {
 Widget::Widget(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const Identifier& id)
     : api_(api)
     , publisher_(publisher)
@@ -34,7 +34,7 @@ Widget::Widget(
 
 Widget::Widget(
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher)
+    const network::zeromq::socket::Publish& publisher)
     : Widget(api, publisher, Identifier::Random())
 {
 }
@@ -66,7 +66,7 @@ void Widget::UpdateNotify() const
 {
     LogTrace(OT_METHOD)(__FUNCTION__)(": Widget ")(widget_id_)(" updated.")
         .Flush();
-    publisher_.Publish(widget_id_->str());
+    publisher_.Send(widget_id_->str());
     Lock lock(cb_lock_);
 
     if (cb_) {

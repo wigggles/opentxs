@@ -5,43 +5,40 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class PullSocket final : virtual public zeromq::PullSocket,
-                         public Receiver<zeromq::Message>,
-                         zeromq::curve::implementation::Server
+class Pull final : public Receiver<zeromq::socket::Pull>,
+                   public zeromq::curve::implementation::Server
 {
 public:
-    ~PullSocket();
+    ~Pull() final;
 
 private:
-    friend opentxs::network::zeromq::PullSocket;
+    friend opentxs::Factory;
 
     const ListenCallback& callback_;
 
-    PullSocket* clone() const override;
-    bool have_callback() const override;
+    Pull* clone() const noexcept final;
+    bool have_callback() const noexcept final;
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
 
-    PullSocket(
+    Pull(
         const zeromq::Context& context,
         const Socket::Direction direction,
         const zeromq::ListenCallback& callback,
-        const bool startThread);
-    PullSocket(
+        const bool startThread) noexcept;
+    Pull(
         const zeromq::Context& context,
         const Socket::Direction direction,
-        const zeromq::ListenCallback& callback);
-    PullSocket(
+        const zeromq::ListenCallback& callback) noexcept;
+    Pull(
         const zeromq::Context& context,
-        const Socket::Direction direction);
-    PullSocket() = delete;
-    PullSocket(const PullSocket&) = delete;
-    PullSocket(PullSocket&&) = delete;
-    PullSocket& operator=(const PullSocket&) = delete;
-    PullSocket& operator=(PullSocket&&) = delete;
+        const Socket::Direction direction) noexcept;
+    Pull() = delete;
+    Pull(const Pull&) = delete;
+    Pull(Pull&&) = delete;
+    Pull& operator=(const Pull&) = delete;
+    Pull& operator=(Pull&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

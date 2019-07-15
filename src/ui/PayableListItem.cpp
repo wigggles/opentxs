@@ -13,10 +13,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -31,7 +31,7 @@ namespace opentxs
 ui::internal::PayableListItem* Factory::PayableListItem(
     const ui::implementation::PayableInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::PayableListRowID& rowID,
     const ui::implementation::PayableListSortKey& key,
     const std::string& paymentcode,
@@ -47,7 +47,7 @@ namespace opentxs::ui::implementation
 PayableListItem::PayableListItem(
     const PayableInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const PayableListRowID& rowID,
     const PayableListSortKey& key,
     const std::string& paymentcode,

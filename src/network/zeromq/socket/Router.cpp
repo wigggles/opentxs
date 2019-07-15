@@ -5,47 +5,51 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/RouterSocket.hpp"
 
 #include "network/zeromq/curve/Client.hpp"
 #include "network/zeromq/curve/Server.hpp"
-#include "Bidirectional.hpp"
-#include "Send.hpp"
-#include "Socket.hpp"
+#include "Bidirectional.tpp"
 
 #include <zmq.h>
 
 #include "Router.hpp"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::RouterSocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::socket::Router>;
 
-#define OT_METHOD                                                              \
-    "opentxs::network::zeromq::socket::implementation::RouterSocket::"
+#define OT_METHOD "opentxs::network::zeromq::socket::implementation::Router::"
 
-namespace opentxs::network::zeromq
+namespace opentxs
 {
-OTZMQRouterSocket RouterSocket::Factory(
-    const class Context& context,
-    const Socket::Direction direction,
-    const ListenCallback& callback)
+network::zeromq::socket::Router* Factory::RouterSocket(
+    const network::zeromq::Context& context,
+    const bool direction,
+    const network::zeromq::ListenCallback& callback)
 {
-    return OTZMQRouterSocket(
-        new socket::implementation::RouterSocket(context, direction, callback));
+    using ReturnType = network::zeromq::socket::implementation::Router;
+
+    return new ReturnType(
+        context,
+        static_cast<network::zeromq::socket::Socket::Direction>(direction),
+        callback);
 }
-}  // namespace opentxs::network::zeromq
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-RouterSocket::RouterSocket(
+Router::Router(
     const zeromq::Context& context,
     const Socket::Direction direction,
-    const zeromq::ListenCallback& callback)
-    : _Bidirectional(context, SocketType::Router, direction, true)
+    const zeromq::ListenCallback& callback) noexcept
+    : Receiver(context, SocketType::Router, direction, false)
+    , Bidirectional(context, true)
     , Client(this->get())
     , Server(this->get())
     , callback_(callback)
@@ -53,19 +57,19 @@ RouterSocket::RouterSocket(
     init();
 }
 
-RouterSocket* RouterSocket::clone() const
+Router* Router::clone() const noexcept
 {
-    return new RouterSocket(context_, direction_, callback_);
+    return new Router(context_, direction_, callback_);
 }
 
-void RouterSocket::process_incoming(const Lock& lock, Message& message)
+void Router::process_incoming(const Lock& lock, Message& message) noexcept
 {
     OT_ASSERT(verify_lock(lock))
 
     LogDetail(OT_METHOD)(__FUNCTION__)(
         ": Incoming messaged received. Triggering callback.")
         .Flush();
-    // RouterSocket prepends an identity frame to the message.  This makes sure
+    // Router prepends an identity frame to the message.  This makes sure
     // there is an empty frame between the identity frame(s) and the frames that
     // make up the rest of the message.
     message.EnsureDelimiter();
@@ -73,5 +77,5 @@ void RouterSocket::process_incoming(const Lock& lock, Message& message)
     LogDetail(OT_METHOD)(__FUNCTION__)(": Done.").Flush();
 }
 
-RouterSocket::~RouterSocket() SHUTDOWN
+Router::~Router() SHUTDOWN
 }  // namespace opentxs::network::zeromq::socket::implementation

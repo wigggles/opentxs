@@ -4,15 +4,16 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "Internal.hpp"
 
 #include <gtest/gtest.h>
 #include <zmq.h>
 
 using namespace opentxs;
 
-TEST(Frame, Factory)
+TEST(Frame, Factory1)
 {
-    OTZMQFrame message = network::zeromq::Frame::Factory();
+    OTZMQFrame message{Factory::ZMQFrame()};
 
     ASSERT_NE(nullptr, &message.get());
 }
@@ -21,25 +22,17 @@ TEST(Frame, Factory2)
 {
     auto data = Data::Factory("0", 1);
 
-    OTZMQFrame message = network::zeromq::Frame::Factory(data);
+    OTZMQFrame message{Factory::ZMQFrame(data->data(), data->size())};
 
     ASSERT_NE(nullptr, &message.get());
     ASSERT_EQ(message->size(), data->size());
 }
 
-TEST(Frame, Factory3)
-{
-    OTZMQFrame message = network::zeromq::Frame::Factory("testString");
-
-    ASSERT_NE(nullptr, &message.get());
-    std::string messageString = message.get();
-    ASSERT_STREQ("testString", messageString.c_str());
-}
-
 TEST(Frame, operator_string)
 {
-    auto message =
-        network::zeromq::Frame::Factory(Data::Factory("testString", 10));
+    const auto test = Data::Factory("testString", 10);
+
+    OTZMQFrame message{Factory::ZMQFrame(test->data(), test->size())};
 
     ASSERT_NE(nullptr, &message.get());
     std::string messageString = message.get();
@@ -48,7 +41,7 @@ TEST(Frame, operator_string)
 
 TEST(Frame, data)
 {
-    auto message = network::zeromq::Frame::Factory();
+    OTZMQFrame message{Factory::ZMQFrame()};
 
     const void* data = message->data();
     ASSERT_NE(nullptr, data);
@@ -59,7 +52,7 @@ TEST(Frame, data)
 
 TEST(Frame, size)
 {
-    auto message = network::zeromq::Frame::Factory();
+    OTZMQFrame message{Factory::ZMQFrame()};
 
     std::size_t size = message->size();
     ASSERT_EQ(0, size);
@@ -67,7 +60,8 @@ TEST(Frame, size)
     zmq_msg_t* zmq_msg = message.get();
     ASSERT_EQ(0, zmq_msg_size(zmq_msg));
 
-    message = network::zeromq::Frame::Factory(Data::Factory("testString", 10));
+    const auto test = Data::Factory("testString", 10);
+    message = OTZMQFrame{Factory::ZMQFrame(test->data(), test->size())};
     size = message->size();
     ASSERT_EQ(10, size);
 
@@ -77,7 +71,7 @@ TEST(Frame, size)
 
 TEST(Frame, zmq_msg_t)
 {
-    auto message = network::zeromq::Frame::Factory();
+    OTZMQFrame message{Factory::ZMQFrame()};
 
     zmq_msg_t* zmq_msg = message.get();
     ASSERT_NE(nullptr, zmq_msg);

@@ -39,7 +39,9 @@ OTZMQZAPHandler Handler::Factory(
 
 namespace opentxs::network::zeromq::zap::implementation
 {
-Handler::Handler(const zeromq::Context& context, const zap::Callback& callback)
+Handler::Handler(
+    const zeromq::Context& context,
+    const zap::Callback& callback) noexcept
     : Receiver(context, SocketType::Router, Socket::Direction::Bind, true)
     , Server(this->get())
     , callback_(callback)
@@ -47,7 +49,7 @@ Handler::Handler(const zeromq::Context& context, const zap::Callback& callback)
     init();
 }
 
-void Handler::init()
+void Handler::init() noexcept
 {
     Receiver::init();
     const auto running = Receiver::Start(ZAP_ENDPOINT);
@@ -57,7 +59,7 @@ void Handler::init()
     LogDetail(OT_METHOD)(__FUNCTION__)(": Listening on ")(ZAP_ENDPOINT).Flush();
 }
 
-void Handler::process_incoming(const Lock& lock, zap::Request& message)
+void Handler::process_incoming(const Lock& lock, zap::Request& message) noexcept
 {
     auto output = callback_.Process(message);
     Message& reply = output;

@@ -46,7 +46,7 @@ namespace opentxs
 ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
     const ui::implementation::CustomData& custom,
@@ -101,7 +101,7 @@ namespace opentxs::ui::implementation
 BalanceItem::BalanceItem(
     const AccountActivityInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,

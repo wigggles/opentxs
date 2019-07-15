@@ -9,24 +9,25 @@
 
 using namespace opentxs;
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace
 {
 class Test_PublishSocket : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
+
+    Test_PublishSocket()
+        : context_(Context().ZMQ())
+    {
+    }
 };
-
-OTZMQContext Test_PublishSocket::context_{network::zeromq::Context::Factory()};
-
 }  // namespace
 
-TEST(PublishSocket, PublishSocket_Factory)
+TEST_F(Test_PublishSocket, PublishSocket_Factory)
 {
-    ASSERT_NE(nullptr, &Test_PublishSocket::context_.get());
-
-    auto publishSocket =
-        network::zeromq::PublishSocket::Factory(Test_PublishSocket::context_);
+    auto publishSocket = context_.PublishSocket();
 
     ASSERT_NE(nullptr, &publishSocket.get());
     ASSERT_EQ(SocketType::Publish, publishSocket->Type());

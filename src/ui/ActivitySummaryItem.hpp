@@ -57,7 +57,7 @@ private:
     ActivitySummaryItem(
         const ActivitySummaryInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ActivitySummaryRowID& rowID,
         const ActivitySummarySortKey& sortKey,

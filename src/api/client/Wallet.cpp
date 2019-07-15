@@ -15,9 +15,9 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 
 #include "api/Wallet.hpp"
 

@@ -23,7 +23,7 @@ namespace opentxs
 ui::implementation::ContactSubsectionRowInternal* Factory::ContactItemWidget(
     const ui::implementation::ContactSubsectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
     const ui::implementation::CustomData& custom)
@@ -38,7 +38,7 @@ namespace opentxs::ui::implementation
 ContactItem::ContactItem(
     const ContactSubsectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ContactSubsectionRowID& rowID,
     const ContactSubsectionSortKey& sortKey,
     const CustomData& custom)

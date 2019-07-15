@@ -20,7 +20,7 @@ class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
 protected:
     Row(const ParentType& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const IdentifierType id,
         const bool valid)
         : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)

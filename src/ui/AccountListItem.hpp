@@ -49,7 +49,7 @@ private:
         const PasswordPrompt& reason,
         const AccountListInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const AccountListRowID& rowID,
         const AccountListSortKey& sortKey,
         const CustomData& custom);

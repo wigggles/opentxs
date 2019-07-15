@@ -73,12 +73,12 @@ Request::Request(
     const std::string& version)
     : Request()
 {
-    messages_.emplace_back(Frame::Factory(version));
-    messages_.emplace_back(Frame::Factory(requestID));
-    messages_.emplace_back(Frame::Factory(domain));
-    messages_.emplace_back(Frame::Factory(address));
-    messages_.emplace_back(Frame::Factory(identity));
-    messages_.emplace_back(Frame::Factory(mechanism_to_string(mechanism)));
+    zeromq::Message::AddFrame(version);
+    zeromq::Message::AddFrame(requestID);
+    zeromq::Message::AddFrame(domain);
+    zeromq::Message::AddFrame(address);
+    zeromq::Message::AddFrame(identity);
+    zeromq::Message::AddFrame(mechanism_to_string(mechanism));
 }
 
 Request::Request(const Request& rhs)

@@ -12,10 +12,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ContactItem.hpp"
 #include "opentxs/ui/ContactSubsection.hpp"
 
@@ -42,7 +42,7 @@ namespace opentxs
 ui::implementation::ContactSectionRowInternal* Factory::ContactSubsectionWidget(
     const ui::implementation::ContactSectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
     const ui::implementation::CustomData& custom
@@ -76,7 +76,7 @@ namespace opentxs::ui::implementation
 ContactSubsection::ContactSubsection(
     const ContactSectionInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const ContactSectionRowID& rowID,
     const ContactSectionSortKey& key,
     const CustomData& custom

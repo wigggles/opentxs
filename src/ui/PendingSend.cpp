@@ -34,7 +34,7 @@ namespace opentxs
 ui::implementation::ActivityThreadRowInternal* Factory::PendingSend(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -50,7 +50,7 @@ namespace opentxs::ui::implementation
 PendingSend::PendingSend(
     const ActivityThreadInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,

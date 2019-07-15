@@ -303,7 +303,7 @@ protected:
 
     List(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const typename PrimaryID::interface_type& primaryID,
         const Identifier& widgetID
 #if OT_QT
@@ -349,7 +349,7 @@ protected:
     }
     List(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const typename PrimaryID::interface_type& primaryID
 #if OT_QT
         ,

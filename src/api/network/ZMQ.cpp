@@ -15,8 +15,8 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 
 #include <atomic>
@@ -155,11 +155,6 @@ void ZMQ::KeepAlive(const std::chrono::seconds duration) const
 }
 
 std::chrono::seconds ZMQ::Linger() const { return linger_.load(); }
-
-OTZMQContext ZMQ::NewContext() const
-{
-    return OTZMQContext(opentxs::network::zeromq::Context::Factory());
-}
 
 std::chrono::seconds ZMQ::ReceiveTimeout() const
 {

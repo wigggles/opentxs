@@ -108,6 +108,8 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-identity-credential protobuf)
   add_dependencies(opentxs-identity protobuf)
   add_dependencies(opentxs-iterator protobuf)
+  add_dependencies(opentxs-network-zeromq-curve protobuf)
+  add_dependencies(opentxs-network-zeromq-socket protobuf)
   add_dependencies(opentxs-network-zeromq-zap protobuf)
   add_dependencies(opentxs-network-zeromq protobuf)
   add_dependencies(opentxs-network protobuf)
@@ -197,6 +199,8 @@ if(OT_BUNDLED_LIBZMQ)
     add_dependencies(libzmq sodium)
   endif()
 
+  add_dependencies(opentxs-network-zeromq-curve libzmq)
+  add_dependencies(opentxs-network-zeromq-socket libzmq)
   add_dependencies(opentxs-network-zeromq-zap libzmq)
   add_dependencies(opentxs-network-zeromq libzmq)
 endif()
@@ -232,6 +236,8 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-identity-credential>
   $<TARGET_OBJECTS:opentxs-identity>
   $<TARGET_OBJECTS:opentxs-iterator>
+  $<TARGET_OBJECTS:opentxs-network-zeromq-curve>
+  $<TARGET_OBJECTS:opentxs-network-zeromq-socket>
   $<TARGET_OBJECTS:opentxs-network-zeromq-zap>
   $<TARGET_OBJECTS:opentxs-network-zeromq>
   $<TARGET_OBJECTS:opentxs-network>

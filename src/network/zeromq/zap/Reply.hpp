@@ -35,19 +35,29 @@ public:
 
     bool SetCode(const zap::Status& code) override
     {
-        return set_field(STATUS_CODE_POSITION, code_to_string(code));
+        const auto value = code_to_string(code);
+
+        return set_field(
+            STATUS_CODE_POSITION,
+            OTZMQFrame{Factory::ZMQFrame(value.data(), value.size())});
     }
     bool SetMetadata(const Data& metadata) override
     {
-        return set_field(METADATA_POSITION, metadata);
+        return set_field(
+            METADATA_POSITION,
+            OTZMQFrame{Factory::ZMQFrame(metadata.data(), metadata.size())});
     }
     bool SetStatus(const std::string& status) override
     {
-        return set_field(STATUS_TEXT_POSITION, status);
+        return set_field(
+            STATUS_TEXT_POSITION,
+            OTZMQFrame{Factory::ZMQFrame(status.data(), status.size())});
     }
     bool SetUserID(const std::string& userID) override
     {
-        return set_field(USER_ID_POSITION, userID);
+        return set_field(
+            USER_ID_POSITION,
+            OTZMQFrame{Factory::ZMQFrame(userID.data(), userID.size())});
     }
 
     ~Reply() = default;

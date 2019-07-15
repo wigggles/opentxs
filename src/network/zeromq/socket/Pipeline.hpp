@@ -12,18 +12,10 @@ namespace opentxs::network::zeromq::socket::implementation
 class Pipeline final : virtual public zeromq::Pipeline
 {
 public:
-    bool Close() const override { return pull_->Close() && push_->Close(); }
-    bool Push(const std::string& data) const override
+    bool Close() const noexcept final;
+    const zeromq::Context& Context() const noexcept final
     {
-        return push_->Push(data);
-    }
-    bool Push(const opentxs::Data& data) const override
-    {
-        return push_->Push(data);
-    }
-    bool Push(zeromq::Message& data) const override
-    {
-        return push_->Push(data);
+        return push_->Context();
     }
 
     ~Pipeline();
@@ -35,12 +27,16 @@ private:
     OTZMQPullSocket pull_;
     OTZMQPushSocket push_;
 
-    Pipeline* clone() const override { return nullptr; }
+    Pipeline* clone() const noexcept final { return nullptr; }
+    bool push(zeromq::Message& data) const noexcept final
+    {
+        return push_->Send(data);
+    }
 
     Pipeline(
         const api::Core& api,
-        const Context& context,
-        std::function<void(zeromq::Message&)> callback);
+        const zeromq::Context& context,
+        std::function<void(zeromq::Message&)> callback) noexcept;
     Pipeline() = delete;
     Pipeline(const Pipeline&) = delete;
     Pipeline(Pipeline&&) = delete;

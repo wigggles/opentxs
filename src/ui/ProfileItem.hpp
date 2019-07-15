@@ -64,7 +64,7 @@ private:
     ProfileItem(
         const ProfileSubsectionInternalInterface& parent,
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& publisher,
+        const network::zeromq::socket::Publish& publisher,
         const ProfileSubsectionRowID& rowID,
         const ProfileSubsectionSortKey& sortKey,
         const CustomData& custom);

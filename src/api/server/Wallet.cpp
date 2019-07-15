@@ -15,7 +15,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 
 #include "api/Wallet.hpp"
 

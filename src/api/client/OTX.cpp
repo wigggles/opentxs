@@ -41,15 +41,15 @@
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/Proto.tpp"
 
@@ -214,28 +214,28 @@ OTX::OTX(
           }))
     , notification_listener_(client_.ZeroMQ().PullSocket(
           notification_listener_callback_,
-          zmq::Socket::Direction::Bind))
+          zmq::socket::Socket::Direction::Bind))
     , find_nym_callback_(zmq::ListenCallback::Factory(
           [this](const zmq::Message& message) -> void {
               this->find_nym(message);
           }))
     , find_nym_listener_(client_.ZeroMQ().PullSocket(
           find_nym_callback_,
-          zmq::Socket::Direction::Bind))
+          zmq::socket::Socket::Direction::Bind))
     , find_server_callback_(zmq::ListenCallback::Factory(
           [this](const zmq::Message& message) -> void {
               this->find_server(message);
           }))
     , find_server_listener_(client_.ZeroMQ().PullSocket(
           find_server_callback_,
-          zmq::Socket::Direction::Bind))
+          zmq::socket::Socket::Direction::Bind))
     , find_unit_callback_(zmq::ListenCallback::Factory(
           [this](const zmq::Message& message) -> void {
               this->find_unit(message);
           }))
     , find_unit_listener_(client_.ZeroMQ().PullSocket(
           find_unit_callback_,
-          zmq::Socket::Direction::Bind))
+          zmq::socket::Socket::Direction::Bind))
     , task_finished_(client_.ZeroMQ().PublishSocket())
     , auto_process_inbox_(Flag::Factory(true))
     , next_task_id_(0)
@@ -2350,10 +2350,10 @@ void OTX::update_task(
 
     if (publish) {
         auto message = zmq::Message::Factory();
-        message->AddFrame();
+        message->PrependEmptyFrame();
         message->AddFrame(std::to_string(taskID));
         message->AddFrame(Data::Factory(&value, sizeof(value)));
-        task_finished_->Publish(message);
+        task_finished_->Send(message);
     }
 }
 

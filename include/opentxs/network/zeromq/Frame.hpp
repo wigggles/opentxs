@@ -11,6 +11,7 @@
 #include "opentxs/Proto.hpp"
 
 #include <string>
+#include <type_traits>
 
 struct zmq_msg_t;
 
@@ -37,16 +38,22 @@ namespace zeromq
 class Frame
 {
 public:
-    EXPORT static Pimpl<opentxs::network::zeromq::Frame> Factory();
-    EXPORT static Pimpl<opentxs::network::zeromq::Frame> Factory(
-        const opentxs::Data& input);
-    EXPORT static Pimpl<opentxs::network::zeromq::Frame> Factory(
-        const std::string& input);
-    EXPORT static Pimpl<opentxs::network::zeromq::Frame> Factory(
-        const ProtobufType& input);
-
     EXPORT virtual operator std::string() const = 0;
 
+    template <
+        typename Output,
+        std::enable_if_t<std::is_trivially_copyable<Output>::value, int> = 0>
+    Output as() const noexcept(false)
+    {
+        if (sizeof(Output) != size()) {
+            throw std::runtime_error("Invalid frame");
+        }
+
+        Output output{};
+        std::memcpy(&output, data(), sizeof(output));
+
+        return output;
+    }
     EXPORT virtual const void* data() const = 0;
     EXPORT virtual std::size_t size() const = 0;
 

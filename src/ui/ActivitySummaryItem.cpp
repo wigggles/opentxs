@@ -14,13 +14,13 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
 #include "internal/ui/UI.hpp"
@@ -47,7 +47,7 @@ namespace opentxs
 ui::implementation::ActivitySummaryRowInternal* Factory::ActivitySummaryItem(
     const ui::implementation::ActivitySummaryInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
@@ -64,7 +64,7 @@ namespace opentxs::ui::implementation
 ActivitySummaryItem::ActivitySummaryItem(
     const ActivitySummaryInternalInterface& parent,
     const api::client::Manager& api,
-    const network::zeromq::PublishSocket& publisher,
+    const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const ActivitySummaryRowID& rowID,
     const ActivitySummarySortKey& sortKey,

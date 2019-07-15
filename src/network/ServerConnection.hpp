@@ -30,7 +30,7 @@ private:
 
     const api::network::ZMQ& zmq_;
     const api::Core& api_;
-    const zeromq::PublishSocket& updates_;
+    const zeromq::socket::Publish& updates_;
     const std::string server_id_{};
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
@@ -58,15 +58,15 @@ private:
         std::uint32_t port) const;
     std::chrono::time_point<std::chrono::system_clock> get_timeout();
     void publish() const;
-    void set_curve(const Lock& lock, zeromq::CurveClient& socket) const;
-    void set_proxy(const Lock& lock, zeromq::DealerSocket& socket) const;
-    void set_timeouts(const Lock& lock, zeromq::Socket& socket) const;
+    void set_curve(const Lock& lock, zeromq::curve::Client& socket) const;
+    void set_proxy(const Lock& lock, zeromq::socket::Dealer& socket) const;
+    void set_timeouts(const Lock& lock, zeromq::socket::Socket& socket) const;
     OTZMQRequestSocket sync_socket(const Lock& lock) const;
 
     void activity_timer();
     void disable_push(const identifier::Nym& nymID);
-    zeromq::DealerSocket& get_async(const Lock& lock);
-    zeromq::RequestSocket& get_sync(const Lock& lock);
+    zeromq::socket::Dealer& get_async(const Lock& lock);
+    zeromq::socket::Request& get_sync(const Lock& lock);
     void process_incoming(
         const zeromq::Message& in,
         const PasswordPrompt& reason);
@@ -82,7 +82,7 @@ private:
     ServerConnection(
         const api::Core& api,
         const api::network::ZMQ& zmq,
-        const zeromq::PublishSocket& updates,
+        const zeromq::socket::Publish& updates,
         const std::shared_ptr<const ServerContract>& contract);
     ServerConnection() = delete;
     ServerConnection(const ServerConnection&) = delete;

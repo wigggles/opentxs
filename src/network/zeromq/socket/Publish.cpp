@@ -5,40 +5,45 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include "network/zeromq/curve/Server.hpp"
-#include "Sender.hpp"
+#include "Sender.tpp"
 
 #include "Publish.hpp"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::PublishSocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::socket::Publish>;
 
 //#define OT_METHOD
-//"opentxs::network::zeromq::socket::implementation::PublishSocket::"
+//"opentxs::network::zeromq::socket::implementation::Publish::"
 
-namespace opentxs::network::zeromq
+namespace opentxs
 {
-OTZMQPublishSocket PublishSocket::Factory(const class Context& context)
+network::zeromq::socket::Publish* Factory::PublishSocket(
+    const opentxs::network::zeromq::Context& context)
 {
-    return OTZMQPublishSocket(
-        new socket::implementation::PublishSocket(context));
+    using ReturnType = network::zeromq::socket::implementation::Publish;
+
+    return new ReturnType(context);
 }
-}  // namespace opentxs::network::zeromq
+}  // namespace opentxs
 
 namespace opentxs::network::zeromq::socket::implementation
 {
-PublishSocket::PublishSocket(const zeromq::Context& context)
-    : Sender(context, SocketType::Publish, Socket::Direction::Bind)
+Publish::Publish(const zeromq::Context& context) noexcept
+    : Socket(context, SocketType::Publish, Socket::Direction::Bind)
+    , Sender()
     , Server(this->get())
 {
     init();
 }
 
-PublishSocket::~PublishSocket() SHUTDOWN
+Publish::~Publish() SHUTDOWN
 }  // namespace opentxs::network::zeromq::socket::implementation

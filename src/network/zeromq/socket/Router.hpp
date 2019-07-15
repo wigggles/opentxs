@@ -5,42 +5,40 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::network::zeromq::socket::implementation
 {
-class RouterSocket final : public _Bidirectional<zeromq::RouterSocket>,
-                           zeromq::curve::implementation::Client,
-                           zeromq::curve::implementation::Server
+class Router final : public Bidirectional<zeromq::socket::Router>,
+                     public zeromq::curve::implementation::Client,
+                     public zeromq::curve::implementation::Server
 {
 public:
-    bool SetSocksProxy(const std::string& proxy) const override
+    bool SetSocksProxy(const std::string& proxy) const noexcept final
     {
         return set_socks_proxy(proxy);
     }
 
-    virtual ~RouterSocket();
+    virtual ~Router();
 
 protected:
     const ListenCallback& callback_;
 
-    RouterSocket(
+    Router(
         const zeromq::Context& context,
         const Socket::Direction direction,
-        const zeromq::ListenCallback& callback);
+        const zeromq::ListenCallback& callback) noexcept;
 
 private:
-    friend opentxs::network::zeromq::RouterSocket;
+    friend opentxs::Factory;
 
-    RouterSocket* clone() const override;
-    bool have_callback() const override { return true; }
+    Router* clone() const noexcept final;
+    bool have_callback() const noexcept final { return true; }
 
-    void process_incoming(const Lock& lock, Message& message) override;
+    void process_incoming(const Lock& lock, Message& message) noexcept final;
 
-    RouterSocket() = delete;
-    RouterSocket(const RouterSocket&) = delete;
-    RouterSocket(RouterSocket&&) = delete;
-    RouterSocket& operator=(const RouterSocket&) = delete;
-    RouterSocket& operator=(RouterSocket&&) = delete;
+    Router() = delete;
+    Router(const Router&) = delete;
+    Router(Router&&) = delete;
+    Router& operator=(const Router&) = delete;
+    Router& operator=(Router&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::socket::implementation

@@ -9,13 +9,14 @@
 
 using namespace opentxs;
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace
 {
-
 class Test_PublishSubscribe : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const zmq::Context& context_;
 
     const std::string testMessage_{"zeromq test message"};
     const std::string testMessage2_{"zeromq test message 2"};
@@ -37,17 +38,17 @@ public:
     void publishSocketThread(
         const std::string& endpoint,
         const std::string& msg);
-};
 
-OTZMQContext Test_PublishSubscribe::context_{
-    network::zeromq::Context::Factory()};
+    Test_PublishSubscribe()
+        : context_(Context().ZMQ())
+    {
+    }
+};
 
 void Test_PublishSubscribe::subscribeSocketThread(
     const std::set<std::string>& endpoints,
     const std::set<std::string>& msgs)
 {
-    ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
-
     auto listenCallback = network::zeromq::ListenCallback::Factory(
         [this, msgs](network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
@@ -58,8 +59,7 @@ void Test_PublishSubscribe::subscribeSocketThread(
 
     ASSERT_NE(nullptr, &listenCallback.get());
 
-    auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
-        Test_PublishSubscribe::context_, listenCallback);
+    auto subscribeSocket = context_.SubscribeSocket(listenCallback);
 
     ASSERT_NE(nullptr, &subscribeSocket.get());
     ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
@@ -83,10 +83,8 @@ void Test_PublishSubscribe::publishSocketThread(
     const std::string& endpoint,
     const std::string& msg)
 {
-    ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
-
-    auto publishSocket = network::zeromq::PublishSocket::Factory(
-        Test_PublishSubscribe::context_);
+    auto publishSocket = context_.PublishSocket();
+    ;
 
     ASSERT_NE(nullptr, &publishSocket.get());
     ASSERT_EQ(SocketType::Publish, publishSocket->Type());
@@ -104,7 +102,7 @@ void Test_PublishSubscribe::publishSocketThread(
            std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    bool sent = publishSocket->Publish(msg);
+    bool sent = publishSocket->Send(msg);
 
     ASSERT_TRUE(sent);
 
@@ -114,15 +112,12 @@ void Test_PublishSubscribe::publishSocketThread(
 
     ASSERT_EQ(callbackCount_, callbackFinishedCount_);
 }
-
 }  // namespace
 
 TEST_F(Test_PublishSubscribe, Publish_Subscribe)
 {
-    ASSERT_NE(&Test_PublishSubscribe::context_.get(), nullptr);
-
-    auto publishSocket = network::zeromq::PublishSocket::Factory(
-        Test_PublishSubscribe::context_);
+    auto publishSocket = context_.PublishSocket();
+    ;
 
     ASSERT_NE(nullptr, &publishSocket.get());
     ASSERT_EQ(SocketType::Publish, publishSocket->Type());
@@ -149,8 +144,7 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
 
     ASSERT_NE(nullptr, &listenCallback.get());
 
-    auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
-        Test_PublishSubscribe::context_, listenCallback);
+    auto subscribeSocket = context_.SubscribeSocket(listenCallback);
 
     ASSERT_NE(nullptr, &subscribeSocket.get());
     ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
@@ -166,7 +160,7 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
 
     ASSERT_TRUE(set);
 
-    bool sent = publishSocket->Publish(testMessage_);
+    bool sent = publishSocket->Send(testMessage_);
 
     ASSERT_TRUE(sent);
 
@@ -184,10 +178,8 @@ TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
     subscribeThreadCount_ = 2;
     callbackCount_ = 2;
 
-    ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
-
-    auto publishSocket = network::zeromq::PublishSocket::Factory(
-        Test_PublishSubscribe::context_);
+    auto publishSocket = context_.PublishSocket();
+    ;
 
     ASSERT_NE(nullptr, &publishSocket.get());
     ASSERT_EQ(SocketType::Publish, publishSocket->Type());
@@ -216,7 +208,7 @@ TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
 
     ASSERT_EQ(subscribeThreadCount_, subscribeThreadStartedCount_);
 
-    bool sent = publishSocket->Publish(testMessage_);
+    bool sent = publishSocket->Send(testMessage_);
 
     ASSERT_TRUE(sent);
 
@@ -257,8 +249,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
 
     ASSERT_NE(nullptr, &listenCallback.get());
 
-    auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
-        Test_PublishSubscribe::context_, listenCallback);
+    auto subscribeSocket = context_.SubscribeSocket(listenCallback);
 
     ASSERT_NE(nullptr, &subscribeSocket.get());
     ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());

@@ -162,8 +162,8 @@ private:
     static const std::string default_node_name_;
     static const std::set<MessageType> do_not_need_request_number_;
 
-    const network::zeromq::PublishSocket& request_sent_;
-    const network::zeromq::PublishSocket& reply_received_;
+    const network::zeromq::socket::Publish& request_sent_;
+    const network::zeromq::socket::Publish& reply_received_;
     // WARNING the lifetime of the object pointed to by this member variable
     // has a shorter lifetime than this ServerContext object. Call Join()
     // on all ServerContext objects before allowing the client api to shut down.
@@ -685,16 +685,16 @@ private:
 
     ServerContext(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& requestSent,
-        const network::zeromq::PublishSocket& replyReceived,
+        const network::zeromq::socket::Publish& requestSent,
+        const network::zeromq::socket::Publish& replyReceived,
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server,
         network::ServerConnection& connection);
     ServerContext(
         const api::client::Manager& api,
-        const network::zeromq::PublishSocket& requestSent,
-        const network::zeromq::PublishSocket& replyReceived,
+        const network::zeromq::socket::Publish& requestSent,
+        const network::zeromq::socket::Publish& replyReceived,
         const proto::Context& serialized,
         const Nym_p& local,
         const Nym_p& remote,

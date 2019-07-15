@@ -6,13 +6,13 @@
 #include "stdafx.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PullSocket.hpp"
-#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include "internal/api/Api.hpp"
 
@@ -41,7 +41,7 @@ namespace opentxs::api::implementation
 Log::Log(const zmq::Context& zmq, const std::string& endpoint)
     : callback_(zmq::ListenCallback::Factory(
           std::bind(&Log::callback, this, std::placeholders::_1)))
-    , socket_(zmq.PullSocket(callback_, zmq::Socket::Direction::Bind))
+    , socket_(zmq.PullSocket(callback_, zmq::socket::Socket::Direction::Bind))
     , publish_socket_(zmq.PublishSocket())
     , publish_{!endpoint.empty()}
 {
@@ -70,7 +70,7 @@ void Log::callback(zmq::Message& message)
 #else
     print(level, messageFrame, id);
 #endif
-    if (publish_) { publish_socket_->Publish(message); }
+    if (publish_) { publish_socket_->Send(message); }
 }
 
 void Log::print(

@@ -38,9 +38,9 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/Types.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -118,7 +118,7 @@ Wallet::Wallet(const api::Core& core)
     , dht_server_requester_{api_.ZeroMQ().RequestSocket()}
     , dht_unit_requester_{api_.ZeroMQ().RequestSocket()}
     , find_nym_(api_.ZeroMQ().PushSocket(
-          opentxs::network::zeromq::Socket::Direction::Connect))
+          opentxs::network::zeromq::socket::Socket::Direction::Connect))
 {
     account_publisher_->Start(api_.Endpoints().AccountUpdate());
     issuer_publisher_->Start(api_.Endpoints().IssuerUpdate());
@@ -658,7 +658,7 @@ bool Wallet::UpdateAccount(
     auto message = opentxs::network::zeromq::Message::Factory();
     message->AddFrame(accountID.str());
     message->AddFrame(Data::Factory(&balance, sizeof(balance)));
-    account_publisher_->Publish(message);
+    account_publisher_->Send(message);
 
     return true;
 }
@@ -1036,7 +1036,7 @@ Nym_p Wallet::Nym(
                 }
             }
         } else {
-            dht_nym_requester_->SendRequest(nym);
+            dht_nym_requester_->Send(nym);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -1105,7 +1105,7 @@ Nym_p Wallet::Nym(
             auto& mapNym = nym_map_[id].second;
             // TODO update existing nym rather than destroying it
             mapNym.reset(candidate.release());
-            nym_publisher_->Publish(id);
+            nym_publisher_->Send(id);
 
             return mapNym;
         } else {
@@ -1747,7 +1747,7 @@ bool Wallet::PeerRequestReceive(
     const auto saved = api_.Storage().Store(
         request.Request()->Contract(), nymID, StorageBox::INCOMINGPEERREQUEST);
 
-    if (saved) { peer_request_publisher_->Publish(request.Request()->ID()); }
+    if (saved) { peer_request_publisher_->Send(request.Request()->ID()); }
 
     return saved;
 }
@@ -1876,7 +1876,7 @@ bool Wallet::RemoveUnitDefinition(const identifier::UnitDefinition& id) const
 
 void Wallet::publish_server(const identifier::Server& id) const
 {
-    server_publisher_->Publish(id.str());
+    server_publisher_->Send(id.str());
 }
 
 Wallet::UnitNameReverse Wallet::reverse_unit_map(const UnitNameMap& map)
@@ -1978,9 +1978,9 @@ void Wallet::save(const Lock& lock, api::client::Issuer* in) const
     const auto& nymID = in->LocalNymID();
     const auto& issuerID = in->IssuerID();
     api_.Storage().Store(nymID.str(), in->Serialize());
-    auto message = opentxs::network::zeromq::Message::Factory(nymID.str());
+    auto message = issuer_publisher_->Context().Message(nymID.str());
     message->AddFrame(issuerID.str());
-    issuer_publisher_->Publish(message);
+    issuer_publisher_->Send(message);
 }
 
 #if OT_CASH
@@ -2096,7 +2096,7 @@ ConstServerContract Wallet::Server(
                 }
             }
         } else {
-            dht_server_requester_->SendRequest(server);
+            dht_server_requester_->Send(server);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -2378,7 +2378,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
                 }
             }
         } else {
-            dht_unit_requester_->SendRequest(unit);
+            dht_unit_requester_->Send(unit);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -2434,7 +2434,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 {
     const std::string unit = contract.id();
     const auto nymID = identifier::Nym::Factory(contract.nymid());
-    find_nym_->Push(nymID->str());
+    find_nym_->Send(nymID->str());
     auto nym = Nym(nymID, reason);
 
     if (!nym && contract.has_publicnym()) {
