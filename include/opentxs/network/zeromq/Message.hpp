@@ -50,6 +50,7 @@ public:
 
     EXPORT virtual Frame& AddFrame() = 0;
     EXPORT virtual Frame& AddFrame(const ProtobufType& input) = 0;
+#ifndef SWIG
     template <
         typename Input,
         std::enable_if_t<
@@ -74,6 +75,7 @@ public:
     {
         return AddFrame(input.get());
     }
+#endif
     EXPORT virtual Frame& AddFrame(
         const void* input,
         const std::size_t size) = 0;
