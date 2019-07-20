@@ -88,7 +88,7 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/network/zeromq/FrameSection.hpp"
 %include "../../include/opentxs/network/zeromq/Message.hpp"
 %include "../../include/opentxs/network/zeromq/socket/Socket.hpp"
-%include "../../include/opentxs/network/zeromq/socket/Send.hpp"
+%include "../../include/opentxs/network/zeromq/socket/Sender.hpp"
 %include "../../include/opentxs/network/zeromq/socket/Publish.hpp"
 %include "../../include/opentxs/network/zeromq/ListenCallbackSwig.hpp"
 %include "../../include/opentxs/network/zeromq/ListenCallback.hpp"

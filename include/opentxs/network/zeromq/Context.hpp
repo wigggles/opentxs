@@ -66,6 +66,7 @@ public:
         const ProtobufType& input) const noexcept = 0;
     EXPORT virtual Pimpl<network::zeromq::Message> Message(
         const network::zeromq::Message& input) const noexcept = 0;
+#ifndef SWIG
     template <
         typename Input,
         std::enable_if_t<
@@ -93,6 +94,7 @@ public:
     {
         return Message(input.get());
     }
+#endif
     EXPORT virtual Pimpl<network::zeromq::Message> Message(
         const void* input,
         const std::size_t size) const noexcept = 0;

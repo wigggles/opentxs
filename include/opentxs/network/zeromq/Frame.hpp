@@ -40,6 +40,7 @@ class Frame
 public:
     EXPORT virtual operator std::string() const = 0;
 
+#ifndef SWIG
     template <
         typename Output,
         std::enable_if_t<std::is_trivially_copyable<Output>::value, int> = 0>
@@ -54,6 +55,8 @@ public:
 
         return output;
     }
+#endif
+
     EXPORT virtual const void* data() const = 0;
     EXPORT virtual std::size_t size() const = 0;
 
