@@ -6,6 +6,8 @@
 #ifndef OPENTXS_UI_ACTIVITYSUMMARY_HPP
 #define OPENTXS_UI_ACTIVITYSUMMARY_HPP
 
+#ifndef Q_MOC_RUN
+
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/List.hpp"
@@ -44,10 +46,15 @@ private:
     ActivitySummary& operator=(const ActivitySummary&) = delete;
     ActivitySummary& operator=(ActivitySummary&&) = delete;
 };
+}  // namespace ui
+}  // namespace opentxs
+#endif
 
-#if OT_QT
-class ActivitySummaryQt : public QAbstractItemModel
+#if OT_QT || defined(Q_MOC_RUN)
+class opentxs::ui::ActivitySummaryQt : public QAbstractItemModel
 {
+    Q_OBJECT
+
 public:
     using ConstructorCallback = std::function<implementation::ActivitySummary*(
         RowCallbacks insert,
@@ -82,8 +89,6 @@ signals:
     void updated() const;
 
 private:
-    Q_OBJECT
-
     std::unique_ptr<implementation::ActivitySummary> parent_;
 
     void notify() const;
@@ -99,6 +104,4 @@ private:
     ActivitySummaryQt& operator=(ActivitySummaryQt&&) = delete;
 };
 #endif
-}  // namespace ui
-}  // namespace opentxs
 #endif

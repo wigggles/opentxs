@@ -13,9 +13,17 @@
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
+
+
+#ifndef Q_MOC_RUN
+
+#include <QtCore/QObject>
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QDateTime>
 #include <QtQml/QQmlEngine>
+
+#endif
+
 #pragma GCC diagnostic pop
 #endif
 #endif

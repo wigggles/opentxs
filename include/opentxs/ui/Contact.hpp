@@ -6,6 +6,8 @@
 #ifndef OPENTXS_UI_CONTACT_HPP
 #define OPENTXS_UI_CONTACT_HPP
 
+#ifndef Q_MOC_RUN
+
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/List.hpp"
@@ -50,10 +52,15 @@ private:
     Contact& operator=(const Contact&) = delete;
     Contact& operator=(Contact&&) = delete;
 };
+}  // namespace ui
+}  // namespace opentxs
+#endif
 
-#if OT_QT
-class ContactQt : public QAbstractItemModel
+#if OT_QT || defined(Q_MOC_RUN)
+class opentxs::ui::ContactQt : public QAbstractItemModel
 {
+    Q_OBJECT
+
 public:
     using ConstructorCallback = std::function<
         implementation::Contact*(RowCallbacks insert, RowCallbacks remove)>;
@@ -84,7 +91,6 @@ signals:
     void updated() const;
 
 private:
-    Q_OBJECT
     Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
     Q_PROPERTY(QString contactID READ contactID NOTIFY updated)
     Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
@@ -104,6 +110,4 @@ private:
     ContactQt& operator=(ContactQt&&) = delete;
 };
 #endif
-}  // namespace ui
-}  // namespace opentxs
 #endif
