@@ -6,6 +6,8 @@
 #ifndef OPENTXS_UI_ACCOUNTLIST_HPP
 #define OPENTXS_UI_ACCOUNTLIST_HPP
 
+#ifndef Q_MOC_RUN
+
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/List.hpp"
@@ -44,10 +46,15 @@ private:
     AccountList& operator=(const AccountList&) = delete;
     AccountList& operator=(AccountList&&) = delete;
 };
+}  // namespace ui
+}  // namespace opentxs
+#endif
 
-#if OT_QT
-class AccountListQt : public QAbstractItemModel
+#if OT_QT || defined(Q_MOC_RUN)
+class opentxs::ui::AccountListQt : public QAbstractItemModel
 {
+    Q_OBJECT
+
 public:
     using ConstructorCallback = std::function<
         implementation::AccountList*(RowCallbacks insert, RowCallbacks remove)>;
@@ -85,8 +92,6 @@ signals:
     void updated() const;
 
 private:
-    Q_OBJECT
-
     std::unique_ptr<implementation::AccountList> parent_;
 
     void notify() const;
@@ -102,6 +107,4 @@ private:
     AccountListQt& operator=(AccountListQt&&) = delete;
 };
 #endif
-}  // namespace ui
-}  // namespace opentxs
 #endif

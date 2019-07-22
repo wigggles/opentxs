@@ -346,7 +346,7 @@ if(OT_SHARED)
   endif()
 
   if(OT_WITH_QT)
-     target_link_libraries(${MODULE_NAME} PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5Core_LIBRARIES})
+     target_link_libraries(${MODULE_NAME} PRIVATE ${Qt5Qml_LIBRARIES}  ${Qt5Widgets_LIBRARIES} ${Qt5Core_LIBRARIES})
   endif()
 
   install(TARGETS ${MODULE_NAME}
@@ -418,7 +418,7 @@ if(OT_STATIC)
   endif()
 
   if(OT_WITH_QT)
-     target_link_libraries(${MODULE_NAME}_static PRIVATE ${Qt5Widgets_LIBRARIES} ${Qt5Core_LIBRARIES})
+     target_link_libraries(${MODULE_NAME}_static PRIVATE ${Qt5Qml_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Core_LIBRARIES})
   endif()
 
   install(TARGETS ${MODULE_NAME}_static

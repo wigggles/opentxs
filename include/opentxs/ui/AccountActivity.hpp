@@ -6,6 +6,8 @@
 #ifndef OPENTXS_UI_ACCOUNTACTIVITY_HPP
 #define OPENTXS_UI_ACCOUNTACTIVITY_HPP
 
+#ifndef Q_MOC_RUN
+
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/List.hpp"
@@ -47,10 +49,15 @@ private:
     AccountActivity& operator=(const AccountActivity&) = delete;
     AccountActivity& operator=(AccountActivity&&) = delete;
 };
+}  // namespace ui
+}  // namespace opentxs
+#endif
 
-#if OT_QT
-class AccountActivityQt : public QAbstractItemModel
+#if OT_QT || defined(Q_MOC_RUN)
+class opentxs::ui::AccountActivityQt : public QAbstractItemModel
 {
+    Q_OBJECT
+    
 public:
     using ConstructorCallback = std::function<implementation::AccountActivity*(
         RowCallbacks insert,
@@ -91,7 +98,6 @@ signals:
     void updated() const;
 
 private:
-    Q_OBJECT
     Q_PROPERTY(int balancePolarity READ balancePolarity NOTIFY updated)
     Q_PROPERTY(QString displayBalance READ displayBalance NOTIFY updated)
 
@@ -110,6 +116,4 @@ private:
     AccountActivityQt& operator=(AccountActivityQt&&) = delete;
 };
 #endif
-}  // namespace ui
-}  // namespace opentxs
 #endif

@@ -7,6 +7,7 @@ if(OT_WITH_QT)
   add_definitions(${Qt5Core_DEFINITIONS})
   add_definitions(${Qt5Gui_DEFINITIONS})
   add_definitions(${Qt5Widgets_DEFINITIONS})
+  add_definitions(${Qt5Qml_DEFINITIONS})
 endif()
 
 set(cxx-sources
@@ -42,20 +43,25 @@ set(cxx-sources
   Widget.cpp
 )
 
-set(cxx-install-headers
+set(ot-qobject-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountActivity.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummary.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummary.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivityThread.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Contact.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Profile.hpp"
+)
+
+set(cxx-install-headers
+  ${ot-qobject-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountListItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummaryItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivityThreadItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/BalanceItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Contact.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactListItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactSection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactSubsection.hpp"
@@ -65,7 +71,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/MessagableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/PayableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/PayableListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Profile.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileSection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileSubsection.hpp"
@@ -122,7 +127,7 @@ set(cxx-headers
 )
 
 if(OT_WITH_QT)
-  QT5_WRAP_CPP( MOC_SRCS ${cxx-headers} )
+  QT5_WRAP_CPP( MOC_SRCS ${ot-qobject-install-headers} )
 else()
   set(MOC_SRCS "")
 endif()
