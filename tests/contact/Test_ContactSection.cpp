@@ -38,7 +38,8 @@ public:
               std::string("activeContactItemValue"),
               {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
               NULL_START,
-              NULL_END))
+              NULL_END,
+              ""))
     {
     }
 
@@ -168,7 +169,8 @@ TEST_F(Test_ContactSection, operator_plus)
             std::string("activeContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const opentxs::ContactSection section2(
         api_,
         "testContactSectionNym2",
@@ -199,7 +201,8 @@ TEST_F(Test_ContactSection, operator_plus)
             std::string("activeContactItemValue3"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const std::shared_ptr<opentxs::ContactItem> contactItem4(
         new opentxs::ContactItem(
             api_,
@@ -211,7 +214,8 @@ TEST_F(Test_ContactSection, operator_plus)
             std::string("activeContactItemValue4"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const opentxs::ContactSection section4(
         api_,
         "testContactSectionNym4",
@@ -270,7 +274,8 @@ TEST_F(Test_ContactSection, AddItem)
             std::string("scopeContactItemValue"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_LOCAL},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const opentxs::ContactSection section1(
         api_,
         "testContactSectionNym2",
@@ -306,7 +311,8 @@ TEST_F(Test_ContactSection, AddItem)
             std::string("activeContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section5 = section4.AddItem(contactItem2);
     // Verify there are two items.
     ASSERT_EQ(1, section5.Size());
@@ -327,7 +333,8 @@ TEST_F(Test_ContactSection, AddItem)
             std::string("activeContactItemValue3"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section6 = section5.AddItem(contactItem3);
     // Verify there are two groups.
     ASSERT_EQ(2, section6.Size());
@@ -351,7 +358,8 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
             std::string("scopeContactItemValue"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_LOCAL},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const opentxs::ContactSection section1(
         api_,
         "testContactSectionNym2",
@@ -383,7 +391,8 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
             std::string("contactItem2Value"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_LOCAL},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const opentxs::ContactSection section3(
         api_,
         "testContactSectionNym3",
@@ -441,7 +450,8 @@ TEST_F(Test_ContactSection, Claim_found)
             std::string("activeContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section2 = section1.AddItem(contactItem2);
     const std::shared_ptr<opentxs::ContactItem>& claim2 =
         section2.Claim(contactItem2->ID());
@@ -505,7 +515,8 @@ TEST_F(Test_ContactSection, HaveClaim_true)
             std::string("activeContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section2 = section1.AddItem(contactItem2);
     ASSERT_TRUE(section2.HaveClaim(contactItem2->ID()));
 }
@@ -532,7 +543,8 @@ TEST_F(Test_ContactSection, Delete)
             std::string("activeContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section2 = section1.AddItem(contactItem2);
     ASSERT_EQ(
         2,
@@ -566,7 +578,8 @@ TEST_F(Test_ContactSection, Delete)
             std::string("activeContactItemValue3"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section5 = section4.AddItem(contactItem3);
     // Verify the section has two groups.
     ASSERT_EQ(2, section5.Size());
@@ -643,7 +656,8 @@ TEST_F(Test_ContactSection, Size)
             std::string("activeContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section2 = section1.AddItem(contactItem2);
     // Verify the size is the same.
     ASSERT_EQ(1, section2.Size());
@@ -660,7 +674,8 @@ TEST_F(Test_ContactSection, Size)
             std::string("activeContactItemValue3"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& section3 = section2.AddItem(contactItem3);
     // Verify the size is now two.
     ASSERT_EQ(2, section3.Size());

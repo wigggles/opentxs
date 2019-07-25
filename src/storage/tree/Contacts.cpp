@@ -5,15 +5,13 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+
 #include "Contacts.hpp"
 
 #include "storage/Plugin.hpp"
 
 #include <set>
-
-#define CURRENT_VERSION 2
-#define NYM_INDEX_VERSION 1
-#define MERGE_VERSION 1
 
 #define OT_METHOD "opentxs::storage::Contacts::"
 
@@ -28,7 +26,7 @@ Contacts::Contacts(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        blank(CURRENT_VERSION);
+        blank(CurrentVersion);
     }
 }
 
@@ -52,8 +50,10 @@ std::string Contacts::Alias(const std::string& id) const
 
 bool Contacts::Delete(const std::string& id) { return delete_item(id); }
 
-void Contacts::extract_addresses(const Lock& lock, const proto::Contact& data)
-    const
+void Contacts::extract_addresses(
+    const Lock& lock,
+    const proto::Contact& data,
+    std::map<OTData, OTIdentifier>& changed) const
 {
     const auto& contact = data.id();
     const auto& version = data.version();
@@ -66,19 +66,45 @@ void Contacts::extract_addresses(const Lock& lock, const proto::Contact& data)
 
     if (false == data.has_contactdata()) { return; }
 
+    auto previous = address_reverse_index_[contact];
+    auto updated = std::set<Address>{};
+
     for (const auto& section : data.contactdata().section()) {
-        if (section.name() != proto::CONTACTSECTION_ADDRESS) { break; }
+        if (section.name() != proto::CONTACTSECTION_ADDRESS) { continue; }
 
         for (const auto& item : section.item()) {
             const auto& type = item.type();
             const bool validChain = proto::ValidContactItemType(
                 {version, proto::CONTACTSECTION_CONTRACT}, type);
 
-            if (false == validChain) { break; }
+            if (false == validChain) { continue; }
 
             const auto& address = item.value();
-            address_index_[{type, address}] = contact;
+            updated.emplace(Address{type, address});
         }
+
+        break;
+    }
+
+    for (const auto& address : updated) {
+        if (0 < previous.count(address)) {
+            previous.erase(address);
+        } else {
+            changed.emplace(
+                Data::Factory(address.second, Data::Mode::Hex),
+                Identifier::Factory(contact));
+        }
+
+        address_index_[address] = contact;
+        address_reverse_index_[contact].emplace(address);
+    }
+
+    for (const auto& address : previous) {
+        changed.emplace(
+            Data::Factory(address.second, Data::Mode::Hex),
+            Identifier::Factory());
+        address_index_.erase(address);
+        address_reverse_index_[contact].erase(address);
     }
 }
 
@@ -117,7 +143,7 @@ void Contacts::init(const std::string& hash)
         abort();
     }
 
-    init_version(CURRENT_VERSION, *serialized);
+    init_version(CurrentVersion, *serialized);
 
     for (const auto& parent : serialized->merge()) {
         auto& list = merge_[parent.id()];
@@ -138,6 +164,7 @@ void Contacts::init(const std::string& hash)
 
         for (const auto& address : index.address()) {
             address_index_[{type, address}] = contact;
+            address_reverse_index_[contact].emplace(Address{type, address});
         }
     }
 
@@ -169,18 +196,8 @@ bool Contacts::Load(
     const bool checking) const
 {
     const auto& normalized = nomalize_id(id);
-    const bool loaded =
-        load_proto<proto::Contact>(normalized, output, alias, checking);
 
-    if (loaded) {
-        OT_ASSERT(output);
-
-        Lock lock(write_lock_);
-        extract_addresses(lock, *output);
-        extract_nyms(lock, *output);
-    }
-
-    return loaded;
+    return load_proto<proto::Contact>(normalized, output, alias, checking);
 }
 
 const std::string& Contacts::nomalize_id(const std::string& input) const
@@ -278,7 +295,7 @@ proto::StorageContacts Contacts::serialize() const
         const auto& parentID = parent.first;
         const auto& list = parent.second;
         auto& item = *serialized.add_merge();
-        item.set_version(MERGE_VERSION);
+        item.set_version(MergeIndexVersion);
         item.set_id(parentID);
 
         for (const auto& child : list) { item.add_list(child); }
@@ -313,7 +330,7 @@ proto::StorageContacts Contacts::serialize() const
         const auto& type = it.first.second;
         const auto& addressList = it.second;
         auto& index = *serialized.add_address();
-        index.set_version(CURRENT_VERSION);
+        index.set_version(AddressIndexVersion);
         index.set_contact(contact);
         index.set_chain(type);
 
@@ -333,7 +350,7 @@ proto::StorageContacts Contacts::serialize() const
         const auto& contact = it.first;
         const auto& nymList = it.second;
         auto& index = *serialized.add_nym();
-        index.set_version(NYM_INDEX_VERSION);
+        index.set_version(NymIndexVersion);
         index.set_contact(contact);
 
         for (const auto& nym : nymList) { index.add_nym(nym); }
@@ -349,7 +366,10 @@ bool Contacts::SetAlias(const std::string& id, const std::string& alias)
     return set_alias(normalized, alias);
 }
 
-bool Contacts::Store(const proto::Contact& data, const std::string& alias)
+bool Contacts::Store(
+    const proto::Contact& data,
+    const std::string& alias,
+    std::map<OTData, OTIdentifier>& changed)
 {
     if (false == proto::Validate(data, VERBOSE)) { return false; }
 
@@ -384,7 +404,7 @@ bool Contacts::Store(const proto::Contact& data, const std::string& alias)
     }
 
     reconcile_maps(lock, data);
-    extract_addresses(lock, data);
+    extract_addresses(lock, data, changed);
     extract_nyms(lock, data);
 
     return save(lock);

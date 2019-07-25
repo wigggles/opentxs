@@ -20,10 +20,11 @@
 #include "PeerRequests.hpp"
 #include "Thread.hpp"
 #include "Threads.hpp"
+#include "Txos.hpp"
 
 #include <functional>
 
-#define CURRENT_VERSION 8
+#define CURRENT_VERSION 9
 #define BLOCKCHAIN_INDEX_VERSION 1
 #define STORAGE_PURSE_VERSION 1
 
@@ -112,6 +113,7 @@ Nym::Nym(
     , contexts_root_(Node::BLANK_HASH)
     , blockchain_lock_()
     , blockchain_account_types_()
+    , blockchain_account_index_()
     , blockchain_accounts_()
     , issuers_root_(Node::BLANK_HASH)
     , issuers_lock_()
@@ -120,6 +122,9 @@ Nym::Nym(
     , workflows_lock_()
     , workflows_(nullptr)
     , purse_id_()
+    , txo_lock_{}
+    , txo_{nullptr}
+    , txo_root_{Node::BLANK_HASH}
 {
     if (check_hash(hash)) {
         init(hash);
@@ -147,6 +152,20 @@ std::set<std::string> Nym::BlockchainAccountList(
     if (blockchain_account_types_.end() == it) { return {}; }
 
     return it->second;
+}
+
+proto::ContactItemType Nym::BlockchainAccountType(
+    const std::string& accountID) const
+{
+    Lock lock(blockchain_lock_);
+
+    try {
+
+        return blockchain_account_index_.at(accountID);
+    } catch (...) {
+
+        return proto::CITEMTYPE_ERROR;
+    }
 }
 
 template <typename T, typename... Args>
@@ -305,13 +324,14 @@ void Nym::init(const std::string& hash)
 
         for (const auto& accountID : it.list()) {
             accountSet.emplace(accountID);
+            blockchain_account_index_.emplace(accountID, id);
         }
     }
 
-    for (const auto& account : serialized->blockchainaccount()) {
+    for (const auto& account : serialized->hdaccount()) {
         const auto& id = account.id();
         blockchain_accounts_.emplace(
-            id, std::make_shared<proto::Bip44Account>(account));
+            id, std::make_shared<proto::HDAccount>(account));
     }
 
     // Fields added in version 5
@@ -331,6 +351,9 @@ void Nym::init(const std::string& hash)
         PurseID id{std::move(server), std::move(unit)};
         purse_id_.emplace(std::move(id), hash);
     }
+
+    // Fields added in version 9
+    txo_root_ = normalize_hash(serialized->txo().hash());
 }
 
 storage::Issuers* Nym::issuers() const
@@ -342,7 +365,7 @@ const storage::Issuers& Nym::Issuers() const { return *issuers(); }
 
 bool Nym::Load(
     const std::string& id,
-    std::shared_ptr<proto::Bip44Account>& output,
+    std::shared_ptr<proto::HDAccount>& output,
     const bool checking) const
 {
     Lock lock(blockchain_lock_);
@@ -449,6 +472,7 @@ bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
     output &= issuers()->Migrate(to);
     output &= workflows()->Migrate(to);
     output &= bip47()->Migrate(to);
+    output &= txos()->Migrate(to);
     output &= migrate(root_, to);
 
     return output;
@@ -556,6 +580,11 @@ Editor<storage::PaymentWorkflows> Nym::mutable_PaymentWorkflows()
         workflows_root_, workflows_lock_, &Nym::workflows);
 }
 
+Editor<storage::Txos> Nym::mutable_TXOs()
+{
+    return editor<storage::Txos>(txo_root_, txo_lock_, &Nym::txos);
+}
+
 const storage::PaymentWorkflows& Nym::PaymentWorkflows() const
 {
     return *workflows();
@@ -625,14 +654,6 @@ void Nym::_save(
         OT_FAIL;
     }
 }
-
-storage::Threads* Nym::threads() const
-{
-    return construct<storage::Threads>(
-        threads_lock_, threads_, threads_root_, *mail_inbox(), *mail_outbox());
-}
-
-const storage::Threads& Nym::Threads() const { return *threads(); }
 
 PeerReplies* Nym::sent_reply_box() const
 {
@@ -718,7 +739,7 @@ proto::StorageNym Nym::serialize() const
         OT_ASSERT(it.second);
 
         const auto& account = *it.second;
-        *serialized.add_blockchainaccount() = account;
+        *serialized.add_hdaccount() = account;
     }
 
     serialized.set_issuers(issuers_root_);
@@ -734,6 +755,8 @@ proto::StorageNym Nym::serialize() const
         set_hash(purse.version(), unit->str(), hash, *purse.mutable_purse());
     }
 
+    set_hash(version_, nymid_, txo_root_, *serialized.mutable_txo());
+
     return serialized;
 }
 
@@ -746,9 +769,7 @@ bool Nym::SetAlias(const std::string& alias)
     return true;
 }
 
-bool Nym::Store(
-    const proto::ContactItemType type,
-    const proto::Bip44Account& data)
+bool Nym::Store(const proto::ContactItemType type, const proto::HDAccount& data)
 {
     const auto& accountID = data.id();
 
@@ -771,7 +792,7 @@ bool Nym::Store(
 
     if (blockchain_accounts_.end() == accountItem) {
         blockchain_accounts_[accountID] =
-            std::make_shared<proto::Bip44Account>(data);
+            std::make_shared<proto::HDAccount>(data);
     } else {
         auto& existing = accountItem->second;
 
@@ -780,11 +801,12 @@ bool Nym::Store(
                 ": Not saving object with older revision.")
                 .Flush();
         } else {
-            existing = std::make_shared<proto::Bip44Account>(data);
+            existing = std::make_shared<proto::HDAccount>(data);
         }
     }
 
     blockchain_account_types_[type].insert(accountID);
+    blockchain_account_index_.emplace(accountID, type);
     blockchainLock.unlock();
 
     return save(writeLock);
@@ -856,11 +878,26 @@ bool Nym::Store(const proto::Purse& purse)
     return output;
 }
 
+storage::Threads* Nym::threads() const
+{
+    return construct<storage::Threads>(
+        threads_lock_, threads_, threads_root_, *mail_inbox(), *mail_outbox());
+}
+
+const storage::Threads& Nym::Threads() const { return *threads(); }
+
+storage::Txos* Nym::txos() const
+{
+    return construct<storage::Txos>(txo_lock_, txo_, txo_root_);
+}
+
+const storage::Txos& Nym::TXOs() const { return *txos(); }
+
 storage::PaymentWorkflows* Nym::workflows() const
 {
     return construct<storage::PaymentWorkflows>(
         workflows_lock_, workflows_, workflows_root_);
 }
 
-Nym::~Nym() {}
+Nym::~Nym() = default;
 }  // namespace opentxs::storage

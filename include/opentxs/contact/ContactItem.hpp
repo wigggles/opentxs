@@ -34,7 +34,8 @@ public:
         const std::string& value,
         const std::set<proto::ContactItemAttribute>& attributes,
         const std::time_t start,
-        const std::time_t end);
+        const std::time_t end,
+        const std::string subtype);
     ContactItem(
         const api::Core& api,
         const std::string& nym,
@@ -68,6 +69,7 @@ public:
     ContactItem SetStart(const std::time_t start) const;
     ContactItem SetValue(const std::string& value) const;
     const std::time_t& Start() const;
+    const std::string& Subtype() const;
     const proto::ContactItemType& Type() const;
     const std::string& Value() const;
     VersionNumber Version() const;
@@ -85,6 +87,7 @@ private:
     const std::time_t end_{0};
     const std::set<proto::ContactItemAttribute> attributes_{};
     const OTIdentifier id_;
+    const std::string subtype_;
 
     static VersionNumber check_version(
         const VersionNumber in,

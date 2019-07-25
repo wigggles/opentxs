@@ -31,6 +31,22 @@ namespace api
 {
 namespace client
 {
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+namespace blockchain
+{
+namespace internal
+{
+struct BalanceList;
+struct BalanceNode;
+struct BalanceTree;
+struct Deterministic;
+struct HD;
+struct Imported;
+struct PaymentCode;
+}  // namespace internal
+}  // namespace blockchain
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
 namespace implementation
 {
 class UI;
@@ -39,6 +55,7 @@ class UI;
 namespace internal
 {
 struct Activity;
+struct Blockchain;
 struct Contacts;
 struct Manager;
 }  // namespace internal
@@ -213,6 +230,7 @@ class Servers;
 class Thread;
 class Threads;
 class Tree;
+class Txos;
 class Units;
 }  // namespace storage
 
@@ -444,19 +462,6 @@ class StorageConfig;
 class TrezorCrypto;
 #endif
 
-template <typename T>
-struct make_blank {
-    static T value() { return T{}; }
-};
-
-template <typename I>
-int polarity(const I value)
-{
-    if (0 == value) { return 0; }
-
-    return (0 < value) ? 1 : -1;
-}
-
 template <typename I>
 struct HDIndex {
     Bip32Index value_{};
@@ -473,6 +478,32 @@ struct HDIndex {
     {
     }
 };
+
+template <typename T>
+struct make_blank {
+    static T value() { return T{}; }
+};
+
+template <typename I>
+int polarity(const I value)
+{
+    if (0 == value) { return 0; }
+
+    return (0 < value) ? 1 : -1;
+}
+
+template <typename Key, typename Value>
+std::map<Value, Key> reverse_map(const std::map<Key, Value>& map) noexcept
+{
+    std::map<Value, Key> output{};
+
+    for (const auto& [key, value] : map) { output.emplace(value, key); }
+
+    return output;
+}
+
+proto::ContactItemType Translate(const blockchain::Type type) noexcept;
+blockchain::Type Translate(const proto::ContactItemType type) noexcept;
 }  // namespace opentxs
 
 #include "Factory.hpp"

@@ -32,7 +32,8 @@ public:
               std::string("activeContactItemValue"),
               {opentxs::proto::CITEMATTR_ACTIVE},
               NULL_START,
-              NULL_END))
+              NULL_END,
+              ""))
     {
     }
 
@@ -117,7 +118,8 @@ void Test_ContactData::testAddItemMethod(
             opentxs::proto::CITEMTYPE_BCH,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID1")));
+            "instrumentDefinitionID1",
+            "")));
     const auto& contactItem1 = data2.Claim(identifier1);
     ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
@@ -139,7 +141,8 @@ void Test_ContactData::testAddItemMethod(
             opentxs::proto::CITEMTYPE_BCH,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID2")));
+            "instrumentDefinitionID2",
+            "")));
     const auto& contactItem2 = data3.Claim(identifier2);
     ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
@@ -163,7 +166,8 @@ void Test_ContactData::testAddItemMethod(
             opentxs::proto::CITEMTYPE_EUR,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID3")));
+            "instrumentDefinitionID3",
+            "")));
     const auto& contactItem3 = data4.Claim(identifier3);
     ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
@@ -187,7 +191,8 @@ void Test_ContactData::testAddItemMethod(
             opentxs::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID4")));
+            "instrumentDefinitionID4",
+            "")));
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
     ASSERT_TRUE(contactItem4->isActive());
@@ -209,7 +214,8 @@ void Test_ContactData::testAddItemMethod(
             opentxs::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID5")));
+            "instrumentDefinitionID5",
+            "")));
     const auto& contactItem5 = data6.Claim(identifier5);
     ASSERT_NE(nullptr, contactItem5);
     ASSERT_TRUE(contactItem5->isPrimary());
@@ -262,7 +268,8 @@ void Test_ContactData::testAddItemMethod2(
             itemType,
             NULL_START,
             NULL_END,
-            "contactValue1")));
+            "contactValue1",
+            "")));
     const auto& contactItem1 = data2.Claim(identifier1);
     ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
@@ -279,7 +286,8 @@ void Test_ContactData::testAddItemMethod2(
             itemType,
             NULL_START,
             NULL_END,
-            "contactValue2")));
+            "contactValue2",
+            "")));
     const auto& contactItem2 = data3.Claim(identifier2);
     ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
@@ -314,7 +322,8 @@ void Test_ContactData::testAddItemMethod2(
             itemType,
             NULL_START,
             NULL_END,
-            "contactValue3")));
+            "contactValue3",
+            "")));
     const auto& contactItem3 = data5.Claim(identifier3);
     ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
@@ -331,7 +340,8 @@ void Test_ContactData::testAddItemMethod2(
             itemType,
             NULL_START,
             NULL_END,
-            "contactValue4")));
+            "contactValue4",
+            "")));
     const auto& contactItem4 = data6.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
     ASSERT_TRUE(contactItem4->isActive());
@@ -515,7 +525,8 @@ TEST_F(Test_ContactData, operator_plus)
             std::string("contactItemValue2"),
             {opentxs::proto::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
 
     const auto& group2 =
         std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
@@ -574,7 +585,8 @@ TEST_F(Test_ContactData, operator_plus)
             std::string("contactItemValue4"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
 
     const auto& group4 =
         std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
@@ -861,7 +873,8 @@ TEST_F(Test_ContactData, AddItem_item)
             std::string("contactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& data2 = data1.AddItem(contactItem2);
     // Verify the item was added.
     ASSERT_TRUE(data2.HaveClaim(
@@ -916,7 +929,8 @@ TEST_F(Test_ContactData, AddItem_item_different_versions)
             std::string("contactItemValue1"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
 
     const auto& data2 = data1.AddItem(contactItem1);
 
@@ -1012,7 +1026,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            std::string("serverID1"))));
+            std::string("serverID1"),
+            "")));
     const auto& data2 = data1.AddPreferredOTServer(serverIdentifier1, false);
 
     // Verify that the item was made primary.
@@ -1024,7 +1039,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier1)->Get())));
+            opentxs::String::Factory(serverIdentifier1)->Get(),
+            "")));
     const auto& contactItem1 = data2.Claim(identifier1);
     ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
@@ -1038,7 +1054,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            std::string("serverID2"))));
+            std::string("serverID2"),
+            "")));
     const auto& data3 = data2.AddPreferredOTServer(serverIdentifier2, false);
 
     // Verify that the item wasn't made primary.
@@ -1050,7 +1067,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier2)->Get())));
+            opentxs::String::Factory(serverIdentifier2)->Get(),
+            "")));
     const auto& contactItem2 = data3.Claim(identifier2);
     ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
@@ -1064,7 +1082,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            std::string("serverID3"))));
+            std::string("serverID3"),
+            "")));
     const auto& data4 =
         contactData_.AddPreferredOTServer(serverIdentifier3, false);
 
@@ -1083,7 +1102,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier3)->Get())));
+            opentxs::String::Factory(serverIdentifier3)->Get(),
+            "")));
     const auto& contactItem3 = data4.Claim(identifier3);
     ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
@@ -1097,7 +1117,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            std::string("serverID4"))));
+            std::string("serverID4"),
+            "")));
     const auto& data5 = data4.AddPreferredOTServer(serverIdentifier4, true);
 
     // Verify that the item was made primary.
@@ -1109,7 +1130,8 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier4)->Get())));
+            opentxs::String::Factory(serverIdentifier4)->Get(),
+            "")));
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
     ASSERT_TRUE(contactItem4->isPrimary());
@@ -1143,7 +1165,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_ABOUTME,
             NULL_START,
             NULL_END,
-            "profileValue1")));
+            "profileValue1",
+            "")));
     const auto& contactItem1 = data2.Claim(identifier1);
     ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
@@ -1160,7 +1183,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_ABOUTME,
             NULL_START,
             NULL_END,
-            "profileValue2")));
+            "profileValue2",
+            "")));
     const auto& contactItem2 = data3.Claim(identifier2);
     ASSERT_NE(nullptr, contactItem2);
     ASSERT_TRUE(contactItem2->isPrimary());
@@ -1177,7 +1201,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_ABOUTME,
             NULL_START,
             NULL_END,
-            "profileValue3")));
+            "profileValue3",
+            "")));
     const auto& contactItem3 = data4.Claim(identifier3);
     ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isActive());
@@ -1195,7 +1220,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_LINKEDIN,
             NULL_START,
             NULL_END,
-            "profileValue4")));
+            "profileValue4",
+            "")));
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
     // Verify that it was added to the communication section.
@@ -1207,7 +1233,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_LINKEDIN,
             NULL_START,
             NULL_END,
-            "profileValue4")));
+            "profileValue4",
+            "")));
     const auto& contactItem5 = data5.Claim(identifier5);
     ASSERT_NE(nullptr, contactItem5);
 
@@ -1224,7 +1251,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_YAHOO,
             NULL_START,
             NULL_END,
-            "profileValue5")));
+            "profileValue5",
+            "")));
     const auto& contactItem6 = data6.Claim(identifier6);
     ASSERT_NE(nullptr, contactItem6);
     // Verify that it was added to the identifier section.
@@ -1236,7 +1264,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_YAHOO,
             NULL_START,
             NULL_END,
-            "profileValue5")));
+            "profileValue5",
+            "")));
     const auto& contactItem7 = data6.Claim(identifier7);
     ASSERT_NE(nullptr, contactItem7);
 
@@ -1253,7 +1282,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_TWITTER,
             NULL_START,
             NULL_END,
-            "profileValue6")));
+            "profileValue6",
+            "")));
     const auto& contactItem8 = data7.Claim(identifier8);
     ASSERT_NE(nullptr, contactItem8);
     // Verify that it was added to the communication section.
@@ -1265,7 +1295,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_TWITTER,
             NULL_START,
             NULL_END,
-            "profileValue6")));
+            "profileValue6",
+            "")));
     const auto& contactItem9 = data7.Claim(identifier9);
     ASSERT_NE(nullptr, contactItem9);
     // Verify that it was added to the identifier section.
@@ -1277,7 +1308,8 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
             opentxs::proto::CITEMTYPE_TWITTER,
             NULL_START,
             NULL_END,
-            "profileValue6")));
+            "profileValue6",
+            "")));
     const auto& contactItem10 = data7.Claim(identifier10);
     ASSERT_NE(nullptr, contactItem10);
 }
@@ -1440,7 +1472,8 @@ TEST_F(Test_ContactData, Delete)
             std::string("contactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& data2 = data1.AddItem(contactItem2);
 
     const auto& data3 = data2.Delete(activeContactItem_->ID());
@@ -1628,7 +1661,8 @@ TEST_F(Test_ContactData, PreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            std::string("serverID2"))));
+            std::string("serverID2"),
+            "")));
     const auto& data2 =
         contactData_.AddPreferredOTServer(serverIdentifier2, true);
     const auto& preferredServer = data2.PreferredOTServer();
@@ -1657,7 +1691,8 @@ TEST_F(Test_ContactData, SetCommonName)
             opentxs::proto::CITEMTYPE_COMMONNAME,
             NULL_START,
             NULL_END,
-            std::string("commonName"))));
+            std::string("commonName"),
+            "")));
     const auto& commonNameItem = data1.Claim(identifier);
     ASSERT_NE(nullptr, commonNameItem);
     ASSERT_TRUE(commonNameItem->isPrimary());
@@ -1680,7 +1715,8 @@ TEST_F(Test_ContactData, SetName)
             opentxs::proto::CITEMTYPE_INDIVIDUAL,
             NULL_START,
             NULL_END,
-            std::string("secondName"))));
+            std::string("secondName"),
+            "")));
     const auto& scopeItem1 = data2.Claim(identifier1);
     ASSERT_NE(nullptr, scopeItem1);
     ASSERT_TRUE(scopeItem1->isPrimary());
@@ -1697,7 +1733,8 @@ TEST_F(Test_ContactData, SetName)
             opentxs::proto::CITEMTYPE_INDIVIDUAL,
             NULL_START,
             NULL_END,
-            std::string("thirdName"))));
+            std::string("thirdName"),
+            "")));
     const auto& contactItem2 = data3.Claim(identifier2);
     ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
@@ -1717,7 +1754,8 @@ TEST_F(Test_ContactData, SetScope)
             opentxs::proto::CITEMTYPE_ORGANIZATION,
             NULL_START,
             NULL_END,
-            std::string("organizationScope"))));
+            std::string("organizationScope"),
+            "")));
     const auto& scopeItem1 = data1.Claim(identifier1);
     ASSERT_NE(nullptr, scopeItem1);
     ASSERT_TRUE(scopeItem1->isPrimary());
@@ -1735,7 +1773,8 @@ TEST_F(Test_ContactData, SetScope)
             opentxs::proto::CITEMTYPE_BUSINESS,
             NULL_START,
             NULL_END,
-            std::string("businessScope"))));
+            std::string("businessScope"),
+            "")));
     ASSERT_FALSE(data2.Claim(identifier2));
     // Verify the scope wasn't changed.
     const auto& scopeItem2 = data2.Claim(identifier1);

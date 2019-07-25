@@ -31,7 +31,8 @@ public:
               std::string("primaryContactItemValue"),
               {opentxs::proto::ContactItemAttribute::CITEMATTR_PRIMARY},
               NULL_START,
-              NULL_END))
+              NULL_END,
+              ""))
         , active_(new opentxs::ContactItem(
               api_,
               std::string("activeContactItem"),
@@ -42,7 +43,8 @@ public:
               std::string("activeContactItemValue"),
               {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
               NULL_START,
-              NULL_END))
+              NULL_END,
+              ""))
     {
     }
 
@@ -68,7 +70,8 @@ TEST_F(Test_ContactGroup, first_constructor)
             std::string("primaryContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_PRIMARY},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
 
     opentxs::ContactGroup::ItemMap map;
     map[primary_->ID()] = primary_;
@@ -168,7 +171,8 @@ TEST_F(Test_ContactGroup, operator_plus)
             std::string("primaryContactItemValue2"),
             {opentxs::proto::ContactItemAttribute::CITEMATTR_PRIMARY},
             NULL_START,
-            NULL_END));
+            NULL_END,
+            ""));
     const auto& group4 = contactGroup_.AddItem(primary2);
     const auto& group5 = contactGroup_.AddItem(primary_);
     const auto& group6 = group5.AddItem(active_);
@@ -276,7 +280,8 @@ TEST_F(Test_ContactGroup, Best_active_and_local)
         std::string("localContactItemValue"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_LOCAL},
         NULL_START,
-        NULL_END));
+        NULL_END,
+        ""));
     const auto& group1 = contactGroup_.AddItem(active_);
     const auto& group2 = group1.AddItem(local);
 

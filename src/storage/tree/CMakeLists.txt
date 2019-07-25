@@ -24,6 +24,7 @@ set(cxx-sources
   Thread.cpp
   Threads.cpp
   Tree.cpp
+  Txos.cpp
   Units.cpp
 )
 
@@ -49,6 +50,7 @@ set(cxx-headers
   Thread.hpp
   Threads.hpp
   Tree.hpp
+  Txos.hpp
   Units.hpp
 )
 

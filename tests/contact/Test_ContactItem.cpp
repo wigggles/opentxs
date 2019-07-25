@@ -26,7 +26,8 @@ public:
               std::string("testValue"),
               {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
               NULL_START,
-              NULL_END)
+              NULL_END,
+              "")
     {
     }
 
@@ -48,7 +49,8 @@ TEST_F(Test_ContactItem, first_constructor)
         std::string("testValue"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
         opentxs::identity::credential::Contact::ClaimID(
@@ -58,7 +60,8 @@ TEST_F(Test_ContactItem, first_constructor)
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
             NULL_START,
             NULL_END,
-            "testValue")));
+            "testValue",
+            "")));
     ASSERT_EQ(identifier, contactItem1.ID());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
@@ -88,7 +91,8 @@ TEST_F(Test_ContactItem, first_constructor_different_versions)
         std::string("testValue"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
 }
 
@@ -116,7 +120,8 @@ TEST_F(Test_ContactItem, second_constructor)
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
             NULL_START,
             NULL_END,
-            "testValue")));
+            "testValue",
+            "")));
     ASSERT_EQ(identifier, contactItem1.ID());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
@@ -159,7 +164,8 @@ TEST_F(Test_ContactItem, third_constructor)
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
             NULL_START,
             NULL_END,
-            "testValue")));
+            "testValue",
+            "")));
     ASSERT_EQ(identifier, contactItem1.ID());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
@@ -211,7 +217,8 @@ TEST_F(Test_ContactItem, operator_equal_false)
         std::string("testValue2"),
         {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     // Can't use ASSERT_NE because there's no != operator defined for
     // ContactItem.
@@ -248,7 +255,8 @@ TEST_F(Test_ContactItem, public_accessors)
             opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
             NULL_START,
             NULL_END,
-            "testValue")));
+            "testValue",
+            "")));
     ASSERT_EQ(identifier, contactItem_.ID());
     ASSERT_EQ(
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,

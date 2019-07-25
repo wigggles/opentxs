@@ -14,6 +14,8 @@ namespace opentxs::crypto::key::implementation
 class EllipticCurve : virtual public key::EllipticCurve, public Asymmetric
 {
 public:
+    std::unique_ptr<key::EllipticCurve> asPublic(
+        const PasswordPrompt& reason) const final;
     OTData CalculateHash(
         const proto::HashType hashType,
         const PasswordPrompt& password) const override;
@@ -80,6 +82,7 @@ protected:
     static std::shared_ptr<proto::AsymmetricKey> serialize_public(
         EllipticCurve* copy);
 
+    virtual EllipticCurve* clone_ec() const = 0;
     virtual std::shared_ptr<proto::AsymmetricKey> get_public() const = 0;
     virtual void erase_private_data();
 

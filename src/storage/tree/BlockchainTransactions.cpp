@@ -5,11 +5,11 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/core/identifier/Nym.hpp"
+
 #include "BlockchainTransactions.hpp"
 
 #include "storage/Plugin.hpp"
-
-#define CURRENT_VERSION 1
 
 #define OT_METHOD "opentxs::storage::BlockchainTransactions::"
 
@@ -21,11 +21,12 @@ BlockchainTransactions::BlockchainTransactions(
     const opentxs::api::storage::Driver& storage,
     const std::string& hash)
     : Node(storage, hash)
+    , nym_index_()
 {
     if (check_hash(hash)) {
         init(hash);
     } else {
-        blank(CURRENT_VERSION);
+        blank(CurrentVersion);
     }
 }
 
@@ -36,7 +37,7 @@ bool BlockchainTransactions::Delete(const std::string& id)
 
 void BlockchainTransactions::init(const std::string& hash)
 {
-    std::shared_ptr<proto::StorageBlockchainTransactions> serialized{nullptr};
+    auto serialized = std::shared_ptr<SerializedType>{nullptr};
     driver_.LoadProto(hash, serialized);
 
     if (false == bool(serialized)) {
@@ -47,11 +48,21 @@ void BlockchainTransactions::init(const std::string& hash)
         abort();
     }
 
-    init_version(CURRENT_VERSION, *serialized);
+    init_version(CurrentVersion, *serialized);
 
     for (const auto& it : serialized->transaction()) {
         item_map_.emplace(
             it.itemid(), Metadata{it.hash(), it.alias(), 0, false});
+    }
+
+    // Added in version 2
+    for (const auto& index : serialized->nymindex()) {
+        const auto& txid = index.contact();
+        auto& set = nym_index_[txid];
+
+        for (const auto& nym : index.nym()) {
+            set.emplace(identifier::Nym::Factory(nym));
+        }
     }
 }
 
@@ -60,10 +71,24 @@ bool BlockchainTransactions::Load(
     std::shared_ptr<proto::BlockchainTransaction>& output,
     const bool checking) const
 {
-    std::string alias{};
+    auto alias = std::string{};
 
     return load_proto<proto::BlockchainTransaction>(
         id, output, alias, checking);
+}
+
+std::set<OTNymID> BlockchainTransactions::LookupNyms(
+    const std::string& txid) const
+{
+    Lock lock(write_lock_);
+
+    try {
+
+        return nym_index_.at(txid);
+    } catch (...) {
+
+        return {};
+    }
 }
 
 bool BlockchainTransactions::save(const Lock& lock) const
@@ -81,10 +106,10 @@ bool BlockchainTransactions::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-proto::StorageBlockchainTransactions BlockchainTransactions::serialize() const
+BlockchainTransactions::SerializedType BlockchainTransactions::serialize() const
 {
-    proto::StorageBlockchainTransactions serialized{};
-    serialized.set_version(version_);
+    auto output = SerializedType{};
+    output.set_version(version_);
 
     for (const auto item : item_map_) {
         const bool goodID = !item.first.empty();
@@ -93,22 +118,35 @@ proto::StorageBlockchainTransactions BlockchainTransactions::serialize() const
 
         if (good) {
             serialize_index(
-                version_,
-                item.first,
-                item.second,
-                *serialized.add_transaction());
+                version_, item.first, item.second, *output.add_transaction());
         }
     }
 
-    return serialized;
+    // Added in version 2
+    for (const auto& [txid, nyms] : nym_index_) {
+        auto& index = *output.add_nymindex();
+        index.set_version(NymIndexVersion);
+        index.set_contact(txid);
+
+        for (const auto& nym : nyms) { index.add_nym(nym->str()); }
+    }
+
+    return output;
 }
 
-bool BlockchainTransactions::Store(const proto::BlockchainTransaction& data)
+bool BlockchainTransactions::Store(
+    const identifier::Nym& nym,
+    const proto::BlockchainTransaction& data)
 {
-    std::string alias{};
-    std::string plaintext{};
+    auto alias = std::string{};
+    auto plaintext = std::string{};
 
-    return store_proto(data, data.txid(), alias, plaintext);
+    if (false == proto::Validate(data, VERBOSE)) { return false; }
+
+    Lock lock(write_lock_);
+    nym_index_[data.txid()].emplace(nym);
+
+    return store_proto(lock, data, data.txid(), alias, plaintext);
 }
 }  // namespace storage
 }  // namespace opentxs

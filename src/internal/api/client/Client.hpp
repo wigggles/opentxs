@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
@@ -32,6 +33,39 @@ struct Activity : virtual public api::client::Activity {
     virtual void MigrateLegacyThreads(const PasswordPrompt& reason) const = 0;
 
     virtual ~Activity() = default;
+};
+struct Blockchain : virtual public api::client::Blockchain {
+    struct TxoDB {
+        using Status = std::pair<blockchain::Coin, bool>;
+
+        virtual bool AddSpent(
+            const identifier::Nym& nym,
+            const blockchain::Coin txo,
+            const std::string txid) const noexcept = 0;
+        virtual bool AddUnspent(
+            const identifier::Nym& nym,
+            const blockchain::Coin txo,
+            const std::vector<OTData>& elements) const noexcept = 0;
+        virtual bool Claim(
+            const identifier::Nym& nym,
+            const blockchain::Coin txo) const noexcept = 0;
+        virtual std::vector<Status> Lookup(
+            const identifier::Nym& nym,
+            const Data& element) const noexcept = 0;
+    };
+
+    virtual const api::Core& API() const noexcept = 0;
+    virtual std::string CalculateAddress(
+        const opentxs::blockchain::Type chain,
+        const blockchain::AddressStyle format,
+        const Data& pubkey) const noexcept = 0;
+    virtual const api::client::Contacts& Contacts() const noexcept = 0;
+    virtual const TxoDB& DB() const noexcept = 0;
+    virtual OTData PubkeyHash(
+        const opentxs::blockchain::Type chain,
+        const Data& pubkey) const noexcept(false) = 0;
+
+    virtual ~Blockchain() = default;
 };
 struct Contacts : virtual public api::client::Contacts {
     virtual void start(const PasswordPrompt& reason) = 0;

@@ -90,8 +90,7 @@ PaymentItem::PaymentItem(
         case StorageBox::PROCESSEDPEERREPLY:
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::DRAFT:
         case StorageBox::UNKNOWN:
         default: {
@@ -124,8 +123,7 @@ bool PaymentItem::Deposit() const
         case StorageBox::PROCESSEDPEERREPLY:
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::DRAFT:
         case StorageBox::UNKNOWN:
         default: {
@@ -204,8 +202,7 @@ void PaymentItem::load()
         case StorageBox::PROCESSEDPEERREPLY:
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::DRAFT:
         case StorageBox::UNKNOWN:
         default: {

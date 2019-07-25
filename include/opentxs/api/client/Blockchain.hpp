@@ -24,52 +24,57 @@ namespace client
 class Blockchain
 {
 public:
-    virtual std::shared_ptr<proto::Bip44Account> Account(
+    using Chain = opentxs::blockchain::Type;
+    using Style = blockchain::AddressStyle;
+
+    /// Throws std::runtime_error if type is invalid
+    EXPORT virtual const blockchain::BalanceTree& Account(
         const identifier::Nym& nymID,
-        const Identifier& accountID) const = 0;
-    virtual std::set<OTIdentifier> AccountList(
+        const Chain chain) const noexcept(false) = 0;
+    EXPORT virtual std::set<OTIdentifier> AccountList(
         const identifier::Nym& nymID,
-        const proto::ContactItemType type) const = 0;
-    virtual std::unique_ptr<proto::Bip44Address> AllocateAddress(
-        const identifier::Nym& nymID,
-        const Identifier& accountID,
-        const PasswordPrompt& reason,
-        const std::string& label = "",
-        const BIP44Chain chain = EXTERNAL_CHAIN) const = 0;
-    virtual bool AssignAddress(
+        const Chain chain) const noexcept = 0;
+    EXPORT virtual bool AssignContact(
         const identifier::Nym& nymID,
         const Identifier& accountID,
+        const blockchain::Subchain subchain,
         const Bip32Index index,
-        const Identifier& contactID,
-        const BIP44Chain chain = EXTERNAL_CHAIN) const = 0;
-    virtual std::unique_ptr<proto::Bip44Address> LoadAddress(
+        const Identifier& label) const noexcept = 0;
+    EXPORT virtual bool AssignLabel(
         const identifier::Nym& nymID,
         const Identifier& accountID,
+        const blockchain::Subchain subchain,
         const Bip32Index index,
-        const BIP44Chain chain) const = 0;
-    virtual OTIdentifier NewAccount(
+        const std::string& label) const noexcept = 0;
+    EXPORT virtual std::tuple<OTData, Style, Chain> DecodeAddress(
+        const std::string& encoded) const noexcept = 0;
+    EXPORT virtual std::string EncodeAddress(
+        const Style style,
+        const Chain chain,
+        const Data& data) const noexcept = 0;
+    /// Throws std::out_of_range if the specified account does not exist
+    EXPORT virtual const blockchain::HD& HDSubaccount(
+        const identifier::Nym& nymID,
+        const Identifier& accountID) const noexcept(false) = 0;
+    EXPORT virtual OTIdentifier NewHDSubaccount(
         const identifier::Nym& nymID,
         const BlockchainAccountType standard,
-        const proto::ContactItemType type,
-        const PasswordPrompt& reason) const = 0;
-    virtual bool StoreIncoming(
+        const Chain chain,
+        const PasswordPrompt& reason) const noexcept = 0;
+    EXPORT virtual bool StoreTransaction(
         const identifier::Nym& nymID,
-        const Identifier& accountID,
-        const Bip32Index index,
-        const BIP44Chain chain,
-        const proto::BlockchainTransaction& transaction) const = 0;
-    virtual bool StoreOutgoing(
-        const identifier::Nym& senderNymID,
-        const Identifier& accountID,
-        const Identifier& recipientContactID,
-        const proto::BlockchainTransaction& transaction) const = 0;
-    virtual std::shared_ptr<proto::BlockchainTransaction> Transaction(
-        const std::string& id) const = 0;
+        const Chain chain,
+        const proto::BlockchainTransaction& transaction,
+        const PasswordPrompt& reason) const noexcept = 0;
+    EXPORT virtual std::shared_ptr<proto::BlockchainTransaction> Transaction(
+        const std::string& id) const noexcept = 0;
+    EXPORT virtual bool UpdateTransactions(
+        const std::map<OTData, OTIdentifier>& changed) const noexcept = 0;
 
-    virtual ~Blockchain() = default;
+    EXPORT virtual ~Blockchain() = default;
 
 protected:
-    Blockchain() = default;
+    Blockchain() noexcept = default;
 
 private:
     Blockchain(const Blockchain&) = delete;

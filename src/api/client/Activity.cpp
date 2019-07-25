@@ -78,12 +78,15 @@ void Activity::activity_preload_thread(
 bool Activity::AddBlockchainTransaction(
     const identifier::Nym& nymID,
     const Identifier& threadID,
-    const StorageBox box,
-    const proto::BlockchainTransaction& transaction) const
+    const std::string& txid,
+    const Time time) const
 {
     eLock lock(shared_lock_);
     const std::string sNymID = nymID.str();
     const std::string sthreadID = threadID.str();
+    const auto alias = std::string{};
+    const auto data = std::string{};
+    const auto account = std::string{};
     const auto threadList = api_.Storage().ThreadList(sNymID, false);
     bool threadExists = false;
 
@@ -101,7 +104,14 @@ bool Activity::AddBlockchainTransaction(
     }
 
     const bool saved = api_.Storage().Store(
-        sNymID, sthreadID, transaction.txid(), transaction.time(), {}, {}, box);
+        sNymID,
+        sthreadID,
+        txid,
+        Clock::to_time_t(time),
+        alias,
+        data,
+        StorageBox::BLOCKCHAIN,
+        account);
 
     if (saved) { publish(nymID, sthreadID); }
 
@@ -878,6 +888,14 @@ ObjectList Activity::Threads(
     }
 
     return output;
+}
+
+bool Activity::UnassignBlockchainTransaction(
+    const identifier::Nym& nymID,
+    const Identifier& fromThreadID,
+    const std::string& txid) const
+{
+    return api_.Storage().RemoveThreadItem(nymID, fromThreadID, txid);
 }
 
 std::size_t Activity::UnreadCount(const identifier::Nym& nymId) const

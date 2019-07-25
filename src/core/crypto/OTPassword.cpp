@@ -335,9 +335,18 @@ OTPassword::OTPassword()
 OTPassword& OTPassword::operator=(const OTPassword& rhs)
 {
     if (rhs.isPassword()) {
-        setPassword_uint8(rhs.getPassword_uint8(), rhs.getPasswordSize());
+        if (0 < rhs.getPasswordSize()) {
+            setPassword_uint8(rhs.getPassword_uint8(), rhs.getPasswordSize());
+        } else {
+            zeroMemory();
+            data_[0] = '\0';
+        }
     } else if (rhs.isMemory()) {
-        setMemory(rhs.getMemory_uint8(), rhs.getMemorySize());
+        if (0 < rhs.getMemorySize()) {
+            setMemory(rhs.getMemory_uint8(), rhs.getMemorySize());
+        } else {
+            zeroMemory();
+        }
     }
 
     return *this;
@@ -353,9 +362,14 @@ OTPassword::OTPassword(const OTPassword& rhs)
 {
     if (isText_) {
         data_[0] = '\0';
-        setPassword_uint8(rhs.getPassword_uint8(), rhs.getPasswordSize());
+
+        if (0 < rhs.getPasswordSize()) {
+            setPassword_uint8(rhs.getPassword_uint8(), rhs.getPasswordSize());
+        }
     } else if (isBinary_) {
-        setMemory(rhs.getMemory_uint8(), rhs.getMemorySize());
+        if (0 < rhs.getMemorySize()) {
+            setMemory(rhs.getMemory_uint8(), rhs.getMemorySize());
+        }
     }
 }
 

@@ -106,6 +106,24 @@ EllipticCurve::EllipticCurve(const EllipticCurve& rhs) noexcept
 {
 }
 
+std::unique_ptr<key::EllipticCurve> EllipticCurve::asPublic(
+    const PasswordPrompt& reason) const
+{
+    std::unique_ptr<EllipticCurve> output{clone_ec()};
+
+    OT_ASSERT(output);
+
+    auto& copy = *output;
+
+    if (false == has_public_) { copy.SetKey(copy.PublicKey(reason)); }
+
+    copy.erase_private_data();
+
+    OT_ASSERT(false == copy.HasPrivate());
+
+    return output;
+}
+
 OTData EllipticCurve::CalculateHash(
     const proto::HashType hashType,
     const PasswordPrompt& password) const
@@ -380,7 +398,13 @@ OTData EllipticCurve::PublicKey(const PasswordPrompt& reason) const
 {
     auto output = Data::Factory();
 
-    if (false == bool(encrypted_key_)) { return Data::Factory(); }
+    if (GetKey(output)) { return output; }
+
+    if (false == bool(encrypted_key_)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key.").Flush();
+
+        return Data::Factory();
+    }
 
     const auto& privateKey = *encrypted_key_;
 

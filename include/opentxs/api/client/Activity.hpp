@@ -35,8 +35,8 @@ public:
     EXPORT virtual bool AddBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& threadID,
-        const StorageBox box,
-        const proto::BlockchainTransaction& transaction) const = 0;
+        const std::string& txid,
+        const Time time) const = 0;
     EXPORT virtual bool AddPaymentEvent(
         const identifier::Nym& nymID,
         const Identifier& threadID,
@@ -48,6 +48,10 @@ public:
         const identifier::Nym& nymID,
         const Identifier& fromThreadID,
         const Identifier& toThreadID,
+        const std::string& txid) const = 0;
+    EXPORT virtual bool UnassignBlockchainTransaction(
+        const identifier::Nym& nymID,
+        const Identifier& fromThreadID,
         const std::string& txid) const = 0;
     /**   Load a mail object
      *

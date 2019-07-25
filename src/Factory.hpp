@@ -77,9 +77,29 @@ public:
         const Identifier& accountID);
     static crypto::Bitcoin* Bitcoin(const api::Crypto& crypto);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    static api::client::Blockchain* Blockchain(
+    static api::client::Blockchain* BlockchainAPI(
         const api::Core& api,
-        const api::client::Activity& activity);
+        const api::client::Activity& activity,
+        const api::client::Contacts& contacts);
+    static api::client::blockchain::internal::BalanceList*
+    BlockchainBalanceList(
+        const api::client::internal::Blockchain& parent,
+        const blockchain::Type chain);
+    static api::client::blockchain::internal::BalanceTree*
+    BlockchainBalanceTree(
+        const api::client::blockchain::internal::BalanceList& parent,
+        const identifier::Nym& id,
+        const std::set<OTIdentifier>& hdAccounts,
+        const std::set<OTIdentifier>& importedAccounts,
+        const std::set<OTIdentifier>& paymentCodeAccounts);
+    static api::client::blockchain::internal::HD* BlockchainHDBalanceNode(
+        const api::client::blockchain::internal::BalanceTree& parent,
+        const proto::HDPath& path,
+        Identifier& id);
+    static api::client::blockchain::internal::HD* BlockchainHDBalanceNode(
+        const api::client::blockchain::internal::BalanceTree& parent,
+        const proto::HDAccount& serialized,
+        Identifier& id);
 #endif
     static internal::ClientContext* ClientContext(
         const api::Core& api,
@@ -118,7 +138,8 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactListRowID& rowID,
         const ui::implementation::ContactListSortKey& key);
-    static api::client::internal::Contacts* Contacts(const api::Core& api);
+    static api::client::internal::Contacts* ContactAPI(
+        const api::client::Manager& api);
     static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
         const ui::implementation::ContactSubsectionInternalInterface& parent,
         const api::client::Manager& api,

@@ -13,20 +13,23 @@ class Asymmetric final : virtual public api::crypto::internal::Asymmetric
 {
 public:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
+    ECKey InstantiateECKey(
+        const proto::AsymmetricKey& serialized,
+        const PasswordPrompt& reason) const final;
     HDKey InstantiateHDKey(
         const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     HDKey InstantiateKey(
         const proto::AsymmetricKeyType type,
         const std::string& seedID,
         const opentxs::crypto::Bip32::Key& serialized,
         const PasswordPrompt& reason,
         const proto::KeyRole role,
-        const VersionNumber version) const override;
+        const VersionNumber version) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     Key InstantiateKey(
         const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     HDKey NewHDKey(
         const std::string& seedID,
@@ -35,14 +38,14 @@ public:
         const opentxs::crypto::Bip32::Path& path,
         const PasswordPrompt& reason,
         const proto::KeyRole role,
-        const VersionNumber version) const override;
+        const VersionNumber version) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     Key NewKey(
         const NymParameters& params,
         const proto::KeyRole role,
-        const VersionNumber version) const override;
+        const VersionNumber version) const final;
 
-    ~Asymmetric() override = default;
+    ~Asymmetric() final = default;
 
 private:
     friend opentxs::Factory;

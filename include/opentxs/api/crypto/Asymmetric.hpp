@@ -9,8 +9,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/crypto/key/Asymmetric.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/Bip32.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/Proto.hpp"
@@ -27,11 +27,15 @@ namespace crypto
 class Asymmetric
 {
 public:
+    using ECKey = std::unique_ptr<opentxs::crypto::key::EllipticCurve>;
     using Key = std::unique_ptr<opentxs::crypto::key::Asymmetric>;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     using HDKey = std::unique_ptr<opentxs::crypto::key::HD>;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
+    EXPORT virtual ECKey InstantiateECKey(
+        const proto::AsymmetricKey& serialized,
+        const PasswordPrompt& reason) const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual HDKey InstantiateHDKey(
         const proto::AsymmetricKey& serialized,

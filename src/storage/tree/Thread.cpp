@@ -68,8 +68,8 @@ bool Thread::Add(
 {
     Lock lock(write_lock_);
 
-    bool saved{false};
-    bool unread{true};
+    auto saved{true};
+    auto unread{true};
 
     switch (box) {
         case StorageBox::MAILINBOX: {
@@ -79,30 +79,14 @@ bool Thread::Add(
             saved = mail_outbox_.Store(id, contents, alias);
             unread = false;
         } break;
-        case StorageBox::INCOMINGBLOCKCHAIN: {
-            saved = true;
-        } break;
-        case StorageBox::OUTGOINGBLOCKCHAIN: {
-            saved = true;
-            unread = false;
-        } break;
-        case StorageBox::INCOMINGCHEQUE: {
-            saved = true;
-        } break;
-        case StorageBox::OUTGOINGCHEQUE: {
-            saved = true;
-            unread = false;
-        } break;
-        case StorageBox::OUTGOINGTRANSFER: {
-            saved = true;
-            unread = false;
-        } break;
-        case StorageBox::INCOMINGTRANSFER: {
-            saved = true;
-        } break;
+        case StorageBox::OUTGOINGCHEQUE:
+        case StorageBox::OUTGOINGTRANSFER:
         case StorageBox::INTERNALTRANSFER: {
-            saved = true;
             unread = false;
+        } break;
+        case StorageBox::BLOCKCHAIN:
+        case StorageBox::INCOMINGCHEQUE:
+        case StorageBox::INCOMINGTRANSFER: {
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Warning: unknown box.")
@@ -110,7 +94,7 @@ bool Thread::Add(
         }
     }
 
-    if (!saved) {
+    if (false == saved) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to save item.").Flush();
 
         return false;
@@ -131,9 +115,9 @@ bool Thread::Add(
     item.set_account(account);
     item.set_unread(unread);
 
-    const bool valid = proto::Validate(item, VERBOSE);
+    const auto valid = proto::Validate(item, VERBOSE);
 
-    if (!valid) {
+    if (false == valid) {
         items_.erase(id);
 
         return false;
@@ -236,6 +220,8 @@ bool Thread::Remove(const std::string& id)
         } break;
         case StorageBox::MAILOUTBOX: {
             mail_outbox_.Delete(id);
+        } break;
+        case StorageBox::BLOCKCHAIN: {
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Warning: unknown box.")
@@ -348,8 +334,7 @@ void Thread::upgrade(const Lock& lock)
         const auto box = static_cast<StorageBox>(item.box());
 
         switch (box) {
-            case StorageBox::MAILOUTBOX:
-            case StorageBox::OUTGOINGBLOCKCHAIN: {
+            case StorageBox::MAILOUTBOX: {
                 if (item.unread()) {
                     item.set_unread(false);
                     changed = true;

@@ -79,7 +79,8 @@ TEST_F(Test_NymData, AddContract)
             opentxs::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID1")));
+            "instrumentDefinitionID1",
+            "")));
 
     added = nymData_.AddContract(
         identifier1->str(),
@@ -138,7 +139,8 @@ TEST_F(Test_NymData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            "localhost")));
+            "localhost",
+            "")));
 
     auto added =
         nymData_.AddPreferredOTServer(identifier->str(), false, reason_);
@@ -234,7 +236,8 @@ TEST_F(Test_NymData, DeleteClaim)
             opentxs::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
-            "claimValue")));
+            "claimValue",
+            "")));
     auto deleted = nymData_.DeleteClaim(identifier, reason_);
     EXPECT_TRUE(deleted);
 }
@@ -274,7 +277,8 @@ TEST_F(Test_NymData, HaveContract)
             opentxs::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID1")));
+            "instrumentDefinitionID1",
+            "")));
 
     auto added = nymData_.AddContract(
         identifier1->str(),
@@ -308,7 +312,8 @@ TEST_F(Test_NymData, HaveContract)
             opentxs::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
-            "instrumentDefinitionID2")));
+            "instrumentDefinitionID2",
+            "")));
 
     added = nymData_.AddContract(
         identifier2->str(),
@@ -396,7 +401,8 @@ TEST_F(Test_NymData, PreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            "localhost")));
+            "localhost",
+            "")));
     auto added =
         nymData_.AddPreferredOTServer(identifier->str(), true, reason_);
     EXPECT_TRUE(added);

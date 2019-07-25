@@ -9,14 +9,14 @@
 
 namespace opentxs::api::client::implementation
 {
-class Activity : virtual public api::client::internal::Activity, Lockable
+class Activity final : virtual public api::client::internal::Activity, Lockable
 {
 public:
     bool AddBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& threadID,
-        const StorageBox box,
-        const proto::BlockchainTransaction& transaction) const override;
+        const std::string& txid,
+        const Time time) const final;
 
     bool AddPaymentEvent(
         const identifier::Nym& nymID,
@@ -24,13 +24,18 @@ public:
         const StorageBox type,
         const Identifier& itemID,
         const Identifier& workflowID,
-        std::chrono::time_point<std::chrono::system_clock> time) const override;
+        std::chrono::time_point<std::chrono::system_clock> time) const final;
 
     bool MoveIncomingBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& fromThreadID,
         const Identifier& toThreadID,
-        const std::string& txid) const override;
+        const std::string& txid) const final;
+
+    bool UnassignBlockchainTransaction(
+        const identifier::Nym& nymID,
+        const Identifier& fromThreadID,
+        const std::string& txid) const final;
 
     /**   Load a mail object
      *
@@ -44,7 +49,7 @@ public:
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox& box,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     /**   Store a mail object
      *
@@ -58,7 +63,7 @@ public:
         const identifier::Nym& nym,
         const Message& mail,
         const StorageBox box,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     /**   Obtain a list of mail objects in a specified box
      *
@@ -66,7 +71,7 @@ public:
      *    \param[in] box the box to be listed
      */
     ObjectList Mail(const identifier::Nym& nym, const StorageBox box)
-        const override;
+        const final;
 
     /**   Delete a mail object
      *
@@ -79,7 +84,7 @@ public:
     bool MailRemove(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox box) const override;
+        const StorageBox box) const final;
 
     /**   Retrieve the text from a message
      *
@@ -93,7 +98,7 @@ public:
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox& box,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     /**   Mark a thread item as read
      *
@@ -105,7 +110,7 @@ public:
     bool MarkRead(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const override;
+        const Identifier& itemId) const final;
 
     /**   Mark a thread item as unread
      *
@@ -117,19 +122,19 @@ public:
     bool MarkUnread(
         const identifier::Nym& nymId,
         const Identifier& threadId,
-        const Identifier& itemId) const override;
+        const Identifier& itemId) const final;
 
     ChequeData Cheque(
         const identifier::Nym& nym,
         const std::string& id,
         const std::string& workflow,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     TransferData Transfer(
         const identifier::Nym& nym,
         const std::string& id,
         const std::string& workflow,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     /**   Summarize a payment workflow event in human-friendly test form
      *
@@ -143,7 +148,7 @@ public:
         const identifier::Nym& nym,
         const std::string& id,
         const std::string& workflow,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
@@ -153,7 +158,7 @@ public:
     void PreloadActivity(
         const identifier::Nym& nymID,
         const std::size_t count,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     /**   Asynchronously cache the items in an activity thread
      *
@@ -167,11 +172,11 @@ public:
         const Identifier& threadID,
         const std::size_t start,
         const std::size_t count,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     std::shared_ptr<proto::StorageThread> Thread(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const override;
+        const Identifier& threadID) const final;
 
     /**   Obtain a list of thread ids for the specified nym
      *
@@ -181,15 +186,15 @@ public:
     ObjectList Threads(
         const identifier::Nym& nym,
         const PasswordPrompt& reason,
-        const bool unreadOnly = false) const override;
+        const bool unreadOnly = false) const final;
 
     /**   Return the total number of unread thread items for a nym
      *
      *    \param[in] nymId
      */
-    std::size_t UnreadCount(const identifier::Nym& nym) const override;
+    std::size_t UnreadCount(const identifier::Nym& nym) const final;
 
-    std::string ThreadPublisher(const identifier::Nym& nym) const override;
+    std::string ThreadPublisher(const identifier::Nym& nym) const final;
 
     ~Activity() = default;
 
@@ -210,7 +215,7 @@ private:
      *
      *    This method should only be called by the Contacts on startup
      */
-    void MigrateLegacyThreads(const PasswordPrompt& reason) const override;
+    void MigrateLegacyThreads(const PasswordPrompt& reason) const final;
     void activity_preload_thread(
         OTPasswordPrompt reason,
         const OTIdentifier nymID,

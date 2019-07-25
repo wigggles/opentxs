@@ -224,8 +224,7 @@ void ActivityThread::construct_row(
         case StorageBox::FINISHEDPEERREPLY:
         case StorageBox::PROCESSEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREPLY:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::UNKNOWN:
         default: {
             OT_FAIL

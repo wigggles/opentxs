@@ -10,15 +10,15 @@ namespace opentxs::api::implementation
 class HDSeed final : public api::HDSeed
 {
 public:
-    std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
+    std::unique_ptr<opentxs::crypto::key::HD> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
         const Bip32Index index,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::string Bip32Root(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const override;
-    std::string DefaultSeed() const override;
+        const std::string& fingerprint = "") const final;
+    std::string DefaultSeed() const final;
     std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
         std::string& fingerprint,
         const EcdsaCurve& curve,
@@ -26,33 +26,36 @@ public:
         const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
-            opentxs::crypto::key::EllipticCurve::DefaultVersion) const override;
+            opentxs::crypto::key::EllipticCurve::DefaultVersion) const final;
     std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
         const Bip32Index nym,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     OTSymmetricKey GetStorageKey(
         std::string& seed,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
+    std::string ImportRaw(
+        const OTPassword& entropy,
+        const PasswordPrompt& reason) const final;
     std::string ImportSeed(
         const OTPassword& words,
         const OTPassword& passphrase,
-        const PasswordPrompt& reason) const override;
-    std::string NewSeed(const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
+    std::string NewSeed(const PasswordPrompt& reason) const final;
     std::string Passphrase(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const override;
+        const std::string& fingerprint = "") const final;
     std::shared_ptr<OTPassword> Seed(
         std::string& fingerprint,
         Bip32Index& index,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     bool UpdateIndex(
         std::string& seed,
         const Bip32Index index,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::string Words(
         const PasswordPrompt& reason,
-        const std::string& fingerprint = "") const override;
+        const std::string& fingerprint = "") const final;
 
     virtual ~HDSeed() = default;
 
@@ -61,6 +64,9 @@ private:
 
     static const std::string DEFAULT_PASSPHRASE;
     static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
+    static const VersionNumber DefaultVersion{3};
+    static const OTPassword binary_secret_;
+    static const OTPassword text_secret_;
 
     const api::Factory& factory_;
     const api::crypto::Asymmetric& asymmetric_;
@@ -69,20 +75,23 @@ private:
     const opentxs::crypto::Bip32& bip32_;
     const opentxs::crypto::Bip39& bip39_;
 
-    bool DecryptSeed(
+    bool decrypt_seed(
         const proto::Seed& seed,
         OTPassword& words,
         OTPassword& phrase,
+        OTPassword& raw,
         const PasswordPrompt& reason) const;
-    std::string SaveSeed(
+    std::string save_seed(
         const OTPassword& words,
         const OTPassword& passphrase,
+        const OTPassword& raw,
         const PasswordPrompt& reason) const;
-    bool SeedToData(
+    bool seed_to_data(
         const OTPassword& words,
         const OTPassword& passphrase,
+        const OTPassword& raw,
         OTPassword& output) const;
-    std::shared_ptr<proto::Seed> SerializedSeed(
+    std::shared_ptr<proto::Seed> serialized_seed(
         std::string& fingerprint,
         Bip32Index& index,
         const PasswordPrompt& reason) const;

@@ -9,6 +9,8 @@
 
 #include "opentxs/contact/Contact.hpp"
 
+#include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Core.hpp"
@@ -33,11 +35,47 @@
 
 #define OT_METHOD "opentxs::Contact::"
 
+using AddressStyle = opentxs::Contact::AddressStyle;
+
+const std::map<AddressStyle, std::string> address_style_map_{
+    {AddressStyle::P2PKH,
+     std::to_string(static_cast<int>(AddressStyle::P2PKH))},
+    {AddressStyle::P2SH, std::to_string(static_cast<int>(AddressStyle::P2SH))},
+    {AddressStyle::P2WPKH,
+     std::to_string(static_cast<int>(AddressStyle::P2WPKH))},
+};
+const std::map<std::string, AddressStyle> address_style_reverse_map_{
+    opentxs::reverse_map(address_style_map_)};
+
+AddressStyle translate_style(const std::string& in) noexcept;
+AddressStyle translate_style(const std::string& in) noexcept
+{
+    try {
+
+        return address_style_reverse_map_.at(in);
+    } catch (...) {
+
+        return AddressStyle::Unknown;
+    }
+}
+
+std::string translate_style(const AddressStyle& in) noexcept;
+std::string translate_style(const AddressStyle& in) noexcept
+{
+    try {
+
+        return address_style_map_.at(in);
+    } catch (...) {
+
+        return std::to_string(static_cast<int>(AddressStyle::Unknown));
+    }
+}
+
 namespace opentxs
 {
 Contact::Contact(
     const PasswordPrompt& reason,
-    const api::Core& api,
+    const api::client::Manager& api,
     const proto::Contact& serialized)
     : api_(api)
     , version_(check_version(serialized.version(), OT_CONTACT_VERSION))
@@ -74,7 +112,7 @@ Contact::Contact(
     init_nyms(reason);
 }
 
-Contact::Contact(const api::Core& api, const std::string& label)
+Contact::Contact(const api::client::Manager& api, const std::string& label)
     : api_(api)
     , version_(OT_CONTACT_VERSION)
     , label_(label)
@@ -252,7 +290,8 @@ void Contact::add_nym_claim(
         String::Factory(nymID)->Get(),
         attr,
         NULL_START,
-        NULL_END));
+        NULL_END,
+        ""));
 
     add_claim(lock, claim);
 }
@@ -276,6 +315,28 @@ bool Contact::AddBlockchainAddress(
     const std::string& address,
     const proto::ContactItemType currency)
 {
+    const auto& api = api_;
+    auto [bytes, style, chain] = api.Blockchain().DecodeAddress(address);
+    const auto bad = bytes->empty() || (AddressStyle::Unknown == style) ||
+                     (BlockchainType::Unknown == chain);
+
+    if (bad) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode address")
+            .Flush();
+
+        return false;
+    }
+
+    if (proto::CITEMTYPE_UNKNOWN != currency) { chain = Translate(currency); }
+
+    return AddBlockchainAddress(style, chain, bytes);
+}
+
+bool Contact::AddBlockchainAddress(
+    const api::client::blockchain::AddressStyle& style,
+    const blockchain::Type chain,
+    const opentxs::Data& bytes)
+{
     Lock lock(lock_);
 
     std::shared_ptr<ContactItem> claim{nullptr};
@@ -285,11 +346,12 @@ bool Contact::AddBlockchainAddress(
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_ADDRESS,
-        currency,
-        address,
+        Translate(chain),
+        bytes.asHex(),
         {proto::CITEMATTR_LOCAL, proto::CITEMATTR_ACTIVE},
         NULL_START,
-        NULL_END));
+        NULL_END,
+        translate_style(style)));
 
     return add_claim(lock, claim);
 }
@@ -362,7 +424,8 @@ bool Contact::AddPaymentCode(
         value,
         attr,
         NULL_START,
-        NULL_END));
+        NULL_END,
+        ""));
 
     if (false == add_claim(claim)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to add claim.").Flush();
@@ -468,7 +531,7 @@ std::string Contact::BestSocialMediaProfile(
 
 std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
 {
-    std::vector<BlockchainAddress> output;
+    auto output = std::vector<BlockchainAddress>{};
     Lock lock(lock_);
     auto data = merged_data(lock);
     lock.unlock();
@@ -496,7 +559,12 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
 
             OT_ASSERT(item);
 
-            output.push_back({type, item->Value()});
+            try {
+                output.push_back(
+                    translate(api_, type, item->Value(), item->Subtype()));
+            } catch (...) {
+                continue;
+            }
         }
     }
 
@@ -850,6 +918,24 @@ const std::set<proto::ContactItemType> Contact::SocialMediaProfileTypes() const
     return data->SocialMediaProfileTypes();
 }
 
+Contact::BlockchainAddress Contact::translate(
+    const api::client::Manager& api,
+    const proto::ContactItemType chain,
+    const std::string& value,
+    const std::string& subtype) noexcept(false)
+{
+    auto output = BlockchainAddress{api.Factory().Data(value, StringStyle::Hex),
+                                    translate_style(subtype),
+                                    Translate(chain)};
+    auto& [outBytes, outStyle, outChain] = output;
+    const auto bad = outBytes->empty() || (AddressStyle::Unknown == outStyle) ||
+                     (BlockchainType::Unknown == outChain);
+
+    if (bad) { throw std::runtime_error("Invalid address"); }
+
+    return output;
+}
+
 proto::ContactItemType Contact::type(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -903,7 +989,8 @@ void Contact::Update(
          proto::CITEMATTR_ACTIVE,
          proto::CITEMATTR_LOCAL},
         NULL_START,
-        NULL_END));
+        NULL_END,
+        ""));
     add_claim(lock, claim);
 }
 

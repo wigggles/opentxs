@@ -48,6 +48,109 @@
 
 namespace opentxs
 {
+using TransactionNumber = std::int64_t;
+using RequestNumber = std::int64_t;
+using Amount = std::int64_t;
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+using Bip32Network = std::uint32_t;
+using Bip32Depth = std::uint8_t;
+using Bip32Fingerprint = std::uint32_t;
+using Bip32Index = std::uint32_t;
+
+enum class Bip43Purpose : Bip32Index {
+    HDWALLET = 44,    // BIP-44
+    PAYCODE = 47,     // BIP-47
+    FS = 0x4f544653,  // OTFS
+    NYM = 0x4f544e4d  // OTNM
+};
+
+enum class Bip44Type : Bip32Index {
+    BITCOIN = 0,
+    TESTNET = 1,
+    LITECOIN = 2,
+    DOGECOIN = 3,
+    REDDCOIN = 4,
+    DASH = 5,
+    PEERCOIN = 6,
+    NAMECOIN = 7,
+    FEATHERCOIN = 8,
+    COUNTERPARTY = 9,
+    BLACKCOIN = 10,
+    BITCOINCASH = 145,
+};
+
+enum class Bip32Child : Bip32Index {
+    AUTH_KEY = 0x41555448,
+    ENCRYPT_KEY = 0x454e4352,
+    SIGN_KEY = 0x5349474e,
+    HARDENED = 0x80000000,
+};
+
+namespace crypto
+{
+namespace key
+{
+class EllipticCurve;
+class HD;
+}  // namespace key
+}  // namespace crypto
+
+namespace api
+{
+namespace client
+{
+namespace blockchain
+{
+enum class AddressStyle : std::uint16_t {
+    Unknown = 0,
+    P2PKH = 1,
+    P2SH = 2,
+    P2WPKH = 3,
+};
+
+enum class BalanceNodeType : std::uint16_t {
+    Error = 0,
+    HD = 1,
+    PaymentCode = 2,
+    Imported = 3,
+};
+
+enum class Subchain : std::uint8_t {
+    Error = 0,
+    Internal = 1,
+    External = 2,
+    Incoming = 3,
+    Outgoing = 4,
+};
+
+/// transaction id, output index
+using Coin = std::pair<std::string, std::size_t>;
+using ECKey = std::shared_ptr<const opentxs::crypto::key::EllipticCurve>;
+using HDKey = std::shared_ptr<const opentxs::crypto::key::HD>;
+/// account id, chain, index
+using Key = std::tuple<std::string, Subchain, Bip32Index>;
+using Activity = std::tuple<Coin, Key, Amount>;
+}  // namespace blockchain
+}  // namespace client
+}  // namespace api
+
+namespace blockchain
+{
+enum class Type : std::uint32_t {
+    Unknown = 0,
+    Bitcoin = 1,
+    Bitcoin_testnet3 = 2,
+    BitcoinCash = 3,
+    BitcoinCash_testnet3 = 4,
+    Ethereum_frontier = 5,
+    Ethereum_ropsten = 6,
+    Litecoin = 7,
+    Litecoin_testnet4 = 8,
+};
+}  // namespace blockchain
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
 namespace identity
 {
 class Nym;
@@ -152,10 +255,6 @@ using SetID = std::function<void(const Identifier&)>;
 
 typedef std::int32_t NetworkOperationStatus;
 
-typedef std::int64_t TransactionNumber;
-typedef std::int64_t RequestNumber;
-typedef std::int64_t Amount;
-
 using Lock = std::unique_lock<std::mutex>;
 using rLock = std::unique_lock<std::recursive_mutex>;
 using sLock = std::shared_lock<std::shared_mutex>;
@@ -178,8 +277,8 @@ enum class StorageBox : std::uint8_t {
     PROCESSEDPEERREPLY = 7,
     MAILINBOX = 8,
     MAILOUTBOX = 9,
-    INCOMINGBLOCKCHAIN = 10,
-    OUTGOINGBLOCKCHAIN = 11,
+    BLOCKCHAIN = 10,
+    RESERVED_1 = 11,
     INCOMINGCHEQUE = 12,
     OUTGOINGCHEQUE = 13,
     OUTGOINGTRANSFER = 14,
@@ -188,41 +287,6 @@ enum class StorageBox : std::uint8_t {
     PENDING_SEND = 253,
     DRAFT = 254,
     UNKNOWN = 255,
-};
-
-std::string storage_box_name(StorageBox box);
-using Bip32Network = std::uint32_t;
-using Bip32Depth = std::uint8_t;
-using Bip32Fingerprint = std::uint32_t;
-using Bip32Index = std::uint32_t;
-
-enum class Bip43Purpose : Bip32Index {
-    HDWALLET = 44,    // BIP-44
-    PAYCODE = 47,     // BIP-47
-    FS = 0x4f544653,  // OTFS
-    NYM = 0x4f544e4d  // OTNM
-};
-
-enum class Bip44Type : Bip32Index {
-    BITCOIN = 0,
-    TESTNET = 1,
-    LITECOIN = 2,
-    DOGECOIN = 3,
-    REDDCOIN = 4,
-    DASH = 5,
-    PEERCOIN = 6,
-    NAMECOIN = 7,
-    FEATHERCOIN = 8,
-    COUNTERPARTY = 9,
-    BLACKCOIN = 10,
-    BITCOINCASH = 145,
-};
-
-enum class Bip32Child : Bip32Index {
-    AUTH_KEY = 0x41555448,
-    ENCRYPT_KEY = 0x454e4352,
-    SIGN_KEY = 0x5349474e,
-    HARDENED = 0x80000000,
 };
 
 enum class EcdsaCurve : std::uint8_t {
