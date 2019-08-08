@@ -60,14 +60,13 @@ private:
         using const_iterator = typename InterfaceType::const_iterator;
         using value_type = typename InterfaceType::value_type;
 
-        const value_type& at(const std::size_t position) const
-            noexcept(false) final
+        const value_type& at(const std::size_t position) const final
         {
             Lock lock(lock_);
 
             return *nodes_.at(position);
         }
-        const PayloadType& at(const Identifier& id) const noexcept(false) final
+        const PayloadType& at(const Identifier& id) const final
         {
             Lock lock(lock_);
 
@@ -91,13 +90,13 @@ private:
         }
         std::size_t size() const noexcept final { return nodes_.size(); }
 
-        value_type& at(const std::size_t position) noexcept(false)
+        value_type& at(const std::size_t position)
         {
             Lock lock(lock_);
 
             return *nodes_.at(position);
         }
-        PayloadType& at(const Identifier& id) noexcept(false)
+        PayloadType& at(const Identifier& id)
         {
             Lock lock(lock_);
 
