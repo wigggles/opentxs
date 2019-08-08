@@ -38,6 +38,7 @@
 #include "storage/tree/Thread.hpp"
 #include "storage/tree/Threads.hpp"
 #include "storage/tree/Tree.hpp"
+#include "storage/tree/Txos.hpp"
 #include "storage/tree/Units.hpp"
 #include "storage/StorageConfig.hpp"
 
@@ -611,6 +612,13 @@ std::set<std::string> Storage::BlockchainAccountList(
     return Root().Tree().Nyms().Nym(nymID).BlockchainAccountList(type);
 }
 
+proto::ContactItemType Storage::BlockchainAccountType(
+    const std::string& nymID,
+    const std::string& accountID) const
+{
+    return Root().Tree().Nyms().Nym(nymID).BlockchainAccountType(accountID);
+}
+
 std::string Storage::BlockchainAddressOwner(
     proto::ContactItemType chain,
     std::string address) const
@@ -804,7 +812,7 @@ bool Storage::Load(
 bool Storage::Load(
     const std::string& nymID,
     const std::string& accountID,
-    std::shared_ptr<proto::Bip44Account>& output,
+    std::shared_ptr<proto::HDAccount>& output,
     const bool checking) const
 {
     return Root().Tree().Nyms().Nym(nymID).Load(accountID, output, checking);
@@ -1091,6 +1099,19 @@ bool Storage::Load(
 }
 
 bool Storage::Load(
+    const identifier::Nym& nym,
+    const api::client::blockchain::Coin& id,
+    std::shared_ptr<proto::StorageBlockchainTxo>& output,
+    const bool checking) const
+{
+    const auto& nyms = Root().Tree().Nyms();
+
+    if (false == nyms.Exists(nym.str())) { return false; }
+
+    return nyms.Nym(nym.str()).TXOs().Load(id, output, checking);
+}
+
+bool Storage::Load(
     const std::string& nymId,
     const std::string& threadId,
     std::shared_ptr<proto::StorageThread>& thread) const
@@ -1141,6 +1162,34 @@ const std::set<std::string> Storage::LocalNyms() const
     return Root().Tree().Nyms().LocalNyms();
 }
 
+std::set<OTNymID> Storage::LookupBlockchainTransaction(
+    const std::string& txid) const
+{
+    return Root().Tree().Blockchain().LookupNyms(txid);
+}
+
+std::set<api::client::blockchain::Coin> Storage::LookupElement(
+    const identifier::Nym& nym,
+    const Data& element) const noexcept
+{
+    const auto& nyms = Root().Tree().Nyms();
+
+    if (false == nyms.Exists(nym.str())) { return {}; }
+
+    return nyms.Nym(nym.str()).TXOs().LookupElement(element);
+}
+
+std::set<api::client::blockchain::Coin> Storage::LookupTxid(
+    const identifier::Nym& nym,
+    const std::string& txid) const noexcept
+{
+    const auto& nyms = Root().Tree().Nyms();
+
+    if (false == nyms.Exists(nym.str())) { return {}; }
+
+    return nyms.Nym(nym.str()).TXOs().LookupTxid(txid);
+}
+
 // Applies a lambda to all public nyms in the database in a detached thread.
 void Storage::MapPublicNyms(NymLambda& lambda) const
 {
@@ -1187,21 +1236,28 @@ bool Storage::MoveThreadItem(
     const std::string& toThreadID,
     const std::string& itemID) const
 {
-    const bool fromExists =
-        Root().Tree().Nyms().Nym(nymId).Threads().Exists(fromThreadID);
+    const auto& nyms = Root().Tree().Nyms();
 
-    if (false == fromExists) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": From thread does not exist.")
+    if (false == nyms.Exists(nymId)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymId)(" does not exist.")
             .Flush();
 
         return false;
     }
 
-    const bool toExists =
-        Root().Tree().Nyms().Nym(nymId).Threads().Exists(toThreadID);
+    const auto& threads = nyms.Nym(nymId).Threads();
 
-    if (false == toExists) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": To thread does not exist.")
+    if (false == threads.Exists(fromThreadID)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Source thread ")(fromThreadID)(
+            " does not exist.")
+            .Flush();
+
+        return false;
+    }
+
+    if (false == threads.Exists(toThreadID)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Destination thread ")(toThreadID)(
+            " does not exist.")
             .Flush();
 
         return false;
@@ -1220,15 +1276,21 @@ bool Storage::MoveThreadItem(
                            .mutable_Thread(fromThreadID)
                            .get();
     const auto thread = fromThread.Items();
-    bool found = false;
-    std::uint64_t time{};
-    StorageBox box{};
+    auto found{false};
+    auto time = std::uint64_t{};
+    auto box = StorageBox{};
+    const auto alias = std::string{};
+    const auto contents = std::string{};
+    auto index = std::uint64_t{};
+    auto account = std::string{};
 
     for (const auto& item : thread.item()) {
         if (item.id() == itemID) {
             found = true;
             time = item.time();
             box = static_cast<StorageBox>(item.box());
+            index = item.index();
+            account = item.account();
 
             break;
         }
@@ -1258,8 +1320,10 @@ bool Storage::MoveThreadItem(
                          .get()
                          .mutable_Thread(toThreadID)
                          .get();
+    const auto added =
+        toThread.Add(itemID, time, box, alias, contents, index, account);
 
-    if (false == toThread.Add(itemID, time, box, {}, {})) {
+    if (false == added) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to insert item.").Flush();
 
         return false;
@@ -1609,6 +1673,89 @@ bool Storage::RemoveServer(const std::string& id) const
         .Delete(id);
 }
 
+bool Storage::RemoveThreadItem(
+    const identifier::Nym& nym,
+    const Identifier& threadID,
+    const std::string& id) const
+{
+    const auto& nyms = Root().Tree().Nyms();
+
+    if (false == nyms.Exists(nym.str())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nym)(" does not exist.")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& threads = nyms.Nym(nym.str()).Threads();
+
+    if (false == threads.Exists(threadID.str())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Thread ")(threadID)(
+            " does not exist.")
+            .Flush();
+
+        return false;
+    }
+
+    auto& fromThread = mutable_Root()
+                           .get()
+                           .mutable_Tree()
+                           .get()
+                           .mutable_Nyms()
+                           .get()
+                           .mutable_Nym(nym.str())
+                           .get()
+                           .mutable_Threads()
+                           .get()
+                           .mutable_Thread(threadID.str())
+                           .get();
+    const auto thread = fromThread.Items();
+    auto found{false};
+
+    for (const auto& item : thread.item()) {
+        if (item.id() == id) {
+            found = true;
+
+            break;
+        }
+    }
+
+    if (false == found) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Item does not exist.").Flush();
+
+        return false;
+    }
+
+    if (false == fromThread.Remove(id)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to remove item.").Flush();
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Storage::RemoveTxo(
+    const identifier::Nym& nym,
+    const api::client::blockchain::Coin& id) const
+{
+    const auto exists = Root().Tree().Nyms().Exists(nym.str());
+
+    if (false == exists) { return false; }
+
+    return mutable_Root()
+        .get()
+        .mutable_Tree()
+        .get()
+        .mutable_Nyms()
+        .get()
+        .mutable_Nym(nym.str())
+        .get()
+        .mutable_TXOs()
+        .get()
+        .Delete(id);
+}
+
 bool Storage::RemoveUnitDefinition(const std::string& id) const
 {
     return mutable_Root()
@@ -1931,7 +2078,7 @@ bool Storage::Store(
 bool Storage::Store(
     const std::string& nymID,
     const proto::ContactItemType type,
-    const proto::Bip44Account& data) const
+    const proto::HDAccount& data) const
 {
     return mutable_Root()
         .get()
@@ -1971,7 +2118,9 @@ bool Storage::Store(
         .Store(data, channelID);
 }
 
-bool Storage::Store(const proto::BlockchainTransaction& data) const
+bool Storage::Store(
+    const identifier::Nym& nym,
+    const proto::BlockchainTransaction& data) const
 {
     return mutable_Root()
         .get()
@@ -1979,10 +2128,12 @@ bool Storage::Store(const proto::BlockchainTransaction& data) const
         .get()
         .mutable_Blockchain()
         .get()
-        .Store(data);
+        .Store(nym, data);
 }
 
-bool Storage::Store(const proto::Contact& data) const
+bool Storage::Store(
+    const proto::Contact& data,
+    std::map<OTData, OTIdentifier>& changed) const
 {
     return mutable_Root()
         .get()
@@ -1990,7 +2141,7 @@ bool Storage::Store(const proto::Contact& data) const
         .get()
         .mutable_Contacts()
         .get()
-        .Store(data, data.label());
+        .Store(data, data.label(), changed);
 }
 
 bool Storage::Store(const proto::Context& data) const
@@ -2302,6 +2453,27 @@ bool Storage::Store(const proto::ServerContract& data, const std::string& alias)
     }
 
     return false;
+}
+
+bool Storage::Store(
+    const identifier::Nym& nym,
+    const proto::StorageBlockchainTxo& data) const
+{
+    const auto exists = Root().Tree().Nyms().Exists(nym.str());
+
+    if (false == exists) { return false; }
+
+    return mutable_Root()
+        .get()
+        .mutable_Tree()
+        .get()
+        .mutable_Nyms()
+        .get()
+        .mutable_Nym(nym.str())
+        .get()
+        .mutable_TXOs()
+        .get()
+        .Store(data);
 }
 
 bool Storage::Store(const proto::Ciphertext& serialized) const

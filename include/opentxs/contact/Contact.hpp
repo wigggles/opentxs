@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -25,7 +26,9 @@ namespace opentxs
 class Contact
 {
 public:
-    typedef std::pair<proto::ContactItemType, std::string> BlockchainAddress;
+    using AddressStyle = api::client::blockchain::AddressStyle;
+    using BlockchainType = blockchain::Type;
+    using BlockchainAddress = std::tuple<OTData, AddressStyle, BlockchainType>;
 
     static std::shared_ptr<ContactItem> Best(const ContactGroup& group);
     static std::string ExtractLabel(const identity::Nym& nym);
@@ -36,9 +39,9 @@ public:
 
     Contact(
         const PasswordPrompt& reason,
-        const api::Core& api,
+        const api::client::Manager& api,
         const proto::Contact& serialized);
-    Contact(const api::Core& api, const std::string& label);
+    Contact(const api::client::Manager& api, const std::string& label);
 
     operator proto::Contact() const;
     Contact& operator+=(Contact& rhs);
@@ -67,7 +70,11 @@ public:
 
     bool AddBlockchainAddress(
         const std::string& address,
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
+        const proto::ContactItemType currency = proto::CITEMTYPE_UNKNOWN);
+    bool AddBlockchainAddress(
+        const api::client::blockchain::AddressStyle& style,
+        const blockchain::Type chain,
+        const opentxs::Data& bytes);
     bool AddEmail(
         const std::string& value,
         const bool primary,
@@ -90,9 +97,6 @@ public:
         const proto::ContactItemType type,
         const bool primary,
         const bool active);
-    bool RemoveBlockchainAddress(
-        const std::string& address,
-        const proto::ContactItemType currency = proto::CITEMTYPE_BTC);
     bool RemoveNym(const identifier::Nym& nymID);
     void SetLabel(const std::string& label);
     void Update(
@@ -102,7 +106,7 @@ public:
     ~Contact() = default;
 
 private:
-    const api::Core& api_;
+    const api::client::Manager& api_;
     VersionNumber version_{0};
     std::string label_{""};
     mutable std::mutex lock_{};
@@ -119,6 +123,11 @@ private:
         const VersionNumber in,
         const VersionNumber targetVersion);
     static OTIdentifier generate_id(const api::Core& api);
+    static BlockchainAddress translate(
+        const api::client::Manager& api,
+        const proto::ContactItemType chain,
+        const std::string& value,
+        const std::string& subtype) noexcept(false);
 
     std::shared_ptr<ContactGroup> payment_codes(
         const Lock& lock,

@@ -47,6 +47,12 @@ else()
   set(blind "")
 endif()
 
+if(HD_EXPORT)
+  set(hd $<TARGET_OBJECTS:opentxs-api-client-blockchain>)
+else()
+  set(hd "")
+endif()
+
 if(OT_BUNDLED_OPENTXS_PROTO)
   set(bundled-opentxs-proto
     $<TARGET_OBJECTS:opentxs-proto-objects>
@@ -74,6 +80,10 @@ if(OT_BUNDLED_PROTOBUF)
 
   if(TREZORCRYPTO_EXPORT)
     add_dependencies(TrezorCrypto protobuf)
+  endif()
+
+  if(HD_EXPORT)
+    add_dependencies(opentxs-api-client-blockchain protobuf)
   endif()
 
   if(OT_BUNDLED_OPENTXS_PROTO)
@@ -212,6 +222,7 @@ set(object-deps
   ${trezor}
   $<TARGET_OBJECTS:external-hashes>
   $<TARGET_OBJECTS:otprotob>
+  ${hd}
   $<TARGET_OBJECTS:opentxs-api-client>
   $<TARGET_OBJECTS:opentxs-api-crypto>
   $<TARGET_OBJECTS:opentxs-api-network>

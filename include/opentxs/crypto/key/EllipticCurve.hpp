@@ -26,6 +26,8 @@ public:
     EXPORT static const VersionNumber DefaultVersion;
     EXPORT static const VersionNumber MaxVersion;
 
+    EXPORT virtual std::unique_ptr<EllipticCurve> asPublic(
+        const PasswordPrompt& reason) const = 0;
     EXPORT virtual const crypto::EcdsaProvider& ECDSA() const = 0;
     EXPORT virtual bool GetKey(Data& key) const = 0;
     EXPORT virtual bool GetKey(proto::Ciphertext& key) const = 0;

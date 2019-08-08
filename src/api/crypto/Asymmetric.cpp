@@ -58,6 +58,40 @@ Asymmetric::Asymmetric(const api::internal::Core& api)
 {
 }
 
+Asymmetric::ECKey Asymmetric::InstantiateECKey(
+    const proto::AsymmetricKey& serialized,
+    const PasswordPrompt& reason) const
+{
+    const auto keyType = serialized.type();
+
+    switch (keyType) {
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        case (proto::AKEYTYPE_ED25519): {
+            return ECKey{opentxs::Factory::Ed25519Key(
+                api_, api_.Crypto().ED25519(), serialized, reason)};
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1): {
+            return ECKey{opentxs::Factory::Secp256k1Key(
+                api_, api_.Crypto().SECP256K1(), serialized, reason)};
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_LEGACY): {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong key type (RSA)")
+                .Flush();
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Open-Transactions isn't built with support for this key "
+                "type.")
+                .Flush();
+        }
+    }
+
+    return ECKey{new opentxs::crypto::key::implementation::NullHD};
+}
+
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 Asymmetric::HDKey Asymmetric::InstantiateHDKey(
     const proto::AsymmetricKey& serialized,

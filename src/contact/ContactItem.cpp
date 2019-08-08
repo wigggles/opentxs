@@ -25,7 +25,8 @@ ContactItem::ContactItem(
     const std::string& value,
     const std::set<proto::ContactItemAttribute>& attributes,
     const std::time_t start,
-    const std::time_t end)
+    const std::time_t end,
+    const std::string subtype)
     : api_(api)
     , version_(check_version(version, parentVersion))
     , nym_(nym)
@@ -35,14 +36,10 @@ ContactItem::ContactItem(
     , start_(start)
     , end_(end)
     , attributes_(attributes)
-    , id_(Identifier::Factory(identity::credential::Contact::ClaimID(
-          api,
-          nym,
-          section,
-          type,
-          start,
-          end,
-          value)))
+    , id_(Identifier::Factory(
+          identity::credential::Contact::
+              ClaimID(api, nym, section, type, start, end, value, subtype)))
+    , subtype_(subtype)
 {
     if (0 == version) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Warning: malformed version. "
@@ -81,7 +78,8 @@ ContactItem::ContactItem(
           std::get<3>(claim),
           extract_attributes(claim),
           std::get<4>(claim),
-          std::get<5>(claim))
+          std::get<5>(claim),
+          "")
 {
 }
 
@@ -101,7 +99,8 @@ ContactItem::ContactItem(
           data.value(),
           extract_attributes(data),
           data.start(),
-          data.end())
+          data.end(),
+          data.subtype())
 {
 }
 
@@ -237,7 +236,8 @@ ContactItem ContactItem::set_attribute(
         value_,
         attributes,
         start_,
-        end_);
+        end_,
+        subtype_);
 }
 
 ContactItem ContactItem::SetActive(const bool active) const
@@ -259,7 +259,8 @@ ContactItem ContactItem::SetEnd(const std::time_t end) const
         value_,
         attributes_,
         start_,
-        end);
+        end,
+        subtype_);
 }
 
 ContactItem ContactItem::SetLocal(const bool local) const
@@ -286,7 +287,8 @@ ContactItem ContactItem::SetStart(const std::time_t start) const
         value_,
         attributes_,
         start,
-        end_);
+        end_,
+        subtype_);
 }
 
 ContactItem ContactItem::SetValue(const std::string& value) const
@@ -303,10 +305,13 @@ ContactItem ContactItem::SetValue(const std::string& value) const
         value,
         attributes_,
         start_,
-        end_);
+        end_,
+        subtype_);
 }
 
 const std::time_t& ContactItem::Start() const { return start_; }
+
+const std::string& ContactItem::Subtype() const { return subtype_; }
 
 const proto::ContactItemType& ContactItem::Type() const { return type_; }
 

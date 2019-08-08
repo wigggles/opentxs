@@ -7,66 +7,43 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/Types.hpp"
+const std::map<opentxs::blockchain::Type, opentxs::proto::ContactItemType>
+    type_map_{
+        {opentxs::blockchain::Type::Unknown, opentxs::proto::CITEMTYPE_UNKNOWN},
+        {opentxs::blockchain::Type::Bitcoin, opentxs::proto::CITEMTYPE_BTC},
+        {opentxs::blockchain::Type::Bitcoin_testnet3,
+         opentxs::proto::CITEMTYPE_TNBTC},
+        {opentxs::blockchain::Type::BitcoinCash, opentxs::proto::CITEMTYPE_BCH},
+        {opentxs::blockchain::Type::BitcoinCash_testnet3,
+         opentxs::proto::CITEMTYPE_TNBCH},
+        {opentxs::blockchain::Type::Ethereum_frontier,
+         opentxs::proto::CITEMTYPE_ETH},
+        {opentxs::blockchain::Type::Ethereum_ropsten,
+         opentxs::proto::CITEMTYPE_ETHEREUM_ROPSTEN},
+        {opentxs::blockchain::Type::Litecoin, opentxs::proto::CITEMTYPE_LTC},
+        {opentxs::blockchain::Type::Litecoin_testnet4,
+         opentxs::proto::CITEMTYPE_TNLTC},
+    };
+const std::map<opentxs::proto::ContactItemType, opentxs::blockchain::Type>
+    type_reverse_map_{opentxs::reverse_map(type_map_)};
 
 namespace opentxs
 {
-std::string storage_box_name(StorageBox box)
+proto::ContactItemType Translate(const blockchain::Type type) noexcept
 {
-    std::string name = "Unknown";
-
-    switch (box) {
-        case StorageBox::SENTPEERREQUEST:
-            name = "Send Peer Request";
-            break;
-        case StorageBox::INCOMINGPEERREQUEST:
-            name = "Incoming Peer Request";
-            break;
-        case StorageBox::SENTPEERREPLY:
-            name = "Sent Reply";
-            break;
-        case StorageBox::INCOMINGPEERREPLY:
-            name = "Incoming Peer Reply";
-            break;
-        case StorageBox::FINISHEDPEERREQUEST:
-            name = "Finished Peer Request";
-            break;
-        case StorageBox::FINISHEDPEERREPLY:
-            name = "Finished Peer Reply";
-            break;
-        case StorageBox::PROCESSEDPEERREQUEST:
-            name = "Processed Peer Request";
-            break;
-        case StorageBox::PROCESSEDPEERREPLY:
-            name = "Processed Peer Reply";
-            break;
-        case StorageBox::MAILINBOX:
-            name = "Mail Inbox";
-            break;
-        case StorageBox::MAILOUTBOX:
-            name = "Mail Outbox";
-            break;
-        case StorageBox::INCOMINGBLOCKCHAIN:
-            name = "Incoming Blockchain";
-            break;
-        case StorageBox::OUTGOINGBLOCKCHAIN:
-            name = "Outgoing Blockchain";
-            break;
-        case StorageBox::INCOMINGCHEQUE:
-            name = "Incoming Cheque";
-            break;
-        case StorageBox::OUTGOINGCHEQUE:
-            name = "Outgoing Cheque";
-            break;
-        case StorageBox::DRAFT:
-            name = "Draft";
-            break;
-        case StorageBox::UNKNOWN:
-            [[fallthrough]];
-        default:
-            break;
+    try {
+        return type_map_.at(type);
+    } catch (...) {
+        return proto::CITEMTYPE_UNKNOWN;
     }
+}
 
-    return name;
+blockchain::Type Translate(const proto::ContactItemType type) noexcept
+{
+    try {
+        return type_reverse_map_.at(type);
+    } catch (...) {
+        return blockchain::Type::Unknown;
+    }
 }
 }  // namespace opentxs

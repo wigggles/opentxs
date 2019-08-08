@@ -84,10 +84,11 @@ Manager::Manager(
           opentxs::Factory::FactoryAPIClient(*this))
     , zeromq_(opentxs::Factory::ZMQ(*this, running_))
     , identity_(opentxs::Factory::Identity(*this))
-    , contacts_(opentxs::Factory::Contacts(*this))
+    , contacts_(opentxs::Factory::ContactAPI(*this))
     , activity_(opentxs::Factory::Activity(*this, *contacts_))
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    , blockchain_(opentxs::Factory::Blockchain(*this, *activity_))
+    , blockchain_(
+          opentxs::Factory::BlockchainAPI(*this, *activity_, *contacts_))
 #endif
     , workflow_(opentxs::Factory::Workflow(*this, *activity_, *contacts_))
     , ot_api_(new OT_API(

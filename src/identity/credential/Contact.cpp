@@ -68,6 +68,7 @@ std::string Contact::ClaimID(
     preimage.set_start(item.start());
     preimage.set_end(item.end());
     preimage.set_value(item.value());
+    preimage.set_subtype(item.subtype());
 
     return String::Factory(ClaimID(api, preimage))->Get();
 }
@@ -80,7 +81,8 @@ std::string Contact::ClaimID(
     const proto::ContactItemType type,
     const std::int64_t start,
     const std::int64_t end,
-    const std::string& value)
+    const std::string& value,
+    const std::string& subtype)
 {
     proto::Claim preimage;
     preimage.set_version(1);
@@ -90,8 +92,9 @@ std::string Contact::ClaimID(
     preimage.set_start(start);
     preimage.set_end(end);
     preimage.set_value(value);
+    preimage.set_subtype(subtype);
 
-    return String::Factory(ClaimID(api, preimage))->Get();
+    return ClaimID(api, preimage)->str();
 }
 
 // static

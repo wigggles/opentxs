@@ -36,7 +36,8 @@ public:
         const proto::ContactItemType type,
         const std::int64_t start,
         const std::int64_t end,
-        const std::string& value);
+        const std::string& value,
+        const std::string& subtype);
     EXPORT static OTIdentifier ClaimID(
         const api::Core& api,
         const proto::Claim& preimage);

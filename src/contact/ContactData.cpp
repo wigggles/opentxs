@@ -134,7 +134,8 @@ ContactData ContactData::AddContract(
         instrumentDefinitionID,
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -174,7 +175,8 @@ ContactData ContactData::AddEmail(
         value,
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -255,7 +257,8 @@ ContactData ContactData::AddPaymentCode(
         code,
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -295,7 +298,8 @@ ContactData ContactData::AddPhoneNumber(
         value,
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -330,7 +334,8 @@ ContactData ContactData::AddPreferredOTServer(
         String::Factory(id)->Get(),
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -375,7 +380,8 @@ ContactData ContactData::AddSocialMediaProfile(
         value,
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -421,7 +427,8 @@ ContactData ContactData::AddSocialMediaProfile(
             value,
             attrib,
             NULL_START,
-            NULL_END);
+            NULL_END,
+            "");
 
         OT_ASSERT(item);
 
@@ -473,7 +480,8 @@ ContactData ContactData::AddSocialMediaProfile(
             value,
             attrib,
             NULL_START,
-            NULL_END);
+            NULL_END,
+            "");
 
         OT_ASSERT(item);
 
@@ -823,7 +831,8 @@ ContactData ContactData::SetCommonName(const std::string& name) const
         name,
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -854,7 +863,8 @@ ContactData ContactData::SetName(const std::string& name, const bool primary)
         name,
         attrib,
         NULL_START,
-        NULL_END);
+        NULL_END,
+        "");
 
     OT_ASSERT(item);
 
@@ -887,7 +897,8 @@ ContactData ContactData::SetScope(
             name,
             attrib,
             NULL_START,
-            NULL_END);
+            NULL_END,
+            "");
 
         OT_ASSERT(item);
 

@@ -227,7 +227,7 @@ bool Tree::Load(std::shared_ptr<proto::Ciphertext>& output, const bool checking)
 
         return true;
     } else {
-        if (checking) {
+        if (false == checking) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Master key does not exist.")
                 .Flush();
         }

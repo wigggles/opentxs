@@ -34,7 +34,8 @@
 
 namespace opentxs
 {
-api::client::internal::Contacts* Factory::Contacts(const api::Core& api)
+api::client::internal::Contacts* Factory::ContactAPI(
+    const api::client::Manager& api)
 {
     return new opentxs::api::client::implementation::Contacts(api);
 }
@@ -42,7 +43,7 @@ api::client::internal::Contacts* Factory::Contacts(const api::Core& api)
 
 namespace opentxs::api::client::implementation
 {
-Contacts::Contacts(const api::Core& api)
+Contacts::Contacts(const api::client::Manager& api)
     : api_(api)
     , lock_()
     , contact_map_()
@@ -173,14 +174,16 @@ std::shared_ptr<const opentxs::Contact> Contacts::contact(
 
     auto it = add_contact(lock, contact.release());
     auto& output = it->second.second;
+    auto changed = std::map<OTData, OTIdentifier>{};
 
-    if (false == api_.Storage().Store(*output)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to create save contact.")
-            .Flush();
+    if (false == api_.Storage().Store(*output, changed)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to save contact.").Flush();
         contact_map_.erase(it);
 
         return {};
     }
+
+    // Not parsing changed addresses because this ia a new contact
 
     return output;
 }
@@ -384,8 +387,9 @@ std::shared_ptr<const opentxs::Contact> Contacts::Merge(
     auto& lhs = const_cast<opentxs::Contact&>(*parentContact);
     auto& rhs = const_cast<opentxs::Contact&>(*childContact);
     lhs += rhs;
+    auto changed = std::map<OTData, OTIdentifier>{};
 
-    if (false == api_.Storage().Store(rhs)) {
+    if (false == api_.Storage().Store(rhs, changed)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to create save child contact.")
             .Flush();
@@ -393,7 +397,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::Merge(
         OT_FAIL;
     }
 
-    if (false == api_.Storage().Store(lhs)) {
+    if (false == api_.Storage().Store(lhs, changed)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to create save parent contact.")
             .Flush();
@@ -402,6 +406,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::Merge(
     }
 
     contact_map_.erase(child);
+    api_.Blockchain().UpdateTransactions(changed);
 
     return parentContact;
 }
@@ -572,6 +577,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::NewContactFromAddress(
     const auto newContactID = Identifier::Factory(newContact->ID());
     auto& it = contact_map_.at(newContactID);
     auto& contact = *it.second;
+    auto changed = std::map<OTData, OTIdentifier>{};
 
     if (false == contact.AddBlockchainAddress(address, currency)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -581,11 +587,13 @@ std::shared_ptr<const opentxs::Contact> Contacts::NewContactFromAddress(
         OT_FAIL;
     }
 
-    if (false == api_.Storage().Store(contact)) {
+    if (false == api_.Storage().Store(contact, changed)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to save contact.").Flush();
 
         OT_FAIL;
     }
+
+    api_.Blockchain().UpdateTransactions(changed);
 
     return newContact;
 }
@@ -669,7 +677,9 @@ void Contacts::save(const PasswordPrompt& reason, opentxs::Contact* contact)
 {
     OT_ASSERT(nullptr != contact);
 
-    if (false == api_.Storage().Store(*contact)) {
+    auto changed = std::map<OTData, OTIdentifier>{};
+
+    if (false == api_.Storage().Store(*contact, changed)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to create or save contact.")
             .Flush();
@@ -689,6 +699,7 @@ void Contacts::save(const PasswordPrompt& reason, opentxs::Contact* contact)
 
     rLock lock(lock_);
     refresh_indices(reason, lock, *contact);
+    api_.Blockchain().UpdateTransactions(changed);
 }
 
 void Contacts::start(const PasswordPrompt& reason)
@@ -833,6 +844,7 @@ void Contacts::update_nym_map(
     const auto& incomingID = contact.ID();
     const auto contactID = Identifier::Factory(contactIdentifier);
     const bool same = (incomingID == contactID);
+    auto changed = std::map<OTData, OTIdentifier>{};
 
     if (exists && (false == same)) {
         if (replace) {
@@ -851,7 +863,7 @@ void Contacts::update_nym_map(
 
             oldContact->RemoveNym(nymID);
 
-            if (false == api_.Storage().Store(*oldContact)) {
+            if (false == api_.Storage().Store(*oldContact, changed)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to create or save contact.")
                     .Flush();
@@ -863,17 +875,17 @@ void Contacts::update_nym_map(
                 .Flush();
             contact.RemoveNym(nymID);
 
-            if (false == api_.Storage().Store(contact)) {
+            if (false == api_.Storage().Store(contact, changed)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to create or save contact.")
                     .Flush();
 
                 OT_FAIL;
             }
-
-            return;
         }
     }
+
+    api_.Blockchain().UpdateTransactions(changed);
 }
 
 bool Contacts::verify_write_lock(const rLock& lock) const

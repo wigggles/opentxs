@@ -123,8 +123,7 @@ MailItem::MailItem(
         case StorageBox::FINISHEDPEERREPLY:
         case StorageBox::PROCESSEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREPLY:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE:
         case StorageBox::DRAFT:
@@ -155,8 +154,7 @@ void MailItem::load()
         case StorageBox::FINISHEDPEERREPLY:
         case StorageBox::PROCESSEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREPLY:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE:
         case StorageBox::DRAFT:

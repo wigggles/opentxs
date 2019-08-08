@@ -27,7 +27,7 @@ class HDSeed
 public:
     using Path = std::vector<Bip32Index>;
 
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
+    EXPORT virtual std::unique_ptr<opentxs::crypto::key::HD> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
         const Bip32Index index,
@@ -50,6 +50,9 @@ public:
         const PasswordPrompt& reason) const = 0;
     EXPORT virtual OTSymmetricKey GetStorageKey(
         std::string& seed,
+        const PasswordPrompt& reason) const = 0;
+    EXPORT virtual std::string ImportRaw(
+        const OTPassword& entropy,
         const PasswordPrompt& reason) const = 0;
     EXPORT virtual std::string ImportSeed(
         const OTPassword& words,

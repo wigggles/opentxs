@@ -38,7 +38,10 @@ public:
 
     bool Delete(const std::string& id);
     bool SetAlias(const std::string& id, const std::string& alias);
-    bool Store(const proto::Contact& data, const std::string& alias);
+    bool Store(
+        const proto::Contact& data,
+        const std::string& alias,
+        std::map<OTData, OTIdentifier>& changed);
 
     ~Contacts() = default;
 
@@ -47,12 +50,21 @@ private:
     typedef Node ot_super;
     typedef std::pair<proto::ContactItemType, std::string> Address;
 
+    static const VersionNumber CurrentVersion{2};
+    static const VersionNumber AddressIndexVersion{1};
+    static const VersionNumber MergeIndexVersion{1};
+    static const VersionNumber NymIndexVersion{1};
+
     mutable std::map<Address, std::string> address_index_{};
+    mutable std::map<std::string, std::set<Address>> address_reverse_index_;
     std::map<std::string, std::set<std::string>> merge_{};
     std::map<std::string, std::string> merged_{};
     mutable std::map<std::string, std::string> nym_contact_index_{};
 
-    void extract_addresses(const Lock& lock, const proto::Contact& data) const;
+    void extract_addresses(
+        const Lock& lock,
+        const proto::Contact& data,
+        std::map<OTData, OTIdentifier>& changed) const;
     void extract_nyms(const Lock& lock, const proto::Contact& data) const;
     const std::string& nomalize_id(const std::string& input) const;
     bool save(const std::unique_lock<std::mutex>& lock) const override;

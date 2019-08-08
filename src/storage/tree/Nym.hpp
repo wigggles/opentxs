@@ -22,11 +22,13 @@
 
 namespace opentxs::storage
 {
-class Nym : public Node
+class Nym final : public Node
 {
 public:
     std::set<std::string> BlockchainAccountList(
         const proto::ContactItemType type) const;
+    proto::ContactItemType BlockchainAccountType(
+        const std::string& accountID) const;
 
     const storage::Bip47Channels& Bip47Channels() const;
     const storage::Contexts& Contexts() const;
@@ -43,6 +45,7 @@ public:
     const PeerRequests& SentRequestBox() const;
     const storage::Threads& Threads() const;
     const storage::PaymentWorkflows& PaymentWorkflows() const;
+    const storage::Txos& TXOs() const;
 
     Editor<storage::Bip47Channels> mutable_Bip47Channels();
     Editor<storage::Contexts> mutable_Contexts();
@@ -59,11 +62,12 @@ public:
     Editor<PeerRequests> mutable_SentRequestBox();
     Editor<storage::Threads> mutable_Threads();
     Editor<storage::PaymentWorkflows> mutable_PaymentWorkflows();
+    Editor<storage::Txos> mutable_TXOs();
 
     std::string Alias() const;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::Bip44Account>& output,
+        std::shared_ptr<proto::HDAccount>& output,
         const bool checking) const;
     bool Load(
         std::shared_ptr<proto::CredentialIndex>& output,
@@ -74,12 +78,10 @@ public:
         const identifier::UnitDefinition& unit,
         std::shared_ptr<proto::Purse>& output,
         const bool checking) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const final;
 
     bool SetAlias(const std::string& alias);
-    bool Store(
-        const proto::ContactItemType type,
-        const proto::Bip44Account& data);
+    bool Store(const proto::ContactItemType type, const proto::HDAccount& data);
     bool Store(
         const proto::CredentialIndex& data,
         const std::string& alias,
@@ -143,7 +145,8 @@ private:
     mutable std::mutex blockchain_lock_;
     std::map<proto::ContactItemType, std::set<std::string>>
         blockchain_account_types_{};
-    std::map<std::string, std::shared_ptr<proto::Bip44Account>>
+    std::map<std::string, proto::ContactItemType> blockchain_account_index_;
+    std::map<std::string, std::shared_ptr<proto::HDAccount>>
         blockchain_accounts_{};
     std::string issuers_root_;
     mutable std::mutex issuers_lock_;
@@ -152,6 +155,9 @@ private:
     mutable std::mutex workflows_lock_;
     mutable std::unique_ptr<storage::PaymentWorkflows> workflows_;
     std::map<PurseID, std::string> purse_id_;
+    mutable std::mutex txo_lock_;
+    mutable std::unique_ptr<storage::Txos> txo_;
+    std::string txo_root_;
 
     template <typename T, typename... Args>
     T* construct(
@@ -175,6 +181,7 @@ private:
     storage::Contexts* contexts() const;
     storage::Issuers* issuers() const;
     storage::PaymentWorkflows* workflows() const;
+    storage::Txos* txos() const;
 
     template <typename T>
     Editor<T> editor(
@@ -182,8 +189,8 @@ private:
         std::mutex& mutex,
         T* (Nym::*get)() const);
 
-    void init(const std::string& hash) override;
-    bool save(const Lock& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const Lock& lock) const final;
     template <typename O>
     void _save(
         O* input,

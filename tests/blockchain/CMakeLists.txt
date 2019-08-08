@@ -7,12 +7,7 @@ set(name unittests-opentxs-blockchain)
 
 set(cxx-sources
         ${PROJECT_SOURCE_DIR}/tests/main.cpp
-        Test_NewAccount.cpp
-        Test_AccountList.cpp
-        Test_AllocateAddress.cpp
-        Test_AssignAddress.cpp
-        Test_StoreIncoming.cpp
-        Test_StoreOutgoing.cpp
+        Test_BlockchainAPI.cpp
         ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
         )
 

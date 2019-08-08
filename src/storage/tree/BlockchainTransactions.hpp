@@ -19,9 +19,6 @@ namespace opentxs
 {
 namespace storage
 {
-
-class Tree;
-
 class BlockchainTransactions : public Node
 {
 public:
@@ -29,17 +26,28 @@ public:
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& output,
         const bool checking) const;
+    std::set<OTNymID> LookupNyms(const std::string& txid) const;
 
     bool Delete(const std::string& id);
-    bool Store(const proto::BlockchainTransaction& data);
+    bool Store(
+        const identifier::Nym& nym,
+        const proto::BlockchainTransaction& data);
 
     ~BlockchainTransactions() = default;
 
 private:
-    friend class Tree;
+    friend Tree;
+
+    using SerializedType = proto::StorageBlockchainTransactions;
+    using NymIndexType = proto::StorageContactNymIndex;
+
+    static const VersionNumber CurrentVersion{2};
+    static const VersionNumber NymIndexVersion{1};
+
+    std::map<std::string, std::set<OTNymID>> nym_index_;
 
     bool save(const std::unique_lock<std::mutex>& lock) const override;
-    proto::StorageBlockchainTransactions serialize() const;
+    SerializedType serialize() const;
 
     void init(const std::string& hash) override;
 

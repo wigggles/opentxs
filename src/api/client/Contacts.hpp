@@ -62,7 +62,7 @@ private:
     using ContactMap = std::map<OTIdentifier, ContactLock>;
     using ContactNameMap = std::map<OTIdentifier, std::string>;
 
-    const api::Core& api_;
+    const api::client::Manager& api_;
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
     mutable ContactNameMap contact_name_map_;
@@ -139,7 +139,7 @@ private:
         class Contact& contact,
         const bool replace = false) const;
 
-    Contacts(const api::Core& api);
+    Contacts(const api::client::Manager& api);
     Contacts() = delete;
     Contacts(const Contacts&) = delete;
     Contacts(Contacts&&) = delete;

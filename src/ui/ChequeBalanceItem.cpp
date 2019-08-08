@@ -90,8 +90,7 @@ opentxs::Amount ChequeBalanceItem::effective_amount() const
         case StorageBox::PROCESSEDPEERREPLY:
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::DRAFT:
         case StorageBox::UNKNOWN:
         default: {
@@ -212,8 +211,7 @@ void ChequeBalanceItem::startup(const CustomData& custom)
         case StorageBox::PROCESSEDPEERREPLY:
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX:
-        case StorageBox::INCOMINGBLOCKCHAIN:
-        case StorageBox::OUTGOINGBLOCKCHAIN:
+        case StorageBox::BLOCKCHAIN:
         case StorageBox::OUTGOINGTRANSFER:
         case StorageBox::INCOMINGTRANSFER:
         case StorageBox::INTERNALTRANSFER:

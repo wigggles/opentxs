@@ -21,6 +21,19 @@ namespace api
 {
 namespace client
 {
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+namespace blockchain
+{
+class BalanceList;
+class BalanceNode;
+class BalanceTree;
+class Deterministic;
+class HD;
+class Imported;
+class PaymentCode;
+}  // namespace blockchain
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
 class Activity;
 class Blockchain;
 class Contacts;

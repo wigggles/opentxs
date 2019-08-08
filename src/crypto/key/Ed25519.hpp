@@ -36,6 +36,7 @@ private:
     friend LowLevelKeyGenerator;
 
     Ed25519* clone() const override final { return new Ed25519(*this); }
+    Ed25519* clone_ec() const override final { return clone(); }
     std::shared_ptr<proto::AsymmetricKey> get_public() const override
     {
         return serialize_public(clone());

@@ -12,6 +12,15 @@
 
 #include <opentxs/Forward.hpp>
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include <opentxs/api/client/blockchain/BalanceList.hpp>
+#include <opentxs/api/client/blockchain/BalanceNode.hpp>
+#include <opentxs/api/client/blockchain/BalanceTree.hpp>
+#include <opentxs/api/client/blockchain/Deterministic.hpp>
+#include <opentxs/api/client/blockchain/HD.hpp>
+#include <opentxs/api/client/blockchain/Imported.hpp>
+#include <opentxs/api/client/blockchain/PaymentCode.hpp>
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Activity.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Blockchain.hpp>
