@@ -58,26 +58,33 @@ struct Blockchain : virtual public api::client::Blockchain {
     };
 
     virtual const api::internal::Core& API() const noexcept = 0;
+    /// Throws std::runtime_error if type is invalid
+    OPENTXS_EXPORT virtual auto BalanceTree(
+        const identifier::Nym& nymID,
+        const Chain chain) const noexcept(false)
+        -> const blockchain::internal::BalanceTree& = 0;
 #if OT_BLOCKCHAIN
-    virtual const blockchain::database::implementation::Database& BlockchainDB()
-        const noexcept = 0;
+    virtual auto BlockchainDB() const noexcept
+        -> const blockchain::database::implementation::Database& = 0;
 #endif  // OT_BLOCKCHAIN
-    virtual std::string CalculateAddress(
+    virtual auto CalculateAddress(
         const opentxs::blockchain::Type chain,
         const blockchain::AddressStyle format,
-        const Data& pubkey) const noexcept = 0;
-    virtual const api::client::Contacts& Contacts() const noexcept = 0;
-    virtual const TxoDB& DB() const noexcept = 0;
+        const Data& pubkey) const noexcept -> std::string = 0;
+    virtual auto Contacts() const noexcept -> const api::client::Contacts& = 0;
+    virtual auto DB() const noexcept -> const TxoDB& = 0;
 #if OT_BLOCKCHAIN
-    virtual const opentxs::blockchain::client::internal::IO& IO() const
-        noexcept = 0;
+    virtual auto IO() const noexcept
+        -> const opentxs::blockchain::client::internal::IO& = 0;
 #endif  // OT_BLOCKCHAIN
-    virtual OTData PubkeyHash(
+    virtual auto PubkeyHash(
         const opentxs::blockchain::Type chain,
-        const Data& pubkey) const noexcept(false) = 0;
+        const Data& pubkey) const noexcept(false) -> OTData = 0;
 #if OT_BLOCKCHAIN
-    virtual const opentxs::network::zeromq::socket::Publish& Reorg() const
-        noexcept = 0;
+    virtual auto Reorg() const noexcept
+        -> const opentxs::network::zeromq::socket::Publish& = 0;
+    virtual auto ThreadPool() const noexcept
+        -> const opentxs::blockchain::client::internal::ThreadPool& = 0;
 #endif  // OT_BLOCKCHAIN
 
     virtual ~Blockchain() = default;

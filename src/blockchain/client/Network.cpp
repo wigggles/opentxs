@@ -45,18 +45,28 @@ Network::Network(
           type,
           seednode,
           shutdown_sender_.endpoint_))
+    , block_p_(
+          Factory::BlockOracle(api, *this, type, shutdown_sender_.endpoint_))
     , filter_p_(Factory::BlockchainFilterOracle(
           api,
           *this,
           *database_p_,
           type,
           shutdown_sender_.endpoint_))
-    , wallet_p_()
+    , wallet_p_(Factory::BlockchainWallet(
+          api,
+          blockchain,
+          *this,
+          type,
+          shutdown_sender_.endpoint_))
+    , blockchain_(blockchain)
     , chain_(type)
     , database_(*database_p_)
     , filters_(*filter_p_)
     , header_(*header_p_)
     , peer_(*peer_p_)
+    , block_(*block_p_)
+    , wallet_(*wallet_p_)
     , parent_(blockchain)
     , local_chain_height_(0)
     , remote_chain_height_(0)
@@ -67,6 +77,8 @@ Network::Network(
     OT_ASSERT(filter_p_);
     OT_ASSERT(header_p_);
     OT_ASSERT(peer_p_);
+    OT_ASSERT(block_p_);
+    OT_ASSERT(wallet_p_);
 
     init_executor({});
 }
@@ -124,7 +136,9 @@ auto Network::init() noexcept -> void
     }
 
     peer_.init();
+    block_.Init();
     filters_.Start();
+    wallet_.Init();
     task_id_ = api_.Schedule(std::chrono::seconds(30), [this]() { Trigger(); });
     Trigger();
 }
@@ -147,6 +161,9 @@ auto Network::pipeline(zmq::Message& in) noexcept -> void
         case Task::SubmitFilter: {
             process_filter(in);
         } break;
+        case Task::SubmitBlock: {
+            process_block(in);
+        } break;
         case Task::StateMachine: {
             process_state_machine();
         } break;
@@ -159,62 +176,33 @@ auto Network::pipeline(zmq::Message& in) noexcept -> void
     }
 }
 
+auto Network::process_block(network::zeromq::Message& in) noexcept -> void
+{
+    if (false == running_.get()) { return; }
+
+    const auto body = in.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid block").Flush();
+
+        return;
+    }
+
+    block_.SubmitBlock(body.at(0));
+}
+
 auto Network::process_cfheader(network::zeromq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    auto type = filter::Type{};
-    auto stopBlock = ReadView{};
-    auto previousHeader = ReadView{};
-    auto hashes = std::vector<ReadView>{};
-
-    {
-        auto counter{0};
-        const auto body = in.Body();
-
-        if (body.size() < 3) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
-
-            return;
-        }
-
-        for (const auto& frame : in.Body()) {
-            switch (++counter) {
-                case 1: {
-                    type = frame.as<filter::Type>();
-                } break;
-                case 2: {
-                    stopBlock = frame.Bytes();
-                } break;
-                case 3: {
-                    previousHeader = frame.Bytes();
-                } break;
-                default: {
-                    hashes.emplace_back(frame.Bytes());
-                }
-            }
-        }
-    }
-
-    filters_.AddHeaders(type, stopBlock, previousHeader, std::move(hashes));
+    filters_.AddHeaders(in);
 }
 
 auto Network::process_filter(network::zeromq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto body = in.Body();
-
-    if (3 != body.size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
-
-        return;
-    }
-
-    filters_.AddFilter(
-        body.at(0).as<filter::Type>(),
-        Data::Factory(body.at(1)),
-        Data::Factory(body.at(2)));
+    filters_.AddFilter(in);
 }
 
 auto Network::process_header(network::zeromq::Message& in) noexcept -> void
@@ -243,7 +231,7 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
         auto counter{0};
         const auto body = in.Body();
 
-        if (body.size() < 2) {
+        if (1 > body.size()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
             return;
@@ -271,7 +259,8 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
         headers.emplace_back(instantiate_header(header));
     }
 
-    header_.AddHeaders(headers);
+    if (false == headers.empty()) { header_.AddHeaders(headers); }
+
     processing_headers_->Off();
     promise.set_value();
     Trigger();
@@ -279,8 +268,11 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
 
 auto Network::process_state_machine() noexcept -> void
 {
+    static const auto rateLimit = std::chrono::milliseconds{20};
+
     filters_.CheckBlocks();
     peer_.Run();
+    wallet_.Run();
 
     try {
         if (IsSynchronized()) {
@@ -288,32 +280,38 @@ auto Network::process_state_machine() noexcept -> void
         } else {
             if (false == processing_headers_.get()) { peer_.RequestHeaders(); }
 
-            Sleep(std::chrono::milliseconds(20));
-
+            Sleep(rateLimit);
             state_machine_.set_value(true);
         }
     } catch (...) {
     }
 }
 
+auto Network::RequestBlock(const block::Hash& block) const noexcept -> bool
+{
+    if (false == running_.get()) { return false; }
+
+    return peer_.RequestBlock(block);
+}
+
 auto Network::RequestFilterHeaders(
     const filter::Type type,
     const block::Height start,
-    const block::Hash& stop) const noexcept -> void
+    const block::Hash& stop) const noexcept -> bool
 {
-    if (false == running_.get()) { return; }
+    if (false == running_.get()) { return false; }
 
-    peer_.RequestFilterHeaders(type, start, stop);
+    return peer_.RequestFilterHeaders(type, start, stop);
 }
 
 auto Network::RequestFilters(
     const filter::Type type,
     const block::Height start,
-    const block::Hash& stop) const noexcept -> void
+    const block::Hash& stop) const noexcept -> bool
 {
-    if (false == running_.get()) { return; }
+    if (false == running_.get()) { return false; }
 
-    peer_.RequestFilters(type, start, stop);
+    return peer_.RequestFilters(type, start, stop);
 }
 
 auto Network::SendToAddress(
@@ -348,6 +346,8 @@ auto Network::shutdown(std::promise<void>& promise) noexcept -> void
 
         api_.Cancel(task_id_);
         shutdown_sender_.Activate();
+        wallet_.Shutdown().get();
+        block_.Shutdown().get();
         peer_.Shutdown().get();
         filters_.Shutdown().get();
         shutdown_sender_.Close();

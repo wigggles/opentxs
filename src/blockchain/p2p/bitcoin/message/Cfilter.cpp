@@ -18,13 +18,13 @@
 // #define OT_METHOD "opentxs::blockchain::p2p::bitcoin::message::Cfilter::"
 namespace opentxs
 {
-blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
-    BitcoinP2PCfilter(
-        const api::internal::Core& api,
-        std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
-        const blockchain::p2p::bitcoin::ProtocolVersion version,
-        const void* payload,
-        const std::size_t size)
+auto Factory::BitcoinP2PCfilter(
+    const api::internal::Core& api,
+    std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
+    const blockchain::p2p::bitcoin::ProtocolVersion version,
+    const void* payload,
+    const std::size_t size)
+    -> blockchain::p2p::bitcoin::message::internal::Cfilter*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Cfilter;
@@ -92,51 +92,45 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
         return nullptr;
     }
 
-    const auto filterType = raw.Type(header.Network());
-    const auto dataSize = filterSize - (1 + csBytes);
-    auto gcs = std::unique_ptr<blockchain::internal::GCS>{};
-    auto bytes = Data::Factory(it, dataSize);
-
-    try {
-        gcs.reset(Factory::GCS(
-            api,
-            ReturnType::gcs_bits_.at(filterType),
-            ReturnType::gcs_fp_rate_.at(filterType),
-            blockchain::internal::BlockHashToFilterKey(raw.Hash()->Bytes()),
-            elementCount,
-            std::move(bytes)));
-    } catch (...) {
-        LogOutput(__FUNCTION__)(": Unknown filter type").Flush();
+    if (std::numeric_limits<std::uint32_t>::max() < elementCount) {
+        LogOutput(__FUNCTION__)(": Too many elements").Flush();
 
         return nullptr;
     }
 
+    const auto filterType = raw.Type(header.Network());
+    const auto dataSize = filterSize - (1 + csBytes);
+
     return new ReturnType(
         api,
         std::move(pHeader),
-        raw.Type(header.Network()),
+        filterType,
         raw.Hash(),
-        std::move(gcs));
+        static_cast<std::uint32_t>(elementCount),
+        Space{it, it + dataSize});
 }
 
-blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
-    BitcoinP2PCfilter(
-        const api::internal::Core& api,
-        const blockchain::Type network,
-        const blockchain::filter::Type type,
-        const blockchain::filter::Hash& hash,
-        std::unique_ptr<blockchain::internal::GCS> filter)
+auto Factory::BitcoinP2PCfilter(
+    const api::internal::Core& api,
+    const blockchain::Type network,
+    const blockchain::filter::Type type,
+    const blockchain::filter::Hash& hash,
+    std::unique_ptr<blockchain::internal::GCS> filter)
+    -> blockchain::p2p::bitcoin::message::internal::Cfilter*
 {
     namespace bitcoin = blockchain::p2p::bitcoin;
     using ReturnType = bitcoin::message::implementation::Cfilter;
 
-    return new ReturnType(api, network, type, hash, std::move(filter));
+    OT_ASSERT(filter);
+
+    return new ReturnType(
+        api, network, type, hash, filter->ElementCount(), filter->Compressed());
 }
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
-const std::map<filter::Type, std::uint32_t> Cfilter::gcs_bits_{
+const std::map<filter::Type, std::uint8_t> Cfilter::gcs_bits_{
     {filter::Type::Basic_BIP158, 19},
     {filter::Type::Basic_BCHVariant, 19},
     {filter::Type::Extended_opentxs, 19},
@@ -152,14 +146,14 @@ Cfilter::Cfilter(
     const blockchain::Type network,
     const filter::Type type,
     const filter::Hash& hash,
-    std::unique_ptr<blockchain::internal::GCS> filter) noexcept
+    const std::uint32_t count,
+    const Space& compressed) noexcept
     : Message(api, network, bitcoin::Command::cfilter)
     , type_(type)
     , hash_(hash)
-    , filter_(std::move(filter))
+    , count_(count)
+    , filter_(compressed)
 {
-    OT_ASSERT(filter_);
-
     init_hash();
 }
 
@@ -168,24 +162,24 @@ Cfilter::Cfilter(
     std::unique_ptr<Header> header,
     const filter::Type type,
     const filter::Hash& hash,
-    std::unique_ptr<blockchain::internal::GCS> filter) noexcept
+    const std::uint32_t count,
+    Space&& compressed) noexcept
     : Message(api, std::move(header))
     , type_(type)
     , hash_(hash)
-    , filter_(std::move(filter))
+    , count_(count)
+    , filter_(std::move(compressed))
 {
-    OT_ASSERT(filter_);
 }
 
 OTData Cfilter::payload() const noexcept
 {
     try {
-        BitcoinFormat raw(header().Network(), type_, hash_);
+        auto raw = BitcoinFormat{header().Network(), type_, hash_};
         auto output = Data::Factory(&raw, sizeof(raw));
-        auto bytes = filter_->Encode();
-        const auto size = CompactSize(bytes->size()).Encode();
-        output->Concatenate(size.data(), size.size());
-        output += bytes;
+        auto filter = CompactSize(count_).Encode();
+        filter.insert(filter.end(), filter_.begin(), filter_.end());
+        output->Concatenate(filter.data(), filter.size());
 
         return output;
     } catch (...) {

@@ -17,35 +17,39 @@ public:
     static const std::map<Type, std::vector<std::string>> dns_seeds_;
     static const std::map<Type, p2p::Protocol> protocol_map_;
 
-    bool AddPeer(const p2p::Address& address) const noexcept final;
-    const internal::PeerDatabase& Database() const noexcept final
+    auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
+    auto Database() const noexcept -> const internal::PeerDatabase& final
     {
         return database_;
     }
-    bool Connect() noexcept;
-    void Disconnect(const int id) const noexcept final;
-    std::string Endpoint(const Task type) const noexcept final
+    auto Connect() noexcept -> bool;
+    auto Disconnect(const int id) const noexcept -> void final;
+    auto Endpoint(const Task type) const noexcept -> std::string final
     {
         return jobs_.Endpoint(type);
     }
-    std::size_t GetPeerCount() const noexcept final { return peers_.Count(); }
-    void Heartbeat() const noexcept { jobs_.Dispatch(Task::Heartbeat); }
-    void RequestFilterHeaders(
+    auto GetPeerCount() const noexcept -> std::size_t final
+    {
+        return peers_.Count();
+    }
+    auto Heartbeat() const noexcept -> void { jobs_.Dispatch(Task::Heartbeat); }
+    auto RequestBlock(const block::Hash& block) const noexcept -> bool final;
+    auto RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
-        const block::Hash& stop) const noexcept final;
-    void RequestFilters(
+        const block::Hash& stop) const noexcept -> bool final;
+    auto RequestFilters(
         const filter::Type type,
         const block::Height start,
-        const block::Hash& stop) const noexcept final;
-    void RequestHeaders() const noexcept final;
-    std::shared_future<void> Shutdown() noexcept final
+        const block::Hash& stop) const noexcept -> bool final;
+    auto RequestHeaders() const noexcept -> bool final;
+    auto Shutdown() noexcept -> std::shared_future<void> final
     {
         return stop_executor();
     }
 
-    void init() noexcept final;
-    void Run() noexcept final { Trigger(); }
+    auto init() noexcept -> void final;
+    auto Run() noexcept -> void final { Trigger(); }
 
     PeerManager(
         const api::internal::Core& api,
@@ -82,6 +86,7 @@ private:
         OTZMQPushSocket getcfheaders_;
         OTZMQPushSocket getcfilters_;
         OTZMQPublishSocket heartbeat_;
+        OTZMQPushSocket getblock_;
         const EndpointMap endpoint_map_;
         const SocketMap socket_map_;
 

@@ -20,16 +20,15 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 
 namespace opentxs
 {
-network::zeromq::Message* Factory::ZMQMessage()
+auto Factory::ZMQMessage() -> network::zeromq::Message*
 {
     using ReturnType = opentxs::network::zeromq::implementation::Message;
 
     return new ReturnType();
 }
 
-network::zeromq::Message* Factory::ZMQMessage(
-    const void* data,
-    const std::size_t size)
+auto Factory::ZMQMessage(const void* data, const std::size_t size)
+    -> network::zeromq::Message*
 {
     using ReturnType = opentxs::network::zeromq::implementation::Message;
     auto output = new ReturnType();
@@ -39,7 +38,7 @@ network::zeromq::Message* Factory::ZMQMessage(
     return output;
 }
 
-network::zeromq::Message* Factory::ZMQMessage(const ProtobufType& data)
+auto Factory::ZMQMessage(const ProtobufType& data) -> network::zeromq::Message*
 {
     using ReturnType = opentxs::network::zeromq::implementation::Message;
     auto output = new ReturnType();
@@ -52,7 +51,7 @@ network::zeromq::Message* Factory::ZMQMessage(const ProtobufType& data)
 
 namespace opentxs::network::zeromq
 {
-OTZMQMessage Message::Factory()
+auto Message::Factory() -> OTZMQMessage
 {
     return OTZMQMessage{new implementation::Message()};
 }
@@ -72,60 +71,67 @@ Message::Message(const Message& rhs)
     for (auto& message : rhs.messages_) { messages_.emplace_back(message); }
 }
 
-Frame& Message::AddFrame()
+auto Message::AddFrame() -> Frame&
 {
     messages_.emplace_back(Factory::ZMQFrame());
 
     return messages_.back().get();
 }
 
-Frame& Message::AddFrame(const void* input, const std::size_t size)
+auto Message::AddFrame(const void* input, const std::size_t size) -> Frame&
 {
     messages_.emplace_back(Factory::ZMQFrame(input, size));
 
     return messages_.back().get();
 }
 
-Frame& Message::AddFrame(const ProtobufType& input)
+auto Message::AddFrame(const ProtobufType& input) -> Frame&
 {
     messages_.emplace_back(Factory::ZMQFrame(input));
 
     return messages_.back().get();
 }
 
-const Frame& Message::at(const std::size_t index) const
+auto Message::at(const std::size_t index) const -> const Frame&
 {
     OT_ASSERT(messages_.size() > index);
 
     return const_cast<const Frame&>(messages_.at(index).get());
 }
 
-Frame& Message::at(const std::size_t index)
+auto Message::at(const std::size_t index) -> Frame&
 {
     OT_ASSERT(messages_.size() > index);
 
     return messages_.at(index).get();
 }
 
-FrameIterator Message::begin() const { return FrameIterator(this); }
+auto Message::begin() const -> FrameIterator { return FrameIterator(this); }
 
-const FrameSection Message::Body() const
+auto Message::Body() const -> const FrameSection
 {
     auto position = body_position();
 
     return FrameSection(this, position, messages_.size() - position);
 }
 
-const Frame& Message::Body_at(const std::size_t index) const
+auto Message::Body() -> FrameSection
+{
+    auto position = body_position();
+
+    return FrameSection(this, position, messages_.size() - position);
+}
+
+auto Message::Body_at(const std::size_t index) const -> const Frame&
 {
     return Body().at(index);
 }
 
-FrameIterator Message::Body_begin() const { return Body().begin(); }
+auto Message::Body_begin() const -> FrameIterator { return Body().begin(); }
 
-FrameIterator Message::Body_end() const { return Body().end(); }
+auto Message::Body_end() const -> FrameIterator { return Body().end(); }
 
-std::size_t Message::body_position() const
+auto Message::body_position() const -> std::size_t
 {
     std::size_t position{0};
 
@@ -134,7 +140,7 @@ std::size_t Message::body_position() const
     return position;
 }
 
-FrameIterator Message::end() const
+auto Message::end() const -> FrameIterator
 {
     return FrameIterator(this, messages_.size());
 }
@@ -142,7 +148,7 @@ FrameIterator Message::end() const
 // This function is only called by RouterSocket.  It makes sure that if a
 // message has two or more frames, and no delimiter, then a delimiter is
 // inserted after the first frame.
-void Message::EnsureDelimiter()
+auto Message::EnsureDelimiter() -> void
 {
     if (1 < messages_.size() && !hasDivider()) {
         auto it = messages_.begin();
@@ -157,7 +163,7 @@ void Message::EnsureDelimiter()
     }
 }
 
-std::size_t Message::findDivider() const
+auto Message::findDivider() const -> std::size_t
 {
     std::size_t divider = 0;
 
@@ -169,7 +175,7 @@ std::size_t Message::findDivider() const
     return divider;
 }
 
-bool Message::hasDivider() const
+auto Message::hasDivider() const -> bool
 {
     return std::find_if(
                messages_.begin(),
@@ -179,12 +185,12 @@ bool Message::hasDivider() const
                }) != messages_.end();
 }
 
-const Frame& Message::Header_at(const std::size_t index) const
+auto Message::Header_at(const std::size_t index) const -> const Frame&
 {
     return Header().at(index);
 }
 
-const FrameSection Message::Header() const
+auto Message::Header() const -> const FrameSection
 {
     auto size = 0;
 
@@ -193,11 +199,20 @@ const FrameSection Message::Header() const
     return FrameSection(this, 0, size);
 }
 
-FrameIterator Message::Header_begin() const { return Header().begin(); }
+auto Message::Header() -> FrameSection
+{
+    auto size = 0;
 
-FrameIterator Message::Header_end() const { return Header().end(); }
+    if (true == hasDivider()) { size = findDivider(); }
 
-void Message::PrependEmptyFrame()
+    return FrameSection(this, 0, size);
+}
+
+auto Message::Header_begin() const -> FrameIterator { return Header().begin(); }
+
+auto Message::Header_end() const -> FrameIterator { return Header().end(); }
+
+auto Message::PrependEmptyFrame() -> void
 {
     OTZMQFrame message{Factory::ZMQFrame()};
 
@@ -206,7 +221,16 @@ void Message::PrependEmptyFrame()
     OT_ASSERT(messages_.end() != it);
 }
 
-bool Message::set_field(const std::size_t position, const zeromq::Frame& input)
+auto Message::Replace(const std::size_t index, OTZMQFrame&& frame) -> Frame&
+{
+    auto& position = messages_.at(index);
+    std::swap(position, frame);
+
+    return position;
+}
+
+auto Message::set_field(const std::size_t position, const zeromq::Frame& input)
+    -> bool
 {
     const auto effectivePosition = body_position() + position;
 
@@ -217,5 +241,5 @@ bool Message::set_field(const std::size_t position, const zeromq::Frame& input)
     return true;
 }
 
-std::size_t Message::size() const { return messages_.size(); }
+auto Message::size() const -> std::size_t { return messages_.size(); }
 }  // namespace opentxs::network::zeromq::implementation

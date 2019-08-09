@@ -26,6 +26,8 @@ public:
     OTZMQDealerSocket DealerSocket(
         const ListenCallback& callback,
         const socket::Socket::Direction direction) const noexcept final;
+    OTZMQFrame Frame(const void* input, const std::size_t size) const
+        noexcept final;
     OTZMQMessage Message() const noexcept final;
     OTZMQMessage Message(const ProtobufType& input) const noexcept final;
     OTZMQMessage Message(const network::zeromq::Message& input) const

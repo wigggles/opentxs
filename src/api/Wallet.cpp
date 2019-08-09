@@ -112,6 +112,7 @@ Wallet::Wallet(const api::internal::Core& core)
     , account_publisher_(api_.ZeroMQ().PublishSocket())
     , issuer_publisher_(api_.ZeroMQ().PublishSocket())
     , nym_publisher_(api_.ZeroMQ().PublishSocket())
+    , nym_created_publisher_(api_.ZeroMQ().PublishSocket())
     , server_publisher_(api_.ZeroMQ().PublishSocket())
     , peer_reply_publisher_(api_.ZeroMQ().PublishSocket())
     , peer_request_publisher_(api_.ZeroMQ().PublishSocket())
@@ -124,6 +125,7 @@ Wallet::Wallet(const api::internal::Core& core)
     account_publisher_->Start(api_.Endpoints().AccountUpdate());
     issuer_publisher_->Start(api_.Endpoints().IssuerUpdate());
     nym_publisher_->Start(api_.Endpoints().NymDownload());
+    nym_created_publisher_->Start(api_.Endpoints().NymCreated());
     server_publisher_->Start(api_.Endpoints().ServerUpdate());
     peer_reply_publisher_->Start(api_.Endpoints().PeerReplyUpdate());
     peer_request_publisher_->Start(api_.Endpoints().PeerRequestUpdate());
@@ -1155,6 +1157,14 @@ Nym_p Wallet::Nym(
             Lock mapLock(nym_map_lock_);
             auto& pMapNym = nym_map_[nym.ID().str()].second;
             pMapNym = pNym;
+
+            {
+                auto work =
+                    api_.ZeroMQ().Message(OTZMQWorkType{OT_ZMQ_NEW_NYM_SIGNAL});
+                work->AddFrame();
+                work->AddFrame(pNym->ID().str());
+                nym_created_publisher_->Send(work);
+            }
 
             return std::move(pNym);
         } else {

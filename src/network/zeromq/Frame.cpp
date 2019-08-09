@@ -68,11 +68,7 @@ Frame::Frame(const void* data, const std::size_t bytes) noexcept
     std::memcpy(zmq_msg_data(&message_), data, zmq_msg_size(&message_));
 }
 
-Frame::operator std::string() const noexcept
-{
-    return std::string{Bytes()};
-    ;
-}
+Frame::operator std::string() const noexcept { return std::string{Bytes()}; }
 
 auto Frame::Bytes() const noexcept -> ReadView
 {

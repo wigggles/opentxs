@@ -267,22 +267,16 @@ auto Peer::process_block(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
-    const std::unique_ptr<message::internal::Block> pMessage{
-        Factory::BitcoinP2PBlock(
-            api_,
-            std::move(header),
-            protocol_.load(),
-            payload.data(),
-            payload.size())};
-
-    if (false == bool(pMessage)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode message payload")
-            .Flush();
+    if (146 > payload.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid block").Flush();
 
         return;
     }
 
-    // TODO
+    using Task = client::internal::Network::Task;
+    auto work = network_.Work(Task::SubmitBlock);
+    work->AddFrame(payload);
+    network_.Submit(work);
 }
 
 auto Peer::process_blocktxn(
@@ -365,8 +359,8 @@ auto Peer::process_cfilter(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
-    const std::unique_ptr<message::internal::Cfilter> pMessage{
-        Factory::BitcoinP2PCfilter(
+    const auto pMessage =
+        std::unique_ptr<message::internal::Cfilter>{Factory::BitcoinP2PCfilter(
             api_,
             std::move(header),
             protocol_.load(),
@@ -374,7 +368,7 @@ auto Peer::process_cfilter(
             payload.size())};
 
     if (false == bool(pMessage)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode message payload")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode cfilter payload")
             .Flush();
 
         return;
@@ -386,7 +380,10 @@ auto Peer::process_cfilter(
     auto work = network_.Work(Task::SubmitFilter);
     work->AddFrame(type);
     work->AddFrame(message.Hash());
-    work->AddFrame(message.Filter()->Serialize());
+    work->AddFrame(message.Bits());
+    work->AddFrame(message.FPRate());
+    work->AddFrame(message.ElementCount());
+    work->AddFrame(message.Filter().data(), message.Filter().size());
     network_.Submit(work);
 }
 
@@ -895,7 +892,11 @@ auto Peer::process_ping(
 
     const auto& message = *pMessage;
 
-    if (message.Nonce() == nonce_) { disconnect(); }
+    if (message.Nonce() == nonce_) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Connection to self detected")
+            .Flush();
+        disconnect();
+    }
 
     pong();
 }
@@ -918,10 +919,6 @@ auto Peer::process_pong(
 
         return;
     }
-
-    const auto& message = *pMessage;
-
-    if (message.Nonce() == nonce_) { disconnect(); }
 }
 
 auto Peer::process_reject(
@@ -1074,6 +1071,7 @@ auto Peer::process_version(
     if ((1 == services.count(p2p::Service::Network)) ||
         (1 == services.count(p2p::Service::Limited))) {
         subscribe.emplace_back(Task::Getheaders);
+        subscribe.emplace_back(Task::Getblock);
     }
 
     if (1 == services.count(p2p::Service::CompactFilters)) {
@@ -1087,10 +1085,41 @@ auto Peer::process_version(
 
 auto Peer::request_addresses() noexcept -> void
 {
-    std::unique_ptr<Message> pMessage{Factory::BitcoinP2PGetaddr(api_, chain_)};
+    auto pMessage =
+        std::unique_ptr<Message>{Factory::BitcoinP2PGetaddr(api_, chain_)};
 
     if (false == bool(pMessage)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct getaddr")
+            .Flush();
+
+        return;
+    }
+
+    const auto& message = *pMessage;
+    send(message.Encode());
+}
+
+auto Peer::request_block(zmq::Message& in) noexcept -> void
+{
+    const auto body = in.Body();
+
+    if (1 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid command").Flush();
+
+        OT_FAIL;
+    }
+
+    auto id = api_.Factory().Data(body.at(0));
+    using Inventory = blockchain::bitcoin::Inventory;
+    using Type = Inventory::Type;
+    auto blocks = std::vector<Inventory>{};
+    blocks.emplace_back(Type::MsgBlock, std::move(id));
+
+    auto pMessage = std::unique_ptr<Message>{
+        Factory::BitcoinP2PGetdata(api_, chain_, std::move(blocks))};
+
+    if (false == bool(pMessage)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct getdata")
             .Flush();
 
         return;

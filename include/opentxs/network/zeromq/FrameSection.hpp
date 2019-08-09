@@ -8,8 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <atomic>
-
 #ifdef SWIG
 // clang-format off
 %rename(ZMQFrameSection) opentxs::network::zeromq::FrameSection;
@@ -31,10 +29,13 @@ public:
     using reference = Frame&;
     using iterator_category = std::forward_iterator_tag;
 
-    OPENTXS_EXPORT const Frame& at(const std::size_t index) const;
-    OPENTXS_EXPORT FrameIterator begin() const;
-    OPENTXS_EXPORT FrameIterator end() const;
-    OPENTXS_EXPORT std::size_t size() const;
+    OPENTXS_EXPORT auto at(const std::size_t index) const -> const Frame&;
+    OPENTXS_EXPORT auto begin() const -> FrameIterator;
+    OPENTXS_EXPORT auto end() const -> FrameIterator;
+    OPENTXS_EXPORT auto size() const -> std::size_t;
+
+    OPENTXS_EXPORT auto Replace(const std::size_t index, OTZMQFrame&& frame)
+        -> Frame&;
 
     OPENTXS_EXPORT FrameSection(
         const Message* parent,
@@ -42,16 +43,14 @@ public:
         std::size_t size);
     OPENTXS_EXPORT FrameSection(const FrameSection&);
 
-    OPENTXS_EXPORT virtual ~FrameSection() = default;
-
-protected:
-    FrameSection() = default;
+    OPENTXS_EXPORT ~FrameSection() = default;
 
 private:
-    const Message* parent_{nullptr};
-    std::atomic<std::size_t> position_{0};
-    std::atomic<std::size_t> size_{0};
+    const Message* parent_;
+    const std::size_t position_;
+    const std::size_t size_;
 
+    FrameSection() = delete;
     FrameSection(FrameSection&&) = delete;
     FrameSection& operator=(const FrameSection&) = delete;
     FrameSection& operator=(FrameSection&&) = delete;

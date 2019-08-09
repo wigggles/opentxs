@@ -94,6 +94,9 @@ std::size_t HashingProvider::HashSize(const proto::HashType hashType)
         case proto::HASHTYPE_BITCOIN: {
             return 20;
         }
+        case proto::HASHTYPE_SIPHASH24: {
+            return 8;
+        }
         default: {
         }
     }

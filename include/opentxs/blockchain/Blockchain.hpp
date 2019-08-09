@@ -10,6 +10,8 @@
 
 #include "opentxs/core/Data.hpp"
 
+#include <set>
+
 namespace opentxs
 {
 namespace blockchain
@@ -17,12 +19,16 @@ namespace blockchain
 using Hash = Data;
 using pHash = OTData;
 
+OPENTXS_EXPORT auto SupportedChains() noexcept -> const std::set<Type>&;
+
 namespace block
 {
 using Height = std::int64_t;
 using Hash = blockchain::Hash;
 using pHash = blockchain::pHash;
 using Position = std::pair<Height, pHash>;
+using Txid = blockchain::Hash;
+using pTxid = blockchain::pHash;
 
 pHash BlankHash() noexcept;
 }  // namespace block
@@ -35,7 +41,8 @@ using pHash = blockchain::pHash;
 
 namespace p2p
 {
-std::string DisplayService(const Service service) noexcept;
+OPENTXS_EXPORT auto DisplayService(const Service service) noexcept
+    -> std::string;
 }  // namespace p2p
 }  // namespace blockchain
 }  // namespace opentxs

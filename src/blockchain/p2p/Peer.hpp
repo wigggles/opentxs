@@ -114,6 +114,7 @@ protected:
     virtual void ping() noexcept = 0;
     virtual void pong() noexcept = 0;
     virtual void request_addresses() noexcept = 0;
+    virtual void request_block(zmq::Message& message) noexcept = 0;
     virtual void request_headers() noexcept = 0;
     SendStatus send(OTData message) noexcept;
     bool state_machine() noexcept;

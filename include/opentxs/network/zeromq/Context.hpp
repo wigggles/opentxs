@@ -18,6 +18,7 @@
 #include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
@@ -78,6 +79,30 @@ public:
     OPENTXS_EXPORT virtual Pimpl<network::zeromq::socket::Dealer> DealerSocket(
         const ListenCallback& callback,
         const socket::Socket::Direction direction) const noexcept = 0;
+#ifndef SWIG
+    template <
+        typename Input,
+        std::enable_if_t<
+            std::is_pointer<decltype(std::declval<Input&>().data())>::value,
+            int> = 0,
+        std::enable_if_t<
+            std::is_integral<decltype(std::declval<Input&>().size())>::value,
+            int> = 0>
+    OPENTXS_EXPORT OTZMQFrame Frame(const Input& input) const noexcept
+    {
+        return Frame(input.data(), input.size());
+    }
+    template <
+        typename Input,
+        std::enable_if_t<std::is_trivially_copyable<Input>::value, int> = 0>
+    OPENTXS_EXPORT OTZMQFrame Frame(const Input& input) const noexcept
+    {
+        return Frame(&input, sizeof(input));
+    }
+#endif
+    OPENTXS_EXPORT virtual Pimpl<network::zeromq::Frame> Frame(
+        const void* input,
+        const std::size_t size) const noexcept = 0;
     OPENTXS_EXPORT virtual Pimpl<network::zeromq::Message> Message() const
         noexcept = 0;
     OPENTXS_EXPORT virtual Pimpl<network::zeromq::Message> Message(

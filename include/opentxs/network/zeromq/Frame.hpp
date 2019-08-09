@@ -48,7 +48,7 @@ public:
     template <
         typename Output,
         std::enable_if_t<std::is_trivially_copyable<Output>::value, int> = 0>
-    Output as() const noexcept(false)
+    auto as() const noexcept(false) -> Output
     {
         if (sizeof(Output) != size()) {
             throw std::runtime_error("Invalid frame");
@@ -61,9 +61,9 @@ public:
     }
 #endif
 
-    OPENTXS_EXPORT virtual ReadView Bytes() const noexcept = 0;
-    OPENTXS_EXPORT virtual const void* data() const noexcept = 0;
-    OPENTXS_EXPORT virtual std::size_t size() const noexcept = 0;
+    OPENTXS_EXPORT virtual auto Bytes() const noexcept -> ReadView = 0;
+    OPENTXS_EXPORT virtual auto data() const noexcept -> const void* = 0;
+    OPENTXS_EXPORT virtual auto size() const noexcept -> std::size_t = 0;
 
     OPENTXS_EXPORT virtual operator zmq_msg_t*() noexcept = 0;
 

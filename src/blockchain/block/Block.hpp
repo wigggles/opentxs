@@ -1,0 +1,41 @@
+// Copyright (c) 2010-2020 The Open-Transactions developers
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#pragma once
+
+#include "Internal.hpp"
+
+#include "opentxs/blockchain/block/Block.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+
+namespace opentxs::blockchain::block::implementation
+{
+class Block : virtual public block::Block
+{
+public:
+    auto Header() const noexcept -> const block::Header&
+    {
+        return base_header_;
+    }
+    auto ID() const noexcept -> const block::Hash& final
+    {
+        return base_header_.Hash();
+    }
+
+protected:
+    const api::internal::Core& api_;
+
+    Block(const api::internal::Core& api, const block::Header& header) noexcept;
+
+private:
+    const block::Header& base_header_;
+
+    Block() = delete;
+    Block(const Block&) = delete;
+    Block(Block&&) = delete;
+    Block& operator=(const Block&) = delete;
+    Block& operator=(Block&&) = delete;
+};
+}  // namespace opentxs::blockchain::block::implementation

@@ -107,14 +107,19 @@ namespace block
 {
 namespace bitcoin
 {
+class Block;
 class Header;
+class Transaction;
 }  // namespace bitcoin
 
+class Block;
 class Header;
+class Transaction;
 }  // namespace block
 
 namespace client
 {
+class BlockOracle;
 class HeaderOracle;
 }  // namespace client
 

@@ -10,33 +10,38 @@ namespace opentxs::api::implementation
 class Endpoints final : public opentxs::api::Endpoints
 {
 public:
-    std::string AccountUpdate() const noexcept final;
-    std::string BlockchainReorg() const noexcept final;
-    std::string ConnectionStatus() const noexcept final;
-    std::string ContactUpdate() const noexcept final;
-    std::string DhtRequestNym() const noexcept final;
-    std::string DhtRequestServer() const noexcept final;
-    std::string DhtRequestUnit() const noexcept final;
-    std::string FindNym() const noexcept final;
-    std::string FindServer() const noexcept final;
-    std::string FindUnitDefinition() const noexcept final;
-    std::string InternalBlockchainAsioContext() const noexcept final;
-    std::string InternalProcessPushNotification() const noexcept final;
-    std::string InternalPushNotification() const noexcept final;
-    std::string IssuerUpdate() const noexcept final;
-    std::string NymDownload() const noexcept final;
-    std::string PairEvent() const noexcept final;
-    std::string PeerReplyUpdate() const noexcept final;
-    std::string PeerRequestUpdate() const noexcept final;
-    std::string PendingBailment() const noexcept final;
-    std::string ServerReplyReceived() const noexcept final;
-    std::string ServerRequestSent() const noexcept final;
-    std::string ServerUpdate() const noexcept final;
-    std::string Shutdown() const noexcept final;
-    std::string TaskComplete() const noexcept final;
-    std::string ThreadUpdate(const std::string& thread) const noexcept final;
-    std::string WidgetUpdate() const noexcept final;
-    std::string WorkflowAccountUpdate() const noexcept final;
+    auto AccountUpdate() const noexcept -> std::string final;
+    auto BlockchainReorg() const noexcept -> std::string final;
+    auto ConnectionStatus() const noexcept -> std::string final;
+    auto ContactUpdate() const noexcept -> std::string final;
+    auto DhtRequestNym() const noexcept -> std::string final;
+    auto DhtRequestServer() const noexcept -> std::string final;
+    auto DhtRequestUnit() const noexcept -> std::string final;
+    auto FindNym() const noexcept -> std::string final;
+    auto FindServer() const noexcept -> std::string final;
+    auto FindUnitDefinition() const noexcept -> std::string final;
+    auto InternalBlockchainAsioContext() const noexcept -> std::string final;
+    auto InternalBlockchainFilterUpdated(const opentxs::blockchain::Type chain)
+        const noexcept -> std::string final;
+    auto InternalBlockchainThreadPool() const noexcept -> std::string final;
+    auto InternalProcessPushNotification() const noexcept -> std::string final;
+    auto InternalPushNotification() const noexcept -> std::string final;
+    auto IssuerUpdate() const noexcept -> std::string final;
+    auto NymCreated() const noexcept -> std::string final;
+    auto NymDownload() const noexcept -> std::string final;
+    auto PairEvent() const noexcept -> std::string final;
+    auto PeerReplyUpdate() const noexcept -> std::string final;
+    auto PeerRequestUpdate() const noexcept -> std::string final;
+    auto PendingBailment() const noexcept -> std::string final;
+    auto ServerReplyReceived() const noexcept -> std::string final;
+    auto ServerRequestSent() const noexcept -> std::string final;
+    auto ServerUpdate() const noexcept -> std::string final;
+    auto Shutdown() const noexcept -> std::string final;
+    auto TaskComplete() const noexcept -> std::string final;
+    auto ThreadUpdate(const std::string& thread) const noexcept
+        -> std::string final;
+    auto WidgetUpdate() const noexcept -> std::string final;
+    auto WorkflowAccountUpdate() const noexcept -> std::string final;
 
     ~Endpoints() final = default;
 
@@ -46,12 +51,12 @@ private:
     const opentxs::network::zeromq::Context& zmq_;
     const int instance_;
 
-    std::string build_inproc_path(const std::string& path, const int version)
-        const noexcept;
-    std::string build_inproc_path(
+    auto build_inproc_path(const std::string& path, const int version) const
+        noexcept -> std::string;
+    auto build_inproc_path(
         const std::string& path,
         const int version,
-        const std::string& suffix) const noexcept;
+        const std::string& suffix) const noexcept -> std::string;
 
     Endpoints(
         const opentxs::network::zeromq::Context& zmq,

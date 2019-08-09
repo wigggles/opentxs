@@ -23,9 +23,10 @@
 
 namespace opentxs
 {
-blockchain::block::Header* Factory::GenesisBlockHeader(
+auto Factory::GenesisBlockHeader(
     const api::internal::Core& api,
-    const blockchain::Type type)
+    const blockchain::Type type) noexcept
+    -> std::unique_ptr<blockchain::block::Header>
 {
     using ReturnType = blockchain::block::implementation::Header;
 
@@ -35,7 +36,7 @@ blockchain::block::Header* Factory::GenesisBlockHeader(
         case blockchain::Type::Bitcoin_testnet3:
         case blockchain::Type::BitcoinCash_testnet3: {
             return BitcoinBlockHeader(
-                api, ReturnType::genesis_blocks_.at(type));
+                api, ReturnType::genesis_blocks_.at(type)->Bytes());
         }
         default: {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(

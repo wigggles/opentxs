@@ -9,6 +9,7 @@
 
 #include "opentxs/blockchain/BloomFilter.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/Bytes.hpp"
 
 #include "blockchain/p2p/bitcoin/Message.hpp"
 #include "internal/blockchain/p2p/bitcoin/Bitcoin.hpp"
@@ -122,11 +123,12 @@ struct Cfheaders : virtual public bitcoin::Message {
     virtual filter::Type Type() const noexcept = 0;
 };
 struct Cfilter : virtual public bitcoin::Message {
-    using GCS = std::shared_ptr<const blockchain::internal::GCS>;
-
-    virtual GCS Filter() const noexcept = 0;
-    virtual const filter::Hash& Hash() const noexcept = 0;
-    virtual filter::Type Type() const noexcept = 0;
+    virtual auto Bits() const noexcept -> std::uint8_t = 0;
+    virtual auto ElementCount() const noexcept -> std::uint32_t = 0;
+    virtual auto FPRate() const noexcept -> std::uint32_t = 0;
+    virtual auto Filter() const noexcept -> ReadView = 0;
+    virtual auto Hash() const noexcept -> const filter::Hash& = 0;
+    virtual auto Type() const noexcept -> filter::Type = 0;
 };
 struct Filteradd : virtual public bitcoin::Message {
     virtual OTData Element() const noexcept = 0;

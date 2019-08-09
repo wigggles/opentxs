@@ -442,6 +442,9 @@ auto Peer::pipeline(zmq::Message& message) noexcept -> void
         case Task::Heartbeat: {
             Trigger();
         } break;
+        case Task::Getblock: {
+            request_block(message);
+        } break;
         case Task::SendMessage: {
             transmit(message);
         } break;
@@ -595,7 +598,6 @@ auto Peer::Shutdown() noexcept -> std::shared_future<void>
 auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
 {
     if (running_->Off()) {
-        dealer_->Close();
         const auto state = state_.exchange(State::Shutdown);
 
         try {
@@ -661,6 +663,9 @@ void Peer::subscribe_work() noexcept
             } break;
             case Task::Getcfilters: {
                 pipeline_->Start(manager_.Endpoint(Task::Getcfilters));
+            } break;
+            case Task::Getblock: {
+                pipeline_->Start(manager_.Endpoint(Task::Getblock));
             } break;
             default: {
                 OT_FAIL;

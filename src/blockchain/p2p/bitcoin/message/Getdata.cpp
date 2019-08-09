@@ -103,7 +103,7 @@ Getdata::Getdata(
     const api::internal::Core& api,
     const blockchain::Type network,
     std::vector<blockchain::bitcoin::Inventory>&& payload) noexcept
-    : Message(api, network, bitcoin::Command::inv)
+    : Message(api, network, bitcoin::Command::getdata)
     , payload_(std::move(payload))
 {
     init_hash();

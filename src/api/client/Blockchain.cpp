@@ -29,7 +29,12 @@
 #include "opentxs/crypto/Bip32.hpp"
 #if OT_BLOCKCHAIN
 #include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #endif  // OT_BLOCKCHAIN
 
 #if OT_BLOCKCHAIN
@@ -77,8 +82,8 @@ namespace opentxs::api::client::implementation
 const Blockchain::AddressMap Blockchain::address_prefix_map_{
     {Prefix::BitcoinP2PKH, "00"},
     {Prefix::BitcoinP2SH, "05"},
-    {Prefix::BitcoinTestnetP2PKH, "111"},
-    {Prefix::BitcoinTestnetP2SH, "196"},
+    {Prefix::BitcoinTestnetP2PKH, "6f"},
+    {Prefix::BitcoinTestnetP2SH, "c4"},
     {Prefix::LitecoinP2PKH, "30"},
 };
 const Blockchain::AddressReverseMap Blockchain::address_prefix_reverse_map_{
@@ -111,6 +116,7 @@ Blockchain::Blockchain(
     , balance_lists_(*this)
     , txo_db_(*this)
 #if OT_BLOCKCHAIN
+    , thread_pool_(api)
     , io_(api)
     , db_(api, legacy, dataFolder)
     , reorg_(api_.ZeroMQ().PublishSocket())
@@ -124,6 +130,22 @@ Blockchain::Blockchain(
     OT_ASSERT(listen);
 #endif  // OT_BLOCKCHAIN
 }
+
+#if OT_BLOCKCHAIN
+Blockchain::ThreadPoolManager::ThreadPoolManager(const api::Core& api) noexcept
+    : api_(api)
+    , map_(init())
+    , running_(true)
+    , int_(api_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
+    , workers_()
+    , cbi_(zmq::ListenCallback::Factory([this](auto& in) { callback(in); }))
+    , cbe_(zmq::ListenCallback::Factory([this](auto& in) { int_->Send(in); }))
+    , ext_(api_.ZeroMQ().PullSocket(cbe_, zmq::socket::Socket::Direction::Bind))
+    , init_(false)
+    , lock_()
+{
+}
+#endif  // OT_BLOCKCHAIN
 
 Blockchain::Txo::Txo(api::client::internal::Blockchain& parent)
     : parent_(parent)
@@ -155,6 +177,157 @@ client::blockchain::internal::BalanceList& Blockchain::BalanceLists::Get(
 
     return *it2->second;
 }
+
+#if OT_BLOCKCHAIN
+auto Blockchain::ThreadPoolManager::callback(zmq::Message& in) noexcept -> void
+{
+    const auto header = in.Header();
+
+    if (2 > header.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        OT_FAIL;
+    }
+
+    auto worker = run(header.at(0).as<Chain>());
+
+    if (false == worker.has_value()) { return; }
+
+    switch (header.at(1).as<Work>()) {
+        case Work::Wallet: {
+            opentxs::blockchain::client::internal::Wallet::ProcessTask(in);
+        } break;
+        default: {
+            OT_FAIL;
+        }
+    }
+}
+
+auto Blockchain::ThreadPoolManager::Endpoint() const noexcept -> std::string
+{
+    return api_.Endpoints().InternalBlockchainThreadPool();
+}
+
+auto Blockchain::ThreadPoolManager::init() noexcept -> NetworkMap
+{
+    auto output = NetworkMap{};
+
+    for (const auto& chain : opentxs::blockchain::SupportedChains()) {
+        auto& [active, running, promise, future, mutex] = output[chain];
+        active = true;
+        future = promise.get_future();
+    }
+
+    return output;
+}
+
+auto Blockchain::ThreadPoolManager::Reset(const Chain chain) const noexcept
+    -> void
+{
+    if (false == running_.load()) { return; }
+
+    startup();
+    auto& [active, running, promise, future, mutex] = map_.at(chain);
+    Lock lock(mutex);
+
+    if (false == active) {
+        try {
+            promise.set_value();
+        } catch (...) {
+        }
+
+        promise = {};
+        future = promise.get_future();
+        active = true;
+    }
+}
+
+auto Blockchain::ThreadPoolManager::run(const Chain chain) noexcept
+    -> std::optional<Worker>
+{
+    auto& data = map_.at(chain);
+    auto& [active, running, promise, future, mutex] = data;
+    Lock lock(mutex);
+    auto output = std::optional<Worker>{};
+
+    if (active) { output.emplace(data); }
+
+    return output;
+}
+
+auto Blockchain::ThreadPoolManager::Shutdown() noexcept -> void
+{
+    if (running_.exchange(false)) {
+        ext_->Close();
+        int_->Close();
+        auto futures = std::vector<std::shared_future<void>>{};
+
+        for (auto& [chain, data] : map_) { futures.emplace_back(Stop(chain)); }
+
+        for (auto& future : futures) { future.get(); }
+    }
+}
+
+auto Blockchain::ThreadPoolManager::startup() const noexcept -> void
+{
+    Lock lock(lock_);
+
+    if (init_) { return; }
+
+    const auto target = std::thread::hardware_concurrency();
+    workers_.reserve(target);
+    const auto random = Identifier::Random();
+    const auto endpoint = std::string{"inproc://"} + random->str();
+    auto zmq = int_->Start(endpoint);
+
+    OT_ASSERT(zmq);
+
+    for (unsigned int i{0}; i < target; ++i) {
+        auto& worker = workers_.emplace_back(api_.ZeroMQ().PullSocket(
+            cbi_, zmq::socket::Socket::Direction::Connect));
+        auto zmq = worker->Start(endpoint);
+
+        OT_ASSERT(zmq);
+
+        LogTrace("Started blockchain worker thread ")(i).Flush();
+    }
+
+    zmq = ext_->Start(Endpoint());
+
+    OT_ASSERT(zmq);
+
+    init_ = true;
+}
+
+auto Blockchain::ThreadPoolManager::Stop(const Chain chain) const noexcept
+    -> Future
+{
+    try {
+        auto& [active, running, promise, future, mutex] = map_.at(chain);
+        Lock lock(mutex);
+        active = false;
+
+        if (0 == running) {
+            try {
+                promise.set_value();
+            } catch (...) {
+            }
+        }
+
+        return future;
+    } catch (...) {
+        auto promise = std::promise<void>{};
+        promise.set_value();
+
+        return promise.get_future();
+    }
+}
+
+Blockchain::ThreadPoolManager::~ThreadPoolManager()
+{
+    if (running_.load()) { Shutdown(); }
+}
+#endif  // OT_BLOCKCHAIN
 
 bool Blockchain::Txo::AddSpent(
     const identifier::Nym& nym,
@@ -242,21 +415,6 @@ std::vector<Blockchain::Txo::Status> Blockchain::Txo::Lookup(
     }
 
     return output;
-}
-
-const blockchain::BalanceTree& Blockchain::Account(
-    const identifier::Nym& nymID,
-    const Chain chain) const noexcept(false)
-{
-    if (false == validate_nym(nymID)) {
-        throw std::runtime_error("Invalid nym");
-    }
-
-    if (Chain::Unknown == chain) { throw std::runtime_error("Invalid chain"); }
-
-    auto& balanceList = balance_lists_.Get(chain);
-
-    return balanceList.Nym(nymID);
 }
 
 std::set<OTIdentifier> Blockchain::AccountList(
@@ -467,6 +625,21 @@ bool Blockchain::AssignLabel(
 
         return false;
     }
+}
+
+const blockchain::internal::BalanceTree& Blockchain::BalanceTree(
+    const identifier::Nym& nymID,
+    const Chain chain) const noexcept(false)
+{
+    if (false == validate_nym(nymID)) {
+        throw std::runtime_error("Invalid nym");
+    }
+
+    if (Chain::Unknown == chain) { throw std::runtime_error("Invalid chain"); }
+
+    auto& balanceList = balance_lists_.Get(chain);
+
+    return balanceList.Nym(nymID);
 }
 
 Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
@@ -923,17 +1096,10 @@ OTData Blockchain::PubkeyHash(
 bool Blockchain::Start(const Chain type, const std::string& seednode) const
     noexcept
 {
-    switch (type) {
-        case Chain::Bitcoin:
-        case Chain::Bitcoin_testnet3:
-        case Chain::BitcoinCash:
-        case Chain::BitcoinCash_testnet3:
-            break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
+    if (0 == opentxs::blockchain::SupportedChains().count(type)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
 
-            return false;
-        }
+        return false;
     }
 
     Lock lock(lock_);
@@ -949,6 +1115,7 @@ bool Blockchain::Start(const Chain type, const std::string& seednode) const
         case Chain::Bitcoin_testnet3:
         case Chain::BitcoinCash:
         case Chain::BitcoinCash_testnet3: {
+            thread_pool_.Reset(type);
             auto [it, added] = networks_.emplace(
                 type,
                 opentxs::Factory::BlockchainNetworkBitcoin(
@@ -965,6 +1132,7 @@ bool Blockchain::Start(const Chain type, const std::string& seednode) const
 
 auto Blockchain::Stop(const Chain type) const noexcept -> bool
 {
+    thread_pool_.Stop(type).get();
     Lock lock(lock_);
     auto it = networks_.find(type);
 
@@ -1092,6 +1260,8 @@ Blockchain::~Blockchain()
 #if OT_BLOCKCHAIN
     LogVerbose("Shutting down ")(networks_.size())(" blockchain clients")
         .Flush();
+    thread_pool_.Shutdown();
+
     for (auto& [chain, network] : networks_) { network->Shutdown().get(); }
 
     networks_.clear();

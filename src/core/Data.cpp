@@ -391,10 +391,7 @@ void Data::concatenate(const Vector& data)
 
 void Data::Concatenate(const void* data, const std::size_t& size)
 {
-    OT_ASSERT(data != nullptr);
-    OT_ASSERT(size > 0);
-
-    if (size == 0) { return; }
+    if ((size == 0) || (nullptr == data)) { return; }
 
     Data temp(data, size);
     concatenate(temp.data_);

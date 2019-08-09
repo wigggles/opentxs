@@ -27,6 +27,8 @@
 #include "internal/blockchain/Blockchain.hpp"
 #include "util/LMDB.hpp"
 
+#include <boost/container/flat_set.hpp>
+
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -52,6 +54,11 @@ auto Factory::BlockchainDatabase(
     return std::make_unique<ReturnType>(api, network, common, type);
 }
 }  // namespace opentxs
+
+namespace opentxs::blockchain::client::internal
+{
+const VersionNumber WalletDatabase::DefaultIndexVersion{1};
+}  // namespace opentxs::blockchain::client::internal
 
 namespace opentxs::blockchain::implementation
 {
@@ -129,6 +136,7 @@ Database::Database(
           0)
     , filters_(api, common_, lmdb_, type)
     , headers_(api, network, common_, lmdb_, type)
+    , wallet_(api)
 {
     init_db();
 }
@@ -162,6 +170,19 @@ Database::Headers::Headers(
     import_genesis(type);
 
     OT_ASSERT(HeaderExists(best().second));
+}
+
+Database::Wallet::Wallet(const api::Core& api) noexcept
+    : api_(api)
+    , lock_()
+    , patterns_()
+    , subchain_pattern_index_()
+    , subchain_last_indexed_()
+    , subchain_version_()
+    , subchain_last_scanned_()
+    , subchain_last_processed_()
+    , match_index_()
+{
 }
 
 auto Database::Filters::CurrentHeaderTip(const filter::Type type) const noexcept
@@ -213,7 +234,7 @@ auto Database::Filters::import_genesis(const blockchain::Type chain) const
         784931,
         blockchain::internal::BlockHashToFilterKey(blockHash.Bytes()),
         1,
-        bytes)};
+        bytes->Bytes())};
 
     OT_ASSERT(gcs);
 
@@ -762,6 +783,298 @@ auto Database::Headers::TryLoadHeader(const block::Hash& hash) const noexcept
     } catch (...) {
         return {};
     }
+}
+
+auto Database::Wallet::get_patterns(
+    const Lock& lock,
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const VersionNumber version) const noexcept(false) -> const IDSet&
+{
+    return subchain_pattern_index_.at(
+        subchain_id(balanceNode, subchain, type, version));
+}
+
+auto Database::Wallet::GetPatterns(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const VersionNumber version) const noexcept -> Patterns
+{
+    Lock lock(lock_);
+
+    try {
+        const auto& patterns =
+            get_patterns(lock, balanceNode, subchain, type, version);
+
+        return load_patterns(lock, balanceNode, subchain, patterns);
+    } catch (...) {
+
+        return {};
+    }
+}
+
+auto Database::Wallet::GetUntestedPatterns(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const ReadView blockID,
+    const VersionNumber version) const noexcept -> Patterns
+{
+    Lock lock(lock_);
+
+    try {
+        const auto& allPatterns =
+            get_patterns(lock, balanceNode, subchain, type, version);
+        auto effectiveIDs = std::vector<pPatternID>{};
+
+        try {
+            const auto& matchedPatterns =
+                match_index_.at(api_.Factory().Data(blockID));
+            std::set_difference(
+                std::begin(allPatterns),
+                std::end(allPatterns),
+                std::begin(matchedPatterns),
+                std::end(matchedPatterns),
+                std::back_inserter(effectiveIDs));
+        } catch (...) {
+
+            return load_patterns(lock, balanceNode, subchain, allPatterns);
+        }
+
+        return load_patterns(lock, balanceNode, subchain, effectiveIDs);
+    } catch (...) {
+
+        return {};
+    }
+}
+
+auto Database::Wallet::pattern_id(
+    const SubchainID& subchain,
+    const Bip32Index index) const noexcept -> pPatternID
+{
+    auto preimage = OTData{subchain};
+    preimage->Concatenate(&index, sizeof(index));
+    auto output = api_.Factory().Identifier();
+    output->CalculateDigest(preimage->Bytes());
+
+    return output;
+}
+
+auto Database::Wallet::SubchainAddElements(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const ElementMap& elements,
+    const VersionNumber version) const noexcept -> bool
+{
+    Lock lock(lock_);
+    subchain_version_[subchain_version_index(balanceNode, subchain, type)] =
+        version;
+    auto subchainID = subchain_id(balanceNode, subchain, type, version);
+    auto newIndices = std::vector<OTIdentifier>{};
+    auto highest = Bip32Index{};
+
+    for (const auto& [index, patterns] : elements) {
+        auto patternID = pattern_id(subchainID, index);
+        auto& vector = patterns_[patternID];
+        newIndices.emplace_back(std::move(patternID));
+        highest = std::max(highest, index);
+
+        for (const auto& pattern : patterns) {
+            vector.emplace_back(index, pattern);
+        }
+    }
+
+    subchain_last_indexed_[subchainID] = highest;
+    auto& index = subchain_pattern_index_[subchainID];
+
+    for (auto& id : newIndices) { index.emplace(std::move(id)); }
+
+    return true;
+}
+
+auto Database::Wallet::SubchainDropIndex(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const VersionNumber version) const noexcept -> bool
+{
+    Lock lock(lock_);
+    const auto subchainID = subchain_id(balanceNode, subchain, type, version);
+
+    try {
+        for (const auto& patternID : subchain_pattern_index_.at(subchainID)) {
+            patterns_.erase(patternID);
+
+            for (auto& [block, set] : match_index_) { set.erase(patternID); }
+        }
+    } catch (...) {
+    }
+
+    subchain_pattern_index_.erase(subchainID);
+    subchain_last_indexed_.erase(subchainID);
+    subchain_version_.erase(
+        subchain_version_index(balanceNode, subchain, type));
+
+    return true;
+}
+
+auto Database::Wallet::SubchainIndexVersion(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type) const noexcept -> VersionNumber
+{
+    Lock lock(lock_);
+    const auto id = subchain_version_index(balanceNode, subchain, type);
+
+    try {
+
+        return subchain_version_.at(id);
+    } catch (...) {
+
+        return 0;
+    }
+}
+
+auto Database::Wallet::SubchainLastIndexed(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const VersionNumber version) const noexcept -> std::optional<Bip32Index>
+{
+    Lock lock(lock_);
+    const auto subchainID = subchain_id(balanceNode, subchain, type, version);
+
+    try {
+        return subchain_last_indexed_.at(subchainID);
+    } catch (...) {
+        return {};
+    }
+}
+
+auto Database::Wallet::SubchainLastProcessed(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type) const noexcept -> block::Position
+{
+    Lock lock(lock_);
+
+    try {
+        return subchain_last_processed_.at(
+            subchain_version_index(balanceNode, subchain, type));
+    } catch (...) {
+        return make_blank<block::Position>::value(api_);
+    }
+}
+
+auto Database::Wallet::SubchainLastScanned(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type) const noexcept -> block::Position
+{
+    Lock lock(lock_);
+
+    try {
+        return subchain_last_scanned_.at(
+            subchain_version_index(balanceNode, subchain, type));
+    } catch (...) {
+        return make_blank<block::Position>::value(api_);
+    }
+}
+
+auto Database::Wallet::SubchainSetLastProcessed(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const block::Position& position) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto& map = subchain_last_processed_;
+    auto id = subchain_version_index(balanceNode, subchain, type);
+    auto it = map.find(id);
+
+    if (map.end() == it) {
+        map.emplace(std::move(id), position);
+
+        return true;
+    } else {
+        it->second = position;
+
+        return true;
+    }
+}
+
+auto Database::Wallet::SubchainMatchBlock(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const MatchingIndices& indices,
+    const ReadView blockID,
+    const VersionNumber version) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto& matchSet = match_index_[api_.Factory().Data(blockID)];
+
+    for (const auto& index : indices) {
+        matchSet.emplace(pattern_id(
+            subchain_id(balanceNode, subchain, type, version), index));
+    }
+
+    return true;
+}
+
+auto Database::Wallet::SubchainSetLastScanned(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const block::Position& position) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto& map = subchain_last_scanned_;
+    auto id = subchain_version_index(balanceNode, subchain, type);
+    auto it = map.find(id);
+
+    if (map.end() == it) {
+        map.emplace(std::move(id), position);
+
+        return true;
+    } else {
+        it->second = position;
+
+        return true;
+    }
+}
+
+auto Database::Wallet::subchain_version_index(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type) const noexcept -> pSubchainID
+{
+    auto preimage = OTData{balanceNode};
+    preimage->Concatenate(&subchain, sizeof(subchain));
+    preimage->Concatenate(&type, sizeof(type));
+    auto output = api_.Factory().Identifier();
+    output->CalculateDigest(preimage->Bytes());
+
+    return output;
+}
+
+auto Database::Wallet::subchain_id(
+    const NodeID& balanceNode,
+    const Subchain subchain,
+    const FilterType type,
+    const VersionNumber version) const noexcept -> pSubchainID
+{
+    auto preimage = OTData{balanceNode};
+    preimage->Concatenate(&subchain, sizeof(subchain));
+    preimage->Concatenate(&type, sizeof(type));
+    preimage->Concatenate(&version, sizeof(version));
+    auto output = api_.Factory().Identifier();
+    output->CalculateDigest(preimage->Bytes());
+
+    return output;
 }
 
 auto Database::init_db() noexcept -> void

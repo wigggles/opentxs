@@ -21,8 +21,10 @@
 #include <boost/endian/buffers.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
+#include <optional>
 #include <set>
 #include <vector>
 
@@ -33,134 +35,151 @@
 namespace be = boost::endian;
 namespace mp = boost::multiprecision;
 
-#define BITMASK(n) ((1 << (n)) - 1)
-
 namespace opentxs
 {
-blockchain::internal::GCS* Factory::GCS(
+constexpr auto bitmask(const std::uint64_t n) -> std::uint64_t
+{
+    return (1u << n) - 1u;
+}
+
+auto Factory::GCS(
     const api::internal::Core& api,
-    const std::uint32_t bits,
+    const std::uint8_t bits,
     const std::uint32_t fpRate,
-    const std::array<std::byte, 16>& key,
-    const std::vector<OTData>& elements)
+    const ReadView key,
+    const std::vector<OTData>& elements) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>
 {
     using ReturnType = blockchain::implementation::GCS;
 
     try {
-        return new ReturnType(
-            api, bits, fpRate, Data::Factory(key.data(), key.size()), elements);
+        return std::make_unique<ReturnType>(api, bits, fpRate, key, elements);
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::GCS::")(__FUNCTION__)(e.what()).Flush();
+        LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())
+            .Flush();
 
         return nullptr;
     }
 }
 
-blockchain::internal::GCS* Factory::GCS(
-    const api::internal::Core& api,
-    const proto::GCS& in)
+auto Factory::GCS(const api::internal::Core& api, const proto::GCS& in) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>
 {
     using ReturnType = blockchain::implementation::GCS;
 
     try {
-        return new ReturnType(
-            api,
-            in.bits(),
-            in.fprate(),
-            Data::Factory(in.key().data(), in.key().size()),
-            in.count(),
-            Data::Factory(in.filter(), Data::Mode::Raw));
+        return std::make_unique<ReturnType>(
+            api, in.bits(), in.fprate(), in.count(), in.key(), in.filter());
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::GCS::")(__FUNCTION__)(e.what()).Flush();
+        LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())
+            .Flush();
 
         return nullptr;
     }
 }
 
-blockchain::internal::GCS* Factory::GCS(
+auto Factory::GCS(
     const api::internal::Core& api,
-    const std::uint32_t bits,
+    const std::uint8_t bits,
     const std::uint32_t fpRate,
-    const std::array<std::byte, 16>& key,
-    const std::size_t filterElementCount,
-    const Data& filter)
+    const ReadView key,
+    const std::uint32_t filterElementCount,
+    const ReadView filter) noexcept
+    -> std::unique_ptr<blockchain::internal::GCS>
 {
     using ReturnType = blockchain::implementation::GCS;
 
     try {
-        return new ReturnType(
-            api,
-            bits,
-            fpRate,
-            Data::Factory(key.data(), key.size()),
-            filterElementCount,
-            Data::Factory(filter));
+        return std::make_unique<ReturnType>(
+            api, bits, fpRate, filterElementCount, key, filter);
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::GCS::")(__FUNCTION__)(e.what()).Flush();
+        LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())
+            .Flush();
 
         return nullptr;
     }
 }
 }  // namespace opentxs
 
-namespace opentxs::blockchain::implementation
+namespace opentxs::gcs
 {
-GCS::GCS(
-    const api::internal::Core& api,
-    const std::uint32_t bits,
-    const std::uint32_t fpRate,
-    const Data& key,
-    const std::size_t filterElementCount,
-    const Data& filter) noexcept(false)
-    : version_(1)
-    , api_(api)
-    , bits_(bits)
-    , false_positive_rate_(fpRate)
-    , key_(key)
-    , filter_elements_(filterElementCount)
-    , filter_(filter)
+using BitReader = blockchain::internal::BitReader;
+using BitWriter = blockchain::internal::BitWriter;
+
+auto golomb_decode(const std::uint8_t P, BitReader& stream) noexcept(false)
+    -> std::uint64_t;
+auto golomb_encode(
+    const std::uint8_t P,
+    const std::uint64_t value,
+    BitWriter& stream) noexcept -> void;
+auto siphash(
+    const api::Core& api,
+    const ReadView key,
+    const ReadView item) noexcept(false) -> std::uint64_t;
+
+auto golomb_decode(const std::uint8_t P, BitReader& stream) noexcept(false)
+    -> std::uint64_t
 {
-    if (16 != key_->size()) {
-        throw std::runtime_error(
-            "Invalid key size: " + std::to_string(key_->size()));
+    auto quotient = std::uint64_t{0};
+
+    while (1 == stream.read(1)) { quotient++; }
+
+    auto remainder = stream.read(P);
+
+    return std::uint64_t{(quotient << P) + remainder};
+}
+
+auto golomb_encode(
+    const std::uint8_t P,
+    const std::uint64_t value,
+    BitWriter& stream) noexcept -> void
+{
+    auto remainder = std::uint64_t{value & bitmask(P)};
+    auto quotient = std::uint64_t{value >> P};
+
+    while (quotient > 0) {
+        stream.write(1, 1);
+        --quotient;
     }
+
+    stream.write(1, 0);
+    stream.write(P, remainder);
 }
 
-GCS::GCS(
-    const api::internal::Core& api,
-    const std::uint32_t bits,
-    const std::uint32_t fpRate,
-    const Data& key,
-    const std::vector<OTData>& elements) noexcept(false)
-    : GCS(api,
-          bits,
-          fpRate,
-          key,
-          elements.size(),
-          build_gcs(api, bits, fpRate, key, elements))
+auto GolombDecode(
+    const std::uint32_t N,
+    const std::uint8_t P,
+    const Space& encoded) noexcept(false) -> std::vector<std::uint64_t>
 {
+    auto output = std::vector<std::uint64_t>{};
+    auto stream = BitReader(encoded);
+    auto last = std::uint64_t{0};
+
+    for (auto i = std::size_t{0}; i < N; ++i) {
+        auto delta = golomb_decode(P, stream);
+        auto value = last + delta;
+        output.emplace_back(value);
+        last = value;
+    }
+
+    return output;
 }
 
-auto GCS::build_gcs(
-    const api::internal::Core& api,
-    const std::uint32_t bits,
-    const std::uint32_t fpRate,
-    const Data& key,
-    const std::vector<OTData>& elements) noexcept -> OTData
+auto GolombEncode(
+    const std::uint8_t P,
+    const std::vector<std::uint64_t>& hashedSet) noexcept(false) -> Space
 {
-    auto output = Data::Factory();
+    auto output = Space{};
+    output.reserve(hashedSet.size() * P * 2u);
+    auto stream = BitWriter{output};
+    auto last = std::uint64_t{0};
 
-    const auto items =
-        hashed_set_construct(api, fpRate, elements.size(), key, elements);
+    for (const auto& item : hashedSet) {
+        auto delta = std::uint64_t{item - last};
 
-    BitWriter stream(output);
-    std::uint64_t last_value{0};
+        if (delta != 0) { golomb_encode(P, delta, stream); }
 
-    for (const auto& item : items) {
-        std::uint64_t delta = item - last_value;
-
-        if (delta != 0) { golomb_encode(bits, stream, delta); }
-        last_value = item;
+        last = item;
     }
 
     stream.flush();
@@ -168,50 +187,146 @@ auto GCS::build_gcs(
     return output;
 }
 
-auto GCS::Encode() const noexcept -> OTData
+auto siphash(
+    const api::Core& api,
+    const ReadView key,
+    const ReadView item) noexcept(false) -> std::uint64_t
 {
-    const auto bytes = bitcoin::CompactSize(filter_elements_).Encode();
-    auto output = Data::Factory(bytes.data(), bytes.size());
-    output += filter_;
+    if (16 != key.size()) { throw std::runtime_error("Invalid key"); }
+
+    auto output = std::uint64_t{};
+    auto writer = [&output](const auto size) -> WritableView {
+        if (sizeof(output) != size) { throw std::out_of_range("wrong size"); }
+
+        return {&output, sizeof(output)};
+    };
+
+    if (false == api.Crypto().Hash().HMAC(
+                     proto::HASHTYPE_SIPHASH24, key, item, writer)) {
+        throw std::runtime_error("siphash failed");
+    }
 
     return output;
 }
 
-auto GCS::golomb_decode(BitReader& stream) const noexcept -> std::uint64_t
+auto HashToRange(
+    const api::Core& api,
+    const ReadView key,
+    const std::uint64_t range,
+    const ReadView item) noexcept(false) -> std::uint64_t
 {
-    std::uint64_t quotient{0};
-
-    while (stream.read(1) == 1) { quotient++; }
-
-    auto remainder = stream.read(bits_);
-    std::uint64_t return_value = (quotient << bits_) + remainder;
-
-    return return_value;
+    return ((mp::uint128_t{siphash(api, key, item)} * mp::uint128_t{range}) >>
+            64u)
+        .convert_to<std::uint64_t>();
 }
 
-auto GCS::golomb_encode(
-    const std::uint32_t bits,
-    BitWriter& stream,
-    std::uint64_t value) noexcept -> void
+auto HashedSetConstruct(
+    const api::Core& api,
+    const ReadView key,
+    const std::uint32_t N,
+    const std::uint32_t M,
+    const std::vector<ReadView> items) noexcept(false)
+    -> std::vector<std::uint64_t>
 {
-    // With Golomb-Rice, a value is split into a Quotient and Remainder modulo
-    // 2^P, which are encoded separately.
-    std::uint64_t remainder = value & BITMASK(bits);
-    std::uint64_t quotient = (value - (remainder)) >> bits;
+    auto output = std::vector<std::uint64_t>{};
+    const auto range = std::uint64_t{N} * std::uint64_t{M};
+    std::transform(
+        std::begin(items),
+        std::end(items),
+        std::back_inserter(output),
+        [&](const auto& item) { return HashToRange(api, key, range, item); });
+    std::sort(output.begin(), output.end());
 
-    // The quotient q is encoded as unary, with a string of q 1's followed by
-    // one 0.
-    while (quotient > 0) {
-        stream.write(1, 1);
-        quotient--;
+    return output;
+}
+}  // namespace opentxs::gcs
+
+namespace opentxs::blockchain::implementation
+{
+GCS::GCS(
+    const api::internal::Core& api,
+    const std::uint8_t bits,
+    const std::uint32_t fpRate,
+    const std::uint32_t filterElementCount,
+    const ReadView key,
+    const ReadView encoded) noexcept(false)
+    : version_(1)
+    , api_(api)
+    , bits_(bits)
+    , false_positive_rate_(fpRate)
+    , count_(filterElementCount)
+    , elements_()
+    , compressed_(api_.Factory().Data(encoded))
+    , key_(api_.Factory().Data(key))
+{
+    if (16u != key_->size()) {
+        throw std::runtime_error(
+            "Invalid key size: " + std::to_string(key_->size()));
+    }
+}
+
+GCS::GCS(
+    const api::internal::Core& api,
+    const std::uint8_t bits,
+    const std::uint32_t fpRate,
+    const ReadView key,
+    const std::vector<OTData>& elements) noexcept(false)
+    : version_(1)
+    , api_(api)
+    , bits_(bits)
+    , false_positive_rate_(fpRate)
+    , count_(elements.size())
+    , elements_(gcs::HashedSetConstruct(
+          api_,
+          key,
+          static_cast<std::uint32_t>(elements.size()),
+          false_positive_rate_,
+          transform(elements)))
+    , compressed_(
+          api_.Factory().Data(reader(gcs::GolombEncode(bits_, *elements_))))
+    , key_(api_.Factory().Data(key))
+{
+    if (std::numeric_limits<std::uint32_t>::max() < elements.size()) {
+        throw std::runtime_error(
+            "Too many elements: " + std::to_string(elements.size()));
     }
 
-    stream.write(1, 0);
-    // The remainder R is represented in big-endian by P bits.
-    //
-    // http://chinaober.com/github_/bitcoin/bips/commit/fcb7aeb7e28b78ecf6d145163e9559d01628e2d8
-    // "The golomb_encode function should encode r instead of x."
-    stream.write(bits, remainder);
+    if (16u != key_->size()) {
+        throw std::runtime_error(
+            "Invalid key size: " + std::to_string(key_->size()));
+    }
+}
+
+auto GCS::Compressed() const noexcept -> Space
+{
+    return {reinterpret_cast<const std::byte*>(compressed_->data()),
+            reinterpret_cast<const std::byte*>(compressed_->data()) +
+                compressed_->size()};
+}
+
+auto GCS::decompress() const noexcept -> const Elements&
+{
+    if (false == elements_.has_value()) {
+        auto& set = const_cast<std::optional<Elements>&>(elements_);
+        set = gcs::GolombDecode(
+            count_,
+            bits_,
+            Space{reinterpret_cast<const std::byte*>(compressed_->data()),
+                  reinterpret_cast<const std::byte*>(compressed_->data()) +
+                      compressed_->size()});
+        std::sort(set.value().begin(), set.value().end());
+    }
+
+    return elements_.value();
+}
+
+auto GCS::Encode() const noexcept -> OTData
+{
+    const auto bytes = bitcoin::CompactSize(count_).Encode();
+    auto output = Data::Factory(bytes.data(), bytes.size());
+    output->Concatenate(compressed_->data(), compressed_->size());
+
+    return output;
 }
 
 auto GCS::Hash() const noexcept -> OTData
@@ -219,187 +334,132 @@ auto GCS::Hash() const noexcept -> OTData
     return internal::FilterToHash(api_, Encode()->Bytes());
 }
 
-auto GCS::hash_to_range(
-    const api::internal::Core& api,
-    const Data& key,
-    const std::uint64_t maxRange,
-    const Data& item) noexcept -> std::uint64_t
+auto GCS::hashed_set_construct(const std::vector<OTData>& elements) const
+    noexcept -> std::vector<std::uint64_t>
 {
-    /*
-     The items are first passed through the pseudorandom function SipHash, which
-     takes a 128-bit key k and a variable-sized byte vector and produces a
-     uniformly random 64-bit output. Implementations of this BIP MUST use the
-     SipHash parameters c = 2 and d = 4.
-     */
-    mp::uint128_t siphash_128 = (siphash(api, key, item));
-    mp::uint128_t maxrange_128 = (maxRange);
-    mp::uint128_t multiplied = siphash_128 * maxrange_128;
-    mp::uint128_t bitshifted = (multiplied >> 64);
-    auto return64 = bitshifted.convert_to<std::uint64_t>();
-
-    // let item = (siphash(key, target) * (N * (1 << fp))) >> 64
-    // NOTICE The above commented code...we multiply the hash output
-    // by (N * (1 << fp)) and then bitshift by 64.
-    // See:
-    // https://github.com/Roasbeef/bips/blob/master/gcs_light_client.mediawiki#Reference_Implementation
-    //
-    // But the original bip158 spec does this:
-    // let F = N * M  (false positive rate of M)
-    // return (siphash(k, item) * F) >> 64
-    //
-    // Notice the original code multiplies against the false positive rate,
-    // and NOT against (1 << bit_parameter) !!!!!!
-    //
-    // One of them is presumably wrong??
-
-    /*
-     The 64-bit SipHash outputs are then mapped uniformly over the desired range
-     by multiplying with F and taking the top 64 bits of the 128-bit result.
-
-     This algorithm is a faster alternative to modulo reduction, as it avoids
-     the expensive division operation[3]. Note that care must be taken when
-     implementing this reduction to ensure the upper 64 bits of the integer
-     multiplication are not truncated; certain architectures and high level
-     languages may require code that decomposes the 64-bit multiplication into
-     four 32-bit multiplications and recombines into the result.
-     */
-
-    return return64;
+    return hashed_set_construct(transform(elements));
 }
 
-auto GCS::hash_to_range(const Data& item, const std::uint64_t maxRange) const
-    noexcept -> std::uint64_t
+auto GCS::hashed_set_construct(const std::vector<Space>& elements) const
+    noexcept -> std::vector<std::uint64_t>
 {
-    return hash_to_range(api_, key_, maxRange, item);
+    return hashed_set_construct(transform(elements));
 }
 
-/*
- N is elementCount, the number of elements in the original set that created
-   the filter.
- M is fpRate, the false probability rate. Customarily, M is set to 2^P.
- F is maxRange, which is N * M, that is, elementCount * fpRate.
- P is the bit length of the remainder code. It's the bits_ member variable.
- */
-auto GCS::hashed_set_construct(
-    const api::internal::Core& api,
-    const std::uint32_t fpRate,
-    const std::size_t elementCount,
-    const Data& key,
-    const std::vector<OTData>& elements) noexcept -> std::set<std::uint64_t>
+auto GCS::hashed_set_construct(const std::vector<ReadView>& elements) const
+    noexcept -> std::vector<std::uint64_t>
 {
-    // Original spec says: let F = N * M
-    //  matches other items with probability 1/M for some integer parameter M
-    // Other spec says: let F = N * P
-    // P a value which is computed as 1/fp where fp is the desired false
-    // positive rate.
-    const std::uint64_t maxRange = elementCount * fpRate;
-    std::set<std::uint64_t> set_items;  // hash values sorted ascending
+    return gcs::HashedSetConstruct(
+        api_, key_->Bytes(), count_, false_positive_rate_, elements);
+}
 
-    for (const auto& item : elements) {
-        const std::uint64_t set_value = hash_to_range(api, key, maxRange, item);
-        set_items.insert(set_value);
+auto GCS::hash_to_range(const ReadView in) const noexcept -> std::uint64_t
+{
+    return gcs::HashToRange(
+        api_, key_->Bytes(), count_ * false_positive_rate_, in);
+}
+
+auto GCS::Match(const Targets& targets) const noexcept -> Matches
+{
+    auto output = Matches{};
+    auto hashed = std::vector<std::uint64_t>{};
+    auto matches = std::vector<std::uint64_t>{};
+    auto map = std::map<std::uint64_t, Targets::const_iterator>{};
+    const auto& set = decompress();
+
+    for (auto i = targets.cbegin(); i != targets.cend(); ++i) {
+        const auto& hash = hashed.emplace_back(hash_to_range(*i));
+        map.emplace(hash, i);
     }
 
-    return set_items;
-}
-
-auto GCS::hashed_set_construct(const std::vector<OTData>& elements) const
-    noexcept -> std::set<std::uint64_t>
-{
-    return hashed_set_construct(
-        api_, false_positive_rate_, filter_elements_, key_, elements);
-}
-
-auto GCS::Serialize() const noexcept -> proto::GCS
-{
-    proto::GCS output{};
-    output.set_version(version_);
-    output.set_bits(bits_);
-    output.set_fprate(false_positive_rate_);
-    output.set_key(key_->data(), key_->size());
-    output.set_count(static_cast<std::uint32_t>(filter_elements_));
-    output.set_filter(filter_->str());
+    std::sort(std::begin(hashed), std::end(hashed));
+    std::set_intersection(
+        std::begin(hashed),
+        std::end(hashed),
+        std::begin(set),
+        std::end(set),
+        std::back_inserter(matches));
+    std::transform(
+        std::begin(matches),
+        std::end(matches),
+        std::back_inserter(output),
+        [&](const auto& in) { return map.at(in); });
 
     return output;
 }
 
-auto GCS::siphash(
-    const api::internal::Core& api,
-    const Data& key,
-    const Data& item) noexcept -> std::uint64_t
+auto GCS::Serialize() const noexcept -> proto::GCS
 {
-    auto output = std::uint64_t{};
-    auto pPassword = api.Factory().BinarySecret();
+    const auto encoded = Compressed();
+    auto output = proto::GCS{};
+    output.set_version(version_);
+    output.set_bits(bits_);
+    output.set_fprate(false_positive_rate_);
+    output.set_key(key_->data(), key_->size());
+    output.set_count(count_);
+    output.set_filter(
+        reinterpret_cast<const char*>(encoded.data()), encoded.size());
 
-    OT_ASSERT(pPassword);
-
-    auto& password = *pPassword;
-    password.setMemory(key);
-
-    OT_ASSERT(16 == password.getMemorySize());
-
-    const auto hashed = api.Crypto().Hash().SipHash(
-        password, item, output, siphash_c_, siphash_d_);
-
-    if (hashed) { return output; }
-
-    return 0;
-}
-
-auto GCS::siphash(const Data& item) const noexcept -> std::uint64_t
-{
-    return siphash(api_, key_, item);
+    return output;
 }
 
 auto GCS::Test(const Data& target) const noexcept -> bool
 {
-    const std::uint64_t max_range = filter_elements_ * false_positive_rate_;
-    auto target_hash = hash_to_range(target, max_range);
+    return Test(target.Bytes());
+}
 
-    BitReader stream(filter_);
-    std::uint64_t last_value{0};
-
-    for (std::uint64_t i{0}; i < filter_elements_; ++i) {
-        auto delta = golomb_decode(stream);
-        auto set_item = last_value + delta;
-        if (set_item == target_hash) { return true; }
-        if (set_item > target_hash) { break; }
-        last_value = set_item;
-    }
-
-    return false;
+auto GCS::Test(const ReadView target) const noexcept -> bool
+{
+    return test(hashed_set_construct({target}));
 }
 
 auto GCS::Test(const std::vector<OTData>& targets) const noexcept -> bool
 {
-    auto target_hashes_set = hashed_set_construct(targets);
-    std::vector<std::uint64_t> target_hashes;
+    return test(hashed_set_construct(targets));
+}
 
-    for (const auto& target_hash : target_hashes_set) {
-        target_hashes.push_back(target_hash);
-    }
+auto GCS::Test(const std::vector<Space>& targets) const noexcept -> bool
+{
+    return test(hashed_set_construct(targets));
+}
 
-    BitReader stream(filter_);
-    std::uint64_t value{0};
-    std::size_t target_idx{0};
-    std::uint64_t target_val = target_hashes[target_idx];
+auto GCS::test(const std::vector<std::uint64_t>& targets) const noexcept -> bool
+{
+    const auto& set = decompress();
+    auto matches = std::vector<std::uint64_t>{};
+    std::set_intersection(
+        std::begin(targets),
+        std::end(targets),
+        std::begin(set),
+        std::end(set),
+        std::back_inserter(matches));
 
-    for (std::size_t i{0}; i < filter_elements_; ++i) {
-        auto delta = golomb_decode(stream);
-        value += delta;
-        if (target_val == value) {
-            return true;
-        } else if (target_val > value) {
-            continue;
-        } else {
-            ++target_idx;
+    return 0 < matches.size();
+}
 
-            if (target_idx == targets.size()) { break; }
+auto GCS::transform(const std::vector<OTData>& in) noexcept
+    -> std::vector<ReadView>
+{
+    auto output = std::vector<ReadView>{};
+    std::transform(
+        std::begin(in),
+        std::end(in),
+        std::back_inserter(output),
+        [](const auto& i) { return i->Bytes(); });
 
-            target_val = target_hashes[target_idx];
-        }
-    }
+    return output;
+}
 
-    return false;
+auto GCS::transform(const std::vector<Space>& in) noexcept
+    -> std::vector<ReadView>
+{
+    auto output = std::vector<ReadView>{};
+    std::transform(
+        std::begin(in),
+        std::end(in),
+        std::back_inserter(output),
+        [](const auto& i) { return reader(i); });
+
+    return output;
 }
 }  // namespace opentxs::blockchain::implementation

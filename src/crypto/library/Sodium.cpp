@@ -147,7 +147,7 @@ bool Sodium::Digest(
         case (proto::HASHTYPE_BLAKE2B256):
         case (proto::HASHTYPE_BLAKE2B512): {
             return (
-                0 == crypto_generichash(
+                0 == ::crypto_generichash(
                          output,
                          HashingProvider::HashSize(hashType),
                          input,
@@ -156,10 +156,10 @@ bool Sodium::Digest(
                          0));
         }
         case (proto::HASHTYPE_SHA256): {
-            return (0 == crypto_hash_sha256(output, input, inputSize));
+            return (0 == ::crypto_hash_sha256(output, input, inputSize));
         }
         case (proto::HASHTYPE_SHA512): {
-            return (0 == crypto_hash_sha512(output, input, inputSize));
+            return (0 == ::crypto_hash_sha512(output, input, inputSize));
         }
         default: {
         }
@@ -250,7 +250,7 @@ bool Sodium::HMAC(
         case (proto::HASHTYPE_BLAKE2B256):
         case (proto::HASHTYPE_BLAKE2B512): {
             return (
-                0 == crypto_generichash(
+                0 == ::crypto_generichash(
                          output,
                          HashingProvider::HashSize(hashType),
                          input,
@@ -266,7 +266,8 @@ bool Sodium::HMAC(
                 return false;
             }
 
-            return (0 == crypto_auth_hmacsha256(output, input, inputSize, key));
+            return (
+                0 == ::crypto_auth_hmacsha256(output, input, inputSize, key));
         }
         case (proto::HASHTYPE_SHA512): {
             if (crypto_auth_hmacsha512_KEYBYTES != keySize) {
@@ -277,6 +278,16 @@ bool Sodium::HMAC(
             }
 
             return (0 == crypto_auth_hmacsha512(output, input, inputSize, key));
+        }
+        case (proto::HASHTYPE_SIPHASH24): {
+            if (crypto_shorthash_KEYBYTES != keySize) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key size.")
+                    .Flush();
+
+                return false;
+            }
+
+            return 0 == ::crypto_shorthash(output, input, inputSize, key);
         }
         default: {
         }

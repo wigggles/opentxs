@@ -45,29 +45,6 @@ public:
     Time Timestamp() const noexcept final { return timestamp_; }
     std::uint32_t Version() const noexcept final { return block_version_; }
 
-    ~Header() final = default;
-
-private:
-    friend opentxs::Factory;
-    using ot_super = block::implementation::Header;
-
-    static const VersionNumber subversion_default_{1};
-
-    const VersionNumber subversion_;
-    const std::int32_t block_version_;
-    const OTData merkle_root_;
-    const Time timestamp_;
-    const std::int32_t nbits_;
-    const std::uint32_t nonce_;
-
-    static block::pHash calculate_hash(
-        const api::internal::Core& api,
-        const opentxs::Data& serialized);
-    static block::pHash calculate_hash(
-        const api::internal::Core& api,
-        const SerializedType& serialized);
-    static OTWork calculate_work(const std::int32_t nbits);
-
     Header(
         const api::internal::Core& api,
         const VersionNumber subversion,
@@ -86,6 +63,30 @@ private:
     Header(
         const api::internal::Core& api,
         const SerializedType& serialized) noexcept;
+
+    ~Header() final = default;
+
+private:
+    friend opentxs::Factory;
+    using ot_super = block::implementation::Header;
+
+    static const VersionNumber subversion_default_{1};
+
+    const VersionNumber subversion_;
+    const std::int32_t block_version_;
+    const OTData merkle_root_;
+    const Time timestamp_;
+    const std::int32_t nbits_;
+    const std::uint32_t nonce_;
+
+    static block::pHash calculate_hash(
+        const api::internal::Core& api,
+        const ReadView serialized);
+    static block::pHash calculate_hash(
+        const api::internal::Core& api,
+        const SerializedType& serialized);
+    static OTWork calculate_work(const std::int32_t nbits);
+
     Header() = delete;
     Header(const Header& rhs) noexcept;
     Header(Header&&) = delete;

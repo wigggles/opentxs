@@ -17,8 +17,8 @@ namespace opentxs::network::zeromq
 {
 FrameSection::FrameSection(const FrameSection& frameSection)
     : parent_(frameSection.parent_)
-    , position_(frameSection.position_.load())
-    , size_(frameSection.size_.load())
+    , position_(frameSection.position_)
+    , size_(frameSection.size_)
 {
     OT_ASSERT(nullptr != parent_);
 }
@@ -34,22 +34,29 @@ FrameSection::FrameSection(
     OT_ASSERT(nullptr != parent_);
 }
 
-const Frame& FrameSection::at(const std::size_t index) const
+auto FrameSection::at(const std::size_t index) const -> const Frame&
 {
     OT_ASSERT(size_ > index);
 
     return parent_->at(position_ + index);
 }
 
-FrameIterator FrameSection::begin() const
+auto FrameSection::begin() const -> FrameIterator
 {
     return FrameIterator(parent_, position_);
 }
 
-FrameIterator FrameSection::end() const
+auto FrameSection::end() const -> FrameIterator
 {
     return FrameIterator(parent_, position_ + size_);
 }
 
-std::size_t FrameSection::size() const { return size_; }
+auto FrameSection::Replace(const std::size_t index, OTZMQFrame&& frame)
+    -> Frame&
+{
+    return const_cast<Message&>(*parent_).Replace(
+        position_ + index, std::move(frame));
+}
+
+auto FrameSection::size() const -> std::size_t { return size_; }
 }  // namespace opentxs::network::zeromq

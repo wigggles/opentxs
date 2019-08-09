@@ -12,129 +12,232 @@ class Database final : virtual public internal::Database
 public:
     using Common = api::client::blockchain::database::implementation::Database;
 
-    bool AddOrUpdate(Address address) const noexcept final
+    auto AddOrUpdate(Address address) const noexcept -> bool final
     {
         return common_.AddOrUpdate(std::move(address));
     }
-    bool ApplyUpdate(const client::UpdateTransaction& update) const
-        noexcept final
+    auto ApplyUpdate(const client::UpdateTransaction& update) const noexcept
+        -> bool final
     {
         return headers_.ApplyUpdate(update);
     }
     // Throws std::out_of_range if no block at that position
-    block::pHash BestBlock(const block::Height position) const
-        noexcept(false) final
+    auto BestBlock(const block::Height position) const noexcept(false)
+        -> block::pHash final
     {
         return headers_.BestBlock(position);
     }
-    std::unique_ptr<block::Header> CurrentBest() const noexcept final
+    auto CurrentBest() const noexcept -> std::unique_ptr<block::Header> final
     {
         return headers_.CurrentBest();
     }
-    block::Position CurrentCheckpoint() const noexcept final
+    auto CurrentCheckpoint() const noexcept -> block::Position final
     {
         return headers_.CurrentCheckpoint();
     }
-    block::Position FilterHeaderTip(const filter::Type type) const
-        noexcept final
+    auto FilterHeaderTip(const filter::Type type) const noexcept
+        -> block::Position final
     {
         return filters_.CurrentHeaderTip(type);
     }
-    block::Position FilterTip(const filter::Type type) const noexcept final
+    auto FilterTip(const filter::Type type) const noexcept
+        -> block::Position final
     {
         return filters_.CurrentTip(type);
     }
-    client::DisconnectedList DisconnectedHashes() const noexcept final
+    auto DisconnectedHashes() const noexcept -> client::DisconnectedList final
     {
         return headers_.DisconnectedHashes();
     }
-    Address Get(
+    auto Get(
         const Protocol protocol,
         const std::set<Type> onNetworks,
-        const std::set<Service> withServices) const noexcept final
+        const std::set<Service> withServices) const noexcept -> Address final
     {
         return common_.Find(chain_, protocol, onNetworks, withServices);
     }
-    bool HasDisconnectedChildren(const block::Hash& hash) const noexcept final
+    auto GetPatterns(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const VersionNumber version) const noexcept -> Patterns final
+    {
+        return wallet_.GetPatterns(balanceNode, subchain, type, version);
+    }
+    auto GetUntestedPatterns(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const ReadView blockID,
+        const VersionNumber version) const noexcept -> Patterns
+    {
+        return wallet_.GetUntestedPatterns(
+            balanceNode, subchain, type, blockID, version);
+    }
+    auto HasDisconnectedChildren(const block::Hash& hash) const noexcept
+        -> bool final
     {
         return headers_.HasDisconnectedChildren(hash);
     }
-    bool HaveCheckpoint() const noexcept final
+    auto HaveCheckpoint() const noexcept -> bool final
     {
         return headers_.HaveCheckpoint();
     }
-    bool HaveFilter(const filter::Type type, const block::Hash& block) const
-        noexcept final
+    auto HaveFilter(const filter::Type type, const block::Hash& block) const
+        noexcept -> bool final
     {
         return filters_.HaveFilter(type, block);
     }
-    bool HaveFilterHeader(const filter::Type type, const block::Hash& block)
-        const noexcept final
+    auto HaveFilterHeader(const filter::Type type, const block::Hash& block)
+        const noexcept -> bool final
     {
         return filters_.HaveFilterHeader(type, block);
     }
-    bool HeaderExists(const block::Hash& hash) const noexcept final
+    auto HeaderExists(const block::Hash& hash) const noexcept -> bool final
     {
         return headers_.HeaderExists(hash);
     }
-    bool Import(std::vector<Address> peers) const noexcept final
+    auto Import(std::vector<Address> peers) const noexcept -> bool final
     {
         return common_.Import(std::move(peers));
     }
-    bool IsSibling(const block::Hash& hash) const noexcept final
+    auto IsSibling(const block::Hash& hash) const noexcept -> bool final
     {
         return headers_.IsSibling(hash);
     }
-    Hash LoadFilterHash(const filter::Type type, const ReadView block) const
-        noexcept final
+    auto LoadFilter(const filter::Type type, const ReadView block) const
+        noexcept -> std::unique_ptr<const blockchain::internal::GCS> final
+    {
+        return filters_.LoadFilter(type, block);
+    }
+    auto LoadFilterHash(const filter::Type type, const ReadView block) const
+        noexcept -> Hash final
     {
         return filters_.LoadFilterHash(type, block);
     }
-    Hash LoadFilterHeader(const filter::Type type, const ReadView block) const
-        noexcept final
+    auto LoadFilterHeader(const filter::Type type, const ReadView block) const
+        noexcept -> Hash final
     {
         return filters_.LoadFilterHeader(type, block);
     }
     // Throws std::out_of_range if the header does not exist
-    std::unique_ptr<block::Header> LoadHeader(const block::Hash& hash) const
-        noexcept(false) final
+    auto LoadHeader(const block::Hash& hash) const noexcept(false)
+        -> std::unique_ptr<block::Header> final
     {
         return headers_.LoadHeader(hash);
     }
-    std::vector<block::pHash> RecentHashes() const noexcept final
+    auto RecentHashes() const noexcept -> std::vector<block::pHash> final
     {
         return headers_.RecentHashes();
     }
-    bool SetFilterHeaderTip(
+    auto SetFilterHeaderTip(
         const filter::Type type,
-        const block::Position position) const noexcept final
+        const block::Position position) const noexcept -> bool final
     {
         return filters_.SetHeaderTip(type, position);
     }
-    bool SetFilterTip(const filter::Type type, const block::Position position)
-        const noexcept final
+    auto SetFilterTip(const filter::Type type, const block::Position position)
+        const noexcept -> bool final
     {
         return filters_.SetTip(type, position);
     }
-    client::Hashes SiblingHashes() const noexcept final
+    auto SiblingHashes() const noexcept -> client::Hashes final
     {
         return headers_.SiblingHashes();
     }
-    bool StoreFilters(const filter::Type type, std::vector<Filter> filters)
-        const noexcept final
+    auto StoreFilters(const filter::Type type, std::vector<Filter> filters)
+        const noexcept -> bool final
     {
         return filters_.StoreFilters(type, std::move(filters));
     }
-    bool StoreFilterHeaders(
+    auto StoreFilterHeaders(
         const filter::Type type,
         const ReadView previous,
-        const std::vector<Header> headers) const noexcept final
+        const std::vector<Header> headers) const noexcept -> bool final
     {
         return filters_.StoreHeaders(type, previous, std::move(headers));
     }
+    auto SubchainAddElements(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const ElementMap& elements,
+        const VersionNumber version) const noexcept -> bool final
+    {
+        return wallet_.SubchainAddElements(
+            balanceNode, subchain, type, elements, version);
+    }
+    auto SubchainDropIndex(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const VersionNumber version) const noexcept -> bool final
+    {
+        return wallet_.SubchainDropIndex(balanceNode, subchain, type, version);
+    }
+    auto SubchainIndexVersion(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type) const noexcept -> VersionNumber final
+    {
+        return wallet_.SubchainIndexVersion(balanceNode, subchain, type);
+    }
+    auto SubchainLastIndexed(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const VersionNumber version) const noexcept
+        -> std::optional<Bip32Index> final
+    {
+        return wallet_.SubchainLastIndexed(
+            balanceNode, subchain, type, version);
+    }
+    auto SubchainLastProcessed(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type) const noexcept -> block::Position final
+    {
+        return wallet_.SubchainLastProcessed(balanceNode, subchain, type);
+    }
+    auto SubchainLastScanned(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type) const noexcept -> block::Position final
+    {
+        return wallet_.SubchainLastScanned(balanceNode, subchain, type);
+    }
+    auto SubchainMatchBlock(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const MatchingIndices& indices,
+        const ReadView blockID,
+        const VersionNumber version) const noexcept -> bool final
+    {
+        return wallet_.SubchainMatchBlock(
+            balanceNode, subchain, type, indices, blockID, version);
+    }
+    auto SubchainSetLastProcessed(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const block::Position& position) const noexcept -> bool
+    {
+        return wallet_.SubchainSetLastProcessed(
+            balanceNode, subchain, type, position);
+    }
+    auto SubchainSetLastScanned(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const block::Position& position) const noexcept -> bool
+    {
+        return wallet_.SubchainSetLastScanned(
+            balanceNode, subchain, type, position);
+    }
     // Returns null pointer if the header does not exist
-    std::unique_ptr<block::Header> TryLoadHeader(const block::Hash& hash) const
-        noexcept final
+    auto TryLoadHeader(const block::Hash& hash) const noexcept
+        -> std::unique_ptr<block::Header> final
     {
         return headers_.TryLoadHeader(hash);
     }
@@ -151,37 +254,43 @@ private:
     friend opentxs::Factory;
 
     struct Filters {
-        block::Position CurrentHeaderTip(const filter::Type type) const
-            noexcept;
-        block::Position CurrentTip(const filter::Type type) const noexcept;
-        bool HaveFilter(const filter::Type type, const block::Hash& block) const
-            noexcept
+        auto CurrentHeaderTip(const filter::Type type) const noexcept
+            -> block::Position;
+        auto CurrentTip(const filter::Type type) const noexcept
+            -> block::Position;
+        auto HaveFilter(const filter::Type type, const block::Hash& block) const
+            noexcept -> bool
         {
             return common_.HaveFilter(type, block.Bytes());
         }
-        bool HaveFilterHeader(const filter::Type type, const block::Hash& block)
-            const noexcept
+        auto HaveFilterHeader(const filter::Type type, const block::Hash& block)
+            const noexcept -> bool
         {
             return common_.HaveFilterHeader(type, block.Bytes());
         }
-        Hash LoadFilterHash(const filter::Type type, const ReadView block) const
-            noexcept;
-        Hash LoadFilterHeader(const filter::Type type, const ReadView block)
-            const noexcept;
-        bool SetHeaderTip(
+        auto LoadFilter(const filter::Type type, const ReadView block) const
+            noexcept -> std::unique_ptr<const blockchain::internal::GCS>
+        {
+            return common_.LoadFilter(type, block);
+        }
+        auto LoadFilterHash(const filter::Type type, const ReadView block) const
+            noexcept -> Hash;
+        auto LoadFilterHeader(const filter::Type type, const ReadView block)
+            const noexcept -> Hash;
+        auto SetHeaderTip(
             const filter::Type type,
-            const block::Position position) const noexcept;
-        bool SetTip(const filter::Type type, const block::Position position)
-            const noexcept;
-        bool StoreHeaders(
+            const block::Position position) const noexcept -> bool;
+        auto SetTip(const filter::Type type, const block::Position position)
+            const noexcept -> bool;
+        auto StoreHeaders(
             const filter::Type type,
             const ReadView previous,
-            const std::vector<Header> headers) const noexcept
+            const std::vector<Header> headers) const noexcept -> bool
         {
             return common_.StoreFilterHeaders(type, headers);
         }
-        bool StoreFilters(const filter::Type type, std::vector<Filter> filters)
-            const noexcept
+        auto StoreFilters(const filter::Type type, std::vector<Filter> filters)
+            const noexcept -> bool
         {
             return common_.StoreFilters(type, filters);
         }
@@ -265,6 +374,133 @@ private:
             noexcept;
     };
 
+    struct Wallet {
+        auto GetPatterns(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const VersionNumber version) const noexcept -> Patterns;
+        auto GetUntestedPatterns(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const ReadView blockID,
+            const VersionNumber version) const noexcept -> Patterns;
+        auto SubchainAddElements(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const ElementMap& elements,
+            const VersionNumber version) const noexcept -> bool;
+        auto SubchainDropIndex(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const VersionNumber version) const noexcept -> bool;
+        auto SubchainIndexVersion(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type) const noexcept -> VersionNumber;
+        auto SubchainLastIndexed(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const VersionNumber version) const noexcept
+            -> std::optional<Bip32Index>;
+        auto SubchainLastProcessed(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type) const noexcept -> block::Position;
+        auto SubchainLastScanned(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type) const noexcept -> block::Position;
+        auto SubchainMatchBlock(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const MatchingIndices& indices,
+            const ReadView blockID,
+            const VersionNumber version) const noexcept -> bool;
+        auto SubchainSetLastProcessed(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const block::Position& position) const noexcept -> bool;
+        auto SubchainSetLastScanned(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const block::Position& position) const noexcept -> bool;
+
+        Wallet(const api::Core& api) noexcept;
+
+    private:
+        using SubchainID = Identifier;
+        using pSubchainID = OTIdentifier;
+        using PatternID = Identifier;
+        using pPatternID = OTIdentifier;
+        using IDSet = boost::container::flat_set<pPatternID>;
+        using PatternMap =
+            std::map<pPatternID, std::vector<std::pair<Bip32Index, Space>>>;
+        using SubchainPatternIndex = std::map<pSubchainID, IDSet>;
+        using SubchainIndexMap = std::map<pSubchainID, VersionNumber>;
+        using VersionIndex = std::map<OTIdentifier, VersionNumber>;
+        using PositionMap = std::map<OTIdentifier, block::Position>;
+        using MatchIndex = std::map<block::pHash, IDSet>;
+
+        const api::Core& api_;
+        mutable std::mutex lock_;
+        mutable PatternMap patterns_;
+        mutable SubchainPatternIndex subchain_pattern_index_;
+        mutable SubchainIndexMap subchain_last_indexed_;
+        mutable VersionIndex subchain_version_;
+        mutable PositionMap subchain_last_scanned_;
+        mutable PositionMap subchain_last_processed_;
+        mutable MatchIndex match_index_;
+
+        auto get_patterns(
+            const Lock& lock,
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const VersionNumber version) const noexcept(false) -> const IDSet&;
+        template <typename PatternList>
+        auto load_patterns(
+            const Lock& lock,
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const PatternList& patterns) const noexcept -> Patterns
+        {
+            auto output = Patterns{};
+
+            for (const auto& patternID : patterns) {
+                try {
+                    for (const auto& [index, pattern] :
+                         patterns_.at(patternID)) {
+                        output.emplace_back(
+                            Pattern{{index, {subchain, balanceNode}}, pattern});
+                    }
+                } catch (...) {
+                }
+            }
+
+            return output;
+        }
+
+        auto pattern_id(const SubchainID& subchain, const Bip32Index index)
+            const noexcept -> pPatternID;
+        auto subchain_version_index(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type) const noexcept -> pSubchainID;
+        auto subchain_id(
+            const NodeID& balanceNode,
+            const Subchain subchain,
+            const FilterType type,
+            const VersionNumber version) const noexcept -> pSubchainID;
+    };
+
     enum Table {
         Config = 0,
         BlockHeaderMetadata = 1,
@@ -291,6 +527,7 @@ private:
     opentxs::storage::lmdb::LMDB lmdb_;
     mutable Filters filters_;
     mutable Headers headers_;
+    mutable Wallet wallet_;
 
     void init_db() noexcept;
 

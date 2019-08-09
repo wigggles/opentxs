@@ -1,0 +1,60 @@
+// Copyright (c) 2010-2020 The Open-Transactions developers
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#ifndef OPENTXS_BLOCKCHAIN_BLOCK_HPP
+#define OPENTXS_BLOCKCHAIN_BLOCK_HPP
+
+#include "opentxs/Forward.hpp"
+
+#include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Bytes.hpp"
+
+#include <map>
+#include <tuple>
+#include <vector>
+
+namespace opentxs
+{
+namespace blockchain
+{
+namespace block
+{
+class Block
+{
+public:
+    using FilterType = filter::Type;
+    using Subchain = api::client::blockchain::Subchain;
+    using SubchainID = std::pair<Subchain, OTIdentifier>;
+    using ElementID = std::pair<Bip32Index, SubchainID>;
+    using Pattern = std::pair<ElementID, Space>;
+    using Patterns = std::vector<Pattern>;
+    using Match = std::pair<pTxid, ElementID>;
+    using Matches = std::vector<Match>;
+
+    OPENTXS_EXPORT virtual auto FindMatches(
+        const FilterType type,
+        const Patterns& outpoints,
+        const Patterns& scripts) const noexcept -> Matches = 0;
+    OPENTXS_EXPORT virtual auto Header() const noexcept
+        -> const block::Header& = 0;
+    OPENTXS_EXPORT virtual auto ID() const noexcept -> const block::Hash& = 0;
+
+    virtual ~Block() = default;
+
+protected:
+    Block() noexcept = default;
+
+private:
+    Block(const Block&) = delete;
+    Block(Block&&) = delete;
+    Block& operator=(const Block&) = delete;
+    Block& operator=(Block&&) = delete;
+};
+}  // namespace block
+}  // namespace blockchain
+}  // namespace opentxs
+#endif

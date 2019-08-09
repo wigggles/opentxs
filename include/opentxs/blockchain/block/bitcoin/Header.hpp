@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_BLOCKCHAIN_HEADER_HPP
-#define OPENTXS_BLOCKCHAIN_HEADER_HPP
+#ifndef OPENTXS_BLOCKCHAIN_BLOCK_BITCOIN_HEADER_HPP
+#define OPENTXS_BLOCKCHAIN_BLOCK_BITCOIN_HEADER_HPP
 
 #include "opentxs/Forward.hpp"
 

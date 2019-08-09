@@ -10,9 +10,16 @@ namespace opentxs::api::client::implementation
 class Blockchain final : virtual public internal::Blockchain
 {
 public:
+#if OT_BLOCKCHAIN
+    using ThreadPoolType = opentxs::blockchain::client::internal::ThreadPool;
+#endif  // OT_BLOCKCHAIN
+
     const blockchain::BalanceTree& Account(
         const identifier::Nym& nymID,
-        const Chain chain) const noexcept(false) final;
+        const Chain chain) const noexcept(false) final
+    {
+        return BalanceTree(nymID, chain);
+    }
     std::set<OTIdentifier> AccountList(
         const identifier::Nym& nymID,
         const Chain chain) const noexcept final;
@@ -29,6 +36,9 @@ public:
         const blockchain::Subchain subchain,
         const Bip32Index index,
         const std::string& label) const noexcept final;
+    const blockchain::internal::BalanceTree& BalanceTree(
+        const identifier::Nym& nymID,
+        const Chain chain) const noexcept(false) final;
 #if OT_BLOCKCHAIN
     const blockchain::database::implementation::Database& BlockchainDB() const
         noexcept final
@@ -66,6 +76,8 @@ public:
         const BlockchainAccountType standard,
         const Chain chain,
         const PasswordPrompt& reason) const noexcept final;
+    OTData PubkeyHash(const Chain chain, const Data& pubkey) const
+        noexcept(false) final;
 #if OT_BLOCKCHAIN
     const opentxs::network::zeromq::socket::Publish& Reorg() const
         noexcept final
@@ -81,8 +93,12 @@ public:
         const Chain chain,
         const proto::BlockchainTransaction& transaction,
         const PasswordPrompt& reason) const noexcept final;
-    OTData PubkeyHash(const Chain chain, const Data& pubkey) const
-        noexcept(false) final;
+#if OT_BLOCKCHAIN
+    auto ThreadPool() const noexcept -> const ThreadPoolType& final
+    {
+        return thread_pool_;
+    }
+#endif  // OT_BLOCKCHAIN
     std::shared_ptr<proto::BlockchainTransaction> Transaction(
         const std::string& id) const noexcept final;
     bool UpdateTransactions(const std::map<OTData, OTIdentifier>& changed) const
@@ -151,6 +167,80 @@ private:
         api::client::internal::Blockchain& parent_;
         mutable std::mutex lock_;
     };
+#if OT_BLOCKCHAIN
+    struct ThreadPoolManager final : virtual public ThreadPoolType {
+        auto Endpoint() const noexcept -> std::string final;
+        auto Reset(const Chain chain) const noexcept -> void final;
+        auto Stop(const Chain chain) const noexcept -> Future final;
+
+        auto Shutdown() noexcept -> void;
+
+        ThreadPoolManager(const api::Core& api) noexcept;
+        ~ThreadPoolManager();
+
+    private:
+        using NetworkData = std::tuple<
+            bool,
+            int,
+            std::promise<void>,
+            std::shared_future<void>,
+            std::mutex>;
+        using NetworkMap = std::map<Chain, NetworkData>;
+
+        struct Worker {
+            Worker(NetworkData& data) noexcept
+                : data_(data)
+                , not_moved_from_(true)
+            {
+                auto& [active, running, promise, future, mutex] = data_;
+                ++running;
+            }
+            Worker(Worker&& rhs) noexcept
+                : data_(rhs.data_)
+                , not_moved_from_(true)
+            {
+                rhs.not_moved_from_ = false;
+            }
+
+            ~Worker()
+            {
+                if (not_moved_from_) {
+                    auto& [active, running, promise, future, mutex] = data_;
+                    Lock lock(mutex);
+                    const auto tasks = --running;
+
+                    if ((false == active) && (0 == tasks)) {
+                        promise.set_value();
+                    }
+                }
+            }
+
+        private:
+            NetworkData& data_;
+            bool not_moved_from_;
+
+            Worker(const Worker&) = delete;
+        };
+
+        const api::Core& api_;
+        mutable NetworkMap map_;
+        std::atomic<bool> running_;
+        OTZMQPushSocket int_;
+        mutable std::vector<OTZMQPullSocket> workers_;
+        OTZMQListenCallback cbi_;
+        OTZMQListenCallback cbe_;
+        OTZMQPullSocket ext_;
+        mutable bool init_;
+        mutable std::mutex lock_;
+
+        static auto init() noexcept -> NetworkMap;
+
+        auto startup() const noexcept -> void;
+
+        auto callback(zmq::Message& in) noexcept -> void;
+        auto run(const Chain chain) noexcept -> std::optional<Worker>;
+    };
+#endif  // OT_BLOCKCHAIN
 
     static const AddressMap address_prefix_map_;
     static const AddressReverseMap address_prefix_reverse_map_;
@@ -165,6 +255,7 @@ private:
     mutable BalanceLists balance_lists_;
     mutable Txo txo_db_;
 #if OT_BLOCKCHAIN
+    ThreadPoolManager thread_pool_;
     opentxs::blockchain::client::internal::IO io_;
     blockchain::database::implementation::Database db_;
     OTZMQPublishSocket reorg_;

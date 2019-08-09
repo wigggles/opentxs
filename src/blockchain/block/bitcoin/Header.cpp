@@ -35,18 +35,20 @@
 
 namespace opentxs
 {
-blockchain::block::bitcoin::internal::Header* Factory::BitcoinBlockHeader(
+auto Factory::BitcoinBlockHeader(
     const api::internal::Core& api,
-    const proto::BlockchainBlockHeader& serialized)
+    const proto::BlockchainBlockHeader& serialized) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
 {
     using ReturnType = blockchain::block::bitcoin::implementation::Header;
 
-    return new ReturnType(api, serialized);
+    return std::make_unique<ReturnType>(api, serialized);
 }
 
-blockchain::block::bitcoin::internal::Header* Factory::BitcoinBlockHeader(
+auto Factory::BitcoinBlockHeader(
     const api::internal::Core& api,
-    const Data& raw)
+    const ReadView raw) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
 {
     using ReturnType = blockchain::block::bitcoin::implementation::Header;
 
@@ -73,7 +75,7 @@ blockchain::block::bitcoin::internal::Header* Factory::BitcoinBlockHeader(
         return nullptr;
     }
 
-    return new ReturnType(
+    return std::make_unique<ReturnType>(
         api,
         ReturnType::subversion_default_,
         ReturnType::calculate_hash(api, raw),
@@ -85,15 +87,16 @@ blockchain::block::bitcoin::internal::Header* Factory::BitcoinBlockHeader(
         serialized.nonce_.value());
 }
 
-blockchain::block::bitcoin::internal::Header* Factory::BitcoinBlockHeader(
+auto Factory::BitcoinBlockHeader(
     const api::internal::Core& api,
     const blockchain::block::Hash& hash,
     const blockchain::block::Hash& parent,
-    const blockchain::block::Height height)
+    const blockchain::block::Height height) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
 {
     using ReturnType = blockchain::block::bitcoin::implementation::Header;
 
-    return new ReturnType(api, hash, parent, height);
+    return std::make_unique<ReturnType>(api, hash, parent, height);
 }
 }  // namespace opentxs
 
@@ -223,11 +226,11 @@ Header::BitcoinFormat::BitcoinFormat(
 
 block::pHash Header::calculate_hash(
     const api::internal::Core& api,
-    const opentxs::Data& serialized)
+    const ReadView serialized)
 {
     auto output = Data::Factory();
     api.Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256D, serialized.Bytes(), output->WriteInto());
+        proto::HASHTYPE_SHA256D, serialized, output->WriteInto());
 
     return output;
 }
@@ -236,7 +239,7 @@ block::pHash Header::calculate_hash(
     const api::internal::Core& api,
     const SerializedType& serialized)
 {
-    BitcoinFormat bitcoinFormat{};
+    auto bitcoinFormat = BitcoinFormat{};
 
     try {
         bitcoinFormat = BitcoinFormat{serialized.bitcoin().block_version(),
@@ -250,7 +253,10 @@ block::pHash Header::calculate_hash(
     }
 
     return calculate_hash(
-        api, Data::Factory(&bitcoinFormat, sizeof(bitcoinFormat)));
+        api,
+        ReadView(
+            reinterpret_cast<const char*>(&bitcoinFormat),
+            sizeof(bitcoinFormat)));
 }
 
 OTWork Header::calculate_work(const std::int32_t nbits)
