@@ -25,6 +25,8 @@
 
 namespace opentxs
 {
+const VersionNumber ServerContract::DefaultVersion{2};
+
 ServerContract::ServerContract(const api::Core& api, const Nym_p& nym)
     : ot_super(nym)
     , api_{api}

@@ -44,7 +44,6 @@
 #define OPENTXS_ARG_WORDS "words"
 #define OPENTXS_ARG_LOGENDPOINT "logendpoint"
 #define OPENTXS_ARG_LOGLEVEL "log_level"
-#define OPENTXS_DEFAULT_SERVER_CONTRACT_VERSION 1
 
 namespace opentxs
 {

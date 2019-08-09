@@ -13,19 +13,19 @@ public:
     std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     Editor<opentxs::Context> mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     Editor<opentxs::ServerContext> mutable_ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     ~Wallet() = default;
 
@@ -43,9 +43,9 @@ private:
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
-        std::shared_ptr<opentxs::internal::Context>& output) const override;
+        std::shared_ptr<opentxs::internal::Context>& output) const final;
     Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
-        const override;
+        const final;
 
     Wallet(const api::client::Manager& client);
     Wallet() = delete;
