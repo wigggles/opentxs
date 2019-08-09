@@ -564,8 +564,7 @@ public:
         const std::string& terms,
         const std::list<ServerContract::Endpoint>& endpoints,
         const PasswordPrompt& reason,
-        const VersionNumber version =
-            OPENTXS_DEFAULT_SERVER_CONTRACT_VERSION) const = 0;
+        const VersionNumber version) const = 0;
 
     /**   Returns a list of all available server contracts and their aliases
      */

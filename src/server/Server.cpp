@@ -401,8 +401,8 @@ void Server::CreateMainFile(bool& mainFileExists)
             terms,
             endpoints,
             reason_,
-            (useInproc) ? std::max(2, OPENTXS_DEFAULT_SERVER_CONTRACT_VERSION)
-                        : OPENTXS_DEFAULT_SERVER_CONTRACT_VERSION);
+            (useInproc) ? std::max(2u, ServerContract::DefaultVersion)
+                        : ServerContract::DefaultVersion);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Existing contract found. Restoring.")

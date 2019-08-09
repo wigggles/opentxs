@@ -29,8 +29,8 @@ class Wallet : virtual public opentxs::api::Wallet, public Lockable
 public:
     SharedAccount Account(
         const Identifier& accountID,
-        const PasswordPrompt& reason) const override;
-    OTIdentifier AccountPartialMatch(const std::string& hint) const override;
+        const PasswordPrompt& reason) const final;
+    OTIdentifier AccountPartialMatch(const std::string& hint) const final;
     ExclusiveAccount CreateAccount(
         const identifier::Nym& ownerNymID,
         const identifier::Server& notaryID,
@@ -38,31 +38,31 @@ public:
         const identity::Nym& signer,
         Account::AccountType type,
         TransactionNumber stash,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     bool DeleteAccount(
         const Identifier& accountID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     SharedAccount IssuerAccount(
         const identifier::UnitDefinition& unitID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     ExclusiveAccount mutable_Account(
         const Identifier& accountID,
         const PasswordPrompt& reason,
-        const AccountCallback callback) const override;
+        const AccountCallback callback) const final;
     bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
         const std::string& label,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     bool ImportAccount(
         std::unique_ptr<opentxs::Account>& imported,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
         const identifier::Nym& remoteNymID,
         const PasswordPrompt& reason) const override;
@@ -77,139 +77,138 @@ public:
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
         const PasswordPrompt& reason) const override;
-    std::set<OTNymID> IssuerList(const identifier::Nym& nymID) const override;
+    std::set<OTNymID> IssuerList(const identifier::Nym& nymID) const final;
     std::shared_ptr<const api::client::Issuer> Issuer(
         const identifier::Nym& nymID,
-        const identifier::Nym& issuerID) const override;
+        const identifier::Nym& issuerID) const final;
     Editor<api::client::Issuer> mutable_Issuer(
         const identifier::Nym& nymID,
-        const identifier::Nym& issuerID) const override;
-    bool IsLocalNym(const std::string& id) const override;
-    std::size_t LocalNymCount() const override;
-    std::set<OTNymID> LocalNyms() const override;
+        const identifier::Nym& issuerID) const final;
+    bool IsLocalNym(const std::string& id) const final;
+    std::size_t LocalNymCount() const final;
+    std::set<OTNymID> LocalNyms() const final;
     Nym_p Nym(
         const identifier::Nym& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const override;
+            std::chrono::milliseconds(0)) const final;
     Nym_p Nym(const proto::CredentialIndex& nym, const PasswordPrompt& reason)
-        const override;
+        const final;
     Nym_p Nym(
         const NymParameters& nymParameters,
         const PasswordPrompt& reason,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
-        const std::string name = "") const override;
+        const std::string name = "") const final;
     NymData mutable_Nym(const identifier::Nym& id, const PasswordPrompt& reason)
-        const override;
+        const final;
     std::unique_ptr<const opentxs::NymFile> Nymfile(
         const identifier::Nym& id,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     Editor<opentxs::NymFile> mutable_Nymfile(
         const identifier::Nym& id,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     Nym_p NymByIDPartialMatch(
         const std::string& partialId,
-        const PasswordPrompt& reason) const override;
-    ObjectList NymList() const override;
-    bool NymNameByIndex(const std::size_t index, String& name) const override;
+        const PasswordPrompt& reason) const final;
+    ObjectList NymList() const final;
+    bool NymNameByIndex(const std::size_t index, String& name) const final;
     std::shared_ptr<proto::PeerReply> PeerReply(
         const identifier::Nym& nym,
         const Identifier& reply,
-        const StorageBox& box) const override;
+        const StorageBox& box) const final;
     bool PeerReplyComplete(
         const identifier::Nym& nym,
-        const Identifier& replyOrRequest) const override;
+        const Identifier& replyOrRequest) const final;
     bool PeerReplyCreate(
         const identifier::Nym& nym,
         const proto::PeerRequest& request,
-        const proto::PeerReply& reply) const override;
+        const proto::PeerReply& reply) const final;
     bool PeerReplyCreateRollback(
         const identifier::Nym& nym,
         const Identifier& request,
-        const Identifier& reply) const override;
-    ObjectList PeerReplySent(const identifier::Nym& nym) const override;
-    ObjectList PeerReplyIncoming(const identifier::Nym& nym) const override;
-    ObjectList PeerReplyFinished(const identifier::Nym& nym) const override;
-    ObjectList PeerReplyProcessed(const identifier::Nym& nym) const override;
+        const Identifier& reply) const final;
+    ObjectList PeerReplySent(const identifier::Nym& nym) const final;
+    ObjectList PeerReplyIncoming(const identifier::Nym& nym) const final;
+    ObjectList PeerReplyFinished(const identifier::Nym& nym) const final;
+    ObjectList PeerReplyProcessed(const identifier::Nym& nym) const final;
     bool PeerReplyReceive(const identifier::Nym& nym, const PeerObject& reply)
-        const override;
+        const final;
     std::shared_ptr<proto::PeerRequest> PeerRequest(
         const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box,
-        std::time_t& time) const override;
+        std::time_t& time) const final;
     bool PeerRequestComplete(
         const identifier::Nym& nym,
-        const Identifier& reply) const override;
+        const Identifier& reply) const final;
     bool PeerRequestCreate(
         const identifier::Nym& nym,
-        const proto::PeerRequest& request) const override;
+        const proto::PeerRequest& request) const final;
     bool PeerRequestCreateRollback(
         const identifier::Nym& nym,
-        const Identifier& request) const override;
+        const Identifier& request) const final;
     bool PeerRequestDelete(
         const identifier::Nym& nym,
         const Identifier& request,
-        const StorageBox& box) const override;
-    ObjectList PeerRequestSent(const identifier::Nym& nym) const override;
-    ObjectList PeerRequestIncoming(const identifier::Nym& nym) const override;
-    ObjectList PeerRequestFinished(const identifier::Nym& nym) const override;
-    ObjectList PeerRequestProcessed(const identifier::Nym& nym) const override;
+        const StorageBox& box) const final;
+    ObjectList PeerRequestSent(const identifier::Nym& nym) const final;
+    ObjectList PeerRequestIncoming(const identifier::Nym& nym) const final;
+    ObjectList PeerRequestFinished(const identifier::Nym& nym) const final;
+    ObjectList PeerRequestProcessed(const identifier::Nym& nym) const final;
     bool PeerRequestReceive(
         const identifier::Nym& nym,
-        const PeerObject& request) const override;
+        const PeerObject& request) const final;
     bool PeerRequestUpdate(
         const identifier::Nym& nym,
         const Identifier& request,
-        const StorageBox& box) const override;
+        const StorageBox& box) const final;
 #if OT_CASH
     std::unique_ptr<const blind::Purse> Purse(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
-        const bool checking) const override;
+        const bool checking) const final;
     Editor<blind::Purse> mutable_Purse(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const PasswordPrompt& reason,
-        const proto::CashType type) const override;
+        const proto::CashType type) const final;
 #endif
-    bool RemoveServer(const identifier::Server& id) const override;
-    bool RemoveUnitDefinition(
-        const identifier::UnitDefinition& id) const override;
+    bool RemoveServer(const identifier::Server& id) const final;
+    bool RemoveUnitDefinition(const identifier::UnitDefinition& id) const final;
     ConstServerContract Server(
         const identifier::Server& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const override;
+            std::chrono::milliseconds(0)) const final;
     ConstServerContract Server(
         const proto::ServerContract& contract,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     ConstServerContract Server(
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
         const std::list<ServerContract::Endpoint>& endpoints,
         const PasswordPrompt& reason,
-        const VersionNumber version) const override;
-    ObjectList ServerList() const override;
+        const VersionNumber version) const final;
+    ObjectList ServerList() const final;
     bool SetNymAlias(const identifier::Nym& id, const std::string& alias)
-        const override;
+        const final;
     bool SetServerAlias(const identifier::Server& id, const std::string& alias)
-        const override;
+        const final;
     bool SetUnitDefinitionAlias(
         const identifier::UnitDefinition& id,
-        const std::string& alias) const override;
-    ObjectList UnitDefinitionList() const override;
+        const std::string& alias) const final;
+    ObjectList UnitDefinitionList() const final;
     const ConstUnitDefinition UnitDefinition(
         const identifier::UnitDefinition& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const override;
+            std::chrono::milliseconds(0)) const final;
     ConstUnitDefinition UnitDefinition(
         const proto::UnitDefinition& contract,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
@@ -219,24 +218,24 @@ public:
         const std::string& tla,
         const std::uint32_t power,
         const std::string& fraction,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const identifier::UnitDefinition& contractID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     bool LoadCredential(
         const std::string& id,
-        std::shared_ptr<proto::Credential>& credential) const override;
-    bool SaveCredential(const proto::Credential& credential) const override;
+        std::shared_ptr<proto::Credential>& credential) const final;
+    bool SaveCredential(const proto::Credential& credential) const final;
 
-    virtual ~Wallet() = default;
+    ~Wallet() override = default;
 
 protected:
     using AccountLock =

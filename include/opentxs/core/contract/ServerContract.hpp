@@ -23,6 +23,8 @@ namespace opentxs
 class ServerContract : public Signable
 {
 public:
+    static const VersionNumber DefaultVersion;
+
     /** A server listen address */
     typedef std::tuple<
         proto::AddressType,
