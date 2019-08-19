@@ -1217,7 +1217,7 @@ bool OTX::finish_task(const TaskID taskID, const bool success, Result&& result)
 
 OTServerID OTX::get_introduction_server(const Lock& lock) const
 {
-    OT_ASSERT(verify_lock(lock, introduction_server_lock_))
+    OT_ASSERT(CheckLock(lock, introduction_server_lock_))
 
     bool keyFound = false;
     auto serverID = String::Factory();
@@ -1244,7 +1244,7 @@ UniqueQueue<OTNymID>& OTX::get_nym_fetch(
 }
 
 otx::client::implementation::StateMachine& OTX::get_operations(
-    const ContextID& id) const
+    const ContextID& id) const noexcept(false)
 {
     Lock lock(shutdown_lock_);
 
@@ -1283,7 +1283,7 @@ otx::client::implementation::StateMachine& OTX::get_task(
 
 OTServerID OTX::import_default_introduction_server(const Lock& lock) const
 {
-    OT_ASSERT(verify_lock(lock, introduction_server_lock_))
+    OT_ASSERT(CheckLock(lock, introduction_server_lock_))
 
     const auto serialized = proto::StringToProto<proto::ServerContract>(
         String::Factory(DEFAULT_INTRODUCTION_SERVER.c_str()));
@@ -1487,6 +1487,7 @@ OTX::BackgroundTask OTX::IssueUnitDefinition(
     const identifier::Nym& localNymID,
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID,
+    const proto::ContactItemType advertise,
     const std::string& label) const
 {
     CHECK_ARGS(localNymID, serverID, unitID)
@@ -1496,7 +1497,7 @@ OTX::BackgroundTask OTX::IssueUnitDefinition(
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::IssueUnitDefinitionTask>(
-            {unitID, label});
+            {unitID, label, advertise});
     } catch (...) {
 
         return error_task();
@@ -1505,7 +1506,7 @@ OTX::BackgroundTask OTX::IssueUnitDefinition(
 
 void OTX::load_introduction_server(const Lock& lock) const
 {
-    OT_ASSERT(verify_lock(lock, introduction_server_lock_))
+    OT_ASSERT(CheckLock(lock, introduction_server_lock_))
 
     introduction_server_id_.reset(
         new OTServerID(get_introduction_server(lock)));
@@ -1788,7 +1789,6 @@ bool OTX::queue_cheque_deposit(
 
 void OTX::Refresh() const
 {
-    client_.Pair().Update();
     refresh_accounts();
     refresh_contacts();
     ++refresh_counter_;
@@ -1821,12 +1821,7 @@ bool OTX::refresh_accounts() const
                 logStr->Concatenate(" %s ", "is");
                 try {
                     auto& queue = get_operations({nymID, serverID});
-
-                    if (0 ==
-                        queue.StartTask<otx::client::DownloadNymboxTask>({})
-                            .first) {
-                        return false;
-                    }
+                    queue.StartTask<otx::client::DownloadNymboxTask>({});
                 } catch (...) {
 
                     return false;
@@ -2210,7 +2205,7 @@ OTServerID OTX::set_introduction_server(
     const Lock& lock,
     const ServerContract& contract) const
 {
-    OT_ASSERT(verify_lock(lock, introduction_server_lock_));
+    OT_ASSERT(CheckLock(lock, introduction_server_lock_));
 
     auto instantiated =
         client_.Wallet().Server(contract.PublicContract(), reason_);
@@ -2261,7 +2256,7 @@ OTX::BackgroundTask OTX::start_task(const TaskID taskID, bool success) const
     }
 
     if (false == success) {
-        LogTrace(OT_METHOD)(__FUNCTION__)(": Failed to start task").Flush();
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Task already queued").Flush();
 
         return error_task();
     }
@@ -2276,7 +2271,7 @@ void OTX::StartIntroductionServer(const identifier::Nym& localNymID) const
 
 ThreadStatus OTX::status(const Lock& lock, const TaskID taskID) const
 {
-    OT_ASSERT(verify_lock(lock, task_status_lock_))
+    OT_ASSERT(CheckLock(lock, task_status_lock_))
 
     if (!running_) { return ThreadStatus::SHUTDOWN; }
 
@@ -2313,7 +2308,7 @@ void OTX::trigger_all() const
 void OTX::update_task(
     const TaskID taskID,
     const ThreadStatus status,
-    Result&& result) const
+    Result&& result) const noexcept
 {
     if (0 == taskID) { return; }
 
@@ -2321,39 +2316,45 @@ void OTX::update_task(
 
     if (0 == task_status_.count(taskID)) { return; }
 
-    auto& row = task_status_.at(taskID);
-    auto& [state, promise] = row;
-    state = status;
-    bool value{false};
-    bool publish{false};
+    try {
+        auto& row = task_status_.at(taskID);
+        auto& [state, promise] = row;
+        state = status;
+        bool value{false};
+        bool publish{false};
 
-    switch (status) {
-        case ThreadStatus::FINISHED_SUCCESS: {
-            value = true;
-            publish = true;
-            promise.set_value(std::move(result));
-        } break;
-        case ThreadStatus::FINISHED_FAILED: {
-            value = false;
-            publish = true;
-            promise.set_value(std::move(result));
-        } break;
-        case ThreadStatus::SHUTDOWN: {
-            Result cancel{proto::LASTREPLYSTATUS_UNKNOWN, nullptr};
-            promise.set_value(std::move(cancel));
+        switch (status) {
+            case ThreadStatus::FINISHED_SUCCESS: {
+                value = true;
+                publish = true;
+                promise.set_value(std::move(result));
+            } break;
+            case ThreadStatus::FINISHED_FAILED: {
+                value = false;
+                publish = true;
+                promise.set_value(std::move(result));
+            } break;
+            case ThreadStatus::SHUTDOWN: {
+                Result cancel{proto::LASTREPLYSTATUS_UNKNOWN, nullptr};
+                promise.set_value(std::move(cancel));
+            }
+            case ThreadStatus::ERROR:
+            case ThreadStatus::RUNNING:
+            default: {
+            }
         }
-        case ThreadStatus::ERROR:
-        case ThreadStatus::RUNNING:
-        default: {
-        }
-    }
 
-    if (publish) {
-        auto message = zmq::Message::Factory();
-        message->PrependEmptyFrame();
-        message->AddFrame(std::to_string(taskID));
-        message->AddFrame(Data::Factory(&value, sizeof(value)));
-        task_finished_->Send(message);
+        if (publish) {
+            auto message = zmq::Message::Factory();
+            message->PrependEmptyFrame();
+            message->AddFrame(std::to_string(taskID));
+            message->AddFrame(Data::Factory(&value, sizeof(value)));
+            task_finished_->Send(message);
+        }
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Tried to finish an already-finished task (")(taskID)(")")
+            .Flush();
     }
 }
 

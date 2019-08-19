@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include <future>
 #include <set>
 #include <string>
 
@@ -23,22 +24,25 @@ public:
     virtual bool AddIssuer(
         const identifier::Nym& localNymID,
         const identifier::Nym& issuerNymID,
-        const std::string& pairingCode) const = 0;
+        const std::string& pairingCode) const noexcept = 0;
     virtual bool CheckIssuer(
         const identifier::Nym& localNymID,
-        const identifier::UnitDefinition& unitDefinitionID) const = 0;
+        const identifier::UnitDefinition& unitDefinitionID) const noexcept = 0;
     virtual std::string IssuerDetails(
         const identifier::Nym& localNymID,
-        const identifier::Nym& issuerNymID) const = 0;
+        const identifier::Nym& issuerNymID) const noexcept = 0;
     virtual std::set<OTNymID> IssuerList(
         const identifier::Nym& localNymID,
-        const bool onlyTrusted) const = 0;
-    virtual void Update() const = 0;
+        const bool onlyTrusted) const noexcept = 0;
+    /** For unit tests */
+    virtual std::shared_future<void> Stop() const noexcept = 0;
+    /** For unit tests */
+    virtual std::shared_future<void> Wait() const noexcept = 0;
 
     virtual ~Pair() = default;
 
 protected:
-    Pair() = default;
+    Pair() noexcept = default;
 
 private:
     Pair(const Pair&) = delete;

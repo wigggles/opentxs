@@ -12,6 +12,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
+#include "opentxs/api/client/Pair.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -99,5 +100,10 @@ struct OTX : virtual public api::client::OTX {
         const identifier::Server& serverID) const = 0;
     virtual BackgroundTask start_task(const TaskID taskID, bool success)
         const = 0;
+};
+struct Pair : virtual public opentxs::api::client::Pair {
+    virtual void init() noexcept = 0;
+
+    virtual ~Pair() = default;
 };
 }  // namespace opentxs::api::client::internal

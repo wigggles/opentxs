@@ -218,8 +218,9 @@ public:
      *  A subscribe socket can connect to this endpoint to be notified when
      *  any peer reply is received.
      *
-     *  Messages bodies consist of one frame.
-     *   * The frame contains a serialized proto::PeerReply message
+     *  Messages bodies consist of two frame.
+     *   * The first frame contains the recipient nym as a serialized string
+     *   * The second frame contains a serialized proto::PeerReply message
      *
      *  This endpoint is active for client sessions only.
      */
@@ -231,7 +232,8 @@ public:
      *  any peer request is received.
      *
      *  Messages bodies consist of one frame.
-     *   * The frame contains a serialized proto::PeerRequest message
+     *   * The first frame contains the recipient nym as a serialized string
+     *   * The second frame contains a serialized proto::PeerRequest message
      *
      *  This endpoint is active for client sessions only.
      */

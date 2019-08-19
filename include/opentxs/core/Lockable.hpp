@@ -16,10 +16,28 @@
 
 namespace opentxs
 {
+template <typename L, typename M>
+bool CheckLock(const L& lock, const M& mutex) noexcept
+{
+    if (lock.mutex() != &mutex) {
+        LogOutput(": Lock is on incorrect mutex.").Flush();
+
+        return false;
+    }
+
+    if (false == lock.owns_lock()) {
+        LogOutput(": Lock is unlocked.").Flush();
+
+        return false;
+    }
+
+    return true;
+}
+
 class Lockable
 {
 public:
-    Lockable() = default;
+    Lockable() noexcept = default;
 
     virtual ~Lockable() = default;
 
@@ -27,37 +45,19 @@ protected:
     mutable std::mutex lock_;
     mutable std::shared_mutex shared_lock_;
 
-    bool verify_lock(const Lock& lock) const
+    bool verify_lock(const Lock& lock) const noexcept
     {
-        return verify_lock(lock, lock_);
+        return CheckLock(lock, lock_);
     }
 
-    bool verify_lock(const sLock& lock) const
+    bool verify_lock(const sLock& lock) const noexcept
     {
-        return verify_lock(lock, shared_lock_);
+        return CheckLock(lock, shared_lock_);
     }
 
-    bool verify_lock(const eLock& lock) const
+    bool verify_lock(const eLock& lock) const noexcept
     {
-        return verify_lock(lock, shared_lock_);
-    }
-
-    template <typename L, typename M>
-    bool verify_lock(const L& lock, const M& mutex) const
-    {
-        if (lock.mutex() != &mutex) {
-            LogOutput(": Lock is on incorrect mutex.").Flush();
-
-            return false;
-        }
-
-        if (false == lock.owns_lock()) {
-            LogOutput(": Lock is unlocked.").Flush();
-
-            return false;
-        }
-
-        return true;
+        return CheckLock(lock, shared_lock_);
     }
 
 private:

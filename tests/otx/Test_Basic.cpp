@@ -188,7 +188,9 @@ public:
     void init()
     {
         client_1_.OTX().DisableAutoaccept();
+        client_1_.Pair().Stop().get();
         client_2_.OTX().DisableAutoaccept();
+        client_2_.Pair().Stop().get();
         const_cast<std::string&>(SeedA_) = client_1_.Exec().Wallet_ImportSeed(
             "spike nominee miss inquiry fee nothing belt list other "
             "daughter leave valley twelve gossip paper",

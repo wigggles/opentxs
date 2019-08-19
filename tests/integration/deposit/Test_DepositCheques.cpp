@@ -11,7 +11,7 @@
 
 using namespace opentxs;
 
-#define ALICE "Alice"
+#define ALEX "Alice"
 #define BOB "Bob"
 #define ISSUER "Issuer"
 #define ACCOUNT_ACTIVITY_USD "ACCOUNT_ACTIVITY_USD"
@@ -128,7 +128,7 @@ public:
                 "abandon abandon abandon abandon about",
                 "");
         const_cast<std::string&>(Alice_) = alice_client_.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, ALICE, SeedA_, 0);
+            proto::CITEMTYPE_INDIVIDUAL, ALEX, SeedA_, 0);
         const_cast<std::string&>(Bob_) = bob_client_.Exec().CreateNymHD(
             proto::CITEMTYPE_INDIVIDUAL, BOB, SeedB_, 0);
         const_cast<std::string&>(Issuer_) = issuer_client_.Exec().CreateNymHD(
@@ -203,7 +203,7 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, issuer.Type());
 
     auto aliceScopeSet = alice.SetScope(
-        opentxs::proto::CITEMTYPE_INDIVIDUAL, ALICE, true, reasonA);
+        opentxs::proto::CITEMTYPE_INDIVIDUAL, ALEX, true, reasonA);
     auto bobScopeSet =
         bob.SetScope(proto::CITEMTYPE_INDIVIDUAL, BOB, true, reasonB);
     auto issuerScopeSet =
@@ -299,7 +299,7 @@ TEST_F(Test_DepositCheques, add_contacts)
         alice_client_.Factory().PaymentCode(issuer_payment_code_, reasonA),
         reasonA);
     const auto bobAlice = bob_client_.Contacts().NewContact(
-        ALICE,
+        ALEX,
         alice_nym_id_,
         bob_client_.Factory().PaymentCode(alice_payment_code_, reasonB),
         reasonB);
@@ -309,7 +309,7 @@ TEST_F(Test_DepositCheques, add_contacts)
         bob_client_.Factory().PaymentCode(issuer_payment_code_, reasonB),
         reasonB);
     const auto issuerAlice = issuer_client_.Contacts().NewContact(
-        ALICE,
+        ALEX,
         alice_nym_id_,
         issuer_client_.Factory().PaymentCode(alice_payment_code_, reasonI),
         reasonI);

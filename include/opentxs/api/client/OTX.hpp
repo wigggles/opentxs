@@ -175,7 +175,8 @@ public:
     EXPORT virtual BackgroundTask IssueUnitDefinition(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
-        const identifier::UnitDefinition& unitIDD,
+        const identifier::UnitDefinition& unitID,
+        const proto::ContactItemType advertise = proto::CITEMTYPE_ERROR,
         const std::string& label = "") const = 0;
     EXPORT virtual BackgroundTask MessageContact(
         const identifier::Nym& senderNymID,
