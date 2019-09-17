@@ -15,23 +15,27 @@ using AccountListItemRow =
 class AccountListItem final : public AccountListItemRow
 {
 public:
-    std::string AccountID() const override { return row_id_->str(); }
-    Amount Balance() const override { return balance_; }
-    std::string ContractID() const override { return contract_->ID()->str(); }
-    std::string DisplayBalance() const override;
-    std::string DisplayUnit() const override { return contract_->TLA(); }
-    std::string Name() const override { return name_; }
-    std::string NotaryID() const override { return notary_->ID()->str(); }
-    std::string NotaryName() const override
+    std::string AccountID() const noexcept final { return row_id_->str(); }
+    Amount Balance() const noexcept final { return balance_; }
+    std::string ContractID() const noexcept final
+    {
+        return contract_->ID()->str();
+    }
+    std::string DisplayBalance() const noexcept final;
+    std::string DisplayUnit() const noexcept final { return contract_->TLA(); }
+    std::string Name() const noexcept final { return name_; }
+    std::string NotaryID() const noexcept final { return notary_->ID()->str(); }
+    std::string NotaryName() const noexcept final
     {
         auto reason = api_.Factory().PasswordPrompt("Loading notary contract");
 
         return notary_->EffectiveName(reason);
     }
-    void reindex(const AccountListSortKey& key, const CustomData& custom)
-        override{};
-    AccountType Type() const override { return type_; }
-    proto::ContactItemType Unit() const override { return unit_; }
+    void reindex(
+        const AccountListSortKey& key,
+        const CustomData& custom) noexcept final{};
+    AccountType Type() const noexcept final { return type_; }
+    proto::ContactItemType Unit() const noexcept final { return unit_; }
 
     ~AccountListItem() = default;
 
@@ -52,7 +56,7 @@ private:
         const network::zeromq::socket::Publish& publisher,
         const AccountListRowID& rowID,
         const AccountListSortKey& sortKey,
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
     AccountListItem() = delete;
     AccountListItem(const AccountListItem&) = delete;
     AccountListItem(AccountListItem&&) = delete;

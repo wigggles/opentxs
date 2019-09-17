@@ -27,32 +27,33 @@ public:
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
-        const bool active) const override;
+        const bool active) const noexcept final;
     ItemTypeList AllowedItems(
         const proto::ContactSectionName section,
-        const std::string& lang) const override;
-    SectionTypeList AllowedSections(const std::string& lang) const override;
+        const std::string& lang) const noexcept final;
+    SectionTypeList AllowedSections(const std::string& lang) const
+        noexcept final;
     bool Delete(const int section, const int type, const std::string& claimID)
-        const override;
-    std::string DisplayName() const override;
-    const identifier::Nym& NymID() const override { return primary_id_; }
-    std::string ID() const override { return primary_id_->str(); }
-    std::string PaymentCode() const override;
+        const noexcept final;
+    std::string DisplayName() const noexcept final;
+    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
+    std::string ID() const noexcept final { return primary_id_->str(); }
+    std::string PaymentCode() const noexcept final;
     bool SetActive(
         const int section,
         const int type,
         const std::string& claimID,
-        const bool active) const override;
+        const bool active) const noexcept final;
     bool SetPrimary(
         const int section,
         const int type,
         const std::string& claimID,
-        const bool primary) const override;
+        const bool primary) const noexcept final;
     bool SetValue(
         const int section,
         const int type,
         const std::string& claimID,
-        const std::string& value) const override;
+        const std::string& value) const noexcept final;
 
     ~Profile();
 
@@ -66,25 +67,25 @@ private:
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
 
-    static int sort_key(const proto::ContactSectionName type);
-    static bool check_type(const proto::ContactSectionName type);
+    static int sort_key(const proto::ContactSectionName type) noexcept;
+    static bool check_type(const proto::ContactSectionName type) noexcept;
     static std::string nym_name(
         const api::Wallet& wallet,
-        const identifier::Nym& nymID);
+        const identifier::Nym& nymID) noexcept;
 
     void construct_row(
         const ProfileRowID& id,
         const ProfileSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    bool last(const ProfileRowID& id) const override
+    bool last(const ProfileRowID& id) const noexcept final
     {
         return ProfileList::last(id);
     }
 
-    void process_nym(const identity::Nym& nym);
-    void process_nym(const network::zeromq::Message& message);
-    void startup();
+    void process_nym(const identity::Nym& nym) noexcept;
+    void process_nym(const network::zeromq::Message& message) noexcept;
+    void startup() noexcept;
 
     Profile(
         const api::client::Manager& api,
@@ -96,7 +97,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     Profile() = delete;
     Profile(const Profile&) = delete;
     Profile(Profile&&) = delete;

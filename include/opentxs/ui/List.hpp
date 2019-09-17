@@ -27,7 +27,7 @@ public:
     EXPORT virtual ~List() = default;
 
 protected:
-    List() = default;
+    List() noexcept = default;
 
 private:
     List(const List&) = delete;

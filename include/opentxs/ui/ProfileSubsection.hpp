@@ -17,7 +17,7 @@
 #ifdef SWIG
 // clang-format off
 %extend opentxs::ui::ProfileSubsection {
-    int Type() const
+    int Type() const noexcept
     {
         return static_cast<int>($self->Type());
     }
@@ -39,27 +39,27 @@ public:
     EXPORT virtual bool AddItem(
         const std::string& value,
         const bool primary,
-        const bool active) const = 0;
-    EXPORT virtual bool Delete(const std::string& claimID) const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> First()
-        const = 0;
-    EXPORT virtual std::string Name(const std::string& lang) const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> Next()
-        const = 0;
+        const bool active) const noexcept = 0;
+    EXPORT virtual bool Delete(const std::string& claimID) const noexcept = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> First() const
+        noexcept = 0;
+    EXPORT virtual std::string Name(const std::string& lang) const noexcept = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> Next() const
+        noexcept = 0;
     EXPORT virtual bool SetActive(const std::string& claimID, const bool active)
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual bool SetPrimary(
         const std::string& claimID,
-        const bool primary) const = 0;
+        const bool primary) const noexcept = 0;
     EXPORT virtual bool SetValue(
         const std::string& claimID,
-        const std::string& value) const = 0;
-    EXPORT virtual proto::ContactItemType Type() const = 0;
+        const std::string& value) const noexcept = 0;
+    EXPORT virtual proto::ContactItemType Type() const noexcept = 0;
 
     EXPORT virtual ~ProfileSubsection() = default;
 
 protected:
-    ProfileSubsection() = default;
+    ProfileSubsection() noexcept = default;
 
 private:
     ProfileSubsection(const ProfileSubsection&) = delete;

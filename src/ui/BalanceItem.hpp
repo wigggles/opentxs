@@ -17,19 +17,23 @@ using BalanceItemRow =
 class BalanceItem : public BalanceItemRow
 {
 public:
-    static const proto::PaymentEvent& recover_event(const CustomData& custom);
+    static const proto::PaymentEvent& recover_event(
+        const CustomData& custom) noexcept;
     static const proto::PaymentWorkflow& recover_workflow(
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
 
-    std::vector<std::string> Contacts() const override { return contacts_; }
-    std::string DisplayAmount() const override;
-    std::string Text() const override;
-    std::chrono::system_clock::time_point Timestamp() const override;
-    StorageBox Type() const override { return type_; }
+    std::vector<std::string> Contacts() const noexcept final
+    {
+        return contacts_;
+    }
+    std::string DisplayAmount() const noexcept final;
+    std::string Text() const noexcept final;
+    std::chrono::system_clock::time_point Timestamp() const noexcept final;
+    StorageBox Type() const noexcept final { return type_; }
 
     void reindex(
         const implementation::AccountActivitySortKey& key,
-        const implementation::CustomData& custom) override;
+        const implementation::CustomData& custom) noexcept override;
 
     virtual ~BalanceItem() override;
 
@@ -42,9 +46,10 @@ protected:
     mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
     std::unique_ptr<std::thread> startup_{nullptr};
 
-    static StorageBox extract_type(const proto::PaymentWorkflow& workflow);
+    static StorageBox extract_type(
+        const proto::PaymentWorkflow& workflow) noexcept;
 
-    std::string get_contact_name(const identifier::Nym& nymID) const;
+    std::string get_contact_name(const identifier::Nym& nymID) const noexcept;
 
     BalanceItem(
         const AccountActivityInternalInterface& parent,
@@ -54,7 +59,7 @@ protected:
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
         const identifier::Nym& nymID,
-        const Identifier& accountID);
+        const Identifier& accountID) noexcept;
 
 private:
     const OTIdentifier account_id_;
@@ -62,10 +67,10 @@ private:
 
     static std::vector<std::string> extract_contacts(
         const api::client::Manager& api,
-        const proto::PaymentWorkflow& workflow);
+        const proto::PaymentWorkflow& workflow) noexcept;
 
-    virtual opentxs::Amount effective_amount() const = 0;
-    virtual bool get_contract(const PasswordPrompt& reason) const = 0;
+    virtual opentxs::Amount effective_amount() const noexcept = 0;
+    virtual bool get_contract(const PasswordPrompt& reason) const noexcept = 0;
 
     BalanceItem(const BalanceItem&) = delete;
     BalanceItem(BalanceItem&&) = delete;

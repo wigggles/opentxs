@@ -44,14 +44,14 @@ ProfileItem::ProfileItem(
     const network::zeromq::socket::Publish& publisher,
     const ProfileSubsectionRowID& rowID,
     const ProfileSubsectionSortKey& sortKey,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
     : ProfileItemRow(parent, api, publisher, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
 {
 }
 
-bool ProfileItem::add_claim(const Claim& claim) const
+bool ProfileItem::add_claim(const Claim& claim) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -60,7 +60,7 @@ bool ProfileItem::add_claim(const Claim& claim) const
     return nym.AddClaim(claim, reason);
 }
 
-Claim ProfileItem::as_claim() const
+Claim ProfileItem::as_claim() const noexcept
 {
     sLock lock(shared_lock_);
     Claim output{};
@@ -81,7 +81,7 @@ Claim ProfileItem::as_claim() const
     return output;
 }
 
-bool ProfileItem::Delete() const
+bool ProfileItem::Delete() const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -92,7 +92,7 @@ bool ProfileItem::Delete() const
 
 void ProfileItem::reindex(
     const ProfileSubsectionSortKey&,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     eLock lock(shared_lock_);
     item_.reset(
@@ -101,7 +101,7 @@ void ProfileItem::reindex(
     OT_ASSERT(item_);
 }
 
-bool ProfileItem::SetActive(const bool& active) const
+bool ProfileItem::SetActive(const bool& active) const noexcept
 {
     Claim claim{};
     auto& attributes = std::get<6>(claim);
@@ -116,7 +116,7 @@ bool ProfileItem::SetActive(const bool& active) const
     return add_claim(claim);
 }
 
-bool ProfileItem::SetPrimary(const bool& primary) const
+bool ProfileItem::SetPrimary(const bool& primary) const noexcept
 {
     Claim claim{};
     auto& attributes = std::get<6>(claim);
@@ -131,7 +131,7 @@ bool ProfileItem::SetPrimary(const bool& primary) const
     return add_claim(claim);
 }
 
-bool ProfileItem::SetValue(const std::string& newValue) const
+bool ProfileItem::SetValue(const std::string& newValue) const noexcept
 {
     Claim claim{};
     std::get<3>(claim) = newValue;

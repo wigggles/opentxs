@@ -30,18 +30,18 @@ class AccountActivity;
 class AccountActivity : virtual public List
 {
 public:
-    EXPORT virtual Amount Balance() const = 0;
-    EXPORT virtual int BalancePolarity() const = 0;
-    EXPORT virtual std::string DisplayBalance() const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First()
-        const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
-        const = 0;
+    EXPORT virtual Amount Balance() const noexcept = 0;
+    EXPORT virtual int BalancePolarity() const noexcept = 0;
+    EXPORT virtual std::string DisplayBalance() const noexcept = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First() const
+        noexcept = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next() const
+        noexcept = 0;
 
     EXPORT virtual ~AccountActivity() = default;
 
 protected:
-    AccountActivity() = default;
+    AccountActivity() noexcept = default;
 
 private:
     AccountActivity(const AccountActivity&) = delete;
@@ -54,10 +54,10 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::AccountActivityQt : public QAbstractItemModel
+class opentxs::ui::AccountActivityQt final : public QAbstractItemModel
 {
     Q_OBJECT
-    
+
 public:
     using ConstructorCallback = std::function<implementation::AccountActivity*(
         RowCallbacks insert,
@@ -75,24 +75,27 @@ public:
         TypeRole = Qt::UserRole + 9,
     };
 
-    int balancePolarity() const;
-    QString displayBalance() const;
+    int balancePolarity() const noexcept;
+    QString displayBalance() const noexcept;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex& index) const override;
-    QHash<int, QByteArray> roleNames() const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        const QModelIndex& parent = QModelIndex()) const noexcept final;
+    QModelIndex parent(const QModelIndex& index) const noexcept final;
+    QHash<int, QByteArray> roleNames() const noexcept final;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
 
-    const AccountActivity& operator*() const;
+    const AccountActivity& operator*() const noexcept;
 
-    AccountActivityQt(ConstructorCallback cb);
-    ~AccountActivityQt() override;
+    // Throws std::runtime_error if callback returns invalid pointer
+    AccountActivityQt(ConstructorCallback cb) noexcept(false);
+    ~AccountActivityQt() final;
 
 signals:
     void updated() const;
@@ -103,11 +106,14 @@ private:
 
     std::unique_ptr<implementation::AccountActivity> parent_;
 
-    void notify() const;
-    void finish_row_add();
-    void finish_row_delete();
-    void start_row_add(const QModelIndex& parent, int first, int last);
-    void start_row_delete(const QModelIndex& parent, int first, int last);
+    void notify() const noexcept;
+    void finish_row_add() noexcept;
+    void finish_row_delete() noexcept;
+    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
+    void start_row_delete(
+        const QModelIndex& parent,
+        int first,
+        int last) noexcept;
 
     AccountActivityQt() = delete;
     AccountActivityQt(const AccountActivityQt&) = delete;

@@ -14,10 +14,9 @@
 #include "internal/core/Core.hpp"
 #include "Widget.hpp"
 
+#include <future>
 #include <type_traits>
 #include <utility>
-
-#define STARTUP_WAIT_MILLISECONDS 100
 
 #define LIST_METHOD "opentxs::ui::implementation::List::"
 
@@ -38,8 +37,8 @@ struct reverse_display<AccountActivityInternalInterface> {
 template <typename Map, typename T, typename Enable = void>
 struct sort_order {
     using iterator = typename Map::const_iterator;
-    static iterator begin(const Map& map) { return map.cbegin(); }
-    static iterator end(const Map& map) { return map.cend(); }
+    static iterator begin(const Map& map) noexcept { return map.cbegin(); }
+    static iterator end(const Map& map) noexcept { return map.cend(); }
 };
 template <typename Map, typename T>
 struct sort_order<
@@ -47,8 +46,8 @@ struct sort_order<
     T,
     typename std::enable_if<reverse_display<T>::value>::type> {
     using iterator = typename Map::const_reverse_iterator;
-    static iterator begin(const Map& map) { return map.crbegin(); }
-    static iterator end(const Map& map) { return map.crend(); }
+    static iterator begin(const Map& map) noexcept { return map.crbegin(); }
+    static iterator end(const Map& map) noexcept { return map.crend(); }
 };
 
 template <
@@ -71,27 +70,35 @@ class List : virtual public ExternalInterface,
 {
 #if OT_QT
 public:
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override
+    int columnCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept override
     {
         return column_count_;
     }
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override
+        const noexcept override
     {
         return {};
     }
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override
+        const QModelIndex& parent = QModelIndex()) const noexcept override
     {
         Lock lock(lock_);
 
         return get_index(lock, row, column, parent);
     }
-    QModelIndex parent(const QModelIndex& index) const override { return {}; }
-    QHash<int, QByteArray> roleNames() const override { return qt_roles_; }
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override
+    QModelIndex parent(const QModelIndex& index) const noexcept override
+    {
+        return {};
+    }
+    QHash<int, QByteArray> roleNames() const noexcept override
+    {
+        return qt_roles_;
+    }
+    int rowCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept override
     {
         return row_count_.load();
     }
@@ -106,19 +113,19 @@ public:
     using Roles = QHash<int, QByteArray>;
 #endif
 
-    SharedPimpl<RowInterface> First() const override
+    SharedPimpl<RowInterface> First() const noexcept override
     {
         Lock lock(lock_);
 
         return SharedPimpl<RowInterface>(first(lock));
     }
-    virtual bool last(const RowID& id) const override
+    virtual bool last(const RowID& id) const noexcept override
     {
         Lock lock(lock_);
 
         return start_.get() && same(id, last_id_);
     }
-    SharedPimpl<RowInterface> Next() const override
+    SharedPimpl<RowInterface> Next() const noexcept override
     {
         Lock lock(lock_);
 
@@ -126,7 +133,7 @@ public:
 
         return SharedPimpl<RowInterface>(next(lock));
     }
-    OTIdentifier WidgetID() const override { return widget_id_; }
+    OTIdentifier WidgetID() const noexcept override { return widget_id_; }
 
     virtual ~List()
     {
@@ -156,13 +163,13 @@ protected:
     mutable RowID last_id_;
     mutable OTFlag have_items_;
     mutable OTFlag start_;
-    mutable OTFlag startup_complete_;
     std::unique_ptr<std::thread> startup_{nullptr};
     const std::shared_ptr<const RowInternal> blank_p_{nullptr};
     const RowInternal& blank_;
 
 #if OT_QT
     std::pair<bool, RowInterface*> check_index(const QModelIndex& index) const
+        noexcept
     {
         std::pair<bool, RowInterface*> output{false, nullptr};
         // auto& [ valid, row ] = output;
@@ -181,7 +188,7 @@ protected:
         return output;
     }
 #endif
-    void delete_inactive(const std::set<RowID>& active) const
+    void delete_inactive(const std::set<RowID>& active) const noexcept
     {
         Lock lock(lock_);
         LogVerbose(LIST_METHOD)(__FUNCTION__)(": Removing ")(
@@ -201,7 +208,7 @@ protected:
 
         UpdateNotify();
     }
-    void delete_item(const Lock& lock, const RowID& id) const
+    void delete_item(const Lock& lock, const RowID& id) const noexcept
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -227,7 +234,7 @@ protected:
 
         finish_remove_row();
     }
-    RowInternal& find_by_id(const Lock& lock, const RowID& id) const
+    RowInternal& find_by_id(const Lock& lock, const RowID& id) const noexcept
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -255,7 +262,7 @@ protected:
      *  If this function returns false, then no valid names are present and
      *  the values of outer_ and inner_ are undefined.
      */
-    bool first_valid_item(const Lock& lock) const
+    bool first_valid_item(const Lock& lock) const noexcept
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -285,21 +292,23 @@ protected:
 
         return false;
     }
-    void wait_for_startup() const
-    {
-        while (false == startup_complete_.get()) {
-            Log::Sleep(std::chrono::milliseconds(STARTUP_WAIT_MILLISECONDS));
-        }
-    }
+    void wait_for_startup() const noexcept { startup_future_.get(); }
 
     virtual void add_item(
         const RowID& id,
         const SortKey& index,
-        const CustomData& custom)
+        const CustomData& custom) noexcept
     {
         insert_outer(id, index, custom);
     }
-    void init() { outer_ = outer_first(); }
+    void finish_startup() noexcept
+    {
+        try {
+            startup_promise_.set_value();
+        } catch (...) {
+        }
+    }
+    void init() noexcept { outer_ = outer_first(); }
 
     List(
         const api::client::Manager& api,
@@ -315,7 +324,7 @@ protected:
         const int columns = 0,
         const int startRow = 0
 #endif
-        )
+        ) noexcept
         :
 #if OT_QT
         QAbstractItemModel()
@@ -339,11 +348,12 @@ protected:
         , last_id_(make_blank<RowID>::value())
         , have_items_(Flag::Factory(false))
         , start_(Flag::Factory(true))
-        , startup_complete_(Flag::Factory(false))
         , startup_(nullptr)
         , blank_p_(new RowBlank)
         , blank_(*blank_p_)
         , init_(false)
+        , startup_promise_()
+        , startup_future_(startup_promise_.get_future())
     {
         OT_ASSERT(blank_p_);
     }
@@ -360,7 +370,7 @@ protected:
         const int columns = 0,
         const int startRow = 0
 #endif
-        )
+        ) noexcept
         : List(
               api,
               publisher,
@@ -381,11 +391,13 @@ protected:
 
 private:
     mutable std::atomic<bool> init_;
+    std::promise<void> startup_promise_;
+    std::shared_future<void> startup_future_;
 
     virtual void construct_row(
         const RowID& id,
         const SortKey& index,
-        const CustomData& custom) const = 0;
+        const CustomData& custom) const noexcept = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
      *  iterators. */
     const std::shared_ptr<const RowInternal> current(const Lock& lock) const
@@ -408,7 +420,7 @@ private:
         return item;
     }
 #if OT_QT
-    int find_delete_point(const Lock& lock, const RowID& id) const
+    int find_delete_point(const Lock& lock, const RowID& id) const noexcept
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -430,7 +442,7 @@ private:
     int find_insert_point(
         const Lock& lock,
         const RowID& id,
-        const SortKey& index) const
+        const SortKey& index) const noexcept
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -459,7 +471,7 @@ private:
         return output;
     }
 #endif
-    void finish_insert_row() const
+    void finish_insert_row() const noexcept
     {
 #if OT_QT
         ++row_count_;
@@ -469,7 +481,7 @@ private:
         }
 #endif
     }
-    void finish_remove_row() const
+    void finish_remove_row() const noexcept
     {
 #if OT_QT
         --row_count_;
@@ -483,6 +495,7 @@ private:
      *  next row
      */
     virtual std::shared_ptr<const RowInternal> first(const Lock& lock) const
+        noexcept
     {
         OT_ASSERT(verify_lock(lock));
 
@@ -503,7 +516,7 @@ private:
         const Lock& lock,
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const
+        const QModelIndex& parent = QModelIndex()) const noexcept
     {
         if (columnCount() < column) { return {}; }
 
@@ -528,7 +541,7 @@ private:
     }
 #endif
     /** Increment iterators to the next valid item, or loop back to start */
-    void increment_inner(const Lock& lock) const
+    void increment_inner(const Lock& lock) const noexcept
     {
         valid_iterators();
         const auto& item = outer_->second;
@@ -550,7 +563,7 @@ private:
      *
      *  inner_ is an invalid iterator at this point
      */
-    bool increment_outer(const Lock& lock) const
+    bool increment_outer(const Lock& lock) const noexcept
     {
         OT_ASSERT(outer_end() != outer_)
 
@@ -582,7 +595,7 @@ private:
         return true;
     }
 #if OT_QT
-    QModelIndex me() const
+    QModelIndex me() const noexcept
     {
         return createIndex(
             0,
@@ -593,20 +606,21 @@ private:
 #endif
     /** Returns the next item and increments iterators */
     const std::shared_ptr<const RowInternal> next(const Lock& lock) const
+        noexcept
     {
         const auto output = current(lock);
         increment_inner(lock);
 
         return output;
     }
-    OuterIterator outer_first() const { return Sort::begin(items_); }
-    OuterIterator outer_end() const { return Sort::end(items_); }
+    OuterIterator outer_first() const noexcept { return Sort::begin(items_); }
+    OuterIterator outer_end() const noexcept { return Sort::end(items_); }
     void reindex_item(
         const Lock& lock,
         const RowID& id,
         const SortKey& oldIndex,
         const SortKey& newIndex,
-        const CustomData& custom) const
+        const CustomData& custom) const noexcept
     {
         OT_ASSERT(verify_lock(lock));
         OT_ASSERT(1 == items_.count(oldIndex))
@@ -639,14 +653,14 @@ private:
         items_[newIndex].emplace(id, std::move(row));
         finish_insert_row();
     }
-    virtual bool same(const RowID& lhs, const RowID& rhs) const
+    virtual bool same(const RowID& lhs, const RowID& rhs) const noexcept
     {
         return (lhs == rhs);
     }
     void start_insert_row(
         [[maybe_unused]] const Lock& lock,
         [[maybe_unused]] const RowID& id,
-        [[maybe_unused]] const SortKey& index) const
+        [[maybe_unused]] const SortKey& index) const noexcept
     {
 #if OT_QT
         if (enable_qt_ && insert_callbacks_.first) {
@@ -657,7 +671,7 @@ private:
     }
     void start_remove_row(
         [[maybe_unused]] const Lock& lock,
-        [[maybe_unused]] const RowID& id) const
+        [[maybe_unused]] const RowID& id) const noexcept
     {
 #if OT_QT
         if (enable_qt_ && remove_callbacks_.first) {
@@ -666,7 +680,7 @@ private:
         }
 #endif
     }
-    void valid_iterators() const
+    void valid_iterators() const noexcept
     {
         OT_ASSERT(outer_end() != outer_)
 
@@ -680,7 +694,7 @@ private:
     void insert_outer(
         const RowID& id,
         const SortKey& index,
-        const CustomData& custom)
+        const CustomData& custom) noexcept
     {
         Lock lock(lock_);
 

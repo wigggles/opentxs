@@ -36,17 +36,17 @@ namespace ui
 class ContactSection : virtual public List, virtual public ListRow
 {
 public:
-    EXPORT virtual std::string Name(const std::string& lang) const = 0;
+    EXPORT virtual std::string Name(const std::string& lang) const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSubsection> First()
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSubsection> Next()
-        const = 0;
-    EXPORT virtual proto::ContactSectionName Type() const = 0;
+        const noexcept = 0;
+    EXPORT virtual proto::ContactSectionName Type() const noexcept = 0;
 
     EXPORT virtual ~ContactSection() = default;
 
 protected:
-    ContactSection() = default;
+    ContactSection() noexcept = default;
 
 private:
     ContactSection(const ContactSection&) = delete;

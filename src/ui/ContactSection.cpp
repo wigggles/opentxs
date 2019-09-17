@@ -20,7 +20,6 @@
 #include "opentxs/ui/ContactSubsection.hpp"
 
 #include "internal/ui/UI.hpp"
-#include "ContactSubsectionBlank.hpp"
 #include "List.hpp"
 #include "RowType.hpp"
 
@@ -163,7 +162,7 @@ ContactSection::ContactSection(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : ContactSectionList(
           api,
           publisher,
@@ -184,7 +183,7 @@ ContactSection::ContactSection(
     OT_ASSERT(startup_)
 }
 
-bool ContactSection::check_type(const ContactSectionRowID type)
+bool ContactSection::check_type(const ContactSectionRowID type) noexcept
 {
     try {
         return 1 == allowed_types_.at(type.first).count(type.second);
@@ -197,7 +196,7 @@ bool ContactSection::check_type(const ContactSectionRowID type)
 void ContactSection::construct_row(
     const ContactSectionRowID& id,
     const ContactSectionSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     OT_ASSERT(1 == custom.size())
 
@@ -221,7 +220,7 @@ void ContactSection::construct_row(
 }
 
 std::set<ContactSectionRowID> ContactSection::process_section(
-    const opentxs::ContactSection& section)
+    const opentxs::ContactSection& section) noexcept
 {
     OT_ASSERT(row_id_ == section.Type())
 
@@ -244,20 +243,20 @@ std::set<ContactSectionRowID> ContactSection::process_section(
 
 void ContactSection::reindex(
     const implementation::ContactSortKey&,
-    const implementation::CustomData& custom)
+    const implementation::CustomData& custom) noexcept
 {
     delete_inactive(
         process_section(extract_custom<opentxs::ContactSection>(custom)));
 }
 
-int ContactSection::sort_key(const ContactSectionRowID type)
+int ContactSection::sort_key(const ContactSectionRowID type) noexcept
 {
     return sort_keys_.at(type.first).at(type.second);
 }
 
-void ContactSection::startup(const CustomData custom)
+void ContactSection::startup(const CustomData custom) noexcept
 {
     process_section(extract_custom<opentxs::ContactSection>(custom));
-    startup_complete_->On();
+    finish_startup();
 }
 }  // namespace opentxs::ui::implementation

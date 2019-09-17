@@ -26,12 +26,12 @@ namespace ui
 class PayableListItem : virtual public ContactListItem
 {
 public:
-    EXPORT virtual std::string PaymentCode() const = 0;
+    EXPORT virtual std::string PaymentCode() const noexcept = 0;
 
     EXPORT virtual ~PayableListItem() = default;
 
 protected:
-    PayableListItem() = default;
+    PayableListItem() noexcept = default;
 
 private:
     PayableListItem(const PayableListItem&) = delete;

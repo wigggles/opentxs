@@ -19,37 +19,38 @@ using ProfileItemRow =
 class ProfileItem final : public ProfileItemRow
 {
 public:
-    std::string ClaimID() const override
+    std::string ClaimID() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return row_id_->str();
     }
-    bool Delete() const override;
-    bool IsActive() const override
+    bool Delete() const noexcept final;
+    bool IsActive() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return item_->isActive();
     }
-    bool IsPrimary() const override
+    bool IsPrimary() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return item_->isPrimary();
     }
-    bool SetActive(const bool& active) const override;
-    bool SetPrimary(const bool& primary) const override;
-    bool SetValue(const std::string& value) const override;
-    std::string Value() const override
+    bool SetActive(const bool& active) const noexcept final;
+    bool SetPrimary(const bool& primary) const noexcept final;
+    bool SetValue(const std::string& value) const noexcept final;
+    std::string Value() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return item_->Value();
     }
 
-    void reindex(const ProfileSubsectionSortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const ProfileSubsectionSortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~ProfileItem() = default;
 
@@ -58,8 +59,8 @@ private:
 
     std::unique_ptr<opentxs::ContactItem> item_{nullptr};
 
-    bool add_claim(const Claim& claim) const;
-    Claim as_claim() const;
+    bool add_claim(const Claim& claim) const noexcept;
+    Claim as_claim() const noexcept;
 
     ProfileItem(
         const ProfileSubsectionInternalInterface& parent,
@@ -67,7 +68,7 @@ private:
         const network::zeromq::socket::Publish& publisher,
         const ProfileSubsectionRowID& rowID,
         const ProfileSubsectionSortKey& sortKey,
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
     ProfileItem() = delete;
     ProfileItem(const ProfileItem&) = delete;
     ProfileItem(ProfileItem&&) = delete;

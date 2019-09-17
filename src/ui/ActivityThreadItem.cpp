@@ -31,7 +31,7 @@ ActivityThreadItem::ActivityThreadItem(
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
     const bool loading,
-    const bool pending)
+    const bool pending) noexcept
     : ActivityThreadItemRow(parent, api, publisher, rowID, true)
     , nym_id_(nymID)
     , time_(std::get<0>(sortKey))
@@ -44,7 +44,7 @@ ActivityThreadItem::ActivityThreadItem(
 {
 }
 
-bool ActivityThreadItem::MarkRead() const
+bool ActivityThreadItem::MarkRead() const noexcept
 {
     return api_.Activity().MarkRead(
         nym_id_, Identifier::Factory(parent_.ThreadID()), item_id_);
@@ -52,7 +52,7 @@ bool ActivityThreadItem::MarkRead() const
 
 void ActivityThreadItem::reindex(
     const ActivityThreadSortKey&,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     const auto text = extract_custom<std::string>(custom);
 
@@ -62,7 +62,7 @@ void ActivityThreadItem::reindex(
     }
 }
 
-std::string ActivityThreadItem::Text() const
+std::string ActivityThreadItem::Text() const noexcept
 {
     sLock lock(shared_lock_);
 
@@ -70,6 +70,7 @@ std::string ActivityThreadItem::Text() const
 }
 
 std::chrono::system_clock::time_point ActivityThreadItem::Timestamp() const
+    noexcept
 {
     sLock lock(shared_lock_);
 

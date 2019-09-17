@@ -74,7 +74,7 @@ MailItem::MailItem(
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
     const bool loading,
-    const bool pending)
+    const bool pending) noexcept
     : ActivityThreadItem(
           parent,
           api,
@@ -98,7 +98,7 @@ MailItem::MailItem(
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
     : MailItem(
           parent,
           api,
@@ -135,7 +135,7 @@ MailItem::MailItem(
     OT_ASSERT(load_)
 }
 
-void MailItem::load()
+void MailItem::load() noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 

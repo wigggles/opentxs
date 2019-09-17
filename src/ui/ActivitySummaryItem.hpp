@@ -17,15 +17,16 @@ using ActivitySummaryItemRow =
 class ActivitySummaryItem final : public ActivitySummaryItemRow
 {
 public:
-    std::string DisplayName() const override;
-    std::string ImageURI() const override;
-    std::string Text() const override;
-    std::string ThreadID() const override;
-    std::chrono::system_clock::time_point Timestamp() const override;
-    StorageBox Type() const override;
+    std::string DisplayName() const noexcept final;
+    std::string ImageURI() const noexcept final;
+    std::string Text() const noexcept final;
+    std::string ThreadID() const noexcept final;
+    std::chrono::system_clock::time_point Timestamp() const noexcept final;
+    StorageBox Type() const noexcept final;
 
-    void reindex(const ActivitySummarySortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const ActivitySummarySortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~ActivitySummaryItem();
 
@@ -49,10 +50,12 @@ private:
 
     std::string find_text(
         const PasswordPrompt& reason,
-        const ItemLocator& locator) const;
+        const ItemLocator& locator) const noexcept;
 
-    void get_text();
-    void startup(const CustomData& custom, UniqueQueue<ItemLocator>& queue);
+    void get_text() noexcept;
+    void startup(
+        const CustomData& custom,
+        UniqueQueue<ItemLocator>& queue) noexcept;
 
     ActivitySummaryItem(
         const ActivitySummaryInternalInterface& parent,
@@ -62,7 +65,7 @@ private:
         const ActivitySummaryRowID& rowID,
         const ActivitySummarySortKey& sortKey,
         const CustomData& custom,
-        const Flag& running);
+        const Flag& running) noexcept;
     ActivitySummaryItem(const ActivitySummaryItem&) = delete;
     ActivitySummaryItem(ActivitySummaryItem&&) = delete;
     ActivitySummaryItem& operator=(const ActivitySummaryItem&) = delete;

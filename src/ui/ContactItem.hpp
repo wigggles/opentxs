@@ -17,33 +17,34 @@ using ContactItemRow =
 class ContactItem final : public ContactItemRow
 {
 public:
-    std::string ClaimID() const override
+    std::string ClaimID() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return row_id_->str();
     }
-    bool IsActive() const override
+    bool IsActive() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return item_->isActive();
     }
-    bool IsPrimary() const override
+    bool IsPrimary() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return item_->isPrimary();
     }
-    std::string Value() const override
+    std::string Value() const noexcept final
     {
         sLock lock(shared_lock_);
 
         return item_->Value();
     }
 
-    void reindex(const ContactSubsectionSortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const ContactSubsectionSortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~ContactItem() = default;
 
@@ -58,7 +59,7 @@ private:
         const network::zeromq::socket::Publish& publisher,
         const ContactSubsectionRowID& rowID,
         const ContactSubsectionSortKey& sortKey,
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
     ContactItem() = delete;
     ContactItem(const ContactItem&) = delete;
     ContactItem(ContactItem&&) = delete;

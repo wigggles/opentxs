@@ -26,8 +26,6 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 
-#include "ContactListItemBlank.hpp"
-
 #include <map>
 #include <memory>
 #include <set>
@@ -48,7 +46,7 @@ QT_MODEL_WRAPPER(ContactListQt, ContactList)
 QString ContactListQt::addContact(
     const QString& label,
     const QString& paymentCode,
-    const QString& nymID) const
+    const QString& nymID) const noexcept
 {
     if (nullptr == parent_) { return {}; }
 
@@ -72,7 +70,7 @@ ContactList::ContactList(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : ContactListList(
           api,
           publisher,
@@ -116,7 +114,7 @@ ContactList::ContactList(
 std::string ContactList::AddContact(
     const std::string& label,
     const std::string& paymentCode,
-    const std::string& nymID) const
+    const std::string& nymID) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt("Adding a new contact");
     const auto contact = api_.Contacts().NewContact(
@@ -133,7 +131,7 @@ std::string ContactList::AddContact(
 void ContactList::add_item(
     const ContactListRowID& id,
     const ContactListSortKey& index,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Widget ID: ")(WidgetID()).Flush();
 
@@ -150,7 +148,7 @@ void ContactList::add_item(
 void ContactList::construct_row(
     const ContactListRowID& id,
     const ContactListSortKey& index,
-    const CustomData&) const
+    const CustomData&) const noexcept
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -158,7 +156,7 @@ void ContactList::construct_row(
 }
 
 #if OT_QT
-QVariant ContactList::data(const QModelIndex& index, int role) const
+QVariant ContactList::data(const QModelIndex& index, int role) const noexcept
 {
     if (false == index.isValid()) { return {}; }
 
@@ -197,7 +195,7 @@ QVariant ContactList::data(const QModelIndex& index, int role) const
 
 /** Returns owner contact. Sets up iterators for next row */
 std::shared_ptr<const ContactListRowInternal> ContactList::first(
-    const Lock& lock) const
+    const Lock& lock) const noexcept
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -210,7 +208,7 @@ std::shared_ptr<const ContactListRowInternal> ContactList::first(
 
 #if OT_QT
 QModelIndex ContactList::index(int row, int column, const QModelIndex& parent)
-    const
+    const noexcept
 {
     if (columnCount() < column) { return {}; }
 
@@ -241,7 +239,8 @@ QModelIndex ContactList::index(int row, int column, const QModelIndex& parent)
 }
 #endif
 
-void ContactList::process_contact(const network::zeromq::Message& message)
+void ContactList::process_contact(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -255,7 +254,7 @@ void ContactList::process_contact(const network::zeromq::Message& message)
     add_item(contactID, name, {});
 }
 
-void ContactList::startup()
+void ContactList::startup() noexcept
 {
     const auto contacts = api_.Contacts().ContactList();
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading ")(contacts.size())(
@@ -266,7 +265,7 @@ void ContactList::startup()
         add_item(Identifier::Factory(id), alias, {});
     }
 
-    startup_complete_->On();
+    finish_startup();
 }
 
 ContactList::~ContactList()

@@ -48,7 +48,7 @@ TransferBalanceItem::TransferBalanceItem(
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
     const identifier::Nym& nymID,
-    const Identifier& accountID)
+    const Identifier& accountID) noexcept
     : BalanceItem(
           parent,
           api,
@@ -65,7 +65,7 @@ TransferBalanceItem::TransferBalanceItem(
     OT_ASSERT(startup_)
 }
 
-opentxs::Amount TransferBalanceItem::effective_amount() const
+opentxs::Amount TransferBalanceItem::effective_amount() const noexcept
 {
     sLock lock(shared_lock_);
     auto amount{0};
@@ -113,6 +113,7 @@ opentxs::Amount TransferBalanceItem::effective_amount() const
 }
 
 bool TransferBalanceItem::get_contract(const PasswordPrompt& reason) const
+    noexcept
 {
     if (contract_) { return true; }
 
@@ -139,7 +140,7 @@ bool TransferBalanceItem::get_contract(const PasswordPrompt& reason) const
     return false;
 }
 
-std::string TransferBalanceItem::Memo() const
+std::string TransferBalanceItem::Memo() const noexcept
 {
     sLock lock(shared_lock_);
 
@@ -155,13 +156,13 @@ std::string TransferBalanceItem::Memo() const
 
 void TransferBalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    const implementation::CustomData& custom)
+    const implementation::CustomData& custom) noexcept
 {
     BalanceItem::reindex(key, custom);
     startup(custom);
 }
 
-void TransferBalanceItem::startup(const CustomData& custom)
+void TransferBalanceItem::startup(const CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
@@ -281,7 +282,7 @@ void TransferBalanceItem::startup(const CustomData& custom)
     UpdateNotify();
 }
 
-std::string TransferBalanceItem::UUID() const
+std::string TransferBalanceItem::UUID() const noexcept
 {
     if (transfer_) {
 

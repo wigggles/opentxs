@@ -96,39 +96,40 @@ public:
 
     EXPORT static ItemTypeList AllowedItems(
         const proto::ContactSectionName section,
-        const std::string& lang);
+        const std::string& lang) noexcept;
 
     EXPORT virtual bool AddClaim(
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
-        const bool active) const = 0;
-    EXPORT virtual bool Delete(const int type, const std::string& claimID)
-        const = 0;
-    EXPORT virtual ItemTypeList Items(const std::string& lang) const = 0;
-    EXPORT virtual std::string Name(const std::string& lang) const = 0;
+        const bool active) const noexcept = 0;
+    EXPORT virtual bool Delete(const int type, const std::string& claimID) const
+        noexcept = 0;
+    EXPORT virtual ItemTypeList Items(const std::string& lang) const
+        noexcept = 0;
+    EXPORT virtual std::string Name(const std::string& lang) const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection> First()
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection> Next()
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual bool SetActive(
         const int type,
         const std::string& claimID,
-        const bool active) const = 0;
+        const bool active) const noexcept = 0;
     EXPORT virtual bool SetPrimary(
         const int type,
         const std::string& claimID,
-        const bool primary) const = 0;
+        const bool primary) const noexcept = 0;
     EXPORT virtual bool SetValue(
         const int type,
         const std::string& claimID,
-        const std::string& value) const = 0;
-    EXPORT virtual proto::ContactSectionName Type() const = 0;
+        const std::string& value) const noexcept = 0;
+    EXPORT virtual proto::ContactSectionName Type() const noexcept = 0;
 
     EXPORT virtual ~ProfileSection() = default;
 
 protected:
-    ProfileSection() = default;
+    ProfileSection() noexcept = default;
 
 private:
     ProfileSection(const ProfileSection&) = delete;

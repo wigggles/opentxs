@@ -34,14 +34,14 @@ public:
 
 public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> First()
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()
-        const = 0;
+        const noexcept = 0;
 
     EXPORT virtual ~MessagableList() = default;
 
 protected:
-    MessagableList() = default;
+    MessagableList() noexcept = default;
 
 private:
     MessagableList(const MessagableList&) = delete;

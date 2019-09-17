@@ -26,7 +26,6 @@
 #include "opentxs/ui/IssuerItem.hpp"
 
 #include "internal/ui/UI.hpp"
-#include "AccountSummaryItemBlank.hpp"
 #include "List.hpp"
 #include "Row.hpp"
 
@@ -90,7 +89,7 @@ IssuerItem::IssuerItem(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : IssuerItemList(
           api,
           publisher,
@@ -123,7 +122,7 @@ IssuerItem::IssuerItem(
     OT_ASSERT(startup_)
 }
 
-std::string IssuerItem::Debug() const
+std::string IssuerItem::Debug() const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -133,7 +132,7 @@ std::string IssuerItem::Debug() const
 void IssuerItem::construct_row(
     const IssuerItemRowID& id,
     const IssuerItemSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     items_[index].emplace(
@@ -143,14 +142,14 @@ void IssuerItem::construct_row(
     names_.emplace(id, index);
 }
 
-std::string IssuerItem::Name() const
+std::string IssuerItem::Name() const noexcept
 {
     sLock lock(shared_lock_);
 
     return name_;
 }
 
-void IssuerItem::process_account(const Identifier& accountID)
+void IssuerItem::process_account(const Identifier& accountID) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -167,7 +166,8 @@ void IssuerItem::process_account(const Identifier& accountID)
     add_item(rowID, sortKey, custom);
 }
 
-void IssuerItem::process_account(const network::zeromq::Message& message)
+void IssuerItem::process_account(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -177,10 +177,23 @@ void IssuerItem::process_account(const network::zeromq::Message& message)
     const IssuerItemRowID rowID{accountID,
                                 {api_.Storage().AccountUnit(accountID)}};
 
-    if (1 == names_.count(rowID)) { process_account(accountID); }
+    if (accountID->empty()) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Invalid account").Flush();
+
+        return;
+    }
+
+    const auto issuerID = api_.Storage().AccountIssuer(accountID);
+
+    if (issuerID == issuer_->IssuerID()) {
+        process_account(accountID);
+    } else {
+        // FIXME
+        OT_FAIL;
+    }
 }
 
-void IssuerItem::refresh_accounts()
+void IssuerItem::refresh_accounts() noexcept
 {
     const auto blank = identifier::UnitDefinition::Factory();
     const auto accounts = issuer_->AccountList(currency_, blank);
@@ -195,13 +208,15 @@ void IssuerItem::refresh_accounts()
         accounts.begin(),
         accounts.end(),
         std::inserter(active, active.end()),
-        [&](const OTIdentifier& in) -> IssuerItemRowID {
+        [&](const auto& in) -> IssuerItemRowID {
             return {in, currency_};
         });
     delete_inactive(active);
 }
 
-void IssuerItem::reindex(const AccountSummarySortKey& key, const CustomData&)
+void IssuerItem::reindex(
+    const AccountSummarySortKey& key,
+    const CustomData&) noexcept
 {
     eLock lock(shared_lock_);
     key_ = key;
@@ -210,10 +225,10 @@ void IssuerItem::reindex(const AccountSummarySortKey& key, const CustomData&)
     refresh_accounts();
 }
 
-void IssuerItem::startup()
+void IssuerItem::startup() noexcept
 {
     refresh_accounts();
-    startup_complete_->On();
+    finish_startup();
 }
 
 IssuerItem::~IssuerItem()

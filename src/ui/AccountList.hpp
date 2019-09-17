@@ -28,8 +28,8 @@ class AccountList final : public AccountListList
 {
 public:
 #if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
 #endif
     ~AccountList();
 
@@ -41,16 +41,16 @@ private:
     void construct_row(
         const AccountListRowID& id,
         const AccountListSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    void process_account(const Identifier& id);
-    void process_account(const Identifier& id, const Amount balance);
+    void process_account(const Identifier& id) noexcept;
+    void process_account(const Identifier& id, const Amount balance) noexcept;
     void process_account(
         const Identifier& id,
         const Amount balance,
-        const std::string& name);
-    void process_account(const network::zeromq::Message& message);
-    void startup();
+        const std::string& name) noexcept;
+    void process_account(const network::zeromq::Message& message) noexcept;
+    void startup() noexcept;
 
     AccountList(
         const api::client::Manager& api,
@@ -62,7 +62,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     AccountList() = delete;
     AccountList(const AccountList&) = delete;
     AccountList(AccountList&&) = delete;

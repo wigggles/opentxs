@@ -41,33 +41,33 @@ class ActivityThread;
 class ActivityThread : virtual public List
 {
 public:
-    EXPORT virtual std::string DisplayName() const = 0;
+    EXPORT virtual std::string DisplayName() const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem> First()
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem> Next()
-        const = 0;
-    EXPORT virtual std::string GetDraft() const = 0;
-    EXPORT virtual std::string Participants() const = 0;
+        const noexcept = 0;
+    EXPORT virtual std::string GetDraft() const noexcept = 0;
+    EXPORT virtual std::string Participants() const noexcept = 0;
     EXPORT virtual bool Pay(
         const std::string& amount,
         const Identifier& sourceAccount,
         const std::string& memo = "",
-        const PaymentType type = PaymentType::Cheque) const = 0;
+        const PaymentType type = PaymentType::Cheque) const noexcept = 0;
     EXPORT virtual bool Pay(
         const Amount amount,
         const Identifier& sourceAccount,
         const std::string& memo = "",
-        const PaymentType type = PaymentType::Cheque) const = 0;
+        const PaymentType type = PaymentType::Cheque) const noexcept = 0;
     EXPORT virtual std::string PaymentCode(
-        const proto::ContactItemType currency) const = 0;
-    EXPORT virtual bool SendDraft() const = 0;
-    EXPORT virtual bool SetDraft(const std::string& draft) const = 0;
-    EXPORT virtual std::string ThreadID() const = 0;
+        const proto::ContactItemType currency) const noexcept = 0;
+    EXPORT virtual bool SendDraft() const noexcept = 0;
+    EXPORT virtual bool SetDraft(const std::string& draft) const noexcept = 0;
+    EXPORT virtual std::string ThreadID() const noexcept = 0;
 
     EXPORT virtual ~ActivityThread() = default;
 
 protected:
-    ActivityThread() = default;
+    ActivityThread() noexcept = default;
 
 private:
     ActivityThread(const ActivityThread&) = delete;
@@ -80,7 +80,7 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ActivityThreadQt : public QAbstractItemModel
+class opentxs::ui::ActivityThreadQt final : public QAbstractItemModel
 {
     Q_OBJECT
 
@@ -100,33 +100,36 @@ public:
         PendingRole = Qt::UserRole + 8,
     };
 
-    QString displayName() const;
-    QString getDraft() const;
-    QString participants() const;
+    QString displayName() const noexcept;
+    QString getDraft() const noexcept;
+    QString participants() const noexcept;
     Q_INVOKABLE bool pay(
         const QString& amount,
         const QString& sourceAccount,
-        const QString& memo = "") const;
-    Q_INVOKABLE QString paymentCode(const int currency) const;
-    Q_INVOKABLE bool sendDraft() const;
-    Q_INVOKABLE bool setDraft(const QString& draft) const;
-    QString threadID() const;
+        const QString& memo = "") const noexcept;
+    Q_INVOKABLE QString paymentCode(const int currency) const noexcept;
+    Q_INVOKABLE bool sendDraft() const noexcept;
+    Q_INVOKABLE bool setDraft(const QString& draft) const noexcept;
+    QString threadID() const noexcept;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex& index) const override;
-    QHash<int, QByteArray> roleNames() const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        const QModelIndex& parent = QModelIndex()) const noexcept final;
+    QModelIndex parent(const QModelIndex& index) const noexcept final;
+    QHash<int, QByteArray> roleNames() const noexcept final;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
 
-    const ActivityThread& operator*() const;
+    const ActivityThread& operator*() const noexcept;
 
-    ActivityThreadQt(ConstructorCallback cb);
-    ~ActivityThreadQt() override;
+    // Throws std::runtime_error if callback returns invalid pointer
+    ActivityThreadQt(ConstructorCallback cb) noexcept(false);
+    ~ActivityThreadQt() final;
 
 signals:
     void updated() const;
@@ -139,11 +142,14 @@ private:
 
     std::unique_ptr<implementation::ActivityThread> parent_;
 
-    void notify() const;
-    void finish_row_add();
-    void finish_row_delete();
-    void start_row_add(const QModelIndex& parent, int first, int last);
-    void start_row_delete(const QModelIndex& parent, int first, int last);
+    void notify() const noexcept;
+    void finish_row_add() noexcept;
+    void finish_row_delete() noexcept;
+    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
+    void start_row_delete(
+        const QModelIndex& parent,
+        int first,
+        int last) noexcept;
 
     ActivityThreadQt() = delete;
     ActivityThreadQt(const ActivityThreadQt&) = delete;

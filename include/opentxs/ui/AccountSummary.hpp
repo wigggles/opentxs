@@ -23,15 +23,15 @@ namespace ui
 class AccountSummary : virtual public List
 {
 public:
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> First()
-        const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> Next()
-        const = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> First() const
+        noexcept = 0;
+    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> Next() const
+        noexcept = 0;
 
     EXPORT virtual ~AccountSummary() = default;
 
 protected:
-    AccountSummary() = default;
+    AccountSummary() noexcept = default;
 
 private:
     AccountSummary(const AccountSummary&) = delete;

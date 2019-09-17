@@ -41,7 +41,7 @@ ContactItem::ContactItem(
     const network::zeromq::socket::Publish& publisher,
     const ContactSubsectionRowID& rowID,
     const ContactSubsectionSortKey& sortKey,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
     : ContactItemRow(parent, api, publisher, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
@@ -51,7 +51,7 @@ ContactItem::ContactItem(
 
 void ContactItem::reindex(
     const ContactSubsectionSortKey&,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     eLock lock(shared_lock_);
     item_.reset(

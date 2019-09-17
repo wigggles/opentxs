@@ -15,14 +15,16 @@ using ContactListItemRow =
 class ContactListItem : public ContactListItemRow
 {
 public:
-    std::string ContactID() const override;
-    std::string DisplayName() const override;
-    std::string ImageURI() const override;
-    std::string Section() const override;
+    std::string ContactID() const noexcept final;
+    std::string DisplayName() const noexcept final;
+    std::string ImageURI() const noexcept final;
+    std::string Section() const noexcept final;
 
-    void reindex(const ContactListSortKey&, const CustomData&) override;
+    void reindex(
+        const ContactListSortKey&,
+        const CustomData&) noexcept override;
 
-    virtual ~ContactListItem() = default;
+    ~ContactListItem() override = default;
 
 protected:
     ContactListSortKey key_{""};
@@ -32,7 +34,7 @@ protected:
         const api::client::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ContactListRowID& rowID,
-        const ContactListSortKey& key);
+        const ContactListSortKey& key) noexcept;
 
 private:
     friend opentxs::Factory;

@@ -15,7 +15,7 @@
 namespace opentxs::ui::implementation
 {
 template <typename T>
-T extract_custom(const CustomData& custom, const std::size_t index = 0)
+T extract_custom(const CustomData& custom, const std::size_t index = 0) noexcept
 {
     OT_ASSERT((index + 1) <= custom.size())
 
@@ -33,12 +33,12 @@ public:
     {
     public:
         virtual void operator()(Widget* object, const network::zeromq::Message&)
-            const = 0;
+            const noexcept = 0;
 
         virtual ~MessageFunctor() = default;
 
     protected:
-        MessageFunctor() = default;
+        MessageFunctor() noexcept = default;
 
     private:
         MessageFunctor(const MessageFunctor&) = delete;
@@ -54,7 +54,7 @@ public:
         typedef void (T::*Function)(const network::zeromq::Message&);
 
         void operator()(Widget* object, const network::zeromq::Message& message)
-            const override
+            const noexcept final
         {
             auto real = dynamic_cast<T*>(object);
 
@@ -63,12 +63,12 @@ public:
             (real->*callback_)(message);
         }
 
-        MessageProcessor(Function callback)
+        MessageProcessor(Function callback) noexcept
             : callback_(callback)
         {
         }
-        MessageProcessor(MessageProcessor&&) = default;
-        MessageProcessor& operator=(MessageProcessor&&) = default;
+        MessageProcessor(MessageProcessor&&) noexcept = default;
+        MessageProcessor& operator=(MessageProcessor&&) noexcept = default;
 
     private:
         Function callback_;
@@ -78,10 +78,10 @@ public:
         MessageProcessor& operator=(const MessageProcessor&) = delete;
     };
 
-    void SetCallback(ui::Widget::Callback cb) const override;
-    OTIdentifier WidgetID() const override;
+    void SetCallback(ui::Widget::Callback cb) const noexcept final;
+    OTIdentifier WidgetID() const noexcept override;
 
-    virtual ~Widget() = default;
+    ~Widget() override = default;
 
 protected:
     using ListenerDefinition = std::pair<std::string, MessageFunctor*>;
@@ -91,16 +91,16 @@ protected:
     const network::zeromq::socket::Publish& publisher_;
     const OTIdentifier widget_id_;
 
-    void setup_listeners(const ListenerDefinitions& definitions);
-    void UpdateNotify() const;
+    void setup_listeners(const ListenerDefinitions& definitions) noexcept;
+    void UpdateNotify() const noexcept;
 
     Widget(
         const api::client::Manager& api,
         const network::zeromq::socket::Publish& publisher,
-        const Identifier& id);
+        const Identifier& id) noexcept;
     Widget(
         const api::client::Manager& api,
-        const network::zeromq::socket::Publish& publisher);
+        const network::zeromq::socket::Publish& publisher) noexcept;
 
 private:
     std::vector<OTZMQListenCallback> callbacks_;

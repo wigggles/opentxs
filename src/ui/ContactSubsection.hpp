@@ -27,32 +27,36 @@ class ContactSubsection final : public ContactSubsectionList,
                                 public ContactSubsectionRow
 {
 public:
-    std::string Name(const std::string& lang) const override;
-    proto::ContactItemType Type() const override { return row_id_.second; }
+    std::string Name(const std::string& lang) const noexcept final;
+    proto::ContactItemType Type() const noexcept final
+    {
+        return row_id_.second;
+    }
 
-    void reindex(const ContactSectionSortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const ContactSectionSortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~ContactSubsection() = default;
 
 private:
     friend opentxs::Factory;
 
-    static bool check_type(const ContactSubsectionRowID type);
+    static bool check_type(const ContactSubsectionRowID type) noexcept;
 
     void construct_row(
         const ContactSubsectionRowID& id,
         const ContactSubsectionSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    bool last(const ContactSubsectionRowID& id) const override
+    bool last(const ContactSubsectionRowID& id) const noexcept final
     {
         return ContactSubsectionList::last(id);
     }
     std::set<ContactSubsectionRowID> process_group(
-        const opentxs::ContactGroup& group);
-    int sort_key(const ContactSubsectionRowID type) const;
-    void startup(const CustomData custom);
+        const opentxs::ContactGroup& group) noexcept;
+    int sort_key(const ContactSubsectionRowID type) const noexcept;
+    void startup(const CustomData custom) noexcept;
 
     ContactSubsection(
         const ContactSectionInternalInterface& parent,
@@ -67,7 +71,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     ContactSubsection() = delete;
     ContactSubsection(const ContactSubsection&) = delete;
     ContactSubsection(ContactSubsection&&) = delete;

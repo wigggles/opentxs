@@ -82,7 +82,7 @@ Pair::Pair(const Flag& running, const api::client::Manager& client)
     })
     , running_(running)
     , client_(client)
-    , state_(decision_lock_)
+    , state_(decision_lock_, client_)
     , startup_promise_()
     , startup_(startup_promise_.get_future())
     , nym_callback_(zmq::ListenCallback::Factory(
@@ -107,8 +107,11 @@ Pair::Pair(const Flag& running, const api::client::Manager& client)
     peer_request_subscriber_->Start(client_.Endpoints().PeerRequestUpdate());
 }
 
-Pair::State::State(std::mutex& lock) noexcept
+Pair::State::State(
+    std::mutex& lock,
+    const api::client::Manager& client) noexcept
     : lock_(lock)
+    , client_(client)
     , state_()
     , issuers_()
 {
@@ -128,12 +131,15 @@ void Pair::State::Add(
         std::forward_as_tuple(std::move(localNymID), std::move(issuerNymID)),
         std::forward_as_tuple(
             std::make_unique<std::mutex>(),
+            client_.Factory().ServerID(),
+            client_.Factory().NymID(),
             Status::Error,
             trusted,
             0,
             0,
             std::vector<AccountDetails>{},
-            std::vector<OTX::BackgroundTask>{}));
+            std::vector<OTX::BackgroundTask>{},
+            false));
 }
 
 void Pair::State::Add(
@@ -157,8 +163,16 @@ bool Pair::State::check_state() const noexcept
     Lock lock(lock_);
 
     for (auto& [id, details] : state_) {
-        auto& [mutex, status, trusted, offered, registered, accountDetails,
-               pending] = details;
+        auto& [mutex,
+               serverID,
+               serverNymID,
+               status,
+               trusted,
+               offered,
+               registered,
+               accountDetails,
+               pending,
+               needRename] = details;
 
         OT_ASSERT(mutex);
 
@@ -166,6 +180,12 @@ bool Pair::State::check_state() const noexcept
 
         if (Status::Registered != status) {
             LogTrace(OT_METHOD)(__FUNCTION__)(": Not registered").Flush();
+
+            goto repeat;
+        }
+
+        if (needRename) {
+            LogTrace(OT_METHOD)(__FUNCTION__)(": Notary name not set").Flush();
 
             goto repeat;
         }
@@ -284,7 +304,7 @@ std::set<OTNymID> Pair::State::IssuerList(
 
         Lock rowLock(*pMutex);
         const auto& issuerID = std::get<1>(key);
-        const auto& trusted = std::get<2>(value);
+        const auto& trusted = std::get<4>(value);
 
         if (trusted || (false == onlyTrusted)) { output.emplace(issuerID); }
     }
@@ -362,8 +382,32 @@ void Pair::callback_nym(const zmq::Message& in) noexcept
     OT_ASSERT(1 <= body.size());
 
     const auto nymID = client_.Factory().NymID(body.at(0));
+    auto trigger{state_.CheckIssuer(nymID)};
 
-    if (state_.CheckIssuer(nymID)) { Trigger(); }
+    {
+        Lock lock(decision_lock_);
+
+        for (auto& [id, details] : state_) {
+            auto& [mutex,
+                   serverID,
+                   serverNymID,
+                   status,
+                   trusted,
+                   offered,
+                   registered,
+                   accountDetails,
+                   pending,
+                   needRename] = details;
+
+            OT_ASSERT(mutex);
+
+            Lock rowLock(*mutex);
+
+            if (serverNymID == nymID) { trigger = true; }
+        }
+    }
+
+    if (trigger) { Trigger(); }
 }
 
 void Pair::callback_peer_reply(const zmq::Message& in) noexcept
@@ -579,9 +623,14 @@ void Pair::check_connection_info(
 void Pair::check_rename(
     const Issuer& issuer,
     const identifier::Server& serverID,
-    const PasswordPrompt& reason) const noexcept
+    const PasswordPrompt& reason,
+    bool& needRename) const noexcept
 {
-    if (false == issuer.Paired()) { return; }
+    if (false == issuer.Paired()) {
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Not trusted").Flush();
+
+        return;
+    }
 
     auto editor = client_.Wallet().mutable_ServerContext(
         issuer.LocalNymID(), serverID, reason);
@@ -591,7 +640,9 @@ void Pair::check_rename(
         context.SetAdminPassword(issuer.PairingCode());
     }
 
-    if (context.ShouldRename(reason)) {
+    needRename = context.ShouldRename(reason);
+
+    if (needRename) {
         proto::PairEvent event;
         event.set_version(1);
         event.set_type(proto::PAIREVENT_RENAME);
@@ -607,6 +658,8 @@ void Pair::check_rename(
                 ": Error publishing should rename notification.")
                 .Flush();
         }
+    } else {
+        LogTrace(OT_METHOD)(__FUNCTION__)(": No reason to rename").Flush();
     }
 }
 
@@ -1157,8 +1210,16 @@ void Pair::state_machine(const IssuerID& id) const
 
     OT_ASSERT(state_.end() != it);
 
-    auto& [mutex, status, trusted, offered, registeredAccounts, accountDetails,
-           pending] = it->second;
+    auto& [mutex,
+           serverID,
+           serverNymID,
+           status,
+           trusted,
+           offered,
+           registeredAccounts,
+           accountDetails,
+           pending,
+           needRename] = it->second;
 
     OT_ASSERT(mutex);
 
@@ -1201,7 +1262,7 @@ void Pair::state_machine(const IssuerID& id) const
     SHUTDOWN()
 
     const auto& issuerClaims = issuerNym->Claims();
-    const auto serverID = issuerClaims.PreferredOTServer();
+    serverID = issuerClaims.PreferredOTServer();
 
     if (serverID->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1268,7 +1329,18 @@ void Pair::state_machine(const IssuerID& id) const
             LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": Local nym is registered on issuer's notary.")
                 .Flush();
-            check_rename(issuer, serverID, reason);
+
+            if (serverNymID->empty()) {
+                const auto contract = client_.Wallet().Server(serverID, reason);
+
+                OT_ASSERT(contract);
+
+                serverNymID = contract->Nym()->ID();
+            }
+
+            SHUTDOWN()
+
+            check_rename(issuer, serverID, reason, needRename);
 
             SHUTDOWN()
 

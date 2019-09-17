@@ -14,10 +14,10 @@ namespace opentxs::ui::implementation
 class PaymentItem final : public ActivityThreadItem
 {
 public:
-    opentxs::Amount Amount() const override;
-    bool Deposit() const override;
-    std::string DisplayAmount() const override;
-    std::string Memo() const override;
+    opentxs::Amount Amount() const noexcept final;
+    bool Deposit() const noexcept final;
+    std::string DisplayAmount() const noexcept final;
+    std::string Memo() const noexcept final;
 
     ~PaymentItem();
 
@@ -30,7 +30,7 @@ private:
     std::unique_ptr<std::thread> load_;
     std::shared_ptr<const OTPayment> payment_;
 
-    void load();
+    void load() noexcept;
 
     PaymentItem(
         const ActivityThreadInternalInterface& parent,
@@ -39,7 +39,7 @@ private:
         const identifier::Nym& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
     PaymentItem() = delete;
     PaymentItem(const PaymentItem&) = delete;
     PaymentItem(PaymentItem&&) = delete;

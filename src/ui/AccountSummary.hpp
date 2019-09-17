@@ -22,8 +22,8 @@ using AccountSummaryList = List<
 class AccountSummary final : public AccountSummaryList
 {
 public:
-    proto::ContactItemType Currency() const override { return currency_; }
-    const identifier::Nym& NymID() const override { return primary_id_; }
+    proto::ContactItemType Currency() const noexcept final { return currency_; }
+    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
 
     ~AccountSummary();
 
@@ -39,18 +39,18 @@ private:
     void construct_row(
         const AccountSummaryRowID& id,
         const AccountSummarySortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
     AccountSummarySortKey extract_key(
         const identifier::Nym& nymID,
-        const identifier::Nym& issuerID);
-    void process_connection(const network::zeromq::Message& message);
-    void process_issuer(const identifier::Nym& issuerID);
-    void process_issuer(const network::zeromq::Message& message);
-    void process_nym(const network::zeromq::Message& message);
-    void process_server(const network::zeromq::Message& message);
-    void process_server(const identifier::Server& serverID);
-    void startup();
+        const identifier::Nym& issuerID) noexcept;
+    void process_connection(const network::zeromq::Message& message) noexcept;
+    void process_issuer(const identifier::Nym& issuerID) noexcept;
+    void process_issuer(const network::zeromq::Message& message) noexcept;
+    void process_nym(const network::zeromq::Message& message) noexcept;
+    void process_server(const network::zeromq::Message& message) noexcept;
+    void process_server(const identifier::Server& serverID) noexcept;
+    void startup() noexcept;
 
     AccountSummary(
         const api::client::Manager& api,
@@ -63,7 +63,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     AccountSummary() = delete;
     AccountSummary(const AccountSummary&) = delete;
     AccountSummary(AccountSummary&&) = delete;

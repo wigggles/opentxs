@@ -30,21 +30,28 @@ public:
     bool AddItem(
         const std::string& value,
         const bool primary,
-        const bool active) const override;
-    bool Delete(const std::string& claimID) const override;
-    std::string Name(const std::string& lang) const override;
-    const identifier::Nym& NymID() const override { return primary_id_; }
-    proto::ContactSectionName Section() const override { return row_id_.first; }
-    bool SetActive(const std::string& claimID, const bool active)
-        const override;
-    bool SetPrimary(const std::string& claimID, const bool primary)
-        const override;
-    bool SetValue(const std::string& claimID, const std::string& value)
-        const override;
-    proto::ContactItemType Type() const override { return row_id_.second; }
+        const bool active) const noexcept final;
+    bool Delete(const std::string& claimID) const noexcept final;
+    std::string Name(const std::string& lang) const noexcept final;
+    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
+    proto::ContactSectionName Section() const noexcept final
+    {
+        return row_id_.first;
+    }
+    bool SetActive(const std::string& claimID, const bool active) const
+        noexcept final;
+    bool SetPrimary(const std::string& claimID, const bool primary) const
+        noexcept final;
+    bool SetValue(const std::string& claimID, const std::string& value) const
+        noexcept final;
+    proto::ContactItemType Type() const noexcept final
+    {
+        return row_id_.second;
+    }
 
-    void reindex(const ProfileSectionSortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const ProfileSectionSortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~ProfileSubsection() = default;
 
@@ -56,16 +63,16 @@ private:
     void construct_row(
         const ProfileSubsectionRowID& id,
         const ProfileSubsectionSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    bool last(const ProfileSubsectionRowID& id) const override
+    bool last(const ProfileSubsectionRowID& id) const noexcept final
     {
         return ProfileSubsectionList::last(id);
     }
     std::set<ProfileSubsectionRowID> process_group(
-        const opentxs::ContactGroup& group);
-    int sort_key(const ProfileSubsectionRowID type) const;
-    void startup(const CustomData& custom);
+        const opentxs::ContactGroup& group) noexcept;
+    int sort_key(const ProfileSubsectionRowID type) const noexcept;
+    void startup(const CustomData& custom) noexcept;
 
     ProfileSubsection(
         const ProfileSectionInternalInterface& parent,
@@ -80,7 +87,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     ProfileSubsection() = delete;
     ProfileSubsection(const ProfileSubsection&) = delete;
     ProfileSubsection(ProfileSubsection&&) = delete;

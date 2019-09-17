@@ -22,7 +22,6 @@
 
 #include "internal/ui/UI.hpp"
 #include "List.hpp"
-#include "ProfileItemBlank.hpp"
 #include "RowType.hpp"
 
 #include <map>
@@ -87,7 +86,7 @@ ProfileSubsection::ProfileSubsection(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : ProfileSubsectionList(
           api,
           publisher,
@@ -111,7 +110,7 @@ ProfileSubsection::ProfileSubsection(
 bool ProfileSubsection::AddItem(
     const std::string& value,
     const bool primary,
-    const bool active) const
+    const bool active) const noexcept
 {
     return parent_.AddClaim(row_id_.second, value, primary, active);
 }
@@ -119,7 +118,7 @@ bool ProfileSubsection::AddItem(
 void ProfileSubsection::construct_row(
     const ProfileSubsectionRowID& id,
     const ProfileSubsectionSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     OT_ASSERT(1 == custom.size())
 
@@ -129,7 +128,7 @@ void ProfileSubsection::construct_row(
         Factory::ProfileItemWidget(*this, api_, publisher_, id, index, custom));
 }
 
-bool ProfileSubsection::Delete(const std::string& claimID) const
+bool ProfileSubsection::Delete(const std::string& claimID) const noexcept
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -139,13 +138,13 @@ bool ProfileSubsection::Delete(const std::string& claimID) const
     return claim.Delete();
 }
 
-std::string ProfileSubsection::Name(const std::string& lang) const
+std::string ProfileSubsection::Name(const std::string& lang) const noexcept
 {
     return proto::TranslateItemType(row_id_.second, lang);
 }
 
 std::set<ProfileSubsectionRowID> ProfileSubsection::process_group(
-    const opentxs::ContactGroup& group)
+    const opentxs::ContactGroup& group) noexcept
 {
     OT_ASSERT(row_id_.second == group.Type())
 
@@ -164,14 +163,14 @@ std::set<ProfileSubsectionRowID> ProfileSubsection::process_group(
 
 void ProfileSubsection::reindex(
     const ProfileSectionSortKey&,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     delete_inactive(
         process_group(extract_custom<opentxs::ContactGroup>(custom)));
 }
 
 bool ProfileSubsection::SetActive(const std::string& claimID, const bool active)
-    const
+    const noexcept
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -183,7 +182,7 @@ bool ProfileSubsection::SetActive(const std::string& claimID, const bool active)
 
 bool ProfileSubsection::SetPrimary(
     const std::string& claimID,
-    const bool primary) const
+    const bool primary) const noexcept
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -195,7 +194,7 @@ bool ProfileSubsection::SetPrimary(
 
 bool ProfileSubsection::SetValue(
     const std::string& claimID,
-    const std::string& value) const
+    const std::string& value) const noexcept
 {
     Lock lock(lock_);
     auto& claim = find_by_id(lock, Identifier::Factory(claimID));
@@ -205,14 +204,14 @@ bool ProfileSubsection::SetValue(
     return claim.SetValue(value);
 }
 
-int ProfileSubsection::sort_key(const ProfileSubsectionRowID) const
+int ProfileSubsection::sort_key(const ProfileSubsectionRowID) const noexcept
 {
     return static_cast<int>(items_.size());
 }
 
-void ProfileSubsection::startup(const CustomData& custom)
+void ProfileSubsection::startup(const CustomData& custom) noexcept
 {
     process_group(extract_custom<opentxs::ContactGroup>(custom));
-    startup_complete_->On();
+    finish_startup();
 }
 }  // namespace opentxs::ui::implementation

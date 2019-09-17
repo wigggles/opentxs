@@ -27,7 +27,6 @@
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/PayableList.hpp"
 
-#include "PayableListItemBlank.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -116,7 +115,7 @@ PayableList::PayableList(
 void PayableList::construct_row(
     const PayableListRowID& id,
     const PayableListSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     OT_ASSERT(1 == custom.size())
 
@@ -134,7 +133,7 @@ void PayableList::construct_row(
 }
 
 #if OT_QT
-QVariant PayableList::data(const QModelIndex& index, int role) const
+QVariant PayableList::data(const QModelIndex& index, int role) const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -244,7 +243,7 @@ void PayableList::startup()
         process_contact(Identifier::Factory(id), alias);
     }
 
-    startup_complete_->On();
+    finish_startup();
 }
 
 PayableList::~PayableList()

@@ -69,7 +69,7 @@ AccountListItem::AccountListItem(
     const network::zeromq::socket::Publish& publisher,
     const AccountListRowID& rowID,
     const AccountListSortKey& sortKey,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
     : AccountListItemRow(parent, api, publisher, rowID, true)
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)
@@ -87,7 +87,7 @@ AccountListItem::AccountListItem(
     OT_ASSERT(notary_);
 }
 
-std::string AccountListItem::DisplayBalance() const
+std::string AccountListItem::DisplayBalance() const noexcept
 {
     std::string output{};
     const auto formatted =

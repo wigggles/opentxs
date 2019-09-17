@@ -28,7 +28,6 @@
 #include "opentxs/ui/ContactSection.hpp"
 
 #include "internal/ui/UI.hpp"
-#include "ContactSectionBlank.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -47,12 +46,15 @@ namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(ContactQt, Contact)
 
-QString ContactQt::displayName() const
+QString ContactQt::displayName() const noexcept
 {
     return parent_->DisplayName().c_str();
 }
-QString ContactQt::contactID() const { return parent_->ContactID().c_str(); }
-QString ContactQt::paymentCode() const
+QString ContactQt::contactID() const noexcept
+{
+    return parent_->ContactID().c_str();
+}
+QString ContactQt::paymentCode() const noexcept
 {
     return parent_->PaymentCode().c_str();
 }
@@ -79,7 +81,7 @@ Contact::Contact(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : ContactType(
           api,
           publisher,
@@ -106,7 +108,7 @@ Contact::Contact(
     OT_ASSERT(startup_)
 }
 
-bool Contact::check_type(const proto::ContactSectionName type)
+bool Contact::check_type(const proto::ContactSectionName type) noexcept
 {
     return 1 == allowed_types_.count(type);
 }
@@ -114,7 +116,7 @@ bool Contact::check_type(const proto::ContactSectionName type)
 void Contact::construct_row(
     const ContactRowID& id,
     const ContactSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -135,23 +137,23 @@ void Contact::construct_row(
             ));
 }
 
-std::string Contact::ContactID() const { return primary_id_->str(); }
+std::string Contact::ContactID() const noexcept { return primary_id_->str(); }
 
-std::string Contact::DisplayName() const
+std::string Contact::DisplayName() const noexcept
 {
     Lock lock(lock_);
 
     return name_;
 }
 
-std::string Contact::PaymentCode() const
+std::string Contact::PaymentCode() const noexcept
 {
     Lock lock(lock_);
 
     return payment_code_;
 }
 
-void Contact::process_contact(const opentxs::Contact& contact)
+void Contact::process_contact(const opentxs::Contact& contact) noexcept
 {
     Lock lock(lock_);
     name_ = contact.Label();
@@ -178,7 +180,7 @@ void Contact::process_contact(const opentxs::Contact& contact)
     delete_inactive(active);
 }
 
-void Contact::process_contact(const network::zeromq::Message& message)
+void Contact::process_contact(const network::zeromq::Message& message) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     wait_for_startup();
@@ -199,12 +201,12 @@ void Contact::process_contact(const network::zeromq::Message& message)
     process_contact(*contact);
 }
 
-int Contact::sort_key(const proto::ContactSectionName type)
+int Contact::sort_key(const proto::ContactSectionName type) noexcept
 {
     return sort_keys_.at(type);
 }
 
-void Contact::startup()
+void Contact::startup() noexcept
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading contact ")(primary_id_)
         .Flush();
@@ -214,7 +216,7 @@ void Contact::startup()
     OT_ASSERT(contact)
 
     process_contact(*contact);
-    startup_complete_->On();
+    finish_startup();
 }
 
 Contact::~Contact()

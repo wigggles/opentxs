@@ -84,29 +84,29 @@ class ActivityThread final : public ActivityThreadList,
 {
 public:
 #if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
 #endif
-    std::string DisplayName() const override;
-    std::string GetDraft() const override;
-    std::string Participants() const override;
+    std::string DisplayName() const noexcept final;
+    std::string GetDraft() const noexcept final;
+    std::string Participants() const noexcept final;
     bool Pay(
         const std::string& amount,
         const Identifier& sourceAccount,
         const std::string& memo,
-        const PaymentType type) const override;
+        const PaymentType type) const noexcept final;
     bool Pay(
         const Amount amount,
         const Identifier& sourceAccount,
         const std::string& memo,
-        const PaymentType type) const override;
-    std::string PaymentCode(
-        const proto::ContactItemType currency) const override;
+        const PaymentType type) const noexcept final;
+    std::string PaymentCode(const proto::ContactItemType currency) const
+        noexcept final;
     bool same(const ActivityThreadRowID& lhs, const ActivityThreadRowID& rhs)
-        const override;
-    bool SendDraft() const override;
-    bool SetDraft(const std::string& draft) const override;
-    std::string ThreadID() const override;
+        const noexcept final;
+    bool SendDraft() const noexcept final;
+    bool SetDraft(const std::string& draft) const noexcept final;
+    std::string ThreadID() const noexcept final;
 
     ~ActivityThread();
 
@@ -124,26 +124,27 @@ private:
     std::shared_ptr<const opentxs::Contact> contact_;
     std::unique_ptr<std::thread> contact_thread_{nullptr};
 
-    std::string comma(const std::set<std::string>& list) const;
-    void can_message() const;
+    std::string comma(const std::set<std::string>& list) const noexcept;
+    void can_message() const noexcept;
     void construct_row(
         const ActivityThreadRowID& id,
         const ActivityThreadSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
     bool send_cheque(
         const PasswordPrompt& reason,
         const Amount amount,
         const Identifier& sourceAccount,
-        const std::string& memo) const;
-    bool validate_account(const Identifier& sourceAccount) const;
+        const std::string& memo) const noexcept;
+    bool validate_account(const Identifier& sourceAccount) const noexcept;
 
-    void init_contact();
-    void load_thread(const proto::StorageThread& thread);
-    void new_thread();
-    ActivityThreadRowID process_item(const proto::StorageThreadItem& item);
-    bool process_drafts();
-    void process_thread(const network::zeromq::Message& message);
-    void startup();
+    void init_contact() noexcept;
+    void load_thread(const proto::StorageThread& thread) noexcept;
+    void new_thread() noexcept;
+    ActivityThreadRowID process_item(
+        const proto::StorageThreadItem& item) noexcept;
+    bool process_drafts() noexcept;
+    void process_thread(const network::zeromq::Message& message) noexcept;
+    void startup() noexcept;
 
     ActivityThread(
         const api::client::Manager& api,
@@ -156,7 +157,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
 
     ActivityThread() = delete;
     ActivityThread(const ActivityThread&) = delete;

@@ -15,13 +15,14 @@ using AccountSummaryItemRow =
 class AccountSummaryItem final : public AccountSummaryItemRow
 {
 public:
-    std::string AccountID() const override { return account_id_.str(); }
-    Amount Balance() const override { return balance_.load(); }
-    std::string DisplayBalance() const override;
-    std::string Name() const override;
+    std::string AccountID() const noexcept final { return account_id_.str(); }
+    Amount Balance() const noexcept final { return balance_.load(); }
+    std::string DisplayBalance() const noexcept final;
+    std::string Name() const noexcept final;
 
-    void reindex(const IssuerItemSortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const IssuerItemSortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~AccountSummaryItem() = default;
 
@@ -41,7 +42,7 @@ private:
         const network::zeromq::socket::Publish& publisher,
         const IssuerItemRowID& rowID,
         const IssuerItemSortKey& sortKey,
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
     AccountSummaryItem() = delete;
     AccountSummaryItem(const AccountSummaryItem&) = delete;
     AccountSummaryItem(AccountSummaryItem&&) = delete;

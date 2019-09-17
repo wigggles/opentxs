@@ -7313,25 +7313,20 @@ bool ServerContext::ShouldRename(
     const PasswordPrompt& reason,
     const std::string& defaultName) const
 {
-    const auto& name = defaultName.empty() ? default_node_name_ : defaultName;
+    auto pContract = api_.Wallet().Server(server_id_, reason);
 
-    if (false == admin_success_.get()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Do not have admin permission.")
-            .Flush();
-
-        return false;
-    }
-
-    auto contract = api_.Wallet().Server(server_id_, reason);
-
-    if (false == bool(contract)) {
+    if (false == bool(pContract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing server contract.")
             .Flush();
 
         return false;
     }
 
-    return (contract->Alias() == name);
+    const auto& contract = *pContract;
+
+    if (contract.Alias() != contract.EffectiveName(reason)) { return true; }
+
+    return defaultName == contract.EffectiveName(reason);
 }
 
 ServerContext::QueueResult ServerContext::start(

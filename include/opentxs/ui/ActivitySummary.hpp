@@ -31,9 +31,9 @@ class ActivitySummary : virtual public List
 {
 public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>
-    First() const = 0;
+    First() const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem> Next()
-        const = 0;
+        const noexcept = 0;
 
     EXPORT virtual ~ActivitySummary() = default;
 
@@ -51,7 +51,7 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ActivitySummaryQt : public QAbstractItemModel
+class opentxs::ui::ActivitySummaryQt final : public QAbstractItemModel
 {
     Q_OBJECT
 
@@ -69,21 +69,24 @@ public:
         TypeRole = Qt::UserRole + 6,
     };
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex& index) const override;
-    QHash<int, QByteArray> roleNames() const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        const QModelIndex& parent = QModelIndex()) const noexcept final;
+    QModelIndex parent(const QModelIndex& index) const noexcept final;
+    QHash<int, QByteArray> roleNames() const noexcept final;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
 
-    const ActivitySummary& operator*() const;
+    const ActivitySummary& operator*() const noexcept;
 
-    ActivitySummaryQt(ConstructorCallback cb);
-    ~ActivitySummaryQt() override;
+    // Throws std::runtime_error if callback returns invalid pointer
+    ActivitySummaryQt(ConstructorCallback cb) noexcept(false);
+    ~ActivitySummaryQt() final;
 
 signals:
     void updated() const;
@@ -91,11 +94,14 @@ signals:
 private:
     std::unique_ptr<implementation::ActivitySummary> parent_;
 
-    void notify() const;
-    void finish_row_add();
-    void finish_row_delete();
-    void start_row_add(const QModelIndex& parent, int first, int last);
-    void start_row_delete(const QModelIndex& parent, int first, int last);
+    void notify() const noexcept;
+    void finish_row_add() noexcept;
+    void finish_row_delete() noexcept;
+    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
+    void start_row_delete(
+        const QModelIndex& parent,
+        int first,
+        int last) noexcept;
 
     ActivitySummaryQt() = delete;
     ActivitySummaryQt(const ActivitySummaryQt&) = delete;

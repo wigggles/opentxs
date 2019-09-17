@@ -23,7 +23,6 @@
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/MessagableList.hpp"
 
-#include "ContactListItemBlank.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -78,7 +77,7 @@ MessagableList::MessagableList(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : MessagableListList(
           api,
           publisher,
@@ -109,7 +108,7 @@ MessagableList::MessagableList(
 void MessagableList::construct_row(
     const MessagableListRowID& id,
     const MessagableListSortKey& index,
-    const CustomData&) const
+    const CustomData&) const noexcept
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -117,7 +116,7 @@ void MessagableList::construct_row(
 }
 
 #if OT_QT
-QVariant MessagableList::data(const QModelIndex& index, int role) const
+QVariant MessagableList::data(const QModelIndex& index, int role) const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -147,11 +146,14 @@ QVariant MessagableList::data(const QModelIndex& index, int role) const
 }
 #endif
 
-const Identifier& MessagableList::ID() const { return owner_contact_id_; }
+const Identifier& MessagableList::ID() const noexcept
+{
+    return owner_contact_id_;
+}
 
 void MessagableList::process_contact(
     const MessagableListRowID& id,
-    const MessagableListSortKey& key)
+    const MessagableListSortKey& key) noexcept
 {
     if (owner_contact_id_ == id) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Skipping owner contact ")(id)(
@@ -192,7 +194,8 @@ void MessagableList::process_contact(
     }
 }
 
-void MessagableList::process_contact(const network::zeromq::Message& message)
+void MessagableList::process_contact(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -207,7 +210,8 @@ void MessagableList::process_contact(const network::zeromq::Message& message)
     process_contact(contactID, name);
 }
 
-void MessagableList::process_nym(const network::zeromq::Message& message)
+void MessagableList::process_nym(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -223,7 +227,7 @@ void MessagableList::process_nym(const network::zeromq::Message& message)
     process_contact(contactID, name);
 }
 
-void MessagableList::startup()
+void MessagableList::startup() noexcept
 {
     const auto contacts = api_.Contacts().ContactList();
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(contacts.size())(
@@ -234,7 +238,7 @@ void MessagableList::startup()
         process_contact(Identifier::Factory(id), alias);
     }
 
-    startup_complete_->On();
+    finish_startup();
 }
 
 MessagableList::~MessagableList()
