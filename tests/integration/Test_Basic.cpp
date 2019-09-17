@@ -58,8 +58,9 @@ using StateMap =
 struct Server {
     const ot::api::server::Manager* api_{nullptr};
     bool init_{false};
-    ot::OTServerID id_{ot::identifier::Server::Factory()};
-    std::shared_ptr<const ot::ServerContract> contract_{nullptr};
+    const ot::OTServerID id_{ot::identifier::Server::Factory()};
+    const std::shared_ptr<const ot::ServerContract> contract_{nullptr};
+    const std::string password_;
 
     ot::OTPasswordPrompt Reason() const
     {
@@ -76,11 +77,25 @@ struct Server {
         api.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
 #endif
         api_ = &api;
-        id_ = api.ID();
-        contract_ = api.Wallet().Server(id_, Reason());
+        const_cast<ot::OTServerID&>(id_) = api.ID();
+        const_cast<std::shared_ptr<const ot::ServerContract>&>(contract_) =
+            api.Wallet().Server(id_, Reason());
+
+        {
+            const auto section = ot::String::Factory("permissions");
+            const auto key = ot::String::Factory("admin_password");
+            auto value = ot::String::Factory();
+            auto exists{false};
+            api.Config().Check_str(section, key, value, exists);
+
+            OT_ASSERT(exists);
+
+            const_cast<std::string&>(password_) = value->Get();
+        }
 
         OT_ASSERT(contract_);
         OT_ASSERT(false == id_->empty());
+        OT_ASSERT(false == password_.empty());
 
         init_ = true;
     }
@@ -314,6 +329,7 @@ private:
 
 struct Issuer {
     static const int expected_bailments_{3};
+    static const std::string new_notary_name_;
 
     int bailment_counter_;
     std::promise<bool> bailment_promise_;
@@ -357,10 +373,12 @@ public:
     const ot::api::client::Manager& api_chris_;
     const ot::api::server::Manager& api_server_1_;
     ot::OTZMQListenCallback issuer_peer_request_cb_;
+    ot::OTZMQListenCallback chris_rename_notary_cb_;
     ot::OTZMQSubscribeSocket alex_ui_update_listener_;
     ot::OTZMQSubscribeSocket bob_ui_update_listener_;
     ot::OTZMQSubscribeSocket chris_ui_update_listener_;
     ot::OTZMQSubscribeSocket issuer_peer_request_listener_;
+    ot::OTZMQSubscribeSocket chris_rename_notary_listener_;
 
     Integration()
         : api_alex_(ot::Context().StartClient(args_, 0))
@@ -370,6 +388,8 @@ public:
         , api_server_1_(ot::Context().StartServer(args_, 0, true))
         , issuer_peer_request_cb_(ot::network::zeromq::ListenCallback::Factory(
               [this](const auto& in) { issuer_peer_request(in); }))
+        , chris_rename_notary_cb_(ot::network::zeromq::ListenCallback::Factory(
+              [this](const auto& in) { chris_rename_notary(in); }))
         , alex_ui_update_listener_(
               api_alex_.ZeroMQ().SubscribeSocket(cb_alex_.callback_))
         , bob_ui_update_listener_(
@@ -378,6 +398,8 @@ public:
               api_chris_.ZeroMQ().SubscribeSocket(cb_chris_.callback_))
         , issuer_peer_request_listener_(
               api_bob_.ZeroMQ().SubscribeSocket(issuer_peer_request_cb_))
+        , chris_rename_notary_listener_(
+              api_bob_.ZeroMQ().SubscribeSocket(chris_rename_notary_cb_))
     {
         subscribe_sockets();
 
@@ -398,6 +420,33 @@ public:
             api_chris_.Endpoints().WidgetUpdate()));
         ASSERT_TRUE(issuer_peer_request_listener_->Start(
             api_issuer_.Endpoints().PeerRequestUpdate()));
+        ASSERT_TRUE(chris_rename_notary_listener_->Start(
+            api_chris_.Endpoints().PairEvent()));
+    }
+
+    void chris_rename_notary(const ot::network::zeromq::Message& in)
+    {
+        const auto& body = in.Body();
+
+        EXPECT_EQ(1, body.size());
+
+        if (1 != body.size()) { return; }
+
+        const auto event = ot::proto::Factory<ot::proto::PairEvent>(body.at(0));
+
+        EXPECT_TRUE(ot::proto::Validate(event, ot::VERBOSE));
+        EXPECT_EQ(1, event.version());
+        EXPECT_EQ(ot::proto::PAIREVENT_RENAME, event.type());
+        EXPECT_EQ(issuer_.nym_id_->str(), event.issuer());
+        EXPECT_TRUE(api_chris_.Wallet().SetServerAlias(
+            server_1_.id_, issuer_data_.new_notary_name_));
+
+        const auto result = api_chris_.OTX().DownloadNym(
+            chris_.nym_id_, server_1_.id_, issuer_.nym_id_);
+
+        EXPECT_NE(0, result.first);
+
+        if (0 == result.first) { return; }
     }
 
     void issuer_peer_request(const ot::network::zeromq::Message& in)
@@ -434,8 +483,14 @@ public:
                     issuer_data_.bailment_promise_.set_value(true);
                 }
             } break;
+            case ot::proto::PEERREQUEST_STORESECRET: {
+                // TODO
+            } break;
+            case ot::proto::PEERREQUEST_CONNECTIONINFO: {
+                // TODO
+            } break;
             default: {
-                throw;
+                OT_FAIL;
             }
         }
     }
@@ -466,6 +521,7 @@ ot::OTUnitID Integration::unit_id_{ot::identifier::UnitDefinition::Factory()};
 Callbacks Integration::cb_alex_{alex_.name_};
 Callbacks Integration::cb_bob_{bob_.name_};
 Callbacks Integration::cb_chris_{chris_.name_};
+const std::string Issuer::new_notary_name_{"Chris's Notary"};
 Issuer Integration::issuer_data_{};
 const StateMap Integration::state_{
     {alex_.name_,
@@ -1638,23 +1694,55 @@ const StateMap Integration::state_{
 
                    if (false == row->Valid()) { return false; }
 
-                   // TODO EXPECT_TRUE(row->ConnectionState());
-                   EXPECT_EQ(row->Name(), "opentxs notary");
+                   EXPECT_TRUE(row->ConnectionState());
+                   EXPECT_EQ(row->Name(), "localhost");
                    EXPECT_FALSE(row->Trusted());
 
-                   // TODO
-                   //{
-                   //    const auto subrow = row->First();
-                   //
-                   //    EXPECT_TRUE(subrow->Valid());
-                   //
-                   //    if (false == subrow->Valid()) { return false; }
-                   //
-                   //    EXPECT_FALSE(subrow->AccountID().empty());
-                   //    EXPECT_EQ(subrow->Balance(), 0);
-                   //    EXPECT_EQ(subrow->DisplayBalance(), "");
-                   //    EXPECT_TRUE(subrow->AccountID().empty());
-                   //}
+                   {
+                       const auto subrow = row->First();
+
+                       EXPECT_TRUE(subrow->Valid());
+
+                       if (false == subrow->Valid()) { return false; }
+
+                       EXPECT_FALSE(subrow->AccountID().empty());
+                       EXPECT_EQ(subrow->Balance(), 0);
+                       EXPECT_EQ(subrow->DisplayBalance(), "dollars 0.00");
+                       EXPECT_FALSE(subrow->AccountID().empty());
+                       EXPECT_TRUE(subrow->Last());
+                   }
+
+                   EXPECT_TRUE(row->Last());
+
+                   return true;
+               }},
+              {2,
+               []() -> bool {
+                   const auto& widget = chris_.api_->UI().AccountSummary(
+                       chris_.nym_id_, ot::proto::CITEMTYPE_USD);
+                   auto row = widget.First();
+
+                   EXPECT_TRUE(row->Valid());
+
+                   if (false == row->Valid()) { return false; }
+
+                   EXPECT_TRUE(row->ConnectionState());
+                   EXPECT_EQ(row->Name(), issuer_data_.new_notary_name_);
+                   EXPECT_TRUE(row->Trusted());
+
+                   {
+                       const auto subrow = row->First();
+
+                       EXPECT_TRUE(subrow->Valid());
+
+                       if (false == subrow->Valid()) { return false; }
+
+                       EXPECT_FALSE(subrow->AccountID().empty());
+                       EXPECT_EQ(subrow->Balance(), 0);
+                       EXPECT_EQ(subrow->DisplayBalance(), "dollars 0.00");
+                       EXPECT_FALSE(subrow->AccountID().empty());
+                       EXPECT_TRUE(subrow->Last());
+                   }
 
                    EXPECT_TRUE(row->Last());
 
@@ -2392,7 +2480,7 @@ TEST_F(Integration, pay_bob)
     api_bob_.OTX().ContextIdle(bob_.nym_id_, server_1_.id_).get();
 }
 
-TEST_F(Integration, pair)
+TEST_F(Integration, pair_untrusted)
 {
     {
         ot::Lock lock{cb_chris_.callback_lock_};
@@ -2410,7 +2498,7 @@ TEST_F(Integration, pair)
 
     auto future = cb_chris_.SetCallback(
         Widget::AccountSummary,
-        2,
+        5,
         state_.at(chris_.name_).at(Widget::AccountSummary).at(1));
 
     ASSERT_TRUE(
@@ -2468,6 +2556,68 @@ TEST_F(Integration, pair)
     }
 
     EXPECT_TRUE(future.get());
+}
+
+TEST_F(Integration, pair_trusted)
+{
+    auto future = cb_chris_.SetCallback(
+        Widget::AccountSummary,
+        5,
+        state_.at(chris_.name_).at(Widget::AccountSummary).at(2));
+
+    ASSERT_TRUE(api_chris_.Pair().AddIssuer(
+        chris_.nym_id_, issuer_.nym_id_, server_1_.password_));
+    EXPECT_TRUE(future.get());
+
+    api_chris_.Pair().Wait().get();
+
+    {
+        const auto pIssuer =
+            api_chris_.Wallet().Issuer(chris_.nym_id_, issuer_.nym_id_);
+
+        ASSERT_TRUE(pIssuer);
+
+        const auto& issuer = *pIssuer;
+
+        EXPECT_EQ(
+            1, issuer.AccountList(ot::proto::CITEMTYPE_USD, unit_id_).size());
+        EXPECT_FALSE(issuer.BailmentInitiated(unit_id_));
+        EXPECT_EQ(3, issuer.BailmentInstructions(unit_id_).size());
+        EXPECT_EQ(
+            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITCOIN).size());
+        EXPECT_EQ(
+            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BTCRPC).size());
+        EXPECT_EQ(
+            0,
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGE).size());
+        EXPECT_EQ(
+            0,
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGERPC)
+                .size());
+        EXPECT_EQ(
+            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_SSH).size());
+        EXPECT_EQ(
+            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_CJDNS).size());
+        EXPECT_FALSE(
+            issuer.ConnectionInfoInitiated(ot::proto::CONNECTIONINFO_BITCOIN));
+        EXPECT_TRUE(
+            issuer.ConnectionInfoInitiated(ot::proto::CONNECTIONINFO_BTCRPC));
+        EXPECT_FALSE(issuer.ConnectionInfoInitiated(
+            ot::proto::CONNECTIONINFO_BITMESSAGE));
+        EXPECT_FALSE(issuer.ConnectionInfoInitiated(
+            ot::proto::CONNECTIONINFO_BITMESSAGERPC));
+        EXPECT_FALSE(
+            issuer.ConnectionInfoInitiated(ot::proto::CONNECTIONINFO_SSH));
+        EXPECT_FALSE(
+            issuer.ConnectionInfoInitiated(ot::proto::CONNECTIONINFO_CJDNS));
+        EXPECT_EQ(issuer_.nym_id_, issuer.IssuerID());
+        EXPECT_EQ(chris_.nym_id_, issuer.LocalNymID());
+        EXPECT_TRUE(issuer.Paired());
+        EXPECT_EQ(issuer.PairingCode(), server_1_.password_);
+        EXPECT_EQ(server_1_.id_, issuer.PrimaryServer(chris_.Reason()));
+        EXPECT_FALSE(issuer.StoreSecretComplete());
+        EXPECT_TRUE(issuer.StoreSecretInitiated());
+    }
 }
 
 TEST_F(Integration, shutdown)

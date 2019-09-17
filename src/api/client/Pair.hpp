@@ -59,17 +59,21 @@ private:
         using OfferedCurrencies = std::size_t;
         using RegisteredAccounts = std::size_t;
         using UnusedBailments = std::size_t;
+        using NeedRename = bool;
         using AccountDetails =
             std::tuple<OTUnitID, OTIdentifier, UnusedBailments>;
         using Trusted = bool;
         using Details = std::tuple<
             std::unique_ptr<std::mutex>,
+            OTServerID,
+            OTNymID,
             Status,
             Trusted,
             OfferedCurrencies,
             RegisteredAccounts,
             std::vector<AccountDetails>,
-            std::vector<OTX::BackgroundTask>>;
+            std::vector<OTX::BackgroundTask>,
+            NeedRename>;
         using StateMap = std::map<IssuerID, Details>;
 
         static std::size_t count_currencies(
@@ -92,6 +96,7 @@ private:
             OTNymID&& localNymID,
             OTNymID&& issuerNymID,
             const bool trusted) noexcept;
+        StateMap::iterator begin() noexcept { return state_.begin(); }
         StateMap::iterator end() noexcept { return state_.end(); }
         StateMap::iterator GetDetails(
             const identifier::Nym& localNymID,
@@ -102,10 +107,11 @@ private:
             const identifier::Nym& localNymID,
             const bool onlyTrusted) const noexcept;
 
-        State(std::mutex& lock) noexcept;
+        State(std::mutex& lock, const api::client::Manager& client) noexcept;
 
     private:
         std::mutex& lock_;
+        const api::client::Manager& client_;
         mutable StateMap state_;
         std::set<OTNymID> issuers_;
     };
@@ -137,7 +143,8 @@ private:
     void check_rename(
         const Issuer& issuer,
         const identifier::Server& serverID,
-        const PasswordPrompt& reason) const noexcept;
+        const PasswordPrompt& reason,
+        bool& needRename) const noexcept;
     void check_store_secret(Issuer& issuer, const identifier::Server& serverID)
         const noexcept;
     std::shared_future<void> cleanup() const noexcept;

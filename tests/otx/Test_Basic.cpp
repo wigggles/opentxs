@@ -812,6 +812,13 @@ std::unique_ptr<opentxs::otx::client::internal::Operation>
 std::shared_ptr<blind::Purse> Test_Basic::untrusted_purse_{};
 #endif
 
+TEST_F(Test_Basic, zmq_disconnected)
+{
+    EXPECT_EQ(
+        opentxs::ConnectionState::NOT_ESTABLISHED,
+        client_1_.ZMQ().Status(server_1_id_.str()));
+}
+
 TEST_F(Test_Basic, getRequestNumber_not_registered)
 {
     auto serverContext = client_1_.Wallet().mutable_ServerContext(
@@ -830,6 +837,13 @@ TEST_F(Test_Basic, getRequestNumber_not_registered)
     clientContext = server_1_.Wallet().ClientContext(alice_nym_id_, reason_s1_);
 
     EXPECT_FALSE(clientContext);
+}
+
+TEST_F(Test_Basic, zmq_connected)
+{
+    EXPECT_EQ(
+        opentxs::ConnectionState::ACTIVE,
+        client_1_.ZMQ().Status(server_1_id_.str()));
 }
 
 TEST_F(Test_Basic, registerNym_first_time)

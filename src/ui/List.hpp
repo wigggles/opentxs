@@ -306,7 +306,6 @@ protected:
         try {
             startup_promise_.set_value();
         } catch (...) {
-            OT_FAIL;
         }
     }
     void init() noexcept { outer_ = outer_first(); }

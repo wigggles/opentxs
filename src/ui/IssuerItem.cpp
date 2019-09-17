@@ -177,7 +177,20 @@ void IssuerItem::process_account(
     const IssuerItemRowID rowID{accountID,
                                 {api_.Storage().AccountUnit(accountID)}};
 
-    if (1 == names_.count(rowID)) { process_account(accountID); }
+    if (accountID->empty()) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Invalid account").Flush();
+
+        return;
+    }
+
+    const auto issuerID = api_.Storage().AccountIssuer(accountID);
+
+    if (issuerID == issuer_->IssuerID()) {
+        process_account(accountID);
+    } else {
+        // FIXME
+        OT_FAIL;
+    }
 }
 
 void IssuerItem::refresh_accounts() noexcept
@@ -195,7 +208,7 @@ void IssuerItem::refresh_accounts() noexcept
         accounts.begin(),
         accounts.end(),
         std::inserter(active, active.end()),
-        [&](const OTIdentifier& in) -> IssuerItemRowID {
+        [&](const auto& in) -> IssuerItemRowID {
             return {in, currency_};
         });
     delete_inactive(active);

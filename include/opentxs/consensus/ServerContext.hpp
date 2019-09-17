@@ -44,7 +44,7 @@ public:
     EXPORT virtual std::uint64_t Revision() const = 0;
     EXPORT virtual bool ShouldRename(
         const PasswordPrompt& reason,
-        const std::string& defaultName = "") const = 0;
+        const std::string& defaultName = "localhost") const = 0;
     EXPORT virtual bool StaleNym() const = 0;
     EXPORT virtual std::unique_ptr<Item> Statement(
         const OTTransaction& owner,

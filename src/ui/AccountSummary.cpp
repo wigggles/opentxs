@@ -181,7 +181,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     switch (api_.ZMQ().Status(serverID->str())) {
         case ConnectionState::ACTIVE: {
             state = true;
-        }
+        } break;
         case ConnectionState::NOT_ESTABLISHED:
         case ConnectionState::STALLED:
         default: {
@@ -224,9 +224,7 @@ void AccountSummary::process_issuer(
 
     if (nymID != primary_id_) { return; }
 
-    auto existing = names_.count(issuerID);
-
-    if (0 == existing) { process_issuer(issuerID); }
+    process_issuer(issuerID);
 }
 
 void AccountSummary::process_nym(
