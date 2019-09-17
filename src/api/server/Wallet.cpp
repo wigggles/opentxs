@@ -79,7 +79,7 @@ bool Wallet::load_legacy_account(
     const auto& rowMutex = std::get<0>(row);
     auto& pAccount = std::get<1>(row);
 
-    OT_ASSERT(verify_lock(lock, rowMutex))
+    OT_ASSERT(CheckLock(lock, rowMutex))
 
     pAccount.reset(
         Account::LoadExistingAccount(api_, accountID, server_.ID(), reason));

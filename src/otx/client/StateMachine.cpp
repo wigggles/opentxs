@@ -9,6 +9,7 @@
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -29,11 +30,24 @@
 #define STATE_MACHINE_READY_MILLISECONDS 100
 
 #define DO_OPERATION(a, ...)                                                   \
+    if (shutdown().load()) {                                                   \
+        op_.Shutdown();                                                        \
+                                                                               \
+        return false;                                                          \
+    }                                                                          \
+                                                                               \
     auto started = op_.a(__VA_ARGS__);                                         \
                                                                                \
     while (false == started) {                                                 \
         LogDebug(OT_METHOD)(__FUNCTION__)(": State machine is not ready")      \
             .Flush();                                                          \
+                                                                               \
+        if (shutdown().load()) {                                               \
+            op_.Shutdown();                                                    \
+                                                                               \
+            return false;                                                      \
+        }                                                                      \
+                                                                               \
         Log::Sleep(                                                            \
             std::chrono::milliseconds(STATE_MACHINE_READY_MILLISECONDS));      \
                                                                                \
@@ -41,9 +55,9 @@
             op_.Shutdown();                                                    \
                                                                                \
             return false;                                                      \
-        } else {                                                               \
-            started = op_.a(__VA_ARGS__);                                      \
         }                                                                      \
+                                                                               \
+        started = op_.a(__VA_ARGS__);                                          \
     }                                                                          \
                                                                                \
     if (shutdown().load()) {                                                   \
@@ -62,6 +76,11 @@
     while (false == started) {                                                 \
         LogDebug(OT_METHOD)(__FUNCTION__)(": State machine is not ready")      \
             .Flush();                                                          \
+        if (shutdown().load()) {                                               \
+            op_.Shutdown();                                                    \
+                                                                               \
+            return task_done(false);                                           \
+        }                                                                      \
         Log::Sleep(                                                            \
             std::chrono::milliseconds(STATE_MACHINE_READY_MILLISECONDS));      \
                                                                                \
@@ -76,6 +95,7 @@
                                                                                \
     if (shutdown().load()) {                                                   \
         op_.Shutdown();                                                        \
+                                                                               \
         return task_done(false);                                               \
     }                                                                          \
                                                                                \
@@ -93,6 +113,8 @@
         if (shutdown().load()) { return false; }                               \
                                                                                \
         Log::Sleep(std::chrono::milliseconds(a));                              \
+                                                                               \
+        if (shutdown().load()) { return false; }                               \
     }
 
 #define OT_METHOD "opentxs::otx::client::implementation::StateMachine::"
@@ -596,7 +618,7 @@ bool StateMachine::issue_unit_definition(
     const TaskID taskID,
     const IssueUnitDefinitionTask& task) const
 {
-    const auto& [unitID, label] = task;
+    const auto& [unitID, label, advertise] = task;
     auto unitDefinition = client_.Wallet().UnitDefinition(unitID, reason_);
 
     if (false == bool(unitDefinition)) {
@@ -615,6 +637,17 @@ bool StateMachine::issue_unit_definition(
 
     DO_OPERATION(IssueUnitDefinition, serialized, args);
 
+    if (success && (proto::CITEMTYPE_ERROR != advertise)) {
+        OT_ASSERT(result.second);
+
+        const auto& reply = *result.second;
+        const auto accountID = Identifier::Factory(reply.m_strAcctID);
+        {
+            auto nym = client_.Wallet().mutable_Nym(op_.NymID(), reason_);
+            nym.AddContract(unitID->str(), advertise, true, true, reason_);
+        }
+    }
+
     return finish_task(taskID, success, std::move(result));
 }
 
@@ -623,10 +656,7 @@ bool StateMachine::issue_unit_definition_wrapper(
     const IssueUnitDefinitionTask& param) const
 {
     const auto output = issue_unit_definition(task, param);
-
-    if (false == output) {
-        bump_task(get_task<RegisterNymTask>().Push(next_task_id(), false));
-    }
+    bump_task(get_task<RegisterNymTask>().Push(next_task_id(), false));
 
     return output;
 }
@@ -857,8 +887,6 @@ bool StateMachine::register_account(
         {label, false});
 
     finish_task(taskID, success, std::move(result));
-
-    if (success) { client_.Pair().Update(); }
 
     return success;
 }

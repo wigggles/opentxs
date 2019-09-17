@@ -38,7 +38,6 @@ public:
     };
 
     virtual std::string toString(const PasswordPrompt&) const = 0;
-    //  virtual operator std::string() const = 0;
 
     virtual std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,

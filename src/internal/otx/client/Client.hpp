@@ -58,8 +58,9 @@ using DownloadMintTask = std::pair<OTUnitID, int>;
 using DownloadNymboxTask = OT_DownloadNymboxType;
 using DownloadUnitDefinitionTask = OTUnitID;
 using GetTransactionNumbersTask = OT_GetTransactionNumbersType;
-/** IssueUnitDefinitionTask: unit definition id, account label */
-using IssueUnitDefinitionTask = std::pair<OTUnitID, std::string>;
+/** IssueUnitDefinitionTask: unit definition id, account label, claim */
+using IssueUnitDefinitionTask =
+    std::tuple<OTUnitID, std::string, proto::ContactItemType>;
 /** MessageTask: recipientID, message */
 using MessageTask = std::tuple<OTNymID, std::string, std::shared_ptr<SetID>>;
 #if OT_CASH
@@ -119,7 +120,7 @@ template <>
 struct make_blank<otx::client::IssueUnitDefinitionTask> {
     static otx::client::IssueUnitDefinitionTask value()
     {
-        return {make_blank<OTUnitID>::value(), ""};
+        return {make_blank<OTUnitID>::value(), "", proto::CITEMTYPE_ERROR};
     }
 };
 template <>

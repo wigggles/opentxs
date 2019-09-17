@@ -114,7 +114,7 @@ Manager::Manager(
           *this,
           *ot_api_->m_pClient,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
-    , pair_(opentxs::Factory::Pair(running_, *this))
+    , pair_(opentxs::Factory::PairAPI(running_, *this))
     , ui_(opentxs::Factory::UI(
           *this,
           running_
@@ -221,6 +221,7 @@ void Manager::Init(const PasswordPrompt& reason)
     StorageParent::init(factory_, *seeds_);
     StartContacts(reason);
     StartActivity(reason);
+    pair_->init();
 }
 
 std::recursive_mutex& Manager::Lock(

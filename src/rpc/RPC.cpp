@@ -491,7 +491,13 @@ proto::RPCResponse RPC::create_issuer_account(
         return output;
     }
 
-    INIT_OTX(IssueUnitDefinition, ownerID, notaryID, unitID, label);
+    INIT_OTX(
+        IssueUnitDefinition,
+        ownerID,
+        notaryID,
+        unitID,
+        proto::CITEMTYPE_ERROR,
+        label);
 
     if (false == ready) {
         add_output_status(output, proto::RPCRESPONSE_ERROR);

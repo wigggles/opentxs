@@ -373,7 +373,7 @@ public:
     static opentxs::PasswordPrompt* PasswordPrompt(
         const api::internal::Core& api,
         const std::string& text);
-    static api::client::Pair* Pair(
+    static api::client::internal::Pair* PairAPI(
         const Flag& running,
         const api::client::Manager& client);
     static network::zeromq::socket::Pair* PairSocket(

@@ -58,6 +58,7 @@ struct Activity;
 struct Blockchain;
 struct Contacts;
 struct Manager;
+struct Pair;
 }  // namespace internal
 }  // namespace client
 

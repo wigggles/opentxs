@@ -138,7 +138,7 @@ Wallet::AccountLock& Wallet::account(
     const Identifier& account,
     const bool create) const
 {
-    OT_ASSERT(verify_lock(lock, account_map_lock_))
+    OT_ASSERT(CheckLock(lock, account_map_lock_))
 
     auto& row = account_map_[account];
     auto& [rowMutex, pAccount] = row;
@@ -1548,7 +1548,9 @@ bool Wallet::PeerReplyReceive(
         notUsed,
         false);
 
-    if (!haveRequest) {
+    if (haveRequest) {
+        OT_ASSERT(request);
+    } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": The request for this reply does not exist in the sent box.")
             .Flush();
@@ -1556,10 +1558,17 @@ bool Wallet::PeerReplyReceive(
         return false;
     }
 
-    const bool receivedReply = api_.Storage().Store(
-        reply.Reply()->Contract(), nymID, StorageBox::INCOMINGPEERREPLY);
+    const proto::PeerReply serialized{reply.Reply()->Contract()};
+    const bool receivedReply =
+        api_.Storage().Store(serialized, nymID, StorageBox::INCOMINGPEERREPLY);
 
-    if (!receivedReply) {
+    if (receivedReply) {
+        auto message = opentxs::network::zeromq::Message::Factory();
+        message->AddFrame();
+        message->AddFrame(nymID);
+        message->AddFrame(serialized);
+        peer_reply_publisher_->Send(message);
+    } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save incoming reply.")
             .Flush();
 
@@ -1741,13 +1750,19 @@ bool Wallet::PeerRequestReceive(
         return false;
     }
 
+    const proto::PeerRequest serialized{request.Request()->Contract()};
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
-
     const auto saved = api_.Storage().Store(
-        request.Request()->Contract(), nymID, StorageBox::INCOMINGPEERREQUEST);
+        serialized, nymID, StorageBox::INCOMINGPEERREQUEST);
 
-    if (saved) { peer_request_publisher_->Send(request.Request()->ID()); }
+    if (saved) {
+        auto message = opentxs::network::zeromq::Message::Factory();
+        message->AddFrame();
+        message->AddFrame(nymID);
+        message->AddFrame(serialized);
+        peer_request_publisher_->Send(message);
+    }
 
     return saved;
 }

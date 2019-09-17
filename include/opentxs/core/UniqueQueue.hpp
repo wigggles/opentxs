@@ -82,7 +82,12 @@ public:
         return output;
     }
 
-    bool empty() const { return queue_.empty(); }
+    bool empty() const
+    {
+        Lock lock(lock_);
+
+        return queue_.empty();
+    }
 
     bool Push(const Key key, const T& in) const
     {
@@ -121,6 +126,13 @@ public:
         OT_ASSERT(set_.size() == queue_.size())
 
         return true;
+    }
+
+    std::size_t size() const
+    {
+        Lock lock(lock_);
+
+        return queue_.size();
     }
 
 private:

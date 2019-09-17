@@ -45,8 +45,6 @@
 
 #include "AccountSummary.hpp"
 
-#define DEFAULT_ISSUER_NAME "Connecting to Stash Node..."
-
 #define OT_METHOD "opentxs::ui::implementation::AccountSummary::"
 
 namespace opentxs
@@ -159,7 +157,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     const identifier::Nym& issuerID)
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    AccountSummarySortKey output{false, DEFAULT_ISSUER_NAME};
+    AccountSummarySortKey output{false, "opentxs notary"};
     auto& [state, name] = output;
 
     const auto issuer = api_.Wallet().Issuer(nymID, issuerID);
@@ -174,6 +172,7 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (false == bool(server)) { return output; }
 
+    name = server->Alias();
     const auto& serverNymID = server->Nym()->ID();
     eLock lock(shared_lock_);
     nym_server_map_.emplace(serverNymID, serverID);
@@ -189,8 +188,6 @@ AccountSummarySortKey AccountSummary::extract_key(
         default: {
         }
     }
-
-    name = server->Alias();
 
     return output;
 }

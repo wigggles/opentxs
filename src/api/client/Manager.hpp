@@ -51,7 +51,7 @@ private:
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
     std::unique_ptr<api::client::ServerAction> server_action_;
     std::unique_ptr<api::client::OTX> otx_;
-    std::unique_ptr<api::client::Pair> pair_;
+    std::unique_ptr<api::client::internal::Pair> pair_;
     std::unique_ptr<api::client::UI> ui_;
     mutable std::recursive_mutex lock_;
     mutable std::mutex map_lock_;

@@ -140,7 +140,7 @@ OTAPI_Func::OTAPI_Func(
     , infoType_(proto::CONNECTIONINFO_ERROR)
     , unitDefinition_()
 {
-    OT_ASSERT(verify_lock(api_lock_, apiLock));
+    OT_ASSERT(CheckLock(api_lock_, apiLock));
 }
 
 OTAPI_Func::OTAPI_Func(
