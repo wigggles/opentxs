@@ -33,16 +33,16 @@ public:
     EXPORT virtual std::string AddContact(
         const std::string& label,
         const std::string& paymentCode = "",
-        const std::string& nymID = "") const = 0;
+        const std::string& nymID = "") const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> First()
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()
-        const = 0;
+        const noexcept = 0;
 
     EXPORT virtual ~ContactList() = default;
 
 protected:
-    ContactList() = default;
+    ContactList() noexcept = default;
 
 private:
     ContactList(const ContactList&) = delete;
@@ -55,7 +55,7 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ContactListQt : public QAbstractItemModel
+class opentxs::ui::ContactListQt final : public QAbstractItemModel
 {
     Q_OBJECT
 
@@ -73,23 +73,26 @@ public:
     Q_INVOKABLE QString addContact(
         const QString& label,
         const QString& paymentCode = "",
-        const QString& nymID = "") const;
+        const QString& nymID = "") const noexcept;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex& index) const override;
-    QHash<int, QByteArray> roleNames() const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        const QModelIndex& parent = QModelIndex()) const noexcept final;
+    QModelIndex parent(const QModelIndex& index) const noexcept final;
+    QHash<int, QByteArray> roleNames() const noexcept final;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
 
-    const ContactList& operator*() const;
+    const ContactList& operator*() const noexcept;
 
-    ContactListQt(ConstructorCallback cb);
-    ~ContactListQt() override;
+    // Throws std::runtime_error if callback returns invalid pointer
+    ContactListQt(ConstructorCallback cb) noexcept(false);
+    ~ContactListQt() final;
 
 signals:
     void updated() const;
@@ -97,11 +100,14 @@ signals:
 private:
     std::unique_ptr<implementation::ContactList> parent_;
 
-    void notify() const;
-    void finish_row_add();
-    void finish_row_delete();
-    void start_row_add(const QModelIndex& parent, int first, int last);
-    void start_row_delete(const QModelIndex& parent, int first, int last);
+    void notify() const noexcept;
+    void finish_row_add() noexcept;
+    void finish_row_delete() noexcept;
+    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
+    void start_row_delete(
+        const QModelIndex& parent,
+        int first,
+        int last) noexcept;
 
     ContactListQt() = delete;
     ContactListQt(const ContactListQt&) = delete;

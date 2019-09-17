@@ -55,7 +55,7 @@ PaymentItem::PaymentItem(
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
     : ActivityThreadItem(
           parent,
           api,
@@ -100,14 +100,14 @@ PaymentItem::PaymentItem(
     OT_ASSERT(load_)
 }
 
-opentxs::Amount PaymentItem::Amount() const
+opentxs::Amount PaymentItem::Amount() const noexcept
 {
     sLock lock(shared_lock_);
 
     return amount_;
 }
 
-bool PaymentItem::Deposit() const
+bool PaymentItem::Deposit() const noexcept
 {
     switch (box_) {
         case StorageBox::INCOMINGCHEQUE: {
@@ -152,14 +152,14 @@ bool PaymentItem::Deposit() const
     return true;
 }
 
-std::string PaymentItem::DisplayAmount() const
+std::string PaymentItem::DisplayAmount() const noexcept
 {
     sLock lock(shared_lock_);
 
     return display_amount_;
 }
 
-void PaymentItem::load()
+void PaymentItem::load() noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     std::shared_ptr<const std::string> text{nullptr};
@@ -223,7 +223,7 @@ void PaymentItem::load()
     UpdateNotify();
 }
 
-std::string PaymentItem::Memo() const
+std::string PaymentItem::Memo() const noexcept
 {
     sLock lock(shared_lock_);
 

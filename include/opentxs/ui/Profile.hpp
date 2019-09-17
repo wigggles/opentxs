@@ -29,7 +29,7 @@
         const int type,
         const std::string& value,
         const bool primary,
-        const bool active) const
+        const bool active) const noexcept
     {
         return $self->AddClaim(
             static_cast<opentxs::proto::ContactSectionName>(section),
@@ -40,7 +40,7 @@
     }
     std::vector<std::pair<int, std::string>> AllowedItems(
         const int section,
-        const std::string& lang)
+        const std::string& lang) noexcept
     {
         const auto types = opentxs::ui::ProfileSection::AllowedItems(
             static_cast<opentxs::proto::ContactSectionName>(section),
@@ -57,7 +57,7 @@
         return output;
     }
     std::vector<std::pair<int, std::string>> AllowedSections(
-        const std::string& lang)
+        const std::string& lang) noexcept
     {
         const auto sections = $self->AllowedSections(lang);
         std::vector<std::pair<int, std::string>> output;
@@ -101,43 +101,43 @@ public:
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
-        const bool active) const = 0;
+        const bool active) const noexcept = 0;
     EXPORT virtual ItemTypeList AllowedItems(
         const proto::ContactSectionName section,
-        const std::string& lang) const = 0;
+        const std::string& lang) const noexcept = 0;
     EXPORT virtual SectionTypeList AllowedSections(
-        const std::string& lang) const = 0;
+        const std::string& lang) const noexcept = 0;
     EXPORT virtual bool Delete(
         const int section,
         const int type,
-        const std::string& claimID) const = 0;
-    EXPORT virtual std::string DisplayName() const = 0;
+        const std::string& claimID) const noexcept = 0;
+    EXPORT virtual std::string DisplayName() const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSection> First()
-        const = 0;
-    EXPORT virtual std::string ID() const = 0;
+        const noexcept = 0;
+    EXPORT virtual std::string ID() const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSection> Next()
-        const = 0;
-    EXPORT virtual std::string PaymentCode() const = 0;
+        const noexcept = 0;
+    EXPORT virtual std::string PaymentCode() const noexcept = 0;
     EXPORT virtual bool SetActive(
         const int section,
         const int type,
         const std::string& claimID,
-        const bool active) const = 0;
+        const bool active) const noexcept = 0;
     EXPORT virtual bool SetPrimary(
         const int section,
         const int type,
         const std::string& claimID,
-        const bool primary) const = 0;
+        const bool primary) const noexcept = 0;
     EXPORT virtual bool SetValue(
         const int section,
         const int type,
         const std::string& claimID,
-        const std::string& value) const = 0;
+        const std::string& value) const noexcept = 0;
 
     EXPORT virtual ~Profile() = default;
 
 protected:
-    Profile() = default;
+    Profile() noexcept = default;
 
 private:
     Profile(const Profile&) = delete;
@@ -150,7 +150,7 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ProfileQt : public QAbstractItemModel
+class opentxs::ui::ProfileQt final : public QAbstractItemModel
 {
     Q_OBJECT
 
@@ -160,25 +160,28 @@ public:
 
     enum Roles {};
 
-    QString displayName() const;
-    QString nymID() const;
-    QString paymentCode() const;
+    QString displayName() const noexcept;
+    QString nymID() const noexcept;
+    QString paymentCode() const noexcept;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex& index) const override;
-    QHash<int, QByteArray> roleNames() const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        const QModelIndex& parent = QModelIndex()) const noexcept final;
+    QModelIndex parent(const QModelIndex& index) const noexcept final;
+    QHash<int, QByteArray> roleNames() const noexcept final;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const
+        noexcept final;
 
-    const Profile& operator*() const;
+    const Profile& operator*() const noexcept;
 
-    ProfileQt(ConstructorCallback cb);
-    ~ProfileQt() override;
+    // Throws std::runtime_error if callback returns invalid pointer
+    ProfileQt(ConstructorCallback cb) noexcept(false);
+    ~ProfileQt() final;
 
 signals:
     void updated() const;
@@ -190,11 +193,14 @@ private:
 
     std::unique_ptr<implementation::Profile> parent_;
 
-    void notify() const;
-    void finish_row_add();
-    void finish_row_delete();
-    void start_row_add(const QModelIndex& parent, int first, int last);
-    void start_row_delete(const QModelIndex& parent, int first, int last);
+    void notify() const noexcept;
+    void finish_row_add() noexcept;
+    void finish_row_delete() noexcept;
+    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
+    void start_row_delete(
+        const QModelIndex& parent,
+        int first,
+        int last) noexcept;
 
     ProfileQt() = delete;
     ProfileQt(const ProfileQt&) = delete;

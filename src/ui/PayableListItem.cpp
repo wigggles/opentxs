@@ -51,14 +51,14 @@ PayableListItem::PayableListItem(
     const PayableListRowID& rowID,
     const PayableListSortKey& key,
     const std::string& paymentcode,
-    const proto::ContactItemType& currency)
+    const proto::ContactItemType& currency) noexcept
     : ot_super(parent, api, publisher, rowID, key)
     , payment_code_(paymentcode)
     , currency_(currency)
 {
 }
 
-std::string PayableListItem::PaymentCode() const
+std::string PayableListItem::PaymentCode() const noexcept
 {
     Lock lock(lock_);
 
@@ -67,7 +67,7 @@ std::string PayableListItem::PaymentCode() const
 
 void PayableListItem::reindex(
     const ContactListSortKey& key,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 

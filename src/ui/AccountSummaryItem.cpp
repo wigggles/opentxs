@@ -57,7 +57,7 @@ AccountSummaryItem::AccountSummaryItem(
     const network::zeromq::socket::Publish& publisher,
     const IssuerItemRowID& rowID,
     const IssuerItemSortKey& sortKey,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
     : AccountSummaryItemRow(parent, api, publisher, rowID, true)
     , account_id_{std::get<0>(row_id_).get()}
     , currency_{std::get<1>(row_id_)}
@@ -69,7 +69,7 @@ AccountSummaryItem::AccountSummaryItem(
 {
 }
 
-std::string AccountSummaryItem::DisplayBalance() const
+std::string AccountSummaryItem::DisplayBalance() const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt("Loading account balance");
 
@@ -95,7 +95,7 @@ std::string AccountSummaryItem::DisplayBalance() const
     return {};
 }
 
-std::string AccountSummaryItem::Name() const
+std::string AccountSummaryItem::Name() const noexcept
 {
     sLock lock(shared_lock_);
 
@@ -104,7 +104,7 @@ std::string AccountSummaryItem::Name() const
 
 void AccountSummaryItem::reindex(
     const IssuerItemSortKey& key,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     balance_.store(extract_custom<Amount>(custom));
     eLock lock(shared_lock_);

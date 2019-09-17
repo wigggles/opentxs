@@ -31,7 +31,6 @@
 
 #include "internal/core/identifier/Identifier.hpp"
 #include "internal/ui/UI.hpp"
-#include "IssuerItemBlank.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -90,7 +89,7 @@ AccountSummary::AccountSummary(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : AccountSummaryList(
           api,
           publisher,
@@ -130,7 +129,7 @@ AccountSummary::AccountSummary(
 void AccountSummary::construct_row(
     const AccountSummaryRowID& id,
     const AccountSummarySortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     items_[index].emplace(
         id,
@@ -154,7 +153,7 @@ void AccountSummary::construct_row(
 
 AccountSummarySortKey AccountSummary::extract_key(
     const identifier::Nym& nymID,
-    const identifier::Nym& issuerID)
+    const identifier::Nym& issuerID) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     AccountSummarySortKey output{false, "opentxs notary"};
@@ -192,7 +191,8 @@ AccountSummarySortKey AccountSummary::extract_key(
     return output;
 }
 
-void AccountSummary::process_connection(const network::zeromq::Message& message)
+void AccountSummary::process_connection(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -202,14 +202,15 @@ void AccountSummary::process_connection(const network::zeromq::Message& message)
     process_server(serverID);
 }
 
-void AccountSummary::process_issuer(const identifier::Nym& issuerID)
+void AccountSummary::process_issuer(const identifier::Nym& issuerID) noexcept
 {
     issuers_.emplace(issuerID);
     const CustomData custom{};
     add_item(issuerID, extract_key(primary_id_, issuerID), custom);
 }
 
-void AccountSummary::process_issuer(const network::zeromq::Message& message)
+void AccountSummary::process_issuer(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -228,7 +229,8 @@ void AccountSummary::process_issuer(const network::zeromq::Message& message)
     if (0 == existing) { process_issuer(issuerID); }
 }
 
-void AccountSummary::process_nym(const network::zeromq::Message& message)
+void AccountSummary::process_nym(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -248,7 +250,8 @@ void AccountSummary::process_nym(const network::zeromq::Message& message)
     process_server(serverID);
 }
 
-void AccountSummary::process_server(const network::zeromq::Message& message)
+void AccountSummary::process_server(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -262,7 +265,7 @@ void AccountSummary::process_server(const network::zeromq::Message& message)
     process_server(serverID);
 }
 
-void AccountSummary::process_server(const identifier::Server& serverID)
+void AccountSummary::process_server(const identifier::Server& serverID) noexcept
 {
     sLock lock(shared_lock_);
     const auto it = server_issuer_map_.find(serverID);
@@ -275,7 +278,7 @@ void AccountSummary::process_server(const identifier::Server& serverID)
     add_item(issuerID, extract_key(primary_id_, issuerID), custom);
 }
 
-void AccountSummary::startup()
+void AccountSummary::startup() noexcept
 {
     const auto issuers = api_.Wallet().IssuerList(primary_id_);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(issuers.size())(
@@ -284,7 +287,7 @@ void AccountSummary::startup()
 
     for (const auto& id : issuers) { process_issuer(id); }
 
-    startup_complete_->On();
+    finish_startup();
 }
 
 AccountSummary::~AccountSummary()

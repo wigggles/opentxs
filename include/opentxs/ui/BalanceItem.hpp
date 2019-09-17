@@ -20,7 +20,7 @@
 #ifdef SWIG
 // clang-format off
 %extend opentxs::ui::BalanceItem {
-    int Timestamp() const
+    int Timestamp() const noexcept
     {
         return std::chrono::system_clock::to_time_t($self->Timestamp());
     }
@@ -40,20 +40,21 @@ namespace ui
 class BalanceItem : virtual public ListRow
 {
 public:
-    EXPORT virtual opentxs::Amount Amount() const = 0;
-    EXPORT virtual std::vector<std::string> Contacts() const = 0;
-    EXPORT virtual std::string DisplayAmount() const = 0;
-    EXPORT virtual std::string Memo() const = 0;
-    EXPORT virtual std::string Workflow() const = 0;
-    EXPORT virtual std::string Text() const = 0;
-    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
-    EXPORT virtual StorageBox Type() const = 0;
-    EXPORT virtual std::string UUID() const = 0;
+    EXPORT virtual opentxs::Amount Amount() const noexcept = 0;
+    EXPORT virtual std::vector<std::string> Contacts() const noexcept = 0;
+    EXPORT virtual std::string DisplayAmount() const noexcept = 0;
+    EXPORT virtual std::string Memo() const noexcept = 0;
+    EXPORT virtual std::string Workflow() const noexcept = 0;
+    EXPORT virtual std::string Text() const noexcept = 0;
+    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const
+        noexcept = 0;
+    EXPORT virtual StorageBox Type() const noexcept = 0;
+    EXPORT virtual std::string UUID() const noexcept = 0;
 
     EXPORT virtual ~BalanceItem() = default;
 
 protected:
-    BalanceItem() = default;
+    BalanceItem() noexcept = default;
 
 private:
     BalanceItem(const BalanceItem&) = delete;

@@ -12,14 +12,14 @@ namespace opentxs::ui::implementation
 class ChequeBalanceItem : public BalanceItem
 {
 public:
-    opentxs::Amount Amount() const override { return effective_amount(); }
-    std::string Memo() const override;
-    std::string UUID() const override;
-    std::string Workflow() const override { return workflow_; }
+    opentxs::Amount Amount() const noexcept final { return effective_amount(); }
+    std::string Memo() const noexcept final;
+    std::string UUID() const noexcept final;
+    std::string Workflow() const noexcept final { return workflow_; }
 
     void reindex(
         const implementation::AccountActivitySortKey& key,
-        const implementation::CustomData& custom) override;
+        const implementation::CustomData& custom) noexcept final;
 
     ~ChequeBalanceItem() = default;
 
@@ -28,10 +28,10 @@ private:
 
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
 
-    opentxs::Amount effective_amount() const override;
-    bool get_contract(const PasswordPrompt& reason) const override;
+    opentxs::Amount effective_amount() const noexcept final;
+    bool get_contract(const PasswordPrompt& reason) const noexcept final;
 
-    void startup(const CustomData& custom);
+    void startup(const CustomData& custom) noexcept;
 
     ChequeBalanceItem(
         const AccountActivityInternalInterface& parent,
@@ -41,7 +41,7 @@ private:
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
         const identifier::Nym& nymID,
-        const Identifier& accountID);
+        const Identifier& accountID) noexcept;
 
     ChequeBalanceItem() = delete;
     ChequeBalanceItem(const ChequeBalanceItem&) = delete;

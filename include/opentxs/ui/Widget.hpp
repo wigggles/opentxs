@@ -13,7 +13,7 @@
 #ifdef SWIG
 // clang-format off
 %extend opentxs::ui::Widget {
-    std::string WidgetID() const
+    std::string WidgetID() const noexcept
     {
         return $self->WidgetID()->str();
     }
@@ -33,13 +33,13 @@ class Widget
 public:
     using Callback = std::function<void()>;
 
-    EXPORT virtual void SetCallback(Callback cb) const = 0;
-    EXPORT virtual OTIdentifier WidgetID() const = 0;
+    EXPORT virtual void SetCallback(Callback cb) const noexcept = 0;
+    EXPORT virtual OTIdentifier WidgetID() const noexcept = 0;
 
     EXPORT virtual ~Widget() = default;
 
 protected:
-    Widget() = default;
+    Widget() noexcept = default;
 
 private:
     Widget(const Widget&) = delete;

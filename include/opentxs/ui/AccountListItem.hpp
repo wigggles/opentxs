@@ -33,21 +33,21 @@ namespace ui
 class AccountListItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string AccountID() const = 0;
-    EXPORT virtual Amount Balance() const = 0;
-    EXPORT virtual std::string ContractID() const = 0;
-    EXPORT virtual std::string DisplayBalance() const = 0;
-    EXPORT virtual std::string DisplayUnit() const = 0;
-    EXPORT virtual std::string Name() const = 0;
-    EXPORT virtual std::string NotaryID() const = 0;
-    EXPORT virtual std::string NotaryName() const = 0;
-    EXPORT virtual AccountType Type() const = 0;
-    EXPORT virtual proto::ContactItemType Unit() const = 0;
+    EXPORT virtual std::string AccountID() const noexcept = 0;
+    EXPORT virtual Amount Balance() const noexcept = 0;
+    EXPORT virtual std::string ContractID() const noexcept = 0;
+    EXPORT virtual std::string DisplayBalance() const noexcept = 0;
+    EXPORT virtual std::string DisplayUnit() const noexcept = 0;
+    EXPORT virtual std::string Name() const noexcept = 0;
+    EXPORT virtual std::string NotaryID() const noexcept = 0;
+    EXPORT virtual std::string NotaryName() const noexcept = 0;
+    EXPORT virtual AccountType Type() const noexcept = 0;
+    EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
 
     EXPORT virtual ~AccountListItem() = default;
 
 protected:
-    AccountListItem() = default;
+    AccountListItem() noexcept = default;
 
 private:
     AccountListItem(const AccountListItem&) = delete;

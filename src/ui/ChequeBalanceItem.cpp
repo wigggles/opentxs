@@ -48,7 +48,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
     const identifier::Nym& nymID,
-    const Identifier& accountID)
+    const Identifier& accountID) noexcept
     : BalanceItem(
           parent,
           api,
@@ -65,7 +65,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     OT_ASSERT(startup_)
 }
 
-opentxs::Amount ChequeBalanceItem::effective_amount() const
+opentxs::Amount ChequeBalanceItem::effective_amount() const noexcept
 {
     sLock lock(shared_lock_);
     auto amount{0};
@@ -101,6 +101,7 @@ opentxs::Amount ChequeBalanceItem::effective_amount() const
 }
 
 bool ChequeBalanceItem::get_contract(const PasswordPrompt& reason) const
+    noexcept
 {
     if (contract_) { return true; }
 
@@ -116,7 +117,7 @@ bool ChequeBalanceItem::get_contract(const PasswordPrompt& reason) const
     return false;
 }
 
-std::string ChequeBalanceItem::Memo() const
+std::string ChequeBalanceItem::Memo() const noexcept
 {
     sLock lock(shared_lock_);
 
@@ -127,13 +128,13 @@ std::string ChequeBalanceItem::Memo() const
 
 void ChequeBalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    const implementation::CustomData& custom)
+    const implementation::CustomData& custom) noexcept
 {
     BalanceItem::reindex(key, custom);
     startup(custom);
 }
 
-void ChequeBalanceItem::startup(const CustomData& custom)
+void ChequeBalanceItem::startup(const CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
 
@@ -230,7 +231,7 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     UpdateNotify();
 }
 
-std::string ChequeBalanceItem::UUID() const
+std::string ChequeBalanceItem::UUID() const noexcept
 {
     if (cheque_) {
 

@@ -54,7 +54,7 @@ PendingSend::PendingSend(
     const identifier::Nym& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom)
+    const CustomData& custom) noexcept
     : ActivityThreadItem(
           parent,
           api,

@@ -26,8 +26,6 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 
-#include "BalanceItemBlank.hpp"
-
 #include <atomic>
 #include <map>
 #include <memory>
@@ -47,11 +45,11 @@ namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(AccountActivityQt, AccountActivity)
 
-int AccountActivityQt::balancePolarity() const
+int AccountActivityQt::balancePolarity() const noexcept
 {
     return parent_->BalancePolarity();
 }
-QString AccountActivityQt::displayBalance() const
+QString AccountActivityQt::displayBalance() const noexcept
 {
     return parent_->DisplayBalance().c_str();
 }
@@ -71,7 +69,7 @@ AccountActivity::AccountActivity(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : AccountActivityList(
           api,
           publisher,
@@ -115,7 +113,7 @@ AccountActivity::AccountActivity(
 void AccountActivity::construct_row(
     const AccountActivityRowID& id,
     const AccountActivitySortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     OT_ASSERT(2 == custom.size())
 
@@ -135,6 +133,7 @@ void AccountActivity::construct_row(
 
 #if OT_QT
 QVariant AccountActivity::data(const QModelIndex& index, int role) const
+    noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -193,7 +192,7 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
 }
 #endif
 
-std::string AccountActivity::DisplayBalance() const
+std::string AccountActivity::DisplayBalance() const noexcept
 {
     sLock lock(shared_lock_);
 
@@ -213,7 +212,7 @@ std::string AccountActivity::DisplayBalance() const
 
 AccountActivity::EventRow AccountActivity::extract_event(
     const proto::PaymentEventType eventType,
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) noexcept
 {
     bool success{false};
     bool found{false};
@@ -265,7 +264,7 @@ AccountActivity::EventRow AccountActivity::extract_event(
 }
 
 std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) noexcept
 {
     std::vector<AccountActivity::RowKey> output;
 
@@ -447,7 +446,7 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
 }
 
 void AccountActivity::process_balance(
-    const opentxs::network::zeromq::Message& message)
+    const opentxs::network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -467,7 +466,7 @@ void AccountActivity::process_balance(
 
 void AccountActivity::process_workflow(
     const Identifier& workflowID,
-    std::set<AccountActivityRowID>& active)
+    std::set<AccountActivityRowID>& active) noexcept
 {
     const auto workflow = api_.Workflow().LoadWorkflow(primary_id_, workflowID);
 
@@ -485,7 +484,8 @@ void AccountActivity::process_workflow(
     }
 }
 
-void AccountActivity::process_workflow(const network::zeromq::Message& message)
+void AccountActivity::process_workflow(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -499,7 +499,7 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
     if (account_id_ == accountID) { startup(); }
 }
 
-void AccountActivity::startup()
+void AccountActivity::startup() noexcept
 {
     auto reason = api_.Factory().PasswordPrompt("Loading account activity");
     auto account = api_.Wallet().Account(account_id_, reason);
@@ -520,7 +520,7 @@ void AccountActivity::startup()
     for (const auto& id : workflows) { process_workflow(id, active); }
 
     delete_inactive(active);
-    startup_complete_->On();
+    finish_startup();
 }
 
 AccountActivity::~AccountActivity()

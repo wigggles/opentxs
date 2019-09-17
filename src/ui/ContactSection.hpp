@@ -24,16 +24,16 @@ using ContactSectionRow =
 class ContactSection final : public ContactSectionList, public ContactSectionRow
 {
 public:
-    std::string ContactID() const override { return primary_id_->str(); }
-    std::string Name(const std::string& lang) const override
+    std::string ContactID() const noexcept final { return primary_id_->str(); }
+    std::string Name(const std::string& lang) const noexcept final
     {
         return proto::TranslateSectionName(row_id_, lang);
     }
-    proto::ContactSectionName Type() const override { return row_id_; }
+    proto::ContactSectionName Type() const noexcept final { return row_id_; }
 
     void reindex(
         const implementation::ContactSortKey& key,
-        const implementation::CustomData& custom) override;
+        const implementation::CustomData& custom) noexcept final;
 
     ~ContactSection() = default;
 
@@ -47,21 +47,21 @@ private:
         map<proto::ContactSectionName, std::map<proto::ContactItemType, int>>
             sort_keys_;
 
-    static int sort_key(const ContactSectionRowID type);
-    static bool check_type(const ContactSectionRowID type);
+    static int sort_key(const ContactSectionRowID type) noexcept;
+    static bool check_type(const ContactSectionRowID type) noexcept;
 
     void construct_row(
         const ContactSectionRowID& id,
         const ContactSectionSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    bool last(const ContactSectionRowID& id) const override
+    bool last(const ContactSectionRowID& id) const noexcept final
     {
         return ContactSectionList::last(id);
     }
     std::set<ContactSectionRowID> process_section(
-        const opentxs::ContactSection& section);
-    void startup(const CustomData custom);
+        const opentxs::ContactSection& section) noexcept;
+    void startup(const CustomData custom) noexcept;
 
     ContactSection(
         const ContactInternalInterface& parent,
@@ -76,7 +76,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     ContactSection() = delete;
     ContactSection(const ContactSection&) = delete;
     ContactSection(ContactSection&&) = delete;

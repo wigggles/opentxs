@@ -31,7 +31,6 @@
 
 #include "internal/ui/UI.hpp"
 #include "List.hpp"
-#include "ProfileSectionBlank.hpp"
 
 #include <map>
 #include <memory>
@@ -51,12 +50,12 @@ namespace opentxs::ui
 {
 QT_MODEL_WRAPPER(ProfileQt, Profile)
 
-QString ProfileQt::displayName() const
+QString ProfileQt::displayName() const noexcept
 {
     return parent_->DisplayName().c_str();
 }
-QString ProfileQt::nymID() const { return parent_->ID().c_str(); }
-QString ProfileQt::paymentCode() const
+QString ProfileQt::nymID() const noexcept { return parent_->ID().c_str(); }
+QString ProfileQt::paymentCode() const noexcept
 {
     return parent_->PaymentCode().c_str();
 }
@@ -83,7 +82,7 @@ Profile::Profile(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : ProfileList(
           api,
           publisher,
@@ -114,7 +113,7 @@ bool Profile::AddClaim(
     const proto::ContactItemType type,
     const std::string& value,
     const bool primary,
-    const bool active) const
+    const bool active) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt("Adding a claim to nym");
     auto nym = api_.Wallet().mutable_Nym(primary_id_, reason);
@@ -179,12 +178,13 @@ bool Profile::AddClaim(
 
 Profile::ItemTypeList Profile::AllowedItems(
     const proto::ContactSectionName section,
-    const std::string& lang) const
+    const std::string& lang) const noexcept
 {
     return ui::ProfileSection::AllowedItems(section, lang);
 }
 
 Profile::SectionTypeList Profile::AllowedSections(const std::string& lang) const
+    noexcept
 {
     SectionTypeList output{};
 
@@ -195,7 +195,7 @@ Profile::SectionTypeList Profile::AllowedSections(const std::string& lang) const
     return output;
 }
 
-bool Profile::check_type(const proto::ContactSectionName type)
+bool Profile::check_type(const proto::ContactSectionName type) noexcept
 {
     return 1 == allowed_types_.count(type);
 }
@@ -203,7 +203,7 @@ bool Profile::check_type(const proto::ContactSectionName type)
 void Profile::construct_row(
     const ProfileRowID& id,
     const ContactSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -227,7 +227,7 @@ void Profile::construct_row(
 bool Profile::Delete(
     const int sectionType,
     const int type,
-    const std::string& claimID) const
+    const std::string& claimID) const noexcept
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -237,7 +237,7 @@ bool Profile::Delete(
     return section.Delete(type, claimID);
 }
 
-std::string Profile::DisplayName() const
+std::string Profile::DisplayName() const noexcept
 {
     Lock lock(lock_);
 
@@ -246,7 +246,7 @@ std::string Profile::DisplayName() const
 
 std::string Profile::nym_name(
     const api::Wallet& wallet,
-    const identifier::Nym& nymID)
+    const identifier::Nym& nymID) noexcept
 {
     for (const auto& [id, name] : wallet.NymList()) {
         if (nymID.str() == id) { return name; }
@@ -255,14 +255,14 @@ std::string Profile::nym_name(
     return {};
 }
 
-std::string Profile::PaymentCode() const
+std::string Profile::PaymentCode() const noexcept
 {
     Lock lock(lock_);
 
     return payment_code_;
 }
 
-void Profile::process_nym(const identity::Nym& nym)
+void Profile::process_nym(const identity::Nym& nym) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -286,7 +286,7 @@ void Profile::process_nym(const identity::Nym& nym)
     delete_inactive(active);
 }
 
-void Profile::process_nym(const network::zeromq::Message& message)
+void Profile::process_nym(const network::zeromq::Message& message) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -312,7 +312,7 @@ bool Profile::SetActive(
     const int sectionType,
     const int type,
     const std::string& claimID,
-    const bool active) const
+    const bool active) const noexcept
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -326,7 +326,7 @@ bool Profile::SetPrimary(
     const int sectionType,
     const int type,
     const std::string& claimID,
-    const bool primary) const
+    const bool primary) const noexcept
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -340,7 +340,7 @@ bool Profile::SetValue(
     const int sectionType,
     const int type,
     const std::string& claimID,
-    const std::string& value) const
+    const std::string& value) const noexcept
 {
     Lock lock(lock_);
     auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
@@ -350,12 +350,12 @@ bool Profile::SetValue(
     return section.SetValue(type, claimID, value);
 }
 
-int Profile::sort_key(const proto::ContactSectionName type)
+int Profile::sort_key(const proto::ContactSectionName type) noexcept
 {
     return sort_keys_.at(type);
 }
 
-void Profile::startup()
+void Profile::startup() noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -365,7 +365,7 @@ void Profile::startup()
     OT_ASSERT(nym)
 
     process_nym(*nym);
-    startup_complete_->On();
+    finish_startup();
 }
 
 Profile::~Profile()

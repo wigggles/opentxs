@@ -28,8 +28,6 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/ui/AccountListItem.hpp"
 
-#include "AccountListItemBlank.hpp"
-
 #include <map>
 #include <memory>
 #include <set>
@@ -62,7 +60,7 @@ AccountList::AccountList(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : AccountListList(
           api,
           publisher,
@@ -99,7 +97,7 @@ AccountList::AccountList(
 void AccountList::construct_row(
     const AccountListRowID& id,
     const AccountListSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     items_[index].emplace(
@@ -110,7 +108,7 @@ void AccountList::construct_row(
 }
 
 #if OT_QT
-QVariant AccountList::data(const QModelIndex& index, int role) const
+QVariant AccountList::data(const QModelIndex& index, int role) const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -158,14 +156,16 @@ QVariant AccountList::data(const QModelIndex& index, int role) const
 }
 #endif
 
-void AccountList::process_account(const Identifier& id)
+void AccountList::process_account(const Identifier& id) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto account = api_.Wallet().Account(id, reason);
     process_account(id, account.get().GetBalance(), account.get().Alias());
 }
 
-void AccountList::process_account(const Identifier& id, const Amount balance)
+void AccountList::process_account(
+    const Identifier& id,
+    const Amount balance) noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto account = api_.Wallet().Account(id, reason);
@@ -175,7 +175,7 @@ void AccountList::process_account(const Identifier& id, const Amount balance)
 void AccountList::process_account(
     const Identifier& id,
     const Amount balance,
-    const std::string& name)
+    const std::string& name) noexcept
 {
     auto index = make_blank<AccountListSortKey>::value();
     auto& [type, notary] = index;
@@ -189,7 +189,8 @@ void AccountList::process_account(
     add_item(id, index, custom);
 }
 
-void AccountList::process_account(const network::zeromq::Message& message)
+void AccountList::process_account(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -214,7 +215,7 @@ void AccountList::process_account(const network::zeromq::Message& message)
     process_account(accountID, balance);
 }
 
-void AccountList::startup()
+void AccountList::startup() noexcept
 {
     const auto accounts = api_.Storage().AccountsByOwner(primary_id_);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(accounts.size())(
@@ -223,7 +224,7 @@ void AccountList::startup()
 
     for (const auto& id : accounts) { process_account(id); }
 
-    startup_complete_->On();
+    finish_startup();
 }
 
 AccountList::~AccountList()

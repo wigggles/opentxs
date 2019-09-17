@@ -17,19 +17,20 @@ using ActivityThreadItemRow =
 class ActivityThreadItem : public ActivityThreadItemRow
 {
 public:
-    opentxs::Amount Amount() const override { return 0; }
-    bool Deposit() const override { return false; }
-    std::string DisplayAmount() const override { return {}; }
-    bool Loading() const override { return loading_.get(); }
-    bool MarkRead() const override;
-    std::string Memo() const override { return {}; }
-    bool Pending() const override { return pending_.get(); }
-    std::string Text() const override;
-    std::chrono::system_clock::time_point Timestamp() const override;
-    StorageBox Type() const override { return box_; }
+    opentxs::Amount Amount() const noexcept override { return 0; }
+    bool Deposit() const noexcept override { return false; }
+    std::string DisplayAmount() const noexcept override { return {}; }
+    bool Loading() const noexcept final { return loading_.get(); }
+    bool MarkRead() const noexcept final;
+    std::string Memo() const noexcept override { return {}; }
+    bool Pending() const noexcept final { return pending_.get(); }
+    std::string Text() const noexcept final;
+    std::chrono::system_clock::time_point Timestamp() const noexcept final;
+    StorageBox Type() const noexcept final { return box_; }
 
-    void reindex(const ActivityThreadSortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const ActivityThreadSortKey& key,
+        const CustomData& custom) noexcept final;
 
     virtual ~ActivityThreadItem() = default;
 
@@ -52,7 +53,7 @@ protected:
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
         const bool loading,
-        const bool pending);
+        const bool pending) noexcept;
 
 private:
     ActivityThreadItem() = delete;

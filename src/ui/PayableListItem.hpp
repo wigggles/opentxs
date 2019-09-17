@@ -15,7 +15,7 @@ class PayableListItem final : public PayableListRowInternal,
                               public ContactListItem
 {
 public:
-    std::string PaymentCode() const override;
+    std::string PaymentCode() const noexcept final;
 
     ~PayableListItem() = default;
 
@@ -27,8 +27,9 @@ private:
     std::string payment_code_{""};
     const proto::ContactItemType currency_;
 
-    void reindex(const ContactListSortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const ContactListSortKey& key,
+        const CustomData& custom) noexcept final;
 
     PayableListItem(
         const PayableInternalInterface& parent,
@@ -37,7 +38,7 @@ private:
         const PayableListRowID& rowID,
         const PayableListSortKey& key,
         const std::string& paymentcode,
-        const proto::ContactItemType& currency);
+        const proto::ContactItemType& currency) noexcept;
     PayableListItem() = delete;
     PayableListItem(const PayableListItem&) = delete;
     PayableListItem(PayableListItem&&) = delete;

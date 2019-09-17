@@ -49,29 +49,32 @@ ContactListItem::ContactListItem(
     const api::client::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ContactListRowID& rowID,
-    const ContactListSortKey& key)
+    const ContactListSortKey& key) noexcept
     : ContactListItemRow(parent, api, publisher, rowID, true)
     , key_(key)
 {
 }
 
-std::string ContactListItem::ContactID() const { return row_id_->str(); }
+std::string ContactListItem::ContactID() const noexcept
+{
+    return row_id_->str();
+}
 
-std::string ContactListItem::DisplayName() const
+std::string ContactListItem::DisplayName() const noexcept
 {
     Lock lock(lock_);
 
     return key_;
 }
 
-std::string ContactListItem::ImageURI() const
+std::string ContactListItem::ImageURI() const noexcept
 {
     // TODO
 
     return {};
 }
 
-std::string ContactListItem::Section() const
+std::string ContactListItem::Section() const noexcept
 {
     Lock lock(lock_);
 
@@ -86,7 +89,9 @@ std::string ContactListItem::Section() const
     return output;
 }
 
-void ContactListItem::reindex(const ContactListSortKey& key, const CustomData&)
+void ContactListItem::reindex(
+    const ContactListSortKey& key,
+    const CustomData&) noexcept
 {
     Lock lock(lock_);
     key_ = key;

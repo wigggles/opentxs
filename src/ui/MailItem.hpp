@@ -21,7 +21,7 @@ private:
 
     std::unique_ptr<std::thread> load_{nullptr};
 
-    void load();
+    void load() noexcept;
 
     MailItem(
         const ActivityThreadInternalInterface& parent,
@@ -32,7 +32,7 @@ private:
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
         const bool loading,
-        const bool pending);
+        const bool pending) noexcept;
     MailItem(
         const ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
@@ -40,7 +40,7 @@ private:
         const identifier::Nym& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
     MailItem() = delete;
     MailItem(const MailItem&) = delete;
     MailItem(MailItem&&) = delete;

@@ -18,7 +18,7 @@
 #ifdef SWIG
 // clang-format off
 %extend opentxs::ui::ActivitySummaryItem {
-    int Timestamp() const
+    int Timestamp() const noexcept
     {
         return std::chrono::system_clock::to_time_t($self->Timestamp());
     }
@@ -36,17 +36,18 @@ namespace ui
 class ActivitySummaryItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string DisplayName() const = 0;
-    EXPORT virtual std::string ImageURI() const = 0;
-    EXPORT virtual std::string Text() const = 0;
-    EXPORT virtual std::string ThreadID() const = 0;
-    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
-    EXPORT virtual StorageBox Type() const = 0;
+    EXPORT virtual std::string DisplayName() const noexcept = 0;
+    EXPORT virtual std::string ImageURI() const noexcept = 0;
+    EXPORT virtual std::string Text() const noexcept = 0;
+    EXPORT virtual std::string ThreadID() const noexcept = 0;
+    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const
+        noexcept = 0;
+    EXPORT virtual StorageBox Type() const noexcept = 0;
 
     EXPORT virtual ~ActivitySummaryItem() = default;
 
 protected:
-    ActivitySummaryItem() = default;
+    ActivitySummaryItem() noexcept = default;
 
 private:
     ActivitySummaryItem(const ActivitySummaryItem&) = delete;

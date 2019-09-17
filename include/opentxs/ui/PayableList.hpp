@@ -35,14 +35,14 @@ public:
 
 public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem> First()
-        const = 0;
+        const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem> Next()
-        const = 0;
+        const noexcept = 0;
 
     EXPORT virtual ~PayableList() = default;
 
 protected:
-    PayableList() = default;
+    PayableList() noexcept = default;
 
 private:
     PayableList(const PayableList&) = delete;

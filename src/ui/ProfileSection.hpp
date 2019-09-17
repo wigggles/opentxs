@@ -28,47 +28,50 @@ public:
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
-        const bool active) const override;
-    bool Delete(const int type, const std::string& claimID) const override;
-    ItemTypeList Items(const std::string& lang) const override;
-    std::string Name(const std::string& lang) const override;
-    const identifier::Nym& NymID() const override { return primary_id_; }
+        const bool active) const noexcept final;
+    bool Delete(const int type, const std::string& claimID) const
+        noexcept final;
+    ItemTypeList Items(const std::string& lang) const noexcept final;
+    std::string Name(const std::string& lang) const noexcept final;
+    const identifier::Nym& NymID() const noexcept final { return primary_id_; }
     bool SetActive(
         const int type,
         const std::string& claimID,
-        const bool active) const override;
+        const bool active) const noexcept final;
     bool SetPrimary(
         const int type,
         const std::string& claimID,
-        const bool primary) const override;
+        const bool primary) const noexcept final;
     bool SetValue(
         const int type,
         const std::string& claimID,
-        const std::string& value) const override;
-    proto::ContactSectionName Type() const override { return row_id_; }
+        const std::string& value) const noexcept final;
+    proto::ContactSectionName Type() const noexcept final { return row_id_; }
 
-    void reindex(const ProfileSortKey& key, const CustomData& custom) override;
+    void reindex(
+        const ProfileSortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~ProfileSection() = default;
 
 private:
     friend opentxs::Factory;
 
-    static int sort_key(const ProfileSectionRowID type);
-    static bool check_type(const ProfileSectionRowID type);
+    static int sort_key(const ProfileSectionRowID type) noexcept;
+    static bool check_type(const ProfileSectionRowID type) noexcept;
 
     void construct_row(
         const ProfileSectionRowID& id,
         const ProfileSectionSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    bool last(const ProfileSectionRowID& id) const override
+    bool last(const ProfileSectionRowID& id) const noexcept final
     {
         return ProfileSectionList::last(id);
     }
     std::set<ProfileSectionRowID> process_section(
-        const opentxs::ContactSection& section);
-    void startup(const CustomData& custom);
+        const opentxs::ContactSection& section) noexcept;
+    void startup(const CustomData& custom) noexcept;
 
     ProfileSection(
         const ProfileInternalInterface& parent,
@@ -83,7 +86,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     ProfileSection() = delete;
     ProfileSection(const ProfileSection&) = delete;
     ProfileSection(ProfileSection&&) = delete;

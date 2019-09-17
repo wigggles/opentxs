@@ -14,10 +14,10 @@ namespace opentxs::ui::implementation
 class PendingSend final : public ActivityThreadItem
 {
 public:
-    opentxs::Amount Amount() const override { return amount_; }
-    bool Deposit() const override { return false; }
-    std::string DisplayAmount() const override { return display_amount_; }
-    std::string Memo() const override { return memo_; }
+    opentxs::Amount Amount() const noexcept final { return amount_; }
+    bool Deposit() const noexcept final { return false; }
+    std::string DisplayAmount() const noexcept final { return display_amount_; }
+    std::string Memo() const noexcept final { return memo_; }
 
     ~PendingSend() = default;
 
@@ -35,7 +35,7 @@ private:
         const identifier::Nym& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
-        const CustomData& custom);
+        const CustomData& custom) noexcept;
     PendingSend() = delete;
     PendingSend(const PendingSend&) = delete;
     PendingSend(PendingSend&&) = delete;

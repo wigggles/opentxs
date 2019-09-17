@@ -26,13 +26,14 @@ using IssuerItemRow = RowType<
 class IssuerItem final : public IssuerItemList, public IssuerItemRow
 {
 public:
-    bool ConnectionState() const override { return connection_.load(); }
-    std::string Debug() const override;
-    std::string Name() const override;
-    bool Trusted() const override { return issuer_->Paired(); }
+    bool ConnectionState() const noexcept final { return connection_.load(); }
+    std::string Debug() const noexcept final;
+    std::string Name() const noexcept final;
+    bool Trusted() const noexcept final { return issuer_->Paired(); }
 
-    void reindex(const AccountSummarySortKey& key, const CustomData& custom)
-        override;
+    void reindex(
+        const AccountSummarySortKey& key,
+        const CustomData& custom) noexcept final;
 
     ~IssuerItem();
 
@@ -49,12 +50,12 @@ private:
     void construct_row(
         const IssuerItemRowID& id,
         const IssuerItemSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    void process_account(const Identifier& accountID);
-    void process_account(const network::zeromq::Message& message);
-    void refresh_accounts();
-    void startup();
+    void process_account(const Identifier& accountID) noexcept;
+    void process_account(const network::zeromq::Message& message) noexcept;
+    void refresh_accounts() noexcept;
+    void startup() noexcept;
 
     IssuerItem(
         const AccountSummaryInternalInterface& parent,
@@ -70,7 +71,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;
     IssuerItem(IssuerItem&&) = delete;

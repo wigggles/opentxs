@@ -28,19 +28,19 @@ namespace ui
 class ProfileItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string ClaimID() const = 0;
-    EXPORT virtual bool Delete() const = 0;
-    EXPORT virtual bool IsActive() const = 0;
-    EXPORT virtual bool IsPrimary() const = 0;
-    EXPORT virtual bool SetActive(const bool& active) const = 0;
-    EXPORT virtual bool SetPrimary(const bool& primary) const = 0;
-    EXPORT virtual bool SetValue(const std::string& value) const = 0;
-    EXPORT virtual std::string Value() const = 0;
+    EXPORT virtual std::string ClaimID() const noexcept = 0;
+    EXPORT virtual bool Delete() const noexcept = 0;
+    EXPORT virtual bool IsActive() const noexcept = 0;
+    EXPORT virtual bool IsPrimary() const noexcept = 0;
+    EXPORT virtual bool SetActive(const bool& active) const noexcept = 0;
+    EXPORT virtual bool SetPrimary(const bool& primary) const noexcept = 0;
+    EXPORT virtual bool SetValue(const std::string& value) const noexcept = 0;
+    EXPORT virtual std::string Value() const noexcept = 0;
 
     EXPORT virtual ~ProfileItem() = default;
 
 protected:
-    ProfileItem() = default;
+    ProfileItem() noexcept = default;
 
 private:
     ProfileItem(const ProfileItem&) = delete;

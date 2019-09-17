@@ -21,8 +21,6 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
-#include "ActivitySummaryItemBlank.hpp"
-
 #include <map>
 #include <memory>
 #include <set>
@@ -57,7 +55,7 @@ ActivitySummary::ActivitySummary(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : ActivitySummaryList(
           api,
           publisher,
@@ -90,6 +88,7 @@ ActivitySummary::ActivitySummary(
 
 #if OT_QT
 QVariant ActivitySummary::data(const QModelIndex& index, int role) const
+    noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -131,7 +130,7 @@ QVariant ActivitySummary::data(const QModelIndex& index, int role) const
 void ActivitySummary::construct_row(
     const ActivitySummaryRowID& id,
     const ActivitySummarySortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     items_[index].emplace(
         id,
@@ -141,7 +140,7 @@ void ActivitySummary::construct_row(
 }
 
 std::string ActivitySummary::display_name(
-    const proto::StorageThread& thread) const
+    const proto::StorageThread& thread) const noexcept
 {
     std::set<std::string> names{};
 
@@ -171,7 +170,7 @@ std::string ActivitySummary::display_name(
 
 const proto::StorageThreadItem& ActivitySummary::newest_item(
     const proto::StorageThread& thread,
-    CustomData& custom)
+    CustomData& custom) noexcept
 {
     const proto::StorageThreadItem* output{nullptr};
     auto* time = new Time;
@@ -204,7 +203,7 @@ const proto::StorageThreadItem& ActivitySummary::newest_item(
     return *output;
 }
 
-void ActivitySummary::process_thread(const std::string& id)
+void ActivitySummary::process_thread(const std::string& id) noexcept
 {
     const auto threadID = Identifier::Factory(id);
     const auto thread = api_.Activity().Thread(primary_id_, threadID);
@@ -219,7 +218,8 @@ void ActivitySummary::process_thread(const std::string& id)
     add_item(threadID, index, custom);
 }
 
-void ActivitySummary::process_thread(const network::zeromq::Message& message)
+void ActivitySummary::process_thread(
+    const network::zeromq::Message& message) noexcept
 {
     wait_for_startup();
 
@@ -240,7 +240,7 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
     process_thread(id);
 }
 
-void ActivitySummary::startup()
+void ActivitySummary::startup() noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto threads = api_.Activity().Threads(primary_id_, reason, false);
@@ -252,7 +252,7 @@ void ActivitySummary::startup()
         process_thread(id);
     }
 
-    startup_complete_->On();
+    finish_startup();
 }
 
 ActivitySummary::~ActivitySummary()

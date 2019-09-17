@@ -27,19 +27,19 @@ namespace ui
 class IssuerItem : virtual public List, virtual public ListRow
 {
 public:
-    EXPORT virtual bool ConnectionState() const = 0;
-    EXPORT virtual std::string Debug() const = 0;
+    EXPORT virtual bool ConnectionState() const noexcept = 0;
+    EXPORT virtual std::string Debug() const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem> First()
-        const = 0;
-    EXPORT virtual std::string Name() const = 0;
+        const noexcept = 0;
+    EXPORT virtual std::string Name() const noexcept = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem> Next()
-        const = 0;
-    EXPORT virtual bool Trusted() const = 0;
+        const noexcept = 0;
+    EXPORT virtual bool Trusted() const noexcept = 0;
 
     EXPORT virtual ~IssuerItem() = default;
 
 protected:
-    IssuerItem() = default;
+    IssuerItem() noexcept = default;
 
 private:
     IssuerItem(const IssuerItem&) = delete;

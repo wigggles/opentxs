@@ -13,15 +13,18 @@ template <typename InterfaceType, typename ParentType, typename IdentifierType>
 class RowType : virtual public InterfaceType
 {
 public:
-    bool Last() const override { return parent_.last(row_id_); }
-    bool Valid() const override { return valid_; }
+    bool Last() const noexcept final { return parent_.last(row_id_); }
+    bool Valid() const noexcept final { return valid_; }
 
 protected:
     const ParentType& parent_;
     const IdentifierType row_id_;
     const bool valid_{false};
 
-    RowType(const ParentType& parent, const IdentifierType id, const bool valid)
+    RowType(
+        const ParentType& parent,
+        const IdentifierType id,
+        const bool valid) noexcept
         : parent_(parent)
         , row_id_(id)
         , valid_(valid)
@@ -33,6 +36,6 @@ protected:
     RowType& operator=(const RowType&) = delete;
     RowType& operator=(RowType&&) = delete;
 
-    virtual ~RowType() = default;
+    ~RowType() override = default;
 };
 }  // namespace opentxs::ui::implementation

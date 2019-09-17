@@ -106,7 +106,7 @@ BalanceItem::BalanceItem(
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
     const identifier::Nym& nymID,
-    const Identifier& accountID)
+    const Identifier& accountID) noexcept
     : BalanceItemRow(parent, api, publisher, rowID, true)
     , nym_id_(nymID)
     , workflow_(recover_workflow(custom).id())
@@ -120,7 +120,7 @@ BalanceItem::BalanceItem(
 {
 }
 
-std::string BalanceItem::DisplayAmount() const
+std::string BalanceItem::DisplayAmount() const noexcept
 {
     sLock lock(shared_lock_);
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
@@ -141,7 +141,7 @@ std::string BalanceItem::DisplayAmount() const
 
 std::vector<std::string> BalanceItem::extract_contacts(
     const api::client::Manager& api,
-    const proto::PaymentWorkflow& workflow)
+    const proto::PaymentWorkflow& workflow) noexcept
 {
     auto reason = api.Factory().PasswordPrompt(__FUNCTION__);
     std::vector<std::string> output{};
@@ -155,7 +155,8 @@ std::vector<std::string> BalanceItem::extract_contacts(
     return output;
 }
 
-StorageBox BalanceItem::extract_type(const proto::PaymentWorkflow& workflow)
+StorageBox BalanceItem::extract_type(
+    const proto::PaymentWorkflow& workflow) noexcept
 {
     switch (workflow.type()) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE: {
@@ -189,6 +190,7 @@ StorageBox BalanceItem::extract_type(const proto::PaymentWorkflow& workflow)
 }
 
 std::string BalanceItem::get_contact_name(const identifier::Nym& nymID) const
+    noexcept
 {
     if (nymID.empty()) { return {}; }
 
@@ -202,7 +204,8 @@ std::string BalanceItem::get_contact_name(const identifier::Nym& nymID) const
     return output;
 }
 
-const proto::PaymentEvent& BalanceItem::recover_event(const CustomData& custom)
+const proto::PaymentEvent& BalanceItem::recover_event(
+    const CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
 
@@ -214,7 +217,7 @@ const proto::PaymentEvent& BalanceItem::recover_event(const CustomData& custom)
 }
 
 const proto::PaymentWorkflow& BalanceItem::recover_workflow(
-    const CustomData& custom)
+    const CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
 
@@ -227,21 +230,21 @@ const proto::PaymentWorkflow& BalanceItem::recover_workflow(
 
 void BalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
-    const implementation::CustomData&)
+    const implementation::CustomData&) noexcept
 {
     eLock lock(shared_lock_);
     time_ = key;
     lock.unlock();
 }
 
-std::string BalanceItem::Text() const
+std::string BalanceItem::Text() const noexcept
 {
     sLock lock(shared_lock_);
 
     return text_;
 }
 
-std::chrono::system_clock::time_point BalanceItem::Timestamp() const
+std::chrono::system_clock::time_point BalanceItem::Timestamp() const noexcept
 {
     sLock lock(shared_lock_);
 

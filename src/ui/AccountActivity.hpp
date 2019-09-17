@@ -35,14 +35,20 @@ using AccountActivityList = List<
 class AccountActivity final : public AccountActivityList
 {
 public:
-    const Identifier& AccountID() const override { return account_id_.get(); }
-    int BalancePolarity() const override { return polarity(balance_.load()); }
-    Amount Balance() const override { return balance_.load(); }
+    const Identifier& AccountID() const noexcept final
+    {
+        return account_id_.get();
+    }
+    int BalancePolarity() const noexcept final
+    {
+        return polarity(balance_.load());
+    }
+    Amount Balance() const noexcept final { return balance_.load(); }
 #if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
 #endif
-    std::string DisplayBalance() const override;
+    std::string DisplayBalance() const noexcept final;
     ~AccountActivity();
 
 private:
@@ -59,21 +65,21 @@ private:
 
     static EventRow extract_event(
         const proto::PaymentEventType event,
-        const proto::PaymentWorkflow& workflow);
+        const proto::PaymentWorkflow& workflow) noexcept;
     static std::vector<RowKey> extract_rows(
-        const proto::PaymentWorkflow& workflow);
+        const proto::PaymentWorkflow& workflow) noexcept;
 
     void construct_row(
         const AccountActivityRowID& id,
         const AccountActivitySortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    void process_balance(const network::zeromq::Message& message);
+    void process_balance(const network::zeromq::Message& message) noexcept;
     void process_workflow(
         const Identifier& workflowID,
-        std::set<AccountActivityRowID>& active);
-    void process_workflow(const network::zeromq::Message& message);
-    void startup();
+        std::set<AccountActivityRowID>& active) noexcept;
+    void process_workflow(const network::zeromq::Message& message) noexcept;
+    void startup() noexcept;
 
     AccountActivity(
         const api::client::Manager& api,
@@ -86,7 +92,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     AccountActivity() = delete;
     AccountActivity(const AccountActivity&) = delete;
     AccountActivity(AccountActivity&&) = delete;

@@ -22,7 +22,7 @@ protected:
         const api::client::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const IdentifierType id,
-        const bool valid)
+        const bool valid) noexcept
         : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
         , Widget(api, publisher, parent.WidgetID())
     {

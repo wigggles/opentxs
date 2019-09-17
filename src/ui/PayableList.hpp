@@ -27,11 +27,11 @@ using PayableListList = List<
 class PayableList final : public PayableListList
 {
 public:
-    const Identifier& ID() const override;
+    const Identifier& ID() const final;
 
 #if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
 #endif
     ~PayableList();
 
@@ -45,8 +45,8 @@ private:
     void construct_row(
         const PayableListRowID& id,
         const PayableListSortKey& index,
-        const CustomData& custom) const override;
-    bool last(const PayableListRowID& id) const override
+        const CustomData& custom) const noexcept final;
+    bool last(const PayableListRowID& id) const noexcept final
     {
         return PayableListList::last(id);
     }

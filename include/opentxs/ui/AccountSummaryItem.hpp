@@ -26,15 +26,15 @@ namespace ui
 class AccountSummaryItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string AccountID() const = 0;
-    EXPORT virtual Amount Balance() const = 0;
-    EXPORT virtual std::string DisplayBalance() const = 0;
-    EXPORT virtual std::string Name() const = 0;
+    EXPORT virtual std::string AccountID() const noexcept = 0;
+    EXPORT virtual Amount Balance() const noexcept = 0;
+    EXPORT virtual std::string DisplayBalance() const noexcept = 0;
+    EXPORT virtual std::string Name() const noexcept = 0;
 
     EXPORT virtual ~AccountSummaryItem() = default;
 
 protected:
-    AccountSummaryItem() = default;
+    AccountSummaryItem() noexcept = default;
 
 private:
     AccountSummaryItem(const AccountSummaryItem&) = delete;

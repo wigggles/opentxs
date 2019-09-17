@@ -30,17 +30,17 @@ public:
     std::string AddContact(
         const std::string& label,
         const std::string& paymentCode,
-        const std::string& nymID) const override;
+        const std::string& nymID) const noexcept final;
 #if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
 #endif
-    const Identifier& ID() const override { return owner_contact_id_; }
+    const Identifier& ID() const noexcept final { return owner_contact_id_; }
 #if OT_QT
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const override;
+        const QModelIndex& parent = QModelIndex()) const noexcept final;
 #endif
 
     ~ContactList();
@@ -55,10 +55,10 @@ private:
     void construct_row(
         const ContactListRowID& id,
         const ContactListSortKey& index,
-        const CustomData& custom) const override;
-    std::shared_ptr<const ContactListRowInternal> first(
-        const Lock& lock) const override;
-    bool last(const ContactListRowID& id) const override
+        const CustomData& custom) const noexcept final;
+    std::shared_ptr<const ContactListRowInternal> first(const Lock& lock) const
+        noexcept final;
+    bool last(const ContactListRowID& id) const noexcept final
     {
         return ContactListList::last(id);
     }
@@ -66,10 +66,10 @@ private:
     void add_item(
         const ContactListRowID& id,
         const ContactListSortKey& index,
-        const CustomData& custom) override;
-    void process_contact(const network::zeromq::Message& message);
+        const CustomData& custom) noexcept final;
+    void process_contact(const network::zeromq::Message& message) noexcept;
 
-    void startup();
+    void startup() noexcept;
 
     ContactList(
         const api::client::Manager& api,
@@ -81,7 +81,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     ContactList() = delete;
     ContactList(const ContactList&) = delete;
     ContactList(ContactList&&) = delete;

@@ -22,9 +22,9 @@ using ContactType = List<
 class Contact : public ContactType
 {
 public:
-    std::string ContactID() const override;
-    std::string DisplayName() const override;
-    std::string PaymentCode() const override;
+    std::string ContactID() const noexcept final;
+    std::string DisplayName() const noexcept final;
+    std::string PaymentCode() const noexcept final;
 
     ~Contact();
 
@@ -38,23 +38,24 @@ private:
     std::string name_;
     std::string payment_code_;
 
-    static int sort_key(const proto::ContactSectionName type);
-    static bool check_type(const proto::ContactSectionName type);
+    static int sort_key(const proto::ContactSectionName type) noexcept;
+    static bool check_type(const proto::ContactSectionName type) noexcept;
 
     void construct_row(
         const ContactRowID& id,
         const ContactSortKey& index,
-        const CustomData& custom) const override;
+        const CustomData& custom) const noexcept final;
 
-    bool last(const ContactRowID& id) const override
+    bool last(const ContactRowID& id) const noexcept final
     {
         return ContactType::last(id);
     }
-    void update(ContactRowInterface& row, const CustomData& custom) const;
+    void update(ContactRowInterface& row, const CustomData& custom) const
+        noexcept;
 
-    void process_contact(const opentxs::Contact& contact);
-    void process_contact(const network::zeromq::Message& message);
-    void startup();
+    void process_contact(const opentxs::Contact& contact) noexcept;
+    void process_contact(const network::zeromq::Message& message) noexcept;
+    void startup() noexcept;
 
     Contact(
         const api::client::Manager& api,
@@ -66,7 +67,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;

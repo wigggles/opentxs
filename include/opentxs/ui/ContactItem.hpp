@@ -28,15 +28,15 @@ namespace ui
 class ContactItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string ClaimID() const = 0;
-    EXPORT virtual bool IsActive() const = 0;
-    EXPORT virtual bool IsPrimary() const = 0;
-    EXPORT virtual std::string Value() const = 0;
+    EXPORT virtual std::string ClaimID() const noexcept = 0;
+    EXPORT virtual bool IsActive() const noexcept = 0;
+    EXPORT virtual bool IsPrimary() const noexcept = 0;
+    EXPORT virtual std::string Value() const noexcept = 0;
 
     EXPORT virtual ~ContactItem() = default;
 
 protected:
-    ContactItem() = default;
+    ContactItem() noexcept = default;
 
 private:
     ContactItem(const ContactItem&) = delete;

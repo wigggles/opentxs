@@ -25,13 +25,13 @@ namespace ui
 class ListRow : virtual public Widget
 {
 public:
-    EXPORT virtual bool Last() const = 0;
-    EXPORT virtual bool Valid() const = 0;
+    EXPORT virtual bool Last() const noexcept = 0;
+    EXPORT virtual bool Valid() const noexcept = 0;
 
     EXPORT virtual ~ListRow() = default;
 
 protected:
-    ListRow() = default;
+    ListRow() noexcept = default;
 
 private:
     ListRow(const ListRow&) = delete;

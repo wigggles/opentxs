@@ -21,7 +21,6 @@
 
 #include "internal/ui/UI.hpp"
 #include "List.hpp"
-#include "ProfileSubsectionBlank.hpp"
 #include "RowType.hpp"
 
 #include <map>
@@ -154,7 +153,7 @@ static const std::
 
 ProfileSection::ItemTypeList ProfileSection::AllowedItems(
     const proto::ContactSectionName section,
-    const std::string& lang)
+    const std::string& lang) noexcept
 {
     ItemTypeList output{};
 
@@ -184,7 +183,7 @@ ProfileSection::ProfileSection(
     const RowCallbacks insertCallback,
     const RowCallbacks removeCallback
 #endif
-    )
+    ) noexcept
     : ProfileSectionList(
           api,
           publisher,
@@ -209,12 +208,12 @@ bool ProfileSection::AddClaim(
     const proto::ContactItemType type,
     const std::string& value,
     const bool primary,
-    const bool active) const
+    const bool active) const noexcept
 {
     return parent_.AddClaim(row_id_, type, value, primary, active);
 }
 
-bool ProfileSection::check_type(const ProfileSectionRowID type)
+bool ProfileSection::check_type(const ProfileSectionRowID type) noexcept
 {
     try {
         return 1 == allowed_types_.at(type.first).count(type.second);
@@ -227,7 +226,7 @@ bool ProfileSection::check_type(const ProfileSectionRowID type)
 void ProfileSection::construct_row(
     const ProfileSectionRowID& id,
     const ProfileSectionSortKey& index,
-    const CustomData& custom) const
+    const CustomData& custom) const noexcept
 {
     names_.emplace(id, index);
     items_[index].emplace(
@@ -249,6 +248,7 @@ void ProfileSection::construct_row(
 }
 
 bool ProfileSection::Delete(const int type, const std::string& claimID) const
+    noexcept
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -261,18 +261,18 @@ bool ProfileSection::Delete(const int type, const std::string& claimID) const
 }
 
 ProfileSection::ItemTypeList ProfileSection::Items(
-    const std::string& lang) const
+    const std::string& lang) const noexcept
 {
     return AllowedItems(row_id_, lang);
 }
 
-std::string ProfileSection::Name(const std::string& lang) const
+std::string ProfileSection::Name(const std::string& lang) const noexcept
 {
     return proto::TranslateSectionName(row_id_, lang);
 }
 
 std::set<ProfileSectionRowID> ProfileSection::process_section(
-    const opentxs::ContactSection& section)
+    const opentxs::ContactSection& section) noexcept
 {
     OT_ASSERT(row_id_ == section.Type())
 
@@ -293,7 +293,9 @@ std::set<ProfileSectionRowID> ProfileSection::process_section(
     return active;
 }
 
-void ProfileSection::reindex(const ProfileSortKey&, const CustomData& custom)
+void ProfileSection::reindex(
+    const ProfileSortKey&,
+    const CustomData& custom) noexcept
 {
     delete_inactive(
         process_section(extract_custom<opentxs::ContactSection>(custom)));
@@ -302,7 +304,7 @@ void ProfileSection::reindex(const ProfileSortKey&, const CustomData& custom)
 bool ProfileSection::SetActive(
     const int type,
     const std::string& claimID,
-    const bool active) const
+    const bool active) const noexcept
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -317,7 +319,7 @@ bool ProfileSection::SetActive(
 bool ProfileSection::SetPrimary(
     const int type,
     const std::string& claimID,
-    const bool primary) const
+    const bool primary) const noexcept
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -332,7 +334,7 @@ bool ProfileSection::SetPrimary(
 bool ProfileSection::SetValue(
     const int type,
     const std::string& claimID,
-    const std::string& value) const
+    const std::string& value) const noexcept
 {
     Lock lock(lock_);
     const ProfileSectionRowID key{row_id_,
@@ -344,14 +346,14 @@ bool ProfileSection::SetValue(
     return group.SetValue(claimID, value);
 }
 
-int ProfileSection::sort_key(const ProfileSectionRowID type)
+int ProfileSection::sort_key(const ProfileSectionRowID type) noexcept
 {
     return sort_keys_.at(type.first).at(type.second);
 }
 
-void ProfileSection::startup(const CustomData& custom)
+void ProfileSection::startup(const CustomData& custom) noexcept
 {
     process_section(extract_custom<opentxs::ContactSection>(custom));
-    startup_complete_->On();
+    finish_startup();
 }
 }  // namespace opentxs::ui::implementation

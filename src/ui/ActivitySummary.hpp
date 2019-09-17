@@ -30,8 +30,8 @@ class ActivitySummary final : public ActivitySummaryList
 {
 public:
 #if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
 #endif
     ~ActivitySummary();
 
@@ -43,17 +43,17 @@ private:
 
     static const proto::StorageThreadItem& newest_item(
         const proto::StorageThread& thread,
-        CustomData& custom);
+        CustomData& custom) noexcept;
 
     void construct_row(
         const ActivitySummaryRowID& id,
         const ActivitySummarySortKey& index,
-        const CustomData& custom) const override;
-    std::string display_name(const proto::StorageThread& thread) const;
+        const CustomData& custom) const noexcept final;
+    std::string display_name(const proto::StorageThread& thread) const noexcept;
 
-    void process_thread(const std::string& threadID);
-    void process_thread(const network::zeromq::Message& message);
-    void startup();
+    void process_thread(const std::string& threadID) noexcept;
+    void process_thread(const network::zeromq::Message& message) noexcept;
+    void startup() noexcept;
 
     ActivitySummary(
         const api::client::Manager& api,
@@ -66,7 +66,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     ActivitySummary() = delete;
     ActivitySummary(const ActivitySummary&) = delete;
     ActivitySummary(ActivitySummary&&) = delete;

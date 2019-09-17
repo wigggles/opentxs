@@ -28,10 +28,10 @@ class MessagableList final : public MessagableListList
 {
 public:
 #if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
+        noexcept final;
 #endif
-    const Identifier& ID() const override;
+    const Identifier& ID() const noexcept final;
 
     ~MessagableList();
 
@@ -44,18 +44,18 @@ private:
     void construct_row(
         const MessagableListRowID& id,
         const MessagableListSortKey& index,
-        const CustomData& custom) const override;
-    bool last(const MessagableListRowID& id) const override
+        const CustomData& custom) const noexcept final;
+    bool last(const MessagableListRowID& id) const noexcept final
     {
         return MessagableListList::last(id);
     }
 
     void process_contact(
         const MessagableListRowID& id,
-        const MessagableListSortKey& key);
-    void process_contact(const network::zeromq::Message& message);
-    void process_nym(const network::zeromq::Message& message);
-    void startup();
+        const MessagableListSortKey& key) noexcept;
+    void process_contact(const network::zeromq::Message& message) noexcept;
+    void process_nym(const network::zeromq::Message& message) noexcept;
+    void startup() noexcept;
 
     MessagableList(
         const api::client::Manager& api,
@@ -67,7 +67,7 @@ private:
         const RowCallbacks insertCallback,
         const RowCallbacks removeCallback
 #endif
-    );
+        ) noexcept;
     MessagableList() = delete;
     MessagableList(const MessagableList&) = delete;
     MessagableList(MessagableList&&) = delete;
