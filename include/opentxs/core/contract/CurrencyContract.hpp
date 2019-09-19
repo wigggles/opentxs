@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,7 @@
 
 namespace opentxs
 {
-class CurrencyContract : public UnitDefinition
+class CurrencyContract final : public UnitDefinition
 {
 private:
     typedef UnitDefinition ot_super;
@@ -41,27 +41,25 @@ private:
         const std::uint32_t power,
         const std::string& fraction);
 
-    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;
+    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const final;
 
 public:
-    EXPORT proto::UnitType Type() const override
+    EXPORT proto::UnitType Type() const final
     {
         return proto::UNITTYPE_CURRENCY;
     }
 
-    EXPORT std::int32_t DecimalPower() const override { return power_; }
-    EXPORT std::string FractionalUnitName() const override
+    EXPORT std::int32_t DecimalPower() const final { return power_; }
+    EXPORT std::string FractionalUnitName() const final
     {
         return fractional_unit_name_;
     }  // "cents"    (for example)
-    EXPORT std::string TLA() const override
+    EXPORT std::string TLA() const final
     {
         return tla_;
     }  // "USD""     (for example)
 
-    virtual ~CurrencyContract() = default;
+    ~CurrencyContract() final = default;
 };
-
 }  // namespace opentxs
-
 #endif

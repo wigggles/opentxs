@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -342,7 +342,7 @@ Operation::Operation(
     , target_nym_id_(identifier::Nym::Factory())
     , target_server_id_(identifier::Server::Factory())
     , target_unit_id_(identifier::UnitDefinition::Factory())
-    , contract_type_(ContractType::ERROR)
+    , contract_type_(ContractType::invalid)
     , unit_definition_()
     , account_id_(Identifier::Factory())
     , generic_id_(Identifier::Factory())
@@ -847,7 +847,7 @@ std::shared_ptr<Message> Operation::construct_publish_nym()
     PREPARE_CONTEXT();
     CREATE_MESSAGE(registerContract, -1, true, true);
 
-    message.enum_ = static_cast<std::uint8_t>(ContractType::NYM);
+    message.enum_ = static_cast<std::uint8_t>(ContractType::nym);
     message.m_ascPayload = api_.Factory().Armored(contract->asPublicNym());
 
     FINISH_MESSAGE(__FUNCTION__, registerContract);
@@ -868,7 +868,7 @@ std::shared_ptr<Message> Operation::construct_publish_server()
     PREPARE_CONTEXT();
     CREATE_MESSAGE(registerContract, -1, true, true);
 
-    message.enum_ = static_cast<std::uint8_t>(ContractType::SERVER);
+    message.enum_ = static_cast<std::uint8_t>(ContractType::server);
     message.m_ascPayload = api_.Factory().Armored(contract->PublicContract());
 
     FINISH_MESSAGE(__FUNCTION__, registerContract);
@@ -890,7 +890,7 @@ std::shared_ptr<Message> Operation::construct_publish_unit()
     PREPARE_CONTEXT();
     CREATE_MESSAGE(registerContract, -1, true, true);
 
-    message.enum_ = static_cast<std::uint8_t>(ContractType::UNIT);
+    message.enum_ = static_cast<std::uint8_t>(ContractType::unit);
     message.m_ascPayload = api_.Factory().Armored(contract->Contract());
 
     FINISH_MESSAGE(__FUNCTION__, registerContract);
@@ -2273,7 +2273,7 @@ void Operation::reset()
     target_nym_id_ = identifier::Nym::Factory();
     target_server_id_ = identifier::Server::Factory();
     target_unit_id_ = identifier::UnitDefinition::Factory();
-    contract_type_ = ContractType::ERROR;
+    contract_type_ = ContractType::invalid;
     unit_definition_.reset();
     account_id_ = Identifier::Factory();
     generic_id_ = Identifier::Factory();

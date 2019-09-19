@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -87,7 +87,7 @@ ObjectList Node::List() const
     ObjectList output;
     Lock lock(write_lock_);
 
-    for (const auto it : item_map_) {
+    for (const auto& it : item_map_) {
         output.push_back({it.first, std::get<1>(it.second)});
     }
 

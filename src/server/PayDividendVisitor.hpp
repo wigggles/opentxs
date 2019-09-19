@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -24,7 +24,7 @@ class Server;
 // own.) This subclass needs to call Server method to do its job, so it can't be
 // defined in otlib, but must be defined here in otserver (so it can see the
 // methods that it needs...)
-class PayDividendVisitor : public AccountVisitor
+class PayDividendVisitor final : public AccountVisitor
 {
     server::Server& server_;
     const OTNymID nymId_;
@@ -64,9 +64,8 @@ public:
     std::int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
     std::int64_t GetAmountReturned() { return m_lAmountReturned; }
 
-    bool Trigger(const Account& theAccount, const PasswordPrompt& reason)
-        override;
+    bool Trigger(const Account& theAccount, const PasswordPrompt& reason) final;
 
-    virtual ~PayDividendVisitor();
+    ~PayDividendVisitor() final;
 };
 }  // namespace opentxs

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -53,16 +53,16 @@ proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
 
     switch (nymType_) {
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case NymParameterType::RSA:
+        case NymParameterType::rsa:
             newKeyType = proto::AKEYTYPE_LEGACY;
             break;
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case NymParameterType::SECP256K1:
+        case NymParameterType::secp256k1:
             newKeyType = proto::AKEYTYPE_SECP256K1;
             break;
 #endif
-        case NymParameterType::ED25519:
+        case NymParameterType::ed25519:
             newKeyType = proto::AKEYTYPE_ED25519;
             break;
         default:
@@ -122,7 +122,7 @@ void NymParameters::SetVerificationSet(
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 NymParameters::NymParameters(const std::int32_t keySize)
-    : nymType_(NymParameterType::RSA)
+    : nymType_(NymParameterType::rsa)
     , credentialType_(proto::CREDTYPE_LEGACY)
     , nBits_(keySize)
 {

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,46 +16,43 @@
 
 namespace opentxs::api::implementation
 {
-class Crypto : virtual public opentxs::api::Crypto
+class Crypto final : virtual public opentxs::api::Crypto
 {
 public:
-    const crypto::Config& Config() const override;
+    const crypto::Config& Config() const final;
 
     // Encoding function interface
-    const crypto::Encode& Encode() const override;
+    const crypto::Encode& Encode() const final;
 
     // Hash function interface
-    const crypto::Hash& Hash() const override;
+    const crypto::Hash& Hash() const final;
 
     // Utility class for misc OpenSSL-provided functions
-    const crypto::Util& Util() const override;
+    const crypto::Util& Util() const final;
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    const opentxs::crypto::EcdsaProvider& ED25519() const override;
+    const opentxs::crypto::EcdsaProvider& ED25519() const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    const opentxs::crypto::AsymmetricProvider& RSA() const override;
+    const opentxs::crypto::AsymmetricProvider& RSA() const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    const opentxs::crypto::EcdsaProvider& SECP256K1() const override;
+    const opentxs::crypto::EcdsaProvider& SECP256K1() const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    const opentxs::crypto::SymmetricProvider& Sodium() const override;
+    const opentxs::crypto::SymmetricProvider& Sodium() const final;
 #if OT_CRYPTO_WITH_BIP32
-    const opentxs::crypto::Bip32& BIP32() const override;
+    const opentxs::crypto::Bip32& BIP32() const final;
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_WITH_BIP39
-    const opentxs::crypto::Bip39& BIP39() const override;
+    const opentxs::crypto::Bip39& BIP39() const final;
 #endif  // OT_CRYPTO_WITH_BIP39
 
-    ~Crypto();
+    ~Crypto() final;
 
 private:
     friend opentxs::Factory;
 
     std::unique_ptr<api::crypto::Config> config_;
-#if OT_CRYPTO_USING_LIBBITCOIN
-    std::unique_ptr<opentxs::crypto::Bitcoin> bitcoin_;
-#endif  // OT_CRYPTO_USING_LIBBITCOIN
 #if OT_CRYPTO_USING_TREZOR
     std::unique_ptr<opentxs::crypto::Trezor> trezor_;
 #endif  // OT_CRYPTO_USING_TREZOR

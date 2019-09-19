@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,7 +13,6 @@
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
@@ -350,7 +349,8 @@ bool Item::VerifyBalanceStatement(
                 nInboxItemCount++;
                 pLedger = &THE_INBOX;
                 pszLedgerType = szInbox;
-            }  // intentional fall through
+                [[fallthrough]];
+            }
             case itemType::transfer: {
                 break;
             }
@@ -864,9 +864,8 @@ std::int64_t Item::GetNumberOfOrigin(const PasswordPrompt& reason)
                 OT_FAIL_MSG(
                     "In this case, you can't calculate the origin number, "
                     "you must set it explicitly.");
-                break;
-            default:
-                break;
+            default: {
+            }
         }
 
         CalculateNumberOfOrigin(reason);
@@ -951,8 +950,6 @@ void Item::CalculateNumberOfOrigin(const PasswordPrompt& reason)
             OT_FAIL_MSG(
                 "In this case, you can't calculate the origin number, you "
                 "must set it explicitly.");
-            break;
-
         case itemType::marketReceipt:  // server receipt dropped into inbox as
                                        // result of market trading. Also used in
                                        // inbox report.

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,6 @@
 #include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -463,36 +462,36 @@ bool OTBylaw::RemoveClause(std::string str_Name)
     //
     std::list<std::string> listStrings;
 
-    for (auto& it : m_mapCallbacks) {
-        const std::string& str_callback_name = it.first;
-        const std::string& str_clause_name = it.second;
+    for (auto& cb : m_mapCallbacks) {
+        const std::string& str_callback_name = cb.first;
+        const std::string& str_clause_name = cb.second;
 
         if (0 == str_clause_name.compare(str_Name)) {
             listStrings.push_back(str_callback_name);
         }
     }
-    // -----------------------------------
+
     while (listStrings.size() > 0) {
         const std::string str_callback_name = listStrings.front();
         listStrings.pop_front();
         RemoveCallback(str_callback_name);
     }
-    // -----------------------------------
-    for (auto& it : m_mapHooks) {
-        const std::string& str_hook_name = it.first;
-        const std::string& str_clause_name = it.second;
+
+    for (auto& hook : m_mapHooks) {
+        const std::string& str_hook_name = hook.first;
+        const std::string& str_clause_name = hook.second;
 
         if (0 == str_clause_name.compare(str_Name)) {
             listStrings.push_back(str_hook_name);
         }
     }
-    // -----------------------------------
+
     while (listStrings.size() > 0) {
         const std::string str_hook_name = listStrings.front();
         listStrings.pop_front();
         RemoveHook(str_hook_name, str_Name);
     }
-    // -----------------------------------
+
     return true;
 }
 

@@ -1,40 +1,21 @@
+[submodule "cmake"]
+	path = cmake
+	url = https://github.com/Open-Transactions/opentxs-cmake
+[submodule "deps/ChaiScript"]
+	path = deps/ChaiScript
+	url = https://github.com/ChaiScript/ChaiScript.git
 [submodule "deps/lucre"]
 	path = deps/lucre
 	url = https://github.com/Open-Transactions/lucre.git
 [submodule "deps/simpleini"]
 	path = deps/simpleini
 	url = https://github.com/brofield/simpleini.git
-[submodule "deps/ChaiScript"]
-	path = deps/ChaiScript
-	url = https://github.com/ChaiScript/ChaiScript.git
-[submodule "deps/trezor"]
-	path = deps/trezor
-	url = https://github.com/Open-Transactions/trezor-firmware.git
-[submodule "deps/protobuf"]
-	path = deps/protobuf
-	url = https://github.com/google/protobuf.git
-[submodule "deps/sodium"]
-	path = deps/sodium
-	url = https://github.com/jedisct1/libsodium.git
-[submodule "deps/secp256k1"]
-	path = deps/secp256k1
-	url = https://github.com/libbitcoin/secp256k1.git
-[submodule "deps/libzmq"]
-	path = deps/libzmq
-	url = https://github.com/zeromq/libzmq.git
-[submodule "deps/opentxs-proto"]
-	path = deps/opentxs-proto
-	url = https://github.com/Open-Transactions/opentxs-proto.git
-[submodule "deps/libressl"]
-	path = deps/libressl
-	url = https://github.com/libressl-portable/portable
-[submodule "lmdb"]
-	path = deps/lmdb
-	url = https://github.com/LMDB/lmdb
-	branch = mdb.master
 [submodule "deps/siphash"]
 	path = deps/siphash
 	url = https://github.com/whitfin/siphash-cpp
 [submodule "deps/smhasher"]
 	path = deps/smhasher
 	url = https://github.com/aappleby/smhasher
+[submodule "deps/trezor"]
+	path = deps/trezor
+	url = https://github.com/Open-Transactions/trezor-firmware.git

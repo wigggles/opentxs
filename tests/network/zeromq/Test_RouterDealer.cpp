@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -75,7 +75,7 @@ void Test_RouterDealer::dealerSocketThread(
     bool replyProcessed{false};
 
     auto dealerCallback = zmq::ListenCallback::Factory(
-        [this, &replyProcessed, msg](network::zeromq::Message& input) -> void {
+        [&replyProcessed, msg](network::zeromq::Message& input) -> void {
             EXPECT_EQ(2, input.size());
 
             const std::string& inputString = *input.Body().begin();

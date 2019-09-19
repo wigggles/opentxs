@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,8 @@
 #ifdef ANDROID
 #include <android/log.h>
 #endif
+
+#include <future>
 
 #include "Log.hpp"
 
@@ -57,7 +59,7 @@ Log::Log(const zmq::Context& zmq, const std::string& endpoint)
 
 void Log::callback(zmq::Message& message)
 {
-    if (3 != message.Body().size()) { return; }
+    if (message.Body().size() < 3) { return; }
 
     int level{-1};
     const auto& levelFrame = message.Body_at(0);
@@ -70,7 +72,15 @@ void Log::callback(zmq::Message& message)
 #else
     print(level, messageFrame, id);
 #endif
+
     if (publish_) { publish_socket_->Send(message); }
+
+    if (message.Body().size() >= 4) {
+        const auto& promiseFrame = message.Body_at(3);
+        auto* pPromise = promiseFrame.as<std::promise<void>*>();
+
+        if (nullptr != pPromise) { pPromise->set_value(); }
+    }
 }
 
 void Log::print(

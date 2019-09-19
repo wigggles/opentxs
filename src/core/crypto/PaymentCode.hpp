@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,33 +8,33 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 namespace opentxs::implementation
 {
-class PaymentCode : virtual public opentxs::PaymentCode
+class PaymentCode final : virtual public opentxs::PaymentCode
 {
 public:
-    bool operator==(const proto::PaymentCode& rhs) const override;
-    operator const opentxs::crypto::key::Asymmetric&() const override;
+    bool operator==(const proto::PaymentCode& rhs) const final;
+    operator const opentxs::crypto::key::Asymmetric&() const final;
 
-    const OTNymID ID() const override;
-    const std::string asBase58() const override;
-    SerializedPaymentCode Serialize() const override;
+    const OTNymID ID() const final;
+    const std::string asBase58() const final;
+    SerializedPaymentCode Serialize() const final;
     bool Sign(
         const identity::credential::Base& credential,
         proto::Signature& sig,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     bool Sign(const Data& data, Data& output, const PasswordPrompt& reason)
-        const override;
-    bool VerifyInternally() const override;
+        const final;
+    bool VerifyInternally() const final;
     bool Verify(
         const proto::Credential& master,
         const proto::Signature& sourceSignature,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     bool AddPrivateKeys(
         const std::string& seed,
         const Bip32Index index,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
 
-    ~PaymentCode() = default;
+    ~PaymentCode() final = default;
 
 private:
     friend opentxs::Factory;
@@ -58,7 +58,7 @@ private:
         const Bip32Index index,
         const PasswordPrompt& reason);
 
-    PaymentCode* clone() const override;
+    PaymentCode* clone() const final;
     const OTData Pubkey() const;
     void ConstructKey(const Data& pubkey, const PasswordPrompt& reason);
     OTAsymmetricKey signing_key(const PasswordPrompt& reason) const;

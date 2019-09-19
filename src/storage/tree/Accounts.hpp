@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,7 +18,7 @@
 
 namespace opentxs::storage
 {
-class Accounts : public Node
+class Accounts final : public Node
 {
 public:
     OTUnitID AccountContract(const Identifier& accountID) const;
@@ -57,7 +57,7 @@ public:
         const identifier::UnitDefinition& contract,
         const proto::ContactItemType unit);
 
-    ~Accounts() = default;
+    ~Accounts() final = default;
 
 private:
     friend class Tree;
@@ -117,8 +117,8 @@ private:
         const identifier::Server& server,
         const identifier::UnitDefinition& contract,
         const proto::ContactItemType unit);
-    void init(const std::string& hash) override;
-    bool save(const Lock& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const Lock& lock) const final;
 
     Accounts(
         const opentxs::api::storage::Driver& storage,

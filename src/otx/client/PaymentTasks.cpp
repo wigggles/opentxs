@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -99,7 +99,7 @@ OTIdentifier PaymentTasks::get_payment_id(const OTPayment& payment) const
             output = Identifier::Factory(cheque);
 
             return output;
-        } break;
+        }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unknown payment type ")(
                 OTPayment::_GetTypeString(payment.GetType()))

@@ -1,14 +1,11 @@
-set(c-sources
-  base64.c
-)
+# Copyright (c) 2019 The Open-Transactions developers
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-file(GLOB c-headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+set(c-sources base64.c)
+set(c-headers base64.h)
 
-set(MODULE_NAME base64)
-add_library(${MODULE_NAME} OBJECT
-  ${c-sources}
-  ${c-headers}
-)
+add_library(base64 OBJECT ${c-sources} ${c-headers})
 
-set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_lib_property(${MODULE_NAME})
+set_property(TARGET base64 PROPERTY POSITION_INDEPENDENT_CODE 1)

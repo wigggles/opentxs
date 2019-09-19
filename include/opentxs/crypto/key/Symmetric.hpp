@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -32,7 +32,6 @@ public:
     /** Decrypt ciphertext using the symmetric key
      *
      *  \param[in] ciphertext The data to be decrypted
-     *  \param[in] keyPassword The password needed to decrypt the key
      *  \param[out] plaintext The encrypted output
      */
     EXPORT virtual bool Decrypt(
@@ -55,7 +54,6 @@ public:
      *
      *  \param[in] plaintext The data to be encrypted
      *  \param[in] iv Nonce for the encryption operation
-     *  \param[in] keyPassword The password needed to decrypt the key
      *  \param[out] ciphertext The encrypted output
      *  \param[in] attachKey Set to true if the serialized key should be
      *                       embedded in the ciphertext

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -21,7 +21,7 @@ namespace opentxs
 {
 namespace storage
 {
-class Threads : public Node
+class Threads final : public Node
 {
 private:
     typedef Node ot_super;
@@ -31,7 +31,7 @@ private:
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
 
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    bool save(const std::unique_lock<std::mutex>& lock) const final;
     proto::StorageNymList serialize() const;
     class Thread* thread(const std::string& id) const;
     class Thread* thread(
@@ -42,7 +42,7 @@ private:
         const Lock& lock,
         const std::string& id,
         const std::set<std::string>& participants);
-    void init(const std::string& hash) override;
+    void init(const std::string& hash) final;
     void save(
         class Thread* thread,
         const std::unique_lock<std::mutex>& lock,
@@ -63,7 +63,7 @@ public:
     bool Exists(const std::string& id) const;
     using ot_super::List;
     ObjectList List(const bool unreadOnly) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const final;
     const class Thread& Thread(const std::string& id) const;
 
     std::string Create(
@@ -73,7 +73,7 @@ public:
     Editor<class Thread> mutable_Thread(const std::string& id);
     bool Rename(const std::string& existingID, const std::string& newID);
 
-    ~Threads() = default;
+    ~Threads() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

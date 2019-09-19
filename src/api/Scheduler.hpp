@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -23,21 +23,21 @@ namespace opentxs::api::implementation
 class Scheduler : virtual public api::Periodic, public Lockable
 {
 public:
-    bool Cancel(const int task) const override { return parent_.Cancel(task); }
+    bool Cancel(const int task) const final { return parent_.Cancel(task); }
     bool Reschedule(const int task, const std::chrono::seconds& interval)
-        const override
+        const final
     {
         return parent_.Reschedule(task, interval);
     }
     int Schedule(
         const std::chrono::seconds& interval,
         const PeriodicTask& task,
-        const std::chrono::seconds& last) const override
+        const std::chrono::seconds& last) const final
     {
         return parent_.Schedule(interval, task, last);
     }
 
-    virtual ~Scheduler();
+    ~Scheduler() override;
 
 protected:
     const api::internal::Context& parent_;

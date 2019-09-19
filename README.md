@@ -34,7 +34,7 @@ project.
 All development goes in develop branch - please don't submit pull requests to
 master.
 
-Please do *NOT* use an editor that automatically reformats.
+Use clang-format and cmake-format.
 
 #### Running the tests
 
@@ -49,61 +49,17 @@ For convenience please enable the git hooks which will trigger cppcheck and
 clang-format each time you push or commit. To do so type in the repo directory:
 
     cd .git/hooks
-    ln -s ../../scripts/git_hooks/pre-push
-    ln -s ../../scripts/git_hooks/pre-commit
+    ln -s ../../cmake/scripts/git_hooks/pre-push
+    ln -s ../../cmake/scripts/git_hooks/pre-commit
 
 To check your code without pushing the following command can be used:
 
     git push -n
 
-### Dependencies
-
-The default build configuration will compile all dependencies into the library.
-
-If this behavior is not desired, modify the CMake command line as follows:
-
-#### System opentxs-proto
-
-Requires opentxs-proto (https://github.com/open-transactions/opentxs-proto)
-
-    cmake -DOT_BUNDLED_OPENTXS_PROTO=OFF
-
-#### System protobuf
-
-Requires Google Protocol Buffers
-
-    cmake -DOT_BUNDLED_PROTOBUF=OFF -DOT_GENERATE_PROTO=ON
-
-#### System OpenSSL
-
-Requires OpenSSL or compatible library installed
-
-    cmake -DOT_BUNDLED_SSL=OFF
-
-#### System Sodium
-
-Requires Libsodium
-
-    cmake -DOT_BUNDLED_SODIUM=OFF
-
-#### System LMDB
-
-Requires lmbd
-
-    cmake -DOT_BUNDLED_LMDB=OFF
-
-#### System ZeroMQ
-
-Requires zeromq
-
-    cmake -DOT_BUNDLED_LIBZMQ=OFF
-
 ### Build Instructions
-
-OpenTransactions uses the CMake build system. The basic steps are:
 
     mkdir build
     cd build
-    cmake -GNinja ..
+    cmake -GNinja -DBUILD_SHARED_LIBS=ON ..
     ninja
     ninja install

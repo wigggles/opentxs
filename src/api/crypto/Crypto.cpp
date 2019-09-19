@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,14 +10,10 @@
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#if OT_CRYPTO_USING_LIBBITCOIN
-#include "opentxs/crypto/library/Bitcoin.hpp"
-#endif
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/crypto/library/OpenSSL.hpp"
 #endif
@@ -66,9 +62,6 @@ namespace opentxs::api::implementation
 {
 Crypto::Crypto(const api::Settings& settings)
     : config_(opentxs::Factory::CryptoConfig(settings))
-#if OT_CRYPTO_USING_LIBBITCOIN
-    , bitcoin_(opentxs::Factory::Bitcoin(*this))
-#endif
 #if OT_CRYPTO_USING_TREZOR
     , trezor_(opentxs::Factory::Trezor(*this))
 #endif
@@ -77,13 +70,7 @@ Crypto::Crypto(const api::Settings& settings)
     , ssl_(opentxs::Factory::OpenSSL(*this))
 #endif
     , util_(*sodium_)
-#if OT_CRYPTO_USING_LIBBITCOIN
-    , secp256k1_helper_(*bitcoin_)
-    , base58_(*bitcoin_)
-    , ripemd160_(*bitcoin_)
-    , bip32_(*bitcoin_)
-    , bip39_(*bitcoin_)
-#elif OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
     , secp256k1_helper_(*trezor_)
     , base58_(*trezor_)
     , ripemd160_(*trezor_)
@@ -93,25 +80,20 @@ Crypto::Crypto(const api::Settings& settings)
 #if OT_CRYPTO_USING_LIBSECP256K1
     , secp256k1_(opentxs::Factory::Secp256k1(*this, util_, secp256k1_helper_))
     , secp256k1_provider_(*secp256k1_)
-#elif OT_CRYPTO_USING_LIBBITCOIN
-    , secp256k1_provider_(*bitcoin_)
 #elif OT_CRYPTO_USING_TREZOR
     , secp256k1_provider_(*trezor_)
 #endif
-    , encode_(opentxs::Factory::Encode(base58_))
+    , encode_(opentxs::Factory::Encode(*this))
     , hash_(opentxs::Factory::Hash(
           *encode_,
           *ssl_,
           *sodium_
-#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+#if OT_CRYPTO_USING_TREZOR
           ,
           ripemd160_
 #endif  // OT_CRYPTO_USING_TREZOR
           ))
 {
-#if OT_CRYPTO_USING_LIBBITCOIN
-    OT_ASSERT(bitcoin_)
-#endif
 #if OT_CRYPTO_USING_TREZOR
     OT_ASSERT(trezor_)
 #endif
@@ -147,9 +129,6 @@ void Crypto::Cleanup()
     sodium_.reset();
 #if OT_CRYPTO_USING_TREZOR
     trezor_.reset();
-#endif
-#if OT_CRYPTO_USING_LIBBITCOIN
-    bitcoin_.reset();
 #endif
     config_.reset();
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -261,7 +261,7 @@ struct Operation {
         const std::shared_ptr<Cheque> cheque) = 0;
     virtual bool DownloadContract(
         const Identifier& ID,
-        const ContractType type = ContractType::ERROR) = 0;
+        const ContractType type = ContractType::invalid) = 0;
     virtual Future GetFuture() = 0;
     virtual bool IssueUnitDefinition(
         const std::shared_ptr<const proto::UnitDefinition> unitDefinition,

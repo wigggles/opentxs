@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -289,16 +289,16 @@ enum class StorageBox : std::uint8_t {
 };
 
 enum class EcdsaCurve : std::uint8_t {
-    ERROR = 0,
-    SECP256K1 = 1,
-    ED25519 = 2,
+    invalid = 0,
+    secp256k1 = 1,
+    ed25519 = 2,
 };
 
 enum class NymParameterType : std::uint8_t {
-    ERROR = 0,
-    RSA = 1,
-    SECP256K1 = 2,
-    ED25519 = 3
+    invalid = 0,
+    rsa = 1,
+    secp256k1 = 2,
+    ed25519 = 3
 };
 
 enum class NymCapability : std::uint8_t {
@@ -309,16 +309,16 @@ enum class NymCapability : std::uint8_t {
 };
 
 enum class ID : std::uint8_t {
-    ERROR = 0,
-    SHA256 = 1,
-    BLAKE2B = 2,
+    invalid = 0,
+    sha256 = 1,
+    blake2b = 2,
 };
 
 enum class ContractType : std::uint8_t {
-    ERROR = 0,
-    NYM = 1,
-    SERVER = 2,
-    UNIT = 3,
+    invalid = 0,
+    nym = 1,
+    server = 2,
+    unit = 3,
 };
 
 enum class itemType : std::uint8_t {
@@ -611,7 +611,7 @@ enum class SendResult : std::int8_t {
     TRANSACTION_NUMBERS = -3,
     INVALID_REPLY = -2,
     TIMEOUT = -1,
-    ERROR = 0,
+    Error = 0,
     UNNECESSARY = 1,
     VALID_REPLY = 2,
     SHUTDOWN = 3,
@@ -730,7 +730,7 @@ enum class MessageType : std::uint8_t {
 };
 
 enum class ThreadStatus : std::uint8_t {
-    ERROR = 0,
+    Error = 0,
     RUNNING = 1,
     FINISHED_SUCCESS = 2,
     FINISHED_FAILED = 3,
@@ -760,7 +760,7 @@ enum class Depositability : std::int8_t {
 };
 
 enum class BlockchainAccountType : std::uint8_t {
-    ERROR = 0,
+    Invalid = 0,
     BIP32 = 1,
     BIP44 = 2,
 };

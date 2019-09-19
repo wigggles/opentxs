@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -31,11 +31,14 @@ public:
         assert(pimpl_);
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
     Pimpl(const Pimpl& rhs) noexcept
         : pimpl_(rhs.pimpl_->clone())
     {
         assert(pimpl_);
     }
+#pragma GCC diagnostic pop
 
     Pimpl(const C& rhs) noexcept
         : pimpl_(rhs.clone())
@@ -49,6 +52,8 @@ public:
         assert(pimpl_);
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
     Pimpl& operator=(const Pimpl& rhs) noexcept
     {
         pimpl_.reset(rhs.pimpl_->clone());
@@ -56,6 +61,7 @@ public:
 
         return *this;
     }
+#pragma GCC diagnostic pop
 
     Pimpl& operator=(Pimpl&& rhs) noexcept
     {

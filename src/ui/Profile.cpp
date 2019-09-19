@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -122,21 +122,21 @@ bool Profile::AddClaim(
         case proto::CONTACTSECTION_SCOPE: {
 
             return nym.SetScope(type, value, primary, reason);
-        } break;
+        }
         case proto::CONTACTSECTION_COMMUNICATION: {
             switch (type) {
                 case proto::CITEMTYPE_EMAIL: {
 
                     return nym.AddEmail(value, primary, active, reason);
-                } break;
+                }
                 case proto::CITEMTYPE_PHONE: {
 
                     return nym.AddPhoneNumber(value, primary, active, reason);
-                } break;
+                }
                 case proto::CITEMTYPE_OPENTXS: {
 
                     return nym.AddPreferredOTServer(value, primary, reason);
-                } break;
+                }
                 default: {
                 }
             }
@@ -145,16 +145,16 @@ bool Profile::AddClaim(
 
             return nym.AddSocialMediaProfile(
                 value, type, primary, active, reason);
-        } break;
+        }
         case proto::CONTACTSECTION_CONTRACT: {
 
             return nym.AddContract(value, type, primary, active, reason);
-        } break;
+        }
         case proto::CONTACTSECTION_PROCEDURE: {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
             return nym.AddPaymentCode(value, type, primary, active, reason);
 #endif
-        } break;
+        }
         default: {
         }
     }

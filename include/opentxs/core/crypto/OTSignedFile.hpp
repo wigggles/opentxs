@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -39,7 +39,7 @@ public:
     EXPORT void SetFilePayload(const String& strArg);
     EXPORT String& GetSignerNymID();
     EXPORT void SetSignerNymID(const String& strArg);
-    EXPORT virtual ~OTSignedFile();
+    EXPORT ~OTSignedFile() override;
     void Release() override;
     void Release_SignedFile();
     void UpdateContents(const PasswordPrompt& reason) override;

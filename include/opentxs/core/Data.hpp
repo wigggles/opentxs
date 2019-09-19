@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -50,7 +50,9 @@ bool operator<=(const OTData& lhs, const Data& rhs);
 bool operator>=(const OTData& lhs, const Data& rhs);
 OTData& operator+=(OTData& lhs, const OTData& rhs);
 OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
+OTData& operator+=(OTData& lhs, const std::uint16_t rhs);
 OTData& operator+=(OTData& lhs, const std::uint32_t rhs);
+OTData& operator+=(OTData& lhs, const std::uint64_t rhs);
 
 class Data
 {
@@ -72,7 +74,12 @@ public:
     EXPORT static OTData Factory(const std::vector<std::byte>& source);
     EXPORT static OTData Factory(const network::zeromq::Frame& message);
     EXPORT static OTData Factory(const std::uint8_t in);
+    /// Bytes will be stored in big endian order
+    EXPORT static OTData Factory(const std::uint16_t in);
+    /// Bytes will be stored in big endian order
     EXPORT static OTData Factory(const std::uint32_t in);
+    /// Bytes will be stored in big endian order
+    EXPORT static OTData Factory(const std::uint64_t in);
     EXPORT static OTData Factory(const std::string in, const Mode mode);
 #endif
 
@@ -97,7 +104,13 @@ public:
     EXPORT virtual bool Extract(std::uint8_t& output, const std::size_t pos = 0)
         const = 0;
     EXPORT virtual bool Extract(
+        std::uint16_t& output,
+        const std::size_t pos = 0) const = 0;
+    EXPORT virtual bool Extract(
         std::uint32_t& output,
+        const std::size_t pos = 0) const = 0;
+    EXPORT virtual bool Extract(
+        std::uint64_t& output,
         const std::size_t pos = 0) const = 0;
 #ifndef SWIG
     [[deprecated]] EXPORT virtual const void* GetPointer() const = 0;
@@ -113,7 +126,12 @@ public:
 
     EXPORT virtual Data& operator+=(const Data& rhs) = 0;
     EXPORT virtual Data& operator+=(const std::uint8_t rhs) = 0;
+    /// Bytes will be stored in big endian order
+    EXPORT virtual Data& operator+=(const std::uint16_t rhs) = 0;
+    /// Bytes will be stored in big endian order
     EXPORT virtual Data& operator+=(const std::uint32_t rhs) = 0;
+    /// Bytes will be stored in big endian order
+    EXPORT virtual Data& operator+=(const std::uint64_t rhs) = 0;
     EXPORT virtual void Assign(const Data& source) = 0;
 #ifndef SWIG
     EXPORT virtual void Assign(const void* data, const std::size_t& size) = 0;

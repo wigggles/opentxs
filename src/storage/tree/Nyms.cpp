@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -77,7 +77,7 @@ void Nyms::Map(NymLambda lambda) const
     const auto copy = item_map_;
     lock.unlock();
 
-    for (const auto it : copy) {
+    for (const auto& it : copy) {
         const auto& id = it.first;
         const auto& node = *nym(id);
         const auto& hash = node.credentials_;
@@ -94,7 +94,7 @@ bool Nyms::Migrate(const opentxs::api::storage::Driver& to) const
 {
     bool output{true};
 
-    for (const auto index : item_map_) {
+    for (const auto& index : item_map_) {
         const auto& id = index.first;
         const auto& node = *nym(id);
         output &= node.Migrate(to);
@@ -225,7 +225,7 @@ proto::StorageNymList Nyms::serialize() const
     proto::StorageNymList serialized;
     serialized.set_version(version_);
 
-    for (const auto item : item_map_) {
+    for (const auto& item : item_map_) {
         const bool goodID = !item.first.empty();
         const bool goodHash = check_hash(std::get<0>(item.second));
         const bool good = goodID && goodHash;
@@ -245,7 +245,7 @@ void Nyms::UpgradeLocalnym()
 {
     Lock lock(write_lock_);
 
-    for (const auto index : item_map_) {
+    for (const auto& index : item_map_) {
         const auto& id = index.first;
         const auto& node = *nym(lock, id);
         auto credentials = std::make_shared<proto::CredentialIndex>();

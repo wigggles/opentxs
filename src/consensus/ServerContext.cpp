@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -899,7 +899,7 @@ NetworkReplyMessage ServerContext::attempt_delivery(
                 .Flush();
             ++failure_counter_;
         } break;
-        case SendResult::ERROR: {
+        case SendResult::Error: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Malformed ")(
                 message.m_strCommand)
                 .Flush();
@@ -2514,11 +2514,11 @@ void ServerContext::need_process_nymbox(
             return;
         }
         case SendResult::VALID_REPLY: {
-            auto& message = result.second;
+            auto& pReply = result.second;
 
-            OT_ASSERT(message);
+            OT_ASSERT(pReply);
 
-            if (message->m_bSuccess) {
+            if (pReply->m_bSuccess) {
                 [[maybe_unused]] auto [number, message] =
                     initialize_server_command(
                         contextLock, MessageType::getNymbox, -1, true, true);
@@ -2533,11 +2533,12 @@ void ServerContext::need_process_nymbox(
                     contextLock, messageLock, client, *message, reason);
 
                 if (process_nymbox_) {
-                    DeliveryResult result{proto::LASTREPLYSTATUS_MESSAGESUCCESS,
-                                          pending_message_};
+                    DeliveryResult resultProcessNymbox{
+                        proto::LASTREPLYSTATUS_MESSAGESUCCESS,
+                        pending_message_};
                     resolve_queue(
                         contextLock,
-                        std::move(result),
+                        std::move(resultProcessNymbox),
                         reason,
                         proto::DELIVERTYSTATE_IDLE);
                 } else {
@@ -2751,10 +2752,10 @@ bool ServerContext::ProcessNotification(
             // Nymbox items don't have an intrinsic account ID. Use nym ID
             // instead.
             return process_box_item(lock, client, nym_->ID(), push, reason);
-        } break;
+        }
         case proto::OTXPUSH_INBOX: {
             return process_account_push(lock, client, push, reason);
-        } break;
+        }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported push type")
                 .Flush();
@@ -4237,25 +4238,25 @@ bool ServerContext::process_get_unit_definition_response(
     const auto raw = Data::Factory(reply.m_ascPayload);
 
     switch (static_cast<ContractType>(reply.enum_)) {
-        case ContractType::NYM: {
+        case ContractType::nym: {
             auto serialized = proto::Factory<proto::CredentialIndex>(raw);
             auto contract = api_.Wallet().Nym(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.nymid()); }
         } break;
-        case ContractType::SERVER: {
+        case ContractType::server: {
             auto serialized = proto::Factory<proto::ServerContract>(raw);
             auto contract = api_.Wallet().Server(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.id()); }
         } break;
-        case ContractType::UNIT: {
+        case ContractType::unit: {
             auto serialized = proto::Factory<proto::UnitDefinition>(raw);
             auto contract = api_.Wallet().UnitDefinition(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.id()); }
         } break;
-        case ContractType::ERROR:
+        case ContractType::invalid:
         default: {
             auto serialized = proto::Factory<proto::UnitDefinition>(raw);
             auto contract = api_.Wallet().UnitDefinition(serialized, reason);
@@ -4265,11 +4266,15 @@ bool ServerContext::process_get_unit_definition_response(
                 return (unitID->str() == serialized.id());
             } else {
                 // Maybe it's actually a server contract?
-                auto serialized = proto::Factory<proto::ServerContract>(raw);
+                auto serializedServerContract =
+                    proto::Factory<proto::ServerContract>(raw);
 
-                auto contract = api_.Wallet().Server(serialized, reason);
+                auto serverContract =
+                    api_.Wallet().Server(serializedServerContract, reason);
 
-                if (contract) { return (unitID->str() == serialized.id()); }
+                if (serverContract) {
+                    return (unitID->str() == serializedServerContract.id());
+                }
             }
         }
     }
@@ -5198,7 +5203,7 @@ void ServerContext::process_response_transaction_cash_deposit(
         token = walletPurse.Pop();
     }
 
-    for (auto& token : keepTokens) { walletPurse.Push(token, reason); }
+    for (auto& keepToken : keepTokens) { walletPurse.Push(keepToken, reason); }
 }
 #endif
 
@@ -6862,20 +6867,19 @@ bool ServerContext::remove_nymbox_item(
                         if (!theOutpayment->IsValid() ||
                             !theOutpayment->GetTransNumDisplay(
                                 lTransNumForDisplay)) {
-                            auto tempPayment = api_.Factory().Payment();
+                            auto temp = api_.Factory().Payment();
 
-                            OT_ASSERT(false != bool(tempPayment));
+                            OT_ASSERT(false != bool(temp));
 
-                            const String& strCronItem =
+                            const String& serializedCronItem =
                                 (strUpdatedCronItem->Exists()
                                      ? strUpdatedCronItem
                                      : strOriginalCronItem);
 
-                            if (strCronItem.Exists() &&
-                                tempPayment->SetPayment(strCronItem) &&
-                                tempPayment->SetTempValues(reason)) {
-                                tempPayment->GetTransNumDisplay(
-                                    lTransNumForDisplay);
+                            if (serializedCronItem.Exists() &&
+                                temp->SetPayment(serializedCronItem) &&
+                                temp->SetTempValues(reason)) {
+                                temp->GetTransNumDisplay(lTransNumForDisplay);
                             }
                         }
 
@@ -7551,13 +7555,13 @@ RequestNumber ServerContext::update_request_number(
             LogOutput(OT_METHOD)(__FUNCTION__)(": Reply timeout.").Flush();
 
             return {};
-        } break;
+        }
         case SendResult::INVALID_REPLY: {
             sendStatus = true;
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid reply.").Flush();
 
             return {};
-        } break;
+        }
         case SendResult::VALID_REPLY: {
             sendStatus = true;
         } break;

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,17 +13,17 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class Frame : virtual public zeromq::Frame
+class Frame final : virtual public zeromq::Frame
 {
 public:
-    operator std::string() const override;
+    operator std::string() const final;
 
-    const void* data() const override;
-    std::size_t size() const override;
+    const void* data() const final;
+    std::size_t size() const final;
 
-    operator zmq_msg_t*() override;
+    operator zmq_msg_t*() final;
 
-    ~Frame();
+    ~Frame() final;
 
 private:
     friend opentxs::Factory;
@@ -31,7 +31,7 @@ private:
 
     mutable zmq_msg_t message_;
 
-    Frame* clone() const override;
+    Frame* clone() const final;
 
     Frame();
     explicit Frame(const ProtobufType& input);

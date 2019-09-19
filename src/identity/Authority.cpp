@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Data.hpp"
@@ -188,7 +187,7 @@ Authority::Authority(
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Creating an ed25519 child key credential.")
             .Flush();
-        revisedParameters.setNymParameterType(NymParameterType::ED25519);
+        revisedParameters.setNymParameterType(NymParameterType::ed25519);
         haveChildCredential =
             !AddChildKeyCredential(revisedParameters, reason).empty();
     }
@@ -199,7 +198,7 @@ Authority::Authority(
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Creating an secp256k1 child key credential.")
             .Flush();
-        revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
+        revisedParameters.setNymParameterType(NymParameterType::secp256k1);
         haveChildCredential =
             !AddChildKeyCredential(revisedParameters, reason).empty();
     }
@@ -210,7 +209,7 @@ Authority::Authority(
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Creating an RSA child key credential.")
             .Flush();
-        revisedParameters.setNymParameterType(NymParameterType::RSA);
+        revisedParameters.setNymParameterType(NymParameterType::rsa);
         haveChildCredential =
             !AddChildKeyCredential(revisedParameters, reason).empty();
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,9 +13,6 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/stacktrace.h"
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -34,8 +31,9 @@
 #include "AsymmetricProvider.hpp"
 #include "OpenSSL_BIO.hpp"
 
+#include <boost/endian/buffers.hpp>
+
 extern "C" {
-#include <netinet/in.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 #include <openssl/conf.h>
@@ -363,7 +361,8 @@ OTPassword* OpenSSL::InstantiateBinarySecret() const
 
 void OpenSSL::thread_setup() const
 {
-    OpenSSL::s_arrayMutex = new std::mutex[CRYPTO_num_locks()];
+    OpenSSL::s_arrayMutex =
+        new std::mutex[static_cast<unsigned int>(CRYPTO_num_locks())];
 
 // NOTE: OpenSSL supposedly has some default implementation for the thread_id,
 // so we're going to NOT set that callback here, and see what happens.
@@ -864,7 +863,7 @@ bool OpenSSL::Digest(
     unsigned int hash_length = 0;
 
     if (nullptr != algorithm) {
-        EVP_DigestInit_ex(context, algorithm, NULL);
+        EVP_DigestInit_ex(context, algorithm, nullptr);
         EVP_DigestUpdate(context, input, inputSize);
         EVP_DigestFinal_ex(context, output, &hash_length);
         EVP_MD_CTX_destroy(context);
@@ -893,8 +892,14 @@ bool OpenSSL::HMAC(
     const EVP_MD* evp_md = OpenSSLdp::HashTypeToOpenSSLType(hashType);
 
     if (nullptr != evp_md) {
-        void* data =
-            ::HMAC(evp_md, key, keySize, input, inputSize, nullptr, &size);
+        void* data = ::HMAC(
+            evp_md,
+            key,
+            static_cast<int>(keySize),
+            input,
+            inputSize,
+            nullptr,
+            &size);
 
         if (nullptr != data) {
             OTPassword::safe_memcpy(output, size, data, size);
@@ -923,7 +928,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     const Data& strContractUnsigned,
     const EVP_PKEY* pkey,
     Data& theSignature,
-    const PasswordPrompt& reason) const
+    [[maybe_unused]] const PasswordPrompt& reason) const
 {
 
     // 32 bytes, double sha256
@@ -1060,7 +1065,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
                           // in
                           // PSS mode with two hashes.)
 
-    if (status == -1) {
+    if (status < 0) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": RSA_private_encrypt failure: ")(
             ERR_error_string(ERR_get_error(), nullptr))(".")
             .Flush();
@@ -1071,7 +1076,8 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // status contains size
 
     // RSA_private_encrypt actually returns the right size.
-    const auto binSignature = Data::Factory(&vpSignature.at(0), status);
+    const auto binSignature =
+        Data::Factory(&vpSignature.at(0), static_cast<std::size_t>(status));
     theSignature.Assign(binSignature->data(), binSignature->size());
 
     if (pRsaKey) { RSA_free(pRsaKey); }
@@ -1085,7 +1091,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     const Data& strContractToVerify,
     const EVP_PKEY* pkey,
     const Data& theSignature,
-    const PasswordPrompt& reason) const
+    [[maybe_unused]] const PasswordPrompt& reason) const
 {
 
     // 32 bytes, double sha256
@@ -2274,25 +2280,14 @@ bool OpenSSL::EncryptSessionKey(
     // 2 == Symmetric Key   (other functions -- Encrypt / Decrypt use this.)
     // Anything else: error.
 
-    uint16_t temp_env_type = 1;  // todo hardcoding.
-    // Calculate "network-order" version of envelope type 1.
-    uint16_t env_type_n = htons(temp_env_type);
-
-    dataOutput.Concatenate(
-        reinterpret_cast<void*>(&env_type_n),
-        static_cast<std::uint32_t>(sizeof(env_type_n)));
+    const auto env_type = std::uint16_t{1};
+    dataOutput += env_type;
 
     // Write the ARRAY SIZE (network order version.)
-
-    // Calculate "network-order" version of array size.
-    std::uint32_t array_size_n = htonl(RecipPubKeys.size());
-
-    dataOutput.Concatenate(
-        reinterpret_cast<void*>(&array_size_n),
-        static_cast<std::uint32_t>(sizeof(array_size_n)));
-
-    LogInsane(OT_METHOD)(__FUNCTION__)(": Envelope type:  ")(env_type_n)(
-        "    Array size: ")(array_size_n)
+    const auto array_size{static_cast<std::uint32_t>(RecipPubKeys.size())};
+    dataOutput += array_size;
+    LogInsane(OT_METHOD)(__FUNCTION__)(": Envelope type:  ")(env_type)(
+        "    Array size: ")(array_size)
         .Flush();
 
     OT_ASSERT(nullptr != ek);
@@ -2331,35 +2326,25 @@ bool OpenSSL::EncryptSessionKey(
         const auto strNymID = String::Factory(str_nym_id.c_str());
 
         // +1 for null terminator.
-        std::uint32_t nymid_len = strNymID->GetLength() + 1;
-        // Calculate "network-order" version of length (+1 for null terminator)
-        std::uint32_t nymid_len_n = htonl(nymid_len);
+        const auto nymid_len = std::uint32_t{strNymID->GetLength() + 1};
 
         // Write nymid_len_n and strNymID for EACH encrypted symmetric key.
-        //
-        dataOutput.Concatenate(
-            reinterpret_cast<void*>(&nymid_len_n),
-            static_cast<std::uint32_t>(sizeof(nymid_len_n)));
+        dataOutput += nymid_len;
 
         // (+1 for null terminator is included here already, from above.)
         dataOutput.Concatenate(
             reinterpret_cast<const void*>(strNymID->Get()), nymid_len);
 
         LogInsane(OT_METHOD)(__FUNCTION__)(": INDEX: ")(ii)(
-            "  NymID length:  ")(nymid_len_n)("   Nym ID: ")(strNymID)(
+            "  NymID length:  ")(nymid_len)("   Nym ID: ")(strNymID)(
             "   Strlen (should be a byte shorter): ")(strNymID->GetLength())
             .Flush();
 
         OT_ASSERT(nullptr != ek[ii]);  // assert key pointer not null.
         OT_ASSERT(eklen[ii] > 0);      // assert key length larger than 0.
 
-        // Calculate "network-order" version of length.
-        auto eklen_n = htonl(static_cast<std::uint32_t>(eklen[ii]));
-
-        dataOutput.Concatenate(
-            reinterpret_cast<void*>(&eklen_n),
-            static_cast<std::uint32_t>(sizeof(eklen_n)));
-
+        const auto eklen_n = static_cast<std::uint32_t>(eklen[ii]);
+        dataOutput += eklen_n;
         dataOutput.Concatenate(
             reinterpret_cast<void*>(ek[ii]),
             static_cast<std::uint32_t>(eklen[ii]));
@@ -2372,19 +2357,15 @@ bool OpenSSL::EncryptSessionKey(
 
     // Write IV size before then writing IV itself.
     //
-    auto ivlen = static_cast<std::uint32_t>(
+    const auto ivlen = static_cast<std::uint32_t>(
         EVP_CIPHER_iv_length(cipher_type));  // Length of IV for this cipher...
     // (TODO: add cipher name to output,
     // and use it for looking up cipher
     // upon Open.)
-    //  OT_ASSERT(ivlen > 0);
-    // Calculate "network-order" version of iv length.
-    std::uint32_t ivlen_n = htonl(ivlen);
-    dataOutput.Concatenate(
-        reinterpret_cast<void*>(&ivlen_n),
-        static_cast<std::uint32_t>(sizeof(ivlen_n)));
+
+    dataOutput += ivlen;
     dataOutput.Concatenate(reinterpret_cast<void*>(iv), ivlen);
-    LogInsane(OT_METHOD)(__FUNCTION__)(": iv_size: ")(ivlen_n)(
+    LogInsane(OT_METHOD)(__FUNCTION__)(": iv_size: ")(ivlen)(
         "   IV first byte: ")(iv[0])("    IV last byte: ")(iv[ivlen - 1])
         .Flush();
 
@@ -2606,7 +2587,7 @@ bool OpenSSL::DecryptSessionKey(
     // 2 == Symmetric Key   (other functions -- Encrypt / Decrypt use this.)
     // Anything else: error.
     //
-    uint16_t env_type_n = 0;
+    auto env_type_n = boost::endian::big_uint16_buf_t{};
 
     if (0 == (nReadEnvType = dataInput.OTfread(
                   reinterpret_cast<std::uint8_t*>(&env_type_n),
@@ -2622,7 +2603,7 @@ bool OpenSSL::DecryptSessionKey(
 
     // convert that envelope type from network to HOST endian.
     //
-    const uint16_t env_type = ntohs(env_type_n);
+    const auto env_type{env_type_n.value()};
     //  nRunningTotal += env_type;    // NOPE! Just because envelope type is 1
     // or 2, doesn't mean we add 1 or 2 extra bytes to the length here. Nope!
 
@@ -2630,7 +2611,7 @@ bool OpenSSL::DecryptSessionKey(
 
     // Read the ARRAY SIZE (network order version -- convert to host version.)
     //
-    std::uint32_t array_size_n = 0;
+    auto array_size_n = boost::endian::big_uint32_buf_t{};
 
     if (0 == (nReadArraySize = dataInput.OTfread(
                   reinterpret_cast<std::uint8_t*>(&array_size_n),
@@ -2647,7 +2628,8 @@ bool OpenSSL::DecryptSessionKey(
         nReadArraySize == static_cast<std::uint32_t>(sizeof(array_size_n)));
 
     // convert that array size from network to HOST endian.
-    const std::uint32_t array_size = ntohl(array_size_n);
+    const auto array_size{array_size_n.value()};
+
     LogInsane(OT_METHOD)(__FUNCTION__)(": Array size: ")(array_size).Flush();
 
     // We are going to loop through all the keys and load each up (then delete.)
@@ -2673,7 +2655,7 @@ bool OpenSSL::DecryptSessionKey(
         //      read its network-order key content size (convert to host), and
         // then read its key content.
 
-        std::uint32_t nymid_len_n = 0;
+        auto nymid_len_n = boost::endian::big_uint32_buf_t{};
         std::uint32_t nReadNymIDSize = 0;
 
         if (0 == (nReadNymIDSize = dataInput.OTfread(
@@ -2692,7 +2674,7 @@ bool OpenSSL::DecryptSessionKey(
             nReadNymIDSize == static_cast<std::uint32_t>(sizeof(nymid_len_n)));
 
         // convert that array size from network to HOST endian.
-        std::uint32_t nymid_len = ntohl(nymid_len_n);
+        const auto nymid_len{nymid_len_n.value()};
         LogInsane(OT_METHOD)(__FUNCTION__)(": NymID length: ")(nymid_len)
             .Flush();
         std::uint8_t* nymid =
@@ -2748,7 +2730,7 @@ bool OpenSSL::DecryptSessionKey(
         // read its key content.
         std::uint8_t* ek = nullptr;
         std::uint32_t eklen = 0;
-        std::uint32_t eklen_n = 0;
+        auto eklen_n = boost::endian::big_uint32_buf_t{};
         std::uint32_t nReadLength = 0;
         std::uint32_t nReadKey = 0;
 
@@ -2768,7 +2750,7 @@ bool OpenSSL::DecryptSessionKey(
         OT_ASSERT(nReadLength == static_cast<std::uint32_t>(sizeof(eklen_n)));
 
         // convert that key size from network to host endian.
-        eklen = ntohl(eklen_n);
+        eklen = eklen_n.value();
 
         LogInsane(OT_METHOD)(__FUNCTION__)(": EK length:  ")(eklen).Flush();
         ek = static_cast<std::uint8_t*>(malloc(
@@ -2866,7 +2848,7 @@ bool OpenSSL::DecryptSessionKey(
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //
-    std::uint32_t iv_size_n = 0;
+    auto iv_size_n = boost::endian::big_uint32_buf_t{};
     std::uint32_t nReadIVSize = 0;
 
     if (0 == (nReadIVSize = dataInput.OTfread(
@@ -2882,7 +2864,7 @@ bool OpenSSL::DecryptSessionKey(
 
     // convert that iv size from network to HOST endian.
     //
-    const std::uint32_t iv_size_host_order = ntohl(iv_size_n);
+    const auto iv_size_host_order = iv_size_n.value();
 
     if (iv_size_host_order > max_iv_length) {
         const std::int64_t l1 = iv_size_host_order, l2 = max_iv_length;

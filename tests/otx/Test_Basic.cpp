@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,15 +17,9 @@ using namespace opentxs;
 #define CHEQUE_AMOUNT 144488
 #define TRANSFER_AMOUNT 1144888
 #define SECOND_TRANSFER_AMOUNT 500000
-#define CASH_AMOUNT 100
 #define CHEQUE_MEMO "cheque memo"
 #define TRANSFER_MEMO "transfer memo"
-#define FAILURE false
-#define INBOX_TYPE 1
-#define NYMBOX_TYPE 0
-#define NO_TRANSACTION false
 #define SUCCESS true
-#define TRANSACTION true
 #define UNIT_DEFINITION_CONTRACT_NAME "Mt Gox USD"
 #define UNIT_DEFINITION_TERMS "YOLO"
 #define UNIT_DEFINITION_PRIMARY_UNIT_NAME "dollars"
@@ -42,10 +36,13 @@ using namespace opentxs;
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME_2 "satoshis"
 #define MESSAGE_TEXT "example message text"
 #define NEW_SERVER_NAME "Awesome McCoolName"
-#define MINT_TIME_LIMIT_MINUTES 5
 #define TEST_SEED                                                              \
     "one two three four five six seven eight nine ten eleven twelve"
 #define TEST_SEED_PASSPHRASE "seed passphrase"
+#if OT_CASH
+#define CASH_AMOUNT 100
+#define MINT_TIME_LIMIT_MINUTES 5
+#endif
 
 namespace
 {
@@ -66,7 +63,7 @@ public:
         bool operator()(const std::pair<std::string, std::string>& id)
         {
             return id.first == id_;
-        };
+        }
 
         const std::string id_;
     };
@@ -156,7 +153,7 @@ public:
             case proto::LASTREPLYSTATUS_NONE:
             default: {
 
-                return SendResult::ERROR;
+                return SendResult::Error;
             }
         }
     }
@@ -1242,7 +1239,7 @@ TEST_F(Test_Basic, downloadServerContract_missing)
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started =
-        stateMachine.DownloadContract(server_2_id_, ContractType::SERVER);
+        stateMachine.DownloadContract(server_2_id_, ContractType::server);
 
     ASSERT_TRUE(started);
 
@@ -1343,7 +1340,7 @@ TEST_F(Test_Basic, downloadServerContract)
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started =
-        stateMachine.DownloadContract(server_2_id_, ContractType::SERVER);
+        stateMachine.DownloadContract(server_2_id_, ContractType::server);
 
     ASSERT_TRUE(started);
 
@@ -1443,7 +1440,7 @@ TEST_F(Test_Basic, getInstrumentDefinition_missing)
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.DownloadContract(
-        find_unit_definition_id_2(), ContractType::UNIT);
+        find_unit_definition_id_2(), ContractType::unit);
 
     ASSERT_TRUE(started);
 
@@ -1538,7 +1535,7 @@ TEST_F(Test_Basic, getInstrumentDefinition_Alice)
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto started = stateMachine.DownloadContract(
-        find_unit_definition_id_2(), ContractType::UNIT);
+        find_unit_definition_id_2(), ContractType::unit);
 
     ASSERT_TRUE(started);
 
@@ -1587,7 +1584,7 @@ TEST_F(Test_Basic, getInstrumentDefinition_Bob)
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
     auto started = stateMachine.DownloadContract(
-        find_unit_definition_id_1(), ContractType::UNIT);
+        find_unit_definition_id_1(), ContractType::unit);
 
     ASSERT_TRUE(started);
 

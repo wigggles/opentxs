@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,24 +7,24 @@
 
 namespace opentxs::implementation
 {
-class Flag : virtual public opentxs::Flag, Lockable
+class Flag final : virtual public opentxs::Flag, Lockable
 {
 public:
-    operator bool() const override;
+    operator bool() const final;
 
-    bool Off() override;
-    bool On() override;
-    bool Set(const bool value) override;
-    bool Toggle() override;
+    bool Off() final;
+    bool On() final;
+    bool Set(const bool value) final;
+    bool Toggle() final;
 
     Flag(const bool state);
 
-    ~Flag() = default;
+    ~Flag() final = default;
 
 private:
     std::atomic<bool> flag_;
 
-    Flag* clone() const override;
+    Flag* clone() const final;
 
     Flag() = delete;
     Flag(const Flag&) = delete;

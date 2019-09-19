@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,18 +12,17 @@ namespace opentxs::otx::implementation
 class Request final : otx::Request
 {
 public:
-    proto::ServerRequest Contract() const override;
-    const identifier::Nym& Initiator() const override { return initiator_; }
-    RequestNumber Number() const override;
-    const identifier::Server& Server() const override { return server_; }
-    proto::ServerRequestType Type() const override { return type_; }
+    proto::ServerRequest Contract() const final;
+    const identifier::Nym& Initiator() const final { return initiator_; }
+    RequestNumber Number() const final;
+    const identifier::Server& Server() const final { return server_; }
+    proto::ServerRequestType Type() const final { return type_; }
 
-    bool SetIncludeNym(const bool include, const PasswordPrompt& reason)
-        override;
+    bool SetIncludeNym(const bool include, const PasswordPrompt& reason) final;
     bool SetNumber(const RequestNumber number, const PasswordPrompt& reason)
-        override;
+        final;
 
-    ~Request() = default;
+    ~Request() final = default;
 
 private:
     friend otx::Request;
@@ -40,21 +39,19 @@ private:
         const proto::ServerRequest serialized,
         const PasswordPrompt& reason);
 
-    Request* clone() const override { return new Request(*this); }
-    OTIdentifier GetID(const Lock& lock) const override;
+    Request* clone() const final { return new Request(*this); }
+    OTIdentifier GetID(const Lock& lock) const final;
     proto::ServerRequest full_version(const Lock& lock) const;
     proto::ServerRequest id_version(const Lock& lock) const;
-    std::string Name() const override { return {}; }
-    OTData Serialize() const override;
+    std::string Name() const final { return {}; }
+    OTData Serialize() const final;
     proto::ServerRequest signature_version(const Lock& lock) const;
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
-        override;
-    bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const override;
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
+    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
     bool verify_signature(
         const Lock& lock,
         const proto::Signature& signature,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     Request(
         const api::Core& api,

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,8 +15,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -96,8 +94,7 @@ EllipticCurve::EllipticCurve(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 EllipticCurve::EllipticCurve(const EllipticCurve& rhs) noexcept
-    : key::EllipticCurve()
-    , Asymmetric(rhs)
+    : Asymmetric(rhs)
     , ecdsa_(rhs.ecdsa_)
     , key_(rhs.key_)
     , encrypted_key_(
@@ -121,7 +118,7 @@ std::unique_ptr<key::EllipticCurve> EllipticCurve::asPublic(
 
     OT_ASSERT(false == copy.HasPrivate());
 
-    return output;
+    return std::move(output);
 }
 
 OTData EllipticCurve::CalculateHash(

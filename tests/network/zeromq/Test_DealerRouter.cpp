@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -98,7 +98,7 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
             EXPECT_TRUE(match);
 
             replyMessage = context_.ReplyMessage(input);
-            for (const std::string& frame : input.Body()) {
+            for (const auto& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
 
@@ -231,7 +231,7 @@ TEST_F(Test_DealerRouter, Dealer_2_Router_1)
 
             auto& replyMessage = replyMessages.at(inputString);
             replyMessage = context_.ReplyMessage(input);
-            for (const std::string& frame : input.Body()) {
+            for (const std::string frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
 
@@ -353,13 +353,13 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
             EXPECT_EQ(2, input.Body().size());
 
             auto originalFound{false};
-            for (const std::string& frame : input.Header()) {
+            for (const std::string frame : input.Header()) {
                 if (testMessage_ == frame) { originalFound = true; }
             }
 
             EXPECT_TRUE(originalFound);
 
-            for (const std::string& frame : input.Body()) {
+            for (const std::string frame : input.Body()) {
                 bool match = frame == testMessage2_ || frame == testMessage3_;
                 EXPECT_TRUE(match);
             }
@@ -389,10 +389,10 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
             EXPECT_EQ(4, input.size());
             EXPECT_EQ(1, input.Header().size());
             EXPECT_EQ(2, input.Body().size());
-            for (const std::string& frame : input.Header()) {
+            for (const std::string frame : input.Header()) {
                 EXPECT_EQ(testMessage_, frame);
             }
-            for (const std::string& frame : input.Body()) {
+            for (const std::string frame : input.Body()) {
                 bool match = frame == testMessage2_ || frame == testMessage3_;
                 EXPECT_TRUE(match);
             }

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -48,9 +48,9 @@ namespace opentxs::api::crypto::implementation
 const VersionNumber Asymmetric::serialized_path_version_{1};
 
 const Asymmetric::TypeMap Asymmetric::curve_to_key_type_{
-    {EcdsaCurve::ERROR, proto::AKEYTYPE_ERROR},
-    {EcdsaCurve::SECP256K1, proto::AKEYTYPE_SECP256K1},
-    {EcdsaCurve::ED25519, proto::AKEYTYPE_ED25519},
+    {EcdsaCurve::invalid, proto::AKEYTYPE_ERROR},
+    {EcdsaCurve::secp256k1, proto::AKEYTYPE_SECP256K1},
+    {EcdsaCurve::ed25519, proto::AKEYTYPE_ED25519},
 };
 
 Asymmetric::Asymmetric(const api::internal::Core& api)
@@ -255,19 +255,19 @@ Asymmetric::Key Asymmetric::NewKey(
         case (proto::AKEYTYPE_ED25519): {
             return Key{opentxs::Factory::Ed25519Key(
                 api_, api_.Crypto().ED25519(), role, version)};
-        } break;
+        }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
             return Key{opentxs::Factory::Secp256k1Key(
                 api_, api_.Crypto().SECP256K1(), role, version)};
-        } break;
+        }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY): {
             return Key{
                 opentxs::Factory::RSAKey(api_, api_.Crypto().RSA(), role)};
-        } break;
+        }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(

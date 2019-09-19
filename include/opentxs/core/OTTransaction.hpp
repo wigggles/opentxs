@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -581,7 +581,7 @@ public:
         m_outboxhash = outboxhash;
     }
 
-    EXPORT virtual ~OTTransaction();
+    EXPORT ~OTTransaction() override;
 
 protected:
     // Usually a transaction object is inside a ledger object.
@@ -765,6 +765,10 @@ private:
         NumList* pNumList = nullptr);
 
     OTTransaction() = delete;
+    OTTransaction(const OTTransaction&) = delete;
+    OTTransaction(OTTransaction&&) = delete;
+    OTTransaction& operator=(const OTTransaction&) = delete;
+    OTTransaction& operator=(OTTransaction&&) = delete;
 };
 }  // namespace opentxs
 #endif

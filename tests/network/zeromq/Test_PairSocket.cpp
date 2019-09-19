@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -39,8 +39,7 @@ void Test_PairSocket::pairSocketThread(const std::string& message)
     bool callbackFinished = false;
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this, &callbackFinished, &message](
-            network::zeromq::Message& msg) -> void {
+        [&callbackFinished, &message](network::zeromq::Message& msg) -> void {
             EXPECT_EQ(1, msg.size());
             const std::string& inputString = *msg.Body().begin();
 

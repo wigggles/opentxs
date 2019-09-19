@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,7 +18,6 @@
 #include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
@@ -144,8 +143,7 @@ HD::HD(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 HD::HD(const HD& rhs) noexcept
-    : key::HD()
-    , EllipticCurve(rhs)
+    : EllipticCurve(rhs)
     , path_(bool(rhs.path_) ? new proto::HDPath(*rhs.path_) : nullptr)
     , chain_code_(
           bool(rhs.chain_code_) ? new proto::Ciphertext(*rhs.chain_code_)
@@ -232,12 +230,15 @@ std::tuple<bool, Bip32Depth, Bip32Index> HD::get_params() const
         return output;
     }
 
-    depth = size;
+    depth = static_cast<std::uint8_t>(size);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
     if (0 < depth) {
         const auto& index = *(path_->child().rbegin());
         child = index;
     }
+#pragma GCC diagnostic pop
 
     success = true;
 

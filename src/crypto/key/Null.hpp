@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -72,8 +72,7 @@ public:
     {
         return false;
     }
-    bool TransportKey(Data&, OTPassword&, const PasswordPrompt& reason)
-        const final
+    bool TransportKey(Data&, OTPassword&, const PasswordPrompt&) const final
     {
         return false;
     }
@@ -101,7 +100,7 @@ public:
     bool operator==(const proto::AsymmetricKey&) const final { return false; }
 
     Null() = default;
-    ~Null() = default;
+    ~Null() override = default;
 
 private:
     Null* clone() const override { return new Null; }
@@ -147,26 +146,26 @@ public:
     bool SetKey(std::unique_ptr<proto::Ciphertext>&) final { return {}; }
 
     NullEC() = default;
-    ~NullEC() = default;
+    ~NullEC() override = default;
 };
 
-class NullHD : virtual public key::HD, public NullEC
+class NullHD final : virtual public key::HD, public NullEC
 {
 public:
-    OTData Chaincode(const PasswordPrompt& reason) const final
+    OTData Chaincode(const PasswordPrompt&) const final
     {
         return Data::Factory();
     }
     int Depth() const final { return {}; }
-    Bip32Fingerprint Fingerprint(const PasswordPrompt& reason) const final
+    Bip32Fingerprint Fingerprint(const PasswordPrompt&) const final
     {
         return {};
     }
-    std::string Xprv(const PasswordPrompt& reason) const final { return {}; }
-    std::string Xpub(const PasswordPrompt& reason) const final { return {}; }
+    std::string Xprv(const PasswordPrompt&) const final { return {}; }
+    std::string Xpub(const PasswordPrompt&) const final { return {}; }
 
     NullHD() = default;
-    ~NullHD() = default;
+    ~NullHD() final = default;
 
 private:
     NullHD* clone() const final { return new NullHD; }

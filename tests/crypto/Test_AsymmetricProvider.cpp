@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -50,12 +50,12 @@ public:
               "lottery motion",
               ""))
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        , ed25519_hd_(get_hd_key(client_, fingerprint_, EcdsaCurve::ED25519))
+        , ed25519_hd_(get_hd_key(client_, fingerprint_, EcdsaCurve::ed25519))
         , ed25519_(client_.Crypto().ED25519())
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         , secp256k1_hd_(
-              get_hd_key(client_, fingerprint_, EcdsaCurve::SECP256K1))
+              get_hd_key(client_, fingerprint_, EcdsaCurve::secp256k1))
         , secp256k1_(client_.Crypto().SECP256K1())
 #endif
 #if OT_CRYPTO_USING_LIBSECP256K1

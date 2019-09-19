@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -61,14 +61,14 @@ private:
     std::unordered_map<std::string, std::unique_ptr<OTMessageStrategy>> mapping;
 };
 
-class Message : public Contract
+class Message final : public Contract
 {
 protected:
     std::int32_t ProcessXMLNode(
         irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
 
-    void UpdateContents(const PasswordPrompt& reason) override;
+    void UpdateContents(const PasswordPrompt& reason) final;
 
     bool m_bIsSigned{false};
 
@@ -104,16 +104,16 @@ public:
     EXPORT static MessageType Type(const std::string& type);
     EXPORT static std::string ReplyCommand(const MessageType type);
 
-    EXPORT virtual ~Message();
+    EXPORT ~Message() final;
 
-    bool VerifyContractID() const override;
+    bool VerifyContractID() const final;
 
     EXPORT bool SignContract(
         const identity::Nym& theNym,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
     EXPORT bool VerifySignature(
         const identity::Nym& theNym,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     EXPORT bool HarvestTransactionNumbers(
         ServerContext& context,

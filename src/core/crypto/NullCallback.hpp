@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,12 +12,12 @@ namespace opentxs::implementation
 class NullCallback final : virtual public OTCallback
 {
 public:
-    void runOne(const char* display, OTPassword& output) const override;
-    void runTwo(const char* display, OTPassword& output) const override;
+    void runOne(const char* display, OTPassword& output) const final;
+    void runTwo(const char* display, OTPassword& output) const final;
 
     NullCallback() = default;
 
-    ~NullCallback() = default;
+    ~NullCallback() final = default;
 
 private:
     friend opentxs::Factory;

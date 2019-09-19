@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,7 +18,7 @@
 
 namespace opentxs::storage
 {
-class Tree : public Node
+class Tree final : public Node
 {
 public:
     const storage::Accounts& Accounts() const;
@@ -44,11 +44,11 @@ public:
     bool Load(
         std::shared_ptr<proto::Ciphertext>& output,
         const bool checking = false) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const final;
 
     bool Store(const proto::Ciphertext& serialized);
 
-    ~Tree();
+    ~Tree() final;
 
 private:
     friend class api::implementation::Storage;
@@ -107,8 +107,8 @@ private:
     storage::Servers* servers() const;
     storage::Units* units() const;
 
-    void init(const std::string& hash) override;
-    bool save(const Lock& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const Lock& lock) const final;
     template <typename T>
     void save_child(
         T*,

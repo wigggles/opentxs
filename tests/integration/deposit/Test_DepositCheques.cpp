@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,21 +14,6 @@ using namespace opentxs;
 #define ALEX "Alice"
 #define BOB "Bob"
 #define ISSUER "Issuer"
-#define ACCOUNT_ACTIVITY_USD "ACCOUNT_ACTIVITY_USD"
-#define ACCOUNT_LIST "ACCOUNT_LIST"
-#define ACCOUNT_SUMMARY_BTC "ACCOUNT_SUMMARY_BTC"
-#define ACCOUNT_SUMMARY_BCH "ACCOUNT_SUMMARY_BCH"
-#define ACCOUNT_SUMMARY_USD "ACCOUNT_SUMMARY_USD"
-#define ACTIVITY_SUMMARY "ACTIVITY_SUMMARY"
-#define ACTIVITY_THREAD_ALICE_BOB "ACTIVITY_THREAD_ALICE_BOB"
-#define ACTIVITY_THREAD_ALICE_ISSUER "ACTIVITY_THREAD_ALICE_ISSUER"
-#define ACTIVITY_THREAD_BOB_ALICE "ACTIVITY_THREAD_BOB_ALICE"
-#define CONTACT_LIST "CONTACT_LIST"
-#define CONTACT_ALICE_ISSUER "CONTACT_ALICE_ISSUER"
-#define MESSAGABLE_LIST "MESSAGAGABLE_LIST"
-#define PAYABLE_LIST_BTC "PAYABLE_LIST_BTC"
-#define PAYABLE_LIST_BCH "PAYABLE_LIST_BCH"
-#define PROFILE "PROFILE"
 
 #define UNIT_DEFINITION_CONTRACT_NAME "Mt Gox USD"
 #define UNIT_DEFINITION_TERMS "YOLO"
@@ -40,7 +25,7 @@ using namespace opentxs;
 #define CHEQUE_AMOUNT_1 2000
 #define CHEQUE_MEMO_1 "memo"
 
-#define OT_METHOD "::Test_DepositCheques::"
+// #define OT_METHOD "::Test_DepositCheques::"
 
 namespace
 {

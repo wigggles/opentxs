@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,22 +15,22 @@ public:
     OTIdentifier BlockchainAddressToContact(
         const std::string& address,
         const proto::ContactItemType currency =
-            proto::CITEMTYPE_BTC) const override;
+            proto::CITEMTYPE_BTC) const final;
     std::shared_ptr<const class Contact> Contact(
         const Identifier& id,
-        const PasswordPrompt& reason) const override;
-    OTIdentifier ContactID(const identifier::Nym& nymID) const override;
-    ObjectList ContactList() const override;
-    std::string ContactName(const Identifier& contactID) const override;
+        const PasswordPrompt& reason) const final;
+    OTIdentifier ContactID(const identifier::Nym& nymID) const final;
+    ObjectList ContactList() const final;
+    std::string ContactName(const Identifier& contactID) const final;
     std::shared_ptr<const class Contact> Merge(
         const Identifier& parent,
         const Identifier& child,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::unique_ptr<Editor<class Contact>> mutable_Contact(
         const Identifier& id,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::shared_ptr<const class Contact> NewContact(
-        const std::string& label) const override;
+        const std::string& label) const final;
     std::shared_ptr<const class Contact> NewContact(
         const std::string& label,
         const identifier::Nym& nymID
@@ -39,20 +39,20 @@ public:
         const PaymentCode& paymentCode
 #endif
         ,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::shared_ptr<const class Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
         const PasswordPrompt& reason,
-        const proto::ContactItemType currency) const override;
+        const proto::ContactItemType currency) const final;
     OTIdentifier NymToContact(
         const identifier::Nym& nymID,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::shared_ptr<const class Contact> Update(
         const proto::CredentialIndex& nym,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
-    ~Contacts() = default;
+    ~Contacts() final = default;
 
 private:
     friend opentxs::Factory;
@@ -123,7 +123,7 @@ private:
         const rLock& lock,
         class Contact& contact) const;
     void save(const PasswordPrompt& reason, class Contact* contact) const;
-    void start(const PasswordPrompt& reason) override;
+    void start(const PasswordPrompt& reason) final;
     std::shared_ptr<const class Contact> update_existing_contact(
         const PasswordPrompt& reason,
         const rLock& lock,

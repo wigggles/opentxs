@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,6 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -106,7 +105,7 @@ bool ConfigLoader::load(
             lValue,
             bIsNewKey,
             String::Factory(szComment));
-        OTCron::SetCronMsBetweenProcess(static_cast<std::int32_t>(lValue));
+        OTCron::SetCronMsBetweenProcess(std::chrono::milliseconds(lValue));
     }
 
     {

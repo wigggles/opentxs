@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -32,7 +32,6 @@ public:
     explicit MessageProcessor(
         Server& server,
         const PasswordPrompt& reason,
-        const network::zeromq::Context& context,
         const Flag& running);
 
     ~MessageProcessor();
@@ -41,7 +40,6 @@ private:
     Server& server_;
     const PasswordPrompt& reason_;
     const Flag& running_;
-    [[maybe_unused]] const network::zeromq::Context& context_;
     OTZMQListenCallback frontend_callback_;
     OTZMQRouterSocket frontend_socket_;
     OTZMQReplyCallback backend_callback_;

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,7 @@
 
 #ifndef WIN32
 #include <sys/types.h>
-#include <signal.h>
+#include <csignal>
 #include <unistd.h>
 #endif
 
@@ -71,7 +71,7 @@ PIDFile::PIDFile(const std::string& path)
 bool PIDFile::can_recover(std::uint32_t pid)
 {
 #ifdef OT_CHECK_PID
-    while (waitpid(-1, 0, WNOHANG) > 0) {
+    while (waitpid(-1, nullptr, WNOHANG) > 0) {
         // Wait for defunct....
     }
 

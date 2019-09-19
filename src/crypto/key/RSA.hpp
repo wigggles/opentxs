@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -37,52 +37,49 @@ class RSA final : virtual public key::RSA, public Asymmetric
 public:
     OTData CalculateHash(
         const proto::HashType hashType,
-        const PasswordPrompt& password) const override;
+        const PasswordPrompt& password) const final;
     bool GetPrivateKey(
         String& strOutput,
         const key::Asymmetric* pPubkey,
         const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) const override;
-    bool get_public_key(String& strKey) const override;
+        const OTPassword* pImportPassword = nullptr) const final;
+    bool get_public_key(String& strKey) const final;
     bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
         PasswordPrompt& sessionKeyPassword,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     /** Don't ever call this. It's only here because it's impossible to get rid
      * of unless and until RSA key support is removed entirely. */
     bool SaveCertToString(
         String& strOutput,
         const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) const override;
+        const OTPassword* pImportPassword = nullptr) const final;
     bool Seal(
         const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
         const PasswordPrompt& reason,
-        PasswordPrompt& sessionPassword) const override;
-    std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
-    proto::HashType SigHashType() const override
-    {
-        return proto::HASHTYPE_SHA256;
-    }
+        PasswordPrompt& sessionPassword) const final;
+    std::shared_ptr<proto::AsymmetricKey> Serialize() const final;
+    proto::HashType SigHashType() const final { return proto::HASHTYPE_SHA256; }
     bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
-    void Release() override;
+    void Release() final;
     bool SetPrivateKey(
         const String& strCert,
         const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) override;
-    bool SetPublicKey(const String& strKey) override;
+        const OTPassword* pImportPassword = nullptr) final;
+    bool SetPublicKey(const String& strKey) final;
     bool SetPublicKeyFromPrivateKey(
         const String& strCert,
         const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) override;
+        const OTPassword* pImportPassword = nullptr) final;
 
-    ~RSA();
+    ~RSA() final;
 
 private:
     typedef Asymmetric ot_super;
@@ -99,10 +96,10 @@ private:
      * basic value. m_pKey is derived from it, for example. */
     mutable OTArmored m_p_ascKey;
 
-    RSA* clone() const final override { return new RSA(*this); }
+    RSA* clone() const final { return new RSA(*this); }
 
     void Release_AsymmetricKey_OpenSSL();
-    void ReleaseKeyLowLevel_Hook() override;
+    void ReleaseKeyLowLevel_Hook() final;
 
     RSA(const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,

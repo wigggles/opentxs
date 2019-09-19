@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,8 +14,6 @@
 #endif
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Timer.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/Data.hpp"
 #endif
@@ -106,15 +104,15 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(
 
     switch (pkeyData_->nymParameterType()) {
 #if OT_CRYPTO_USING_LIBSECP256K1
-        case (NymParameterType::SECP256K1):
+        case (NymParameterType::secp256k1):
 #endif
-        case (NymParameterType::ED25519): {
+        case (NymParameterType::ed25519): {
             dp.reset(new LowLevelKeyGeneratorECdp);
 
             break;
         }
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (NymParameterType::RSA): {
+        case (NymParameterType::rsa): {
             dp.reset(new LowLevelKeyGeneratorOpenSSLdp);
 
             break;
@@ -165,7 +163,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 
     switch (pkeyData_->nymParameterType()) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (NymParameterType::ED25519): {
+        case (NymParameterType::ed25519): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
                 api_.Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
@@ -173,10 +171,10 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
                     *dp);
 
             return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
-        } break;
+        }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (NymParameterType::SECP256K1): {
+        case (NymParameterType::secp256k1): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
                 api_.Crypto().SECP256K1());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
@@ -184,10 +182,10 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
                     *dp);
 
             return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
-        } break;
+        }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (NymParameterType::RSA): {
+        case (NymParameterType::rsa): {
 #if OT_CRYPTO_USING_OPENSSL
             //  OpenSSL_BIO bio_err = nullptr;
             X509* x509 = nullptr;
@@ -245,7 +243,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 
             return true;
 #endif
-        } break;
+        }
 #endif
         default: {
 
@@ -269,7 +267,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
     switch (pkeyData_->nymParameterType()) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (NymParameterType::ED25519): {
+        case (NymParameterType::ed25519): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
                 api_.Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
@@ -312,7 +310,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (NymParameterType::SECP256K1): {
+        case (NymParameterType::secp256k1): {
             const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
                 api_.Crypto().SECP256K1());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
@@ -355,7 +353,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (NymParameterType::RSA): {
+        case (NymParameterType::rsa): {
 #if OT_CRYPTO_USING_OPENSSL
             LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp& ldp =
                 static_cast<

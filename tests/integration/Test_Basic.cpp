@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -2068,7 +2068,6 @@ TEST_F(Integration, activity_thread_alex_bob)
 TEST_F(Integration, send_message_from_Alex_to_Bob_1)
 {
     const auto& from_client = api_alex_;
-    const auto& from_nym_id_ = alex_.nym_id_;
     const auto messageID = ++msg_count_;
     std::stringstream text{};
     text << alex_.name_ << " messaged " << bob_.name_ << " with message #"
@@ -2144,9 +2143,7 @@ TEST_F(Integration, activity_thread_bob_alex)
 
 TEST_F(Integration, send_message_from_Bob_to_Alex_2)
 {
-    const auto& firstMessage = message_.at(msg_count_);
     const auto& from_client = api_bob_;
-    const auto& from_nym_id_ = bob_.nym_id_;
     const auto messageID = ++msg_count_;
     std::stringstream text{};
     text << bob_.name_ << " messaged " << alex_.name_ << " with message #"

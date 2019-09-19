@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -376,9 +376,9 @@ struct AccountListItem final : virtual public Row,
 struct AccountSummaryItem final : public Row,
                                   public internal::AccountSummaryItem {
     std::string AccountID() const noexcept final { return {}; }
-    Amount Balance() const noexcept final { return {}; };
-    std::string DisplayBalance() const noexcept final { return {}; };
-    std::string Name() const noexcept final { return {}; };
+    Amount Balance() const noexcept final { return {}; }
+    std::string DisplayBalance() const noexcept final { return {}; }
+    std::string Name() const noexcept final { return {}; }
 
     void reindex(
         const implementation::IssuerItemSortKey&,

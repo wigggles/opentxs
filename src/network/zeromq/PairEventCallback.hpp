@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,19 +11,19 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class PairEventCallback : virtual public zeromq::PairEventCallback
+class PairEventCallback final : virtual public zeromq::PairEventCallback
 {
 public:
-    void Process(zeromq::Message& message) const override;
+    void Process(zeromq::Message& message) const final;
 
-    ~PairEventCallback();
+    ~PairEventCallback() final;
 
 private:
     friend zeromq::PairEventCallback;
 
     const zeromq::PairEventCallback::ReceiveCallback callback_;
 
-    PairEventCallback* clone() const override;
+    PairEventCallback* clone() const final;
 
     PairEventCallback(zeromq::PairEventCallback::ReceiveCallback callback);
     PairEventCallback() = delete;

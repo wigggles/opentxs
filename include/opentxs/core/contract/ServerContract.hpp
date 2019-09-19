@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,7 +20,7 @@
 
 namespace opentxs
 {
-class ServerContract : public Signable
+class ServerContract final : public Signable
 {
 public:
     static const VersionNumber DefaultVersion;
@@ -55,19 +55,19 @@ public:
         const proto::AddressType& preferred) const;
     proto::ServerContract Contract() const;
     std::string EffectiveName(const PasswordPrompt& reason) const;
-    std::string Name() const override { return name_; }
+    std::string Name() const final { return name_; }
     proto::ServerContract PublicContract() const;
     bool Statistics(String& strContents) const;
     const unsigned char* PublicTransportKey() const;
-    OTData Serialize() const override;
+    OTData Serialize() const final;
     const Data& TransportKey() const;
     std::unique_ptr<OTPassword> TransportKey(
         Data& pubkey,
         const PasswordPrompt& reason) const;
 
-    void SetAlias(const std::string& alias) override;
+    void SetAlias(const std::string& alias) final;
 
-    ~ServerContract() = default;
+    ~ServerContract() final = default;
 
 private:
     typedef Signable ot_super;
@@ -78,18 +78,16 @@ private:
     OTData transport_key_;
 
     proto::ServerContract contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const final;
     proto::ServerContract IDVersion(const Lock& lock) const;
     proto::ServerContract SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const override;
+    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
     bool verify_signature(
         const Lock& lock,
         const proto::Signature& signature,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
-        override;
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
 
     ServerContract() = delete;
     ServerContract(const api::Core& api, const Nym_p& nym);

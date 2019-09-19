@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -91,7 +91,7 @@ void Test_RequestRouter::requestSocketThreadMultipart()
 
     ASSERT_EQ(testMessage_, messageHeader);
 
-    for (const std::string& frame : message->Body()) {
+    for (const std::string frame : message->Body()) {
         bool match = frame == testMessage2_ || frame == testMessage3_;
         ASSERT_TRUE(match);
     }
@@ -116,7 +116,7 @@ TEST_F(Test_RequestRouter, Request_Router)
             EXPECT_EQ(testMessage_, inputString);
 
             replyMessage = context_.ReplyMessage(input);
-            for (const std::string& frame : input.Body()) {
+            for (const auto& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
 
@@ -177,7 +177,7 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
 
             auto& replyMessage = replyMessages.at(inputString);
             replyMessage = context_.ReplyMessage(input);
-            for (const std::string& frame : input.Body()) {
+            for (const auto& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
 
@@ -248,7 +248,7 @@ TEST_F(Test_RequestRouter, Request_Router_Multipart)
             // Original message: header, delimiter, two body parts.
             EXPECT_EQ(4, input.Body().size());
 
-            for (const std::string& frame : input.Body()) {
+            for (const std::string frame : input.Body()) {
                 bool match = frame == testMessage_ || frame == testMessage2_ ||
                              frame == testMessage3_;
                 EXPECT_TRUE(match || frame.size() == 0);

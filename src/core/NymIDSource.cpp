@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,7 +14,6 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -214,8 +213,6 @@ bool NymIDSource::Verify(
     [[maybe_unused]] const proto::Signature& sourceSignature,
     [[maybe_unused]] const PasswordPrompt& reason) const
 {
-    std::shared_ptr<identity::credential::Base::SerializedType>
-        serializedMaster;
     bool isSelfSigned, sameSource;
     std::unique_ptr<proto::AsymmetricKey> signingKey;
     std::shared_ptr<proto::AsymmetricKey> sourceKey;
@@ -226,7 +223,7 @@ bool NymIDSource::Verify(
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
-                 serializedMaster->masterdata().sourceproof().type());
+                 master.masterdata().sourceproof().type());
 
             if (!isSelfSigned) {
                 OT_ASSERT_MSG(false, "Not yet implemented");
@@ -234,7 +231,7 @@ bool NymIDSource::Verify(
                 return false;
             }
 
-            signingKey = ExtractKey(*serializedMaster, proto::KEYROLE_SIGN);
+            signingKey = ExtractKey(master, proto::KEYROLE_SIGN);
 
             if (!signingKey) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(

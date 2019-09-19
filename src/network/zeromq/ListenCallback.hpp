@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,19 +11,19 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class ListenCallback : virtual public zeromq::ListenCallback
+class ListenCallback final : virtual public zeromq::ListenCallback
 {
 public:
-    void Process(zeromq::Message& message) const override;
+    void Process(zeromq::Message& message) const final;
 
-    ~ListenCallback();
+    ~ListenCallback() final;
 
 private:
     friend zeromq::ListenCallback;
 
     const zeromq::ListenCallback::ReceiveCallback callback_;
 
-    ListenCallback* clone() const override;
+    ListenCallback* clone() const final;
 
     ListenCallback(zeromq::ListenCallback::ReceiveCallback callback);
     ListenCallback() = delete;

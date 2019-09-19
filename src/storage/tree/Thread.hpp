@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -21,11 +21,7 @@ namespace opentxs
 {
 namespace storage
 {
-
-class Mailbox;
-class Threads;
-
-class Thread : public Node
+class Thread final : public Node
 {
 private:
     friend class Threads;
@@ -43,8 +39,8 @@ private:
     // calculated deterministically
     std::set<std::string> participants_;
 
-    void init(const std::string& hash) override;
-    bool save(const Lock& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const Lock& lock) const final;
     proto::StorageThread serialize(const Lock& lock) const;
     SortedItems sort(const Lock& lock) const;
     void upgrade(const Lock& lock);
@@ -73,7 +69,7 @@ public:
     bool Check(const std::string& id) const;
     std::string ID() const;
     proto::StorageThread Items() const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const final;
     std::size_t UnreadCount() const;
 
     bool Add(
@@ -89,7 +85,7 @@ public:
     bool Remove(const std::string& id);
     bool SetAlias(const std::string& alias);
 
-    ~Thread() = default;
+    ~Thread() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

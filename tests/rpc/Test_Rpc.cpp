@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -65,7 +65,6 @@ protected:
     static std::string seed_id_;
     static std::string seed2_id_;
     static std::map<std::string, int> widget_update_counters_;
-    static std::mutex widget_update_lock_;
     static std::string workflow_id_;
     static std::string claim_id_;
 
@@ -221,14 +220,13 @@ std::string Test_Rpc::nym3_account2_id_{};
 std::string Test_Rpc::seed_id_{};
 std::string Test_Rpc::seed2_id_{};
 std::map<std::string, int> Test_Rpc::widget_update_counters_{};
-std::mutex Test_Rpc::widget_update_lock_{};
 std::string Test_Rpc::workflow_id_{};
 std::string Test_Rpc::claim_id_{};
 
 std::size_t Test_Rpc::get_index(const std::int32_t instance)
 {
     return (instance - (instance % 2)) / 2;
-};
+}
 
 const api::Core& Test_Rpc::get_session(const std::int32_t instance)
 {
@@ -239,7 +237,7 @@ const api::Core& Test_Rpc::get_session(const std::int32_t instance)
     } else {
         return opentxs::Context().Client(get_index(instance));
     }
-};
+}
 
 TEST_F(Test_Rpc, List_Client_Sessions_None)
 {
@@ -688,7 +686,7 @@ TEST_F(Test_Rpc, Add_Contact)
     auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
     ASSERT_EQ(4, client.Contacts().ContactList().size());
 
-    auto& client2 = ot_.Client(2);
+    ot_.Client(2);
 
     command = init(proto::RPCCOMMAND_ADDCONTACT);
 
@@ -1485,7 +1483,7 @@ TEST_F(Test_Rpc, Get_Account_Balances)
     auto command = init(proto::RPCCOMMAND_GETACCOUNTBALANCE);
     command.set_session(0);
 
-    auto& manager = ot_.Client(0);
+    ot_.Client(0);
 
     command.add_identifier(nym3_account1_id_);
     command.add_identifier(nym3_account2_id_);
@@ -1511,7 +1509,7 @@ TEST_F(Test_Rpc, Rename_Account_Not_Found)
 {
     auto command = init(proto::RPCCOMMAND_RENAMEACCOUNT);
     command.set_session(0);
-    auto& manager = ot_.Client(0);
+    ot_.Client(0);
 
     auto& modify = *command.add_modifyaccount();
     modify.set_version(MODIFYACCOUNT_VERSION);
@@ -1534,7 +1532,7 @@ TEST_F(Test_Rpc, Rename_Accounts)
 {
     auto command = init(proto::RPCCOMMAND_RENAMEACCOUNT);
     command.set_session(0);
-    auto& manager = ot_.Client(0);
+    ot_.Client(0);
     const std::vector<std::string> accounts{issuer_account_id_,
                                             nym2_account_id_,
                                             nym3_account1_id_,
@@ -1561,7 +1559,7 @@ TEST_F(Test_Rpc, Check_Account_Names)
 {
     auto command = init(proto::RPCCOMMAND_GETACCOUNTBALANCE);
     command.set_session(0);
-    auto& manager = ot_.Client(0);
+    ot_.Client(0);
     command.add_identifier(issuer_account_id_);
     command.add_identifier(nym2_account_id_);
     command.add_identifier(nym3_account1_id_);

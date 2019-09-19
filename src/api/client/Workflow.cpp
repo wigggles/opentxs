@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -39,29 +39,6 @@
 
 #include "Workflow.hpp"
 
-#define OUTGOING_CHEQUE_EVENT_VERSION 1
-#define OUTGOING_CHEQUE_SOURCE_VERSION 1
-#define OUTGOING_CHEQUE_WORKFLOW_VERSION 1
-#define INCOMING_CHEQUE_EVENT_VERSION 1
-#define INCOMING_CHEQUE_SOURCE_VERSION 1
-#define INCOMING_CHEQUE_WORKFLOW_VERSION 1
-#define OUTGOING_TRANSFER_EVENT_VERSION 2
-#define OUTGOING_TRANSFER_SOURCE_VERSION 1
-#define OUTGOING_TRANSFER_WORKFLOW_VERSION 2
-#define INCOMING_TRANSFER_EVENT_VERSION 2
-#define INCOMING_TRANSFER_SOURCE_VERSION 1
-#define INCOMING_TRANSFER_WORKFLOW_VERSION 2
-#define INTERNAL_TRANSFER_EVENT_VERSION 2
-#define INTERNAL_TRANSFER_SOURCE_VERSION 1
-#define INTERNAL_TRANSFER_WORKFLOW_VERSION 2
-#if OT_CASH
-#define OUTGOING_CASH_EVENT_VERSION 3
-#define OUTGOING_CASH_SOURCE_VERSION 1
-#define OUTGOING_CASH_WORKFLOW_VERSION 3
-#define INCOMING_CASH_EVENT_VERSION 3
-#define INCOMING_CASH_SOURCE_VERSION 1
-#define INCOMING_CASH_WORKFLOW_VERSION 3
-#endif
 #define RPC_ACCOUNT_EVENT_VERSION 1
 #define RPC_PUSH_VERSION 1
 
@@ -115,7 +92,7 @@ bool Workflow::ContainsCheque(const proto::PaymentWorkflow& workflow)
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
 
             return true;
-        } break;
+        }
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
@@ -137,7 +114,7 @@ bool Workflow::ContainsTransfer(const proto::PaymentWorkflow& workflow)
         case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
 
             return true;
-        } break;
+        }
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
@@ -427,6 +404,16 @@ OTIdentifier Workflow::UUID(
 
 namespace implementation
 {
+const Workflow::VersionMap Workflow::versions_{
+    {proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE, {1, 1, 1}},
+    {proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE, {1, 1, 1}},
+    {proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER, {2, 1, 2}},
+    {proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER, {2, 1, 2}},
+    {proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER, {2, 1, 2}},
+    {proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH, {3, 1, 3}},
+    {proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH, {3, 1, 3}},
+};
+
 Workflow::Workflow(
     const api::Core& api,
     const api::client::Activity& activity,
@@ -485,13 +472,13 @@ bool Workflow::AbortTransfer(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_ABORTED,
         proto::PAYMENTEVENTTYPE_ABORT,
-        (isInternal ? INTERNAL_TRANSFER_EVENT_VERSION
-                    : OUTGOING_TRANSFER_EVENT_VERSION),
+        (isInternal
+             ? versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).event_
+             : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
+                   .event_),
         reply,
         transfer.GetRealAccountID().str(),
         true);
-
-    return false;
 }
 
 // Works for Incoming and Internal transfer workflows.
@@ -549,7 +536,7 @@ bool Workflow::AcceptTransfer(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_COMPLETED,
         proto::PAYMENTEVENTTYPE_ACCEPT,
-        OUTGOING_TRANSFER_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER).event_,
         reply,
         accountID.str(),
         true);
@@ -599,8 +586,10 @@ bool Workflow::AcknowledgeTransfer(
         *workflow,
         state,
         proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
-        (isInternal ? INTERNAL_TRANSFER_EVENT_VERSION
-                    : OUTGOING_TRANSFER_EVENT_VERSION),
+        (isInternal
+             ? versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).event_
+             : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
+                   .event_),
         reply,
         transfer.GetRealAccountID().str(),
         true);
@@ -614,18 +603,21 @@ OTIdentifier Workflow::AllocateCash(
     Lock global(lock_);
     auto workflowID = Identifier::Random();
     proto::PaymentWorkflow workflow{};
-    workflow.set_version(OUTGOING_CASH_WORKFLOW_VERSION);
+    workflow.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH).workflow_);
     workflow.set_id(workflowID->str());
     workflow.set_type(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH);
     workflow.set_state(proto::PAYMENTWORKFLOWSTATE_UNSENT);
     auto& source = *(workflow.add_source());
-    source.set_version(OUTGOING_CASH_SOURCE_VERSION);
+    source.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH).source_);
     source.set_id(workflowID->str());
     source.set_revision(1);
     source.set_item(proto::ToString(purse.Serialize()));
     workflow.set_notary(purse.Notary().str());
     auto& event = *workflow.add_event();
-    event.set_version(OUTGOING_CASH_EVENT_VERSION);
+    event.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH).event_);
     event.set_time(now());
     event.set_type(proto::PAYMENTEVENTTYPE_CREATE);
     event.set_method(proto::TRANSPORTMETHOD_NONE);
@@ -1136,7 +1128,7 @@ bool Workflow::CancelCheque(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_CANCELLED,
         proto::PAYMENTEVENTTYPE_CANCEL,
-        OUTGOING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         request,
         reply);
 }
@@ -1202,7 +1194,7 @@ bool Workflow::ClearCheque(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_ACCEPTED,
         proto::PAYMENTEVENTTYPE_ACCEPT,
-        OUTGOING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         recipientNymID,
         receipt,
         time);
@@ -1302,8 +1294,10 @@ bool Workflow::ClearTransfer(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_ACCEPTED,
         proto::PAYMENTEVENTTYPE_ACCEPT,
-        (isInternal ? INTERNAL_TRANSFER_EVENT_VERSION
-                    : OUTGOING_TRANSFER_EVENT_VERSION),
+        (isInternal
+             ? versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).event_
+             : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
+                   .event_),
         receipt,
         accountID.str(),
         true);
@@ -1400,13 +1394,13 @@ bool Workflow::CompleteTransfer(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_COMPLETED,
         proto::PAYMENTEVENTTYPE_COMPLETE,
-        (isInternal ? INTERNAL_TRANSFER_EVENT_VERSION
-                    : OUTGOING_TRANSFER_EVENT_VERSION),
+        (isInternal
+             ? versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).event_
+             : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
+                   .event_),
         receipt,
         transfer->GetRealAccountID().str(),
         true);
-
-    return false;
 }
 
 // NOTE: Since this is an INCOMING transfer, then we need to CREATE its
@@ -1446,9 +1440,9 @@ OTIdentifier Workflow::convey_incoming_transfer(
         transfer,
         proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER,
         proto::PAYMENTWORKFLOWSTATE_CONVEYED,
-        INCOMING_TRANSFER_WORKFLOW_VERSION,
-        INCOMING_TRANSFER_SOURCE_VERSION,
-        INCOMING_TRANSFER_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER).workflow_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER).source_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER).event_,
         senderNymID,
         accountID.str(),
         notaryID.str(),
@@ -1522,7 +1516,7 @@ OTIdentifier Workflow::convey_internal_transfer(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_CONVEYED,
         proto::PAYMENTEVENTTYPE_CONVEY,
-        INTERNAL_TRANSFER_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).event_,
         pending,
         transfer.GetDestinationAcctID().str(),
         true);
@@ -1787,12 +1781,18 @@ OTIdentifier Workflow::CreateTransfer(
         (isInternal ? proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER
                     : proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER),
         proto::PAYMENTWORKFLOWSTATE_INITIATED,
-        (isInternal ? INTERNAL_TRANSFER_WORKFLOW_VERSION
-                    : OUTGOING_TRANSFER_WORKFLOW_VERSION),
-        (isInternal ? INTERNAL_TRANSFER_SOURCE_VERSION
-                    : OUTGOING_TRANSFER_SOURCE_VERSION),
-        (isInternal ? INTERNAL_TRANSFER_EVENT_VERSION
-                    : OUTGOING_TRANSFER_EVENT_VERSION),
+        (isInternal ? versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER)
+                          .workflow_
+                    : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
+                          .workflow_),
+        (isInternal
+             ? versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).source_
+             : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
+                   .source_),
+        (isInternal
+             ? versions_.at(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER).event_
+             : versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER)
+                   .event_),
         "",
         accountID.str(),
         request.m_strNotaryID->Get(),
@@ -1852,7 +1852,7 @@ bool Workflow::DepositCheque(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_COMPLETED,
         proto::PAYMENTEVENTTYPE_ACCEPT,
-        INCOMING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).event_,
         request,
         reply,
         accountID.str());
@@ -1928,7 +1928,8 @@ bool Workflow::ExportCheque(const opentxs::Cheque& cheque) const
 
     workflow->set_state(proto::PAYMENTWORKFLOWSTATE_CONVEYED);
     auto& event = *(workflow->add_event());
-    event.set_version(OUTGOING_CHEQUE_EVENT_VERSION);
+    event.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_);
     event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
     event.set_time(now());
     event.set_method(proto::TRANSPORTMETHOD_OOB);
@@ -2147,7 +2148,7 @@ bool Workflow::FinishCheque(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_COMPLETED,
         proto::PAYMENTEVENTTYPE_COMPLETE,
-        OUTGOING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         request,
         reply);
 }
@@ -2263,9 +2264,9 @@ OTIdentifier Workflow::ImportCheque(
         cheque,
         proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE,
         proto::PAYMENTWORKFLOWSTATE_CONVEYED,
-        INCOMING_CHEQUE_WORKFLOW_VERSION,
-        INCOMING_CHEQUE_SOURCE_VERSION,
-        INCOMING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).workflow_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).source_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).event_,
         party,
         "");
 
@@ -2469,18 +2470,21 @@ OTIdentifier Workflow::ReceiveCash(
     const std::string party = message.m_strNymID->Get();
     auto workflowID = Identifier::Random();
     proto::PaymentWorkflow workflow{};
-    workflow.set_version(INCOMING_CASH_WORKFLOW_VERSION);
+    workflow.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH).workflow_);
     workflow.set_id(workflowID->str());
     workflow.set_type(proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH);
     workflow.set_state(proto::PAYMENTWORKFLOWSTATE_CONVEYED);
     auto& source = *(workflow.add_source());
-    source.set_version(INCOMING_CASH_SOURCE_VERSION);
+    source.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH).source_);
     source.set_id(workflowID->str());
     source.set_revision(1);
     source.set_item(proto::ToString(purse.Serialize()));
     workflow.set_notary(purse.Notary().str());
     auto& event = *workflow.add_event();
-    event.set_version(INCOMING_CASH_EVENT_VERSION);
+    event.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH).event_);
     event.set_time(message.m_lTime);
     event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
     event.set_method(proto::TRANSPORTMETHOD_OT);
@@ -2540,9 +2544,9 @@ OTIdentifier Workflow::ReceiveCheque(
         cheque,
         proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE,
         proto::PAYMENTWORKFLOWSTATE_CONVEYED,
-        INCOMING_CHEQUE_WORKFLOW_VERSION,
-        INCOMING_CHEQUE_SOURCE_VERSION,
-        INCOMING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).workflow_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).source_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE).event_,
         party,
         "",
         &message);
@@ -2648,7 +2652,8 @@ bool Workflow::SendCash(
     if (haveReply) { workflow.set_state(proto::PAYMENTWORKFLOWSTATE_CONVEYED); }
 
     auto& event = *(workflow.add_event());
-    event.set_version(OUTGOING_CASH_EVENT_VERSION);
+    event.set_version(
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH).event_);
     event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
     event.add_item(String::Factory(request)->Get());
     event.set_method(proto::TRANSPORTMETHOD_OT);
@@ -2701,7 +2706,7 @@ bool Workflow::SendCheque(
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_CONVEYED,
         proto::PAYMENTEVENTTYPE_CONVEY,
-        OUTGOING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         request,
         reply);
 }
@@ -2860,9 +2865,9 @@ OTIdentifier Workflow::WriteCheque(
         cheque,
         proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE,
         proto::PAYMENTWORKFLOWSTATE_UNSENT,
-        OUTGOING_CHEQUE_WORKFLOW_VERSION,
-        OUTGOING_CHEQUE_SOURCE_VERSION,
-        OUTGOING_CHEQUE_EVENT_VERSION,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).workflow_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).source_,
+        versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_,
         party,
         cheque.GetSenderAcctID().str());
     global.unlock();

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,8 +9,6 @@
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
@@ -79,15 +77,13 @@ Asymmetric::Asymmetric(
     const bool hasPublic,
     const bool hasPrivate,
     const VersionNumber version) noexcept
-    : key::Asymmetric()
-    , api_(api)
+    : api_(api)
     , provider_(engine)
     , version_(version)
     , type_(keyType)
     , role_(role)
     , has_public_(hasPublic)
     , has_private_(hasPrivate)
-    , m_timer()
     , m_pMetadata(new OTSignatureMetadata(api_))
 {
     OT_ASSERT(0 < version);
@@ -194,10 +190,8 @@ bool Asymmetric::CalculateID(Identifier& theOutput) const
 bool Asymmetric::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
-        case (NymCapability::SIGN_CHILDCRED): {
-        }
-        case (NymCapability::SIGN_MESSAGE): {
-        }
+        case (NymCapability::SIGN_CHILDCRED):
+        case (NymCapability::SIGN_MESSAGE):
         case (NymCapability::ENCRYPT_MESSAGE): {
 
             return true;
@@ -240,12 +234,7 @@ bool Asymmetric::Path(proto::HDPath&) const
     return false;
 }
 
-void Asymmetric::Release()
-{
-    ReleaseKeyLowLevel_Hook();
-
-    m_timer.clear();
-}
+void Asymmetric::Release() { ReleaseKeyLowLevel_Hook(); }
 
 std::shared_ptr<proto::AsymmetricKey> Asymmetric::Serialize() const
 
@@ -301,7 +290,7 @@ bool Asymmetric::Sign(
     proto::Signature& signature,
     const Identifier& credential,
     const PasswordPrompt& reason,
-    proto::KeyRole key,
+    [[maybe_unused]] proto::KeyRole key,
     const proto::HashType hash) const
 {
     if (false == HasPrivate()) {
@@ -352,8 +341,6 @@ bool Asymmetric::Verify(
 
 Asymmetric::~Asymmetric()
 {
-    m_timer.clear();
-
     if (nullptr != m_pMetadata) { delete m_pMetadata; }
 
     m_pMetadata = nullptr;

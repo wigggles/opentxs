@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,13 +15,13 @@
 namespace opentxs
 {
 
-class BailmentReply : public PeerReply
+class BailmentReply final : public PeerReply
 {
 private:
     typedef PeerReply ot_super;
     friend class PeerReply;
 
-    proto::PeerReply IDVersion(const Lock& lock) const override;
+    proto::PeerReply IDVersion(const Lock& lock) const final;
 
     BailmentReply(
         const api::Core& api,
@@ -37,7 +37,7 @@ private:
     BailmentReply() = delete;
 
 public:
-    ~BailmentReply() = default;
+    ~BailmentReply() final = default;
 };
 }  // namespace opentxs
 

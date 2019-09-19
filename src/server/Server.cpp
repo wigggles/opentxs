@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,6 @@
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -71,22 +70,6 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::server
 {
-
-#ifdef _WIN32
-std::int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
-                                                   // numbers Cron will grab for
-                                                   // itself, when it
-// gets low, before each round.
-std::int32_t OTCron::__cron_ms_between_process =
-    10000;  // The number of milliseconds
-            // (ideally) between each
-            // "Cron Process" event.
-std::int32_t OTCron::__cron_max_items_per_nym =
-    10;  // The maximum number of cron
-// items any given Nym can have
-// active at the same time.
-#endif
-
 Server::Server(
     const opentxs::api::server::Manager& manager,
     const PasswordPrompt& reason)
@@ -343,8 +326,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     if (1 > name.size()) { name = defaultName; }
 
     std::list<ServerContract::Endpoint> endpoints;
-    const auto inproc = manager_.GetInproc();
-    const bool useInproc = !inproc.empty();
+    const bool useInproc = false == manager_.GetInproc().empty();
 
     if (useInproc) {
         LogNormal("Creating inproc contract for instance ")(

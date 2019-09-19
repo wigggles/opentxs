@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -847,7 +847,7 @@ OTX::Finished OTX::ContextIdle(
         auto output = empty.get_future();
         empty.set_value();
 
-        return output;
+        return std::move(output);
     }
 }
 
@@ -934,7 +934,7 @@ OTX::BackgroundTask OTX::DepositPayment(
                 auto& queue = get_operations({recipientNymID, serverID});
 
                 return queue.payment_tasks_.Queue({unitID, accountID, payment});
-            } break;
+            }
             default: {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to queue payment for download (")(
@@ -1803,7 +1803,7 @@ bool OTX::refresh_accounts() const
     const auto serverList = client_.Wallet().ServerList();
     const auto accounts = client_.Storage().AccountList();
 
-    for (const auto server : serverList) {
+    for (const auto& server : serverList) {
         SHUTDOWN()
 
         const auto serverID = identifier::Server::Factory(server.first);
@@ -2277,7 +2277,7 @@ ThreadStatus OTX::status(const Lock& lock, const TaskID taskID) const
 
     auto it = task_status_.find(taskID);
 
-    if (task_status_.end() == it) { return ThreadStatus::ERROR; }
+    if (task_status_.end() == it) { return ThreadStatus::Error; }
 
     const auto output = it->second.first;
     const bool success = (ThreadStatus::FINISHED_SUCCESS == output);
@@ -2337,8 +2337,8 @@ void OTX::update_task(
             case ThreadStatus::SHUTDOWN: {
                 Result cancel{proto::LASTREPLYSTATUS_UNKNOWN, nullptr};
                 promise.set_value(std::move(cancel));
-            }
-            case ThreadStatus::ERROR:
+            } break;
+            case ThreadStatus::Error:
             case ThreadStatus::RUNNING:
             default: {
             }

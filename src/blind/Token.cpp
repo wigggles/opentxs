@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -62,7 +62,7 @@ blind::Token* Factory::Token(
                 purse,
                 primaryPassword,
                 secondaryPassword);
-        } break;
+        }
         default: {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(
                 ": Unknown token type: ")(std::to_string(purse.Type()))
@@ -90,8 +90,7 @@ Token::Token(
     const Time validFrom,
     const Time validTo,
     const VersionNumber version)
-    : blind::Token()
-    , api_(api)
+    : api_(api)
     , purse_(purse)
     , state_(state)
     , notary_(notary)

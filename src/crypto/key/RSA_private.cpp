@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,9 +9,6 @@
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Timer.hpp"
-#include "opentxs/core/util/stacktrace.h"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -81,17 +78,8 @@ void RSA::d::SetKeyAsCopyOf(
 
     if (backlink->has_private_) {
         RSA::d::ArmorPrivateKey(
-            api_,
-            *m_pKey,
-            backlink->m_p_ascKey,
-            backlink->m_timer,
-            reason,
-            pImportPassword);
-    }
-    // NOTE: Timer is already set INSIDE ArmorPrivateKey. No need to set twice.
-    //      m_timer.start(); // Note: this isn't the ultimate timer solution.
-    // See notes in ReleaseKeyLowLevel.
-    else if (backlink->has_public_) {
+            api_, *m_pKey, backlink->m_p_ascKey, reason, pImportPassword);
+    } else if (backlink->has_public_) {
         RSA::d::ArmorPublicKey(*m_pKey, backlink->m_p_ascKey);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -104,13 +92,6 @@ EVP_PKEY* RSA::d::GetKeyLowLevel() const { return m_pKey; }
 
 const EVP_PKEY* RSA::d::GetKey(const PasswordPrompt& reason)
 {
-    if (backlink->m_timer.getElapsedTimeInSec() > OT_KEY_TIMER)
-        backlink->Release();  // This releases the actual loaded key,
-                              // but not the ascii-armored, encrypted
-                              // version of it.
-    // (Thus forcing a reload, and thus forcing the passphrase to be entered
-    // again.)
-
     if (nullptr == m_pKey)
         return InstantiateKey(reason);  // this is the ONLY place, currently,
                                         // that this private method is called.
@@ -208,7 +189,7 @@ EVP_PKEY* RSA::d::CopyPublicKey(
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio,
                         nullptr,
-                        0,
+                        nullptr,
                         const_cast<OTPassword*>(pImportPassword));
                 }
 
@@ -290,7 +271,7 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
             pCipher,
             nullptr,
             0,
-            0,
+            nullptr,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
     }
@@ -353,7 +334,7 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio,
                         nullptr,
-                        0,
+                        nullptr,
                         const_cast<void*>(reinterpret_cast<const void*>(
                             pImportPassword->getPassword())));
                 }
@@ -550,20 +531,6 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const PasswordPrompt& reason)
 
         if (nullptr != pReturnKey) {
             m_pKey = pReturnKey;
-            // TODO (remove theTimer entirely. OTCachedKey replaces already.)
-            // I set this timer because the above required a password. But now
-            // that master key is working,
-            // the above would flow through even WITHOUT the user typing his
-            // passphrase (since master key still
-            // not timed out.) Resulting in THIS timer being reset!  Todo: I
-            // already shortened this timer to 30
-            // seconds, but need to phase it down to 0 and then remove it
-            // entirely! Master key takes over now!
-            //
-
-            backlink->m_timer.start();  // Note: this isn't the ultimate timer
-                                        // solution. See notes in
-                                        // ReleaseKeyLowLevel.
             LogTrace(OT_METHOD)(__FUNCTION__)(
                 ": Success reading private key from ASCII-armored data.")
                 .Flush();
@@ -584,7 +551,6 @@ bool RSA::d::ArmorPrivateKey(
     const api::internal::Core& api,
     EVP_PKEY& theKey,
     Armored& ascKey,
-    Timer& theTimer,
     const PasswordPrompt& reason,
     const OTPassword* pImportPassword)
 {
@@ -614,7 +580,7 @@ bool RSA::d::ArmorPrivateKey(
             EVP_des_ede3_cbc(),  // todo should this algorithm be hardcoded?
             nullptr,
             0,
-            0,
+            nullptr,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
     }
@@ -624,20 +590,6 @@ bool RSA::d::ArmorPrivateKey(
             ": Failed writing EVP_PKEY to memory buffer.")
             .Flush();
     } else {
-        // TODO (remove theTimer entirely. OTCachedKey replaces already.)
-        // I set this timer because the above required a password. But now that
-        // master key is working,
-        // the above would flow through even WITHOUT the user typing his
-        // passphrase (since master key still
-        // not timed out.) Resulting in THIS timer being reset!  Todo: I already
-        // shortened this timer to 30
-        // seconds, but need to phase it down to 0 and then remove it entirely!
-        // Master key takes over now!
-        //
-
-        theTimer.start();  // Note: this isn't the ultimate timer solution. See
-                           // notes in ReleaseKeyLowLevel.
-
         LogInsane(OT_METHOD)(__FUNCTION__)(
             ": Success writing EVP_PKEY to memory buffer.")
             .Flush();

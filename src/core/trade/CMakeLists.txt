@@ -1,31 +1,26 @@
-# Copyright (c) 2018 The Open-Transactions developers
+# Copyright (c) 2019 The Open-Transactions developers
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(MODULE_NAME opentxs-trade)
-
-set(cxx-sources
-  OTOffer.cpp
-  OTMarket.cpp
-  OTTrade.cpp
+set(cxx-sources OTOffer.cpp OTMarket.cpp OTTrade.cpp)
+set(
+  cxx-install-headers
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/trade/OTMarket.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/trade/OTOffer.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/trade/OTTrade.hpp"
 )
+set(cxx-headers ${cxx-install-headers})
 
-file(GLOB cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/trade/*.hpp")
-
-set(cxx-headers
-  ${cxx-install-headers}
+add_library(opentxs-trade OBJECT ${cxx-sources} ${cxx-headers})
+target_include_directories(
+  opentxs-trade SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+set_property(TARGET opentxs-trade PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library(${MODULE_NAME}
-  OBJECT
-  ${cxx-sources}
-  ${cxx-headers}
+install(
+  FILES ${cxx-install-headers}
+  DESTINATION include/opentxs/core/trade
+  COMPONENT dev
 )
-
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/core/trade
-        COMPONENT dev)
-
-set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
-target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")

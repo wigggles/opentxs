@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,7 +13,7 @@ class Secp256k1 final : virtual public crypto::Secp256k1,
                         public EcdsaProvider
 {
 public:
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
     bool Sign(
         const api::Core& api,
         const Data& plaintext,
@@ -21,17 +21,17 @@ public:
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const override;
+        const OTPassword* exportPassword = nullptr) const final;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
-    void Init() override;
+    void Init() final;
 
-    ~Secp256k1();
+    ~Secp256k1() final;
 
 private:
     friend opentxs::Factory;
@@ -48,12 +48,12 @@ private:
     bool ECDH(
         const Data& publicKey,
         const OTPassword& privateKey,
-        OTPassword& secret) const override;
+        OTPassword& secret) const final;
     bool DataToECSignature(
         const Data& inSignature,
         secp256k1_ecdsa_signature& outSignature) const;
     bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
-        const override;
+        const final;
 
     Secp256k1(
         const api::Crypto& crypto,

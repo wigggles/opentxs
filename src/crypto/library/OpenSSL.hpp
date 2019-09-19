@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,10 +17,10 @@ void EVP_MD_CTX_free(EVP_MD_CTX* context);
 
 namespace opentxs::crypto::implementation
 {
-class OpenSSL : virtual public crypto::OpenSSL
+class OpenSSL final : virtual public crypto::OpenSSL
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     ,
-                public AsymmetricProvider
+                      public AsymmetricProvider
 #endif
 {
 public:
@@ -30,14 +30,14 @@ public:
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
-        std::uint8_t* output) const override;
+        std::uint8_t* output) const final;
     bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
         const std::uint8_t* key,
         const size_t keySize,
-        std::uint8_t* output) const override;
+        std::uint8_t* output) const final;
 
     OTPassword* InstantiateBinarySecret() const;
 
@@ -49,30 +49,30 @@ public:
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const override;
+        const OTPassword* exportPassword = nullptr) const final;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     bool EncryptSessionKey(
         const mapOfAsymmetricKeys& RecipPubKeys,
         Data& plaintext,
         Data& dataOutput,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     bool DecryptSessionKey(
         Data& dataInput,
         const identity::Nym& theRecipient,
         Data& plaintext,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
-    void Cleanup() override;
-    void Init() override;
+    void Cleanup() final;
+    void Init() final;
 
-    ~OpenSSL() = default;
+    ~OpenSSL() final = default;
 
 private:
     friend opentxs::Factory;

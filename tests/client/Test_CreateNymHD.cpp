@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -38,15 +38,15 @@ public:
               ""))
         , SeedC_(client_.Exec().Wallet_ImportSeed("park cabbage quit", ""))
         , SeedD_(client_.Exec().Wallet_ImportSeed("federal dilemma rare", ""))
-        , Alice(
-              client_.Exec()
-                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0))
         , AliceID("ot24XFA1wKynjaAB59dx7PwEzGg37U8Q2yXG")
-        , Bob(client_.Exec()
-                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0))
         , BobID("ot274uRuN1VezD47R7SqAH27s2WKP1U5jKWk")
         , EveID("otwz4jCuiVg7UF2i1NgCSvTWeDS29EAHeL6")
         , FrankID("ot2BqchYuY5r747PnGK3SuM4A8bCLtuGASqY")
+        , Alice(
+              client_.Exec()
+                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0))
+        , Bob(client_.Exec()
+                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0))
     {
     }
 };

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,7 +8,6 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -40,9 +39,7 @@ Mint::Mint(
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
-    : blind::Mint()
-    , api_(core)
-    , m_mapPrivate()
+    : m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(api_.Factory().ServerID(strNotaryID))
     , m_ServerNymID(api_.Factory().NymID(strServerNymID))
@@ -69,9 +66,7 @@ Mint::Mint(
     const api::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
-    : blind::Mint()
-    , api_(core)
-    , m_mapPrivate()
+    : m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(api_.Factory().ServerID(strNotaryID))
     , m_ServerNymID(api_.Factory().NymID())
@@ -95,9 +90,7 @@ Mint::Mint(
 }
 
 Mint::Mint(const api::Core& core)
-    : blind::Mint()
-    , api_(core)
-    , m_mapPrivate()
+    : m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(api_.Factory().ServerID())
     , m_ServerNymID(api_.Factory().NymID())

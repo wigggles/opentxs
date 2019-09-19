@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,15 +19,13 @@
 
 namespace opentxs::storage
 {
-class Tree;
-
-class Contacts : public Node
+class Contacts final : public Node
 {
 public:
     std::string Alias(const std::string& id) const;
     std::string AddressOwner(proto::ContactItemType chain, std::string address)
         const;
-    ObjectList List() const override;
+    ObjectList List() const final;
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& output,
@@ -43,7 +41,7 @@ public:
         const std::string& alias,
         std::map<OTData, OTIdentifier>& changed);
 
-    ~Contacts() = default;
+    ~Contacts() final = default;
 
 private:
     friend class Tree;
@@ -67,10 +65,10 @@ private:
         std::map<OTData, OTIdentifier>& changed) const;
     void extract_nyms(const Lock& lock, const proto::Contact& data) const;
     const std::string& nomalize_id(const std::string& input) const;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    bool save(const std::unique_lock<std::mutex>& lock) const final;
     proto::StorageContacts serialize() const;
 
-    void init(const std::string& hash) override;
+    void init(const std::string& hash) final;
     void reconcile_maps(const Lock& lock, const proto::Contact& data);
     void reverse_merged();
 

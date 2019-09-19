@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -195,7 +195,7 @@ bool StorageSqlite3::Select(
     const std::string query =
         "SELECT v FROM '" + tablename + "' WHERE k GLOB ?1;";
     const auto sql = bind_key(query, key, 1);
-    sqlite3_prepare_v2(db_, sql.c_str(), -1, &statement, 0);
+    sqlite3_prepare_v2(db_, sql.c_str(), -1, &statement, nullptr);
     LogVerbose(OT_METHOD)(__FUNCTION__)(sql).Flush();
     auto result = sqlite3_step(statement);
     bool success = false;
@@ -254,7 +254,7 @@ void StorageSqlite3::set_data(std::stringstream& sql) const
         }
     }
 
-    sqlite3_prepare_v2(db_, dataSQL.str().c_str(), -1, &data, 0);
+    sqlite3_prepare_v2(db_, dataSQL.str().c_str(), -1, &data, nullptr);
     counter = 0;
 
     for (const auto& it : pending_) {
@@ -283,7 +283,7 @@ void StorageSqlite3::set_root(
     std::stringstream rootSQL{};
     rootSQL << "INSERT OR REPLACE INTO '" << config_.sqlite3_control_table_
             << "'  (k, v) VALUES (?1, ?2); ";
-    sqlite3_prepare_v2(db_, rootSQL.str().c_str(), -1, &root, 0);
+    sqlite3_prepare_v2(db_, rootSQL.str().c_str(), -1, &root, nullptr);
     auto bound = sqlite3_bind_text(
         root,
         1,
@@ -347,7 +347,7 @@ bool StorageSqlite3::Upsert(
     const std::string query =
         "insert or replace into `" + tablename + "` (k, v) values (?1, ?2);";
 
-    sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
+    sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, nullptr);
     sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
     sqlite3_bind_blob(statement, 2, value.c_str(), value.size(), SQLITE_STATIC);
     LogVerbose(OT_METHOD)(__FUNCTION__)(expand_sql(statement)).Flush();

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,8 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/util/Assert.hpp"
-#include "containers/simple_ptr.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <deque>
 #include <iostream>
@@ -662,7 +661,7 @@ EXPORT bool EraseValueByKey(
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
                                                                                \
 protected:                                                                     \
-    std::deque<stlplus::simple_ptr_clone<name>> list_##name##s;                \
+    std::deque<std::shared_ptr<name>> list_##name##s;                          \
                                                                                \
 public:                                                                        \
     EXPORT size_t Get##name##Count();                                          \
@@ -1641,7 +1640,7 @@ public:
 
     static StorageFS* Instantiate() { return new StorageFS; }
 
-    virtual ~StorageFS();
+    ~StorageFS() override;
 
     // lower level calls.
 

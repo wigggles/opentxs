@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,11 +19,11 @@ class Ed25519 final : virtual public key::Ed25519,
 public:
     NymParameterType CreateType() const override
     {
-        return NymParameterType::ED25519;
+        return NymParameterType::ed25519;
     }
     bool hasCapability(const NymCapability& capability) const override;
 
-    ~Ed25519() = default;
+    ~Ed25519() override = default;
 
 private:
 #if OT_CRYPTO_SUPPORTED_KEY_HD

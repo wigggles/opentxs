@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,7 @@ public:
     RSA* backlink;
     // cppcheck-suppress uninitMemberVar
     explicit d(const api::internal::Core& api)
-        : backlink(0)
+        : backlink(nullptr)
         , api_(api)
     {
     }
@@ -41,7 +41,6 @@ public:
         const api::internal::Core& api,
         EVP_PKEY& theKey,
         Armored& ascKey,
-        Timer& theTimer,
         const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr);
     static bool ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey);

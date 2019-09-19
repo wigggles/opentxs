@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,10 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/StringUtils.hpp"
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include <chrono>
 
 namespace opentxs
 {
@@ -20,9 +21,7 @@ namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
 }  // namespace api
 
@@ -39,49 +38,14 @@ typedef std::list<std::int64_t> listOfLongNumbers;
 
 /** OTCron has a list of OTCronItems. (Really subclasses of that such as OTTrade
  * and OTAgreement.) */
-class OTCron : public Contract
+class OTCron final : public Contract
 {
-private:
-    typedef Contract ot_super;
-
-private:
-    friend api::implementation::Factory;
-
-    // A list of all valid markets.
-    mapOfMarkets m_mapMarkets;
-    // Cron Items are found on both lists.
-    mapOfCronItems m_mapCronItems;
-    multimapOfCronItems m_multimapCronItems;
-    // Always store this in any object that's associated with a specific server.
-    OTServerID m_NOTARY_ID;
-    // I can't put receipts in people's inboxes without a supply of these.
-    listOfLongNumbers m_listTransactionNumbers;
-    // I don't want to start Cron processing until everything else is all loaded
-    //  up and ready to go.
-    bool m_bIsActivated{false};
-    // I'll need this for later.
-    Nym_p m_pServerNym{nullptr};
-    // Number of transaction numbers Cron  will grab for itself, when it gets
-    // low, before each round.
-    static std::int32_t __trans_refill_amount;
-    // Number of milliseconds (ideally) between each "Cron Process" event.
-    static std::int32_t __cron_ms_between_process;
-    // Int. The maximum number of cron items any given Nym can have
-    // active at the same time.
-    static std::int32_t __cron_max_items_per_nym;
-
-    static Timer tCron;
-
-    explicit OTCron(const api::Core& server);
-
-    OTCron() = delete;
-
 public:
-    static std::int32_t GetCronMsBetweenProcess()
+    static std::chrono::milliseconds GetCronMsBetweenProcess()
     {
         return __cron_ms_between_process;
     }
-    static void SetCronMsBetweenProcess(std::int32_t lMS)
+    static void SetCronMsBetweenProcess(std::chrono::milliseconds lMS)
     {
         __cron_ms_between_process = lMS;
     }
@@ -160,7 +124,7 @@ public:
      * finished.) */
     void ProcessCronItems();
 
-    std::int64_t computeTimeout();
+    std::chrono::milliseconds computeTimeout();
 
     inline void SetNotaryID(const identifier::Server& NOTARY_ID)
     {
@@ -178,21 +142,53 @@ public:
     bool LoadCron();
     bool SaveCron();
 
-    virtual ~OTCron();
+    ~OTCron() final;
 
     void InitCron();
 
-    void Release() override;
+    void Release() final;
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
     std::int32_t ProcessXMLNode(
         irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
     /** Before transmission or serialization, this is where the ledger saves its
      * contents */
-    void UpdateContents(const PasswordPrompt& reason) override;
+    void UpdateContents(const PasswordPrompt& reason) final;
+
+private:
+    typedef Contract ot_super;
+
+    friend api::implementation::Factory;
+
+    // Number of transaction numbers Cron  will grab for itself, when it gets
+    // low, before each round.
+    static std::int32_t __trans_refill_amount;
+    // Number of milliseconds (ideally) between each "Cron Process" event.
+    static std::chrono::milliseconds __cron_ms_between_process;
+    // Int. The maximum number of cron items any given Nym can have
+    // active at the same time.
+    static std::int32_t __cron_max_items_per_nym;
+    static Time last_executed_;
+
+    // A list of all valid markets.
+    mapOfMarkets m_mapMarkets;
+    // Cron Items are found on both lists.
+    mapOfCronItems m_mapCronItems;
+    multimapOfCronItems m_multimapCronItems;
+    // Always store this in any object that's associated with a specific server.
+    OTServerID m_NOTARY_ID;
+    // I can't put receipts in people's inboxes without a supply of these.
+    listOfLongNumbers m_listTransactionNumbers;
+    // I don't want to start Cron processing until everything else is all loaded
+    //  up and ready to go.
+    bool m_bIsActivated{false};
+    // I'll need this for later.
+    Nym_p m_pServerNym{nullptr};
+
+    explicit OTCron(const api::Core& server);
+
+    OTCron() = delete;
 };
-
 }  // namespace opentxs
-
 #endif

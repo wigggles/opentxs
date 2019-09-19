@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,14 +12,9 @@
 #include <ctime>
 #include <memory>
 
-#ifdef _WIN32
-#include <time.h>
-#else
-#include <sys/time.h>
-#endif
-
 #include <string>
 #include <cstdlib>
+#include <ctime>
 
 // forward decleration.  (need to match what is in the irr source code). Cam.
 namespace irr

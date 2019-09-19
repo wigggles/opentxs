@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,7 +14,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
@@ -86,12 +85,12 @@ std::unique_ptr<opentxs::crypto::key::HD> HDSeed::AccountChildKey(
     const Bip32Index change = internal ? 1 : 0;
     Path path{};
 
-    for (const auto& index : rootPath.child()) { path.emplace_back(index); }
+    for (const auto& child : rootPath.child()) { path.emplace_back(child); }
 
     path.emplace_back(change);
     path.emplace_back(index);
 
-    return GetHDKey(fingerprint, EcdsaCurve::SECP256K1, path, reason);
+    return GetHDKey(fingerprint, EcdsaCurve::secp256k1, path, reason);
 }
 
 std::string HDSeed::Bip32Root(
@@ -201,7 +200,7 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
 {
     auto key = GetHDKey(
         fingerprint,
-        EcdsaCurve::SECP256K1,
+        EcdsaCurve::secp256k1,
         {HDIndex{Bip43Purpose::PAYCODE, Bip32Child::HARDENED},
          HDIndex{Bip44Type::BITCOIN, Bip32Child::HARDENED},
          HDIndex{nym, Bip32Child::HARDENED}},
@@ -218,7 +217,7 @@ OTSymmetricKey HDSeed::GetStorageKey(
 {
     auto pKey = GetHDKey(
         fingerprint,
-        EcdsaCurve::SECP256K1,
+        EcdsaCurve::secp256k1,
         {HDIndex{Bip43Purpose::FS, Bip32Child::HARDENED},
          HDIndex{Bip32Child::ENCRYPT_KEY, Bip32Child::HARDENED}},
         reason);
@@ -345,7 +344,7 @@ std::string HDSeed::save_seed(
 
     // the fingerprint is used as the identifier of the seed for indexing
     // purposes. Always use the secp256k1 version for this.
-    auto fingerprint = bip32_.SeedToFingerprint(EcdsaCurve::SECP256K1, seed);
+    auto fingerprint = bip32_.SeedToFingerprint(EcdsaCurve::secp256k1, seed);
     auto key = symmetric_.Key(reason, DEFAULT_ENCRYPTION_MODE);
 
     OT_ASSERT(key.get());
@@ -419,7 +418,7 @@ std::shared_ptr<OTPassword> HDSeed::Seed(
             fingerprint)(")")
             .Flush();
 
-        return output;
+        return std::move(output);
     }
 
     auto seed = factory_.BinarySecret();
@@ -436,7 +435,7 @@ std::shared_ptr<OTPassword> HDSeed::Seed(
 
     if (extracted) { output.reset(seed.release()); }
 
-    return output;
+    return std::move(output);
 }
 
 bool HDSeed::seed_to_data(

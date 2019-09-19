@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -54,7 +54,7 @@ typedef enum {
     TRIGGER_CLAUSE,
 } OTAPI_Func_Type;
 
-class OTAPI_Func : virtual public opentxs::client::ServerAction, Lockable
+class OTAPI_Func final : virtual public opentxs::client::ServerAction, Lockable
 {
 public:
     explicit OTAPI_Func(
@@ -193,20 +193,17 @@ public:
         const Amount& activationPrice,
         const std::string& stopSign);
 
-    SendResult LastSendResult() const override { return {}; }
-    const std::shared_ptr<Message> Reply() const override { return {}; }
-    const std::shared_ptr<PeerReply> SentPeerReply() const override
-    {
-        return {};
-    }
-    const std::shared_ptr<PeerRequest> SentPeerRequest() const override
+    SendResult LastSendResult() const final { return {}; }
+    const std::shared_ptr<Message> Reply() const final { return {}; }
+    const std::shared_ptr<PeerReply> SentPeerReply() const final { return {}; }
+    const std::shared_ptr<PeerRequest> SentPeerRequest() const final
     {
         return {};
     }
 
-    std::string Run(const std::size_t totalRetries = 2) override;
+    std::string Run(const std::size_t totalRetries = 2) final;
 
-    ~OTAPI_Func();
+    ~OTAPI_Func() final;
 
 private:
     static const std::map<OTAPI_Func_Type, std::string> type_name_;

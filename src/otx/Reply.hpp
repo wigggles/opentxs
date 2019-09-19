@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,20 +12,20 @@ namespace opentxs::otx::implementation
 class Reply final : otx::Reply
 {
 public:
-    proto::ServerReply Contract() const override;
-    RequestNumber Number() const override;
-    std::shared_ptr<proto::OTXPush> Push() const override;
-    const identifier::Nym& Recipient() const override { return recipient_; }
-    const identifier::Server& Server() const override { return server_; }
-    bool Success() const override { return success_; }
-    proto::ServerReplyType Type() const override { return type_; }
+    proto::ServerReply Contract() const final;
+    RequestNumber Number() const final;
+    std::shared_ptr<proto::OTXPush> Push() const final;
+    const identifier::Nym& Recipient() const final { return recipient_; }
+    const identifier::Server& Server() const final { return server_; }
+    bool Success() const final { return success_; }
+    proto::ServerReplyType Type() const final { return type_; }
 
     bool SetNumber(const RequestNumber number, const PasswordPrompt& reason)
-        override;
+        final;
     bool SetPush(const proto::OTXPush& push, const PasswordPrompt& reason)
-        override;
+        final;
 
-    ~Reply() = default;
+    ~Reply() final = default;
 
 private:
     friend otx::Reply;
@@ -43,21 +43,19 @@ private:
         const proto::ServerReply serialized,
         const PasswordPrompt& reason);
 
-    Reply* clone() const override { return new Reply(*this); }
-    OTIdentifier GetID(const Lock& lock) const override;
+    Reply* clone() const final { return new Reply(*this); }
+    OTIdentifier GetID(const Lock& lock) const final;
     proto::ServerReply full_version(const Lock& lock) const;
     proto::ServerReply id_version(const Lock& lock) const;
-    std::string Name() const override { return {}; }
-    OTData Serialize() const override;
+    std::string Name() const final { return {}; }
+    OTData Serialize() const final;
     proto::ServerReply signature_version(const Lock& lock) const;
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
-        override;
-    bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const override;
+    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
+    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
     bool verify_signature(
         const Lock& lock,
         const proto::Signature& signature,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     Reply(
         const api::Core& api,

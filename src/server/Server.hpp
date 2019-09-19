@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,7 @@
 #include "MainFile.hpp"
 #include "UserCommandProcessor.hpp"
 
+#include <chrono>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -42,7 +43,10 @@ public:
 
     void ActivateCron();
     UserCommandProcessor& CommandProcessor() { return userCommandProcessor_; }
-    std::int64_t ComputeTimeout() { return m_Cron->computeTimeout(); }
+    std::chrono::milliseconds ComputeTimeout()
+    {
+        return m_Cron->computeTimeout();
+    }
     OTCron& Cron() { return *m_Cron; }
     bool DropMessageToNymbox(
         const identifier::Server& notaryID,

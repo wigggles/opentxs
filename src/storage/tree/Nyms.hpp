@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -23,7 +23,7 @@ namespace opentxs
 {
 namespace storage
 {
-class Nyms : public Node
+class Nyms final : public Node
 {
 private:
     friend class Tree;
@@ -35,8 +35,8 @@ private:
     storage::Nym* nym(const Lock& lock, const std::string& id) const;
     void save(storage::Nym* nym, const Lock& lock, const std::string& id);
 
-    void init(const std::string& hash) override;
-    bool save(const Lock& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const Lock& lock) const final;
     proto::StorageNymList serialize() const;
 
     Nyms(const opentxs::api::storage::Driver& storage, const std::string& hash);
@@ -50,14 +50,14 @@ public:
     bool Exists(const std::string& id) const;
     const std::set<std::string> LocalNyms() const;
     void Map(NymLambda lambda) const;
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const final;
     const storage::Nym& Nym(const std::string& id) const;
 
     Editor<storage::Nym> mutable_Nym(const std::string& id);
     bool RelabelThread(const std::string& threadID, const std::string label);
     void UpgradeLocalnym();
 
-    ~Nyms() = default;
+    ~Nyms() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

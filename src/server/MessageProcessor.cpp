@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,6 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -37,7 +36,7 @@
 #include "Server.hpp"
 #include "UserCommandProcessor.hpp"
 
-#include <stddef.h>
+#include <cstddef>
 #include <sys/types.h>
 #include <ostream>
 #include <string>
@@ -53,38 +52,36 @@ namespace opentxs::server
 MessageProcessor::MessageProcessor(
     Server& server,
     const PasswordPrompt& reason,
-    const zmq::Context& context,
     const Flag& running)
     : server_(server)
     , reason_(reason)
     , running_(running)
-    , context_(context)
     , frontend_callback_(zmq::ListenCallback::Factory(
           [=](const zmq::Message& incoming) -> void {
               this->process_frontend(incoming);
           }))
-    , frontend_socket_(context.RouterSocket(
+    , frontend_socket_(server.API().ZeroMQ().RouterSocket(
           frontend_callback_,
           zmq::socket::Socket::Direction::Bind))
     , backend_callback_(zmq::ReplyCallback::Factory(
           [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_backend(incoming);
           }))
-    , backend_socket_(context.ReplySocket(
+    , backend_socket_(server.API().ZeroMQ().ReplySocket(
           backend_callback_,
           zmq::socket::Socket::Direction::Bind))
     , internal_callback_(zmq::ListenCallback::Factory(
           [=](const zmq::Message& incoming) -> void {
               this->process_internal(incoming);
           }))
-    , internal_socket_(context.DealerSocket(
+    , internal_socket_(server.API().ZeroMQ().DealerSocket(
           internal_callback_,
           zmq::socket::Socket::Direction::Connect))
     , notification_callback_(zmq::ListenCallback::Factory(
           [=](const zmq::Message& incoming) -> void {
               this->process_notification(incoming);
           }))
-    , notification_socket_(context.PullSocket(
+    , notification_socket_(server.API().ZeroMQ().PullSocket(
           notification_callback_,
           zmq::socket::Socket::Direction::Bind))
     , thread_()
@@ -202,7 +199,7 @@ void MessageProcessor::run()
         // timeout is the time left until the next cron should execute.
         const auto timeout = server_.ComputeTimeout();
 
-        if (timeout <= 0) {
+        if (timeout.count() <= 0) {
             // ProcessCron and process_backend must not run simultaneously
             Lock lock(lock_);
             server_.ProcessCron();
@@ -460,9 +457,11 @@ void MessageProcessor::process_proto(
     const auto valid = process_command(command, nymID);
 
     if (valid) {
-        const auto id = get_connection(incoming);
+        const auto connection = get_connection(incoming);
 
-        if (false == id->empty()) { associate_connection(nymID, id); }
+        if (false == connection->empty()) {
+            associate_connection(nymID, connection);
+        }
 
         return;
     }

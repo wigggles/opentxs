@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -58,7 +58,7 @@ public:
     void SetRemoteNymboxHash(const Identifier& hash) override;
     void SetRequest(const RequestNumber req) override;
 
-    virtual ~Context() = default;
+    ~Context() override = default;
 
 protected:
     const api::Core& api_;

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -29,41 +29,41 @@ class Trezor final : virtual public crypto::Trezor,
 public:
     std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
-        const std::size_t& inputSize) const override;
+        const std::size_t& inputSize) const final;
     bool Base58CheckDecode(const std::string&& input, RawData& output)
-        const override;
+        const final;
     bool RIPEMD160(
         const std::uint8_t* input,
         const size_t inputSize,
-        std::uint8_t* output) const override;
+        std::uint8_t* output) const final;
 
 #if OT_CRYPTO_WITH_BIP32
     Key DeriveKey(
         const api::crypto::Hash& hash,
         const EcdsaCurve& curve,
         const OTPassword& seed,
-        const Path& path) const override;
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
+        const Path& path) const final;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
-        const OTPassword& seed) const override;
+        const OTPassword& seed) const final;
 #endif
 
 #if OT_CRYPTO_WITH_BIP39
-    bool SeedToWords(const OTPassword& seed, OTPassword& words) const override;
+    bool SeedToWords(const OTPassword& seed, OTPassword& words) const final;
     void WordsToSeed(
         const OTPassword& words,
         OTPassword& seed,
-        const OTPassword& passphrase) const override;
+        const OTPassword& passphrase) const final;
 #endif
 
 #if OPENTXS_TREZOR_PROVIDES_ECDSA
     bool ECDH(
         const Data& publicKey,
         const OTPassword& privateKey,
-        OTPassword& secret) const override;
+        OTPassword& secret) const final;
     bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
-        const override;
+        const final;
     bool Sign(
         const api::Core& api,
         const Data& plaintext,
@@ -71,16 +71,16 @@ public:
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const override;
+        const OTPassword* exportPassword = nullptr) const final;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 #endif  // OPENTXS_TREZOR_PROVIDES_ECDSA
 
-    ~Trezor() = default;
+    ~Trezor() final = default;
 
 private:
     friend opentxs::Factory;

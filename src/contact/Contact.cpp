@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -554,8 +554,8 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
 
         if (false == currency) { continue; }
 
-        for (const auto& it : *group) {
-            const auto& item = it.second;
+        for (const auto& inner : *group) {
+            const auto& item = inner.second;
 
             OT_ASSERT(item);
 

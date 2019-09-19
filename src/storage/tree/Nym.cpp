@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -347,9 +347,9 @@ void Nym::init(const std::string& hash)
     for (const auto& purse : serialized->purse()) {
         auto server = identifier::Server::Factory(purse.notary());
         auto unit = identifier::UnitDefinition::Factory(purse.unit());
-        const auto& hash = purse.purse().hash();
+        const auto& pHash = purse.purse().hash();
         PurseID id{std::move(server), std::move(unit)};
-        purse_id_.emplace(std::move(id), hash);
+        purse_id_.emplace(std::move(id), pHash);
     }
 
     // Fields added in version 9

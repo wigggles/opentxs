@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Context.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -31,7 +30,6 @@
 #include <string>
 
 #define PAGESIZE sysconf(_SC_PAGESIZE)
-#define OT_METHOD "opentxs::OTPassword::"
 #endif
 
 // FT: Credit to the Bitcoin team for the mlock / munlock defines.
@@ -51,6 +49,8 @@
          1) -                                                                  \
             ((reinterpret_cast<std::size_t>(a)) & (~((PAGESIZE)-1))))
 #endif
+
+#define OT_METHOD "opentxs::OTPassword::"
 
 namespace opentxs
 {
@@ -111,7 +111,6 @@ bool OTPassword::ot_lockPage(void* addr, std::size_t len)
 #else
     OT_FAIL_MSG("ASSERT: ot_lockPage unable to lock memory.");
 #endif
-    return false;
 }
 
 // TODO:  Note: may need to add directives here so that mlock and munlock are
@@ -136,7 +135,6 @@ bool OTPassword::ot_unlockPage(void* addr, std::size_t len)
 #else
     OT_FAIL_MSG("ASSERT: ot_unlockPage unable to unlock secret memory.");
 #endif
-    return false;
 }
 
 // PURPOSE OF ZERO'ING MEMORY:

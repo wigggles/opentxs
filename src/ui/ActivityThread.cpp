@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -275,8 +275,6 @@ QVariant ActivityThread::data(const QModelIndex& index, int role) const noexcept
             return {};
         }
     }
-
-    return {};
 }
 #endif
 
@@ -419,7 +417,7 @@ bool ActivityThread::Pay(
     switch (type) {
         case PaymentType::Cheque: {
             return send_cheque(reason, amount, sourceAccount, memo);
-        } break;
+        }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported payment type: (")(
                 static_cast<int>(type))(")")
@@ -508,8 +506,8 @@ void ActivityThread::process_thread(
     std::set<ActivityThreadRowID> active{};
 
     for (const auto& item : thread->item()) {
-        const auto id = process_item(item);
-        active.emplace(id);
+        const auto itemID = process_item(item);
+        active.emplace(itemID);
     }
 
     Lock draftLock(decision_lock_);

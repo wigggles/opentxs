@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -871,7 +871,7 @@ bool StateMachine::register_account(
     auto contract = client_.Wallet().UnitDefinition(unitID, reason_);
 
     if (false == bool(contract)) {
-        DO_OPERATION(DownloadContract, unitID, ContractType::UNIT);
+        DO_OPERATION(DownloadContract, unitID, ContractType::unit);
 
         if (false == success) {
             return finish_task(taskID, success, std::move(result));

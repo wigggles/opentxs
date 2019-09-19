@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,21 +9,22 @@
 
 namespace opentxs::network::implementation
 {
-class ServerConnection : virtual public opentxs::network::ServerConnection,
-                         Lockable
+class ServerConnection final
+    : virtual public opentxs::network::ServerConnection,
+      Lockable
 {
 public:
-    bool ChangeAddressType(const proto::AddressType type) override;
-    bool ClearProxy() override;
-    bool EnableProxy() override;
+    bool ChangeAddressType(const proto::AddressType type) final;
+    bool ClearProxy() final;
+    bool EnableProxy() final;
     NetworkReplyMessage Send(
         const ServerContext& context,
         const Message& message,
         const PasswordPrompt& reason,
-        const Push push) override;
-    bool Status() const override;
+        const Push push) final;
+    bool Status() const final;
 
-    ~ServerConnection();
+    ~ServerConnection() final;
 
 private:
     friend opentxs::network::ServerConnection;
@@ -50,7 +51,7 @@ private:
         const zeromq::Frame& frame);
 
     OTZMQDealerSocket async_socket(const Lock& lock) const;
-    ServerConnection* clone() const override { return nullptr; }
+    ServerConnection* clone() const final { return nullptr; }
     std::string endpoint() const;
     std::string form_endpoint(
         proto::AddressType type,

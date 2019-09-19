@@ -1,54 +1,58 @@
-# Copyright (c) 2018 The Open-Transactions developers
+# Copyright (c) 2019 The Open-Transactions developers
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #
-# Define everything here that all wrappers will use,
-# then process each language in its own subdirectory
+# Define everything here that all wrappers will use, then process each language
+# in its own subdirectory
 #
 
-
 # Locate include files for our wrappers
-set(SWIG_INCLUDE_DIRS
+set(
+  SWIG_INCLUDE_DIRS
   SYSTEM
-  ${CMAKE_CURRENT_SOURCE_DIR}/../deps/
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/core
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/core/crypto
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/ext
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include/opentxs/client
+  "${opentxs_SOURCE_DIR}/deps/"
+  "${opentxs_SOURCE_DIR}/include/"
+  "${opentxs_SOURCE_DIR}/include/opentxs"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ext"
+  "${opentxs_SOURCE_DIR}/include/opentxs/client"
 )
-
 
 # The opentxs libraries will we link to
 set(OTX_LINK_LIBS opentxs)
 
+if(CMAKE_CROSSCOMPILING)
+  set(
+    CMAKE_FIND_ROOT_PATH_MODE_PROGRAM_PRESERVE
+    "${CMAKE_FIND_ROOT_PATH_MODE_PROGRAM}"
+  )
+  set(
+    CMAKE_FIND_ROOT_PATH_MODE_INCLUDE_PRESERVE
+    "${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE}"
+  )
+  set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
+endif()
 
-# Build wrappers for each lang enabled
-if(PYTHON)
-  subdirs(python)
-elseif(PYTHON2)
-  subdirs(python)
-elseif(PYTHON3)
-  subdirs(python)
-endif(PYTHON)
+find_package(SWIG 3.0.0 REQUIRED)
 
-if(CSHARP)
-  subdirs(csharp)
-endif(CSHARP)
+if(CMAKE_CROSSCOMPILING)
+  set(
+    CMAKE_FIND_ROOT_PATH_MODE_PROGRAM
+    "${CMAKE_FIND_ROOT_PATH_MODE_PROGRAM_PRESERVE}"
+  )
+  set(
+    CMAKE_FIND_ROOT_PATH_MODE_INCLUDE
+    "${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE_PRESERVE}"
+  )
+endif()
 
-if(JAVA)
-  subdirs(java)
-endif(JAVA)
+include(${SWIG_USE_FILE})
+include_directories(${SWIG_INCLUDE_DIRS})
 
-if(PHP)
-  subdirs(php)
-endif(PHP)
-
-if(PERL)
-  #subdirs(perl)
-  message("Perl module currently breaks the build so is disabled.")
-  message("See ./wrappers/CMakeLists.txt:28 to manually enable.")
-endif(PERL)
+if(OT_WITH_JAVA)
+  add_subdirectory(java)
+endif()

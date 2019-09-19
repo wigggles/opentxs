@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -68,12 +68,12 @@ protected:
     /** Calculate identifier */
     virtual OTIdentifier GetID(const Lock& lock) const = 0;
 
-    explicit Signable(const Nym_p& nym);
-    explicit Signable(const Nym_p& nym, const VersionNumber version);
-    explicit Signable(
+    explicit Signable(const Nym_p& nym) noexcept;
+    Signable(const Nym_p& nym, const VersionNumber version) noexcept;
+    Signable(
         const Nym_p& nym,
         const VersionNumber version,
-        const std::string& conditions);
+        const std::string& conditions) noexcept;
     Signable(const Signable&) = delete;
     Signable(Signable&&) = delete;
     Signable& operator=(const Signable&) = delete;
