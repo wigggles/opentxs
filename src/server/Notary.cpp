@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -29,7 +29,6 @@
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
@@ -4696,7 +4695,7 @@ void Notary::NotarizeExchangeBasket(
                                         .at(requestContractID->Get())
                                         .first);
 
-                                const std::uint64_t weight =
+                                const auto subWeight =
                                     basket->Currencies()
                                         .at(requestContractID->Get())
                                         .second;
@@ -4827,7 +4826,7 @@ void Notary::NotarizeExchangeBasket(
                                         // sub-account on the basket,
                                         // multiplied by
                                         lTransferAmount =
-                                            (weight *
+                                            (subWeight *
                                              theRequestBasket
                                                  ->GetTransferMultiple());
 
@@ -7074,15 +7073,15 @@ void Notary::NotarizeProcessInbox(
     // can't process the same inbox item twice simultaneously! Or even at
     // all.)
 
-    for (const auto& pItem : processInbox.GetItemList()) {
-        if (false == bool(pItem)) {
+    for (const auto& pProcessInboxItem : processInbox.GetItemList()) {
+        if (false == bool(pProcessInboxItem)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transaction").Flush();
             bSuccessFindingAllTransactions = false;
 
             break;
         }
 
-        const auto& item = *pItem;
+        const auto& item = *pProcessInboxItem;
         std::shared_ptr<OTTransaction> pServerTransaction;
 
         switch (item.GetType()) {
@@ -7535,42 +7534,46 @@ void Notary::NotarizeProcessInbox(
     // AGREEMENT BEFORE WE BOTHERED TO RUN THIS LOOP BELOW...)
 
     // loop through the items that make up the incoming transaction
-    for (auto& pItem : processInbox.GetItemList()) {
-        OT_ASSERT(nullptr != pItem);
+    for (auto& pProcessInboxItem : processInbox.GetItemList()) {
+        OT_ASSERT(nullptr != pProcessInboxItem);
 
         // We already handled this one (if we're even in this block
         // in the first place.)
-        if (itemType::balanceStatement == pItem->GetType()) { continue; }
+        if (itemType::balanceStatement == pProcessInboxItem->GetType()) {
+            continue;
+        }
 
         // If the client sent an accept item, (or reject/dispute)
         // then let's process it.
         const bool validType =
-            (Item::request == pItem->GetStatus()) &&
+            (Item::request == pProcessInboxItem->GetStatus()) &&
             ((itemType::acceptCronReceipt ==
-              pItem->GetType()) ||  // Accepting notice of market
-                                    // trade or payment processing.
-                                    // (Original in Cron Receipt.)
+              pProcessInboxItem->GetType()) ||  // Accepting notice of market
+                                                // trade or payment processing.
+                                                // (Original in Cron Receipt.)
              //                       (OTitemType::disputeCronReceipt
-             (itemType::acceptItemReceipt == pItem->GetType()) ||  // Accepted
-                                                                   // item
-                                                                   // receipt
-                                                                   // (cheque,
-                                                                   // transfer)
-             (itemType::acceptPending == pItem->GetType()) ||      // Accepting
-                                                                   // notice of
-                                                                   // pending
-                                                                   // transfer
+             (itemType::acceptItemReceipt ==
+              pProcessInboxItem->GetType()) ||  // Accepted
+                                                // item
+                                                // receipt
+                                                // (cheque,
+                                                // transfer)
+             (itemType::acceptPending ==
+              pProcessInboxItem->GetType()) ||  // Accepting
+                                                // notice of
+                                                // pending
+                                                // transfer
              (itemType::acceptFinalReceipt ==
-              pItem->GetType()) ||  // Accepting
-                                    // finalReceipt
+              pProcessInboxItem->GetType()) ||  // Accepting
+                                                // finalReceipt
              (itemType::acceptBasketReceipt ==
-              pItem->GetType())  // Accepting
-                                 // basketReceipt
+              pProcessInboxItem->GetType())  // Accepting
+                                             // basketReceipt
             );
 
         if (false == validType) {
             auto strItemType = String::Factory();
-            pItem->GetTypeString(strItemType);
+            pProcessInboxItem->GetTypeString(strItemType);
 
             Log::vError(
                 "Notary::%s: Error, unexpected "
@@ -7586,10 +7589,10 @@ void Notary::NotarizeProcessInbox(
         // So I'm just setting aside a copy now for those
         // purposes later.
         strInReferenceTo->Release();
-        pItem->SaveContractRaw(strInReferenceTo);
+        pProcessInboxItem->SaveContractRaw(strInReferenceTo);
 
         itemType theReplyItemType;
-        switch (pItem->GetType()) {
+        switch (pProcessInboxItem->GetType()) {
             case itemType::acceptPending:
                 theReplyItemType = itemType::atAcceptPending;
                 break;
@@ -7646,8 +7649,9 @@ void Notary::NotarizeProcessInbox(
             strInReferenceTo);  // the response item carries a
                                 // copy of what it's responding
                                 // to.
-        pResponseItem->SetReferenceToNum(pItem->GetTransactionNum());
-        pResponseItem->SetNumberOfOrigin(*pItem, reason_);
+        pResponseItem->SetReferenceToNum(
+            pProcessInboxItem->GetTransactionNum());
+        pResponseItem->SetNumberOfOrigin(*pProcessInboxItem, reason_);
 
         processInboxResponse.AddItem(pResponseItem);  // the Transaction's
                                                       // destructor will
@@ -7691,13 +7695,13 @@ void Notary::NotarizeProcessInbox(
         // handle these cases first, here:
         else if (  // MARKET RECEIPT, or PAYMENT RECEIPT.....
             ((itemType::acceptCronReceipt ==
-              pItem->GetType())  // This is checked
-                                 // above, but just
+              pProcessInboxItem->GetType())  // This is checked
+                                             // above, but just
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
             && (nullptr != (pServerTransaction = theInbox->GetTransaction(
-                                pItem->GetReferenceToNum()))) &&
+                                pProcessInboxItem->GetReferenceToNum()))) &&
             ((transactionType::paymentReceipt ==
               pServerTransaction->GetType()) ||
              (transactionType::marketReceipt ==
@@ -7724,13 +7728,13 @@ void Notary::NotarizeProcessInbox(
             pResponseItem->SetStatus(Item::acknowledgement);
         } else if (  // FINAL RECEIPT
             ((itemType::acceptFinalReceipt ==
-              pItem->GetType())  // This is checked
-                                 // above, but just
+              pProcessInboxItem->GetType())  // This is checked
+                                             // above, but just
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
             && (nullptr != (pServerTransaction = theInbox->GetTransaction(
-                                pItem->GetReferenceToNum()))) &&
+                                pProcessInboxItem->GetReferenceToNum()))) &&
             ((transactionType::finalReceipt ==
               pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
@@ -7755,13 +7759,13 @@ void Notary::NotarizeProcessInbox(
             pResponseItem->SetStatus(Item::acknowledgement);
         } else if (  // BASKET RECEIPT
             ((itemType::acceptBasketReceipt ==
-              pItem->GetType())  // This is checked
-                                 // above, but just
+              pProcessInboxItem->GetType())  // This is checked
+                                             // above, but just
              // keeping this safe.
              )  // especially in case this block moves
             // or is used elsewhere.
             && (nullptr != (pServerTransaction = theInbox->GetTransaction(
-                                pItem->GetReferenceToNum()))) &&
+                                pProcessInboxItem->GetReferenceToNum()))) &&
             ((transactionType::basketReceipt ==
               pServerTransaction->GetType()))) {
             // pItem contains the current user's attempt to
@@ -7803,18 +7807,19 @@ void Notary::NotarizeProcessInbox(
         // the case above, with receipts from cron.
         else if (
             ((itemType::acceptItemReceipt ==
-              pItem->GetType())  // acceptItemReceipt
-                                 // includes
-                                 // checkReceipt and
-                                 // transferReceipts.
-             || (itemType::acceptPending == pItem->GetType())  // acceptPending
-                                                               // includes
-                                                               // checkReceipts.
-                                                               // Because they
-                                                               // are
+              pProcessInboxItem->GetType())  // acceptItemReceipt
+                                             // includes
+                                             // checkReceipt and
+                                             // transferReceipts.
+             || (itemType::acceptPending ==
+                 pProcessInboxItem->GetType())  // acceptPending
+                                                // includes
+                                                // checkReceipts.
+                                                // Because they
+                                                // are
              ) &&
             (nullptr != (pServerTransaction = theInbox->GetTransaction(
-                             pItem->GetReferenceToNum()))) &&
+                             pProcessInboxItem->GetReferenceToNum()))) &&
             ((transactionType::pending ==
               pServerTransaction->GetType()) ||  // pending
                                                  // transfer.
@@ -7918,7 +7923,8 @@ void Notary::NotarizeProcessInbox(
                 // inbox. So that's the simplest case, and it's
                 // handled by THIS block of code:
                 //
-                if ((itemType::acceptItemReceipt == pItem->GetType()) &&
+                if ((itemType::acceptItemReceipt ==
+                     pProcessInboxItem->GetType()) &&
                     (((transactionType::transferReceipt ==
                        pServerTransaction->GetType()) &&
                       (itemType::acceptPending == pOriginalItem->GetType())) ||
@@ -8083,11 +8089,11 @@ void Notary::NotarizeProcessInbox(
                         //
                         pInboxTransaction->SetReferenceString(strInReferenceTo);
                         pInboxTransaction->SetReferenceToNum(
-                            pItem->GetTransactionNum());  // Right
-                                                          // now
-                                                          // this
-                                                          // has
-                                                          // the
+                            pProcessInboxItem->GetTransactionNum());  // Right
+                                                                      // now
+                                                                      // this
+                                                                      // has
+                                                                      // the
                         // 'accept
                         // the
                         // transfer'
@@ -8098,7 +8104,8 @@ void Notary::NotarizeProcessInbox(
                         // receipt for the original sender.
                         // TODO? Decisions....
 
-                        pInboxTransaction->SetNumberOfOrigin(*pItem, reason_);
+                        pInboxTransaction->SetNumberOfOrigin(
+                            *pProcessInboxItem, reason_);
 
                         // Now we have created a new transaction
                         // from the server to the sender's inbox
@@ -8281,7 +8288,7 @@ void Notary::NotarizeProcessInbox(
                 "Error finding original receipt or "
                 "transfer that client is trying to "
                 "accept: %" PRId64 "\n",
-                pItem->GetReferenceToNum());
+                pProcessInboxItem->GetReferenceToNum());
         }
 
         // sign the response item before sending it back (it's

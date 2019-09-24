@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,10 +13,10 @@ class Verification final : virtual public credential::internal::Verification,
                            public credential::implementation::Base
 {
 public:
-    bool GetVerificationSet(std::unique_ptr<proto::VerificationSet>&
-                                verificationSet) const override;
+    bool GetVerificationSet(
+        std::unique_ptr<proto::VerificationSet>& verificationSet) const final;
 
-    virtual ~Verification() = default;
+    ~Verification() final = default;
 
 private:
     friend opentxs::Factory;
@@ -26,9 +26,9 @@ private:
     std::shared_ptr<Base::SerializedType> serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const override;
+        const SerializationSignatureFlag asSigned) const final;
     bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
-        const override;
+        const final;
 
     Verification(
         const api::Core& api,

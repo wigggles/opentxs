@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -140,8 +140,7 @@ TEST_F(Test_ContactGroup, copy_constructor)
 
 TEST_F(Test_ContactGroup, move_constructor)
 {
-    opentxs::ContactGroup movedContactGroup(
-        std::move<opentxs::ContactGroup>(contactGroup_.AddItem(active_)));
+    opentxs::ContactGroup movedContactGroup(contactGroup_.AddItem(active_));
 
     ASSERT_EQ(1, movedContactGroup.Size());
     // Verify the group type matches the type of the item.

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,23 +7,22 @@
 
 namespace opentxs::api::network::implementation
 {
-class Dht : virtual public opentxs::api::network::Dht
+class Dht final : virtual public opentxs::api::network::Dht
 {
 public:
-    void GetPublicNym(const std::string& key) const override;
-    void GetServerContract(const std::string& key) const override;
-    void GetUnitDefinition(const std::string& key) const override;
-    void Insert(const std::string& key, const std::string& value)
-        const override;
-    void Insert(const proto::CredentialIndex& nym) const override;
-    void Insert(const proto::ServerContract& contract) const override;
-    void Insert(const proto::UnitDefinition& contract) const override;
+    void GetPublicNym(const std::string& key) const final;
+    void GetServerContract(const std::string& key) const final;
+    void GetUnitDefinition(const std::string& key) const final;
+    void Insert(const std::string& key, const std::string& value) const final;
+    void Insert(const proto::CredentialIndex& nym) const final;
+    void Insert(const proto::ServerContract& contract) const final;
+    void Insert(const proto::UnitDefinition& contract) const final;
 #if OT_DHT
-    const opentxs::network::OpenDHT& OpenDHT() const override;
+    const opentxs::network::OpenDHT& OpenDHT() const final;
 #endif
-    void RegisterCallbacks(const CallbackMap& callbacks) const override;
+    void RegisterCallbacks(const CallbackMap& callbacks) const final;
 
-    ~Dht() = default;
+    ~Dht() final = default;
 
 private:
     friend opentxs::Factory;

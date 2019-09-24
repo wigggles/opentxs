@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,17 +18,14 @@ namespace opentxs
 {
 namespace storage
 {
-
-class Tree;
-
-class Credentials : public Node
+class Credentials final : public Node
 {
 private:
     friend class Tree;
 
     bool check_existing(const bool incoming, Metadata& metadata) const;
-    void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const std::unique_lock<std::mutex>& lock) const final;
     proto::StorageCredentials serialize() const;
 
     Credentials(
@@ -51,7 +48,7 @@ public:
     bool SetAlias(const std::string& id, const std::string& alias);
     bool Store(const proto::Credential& data, const std::string& alias);
 
-    ~Credentials() = default;
+    ~Credentials() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -994,7 +994,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
 
 #define IMPLEMENT_GET_ADD_REMOVE(scope, name)                                  \
                                                                                \
-    typedef stlplus::simple_ptr_clone<name> PointerTo##name;                   \
+    typedef std::shared_ptr<name> PointerTo##name;                             \
                                                                                \
     typedef std::deque<PointerTo##name> listOf##name##s;                       \
                                                                                \
@@ -1004,7 +1004,7 @@ bool OTPacker::Unpack(PackedBuffer& inBuf, std::string& outObj)
     {                                                                          \
         if (nIndex < list_##name##s.size()) {                                  \
             PointerTo##name theP = list_##name##s.at(nIndex);                  \
-            return theP.pointer();                                             \
+            return theP.get();                                                 \
         }                                                                      \
         return nullptr;                                                        \
     }                                                                          \
@@ -1507,7 +1507,7 @@ void BufferPB::SetData(const std::uint8_t* pData, size_t theSize)
          ++it) {                                                               \
         PointerTo##element_type thePtr = (*it);                                \
         element_type##PB* pObject =                                            \
-            dynamic_cast<element_type##PB*>(thePtr.pointer());                 \
+            dynamic_cast<element_type##PB*>(thePtr.get());                     \
         OT_ASSERT(nullptr != pObject);                                         \
         ::google::protobuf::MessageLite* pMessage = pObject->getPBMessage();   \
         OT_ASSERT(nullptr != pMessage);                                        \

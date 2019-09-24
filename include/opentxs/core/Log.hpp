@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,79 +8,183 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <chrono>
 #include <cstdint>
-#include <deque>
 #include <iostream>
 #include <mutex>
-#include <thread>
 
-#if defined(unix) || defined(__unix__) || defined(__unix) ||                   \
-    defined(__APPLE__) || defined(linux) || defined(__linux) ||                \
-    defined(__linux__)
-#define PREDEF_PLATFORM_UNIX 1
-#endif
+#define OT_TRACE                                                               \
+    {                                                                          \
+        ::opentxs::LogOutput.Trace(__FILE__, __LINE__, nullptr);               \
+    };
+#define OT_FAIL                                                                \
+    {                                                                          \
+        ::opentxs::LogOutput.Assert(__FILE__, __LINE__, nullptr);              \
+    };
+#define OT_FAIL_MSG(s)                                                         \
+    {                                                                          \
+        ::opentxs::LogOutput.Assert(__FILE__, __LINE__, (s));                  \
+    };
+#define OT_ASSERT(x)                                                           \
+    if (false == static_cast<bool>(x)) {                                       \
+        ::opentxs::LogOutput.Assert(__FILE__, __LINE__, nullptr);              \
+    };
+#define OT_ASSERT_MSG(x, s)                                                    \
+    if (false == static_cast<bool>(x)) {                                       \
+        ::opentxs::LogOutput.Assert(__FILE__, __LINE__, (s));                  \
+    };
 
-#if defined(debug) || defined(_DEBUG) || defined(DEBUG)
-#define PREDEF_MODE_DEBUG 1
-#endif
+#define OT_INTERMEDIATE_FORMAT(OT_THE_ERROR_STRING)                            \
+    ((std::string(OT_METHOD) + std::string(__FUNCTION__) + std::string(": ") + \
+      std::string(OT_THE_ERROR_STRING) + std::string("\n"))                    \
+         .c_str())
+
+#define OT_TO_STR_A(A) #A
+#define OT_TO_STR(A) OT_TO_STR_A(A)
+
+#define OT_ID_FORMAT(OT_ID_OBJECT)                                             \
+    ((std::string(OT_METHOD) + std::string(__FUNCTION__) +                     \
+      std::string(": Empty ID for '") + std::string(OT_TO_STR(OT_ID_OBJECT)) + \
+      std::string("' passed in to the API (by the client application).\n"))    \
+         .c_str())
+
+#define OT_OTHER_ID_FORMAT(OT_ID_OBJECT)                                       \
+    ((std::string(OT_METHOD) + std::string(__FUNCTION__) +                     \
+      std::string(": Empty or invalid ID for '") +                             \
+      std::string(OT_TO_STR(OT_ID_OBJECT)) +                                   \
+      std::string("' passed in to the API (by the client application).\n"))    \
+         .c_str())
+
+#define OT_BOUNDS_FORMAT(OT_NUMBER)                                            \
+    ((std::string(OT_METHOD) + std::string(__FUNCTION__) +                     \
+      std::string(": Out-of-bounds value for '") +                             \
+      std::string(OT_TO_STR(OT_NUMBER)) +                                      \
+      std::string("' passed in to the API (by the client application).\n"))    \
+         .c_str())
+
+#define OT_MIN_BOUND_FORMAT(OT_NUMBER)                                         \
+    ((std::string(OT_METHOD) + std::string(__FUNCTION__) +                     \
+      std::string(": Lower-than-minimum allowed value for '") +                \
+      std::string(OT_TO_STR(OT_NUMBER)) +                                      \
+      std::string("' passed in to the API (by the client application).\n"))    \
+         .c_str())
+
+#define OT_STD_STR_FORMAT(OT_STRING_INPUT)                                     \
+    ((std::string(OT_METHOD) + std::string(__FUNCTION__) +                     \
+      std::string(": Empty string for '") +                                    \
+      std::string(OT_TO_STR(OT_STRING_INPUT)) +                                \
+      std::string("' passed in to the API (by the client application).\n"))    \
+         .c_str())
+
+// -------------------------------------------------------
+// OT_NEW_ASSERT_MSG
+// This is it -- the golden banana.
+//
+#define OT_NEW_ASSERT_MSG(X, Z)                                                \
+                                                                               \
+    OT_ASSERT_MSG((X), (OT_INTERMEDIATE_FORMAT((Z))))
+//
+// This one is the same thing except without a message.
+//
+#define OT_NEW_ASSERT(X)                                                       \
+    OT_ASSERT_MSG(                                                             \
+        (X),                                                                   \
+        (OT_INTERMEDIATE_FORMAT(("This space intentionally left blank."))))
+
+// -------------------------------------------------------
+// OT_VERIFY_OT_ID
+// (Verify an opentxs Identifier object).
+// Verify that the ID isn't empty, and that it contains
+// a valid Opentxs ID. Otherwise, assert with a message.
+//
+#define OT_VERIFY_OT_ID(OT_ID_OBJECT)                                          \
+                                                                               \
+    OT_ASSERT_MSG((!(OT_ID_OBJECT).empty()), OT_ID_FORMAT(OT_ID_OBJECT))
+
+// -------------------------------------------------------
+// Verify that the ID isn't empty, and that it contains
+// a valid Opentxs ID. Otherwise, assert with a message.
+//
+#define OT_VERIFY_ID_STR(STD_STR_OF_ID)                                        \
+                                                                               \
+    OT_ASSERT_MSG(                                                             \
+        (!(STD_STR_OF_ID).empty() && (Identifier::Validate((STD_STR_OF_ID)))), \
+        OT_OTHER_ID_FORMAT(STD_STR_OF_ID))
+
+// -------------------------------------------------------
+// OT_VERIFY_BOUNDS
+// Bounds check a number. Usually to determine that it's
+// larger than or equal to zero, and less than the size
+// of some container.
+//
+#define OT_VERIFY_BOUNDS(                                                      \
+    OT_NUMBER, OT_BOUNDS_MIN_INDEX, OT_BOUNDS_CONTAINER_SIZE)                  \
+                                                                               \
+    OT_ASSERT_MSG(                                                             \
+        (((OT_NUMBER) >= (OT_BOUNDS_MIN_INDEX)) &&                             \
+         ((OT_NUMBER) < (OT_BOUNDS_CONTAINER_SIZE))),                          \
+        OT_BOUNDS_FORMAT((OT_NUMBER)))
+
+// -------------------------------------------------------
+// OT_VERIFY_MIN_BOUND
+// Usually used to bounds-check a number to determine that
+// it's larger than or equal to zero.
+//
+#define OT_VERIFY_MIN_BOUND(OT_NUMBER, OT_BOUNDS_MIN_INDEX)                    \
+                                                                               \
+    OT_ASSERT_MSG(                                                             \
+        ((OT_NUMBER) >= (OT_BOUNDS_MIN_INDEX)),                                \
+        OT_MIN_BOUND_FORMAT((OT_NUMBER)))
+
+// -------------------------------------------------------
+// OT_VERIFY_STD_STR
+// Only verifies currently that the string is "not empty."
+// Used for string input to the API such as a string containing
+// a ledger, or a string containing a transaction, etc.
+//
+#define OT_VERIFY_STD_STR(OT_STRING_INPUT)                                     \
+                                                                               \
+    OT_ASSERT_MSG(                                                             \
+        (!((OT_STRING_INPUT).empty())), OT_STD_STR_FORMAT((OT_STRING_INPUT)))
 
 namespace opentxs
 {
-
-typedef std::deque<OTString> dequeOfStrings;
-
-class OTLogStream;
-
-namespace api
-{
-
-class Settings;
-
-}  // namespace api
-
-#ifdef _WIN32
-#ifdef OTLOG_IMPORT
-#undef OTLOG_IMPORT
-#define OTLOG_IMPORT __declspec(dllexport)
-#else
-#define OTLOG_IMPORT __declspec(dllimport)
-#endif
-#else
-#ifndef OTLOG_IMPORT
-#define OTLOG_IMPORT
-#endif
-#endif
-
-extern LogSource LogOutput;  // otErr
-extern LogSource LogNormal;  // otOut
+extern LogSource LogOutput;
+extern LogSource LogNormal;
 extern LogSource LogDetail;
 extern LogSource LogVerbose;
 extern LogSource LogDebug;
 extern LogSource LogTrace;
 extern LogSource LogInsane;
 
-class OTLogStream : public std::ostream, std::streambuf
-{
-private:
-    int logLevel{0};
-    int next{0};
-    char* pBuffer{nullptr};
-    std::recursive_mutex lock_;
-
-public:
-    explicit OTLogStream(int _logLevel);
-    ~OTLogStream();
-
-    virtual int overflow(int c) override;
-};
-
 class Log
 {
+public:
+    EXPORT static bool Init(
+        const api::Settings& config,
+        const OTString strThreadContext = String::Factory(),
+        const std::int32_t& nLogLevel = 0);
+    EXPORT static bool Cleanup();
+
+    EXPORT static const char* PathSeparator();
+    EXPORT static bool SetLogLevel(const std::int32_t& nLogLevel);
+    EXPORT static bool Sleep(const std::chrono::microseconds us);
+    EXPORT static bool StringFill(
+        String& out_strString,
+        const char* szString,
+        std::int32_t iLength,
+        const char* szAppend = nullptr);
+    EXPORT static void vError(const char* szError, ...)  // stderr
+        ATTR_PRINTF(1, 2);
+    EXPORT static const char* Version();
+    EXPORT static void vOutput(
+        std::int32_t nVerbosity,
+        const char* szOutput,
+        ...) ATTR_PRINTF(2, 3);
+
 private:
     static Log* pLogger;
     static const OTString m_strVersion;
@@ -94,11 +198,18 @@ private:
     OTString m_strLogFilePath;
     std::recursive_mutex lock_;
 
-    /** For things that represent internal inconsistency in the code. Normally
-     * should NEVER happen even with bad input from user. (Don't call this
-     * directly. Use the above #defined macro instead.) */
-    static Assert::fpt_Assert_sz_n_sz(logAssert);
     static bool CheckLogger(Log* pLogger);
+    static void Error(const char* szError);
+    static const String& GetLogFilePath();
+    static const String& GetPathSeparator();
+    static const String& GetVersion();
+    static bool IsInitialized();
+    static const char* LogFilePath();
+    static std::int32_t LogLevel();
+    static bool LogToFile(const String& strOutput);
+    static void Output(
+        std::int32_t nVerbosity,
+        const char* szOutput);  // stdout
 
     Log(const api::Settings& config);
     Log() = delete;
@@ -106,67 +217,6 @@ private:
     Log(Log&&) = delete;
     Log& operator=(const Log&) = delete;
     Log& operator=(Log&&) = delete;
-
-public:
-    /** now the logger checks the global config file itself for the
-     * log-filename. */
-    EXPORT static bool Init(
-        const api::Settings& config,
-        const OTString strThreadContext = String::Factory(),
-        const std::int32_t& nLogLevel = 0);
-
-    EXPORT static bool IsInitialized();
-
-    EXPORT static bool Cleanup();
-
-    // OTLog Constants.
-    //
-
-    // Compiled into OTLog:
-
-    EXPORT static const char* Version();
-    EXPORT static const String& GetVersion();
-
-    EXPORT static const char* PathSeparator();
-    EXPORT static const String& GetPathSeparator();
-
-    // Set in constructor:
-
-    EXPORT static const char* LogFilePath();
-    EXPORT static const String& GetLogFilePath();
-
-    EXPORT static std::int32_t LogLevel();
-    EXPORT static bool SetLogLevel(const std::int32_t& nLogLevel);
-
-    // OTLog Functions:
-    //
-
-    EXPORT static bool LogToFile(const String& strOutput);
-
-    EXPORT static bool Sleep(const std::chrono::microseconds us);
-
-    EXPORT static void vOutput(
-        std::int32_t nVerbosity,
-        const char* szOutput,
-        ...) ATTR_PRINTF(2, 3);
-
-    EXPORT static void vError(const char* szError, ...)  // stderr
-        ATTR_PRINTF(1, 2);
-
-    // String Helpers
-    EXPORT static bool StringFill(
-        String& out_strString,
-        const char* szString,
-        std::int32_t iLength,
-        const char* szAppend = nullptr);
-
-private:
-    friend OTLogStream;
-
-    static void Error(const char* szError);
-    static void Output(
-        std::int32_t nVerbosity,
-        const char* szOutput);  // stdout
 };
 }  // namespace opentxs
 #endif

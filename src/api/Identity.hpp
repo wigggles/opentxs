@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,11 +9,11 @@
 
 namespace opentxs::api::implementation
 {
-class Identity : virtual public api::Identity
+class Identity final : virtual public api::Identity
 {
 public:
     std::unique_ptr<proto::VerificationSet> Verifications(
-        const identity::Nym& fromNym) const override;
+        const identity::Nym& fromNym) const final;
     std::unique_ptr<proto::VerificationSet> Verify(
         NymData& onNym,
         const VersionNumber version,
@@ -23,9 +23,9 @@ public:
         const ClaimPolarity polarity,
         const PasswordPrompt& reason,
         const std::int64_t start = 0,
-        const std::int64_t end = 0) const override;
+        const std::int64_t end = 0) const final;
 
-    ~Identity() = default;
+    ~Identity() final = default;
 
 private:
     friend opentxs::Factory;

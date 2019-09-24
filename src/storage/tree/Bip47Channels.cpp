@@ -314,7 +314,7 @@ proto::StorageBip47Contexts Bip47Channels::serialize() const
     proto::StorageBip47Contexts serialized{};
     serialized.set_version(version_);
 
-    for (const auto item : item_map_) {
+    for (const auto& item : item_map_) {
         const bool goodID = !item.first.empty();
         const bool goodHash = check_hash(std::get<0>(item.second));
         const bool good = goodID && goodHash;

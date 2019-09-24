@@ -1,19 +1,22 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/Log.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/Types.hpp"
 
+#include "base58/base58.h"
 #include "base64/base64.h"
 
 #include <iostream>
@@ -21,18 +24,20 @@
 
 #include "Encode.hpp"
 
+#define OT_METHOD opentxs::api::crypto::implementation::Encode::
+
 namespace opentxs
 {
-api::crypto::Encode* Factory::Encode(const crypto::EncodingProvider& base58)
+api::crypto::Encode* Factory::Encode(const api::Crypto& crypto)
 {
-    return new api::crypto::implementation::Encode(base58);
+    return new api::crypto::implementation::Encode(crypto);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
 {
-Encode::Encode(const opentxs::crypto::EncodingProvider& base58)
-    : base58_(base58)
+Encode::Encode(const api::Crypto& crypto)
+    : crypto_(crypto)
 {
 }
 
@@ -115,34 +120,84 @@ std::string Encode::DataDecode(const std::string& input) const
 
 std::string Encode::IdentifierEncode(const Data& input) const
 {
-    return base58_.Base58CheckEncode(
-        static_cast<const std::uint8_t*>(input.data()), input.size());
+    if (input.empty()) { return {}; }
+
+    auto preimage = OTData{input};
+    auto hash1 = Data::Factory();
+    auto hash2 = Data::Factory();
+    auto checksum = Data::Factory();
+    auto hash = crypto_.Hash().Digest(proto::HASHTYPE_SHA256, input, hash1);
+
+    OT_ASSERT(32 == hash1->size())
+
+    hash &= crypto_.Hash().Digest(proto::HASHTYPE_SHA256, hash1, hash2);
+
+    OT_ASSERT(32 == hash2->size())
+    OT_ASSERT(hash)
+
+    hash &= hash2->Extract(4, checksum, 0);
+
+    OT_ASSERT(hash)
+
+    preimage += checksum;
+
+    return bitcoin_base58::EncodeBase58(
+        static_cast<const unsigned char*>(preimage->data()),
+        static_cast<const unsigned char*>(preimage->data()) + preimage->size());
 }
 
 std::string Encode::IdentifierEncode(const OTPassword& input) const
 {
     if (input.isMemory()) {
-        return base58_.Base58CheckEncode(
+
+        return IdentifierEncode(Data::Factory(
             static_cast<const std::uint8_t*>(input.getMemory()),
-            input.getMemorySize());
+            input.getMemorySize()));
     } else {
-        return base58_.Base58CheckEncode(
+
+        return IdentifierEncode(Data::Factory(
             reinterpret_cast<const std::uint8_t*>(input.getPassword()),
-            input.getPasswordSize());
+            input.getPasswordSize()));
     }
 }
 
 std::string Encode::IdentifierDecode(const std::string& input) const
 {
-    RawData decoded;
+    const auto sanitized{SanatizeBase58(input)};
+    auto vector = std::vector<unsigned char>{};
+    const auto decoded =
+        bitcoin_base58::DecodeBase58(sanitized.c_str(), vector);
 
-    if (base58_.Base58CheckDecode(SanatizeBase58(input), decoded)) {
+    if (false == decoded) { return {}; }
 
-        return std::string(
-            reinterpret_cast<const char*>(decoded.data()), decoded.size());
+    if (4 > vector.size()) { return {}; }
+
+    const auto output = std::string{
+        reinterpret_cast<const char*>(vector.data()), vector.size() - 4};
+    auto hash1 = Data::Factory();
+    auto hash2 = Data::Factory();
+    auto checksum = Data::Factory();
+    const auto incoming = Data::Factory(vector.data() + (vector.size() - 4), 4);
+    auto hash = crypto_.Hash().Digest(proto::HASHTYPE_SHA256, output, hash1);
+
+    OT_ASSERT(32 == hash1->size())
+
+    hash &= crypto_.Hash().Digest(proto::HASHTYPE_SHA256, hash1, hash2);
+
+    OT_ASSERT(32 == hash2->size())
+    OT_ASSERT(hash)
+
+    hash &= hash2->Extract(4, checksum, 0);
+
+    OT_ASSERT(hash)
+
+    if (incoming != checksum) {
+        LogOutput()(__FUNCTION__)(": Checksum failure").Flush();
+
+        return {};
     }
 
-    return "";
+    return output;
 }
 
 bool Encode::IsBase62(const std::string& str) const

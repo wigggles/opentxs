@@ -1,10 +1,7 @@
-# Copyright (c) 2018 The Open-Transactions developers
+# Copyright (c) 2019 The Open-Transactions developers
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-#// clang-format off
-set(MODULE_NAME opentxs-core)
 
 add_subdirectory(contract)
 add_subdirectory(cron)
@@ -17,7 +14,8 @@ add_subdirectory(trade)
 add_subdirectory(transaction)
 add_subdirectory(util)
 
-set(cxx-sources
+set(
+  cxx-sources
   Account.cpp
   AccountList.cpp
   AccountVisitor.cpp
@@ -45,98 +43,68 @@ set(cxx-sources
   String.cpp
   StringXML.cpp
 )
-
-set(cxx-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Account.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/AccountList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/AccountVisitor.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Armored.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Cheque.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Contract.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Flag.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Helpers.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Identifier.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Instrument.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Item.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Ledger.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Lockable.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Log.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/LogSource.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Message.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NumList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NymFile.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NymIDSource.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStorage.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStoragePB.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTrackable.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransaction.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransactionType.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/PasswordPrompt.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/String.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/StringXML.hpp"
+set(
+  cxx-install-headers
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Account.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/AccountList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/AccountVisitor.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Armored.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Cheque.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Contract.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Data.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Flag.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Helpers.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Identifier.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Instrument.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Item.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Ledger.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Lockable.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Log.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/LogSource.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/Message.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/NumList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/NymFile.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/NymIDSource.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/OTStorage.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/OTStoragePB.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/OTTrackable.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/OTTransaction.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/OTTransactionType.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/PasswordPrompt.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/String.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/StringXML.hpp"
 )
-
-set(cxx-headers
+set(
+  cxx-headers
   "${cxx-install-headers}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/UniqueQueue.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../internal/core/identifier/Identifier.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../internal/core/Core.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Armored.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Data.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Flag.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Identifier.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/NymFile.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/StateMachine.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/String.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/StringXML.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/UniqueQueue.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/core/identifier/Identifier.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/core/Core.hpp"
+  "Armored.hpp"
+  "Data.hpp"
+  "Flag.hpp"
+  "Identifier.hpp"
+  "NymFile.hpp"
+  "StateMachine.hpp"
+  "String.hpp"
+  "StringXML.hpp"
 )
 
-if(WIN32)
-  # suppress warnings about exported internal symbols (global log stream objects)
-  add_definitions(-DOTLOG_IMPORT)
-
-  # suppress linker warnings about locallly defined imported symbols
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
-
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
-    @ONLY
-  )
-
-  # we have an extra Windows-specific file to compile
-  add_library(${MODULE_NAME} OBJECT
-    ${cxx-sources}
-    ${cxx-headers}
-    util/OTWindowsRegistryTools.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
-  )
-else()
-  add_library(${MODULE_NAME} OBJECT
-    ${cxx-sources}
-    ${cxx-headers}
-  )
-endif()
-
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/core
-        COMPONENT dev)
-
-set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_lib_property(${MODULE_NAME})
-
-if(OT_GENERATE_PROTO)
-  add_dependencies(${MODULE_NAME} otprotob)
-endif()
-
-target_include_directories(${MODULE_NAME}
+add_library(opentxs-core OBJECT ${cxx-sources} ${cxx-headers})
+target_include_directories(
+  opentxs-core SYSTEM
   PRIVATE
-    ${OT_SODIUM_HEADERS}
-    ${ZLIB_INCLUDE_DIRS}
-    ${OPENSSL_INCLUDE_DIR}
-    ${ProtobufIncludePath}
+    "${ZLIB_INCLUDE_DIRS}"
+    "${CMAKE_CURRENT_BINARY_DIR}/otprotob"
+    "${opentxs_SOURCE_DIR}/deps/"
+    "${sodium_INCLUDE_DIR}"
+    "${Boost_INCLUDE_DIRS}"
 )
+set_property(TARGET opentxs-core PROPERTY POSITION_INDEPENDENT_CODE 1)
+add_dependencies(opentxs-core otprotob)
 
-target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../deps/")
-#// clang-format on
+install(
+  FILES ${cxx-install-headers}
+  DESTINATION include/opentxs/core
+  COMPONENT dev
+)

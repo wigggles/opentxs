@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,60 +9,60 @@
 
 namespace opentxs::api::client::implementation
 {
-class Issuer : virtual public opentxs::api::client::Issuer, Lockable
+class Issuer final : virtual public opentxs::api::client::Issuer, Lockable
 {
 public:
-    std::string toString(const PasswordPrompt& reason) const override;
-    //  operator std::string() const override;
+    std::string toString(const PasswordPrompt& reason) const final;
+    //  operator std::string() const final;
 
     std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,
-        const identifier::UnitDefinition& unitID) const override;
+        const identifier::UnitDefinition& unitID) const final;
     bool BailmentInitiated(
-        const identifier::UnitDefinition& unitID) const override;
+        const identifier::UnitDefinition& unitID) const final;
     std::vector<BailmentDetails> BailmentInstructions(
         const identifier::UnitDefinition& unitID,
-        const bool onlyUnused = true) const override;
+        const bool onlyUnused = true) const final;
     std::vector<ConnectionDetails> ConnectionInfo(
-        const proto::ConnectionInfoType type) const override;
+        const proto::ConnectionInfoType type) const final;
     bool ConnectionInfoInitiated(
-        const proto::ConnectionInfoType type) const override;
+        const proto::ConnectionInfoType type) const final;
     std::set<std::tuple<OTIdentifier, OTIdentifier, bool>> GetRequests(
         const proto::PeerRequestType type,
-        const RequestStatus state = RequestStatus::All) const override;
-    const identifier::Nym& IssuerID() const override { return issuer_id_; }
-    const identifier::Nym& LocalNymID() const override { return nym_id_; }
-    bool Paired() const override;
-    const std::string& PairingCode() const override;
-    OTServerID PrimaryServer(const PasswordPrompt& reason) const override;
-    std::set<proto::PeerRequestType> RequestTypes() const override;
-    proto::Issuer Serialize() const override;
-    bool StoreSecretComplete() const override;
-    bool StoreSecretInitiated() const override;
+        const RequestStatus state = RequestStatus::All) const final;
+    const identifier::Nym& IssuerID() const final { return issuer_id_; }
+    const identifier::Nym& LocalNymID() const final { return nym_id_; }
+    bool Paired() const final;
+    const std::string& PairingCode() const final;
+    OTServerID PrimaryServer(const PasswordPrompt& reason) const final;
+    std::set<proto::PeerRequestType> RequestTypes() const final;
+    proto::Issuer Serialize() const final;
+    bool StoreSecretComplete() const final;
+    bool StoreSecretInitiated() const final;
 
     void AddAccount(
         const proto::ContactItemType type,
         const identifier::UnitDefinition& unitID,
-        const Identifier& accountID) override;
+        const Identifier& accountID) final;
     bool AddReply(
         const proto::PeerRequestType type,
         const Identifier& requestID,
-        const Identifier& replyID) override;
+        const Identifier& replyID) final;
     bool AddRequest(
         const proto::PeerRequestType type,
-        const Identifier& requestID) override;
+        const Identifier& requestID) final;
     bool RemoveAccount(
         const proto::ContactItemType type,
         const identifier::UnitDefinition& unitID,
-        const Identifier& accountID) override;
-    void SetPaired(const bool paired) override;
-    void SetPairingCode(const std::string& code) override;
+        const Identifier& accountID) final;
+    void SetPaired(const bool paired) final;
+    void SetPairingCode(const std::string& code) final;
     bool SetUsed(
         const proto::PeerRequestType type,
         const Identifier& requestID,
-        const bool isUsed = true) override;
+        const bool isUsed = true) final;
 
-    ~Issuer();
+    ~Issuer() final;
 
 private:
     typedef std::map<OTIdentifier, std::pair<OTIdentifier, bool>> Workflow;

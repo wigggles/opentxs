@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -218,7 +218,7 @@ public:
     // it.
     EXPORT void InitLedger();
 
-    EXPORT [[deprecated]] bool GenerateLedger(
+    [[deprecated]] EXPORT bool GenerateLedger(
         const Identifier& theAcctID,
         const identifier::Server& theNotaryID,
         ledgerType theType,
@@ -234,7 +234,7 @@ public:
     EXPORT static char const* _GetTypeString(ledgerType theType);
     EXPORT char const* GetTypeString() const { return _GetTypeString(m_Type); }
 
-    EXPORT virtual ~Ledger();
+    EXPORT ~Ledger() override;
 
 protected:
     bool LoadGeneric(

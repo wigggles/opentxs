@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -35,7 +35,12 @@ public:
     explicit EXPORT NumList(const std::string& strNumbers);
     explicit EXPORT NumList(std::int64_t lInput);
     EXPORT NumList();
-    EXPORT ~NumList();
+    EXPORT NumList(const NumList&) = default;
+    EXPORT NumList(NumList&&) = default;
+    EXPORT NumList& operator=(const NumList&) = default;
+    EXPORT NumList& operator=(NumList&&) = default;
+
+    EXPORT ~NumList() = default;
 
     /** if false, means the numbers were already there. (At least one of them.)
      */
@@ -92,7 +97,5 @@ public:
     EXPORT bool Output(String& strOutput) const;
     EXPORT void Release();
 };
-
 }  // namespace opentxs
-
 #endif

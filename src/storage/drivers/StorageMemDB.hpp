@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,17 +13,17 @@ class StorageMemDB final : public Plugin,
                            Lockable
 {
 public:
-    bool EmptyBucket(const bool bucket) const override;
+    bool EmptyBucket(const bool bucket) const final;
     bool LoadFromBucket(
         const std::string& key,
         std::string& value,
-        const bool bucket) const override;
-    std::string LoadRoot() const override;
-    bool StoreRoot(const bool commit, const std::string& hash) const override;
+        const bool bucket) const final;
+    std::string LoadRoot() const final;
+    bool StoreRoot(const bool commit, const std::string& hash) const final;
 
-    void Cleanup() override {}
+    void Cleanup() final {}
 
-    ~StorageMemDB() = default;
+    ~StorageMemDB() final = default;
 
 private:
     using ot_super = Plugin;
@@ -39,7 +39,7 @@ private:
         const std::string& key,
         const std::string& value,
         const bool bucket,
-        std::promise<bool>* promise) const override;
+        std::promise<bool>* promise) const final;
 
     StorageMemDB(
         const api::storage::Storage& storage,

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,7 +25,6 @@
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -200,6 +199,9 @@ OTCaller& Context::GetPasswordCaller() const
 
 void Context::HandleSignals(ShutdownCallback* callback) const
 {
+#ifdef _WIN32
+    LogOutput("Signal handling is not supported on Windows").Flush();
+#else
     Lock lock(signal_handler_lock_);
 
     if (nullptr != callback) { shutdown_callback_ = callback; }
@@ -207,6 +209,7 @@ void Context::HandleSignals(ShutdownCallback* callback) const
     if (false == bool(signal_handler_)) {
         signal_handler_.reset(new Signals(running_));
     }
+#endif
 }
 
 void Context::Init()

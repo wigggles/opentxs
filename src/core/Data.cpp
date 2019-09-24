@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,25 +7,16 @@
 
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include <boost/endian/buffers.hpp>
+
 #include <cstdio>
+#include <cstring>
 #include <iomanip>
 #include <sstream>
-
-extern "C" {
-// For the htonl function
-#ifdef _WIN32
-#include <winsock2.h>
-
-#pragma comment(lib, "ws2_32.lib")
-#else
-#include <netinet/in.h>
-#endif
-}
 
 #include "Data.hpp"
 
@@ -69,7 +60,21 @@ OTData& operator+=(OTData& lhs, const std::uint8_t rhs)
     return lhs;
 }
 
+OTData& operator+=(OTData& lhs, const std::uint16_t rhs)
+{
+    lhs.get() += rhs;
+
+    return lhs;
+}
+
 OTData& operator+=(OTData& lhs, const std::uint32_t rhs)
+{
+    lhs.get() += rhs;
+
+    return lhs;
+}
+
+OTData& operator+=(OTData& lhs, const std::uint64_t rhs)
 {
     lhs.get() += rhs;
 
@@ -113,9 +118,23 @@ OTData Data::Factory(const std::uint8_t in)
     return OTData(new implementation::Data(&in, sizeof(in)));
 }
 
+OTData Data::Factory(const std::uint16_t in)
+{
+    const auto input = boost::endian::big_uint16_buf_t(in);
+
+    return OTData(new implementation::Data(&input, sizeof(input)));
+}
+
 OTData Data::Factory(const std::uint32_t in)
 {
-    const auto input = htonl(in);
+    const auto input = boost::endian::big_uint32_buf_t(in);
+
+    return OTData(new implementation::Data(&input, sizeof(input)));
+}
+
+OTData Data::Factory(const std::uint64_t in)
+{
+    const auto input = boost::endian::big_uint64_buf_t(in);
 
     return OTData(new implementation::Data(&input, sizeof(input)));
 }
@@ -289,9 +308,27 @@ Data& Data::operator+=(const std::uint8_t rhs)
     return *this;
 }
 
+Data& Data::operator+=(const std::uint16_t rhs)
+{
+    const auto input = boost::endian::big_uint16_buf_t(rhs);
+    Data temp(&input, sizeof(input));
+    concatenate(temp.data_);
+
+    return *this;
+}
+
 Data& Data::operator+=(const std::uint32_t rhs)
 {
-    const auto input = htonl(rhs);
+    const auto input = boost::endian::big_uint32_buf_t(rhs);
+    Data temp(&input, sizeof(input));
+    concatenate(temp.data_);
+
+    return *this;
+}
+
+Data& Data::operator+=(const std::uint64_t rhs)
+{
+    const auto input = boost::endian::big_uint64_buf_t(rhs);
     Data temp(&input, sizeof(input));
     concatenate(temp.data_);
 
@@ -406,11 +443,35 @@ bool Data::Extract(std::uint8_t& output, const std::size_t pos) const
     return true;
 }
 
+bool Data::Extract(std::uint16_t& output, const std::size_t pos) const
+{
+    if (false == check_sub(pos, sizeof(output))) { return false; }
+
+    auto temp = boost::endian::big_uint16_buf_t();
+    std::memcpy(&temp, &data_.at(pos), sizeof(temp));
+    output = temp.value();
+
+    return true;
+}
+
 bool Data::Extract(std::uint32_t& output, const std::size_t pos) const
 {
     if (false == check_sub(pos, sizeof(output))) { return false; }
 
-    output = ntohl(reinterpret_cast<const std::uint32_t&>(data_.at(pos)));
+    auto temp = boost::endian::big_uint32_buf_t();
+    std::memcpy(&temp, &data_.at(pos), sizeof(temp));
+    output = temp.value();
+
+    return true;
+}
+
+bool Data::Extract(std::uint64_t& output, const std::size_t pos) const
+{
+    if (false == check_sub(pos, sizeof(output))) { return false; }
+
+    auto temp = boost::endian::big_uint64_buf_t();
+    std::memcpy(&temp, &data_.at(pos), sizeof(temp));
+    output = temp.value();
 
     return true;
 }

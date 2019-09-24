@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,15 +19,6 @@
 namespace opentxs
 {
 class StorageConfig;
-
-namespace api
-{
-namespace storage
-{
-class Storage;
-}  // namespace storage
-}  // namespace api
-
 class Plugin : virtual public opentxs::api::storage::Plugin
 {
 public:
@@ -65,7 +56,7 @@ public:
 
     virtual void Cleanup() = 0;
 
-    virtual ~Plugin() = default;
+    ~Plugin() override = default;
 
 protected:
     const StorageConfig& config_;
@@ -109,7 +100,7 @@ bool opentxs::api::storage::Driver::LoadProto(
 
     if (loaded) {
         serialized.reset(new T);
-        serialized->ParseFromArray(raw.data(), raw.size());
+        serialized->ParseFromArray(raw.data(), static_cast<int>(raw.size()));
         valid = proto::Validate<T>(*serialized, VERBOSE);
     }
 

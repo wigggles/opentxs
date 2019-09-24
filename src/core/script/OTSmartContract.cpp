@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -474,14 +474,19 @@ various sequence numbers. Hm.
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#include "opentxs/core/Account.hpp"
+#include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Item.hpp"
+#include "opentxs/core/Ledger.hpp"
+#include "opentxs/core/Log.hpp"
+#include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -497,20 +502,10 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTStash.hpp"
 #include "opentxs/core/script/OTStashItem.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/trade/OTMarket.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/Log.hpp"
-#include "opentxs/core/Account.hpp"
-#include "opentxs/core/AccountList.hpp"
-#include "opentxs/core/Armored.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/Item.hpp"
-#include "opentxs/core/Ledger.hpp"
-#include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/core/PasswordPrompt.hpp"
-#include "opentxs/core/StringXML.hpp"
-#include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 
 #if OT_SCRIPT_CHAI
@@ -1124,7 +1119,7 @@ std::string OTSmartContract::GetAcctBalance(
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: From_acct_name is "
                                            "non-existent.")
             .Flush();
-        return 0;
+        return {};
     }
 
     // Below this point, these are all good:
@@ -1138,7 +1133,7 @@ std::string OTSmartContract::GetAcctBalance(
         LogNormal(OT_METHOD)(__FUNCTION__)(": error: from_acct (")(
             from_acct_name)(") not found on any party")
             .Flush();
-        return 0;
+        return {};
     }
 
     // Below this point, these are all good:
@@ -1156,7 +1151,7 @@ std::string OTSmartContract::GetAcctBalance(
             pFromAcct->GetAgentName())(") not found for from_acct (")(
             from_acct_name)(") on acct's party.")
             .Flush();
-        return 0;
+        return {};
     }
 
     if (!pFromAgent->IsAnIndividual()) {
@@ -1164,7 +1159,7 @@ std::string OTSmartContract::GetAcctBalance(
             pFromAcct->GetAgentName())(") for from_acct (")(from_acct_name)(
             ") is not an active agent.")
             .Flush();
-        return 0;
+        return {};
     }
     //
     // Below this point, these are all good:
@@ -1180,7 +1175,7 @@ std::string OTSmartContract::GetAcctBalance(
             "on authorized agent (")(pFromAcct->GetAgentName())(
             ") for from_acct (")(from_acct_name)(").")
             .Flush();
-        return 0;
+        return {};
     }
     //
     // Below this point, these are all good:
@@ -1272,14 +1267,14 @@ std::string OTSmartContract::GetAcctBalance(
             ": Failed to find FromAgent's "
             "Signer ID: ")(pFromAgent->GetName())(".")
             .Flush();
-        return 0;
+        return {};
     }
 
     if (!pFromAcct->GetAcctID().Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: FromAcct has empty "
                                            "AcctID: ")(from_acct_name)(".")
             .Flush();
-        return 0;
+        return {};
     }
 
     const auto theFromAcctID =
@@ -1300,7 +1295,7 @@ std::string OTSmartContract::GetAcctBalance(
         LogNormal(OT_METHOD)(__FUNCTION__)(": ERROR loading source account.")
             .Flush();
         FlagForRemoval();  // Remove it from future Cron processing, please.
-        return 0;
+        return {};
     }
 
     return std::to_string(account.get().GetBalance());
@@ -1537,14 +1532,14 @@ std::string OTSmartContract::GetStashBalance(
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: From_stash_name is "
                                            "non-existent.")
             .Flush();
-        return 0;
+        return {};
     }
     if (instrument_definition_id.size() <= 0) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: "
                                            "Instrument_definition_id is "
                                            "non-existent.")
             .Flush();
-        return 0;
+        return {};
     }
 
     // Below this point, these are all good:

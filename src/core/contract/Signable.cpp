@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,7 +15,7 @@
 
 namespace opentxs
 {
-Signable::Signable(const Nym_p& nym)
+Signable::Signable(const Nym_p& nym) noexcept
     : alias_()
     , id_(Identifier::Factory())
     , nym_(nym)
@@ -26,7 +26,7 @@ Signable::Signable(const Nym_p& nym)
 {
 }
 
-Signable::Signable(const Nym_p& nym, const VersionNumber version)
+Signable::Signable(const Nym_p& nym, const VersionNumber version) noexcept
     : alias_()
     , id_(Identifier::Factory())
     , nym_(nym)
@@ -40,7 +40,7 @@ Signable::Signable(const Nym_p& nym, const VersionNumber version)
 Signable::Signable(
     const Nym_p& nym,
     const VersionNumber version,
-    const std::string& conditions)
+    const std::string& conditions) noexcept
     : alias_()
     , id_(Identifier::Factory())
     , nym_(nym)

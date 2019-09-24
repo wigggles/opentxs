@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -237,7 +237,7 @@ std::size_t Pair::State::count_currencies(
         std::begin(in),
         std::end(in),
         std::inserter(unique, unique.end()),
-        [](const auto& in) -> OTUnitID { return std::get<0>(in); });
+        [](const auto& item) -> OTUnitID { return std::get<0>(item); });
 
     return unique.size();
 }
@@ -1359,6 +1359,7 @@ void Pair::state_machine(const IssuerID& id) const
                 offered,
                 registeredAccounts,
                 accountDetails);
+            [[fallthrough]];
         }
         default: {
         }

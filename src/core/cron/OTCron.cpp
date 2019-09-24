@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,12 +11,10 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/util/Tag.hpp"
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
@@ -28,7 +26,7 @@
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
-#include <string.h>
+#include <cstring>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -40,23 +38,21 @@
 
 namespace opentxs
 {
-// Note: these are only code defaults -- the values are actually loaded from
+// NOTE: these are only code defaults -- the values are actually loaded from
 // ~/.ot/server.cfg.
-std::int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
-                                                   // numbers Cron will grab for
-                                                   // itself, when it
-// gets low, before each round.
-std::int32_t OTCron::__cron_ms_between_process =
-    10000;  // The number of milliseconds
-            // (ideally) between each
-            // "Cron Process" event.
 
-std::int32_t OTCron::__cron_max_items_per_nym =
-    10;  // The maximum number of cron
-         // items any given Nym can have
-         // active at the same time.
+// The number of transaction numbers Cron will grab for itself, when it gets
+// low, before each round.
+std::int32_t OTCron::__trans_refill_amount = 500;
 
-Timer OTCron::tCron(true);
+// The number of milliseconds (ideally) between each "Cron Process" event.
+std::chrono::milliseconds OTCron::__cron_ms_between_process{10000};
+
+// The maximum number of cron items any given Nym can have active at the same
+// time.
+std::int32_t OTCron::__cron_max_items_per_nym{10};
+
+Time OTCron::last_executed_{};
 
 OTCron::OTCron(const api::Core& server)
     : Contract(server)
@@ -592,9 +588,11 @@ void OTCron::UpdateContents(const PasswordPrompt& reason)
     m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
-std::int64_t OTCron::computeTimeout()
+std::chrono::milliseconds OTCron::computeTimeout()
 {
-    return OTCron::GetCronMsBetweenProcess() - tCron.getElapsedTimeInMilliSec();
+    return GetCronMsBetweenProcess() -
+           std::chrono::duration_cast<std::chrono::milliseconds>(
+               Clock::now() - last_executed_);
 }
 
 // Make sure to call this regularly so the CronItems get a chance to process and
@@ -609,8 +607,9 @@ void OTCron::ProcessCronItems()
     }
 
     // check elapsed time since last items processing
-    if (computeTimeout() > 0) { return; }
-    tCron.start();
+    if (computeTimeout().count() > 0) { return; }
+
+    last_executed_ = Clock::now();
 
     const std::int32_t nTwentyPercent = OTCron::GetCronRefillAmount() / 5;
     if (GetTransactionCount() <= nTwentyPercent) {

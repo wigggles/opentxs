@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -65,7 +65,7 @@ Cheque::Cheque(
     InitCheque();
 }
 
-void Cheque::UpdateContents(const PasswordPrompt& reason)
+void Cheque::UpdateContents([[maybe_unused]] const PasswordPrompt& reason)
 {
     auto INSTRUMENT_DEFINITION_ID =
              String::Factory(GetInstrumentDefinitionID()),
@@ -118,7 +118,7 @@ void Cheque::UpdateContents(const PasswordPrompt& reason)
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 std::int32_t Cheque::ProcessXMLNode(
     IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+    [[maybe_unused]] const PasswordPrompt& reason)
 {
     std::int32_t nReturnVal = 0;
 

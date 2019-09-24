@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,12 +17,12 @@ class Secp256k1 final : virtual public key::Secp256k1,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 {
 public:
-    NymParameterType CreateType() const override
+    NymParameterType CreateType() const final
     {
-        return NymParameterType::SECP256K1;
+        return NymParameterType::secp256k1;
     }
 
-    ~Secp256k1() = default;
+    ~Secp256k1() final = default;
 
 private:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -34,9 +34,9 @@ private:
     friend key::Asymmetric;
     friend opentxs::Factory;
 
-    Secp256k1* clone() const override final { return new Secp256k1(*this); }
-    Secp256k1* clone_ec() const override final { return clone(); }
-    std::shared_ptr<proto::AsymmetricKey> get_public() const override
+    Secp256k1* clone() const final { return new Secp256k1(*this); }
+    Secp256k1* clone_ec() const final { return clone(); }
+    std::shared_ptr<proto::AsymmetricKey> get_public() const final
     {
         return serialize_public(clone());
     }

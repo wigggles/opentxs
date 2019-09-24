@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -23,19 +23,19 @@ class DhtRunner;
 
 namespace opentxs::network::implementation
 {
-class OpenDHT : virtual public network::OpenDHT
+class OpenDHT final : virtual public network::OpenDHT
 {
 public:
     void Insert(
         const std::string& key,
         const std::string& value,
-        DhtDoneCallback cb = {}) const override;
+        DhtDoneCallback cb = {}) const final;
     void Retrieve(
         const std::string& key,
         DhtResultsCallback vcb,
-        DhtDoneCallback dcb = {}) const override;
+        DhtDoneCallback dcb = {}) const final;
 
-    ~OpenDHT();
+    ~OpenDHT() final;
 
 private:
     friend class api::network::implementation::Dht;

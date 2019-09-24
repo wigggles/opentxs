@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,28 +7,28 @@
 
 namespace opentxs::api::network::implementation
 {
-class ZMQ : virtual public opentxs::api::network::ZMQ
+class ZMQ final : virtual public opentxs::api::network::ZMQ
 {
 public:
-    const opentxs::network::zeromq::Context& Context() const override;
-    proto::AddressType DefaultAddressType() const override;
-    std::chrono::seconds KeepAlive() const override;
-    void KeepAlive(const std::chrono::seconds duration) const override;
-    std::chrono::seconds Linger() const override;
-    std::chrono::seconds ReceiveTimeout() const override;
-    void RefreshConfig() const override;
-    const Flag& Running() const override;
-    std::chrono::seconds SendTimeout() const override;
+    const opentxs::network::zeromq::Context& Context() const final;
+    proto::AddressType DefaultAddressType() const final;
+    std::chrono::seconds KeepAlive() const final;
+    void KeepAlive(const std::chrono::seconds duration) const final;
+    std::chrono::seconds Linger() const final;
+    std::chrono::seconds ReceiveTimeout() const final;
+    void RefreshConfig() const final;
+    const Flag& Running() const final;
+    std::chrono::seconds SendTimeout() const final;
 
     opentxs::network::ServerConnection& Server(
         const std::string& id,
-        const PasswordPrompt& reason) const override;
-    bool SetSocksProxy(const std::string& proxy) const override;
-    std::string SocksProxy() const override;
-    bool SocksProxy(std::string& proxy) const override;
-    ConnectionState Status(const std::string& server) const override;
+        const PasswordPrompt& reason) const final;
+    bool SetSocksProxy(const std::string& proxy) const final;
+    std::string SocksProxy() const final;
+    bool SocksProxy(std::string& proxy) const final;
+    ConnectionState Status(const std::string& server) const final;
 
-    ~ZMQ();
+    ~ZMQ() final;
 
 private:
     friend opentxs::Factory;

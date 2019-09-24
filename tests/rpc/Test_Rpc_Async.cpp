@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -69,8 +69,6 @@ protected:
     static void cleanup();
     static std::size_t get_index(const std::int32_t instance);
     static const api::Core& get_session(const std::int32_t instance);
-    static const std::set<OTIdentifier> get_accounts(
-        const proto::RPCCommand& command);
     static void process_notification(const network::zeromq::Message& incoming);
     static bool default_push_callback(const opentxs::proto::RPCPush& push);
     static void setup();
@@ -137,7 +135,7 @@ void Test_Rpc_Async::cleanup()
 std::size_t Test_Rpc_Async::get_index(const std::int32_t instance)
 {
     return (instance - (instance % 2)) / 2;
-};
+}
 
 const api::Core& Test_Rpc_Async::get_session(const std::int32_t instance)
 {
@@ -148,7 +146,7 @@ const api::Core& Test_Rpc_Async::get_session(const std::int32_t instance)
     } else {
         return opentxs::Context().Client(get_index(instance));
     }
-};
+}
 
 void Test_Rpc_Async::process_notification(
     const network::zeromq::Message& incoming)
@@ -176,7 +174,7 @@ void Test_Rpc_Async::process_notification(
         push_received_ = {};
         push_results_ = {};
     }
-};
+}
 
 bool Test_Rpc_Async::default_push_callback(const opentxs::proto::RPCPush& push)
 {
@@ -191,7 +189,7 @@ bool Test_Rpc_Async::default_push_callback(const opentxs::proto::RPCPush& push)
     if (proto::RPCRESPONSE_SUCCESS != task.code()) { return false; }
 
     return true;
-};
+}
 
 void Test_Rpc_Async::setup()
 {
@@ -284,7 +282,7 @@ void Test_Rpc_Async::setup()
 TEST_F(Test_Rpc_Async, Setup)
 {
     setup();
-    const auto& ot = opentxs::Context();
+    opentxs::Context();
     auto& senderClient = get_session(sender_session_);
     auto& receiverClient = get_session(receiver_session_);
     auto reasonS = senderClient.Factory().PasswordPrompt(__FUNCTION__);

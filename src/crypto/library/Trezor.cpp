@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,6 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -33,16 +32,16 @@
 
 extern "C" {
 #if OT_CRYPTO_WITH_BIP39
-#include <trezor/crypto/bip39.h>
+#include <bip39.h>
 #if OT_CRYPTO_WITH_BIP32
-#include <trezor/crypto/bignum.h>
-#include <trezor/crypto/bip32.h>
-#include <trezor/crypto/curves.h>
+#include <bignum.h>
+#include <bip32.h>
+#include <curves.h>
 #endif
 #endif
-#include <trezor/crypto/base58.h>
-#include <trezor/crypto/ecdsa.h>
-#include <trezor/crypto/ripemd160.h>
+#include <base58.h>
+#include <ecdsa.h>
+#include <ripemd160.h>
 }
 
 #include <array>
@@ -78,8 +77,8 @@ Trezor::Trezor(const api::Crypto& crypto)
 #endif  // OPENTXS_TREZOR_PROVIDES_ECDSA
 {
 #if OPENTXS_TREZOR_PROVIDES_ECDSA
-    secp256k1_ = ::get_curve_by_name(curve_name(EcdsaCurve::SECP256K1).c_str());
-    ed25519_ = ::get_curve_by_name(curve_name(EcdsaCurve::ED25519).c_str());
+    secp256k1_ = ::get_curve_by_name(curve_name(EcdsaCurve::secp256k1).c_str());
+    ed25519_ = ::get_curve_by_name(curve_name(EcdsaCurve::ed25519).c_str());
 
     OT_ASSERT(nullptr != secp256k1_);
     OT_ASSERT(nullptr != ed25519_);
@@ -149,10 +148,10 @@ std::string Trezor::Base58CheckEncode(
 std::string Trezor::curve_name(const EcdsaCurve& curve)
 {
     switch (curve) {
-        case (EcdsaCurve::SECP256K1): {
+        case (EcdsaCurve::secp256k1): {
             return ::SECP256K1_NAME;
         }
-        case (EcdsaCurve::ED25519): {
+        case (EcdsaCurve::ed25519): {
             return ::ED25519_NAME;
         }
         default: {
@@ -402,10 +401,10 @@ bool Trezor::ECDH(
 const curve_info* Trezor::get_curve(const EcdsaCurve& curve) const
 {
     switch (curve) {
-        case EcdsaCurve::SECP256K1: {
+        case EcdsaCurve::secp256k1: {
             return secp256k1_;
         }
-        case EcdsaCurve::ED25519: {
+        case EcdsaCurve::ed25519: {
             return ed25519_;
         }
         default: {

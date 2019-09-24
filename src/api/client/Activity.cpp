@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -90,7 +90,7 @@ bool Activity::AddBlockchainTransaction(
     const auto threadList = api_.Storage().ThreadList(sNymID, false);
     bool threadExists = false;
 
-    for (const auto it : threadList) {
+    for (const auto& it : threadList) {
         const auto& id = it.first;
 
         if (id == sthreadID) {
@@ -132,7 +132,7 @@ bool Activity::AddPaymentEvent(
     const auto threadList = api_.Storage().ThreadList(sNymID, false);
     bool threadExists = false;
 
-    for (const auto it : threadList) {
+    for (const auto& it : threadList) {
         const auto& id = it.first;
 
         if (id == sthreadID) {
@@ -415,10 +415,10 @@ std::string Activity::Mail(
     const auto threadList = api_.Storage().ThreadList(nymID, false);
     bool threadExists = false;
 
-    for (const auto it : threadList) {
-        const auto& id = it.first;
+    for (const auto& it : threadList) {
+        const auto& inner = it.first;
 
-        if (id == threadID) {
+        if (inner == threadID) {
             threadExists = true;
             break;
         }
@@ -621,7 +621,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
         default: {
 
-            return output;
+            return std::move(output);
         }
     }
 
@@ -633,7 +633,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
             " for nym ")(nym)(" can not be loaded.")
             .Flush();
 
-        return output;
+        return std::move(output);
     }
 
     OT_ASSERT(workflow)
@@ -689,7 +689,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
         }
     }
 
-    return output;
+    return std::move(output);
 }
 
 void Activity::preload(

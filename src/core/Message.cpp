@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,7 +11,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -1204,7 +1203,8 @@ public:
             String::Factory(xml->getAttributeValue("nymboxHash"));
 
         try {
-            m.enum_ = std::stoi(xml->getAttributeValue("type"));
+            m.enum_ = static_cast<std::uint8_t>(
+                std::stoi(xml->getAttributeValue("type")));
         } catch (...) {
             m.enum_ = 0;
         }
@@ -3436,7 +3436,8 @@ public:
             String::Factory(xml->getAttributeValue("nymboxHash"));
 
         try {
-            m.enum_ = std::stoi(xml->getAttributeValue("type"));
+            m.enum_ = static_cast<std::uint8_t>(
+                std::stoi(xml->getAttributeValue("type")));
         } catch (...) {
             m.enum_ = 0;
         }
@@ -3500,7 +3501,8 @@ public:
         m.m_bBool = found->Compare("true");
 
         try {
-            m.enum_ = std::stoi(xml->getAttributeValue("type"));
+            m.enum_ = static_cast<std::uint8_t>(
+                std::stoi(xml->getAttributeValue("type")));
         } catch (...) {
             m.enum_ = 0;
         }

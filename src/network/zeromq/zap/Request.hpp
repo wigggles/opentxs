@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,31 +20,31 @@ namespace opentxs::network::zeromq::zap::implementation
 class Request final : virtual zap::Request, zeromq::implementation::Message
 {
 public:
-    std::string Address() const override { return Body_at(ADDRESS_POSITION); }
-    const FrameSection Credentials() const override;
-    std::string Debug() const override;
-    std::string Domain() const override { return Body_at(DOMAIN_POSITION); }
-    OTData Identity() const override
+    std::string Address() const final { return Body_at(ADDRESS_POSITION); }
+    const FrameSection Credentials() const final;
+    std::string Debug() const final;
+    std::string Domain() const final { return Body_at(DOMAIN_POSITION); }
+    OTData Identity() const final
     {
         return Data::Factory(Body_at(IDENTITY_POSITION));
     }
-    zap::Mechanism Mechanism() const override
+    zap::Mechanism Mechanism() const final
     {
         return string_to_mechanism(Body_at(MECHANISM_POSITION));
     }
-    OTData RequestID() const override
+    OTData RequestID() const final
     {
         return Data::Factory(Body_at(REQUEST_ID_POSITION));
     }
-    std::pair<bool, std::string> Validate() const override;
-    std::string Version() const override { return Body_at(VERSION_POSITION); }
+    std::pair<bool, std::string> Validate() const final;
+    std::string Version() const final { return Body_at(VERSION_POSITION); }
 
-    Frame& AddCredential(const Data& credential) override
+    Frame& AddCredential(const Data& credential) final
     {
         return zeromq::Message::AddFrame(credential);
-    };
+    }
 
-    ~Request() = default;
+    ~Request() final = default;
 
 private:
     friend network::zeromq::zap::Request;
@@ -60,7 +60,7 @@ private:
     static std::string mechanism_to_string(const zap::Mechanism in);
     static zap::Mechanism string_to_mechanism(const std::string& in);
 
-    Request* clone() const override { return new Request(*this); }
+    Request* clone() const final { return new Request(*this); }
 
     Request(
         const std::string& address,

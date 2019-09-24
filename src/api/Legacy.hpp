@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,15 +12,15 @@ namespace opentxs::api::implementation
 class Legacy final : virtual public api::Legacy
 {
 public:
-    std::string ClientConfigFilePath(const int instance) const override;
-    std::string ClientDataFolder(const int instance) const override;
-    std::string CryptoConfigFilePath() const override;
-    std::string LogConfigFilePath() const override;
-    std::string PIDFilePath() const override;
-    std::string ServerConfigFilePath(const int instance) const override;
-    std::string ServerDataFolder(const int instance) const override;
+    std::string ClientConfigFilePath(const int instance) const final;
+    std::string ClientDataFolder(const int instance) const final;
+    std::string CryptoConfigFilePath() const final;
+    std::string LogConfigFilePath() const final;
+    std::string PIDFilePath() const final;
+    std::string ServerConfigFilePath(const int instance) const final;
+    std::string ServerDataFolder(const int instance) const final;
 
-    ~Legacy() = default;
+    ~Legacy() final = default;
 
 private:
     friend opentxs::Factory;

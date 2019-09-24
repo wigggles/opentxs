@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -662,7 +662,7 @@ ContactData::SectionMap ContactData::extract_sections(
 {
     SectionMap sectionMap{};
 
-    for (const auto it : serialized.section()) {
+    for (const auto& it : serialized.section()) {
         if ((0 != it.version()) && (it.item_size() > 0)) {
             sectionMap[it.name()].reset(new ContactSection(
                 api,
@@ -708,7 +708,7 @@ bool ContactData::HaveClaim(
 
     if (false == bool(group)) { return false; }
 
-    for (const auto it : *group) {
+    for (const auto& it : *group) {
         OT_ASSERT(it.second);
 
         const auto& claim = *it.second;

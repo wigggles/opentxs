@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -6,7 +6,6 @@
 #include "opentxs/opentxs.hpp"
 
 #include "Internal.hpp"
-#include "opentxs/crypto/library/Bitcoin.hpp"
 #include "opentxs/crypto/library/Trezor.hpp"
 #include "Factory.hpp"
 
@@ -25,10 +24,6 @@ public:
 #if OT_CRYPTO_USING_TREZOR
     const std::unique_ptr<ot::crypto::Trezor> trezor_{
         ot::Factory::Trezor(crypto_)};
-#endif
-#if OT_CRYPTO_USING_LIBBITCOIN
-    const std::unique_ptr<ot::crypto::Bitcoin> bitcoin_{
-        ot::Factory::Bitcoin(crypto_)};
 #endif
     const std::map<std::string, std::string> base_58_{
         {"", ""},
@@ -442,9 +437,9 @@ public:
 
             const ot::OTPassword seed{data->data(), data->size()};
             const auto seedID =
-                library.SeedToFingerprint(ot::EcdsaCurve::SECP256K1, seed);
+                library.SeedToFingerprint(ot::EcdsaCurve::secp256k1, seed);
             const auto serialized = library.DeriveKey(
-                crypto_.Hash(), ot::EcdsaCurve::SECP256K1, seed, {});
+                crypto_.Hash(), ot::EcdsaCurve::secp256k1, seed, {});
             auto pKey = client_.Asymmetric().InstantiateKey(
                 ot::proto::AKEYTYPE_SECP256K1,
                 seedID,
@@ -564,9 +559,9 @@ public:
                 const auto pSeed = get_seed(hex);
                 const auto& seed = *pSeed;
                 const auto seedID =
-                    library.SeedToFingerprint(ot::EcdsaCurve::SECP256K1, seed);
+                    library.SeedToFingerprint(ot::EcdsaCurve::secp256k1, seed);
                 const auto serialized = library.DeriveKey(
-                    crypto_.Hash(), ot::EcdsaCurve::SECP256K1, seed, rawPath);
+                    crypto_.Hash(), ot::EcdsaCurve::secp256k1, seed, rawPath);
                 auto pKey = client_.Asymmetric().InstantiateKey(
                     ot::proto::AKEYTYPE_SECP256K1,
                     seedID,
@@ -646,18 +641,4 @@ TEST_F(Test_Bitcoin_Providers, Trezor)
 #endif
 }
 #endif  // OT_CRYPTO_USING_TREZOR
-
-#if OT_CRYPTO_USING_LIBBITCOIN
-TEST_F(Test_Bitcoin_Providers, Libbitcoin)
-{
-    EXPECT_TRUE(test_base58_encode(*bitcoin_));
-    EXPECT_TRUE(test_base58_decode(*bitcoin_));
-    EXPECT_TRUE(test_ripemd160(*bitcoin_));
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_TRUE(test_bip39(*bitcoin_));
-    EXPECT_TRUE(test_bip32_seed(*bitcoin_));
-    EXPECT_TRUE(test_bip32_child_key(*bitcoin_));
-#endif
-}
-#endif  // OT_CRYPTO_USING_LIBBITCOIN
 }  // namespace

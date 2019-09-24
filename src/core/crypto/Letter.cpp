@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,7 +14,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -216,7 +215,7 @@ bool Letter::Seal(
         const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
             api.Crypto().SECP256K1());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
-        parameters.setNymParameterType(NymParameterType::SECP256K1);
+        parameters.setNymParameterType(NymParameterType::secp256k1);
         auto dhKeypair = api.Factory().Keypair(
             parameters,
             crypto::key::Asymmetric::DefaultVersion,
@@ -272,7 +271,7 @@ bool Letter::Seal(
         const crypto::EcdsaProvider& engine =
             dynamic_cast<const crypto::EcdsaProvider&>(api.Crypto().ED25519());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
-        parameters.setNymParameterType(NymParameterType::ED25519);
+        parameters.setNymParameterType(NymParameterType::ed25519);
         auto dhKeypair = api.Factory().Keypair(
             parameters,
             crypto::key::Asymmetric::DefaultVersion,
@@ -375,9 +374,9 @@ bool Letter::Open(
         bool found = false;
         proto::AsymmetricKey ephemeralPubkey;
 
-        for (auto& key : serialized.dhkey()) {
-            if (privateKeyType == key.type()) {
-                ephemeralPubkey = key;
+        for (auto& dhKey : serialized.dhkey()) {
+            if (privateKeyType == dhKey.type()) {
+                ephemeralPubkey = dhKey;
                 found = true;
 
                 break;

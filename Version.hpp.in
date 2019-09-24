@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,7 +17,6 @@
 #define OT_CASH @OT_CASH_EXPORT@
 #define OT_CASH_USING_LUCRE @CASH_LUCRE_EXPORT@
 #define OT_CASH_USING_MAGIC_MONEY @CASH_MM_EXPORT@
-#define OT_CRYPTO_SHA2_VIA_OPENSSL @SHA2_VIA_OPENSSL_EXPORT@
 #define OT_CRYPTO_SUPPORTED_KEY_ED25519 @ED25519_EXPORT@
 #define OT_CRYPTO_SUPPORTED_KEY_HD @HD_EXPORT@
 #define OT_CRYPTO_SUPPORTED_KEY_RSA @RSA_EXPORT@

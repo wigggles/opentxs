@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,6 @@
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
@@ -1126,7 +1125,6 @@ bool Account::IsInternalServerAcct() const
                 .Flush();
             return false;
     }
-    return false;
 }
 
 bool Account::IsOwnedByUser() const
@@ -1146,7 +1144,6 @@ bool Account::IsOwnedByUser() const
                 .Flush();
             return false;
     }
-    return false;
 }
 
 bool Account::IsOwnedByEntity() const { return false; }
@@ -1179,7 +1176,6 @@ bool Account::IsAllowedToGoNegative() const
                 .Flush();
             return false;
     }
-    return false;
 }
 
 void Account::Release_Account()

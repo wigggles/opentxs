@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -28,6 +28,8 @@ public:
         const std::chrono::seconds& interval,
         const opentxs::PeriodicTask& task,
         const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
+
+    EXPORT virtual ~Periodic() = default;
 
 protected:
     Periodic() = default;

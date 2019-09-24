@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,7 +11,7 @@
 #include "opentxs/OT.hpp"
 
 extern "C" {
-#include <signal.h>
+#include <csignal>
 }
 
 #define OT_METHOD "opentxs::Signals::"
@@ -47,13 +47,20 @@ Signals::Signals(const Flag& running)
 
 void Signals::Block()
 {
+#ifdef _WIN32
+    LogOutput("Signal handling is not supported on Windows").Flush();
+#else
     sigset_t allSignals;
     sigfillset(&allSignals);
     pthread_sigmask(SIG_SETMASK, &allSignals, nullptr);
+#endif
 }
 
 void Signals::handle()
 {
+#ifdef _WIN32
+    LogOutput("Signal handling is not supported on Windows").Flush();
+#else
     sigset_t allSignals;
     sigfillset(&allSignals);
 
@@ -70,6 +77,7 @@ void Signals::handle()
                 .Flush();
         }
     }
+#endif
 }
 
 bool Signals::process(const int signal)

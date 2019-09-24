@@ -51,7 +51,7 @@
 
 namespace opentxs::storage
 {
-class Bip47Channels : public Node
+class Bip47Channels final : public Node
 {
 public:
     using ChannelList = std::set<OTIdentifier>;
@@ -73,7 +73,7 @@ public:
     bool Delete(const std::string& id);
     bool Store(const proto::Bip47Channel& data, Identifier& channelID);
 
-    ~Bip47Channels() = default;
+    ~Bip47Channels() final = default;
 
 private:
     friend Nym;
@@ -110,8 +110,8 @@ private:
     ChannelData& get_channel_data(const L& lock, const Identifier& id) const;
     template <typename L>
     ChannelData& _get_channel_data(const L& lock, OTIdentifier&& id) const;
-    void init(const std::string& hash) override;
-    bool save(const Lock& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const Lock& lock) const final;
     proto::StorageBip47Contexts serialize() const;
 
     std::set<std::string>& get_address_set(

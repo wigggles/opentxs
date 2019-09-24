@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,18 +8,18 @@
 #if OT_STORAGE_FS
 namespace opentxs::storage::implementation
 {
-class StorageFSArchive : public StorageFS,
-                         public virtual opentxs::api::storage::Driver
+class StorageFSArchive final : public StorageFS,
+                               public virtual opentxs::api::storage::Driver
 {
 private:
     typedef StorageFS ot_super;
 
 public:
-    bool EmptyBucket(const bool bucket) const override;
+    bool EmptyBucket(const bool bucket) const final;
 
-    void Cleanup() override;
+    void Cleanup() final;
 
-    ~StorageFSArchive();
+    ~StorageFSArchive() final;
 
 private:
     friend Factory;
@@ -30,10 +30,10 @@ private:
     std::string calculate_path(
         const std::string& key,
         const bool bucket,
-        std::string& directory) const override;
-    std::string prepare_read(const std::string& ciphertext) const override;
-    std::string prepare_write(const std::string& plaintext) const override;
-    std::string root_filename() const override;
+        std::string& directory) const final;
+    std::string prepare_read(const std::string& ciphertext) const final;
+    std::string prepare_write(const std::string& plaintext) const final;
+    std::string root_filename() const final;
 
     void Init_StorageFSArchive();
     void Cleanup_StorageFSArchive();

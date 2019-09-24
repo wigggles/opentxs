@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,18 +7,19 @@
 
 #include "opentxs/core/util/StringUtils.hpp"
 
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
-#ifdef ANDROID
-#include <time64.h>
-#endif
 #include <cinttypes>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
 #include <string>
+
+#if UINTPTR_MAX == 0xffffffff
+#include <time64.h>
+#endif
 
 namespace opentxs
 {
@@ -122,7 +123,7 @@ std::string formatUlong(std::uint64_t tt)
 
 std::string formatBool(bool tt) { return tt ? "true" : "false"; }
 
-std::string getTimestamp() { return formatTimestamp(time(NULL)); }
+std::string getTimestamp() { return formatTimestamp(time(nullptr)); }
 
 time64_t parseTimestamp(std::string extendedTimeString)
 {
@@ -131,11 +132,13 @@ time64_t parseTimestamp(std::string extendedTimeString)
         return 0;
     }
 
-#ifdef ANDROID
+#if UINTPTR_MAX == 0xffffffff
     time64_t t = timegm64(&tm);
 #else
     time_t t = timegm(&tm);
 #endif
-    if (t == -1) return 0;
+
+    if (t == -1) { return 0; }
+
     return t;
 }

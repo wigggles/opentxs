@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -279,4 +279,60 @@ TEST(Data, is_null)
     EXPECT_FALSE(two->IsNull());
     EXPECT_FALSE(three->IsNull());
     EXPECT_TRUE(four->IsNull());
+}
+
+TEST(Data, endian_16)
+{
+    const auto data1 = Data::Factory(std::uint16_t{4096u});
+
+    EXPECT_STREQ(data1->asHex().c_str(), "1000");
+
+    auto data2 = Data::Factory("1000", Data::Mode::Hex);
+    auto recovered = std::uint16_t{};
+
+    EXPECT_TRUE(data2->Extract(recovered));
+    EXPECT_EQ(recovered, 4096u);
+
+    data2 += std::uint16_t{4096u};
+
+    EXPECT_STREQ(data2->asHex().c_str(), "10001000");
+}
+
+TEST(Data, endian_32)
+{
+    const auto data1 = Data::Factory(std::uint32_t{268435456u});
+
+    EXPECT_STREQ(data1->asHex().c_str(), "10000000");
+
+    auto data2 = Data::Factory("10000000", Data::Mode::Hex);
+    auto recovered = std::uint32_t{};
+
+    EXPECT_TRUE(data2->Extract(recovered));
+    EXPECT_EQ(recovered, 268435456u);
+
+    data2 += std::uint32_t{268435456u};
+
+    EXPECT_STREQ(data2->asHex().c_str(), "1000000010000000");
+}
+
+TEST(Data, endian_64)
+{
+    const auto data1 = Data::Factory(std::uint64_t{1152921504606846976u});
+
+    EXPECT_STREQ(data1->asHex().c_str(), "1000000000000000");
+
+    auto data2 = Data::Factory("1000000000000000", Data::Mode::Hex);
+    auto recovered1 = std::uint64_t{};
+
+    EXPECT_TRUE(data2->Extract(recovered1));
+    EXPECT_EQ(recovered1, 1152921504606846976u);
+
+    data2 += std::uint64_t{1152921504606846976u};
+
+    EXPECT_STREQ(data2->asHex().c_str(), "10000000000000001000000000000000");
+
+    auto recovered2 = std::uint64_t{};
+
+    EXPECT_TRUE(data2->Extract(recovered2, 4));
+    EXPECT_EQ(recovered2, 268435456u);
 }

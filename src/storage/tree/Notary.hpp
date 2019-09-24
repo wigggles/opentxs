@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -33,7 +33,7 @@ public:
         const std::string& key);
 #endif
 
-    ~Notary() = default;
+    ~Notary() final = default;
 
 private:
     friend class Tree;
@@ -54,10 +54,10 @@ private:
         const std::string& unitID,
         const MintSeries series) const;
 #endif
-    bool save(const Lock& lock) const override;
+    bool save(const Lock& lock) const final;
     proto::StorageNotary serialize() const;
 
-    void init(const std::string& hash) override;
+    void init(const std::string& hash) final;
 
     Notary(
         const opentxs::api::storage::Driver& storage,

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -72,14 +72,14 @@ class Factory;
 }  // namespace implementation
 }  // namespace api
 
-class Basket : public Contract
+class Basket final : public Contract
 {
 public:
-    EXPORT virtual ~Basket();
+    EXPORT ~Basket() final;
 
-    void UpdateContents(const PasswordPrompt& reason) override;
+    void UpdateContents(const PasswordPrompt& reason) final;
 
-    EXPORT void CalculateContractID(Identifier& newID) const override;
+    EXPORT void CalculateContractID(Identifier& newID) const final;
 
     inline std::int64_t GetMinimumTransfer() const
     {
@@ -141,7 +141,7 @@ public:
         return m_RequestAccountID;
     }
 
-    void Release() override;
+    void Release() final;
     void Release_Basket();
 
     // The basket itself only stores the CLOSING numbers.
@@ -177,7 +177,7 @@ protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     std::int32_t ProcessXMLNode(
         irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
 
 private:
     friend api::implementation::Factory;

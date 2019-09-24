@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,15 +7,15 @@
 
 namespace opentxs::implementation
 {
-class PIDFile : virtual public opentxs::PIDFile
+class PIDFile final : virtual public opentxs::PIDFile
 {
 public:
-    bool isOpen() const override { return open_.load(); }
+    bool isOpen() const final { return open_.load(); }
 
-    void Close() override;
-    void Open() override;
+    void Close() final;
+    void Open() final;
 
-    ~PIDFile();
+    ~PIDFile() final;
 
 private:
     friend opentxs::Factory;

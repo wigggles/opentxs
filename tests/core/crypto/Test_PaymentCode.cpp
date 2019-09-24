@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -37,21 +37,33 @@ public:
               "PaycodeNym",
               fingerprint,
               0))
+        , paycode_0(
+              "PM8TJhB2CxWDqR8c5y4kWoJwSGRNYaVATdJM85kqfn2dZ9TdSihbFJraQzjYUMYx"
+              "bsrnMfjPK6oZFAPQ1tWqzwTfKbtunvLFCzDJFVXVGbUAKxhsz7P5")
         , nymID_1(client_.Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_1",
               fingerprint,
               1))
+        , paycode_1(
+              "PM8TJWedQTvxaoJpt9Wh25HR54oj5vmor6arAByFk4UTgUh1Tna2srsZLUo2xS3V"
+              "iBot1ftf4p8ZUN8khB2zvViHXZkrwkfjcePSeEgsYapESKywge9F")
         , nymID_2(client_.Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_2",
               fingerprint,
               2))
+        , paycode_2(
+              "PM8TJQmrQ4tSY6Gad59UpzqR8MRMesSYMKXvpMuzdDHByfRXVgvVdiqD5NmjoEH9"
+              "V6ZrofFVViBwSg9dvVcP8R2CU1pXejhVQQj3XsWk8sLhAsspqk8F")
         , nymID_3(client_.Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_3",
               fingerprint,
               3))
+        , paycode_3(
+              "PM8TJbNzqDcdqCcpkMLLa9H83CjoWdHMTQ4Lk11qSpThkyrmDFA4AeGd2kFeLK2s"
+              "T6UVXy2jwWABsfLd7JmcS4hMAy9zUdWRFRhmu33RiRJCS6qRmGew")
         , nymData_0(client_.Wallet().mutable_Nym(
               identifier::Nym::Factory(nymID_0),
               reason_))
@@ -64,18 +76,6 @@ public:
         , nymData_3(client_.Wallet().mutable_Nym(
               identifier::Nym::Factory(nymID_3),
               reason_))
-        , paycode_0(
-              "PM8TJhB2CxWDqR8c5y4kWoJwSGRNYaVATdJM85kqfn2dZ9TdSihbFJraQzjYUMYx"
-              "bsrnMfjPK6oZFAPQ1tWqzwTfKbtunvLFCzDJFVXVGbUAKxhsz7P5")
-        , paycode_1(
-              "PM8TJWedQTvxaoJpt9Wh25HR54oj5vmor6arAByFk4UTgUh1Tna2srsZLUo2xS3V"
-              "iBot1ftf4p8ZUN8khB2zvViHXZkrwkfjcePSeEgsYapESKywge9F")
-        , paycode_2(
-              "PM8TJQmrQ4tSY6Gad59UpzqR8MRMesSYMKXvpMuzdDHByfRXVgvVdiqD5NmjoEH9"
-              "V6ZrofFVViBwSg9dvVcP8R2CU1pXejhVQQj3XsWk8sLhAsspqk8F")
-        , paycode_3(
-              "PM8TJbNzqDcdqCcpkMLLa9H83CjoWdHMTQ4Lk11qSpThkyrmDFA4AeGd2kFeLK2s"
-              "T6UVXy2jwWABsfLd7JmcS4hMAy9zUdWRFRhmu33RiRJCS6qRmGew")
     {
         nymData_0.AddPaymentCode(paycode_0, currency, true, true, reason_);
 
@@ -307,11 +307,11 @@ TEST_F(Test_PaymentCode, factory)
 TEST_F(Test_PaymentCode, factory_seed_nym)
 {
     std::string seed = client_.Seeds().DefaultSeed();
-    std::uint32_t nym_idx = 0;
-    std::uint8_t version = 1;
-    bool bitmessage = false;
-    std::uint8_t bitmessage_version = 0;
-    std::uint8_t bitmessage_stream = 0;
+    [[maybe_unused]] std::uint32_t nym_idx = 0;
+    [[maybe_unused]] std::uint8_t version = 1;
+    [[maybe_unused]] bool bitmessage = false;
+    [[maybe_unused]] std::uint8_t bitmessage_version = 0;
+    [[maybe_unused]] std::uint8_t bitmessage_stream = 0;
 
     const Nym_p nym =
         client_.Wallet().Nym(identifier::Nym::Factory(nymID_0), reason_);

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,10 +14,10 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class Proxy : virtual public opentxs::network::zeromq::Proxy
+class Proxy final : virtual public opentxs::network::zeromq::Proxy
 {
 public:
-    ~Proxy();
+    ~Proxy() final;
 
 private:
     friend opentxs::network::zeromq::Proxy;
@@ -30,7 +30,7 @@ private:
     OTZMQPairSocket control_sender_;
     std::unique_ptr<std::thread> thread_{nullptr};
 
-    Proxy* clone() const override;
+    Proxy* clone() const final;
     void proxy() const;
 
     Proxy(

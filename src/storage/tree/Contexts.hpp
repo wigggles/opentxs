@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,8 +20,8 @@ class Contexts : public Node
 private:
     friend Nym;
 
-    void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const std::unique_lock<std::mutex>& lock) const final;
     proto::StorageNymList serialize() const;
 
     Contexts(
@@ -43,7 +43,7 @@ public:
     bool Delete(const std::string& id);
     bool Store(const proto::Context& data, const std::string& alias);
 
-    ~Contexts() = default;
+    ~Contexts() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

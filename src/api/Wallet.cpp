@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -436,8 +436,6 @@ ExclusiveAccount Wallet::CreateAccount(
 
         return {};
     }
-
-    return {};
 }
 
 bool Wallet::DeleteAccount(
@@ -790,8 +788,6 @@ std::shared_ptr<opentxs::Context> Wallet::context(
             .Flush();
 
         OT_FAIL
-
-        return nullptr;
     }
 
     return entry;
@@ -1142,7 +1138,7 @@ Nym_p Wallet::Nym(
         auto& pMapNym = nym_map_[pNym->ID().str()].second;
         pMapNym = pNym;
 
-        return pNym;
+        return std::move(pNym);
     } else {
         return nullptr;
     }
@@ -1198,7 +1194,7 @@ std::unique_ptr<const opentxs::NymFile> Wallet::Nymfile(
         return {};
     }
 
-    return nymfile;
+    return std::move(nymfile);
 }
 
 Editor<opentxs::NymFile> Wallet::mutable_Nymfile(

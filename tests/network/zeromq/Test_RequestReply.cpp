@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -217,18 +217,19 @@ TEST_F(Test_RequestReply, Request_1_Reply_2)
 
 TEST_F(Test_RequestReply, Request_Reply_Multipart)
 {
-    auto replyCallback = zmq::ReplyCallback::Factory(
-        [this](const zmq::Message& input) -> OTZMQMessage {
+    auto replyCallback =
+        zmq::ReplyCallback::Factory([this](const auto& input) -> OTZMQMessage {
             EXPECT_EQ(4, input.size());
             EXPECT_EQ(1, input.Header().size());
             EXPECT_EQ(2, input.Body().size());
 
-            for (const std::string& frame : input.Header()) {
+            for (const std::string frame : input.Header()) {
                 EXPECT_EQ(testMessage_, frame);
             }
 
-            for (const std::string& frame : input.Body()) {
-                bool match = frame == testMessage2_ || frame == testMessage3_;
+            for (const std::string frame : input.Body()) {
+                bool match =
+                    (frame == testMessage2_) || (frame == testMessage3_);
 
                 EXPECT_TRUE(match);
             }
@@ -276,8 +277,8 @@ TEST_F(Test_RequestReply, Request_Reply_Multipart)
 
     ASSERT_EQ(testMessage_, messageHeader);
 
-    for (const std::string& frame : message->Body()) {
-        bool match = frame == testMessage2_ || frame == testMessage3_;
+    for (const std::string frame : message->Body()) {
+        bool match = (frame == testMessage2_) || (frame == testMessage3_);
         ASSERT_TRUE(match);
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,7 +14,6 @@
 #include "opentxs/core/contract/SecurityContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
@@ -27,7 +26,7 @@
 #include "opentxs/Proto.tpp"
 
 #include <ctype.h>
-#include <stddef.h>
+#include <cstddef>
 #include <cmath>
 #include <cstdint>
 #include <deque>
@@ -248,7 +247,7 @@ std::string UnitDefinition::formatLongAmount(
         lValue = -lValue;
     }
 
-    if (NULL != szCurrencySymbol) sss << szCurrencySymbol << " ";
+    if (nullptr != szCurrencySymbol) sss << szCurrencySymbol << " ";
 
     // For example, if 506 is supposed to be $5.06, then dividing by a factor of
     // 100 results in 5 dollars (integer value) and 6 cents (fractional value).
@@ -931,7 +930,7 @@ bool UnitDefinition::FormatAmountLocale(
 
     str_output = UnitDefinition::formatLongAmount(
         amount,
-        std::pow(10, DecimalPower()),
+        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
         DecimalPower(),
         (proto::UNITTYPE_CURRENCY == Type()) ? primary_unit_symbol_.c_str()
                                              : nullptr,
@@ -967,7 +966,7 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
 
     str_output = UnitDefinition::formatLongAmount(
         amount,
-        std::pow(10, DecimalPower()),
+        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
         DecimalPower(),
         nullptr,
         strSeparator->Get(),
@@ -1008,7 +1007,7 @@ bool UnitDefinition::StringToAmountLocale(
     bool bSuccess = UnitDefinition::ParseFormatted(
         amount,
         str_input,
-        std::pow(10, DecimalPower()),
+        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
         DecimalPower(),
         strSeparator->Get(),
         strDecimalPoint->Get());

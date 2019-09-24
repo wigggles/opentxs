@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,33 +19,33 @@ public:
     using ot_super = Data;
 
     using ot_super::operator==;
-    bool operator==(const opentxs::Identifier& rhs) const override;
+    bool operator==(const opentxs::Identifier& rhs) const final;
     using ot_super::operator!=;
-    bool operator!=(const opentxs::Identifier& rhs) const override;
+    bool operator!=(const opentxs::Identifier& rhs) const final;
     using ot_super::operator>;
-    bool operator>(const opentxs::Identifier& rhs) const override;
+    bool operator>(const opentxs::Identifier& rhs) const final;
     using ot_super::operator<;
-    bool operator<(const opentxs::Identifier& rhs) const override;
+    bool operator<(const opentxs::Identifier& rhs) const final;
     using ot_super::operator<=;
-    bool operator<=(const opentxs::Identifier& rhs) const override;
+    bool operator<=(const opentxs::Identifier& rhs) const final;
     using ot_super::operator>=;
-    bool operator>=(const opentxs::Identifier& rhs) const override;
+    bool operator>=(const opentxs::Identifier& rhs) const final;
 
-    void GetString(String& theStr) const override;
-    std::string str() const override;
-    const ID& Type() const override { return type_; }
+    void GetString(String& theStr) const final;
+    std::string str() const final;
+    const ID& Type() const final { return type_; }
 
     bool CalculateDigest(
         const opentxs::Data& dataInput,
-        const ID type = DefaultType) override;
+        const ID type = DefaultType) final;
     bool CalculateDigest(const String& strInput, const ID type = DefaultType)
-        override;
-    void SetString(const std::string& encoded) override;
-    void SetString(const String& encoded) override;
+        final;
+    void SetString(const std::string& encoded) final;
+    void SetString(const String& encoded) final;
     using ot_super::swap;
-    void swap(opentxs::Identifier& rhs) override;
+    void swap(opentxs::Identifier& rhs) final;
 
-    ~Identifier() = default;
+    ~Identifier() final = default;
 
 private:
     friend opentxs::Identifier;
@@ -53,12 +53,12 @@ private:
     friend opentxs::identifier::Server;
     friend opentxs::identifier::UnitDefinition;
 
-    static const ID DefaultType{ID::BLAKE2B};
+    static const ID DefaultType{ID::blake2b};
     static const std::size_t MinimumSize{10};
 
     ID type_{DefaultType};
 
-    Identifier* clone() const override;
+    Identifier* clone() const final;
 
     static Identifier* contract_contents_to_identifier(const Contract& in);
     static proto::HashType IDToHashType(const ID type);

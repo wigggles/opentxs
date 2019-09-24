@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,9 +10,17 @@
 #endif
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#include <winsock2.h>
+#include <windows.h>
 #include <direct.h>
 #include <shlobj.h>
+#include <xstring>
 #endif
+
 #ifdef TARGET_OS_MAC
 #include <limits.h>
 #include <mach-o/dyld.h>
@@ -56,4 +64,14 @@ typedef uint16_t USHORT;
 
 #ifndef OPENTXS_PASSWORD_LEN
 #define OPENTXS_PASSWORD_LEN 128
+#endif
+
+#if defined(unix) || defined(__unix__) || defined(__unix) ||                   \
+    defined(__APPLE__) || defined(linux) || defined(__linux) ||                \
+    defined(__linux__)
+#define PREDEF_PLATFORM_UNIX 1
+#endif
+
+#if defined(debug) || defined(_DEBUG) || defined(DEBUG)
+#define PREDEF_MODE_DEBUG 1
 #endif

@@ -1,22 +1,17 @@
-#[[
-// clang-format off
-]]#
-# Copyright (c) 2018 The Open-Transactions developers
+# Copyright (c) 2019 The Open-Transactions developers
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(MODULE_NAME opentxs-core-identifier)
-
-set(cxx-install-headers
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/identifier/Nym.hpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/identifier/Server.hpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/identifier/UnitDefinition.hpp"
+set(
+  cxx-install-headers
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/identifier/Nym.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/identifier/Server.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/core/identifier/UnitDefinition.hpp"
 )
 
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/core/identifier
-        COMPONENT dev)
-#[[
-// clang-format on
-]]#
+install(
+  FILES ${cxx-install-headers}
+  DESTINATION include/opentxs/core/identifier
+  COMPONENT dev
+)

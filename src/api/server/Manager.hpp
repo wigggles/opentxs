@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,42 +12,42 @@ namespace opentxs::api::server::implementation
 class Manager final : opentxs::api::server::Manager, api::implementation::Core
 {
 public:
-    void DropIncoming(const int count) const override;
-    void DropOutgoing(const int count) const override;
-    std::string GetAdminNym() const override;
-    std::string GetAdminPassword() const override;
-    std::string GetCommandPort() const override;
-    std::string GetDefaultBindIP() const override;
-    std::string GetEEP() const override;
-    std::string GetExternalIP() const override;
-    std::string GetInproc() const override;
-    std::string GetListenCommand() const override;
-    std::string GetListenNotify() const override;
-    std::string GetOnion() const override;
+    void DropIncoming(const int count) const final;
+    void DropOutgoing(const int count) const final;
+    std::string GetAdminNym() const final;
+    std::string GetAdminPassword() const final;
+    std::string GetCommandPort() const final;
+    std::string GetDefaultBindIP() const final;
+    std::string GetEEP() const final;
+    std::string GetExternalIP() const final;
+    std::string GetInproc() const final;
+    std::string GetListenCommand() const final;
+    std::string GetListenNotify() const final;
+    std::string GetOnion() const final;
 #if OT_CASH
     std::shared_ptr<blind::Mint> GetPrivateMint(
         const identifier::UnitDefinition& unitID,
-        std::uint32_t series) const override;
+        std::uint32_t series) const final;
     std::shared_ptr<const blind::Mint> GetPublicMint(
-        const identifier::UnitDefinition& unitID) const override;
+        const identifier::UnitDefinition& unitID) const final;
 #endif  // OT_CASH
-    std::string GetUserName() const override;
-    std::string GetUserTerms() const override;
-    const identifier::Server& ID() const override;
-    const identifier::Nym& NymID() const override;
+    std::string GetUserName() const final;
+    std::string GetUserTerms() const final;
+    const identifier::Server& ID() const final;
+    const identifier::Nym& NymID() const final;
 #if OT_CASH
-    void ScanMints() const override;
+    void ScanMints() const final;
 #endif  // OT_CASH
-    opentxs::server::Server& Server() const override { return server_; }
+    opentxs::server::Server& Server() const final { return server_; }
 #if OT_CASH
-    void SetMintKeySize(const std::size_t size) const override
+    void SetMintKeySize(const std::size_t size) const final
     {
         mint_key_size_.store(size);
     }
-    void UpdateMint(const identifier::UnitDefinition& unitID) const override;
+    void UpdateMint(const identifier::UnitDefinition& unitID) const final;
 #endif  // OT_CASH
 
-    ~Manager();
+    ~Manager() final;
 
 private:
     friend opentxs::Factory;
@@ -104,7 +104,7 @@ private:
 
     void Cleanup();
     void Init();
-    void Start() override;
+    void Start() final;
 
     Manager(
         const api::internal::Context& parent,

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,6 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/core/crypto/Letter.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -20,16 +19,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
-
-extern "C" {
-#ifdef _WIN32
-#include <winsock2.h>
-
-#pragma comment(lib, "ws2_32.lib")
-#else
-#include <netinet/in.h>
-#endif
-}
 
 #include <cstdint>
 #include <ostream>

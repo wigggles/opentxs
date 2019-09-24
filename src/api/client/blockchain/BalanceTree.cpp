@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -162,9 +162,9 @@ void BalanceTree::ClaimAccountID(
     node_index_.Add(id, node);
 }
 
-void BalanceTree::init(const std::set<OTIdentifier>& HDAccounts) noexcept
+void BalanceTree::init(const std::set<OTIdentifier>& accounts) noexcept
 {
-    for (const auto& accountID : HDAccounts) {
+    for (const auto& accountID : accounts) {
         std::shared_ptr<proto::HDAccount> account{};
 
         const auto loaded =

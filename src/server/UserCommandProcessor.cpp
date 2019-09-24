@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,7 +25,6 @@
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -920,7 +919,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
             reply.SetPayload(serialized);
             reply.SetBool(true);
         }
-    } else if (ContractType::NYM == static_cast<ContractType>(msgIn.enum_)) {
+    } else if (ContractType::nym == static_cast<ContractType>(msgIn.enum_)) {
         auto contract = server_.API().Wallet().Nym(nymID, reason_);
 
         if (contract) {
@@ -928,7 +927,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
             reply.SetPayload(serialized);
             reply.SetBool(true);
         }
-    } else if (ContractType::SERVER == static_cast<ContractType>(msgIn.enum_)) {
+    } else if (ContractType::server == static_cast<ContractType>(msgIn.enum_)) {
         auto contract = server_.API().Wallet().Server(serverID, reason_);
 
         if (contract) {
@@ -936,7 +935,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
             reply.SetPayload(serialized);
             reply.SetBool(true);
         }
-    } else if (ContractType::UNIT == static_cast<ContractType>(msgIn.enum_)) {
+    } else if (ContractType::unit == static_cast<ContractType>(msgIn.enum_)) {
         auto contract = server_.API().Wallet().UnitDefinition(unitID, reason_);
 
         if (contract) {
@@ -1990,14 +1989,14 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
     const auto type = static_cast<ContractType>(msgIn.enum_);
 
     switch (type) {
-        case (ContractType::NYM): {
+        case (ContractType::nym): {
             const auto nym = proto::Factory<proto::CredentialIndex>(
                 Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(bool(server_.API().Wallet().Nym(nym, reason_)));
 
             break;
         }
-        case (ContractType::SERVER): {
+        case (ContractType::server): {
             const auto server = proto::Factory<proto::ServerContract>(
                 Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(
@@ -2005,7 +2004,7 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
 
             break;
         }
-        case (ContractType::UNIT): {
+        case (ContractType::unit): {
             const auto unit = proto::Factory<proto::UnitDefinition>(
                 Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(

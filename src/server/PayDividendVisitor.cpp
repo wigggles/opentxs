@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,7 +19,6 @@
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
@@ -84,7 +83,7 @@ bool PayDividendVisitor::Trigger(
     OT_ASSERT(false == GetNotaryID().empty());
     const auto& theNotaryID = GetNotaryID();
     OT_ASSERT(!GetPayoutUnitTypeId().empty());
-    const auto& payoutUnitTypeId_ = GetPayoutUnitTypeId();
+    const auto& payoutUnitTypeId = GetPayoutUnitTypeId();
     OT_ASSERT(!GetVoucherAcctID().empty());
     const auto& theVoucherAcctID = (GetVoucherAcctID());
     const auto& theServerNym = server_.GetServerNym();
@@ -193,7 +192,7 @@ bool PayDividendVisitor::Trigger(
             // lTotalPayoutAmount, then we return to rest
             // to the sender.
         } else {
-            const auto strPayoutUnitTypeId = String::Factory(payoutUnitTypeId_),
+            const auto strPayoutUnitTypeId = String::Factory(payoutUnitTypeId),
                        strRecipientNymID = String::Factory(RECIPIENT_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": ERROR failed issuing "
@@ -262,7 +261,7 @@ bool PayDividendVisitor::Trigger(
                                         // we return the rest to the sender.
             } else {
                 const auto strPayoutUnitTypeId =
-                               String::Factory(payoutUnitTypeId_),
+                               String::Factory(payoutUnitTypeId),
                            strSenderNymID = String::Factory(theSenderNymID);
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR! Failed issuing voucher (to return back to "
@@ -276,7 +275,7 @@ bool PayDividendVisitor::Trigger(
         }   // if !bSent
     } else  // !bGotNextTransNum
     {
-        const auto strPayoutUnitTypeId = String::Factory(payoutUnitTypeId_),
+        const auto strPayoutUnitTypeId = String::Factory(payoutUnitTypeId),
                    strRecipientNymID = String::Factory(RECIPIENT_ID);
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR! Failed issuing next transaction number while "

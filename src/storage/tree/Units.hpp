@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,16 +16,13 @@ namespace opentxs
 {
 namespace storage
 {
-
-class Tree;
-
-class Units : public Node
+class Units final : public Node
 {
 private:
     friend class Tree;
 
-    void init(const std::string& hash) override;
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    void init(const std::string& hash) final;
+    bool save(const std::unique_lock<std::mutex>& lock) const final;
     proto::StorageUnits serialize() const;
 
     Units(const opentxs::api::storage::Driver& storage, const std::string& key);
@@ -51,7 +48,7 @@ public:
         const std::string& alias,
         std::string& plaintext);
 
-    ~Units() = default;
+    ~Units() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

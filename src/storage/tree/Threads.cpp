@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -93,7 +93,7 @@ bool Threads::FindAndDeleteItem(const std::string& itemID)
 
     bool found = false;
 
-    for (const auto index : item_map_) {
+    for (const auto& index : item_map_) {
         const auto& id = index.first;
         auto& node = *thread(id, lock);
         const bool hasItem = node.Check(itemID);
@@ -152,7 +152,7 @@ bool Threads::Migrate(const opentxs::api::storage::Driver& to) const
 {
     bool output{true};
 
-    for (const auto index : item_map_) {
+    for (const auto& index : item_map_) {
         const auto& id = index.first;
         const auto& node = *thread(id);
         output &= node.Migrate(to);
@@ -305,7 +305,7 @@ proto::StorageNymList Threads::serialize() const
     proto::StorageNymList serialized;
     serialized.set_version(version_);
 
-    for (const auto item : item_map_) {
+    for (const auto& item : item_map_) {
         const bool goodID = !item.first.empty();
         const bool goodHash = check_hash(std::get<0>(item.second));
         const bool good = goodID && goodHash;

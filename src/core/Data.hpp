@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,7 +20,9 @@ public:
     bool operator>=(const opentxs::Data& rhs) const final;
     Data& operator+=(const opentxs::Data& rhs) final;
     Data& operator+=(const std::uint8_t rhs) final;
+    Data& operator+=(const std::uint16_t rhs) final;
     Data& operator+=(const std::uint32_t rhs) final;
+    Data& operator+=(const std::uint64_t rhs) final;
 
     std::string asHex() const final;
     const std::byte& at(const std::size_t position) const final
@@ -44,7 +46,9 @@ public:
         opentxs::Data& output,
         const std::size_t pos) const final;
     bool Extract(std::uint8_t& output, const std::size_t pos) const final;
+    bool Extract(std::uint16_t& output, const std::size_t pos) const final;
     bool Extract(std::uint32_t& output, const std::size_t pos) const final;
+    bool Extract(std::uint64_t& output, const std::size_t pos) const final;
     bool IsEmpty() const final { return empty(); }
     bool IsNull() const final;
     const void* GetPointer() const final { return data_.data(); }

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,7 +17,6 @@
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -2102,7 +2101,8 @@ bool OTTransaction::VerifyBalanceReceipt(
             case itemType::paymentReceipt:
             case itemType::basketReceipt: {
                 lReceiptBalanceChange += pSubItem->GetAmount();
-            }  // Intentional fall through
+                [[fallthrough]];
+            }
             // These types of receipts do NOT change your balance.
             case itemType::transferReceipt:
             case itemType::voucherReceipt:
@@ -2110,10 +2110,11 @@ bool OTTransaction::VerifyBalanceReceipt(
                 nInboxItemCount++;
                 pLedger = pInbox.get();
                 pszLedgerType = szInbox;
-            }  // Intentional fall through
-            case itemType::transfer: {
-                break;
+                [[fallthrough]];
             }
+            case itemType::transfer: {
+
+            } break;
             default: {
                 auto strItemType = String::Factory();
                 pSubItem->GetTypeString(strItemType);
@@ -2479,12 +2480,12 @@ bool OTTransaction::VerifyBalanceReceipt(
             case transactionType::chequeReceipt:
             case transactionType::marketReceipt:
             case transactionType::paymentReceipt:
-            case transactionType::basketReceipt:
-
+            case transactionType::basketReceipt: {
                 lInboxBalanceChange += pTransaction->GetReceiptAmount(
                     reason);  // Here I total ALL
                               // relevant receipts.
-
+                [[fallthrough]];
+            }
             case transactionType::finalReceipt:  // finalReceipt has no amount.
             case transactionType::pending:  // pending has an amount, but it
             // already came out of the account and
@@ -2586,8 +2587,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                                                       // total and reconcile
                                                       // against the latest
                                                       // balance.
-                case transactionType::basketReceipt:
-
+                case transactionType::basketReceipt: {
                     lInboxSupposedDifference += pTransaction->GetReceiptAmount(
                         reason);  // Here I only total
                                   // the NEW receipts
@@ -2595,7 +2595,8 @@ bool OTTransaction::VerifyBalanceReceipt(
                                   // receipt inbox but
                                   // found in current
                                   // inbox.)
-
+                    [[fallthrough]];
+                }
                 case transactionType::finalReceipt:  // This has no value. 0
                                                      // amount.
                 case transactionType::pending:  // pending has value, why aren't
@@ -4317,7 +4318,7 @@ void OTTransaction::UpdateContents(const PasswordPrompt& reason)
                         .Flush();
 
                     OT_FAIL
-                } break;
+                }
                 default:
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Unexpected ledger type in 'abbreviated' block. "
@@ -4470,8 +4471,6 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(
 
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbrevPaymentInboxRecord: "
                         "Unexpected transaction type.");
-
-            return;
     }
 
     // By this point, we know only the right types of receipts
@@ -4564,7 +4563,6 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbrevExpiredBoxRecord: "
                         "Unexpected transaction type.");
         }
-            return;
     }
 
     // By this point, we know only the right types of receipts are being saved,
@@ -4849,7 +4847,6 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(
 {
     std::int64_t lDisplayValue = 0;
     bool bAddRequestNumber = false;
-
     auto strListOfBlanks =
         String::Factory();  // IF this transaction is "blank" or
                             // "successNotice" this will serialize the list of
@@ -4865,48 +4862,44 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(
             if (m_Numlist.Count() > 0) m_Numlist.Output(strListOfBlanks);
         }
             [[fallthrough]];
-        case transactionType::replyNotice:  // A copy of a server reply to a
-                                            // previous request you sent. (To
-                                            // make SURE you get the reply.)
-
+        case transactionType::replyNotice: {  // A copy of a server reply to a
+                                              // previous request you sent. (To
+                                              // make SURE you get the reply.)
             // NOTE: a comment says "ONLY replyNotice
             // transactions carry a request num" but the
             // fall-thru above seems to disagree. Bug?
             // Or just an old comment?
             bAddRequestNumber = true;
 
-            break;
-
+        } break;
         case transactionType::message:  // A message from one user to another,
                                         // also in the nymbox.
         case transactionType::notice:   // A notice from the server. Used in
                                         // Nymbox. Probably contains an updated
                                         // smart contract.
-        case transactionType::finalReceipt:  // Any finalReceipt in an inbox
-                                             // will also drop a copy into the
-                                             // Nymbox.
-            break;
-
+        case transactionType::finalReceipt: {  // Any finalReceipt in an inbox
+                                               // will also drop a copy into the
+                                               // Nymbox.
+        } break;
         // paymentInbox items are transported through the Nymbox.
         // Therefore, this switch statement from SaveAbbrevPaymentInbox
         // is also found here, to handle those receipts as they pass through.
         case transactionType::incomingCash:
-        case transactionType::instrumentNotice:  // A financial instrument sent
-                                                 // from/to another nym.
+        case transactionType::instrumentNotice: {  // A financial instrument
+                                                   // sent from/to another nym.
             if (IsAbbreviated())
                 lDisplayValue = GetAbbrevDisplayAmount();
             else
                 lDisplayValue = GetReceiptAmount(reason);
 
-            break;  // (These last two are just passing through, on their way to
-                    // the paymentInbox.)
-        case transactionType::instrumentRejection:  // A rejection notice from
-                                                    // the intended recipient of
-                                                    // an instrumentNotice.
+        } break;  // (These last two are just passing through, on their way to
+                  // the paymentInbox.)
+        case transactionType::instrumentRejection: {  // A rejection notice from
+                                                      // the intended recipient
+                                                      // of an instrumentNotice.
             lDisplayValue = 0;
-            break;
-
-        default:  // All other types are irrelevant for nymbox reports.
+        } break;
+        default: {  // All other types are irrelevant for nymbox reports.
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected ")(
                 GetTypeString())(
                 " transaction in nymbox while making abbreviated nymbox "
@@ -4914,8 +4907,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(
                 .Flush();
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbreviatedNymboxRecord: "
                         "Unexpected transaction in this Nymbox.");
-
-            return;
+        }
     }
 
     // By this point, we know only the right types of receipts are being saved,
@@ -5012,7 +5004,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(
             break;  // In this case, since it's the outbox, then it's a MINUS
                     // (-500) Display amount (since I'm sending, not receiving
                     // it.)
-        default:    // All other types are irrelevant for outbox reports.
+        default: {  // All other types are irrelevant for outbox reports.
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected ")(
                 GetTypeString())(
                 " transaction "
@@ -5021,8 +5013,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(
 
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbreviatedOutboxRecord: "
                         "unexpected transaction type.");
-
-            return;
+        }
     }
 
     // By this point, we know only the right types of receipts are being saved,
@@ -5157,9 +5148,9 @@ void OTTransaction::SaveAbbreviatedInboxRecord(
                 lDisplayValue = lAdjustment;
             }
             break;
-        case transactionType::finalReceipt:  // amount is 0 according to
-                                             // GetReceiptAmount()
-            if (IsAbbreviated())             // not the actual value of 0.
+        case transactionType::finalReceipt: {  // amount is 0 according to
+                                               // GetReceiptAmount()
+            if (IsAbbreviated())               // not the actual value of 0.
             {
                 lAdjustment = GetAbbrevAdjustment();
                 lDisplayValue = GetAbbrevDisplayAmount();
@@ -5167,7 +5158,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(
                 lAdjustment = 0;
                 lDisplayValue = 0;
             }
-            break;
+        } break;
         default:  // All other types are irrelevant for inbox reports
         {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected ")(
@@ -5179,7 +5170,6 @@ void OTTransaction::SaveAbbreviatedInboxRecord(
             OT_FAIL_MSG("ASSERT: OTTransaction::SaveAbbreviatedInboxRecord: "
                         "unexpected transaction type.");
         }
-            return;
     }  // why not transfer receipt? Because the amount was already removed from
        // your account when you transferred it,
 
@@ -5696,8 +5686,7 @@ std::int64_t OTTransaction::GetNumberOfOrigin(const PasswordPrompt& reason)
                                                         // your invoice, you get
                                                         // one of these in YOUR
                                                         // paymentInbox.
-            case transactionType::incomingCash:
-
+            case transactionType::incomingCash: {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": In this case, you can't calculate the "
                     "origin number, you must set it "
@@ -5709,9 +5698,9 @@ std::int64_t OTTransaction::GetNumberOfOrigin(const PasswordPrompt& reason)
                 OT_FAIL_MSG(
                     "In this case, you can't calculate the origin number, "
                     "you must set it explicitly.");
-                break;
-            default:
-                break;
+            }
+            default: {
+            }
         }
 
         CalculateNumberOfOrigin(reason);
@@ -5771,14 +5760,15 @@ void OTTransaction::CalculateNumberOfOrigin(const PasswordPrompt& reason)
         case transactionType::atDeposit:  // reply from the server regarding a
                                           // deposit request
         case transactionType::incomingCash:
-        case transactionType::instrumentNotice:     // Receive these in
-                                                    // paymentInbox (by way of
-                                                    // Nymbox), and send in
-                                                    // Outpayments.
-        case transactionType::instrumentRejection:  // When someone rejects your
-                                                    // invoice, you get one of
-                                                    // these in YOUR
-                                                    // paymentInbox.
+        case transactionType::instrumentNotice:       // Receive these in
+                                                      // paymentInbox (by way of
+                                                      // Nymbox), and send in
+                                                      // Outpayments.
+        case transactionType::instrumentRejection: {  // When someone rejects
+                                                      // your
+                                                      // invoice, you get one of
+                                                      // these in YOUR
+                                                      // paymentInbox.
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": In this case, you can't calculate the "
                 "origin number, you must set it explicitly.")
@@ -5789,8 +5779,7 @@ void OTTransaction::CalculateNumberOfOrigin(const PasswordPrompt& reason)
             OT_FAIL_MSG(
                 "In this case, you can't calculate the origin number, you "
                 "must set it explicitly.");
-            break;
-
+        }
         case transactionType::chequeReceipt:  // the server drops this into your
                                               // inbox, when someone deposits
                                               // your cheque.
@@ -6126,9 +6115,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
                     .Flush();
                 return false;
             }
-            break;
         }
-
         case transactionType::paymentReceipt:  // for paymentPlans AND
                                                // smartcontracts. (If the smart
                                                // contract does a payment, it
@@ -6173,9 +6160,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
                     .Flush();
                 return false;
             }
-            break;
         }
-
         case transactionType::instrumentNotice: {
             /*
              Therefore, if I am looping through my Nymbox, iterating through
@@ -6389,10 +6374,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                     .Flush();
                 return false;
             }
-        } break;  // this break never actually happens. Above always returns,
-                  // if
-                  // triggered.
-
+        }
         case transactionType::paymentReceipt:  // Used for paymentPlans AND for
                                                // smart contracts...
         {
@@ -6435,10 +6417,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                     .Flush();
                 return false;
             }
-        } break;  // this break never actually happens. Above always returns,
-                  // if
-                  // triggered.
-
+        }
         case transactionType::instrumentNotice: {
             /*
              Therefore, if I am looping through my Nymbox, iterating through
@@ -6485,9 +6464,9 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                     return true;
                 }
             }
-            return false;
-        } break;
 
+            return false;
+        }
         case transactionType::transferReceipt:
         case transactionType::chequeReceipt:
         case transactionType::voucherReceipt: {
@@ -6499,10 +6478,10 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                                         reason)
                                     .release());
 
-            break;
-        }
-        default:  // All other types have no amount -- return false.
+        } break;
+        default: {  // All other types have no amount -- return false.
             return false;
+        }
     }
     // -------------------------------------------------------
     if (false == bool(pOriginalItem))
@@ -6634,7 +6613,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(
                     .Flush();
                 return false;
             }
-        } break;
+        }
         case transactionType::pending:  // amount is stored on the transfer
                                         // item, on my list of items.
         case transactionType::chequeReceipt:   // amount is stored on cheque
@@ -6782,9 +6761,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(
                     .Flush();
                 return false;
             }
-        } break;  // this break never actually happens. Above always returns, if
-                  // triggered.
-
+        }
         case transactionType::pending:
         case transactionType::transferReceipt:
         case transactionType::chequeReceipt:
@@ -6917,9 +6894,7 @@ bool OTTransaction::GetMemo(String& strMemo, const PasswordPrompt& reason)
                     .Flush();
                 return false;
             }
-        } break;  // this break never actually happens. Above always returns, if
-                  // triggered.
-
+        }
         case transactionType::pending:
         case transactionType::transferReceipt:
         case transactionType::chequeReceipt:

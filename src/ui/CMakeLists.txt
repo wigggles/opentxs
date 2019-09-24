@@ -1,4 +1,4 @@
-# Copyright (c) 2018 The Open-Transactions developers
+# Copyright (c) 2019 The Open-Transactions developers
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,8 @@ if(OT_WITH_QT)
   add_definitions(${Qt5Qml_DEFINITIONS})
 endif()
 
-set(cxx-sources
+set(
+  cxx-sources
   AccountActivity.cpp
   AccountList.cpp
   AccountListItem.cpp
@@ -42,115 +43,87 @@ set(cxx-sources
   TransferBalanceItem.cpp
   Widget.cpp
 )
-
-set(ot-qobject-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountActivity.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummary.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivityThread.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Contact.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Profile.hpp"
+set(
+  ot-qobject-install-headers
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountActivity.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivitySummary.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivityThread.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/Contact.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/Profile.hpp"
 )
-
-set(cxx-install-headers
+set(
+  cxx-install-headers
   ${ot-qobject-install-headers}
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummary.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummaryItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummaryItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivityThreadItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/BalanceItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactSection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactSubsection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/IssuerItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/List.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ListRow.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/MessagableList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/PayableList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/PayableListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileSection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ProfileSubsection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/Widget.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountSummary.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountListItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountSummaryItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivitySummaryItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivityThreadItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/BalanceItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactListItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactSection.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactSubsection.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/IssuerItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/List.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ListRow.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/MessagableList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableListItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileItem.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileSection.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileSubsection.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/Widget.hpp"
 )
-
-set(cxx-headers
+set(
+  cxx-headers
   ${cxx-install-headers}
-  "${CMAKE_CURRENT_SOURCE_DIR}/../internal/ui/UI.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/AccountActivity.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/AccountList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/AccountListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummary.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummaryItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummary.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ActivityThread.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ActivityThreadItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/BalanceItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Contact.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ContactItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ContactList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ContactListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ContactSection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ContactSubsection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/IssuerItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/List.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MailItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MessagableList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/PayableList.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/PayableListItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/PendingSend.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Profile.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ProfileSubsection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Row.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/RowType.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Widget.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/ui/UI.hpp"
+  AccountActivity.hpp
+  AccountList.hpp
+  AccountListItem.hpp
+  AccountSummary.hpp
+  AccountSummaryItem.hpp
+  ActivitySummary.hpp
+  ActivitySummaryItem.hpp
+  ActivityThread.hpp
+  ActivityThreadItem.hpp
+  BalanceItem.hpp
+  Contact.hpp
+  ContactItem.hpp
+  ContactList.hpp
+  ContactListItem.hpp
+  ContactSection.hpp
+  ContactSubsection.hpp
+  IssuerItem.hpp
+  List.hpp
+  MailItem.hpp
+  MessagableList.hpp
+  PayableList.hpp
+  PayableListItem.hpp
+  PendingSend.hpp
+  Profile.hpp
+  ProfileItem.hpp
+  ProfileSection.hpp
+  ProfileSubsection.hpp
+  Row.hpp
+  RowType.hpp
+  Widget.hpp
 )
 
 if(OT_WITH_QT)
-  QT5_WRAP_CPP( MOC_SRCS ${ot-qobject-install-headers} )
+  qt5_wrap_cpp(MOC_SRCS ${ot-qobject-install-headers})
 else()
   set(MOC_SRCS "")
 endif()
 
-set(MODULE_NAME opentxs-ui)
+add_library(opentxs-ui OBJECT ${cxx-sources} ${cxx-headers} ${MOC_SRCS})
+set_property(TARGET opentxs-ui PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-if(WIN32)
-  # suppress warnings about exported internal symbols (global log stream objects)
-  add_definitions(-DOTLOG_IMPORT)
-
-  # suppress linker warnings about locallly defined imported symbols
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
-
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
-    @ONLY
-  )
-
-  # we have an extra Windows-specific file to compile
-  add_library(${MODULE_NAME} OBJECT
-    ${cxx-sources}
-    ${cxx-headers}
-    ${MOC_SRCS}
-    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
-  )
-else()
-  add_library(${MODULE_NAME} OBJECT
-    ${cxx-sources}
-    ${cxx-headers}
-    ${MOC_SRCS}
-  )
-endif()
-
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/ui
-        COMPONENT dev)
-
-set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_lib_property(${MODULE_NAME})
+install(
+  FILES ${cxx-install-headers}
+  DESTINATION include/opentxs/ui
+  COMPONENT dev
+)

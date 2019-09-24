@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -102,11 +102,11 @@ public:
 
     EXPORT virtual bool CalculateDigest(
         const Data& input,
-        const ID type = ID::BLAKE2B) = 0;
+        const ID type = ID::blake2b) = 0;
 #ifndef SWIG
     EXPORT virtual bool CalculateDigest(
         const String& input,
-        const ID type = ID::BLAKE2B) = 0;
+        const ID type = ID::blake2b) = 0;
 #endif
     EXPORT virtual void SetString(const std::string& encoded) = 0;
 #ifndef SWIG

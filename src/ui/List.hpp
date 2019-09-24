@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -135,7 +135,7 @@ public:
     }
     OTIdentifier WidgetID() const noexcept override { return widget_id_; }
 
-    virtual ~List()
+    ~List() override
     {
         if (startup_ && startup_->joinable()) {
             startup_->join();
@@ -325,12 +325,7 @@ protected:
         const int startRow = 0
 #endif
         ) noexcept
-        :
-#if OT_QT
-        QAbstractItemModel()
-        ,
-#endif
-        Widget(api, publisher, widgetID)
+        : Widget(api, publisher, widgetID)
 #if OT_QT
         , enable_qt_(qt)
         , qt_roles_(roles)

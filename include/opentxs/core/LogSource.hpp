@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -21,39 +21,46 @@ namespace opentxs
 class LogSource
 {
 public:
-    static void SetVerbosity(const int level);
-    static void Shutdown();
+    static void SetVerbosity(const int level) noexcept;
+    static void Shutdown() noexcept;
     static const LogSource& StartLog(
         const LogSource& source,
-        const std::string& function);
+        const std::string& function) noexcept;
 
-    const LogSource& operator()() const;
-    const LogSource& operator()(const char* in) const;
-    const LogSource& operator()(char* in) const;
-    const LogSource& operator()(const std::string& in) const;
-    const LogSource& operator()(const OTString& in) const;
-    const LogSource& operator()(const OTStringXML& in) const;
-    const LogSource& operator()(const OTArmored& in) const;
-    const LogSource& operator()(const String& in) const;
-    const LogSource& operator()(const StringXML& in) const;
-    const LogSource& operator()(const Armored& in) const;
-    const LogSource& operator()(const OTIdentifier& in) const;
-    const LogSource& operator()(const Identifier& in) const;
-    const LogSource& operator()(const OTNymID& in) const;
-    const LogSource& operator()(const identifier::Nym& in) const;
-    const LogSource& operator()(const OTServerID& in) const;
-    const LogSource& operator()(const identifier::Server& in) const;
-    const LogSource& operator()(const OTUnitID& in) const;
-    const LogSource& operator()(const identifier::UnitDefinition& in) const;
+    const LogSource& operator()() const noexcept;
+    const LogSource& operator()(const char* in) const noexcept;
+    const LogSource& operator()(char* in) const noexcept;
+    const LogSource& operator()(const std::string& in) const noexcept;
+    const LogSource& operator()(const OTString& in) const noexcept;
+    const LogSource& operator()(const OTStringXML& in) const noexcept;
+    const LogSource& operator()(const OTArmored& in) const noexcept;
+    const LogSource& operator()(const String& in) const noexcept;
+    const LogSource& operator()(const StringXML& in) const noexcept;
+    const LogSource& operator()(const Armored& in) const noexcept;
+    const LogSource& operator()(const OTIdentifier& in) const noexcept;
+    const LogSource& operator()(const Identifier& in) const noexcept;
+    const LogSource& operator()(const OTNymID& in) const noexcept;
+    const LogSource& operator()(const identifier::Nym& in) const noexcept;
+    const LogSource& operator()(const OTServerID& in) const noexcept;
+    const LogSource& operator()(const identifier::Server& in) const noexcept;
+    const LogSource& operator()(const OTUnitID& in) const noexcept;
+    const LogSource& operator()(const identifier::UnitDefinition& in) const
+        noexcept;
     template <typename T>
-    const LogSource& operator()(const T& in) const
+    const LogSource& operator()(const T& in) const noexcept
     {
         return this->operator()(std::to_string(in));
     }
 
-    void Flush() const;
+    [[noreturn]] void Assert(
+        const char* file,
+        const std::size_t line,
+        const char* message) const noexcept;
+    void Flush() const noexcept;
+    void Trace(const char* file, const std::size_t line, const char* message)
+        const noexcept;
 
-    explicit LogSource(const int logLevel);
+    explicit LogSource(const int logLevel) noexcept;
 
     ~LogSource() = default;
 
@@ -67,7 +74,9 @@ private:
 
     const int level_{-1};
 
-    static Source& get_buffer(std::string& id);
+    static Source& get_buffer(std::string& id) noexcept;
+
+    void send(const bool terminate) const noexcept;
 
     LogSource() = delete;
     LogSource(const LogSource&) = delete;

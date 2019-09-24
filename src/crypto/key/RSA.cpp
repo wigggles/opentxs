@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,8 +12,6 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -326,7 +324,7 @@ bool RSA::SetPrivateKey(
             pkey = PEM_read_bio_PrivateKey(
                 bio,
                 nullptr,
-                0,
+                nullptr,
                 const_cast<void*>(reinterpret_cast<const void*>(
                     pImportPassword->getPassword())));
         }
@@ -406,7 +404,7 @@ bool RSA::SetPublicKeyFromPrivateKey(
         x509 = PEM_read_bio_X509(
             keyBio,
             nullptr,
-            0,
+            nullptr,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
     }
@@ -561,7 +559,7 @@ bool RSA::GetPrivateKey(
             pCipher,
             nullptr,
             0,
-            0,
+            nullptr,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
     }
@@ -629,7 +627,7 @@ bool RSA::TransportKey(
     m_p_ascKey->GetData(key);
     api_.Crypto().Hash().Digest(StandardHash, key, hash);
     OTPassword seed;
-    seed.setMemory(hash->data(), hash->size());
+    seed.setMemory(hash->data(), static_cast<std::uint32_t>(hash->size()));
 
     return api_.Crypto().ED25519().SeedToCurveKey(seed, privateKey, publicKey);
 #else

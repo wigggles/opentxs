@@ -1,11 +1,12 @@
-# Copyright (c) 2018 The Open-Transactions developers
+# Copyright (c) 2019 The Open-Transactions developers
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(MODULE_NAME opentxs-api-crypto)
+add_subdirectory(base58)
 
-set(cxx-sources
+set(
+  cxx-sources
   Asymmetric.cpp
   Config.cpp
   Crypto.cpp
@@ -13,18 +14,18 @@ set(cxx-sources
   Hash.cpp
   Symmetric.cpp
 )
-
-set(cxx-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Asymmetric.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Config.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Crypto.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Encode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Hash.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Symmetric.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/api/crypto/Util.hpp"
+set(
+  cxx-install-headers
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Asymmetric.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Config.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Crypto.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Encode.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Hash.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Symmetric.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/crypto/Util.hpp"
 )
-
-set(cxx-headers
+set(
+  cxx-headers
   ${cxx-install-headers}
   Asymmetric.hpp
   Config.hpp
@@ -34,37 +35,15 @@ set(cxx-headers
   Symmetric.hpp
 )
 
-if(WIN32)
-  # suppress warnings about exported internal symbols (global log stream objects)
-  add_definitions(-DOTLOG_IMPORT)
+add_library(opentxs-api-crypto OBJECT ${cxx-sources} ${cxx-headers})
+target_include_directories(
+  opentxs-api-crypto SYSTEM
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+)
+set_property(TARGET opentxs-api-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-  # suppress linker warnings about locallly defined imported symbols
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4049 /ignore:4217")
-
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/windll.rc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
-    @ONLY
-  )
-
-  # we have an extra Windows-specific file to compile
-  add_library(${MODULE_NAME} OBJECT
-    ${cxx-sources}
-    ${cxx-headers}
-    ../../core/util/OTWindowsRegistryTools.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/module.rc
-  )
-else()
-  add_library(${MODULE_NAME} OBJECT
-    ${cxx-sources}
-    ${cxx-headers}
-  )
-endif()
-
-install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/api/crypto
-        COMPONENT dev)
-
-set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_lib_property(${MODULE_NAME})
-target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")
+install(
+  FILES ${cxx-install-headers}
+  DESTINATION include/opentxs/api/crypto
+  COMPONENT dev
+)

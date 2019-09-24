@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -35,9 +35,7 @@ class Storage;
 
 namespace storage
 {
-class Tree;
-
-class Root : public Node
+class Root final : public Node
 {
 private:
     typedef Node ot_super;
@@ -60,12 +58,12 @@ private:
     proto::StorageRoot serialize() const;
     class Tree* tree() const;
 
-    void blank(const VersionNumber version) override;
+    void blank(const VersionNumber version) final;
     void cleanup() const;
     void collect_garbage(const opentxs::api::storage::Driver* to) const;
-    void init(const std::string& hash) override;
+    void init(const std::string& hash) final;
     bool save(const Lock& lock, const opentxs::api::storage::Driver& to) const;
-    bool save(const Lock& lock) const override;
+    bool save(const Lock& lock) const final;
     void save(class Tree* tree, const Lock& lock);
 
     Root(
@@ -84,11 +82,11 @@ public:
 
     Editor<class Tree> mutable_Tree();
 
-    bool Migrate(const opentxs::api::storage::Driver& to) const override;
+    bool Migrate(const opentxs::api::storage::Driver& to) const final;
     bool Save(const opentxs::api::storage::Driver& to) const;
     std::uint64_t Sequence() const;
 
-    ~Root() = default;
+    ~Root() final = default;
 };
 }  // namespace storage
 }  // namespace opentxs

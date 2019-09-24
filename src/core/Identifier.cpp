@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,12 +13,12 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/OT.hpp"
@@ -429,10 +429,10 @@ void Identifier::GetString(String& id) const
 proto::HashType Identifier::IDToHashType(const ID type)
 {
     switch (type) {
-        case (ID::SHA256): {
+        case (ID::sha256): {
             return proto::HASHTYPE_SHA256;
         }
-        case (ID::BLAKE2B): {
+        case (ID::blake2b): {
             return proto::HASHTYPE_BLAKE2B160;
         }
         default: {
@@ -477,12 +477,12 @@ void Identifier::SetString(const std::string& encoded)
         type_ = static_cast<ID>(data[0]);
 
         switch (type_) {
-            case (ID::SHA256): {
+            case (ID::sha256): {
             } break;
-            case (ID::BLAKE2B): {
+            case (ID::blake2b): {
             } break;
             default: {
-                type_ = ID::ERROR;
+                type_ = ID::invalid;
 
                 return;
             }

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -235,7 +235,7 @@ public:
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    static api::crypto::Encode* Encode(const crypto::EncodingProvider& base58);
+    static api::crypto::Encode* Encode(const api::Crypto& crypto);
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
         const int instance);
@@ -246,7 +246,7 @@ public:
         const api::crypto::Encode& encode,
         const crypto::HashingProvider& ssl,
         const crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+#if OT_CRYPTO_USING_TREZOR
         ,
         const crypto::Ripemd160& bitcoin
 #endif

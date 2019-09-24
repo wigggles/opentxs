@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,7 +18,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -163,7 +162,7 @@ PaymentCode::PaymentCode(
     const PasswordPrompt& reason,
     const proto::PaymentCode& paycode)
     : api_(api)
-    , version_(paycode.version())
+    , version_(static_cast<std::uint8_t>(paycode.version()))
     , seed_("")
     , index_(-1)
     , asymmetric_key_{crypto::key::Asymmetric::Factory()}
@@ -182,11 +181,13 @@ PaymentCode::PaymentCode(
     ConstructKey(key, reason);
 
     if (paycode.has_bitmessageversion()) {
-        bitmessage_version_ = paycode.bitmessageversion();
+        bitmessage_version_ =
+            static_cast<std::uint8_t>(paycode.bitmessageversion());
     }
 
     if (paycode.has_bitmessagestream()) {
-        bitmessage_stream_ = paycode.bitmessagestream();
+        bitmessage_stream_ =
+            static_cast<std::uint8_t>(paycode.bitmessagestream());
     }
 }
 

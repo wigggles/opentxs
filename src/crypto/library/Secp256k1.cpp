@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,15 +13,11 @@
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
-#if OT_CRYPTO_USING_LIBBITCOIN
-#include "opentxs/crypto/library/Bitcoin.hpp"
-#endif
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
@@ -34,7 +30,7 @@
 #include "EcdsaProvider.hpp"
 
 extern "C" {
-#include "secp256k1/include/secp256k1.h"
+#include "secp256k1.h"
 }
 
 #include <cstdint>
@@ -241,10 +237,7 @@ bool Secp256k1::ECDH(
     const OTPassword& privateKey,
     OTPassword& secret) const
 {
-#if OT_CRYPTO_USING_LIBBITCOIN
-    return dynamic_cast<const Bitcoin&>(ecdsa_).ECDH(
-        publicKey, privateKey, secret);
-#elif OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
     return dynamic_cast<const Trezor&>(ecdsa_).ECDH(
         publicKey, privateKey, secret);
 #else

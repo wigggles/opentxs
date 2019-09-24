@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -22,12 +22,12 @@ proto::AsymmetricKeyType AsymmetricProvider::CurveToKeyType(
     proto::AsymmetricKeyType output = proto::AKEYTYPE_ERROR;
 
     switch (curve) {
-        case (EcdsaCurve::SECP256K1): {
+        case (EcdsaCurve::secp256k1): {
             output = proto::AKEYTYPE_SECP256K1;
 
             break;
         }
-        case (EcdsaCurve::ED25519): {
+        case (EcdsaCurve::ed25519): {
             output = proto::AKEYTYPE_ED25519;
 
             break;
@@ -42,16 +42,16 @@ proto::AsymmetricKeyType AsymmetricProvider::CurveToKeyType(
 EcdsaCurve AsymmetricProvider::KeyTypeToCurve(
     const proto::AsymmetricKeyType& type)
 {
-    EcdsaCurve output = EcdsaCurve::ERROR;
+    EcdsaCurve output = EcdsaCurve::invalid;
 
     switch (type) {
         case (proto::AKEYTYPE_SECP256K1): {
-            output = EcdsaCurve::SECP256K1;
+            output = EcdsaCurve::secp256k1;
 
             break;
         }
         case (proto::AKEYTYPE_ED25519): {
-            output = EcdsaCurve::ED25519;
+            output = EcdsaCurve::ed25519;
 
             break;
         }

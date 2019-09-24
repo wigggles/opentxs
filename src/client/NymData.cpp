@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -105,7 +105,7 @@ bool NymData::AddPaymentCode(
     [[maybe_unused]] const proto::ContactItemType currency,
     [[maybe_unused]] const bool primary,
     [[maybe_unused]] const bool active,
-    const PasswordPrompt& reason)
+    [[maybe_unused]] const PasswordPrompt& reason)
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto paymentCode = factory_.PaymentCode(code, reason);
@@ -117,9 +117,9 @@ bool NymData::AddPaymentCode(
     }
 
     return nym().AddPaymentCode(paymentCode, currency, reason, primary, active);
-#endif
-
+#else
     return false;
+#endif
 }
 
 bool NymData::AddPhoneNumber(

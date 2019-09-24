@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -251,8 +251,8 @@ proto::RPCResponse RPC::accept_pending_payments(
             queue_task(
                 nymID,
                 std::to_string(taskID),
-                [&](const Result& result, proto::TaskComplete& output) -> void {
-                    evaluate_deposit_payment(client, result, output, reason);
+                [&](const auto& in, auto& out) -> void {
+                    evaluate_deposit_payment(client, in, out, reason);
                 },
                 std::move(future),
                 output);
@@ -385,8 +385,8 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
         queue_task(
             ownerID,
             std::to_string(taskID),
-            [&](const Result& result, proto::TaskComplete& output) -> void {
-                evaluate_register_account(result, output);
+            [&](const auto& in, auto& out) -> void {
+                evaluate_register_account(in, out);
             },
             std::move(future),
             output);
@@ -453,8 +453,8 @@ proto::RPCResponse RPC::create_compatible_account(
         queue_task(
             ownerID,
             std::to_string(taskID),
-            [&](const Result& result, proto::TaskComplete& output) -> void {
-                evaluate_register_account(result, output);
+            [&](const auto& in, auto& out) -> void {
+                evaluate_register_account(in, out);
             },
             std::move(future),
             output);
@@ -511,8 +511,8 @@ proto::RPCResponse RPC::create_issuer_account(
         queue_task(
             ownerID,
             std::to_string(taskID),
-            [&](const Result& result, proto::TaskComplete& output) -> void {
-                evaluate_register_account(result, output);
+            [&](const auto& in, auto& out) -> void {
+                evaluate_register_account(in, out);
             },
             std::move(future),
             output);
@@ -1525,85 +1525,85 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
     switch (command.type()) {
         case proto::RPCCOMMAND_ADDCLIENTSESSION: {
             return start_client(command);
-        } break;
+        }
         case proto::RPCCOMMAND_ADDSERVERSESSION: {
             return start_server(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTCLIENTSESSIONS: {
             return list_client_sessions(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTSERVERSESSIONS: {
             return list_server_sessions(command);
-        } break;
+        }
         case proto::RPCCOMMAND_IMPORTHDSEED: {
             return import_seed(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTHDSEEDS: {
             return list_seeds(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETHDSEED: {
             return get_seeds(command);
-        } break;
+        }
         case proto::RPCCOMMAND_CREATENYM: {
             return create_nym(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTNYMS: {
             return list_nyms(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETNYM: {
             return get_nyms(command);
-        } break;
+        }
         case proto::RPCCOMMAND_ADDCLAIM: {
             return add_claim(command);
-        } break;
+        }
         case proto::RPCCOMMAND_DELETECLAIM: {
             return delete_claim(command);
-        } break;
+        }
         case proto::RPCCOMMAND_IMPORTSERVERCONTRACT: {
             return import_server_contract(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTSERVERCONTRACTS: {
             return list_server_contracts(command);
-        } break;
+        }
         case proto::RPCCOMMAND_REGISTERNYM: {
             return register_nym(command);
-        } break;
+        }
         case proto::RPCCOMMAND_CREATEUNITDEFINITION: {
             return create_unit_definition(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTUNITDEFINITIONS: {
             return list_unit_definitions(command);
-        } break;
+        }
         case proto::RPCCOMMAND_ISSUEUNITDEFINITION: {
             return create_issuer_account(command);
-        } break;
+        }
         case proto::RPCCOMMAND_CREATEACCOUNT: {
             return create_account(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTACCOUNTS: {
             return list_accounts(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETACCOUNTBALANCE: {
             return get_account_balance(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETACCOUNTACTIVITY: {
             return get_account_activity(command);
-        } break;
+        }
         case proto::RPCCOMMAND_SENDPAYMENT: {
             return send_payment(command);
-        } break;
+        }
         case proto::RPCCOMMAND_MOVEFUNDS: {
             return move_funds(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETSERVERCONTRACT: {
             return get_server_contracts(command);
-        } break;
+        }
         case proto::RPCCOMMAND_ADDCONTACT: {
             return add_contact(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LISTCONTACTS: {
             return list_contacts(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETCONTACT:
         case proto::RPCCOMMAND_ADDCONTACTCLAIM:
         case proto::RPCCOMMAND_DELETECONTACTCLAIM:
@@ -1616,37 +1616,37 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_ACCEPTPENDINGPAYMENTS: {
             return accept_pending_payments(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETPENDINGPAYMENTS: {
             return get_pending_payments(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETCOMPATIBLEACCOUNTS: {
             return get_compatible_accounts(command);
-        } break;
+        }
         case proto::RPCCOMMAND_CREATECOMPATIBLEACCOUNT: {
             return create_compatible_account(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETWORKFLOW: {
             return get_workflow(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETSERVERPASSWORD: {
             return get_server_password(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETADMINNYM: {
             return get_server_admin_nym(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETUNITDEFINITION: {
             return get_unit_definitions(command);
-        } break;
+        }
         case proto::RPCCOMMAND_GETTRANSACTIONDATA: {
             return get_transaction_data(command);
-        } break;
+        }
         case proto::RPCCOMMAND_LOOKUPACCOUNTID: {
             return lookup_account_id(command);
-        } break;
+        }
         case proto::RPCCOMMAND_RENAMEACCOUNT: {
             return rename_account(command);
-        } break;
+        }
         case proto::RPCCOMMAND_ERROR:
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported command.")
@@ -1706,8 +1706,8 @@ proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
         queue_task(
             ownerID,
             std::to_string(taskID),
-            [&](const Result& result, proto::TaskComplete& output) -> void {
-                evaluate_register_nym(result, output);
+            [&](const auto& in, auto& out) -> void {
+                evaluate_register_nym(in, out);
             },
             std::move(future),
             output);
@@ -1761,9 +1761,9 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
         return output;
     }
 
-    const auto ready = client.OTX().CanMessage(sender, contactid);
+    const auto precondition = client.OTX().CanMessage(sender, contactid);
 
-    switch (ready) {
+    switch (precondition) {
         case Messagability::MISSING_CONTACT:
         case Messagability::CONTACT_LACKS_NYM:
         case Messagability::NO_SERVER_CLAIM:
@@ -1772,7 +1772,7 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
             add_output_status(output, proto::RPCRESPONSE_NO_PATH_TO_RECIPIENT);
 
             return output;
-        } break;
+        }
         case Messagability::MISSING_RECIPIENT:
         case Messagability::UNREGISTERED: {
             add_output_status(output, proto::RPCRESPONSE_RETRY);
@@ -1806,8 +1806,8 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
             queue_task(
                 sender,
                 std::to_string(taskID),
-                [&](const Result& result, proto::TaskComplete& output) -> void {
-                    evaluate_send_payment_cheque(result, output);
+                [&](const auto& in, auto& out) -> void {
+                    evaluate_send_payment_cheque(in, out);
                 },
                 std::move(future),
                 output);
@@ -1891,7 +1891,7 @@ proto::RPCResponse RPC::start_server(const proto::RPCCommand& command) const
     try {
         auto& manager = ot_.StartServer(get_args(command.arg()), session);
         instance = manager.Instance();
-    } catch (const std::invalid_argument& e) {
+    } catch (const std::invalid_argument&) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SERVER_ARGUMENT);
         return output;
     } catch (...) {

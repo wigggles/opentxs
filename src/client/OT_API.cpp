@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -51,7 +51,6 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
@@ -78,8 +77,8 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/Proto.tpp"
 
-#include <signal.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstdlib>
 #include <cassert>
 #include <fstream>
 #include <map>
@@ -87,12 +86,6 @@
 #include <string>
 #ifndef WIN32
 #include <unistd.h>
-#endif
-
-#if defined(OPENTXS_HAVE_NETINET_IN_H)
-extern "C" {
-#include <netinet/in.h>
-}
 #endif
 
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
@@ -1852,15 +1845,14 @@ bool OT_API::SmartContract_AddVariable(
             const std::int32_t nValue = atoi(str_value.c_str());
             bAdded = pBylaw->AddVariable(str_name, nValue, theAccess);
         } break;
-        case OTVariable::Var_String:
+        case OTVariable::Var_String: {
             bAdded = pBylaw->AddVariable(str_name, str_value, theAccess);
-            break;
+        } break;
         default:
             // SHOULD NEVER HAPPEN (We already return above, if the variable
             // type
             // isn't correct.)
             OT_FAIL_MSG("Should never happen. You aren't seeing this.");
-            break;
     }
 
     if (!bAdded) {
@@ -2573,7 +2565,7 @@ CommandResult OT_API::issueBasket(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::issueBasket,
@@ -2900,7 +2892,7 @@ CommandResult OT_API::exchangeBasket(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
@@ -3122,7 +3114,7 @@ CommandResult OT_API::payDividend(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
@@ -3410,7 +3402,7 @@ CommandResult OT_API::withdrawVoucher(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
@@ -3582,7 +3574,7 @@ CommandResult OT_API::depositPaymentPlan(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
@@ -3727,7 +3719,7 @@ CommandResult OT_API::triggerClause(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = transactionNumber;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto payload = Armored::Factory();
 
@@ -3774,7 +3766,7 @@ CommandResult OT_API::activateSmartContract(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
@@ -4136,7 +4128,7 @@ CommandResult OT_API::cancelCronItem(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
@@ -4267,7 +4259,7 @@ CommandResult OT_API::issueMarketOffer(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
@@ -4618,7 +4610,7 @@ CommandResult OT_API::getMarketList(ServerContext& context) const
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto [newRequestNumber, message] =
         context.InitializeServerCommand(MessageType::getMarketList, requestNum);
@@ -4659,7 +4651,7 @@ CommandResult OT_API::getMarketOffers(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getMarketOffers, requestNum);
@@ -4707,7 +4699,7 @@ CommandResult OT_API::getMarketRecentTrades(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getMarketRecentTrades, requestNum);
@@ -4748,7 +4740,7 @@ CommandResult OT_API::getNymMarketOffers(ServerContext& context) const
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getNymMarketOffers, requestNum);
@@ -4792,7 +4784,7 @@ CommandResult OT_API::queryInstrumentDefinitions(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::queryInstrumentDefinitions, requestNum);
@@ -4829,7 +4821,7 @@ CommandResult OT_API::deleteAssetAccount(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
 
     {
@@ -4874,7 +4866,7 @@ CommandResult OT_API::usageCredits(
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::usageCredits, NYM_ID_CHECK, requestNum);
@@ -4909,7 +4901,7 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
     auto& [status, reply] = result;
     requestNum = -1;
     transactionNum = 0;
-    status = SendResult::ERROR;
+    status = SendResult::Error;
     reply.reset();
     auto message{api_.Factory().Message()};
     requestNum = m_pClient->ProcessUserCommand(
@@ -5175,10 +5167,10 @@ bool OT_API::FinalizeProcessInbox(
                     issuedClosing);
             } break;
             default: {
-                auto type = String::Factory();
-                acceptItem->GetTypeString(type);
+                auto typeName = String::Factory();
+                acceptItem->GetTypeString(typeName);
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected item type: ")(
-                    type)(".")
+                    typeName)
                     .Flush();
 
                 return false;
@@ -5304,10 +5296,10 @@ bool OT_API::find_cron(
             }
         } break;
         default: {
-            auto type = String::Factory();
-            item.GetTypeString(type);
+            auto typeName = String::Factory();
+            item.GetTypeString(typeName);
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected item type: ")(
-                type)(".")
+                typeName)
                 .Flush();
 
             return false;
@@ -5351,7 +5343,7 @@ bool OT_API::find_standard(
                 return false;
             }
 
-            TransactionNumber number{0};
+            TransactionNumber issuedNumber{0};
             const auto originalType = original->GetType();
 
             switch (originalType) {
@@ -5379,29 +5371,29 @@ bool OT_API::find_standard(
                         return false;
                     }
 
-                    number = cheque->GetTransactionNum();
+                    issuedNumber = cheque->GetTransactionNum();
                 } break;
                 case itemType::acceptPending: {
-                    number = original->GetNumberOfOrigin(reason);
+                    issuedNumber = original->GetNumberOfOrigin(reason);
                 } break;
                 default: {
-                    auto type = String::Factory();
-                    original->GetTypeString(type);
+                    auto typeName = String::Factory();
+                    original->GetTypeString(typeName);
                     LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Unexpected original item type: ")(type)(".")
+                        ": Unexpected original item type: ")(typeName)
                         .Flush();
 
                     return false;
                 }
             }
 
-            const bool verified = context.VerifyIssuedNumber(number);
+            const bool verified = context.VerifyIssuedNumber(issuedNumber);
 
             if (verified) {
-                closing.insert(number);
+                closing.insert(issuedNumber);
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Trying to remove number (")(number)(
+                    ": Trying to remove number (")(issuedNumber)(
                     ") that already wasn't on my "
                     "issued list.")
                     .Flush();
@@ -5410,10 +5402,10 @@ bool OT_API::find_standard(
             }
         } break;
         default: {
-            auto type = String::Factory();
-            item.GetTypeString(type);
+            auto typeName = String::Factory();
+            item.GetTypeString(typeName);
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unexpected item type: ")(
-                type)(".")
+                typeName)
                 .Flush();
 
             return false;
@@ -5519,7 +5511,7 @@ itemType OT_API::response_type(
             } else {
                 return itemType::rejectPending;
             }
-        } break;
+        }
         case transactionType::marketReceipt:
         case transactionType::paymentReceipt: {
             if (success) {
@@ -5527,7 +5519,7 @@ itemType OT_API::response_type(
             } else {
                 return itemType::disputeCronReceipt;
             }
-        } break;
+        }
         case transactionType::chequeReceipt:
         case transactionType::voucherReceipt:
         case transactionType::transferReceipt: {
@@ -5536,21 +5528,21 @@ itemType OT_API::response_type(
             } else {
                 return itemType::disputeItemReceipt;
             }
-        } break;
+        }
         case transactionType::finalReceipt: {
             if (success) {
                 return itemType::acceptFinalReceipt;
             } else {
                 return itemType::disputeFinalReceipt;
             }
-        } break;
+        }
         case transactionType::basketReceipt: {
             if (success) {
                 return itemType::acceptBasketReceipt;
             } else {
                 return itemType::disputeBasketReceipt;
             }
-        } break;
+        }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Unexpected transaction type.")(".")

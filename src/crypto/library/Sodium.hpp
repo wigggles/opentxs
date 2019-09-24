@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,19 +19,18 @@ public:
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
-        std::uint8_t* output) const override;
+        std::uint8_t* output) const final;
     bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const size_t inputSize,
         const std::uint8_t* key,
         const size_t keySize,
-        std::uint8_t* output) const override;
+        std::uint8_t* output) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-    bool RandomizeMemory(void* destination, const std::size_t size)
-        const override;
+    bool RandomizeMemory(void* destination, const std::size_t size) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool Sign(
         const api::Core& api,
@@ -40,20 +39,20 @@ public:
         const proto::HashType hashType,
         Data& signature,  // output
         const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const override;
+        const OTPassword* exportPassword = nullptr) const final;
     bool SeedToCurveKey(
         const OTPassword& seed,
         OTPassword& privateKey,
-        Data& publicKey) const override;
+        Data& publicKey) const final;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-    ~Sodium() = default;
+    ~Sodium() final = default;
 
 private:
     friend opentxs::Factory;
@@ -65,8 +64,8 @@ private:
         const proto::Ciphertext& ciphertext,
         const std::uint8_t* key,
         const std::size_t keySize,
-        std::uint8_t* plaintext) const override;
-    proto::SymmetricMode DefaultMode() const override { return DEFAULT_MODE; }
+        std::uint8_t* plaintext) const final;
+    proto::SymmetricMode DefaultMode() const final { return DEFAULT_MODE; }
     bool Derive(
         const std::uint8_t* input,
         const std::size_t inputSize,
@@ -76,31 +75,31 @@ private:
         const std::uint64_t difficulty,
         const proto::SymmetricKeyType type,
         std::uint8_t* output,
-        std::size_t outputSize) const override;
+        std::size_t outputSize) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool ECDH(const Data& publicKey, const OTPassword& seed, OTPassword& secret)
-        const override;
+        const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool Encrypt(
         const std::uint8_t* input,
         const std::size_t inputSize,
         const std::uint8_t* key,
         const std::size_t keySize,
-        proto::Ciphertext& ciphertext) const override;
+        proto::Ciphertext& ciphertext) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool ExpandSeed(
         const OTPassword& seed,
         OTPassword& privateKey,
         Data& publicKey) const;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-    std::size_t IvSize(const proto::SymmetricMode mode) const override;
-    std::size_t KeySize(const proto::SymmetricMode mode) const override;
+    std::size_t IvSize(const proto::SymmetricMode mode) const final;
+    std::size_t KeySize(const proto::SymmetricMode mode) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool ScalarBaseMultiply(const OTPassword& seed, Data& publicKey)
-        const override;
+        const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-    std::size_t SaltSize(const proto::SymmetricKeyType type) const override;
-    std::size_t TagSize(const proto::SymmetricMode mode) const override;
+    std::size_t SaltSize(const proto::SymmetricKeyType type) const final;
+    std::size_t TagSize(const proto::SymmetricMode mode) const final;
 
     Sodium(const api::Crypto& crypto);
     Sodium() = delete;

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,7 @@
 
 namespace opentxs
 {
-class BasketContract : public UnitDefinition
+class BasketContract final : public UnitDefinition
 {
 private:
     typedef UnitDefinition ot_super;
@@ -40,7 +40,7 @@ private:
         const std::uint64_t weight);
 
     EXPORT proto::UnitDefinition BasketIDVersion(const Lock& lock) const;
-    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const override;
+    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const final;
 
 public:
     EXPORT static OTIdentifier CalculateBasketID(
@@ -54,15 +54,10 @@ public:
 
     EXPORT OTIdentifier BasketID() const;
     EXPORT const MapOfSubcontracts& Currencies() const { return subcontracts_; }
-    EXPORT proto::UnitType Type() const override
-    {
-        return proto::UNITTYPE_BASKET;
-    }
+    EXPORT proto::UnitType Type() const final { return proto::UNITTYPE_BASKET; }
     EXPORT std::uint64_t Weight() const { return weight_; }
 
-    virtual ~BasketContract() = default;
+    ~BasketContract() final = default;
 };
-
 }  // namespace opentxs
-
 #endif

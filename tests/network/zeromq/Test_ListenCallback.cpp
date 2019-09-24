@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,15 +17,12 @@ class Test_ListenCallback : public ::testing::Test
 public:
     const std::string testMessage_{"zeromq test message"};
 };
-
 }  // namespace
 
 TEST(ListenCallback, ListenCallback_Factory)
 {
-    auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](network::zeromq::Message& input) -> void {
-
-        });
+    auto listenCallback =
+        network::zeromq::ListenCallback::Factory([](auto&) -> void {});
 
     ASSERT_NE(nullptr, &listenCallback.get());
 }

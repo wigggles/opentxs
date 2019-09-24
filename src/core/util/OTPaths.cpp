@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,7 +8,6 @@
 #include "opentxs/core/util/OTPaths.hpp"
 
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/core/util/Assert.hpp"
 #ifdef _WIN32
 #include "opentxs/core/util/OTWindowsRegistryTools.hpp"
 #endif
@@ -909,8 +908,8 @@ bool OTPaths::ToReal(const String& strExactPath, String& out_strCanonicalPath)
 #endif
 #else
 
-    char* actualpath = realpath(strExactPath.Get(), NULL);
-    if (actualpath == NULL) {
+    char* actualpath = realpath(strExactPath.Get(), nullptr);
+    if (actualpath == nullptr) {
 
         if (errno == ENOTDIR) {
             out_strCanonicalPath.Set(strExactPath);

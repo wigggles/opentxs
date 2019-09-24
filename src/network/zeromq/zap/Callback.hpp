@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,12 +16,12 @@ class Callback final : virtual zap::Callback
 public:
     using Lambda = zap::Callback::ReceiveCallback;
 
-    OTZMQZAPReply Process(const zap::Request& request) const override;
+    OTZMQZAPReply Process(const zap::Request& request) const final;
     bool SetDomain(const std::string& domain, const ReceiveCallback& callback)
-        const override;
-    bool SetPolicy(const Policy policy) const override;
+        const final;
+    bool SetPolicy(const Policy policy) const final;
 
-    ~Callback() = default;
+    ~Callback() final = default;
 
 private:
     friend zap::Callback;
@@ -31,7 +31,7 @@ private:
     mutable std::mutex domain_lock_;
     mutable std::atomic<Policy> policy_;
 
-    Callback* clone() const override { return new Callback(); }
+    Callback* clone() const final { return new Callback(); }
     OTZMQZAPReply default_callback(const zap::Request& in) const;
     const Lambda& get_domain(const std::string& domain) const;
 

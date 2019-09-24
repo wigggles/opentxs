@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,7 +19,7 @@ namespace opentxs
 {
 namespace storage
 {
-class BlockchainTransactions : public Node
+class BlockchainTransactions final : public Node
 {
 public:
     bool Load(
@@ -33,7 +33,7 @@ public:
         const identifier::Nym& nym,
         const proto::BlockchainTransaction& data);
 
-    ~BlockchainTransactions() = default;
+    ~BlockchainTransactions() final = default;
 
 private:
     friend Tree;
@@ -46,10 +46,10 @@ private:
 
     std::map<std::string, std::set<OTNymID>> nym_index_;
 
-    bool save(const std::unique_lock<std::mutex>& lock) const override;
+    bool save(const std::unique_lock<std::mutex>& lock) const final;
     SerializedType serialize() const;
 
-    void init(const std::string& hash) override;
+    void init(const std::string& hash) final;
 
     BlockchainTransactions(
         const opentxs::api::storage::Driver& storage,

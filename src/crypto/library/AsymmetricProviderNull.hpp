@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,23 +15,23 @@ class AsymmetricProviderNull final : virtual public crypto::AsymmetricProvider
 {
 public:
     bool Sign(
-        const api::Core& api,
+        const api::Core&,
         const Data&,
         const key::Asymmetric&,
         const proto::HashType,
-        Data& signature,
+        Data&,
         const PasswordPrompt&,
-        const OTPassword* = nullptr) const override
+        const OTPassword* = nullptr) const final
     {
         return false;
     }
     bool SignContract(
-        const api::Core& api,
+        const api::Core&,
         const String&,
         const key::Asymmetric&,
         Signature&,  // output
         const proto::HashType,
-        const PasswordPrompt&) const override
+        const PasswordPrompt&) const final
     {
         return false;
     }
@@ -40,7 +40,7 @@ public:
         const key::Asymmetric&,
         const Data&,
         const proto::HashType,
-        const PasswordPrompt&) const override
+        const PasswordPrompt&) const final
     {
         return false;
     }
@@ -49,13 +49,13 @@ public:
         const key::Asymmetric&,
         const Signature&,
         const proto::HashType,
-        const PasswordPrompt&) const override
+        const PasswordPrompt&) const final
     {
         return false;
     }
 
     AsymmetricProviderNull() = default;
-    ~AsymmetricProviderNull() = default;
+    ~AsymmetricProviderNull() final = default;
 
 private:
     AsymmetricProviderNull(const AsymmetricProviderNull&) = delete;

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -229,11 +229,11 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
             EXPECT_EQ(1, input.Header().size());
             EXPECT_EQ(2, input.Body().size());
 
-            for (const std::string& frame : input.Header()) {
+            for (const std::string frame : input.Header()) {
                 EXPECT_EQ(testMessage_, frame);
             }
 
-            for (const std::string& frame : input.Body()) {
+            for (const std::string frame : input.Body()) {
                 bool match = frame == testMessage2_ || frame == testMessage3_;
 
                 EXPECT_TRUE(match);
@@ -273,7 +273,7 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
 
             ASSERT_EQ(testMessage_, header);
 
-            for (auto i = 3; i < input.size(); ++i) {
+            for (auto i{3u}; i < input.size(); ++i) {
                 const std::string& frame = input.at(i);
                 bool match = frame == testMessage2_ || frame == testMessage3_;
 

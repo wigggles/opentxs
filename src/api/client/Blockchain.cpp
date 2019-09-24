@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -300,7 +300,7 @@ bool Blockchain::assign_transactions(
     auto threadExists{false};
     const auto threadList = api_.Storage().ThreadList(nymID.str(), false);
 
-    for (const auto it : threadList) {
+    for (const auto& it : threadList) {
         const auto& id = it.first;
 
         if (id == contactID.str()) { threadExists = true; }
@@ -331,7 +331,7 @@ bool Blockchain::assign_transactions(
         auto exists{false};
 
         if (thread) {
-            for (const auto activity : thread->item()) {
+            for (const auto& activity : thread->item()) {
                 if (txid.compare(activity.id()) == 0) { exists = true; }
             }
         }
@@ -483,8 +483,6 @@ Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
             OT_FAIL;
         }
     }
-
-    return {};
 }
 
 std::string Blockchain::CalculateAddress(
@@ -799,19 +797,19 @@ Blockchain::ParsedTransaction Blockchain::parse_transaction(
         }
     }
 
-    for (const auto& output : tx.output()) {
-        const auto& sKey = output.key();
-        const auto coin = blockchain::Coin{txid, output.index()};
+    for (const auto& txout : tx.output()) {
+        const auto& sKey = txout.key();
+        const auto coin = blockchain::Coin{txid, txout.index()};
 
-        if (output.has_key()) {
+        if (txout.has_key()) {
             const auto key = blockchain::Key{
                 sKey.subaccount(),
                 static_cast<blockchain::Subchain>(sKey.subchain()),
                 sKey.index()};
             unspent.emplace_back(
-                blockchain::Activity{coin, key, output.value()});
+                blockchain::Activity{coin, key, txout.value()});
         } else {
-            const auto& external = output.external();
+            const auto& external = txout.external();
 
             switch (external.type()) {
                 case proto::BTOUTPUT_P2PK:
@@ -939,7 +937,7 @@ bool Blockchain::update_transactions(
     Lock nymLock(nym_lock_[nym]);
     auto output{true};
 
-    for (const auto it : transactions) {
+    for (const auto& it : transactions) {
         const auto& txid = it.first;
         const auto contacts = it.second;
         const auto pTransaction = Transaction(txid);

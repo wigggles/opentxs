@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -95,7 +95,7 @@ HDKey Deterministic::instantiate_key(const api::Core& api, proto::HDPath& path)
 
     auto pKey = api.Seeds().GetHDKey(
         fingerprint,
-        EcdsaCurve::SECP256K1,
+        EcdsaCurve::secp256k1,
         children,
         reason,
         proto::KEYROLE_SIGN,
@@ -105,7 +105,7 @@ HDKey Deterministic::instantiate_key(const api::Core& api, proto::HDPath& path)
 
     path.set_root(fingerprint);
 
-    return pKey;
+    return std::move(pKey);
 }
 
 std::optional<Bip32Index> Deterministic::LastGenerated(
@@ -153,7 +153,7 @@ HDKey Deterministic::RootNode(const PasswordPrompt& reason) const noexcept
 
     return api_.Seeds().GetHDKey(
         fingerprint,
-        EcdsaCurve::SECP256K1,
+        EcdsaCurve::secp256k1,
         path,
         reason,
         proto::KEYROLE_SIGN,

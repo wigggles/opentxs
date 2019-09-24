@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -76,7 +76,7 @@ public:
     operator bool() const override;
     bool operator==(const proto::AsymmetricKey&) const override;
 
-    virtual ~Asymmetric();
+    ~Asymmetric() override;
 
 protected:
     friend OTAsymmetricKey;
@@ -88,7 +88,6 @@ protected:
     const proto::KeyRole role_;
     bool has_public_{false};
     bool has_private_{false};
-    Timer m_timer;
     OTSignatureMetadata* m_pMetadata{nullptr};
 
     virtual bool get_public_key(String& strKey) const = 0;

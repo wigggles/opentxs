@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,9 +13,6 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#if OT_CRYPTO_USING_LIBBITCOIN
-#include "opentxs/crypto/library/Bitcoin.hpp"
-#endif
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/Ripemd160.hpp"
@@ -40,7 +37,7 @@ api::crypto::Hash* Factory::Hash(
     const api::crypto::Encode& encode,
     const crypto::HashingProvider& ssl,
     const crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+#if OT_CRYPTO_USING_TREZOR
     ,
     const crypto::Ripemd160& bitcoin
 #endif
@@ -50,7 +47,7 @@ api::crypto::Hash* Factory::Hash(
         encode,
         ssl,
         sodium
-#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+#if OT_CRYPTO_USING_TREZOR
         ,
         bitcoin
 #endif
@@ -64,7 +61,7 @@ Hash::Hash(
     const api::crypto::Encode& encode,
     const opentxs::crypto::HashingProvider& ssl,
     const opentxs::crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+#if OT_CRYPTO_USING_TREZOR
     ,
     const opentxs::crypto::Ripemd160& bitcoin
 #endif
@@ -72,7 +69,7 @@ Hash::Hash(
     : encode_(encode)
     , ssl_(ssl)
     , sodium_(sodium)
-#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+#if OT_CRYPTO_USING_TREZOR
     , bitcoin_(bitcoin)
 #endif
 {
@@ -80,11 +77,7 @@ Hash::Hash(
 
 const opentxs::crypto::HashingProvider& Hash::SHA2() const noexcept
 {
-#if OT_CRYPTO_SHA2_VIA_OPENSSL
-    return ssl_;
-#else
     return sodium_;
-#endif
 }
 
 const opentxs::crypto::HashingProvider& Hash::Sodium() const noexcept
@@ -121,10 +114,7 @@ bool Hash::Digest(
             return Sodium().Digest(hashType, input, inputSize, output);
         }
         case (proto::HASHTYPE_RIMEMD160): {
-#if OT_CRYPTO_USING_LIBBITCOIN
-            return dynamic_cast<const opentxs::crypto::Bitcoin&>(bitcoin_)
-                .RIPEMD160(input, inputSize, output);
-#elif OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR
             return dynamic_cast<const opentxs::crypto::Trezor&>(bitcoin_)
                 .RIPEMD160(input, inputSize, output);
 #endif

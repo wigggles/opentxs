@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -127,11 +127,8 @@ Manager::Manager(
     , reason_(factory_.PasswordPrompt("Notary operation"))
     , server_p_(new opentxs::server::Server(*this, reason_))
     , server_(*server_p_)
-    , message_processor_p_(new opentxs::server::MessageProcessor(
-          server_,
-          reason_,
-          context,
-          running_))
+    , message_processor_p_(
+          new opentxs::server::MessageProcessor(server_, reason_, running_))
     , message_processor_(*message_processor_p_)
 #if OT_CASH
     , mint_thread_()

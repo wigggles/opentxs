@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,7 +15,7 @@
 
 namespace opentxs
 {
-class OutBailmentRequest : public PeerRequest
+class OutBailmentRequest final : public PeerRequest
 {
 private:
     using ot_super = PeerRequest;
@@ -25,7 +25,7 @@ private:
     OTServerID server_;
     Amount amount_{0};
 
-    proto::PeerRequest IDVersion(const Lock& lock) const override;
+    proto::PeerRequest IDVersion(const Lock& lock) const final;
 
     OutBailmentRequest(
         const api::Core& api,
@@ -42,7 +42,7 @@ private:
     OutBailmentRequest() = delete;
 
 public:
-    ~OutBailmentRequest() = default;
+    ~OutBailmentRequest() final = default;
 };
 }  // namespace opentxs
 #endif

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -260,8 +260,8 @@ std::unique_ptr<api::internal::Factory> Core::make_factory(
 OTSymmetricKey Core::make_master_key(
     const api::internal::Context& parent,
     const api::Factory& factory,
-    const proto::Ciphertext& encrypted_secret_,
-    std::unique_ptr<OTPassword>& master_secret_,
+    const proto::Ciphertext& encrypted_secret,
+    std::unique_ptr<OTPassword>& master_secret,
     const api::crypto::Symmetric& symmetric,
     const api::storage::Storage& storage)
 {
@@ -270,7 +270,7 @@ OTSymmetricKey Core::make_master_key(
 
     OT_ASSERT(nullptr != external_password_callback_);
 
-    auto& encrypted = const_cast<proto::Ciphertext&>(encrypted_secret_);
+    auto& encrypted = const_cast<proto::Ciphertext&>(encrypted_secret);
     std::shared_ptr<proto::Ciphertext> existing{};
     const auto have = storage.Load(existing, true);
 
@@ -280,11 +280,11 @@ OTSymmetricKey Core::make_master_key(
         return symmetric.Key(existing->key(), proto::SMODE_CHACHA20POLY1305);
     }
 
-    master_secret_ = std::make_unique<OTPassword>();
+    master_secret = std::make_unique<OTPassword>();
 
-    OT_ASSERT(master_secret_);
+    OT_ASSERT(master_secret);
 
-    master_secret_->randomizeMemory(32);
+    master_secret->randomizeMemory(32);
 
     auto reason = factory.PasswordPrompt("Choose a master password");
     OTPassword masterPassword{};
@@ -293,7 +293,7 @@ OTSymmetricKey Core::make_master_key(
     auto output = symmetric.Key(reason, proto::SMODE_CHACHA20POLY1305);
     auto iv = Data::Factory();
     auto saved = output->Encrypt(
-        *master_secret_,
+        *master_secret,
         iv,
         reason,
         encrypted,

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 The Open-Transactions developers
+// Copyright (c) 2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,7 +7,6 @@
 
 #include "opentxs/core/NumList.hpp"
 
-#include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -25,29 +24,39 @@
 
 namespace opentxs
 {
+NumList::NumList()
+    : m_setData()
+{
+}
 
-NumList::NumList(const std::set<std::int64_t>& theNumbers) { Add(theNumbers); }
+NumList::NumList(const std::set<std::int64_t>& theNumbers)
+    : NumList()
+{
+    Add(theNumbers);
+}
 
 NumList::NumList(std::set<std::int64_t>&& theNumbers)
     : m_setData(std::move(theNumbers))
 {
 }
 
-NumList::NumList(std::int64_t lInput) { Add(lInput); }
+NumList::NumList(std::int64_t lInput)
+    : NumList()
+{
+    Add(lInput);
+}
 
-// removed, security reasons.
-// OTNumList::OTNumList(const char* szNumbers)
-//{
-//    Add(szNumbers);
-//}
+NumList::NumList(const String& strNumbers)
+    : NumList()
+{
+    Add(strNumbers);
+}
 
-NumList::NumList(const String& strNumbers) { Add(strNumbers); }
-
-NumList::NumList(const std::string& strNumbers) { Add(strNumbers); }
-
-NumList::NumList() {}
-
-NumList::~NumList() {}
+NumList::NumList(const std::string& strNumbers)
+    : NumList()
+{
+    Add(strNumbers);
+}
 
 bool NumList::Add(const String& strNumbers)  // if false, means the numbers
                                              // were already there. (At least
