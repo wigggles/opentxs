@@ -484,6 +484,9 @@ struct HDIndex {
     }
 };
 
+template <typename Bip43Purpose>
+HDIndex(const Bip43Purpose, const Bip32Child)->HDIndex<Bip43Purpose>;
+
 template <typename T>
 struct make_blank {
     static T value() { return T{}; }

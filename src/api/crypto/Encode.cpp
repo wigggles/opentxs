@@ -24,7 +24,7 @@
 
 #include "Encode.hpp"
 
-#define OT_METHOD opentxs::api::crypto::implementation::Encode::
+// #define OT_METHOD opentxs::api::crypto::implementation::Encode::
 
 namespace opentxs
 {
