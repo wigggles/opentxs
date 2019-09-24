@@ -191,9 +191,9 @@ private:
     static const OTString m_strPathSeparator;
 
     const api::Settings& config_;
-    std::int32_t m_nLogLevel{0};
-    bool m_bInitialized{false};
-    bool write_log_file_{false};
+    std::int32_t m_nLogLevel;
+    bool m_bInitialized;
+    bool write_log_file_;
     OTString m_strLogFileName;
     OTString m_strLogFilePath;
     std::recursive_mutex lock_;

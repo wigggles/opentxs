@@ -64,10 +64,10 @@ protected:
     // Construction -- Destruction
 public:
     OTScript();
-    OTScript(const String& strValue);
-    OTScript(const char* new_string);
+    explicit OTScript(const String& strValue);
+    explicit OTScript(const char* new_string);
+    explicit OTScript(const std::string& new_string);
     OTScript(const char* new_string, size_t sizeLength);
-    OTScript(const std::string& new_string);
 
     virtual ~OTScript();
 

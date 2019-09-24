@@ -59,6 +59,7 @@ ContactItem::ContactItem(const ContactItem& rhs)
     , end_(rhs.end_)
     , attributes_(rhs.attributes_)
     , id_(rhs.id_)
+    , subtype_(rhs.subtype_)
 {
 }
 

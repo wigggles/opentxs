@@ -19,6 +19,9 @@ Txos::Txos(
     const opentxs::api::storage::Driver& storage,
     const std::string& hash) noexcept
     : Node(storage, hash)
+    , txos_()
+    , element_index_()
+    , txid_index_()
 {
     if (check_hash(hash)) {
         init(hash);

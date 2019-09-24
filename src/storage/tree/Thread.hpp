@@ -30,11 +30,10 @@ private:
 
     std::string id_;
     std::string alias_;
-    std::size_t index_{0};
+    std::size_t index_;
     Mailbox& mail_inbox_;
     Mailbox& mail_outbox_;
     std::map<std::string, proto::StorageThreadItem> items_;
-
     // It's important to use a sorted container for this so the thread ID can be
     // calculated deterministically
     std::set<std::string> participants_;

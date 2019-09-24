@@ -35,6 +35,8 @@ struct Test_Symmetric : public ::testing::Test {
     Test_Symmetric()
         : api_(opentxs::Context().StartClient(args_, 0))
         , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
+        , alice_()
+        , bob_()
     {
         if (false == init_) { init(); }
 

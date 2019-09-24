@@ -222,8 +222,8 @@ private:
 
     OTString marketOffer_;  // The market offer associated with this trade.
 
-    EXPORT OTTrade(const api::Core& core);
-    EXPORT OTTrade(
+    OTTrade(const api::Core& core);
+    OTTrade(
         const api::Core& core,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
@@ -231,6 +231,10 @@ private:
         const identifier::Nym& nymID,
         const identifier::UnitDefinition& currencyId,
         const Identifier& currencyAcctId);
+    OTTrade(const OTTrade&) = delete;
+    OTTrade(OTTrade&&) = delete;
+    OTTrade& operator=(const OTTrade&) = delete;
+    OTTrade& operator=(OTTrade&&) = delete;
 
     OTTrade() = delete;
 };

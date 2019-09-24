@@ -52,7 +52,7 @@ UnitDefinition::UnitDefinition(
     : ot_super(nym)
     , primary_unit_name_(name)
     , short_name_(shortname)
-    , api_{api}
+    , api_(api)
     , primary_unit_symbol_(symbol)
 {
     version_ = 1;
@@ -64,7 +64,10 @@ UnitDefinition::UnitDefinition(
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
     : ot_super(nym)
-    , api_{api}
+    , primary_unit_name_()
+    , short_name_()
+    , api_(api)
+    , primary_unit_symbol_()
 {
     if (serialized.has_id()) { id_ = Identifier::Factory(serialized.id()); }
     if (serialized.has_signature()) {

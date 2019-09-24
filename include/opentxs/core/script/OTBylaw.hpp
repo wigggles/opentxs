@@ -55,6 +55,11 @@ class OTBylaw
 
     OTScriptable* m_pOwnerAgreement;  // This Bylaw is owned by an agreement
                                       // (OTScriptable-derived.)
+    OTBylaw(const OTBylaw&) = delete;
+    OTBylaw(OTBylaw&&) = delete;
+    OTBylaw& operator=(const OTBylaw&) = delete;
+    OTBylaw& operator=(OTBylaw&&) = delete;
+
 public:
     EXPORT const String& GetName() const { return m_strName; }
     EXPORT const char* GetLanguage() const;

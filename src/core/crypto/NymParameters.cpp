@@ -18,12 +18,54 @@
 
 namespace opentxs
 {
+NymParameters::NymParameters()
+    : sourceType_(proto::SOURCETYPE_PUBKEY)
+    , sourceProofType_(proto::SOURCEPROOFTYPE_SELF_SIGNATURE)
+    , contact_data_()
+    , verification_set_()
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    , nymType_(NymParameterType::ed25519)
+#elif OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    , nymType_(NymParameterType::SECP256K1)
+#elif OT_CRYPTO_SUPPORTED_KEY_RSA
+    , nymType_(NymParameterType::RSA)
+#else
+    , nymType_(NymParameterType::ERROR)
+#endif
+    , credentialType_()
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    , entropy_()
+    , seed_()
+    , nym_(0)
+    , credset_(0)
+    , cred_index_(0)
+    , default_(true)
+    , use_auto_index_(false)
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    , nBits_(1024)
+#endif
+{
+}
+
 NymParameters::NymParameters(proto::CredentialType theCredentialtype)
+    : NymParameters()
 {
     setCredentialType(theCredentialtype);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+NymParameters::NymParameters(const std::int32_t keySize)
+    : NymParameters()
+{
+    nymType_ = NymParameterType::rsa;
+    credentialType_ = proto::CREDTYPE_LEGACY;
+    nBits_ = keySize;
+}
+#endif
+
 NymParameters::NymParameters(const NymParameters& rhs)
+    : NymParameters()
 {
     sourceType_ = rhs.sourceType_;
     sourceProofType_ = rhs.sourceProofType_;
@@ -39,6 +81,8 @@ NymParameters::NymParameters(const NymParameters& rhs)
     nym_ = rhs.nym_;
     credset_ = rhs.credset_;
     cred_index_ = rhs.cred_index_;
+    default_ = rhs.default_;
+    use_auto_index_ = rhs.use_auto_index_;
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     nBits_ = rhs.nBits_;
@@ -121,13 +165,6 @@ void NymParameters::SetVerificationSet(
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-NymParameters::NymParameters(const std::int32_t keySize)
-    : nymType_(NymParameterType::rsa)
-    , credentialType_(proto::CREDTYPE_LEGACY)
-    , nBits_(keySize)
-{
-}
-
 std::int32_t NymParameters::keySize() { return nBits_; }
 
 void NymParameters::setKeySize(std::int32_t keySize) { nBits_ = keySize; }

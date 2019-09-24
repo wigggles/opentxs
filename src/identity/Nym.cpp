@@ -149,7 +149,7 @@ Nym::Nym(
     const opentxs::PasswordPrompt& reason)
     : Nym(api, api.Factory().NymID(), proto::CREDINDEX_PRIVATE, DefaultVersion)
 {
-    NymParameters revisedParameters = nymParameters;
+    auto revisedParameters{nymParameters};
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredset(index_++);
     Bip32Index nymIndex = 0;

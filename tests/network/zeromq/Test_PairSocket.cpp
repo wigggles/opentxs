@@ -32,6 +32,10 @@ public:
         , pairSocket_(nullptr)
     {
     }
+    Test_PairSocket(const Test_PairSocket&) = delete;
+    Test_PairSocket(Test_PairSocket&&) = delete;
+    Test_PairSocket& operator=(const Test_PairSocket&) = delete;
+    Test_PairSocket& operator=(Test_PairSocket&&) = delete;
 };
 
 void Test_PairSocket::pairSocketThread(const std::string& message)

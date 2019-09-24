@@ -67,6 +67,7 @@ Primary::Primary(
     const proto::Credential& serialized)
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Key(api, reason, theOwner, serialized)
+    , source_proof_()
 {
     role_ = proto::CREDROLE_MASTERKEY;
     auto source = std::make_shared<NymIDSource>(
@@ -89,6 +90,7 @@ Primary::Primary(
           nymParameters,
           version,
           reason)
+    , source_proof_()
 {
     role_ = proto::CREDROLE_MASTERKEY;
 

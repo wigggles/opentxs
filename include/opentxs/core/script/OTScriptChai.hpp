@@ -29,7 +29,6 @@ class ChaiScript;
 
 namespace opentxs
 {
-
 class OTScriptChai final : public OTScript
 {
 public:
@@ -43,6 +42,12 @@ public:
 
     bool ExecuteScript(OTVariable* pReturnVar = nullptr) final;
     chaiscript::ChaiScript* const chai_{nullptr};
+
+private:
+    OTScriptChai(const OTScriptChai&) = delete;
+    OTScriptChai(OTScriptChai&&) = delete;
+    OTScriptChai& operator=(const OTScriptChai&) = delete;
+    OTScriptChai& operator=(OTScriptChai&&) = delete;
 };
 }  // namespace opentxs
 #endif  // OT_SCRIPT_CHAI

@@ -219,9 +219,13 @@ struct User {
         , api_(nullptr)
         , init_(false)
         , seed_id_()
+        , index_()
         , id_()
         , nym_id_(ot::identifier::Nym::Factory())
+        , payment_code_()
+        , lock_()
         , contacts_()
+        , accounts_()
     {
     }
 
@@ -229,6 +233,11 @@ private:
     mutable std::mutex lock_;
     mutable std::map<std::string, ot::OTIdentifier> contacts_;
     mutable std::map<std::string, ot::OTIdentifier> accounts_;
+
+    User(const User&) = delete;
+    User(User&&) = delete;
+    User& operator=(const User&) = delete;
+    User& operator=(User&&) = delete;
 };
 
 struct Callbacks {
@@ -283,6 +292,7 @@ struct Callbacks {
         : callback_lock_()
         , callback_(ot::network::zeromq::ListenCallback::Factory(
               [this](const auto& incoming) -> void { callback(incoming); }))
+        , map_lock_()
         , name_(name)
         , widget_map_()
         , ui_names_()

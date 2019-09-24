@@ -57,6 +57,11 @@ public:
         mapping[name] = std::unique_ptr<OTMessageStrategy>(strategy);
     }
 
+    OTMessageStrategyManager()
+        : mapping()
+    {
+    }
+
 private:
     std::unordered_map<std::string, std::unique_ptr<OTMessageStrategy>> mapping;
 };

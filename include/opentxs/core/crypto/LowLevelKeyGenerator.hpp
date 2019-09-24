@@ -58,7 +58,7 @@ private:
 public:
     /** By default, LowLevelKeyGenerator cleans up the members. But if you set
      * this to false, it will NOT cleanup. */
-    bool m_bCleanup = true;
+    bool m_bCleanup;
 
     LowLevelKeyGenerator(const api::Core& api, const NymParameters& pkeyData);
 

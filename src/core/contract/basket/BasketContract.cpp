@@ -23,6 +23,8 @@ BasketContract::BasketContract(
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
     : ot_super(api, nym, serialized)
+    , subcontracts_()
+    , weight_(0)
 {
     if (serialized.has_basket()) {
 
@@ -46,6 +48,7 @@ BasketContract::BasketContract(
     const std::string& terms,
     const std::uint64_t weight)
     : ot_super(api, nym, shortname, name, symbol, terms)
+    , subcontracts_()
     , weight_(weight)
 {
 }

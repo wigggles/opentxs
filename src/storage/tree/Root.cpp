@@ -38,9 +38,17 @@ Root::Root(
     Flag& bucket)
     : ot_super(storage, hash)
     , gc_interval_(interval)
+    , gc_root_()
     , current_bucket_(bucket)
     , gc_running_(Flag::Factory(false))
     , gc_resume_(Flag::Factory(false))
+    , last_gc_()
+    , sequence_()
+    , gc_lock_()
+    , gc_thread_()
+    , tree_root_()
+    , tree_lock_()
+    , tree_()
 {
     if (check_hash(hash)) {
         init(hash);

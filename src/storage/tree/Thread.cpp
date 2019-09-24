@@ -33,6 +33,7 @@ Thread::Thread(
     , index_(0)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
+    , items_()
     , participants_()
 {
     if (check_hash(hash)) {
@@ -50,8 +51,11 @@ Thread::Thread(
     Mailbox& mailOutbox)
     : Node(storage, Node::BLANK_HASH)
     , id_(id)
+    , alias_()
+    , index_(0)
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
+    , items_()
     , participants_(participants)
 {
     blank(1);

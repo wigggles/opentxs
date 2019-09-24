@@ -90,6 +90,8 @@ MessageProcessor::MessageProcessor(
     , counter_lock_()
     , drop_incoming_(0)
     , drop_outgoing_(0)
+    , active_connections_()
+    , connection_map_lock_()
 {
     auto bound = backend_socket_->Start(internal_endpoint_);
     bound &= internal_socket_->Start(internal_endpoint_);

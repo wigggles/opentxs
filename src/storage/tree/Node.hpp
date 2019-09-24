@@ -171,11 +171,9 @@ protected:
     static const std::string BLANK_HASH;
 
     const opentxs::api::storage::Driver& driver_;
-
-    VersionNumber version_{0};
-    VersionNumber original_version_{0};
+    VersionNumber version_;
+    VersionNumber original_version_;
     mutable std::string root_;
-
     mutable std::mutex write_lock_;
     mutable Index item_map_;
 

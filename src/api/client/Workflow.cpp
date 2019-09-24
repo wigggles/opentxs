@@ -424,6 +424,7 @@ Workflow::Workflow(
     , account_publisher_(api_.ZeroMQ().PublishSocket())
     , rpc_publisher_(
           api_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
+    , workflow_locks_()
 {
     // WARNING: do not access api_.Wallet() during construction
     const auto endpoint = api_.Endpoints().WorkflowAccountUpdate();

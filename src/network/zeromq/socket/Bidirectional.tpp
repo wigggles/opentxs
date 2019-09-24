@@ -39,9 +39,13 @@ Bidirectional<InterfaceType, MessageType>::Bidirectional(
     const zeromq::Context& context,
     const bool startThread) noexcept
     : bidirectional_start_thread_(startThread)
-    , endpoint_{Socket::random_inproc_endpoint()}
-    , push_socket_{zmq_socket(context, ZMQ_PUSH)}
-    , pull_socket_{zmq_socket(context, ZMQ_PULL)}
+    , endpoint_(Socket::random_inproc_endpoint())
+    , push_socket_(zmq_socket(context, ZMQ_PUSH))
+    , pull_socket_(zmq_socket(context, ZMQ_PULL))
+    , linger_(0)
+    , send_timeout_(-1)
+    , receive_timeout_(-1)
+    , send_lock_()
 {
 }
 

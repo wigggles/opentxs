@@ -25,6 +25,11 @@ public:
 
 private:
     OTCallback* callback_{nullptr};
+
+    OTCaller(const OTCaller&) = delete;
+    OTCaller(OTCaller&&) = delete;
+    OTCaller& operator=(const OTCaller&) = delete;
+    OTCaller& operator=(OTCaller&&) = delete;
 };
 }  // namespace opentxs
 #endif

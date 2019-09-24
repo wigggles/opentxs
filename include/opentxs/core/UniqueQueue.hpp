@@ -135,10 +135,22 @@ public:
         return queue_.size();
     }
 
+    UniqueQueue() noexcept
+        : lock_()
+        , queue_()
+        , set_()
+    {
+    }
+
 private:
     mutable std::mutex lock_;
     mutable std::deque<std::pair<Key, T>> queue_;
     mutable std::set<T> set_;
+
+    UniqueQueue(const UniqueQueue&) = delete;
+    UniqueQueue(UniqueQueue&&) = delete;
+    UniqueQueue& operator=(const UniqueQueue&) = delete;
+    UniqueQueue& operator=(UniqueQueue&&) = delete;
 };
 }  // namespace opentxs
 #endif

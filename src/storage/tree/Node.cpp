@@ -19,7 +19,11 @@ const std::string Node::BLANK_HASH = "blankblankblankblankblank";
 
 Node::Node(const opentxs::api::storage::Driver& storage, const std::string& key)
     : driver_(storage)
+    , version_(0)
+    , original_version_(0)
     , root_(key)
+    , write_lock_()
+    , item_map_()
 {
 }
 

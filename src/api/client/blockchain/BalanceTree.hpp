@@ -162,6 +162,12 @@ private:
 
         void Add(const std::string& id, internal::BalanceNode* node) noexcept;
 
+        NodeIndex() noexcept
+            : lock_()
+            , index_()
+        {
+        }
+
     private:
         mutable std::mutex lock_;
         std::map<std::string, internal::BalanceNode*> index_;

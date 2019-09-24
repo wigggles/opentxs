@@ -53,11 +53,11 @@ private:
     static const VersionNumber MergeIndexVersion{1};
     static const VersionNumber NymIndexVersion{1};
 
-    mutable std::map<Address, std::string> address_index_{};
+    mutable std::map<Address, std::string> address_index_;
     mutable std::map<std::string, std::set<Address>> address_reverse_index_;
-    std::map<std::string, std::set<std::string>> merge_{};
-    std::map<std::string, std::string> merged_{};
-    mutable std::map<std::string, std::string> nym_contact_index_{};
+    std::map<std::string, std::set<std::string>> merge_;
+    std::map<std::string, std::string> merged_;
+    mutable std::map<std::string, std::string> nym_contact_index_;
 
     void extract_addresses(
         const Lock& lock,

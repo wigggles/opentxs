@@ -178,6 +178,10 @@ private:
     SharedAccount get_account(const PasswordPrompt& reason) const;
 
     OTPartyAccount() = delete;
+    OTPartyAccount(const OTPartyAccount&) = delete;
+    OTPartyAccount(OTPartyAccount&&) = delete;
+    OTPartyAccount& operator=(const OTPartyAccount&) = delete;
+    OTPartyAccount& operator=(OTPartyAccount&&) = delete;
 };
 }  // namespace opentxs
 #endif

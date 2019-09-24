@@ -38,12 +38,10 @@ typedef std::map<TransactionNumber, std::shared_ptr<OTTransaction>>
 class Ledger : public OTTransactionType
 {
 public:
-    ledgerType m_Type{ledgerType::error_state};
-
-    bool m_bLoadedLegacyData{false};  // So the server can tell if it just
-                                      // loaded a legacy box or a hashed box.
-                                      // (Legacy boxes stored ALL of the
-                                      // receipts IN the box. No more.)
+    ledgerType m_Type;
+    // So the server can tell if it just loaded a legacy box or a hashed box.
+    // (Legacy boxes stored ALL of the receipts IN the box. No more.)
+    bool m_bLoadedLegacyData;
 
     inline ledgerType GetType() const { return m_Type; }
 

@@ -64,6 +64,11 @@ private:
                                    // destructs, it will remove itself from the
                                    // script.
 
+    OTVariable(const OTVariable&) = delete;
+    OTVariable(OTVariable&&) = delete;
+    OTVariable& operator=(const OTVariable&) = delete;
+    OTVariable& operator=(OTVariable&&) = delete;
+
 public:
     EXPORT void RegisterForExecution(OTScript& theScript);  // We keep an
                                                             // internal script

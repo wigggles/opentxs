@@ -60,6 +60,10 @@ private:
         const api::crypto::Util& ssl,
         const crypto::EcdsaProvider& ecdsa);
     Secp256k1() = delete;
+    Secp256k1(const Secp256k1&) = delete;
+    Secp256k1(Secp256k1&&) = delete;
+    Secp256k1& operator=(const Secp256k1&) = delete;
+    Secp256k1& operator=(Secp256k1&&) = delete;
 };
 }  // namespace opentxs::crypto::implementation
 #endif  // OT_CRYPTO_USING_LIBSECP256K1

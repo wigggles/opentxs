@@ -77,6 +77,7 @@ Ledger::Ledger(
     : OTTransactionType(core, theNymID, theAccountID, theNotaryID)
     , m_Type(ledgerType::message)
     , m_bLoadedLegacyData(false)
+    , m_mapTransactions()
 {
     InitLedger();
 }
@@ -93,9 +94,9 @@ Ledger::Ledger(
     : OTTransactionType(core)
     , m_Type(ledgerType::message)
     , m_bLoadedLegacyData(false)
+    , m_mapTransactions()
 {
     InitLedger();
-
     SetRealAccountID(theAccountID);
     SetRealNotaryID(theNotaryID);
 }
@@ -105,6 +106,7 @@ Ledger::Ledger(const api::Core& core)
     : OTTransactionType(core)
     , m_Type(ledgerType::message)
     , m_bLoadedLegacyData(false)
+    , m_mapTransactions()
 {
     InitLedger();
 }

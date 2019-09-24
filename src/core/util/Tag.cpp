@@ -73,19 +73,25 @@ void Tag::add_tag(
 
 Tag::Tag(const std::string& str_name)
     : name_(str_name)
+    , text_()
+    , attributes_()
+    , tags_()
 {
 }
 
 Tag::Tag(const std::string& str_name, const std::string& str_text)
     : name_(str_name)
     , text_(str_text)
+    , attributes_()
+    , tags_()
 {
 }
 
 Tag::Tag(const std::string& str_name, const char* sztext)
     : name_(str_name)
     , text_(sztext)
+    , attributes_()
+    , tags_()
 {
 }
-
 }  // namespace opentxs

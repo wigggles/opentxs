@@ -186,7 +186,7 @@ extern OTDB::mapOfFunctions* pFunctionMap;  // This is a pointer so I can
 class IStorable
 {
 public:
-    virtual ~IStorable() {}
+    virtual ~IStorable() = default;
 
     // buffer is output, inObj is input.
     virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj) = 0;
@@ -204,7 +204,7 @@ public:
 };
 
 #define DEFINE_OT_DYNAMIC_CAST(CLASS_NAME)                                     \
-    virtual CLASS_NAME* clone() const                                          \
+    CLASS_NAME* clone() const override                                         \
     {                                                                          \
         std::cout                                                              \
             << "********* THIS SHOULD NEVER HAPPEN!!!!! *****************"     \
@@ -231,7 +231,7 @@ protected:
     std::string m_Type;
 
 public:
-    virtual ~Storable() {}
+    virtual ~Storable() = default;
 
     // %ignore spam(uint16_t); API users don't need this function, it's for
     // internal purposes.
@@ -239,15 +239,11 @@ public:
         StoredObjectType eType,
         PackType thePackType);
 
-#if !defined(__clang__) && !defined(_WIN32)
-// -Wuseless-cast does not exist in clang
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuseless-cast"
-    DEFINE_OT_DYNAMIC_CAST(Storable)
-#pragma GCC diagnostic pop
-#else
-    DEFINE_OT_DYNAMIC_CAST(Storable)
-#endif
+    virtual Storable* clone() const = 0;
+    static Storable* ot_dynamic_cast(Storable* pObject)
+    {
+        return dynamic_cast<Storable*>(pObject);
+    }
 };
 
 // PACKED BUFFER (for storing PACKED DATA)
@@ -258,9 +254,10 @@ public:
 class PackedBuffer
 {
 protected:
-    PackedBuffer() {}  // Only subclasses of this should be instantiated.
+    PackedBuffer() = default;  // Only subclasses of this should be
+                               // instantiated.
 public:
-    virtual ~PackedBuffer() {}
+    virtual ~PackedBuffer() = default;
 
     virtual bool PackString(const std::string& theString) = 0;
     virtual bool UnpackString(std::string& theString) = 0;
@@ -285,10 +282,10 @@ public:
 class OTPacker
 {
 protected:
-    OTPacker() {}
+    OTPacker() = default;
 
 public:
-    virtual ~OTPacker() {}
+    virtual ~OTPacker() = default;
 
     static OTPacker* Create(PackType ePackType);
 
@@ -313,9 +310,9 @@ public:
         : OTPacker()
     {
     }
-    virtual ~PackerSubclass() {}
+    ~PackerSubclass() override = default;
 
-    virtual PackedBuffer* CreateBuffer() { return new theBufferType; }
+    PackedBuffer* CreateBuffer() override { return new theBufferType; }
 
     // You don't see onPack and onUnpack here because they are on IStorable.
 };
@@ -337,6 +334,10 @@ class Storage
 {
 private:
     OTPacker* m_pPacker{nullptr};
+
+    Storage(Storage&&) = delete;
+    Storage& operator=(const Storage&) = delete;
+    Storage& operator=(Storage&&) = delete;
 
 protected:
     Storage()
@@ -683,6 +684,7 @@ class OTDBString : public Storable
 protected:
     OTDBString()
         : Storable()
+        , m_string()
     {
         m_Type = "OTDBString";
     }
@@ -694,7 +696,7 @@ protected:
     }
 
 public:
-    virtual ~OTDBString() {}
+    ~OTDBString() override = default;
 
     std::string m_string;
 
@@ -709,12 +711,13 @@ class Blob : public Storable
 protected:
     Blob()
         : Storable()
+        , m_memBuffer()
     {
         m_Type = "Blob";
     }
 
 public:
-    virtual ~Blob() {}
+    ~Blob() override = default;
 
     std::vector<std::uint8_t> m_memBuffer;  // Where the actual binary data is
                                             // stored,
@@ -733,12 +736,13 @@ class StringMap : public Storable
 protected:
     StringMap()
         : Storable()
+        , the_map()
     {
         m_Type = "StringMap";
     }
 
 public:
-    virtual ~StringMap() {}
+    ~StringMap() override = default;
 
     std::map<std::string, std::string> the_map;
 
@@ -768,12 +772,13 @@ class Displayable : public Storable
 protected:
     Displayable()
         : Storable()
+        , gui_label()
     {
         m_Type = "Displayable";
     }
 
 public:
-    virtual ~Displayable() {}
+    ~Displayable() override = default;
 
     std::string gui_label;  // The label that appears in the GUI
 
@@ -788,9 +793,14 @@ class MarketData : public Displayable
 protected:
     MarketData()
         : Displayable()
+        , notary_id()
+        , market_id()
+        , instrument_definition_id()
+        , currency_type_id()
         , scale("0")
         , total_assets("0")
         , number_bids("0")
+        , number_asks()
         , last_sale_price("0")
         , current_bid("0")
         , current_ask("0")
@@ -805,7 +815,7 @@ protected:
     }
 
 public:
-    virtual ~MarketData() {}
+    ~MarketData() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -860,12 +870,13 @@ class MarketList : public Storable
 protected:
     MarketList()
         : Storable()
+        , list_MarketDatas()
     {
         m_Type = "MarketList";
     }
 
 public:
-    virtual ~MarketList() {}
+    ~MarketList() override = default;
 
     DECLARE_GET_ADD_REMOVE(MarketData);
 
@@ -890,7 +901,7 @@ protected:
     }
 
 public:
-    virtual ~OfferDataMarket() {}
+    ~OfferDataMarket() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -927,7 +938,7 @@ protected:
     }
 
 public:
-    virtual ~BidData() {}
+    ~BidData() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -953,7 +964,7 @@ protected:
     }
 
 public:
-    virtual ~AskData() {}
+    ~AskData() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -974,12 +985,14 @@ class OfferListMarket : public Storable
 protected:
     OfferListMarket()
         : Storable()
+        , list_BidDatas()
+        , list_AskDatas()
     {
         m_Type = "OfferListMarket";
     }
 
 public:
-    virtual ~OfferListMarket() {}
+    ~OfferListMarket() override = default;
 
     DECLARE_GET_ADD_REMOVE(BidData);
     DECLARE_GET_ADD_REMOVE(AskData);
@@ -1004,7 +1017,7 @@ protected:
     }
 
 public:
-    virtual ~TradeDataMarket() {}
+    ~TradeDataMarket() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1024,12 +1037,13 @@ class TradeListMarket : public Storable
 protected:
     TradeListMarket()
         : Storable()
+        , list_TradeDataMarkets()
     {
         m_Type = "TradeListMarket";
     }
 
 public:
-    virtual ~TradeListMarket() {}
+    ~TradeListMarket() override = default;
 
     DECLARE_GET_ADD_REMOVE(TradeDataMarket);
 
@@ -1046,6 +1060,11 @@ protected:
         : Displayable()
         , valid_from("0")
         , valid_to("0")
+        , notary_id()
+        , instrument_definition_id()
+        , asset_acct_id()
+        , currency_type_id()
+        , currency_acct_id()
         , selling(false)
         , scale("1")
         , price_per_scale("1")
@@ -1053,6 +1072,7 @@ protected:
         , total_assets("1")
         , finished_so_far("0")
         , minimum_increment("1")
+        , stop_sign()
         , stop_price("0")
         , date("0")
     {
@@ -1060,7 +1080,7 @@ protected:
     }
 
 public:
-    virtual ~OfferDataNym() {}
+    ~OfferDataNym() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1116,12 +1136,13 @@ class OfferListNym : public Storable
 protected:
     OfferListNym()
         : Storable()
+        , list_OfferDataNyms()
     {
         m_Type = "OfferListNym";
     }
 
 public:
-    virtual ~OfferListNym() {}
+    ~OfferListNym() override = default;
 
     DECLARE_GET_ADD_REMOVE(OfferDataNym);
 
@@ -1144,15 +1165,22 @@ protected:
         , updated_id("0")
         , offer_price("0")
         , finished_so_far("0")
+        , instrument_definition_id()
+        , currency_id()
         , currency_paid("0")
+        , asset_acct_id()
+        , currency_acct_id()
         , scale("1")
         , is_bid(true)
+        , asset_receipt()
+        , currency_receipt()
+        , final_receipt()
     {
         m_Type = "TradeDataNym";
     }
 
 public:
-    virtual ~TradeDataNym() {}
+    ~TradeDataNym() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1195,12 +1223,13 @@ class TradeListNym : public Storable
 protected:
     TradeListNym()
         : Storable()
+        , list_TradeDataNyms()
     {
         m_Type = "TradeListNym";
     }
 
 public:
-    virtual ~TradeListNym() {}
+    ~TradeListNym() override = default;
 
     DECLARE_GET_ADD_REMOVE(TradeDataNym);
 
@@ -1217,12 +1246,14 @@ class Acct : public Displayable
 protected:
     Acct()
         : Displayable()
+        , acct_id()
+        , notary_id()
     {
         m_Type = "Acct";
     }
 
 public:
-    virtual ~Acct() {}
+    ~Acct() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1240,12 +1271,13 @@ class BitcoinAcct : public Acct
 protected:
     BitcoinAcct()
         : Acct()
+        , bitcoin_acct_name()
     {
         m_Type = "BitcoinAcct";
     }
 
 public:
-    virtual ~BitcoinAcct() {}
+    ~BitcoinAcct() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1267,12 +1299,14 @@ class ServerInfo : public Displayable
 protected:
     ServerInfo()
         : Displayable()
+        , notary_id()
+        , server_type()
     {
         m_Type = "ServerInfo";
     }
 
 public:
-    virtual ~ServerInfo() {}
+    ~ServerInfo() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1290,12 +1324,14 @@ class Server : public ServerInfo
 protected:
     Server()
         : ServerInfo()
+        , server_host()
+        , server_port()
     {
         m_Type = "Server";
     }
 
 public:
-    virtual ~Server() {}
+    ~Server() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1316,12 +1352,14 @@ class BitcoinServer : public Server
 protected:
     BitcoinServer()
         : Server()
+        , bitcoin_username()
+        , bitcoin_password()
     {
         m_Type = "BitcoinServer";
     }
 
 public:
-    virtual ~BitcoinServer() {}
+    ~BitcoinServer() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1345,12 +1383,16 @@ class RippleServer : public Server
 protected:
     RippleServer()
         : Server()
+        , ripple_username()
+        , ripple_password()
+        , namefield_id()
+        , passfield_id()
     {
         m_Type = "RippleServer";
     }
 
 public:
-    virtual ~RippleServer() {}
+    ~RippleServer() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1377,12 +1419,14 @@ class LoomServer : public Server
 protected:
     LoomServer()
         : Server()
+        , loom_username()
+        , namefield_id()
     {
         m_Type = "LoomServer";
     }
 
 public:
-    virtual ~LoomServer() {}
+    ~LoomServer() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1407,12 +1451,17 @@ class ContactNym : public Displayable
 protected:
     ContactNym()
         : Displayable()
+        , nym_type()
+        , nym_id()
+        , public_key()
+        , memo()
+        , list_ServerInfos()
     {
         m_Type = "ContactNym";
     }
 
 public:
-    virtual ~ContactNym();
+    ~ContactNym() override;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1434,12 +1483,19 @@ class WalletData : public Storable
 protected:
     WalletData()
         : Storable()
+        , list_BitcoinServers()
+        , list_BitcoinAccts()
+        , list_RippleServers()
+        , list_LoomServers()
     {
         m_Type = "WalletData";
     }
 
 public:
-    virtual ~WalletData() { std::cout << "WalletData destructor" << std::endl; }
+    ~WalletData() override
+    {
+        std::cout << "WalletData destructor" << std::endl;
+    }
 
     // List of Bitcoin servers
     // List of Bitcoin accounts
@@ -1462,12 +1518,19 @@ class ContactAcct : public Displayable
 protected:
     ContactAcct()
         : Displayable()
+        , server_type()
+        , notary_id()
+        , instrument_definition_id()
+        , acct_id()
+        , nym_id()
+        , memo()
+        , public_key()
     {
         m_Type = "ContactAcct";
     }
 
 public:
-    virtual ~ContactAcct() {}
+    ~ContactAcct() override = default;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1490,12 +1553,18 @@ class Contact : public Displayable
 protected:
     Contact()
         : Displayable()
+        , contact_id()
+        , email()
+        , memo()
+        , public_key()
+        , list_ContactNyms()
+        , list_ContactAccts()
     {
         m_Type = "Contact";
     }
 
 public:
-    virtual ~Contact();
+    ~Contact() override;
 
     using Displayable::gui_label;  // The label that appears in the GUI
 
@@ -1518,12 +1587,13 @@ class AddressBook : public Storable
 protected:
     AddressBook()
         : Storable()
+        , list_Contacts()
     {
         m_Type = "AddressBook";
     }
 
 public:
-    virtual ~AddressBook();
+    ~AddressBook() override;
 
     DECLARE_GET_ADD_REMOVE(Contact);
 

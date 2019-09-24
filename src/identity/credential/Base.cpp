@@ -42,6 +42,8 @@ Base::Base(
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
+    , master_id_()
+    , nym_id_()
 {
 }
 
@@ -55,6 +57,8 @@ Base::Base(
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())
     , owner_backlink_(&theOwner)
+    , master_id_()
+    , nym_id_()
 {
     if (serializedCred.has_nymid()) {
         nym_id_ = serializedCred.nymid();

@@ -53,10 +53,10 @@ private:
     mutable std::unique_ptr<std::thread> gc_thread_;
     std::string tree_root_;
     mutable std::mutex tree_lock_;
-    mutable std::unique_ptr<class Tree> tree_;
+    mutable std::unique_ptr<storage::Tree> tree_;
 
     proto::StorageRoot serialize() const;
-    class Tree* tree() const;
+    storage::Tree* tree() const;
 
     void blank(const VersionNumber version) final;
     void cleanup() const;
@@ -64,7 +64,7 @@ private:
     void init(const std::string& hash) final;
     bool save(const Lock& lock, const opentxs::api::storage::Driver& to) const;
     bool save(const Lock& lock) const final;
-    void save(class Tree* tree, const Lock& lock);
+    void save(storage::Tree* tree, const Lock& lock);
 
     Root(
         const opentxs::api::storage::Driver& storage,
@@ -78,9 +78,9 @@ private:
     Root operator=(Root&&) = delete;
 
 public:
-    const class Tree& Tree() const;
+    const storage::Tree& Tree() const;
 
-    Editor<class Tree> mutable_Tree();
+    Editor<storage::Tree> mutable_Tree();
 
     bool Migrate(const opentxs::api::storage::Driver& to) const final;
     bool Save(const opentxs::api::storage::Driver& to) const;
