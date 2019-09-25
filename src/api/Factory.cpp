@@ -42,6 +42,9 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/crypto/key/HD.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/ext/OTPayment.hpp"
@@ -119,10 +122,12 @@ OTString Factory::Armored(const ProtobufType& input, const std::string& header)
 
 OTAsymmetricKey Factory::AsymmetricKey(
     const NymParameters& params,
+    const opentxs::PasswordPrompt& reason,
     const proto::KeyRole role,
     const VersionNumber version) const
 {
-    return OTAsymmetricKey{asymmetric_.NewKey(params, role, version).release()};
+    return OTAsymmetricKey{
+        asymmetric_.NewKey(params, reason, role, version).release()};
 }
 
 OTAsymmetricKey Factory::AsymmetricKey(
@@ -573,29 +578,99 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 OTKeypair Factory::Keypair(
     const NymParameters& nymParameters,
     const VersionNumber version,
-    const proto::KeyRole role) const
+    const proto::KeyRole role,
+    const opentxs::PasswordPrompt& reason) const
 {
     return OTKeypair{
-        opentxs::Factory::Keypair(api_, nymParameters, version, role)};
+        opentxs::Factory::Keypair(api_, nymParameters, version, role, reason)};
 }
 
 OTKeypair Factory::Keypair(
-    const api::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey,
     const opentxs::PasswordPrompt& reason) const
 {
     return OTKeypair{opentxs::Factory::Keypair(
-        api_, reason, serializedPubkey, serializedPrivkey)};
+        api_, serializedPubkey, serializedPrivkey, reason)};
 }
 
 OTKeypair Factory::Keypair(
-    const api::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const opentxs::PasswordPrompt& reason) const
 {
-    return OTKeypair{opentxs::Factory::Keypair(api_, reason, serializedPubkey)};
+    return OTKeypair{opentxs::Factory::Keypair(api_, serializedPubkey, reason)};
 }
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+OTKeypair Factory::Keypair(
+    const std::string& fingerprint,
+    const Bip32Index nym,
+    const Bip32Index credset,
+    const Bip32Index credindex,
+    const EcdsaCurve& curve,
+    const proto::KeyRole role,
+    const opentxs::PasswordPrompt& reason) const
+{
+    std::string input(fingerprint);
+    Bip32Index roleIndex{0};
+
+    switch (role) {
+        case proto::KEYROLE_AUTH: {
+            roleIndex = HDIndex{Bip32Child::AUTH_KEY, Bip32Child::HARDENED};
+        } break;
+        case proto::KEYROLE_ENCRYPT: {
+            roleIndex = HDIndex{Bip32Child::ENCRYPT_KEY, Bip32Child::HARDENED};
+        } break;
+        case proto::KEYROLE_SIGN: {
+            roleIndex = HDIndex{Bip32Child::SIGN_KEY, Bip32Child::HARDENED};
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key role").Flush();
+
+            return OTKeypair{opentxs::Factory::Keypair()};
+        }
+    }
+
+    const api::HDSeed::Path path{
+        HDIndex{Bip43Purpose::NYM, Bip32Child::HARDENED},
+        HDIndex{nym, Bip32Child::HARDENED},
+        HDIndex{credset, Bip32Child::HARDENED},
+        HDIndex{credindex, Bip32Child::HARDENED},
+        roleIndex};
+    auto pPrivateKey = api_.Seeds().GetHDKey(input, curve, path, reason, role);
+
+    if (false == bool(pPrivateKey)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive private key")
+            .Flush();
+
+        return OTKeypair{opentxs::Factory::Keypair()};
+    }
+
+    auto& privateKey = *pPrivateKey;
+    const auto pSerialized = privateKey.Serialize();
+
+    if (false == bool(pSerialized)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize private key")
+            .Flush();
+
+        return OTKeypair{opentxs::Factory::Keypair()};
+    }
+
+    const auto& serialized = *pSerialized;
+    proto::AsymmetricKey publicKey;
+    const bool haveKey =
+        privateKey.ECDSA().PrivateToPublic(api_, serialized, publicKey, reason);
+
+    if (false == haveKey) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive public key")
+            .Flush();
+
+        return OTKeypair{opentxs::Factory::Keypair()};
+    }
+
+    return Keypair(publicKey, serialized, reason);
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     const opentxs::Identifier& theAccountID,
@@ -801,7 +876,7 @@ std::unique_ptr<OTPayment> Factory::Payment(
     return payment;
 }
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 OTPaymentCode Factory::PaymentCode(
     const std::string& base58,
     const opentxs::PasswordPrompt& reason) const
@@ -836,7 +911,7 @@ OTPaymentCode Factory::PaymentCode(
         bitmessageVersion,
         bitmessageStream)};
 }
-#endif
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan() const
 {

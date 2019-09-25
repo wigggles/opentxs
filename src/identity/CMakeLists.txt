@@ -5,11 +5,12 @@
 
 add_subdirectory(credential)
 
-set(cxx-sources "Authority.cpp" "Nym.cpp")
+set(cxx-sources "Authority.cpp" "Nym.cpp" "Source.cpp")
 set(
   cxx-install-headers
   "${opentxs_SOURCE_DIR}/include/opentxs/identity/Authority.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/identity/Nym.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/identity/Source.hpp"
 )
 set(cxx-headers ${cxx-install-headers} "Authority.hpp" "Nym.hpp")
 

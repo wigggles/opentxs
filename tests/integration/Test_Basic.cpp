@@ -127,12 +127,14 @@ struct User {
         return contacts_.at(contact).get();
     }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     ot::OTPaymentCode PaymentCode() const
     {
         OT_ASSERT(nullptr != api_);
 
         return api_->Factory().PaymentCode(payment_code_, Reason());
     }
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     ot::OTPasswordPrompt Reason() const
     {
@@ -202,9 +204,11 @@ struct User {
         index_ = index;
         id_ = api.Exec().CreateNymHD(type, name_, seed_id_, index_);
         nym_id_ = api.Factory().NymID(id_);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         payment_code_ = api.Factory()
                             .PaymentCode(seed_id_, index_, 1, Reason())
                             ->asBase58();
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         set_introduction_server(api, server);
         init_ = true;
     }
@@ -542,8 +546,10 @@ const StateMap Integration::state_{
                []() -> bool {
                    const auto& widget = alex_.api_->UI().Profile(alex_.nym_id_);
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
                    EXPECT_EQ(
                        widget.PaymentCode(), alex_.PaymentCode()->asBase58());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
                    EXPECT_EQ(widget.DisplayName(), alex_.name_);
 
                    auto row = widget.First();
@@ -1266,8 +1272,10 @@ const StateMap Integration::state_{
                []() -> bool {
                    const auto& widget = bob_.api_->UI().Profile(bob_.nym_id_);
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
                    EXPECT_EQ(
                        widget.PaymentCode(), bob_.PaymentCode()->asBase58());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
                    EXPECT_EQ(widget.DisplayName(), bob_.name_);
 
                    auto row = widget.First();
@@ -1795,14 +1803,21 @@ TEST_F(Integration, instantiate_ui_objects)
             api_alex_.UI()
                 .PayableList(alex_.nym_id_, ot::proto::CITEMTYPE_BCH)
                 .WidgetID());
-        future5 = cb_alex_.RegisterWidget(
-            lock,
-            Widget::PayableListBTC,
-            api_alex_.UI()
-                .PayableList(alex_.nym_id_, ot::proto::CITEMTYPE_BTC)
-                .WidgetID(),
-            1,
-            state_.at(alex_.name_).at(Widget::PayableListBTC).at(0));
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        future5 =
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            cb_alex_.RegisterWidget(
+                lock,
+                Widget::PayableListBTC,
+                api_alex_.UI()
+                    .PayableList(alex_.nym_id_, ot::proto::CITEMTYPE_BTC)
+                    .WidgetID()
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+                    ,
+                1,
+                state_.at(alex_.name_).at(Widget::PayableListBTC).at(0)
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            );
         cb_alex_.RegisterWidget(
             lock,
             Widget::AccountSummaryBTC,
@@ -1854,14 +1869,21 @@ TEST_F(Integration, instantiate_ui_objects)
             api_bob_.UI()
                 .PayableList(bob_.nym_id_, ot::proto::CITEMTYPE_BCH)
                 .WidgetID());
-        future6 = cb_bob_.RegisterWidget(
-            lock,
-            Widget::PayableListBTC,
-            api_bob_.UI()
-                .PayableList(bob_.nym_id_, ot::proto::CITEMTYPE_BTC)
-                .WidgetID(),
-            1,
-            state_.at(bob_.name_).at(Widget::PayableListBTC).at(0));
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        future6 =
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            cb_bob_.RegisterWidget(
+                lock,
+                Widget::PayableListBTC,
+                api_bob_.UI()
+                    .PayableList(bob_.nym_id_, ot::proto::CITEMTYPE_BTC)
+                    .WidgetID()
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+                    ,
+                1,
+                state_.at(bob_.name_).at(Widget::PayableListBTC).at(0)
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            );
         cb_bob_.RegisterWidget(
             lock,
             Widget::AccountSummaryBTC,
@@ -1897,8 +1919,10 @@ TEST_F(Integration, instantiate_ui_objects)
     EXPECT_TRUE(future2.get());
     EXPECT_TRUE(future3.get());
     EXPECT_TRUE(future4.get());
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_TRUE(future5.get());
     EXPECT_TRUE(future6.get());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 }
 
 TEST_F(Integration, initial_state)
@@ -1942,6 +1966,7 @@ TEST_F(Integration, payment_codes)
     EXPECT_TRUE(bobScopeSet);
     EXPECT_TRUE(issuerScopeSet);
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_FALSE(alex_.payment_code_.empty());
     EXPECT_FALSE(bob_.payment_code_.empty());
     EXPECT_FALSE(issuer_.payment_code_.empty());
@@ -1990,6 +2015,7 @@ TEST_F(Integration, payment_codes)
     EXPECT_FALSE(alex.PaymentCode(ot::proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(bob.PaymentCode(ot::proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(issuer.PaymentCode(ot::proto::CITEMTYPE_BCH).empty());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     alex.Release();
     bob.Release();
@@ -2032,6 +2058,7 @@ TEST_F(Integration, add_contact_Bob_To_Alex)
         Widget::ContactList,
         2,
         state_.at(alex_.name_).at(Widget::ContactList).at(1));
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto payableBTCListDone = cb_alex_.SetCallback(
         Widget::PayableListBTC,
         2,
@@ -2040,6 +2067,7 @@ TEST_F(Integration, add_contact_Bob_To_Alex)
         Widget::PayableListBCH,
         1,
         state_.at(alex_.name_).at(Widget::PayableListBCH).at(1));
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto messagableListDone = cb_alex_.SetCallback(
         Widget::MessagableList,
         1,
@@ -2051,8 +2079,10 @@ TEST_F(Integration, add_contact_Bob_To_Alex)
         .AddContact(bob_.name_, bob_.payment_code_, bob_.nym_id_->str());
 
     EXPECT_TRUE(contactListDone.get());
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_TRUE(payableBTCListDone.get());
     EXPECT_TRUE(payableBCHListDone.get());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_TRUE(messagableListDone.get());
 }
 
@@ -2105,6 +2135,7 @@ TEST_F(Integration, send_message_from_Alex_to_Bob_1)
         Widget::MessagableList,
         2,
         state_.at(bob_.name_).at(Widget::MessagableList).at(1));
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto bobPayableListBTCDone = cb_bob_.SetCallback(
         Widget::PayableListBTC,
         1,
@@ -2113,6 +2144,7 @@ TEST_F(Integration, send_message_from_Alex_to_Bob_1)
         Widget::PayableListBCH,
         1,
         state_.at(bob_.name_).at(Widget::PayableListBCH).at(1));
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     const auto& conversation = from_client.UI().ActivityThread(
         alex_.nym_id_, alex_.Contact(bob_.name_));
@@ -2126,8 +2158,10 @@ TEST_F(Integration, send_message_from_Alex_to_Bob_1)
     EXPECT_TRUE(alexActivitySummaryDone.get());
     EXPECT_TRUE(alexActivityThreadDone.get());
     EXPECT_TRUE(bobContactListDone.get());
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_TRUE(bobPayableListBTCDone.get());
     EXPECT_TRUE(bobPayableListBCHDone.get());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_TRUE(bobMessagableListDone.get());
     EXPECT_TRUE(bobActivitySummaryDone.get());
 }
@@ -2268,11 +2302,9 @@ TEST_F(Integration, issue_dollars)
 
 TEST_F(Integration, add_alex_contact_to_issuer)
 {
-    const auto alex = alex_.PaymentCode();
-
     EXPECT_TRUE(issuer_.SetContact(
         alex_.name_,
-        api_issuer_.Contacts().NymToContact(alex->ID(), issuer_.Reason())));
+        api_issuer_.Contacts().NymToContact(alex_.nym_id_, issuer_.Reason())));
     EXPECT_FALSE(issuer_.Contact(alex_.name_).empty());
 
     api_issuer_.OTX().Refresh();
@@ -2293,10 +2325,12 @@ TEST_F(Integration, pay_alex)
         Widget::ActivitySummary,
         6,
         state_.at(alex_.name_).at(Widget::ActivitySummary).at(3));
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto payableBCHListDone = cb_alex_.SetCallback(
         Widget::PayableListBCH,
         3,
         state_.at(alex_.name_).at(Widget::PayableListBCH).at(2));
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     auto task = api_issuer_.OTX().SendCheque(
         issuer_.nym_id_,
@@ -2315,7 +2349,9 @@ TEST_F(Integration, pay_alex)
     EXPECT_TRUE(contactListDone.get());
     EXPECT_TRUE(messagableListDone.get());
     EXPECT_TRUE(activitySummaryDone.get());
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_TRUE(payableBCHListDone.get());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 }
 
 TEST_F(Integration, issuer_claims)

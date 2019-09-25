@@ -386,7 +386,9 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
         identifier::Nym::Factory(),
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         client_a.Factory().PaymentCode("", reason),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reason);
 
     auto sendpayment = command.mutable_sendpayment();
@@ -428,7 +430,9 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
         identifier::Nym::Factory(),
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         client_a.Factory().PaymentCode("", reason),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reason);
 
     auto sendpayment = command.mutable_sendpayment();
@@ -472,7 +476,9 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque)
     const auto contact = contacts.NewContact(
         std::string(TEST_NYM_5),
         receiver_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         client_a.Factory().PaymentCode(nym5->PaymentCode(reasonA), reasonA),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonA);
 
     ASSERT_TRUE(contact);
@@ -848,7 +854,9 @@ TEST_F(Test_Rpc_Async, Accept_2_Pending_Payments)
     const auto contact = contacts.NewContact(
         std::string(TEST_NYM_5),
         receiver_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         client_a.Factory().PaymentCode(nym5->PaymentCode(reasonA), reasonA),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonA);
 
     ASSERT_TRUE(contact);

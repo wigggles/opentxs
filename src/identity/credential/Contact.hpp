@@ -21,7 +21,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::unique_ptr<proto::ContactData> data_;
+    const proto::ContactData data_;
 
     std::shared_ptr<Base::SerializedType> serialize(
         const Lock& lock,
@@ -30,13 +30,13 @@ private:
 
     Contact(
         const api::Core& api,
-        identity::internal::Authority& parent,
-        const proto::Credential& credential);
-    Contact(
-        const api::Core& api,
-        identity::internal::Authority& parent,
+        const identity::internal::Authority& parent,
         const NymParameters& nymParameters,
         const VersionNumber version);
+    Contact(
+        const api::Core& api,
+        const identity::internal::Authority& parent,
+        const proto::Credential& credential);
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;

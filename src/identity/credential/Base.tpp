@@ -196,7 +196,9 @@ C* Factory::Credential(
         make_credential<C>::Get(api, owner, version, nymParameters, reason)};
 
     if (!output) {
-        LogOutput(": Failed to construct credential.").Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ":Failed to construct credential.")
+            .Flush();
 
         return nullptr;
     }
@@ -204,13 +206,17 @@ C* Factory::Credential(
     if (output->Role() != role) { return nullptr; }
 
     if (!output->New(nymParameters, reason)) {
-        LogOutput(": Failed to sign credential.").Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ":Failed to sign credential.")
+            .Flush();
 
         return nullptr;
     }
 
     if (!output->Save()) {
-        LogOutput(": Failed to save credential.").Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ":Failed to save credential.")
+            .Flush();
 
         return nullptr;
     }

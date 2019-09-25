@@ -11,7 +11,7 @@
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/OTPassword.hpp"
 #endif
-#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -25,75 +25,69 @@ namespace opentxs
 class NymParameters
 {
 public:
-    NymParameterType nymParameterType();
+    OTKeypair source_keypair_;
 
     proto::AsymmetricKeyType AsymmetricKeyType() const;
-
-    void setNymParameterType(NymParameterType theKeytype);
-
-    proto::CredentialType credentialType() const;
-
-    void setCredentialType(proto::CredentialType theCredentialtype);
-
-    inline proto::SourceType SourceType() const { return sourceType_; }
-
-    inline void SetSourceType(proto::SourceType sType) { sourceType_ = sType; }
-
-    inline proto::SourceProofType SourceProofType() const
-    {
-        return sourceProofType_;
-    }
-
-    inline void SetSourceProofType(proto::SourceProofType sType)
-    {
-        sourceProofType_ = sType;
-    }
-
-    inline std::shared_ptr<proto::ContactData> ContactData() const
+    std::shared_ptr<proto::ContactData> ContactData() const
     {
         return contact_data_;
     }
-
-    inline std::shared_ptr<proto::VerificationSet> VerificationSet() const
+    proto::CredentialType credentialType() const { return credentialType_; }
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    Bip32Index CredIndex() const { return cred_index_; }
+    Bip32Index Credset() const { return credset_; }
+    bool Default() const { return default_; }
+    const std::unique_ptr<OTPassword>& Entropy() const { return entropy_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    std::int32_t keySize() { return nBits_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    Bip32Index Nym() const { return nym_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    NymParameterType nymParameterType() const { return nymType_; }
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    std::string Seed() const { return seed_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    proto::SourceProofType SourceProofType() const { return sourceProofType_; }
+    proto::SourceType SourceType() const { return sourceType_; }
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    bool UseAutoIndex() const { return use_auto_index_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    std::shared_ptr<proto::VerificationSet> VerificationSet() const
     {
         return verification_set_;
     }
 
     void SetContactData(const proto::ContactData& contactData);
-    void SetVerificationSet(const proto::VerificationSet& verificationSet);
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    std::int32_t keySize();
-
-    void setKeySize(std::int32_t keySize);
-    explicit NymParameters(const std::int32_t keySize);
-#endif
-
+    void setCredentialType(proto::CredentialType theCredentialtype);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::unique_ptr<OTPassword>& Entropy() const;
+    void SetCredIndex(const Bip32Index path) { cred_index_ = path; }
+    void SetCredset(const Bip32Index path) { credset_ = path; }
+    void SetDefault(const bool in) { default_ = in; }
     void SetEntropy(const OTPassword& entropy);
-
-    inline std::string Seed() const { return seed_; }
-    inline void SetSeed(const std::string& seed) { seed_ = seed; }
-
-    inline Bip32Index Nym() const { return nym_; }
-    inline void SetNym(const Bip32Index path) { nym_ = path; }
-
-    inline Bip32Index Credset() const { return credset_; }
-    inline void SetCredset(const Bip32Index path) { credset_ = path; }
-
-    inline Bip32Index CredIndex() const { return cred_index_; }
-    inline void SetCredIndex(const Bip32Index path) { cred_index_ = path; }
-
-    inline bool Default() const { return default_; }
-    inline void SetDefault(const bool in) { default_ = in; }
-
-    inline bool UseAutoIndex() const { return use_auto_index_; }
-    inline void SetUseAutoIndex(const bool use) { use_auto_index_ = use; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    void setKeySize(std::int32_t keySize) { nBits_ = keySize; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    void SetNym(const Bip32Index path) { nym_ = path; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    void setNymParameterType(NymParameterType theKeytype);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    void SetSeed(const std::string& seed) { seed_ = seed; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    void SetSourceType(proto::SourceType sType);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    void SetUseAutoIndex(const bool use) { use_auto_index_ = use; }
 #endif
+    void SetVerificationSet(const proto::VerificationSet& verificationSet);
 
     NymParameters();
     explicit NymParameters(proto::CredentialType theCredentialtype);
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    explicit NymParameters(const std::int32_t keySize);
+#endif
     NymParameters(const NymParameters& rhs);
 
     ~NymParameters() = default;
@@ -105,7 +99,6 @@ private:
     std::shared_ptr<proto::VerificationSet> verification_set_;
     NymParameterType nymType_;
     proto::CredentialType credentialType_;
-
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<OTPassword> entropy_;
     std::string seed_;

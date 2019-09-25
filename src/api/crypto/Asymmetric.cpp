@@ -247,6 +247,7 @@ Asymmetric::HDKey Asymmetric::NewHDKey(
 
 Asymmetric::Key Asymmetric::NewKey(
     const NymParameters& params,
+    const PasswordPrompt& reason,
     const proto::KeyRole role,
     const VersionNumber version) const
 {
@@ -254,13 +255,13 @@ Asymmetric::Key Asymmetric::NewKey(
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (proto::AKEYTYPE_ED25519): {
             return Key{opentxs::Factory::Ed25519Key(
-                api_, api_.Crypto().ED25519(), role, version)};
+                api_, api_.Crypto().ED25519(), role, version, reason)};
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
             return Key{opentxs::Factory::Secp256k1Key(
-                api_, api_.Crypto().SECP256K1(), role, version)};
+                api_, api_.Crypto().SECP256K1(), role, version, reason)};
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA

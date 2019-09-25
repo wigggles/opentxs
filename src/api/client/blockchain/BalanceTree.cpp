@@ -47,7 +47,9 @@ BalanceTree::BalanceTree(
     , nym_id_(nym)
     , hd_(*this)
     , imported_(*this)
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     , payment_code_(*this)
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     , node_index_()
     , lock_()
     , unspent_()

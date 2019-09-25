@@ -7,12 +7,56 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/crypto/key/HD.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/crypto/key/Keypair.hpp"
+
 #include "crypto/library/AsymmetricProviderNull.hpp"
 
 #include <memory>
 
 namespace opentxs::crypto::key::implementation
 {
+class NullKeypair final : virtual public key::Keypair
+{
+public:
+    operator bool() const noexcept final { return false; }
+
+    bool CheckCapability(const NymCapability&) const noexcept final
+    {
+        return {};
+    }
+    const Asymmetric& GetPrivateKey() const noexcept(false) final
+    {
+        throw std::runtime_error("");
+    }
+    const Asymmetric& GetPublicKey() const noexcept(false) final
+    {
+        throw std::runtime_error("");
+    }
+    std::int32_t GetPublicKeyBySignature(Keys&, const Signature&, bool) const
+        noexcept final
+    {
+        return {};
+    }
+    std::shared_ptr<proto::AsymmetricKey> GetSerialized(bool) const
+        noexcept final
+    {
+        return {};
+    }
+    bool GetTransportKey(Data&, OTPassword&, const PasswordPrompt&) const
+        noexcept final
+    {
+        return {};
+    }
+
+    NullKeypair* clone() const final { return new NullKeypair; }
+
+    ~NullKeypair() final = default;
+};
+
 class Null : virtual public key::Asymmetric
 {
 public:
@@ -81,6 +125,7 @@ public:
     {
         return false;
     }
+    VersionNumber Version() const final { return {}; }
 
     void Release() final {}
     void ReleaseKey() final {}
@@ -96,7 +141,7 @@ public:
     void SetAsPublic() final {}
     void SetAsPrivate() final {}
 
-    operator bool() const final { return false; }
+    operator bool() const override { return false; }
     bool operator==(const proto::AsymmetricKey&) const final { return false; }
 
     Null() = default;
@@ -110,29 +155,15 @@ private:
 class NullEC : virtual public key::EllipticCurve, public Null
 {
 public:
+    operator bool() const noexcept final { return false; }
+
     std::unique_ptr<EllipticCurve> asPublic(const PasswordPrompt&) const final
     {
         return {};
     }
-    bool CheckCapability(const NymCapability&) const final { return {}; }
     const crypto::EcdsaProvider& ECDSA() const final { throw; }
     bool GetKey(Data&) const final { return {}; }
     bool GetKey(proto::Ciphertext&) const final { return {}; }
-    const Asymmetric& GetPrivateKey() const final { throw; }
-    const Asymmetric& GetPublicKey() const final { throw; }
-    std::int32_t GetPublicKeyBySignature(Keys&, const Signature&, bool)
-        const final
-    {
-        return {};
-    }
-    std::shared_ptr<proto::AsymmetricKey> GetSerialized(bool) const final
-    {
-        return {};
-    }
-    bool GetTransportKey(Data&, OTPassword&, const PasswordPrompt&) const final
-    {
-        return false;
-    }
     OTData PrivateKey(const PasswordPrompt&) const final
     {
         return Data::Factory();

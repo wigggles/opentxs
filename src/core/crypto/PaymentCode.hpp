@@ -28,6 +28,7 @@ public:
         const proto::Credential& master,
         const proto::Signature& sourceSignature,
         const PasswordPrompt& reason) const final;
+    VersionNumber Version() const final { return version_; }
 
     bool AddPrivateKeys(
         const std::string& seed,

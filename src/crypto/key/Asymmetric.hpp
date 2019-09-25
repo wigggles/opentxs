@@ -15,36 +15,30 @@ class Asymmetric : virtual public key::Asymmetric
 {
 public:
     /** Only works for public keys. */
-    bool CalculateID(Identifier& theOutput) const override;
-    const crypto::AsymmetricProvider& engine() const override
-    {
-        return provider_;
-    }
-    const OTSignatureMetadata* GetMetadata() const override
-    {
-        return m_pMetadata;
-    }
+    bool CalculateID(Identifier& theOutput) const final;
+    const crypto::AsymmetricProvider& engine() const final { return provider_; }
+    const OTSignatureMetadata* GetMetadata() const final { return m_pMetadata; }
     bool hasCapability(const NymCapability& capability) const override;
-    bool HasPrivate() const override { return has_private_; }
-    bool HasPublic() const override { return has_public_; }
-    proto::AsymmetricKeyType keyType() const override;
+    bool HasPrivate() const final { return has_private_; }
+    bool HasPublic() const final { return has_public_; }
+    proto::AsymmetricKeyType keyType() const final;
     proto::Signature NewSignature(
         const Identifier& credentialID,
         const proto::SignatureRole role,
         const proto::HashType hash) const;
     const std::string Path() const override;
     bool Path(proto::HDPath& output) const override;
-    const proto::KeyRole& Role() const override { return role_; }
+    const proto::KeyRole& Role() const final { return role_; }
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
-    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const override;
-    proto::HashType SigHashType() const override { return StandardHash; }
+    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const final;
+    proto::HashType SigHashType() const final { return StandardHash; }
     bool Sign(
         const Data& plaintext,
         proto::Signature& sig,
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
         const String& credID = String::Factory(""),
-        const proto::SignatureRole role = proto::SIGROLE_ERROR) const override;
+        const proto::SignatureRole role = proto::SIGROLE_ERROR) const final;
     bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
@@ -52,29 +46,30 @@ public:
         const Identifier& credential,
         const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
+        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const final;
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
+    VersionNumber Version() const final { return version_; }
 
-    void Release() override;
-    void ReleaseKey() override { Release(); }
+    void Release() final;
+    void ReleaseKey() final { Release(); }
     /** Don't use this, normally it's not necessary. */
-    void SetAsPublic() override
+    void SetAsPublic() final
     {
         has_public_ = true;
         has_private_ = false;
     }
     /** (Only if you really know what you are doing.) */
-    void SetAsPrivate() override
+    void SetAsPrivate() final
     {
         has_public_ = false;
         has_private_ = true;
     }
 
     operator bool() const override;
-    bool operator==(const proto::AsymmetricKey&) const override;
+    bool operator==(const proto::AsymmetricKey&) const final;
 
     ~Asymmetric() override;
 

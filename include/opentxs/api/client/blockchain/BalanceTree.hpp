@@ -60,6 +60,7 @@ public:
 
         EXPORT virtual ~ImportedAccounts() = default;
     };
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     struct PaymentCodeAccounts {
         using value_type = PaymentCode;
         using const_iterator = opentxs::iterator::
@@ -79,11 +80,14 @@ public:
 
         EXPORT virtual ~PaymentCodeAccounts() = default;
     };
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     EXPORT virtual const HDAccounts& GetHD() const noexcept = 0;
     EXPORT virtual const ImportedAccounts& GetImported() const noexcept = 0;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPORT virtual const PaymentCodeAccounts& GetPaymentCode() const
         noexcept = 0;
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPORT virtual const identifier::Nym& NymID() const noexcept = 0;
     EXPORT virtual const BalanceList& Parent() const noexcept = 0;
 

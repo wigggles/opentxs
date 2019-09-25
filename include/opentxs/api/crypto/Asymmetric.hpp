@@ -65,6 +65,7 @@ public:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual Key NewKey(
         const NymParameters& params,
+        const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::Asymmetric::DefaultVersion) const = 0;

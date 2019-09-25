@@ -11,6 +11,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -43,10 +44,20 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole input,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new crypto::key::implementation::Secp256k1(
-        api, ecdsa, input, version);
+    try {
+
+        return new crypto::key::implementation::Secp256k1(
+            api, ecdsa, input, version, reason);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to generate key: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -95,8 +106,9 @@ Secp256k1::Secp256k1(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole role,
-    const VersionNumber version) noexcept
-    : ot_super(api, ecdsa, proto::AKEYTYPE_SECP256K1, role, version)
+    const VersionNumber version,
+    const PasswordPrompt& reason) noexcept(false)
+    : ot_super(api, ecdsa, proto::AKEYTYPE_SECP256K1, role, version, reason)
 {
 }
 

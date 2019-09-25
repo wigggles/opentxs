@@ -19,9 +19,12 @@
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 
 #include <ostream>
+
+#include "Null.hpp"
 
 #include "Keypair.hpp"
 
@@ -31,33 +34,39 @@ template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
 
 namespace opentxs
 {
+crypto::key::Keypair* Factory::Keypair()
+{
+    return new crypto::key::implementation::NullKeypair();
+}
+
 crypto::key::Keypair* Factory::Keypair(
     const api::Core& api,
     const NymParameters& nymParameters,
     const VersionNumber version,
-    const proto::KeyRole role)
+    const proto::KeyRole role,
+    const opentxs::PasswordPrompt& reason)
 {
     return new crypto::key::implementation::Keypair(
-        api, nymParameters, version, role);
+        api, nymParameters, version, role, reason);
 }
 
 crypto::key::Keypair* Factory::Keypair(
     const api::Core& api,
-    const opentxs::PasswordPrompt& reason,
     const proto::AsymmetricKey& serializedPubkey,
-    const proto::AsymmetricKey& serializedPrivkey)
+    const proto::AsymmetricKey& serializedPrivkey,
+    const opentxs::PasswordPrompt& reason)
 {
     return new crypto::key::implementation::Keypair(
-        api, reason, serializedPubkey, serializedPrivkey);
+        api, serializedPubkey, serializedPrivkey, reason);
 }
 
 crypto::key::Keypair* Factory::Keypair(
     const api::Core& api,
-    const opentxs::PasswordPrompt& reason,
-    const proto::AsymmetricKey& serializedPubkey)
+    const proto::AsymmetricKey& serializedPubkey,
+    const opentxs::PasswordPrompt& reason)
 {
     return new crypto::key::implementation::Keypair(
-        api, reason, serializedPubkey);
+        api, serializedPubkey, reason);
 }
 }  // namespace opentxs
 
@@ -67,27 +76,41 @@ Keypair::Keypair(
     const api::Core& api,
     const NymParameters& params,
     const VersionNumber version,
-    const proto::KeyRole role) noexcept
+    const proto::KeyRole role,
+    const PasswordPrompt& reason) noexcept
     : api_(api)
-    , m_pkeyPublic(api.Factory().AsymmetricKey(params, role, version))
-    , m_pkeyPrivate(api.Factory().AsymmetricKey(params, role, version))
+    , m_pkeyPrivate(api.Factory().AsymmetricKey(params, reason, role, version))
+    , m_pkeyPublic(Asymmetric::Factory())
     , role_(role)
 {
-    const bool haveKeys = make_new_keypair(params);
+    // TODO refactor RSA keys to make them behave like ECDSA keys
+    if (proto::AKEYTYPE_LEGACY == params.AsymmetricKeyType()) {
+        m_pkeyPublic =
+            api.Factory().AsymmetricKey(params, reason, role, version);
+        const bool haveKeys = make_new_keypair(params);
 
-    OT_ASSERT(haveKeys);
+        OT_ASSERT(haveKeys);
+    } else {
+        auto derived =
+            dynamic_cast<EllipticCurve&>(m_pkeyPrivate.get()).asPublic(reason);
+
+        OT_ASSERT(derived)
+
+        m_pkeyPublic = OTAsymmetricKey{derived.release()};
+    }
+
     OT_ASSERT(m_pkeyPublic.get());
     OT_ASSERT(m_pkeyPrivate.get());
 }
 
 Keypair::Keypair(
     const api::Core& api,
-    const opentxs::PasswordPrompt& reason,
     const proto::AsymmetricKey& serializedPubkey,
-    const proto::AsymmetricKey& serializedPrivkey) noexcept
+    const proto::AsymmetricKey& serializedPrivkey,
+    const PasswordPrompt& reason) noexcept
     : api_(api)
-    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
     , m_pkeyPrivate(api.Factory().AsymmetricKey(serializedPrivkey, reason))
+    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
     , role_(m_pkeyPrivate->Role())
 {
     OT_ASSERT(m_pkeyPublic.get());
@@ -96,11 +119,11 @@ Keypair::Keypair(
 
 Keypair::Keypair(
     const api::Core& api,
-    const opentxs::PasswordPrompt& reason,
-    const proto::AsymmetricKey& serializedPubkey) noexcept
+    const proto::AsymmetricKey& serializedPubkey,
+    const PasswordPrompt& reason) noexcept
     : api_(api)
-    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
     , m_pkeyPrivate(Asymmetric::Factory())
+    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
     , role_(m_pkeyPublic->Role())
 {
     OT_ASSERT(m_pkeyPublic.get());
@@ -110,13 +133,13 @@ Keypair::Keypair(
 Keypair::Keypair(const Keypair& rhs) noexcept
     : key::Keypair()
     , api_(rhs.api_)
-    , m_pkeyPublic(rhs.m_pkeyPublic)
     , m_pkeyPrivate(rhs.m_pkeyPrivate)
+    , m_pkeyPublic(rhs.m_pkeyPublic)
     , role_(rhs.role_)
 {
 }
 
-bool Keypair::CheckCapability(const NymCapability& capability) const
+bool Keypair::CheckCapability(const NymCapability& capability) const noexcept
 {
     bool output{false};
 
@@ -149,7 +172,7 @@ std::int32_t Keypair::GetPublicKeyBySignature(
     Keys& listOutput,  // Inclusive means, return the key even
                        // when theSignature has no metadata.
     const Signature& theSignature,
-    bool bInclusive) const
+    bool bInclusive) const noexcept
 {
     OT_ASSERT(m_pkeyPublic.get());
 
@@ -188,7 +211,7 @@ std::int32_t Keypair::GetPublicKeyBySignature(
 }
 
 std::shared_ptr<proto::AsymmetricKey> Keypair::GetSerialized(
-    bool privateKey) const
+    bool privateKey) const noexcept
 {
     OT_ASSERT(m_pkeyPublic.get());
 
@@ -204,7 +227,7 @@ std::shared_ptr<proto::AsymmetricKey> Keypair::GetSerialized(
 bool Keypair::GetTransportKey(
     Data& publicKey,
     OTPassword& privateKey,
-    const opentxs::PasswordPrompt& reason) const
+    const opentxs::PasswordPrompt& reason) const noexcept
 {
     return m_pkeyPrivate->TransportKey(publicKey, privateKey, reason);
 }

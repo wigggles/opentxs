@@ -51,12 +51,14 @@ public:
     }
 };
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_CreateNymHD, TestNym_DeterministicIDs)
 {
 
     EXPECT_STREQ(AliceID.c_str(), Alice.c_str());
     EXPECT_STREQ(BobID.c_str(), Bob.c_str());
 }
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 TEST_F(Test_CreateNymHD, TestNym_ABCD)
 {
@@ -140,11 +142,12 @@ TEST_F(Test_CreateNymHD, TestNym_Dave)
 
 TEST_F(Test_CreateNymHD, TestNym_Eve)
 {
-
-    // EXPECT_STREQ(EveID.c_str(), Eve.c_str());
     auto NewEve = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Eve", SeedB_, 2);
+
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_STREQ(EveID.c_str(), NewEve.c_str());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     const Nym_p NymE =
         client_.Wallet().Nym(identifier::Nym::Factory(NewEve), reason_);
@@ -171,7 +174,10 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
         proto::CITEMTYPE_INDIVIDUAL, "Frank", SeedA_, 3);
 
     EXPECT_STRNE(Frank.c_str(), Frank2.c_str());
+
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPECT_STREQ(FrankID.c_str(), Frank.c_str());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     const Nym_p NymF =
         client_.Wallet().Nym(identifier::Nym::Factory(Frank), reason_);

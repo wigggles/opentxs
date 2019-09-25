@@ -60,13 +60,12 @@ public:
 
 protected:
     const api::Core& api_;
-    proto::CredentialType type_ = proto::CREDTYPE_ERROR;
-    proto::CredentialRole role_ = proto::CREDROLE_ERROR;
-    proto::KeyMode mode_ = proto::KEYMODE_ERROR;
-    identity::internal::Authority* owner_backlink_ =
-        nullptr;  // Do not cleanup.
-    std::string master_id_;
-    std::string nym_id_;
+    const identity::internal::Authority& parent_;
+    const proto::CredentialType type_;
+    const proto::CredentialRole role_;
+    const proto::KeyMode mode_;
+    const std::string master_id_;
+    const std::string nym_id_;
 
     virtual std::shared_ptr<SerializedType> serialize(
         const Lock& lock,
@@ -84,13 +83,18 @@ protected:
 
     Base(
         const api::Core& api,
-        identity::internal::Authority& owner,
-        const proto::Credential& serializedCred);
+        const identity::internal::Authority& owner,
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const proto::CredentialRole role,
+        const proto::KeyMode mode,
+        const std::string& masterID,
+        const std::string& nymID) noexcept;
     Base(
         const api::Core& api,
-        identity::internal::Authority& owner,
-        const NymParameters& nymParameters,
-        const VersionNumber version);
+        const identity::internal::Authority& owner,
+        const proto::Credential& serializedCred,
+        const std::string& masterID) noexcept;
 
 private:
     OTIdentifier GetID(const Lock& lock) const override;

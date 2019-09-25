@@ -24,10 +24,12 @@ public:
     {
         return imported_;
     }
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     const PaymentCodeAccounts& GetPaymentCode() const noexcept final
     {
         return payment_code_;
     }
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     const blockchain::internal::HD& HDChain(const Identifier& account) const
         noexcept(false) final
     {
@@ -175,8 +177,10 @@ private:
 
     using HDNodes = NodeGroup<HDAccounts, internal::HD>;
     using ImportedNodes = NodeGroup<ImportedAccounts, internal::Imported>;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     using PaymentCodeNodes =
         NodeGroup<PaymentCodeAccounts, internal::PaymentCode>;
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     const api::Core& api_;
     const internal::BalanceList& parent_;
@@ -184,7 +188,9 @@ private:
     const OTNymID nym_id_;
     HDNodes hd_;
     ImportedNodes imported_;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     PaymentCodeNodes payment_code_;
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     mutable NodeIndex node_index_;
     mutable std::mutex lock_;
     mutable internal::ActivityMap unspent_;

@@ -14,35 +14,18 @@ namespace opentxs::crypto::key::implementation
 class EllipticCurve : virtual public key::EllipticCurve, public Asymmetric
 {
 public:
+    operator bool() const noexcept final { return Asymmetric::operator bool(); }
+
     std::unique_ptr<key::EllipticCurve> asPublic(
         const PasswordPrompt& reason) const final;
     OTData CalculateHash(
         const proto::HashType hashType,
         const PasswordPrompt& password) const override;
-    bool CheckCapability(const NymCapability& cap) const override
-    {
-        return hasCapability(cap);
-    }
     virtual NymParameterType CreateType() const = 0;
     const crypto::EcdsaProvider& ECDSA() const override { return ecdsa_; }
     bool GetKey(Data& key) const override;
     bool GetKey(proto::Ciphertext& key) const override;
-    const key::Asymmetric& GetPrivateKey() const override;
-    const key::Asymmetric& GetPublicKey() const override;
-    std::int32_t GetPublicKeyBySignature(
-        Keys& listOutput,
-        const Signature& theSignature,
-        bool bInclusive = false) const override;
     bool get_public_key(String& strKey) const override;
-    std::shared_ptr<proto::AsymmetricKey> GetSerialized(
-        bool getPrivate) const override;
-    bool GetTransportKey(
-        Data& publicKey,
-        OTPassword& privateKey,
-        const PasswordPrompt& reason) const override
-    {
-        return TransportKey(publicKey, privateKey, reason);
-    }
     bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
@@ -78,7 +61,12 @@ protected:
         key::Symmetric& sessionKey,
         const PasswordPrompt& reason,
         const bool attach,
-        const OTPassword& plaintext);
+        const OTPassword& plaintext) noexcept;
+    static bool encrypt_key(
+        const api::Core& api,
+        const PasswordPrompt& reason,
+        const OTPassword& plaintext,
+        proto::Ciphertext& ciphertext) noexcept;
     static std::shared_ptr<proto::AsymmetricKey> serialize_public(
         EllipticCurve* copy);
 
@@ -96,7 +84,8 @@ protected:
         const crypto::EcdsaProvider& ecdsa,
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role,
-        const VersionNumber version) noexcept;
+        const VersionNumber version,
+        const PasswordPrompt& reason) noexcept(false);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EllipticCurve(
         const api::internal::Core& api,
@@ -114,6 +103,12 @@ protected:
 private:
     friend class crypto::EcdsaProvider;
 
+    static bool encrypt_key(
+        key::Symmetric& sessionKey,
+        const PasswordPrompt& reason,
+        const bool attach,
+        const OTPassword& plaintext,
+        proto::Ciphertext& ciphertext) noexcept;
     static std::unique_ptr<proto::Ciphertext> extract_key(
         const api::Core& api,
         const crypto::EcdsaProvider& ecdsa,

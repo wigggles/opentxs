@@ -35,6 +35,7 @@ public:
 
     EXPORT virtual OTAsymmetricKey AsymmetricKey(
         const NymParameters& params,
+        const opentxs::PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::Asymmetric::DefaultVersion) const = 0;
@@ -123,16 +124,25 @@ public:
     EXPORT virtual OTKeypair Keypair(
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const proto::KeyRole role) const = 0;
+        const proto::KeyRole role,
+        const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual OTKeypair Keypair(
-        const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey,
         const opentxs::PasswordPrompt& reason) const = 0;
     EXPORT virtual OTKeypair Keypair(
-        const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const opentxs::PasswordPrompt& reason) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    EXPORT virtual OTKeypair Keypair(
+        const std::string& fingerprint,
+        const Bip32Index nym,
+        const Bip32Index credset,
+        const Bip32Index credindex,
+        const EcdsaCurve& curve,
+        const proto::KeyRole role,
+        const opentxs::PasswordPrompt& reason) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     EXPORT virtual std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,
@@ -194,7 +204,7 @@ public:
         const opentxs::Contract& contract,
         const opentxs::PasswordPrompt& reason) const = 0;
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPORT virtual OTPaymentCode PaymentCode(
         const std::string& base58,
         const opentxs::PasswordPrompt& reason) const = 0;

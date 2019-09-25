@@ -59,11 +59,50 @@ const VersionConversionMap Key::subversion_to_key_version_{
 
 Key::Key(
     const api::Core& api,
+    const identity::internal::Authority& theOwner,
+    const NymParameters& params,
+    const VersionNumber version,
+    const proto::CredentialRole role,
+    const std::string& masterID,
+    const std::string& nymID,
     const PasswordPrompt& reason,
-    identity::internal::Authority& theOwner,
-    const proto::Credential& serialized) noexcept
+    const bool useProvided) noexcept(false)
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          theOwner,
+          params,
+          version,
+          role,
+          proto::KEYMODE_PRIVATE,
+          masterID,
+          nymID)
+    , subversion_(credential_subversion_.at(version_))
+    , signing_key_(signing_key(api_, params, subversion_, useProvided, reason))
+    , authentication_key_(new_key(
+          api_,
+          proto::KEYROLE_AUTH,
+          params,
+          subversion_to_key_version_.at(subversion_),
+          reason))
+    , encryption_key_(new_key(
+          api_,
+          proto::KEYROLE_ENCRYPT,
+          params,
+          subversion_to_key_version_.at(subversion_),
+          reason))
+{
+    if (0 == version) { throw std::runtime_error("Invalid version"); }
+}
+
+Key::Key(
+    const api::Core& api,
+    const PasswordPrompt& reason,
+    const identity::internal::Authority& theOwner,
+    const proto::Credential& serialized,
+    const std::string& masterID) noexcept
     : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Base(api, theOwner, serialized)
+    , credential::implementation::Base(api, theOwner, serialized, masterID)
     , subversion_(credential_subversion_.at(version_))
     , signing_key_(
           deserialize_key(api, reason, proto::KEYROLE_SIGN, serialized))
@@ -72,37 +111,6 @@ Key::Key(
     , encryption_key_(
           deserialize_key(api, reason, proto::KEYROLE_ENCRYPT, serialized))
 {
-}
-
-Key::Key(
-    const api::Core& api,
-    identity::internal::Authority& theOwner,
-    const NymParameters& nymParameters,
-    const VersionNumber version,
-    const PasswordPrompt& reason) noexcept
-    : Signable({}, version)  // TODO Signable
-    , credential::implementation::Base(api, theOwner, nymParameters, version)
-    , subversion_(credential_subversion_.at(version_))
-    , signing_key_(new_key(
-          api_,
-          proto::KEYROLE_SIGN,
-          nymParameters,
-          subversion_to_key_version_.at(subversion_),
-          reason))
-    , authentication_key_(new_key(
-          api_,
-          proto::KEYROLE_AUTH,
-          nymParameters,
-          subversion_to_key_version_.at(subversion_),
-          reason))
-    , encryption_key_(new_key(
-          api_,
-          proto::KEYROLE_ENCRYPT,
-          nymParameters,
-          subversion_to_key_version_.at(subversion_),
-          reason))
-{
-    OT_ASSERT(0 != version);
 }
 
 bool Key::VerifySignedBySelf(const Lock& lock, const PasswordPrompt& reason)
@@ -284,52 +292,56 @@ OTKeypair Key::deserialize_key(
     if (hasPrivate) {
         const auto privateKey = credential.privatecredential().key(index - 1);
 
-        return api.Factory().Keypair(api, publicKey, privateKey, reason);
+        return api.Factory().Keypair(publicKey, privateKey, reason);
     }
 
-    return api.Factory().Keypair(api, publicKey, reason);
+    return api.Factory().Keypair(publicKey, reason);
 }
 
 OTKeypair Key::new_key(
     const api::Core& api,
     const proto::KeyRole role,
-    const NymParameters& nymParameters,
+    const NymParameters& params,
     const VersionNumber version,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason) noexcept(false)
 {
-    if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
+    switch (params.credentialType()) {
+        case proto::CREDTYPE_LEGACY: {
 
-        return api.Factory().Keypair(nymParameters, version, role);
-    }
-
+            return api.Factory().Keypair(params, version, role, reason);
+        }
+        case proto::CREDTYPE_HD:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const auto keyType = nymParameters.AsymmetricKeyType();
-    const auto curve = crypto::AsymmetricProvider::KeyTypeToCurve(keyType);
+        {
+            const auto curve = crypto::AsymmetricProvider::KeyTypeToCurve(
+                params.AsymmetricKeyType());
 
-    OT_ASSERT(EcdsaCurve::invalid != curve)
-    OT_ASSERT(nymParameters.Entropy())
+            if (EcdsaCurve::invalid == curve) {
+                throw std::runtime_error("Invalid curve type");
+            }
 
-    return derive_hd_keypair(
-        api,
-        *nymParameters.Entropy(),
-        nymParameters.Seed(),
-        nymParameters.Nym(),
-        nymParameters.Credset(),
-        nymParameters.CredIndex(),
-        curve,
-        role,
-        version,
-        reason);
-#else
-    OT_FAIL
-#endif
+            return api.Factory().Keypair(
+                params.Seed(),
+                params.Nym(),
+                params.Credset(),
+                params.CredIndex(),
+                curve,
+                role,
+                reason);
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+        case proto::CREDTYPE_ERROR:
+        default: {
+            throw std::runtime_error("Unsupported credential type");
+        }
+    }
 }
 
-bool Key::New(const NymParameters& nymParameters, const PasswordPrompt& reason)
+bool Key::New(const NymParameters& params, const PasswordPrompt& reason)
 {
     bool output = false;
 
-    output = Base::New(nymParameters, reason);
+    output = Base::New(params, reason);
 
     if (output) {
         output = SelfSign(reason);
@@ -341,65 +353,6 @@ bool Key::New(const NymParameters& nymParameters, const PasswordPrompt& reason)
 
     return output;
 }
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-OTKeypair Key::derive_hd_keypair(
-    const api::Core& api,
-    const OTPassword& seed,
-    const std::string& fingerprint,
-    const Bip32Index nym,
-    const Bip32Index credset,
-    const Bip32Index credindex,
-    const EcdsaCurve& curve,
-    const proto::KeyRole role,
-    const VersionNumber version,
-    const PasswordPrompt& reason)
-{
-    std::string input(fingerprint);
-    Bip32Index roleIndex{0};
-
-    switch (role) {
-        case proto::KEYROLE_AUTH: {
-            roleIndex = HDIndex{Bip32Child::AUTH_KEY, Bip32Child::HARDENED};
-        } break;
-        case proto::KEYROLE_ENCRYPT: {
-            roleIndex = HDIndex{Bip32Child::ENCRYPT_KEY, Bip32Child::HARDENED};
-        } break;
-        case proto::KEYROLE_SIGN: {
-            roleIndex = HDIndex{Bip32Child::SIGN_KEY, Bip32Child::HARDENED};
-        } break;
-        default: {
-            OT_FAIL
-        }
-    }
-
-    const api::HDSeed::Path path{
-        HDIndex{Bip43Purpose::NYM, Bip32Child::HARDENED},
-        HDIndex{nym, Bip32Child::HARDENED},
-        HDIndex{credset, Bip32Child::HARDENED},
-        HDIndex{credindex, Bip32Child::HARDENED},
-        roleIndex};
-
-    auto pPrivateKey = api.Seeds().GetHDKey(input, curve, path, reason, role);
-
-    OT_ASSERT(pPrivateKey)
-
-    // TODO return OTKeypair{pPrivateKey.release()};
-    auto& privateKey = *pPrivateKey;
-    const auto pSerialized = privateKey.Serialize();
-
-    OT_ASSERT(pSerialized);
-
-    const auto& serialized = *pSerialized;
-    proto::AsymmetricKey publicKey;
-    const bool haveKey =
-        privateKey.ECDSA().PrivateToPublic(api, serialized, publicKey, reason);
-
-    OT_ASSERT(haveKey)
-
-    return api.Factory().Keypair(api, publicKey, serialized, reason);
-}
-#endif
 
 std::shared_ptr<Base::SerializedType> Key::serialize(
     const Lock& lock,
@@ -576,6 +529,31 @@ bool Key::SelfSign(
     }
 
     return ((havePublicSig | onlyPrivate) && havePrivateSig);
+}
+
+OTKeypair Key::signing_key(
+    const api::Core& api,
+    const NymParameters& params,
+    const VersionNumber subversion,
+    const bool useProvided,
+    const PasswordPrompt& reason) noexcept(false)
+{
+    if (useProvided) {
+        if (params.source_keypair_.get()) {
+
+            return std::move(params.source_keypair_);
+        } else {
+            throw std::runtime_error("Invalid provided keypair");
+        }
+    } else {
+
+        return new_key(
+            api,
+            proto::KEYROLE_SIGN,
+            params,
+            subversion_to_key_version_.at(subversion),
+            reason);
+    }
 }
 
 bool Key::VerifySig(

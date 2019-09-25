@@ -219,7 +219,8 @@ bool Letter::Seal(
         auto dhKeypair = api.Factory().Keypair(
             parameters,
             crypto::key::Asymmetric::DefaultVersion,
-            proto::KEYROLE_ENCRYPT);
+            proto::KEYROLE_ENCRYPT,
+            reason);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->GetSerialized(false);
         dhRawKey = api.Factory().AsymmetricKey(
@@ -275,7 +276,8 @@ bool Letter::Seal(
         auto dhKeypair = api.Factory().Keypair(
             parameters,
             crypto::key::Asymmetric::DefaultVersion,
-            proto::KEYROLE_ENCRYPT);
+            proto::KEYROLE_ENCRYPT,
+            reason);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->GetSerialized(false);
         dhRawKey = api.Factory().AsymmetricKey(

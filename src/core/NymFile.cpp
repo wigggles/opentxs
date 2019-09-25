@@ -30,7 +30,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NymFile.hpp"
-#include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
@@ -39,6 +38,7 @@
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
+#include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 

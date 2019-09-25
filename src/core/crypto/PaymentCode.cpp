@@ -73,6 +73,8 @@ template class opentxs::Pimpl<opentxs::PaymentCode>;
 
 namespace opentxs
 {
+const VersionNumber PaymentCode::DefaultVersion{1};
+
 opentxs::PaymentCode* Factory::PaymentCode(
     const api::Core& api,
     const std::string& base58,

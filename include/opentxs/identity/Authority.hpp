@@ -28,7 +28,6 @@ public:
     EXPORT virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const = 0;
     EXPORT virtual const std::string GetMasterCredID() const = 0;
-    EXPORT virtual const std::string& GetNymID() const = 0;
     EXPORT virtual const crypto::key::Asymmetric& GetPublicAuthKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
@@ -78,7 +77,7 @@ public:
         const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
-    EXPORT virtual const NymIDSource& Source() const = 0;
+    EXPORT virtual const identity::Source& Source() const = 0;
     EXPORT virtual bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,

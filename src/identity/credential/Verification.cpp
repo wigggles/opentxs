@@ -10,12 +10,13 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
+#include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
@@ -81,45 +82,45 @@ namespace opentxs::identity::credential::implementation
 {
 Verification::Verification(
     const api::Core& api,
-    identity::internal::Authority& parent,
-    const proto::Credential& serialized)
-    : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Base(api, parent, serialized)
-    , data_()
+    const identity::internal::Authority& parent,
+    const NymParameters& params,
+    const VersionNumber version)
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          parent,
+          params,
+          version,
+          proto::CREDROLE_VERIFY,
+          proto::KEYMODE_NULL,
+          parent.GetMasterCredID(),
+          parent.Source().NymID()->str())
+    , data_(
+          params.VerificationSet() ? *params.VerificationSet()
+                                   : proto::VerificationSet{})
 {
-    mode_ = proto::KEYMODE_NULL;
-    master_id_ = serialized.childdata().masterid();
-    data_.reset(new proto::VerificationSet(serialized.verification()));
 }
 
 Verification::Verification(
     const api::Core& api,
-    identity::internal::Authority& parent,
-    const NymParameters& nymParameters,
-    const VersionNumber version)
-    : Signable({}, version)  // TODO Signable
-    , credential::implementation::Base(api, parent, nymParameters, version)
-    , data_()
+    const identity::internal::Authority& parent,
+    const proto::Credential& serialized)
+    : Signable({}, serialized.version())  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          parent,
+          serialized,
+          serialized.childdata().masterid())
+    , data_(serialized.verification())
 {
-    mode_ = proto::KEYMODE_NULL;
-    role_ = proto::CREDROLE_VERIFY;
-    nym_id_ = parent.GetNymID();
-    master_id_ = parent.GetMasterCredID();
-    auto verificationSet = nymParameters.VerificationSet();
-
-    if (verificationSet) {
-        data_.reset(new proto::VerificationSet(*verificationSet));
-    }
 }
 
 bool Verification::GetVerificationSet(
     std::unique_ptr<proto::VerificationSet>& verificationSet) const
 {
-    if (!data_) { return false; }
+    verificationSet.reset(new proto::VerificationSet(data_));
 
-    verificationSet.reset(new proto::VerificationSet(*data_));
-
-    return true;
+    return bool(verificationSet);
 }
 
 std::shared_ptr<Base::SerializedType> Verification::serialize(
@@ -146,7 +147,7 @@ std::shared_ptr<Base::SerializedType> Verification::serialize(
         }
     }
 
-    *(serializedCredential->mutable_verification()) = *data_;
+    *serializedCredential->mutable_verification() = data_;
 
     return serializedCredential;
 }
@@ -158,18 +159,16 @@ bool Verification::verify_internally(
     // Perform common Credential verifications
     if (!Base::verify_internally(lock, reason)) { return false; }
 
-    if (data_) {
-        for (auto& nym : data_->internal().identity()) {
-            for (auto& claim : nym.verification()) {
-                bool valid = owner_backlink_->Verify(claim, reason);
+    for (auto& nym : data_.internal().identity()) {
+        for (auto& claim : nym.verification()) {
+            bool valid = parent_.Verify(claim, reason);
 
-                if (!valid) {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Invalid claim verification.")
-                        .Flush();
+            if (!valid) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Invalid claim verification.")
+                    .Flush();
 
-                    return false;
-                }
+                return false;
             }
         }
     }

@@ -150,11 +150,12 @@ bool Profile::AddClaim(
 
             return nym.AddContract(value, type, primary, active, reason);
         }
-        case proto::CONTACTSECTION_PROCEDURE: {
+        case proto::CONTACTSECTION_PROCEDURE:
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        {
             return nym.AddPaymentCode(value, type, primary, active, reason);
-#endif
         }
+#endif
         default: {
         }
     }

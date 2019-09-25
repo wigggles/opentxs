@@ -33,7 +33,6 @@ set(
   Message.cpp
   NumList.cpp
   NymFile.cpp
-  NymIDSource.cpp
   OTStorage.cpp
   OTTrackable.cpp
   OTTransaction.cpp
@@ -64,7 +63,6 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/Message.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/NumList.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/NymFile.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/NymIDSource.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/OTStorage.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/OTStoragePB.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/OTTrackable.hpp"

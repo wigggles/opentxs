@@ -21,7 +21,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::unique_ptr<proto::VerificationSet> data_;
+    const proto::VerificationSet data_;
 
     std::shared_ptr<Base::SerializedType> serialize(
         const Lock& lock,
@@ -32,13 +32,13 @@ private:
 
     Verification(
         const api::Core& api,
-        identity::internal::Authority& parent,
-        const proto::Credential& credential);
-    Verification(
-        const api::Core& api,
-        identity::internal::Authority& parent,
+        const identity::internal::Authority& parent,
         const NymParameters& nymParameters,
         const VersionNumber version);
+    Verification(
+        const api::Core& api,
+        const identity::internal::Authority& parent,
+        const proto::Credential& credential);
     Verification() = delete;
     Verification(const Verification&) = delete;
     Verification(Verification&&) = delete;

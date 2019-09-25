@@ -229,35 +229,6 @@ TEST_F(Test_PaymentCode, asBase58)
     ASSERT_STREQ(paycode_0.c_str(), pcode->asBase58().c_str());
 }
 
-/* Test: Paymentcode's nym ID matches nymidsource
- */
-TEST_F(Test_PaymentCode, paycode_derivation_matches_nymidsource)
-{
-    auto nym_0_paycode = client_.Factory().PaymentCode(
-        fingerprint, 0, 1, reason_);  // seed, nym, paycode version
-    auto nym_1_paycode = client_.Factory().PaymentCode(
-        fingerprint, 1, 1, reason_);  // seed, nym, paycode version
-    auto nym_2_paycode = client_.Factory().PaymentCode(
-        fingerprint, 2, 1, reason_);  // seed, nym, paycode version
-    auto nym_3_paycode = client_.Factory().PaymentCode(
-        fingerprint, 3, 1, reason_);  // seed, nym, paycode version
-
-    ASSERT_STREQ(paycode_0.c_str(), nym_0_paycode->asBase58().c_str());
-    ASSERT_STREQ(paycode_1.c_str(), nym_1_paycode->asBase58().c_str());
-    ASSERT_STREQ(paycode_2.c_str(), nym_2_paycode->asBase58().c_str());
-    ASSERT_STREQ(paycode_3.c_str(), nym_3_paycode->asBase58().c_str());
-
-    NymIDSource idsource_0(client_.Factory(), nym_0_paycode);
-    NymIDSource idsource_1(client_.Factory(), nym_1_paycode);
-    NymIDSource idsource_2(client_.Factory(), nym_2_paycode);
-    NymIDSource idsource_3(client_.Factory(), nym_3_paycode);
-
-    ASSERT_STREQ(nymID_0.c_str(), idsource_0.NymID()->str().c_str());
-    ASSERT_STREQ(nymID_1.c_str(), idsource_1.NymID()->str().c_str());
-    ASSERT_STREQ(nymID_2.c_str(), idsource_2.NymID()->str().c_str());
-    ASSERT_STREQ(nymID_3.c_str(), idsource_3.NymID()->str().c_str());
-}
-
 /* Test: Factory methods create the same paycode
  */
 TEST_F(Test_PaymentCode, factory)
@@ -322,27 +293,6 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
     auto privatekey = client_.Seeds().GetPaymentCode(fingerprint, 10, reason_);
     proto::AsymmetricKey privKey = *privatekey;
     ASSERT_TRUE(bool(privatekey));
-}
-
-/* Test: Two nyms have a paycode each and nymidsource says so
- */
-TEST_F(Test_PaymentCode, two_nyms)
-{
-    const Nym_p nym_0 =
-        client_.Wallet().Nym(identifier::Nym::Factory(nymID_0), reason_);
-    const Nym_p nym_1 =
-        client_.Wallet().Nym(identifier::Nym::Factory(nymID_1), reason_);
-
-    NymIDSource idsource_0(
-        client_.Factory(), client_.Factory().PaymentCode(paycode_0, reason_));
-    NymIDSource idsource_1(
-        client_.Factory(), client_.Factory().PaymentCode(paycode_1, reason_));
-
-    ASSERT_STREQ(nym_0->ID().str().c_str(), idsource_0.NymID()->str().c_str());
-    ASSERT_STREQ(nym_1->ID().str().c_str(), idsource_1.NymID()->str().c_str());
-
-    ASSERT_STRNE(idsource_0.NymID()->str().c_str(), "");
-    ASSERT_STRNE(idsource_1.NymID()->str().c_str(), "");
 }
 }  // namespace
 #endif
