@@ -38,6 +38,7 @@ Receiver<InterfaceType, MessageType>::Receiver(
     , next_task_(0)
     , task_lock_()
     , socket_tasks_()
+    , task_result_()
 {
 }
 

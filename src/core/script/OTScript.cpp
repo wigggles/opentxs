@@ -162,25 +162,32 @@ std::shared_ptr<OTScript> OTScriptFactory(
     return retVal;
 }
 
-OTScript::OTScript() {}
+OTScript::OTScript(const std::string& new_string)
+    : m_str_script(new_string)
+    , m_str_display_filename()
+    , m_mapParties()
+    , m_mapAccounts()
+    , m_mapVariables()
+{
+}
+
+OTScript::OTScript()
+    : OTScript(std::string{})
+{
+}
 
 OTScript::OTScript(const String& strValue)
-    : m_str_script(strValue.Get())
+    : OTScript(std::string{strValue.Get()})
 {
 }
 
 OTScript::OTScript(const char* new_string)
-    : m_str_script(new_string)
+    : OTScript(std::string{new_string})
 {
 }
 
-OTScript::OTScript(const char* new_string, size_t sizeLength)
-    : m_str_script(new_string, sizeLength)
-{
-}
-
-OTScript::OTScript(const std::string& new_string)
-    : m_str_script(new_string)
+OTScript::OTScript(const char* new_string, std::size_t sizeLength)
+    : OTScript(std::string{new_string, sizeLength})
 {
 }
 

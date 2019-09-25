@@ -186,5 +186,9 @@ private:
         const NymParameters& nymParameters,
         VersionNumber nymVersion,
         const PasswordPrompt& reason) noexcept;
+    Authority(const Authority&) = delete;
+    Authority(Authority&&) = delete;
+    Authority& operator=(const Authority&) = delete;
+    Authority& operator=(Authority&&) = delete;
 };
 }  // namespace opentxs::identity::implementation

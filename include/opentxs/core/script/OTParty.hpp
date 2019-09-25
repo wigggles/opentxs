@@ -289,9 +289,10 @@ public:
 
 private:
     const api::Wallet& wallet_;
-    const std::string data_folder_{""};
-    std::string* m_pstr_party_name{nullptr};
-    bool m_bPartyIsNym{true};             // true, is "nym". false, is "entity".
+    const std::string data_folder_;
+    std::string* m_pstr_party_name;
+    // true, is "nym". false, is "entity".
+    bool m_bPartyIsNym;
     std::string m_str_owner_id;           // Nym ID or Entity ID.
     std::string m_str_authorizing_agent;  // Contains the name of the
                                           // authorizing
@@ -304,7 +305,7 @@ private:
 
     // Each party (to a smart contract anyway) must provide an opening
     // transaction #.
-    TransactionNumber m_lOpeningTransNo{0};
+    TransactionNumber m_lOpeningTransNo;
     OTString m_strMySignedCopy;  // One party confirms it and sends it over.
                                  // Then another confirms it,
     // which adds his own transaction numbers and signs it. This, unfortunately,

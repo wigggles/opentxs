@@ -23,13 +23,13 @@ protected:
     ~Bidirectional() override = default;
 
 private:
-    const bool bidirectional_start_thread_{true};
+    const bool bidirectional_start_thread_;
     const std::string endpoint_;
-    void* push_socket_{nullptr};
-    void* pull_socket_{nullptr};
-    mutable int linger_{0};
-    mutable int send_timeout_{-1};
-    mutable int receive_timeout_{-1};
+    void* push_socket_;
+    void* pull_socket_;
+    mutable int linger_;
+    mutable int send_timeout_;
+    mutable int receive_timeout_;
     mutable std::mutex send_lock_;
 
     bool apply_timeouts(void* socket, std::mutex& socket_mutex) const noexcept;

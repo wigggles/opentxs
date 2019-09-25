@@ -31,6 +31,43 @@
 
 namespace opentxs
 {
+OTStash::OTStash()
+    : m_str_stash_name()
+    , m_mapStashItems()
+{
+}
+
+OTStash::OTStash(const std::string& str_stash_name)
+    : m_str_stash_name(str_stash_name)
+    , m_mapStashItems()
+{
+}
+
+OTStash::OTStash(const String& strInstrumentDefinitionID, std::int64_t lAmount)
+    : m_str_stash_name()
+    , m_mapStashItems()
+{
+    OTStashItem* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
+    OT_ASSERT(nullptr != pItem);
+
+    m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
+        strInstrumentDefinitionID.Get(), pItem));
+}
+
+OTStash::OTStash(
+    const Identifier& theInstrumentDefinitionID,
+    std::int64_t lAmount)
+    : m_str_stash_name()
+    , m_mapStashItems()
+{
+    OTStashItem* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
+    OT_ASSERT(nullptr != pItem);
+
+    auto strInstrumentDefinitionID = String::Factory(theInstrumentDefinitionID);
+
+    m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
+        strInstrumentDefinitionID->Get(), pItem));
+}
 
 void OTStash::Serialize(Tag& parent) const
 {
@@ -144,44 +181,6 @@ std::int32_t OTStash::ReadFromXMLNode(
     return 1;
 }
 
-OTStash::OTStash()
-{
-    // m_mapStashItems
-}
-
-OTStash::OTStash(const String& strInstrumentDefinitionID, std::int64_t lAmount)
-{
-    OTStashItem* pItem = new OTStashItem(strInstrumentDefinitionID, lAmount);
-    OT_ASSERT(nullptr != pItem);
-
-    m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
-        strInstrumentDefinitionID.Get(), pItem));
-}
-
-OTStash::OTStash(
-    const Identifier& theInstrumentDefinitionID,
-    std::int64_t lAmount)
-{
-    OTStashItem* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
-    OT_ASSERT(nullptr != pItem);
-
-    auto strInstrumentDefinitionID = String::Factory(theInstrumentDefinitionID);
-
-    m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
-        strInstrumentDefinitionID->Get(), pItem));
-}
-
-OTStash::~OTStash()
-{
-    while (!m_mapStashItems.empty()) {
-        OTStashItem* pTemp = m_mapStashItems.begin()->second;
-        OT_ASSERT(nullptr != pTemp);
-        delete pTemp;
-        pTemp = nullptr;
-        m_mapStashItems.erase(m_mapStashItems.begin());
-    }
-}
-
 // Creates it if it's not already there.
 // (*this owns it and will clean it up when destroyed.)
 //
@@ -242,4 +241,14 @@ bool OTStash::DebitStash(
     return pStashItem->DebitStash(lAmount);
 }
 
+OTStash::~OTStash()
+{
+    while (!m_mapStashItems.empty()) {
+        OTStashItem* pTemp = m_mapStashItems.begin()->second;
+        OT_ASSERT(nullptr != pTemp);
+        delete pTemp;
+        pTemp = nullptr;
+        m_mapStashItems.erase(m_mapStashItems.begin());
+    }
+}
 }  // namespace opentxs

@@ -96,6 +96,8 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(
     const api::Core& api,
     const NymParameters& pkeyData)
     : api_(api)
+    , dp()
+    , pkeyData_()
     , m_bCleanup(true)
 {
     pkeyData_.reset(const_cast<NymParameters*>(&pkeyData));

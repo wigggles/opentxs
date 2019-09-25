@@ -28,6 +28,7 @@ Threads::Threads(
     Mailbox& mailInbox,
     Mailbox& mailOutbox)
     : Node(storage, hash)
+    , threads_()
     , mail_inbox_(mailInbox)
     , mail_outbox_(mailOutbox)
 {

@@ -73,6 +73,10 @@ private:
                               // is group's Name (inside Entity.)
 
     OTAgent() = delete;
+    OTAgent(const OTAgent&) = delete;
+    OTAgent(OTAgent&&) = delete;
+    OTAgent& operator=(const OTAgent&) = delete;
+    OTAgent& operator=(OTAgent&&) = delete;
 
 public:
     OTAgent(const api::Wallet& wallet);

@@ -57,6 +57,7 @@ public:
 Settings::Settings(const String& strConfigFilePath)
     : pvt_(new SettingsPvt())
     , loaded_(Flag::Factory(false))
+    , lock_()
     , m_strConfigurationFileExactPath(strConfigFilePath)
 {
     if (!m_strConfigurationFileExactPath->Exists()) {
@@ -73,6 +74,7 @@ Settings::Settings(const String& strConfigFilePath)
 Settings::Settings()
     : pvt_(new SettingsPvt())
     , loaded_(Flag::Factory(false))
+    , lock_()
     , m_strConfigurationFileExactPath(String::Factory())
 {
 }

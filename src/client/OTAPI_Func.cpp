@@ -103,6 +103,7 @@ OTAPI_Func::OTAPI_Func(
     , cheque_(nullptr)
     , ledger_(nullptr)
     , payment_(nullptr)
+    , agentName_()
     , clause_("")
     , key_("")
     , login_("")

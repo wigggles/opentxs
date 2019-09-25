@@ -22,6 +22,10 @@ Contacts::Contacts(
     const std::string& hash)
     : Node(storage, hash)
     , address_index_()
+    , address_reverse_index_()
+    , merge_()
+    , merged_()
+    , nym_contact_index_()
 {
     if (check_hash(hash)) {
         init(hash);

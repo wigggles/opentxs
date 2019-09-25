@@ -24,45 +24,7 @@ namespace opentxs
 {
 class NymParameters
 {
-private:
-    proto::SourceType sourceType_{proto::SOURCETYPE_PUBKEY};
-    proto::SourceProofType sourceProofType_{
-        proto::SOURCEPROOFTYPE_SELF_SIGNATURE};
-    std::shared_ptr<proto::ContactData> contact_data_;
-    std::shared_ptr<proto::VerificationSet> verification_set_;
-
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    NymParameterType nymType_{NymParameterType::ed25519};
-#elif OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    NymParameterType nymType_{NymParameterType::SECP256K1};
-#elif OT_CRYPTO_SUPPORTED_KEY_RSA
-    NymParameterType nymType_{NymParameterType::RSA};
-#else
-    NymParameterType nymType_{NymParameterType::ERROR};
-#endif
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    proto::CredentialType credentialType_{proto::CREDTYPE_HD};
-    std::unique_ptr<OTPassword> entropy_;
-    std::string seed_;
-    Bip32Index nym_{0};
-    Bip32Index credset_{0};
-    Bip32Index cred_index_{0};
-    bool default_{true};
-    bool use_auto_index_{false};
-#else
-    proto::CredentialType credentialType_{proto::CREDTYPE_LEGACY};
-#endif
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    std::int32_t nBits_{1024};
-#endif
-
 public:
-    explicit NymParameters(proto::CredentialType theCredentialtype);
-    NymParameters() = default;
-    NymParameters(const NymParameters& rhs);
-
     NymParameterType nymParameterType();
 
     proto::AsymmetricKeyType AsymmetricKeyType() const;
@@ -130,7 +92,32 @@ public:
     inline void SetUseAutoIndex(const bool use) { use_auto_index_ = use; }
 #endif
 
+    NymParameters();
+    explicit NymParameters(proto::CredentialType theCredentialtype);
+    NymParameters(const NymParameters& rhs);
+
     ~NymParameters() = default;
+
+private:
+    proto::SourceType sourceType_;
+    proto::SourceProofType sourceProofType_;
+    std::shared_ptr<proto::ContactData> contact_data_;
+    std::shared_ptr<proto::VerificationSet> verification_set_;
+    NymParameterType nymType_;
+    proto::CredentialType credentialType_;
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    std::unique_ptr<OTPassword> entropy_;
+    std::string seed_;
+    Bip32Index nym_;
+    Bip32Index credset_;
+    Bip32Index cred_index_;
+    bool default_;
+    bool use_auto_index_;
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    std::int32_t nBits_;
+#endif
 };
 }  // namespace opentxs
 #endif

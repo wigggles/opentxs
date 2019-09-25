@@ -59,10 +59,7 @@ public:
         const String& strItemCount);
 
     OTStash();
-    OTStash(const std::string& str_stash_name)
-        : m_str_stash_name(str_stash_name)
-    {
-    }
+    OTStash(const std::string& str_stash_name);
     OTStash(const String& strInstrumentDefinitionID, std::int64_t lAmount = 0);
     OTStash(
         const Identifier& theInstrumentDefinitionID,

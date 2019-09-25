@@ -13,8 +13,13 @@ protobuf_generate_cpp(
 )
 
 add_library(otprotob OBJECT ${cxx-sources} ${cxx-headers})
-set_property(TARGET otprotob PROPERTY POSITION_INDEPENDENT_CODE 1)
 target_include_directories(
   opentxs-api SYSTEM
   INTERFACE "${Protobuf_INCLUDE_DIRS}"
 )
+
+if(NOT MSVC)
+  target_compile_options(otprotob PRIVATE "-Wno-effc++")
+endif()
+
+set_property(TARGET otprotob PROPERTY POSITION_INDEPENDENT_CODE 1)

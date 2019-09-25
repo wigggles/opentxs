@@ -1653,6 +1653,11 @@ bool OpenSSL::OpenSSLdp::SignContract(
         const char* m_szFunc;
         EVP_MD_CTX& m_ctx;
 
+        _OTCont_SignCont1(const _OTCont_SignCont1&) = delete;
+        _OTCont_SignCont1(_OTCont_SignCont1&&) = delete;
+        _OTCont_SignCont1& operator=(const _OTCont_SignCont1&) = delete;
+        _OTCont_SignCont1& operator=(_OTCont_SignCont1&&) = delete;
+
     public:
         _OTCont_SignCont1(const char* param_szFunc, EVP_MD_CTX& param_ctx)
             : m_szFunc(param_szFunc)
@@ -2494,6 +2499,11 @@ bool OpenSSL::DecryptSessionKey(
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
         bool& m_bFinalized;
 #endif
+
+        _OTEnv_Open(const _OTEnv_Open&) = delete;
+        _OTEnv_Open(_OTEnv_Open&&) = delete;
+        _OTEnv_Open& operator=(const _OTEnv_Open&) = delete;
+        _OTEnv_Open& operator=(_OTEnv_Open&&) = delete;
 
     public:
 #if OPENSSL_VERSION_NUMBER < 0x10100000L

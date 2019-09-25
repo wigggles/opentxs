@@ -34,6 +34,7 @@ OpenDHT::OpenDHT(const DhtConfig& config)
     , node_(new dht::DhtRunner)
     , loaded_(Flag::Factory(false))
     , ready_(Flag::Factory(false))
+    , init_()
 {
     Init();
 }

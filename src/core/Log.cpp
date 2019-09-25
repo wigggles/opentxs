@@ -58,8 +58,12 @@ LogSource LogInsane{5};
 
 Log::Log(const api::Settings& config)
     : config_(config)
+    , m_nLogLevel(0)
+    , m_bInitialized(false)
+    , write_log_file_(false)
     , m_strLogFileName(String::Factory())
     , m_strLogFilePath(String::Factory())
+    , lock_()
 
 {
     bool notUsed{false};

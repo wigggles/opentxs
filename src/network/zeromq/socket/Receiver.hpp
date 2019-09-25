@@ -41,7 +41,7 @@ protected:
     ~Receiver() override;
 
 private:
-    const bool start_thread_{true};
+    const bool start_thread_;
     mutable int next_task_;
     mutable std::mutex task_lock_;
     mutable std::map<int, SocketCallback> socket_tasks_;

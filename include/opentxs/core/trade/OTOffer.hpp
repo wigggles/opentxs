@@ -217,15 +217,19 @@ private:
 
     bool isPowerOfTen(const std::int64_t& x);
 
-    EXPORT OTOffer(const api::Core& core);  // The constructor contains
-                                            // the 3 variables needed to
-                                            // identify any market.
-    EXPORT OTOffer(
+    OTOffer(const api::Core& core);  // The constructor contains
+                                     // the 3 variables needed to
+                                     // identify any market.
+    OTOffer(
         const api::Core& core,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const identifier::UnitDefinition& CURRENCY_ID,
         const std::int64_t& MARKET_SCALE);
+    OTOffer(const OTOffer&) = delete;
+    OTOffer(OTOffer&&) = delete;
+    OTOffer& operator=(const OTOffer&) = delete;
+    OTOffer& operator=(OTOffer&&) = delete;
 
     OTOffer() = delete;
 };

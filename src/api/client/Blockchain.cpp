@@ -106,6 +106,8 @@ Blockchain::Txo::Txo(api::client::internal::Blockchain& parent)
 Blockchain::BalanceLists::BalanceLists(
     api::client::internal::Blockchain& parent) noexcept
     : parent_(parent)
+    , lock_()
+    , lists_()
 {
 }
 

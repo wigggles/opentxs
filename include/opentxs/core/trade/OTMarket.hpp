@@ -243,6 +243,10 @@ private:
         const std::int64_t& a4);
 
     OTMarket() = delete;
+    OTMarket(const OTMarket&) = delete;
+    OTMarket(OTMarket&&) = delete;
+    OTMarket& operator=(const OTMarket&) = delete;
+    OTMarket& operator=(OTMarket&&) = delete;
 };
 }  // namespace opentxs
 #endif

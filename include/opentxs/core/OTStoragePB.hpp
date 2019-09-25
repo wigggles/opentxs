@@ -53,11 +53,11 @@ namespace OTDB
 class IStorablePB : public IStorable
 {
 public:
-    virtual ~IStorablePB() {}
+    ~IStorablePB() override = default;
 
     virtual ::google::protobuf::MessageLite* getPBMessage();
-    virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj);
-    virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj);
+    virtual bool onPack(PackedBuffer& theBuffer, Storable& inObj) override;
+    virtual bool onUnpack(PackedBuffer& theBuffer, Storable& outObj) override;
     OT_USING_ISTORABLE_HOOKS;
 };
 
@@ -74,6 +74,7 @@ class BufferPB : public PackedBuffer
 public:
     BufferPB()
         : PackedBuffer()
+        , m_buffer()
     {
     }
     ~BufferPB() override = default;
@@ -114,76 +115,75 @@ public:
     ProtobufSubclass()
         : theBaseType()
         , IStorablePB()
+        , __pb_obj()
         , m_Type(
               StoredObjectTypeStrings[static_cast<std::int32_t>(theObjectType)])
     {
         m_Type += "PB";
-        /*std::cout << m_Type << " -- Constructor" << std::endl;*/ }
+    }
 
-        ProtobufSubclass(
-            const ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
-                rhs)
-            : theBaseType()
-            , IStorablePB()
-            , m_Type(StoredObjectTypeStrings[static_cast<std::int32_t>(
-                  theObjectType)])
-        {
-            m_Type += "PB";
-            /*std::cout << m_Type << " -- Copy Constructor" << std::endl; */ rhs
-                .CopyToObject(*this);
-        }
+    ProtobufSubclass(
+        const ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
+            rhs)
+        : theBaseType()
+        , IStorablePB()
+        , m_Type(
+              StoredObjectTypeStrings[static_cast<std::int32_t>(theObjectType)])
+    {
+        m_Type += "PB";
+        rhs.CopyToObject(*this);
+    }
 
+    ProtobufSubclass<theBaseType, theInternalType, theObjectType>& operator=(
+        const ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
+            rhs)
+    {
+        rhs.CopyToObject(*this);
+        return *this;
+    }
+
+    void CopyToObject(
         ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
-        operator=(
-            const ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
-                rhs)
-        {
-            rhs.CopyToObject(*this);
-            return *this;
-        }
+            theNewStorable) const
+    {
+        std::unique_ptr<OTPacker> pPacker(
+            OTPacker::Create(PACK_PROTOCOL_BUFFERS));
+        const OTDB::Storable* pIntermediate =
+            dynamic_cast<const OTDB::Storable*>(this);
 
-        void CopyToObject(
-            ProtobufSubclass<theBaseType, theInternalType, theObjectType>&
-                theNewStorable) const
-        {
-            std::unique_ptr<OTPacker> pPacker(
-                OTPacker::Create(PACK_PROTOCOL_BUFFERS));
-            const OTDB::Storable* pIntermediate =
-                dynamic_cast<const OTDB::Storable*>(this);
+        if (!pPacker) { OT_FAIL; }
 
-            if (!pPacker) { OT_FAIL; }
+        std::unique_ptr<PackedBuffer> pBuffer(
+            pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate))));
 
-            std::unique_ptr<PackedBuffer> pBuffer(
-                pPacker->Pack(*(const_cast<OTDB::Storable*>(pIntermediate))));
+        if (!pBuffer) { OT_FAIL; }
 
-            if (!pBuffer) { OT_FAIL; }
+        if (!pPacker->Unpack(*pBuffer, theNewStorable)) { OT_FAIL; }
+    }
 
-            if (!pPacker->Unpack(*pBuffer, theNewStorable)) { OT_FAIL; }
-        }
+    ::google::protobuf::MessageLite* getPBMessage() override;
 
-        virtual ::google::protobuf::MessageLite* getPBMessage();
+    theBaseType* clone(void) const override
+    {
+        return dynamic_cast<theBaseType*>(do_clone());
+    }
 
-        virtual theBaseType* clone(void) const
-        {
-            return dynamic_cast<theBaseType*>(do_clone());
-        }
+    IStorable* do_clone(void) const
+    {
+        Storable* pNewStorable =
+            Storable::Create(theObjectType, PACK_PROTOCOL_BUFFERS);
+        if (nullptr == pNewStorable) OT_FAIL;
+        CopyToObject(
+            *(dynamic_cast<
+                ProtobufSubclass<theBaseType, theInternalType, theObjectType>*>(
+                pNewStorable)));
+        return dynamic_cast<IStorable*>(pNewStorable);
+    }
 
-        IStorable* do_clone(void) const
-        {
-            Storable* pNewStorable =
-                Storable::Create(theObjectType, PACK_PROTOCOL_BUFFERS);
-            if (nullptr == pNewStorable) OT_FAIL;
-            CopyToObject(*(dynamic_cast<ProtobufSubclass<
-                               theBaseType,
-                               theInternalType,
-                               theObjectType>*>(pNewStorable)));
-            return dynamic_cast<IStorable*>(pNewStorable);
-        }
-
-        virtual ~ProtobufSubclass() {}
-        OT_USING_ISTORABLE_HOOKS;
-        virtual void hookBeforePack();   // <=== Implement this if you subclass.
-        virtual void hookAfterUnpack();  // <=== Implement this if you subclass.
+    ~ProtobufSubclass() override = default;
+    OT_USING_ISTORABLE_HOOKS;
+    void hookBeforePack() override;   // <=== Implement this if you subclass.
+    void hookAfterUnpack() override;  // <=== Implement this if you subclass.
 };
 
 #define DECLARE_PROTOBUF_SUBCLASS(                                             \

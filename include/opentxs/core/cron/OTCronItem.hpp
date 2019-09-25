@@ -232,6 +232,10 @@ private:
                                          // item.
 
     OTCronItem() = delete;
+    OTCronItem(const OTCronItem&) = delete;
+    OTCronItem(OTCronItem&&) = delete;
+    OTCronItem& operator=(const OTCronItem&) = delete;
+    OTCronItem& operator=(OTCronItem&&) = delete;
 };
 }  // namespace opentxs
 #endif

@@ -85,6 +85,7 @@ Verification::Verification(
     const proto::Credential& serialized)
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Base(api, parent, serialized)
+    , data_()
 {
     mode_ = proto::KEYMODE_NULL;
     master_id_ = serialized.childdata().masterid();
@@ -98,6 +99,7 @@ Verification::Verification(
     const VersionNumber version)
     : Signable({}, version)  // TODO Signable
     , credential::implementation::Base(api, parent, nymParameters, version)
+    , data_()
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_VERIFY;

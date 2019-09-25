@@ -28,7 +28,6 @@ namespace opentxs::implementation
 {
 class StringXML::StringXMLPvt : public irr::io::IFileReadCallBack
 {
-
 public:
     StringXMLPvt(StringXML* ptr)
         : super(ptr)
@@ -43,6 +42,12 @@ public:
     }
 
     int getSize() { return super->getSize(); }
+
+private:
+    StringXMLPvt(const StringXMLPvt&) = delete;
+    StringXMLPvt(StringXMLPvt&&) = delete;
+    StringXMLPvt& operator=(const StringXMLPvt&) = delete;
+    StringXMLPvt& operator=(StringXMLPvt&&) = delete;
 };
 
 StringXML::StringXML()
@@ -70,17 +75,19 @@ StringXML::StringXML(const StringXML& value)
     Set(value.Get());
 }
 
-opentxs::StringXML& StringXML::operator=(const opentxs::String& rhs)
+StringXML& StringXML::operator=(const opentxs::String& rhs)
 {
     if ((&rhs) != (&(dynamic_cast<const opentxs::String&>(*this)))) {
         String::operator=(dynamic_cast<const String&>(rhs));
     }
+
     return *this;
 }
 
-opentxs::StringXML& StringXML::operator=(const opentxs::StringXML& rhs)
+StringXML& StringXML::operator=(const opentxs::StringXML& rhs)
 {
     if ((&rhs) != this) { String::operator=(dynamic_cast<const String&>(rhs)); }
+
     return *this;
 }
 

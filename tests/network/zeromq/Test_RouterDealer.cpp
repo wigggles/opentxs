@@ -18,18 +18,14 @@ class Test_RouterDealer : public ::testing::Test
 {
 public:
     const zmq::Context& context_;
-
     OTZMQRouterSocket* routerSocket_;
     OTZMQDealerSocket* dealerSocket_;
-
-    const std::string testMessage_{"zeromq test message"};
-    const std::string testMessage2_{"zeromq test message 2"};
-    const std::string testMessage3_{"zeromq test message 3"};
-
-    const std::string routerEndpoint_{"inproc://opentxs/test/router"};
-    const std::string dealerEndpoint_{"inproc://opentxs/test/dealer"};
-
-    std::atomic_int callbackFinishedCount_{0};
+    const std::string testMessage_;
+    const std::string testMessage2_;
+    const std::string testMessage3_;
+    const std::string routerEndpoint_;
+    const std::string dealerEndpoint_;
+    std::atomic_int callbackFinishedCount_;
 
     void requestSocketThread(
         const std::string& endpoint,
@@ -41,8 +37,20 @@ public:
 
     Test_RouterDealer()
         : context_(Context().ZMQ())
+        , routerSocket_(nullptr)
+        , dealerSocket_(nullptr)
+        , testMessage_("zeromq test message")
+        , testMessage2_("zeromq test message 2")
+        , testMessage3_("zeromq test message 3")
+        , routerEndpoint_("inproc://opentxs/test/router")
+        , dealerEndpoint_("inproc://opentxs/test/dealer")
+        , callbackFinishedCount_(0)
     {
     }
+    Test_RouterDealer(const Test_RouterDealer&) = delete;
+    Test_RouterDealer(Test_RouterDealer&&) = delete;
+    Test_RouterDealer& operator=(const Test_RouterDealer&) = delete;
+    Test_RouterDealer& operator=(Test_RouterDealer&&) = delete;
 };
 
 void Test_RouterDealer::requestSocketThread(

@@ -71,9 +71,11 @@ namespace opentxs
 {
 OTScriptable::OTScriptable(const api::Core& core)
     : Contract(core)
+    , openingNumsInOrderOfSigning_()
+    , m_mapParties()
+    , m_mapBylaws()
     , m_bCalculatingID(false)
-    ,  // This is not serialized.
-    m_bSpecifyInstrumentDefinitionID(false)
+    , m_bSpecifyInstrumentDefinitionID(false)
     , m_bSpecifyParties(false)  // These are.
     , m_strLabel(String::Factory())
 {

@@ -733,6 +733,7 @@ typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
 
 OTSmartContract::OTSmartContract(const api::Core& core)
     : ot_super(core)
+    , m_mapStashes()
     , m_StashAccts(core, Account::stash)
     , m_strLastSenderUser(String::Factory())
     , m_strLastSenderAcct(String::Factory())
@@ -747,6 +748,7 @@ OTSmartContract::OTSmartContract(
     const api::Core& core,
     const identifier::Server& NOTARY_ID)
     : ot_super(core)
+    , m_mapStashes()
     , m_StashAccts(core, Account::stash)
     , m_strLastSenderUser(String::Factory())
     , m_strLastSenderAcct(String::Factory())

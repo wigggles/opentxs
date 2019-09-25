@@ -21,6 +21,7 @@ Seeds::Seeds(
     const opentxs::api::storage::Driver& storage,
     const std::string& hash)
     : Node(storage, hash)
+    , default_seed_()
 {
     if (check_hash(hash)) {
         init(hash);

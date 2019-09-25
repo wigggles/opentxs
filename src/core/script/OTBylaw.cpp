@@ -28,6 +28,54 @@
 
 namespace opentxs
 {
+OTBylaw::OTBylaw()
+    : m_strName(String::Factory())
+    , m_strLanguage(String::Factory())
+    , m_mapVariables()
+    , m_mapClauses()
+    , m_mapHooks()
+    , m_mapCallbacks()
+    , m_pOwnerAgreement(nullptr)
+{
+}
+
+OTBylaw::OTBylaw(const char* szName, const char* szLanguage)
+    : m_strName(String::Factory())
+    , m_strLanguage(String::Factory())
+    , m_mapVariables()
+    , m_mapClauses()
+    , m_mapHooks()
+    , m_mapCallbacks()
+    , m_pOwnerAgreement(nullptr)
+{
+    if (nullptr != szName)
+        m_strName->Set(szName);
+    else
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": nullptr szName passed in to OTBylaw::OTBylaw.")
+            .Flush();
+
+    if (nullptr != szLanguage)
+        m_strLanguage =
+            String::Factory(szLanguage);  // "chai", "angelscript" etc.
+    else
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": nullptr szLanguage passed in to OTBylaw::OTBylaw.")
+            .Flush();
+
+    const std::string str_bylaw_name = m_strName->Get();
+    const std::string str_language = m_strLanguage->Get();
+
+    // Let the calling function validate these, if he doesn't want to risk an
+    // ASSERT...
+    //
+    if (!OTScriptable::ValidateName(str_bylaw_name) ||
+        !OTScriptable::ValidateName(str_language)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed validation in to OTBylaw::OTBylaw.")
+            .Flush();
+    }
+}
 
 void OTBylaw::Serialize(Tag& parent, bool bCalculatingID) const
 {
@@ -989,47 +1037,6 @@ const char* OTBylaw::GetLanguage() const
     return m_strLanguage->Exists() ? m_strLanguage->Get()
                                    : "chai";  // todo add default script to
                                               // config files. no hardcoding.
-}
-
-OTBylaw::OTBylaw()
-    : m_strName(String::Factory())
-    , m_strLanguage(String::Factory())
-    , m_pOwnerAgreement(nullptr)
-{
-}
-
-OTBylaw::OTBylaw(const char* szName, const char* szLanguage)
-    : m_strName(String::Factory())
-    , m_strLanguage(String::Factory())
-    , m_pOwnerAgreement(nullptr)
-{
-    if (nullptr != szName)
-        m_strName->Set(szName);
-    else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": nullptr szName passed in to OTBylaw::OTBylaw.")
-            .Flush();
-
-    if (nullptr != szLanguage)
-        m_strLanguage =
-            String::Factory(szLanguage);  // "chai", "angelscript" etc.
-    else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": nullptr szLanguage passed in to OTBylaw::OTBylaw.")
-            .Flush();
-
-    const std::string str_bylaw_name = m_strName->Get();
-    const std::string str_language = m_strLanguage->Get();
-
-    // Let the calling function validate these, if he doesn't want to risk an
-    // ASSERT...
-    //
-    if (!OTScriptable::ValidateName(str_bylaw_name) ||
-        !OTScriptable::ValidateName(str_language)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed validation in to OTBylaw::OTBylaw.")
-            .Flush();
-    }
 }
 
 OTBylaw::~OTBylaw()

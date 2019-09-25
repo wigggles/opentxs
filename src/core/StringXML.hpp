@@ -19,8 +19,8 @@ public:
     std::int32_t read(void* buffer, std::uint32_t sizeToRead) final;
     std::int32_t getSize() final;
 
-    opentxs::StringXML& operator=(const opentxs::String& rhs) final;
-    opentxs::StringXML& operator=(const opentxs::StringXML& rhs) final;
+    StringXML& operator=(const opentxs::String& rhs) final;
+    StringXML& operator=(const opentxs::StringXML& rhs) final;
 
     ~StringXML() final;
 
@@ -34,5 +34,8 @@ private:
     StringXML(const opentxs::String& value);
     StringXML();
     StringXML(const StringXML& value);
+    StringXML(StringXML&&) = delete;
+    StringXML& operator=(const StringXML&) = delete;
+    StringXML& operator=(StringXML&&) = delete;
 };
 }  // namespace opentxs::implementation
