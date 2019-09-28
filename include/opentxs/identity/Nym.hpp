@@ -35,7 +35,7 @@ public:
     EXPORT virtual std::string BestPhoneNumber() const = 0;
     EXPORT virtual std::string BestSocialMediaProfile(
         const proto::ContactItemType type) const = 0;
-    EXPORT virtual const class ContactData& Claims() const = 0;
+    EXPORT virtual const opentxs::ContactData& Claims() const = 0;
     EXPORT virtual bool CompareID(const Nym& RHS) const = 0;
     EXPORT virtual bool CompareID(const identifier::Nym& rhs) const = 0;
     EXPORT virtual VersionNumber ContactCredentialVersion() const = 0;
@@ -128,7 +128,7 @@ public:
         bool active = true) const = 0;
     EXPORT virtual const std::set<proto::ContactItemType>
     SocialMediaProfileTypes() const = 0;
-    EXPORT virtual const NymIDSource& Source() const = 0;
+    EXPORT virtual const identity::Source& Source() const = 0;
     EXPORT virtual std::unique_ptr<OTPassword> TransportKey(
         Data& pubkey,
         const PasswordPrompt& reason) const = 0;

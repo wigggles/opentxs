@@ -32,7 +32,11 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::unique_ptr<proto::SourceProof> source_proof_;
+    static const VersionConversionMap credential_to_master_params_;
+
+    const proto::SourceProof source_proof_;
+
+    static proto::SourceProof source_proof(const NymParameters& params);
 
     std::shared_ptr<identity::credential::Base::SerializedType> serialize(
         const Lock& lock,
@@ -45,15 +49,15 @@ private:
 
     Primary(
         const api::Core& api,
-        const PasswordPrompt& reason,
-        identity::internal::Authority& theOwner,
-        const proto::Credential& serializedCred);
-    Primary(
-        const api::Core& api,
-        identity::internal::Authority& theOwner,
+        const identity::internal::Authority& theOwner,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) noexcept(false);
+    Primary(
+        const api::Core& api,
+        const PasswordPrompt& reason,
+        const identity::internal::Authority& theOwner,
+        const proto::Credential& serializedCred) noexcept;
     Primary() = delete;
     Primary(const Primary&) = delete;
     Primary(Primary&&) = delete;

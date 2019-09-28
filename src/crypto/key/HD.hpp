@@ -34,8 +34,9 @@ protected:
        const crypto::EcdsaProvider& ecdsa,
        const proto::AsymmetricKeyType keyType,
        const proto::KeyRole role,
-       const VersionNumber version)
-    noexcept;
+       const VersionNumber version,
+       const PasswordPrompt& reason)
+    noexcept(false);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,

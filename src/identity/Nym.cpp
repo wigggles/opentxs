@@ -23,6 +23,9 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -30,13 +33,11 @@
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
@@ -46,6 +47,7 @@
 #include "opentxs/identity/credential/Base.hpp"
 #include "opentxs/identity/Authority.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/identity/Source.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/Proto.tpp"
 
@@ -74,10 +76,40 @@ namespace opentxs
 {
 identity::internal::Nym* Factory::Nym(
     const api::Core& api,
-    const NymParameters& nymParameters,
+    const NymParameters& params,
     const opentxs::PasswordPrompt& reason)
 {
-    return new identity::implementation::Nym(api, nymParameters, reason);
+    using ReturnType = identity::implementation::Nym;
+
+    if ((proto::CREDTYPE_LEGACY == params.credentialType()) &&
+        (proto::SOURCETYPE_BIP47 == params.SourceType())) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid parameters")
+            .Flush();
+
+        return nullptr;
+    }
+
+    try {
+        auto revised = ReturnType::normalize(api, params, reason);
+        auto pSource = std::unique_ptr<identity::Source>{
+            NymIDSource(api, revised, reason)};
+
+        if (false == bool(pSource)) {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                ": Failed to generate nym id source")
+                .Flush();
+
+            return nullptr;
+        }
+
+        return new ReturnType(api, revised, std::move(pSource), reason);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to create nym: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 
 identity::internal::Nym* Factory::Nym(
@@ -124,10 +156,11 @@ Nym::Nym(
     const api::Core& api,
     const identifier::Nym& nymID,
     const proto::CredentialIndexMode mode,
-    const VersionNumber version)
+    const VersionNumber version,
+    const Bip32Index index)
     : api_(api)
     , version_(version)
-    , index_(0)
+    , index_(index)
     , alias_()
     , revision_(1)
     , mode_(mode)
@@ -145,46 +178,23 @@ Nym::Nym(
 
 Nym::Nym(
     const api::Core& api,
-    const NymParameters& nymParameters,
-    const opentxs::PasswordPrompt& reason)
-    : Nym(api, api.Factory().NymID(), proto::CREDINDEX_PRIVATE, DefaultVersion)
+    NymParameters& params,
+    std::unique_ptr<identity::Source> source,
+    const opentxs::PasswordPrompt& reason) noexcept(false)
+    : Nym(api, source->NymID(), proto::CREDINDEX_PRIVATE, DefaultVersion, 1)
 {
-    auto revisedParameters{nymParameters};
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    revisedParameters.SetCredset(index_++);
-    Bip32Index nymIndex = 0;
-    std::string fingerprint = nymParameters.Seed();
-    auto seed = api_.Seeds().Seed(fingerprint, nymIndex, reason);
+    source_ = std::move(source);
+    SetDescription(source_->Description());
+    auto pAuthority = std::unique_ptr<identity::internal::Authority>(
+        opentxs::Factory::Authority(api_, *this, params, version_, reason));
 
-    OT_ASSERT(seed);
-
-    const bool defaultIndex = nymParameters.UseAutoIndex();
-
-    if (!defaultIndex) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Re-creating nym at specified path.")
-            .Flush();
-
-        nymIndex = nymParameters.Nym();
+    if (false == bool(pAuthority)) {
+        throw std::runtime_error("Failed to create nym authority");
     }
 
-    const std::int32_t newIndex = nymIndex + 1;
-    api_.Seeds().UpdateIndex(fingerprint, newIndex, reason);
-    revisedParameters.SetEntropy(*seed);
-    revisedParameters.SetSeed(fingerprint);
-    revisedParameters.SetNym(nymIndex);
-#endif
-    auto* pNewCredentialSet =
-        opentxs::Factory::Authority(api_, revisedParameters, version_, reason);
-
-    OT_ASSERT(nullptr != pNewCredentialSet);
-
-    source_ =
-        std::make_shared<NymIDSource>(pNewCredentialSet->Source(), reason);
-    const_cast<OTNymID&>(m_nymID) = source_->NymID();
-    SetDescription(source_->Description());
+    auto& authority = *pAuthority;
     m_mapCredentialSets.emplace(
-        pNewCredentialSet->GetMasterCredID(), pNewCredentialSet);
+        authority.GetMasterCredID(), std::move(pAuthority));
 }
 
 bool Nym::add_contact_credential(
@@ -448,34 +458,6 @@ const opentxs::ContactData& Nym::Claims() const
     return *contact_data_;
 }
 
-void Nym::clear_credentials(const eLock& lock)
-{
-    OT_ASSERT(verify_lock(lock));
-
-    m_listRevokedIDs.clear();
-
-    while (!m_mapCredentialSets.empty()) {
-        identity::Authority* pCredential = m_mapCredentialSets.begin()->second;
-        m_mapCredentialSets.erase(m_mapCredentialSets.begin());
-        delete pCredential;
-        pCredential = nullptr;
-    }
-
-    while (!m_mapRevokedSets.empty()) {
-        identity::Authority* pCredential = m_mapRevokedSets.begin()->second;
-        m_mapRevokedSets.erase(m_mapRevokedSets.begin());
-        delete pCredential;
-        pCredential = nullptr;
-    }
-}
-
-void Nym::ClearCredentials()
-{
-    eLock lock(shared_lock_);
-
-    clear_credentials(lock);
-}
-
 bool Nym::CompareID(const identity::Nym& rhs) const
 {
     sLock lock(shared_lock_);
@@ -560,7 +542,7 @@ const crypto::key::Asymmetric& Nym::get_private_auth_key(
     OT_ASSERT(!m_mapCredentialSets.empty());
 
     OT_ASSERT(verify_lock(lock));
-    const identity::Authority* pCredential = nullptr;
+    const identity::Authority* pCredential{nullptr};
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -571,7 +553,7 @@ const crypto::key::Asymmetric& Nym::get_private_auth_key(
         // just
         // going to return the first one that's valid (not null).
 
-        pCredential = it.second;
+        pCredential = it.second.get();
         if (nullptr != pCredential) break;
     }
     if (nullptr == pCredential) OT_FAIL;
@@ -595,7 +577,7 @@ const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
 
     OT_ASSERT(!m_mapCredentialSets.empty());
 
-    const identity::Authority* pCredential = nullptr;
+    const identity::Authority* pCredential{nullptr};
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -606,7 +588,7 @@ const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
         // just
         // going to return the first one that's valid (not null).
 
-        pCredential = it.second;
+        pCredential = it.second.get();
         if (nullptr != pCredential) break;
     }
     if (nullptr == pCredential) OT_FAIL;
@@ -633,7 +615,7 @@ const crypto::key::Asymmetric& Nym::get_private_sign_key(
 
     OT_ASSERT(verify_lock(lock));
 
-    const identity::Authority* pCredential = nullptr;
+    const identity::Authority* pCredential{nullptr};
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -644,7 +626,7 @@ const crypto::key::Asymmetric& Nym::get_private_sign_key(
         // just
         // going to return the first one that's valid (not null).
 
-        pCredential = it.second;
+        pCredential = it.second.get();
         if (nullptr != pCredential) break;
     }
     if (nullptr == pCredential) OT_FAIL;
@@ -663,7 +645,7 @@ const crypto::key::Asymmetric& Nym::get_public_sign_key(
 
     OT_ASSERT(verify_lock(lock));
 
-    const identity::Authority* pCredential = nullptr;
+    const identity::Authority* pCredential{nullptr};
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -674,7 +656,7 @@ const crypto::key::Asymmetric& Nym::get_public_sign_key(
         // just
         // going to return the first one that's valid (not null).
 
-        pCredential = it.second;
+        pCredential = it.second.get();
         if (nullptr != pCredential) break;
     }
     if (nullptr == pCredential) OT_FAIL;
@@ -691,7 +673,7 @@ const crypto::key::Asymmetric& Nym::GetPublicAuthKey(
 
     OT_ASSERT(!m_mapCredentialSets.empty());
 
-    const identity::Authority* pCredential = nullptr;
+    const identity::Authority* pCredential{nullptr};
 
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
@@ -702,7 +684,7 @@ const crypto::key::Asymmetric& Nym::GetPublicAuthKey(
         // just
         // going to return the first one that's valid (not null).
 
-        pCredential = it.second;
+        pCredential = it.second.get();
         if (nullptr != pCredential) break;
     }
     if (nullptr == pCredential) OT_FAIL;
@@ -719,7 +701,7 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
 
     OT_ASSERT(!m_mapCredentialSets.empty());
 
-    const identity::Authority* pCredential = nullptr;
+    const identity::Authority* pCredential{nullptr};
     for (const auto& it : m_mapCredentialSets) {
         // Todo: If we have some criteria, such as which master or
         // child credential
@@ -729,7 +711,7 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
         // just
         // going to return the first one that's valid (not null).
 
-        pCredential = it.second;
+        pCredential = it.second.get();
         if (nullptr != pCredential) break;
     }
     if (nullptr == pCredential) OT_FAIL;
@@ -762,7 +744,7 @@ std::int32_t Nym::GetPublicKeysBySignature(
     sLock lock(shared_lock_);
 
     for (const auto& it : m_mapCredentialSets) {
-        const identity::Authority* pCredential = it.second;
+        const identity::Authority* pCredential = it.second.get();
         OT_ASSERT(nullptr != pCredential);
 
         const std::int32_t nTempCount = pCredential->GetPublicKeysBySignature(
@@ -863,31 +845,45 @@ bool Nym::load_credential_index(
     index_ = index.index();
     revision_.store(index.revision());
     mode_ = index.mode();
-    source_ =
-        std::make_shared<NymIDSource>(api_.Factory(), index.source(), reason);
+    source_.reset(Factory::NymIDSource(api_, index.source(), reason));
     proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
                               ? proto::KEYMODE_PRIVATE
                               : proto::KEYMODE_PUBLIC;
     contact_data_.reset();
     m_mapCredentialSets.clear();
+    auto newSet = std::unique_ptr<identity::internal::Authority>{};
 
     for (auto& it : index.activecredentials()) {
-        auto* newSet = opentxs::Factory::Authority(api_, mode, it, reason);
+        newSet.reset(
+            opentxs::Factory::Authority(api_, *this, mode, it, reason));
 
-        if (nullptr != newSet) {
+        if (newSet) {
             m_mapCredentialSets.emplace(
-                std::make_pair(newSet->GetMasterCredID(), newSet));
+                std::make_pair(newSet->GetMasterCredID(), std::move(newSet)));
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to load active authority ")(it.masterid())
+                .Flush();
+
+            return false;
         }
     }
 
     m_mapRevokedSets.clear();
 
     for (auto& it : index.revokedcredentials()) {
-        auto* newSet = opentxs::Factory::Authority(api_, mode, it, reason);
+        newSet.reset(
+            opentxs::Factory::Authority(api_, *this, mode, it, reason));
 
-        if (nullptr != newSet) {
+        if (newSet) {
             m_mapRevokedSets.emplace(
-                std::make_pair(newSet->GetMasterCredID(), newSet));
+                std::make_pair(newSet->GetMasterCredID(), std::move(newSet)));
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to load revoked authority ")(it.masterid())
+                .Flush();
+
+            return false;
         }
     }
 
@@ -983,6 +979,46 @@ std::string Nym::Name() const
     if (false == output.empty()) { return output; }
 
     return alias_;
+}
+
+NymParameters Nym::normalize(
+    const api::Core& api,
+    const NymParameters& in,
+    const PasswordPrompt& reason) noexcept(false)
+{
+    auto output{in};
+
+    if (proto::CREDTYPE_HD == in.credentialType()) {
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+        output.SetCredset(0);
+        Bip32Index nymIndex = 0;
+        std::string fingerprint = in.Seed();
+        auto seed = api.Seeds().Seed(fingerprint, nymIndex, reason);
+
+        OT_ASSERT(seed);
+
+        const bool defaultIndex = in.UseAutoIndex();
+
+        if (false == defaultIndex) {
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                ": Re-creating nym at specified path.")
+                .Flush();
+
+            nymIndex = in.Nym();
+        }
+
+        const std::int32_t newIndex = nymIndex + 1;
+        api.Seeds().UpdateIndex(fingerprint, newIndex, reason);
+        output.SetEntropy(*seed);
+        output.SetSeed(fingerprint);
+        output.SetNym(nymIndex);
+#else
+        throw std::runtime_error(
+            "opentxs compiled without hd credential support");
+#endif
+    }
+
+    return output;
 }
 
 bool Nym::Open(
@@ -1663,19 +1699,8 @@ bool Nym::verify_pseudonym(
     if (!m_mapCredentialSets.empty()) {
         // Verify Nym by his own credentials.
         for (const auto& it : m_mapCredentialSets) {
-            const identity::Authority* pCredential = it.second;
+            const identity::Authority* pCredential = it.second.get();
             OT_ASSERT(nullptr != pCredential);
-
-            const auto theCredentialNymID =
-                api_.Factory().NymID(pCredential->GetNymID());
-
-            if (m_nymID != theCredentialNymID) {
-                LogNormal(OT_METHOD)(__FUNCTION__)(": Credential NymID (")(
-                    pCredential->GetNymID())(") doesn't match actual NymID: ")(
-                    m_nymID->str())(".")
-                    .Flush();
-                return false;
-            }
 
             // Verify all Credentials in the Authority, including source
             // verification for the master credential.
@@ -1715,6 +1740,4 @@ bool Nym::WriteCredentials() const
 
     return true;
 }
-
-Nym::~Nym() { ClearCredentials(); }
 }  // namespace opentxs::identity::implementation

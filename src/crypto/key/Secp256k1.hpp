@@ -50,7 +50,8 @@ private:
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
-        const VersionNumber version) noexcept;
+        const VersionNumber version,
+        const PasswordPrompt& reason) noexcept(false);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Secp256k1(
         const api::internal::Core& api,

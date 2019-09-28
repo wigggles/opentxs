@@ -20,7 +20,7 @@ namespace crypto
 {
 namespace key
 {
-class EllipticCurve : virtual public Asymmetric, virtual public Keypair
+class EllipticCurve : virtual public Asymmetric
 {
 public:
     EXPORT static const VersionNumber DefaultVersion;

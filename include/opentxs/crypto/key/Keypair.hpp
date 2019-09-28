@@ -26,23 +26,25 @@ class Keypair
 public:
     using Keys = std::list<const Asymmetric*>;
 
-    EXPORT virtual bool CheckCapability(
-        const NymCapability& capability) const = 0;
+    EXPORT virtual operator bool() const noexcept = 0;
+
+    EXPORT virtual bool CheckCapability(const NymCapability& capability) const
+        noexcept = 0;
     /// throws std::runtime_error if private key is missing
-    EXPORT virtual const Asymmetric& GetPrivateKey() const = 0;
+    EXPORT virtual const Asymmetric& GetPrivateKey() const noexcept(false) = 0;
     /// throws std::runtime_error if public key is missing
-    EXPORT virtual const Asymmetric& GetPublicKey() const = 0;
+    EXPORT virtual const Asymmetric& GetPublicKey() const noexcept(false) = 0;
     // inclusive means, return keys when theSignature has no metadata.
     EXPORT virtual std::int32_t GetPublicKeyBySignature(
         Keys& listOutput,
         const Signature& theSignature,
-        bool bInclusive = false) const = 0;
+        bool bInclusive = false) const noexcept = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetSerialized(
-        bool privateKey) const = 0;
+        bool privateKey) const noexcept = 0;
     EXPORT virtual bool GetTransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept = 0;
 
     EXPORT virtual ~Keypair() = default;
 

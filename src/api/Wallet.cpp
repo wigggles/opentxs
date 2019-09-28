@@ -1122,25 +1122,39 @@ Nym_p Wallet::Nym(
     std::shared_ptr<identity::internal::Nym> pNym(
         opentxs::Factory::Nym(api_, nymParameters, reason));
 
-    OT_ASSERT(pNym);
+    if (false == bool(pNym)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create nym").Flush();
 
-    if (pNym->VerifyPseudonym(reason)) {
+        return {};
+    }
+
+    auto& nym = *pNym;
+
+    if (nym.VerifyPseudonym(reason)) {
         const bool nameAndTypeSet =
             proto::CITEMTYPE_ERROR != type && !name.empty();
+
         if (nameAndTypeSet) {
-            pNym->SetScope(type, name, reason, true);
-            pNym->SetAlias(name);
+            nym.SetScope(type, name, reason, true);
+            nym.SetAlias(name);
         }
 
-        SaveCredentialIDs(*pNym);
-        auto nymfile = mutable_nymfile(pNym, pNym, pNym->ID(), reason);
-        Lock mapLock(nym_map_lock_);
-        auto& pMapNym = nym_map_[pNym->ID().str()].second;
-        pMapNym = pNym;
+        if (SaveCredentialIDs(*pNym)) {
+            auto nymfile = mutable_nymfile(pNym, pNym, nym.ID(), reason);
+            Lock mapLock(nym_map_lock_);
+            auto& pMapNym = nym_map_[nym.ID().str()].second;
+            pMapNym = pNym;
 
-        return std::move(pNym);
+            return std::move(pNym);
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save credentials")
+                .Flush();
+
+            return {};
+        }
     } else {
-        return nullptr;
+
+        return {};
     }
 }
 

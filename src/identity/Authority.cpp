@@ -15,8 +15,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 
 #include "internal/identity/credential/Credential.hpp"
@@ -45,22 +45,35 @@ Function for_each(Range& range, Function f)
 
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
+    const identity::Nym& parent,
     const proto::KeyMode mode,
     const proto::CredentialSet& serialized,
     const opentxs::PasswordPrompt& reason)
 {
-    return new identity::implementation::Authority(
-        api, mode, serialized, reason);
+    using ReturnType = identity::implementation::Authority;
+
+    return new ReturnType(api, parent, mode, serialized, reason);
 }
 
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
+    const identity::Nym& parent,
     const NymParameters& nymParameters,
     const VersionNumber nymVersion,
     const opentxs::PasswordPrompt& reason)
 {
-    return new identity::implementation::Authority(
-        api, nymParameters, nymVersion, reason);
+    using ReturnType = identity::implementation::Authority;
+
+    try {
+
+        return new ReturnType(api, parent, nymParameters, nymVersion, reason);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to create authority: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 }  // namespace opentxs
 
@@ -109,18 +122,18 @@ const VersionConversionMap Authority::nym_to_authority_{
 
 Authority::Authority(
     const api::Core& api,
+    const identity::Nym& parent,
     const VersionNumber version,
     const Bip32Index index,
     const proto::KeyMode mode,
     const std::string& nymID) noexcept
     : api_(api)
+    , parent_(parent)
     , master_(nullptr)
     , key_credentials_()
     , contact_credentials_()
     , verification_credentials_()
     , m_mapRevokedCredentials()
-    , m_strNymID(nymID)
-    , nym_id_source_(nullptr)
     , m_pImportPassword(nullptr)
     , version_(version)
     , index_(index)
@@ -131,11 +144,13 @@ Authority::Authority(
 
 Authority::Authority(
     const api::Core& api,
+    const identity::Nym& parent,
     const proto::KeyMode mode,
     const Serialized& serialized,
     const opentxs::PasswordPrompt& reason) noexcept
     : Authority(
           api,
+          parent,
           serialized.version(),
           serialized.index(),
           mode,
@@ -170,14 +185,17 @@ Authority::Authority(
 
 Authority::Authority(
     const api::Core& api,
+    const identity::Nym& parent,
     const NymParameters& nymParameters,
     VersionNumber nymVersion,
-    const opentxs::PasswordPrompt& reason) noexcept
-    : Authority(api, nym_to_authority_.at(nymVersion))
+    const opentxs::PasswordPrompt& reason) noexcept(false)
+    : Authority(api, parent, nym_to_authority_.at(nymVersion))
 {
     CreateMasterCredential(nymParameters, reason);
 
-    OT_ASSERT(master_);
+    if (false == bool(master_)) {
+        throw std::runtime_error("Invalid master credential");
+    }
 
     NymParameters revisedParameters{nymParameters};
     bool haveChildCredential{false};
@@ -215,7 +233,9 @@ Authority::Authority(
     }
 #endif
 
-    OT_ASSERT(haveChildCredential);
+    if (false == haveChildCredential) {
+        throw std::runtime_error("Failed to generate child credentials");
+    }
 }
 
 std::string Authority::AddChildKeyCredential(
@@ -555,14 +575,14 @@ bool Authority::LoadChildKeyCredential(
     const opentxs::PasswordPrompt& reason)
 {
 
-    OT_ASSERT(!GetNymID().empty());
+    OT_ASSERT(false == parent_.Source().NymID()->empty());
 
     std::shared_ptr<proto::Credential> child;
     bool loaded = api_.Wallet().LoadCredential(strSubID.Get(), child);
 
     if (!loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failure: Key Credential ")(
-            strSubID)(" doesn't exist for Nym ")(GetNymID())(".")
+            strSubID)(" doesn't exist for Nym ")(parent_.Source().NymID())
             .Flush();
         return false;
     }
@@ -727,7 +747,7 @@ std::shared_ptr<Authority::Serialized> Authority::Serialize(
 {
     auto credSet = std::make_shared<Serialized>();
     credSet->set_version(version_);
-    credSet->set_nymid(m_strNymID);
+    credSet->set_nymid(parent_.ID().str());
     credSet->set_masterid(GetMasterCredID());
     const auto add_active_id = [&](const auto& item) -> void {
         credSet->add_activechildids(item.first->str());
@@ -766,18 +786,12 @@ std::shared_ptr<Authority::Serialized> Authority::Serialize(
     return credSet;
 }
 
-void Authority::SetSource(const std::shared_ptr<NymIDSource>& source)
-{
-    nym_id_source_ = source;
-    m_strNymID = nym_id_source_->NymID()->str();
-}
-
 bool Authority::Sign(
     const credential::Primary& credential,
     proto::Signature& sig,
     const opentxs::PasswordPrompt& reason) const
 {
-    return nym_id_source_->Sign(credential, sig, reason);
+    return parent_.Source().Sign(credential, sig, reason);
 }
 
 bool Authority::Sign(
@@ -935,7 +949,7 @@ bool Authority::VerifyInternally(const opentxs::PasswordPrompt& reason) const
     if (false == master_->Validate(reason)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Master Credential failed to verify: ")(GetMasterCredID())(
-            " NymID: ")(GetNymID())(".")
+            " NymID: ")(parent_.Source().NymID())
             .Flush();
 
         return false;

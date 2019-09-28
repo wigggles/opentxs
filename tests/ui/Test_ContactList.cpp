@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #define ALICE_NYM_ID "ot2CyrTzwREHzboZ2RyCT8QsTj3Scaa55JRG"
 #define ALICE_NYM_NAME "Alice"
 #define BOB_PAYMENT_CODE                                                       \
@@ -255,3 +256,4 @@ TEST_F(Test_ContactList, Contact_List)
     chris_contact_id_ = Identifier::Factory(chris->ID());
 }
 }  // namespace
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47

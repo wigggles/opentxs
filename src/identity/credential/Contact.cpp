@@ -9,11 +9,12 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Authority.hpp"
+#include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 
 #include "internal/identity/credential/Credential.hpp"
@@ -133,41 +134,41 @@ namespace opentxs::identity::credential::implementation
 {
 Contact::Contact(
     const api::Core& api,
-    identity::internal::Authority& parent,
-    const proto::Credential& serialized)
-    : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Base(api, parent, serialized)
-    , data_()
+    const identity::internal::Authority& parent,
+    const NymParameters& params,
+    const VersionNumber version)
+    : Signable({}, version)  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          parent,
+          params,
+          version,
+          proto::CREDROLE_CONTACT,
+          proto::KEYMODE_NULL,
+          parent.GetMasterCredID(),
+          parent.Source().NymID()->str())
+    , data_(params.ContactData() ? *params.ContactData() : proto::ContactData{})
 {
-    mode_ = proto::KEYMODE_NULL;
-    master_id_ = serialized.childdata().masterid();
-    data_.reset(new proto::ContactData(serialized.contactdata()));
 }
 
 Contact::Contact(
     const api::Core& api,
-    identity::internal::Authority& parent,
-    const NymParameters& nymParameters,
-    const VersionNumber version)
-    : Signable({}, version)  // TODO Signable
-    , credential::implementation::Base(api, parent, nymParameters, version)
-    , data_()
+    const identity::internal::Authority& parent,
+    const proto::Credential& serialized)
+    : Signable({}, serialized.version())  // TODO Signable
+    , credential::implementation::Base(
+          api,
+          parent,
+          serialized,
+          serialized.childdata().masterid())
+    , data_(serialized.contactdata())
 {
-    mode_ = proto::KEYMODE_NULL;
-    role_ = proto::CREDROLE_CONTACT;
-    nym_id_ = parent.GetNymID();
-    master_id_ = parent.GetMasterCredID();
-    auto contacts = nymParameters.ContactData();
-
-    if (contacts) { data_.reset(new proto::ContactData(*contacts)); }
 }
 
 bool Contact::GetContactData(
     std::unique_ptr<proto::ContactData>& contactData) const
 {
-    if (!data_) { return false; }
-
-    contactData.reset(new proto::ContactData(*data_));
+    contactData.reset(new proto::ContactData(data_));
 
     return bool(contactData);
 }
@@ -196,7 +197,7 @@ std::shared_ptr<Base::SerializedType> Contact::serialize(
         }
     }
 
-    *(serializedCredential->mutable_contactdata()) = *data_;
+    *serializedCredential->mutable_contactdata() = data_;
 
     return serializedCredential;
 }

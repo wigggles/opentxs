@@ -89,6 +89,7 @@ public:
         const Data& plaintext,
         const proto::Signature& sig,
         const PasswordPrompt& reason) const = 0;
+    EXPORT virtual VersionNumber Version() const = 0;
 
     // Only used for RSA keys
     [[deprecated]] EXPORT virtual void Release() = 0;

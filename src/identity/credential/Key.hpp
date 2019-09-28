@@ -55,9 +55,9 @@ public:
 
 protected:
     const VersionNumber subversion_;
-    OTKeypair signing_key_;
-    OTKeypair authentication_key_;
-    OTKeypair encryption_key_;
+    const OTKeypair signing_key_;
+    const OTKeypair authentication_key_;
+    const OTKeypair encryption_key_;
 
     std::shared_ptr<Base::SerializedType> serialize(
         const Lock& lock,
@@ -70,14 +70,19 @@ protected:
         override;
 
     Key(const api::Core& api,
-        identity::internal::Authority& owner,
+        const identity::internal::Authority& owner,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const PasswordPrompt& reason) noexcept;
+        const proto::CredentialRole role,
+        const std::string& masterID,
+        const std::string& nymID,
+        const PasswordPrompt& reason,
+        const bool useProvidedSigningKey = false) noexcept(false);
     Key(const api::Core& api,
         const PasswordPrompt& reason,
-        identity::internal::Authority& owner,
-        const proto::Credential& serializedCred) noexcept;
+        const identity::internal::Authority& owner,
+        const proto::Credential& serializedCred,
+        const std::string& masterID) noexcept;
 
 private:
     static const VersionConversionMap credential_subversion_;
@@ -88,25 +93,18 @@ private:
         const PasswordPrompt& reason,
         const int index,
         const proto::Credential& credential);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    static OTKeypair derive_hd_keypair(
-        const api::Core& core,
-        const OTPassword& seed,
-        const std::string& fingerprint,
-        const Bip32Index nym,
-        const Bip32Index credset,
-        const Bip32Index credindex,
-        const EcdsaCurve& curve,
-        const proto::KeyRole role,
-        const VersionNumber version,
-        const PasswordPrompt& reason);
-#endif
     static OTKeypair new_key(
         const api::Core& api,
         const proto::KeyRole role,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const PasswordPrompt& reason);
+        const PasswordPrompt& reason) noexcept(false);
+    static OTKeypair signing_key(
+        const api::Core& api,
+        const NymParameters& params,
+        const VersionNumber subversion,
+        const bool useProvided,
+        const PasswordPrompt& reason) noexcept(false);
 
     bool addKeytoSerializedKeyCredential(
         proto::KeyCredential& credential,

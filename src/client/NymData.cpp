@@ -100,6 +100,7 @@ bool NymData::AddEmail(
     return nym().AddEmail(value, reason, primary, active);
 }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool NymData::AddPaymentCode(
     [[maybe_unused]] const std::string& code,
     [[maybe_unused]] const proto::ContactItemType currency,
@@ -107,7 +108,6 @@ bool NymData::AddPaymentCode(
     [[maybe_unused]] const bool active,
     [[maybe_unused]] const PasswordPrompt& reason)
 {
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto paymentCode = factory_.PaymentCode(code, reason);
 
     if (false == paymentCode->VerifyInternally()) {
@@ -117,10 +117,8 @@ bool NymData::AddPaymentCode(
     }
 
     return nym().AddPaymentCode(paymentCode, currency, reason, primary, active);
-#else
-    return false;
-#endif
 }
+#endif
 
 bool NymData::AddPhoneNumber(
     const std::string& value,
@@ -170,7 +168,7 @@ std::string NymData::BestSocialMediaProfile(
     return nym().BestSocialMediaProfile(type);
 }
 
-const class ContactData& NymData::Claims() const { return nym().Claims(); }
+const opentxs::ContactData& NymData::Claims() const { return nym().Claims(); }
 
 const ContactData& NymData::data() const { return nym().Claims(); }
 

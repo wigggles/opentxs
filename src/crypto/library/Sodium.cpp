@@ -506,8 +506,7 @@ bool Sodium::Sign(
 
     if (!havePrivateKey) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Can not extract ed25519 private key seed "
-            "from Asymmetric.")
+            ": Can not extract ed25519 private key seed from Asymmetric.")
             .Flush();
 
         return false;

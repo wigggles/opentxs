@@ -42,6 +42,7 @@ public:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     Key NewKey(
         const NymParameters& params,
+        const PasswordPrompt& reason,
         const proto::KeyRole role,
         const VersionNumber version) const final;
 

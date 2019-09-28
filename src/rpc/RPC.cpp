@@ -303,7 +303,9 @@ proto::RPCResponse RPC::add_contact(const proto::RPCCommand& command) const
         const auto contact = client.Contacts().NewContact(
             addContact.label(),
             identifier::Nym::Factory(addContact.nymid()),
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
             client.Factory().PaymentCode(addContact.paymentcode(), reason),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
             reason);
 
         if (false == bool(contact)) {

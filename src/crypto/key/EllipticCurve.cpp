@@ -66,12 +66,28 @@ EllipticCurve::EllipticCurve(
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
-    const VersionNumber version) noexcept
+    const VersionNumber version,
+    const PasswordPrompt& reason) noexcept(false)
     : Asymmetric(api, ecdsa, keyType, role, version)
     , ecdsa_(ecdsa)
     , key_(Data::Factory())
-    , encrypted_key_(nullptr)
+    , encrypted_key_(std::make_unique<proto::Ciphertext>())
 {
+    OT_ASSERT(encrypted_key_)
+
+    auto privateKey = OTPassword{};
+    const auto generated = ecdsa_.RandomKeypair(privateKey, key_);
+
+    if (false == generated) {
+        throw std::runtime_error("Failed to generate key");
+    }
+
+    if (false == encrypt_key(api, reason, privateKey, *encrypted_key_)) {
+        throw std::runtime_error("Failed to encrypt key");
+    }
+
+    has_public_ = true;
+    has_private_ = true;
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -170,7 +186,7 @@ std::unique_ptr<proto::Ciphertext> EllipticCurve::encrypt_key(
     key::Symmetric& sessionKey,
     const PasswordPrompt& reason,
     const bool attach,
-    const OTPassword& plaintext)
+    const OTPassword& plaintext) noexcept
 {
     auto output = std::make_unique<proto::Ciphertext>();
 
@@ -182,6 +198,34 @@ std::unique_ptr<proto::Ciphertext> EllipticCurve::encrypt_key(
     }
 
     auto& ciphertext = *output;
+
+    if (encrypt_key(sessionKey, reason, attach, plaintext, ciphertext)) {
+
+        return output;
+    } else {
+
+        return {};
+    }
+}
+
+bool EllipticCurve::encrypt_key(
+    const api::Core& api,
+    const PasswordPrompt& reason,
+    const OTPassword& plaintext,
+    proto::Ciphertext& ciphertext) noexcept
+{
+    auto sessionKey = api.Symmetric().Key(reason);
+
+    return encrypt_key(sessionKey, reason, true, plaintext, ciphertext);
+}
+
+bool EllipticCurve::encrypt_key(
+    key::Symmetric& sessionKey,
+    const PasswordPrompt& reason,
+    const bool attach,
+    const OTPassword& plaintext,
+    proto::Ciphertext& ciphertext) noexcept
+{
     auto blankIV = Data::Factory();
     const auto encrypted =
         sessionKey.Encrypt(plaintext, blankIV, reason, ciphertext, attach);
@@ -189,10 +233,10 @@ std::unique_ptr<proto::Ciphertext> EllipticCurve::encrypt_key(
     if (false == encrypted) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to encrypt key").Flush();
 
-        return {};
+        return false;
     }
 
-    return output;
+    return true;
 }
 
 void EllipticCurve::erase_private_data()
@@ -252,70 +296,6 @@ bool EllipticCurve::GetKey(proto::Ciphertext& key) const
     }
 
     return false;
-}
-
-const key::Asymmetric& EllipticCurve::GetPrivateKey() const
-{
-    if (false == has_private_) { throw std::out_of_range("No private key"); }
-
-    return *this;
-}
-
-const key::Asymmetric& EllipticCurve::GetPublicKey() const
-{
-    if (false == has_public_) { throw std::out_of_range("No public key"); }
-
-    return *this;
-}
-
-std::int32_t EllipticCurve::GetPublicKeyBySignature(
-    Keys& listOutput,
-    const Signature& theSignature,
-    bool bInclusive) const
-{
-    OT_ASSERT(has_public_);
-
-    const auto* metadata = GetMetadata();
-
-    OT_ASSERT(nullptr != metadata);
-
-    if ((false == bInclusive) &&
-        (false == theSignature.getMetaData().HasMetadata())) {
-
-        return 0;
-    }
-
-    if (!theSignature.getMetaData().HasMetadata() || !metadata->HasMetadata() ||
-        (metadata->HasMetadata() && theSignature.getMetaData().HasMetadata() &&
-         (theSignature.getMetaData() == *(metadata)))) {
-        listOutput.push_back(this);
-
-        return 1;
-    }
-
-    return 0;
-}
-
-std::shared_ptr<proto::AsymmetricKey> EllipticCurve::GetSerialized(
-    bool privateKey) const
-{
-    if (privateKey) {
-        if (false == has_private_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Not a private key").Flush();
-
-            return {};
-        }
-    } else {
-        if (false == has_public_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Not a public key").Flush();
-
-            return {};
-        }
-
-        if (has_private_) { return get_public(); }
-    }
-
-    return Serialize();
 }
 
 std::shared_ptr<proto::AsymmetricKey> EllipticCurve::serialize_public(
@@ -432,8 +412,8 @@ bool EllipticCurve::Seal(
         dynamic_cast<const crypto::EcdsaProvider&>(this->engine());
     NymParameters parameters(proto::CREDTYPE_LEGACY);
     parameters.setNymParameterType(CreateType());
-    auto dhKeypair =
-        api.Factory().Keypair(parameters, version_, proto::KEYROLE_ENCRYPT);
+    auto dhKeypair = api.Factory().Keypair(
+        parameters, version_, proto::KEYROLE_ENCRYPT, reason);
     auto dhRawKey =
         api.Factory().AsymmetricKey(*dhKeypair->GetSerialized(true), reason);
     dhPublic =

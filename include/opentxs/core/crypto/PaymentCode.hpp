@@ -22,6 +22,8 @@ using SerializedPaymentCode = std::shared_ptr<proto::PaymentCode>;
 class PaymentCode
 {
 public:
+    EXPORT static const VersionNumber DefaultVersion;
+
     EXPORT virtual bool operator==(const proto::PaymentCode& rhs) const = 0;
     EXPORT virtual operator const crypto::key::Asymmetric&() const = 0;
 
@@ -41,6 +43,7 @@ public:
         const proto::Credential& master,
         const proto::Signature& sourceSignature,
         const PasswordPrompt& reason) const = 0;
+    EXPORT virtual VersionNumber Version() const = 0;
 
     EXPORT virtual bool AddPrivateKeys(
         const std::string& seed,

@@ -30,7 +30,9 @@ class BalanceTree;
 class Deterministic;
 class HD;
 class Imported;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 class PaymentCode;
+#endif
 }  // namespace blockchain
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
@@ -159,6 +161,7 @@ class Verification;
 
 class Authority;
 class Nym;
+class Source;
 }  // namespace identity
 
 namespace network
@@ -311,7 +314,6 @@ class Message;
 class NumList;
 class NymData;
 class NymFile;
-class NymIDSource;
 class NymParameters;
 class OT_API;
 class OTAgent;
@@ -351,7 +353,9 @@ class OTWallet;
 class PairEventCallbackSwig;
 class PasswordPrompt;
 class PayDividendVisitor;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 class PaymentCode;
+#endif
 class PeerObject;
 class PeerRequest;
 class PeerReply;
@@ -378,7 +382,9 @@ using OTIdentifier = Pimpl<Identifier>;
 using OTManagedNumber = Pimpl<ManagedNumber>;
 using OTNymID = Pimpl<identifier::Nym>;
 using OTPasswordPrompt = Pimpl<PasswordPrompt>;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 using OTPaymentCode = Pimpl<PaymentCode>;
+#endif
 using OTPeerObject = Pimpl<PeerObject>;
 #if OT_CASH
 using OTPurse = Pimpl<blind::Purse>;

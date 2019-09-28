@@ -16,11 +16,13 @@ public:
     static opentxs::Armored* Armored(const opentxs::OTEnvelope& input);
     static identity::internal::Authority* Authority(
         const api::Core& api,
+        const identity::Nym& parent,
         const proto::KeyMode mode,
         const proto::CredentialSet& serialized,
         const opentxs::PasswordPrompt& reason);
     static identity::internal::Authority* Authority(
         const api::Core& api,
+        const identity::Nym& parent,
         const NymParameters& nymParameters,
         const VersionNumber nymVersion,
         const opentxs::PasswordPrompt& reason);
@@ -221,7 +223,8 @@ public:
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static crypto::key::Ed25519* Ed25519Key(
         const api::internal::Core& api,
@@ -284,20 +287,22 @@ public:
         const RowCallbacks removeCallback = {}
 #endif
     );
+    static crypto::key::Keypair* Keypair();
     static crypto::key::Keypair* Keypair(
         const api::Core& api,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const proto::KeyRole role);
+        const proto::KeyRole role,
+        const opentxs::PasswordPrompt& reason);
     static crypto::key::Keypair* Keypair(
         const api::Core& api,
-        const opentxs::PasswordPrompt& reason,
         const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey);
+        const proto::AsymmetricKey& serializedPrivkey,
+        const opentxs::PasswordPrompt& reason);
     static crypto::key::Keypair* Keypair(
         const api::Core& api,
-        const opentxs::PasswordPrompt& reason,
-        const proto::AsymmetricKey& serializedPubkey);
+        const proto::AsymmetricKey& serializedPubkey,
+        const opentxs::PasswordPrompt& reason);
     static api::Legacy* Legacy();
     static api::internal::Log* Log(
         const network::zeromq::Context& zmq,
@@ -359,6 +364,14 @@ public:
         const api::Core& core,
         Nym_p targetNym,
         Nym_p signerNym);
+    static identity::Source* NymIDSource(
+        const api::Core& api,
+        NymParameters& parameters,
+        const opentxs::PasswordPrompt& reason);
+    static identity::Source* NymIDSource(
+        const api::Core& api,
+        const proto::NymIDSource& serialized,
+        const opentxs::PasswordPrompt& reason);
     static crypto::OpenSSL* OpenSSL(const api::Crypto& crypto);
     static otx::client::internal::Operation* Operation(
         const api::client::Manager& api,
@@ -408,6 +421,7 @@ public:
         const ui::implementation::PayableListSortKey& key,
         const std::string& paymentcode,
         const proto::ContactItemType& currency);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     static opentxs::PaymentCode* PaymentCode(
         const api::Core& api,
         const std::string& base58,
@@ -425,6 +439,7 @@ public:
         const bool bitmessage = false,
         const std::uint8_t bitmessageVersion = 0,
         const std::uint8_t bitmessageStream = 0);
+#endif
     static ui::implementation::ActivityThreadRowInternal* PaymentItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,
@@ -624,7 +639,8 @@ public:
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
         const proto::KeyRole role,
-        const VersionNumber version);
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static crypto::key::Secp256k1* Secp256k1Key(
         const api::internal::Core& api,

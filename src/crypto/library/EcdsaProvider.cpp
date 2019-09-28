@@ -68,7 +68,13 @@ bool EcdsaProvider::DecryptPrivateKey(
 {
     auto key = api.Symmetric().Key(encryptedKey.key(), encryptedKey.mode());
 
-    if (!key.get()) { return false; }
+    if (!key.get()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to instantiate encrypted key")
+            .Flush();
+
+        return false;
+    }
 
     return key->Decrypt(encryptedKey, reason, plaintextKey);
 }

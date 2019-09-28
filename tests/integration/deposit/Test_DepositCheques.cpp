@@ -198,6 +198,7 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_TRUE(bobScopeSet);
     EXPECT_TRUE(issuerScopeSet);
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     alice_payment_code_ =
         alice_client_.Factory().PaymentCode(SeedA_, 0, 1, reasonA)->asBase58();
     bob_payment_code_ =
@@ -244,6 +245,7 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(issuer.PaymentCode(proto::CITEMTYPE_BCH).empty());
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
     alice.Release();
     bob.Release();
@@ -276,32 +278,44 @@ TEST_F(Test_DepositCheques, add_contacts)
     const auto aliceBob = alice_client_.Contacts().NewContact(
         BOB,
         bob_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         alice_client_.Factory().PaymentCode(bob_payment_code_, reasonA),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonA);
     const auto aliceIssuer = alice_client_.Contacts().NewContact(
         ISSUER,
         issuer_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         alice_client_.Factory().PaymentCode(issuer_payment_code_, reasonA),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonA);
     const auto bobAlice = bob_client_.Contacts().NewContact(
         ALEX,
         alice_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         bob_client_.Factory().PaymentCode(alice_payment_code_, reasonB),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonB);
     const auto bobIssuer = bob_client_.Contacts().NewContact(
         ISSUER,
         issuer_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         bob_client_.Factory().PaymentCode(issuer_payment_code_, reasonB),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonB);
     const auto issuerAlice = issuer_client_.Contacts().NewContact(
         ALEX,
         alice_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         issuer_client_.Factory().PaymentCode(alice_payment_code_, reasonI),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonI);
     const auto issuerBob = issuer_client_.Contacts().NewContact(
         BOB,
         bob_nym_id_,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         issuer_client_.Factory().PaymentCode(bob_payment_code_, reasonI),
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reasonI);
 
     ASSERT_TRUE(aliceBob);

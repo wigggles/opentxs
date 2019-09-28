@@ -28,6 +28,9 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -54,7 +57,6 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/NymFile.hpp"
-#include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
@@ -62,6 +64,7 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
+#include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
@@ -286,7 +289,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
                                                    // ""
                                                    // (no
                                                    // maximum payments.)
-    ) const
+) const
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -378,7 +381,7 @@ std::string OTAPI_Exec::EasyProposePlan(
     // lifetime in seconds. 'number' is maximum
     // number of payments in seconds. 0 or "" is
     // unlimited.
-    ) const
+) const
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -562,7 +565,7 @@ std::string OTAPI_Exec::Create_SmartContract(
                           // every named account.
     bool SPECIFY_PARTIES  // This means Nym IDs must be provided for every
                           // party.
-    ) const
+) const
 {
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
@@ -936,7 +939,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
                                     // way we can find it.)
     const std::string& VAR_NAME     // The Variable's name as referenced in the
                                     // smart contract. (And the scripts...)
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1026,7 +1029,7 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
     const std::string& CALLBACK_NAME  // The Callback's name as referenced in
                                       // the smart contract. (And the
                                       // scripts...)
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1211,7 +1214,7 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
     // save.)
     const std::string& PARTY_NAME  // The Party's NAME as referenced in the
                                    // smart contract. (And the scripts...)
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1298,7 +1301,7 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
                                     // smart contract. (And the scripts...)
     const std::string& ACCT_NAME    // The Account's name as referenced in the
                                     // smart contract
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);

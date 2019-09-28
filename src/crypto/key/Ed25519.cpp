@@ -11,6 +11,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -39,9 +40,20 @@ crypto::key::Ed25519* Factory::Ed25519Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole input,
-    const VersionNumber version)
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new crypto::key::implementation::Ed25519(api, ecdsa, input, version);
+    try {
+
+        return new crypto::key::implementation::Ed25519(
+            api, ecdsa, input, version, reason);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to generate key: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -90,8 +102,9 @@ Ed25519::Ed25519(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::KeyRole role,
-    const VersionNumber version) noexcept
-    : ot_super(api, ecdsa, proto::AKEYTYPE_ED25519, role, version)
+    const VersionNumber version,
+    const PasswordPrompt& reason) noexcept(false)
+    : ot_super(api, ecdsa, proto::AKEYTYPE_ED25519, role, version, reason)
 {
 }
 

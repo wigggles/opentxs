@@ -12,19 +12,21 @@ namespace opentxs::crypto::key::implementation
 class Keypair final : virtual public key::Keypair
 {
 public:
-    bool CheckCapability(const NymCapability& capability) const final;
-    const Asymmetric& GetPrivateKey() const final;
-    const Asymmetric& GetPublicKey() const final;
+    operator bool() const noexcept final { return true; }
+
+    bool CheckCapability(const NymCapability& capability) const noexcept final;
+    const Asymmetric& GetPrivateKey() const noexcept(false) final;
+    const Asymmetric& GetPublicKey() const noexcept(false) final;
     std::int32_t GetPublicKeyBySignature(
         Keys& listOutput,
         const Signature& theSignature,
-        bool bInclusive = false) const final;
+        bool bInclusive = false) const noexcept final;
     std::shared_ptr<proto::AsymmetricKey> GetSerialized(
-        bool privateKey = false) const final;
+        bool privateKey = false) const noexcept final;
     bool GetTransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const noexcept final;
 
     ~Keypair() final = default;
 
@@ -34,8 +36,8 @@ private:
     friend opentxs::Factory;
 
     const api::Core& api_;
-    OTAsymmetricKey m_pkeyPublic;
     OTAsymmetricKey m_pkeyPrivate;
+    OTAsymmetricKey m_pkeyPublic;
     const proto::KeyRole role_{proto::KEYROLE_ERROR};
 
     Keypair* clone() const final { return new Keypair(*this); }
@@ -44,18 +46,19 @@ private:
 
     Keypair(
         const api::Core& api,
-        const PasswordPrompt& reason,
-        const proto::AsymmetricKey& serializedPubkey) noexcept;
+        const proto::AsymmetricKey& serializedPubkey,
+        const PasswordPrompt& reason) noexcept;
     Keypair(
         const api::Core& api,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const proto::KeyRole role = proto::KEYROLE_ERROR) noexcept;
+        const proto::KeyRole role,
+        const PasswordPrompt& reason) noexcept;
     Keypair(
         const api::Core& api,
-        const PasswordPrompt& reason,
         const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey) noexcept;
+        const proto::AsymmetricKey& serializedPrivkey,
+        const PasswordPrompt& reason) noexcept;
     Keypair() = delete;
     Keypair(const Keypair&) noexcept;
     Keypair(Keypair&&) = delete;

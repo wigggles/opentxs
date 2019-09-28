@@ -15,7 +15,6 @@
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/key/HD.hpp"
-#include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
@@ -101,8 +100,9 @@ HD::HD(
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role,
-    const VersionNumber version) noexcept
-    : EllipticCurve(api, ecdsa, keyType, role, version)
+    const VersionNumber version,
+    const PasswordPrompt& reason) noexcept(false)
+    : EllipticCurve(api, ecdsa, keyType, role, version, reason)
     , path_(nullptr)
     , chain_code_(nullptr)
     , parent_(0)

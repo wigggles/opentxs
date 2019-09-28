@@ -27,6 +27,7 @@ public:
     }
     OTAsymmetricKey AsymmetricKey(
         const NymParameters& params,
+        const opentxs::PasswordPrompt& reason,
         const proto::KeyRole role,
         const VersionNumber version) const final;
     OTAsymmetricKey AsymmetricKey(
@@ -107,16 +108,25 @@ public:
     OTKeypair Keypair(
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const proto::KeyRole role) const final;
+        const proto::KeyRole role,
+        const opentxs::PasswordPrompt& reason) const final;
     OTKeypair Keypair(
-        const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey,
         const opentxs::PasswordPrompt& reason) const final;
     OTKeypair Keypair(
-        const api::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const opentxs::PasswordPrompt& reason) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    OTKeypair Keypair(
+        const std::string& fingerprint,
+        const Bip32Index nym,
+        const Bip32Index credset,
+        const Bip32Index credindex,
+        const EcdsaCurve& curve,
+        const proto::KeyRole role,
+        const opentxs::PasswordPrompt& reason) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,
@@ -175,7 +185,7 @@ public:
         const opentxs::Contract& contract,
         const opentxs::PasswordPrompt& reason) const final;
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     OTPaymentCode PaymentCode(
         const std::string& base58,
         const opentxs::PasswordPrompt& reason) const final;

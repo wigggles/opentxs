@@ -19,7 +19,9 @@
 #include <opentxs/api/client/blockchain/Deterministic.hpp>
 #include <opentxs/api/client/blockchain/HD.hpp>
 #include <opentxs/api/client/blockchain/Imported.hpp>
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include <opentxs/api/client/blockchain/PaymentCode.hpp>
+#endif
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Activity.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -100,7 +102,6 @@
 #include <opentxs/core/LogSource.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/NumList.hpp>
-#include <opentxs/core/NymIDSource.hpp>
 #include <opentxs/core/OTStorage.hpp>
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/OTTransactionType.hpp>
@@ -141,6 +142,7 @@
 #include <opentxs/identity/credential/Verification.hpp>
 #include <opentxs/identity/Authority.hpp>
 #include <opentxs/identity/Nym.hpp>
+#include <opentxs/identity/Source.hpp>
 #include <opentxs/iterator/Bidirectional.hpp>
 #include <opentxs/network/zeromq/curve/Client.hpp>
 #include <opentxs/network/zeromq/curve/Server.hpp>

@@ -11,11 +11,12 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Authority.hpp"
+#include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 
 #include "internal/identity/credential/Credential.hpp"
@@ -34,41 +35,42 @@ namespace opentxs::identity::credential::implementation
 {
 Base::Base(
     const api::Core& api,
-    identity::internal::Authority& theOwner,
+    const identity::internal::Authority& theOwner,
     const NymParameters& nymParameters,
-    const VersionNumber version)
+    const VersionNumber version,
+    const proto::CredentialRole role,
+    const proto::KeyMode mode,
+    const std::string& masterID,
+    const std::string& nymID) noexcept
     : Signable({}, version)
     , api_(api)
+    , parent_(theOwner)
     , type_(nymParameters.credentialType())
-    , mode_(proto::KEYMODE_PRIVATE)
-    , owner_backlink_(&theOwner)
-    , master_id_()
-    , nym_id_()
+    , role_(role)
+    , mode_(mode)
+    , master_id_(masterID)
+    , nym_id_(nymID)
 {
 }
 
 Base::Base(
     const api::Core& api,
-    identity::internal::Authority& theOwner,
-    const proto::Credential& serializedCred)
+    const identity::internal::Authority& theOwner,
+    const proto::Credential& serializedCred,
+    const std::string& masterID) noexcept
     : Signable({}, serializedCred.version())
     , api_(api)
+    , parent_(theOwner)
     , type_(serializedCred.type())
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())
-    , owner_backlink_(&theOwner)
-    , master_id_()
-    , nym_id_()
+    , master_id_(masterID)
+    , nym_id_(serializedCred.nymid())
 {
-    if (serializedCred.has_nymid()) {
-        nym_id_ = serializedCred.nymid();
-        id_ = Identifier::Factory(serializedCred.id());
-    }
+    id_ = Identifier::Factory(serializedCred.id());
 
-    SerializedSignature sig;
     for (auto& it : serializedCred.signature()) {
-        sig.reset(new proto::Signature(it));
-        signatures_.push_back(sig);
+        signatures_.push_back(std::make_shared<proto::Signature>(it));
     }
 }
 
@@ -94,7 +96,7 @@ bool Base::New(const NymParameters&, const PasswordPrompt& reason)
 bool Base::VerifyNymID() const
 {
 
-    return (nym_id_ == owner_backlink_->GetNymID());
+    return (nym_id_ == parent_.Source().NymID()->str());
 }
 
 /** Verify that master_id_ matches the MasterID of the parent credential set */
@@ -103,27 +105,17 @@ bool Base::VerifyMasterID() const
     // This check is not applicable to master credentials
     if (proto::CREDROLE_MASTERKEY == role_) { return true; }
 
-    const std::string parent = owner_backlink_->GetMasterCredID();
+    const std::string parent = parent_.GetMasterCredID();
     const std::string child = master_id_;
 
     return (parent == child);
 }
 
 /** Verifies the cryptographic integrity of a credential. Assumes the
- * Authority specified by owner_backlink_ is valid. */
+ * Authority specified by parent_ is valid. */
 bool Base::verify_internally(const Lock& lock, const PasswordPrompt& reason)
     const
 {
-    OT_ASSERT(nullptr != owner_backlink_);
-
-    if (nullptr == owner_backlink_) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": This credential is not attached to a Authority. Can not verify.")
-            .Flush();
-
-        return false;
-    }
-
     if (!VerifyNymID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": NymID for this credential does not match NymID of parent "
@@ -174,8 +166,6 @@ bool Base::verify_master_signature(
     const Lock& lock,
     const PasswordPrompt& reason) const
 {
-    OT_ASSERT(owner_backlink_);
-
     auto serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
 
     auto masterSig = MasterSignature();
@@ -187,7 +177,7 @@ bool Base::verify_master_signature(
         return false;
     }
 
-    return (owner_backlink_->GetMasterCredential().Verify(
+    return (parent_.GetMasterCredential().Verify(
         *serialized,
         role_,
         Identifier::Factory(MasterID()),
@@ -360,9 +350,8 @@ SerializedSignature Base::SelfSignature(CredentialModeFlag version) const
 
 SerializedSignature Base::SourceSignature() const
 {
-    SerializedSignature signature;
-
-    const std::string source = String::Factory(NymID())->Get();
+    auto signature = SerializedSignature{};
+    const auto source = std::string{String::Factory(NymID())->Get()};
 
     for (auto& it : signatures_) {
         if ((it->role() == proto::SIGROLE_NYMIDSOURCE) &&
@@ -372,6 +361,7 @@ SerializedSignature Base::SourceSignature() const
             break;
         }
     }
+
     return signature;
 }
 
@@ -437,19 +427,12 @@ void Base::ReleaseSignatures(const bool onlyPrivate)
 
 bool Base::AddMasterSignature(const Lock& lock, const PasswordPrompt& reason)
 {
-    if (nullptr == owner_backlink_) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing master credential.")
-            .Flush();
-
-        return false;
-    }
-
     SerializedSignature serializedMasterSignature =
         std::make_shared<proto::Signature>();
     auto serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
 
-    bool havePublicSig = owner_backlink_->Sign(
+    bool havePublicSig = parent_.Sign(
         [&serialized]() -> std::string { return proto::ToString(*serialized); },
         proto::SIGROLE_PUBCREDENTIAL,
         signature,

@@ -120,7 +120,9 @@ std::string ContactList::AddContact(
     const auto contact = api_.Contacts().NewContact(
         label,
         identifier::Nym::Factory(nymID),
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         api_.Factory().PaymentCode(paymentCode, reason),
+#endif
         reason);
     const auto& id = contact->ID();
     api_.OTX().CanMessage(primary_id_, id, true);
