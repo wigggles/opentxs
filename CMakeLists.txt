@@ -204,6 +204,10 @@ endif()
 
 set_common_defines()
 
+if (APPLE)
+  add_definitions(-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED)
+endif()
+
 if(OT_VALGRIND)
   add_definitions(-DOT_VALGRIND=1)
 else()
