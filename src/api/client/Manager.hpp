@@ -40,7 +40,6 @@ private:
     friend opentxs::Factory;
 
     std::unique_ptr<api::network::ZMQ> zeromq_;
-    std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::client::internal::Contacts> contacts_;
     std::unique_ptr<api::client::internal::Activity> activity_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD

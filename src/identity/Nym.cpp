@@ -68,8 +68,6 @@
 
 #include "Nym.hpp"
 
-#define NYMFILE_VERSION "1.1"
-
 #define OT_METHOD "opentxs::identity::implementation::Nym::"
 
 namespace opentxs
@@ -114,13 +112,20 @@ identity::internal::Nym* Factory::Nym(
 
 identity::internal::Nym* Factory::Nym(
     const api::Core& api,
-    const identifier::Nym& nymID,
-    const proto::CredentialIndexMode mode)
+    const proto::Nym& serialized,
+    const std::string& alias,
+    const opentxs::PasswordPrompt& reason)
 {
-    // NOTE version may be incorrect until LoadCredentialIndex is called
+    try {
+        return new identity::implementation::Nym(
+            api, serialized, alias, reason);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to instantiate nym: ")(e.what())
+            .Flush();
 
-    return new identity::implementation::Nym(
-        api, nymID, mode, identity::Nym::DefaultVersion);
+        return nullptr;
+    }
 }
 }  // namespace opentxs
 
@@ -154,47 +159,59 @@ const VersionConversionMap Nym::contact_credential_to_contact_data_version_{
 
 Nym::Nym(
     const api::Core& api,
-    const identifier::Nym& nymID,
-    const proto::CredentialIndexMode mode,
-    const VersionNumber version,
-    const Bip32Index index)
+    NymParameters& params,
+    std::unique_ptr<const identity::Source> source,
+    const opentxs::PasswordPrompt& reason) noexcept(false)
     : api_(api)
-    , version_(version)
-    , index_(index)
+    , source_p_(std::move(source))
+    , source_(*source_p_)
+    , id_(source_.NymID())
+    , mode_(proto::NYM_PRIVATE)
+    , version_(DefaultVersion)
+    , index_(1)
     , alias_()
     , revision_(1)
-    , mode_(mode)
-    , m_strVersion(String::Factory(NYMFILE_VERSION))
-    , m_strDescription(String::Factory())
-    , m_nymID(nymID)
-    , source_(nullptr)
     , contact_data_(nullptr)
-    , m_mapCredentialSets()
+    , m_mapCredentialSets(
+          create_authority(api_, *this, source_, version_, params, reason))
     , m_mapRevokedSets()
-    , m_listRevokedIDs()
+    , m_listRevokedIDs(
+          load_revoked(api_, *this, source_, {}, reason, m_mapRevokedSets))
 {
-    OT_ASSERT(0 != version_);
+    if (false == bool(source_p_)) {
+        throw std::runtime_error("Invalid nym id source");
+    }
 }
 
 Nym::Nym(
     const api::Core& api,
-    NymParameters& params,
-    std::unique_ptr<identity::Source> source,
+    const proto::Nym& serialized,
+    const std::string& alias,
     const opentxs::PasswordPrompt& reason) noexcept(false)
-    : Nym(api, source->NymID(), proto::CREDINDEX_PRIVATE, DefaultVersion, 1)
+    : api_(api)
+    , source_p_(opentxs::Factory::NymIDSource(api, serialized.source(), reason))
+    , source_(*source_p_)
+    , id_(source_.NymID())
+    , mode_(serialized.mode())
+    , version_(serialized.version())
+    , index_(serialized.index())
+    , alias_(alias)
+    , revision_(serialized.revision())
+    , contact_data_(nullptr)
+    , m_mapCredentialSets(
+          load_authorities(api_, *this, source_, serialized, reason))
+    , m_mapRevokedSets()
+    , m_listRevokedIDs(load_revoked(
+          api_,
+          *this,
+          source_,
+          serialized,
+          reason,
+          m_mapRevokedSets))
 {
-    source_ = std::move(source);
-    SetDescription(source_->Description());
-    auto pAuthority = std::unique_ptr<identity::internal::Authority>(
-        opentxs::Factory::Authority(api_, *this, params, version_, reason));
-
-    if (false == bool(pAuthority)) {
-        throw std::runtime_error("Failed to create nym authority");
+    if (false == bool(source_p_)) {
+        throw std::runtime_error("Invalid nym id source");
     }
-
-    auto& authority = *pAuthority;
-    m_mapCredentialSets.emplace(
-        authority.GetMasterCredID(), std::move(pAuthority));
 }
 
 bool Nym::add_contact_credential(
@@ -249,8 +266,7 @@ std::string Nym::AddChildKeyCredential(
     eLock lock(shared_lock_);
 
     std::string output;
-    std::string master = masterID.str();
-    auto it = m_mapCredentialSets.find(master);
+    auto it = m_mapCredentialSets.find(masterID);
     const bool noMaster = (it == m_mapCredentialSets.end());
 
     if (noMaster) {
@@ -462,14 +478,14 @@ bool Nym::CompareID(const identity::Nym& rhs) const
 {
     sLock lock(shared_lock_);
 
-    return rhs.CompareID(m_nymID);
+    return rhs.CompareID(id_);
 }
 
 bool Nym::CompareID(const identifier::Nym& rhs) const
 {
     sLock lock(shared_lock_);
 
-    return m_nymID == rhs;
+    return id_ == rhs;
 }
 
 VersionNumber Nym::ContactCredentialVersion() const
@@ -491,6 +507,30 @@ std::set<OTIdentifier> Nym::Contracts(
     OT_ASSERT(contact_data_);
 
     return contact_data_->Contracts(currency, onlyActive);
+}
+
+auto Nym::create_authority(
+    const api::Core& api,
+    const identity::Nym& parent,
+    const identity::Source& source,
+    const VersionNumber version,
+    const NymParameters& params,
+    const PasswordPrompt& reason) noexcept(false) -> CredentialMap
+{
+    auto output = CredentialMap{};
+    auto pAuthority = std::unique_ptr<identity::internal::Authority>(
+        opentxs::Factory::Authority(
+            api, parent, source, params, version, reason));
+
+    if (false == bool(pAuthority)) {
+        throw std::runtime_error("Failed to create nym authority");
+    }
+
+    auto& authority = *pAuthority;
+    auto id{authority.GetMasterCredID()};
+    output.emplace(std::move(id), std::move(pAuthority));
+
+    return output;
 }
 
 bool Nym::DeleteClaim(
@@ -523,7 +563,7 @@ void Nym::GetIdentifier(identifier::Nym& theIdentifier) const
 {
     sLock lock(shared_lock_);
 
-    theIdentifier.Assign(m_nymID);
+    theIdentifier.Assign(id_);
 }
 
 // sets argument based on internal member
@@ -531,7 +571,7 @@ void Nym::GetIdentifier(String& theIdentifier) const
 {
     sLock lock(shared_lock_);
 
-    m_nymID->GetString(theIdentifier);
+    id_->GetString(theIdentifier);
 }
 
 template <typename T>
@@ -792,7 +832,7 @@ void Nym::init_claims(const eLock& lock) const
 {
     OT_ASSERT(verify_lock(lock));
 
-    const auto nymID{m_nymID->str()};
+    const auto nymID{id_->str()};
     const auto dataVersion = ContactDataVersion();
     contact_data_.reset(new opentxs::ContactData(
         api_, nymID, dataVersion, dataVersion, ContactData::SectionMap()));
@@ -822,81 +862,71 @@ void Nym::init_claims(const eLock& lock) const
     OT_ASSERT(contact_data_)
 }
 
-bool Nym::load_credential_index(
-    const eLock& lock,
-    const Serialized& index,
-    const opentxs::PasswordPrompt& reason)
+auto Nym::load_authorities(
+    const api::Core& api,
+    const identity::Nym& parent,
+    const identity::Source& source,
+    const Serialized& serialized,
+    const PasswordPrompt& reason) noexcept(false) -> CredentialMap
 {
-    if (!proto::Validate<proto::CredentialIndex>(index, VERBOSE)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load invalid serialized"
-                                           " credential index.")
-            .Flush();
+    auto output = CredentialMap{};
 
-        return false;
+    if (false == proto::Validate<proto::Nym>(serialized, VERBOSE)) {
+        throw std::runtime_error("Invalid serialized nym");
     }
 
-    OT_ASSERT(verify_lock(lock));
+    const auto mode = (proto::NYM_PRIVATE == serialized.mode())
+                          ? proto::KEYMODE_PRIVATE
+                          : proto::KEYMODE_PUBLIC;
 
-    const auto nymID = api_.Factory().NymID(index.nymid());
+    for (auto& it : serialized.activecredentials()) {
+        auto pCandidate = std::unique_ptr<identity::internal::Authority>{
+            opentxs::Factory::Authority(api, parent, source, mode, it, reason)};
 
-    if (m_nymID != nymID) { return false; }
-
-    version_ = index.version();
-    index_ = index.index();
-    revision_.store(index.revision());
-    mode_ = index.mode();
-    source_.reset(Factory::NymIDSource(api_, index.source(), reason));
-    proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
-                              ? proto::KEYMODE_PRIVATE
-                              : proto::KEYMODE_PUBLIC;
-    contact_data_.reset();
-    m_mapCredentialSets.clear();
-    auto newSet = std::unique_ptr<identity::internal::Authority>{};
-
-    for (auto& it : index.activecredentials()) {
-        newSet.reset(
-            opentxs::Factory::Authority(api_, *this, mode, it, reason));
-
-        if (newSet) {
-            m_mapCredentialSets.emplace(
-                std::make_pair(newSet->GetMasterCredID(), std::move(newSet)));
-        } else {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed to load active authority ")(it.masterid())
-                .Flush();
-
-            return false;
+        if (false == bool(pCandidate)) {
+            throw std::runtime_error("Failed to instantiate authority");
         }
+
+        const auto& candidate = *pCandidate;
+        auto id{candidate.GetMasterCredID()};
+        output.emplace(std::move(id), std::move(pCandidate));
     }
 
-    m_mapRevokedSets.clear();
-
-    for (auto& it : index.revokedcredentials()) {
-        newSet.reset(
-            opentxs::Factory::Authority(api_, *this, mode, it, reason));
-
-        if (newSet) {
-            m_mapRevokedSets.emplace(
-                std::make_pair(newSet->GetMasterCredID(), std::move(newSet)));
-        } else {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed to load revoked authority ")(it.masterid())
-                .Flush();
-
-            return false;
-        }
-    }
-
-    return true;
+    return output;
 }
 
-bool Nym::LoadCredentialIndex(
-    const Serialized& index,
-    const opentxs::PasswordPrompt& reason)
+String::List Nym::load_revoked(
+    const api::Core& api,
+    const identity::Nym& parent,
+    const identity::Source& source,
+    const Serialized& serialized,
+    const PasswordPrompt& reason,
+    CredentialMap& revoked) noexcept(false)
 {
-    eLock lock(shared_lock_);
+    auto output = String::List{};
 
-    return load_credential_index(lock, index, reason);
+    if (!opentxs::operator==(Serialized::default_instance(), serialized)) {
+        const auto mode = (proto::NYM_PRIVATE == serialized.mode())
+                              ? proto::KEYMODE_PRIVATE
+                              : proto::KEYMODE_PUBLIC;
+
+        for (auto& it : serialized.revokedcredentials()) {
+            auto pCandidate = std::unique_ptr<identity::internal::Authority>{
+                opentxs::Factory::Authority(
+                    api, parent, source, mode, it, reason)};
+
+            if (false == bool(pCandidate)) {
+                throw std::runtime_error("Failed to instantiate authority");
+            }
+
+            const auto& candidate = *pCandidate;
+            auto id{candidate.GetMasterCredID()};
+            output.push_back(id->str());
+            revoked.emplace(std::move(id), std::move(pCandidate));
+        }
+    }
+
+    return output;
 }
 
 bool Nym::Lock(
@@ -1107,11 +1137,9 @@ bool Nym::Path(proto::HDPath& output) const
 std::string Nym::PaymentCode(const opentxs::PasswordPrompt& reason) const
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    if (!source_) { return ""; }
+    if (proto::SOURCETYPE_BIP47 != source_.Type()) { return ""; }
 
-    if (proto::SOURCETYPE_BIP47 != source_->Type()) { return ""; }
-
-    auto serialized = source_->Serialize();
+    auto serialized = source_.Serialize();
 
     if (!serialized) { return ""; }
 
@@ -1247,19 +1275,19 @@ Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
     sLock lock(shared_lock_);
     Serialized index;
     index.set_version(version_);
-    auto nymID = String::Factory(m_nymID);
+    auto nymID = String::Factory(id_);
     index.set_nymid(nymID->Get());
 
     if (Mode::Abbreviated == mode) {
         index.set_mode(mode_);
 
-        if (proto::CREDINDEX_PRIVATE == mode_) { index.set_index(index_); }
+        if (proto::NYM_PRIVATE == mode_) { index.set_index(index_); }
     } else {
-        index.set_mode(proto::CREDINDEX_PUBLIC);
+        index.set_mode(proto::NYM_PUBLIC);
     }
 
     index.set_revision(revision_.load());
-    *(index.mutable_source()) = *(source_->Serialize());
+    *(index.mutable_source()) = *(source_.Serialize());
 
     for (auto& it : m_mapCredentialSets) {
         if (nullptr != it.second) {
@@ -1285,20 +1313,19 @@ Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
 void Nym::SerializeNymIDSource(Tag& parent) const
 {
     // We encode these before storing.
-    if (source_) {
+    TagPtr pTag(new Tag("nymIDSource", source_.asString()->Get()));
+    const auto description = source_.Description();
 
-        TagPtr pTag(new Tag("nymIDSource", source_->asString()->Get()));
+    if (description->Exists()) {
+        auto ascDescription = Armored::Factory();
+        ascDescription->SetString(
+            description,
+            false);  // bLineBreaks=true by default.
 
-        if (m_strDescription->Exists()) {
-            auto ascDescription = Armored::Factory();
-            ascDescription->SetString(
-                m_strDescription,
-                false);  // bLineBreaks=true by default.
-
-            pTag->add_attribute("Description", ascDescription->Get());
-        }
-        parent.add_tag(pTag);
+        pTag->add_attribute("Description", ascDescription->Get());
     }
+
+    parent.add_tag(pTag);
 }
 
 bool session_key_from_iv(
@@ -1434,7 +1461,7 @@ bool Nym::SetContactData(
 {
     eLock lock(shared_lock_);
     contact_data_.reset(
-        new ContactData(api_, m_nymID->str(), ContactDataVersion(), data));
+        new ContactData(api_, id_->str(), ContactDataVersion(), data));
 
     return set_contact_data(lock, data, reason);
 }
@@ -1460,29 +1487,6 @@ bool Nym::SetScope(
     OT_ASSERT(contact_data_);
 
     return set_contact_data(lock, contact_data_->Serialize(), reason);
-}
-
-bool Nym::SetVerificationSet(
-    const proto::VerificationSet& data,
-    const opentxs::PasswordPrompt& reason)
-{
-    eLock lock(shared_lock_);
-
-    if (false == has_capability(lock, NymCapability::SIGN_CHILDCRED)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": This nym can not be modified.")
-            .Flush();
-
-        return false;
-    }
-
-    revoke_verification_credentials(lock);
-
-    if (add_verification_credential(lock, data, reason)) {
-
-        return update_nym(lock, version_, reason);
-    }
-
-    return false;
 }
 
 bool Nym::Sign(
@@ -1649,28 +1653,6 @@ bool Nym::update_nym(
     }
 
     return false;
-}
-
-VersionNumber Nym::VerificationCredentialVersion() const
-{
-    // TODO support multiple authorities
-    OT_ASSERT(0 < m_mapCredentialSets.size())
-
-    return m_mapCredentialSets.cbegin()
-        ->second->VerificationCredentialVersion();
-}
-
-std::unique_ptr<proto::VerificationSet> Nym::VerificationSet() const
-{
-    std::unique_ptr<proto::VerificationSet> verificationSet;
-
-    for (auto& it : m_mapCredentialSets) {
-        if (nullptr != it.second) {
-            it.second->GetVerificationSet(verificationSet);
-        }
-    }
-
-    return verificationSet;
 }
 
 bool Nym::Verify(

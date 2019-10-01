@@ -33,12 +33,17 @@ private:
     Verification(
         const api::Core& api,
         const identity::internal::Authority& parent,
+        const identity::Source& source,
+        const internal::Primary& master,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason) noexcept(false);
     Verification(
         const api::Core& api,
         const identity::internal::Authority& parent,
-        const proto::Credential& credential);
+        const identity::Source& source,
+        const internal::Primary& master,
+        const proto::Credential& credential) noexcept(false);
     Verification() = delete;
     Verification(const Verification&) = delete;
     Verification(Verification&&) = delete;

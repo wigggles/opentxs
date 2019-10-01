@@ -15,7 +15,6 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
-#include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -87,14 +86,12 @@ OTAPI_Exec::OTAPI_Exec(
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     const api::network::ZMQ& zeromq,
-    const api::Identity& identity,
     const OT_API& otapi,
     const ContextLockCallback& lockCallback)
     : api_(api)
     , activity_(activity)
     , contacts_(contacts)
     , zeromq_(zeromq)
-    , identity_(identity)
     , ot_api_(otapi)
     , lock_callback_(lockCallback)
 {

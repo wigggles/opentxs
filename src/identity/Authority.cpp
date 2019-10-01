@@ -43,30 +43,40 @@ Function for_each(Range& range, Function f)
     return std::for_each(std::begin(range), std::end(range), f);
 }
 
+using ReturnType = identity::implementation::Authority;
+
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
     const identity::Nym& parent,
+    const identity::Source& source,
     const proto::KeyMode mode,
-    const proto::CredentialSet& serialized,
+    const proto::Authority& serialized,
     const opentxs::PasswordPrompt& reason)
 {
-    using ReturnType = identity::implementation::Authority;
+    try {
 
-    return new ReturnType(api, parent, mode, serialized, reason);
+        return new ReturnType(api, parent, source, mode, serialized, reason);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to create authority: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 
 identity::internal::Authority* Factory::Authority(
     const api::Core& api,
     const identity::Nym& parent,
-    const NymParameters& nymParameters,
+    const identity::Source& source,
+    const NymParameters& parameters,
     const VersionNumber nymVersion,
     const opentxs::PasswordPrompt& reason)
 {
-    using ReturnType = identity::implementation::Authority;
-
     try {
 
-        return new ReturnType(api, parent, nymParameters, nymVersion, reason);
+        return new ReturnType(
+            api, parent, source, parameters, nymVersion, reason);
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(
             ": Failed to create authority: ")(e.what())
@@ -123,118 +133,89 @@ const VersionConversionMap Authority::nym_to_authority_{
 Authority::Authority(
     const api::Core& api,
     const identity::Nym& parent,
-    const VersionNumber version,
-    const Bip32Index index,
+    const identity::Source& source,
     const proto::KeyMode mode,
-    const std::string& nymID) noexcept
+    const Serialized& serialized,
+    const opentxs::PasswordPrompt& reason) noexcept(false)
     : api_(api)
     , parent_(parent)
-    , master_(nullptr)
-    , key_credentials_()
+    , version_(serialized.version())
+    , index_(serialized.index())
+    , master_(load_master(api, *this, source, mode, serialized, reason))
+    , key_credentials_(load_child<credential::internal::Secondary>(
+          api,
+          source,
+          *this,
+          *master_,
+          serialized,
+          mode,
+          proto::CREDROLE_CHILDKEY,
+          reason))
+    , contact_credentials_(load_child<credential::internal::Contact>(
+          api,
+          source,
+          *this,
+          *master_,
+          serialized,
+          mode,
+          proto::CREDROLE_CONTACT,
+          reason))
+    , verification_credentials_(load_child<credential::internal::Verification>(
+          api,
+          source,
+          *this,
+          *master_,
+          serialized,
+          mode,
+          proto::CREDROLE_VERIFY,
+          reason))
+    , m_mapRevokedCredentials()
+    , mode_(mode)
+{
+    if (false == bool(master_)) {
+        throw std::runtime_error("Failed to create master credential");
+    }
+
+    if (serialized.nymid() != parent_.Source().NymID()->str()) {
+        throw std::runtime_error("Invalid nym ID");
+    }
+}
+
+Authority::Authority(
+    const api::Core& api,
+    const identity::Nym& parent,
+    const identity::Source& source,
+    const NymParameters& parameters,
+    VersionNumber nymVersion,
+    const opentxs::PasswordPrompt& reason) noexcept(false)
+    : api_(api)
+    , parent_(parent)
+    , version_(nym_to_authority_.at(nymVersion))
+    , index_(1)
+    , master_(create_master(
+          api,
+          *this,
+          source,
+          nym_to_authority_.at(nymVersion),
+          parameters,
+          0,
+          reason))
+    , key_credentials_(create_child_credential(
+          api,
+          parameters,
+          source,
+          *master_,
+          *this,
+          version_,
+          index_,
+          reason))
     , contact_credentials_()
     , verification_credentials_()
     , m_mapRevokedCredentials()
-    , m_pImportPassword(nullptr)
-    , version_(version)
-    , index_(index)
-    , mode_(mode)
+    , mode_(proto::KEYMODE_PRIVATE)
 {
-    OT_ASSERT(0 != version);
-}
-
-Authority::Authority(
-    const api::Core& api,
-    const identity::Nym& parent,
-    const proto::KeyMode mode,
-    const Serialized& serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
-    : Authority(
-          api,
-          parent,
-          serialized.version(),
-          serialized.index(),
-          mode,
-          serialized.nymid())
-{
-    if (proto::CREDSETMODE_INDEX == serialized.mode()) {
-        Load_Master(
-            String::Factory(serialized.nymid()),
-            String::Factory(serialized.masterid()),
-            reason);
-
-        for (auto& it : serialized.activechildids()) {
-            LoadChildKeyCredential(String::Factory(it), reason);
-        }
-    } else {
-        std::unique_ptr<credential::internal::Primary> master{
-            opentxs::Factory::Credential<credential::internal::Primary>(
-                api_,
-                *this,
-                serialized.mastercredential(),
-                mode,
-                proto::CREDROLE_MASTERKEY,
-                reason)};
-
-        if (master) { master_.reset(master.release()); }
-
-        for (auto& it : serialized.activechildren()) {
-            LoadChildKeyCredential(it, reason);
-        }
-    }
-}
-
-Authority::Authority(
-    const api::Core& api,
-    const identity::Nym& parent,
-    const NymParameters& nymParameters,
-    VersionNumber nymVersion,
-    const opentxs::PasswordPrompt& reason) noexcept(false)
-    : Authority(api, parent, nym_to_authority_.at(nymVersion))
-{
-    CreateMasterCredential(nymParameters, reason);
-
     if (false == bool(master_)) {
         throw std::runtime_error("Invalid master credential");
-    }
-
-    NymParameters revisedParameters{nymParameters};
-    bool haveChildCredential{false};
-
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    if (!haveChildCredential) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Creating an ed25519 child key credential.")
-            .Flush();
-        revisedParameters.setNymParameterType(NymParameterType::ed25519);
-        haveChildCredential =
-            !AddChildKeyCredential(revisedParameters, reason).empty();
-    }
-#endif
-
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    if (!haveChildCredential) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Creating an secp256k1 child key credential.")
-            .Flush();
-        revisedParameters.setNymParameterType(NymParameterType::secp256k1);
-        haveChildCredential =
-            !AddChildKeyCredential(revisedParameters, reason).empty();
-    }
-#endif
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    if (!haveChildCredential) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Creating an RSA child key credential.")
-            .Flush();
-        revisedParameters.setNymParameterType(NymParameterType::rsa);
-        haveChildCredential =
-            !AddChildKeyCredential(revisedParameters, reason).empty();
-    }
-#endif
-
-    if (false == haveChildCredential) {
-        throw std::runtime_error("Failed to generate child credentials");
     }
 }
 
@@ -251,6 +232,8 @@ std::string Authority::AddChildKeyCredential(
         opentxs::Factory::Credential<credential::internal::Secondary>(
             api_,
             *this,
+            parent_.Source(),
+            *master_,
             authority_to_secondary_.at(version_),
             revisedParameters,
             proto::CREDROLE_CHILDKEY,
@@ -279,14 +262,16 @@ bool Authority::AddContactCredential(
 
     if (!master_) { return false; }
 
-    NymParameters nymParameters;
-    nymParameters.SetContactData(contactData);
+    NymParameters parameters;
+    parameters.SetContactData(contactData);
     std::unique_ptr<credential::internal::Contact> credential{
         opentxs::Factory::Credential<credential::internal::Contact>(
             api_,
             *this,
+            parent_.Source(),
+            *master_,
             authority_to_contact_.at(version_),
-            nymParameters,
+            parameters,
             proto::CREDROLE_CONTACT,
             reason)};
 
@@ -300,9 +285,9 @@ bool Authority::AddContactCredential(
     auto id{credential->ID()};
     contact_credentials_.emplace(std::move(id), credential.release());
     const auto version =
-        proto::RequiredCredentialSetVersion(contactData.version(), version_);
+        proto::RequiredAuthorityVersion(contactData.version(), version_);
 
-    if (version > version_) { version_ = version; }
+    if (version > version_) { const_cast<VersionNumber&>(version_) = version; }
 
     return true;
 }
@@ -316,14 +301,16 @@ bool Authority::AddVerificationCredential(
 
     if (!master_) { return false; }
 
-    NymParameters nymParameters;
-    nymParameters.SetVerificationSet(verificationSet);
+    NymParameters parameters;
+    parameters.SetVerificationSet(verificationSet);
     std::unique_ptr<credential::internal::Verification> credential{
         opentxs::Factory::Credential<credential::internal::Verification>(
             api_,
             *this,
+            parent_.Source(),
+            *master_,
             authority_to_verification_.at(version_),
-            nymParameters,
+            parameters,
             proto::CREDROLE_VERIFY,
             reason)};
 
@@ -340,56 +327,185 @@ bool Authority::AddVerificationCredential(
     return true;
 }
 
-bool Authority::CreateMasterCredential(
-    const NymParameters& nymParameters,
-    const opentxs::PasswordPrompt& reason)
+auto Authority::create_child_credential(
+    const api::Core& api,
+    const NymParameters& parameters,
+    const identity::Source& source,
+    const credential::internal::Primary& master,
+    internal::Authority& parent,
+    const VersionNumber parentVersion,
+    Bip32Index& index,
+    const opentxs::PasswordPrompt& reason) noexcept(false) -> KeyCredentialMap
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    if (0 != index_) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": The master credential must be the first "
-            "credential created.")
+    auto output = KeyCredentialMap{};
+    auto revised{parameters};
+
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    if (output.empty()) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Creating an ed25519 child key credential.")
             .Flush();
-
-        return false;
-    }
-
-    if (0 != nymParameters.CredIndex()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Invalid CredIndex in nymParameters.")
-            .Flush();
-
-        return false;
+        revised.setNymParameterType(NymParameterType::ed25519);
+        output.emplace(create_key_credential(
+            api,
+            revised,
+            source,
+            master,
+            parent,
+            parentVersion,
+            index,
+            reason));
     }
 #endif
 
-    if (master_) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": The master credential already exists.")
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    if (output.empty()) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Creating an secp256k1 child key credential.")
             .Flush();
+        revised.setNymParameterType(NymParameterType::secp256k1);
+        output.emplace(create_key_credential(
+            api,
+            revised,
+            source,
+            master,
+            parent,
+            parentVersion,
+            index,
+            reason));
+    }
+#endif
 
-        return false;
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    if (output.empty()) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Creating an RSA child key credential.")
+            .Flush();
+        revised.setNymParameterType(NymParameterType::rsa);
+        output.emplace(create_key_credential(
+            api,
+            revised,
+            source,
+            master,
+            parent,
+            parentVersion,
+            index,
+            reason));
+    }
+#endif
+
+    if (output.empty()) {
+        throw std::runtime_error("Failed to generate child credentials");
     }
 
-    master_.reset(opentxs::Factory::Credential<credential::internal::Primary>(
-        api_,
-        *this,
-        authority_to_primary_.at(version_),
-        nymParameters,
-        proto::CREDROLE_MASTERKEY,
+    return output;
+}
+
+auto Authority::create_key_credential(
+    const api::Core& api,
+    const NymParameters& parameters,
+    const identity::Source& source,
+    const credential::internal::Primary& master,
+    internal::Authority& parent,
+    const VersionNumber parentVersion,
+    Bip32Index& index,
+    const opentxs::PasswordPrompt& reason) noexcept(false) -> KeyCredentialItem
+{
+    auto output = std::
+        pair<OTIdentifier, std::unique_ptr<credential::internal::Secondary>>{
+            api.Factory().Identifier(), nullptr};
+    auto& [id, pChild] = output;
+
+    auto revised{parameters};
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    revised.SetCredIndex(index++);
+#endif
+    pChild.reset(opentxs::Factory::Credential<credential::internal::Secondary>(
+        api,
+        parent,
+        source,
+        master,
+        authority_to_secondary_.at(parentVersion),
+        revised,
+        proto::CREDROLE_CHILDKEY,
         reason));
 
-    if (master_) {
-        index_++;
-
-        return true;
+    if (false == bool(pChild)) {
+        throw std::runtime_error("Failed to create child credentials");
     }
 
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Failed to instantiate master credential.")
-        .Flush();
+    auto& child = *pChild;
+    id = child.ID();
 
-    return false;
+    return output;
+}
+
+std::unique_ptr<credential::internal::Primary> Authority::create_master(
+    const api::Core& api,
+    identity::internal::Authority& owner,
+    const identity::Source& source,
+    const VersionNumber version,
+    const NymParameters& parameters,
+    const Bip32Index index,
+    const opentxs::PasswordPrompt& reason) noexcept(false)
+{
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    if (0 != index) {
+        throw std::runtime_error(
+            "The master credential must be the first credential created");
+    }
+
+    if (0 != parameters.CredIndex()) {
+        throw std::runtime_error("Invalid credential index");
+    }
+#endif
+
+    auto output = std::unique_ptr<credential::internal::Primary>{
+        opentxs::Factory::PrimaryCredential(
+            api,
+            owner,
+            source,
+            parameters,
+            authority_to_primary_.at(version),
+            reason)};
+
+    if (false == bool(output)) {
+        throw std::runtime_error("Failed to instantiate master credential");
+    }
+
+    return output;
+}
+
+template <typename Type>
+void Authority::extract_child(
+    const api::Core& api,
+    const identity::Source& source,
+    internal::Authority& authority,
+    const credential::internal::Primary& master,
+    const credential::Base::SerializedType& serialized,
+    const proto::KeyMode mode,
+    const proto::CredentialRole role,
+    const opentxs::PasswordPrompt& reason,
+    std::map<OTIdentifier, std::unique_ptr<Type>>& map) noexcept(false)
+{
+    if (role != serialized.role()) { return; }
+
+    bool valid = proto::Validate<proto::Credential>(
+        serialized, VERBOSE, mode, role, true);
+
+    if (false == valid) {
+        throw std::runtime_error("Invalid serialized credential");
+    }
+
+    auto child = std::unique_ptr<Type>{opentxs::Factory::Credential<Type>(
+        api, authority, source, master, serialized, mode, role, reason)};
+
+    if (false == bool(child)) {
+        throw std::runtime_error("Failed to instantiate credential");
+    }
+
+    auto id{child->ID()};
+    map.emplace(std::move(id), child.release());
 }
 
 const crypto::key::Keypair& Authority::get_keypair(
@@ -439,11 +555,11 @@ bool Authority::GetContactData(
     return true;
 }
 
-const std::string Authority::GetMasterCredID() const
+OTIdentifier Authority::GetMasterCredID() const
 {
-    if (master_) { return master_->ID()->str(); }
+    OT_ASSERT(master_);
 
-    return "";
+    return master_->ID();
 }
 
 const crypto::key::Keypair& Authority::GetAuthKeypair(
@@ -570,6 +686,50 @@ bool Authority::is_revoked(
            plistRevokedIDs->end();
 }
 
+template <typename Type>
+auto Authority::load_child(
+    const api::Core& api,
+    const identity::Source& source,
+    internal::Authority& authority,
+    const credential::internal::Primary& master,
+    const Serialized& serialized,
+    const proto::KeyMode mode,
+    const proto::CredentialRole role,
+    const opentxs::PasswordPrompt& reason) noexcept(false)
+    -> std::map<OTIdentifier, std::unique_ptr<Type>>
+{
+    auto output = std::map<OTIdentifier, std::unique_ptr<Type>>{};
+
+    if (proto::AUTHORITYMODE_INDEX == serialized.mode()) {
+        for (auto& it : serialized.activechildids()) {
+            auto child = std::shared_ptr<proto::Credential>{};
+            const auto loaded = api.Wallet().LoadCredential(it, child);
+
+            if (false == loaded) {
+                throw std::runtime_error("Failed to load credential");
+            }
+
+            extract_child(
+                api,
+                source,
+                authority,
+                master,
+                *child,
+                mode,
+                role,
+                reason,
+                output);
+        }
+    } else {
+        for (const auto& it : serialized.activechildren()) {
+            extract_child(
+                api, source, authority, master, it, mode, role, reason, output);
+        }
+    }
+
+    return output;
+}
+
 bool Authority::LoadChildKeyCredential(
     const String& strSubID,
     const opentxs::PasswordPrompt& reason)
@@ -617,6 +777,8 @@ bool Authority::LoadChildKeyCredential(
                 opentxs::Factory::Credential<credential::internal::Secondary>(
                     api_,
                     *this,
+                    parent_.Source(),
+                    *master_,
                     serializedCred,
                     mode_,
                     proto::CREDROLE_CHILDKEY,
@@ -633,6 +795,8 @@ bool Authority::LoadChildKeyCredential(
                 opentxs::Factory::Credential<credential::internal::Contact>(
                     api_,
                     *this,
+                    parent_.Source(),
+                    *master_,
                     serializedCred,
                     mode_,
                     proto::CREDROLE_CONTACT,
@@ -650,6 +814,8 @@ bool Authority::LoadChildKeyCredential(
                     credential::internal::Verification>(
                     api_,
                     *this,
+                    parent_.Source(),
+                    *master_,
                     serializedCred,
                     mode_,
                     proto::CREDROLE_VERIFY,
@@ -658,7 +824,6 @@ bool Authority::LoadChildKeyCredential(
             if (false == bool(child)) { return false; }
 
             auto id{child->ID()};
-
             verification_credentials_.emplace(std::move(id), child.release());
         } break;
         default: {
@@ -672,39 +837,37 @@ bool Authority::LoadChildKeyCredential(
     return true;
 }
 
-bool Authority::Load_Master(
-    const String& strNymID,
-    const String& strMasterCredID,
-    const opentxs::PasswordPrompt& reason)
+std::unique_ptr<credential::internal::Primary> Authority::load_master(
+    const api::Core& api,
+    identity::internal::Authority& owner,
+    const identity::Source& source,
+    const proto::KeyMode mode,
+    const Serialized& serialized,
+    const PasswordPrompt& reason) noexcept(false)
 {
-    std::shared_ptr<proto::Credential> serialized;
-    bool loaded =
-        api_.Wallet().LoadCredential(strMasterCredID.Get(), serialized);
+    auto output = std::unique_ptr<credential::internal::Primary>{};
 
-    if (!loaded) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failure: Master Credential ")(
-            strMasterCredID)(" doesn't exist for Nym ")(strNymID)(".")
-            .Flush();
+    if (proto::AUTHORITYMODE_INDEX == serialized.mode()) {
+        auto credential = std::shared_ptr<proto::Credential>{};
 
-        return false;
+        if (!api.Wallet().LoadCredential(serialized.masterid(), credential)) {
+            throw std::runtime_error("Master credential does not exist");
+        }
+
+        OT_ASSERT(credential);
+
+        output.reset(opentxs::Factory::PrimaryCredential(
+            api, owner, source, *credential, reason));
+    } else {
+        output.reset(opentxs::Factory::PrimaryCredential(
+            api, owner, source, serialized.mastercredential(), reason));
     }
 
-    std::unique_ptr<credential::internal::Primary> master{
-        opentxs::Factory::Credential<credential::internal::Primary>(
-            api_,
-            *this,
-            *serialized,
-            mode_,
-            proto::CREDROLE_MASTERKEY,
-            reason)};
-
-    if (master) {
-        master_.reset(master.release());
-
-        return bool(master_);
+    if (false == bool(output)) {
+        throw std::runtime_error("Failed to instantiate master credential");
     }
 
-    return false;
+    return output;
 }
 
 bool Authority::Path(proto::HDPath& output) const
@@ -748,7 +911,7 @@ std::shared_ptr<Authority::Serialized> Authority::Serialize(
     auto credSet = std::make_shared<Serialized>();
     credSet->set_version(version_);
     credSet->set_nymid(parent_.ID().str());
-    credSet->set_masterid(GetMasterCredID());
+    credSet->set_masterid(GetMasterCredID()->str());
     const auto add_active_id = [&](const auto& item) -> void {
         credSet->add_activechildids(item.first->str());
     };
@@ -767,13 +930,13 @@ std::shared_ptr<Authority::Serialized> Authority::Serialize(
     if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
         if (proto::KEYMODE_PRIVATE == mode_) { credSet->set_index(index_); }
 
-        credSet->set_mode(proto::CREDSETMODE_INDEX);
+        credSet->set_mode(proto::AUTHORITYMODE_INDEX);
         for_each(key_credentials_, add_active_id);
         for_each(contact_credentials_, add_active_id);
         for_each(verification_credentials_, add_active_id);
         for_each(m_mapRevokedCredentials, add_revoked_id);
     } else {
-        credSet->set_mode(proto::CREDSETMODE_FULL);
+        credSet->set_mode(proto::AUTHORITYMODE_FULL);
         *(credSet->mutable_mastercredential()) =
             *(master_->Serialized(AS_PUBLIC, WITH_SIGNATURES));
 
@@ -784,14 +947,6 @@ std::shared_ptr<Authority::Serialized> Authority::Serialize(
     }
 
     return credSet;
-}
-
-bool Authority::Sign(
-    const credential::Primary& credential,
-    proto::Signature& sig,
-    const opentxs::PasswordPrompt& reason) const
-{
-    return parent_.Source().Sign(credential, sig, reason);
 }
 
 bool Authority::Sign(
@@ -903,7 +1058,7 @@ bool Authority::Verify(
 {
     std::string signerID(sig.credentialid());
 
-    if (signerID == GetMasterCredID()) {
+    if (signerID == GetMasterCredID()->str()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Master credentials are only allowed to sign other credentials.")
             .Flush();

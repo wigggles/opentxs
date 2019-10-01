@@ -387,7 +387,7 @@ bool Nym::Load(
 }
 
 bool Nym::Load(
-    std::shared_ptr<proto::CredentialIndex>& output,
+    std::shared_ptr<proto::Nym>& output,
     std::string& alias,
     const bool checking) const
 {
@@ -408,7 +408,7 @@ bool Nym::Load(
 
     if (!checked_.get()) { return false; }
 
-    private_->Set(proto::CREDINDEX_PRIVATE == output->mode());
+    private_->Set(proto::NYM_PRIVATE == output->mode());
     revision_.store(output->revision());
 
     return true;
@@ -813,7 +813,7 @@ bool Nym::Store(const proto::ContactItemType type, const proto::HDAccount& data)
 }
 
 bool Nym::Store(
-    const proto::CredentialIndex& data,
+    const proto::Nym& data,
     const std::string& alias,
     std::string& plaintext)
 {
@@ -821,7 +821,7 @@ bool Nym::Store(
 
     const std::uint64_t revision = data.revision();
     bool saveOk = false;
-    const bool incomingPublic = (proto::CREDINDEX_PUBLIC == data.mode());
+    const bool incomingPublic = (proto::NYM_PUBLIC == data.mode());
     const bool existing = check_hash(credentials_);
 
     if (existing) {
@@ -829,7 +829,7 @@ bool Nym::Store(
             if (checked_.get()) {
                 saveOk = !private_.get();
             } else {
-                std::shared_ptr<proto::CredentialIndex> serialized;
+                std::shared_ptr<proto::Nym> serialized;
                 driver_.LoadProto(credentials_, serialized, true);
                 saveOk = !private_.get();
             }
@@ -846,8 +846,8 @@ bool Nym::Store(
 
     if (saveOk) {
         if (upgrade) {
-            const bool saved = driver_.StoreProto<proto::CredentialIndex>(
-                data, credentials_, plaintext);
+            const bool saved =
+                driver_.StoreProto<proto::Nym>(data, credentials_, plaintext);
 
             if (!saved) { return false; }
 

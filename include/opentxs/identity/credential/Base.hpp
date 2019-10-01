@@ -28,16 +28,15 @@ public:
     using SerializedType = proto::Credential;
 
     EXPORT virtual std::string asString(const bool asPrivate = false) const = 0;
+    EXPORT virtual const Identifier& CredentialID() const = 0;
     EXPORT virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const = 0;
     EXPORT virtual bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const = 0;
     EXPORT virtual bool hasCapability(
         const NymCapability& capability) const = 0;
-    EXPORT virtual const std::string& MasterID() const = 0;
     EXPORT virtual SerializedSignature MasterSignature() const = 0;
     EXPORT virtual proto::KeyMode Mode() const = 0;
-    EXPORT virtual const std::string& NymID() const = 0;
     EXPORT virtual proto::CredentialRole Role() const = 0;
     EXPORT virtual bool Private() const = 0;
     EXPORT virtual bool Save() const = 0;

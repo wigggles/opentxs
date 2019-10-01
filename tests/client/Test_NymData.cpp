@@ -449,15 +449,6 @@ TEST_F(Test_NymData, SetScope)
     EXPECT_TRUE(set);
 }
 
-TEST_F(Test_NymData, SetVerificationSet)
-{
-    // TODO: Add more thorough tests when there are OT classes for the proto
-    // verification classes.
-    opentxs::proto::VerificationSet verificationSet;
-    auto added = nymData_.SetVerificationSet(verificationSet, reason_);
-    EXPECT_FALSE(added);
-}
-
 TEST_F(Test_NymData, SocialMediaProfiles)
 {
     auto added = nymData_.AddSocialMediaProfile(
@@ -504,12 +495,3 @@ TEST_F(Test_NymData, Type)
 }
 
 TEST_F(Test_NymData, Valid) { EXPECT_TRUE(nymData_.Valid()); }
-
-TEST_F(Test_NymData, VerificationSet)
-{
-    // TODO: Add more thorough tests when there are OT classes for the proto
-    // verification classes.
-    std::unique_ptr<opentxs::proto::VerificationSet> verificationSet =
-        nymData_.VerificationSet();
-    EXPECT_TRUE(nullptr == verificationSet);
-}

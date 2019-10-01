@@ -10,7 +10,6 @@
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
@@ -1990,8 +1989,8 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
 
     switch (type) {
         case (ContractType::nym): {
-            const auto nym = proto::Factory<proto::CredentialIndex>(
-                Data::Factory(msgIn.m_ascPayload));
+            const auto nym =
+                proto::Factory<proto::Nym>(Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(bool(server_.API().Wallet().Nym(nym, reason_)));
 
             break;
@@ -2119,7 +2118,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_user_acct);
 
-    auto serialized = proto::Factory<proto::CredentialIndex>(
+    auto serialized = proto::Factory<proto::Nym>(
         Data::Factory(reply.Original().m_ascPayload));
     auto sender_nym = server_.API().Wallet().Nym(serialized, reason_);
 

@@ -30,25 +30,48 @@
 
 namespace opentxs
 {
+using ReturnType = identity::credential::implementation::Contact;
+
 identity::credential::internal::Contact* Factory::ContactCredential(
     const api::Core& api,
-    const opentxs::PasswordPrompt& reason,
     identity::internal::Authority& parent,
-    const proto::Credential& serialized)
+    const identity::Source& source,
+    const identity::credential::internal::Primary& master,
+    const NymParameters& parameters,
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason)
 {
-    return new identity::credential::implementation::Contact(
-        api, parent, serialized);
+    try {
+
+        return new ReturnType(
+            api, parent, source, master, parameters, version, reason);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to create credential: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 
 identity::credential::internal::Contact* Factory::ContactCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
-    const NymParameters& parameters,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const identity::Source& source,
+    const identity::credential::internal::Primary& master,
+    const proto::Credential& serialized,
+    [[maybe_unused]] const opentxs::PasswordPrompt& reason)
 {
-    return new identity::credential::implementation::Contact(
-        api, parent, parameters, version);
+    try {
+
+        return new ReturnType(api, parent, source, master, serialized);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to deserialize credential: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 }  // namespace opentxs
 
@@ -135,32 +158,39 @@ namespace opentxs::identity::credential::implementation
 Contact::Contact(
     const api::Core& api,
     const identity::internal::Authority& parent,
+    const identity::Source& source,
+    const internal::Primary& master,
     const NymParameters& params,
-    const VersionNumber version)
+    const VersionNumber version,
+    const PasswordPrompt& reason) noexcept(false)
     : Signable({}, version)  // TODO Signable
     , credential::implementation::Base(
           api,
           parent,
+          source,
           params,
           version,
           proto::CREDROLE_CONTACT,
           proto::KEYMODE_NULL,
-          parent.GetMasterCredID(),
-          parent.Source().NymID()->str())
+          get_master_id(master))
     , data_(params.ContactData() ? *params.ContactData() : proto::ContactData{})
 {
+    init(master, reason);
 }
 
 Contact::Contact(
     const api::Core& api,
     const identity::internal::Authority& parent,
-    const proto::Credential& serialized)
+    const identity::Source& source,
+    const internal::Primary& master,
+    const proto::Credential& serialized) noexcept(false)
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Base(
           api,
           parent,
+          source,
           serialized,
-          serialized.childdata().masterid())
+          get_master_id(serialized, master))
     , data_(serialized.contactdata())
 {
 }

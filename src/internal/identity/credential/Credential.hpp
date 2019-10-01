@@ -17,9 +17,6 @@
 namespace opentxs::identity::credential::internal
 {
 struct Base : virtual public identity::credential::Base {
-    virtual bool New(
-        const NymParameters& nymParameters,
-        const PasswordPrompt& reason) = 0;
     virtual void ReleaseSignatures(const bool onlyPrivate) = 0;
 
     virtual ~Base() = default;

@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include <array>
+
 const std::map<opentxs::blockchain::Type, opentxs::proto::ContactItemType>
     type_map_{
         {opentxs::blockchain::Type::Unknown, opentxs::proto::CITEMTYPE_UNKNOWN},
@@ -29,6 +31,18 @@ const std::map<opentxs::proto::ContactItemType, opentxs::blockchain::Type>
 
 namespace opentxs
 {
+bool operator==(
+    const opentxs::ProtobufType& lhs,
+    const opentxs::ProtobufType& rhs) noexcept
+{
+    auto sLeft = std::string{};
+    auto sRight = std::string{};
+    lhs.SerializeToString(&sLeft);
+    rhs.SerializeToString(&sRight);
+
+    return sLeft == sRight;
+}
+
 proto::ContactItemType Translate(const blockchain::Type type) noexcept
 {
     try {

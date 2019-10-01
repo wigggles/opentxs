@@ -24,7 +24,7 @@ namespace identity
 class Nym
 {
 public:
-    using Serialized = proto::CredentialIndex;
+    using Serialized = proto::Nym;
 
     EXPORT static const VersionNumber DefaultVersion;
     EXPORT static const VersionNumber MaxVersion;
@@ -44,7 +44,6 @@ public:
         const proto::ContactItemType currency,
         const bool onlyActive) const = 0;
     EXPORT virtual std::string EmailAddresses(bool active = true) const = 0;
-    EXPORT virtual const String& GetDescription() const = 0;
     EXPORT virtual void GetIdentifier(identifier::Nym& theIdentifier) const = 0;
     EXPORT virtual void GetIdentifier(String& theIdentifier) const = 0;
     EXPORT virtual const crypto::key::Asymmetric& GetPrivateAuthKey(
@@ -144,9 +143,6 @@ public:
         const proto::Ciphertext& input,
         crypto::key::Symmetric& key,
         OTPassword& password) const = 0;
-    EXPORT virtual VersionNumber VerificationCredentialVersion() const = 0;
-    EXPORT virtual std::unique_ptr<proto::VerificationSet> VerificationSet()
-        const = 0;
     EXPORT virtual bool Verify(
         const ProtobufType& input,
         proto::Signature& signature,
@@ -203,15 +199,11 @@ public:
     EXPORT virtual bool SetContactData(
         const proto::ContactData& data,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual void SetDescription(const String& strLocation) = 0;
     EXPORT virtual bool SetScope(
         const proto::ContactItemType type,
         const std::string& name,
         const PasswordPrompt& reason,
         const bool primary) = 0;
-    EXPORT virtual bool SetVerificationSet(
-        const proto::VerificationSet& data,
-        const PasswordPrompt& reason) = 0;
 
     EXPORT virtual ~Nym() = default;
 

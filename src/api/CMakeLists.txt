@@ -16,7 +16,6 @@ set(
   Endpoints.cpp
   Factory.cpp
   HDSeed.cpp
-  Identity.cpp
   Legacy.cpp
   Log.cpp
   Periodic.cpp
@@ -33,7 +32,6 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Endpoints.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Factory.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/HDSeed.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/Identity.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Legacy.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Periodic.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Settings.hpp"
@@ -48,7 +46,6 @@ set(
   Endpoints.hpp
   Factory.hpp
   HDSeed.hpp
-  Identity.hpp
   Legacy.hpp
   Log.hpp
   Periodic.hpp

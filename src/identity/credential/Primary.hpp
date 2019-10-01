@@ -24,9 +24,6 @@ public:
         const proto::Signature& masterSig,
         const PasswordPrompt& reason) const final;
 
-    bool New(const NymParameters& nymParameters, const PasswordPrompt& reason)
-        final;
-
     ~Primary() final = default;
 
 private:
@@ -47,17 +44,23 @@ private:
     bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
         const final;
 
+    void sign(
+        const identity::credential::internal::Primary& master,
+        const PasswordPrompt& reason) noexcept(false) final;
+
     Primary(
         const api::Core& api,
-        const identity::internal::Authority& theOwner,
+        const identity::internal::Authority& parent,
+        const identity::Source& source,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const PasswordPrompt& reason) noexcept(false);
     Primary(
         const api::Core& api,
         const PasswordPrompt& reason,
-        const identity::internal::Authority& theOwner,
-        const proto::Credential& serializedCred) noexcept;
+        const identity::internal::Authority& parent,
+        const identity::Source& source,
+        const proto::Credential& serializedCred) noexcept(false);
     Primary() = delete;
     Primary(const Primary&) = delete;
     Primary(Primary&&) = delete;

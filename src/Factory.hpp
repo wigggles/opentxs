@@ -17,12 +17,14 @@ public:
     static identity::internal::Authority* Authority(
         const api::Core& api,
         const identity::Nym& parent,
+        const identity::Source& source,
         const proto::KeyMode mode,
-        const proto::CredentialSet& serialized,
+        const proto::Authority& serialized,
         const opentxs::PasswordPrompt& reason);
     static identity::internal::Authority* Authority(
         const api::Core& api,
         const identity::Nym& parent,
+        const identity::Source& source,
         const NymParameters& nymParameters,
         const VersionNumber nymVersion,
         const opentxs::PasswordPrompt& reason);
@@ -125,14 +127,18 @@ public:
         const int instance);
     static identity::credential::internal::Contact* ContactCredential(
         const api::Core& api,
-        const opentxs::PasswordPrompt& reason,
         identity::internal::Authority& parent,
-        const proto::Credential& credential);
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static identity::credential::internal::Contact* ContactCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters,
-        const VersionNumber version,
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
+        const proto::Credential& credential,
         const opentxs::PasswordPrompt& reason);
     static ui::implementation::ContactListRowInternal* ContactListItem(
         const ui::implementation::ContactListInternalInterface& parent,
@@ -186,15 +192,19 @@ public:
     template <class C>
     static C* Credential(
         const api::Core& api,
-        identity::internal::Authority& owner,
+        identity::internal::Authority& parent,
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
         const VersionNumber version,
-        const NymParameters& nymParameters,
+        const NymParameters& parameters,
         const proto::CredentialRole role,
         const opentxs::PasswordPrompt& reason);
     template <class C>
     static C* Credential(
         const api::Core& api,
         identity::internal::Authority& parent,
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
         const proto::Credential& serialized,
         const proto::KeyMode mode,
         const proto::CredentialRole role,
@@ -263,7 +273,6 @@ public:
         const crypto::Bip32& bip32,
         const crypto::Bip39& bip39);
 #endif
-    static api::Identity* Identity(const api::Core& api);
     static api::client::Issuer* Issuer(
         const api::Wallet& wallet,
         const identifier::Nym& nymID,
@@ -358,8 +367,9 @@ public:
         const opentxs::PasswordPrompt& reason);
     static identity::internal::Nym* Nym(
         const api::Core& api,
-        const identifier::Nym& nymID,
-        const proto::CredentialIndexMode mode = proto::CREDINDEX_ERROR);
+        const proto::Nym& serialized,
+        const std::string& alias,
+        const opentxs::PasswordPrompt& reason);
     static internal::NymFile* NymFile(
         const api::Core& core,
         Nym_p targetNym,
@@ -504,14 +514,16 @@ public:
         std::function<void(network::zeromq::Message&)> callback);
     static identity::credential::internal::Primary* PrimaryCredential(
         const api::Core& api,
-        const opentxs::PasswordPrompt& reason,
         identity::internal::Authority& parent,
-        const proto::Credential& credential);
+        const identity::Source& source,
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static identity::credential::internal::Primary* PrimaryCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters,
-        const VersionNumber version,
+        const identity::Source& source,
+        const proto::Credential& credential,
         const opentxs::PasswordPrompt& reason);
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
@@ -617,14 +629,18 @@ public:
         const network::zeromq::ListenCallback& callback);
     static identity::credential::internal::Secondary* SecondaryCredential(
         const api::Core& api,
-        const opentxs::PasswordPrompt& reason,
         identity::internal::Authority& parent,
-        const proto::Credential& credential);
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
+        const NymParameters& nymParameters,
+        const VersionNumber version,
+        const opentxs::PasswordPrompt& reason);
     static identity::credential::internal::Secondary* SecondaryCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const NymParameters& nymParameters,
-        const VersionNumber version,
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
+        const proto::Credential& credential,
         const opentxs::PasswordPrompt& reason);
     static crypto::Secp256k1* Secp256k1(
         const api::Crypto& crypto,
@@ -795,13 +811,53 @@ public:
     static identity::credential::internal::Verification* VerificationCredential(
         const api::Core& api,
         identity::internal::Authority& parent,
-        const proto::Credential& credential);
-    static identity::credential::internal::Verification* VerificationCredential(
-        const api::Core& api,
-        identity::internal::Authority& parent,
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
+    static identity::credential::internal::Verification* VerificationCredential(
+        const api::Core& api,
+        identity::internal::Authority& parent,
+        const identity::Source& source,
+        const identity::credential::internal::Primary& master,
+        const proto::Credential& credential,
+        const opentxs::PasswordPrompt& reason);
+    static identity::wot::verification::internal::Group* VerificationGroup(
+        identity::wot::verification::internal::Set& parent,
+        const VersionNumber version,
+        bool external);
+    static identity::wot::verification::internal::Group* VerificationGroup(
+        identity::wot::verification::internal::Set& parent,
+        const proto::VerificationGroup& serialized,
+        bool external);
+    static identity::wot::verification::internal::Item* VerificationItem(
+        const identity::wot::verification::internal::Nym& parent,
+        const Identifier& claim,
+        const identity::Nym& signer,
+        const opentxs::PasswordPrompt& reason,
+        const bool value,
+        const Time start,
+        const Time end,
+        const VersionNumber version);
+    static identity::wot::verification::internal::Item* VerificationItem(
+        const identity::wot::verification::internal::Nym& parent,
+        const proto::Verification& serialized);
+    static identity::wot::verification::internal::Nym* VerificationNym(
+        identity::wot::verification::internal::Group& parent,
+        const identifier::Nym& nym,
+        const VersionNumber version);
+    static identity::wot::verification::internal::Nym* VerificationNym(
+        identity::wot::verification::internal::Group& parent,
+        const proto::VerificationIdentity& serialized);
+    static identity::wot::verification::internal::Set* VerificationSet(
+        const api::Core& api,
+        const identifier::Nym& nym,
+        const VersionNumber version);
+    static identity::wot::verification::internal::Set* VerificationSet(
+        const api::Core& api,
+        const identifier::Nym& nym,
+        const proto::VerificationSet& serialized);
     static api::Wallet* Wallet(const api::client::Manager& client);
     static api::Wallet* Wallet(const api::server::Manager& server);
     static api::client::Workflow* Workflow(

@@ -14,9 +14,9 @@ class Contact final : virtual public credential::internal::Contact,
 {
 public:
     bool GetContactData(
-        std::unique_ptr<proto::ContactData>& contactData) const override;
+        std::unique_ptr<proto::ContactData>& contactData) const final;
 
-    ~Contact() override = default;
+    ~Contact() final = default;
 
 private:
     friend opentxs::Factory;
@@ -26,17 +26,22 @@ private:
     std::shared_ptr<Base::SerializedType> serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const override;
+        const SerializationSignatureFlag asSigned) const final;
 
     Contact(
         const api::Core& api,
         const identity::internal::Authority& parent,
+        const identity::Source& source,
+        const internal::Primary& master,
         const NymParameters& nymParameters,
-        const VersionNumber version);
+        const VersionNumber version,
+        const PasswordPrompt& reason) noexcept(false);
     Contact(
         const api::Core& api,
         const identity::internal::Authority& parent,
-        const proto::Credential& credential);
+        const identity::Source& source,
+        const internal::Primary& master,
+        const proto::Credential& credential) noexcept(false);
     Contact() = delete;
     Contact(const Contact&) = delete;
     Contact(Contact&&) = delete;

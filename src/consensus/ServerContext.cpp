@@ -3509,8 +3509,8 @@ bool ServerContext::process_check_nym_response(
         return true;
     }
 
-    auto serialized = proto::Factory<proto::CredentialIndex>(
-        Data::Factory(reply.m_ascPayload));
+    auto serialized =
+        proto::Factory<proto::Nym>(Data::Factory(reply.m_ascPayload));
 
     auto nym = client.Wallet().Nym(serialized, reason);
 
@@ -4241,7 +4241,7 @@ bool ServerContext::process_get_unit_definition_response(
 
     switch (static_cast<ContractType>(reply.enum_)) {
         case ContractType::nym: {
-            auto serialized = proto::Factory<proto::CredentialIndex>(raw);
+            auto serialized = proto::Factory<proto::Nym>(raw);
             auto contract = api_.Wallet().Nym(serialized, reason);
 
             if (contract) { return (unitID->str() == serialized.nymid()); }

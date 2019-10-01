@@ -36,29 +36,41 @@
 
 namespace opentxs
 {
-identity::credential::internal::Primary* Factory::PrimaryCredential(
-    const api::Core& api,
-    const opentxs::PasswordPrompt& reason,
-    identity::internal::Authority& parent,
-    const proto::Credential& serialized)
-{
-    return new identity::credential::implementation::Primary(
-        api, reason, parent, serialized);
-}
+using ReturnType = identity::credential::implementation::Primary;
 
 identity::credential::internal::Primary* Factory::PrimaryCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
+    const identity::Source& source,
     const NymParameters& parameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)
 {
     try {
-        return new identity::credential::implementation::Primary(
-            api, parent, parameters, version, reason);
+
+        return new ReturnType(api, parent, source, parameters, version, reason);
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(
             ": Failed to create credential: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
+}
+
+identity::credential::internal::Primary* Factory::PrimaryCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const identity::Source& source,
+    const proto::Credential& serialized,
+    const opentxs::PasswordPrompt& reason)
+{
+    try {
+
+        return new ReturnType(api, reason, parent, source, serialized);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to deserialize credential: ")(e.what())
             .Flush();
 
         return nullptr;
@@ -79,129 +91,76 @@ const VersionConversionMap Primary::credential_to_master_params_{
 
 Primary::Primary(
     const api::Core& api,
-    const identity::internal::Authority& theOwner,
+    const identity::internal::Authority& parent,
+    const identity::Source& source,
     const NymParameters& params,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason) noexcept(false)
     : Signable({}, version)  // TODO Signable
     , credential::implementation::Key(
           api,
-          theOwner,
+          parent,
+          source,
           params,
           version,
           proto::CREDROLE_MASTERKEY,
-          "",
-          theOwner.Source().NymID()->str(),
           reason,
+          "",
           proto::SOURCETYPE_PUBKEY == params.SourceType())
     , source_proof_(source_proof(params))
 {
+    init(*this, reason);
 }
 
 Primary::Primary(
     const api::Core& api,
     const opentxs::PasswordPrompt& reason,
-    const identity::internal::Authority& theOwner,
-    const proto::Credential& serialized) noexcept
+    const identity::internal::Authority& parent,
+    const identity::Source& source,
+    const proto::Credential& serialized) noexcept(false)
     : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Key(api, reason, theOwner, serialized, "")
+    , credential::implementation::Key(
+          api,
+          reason,
+          parent,
+          source,
+          serialized,
+          "")
     , source_proof_(serialized.masterdata().sourceproof())
 {
 }
 
-proto::SourceProof Primary::source_proof(const NymParameters& params)
+bool Primary::hasCapability(const NymCapability& capability) const
 {
-    auto output = proto::SourceProof{};
-    output.set_version(1);
-    output.set_type(params.SourceProofType());
-
-    return output;
-}
-
-/** Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
- * verify that *this == parent_.GetMasterCredential() (the master
- * credential.) Verify the (self-signed) signature on *this. */
-bool Primary::verify_internally(
-    const Lock& lock,
-    const opentxs::PasswordPrompt& reason) const
-{
-    // Perform common Key Credential verifications
-    if (!Key::verify_internally(lock, reason)) { return false; }
-
-    // Check that the source validates this credential
-    if (!verify_against_source(lock, reason)) {
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": Failed verifying master credential against "
-            "nym id source.")
-            .Flush();
-
-        return false;
-    }
-
-    return true;
-}
-
-bool Primary::verify_against_source(
-    const Lock& lock,
-    const opentxs::PasswordPrompt& reason) const
-{
-    auto pSerialized = std::shared_ptr<proto::Credential>{};
-    auto hasSourceSignature{true};
-
-    switch (parent_.Source().Type()) {
-        case proto::SOURCETYPE_PUBKEY: {
-            pSerialized = serialize(lock, AS_PUBLIC, WITH_SIGNATURES);
-            hasSourceSignature = false;
-        } break;
-        case proto::SOURCETYPE_BIP47: {
-            pSerialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
-        } break;
+    switch (capability) {
+        case (NymCapability::SIGN_CHILDCRED): {
+            return signing_key_->CheckCapability(capability);
+        }
         default: {
-            return false;
         }
     }
 
-    if (false == bool(pSerialized)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize credentials")
-            .Flush();
-
-        return false;
-    }
-
-    const auto& serialized = *pSerialized;
-    const auto pSig = hasSourceSignature ? SourceSignature() : SelfSignature();
-
-    if (false == bool(pSig)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Master credential not signed by its source.")
-            .Flush();
-
-        return false;
-    }
-
-    const auto& sig = *pSig;
-
-    return parent_.Source().Verify(serialized, sig, reason);
+    return false;
 }
 
-bool Primary::New(
-    const NymParameters& params,
-    const opentxs::PasswordPrompt& reason)
+bool Primary::Path(proto::HDPath& output) const
 {
-    if (!Key::New(params, reason)) { return false; }
+    try {
+        const bool found = signing_key_->GetPrivateKey().Path(output);
 
-    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_.type()) {
-        SerializedSignature sig = std::make_shared<proto::Signature>();
-        bool haveSourceSig = parent_.Sign(*this, *sig, reason);
+        if (found) { output.mutable_child()->RemoveLast(); }
 
-        if (haveSourceSig) {
-            signatures_.push_back(sig);
+        return found;
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key.").Flush();
 
-            return true;
-        }
+        return false;
     }
+}
 
-    return true;
+std::string Primary::Path() const
+{
+    return signing_key_->GetPrivateKey().Path();
 }
 
 std::shared_ptr<identity::credential::Base::SerializedType> Primary::serialize(
@@ -217,8 +176,36 @@ std::shared_ptr<identity::credential::Base::SerializedType> Primary::serialize(
     serialized.set_role(proto::CREDROLE_MASTERKEY);
     auto& masterData = *serialized.mutable_masterdata();
     masterData.set_version(credential_to_master_params_.at(version_));
-    *masterData.mutable_source() = *(parent_.Source().Serialize());
+    *masterData.mutable_source() = *(source_.Serialize());
     *masterData.mutable_sourceproof() = source_proof_;
+
+    return output;
+}
+
+void Primary::sign(
+    const identity::credential::internal::Primary& master,
+    const PasswordPrompt& reason) noexcept(false)
+{
+    Key::sign(master, reason);
+
+    if (proto::SOURCEPROOFTYPE_SELF_SIGNATURE != source_proof_.type()) {
+        auto sig = std::make_shared<proto::Signature>();
+
+        OT_ASSERT(sig);
+
+        if (false == source_.Sign(*this, *sig, reason)) {
+            throw std::runtime_error("Failed to obtain source signature");
+        }
+
+        signatures_.push_back(sig);
+    }
+}
+
+proto::SourceProof Primary::source_proof(const NymParameters& params)
+{
+    auto output = proto::SourceProof{};
+    output.set_version(1);
+    output.set_type(params.SourceProofType());
 
     return output;
 }
@@ -257,36 +244,69 @@ bool Primary::Verify(
     return Verify(api_.Factory().Data(copy), masterSig, reason);
 }
 
-bool Primary::hasCapability(const NymCapability& capability) const
+bool Primary::verify_against_source(
+    const Lock& lock,
+    const opentxs::PasswordPrompt& reason) const
 {
-    switch (capability) {
-        case (NymCapability::SIGN_CHILDCRED): {
-            return signing_key_->CheckCapability(capability);
-        }
+    auto pSerialized = std::shared_ptr<proto::Credential>{};
+    auto hasSourceSignature{true};
+
+    switch (source_.Type()) {
+        case proto::SOURCETYPE_PUBKEY: {
+            pSerialized = serialize(lock, AS_PUBLIC, WITH_SIGNATURES);
+            hasSourceSignature = false;
+        } break;
+        case proto::SOURCETYPE_BIP47: {
+            pSerialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
+        } break;
         default: {
+            return false;
         }
     }
 
-    return false;
-}
-
-bool Primary::Path(proto::HDPath& output) const
-{
-    try {
-        const bool found = signing_key_->GetPrivateKey().Path(output);
-
-        if (found) { output.mutable_child()->RemoveLast(); }
-
-        return found;
-    } catch (...) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key.").Flush();
+    if (false == bool(pSerialized)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize credentials")
+            .Flush();
 
         return false;
     }
+
+    const auto& serialized = *pSerialized;
+    const auto pSig = hasSourceSignature ? SourceSignature() : SelfSignature();
+
+    if (false == bool(pSig)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Master credential not signed by its source.")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& sig = *pSig;
+
+    return source_.Verify(serialized, sig, reason);
 }
 
-std::string Primary::Path() const
+/** Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
+ * verify that *this == parent_.GetMasterCredential() (the master
+ * credential.) Verify the (self-signed) signature on *this. */
+bool Primary::verify_internally(
+    const Lock& lock,
+    const opentxs::PasswordPrompt& reason) const
 {
-    return signing_key_->GetPrivateKey().Path();
+    // Perform common Key Credential verifications
+    if (!Key::verify_internally(lock, reason)) { return false; }
+
+    // Check that the source validates this credential
+    if (!verify_against_source(lock, reason)) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed verifying master credential against "
+            "nym id source.")
+            .Flush();
+
+        return false;
+    }
+
+    return true;
 }
 }  // namespace opentxs::identity::credential::implementation

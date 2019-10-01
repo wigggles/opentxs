@@ -158,6 +158,20 @@ namespace internal
 struct Authority;
 struct Nym;
 }  // namespace internal
+
+namespace wot
+{
+namespace verification
+{
+namespace internal
+{
+struct Group;
+struct Item;
+struct Nym;
+struct Set;
+}  // namespace internal
+}  // namespace verification
+}  // namespace wot
 }  // namespace identity
 
 namespace internal
@@ -466,6 +480,10 @@ class StorageConfig;
 #if OT_CRYPTO_USING_TREZOR
 class TrezorCrypto;
 #endif
+
+bool operator==(
+    const opentxs::ProtobufType& lhs,
+    const opentxs::ProtobufType& rhs) noexcept;
 
 template <typename I>
 struct HDIndex {

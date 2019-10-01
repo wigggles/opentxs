@@ -70,7 +70,7 @@ public:
         std::shared_ptr<proto::HDAccount>& output,
         const bool checking) const;
     bool Load(
-        std::shared_ptr<proto::CredentialIndex>& output,
+        std::shared_ptr<proto::Nym>& output,
         std::string& alias,
         const bool checking) const;
     bool Load(
@@ -83,7 +83,7 @@ public:
     bool SetAlias(const std::string& alias);
     bool Store(const proto::ContactItemType type, const proto::HDAccount& data);
     bool Store(
-        const proto::CredentialIndex& data,
+        const proto::Nym& data,
         const std::string& alias,
         std::string& plaintext);
     bool Store(const proto::Purse& purse);

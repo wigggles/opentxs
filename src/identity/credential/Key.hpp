@@ -66,23 +66,25 @@ protected:
     bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
         const override;
 
-    bool New(const NymParameters& nymParameters, const PasswordPrompt& reason)
-        override;
+    void sign(
+        const identity::credential::internal::Primary& master,
+        const PasswordPrompt& reason) noexcept(false) override;
 
     Key(const api::Core& api,
         const identity::internal::Authority& owner,
+        const identity::Source& source,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const proto::CredentialRole role,
-        const std::string& masterID,
-        const std::string& nymID,
         const PasswordPrompt& reason,
+        const std::string& masterID,
         const bool useProvidedSigningKey = false) noexcept(false);
     Key(const api::Core& api,
         const PasswordPrompt& reason,
         const identity::internal::Authority& owner,
+        const identity::Source& source,
         const proto::Credential& serializedCred,
-        const std::string& masterID) noexcept;
+        const std::string& masterID) noexcept(false);
 
 private:
     static const VersionConversionMap credential_subversion_;

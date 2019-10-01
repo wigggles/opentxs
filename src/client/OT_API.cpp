@@ -17,7 +17,6 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/blind/Mint.hpp"
@@ -2078,7 +2077,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // ----------------------------------------// every period, ad infinitum,
     time64_t PAYMENT_PLAN_LENGTH,  // until after the length (in seconds)
     std::int32_t PAYMENT_PLAN_MAX_PAYMENTS  // expires, or after the maximum
-    ) const                                 // number of payments. These last
+) const                                     // number of payments. These last
 {                                           // two arguments are optional.
     auto reason = api_.Factory().PasswordPrompt("Proposing a payment plan");
     auto context = api_.Wallet().mutable_ServerContext(
@@ -2882,7 +2881,7 @@ CommandResult OT_API::exchangeBasket(
     const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
     const String& BASKET_INFO,
     bool bExchangeInOrOut  // exchanging in == true, out == false.
-    ) const
+) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));

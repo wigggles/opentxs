@@ -14,7 +14,7 @@ public:
     void GetServerContract(const std::string& key) const final;
     void GetUnitDefinition(const std::string& key) const final;
     void Insert(const std::string& key, const std::string& value) const final;
-    void Insert(const proto::CredentialIndex& nym) const final;
+    void Insert(const proto::Nym& nym) const final;
     void Insert(const proto::ServerContract& contract) const final;
     void Insert(const proto::UnitDefinition& contract) const final;
 #if OT_DHT
