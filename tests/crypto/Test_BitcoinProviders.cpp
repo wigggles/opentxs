@@ -373,7 +373,7 @@ public:
     {
     }
 
-    bool test_base58_encode(const ot::crypto::Bip32& library)
+    bool test_base58_encode()
     {
         for (const auto& [key, value] : base_58_) {
             auto input = ot::Data::Factory();
@@ -386,7 +386,7 @@ public:
         return true;
     }
 
-    bool test_base58_decode(const ot::crypto::Bip32& library)
+    bool test_base58_decode()
     {
         for (const auto& [key, value] : base_58_) {
             auto expected = ot::Data::Factory();
@@ -401,7 +401,7 @@ public:
         return true;
     }
 
-    bool test_ripemd160(const ot::crypto::Bip32& library)
+    bool test_ripemd160()
     {
         for (const auto& [preimage, hash] : ripemd160_) {
             auto input = ot::Data::Factory();
@@ -631,9 +631,9 @@ public:
 #if OT_CRYPTO_USING_TREZOR
 TEST_F(Test_Bitcoin_Providers, Trezor)
 {
-    EXPECT_TRUE(test_base58_encode(*trezor_));
-    EXPECT_TRUE(test_base58_decode(*trezor_));
-    EXPECT_TRUE(test_ripemd160(*trezor_));
+    EXPECT_TRUE(test_base58_encode());
+    EXPECT_TRUE(test_base58_decode());
+    EXPECT_TRUE(test_ripemd160());
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPECT_TRUE(test_bip39(*trezor_));
     EXPECT_TRUE(test_bip32_seed(*trezor_));

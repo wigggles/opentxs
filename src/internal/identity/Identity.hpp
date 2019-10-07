@@ -13,6 +13,9 @@
 namespace opentxs::identity::internal
 {
 struct Authority : virtual public identity::Authority {
+    static VersionNumber NymToContactCredential(
+        const VersionNumber nym) noexcept(false);
+
     virtual const credential::Primary& GetMasterCredential() const = 0;
     virtual bool WriteCredentials() const = 0;
 

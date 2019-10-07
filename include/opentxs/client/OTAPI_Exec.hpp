@@ -67,50 +67,6 @@ public:
     EXPORT static void SetHomeFolder(const std::string& Location);
     // Then:
 
-    /** CREATE NYM -- Create new User
-    //
-    // Creates a new Nym and adds it to the wallet.
-    // (Including PUBLIC and PRIVATE KEYS.)
-    //
-    // Returns a new Nym ID (with files already created)
-    // or nullptr upon failure.
-    //
-    // Once it exists, use registerNym() to
-    // register your new Nym at any given Server. (Nearly all
-    // server requests require this...)
-    //
-    // nKeySize must be 1024, 2048, 4096, or 8192.
-    // NYM_ID_SOURCE can be empty (it will just generate a keypair
-    // and use the public key as the source.) Otherwise you can pass
-    // another source string in here, such as a URL, but the Nym will
-    // not verify against its own source unless the credential IDs for
-    // that Nym can be found posted at that same URL. Whereas if the
-    // source is just a public key, then the only verification requirement
-    // is that master credentials be signed by the corresponding private key.
-    */
-    EXPORT std::string CreateNymLegacy(
-        const std::int32_t& nKeySize,
-        const std::string& NYM_ID_SOURCE) const;
-
-    /** Create a nym using HD key derivation
-     *
-     *  All keys associated with nyms created via this method can be recovered
-     *  via the wallet seed (12/24 words).
-     *
-     *  \param[in] seed (optional)  Specify a custom HD seed fingerprint. If
-     *                              blank or not found, the default wallet seed
-     *                              will be used.
-     *  \param[in] index (optional) Derivation path of the nym to be created. A
-     *                              negative value will use the next index for
-     *                              the specified seed.
-     *  \returns nym id for the new nym on success, or an empty string
-     */
-    EXPORT std::string CreateNymHD(
-        const proto::ContactItemType type,
-        const std::string& name,
-        const std::string& fingerprint = "",
-        const std::int32_t index = -1) const;
-
     /**
 
     PROPOSE PAYMENT PLAN --- Returns the payment plan in string form.

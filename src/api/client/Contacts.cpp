@@ -70,6 +70,7 @@ Contacts::ContactMap::iterator Contacts::add_contact(
     return contact_map_.find(id);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 OTIdentifier Contacts::address_to_contact(
     const rLock& lock,
     const std::string& address,
@@ -93,6 +94,7 @@ OTIdentifier Contacts::BlockchainAddressToContact(
 
     return address_to_contact(lock, address, currency);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 Contacts::ContactNameMap Contacts::build_name_map(
     const api::storage::Storage& storage)
@@ -405,7 +407,9 @@ std::shared_ptr<const opentxs::Contact> Contacts::Merge(
     }
 
     contact_map_.erase(child);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     api_.Blockchain().UpdateTransactions(changed);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     return parentContact;
 }
@@ -555,6 +559,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::NewContact(
     );
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::shared_ptr<const opentxs::Contact> Contacts::NewContactFromAddress(
     const std::string& address,
     const std::string& label,
@@ -596,6 +601,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::NewContactFromAddress(
 
     return newContact;
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 OTIdentifier Contacts::NymToContact(
     const identifier::Nym& nymID,
@@ -698,7 +704,9 @@ void Contacts::save(const PasswordPrompt& reason, opentxs::Contact* contact)
 
     rLock lock(lock_);
     refresh_indices(reason, lock, *contact);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     api_.Blockchain().UpdateTransactions(changed);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }
 
 void Contacts::start(const PasswordPrompt& reason)
@@ -885,7 +893,9 @@ void Contacts::update_nym_map(
         }
     }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     api_.Blockchain().UpdateTransactions(changed);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }
 
 bool Contacts::verify_write_lock(const rLock& lock) const

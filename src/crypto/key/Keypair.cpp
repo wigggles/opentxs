@@ -157,7 +157,7 @@ const Asymmetric& Keypair::GetPrivateKey() const
 {
     if (m_pkeyPrivate.get()) { return m_pkeyPrivate; }
 
-    throw std::runtime_error("not a private key");
+    throw std::runtime_error("private key missing");
 }
 
 // Return the public key as an Asymmetric object
@@ -165,7 +165,7 @@ const Asymmetric& Keypair::GetPublicKey() const
 {
     if (m_pkeyPublic.get()) { return m_pkeyPublic; }
 
-    throw std::runtime_error("not a private key");
+    throw std::runtime_error("public key missing");
 }
 
 std::int32_t Keypair::GetPublicKeyBySignature(

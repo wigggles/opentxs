@@ -193,6 +193,12 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 #endif
 
+    const std::string defaultName = DEFAULT_NAME;
+    const std::string& userName = manager_.GetUserName();
+    std::string name = userName;
+
+    if (1 > name.size()) { name = defaultName; }
+
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     NymParameters nymParameters(proto::CREDTYPE_HD);
     nymParameters.SetSeed(seed);
@@ -201,7 +207,8 @@ void Server::CreateMainFile(bool& mainFileExists)
 #else
     NymParameters nymParameters(proto::CREDTYPE_LEGACY);
 #endif
-    m_nymServer = manager_.Wallet().Nym(nymParameters, reason_);
+    m_nymServer = manager_.Wallet().Nym(
+        reason_, name, nymParameters, proto::CITEMTYPE_SERVER);
 
     if (false == bool(m_nymServer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -317,13 +324,6 @@ void Server::CreateMainFile(bool& mainFileExists)
         String::Factory(SERVER_CONFIG_NOTIFY_KEY),
         String::Factory(std::to_string(listenNotification)),
         notUsed);
-
-    const std::string defaultName = DEFAULT_NAME;
-    const std::string& userName = manager_.GetUserName();
-    std::string name = userName;
-
-    if (1 > name.size()) { name = defaultName; }
-
     std::list<ServerContract::Endpoint> endpoints;
     const bool useInproc = false == manager_.GetInproc().empty();
 
@@ -419,11 +419,6 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     {
         auto nymData = manager_.Wallet().mutable_Nym(nymID, reason_);
-
-        if (false ==
-            nymData.SetScope(proto::CITEMTYPE_SERVER, name, true, reason_)) {
-            OT_FAIL
-        }
 
         if (false == nymData.SetCommonName(pContract->ID()->str(), reason_)) {
             OT_FAIL

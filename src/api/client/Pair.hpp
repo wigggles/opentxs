@@ -205,10 +205,12 @@ private:
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const;
     void state_machine(const IssuerID& id) const;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::pair<bool, OTIdentifier> store_secret(
         const identifier::Nym& localNymID,
         const identifier::Nym& issuerNymID,
         const identifier::Server& serverID) const;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     void callback_nym(const zmq::Message& in) noexcept;
     void callback_peer_reply(const zmq::Message& in) noexcept;

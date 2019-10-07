@@ -42,7 +42,7 @@ NymParameters::NymParameters()
     , credset_(0)
     , cred_index_(0)
     , default_(true)
-    , use_auto_index_(false)
+    , use_auto_index_(true)
 #else
     , credentialType_(proto::CREDTYPE_LEGACY)
 #endif
@@ -67,6 +67,18 @@ NymParameters::NymParameters(const std::int32_t keySize)
     nBits_ = keySize;
 }
 #endif
+
+NymParameters::NymParameters(
+    [[maybe_unused]] const std::string& seedID,
+    [[maybe_unused]] const int index)
+    : NymParameters()
+{
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    if (0 < seedID.size()) { SetSeed(seedID); }
+
+    if (index >= 0) { SetNym(static_cast<Bip32Index>(index)); }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+}
 
 NymParameters::NymParameters(const NymParameters& rhs)
     : NymParameters()
@@ -151,6 +163,12 @@ void NymParameters::setCredentialType(proto::CredentialType theCredentialtype)
 void NymParameters::SetEntropy(const OTPassword& entropy)
 {
     entropy_.reset(new OTPassword(entropy));
+}
+
+void NymParameters::SetNym(const Bip32Index path)
+{
+    nym_ = path;
+    use_auto_index_ = false;
 }
 #endif
 

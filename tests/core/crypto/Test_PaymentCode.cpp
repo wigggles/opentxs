@@ -32,35 +32,31 @@ public:
                "skate property fringe obey butter text tank drama palm guilt "
                "pudding laundry stay axis prosper")
         , fingerprint(client_.Exec().Wallet_ImportSeed(seed, ""))
-        , nymID_0(client_.Exec().CreateNymHD(
-              proto::CITEMTYPE_INDIVIDUAL,
-              "PaycodeNym",
-              fingerprint,
-              0))
+        , nymID_0(client_.Wallet()
+                      .Nym(reason_, "PaycodeNym", {fingerprint, 0})
+                      ->ID()
+                      .str())
         , paycode_0(
               "PM8TJhB2CxWDqR8c5y4kWoJwSGRNYaVATdJM85kqfn2dZ9TdSihbFJraQzjYUMYx"
               "bsrnMfjPK6oZFAPQ1tWqzwTfKbtunvLFCzDJFVXVGbUAKxhsz7P5")
-        , nymID_1(client_.Exec().CreateNymHD(
-              proto::CITEMTYPE_INDIVIDUAL,
-              "PaycodeNym_1",
-              fingerprint,
-              1))
+        , nymID_1(client_.Wallet()
+                      .Nym(reason_, "PaycodeNym_1", {fingerprint, 1})
+                      ->ID()
+                      .str())
         , paycode_1(
               "PM8TJWedQTvxaoJpt9Wh25HR54oj5vmor6arAByFk4UTgUh1Tna2srsZLUo2xS3V"
               "iBot1ftf4p8ZUN8khB2zvViHXZkrwkfjcePSeEgsYapESKywge9F")
-        , nymID_2(client_.Exec().CreateNymHD(
-              proto::CITEMTYPE_INDIVIDUAL,
-              "PaycodeNym_2",
-              fingerprint,
-              2))
+        , nymID_2(client_.Wallet()
+                      .Nym(reason_, "PaycodeNym_2", {fingerprint, 2})
+                      ->ID()
+                      .str())
         , paycode_2(
               "PM8TJQmrQ4tSY6Gad59UpzqR8MRMesSYMKXvpMuzdDHByfRXVgvVdiqD5NmjoEH9"
               "V6ZrofFVViBwSg9dvVcP8R2CU1pXejhVQQj3XsWk8sLhAsspqk8F")
-        , nymID_3(client_.Exec().CreateNymHD(
-              proto::CITEMTYPE_INDIVIDUAL,
-              "PaycodeNym_3",
-              fingerprint,
-              3))
+        , nymID_3(client_.Wallet()
+                      .Nym(reason_, "PaycodeNym_3", {fingerprint, 3})
+                      ->ID()
+                      .str())
         , paycode_3(
               "PM8TJbNzqDcdqCcpkMLLa9H83CjoWdHMTQ4Lk11qSpThkyrmDFA4AeGd2kFeLK2s"
               "T6UVXy2jwWABsfLd7JmcS4hMAy9zUdWRFRhmu33RiRJCS6qRmGew")

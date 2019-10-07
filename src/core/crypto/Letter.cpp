@@ -14,6 +14,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"

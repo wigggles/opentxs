@@ -104,6 +104,7 @@ public:
 
 private:
     friend opentxs::Factory;
+    friend internal::Authority;
 
     using ContactCredentialMap =
         std::map<OTIdentifier, std::unique_ptr<credential::internal::Contact>>;
@@ -125,7 +126,7 @@ private:
     const api::Core& api_;
     const identity::Nym& parent_;
     const VersionNumber version_{0};
-    Bip32Index index_{0};
+    std::uint32_t index_{0};
     std::unique_ptr<credential::internal::Primary> master_;
     KeyCredentialMap key_credentials_;
     ContactCredentialMap contact_credentials_;
@@ -144,6 +145,14 @@ private:
         internal::Authority& parent,
         const VersionNumber parentVersion,
         Bip32Index& index,
+        const opentxs::PasswordPrompt& reason) noexcept(false);
+    static ContactCredentialMap create_contact_credental(
+        const api::Core& api,
+        const NymParameters& parameters,
+        const identity::Source& source,
+        const credential::internal::Primary& master,
+        internal::Authority& parent,
+        const VersionNumber parentVersion,
         const opentxs::PasswordPrompt& reason) noexcept(false);
     static KeyCredentialItem create_key_credential(
         const api::Core& api,

@@ -35,6 +35,7 @@ struct Activity : virtual public api::client::Activity {
 
     virtual ~Activity() = default;
 };
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 struct Blockchain : virtual public api::client::Blockchain {
     struct TxoDB {
         using Status = std::pair<blockchain::Coin, bool>;
@@ -70,6 +71,7 @@ struct Blockchain : virtual public api::client::Blockchain {
 
     virtual ~Blockchain() = default;
 };
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 struct Contacts : virtual public api::client::Contacts {
     virtual void start(const PasswordPrompt& reason) = 0;
 

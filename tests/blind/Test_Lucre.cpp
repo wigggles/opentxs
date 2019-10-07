@@ -60,12 +60,8 @@ public:
             "anchor skate property fringe obey butter text tank drama "
             "palm guilt pudding laundry stay axis prosper",
             "");
-        const auto alice = api_.Exec().CreateNymHD(
-            opentxs::proto::CITEMTYPE_INDIVIDUAL, "Alice", seedA, 0);
-        const auto bob = api_.Exec().CreateNymHD(
-            opentxs::proto::CITEMTYPE_INDIVIDUAL, "Bob", seedB, 0);
-        alice_nym_id_->SetString(alice);
-        bob_nym_id_->SetString(bob);
+        alice_nym_id_ = api_.Wallet().Nym(reason_, "Alice", {seedA, 0})->ID();
+        bob_nym_id_ = api_.Wallet().Nym(reason_, "Bob", {seedB, 0})->ID();
         const_cast<opentxs::identifier::UnitDefinition&>(unit_id_.get())
             .SetString(opentxs::Identifier::Random()->str());
         const_cast<opentxs::identifier::Server&>(server_id_.get())

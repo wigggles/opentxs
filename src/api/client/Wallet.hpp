@@ -44,6 +44,10 @@ private:
         const Nym_p& localNym,
         const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const final;
+    void nym_to_contact(
+        const identity::Nym& nym,
+        const std::string& name,
+        const PasswordPrompt& reason) const noexcept final;
     Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
         const final;
 

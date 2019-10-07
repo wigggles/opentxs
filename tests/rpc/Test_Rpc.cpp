@@ -8,9 +8,11 @@
 
 #include <gtest/gtest.h>
 
+#if OT_CRYPTO_WITH_BIP39
 #define TEST_SEED                                                              \
     "one two three four five six seven eight nine ten eleven twelve"
 #define TEST_SEED_PASSPHRASE "seed passphrase"
+#endif  // OT_CRYPTO_WITH_BIP39
 #define ISSUER_ACCOUNT_LABEL "issuer account"
 #define USER_ACCOUNT_LABEL "user account"
 #define RENAMED_ACCOUNT_LABEL "renamed"
@@ -149,14 +151,14 @@ protected:
 
         auto response = ot_.RPC(command);
 
-        ASSERT_TRUE(proto::Validate(response, VERBOSE));
+        EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-        ASSERT_EQ(RESPONSE_VERSION, response.version());
-        ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-        ASSERT_EQ(command.type(), response.type());
+        EXPECT_EQ(RESPONSE_VERSION, response.version());
+        EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+        EXPECT_EQ(command.type(), response.type());
 
-        ASSERT_EQ(1, response.status_size());
-        ASSERT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
+        EXPECT_EQ(1, response.status_size());
+        EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
     }
 
     void wait_for_state_machine(
@@ -257,15 +259,15 @@ TEST_F(Test_Rpc, Add_Client_Session)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(0, response.session());
+    EXPECT_EQ(0, response.session());
 }
 
 TEST_F(Test_Rpc, List_Server_Contracts_None)
@@ -292,15 +294,15 @@ TEST_F(Test_Rpc, Add_Server_Session)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.session());
+    EXPECT_EQ(1, response.session());
 
     auto& manager = get_session(response.session());
     auto reason = manager.Factory().PasswordPrompt(__FUNCTION__);
@@ -329,18 +331,18 @@ TEST_F(Test_Rpc, Get_Server_Password)
     command.set_session(1);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
 
     const auto& status = response.status(0);
 
     EXPECT_EQ(STATUS_VERSION, status.version());
     EXPECT_EQ(0, status.index());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, status.code());
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 
     const auto& password = response.identifier(0);
 
@@ -353,11 +355,11 @@ TEST_F(Test_Rpc, Get_Admin_Nym_None)
     command.set_session(1);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
 
     const auto& status = response.status(0);
 
@@ -371,29 +373,29 @@ TEST_F(Test_Rpc, List_Client_Sessions)
 {
     ArgList args;
     auto added = add_session(proto::RPCCOMMAND_ADDCLIENTSESSION, args);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     added = add_session(proto::RPCCOMMAND_ADDCLIENTSESSION, args);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     auto command = init(proto::RPCCOMMAND_LISTCLIENTSESSIONS);
     command.set_session(-1);
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(3, response.sessions_size());
+    EXPECT_EQ(3, response.sessions_size());
 
     for (auto& session : response.sessions()) {
-        ASSERT_EQ(SESSIONDATA_VERSION, session.version());
-        ASSERT_TRUE(
+        EXPECT_EQ(SESSIONDATA_VERSION, session.version());
+        EXPECT_TRUE(
             0 == session.instance() || 2 == session.instance() ||
             4 == session.instance());
     }
@@ -404,31 +406,31 @@ TEST_F(Test_Rpc, List_Server_Sessions)
     ArgList args{{OPENTXS_ARG_INPROC, {std::to_string(ot_.Servers() * 2 + 1)}}};
 
     auto added = add_session(proto::RPCCOMMAND_ADDSERVERSESSION, args);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     args[OPENTXS_ARG_INPROC] = {std::to_string(ot_.Servers() * 2 + 1)};
 
     added = add_session(proto::RPCCOMMAND_ADDSERVERSESSION, args);
-    ASSERT_TRUE(added);
+    EXPECT_TRUE(added);
 
     auto command = init(proto::RPCCOMMAND_LISTSERVERSESSIONS);
     command.set_session(-1);
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(3, response.sessions_size());
+    EXPECT_EQ(3, response.sessions_size());
 
     for (auto& session : response.sessions()) {
-        ASSERT_EQ(SESSIONDATA_VERSION, session.version());
-        ASSERT_TRUE(
+        EXPECT_EQ(SESSIONDATA_VERSION, session.version());
+        EXPECT_TRUE(
             1 == session.instance() || 3 == session.instance() ||
             5 == session.instance());
     }
@@ -441,15 +443,15 @@ TEST_F(Test_Rpc, List_Server_Contracts)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 }
 
 TEST_F(Test_Rpc, Get_Notary_Contract)
@@ -460,15 +462,15 @@ TEST_F(Test_Rpc, Get_Notary_Contract)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.notary_size());
+    EXPECT_EQ(1, response.notary_size());
 
     server_contract_ = response.notary(0);
 }
@@ -482,16 +484,16 @@ TEST_F(Test_Rpc, Get_Notary_Contracts)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(2, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(2, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(2, response.notary_size());
+    EXPECT_EQ(2, response.notary_size());
 
     server2_contract_ = response.notary(0);
     server3_contract_ = response.notary(1);
@@ -506,13 +508,13 @@ TEST_F(Test_Rpc, Import_Server_Contract)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 }
 
 TEST_F(Test_Rpc, Import_Server_Contracts)
@@ -525,13 +527,13 @@ TEST_F(Test_Rpc, Import_Server_Contracts)
     server2 = server3_contract_;
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(2, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(2, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 }
 
 TEST_F(Test_Rpc, Import_Server_Contract_Partial)
@@ -545,13 +547,13 @@ TEST_F(Test_Rpc, Import_Server_Contract_Partial)
     invalid_server.set_nymid("invalid nym identifier");
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(2, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(proto::RPCRESPONSE_NONE, response.status(1).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(2, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(1).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 }
 
 TEST_F(Test_Rpc, List_Contacts_None)
@@ -570,7 +572,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     auto createnym = command.mutable_createnym();
 
-    ASSERT_NE(nullptr, createnym);
+    EXPECT_NE(nullptr, createnym);
 
     createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
@@ -579,15 +581,15 @@ TEST_F(Test_Rpc, Create_Nym)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_TRUE(0 != response.identifier_size());
+    EXPECT_TRUE(0 != response.identifier_size());
 
     nym1_id_ = response.identifier(0);
 
@@ -597,7 +599,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     createnym = command.mutable_createnym();
 
-    ASSERT_NE(nullptr, createnym);
+    EXPECT_NE(nullptr, createnym);
 
     createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
@@ -606,12 +608,12 @@ TEST_F(Test_Rpc, Create_Nym)
 
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
-    ASSERT_TRUE(0 != response.identifier_size());
+    EXPECT_TRUE(0 != response.identifier_size());
 
     nym2_id_ = response.identifier(0);
 
@@ -620,7 +622,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     createnym = command.mutable_createnym();
 
-    ASSERT_NE(nullptr, createnym);
+    EXPECT_NE(nullptr, createnym);
 
     createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
@@ -629,12 +631,12 @@ TEST_F(Test_Rpc, Create_Nym)
 
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
-    ASSERT_TRUE(0 != response.identifier_size());
+    EXPECT_TRUE(0 != response.identifier_size());
 
     nym3_id_ = response.identifier(0);
 }
@@ -646,16 +648,16 @@ TEST_F(Test_Rpc, List_Contacts)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
-    ASSERT_TRUE(3 == response.identifier_size());
+    EXPECT_TRUE(3 == response.identifier_size());
 }
 
 TEST_F(Test_Rpc, Add_Contact)
@@ -670,21 +672,21 @@ TEST_F(Test_Rpc, Add_Contact)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 
     // Add a contact using a nym id.
     auto& client = ot_.Client(0);
     auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
-    ASSERT_EQ(4, client.Contacts().ContactList().size());
+    EXPECT_EQ(4, client.Contacts().ContactList().size());
 
     ot_.Client(2);
 
@@ -698,16 +700,16 @@ TEST_F(Test_Rpc, Add_Contact)
 
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 
     // Add a contact using a payment code.
     command = init(proto::RPCCOMMAND_ADDCONTACT);
@@ -723,16 +725,16 @@ TEST_F(Test_Rpc, Add_Contact)
 
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 }
 
 TEST_F(Test_Rpc, List_Unit_Definitions_None)
@@ -747,7 +749,7 @@ TEST_F(Test_Rpc, Create_Unit_Definition)
     command.set_owner(nym1_id_);
     auto def = command.mutable_createunit();
 
-    ASSERT_NE(nullptr, def);
+    EXPECT_NE(nullptr, def);
 
     def->set_version(CREATEINSTRUMENTDEFINITION_VERSION);
     def->set_name("GoogleTestDollar");
@@ -760,21 +762,21 @@ TEST_F(Test_Rpc, Create_Unit_Definition)
     def->set_unitofaccount(proto::CITEMTYPE_USD);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.identifier_size());
 
     const auto& unitID = response.identifier(0);
 
-    ASSERT_TRUE(Identifier::Validate(unitID));
+    EXPECT_TRUE(Identifier::Validate(unitID));
 
     unit_definition_id_->SetString(unitID);
 
-    ASSERT_FALSE(unit_definition_id_->empty());
+    EXPECT_FALSE(unit_definition_id_->empty());
 }
 
 TEST_F(Test_Rpc, List_Unit_Definitions)
@@ -783,13 +785,13 @@ TEST_F(Test_Rpc, List_Unit_Definitions)
     command.set_session(0);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.identifier_size());
 
     const auto unitID =
         identifier::UnitDefinition::Factory(response.identifier(0));
@@ -816,12 +818,12 @@ TEST_F(Test_Rpc, Add_Claim)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 }
 
 TEST_F(Test_Rpc, Add_Claim_No_Nym)
@@ -844,14 +846,14 @@ TEST_F(Test_Rpc, Add_Claim_No_Nym)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(0).code());
 }
 
 TEST_F(Test_Rpc, Delete_Claim_No_Nym)
@@ -873,14 +875,14 @@ TEST_F(Test_Rpc, Delete_Claim_No_Nym)
     command.add_identifier(claim_id_);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(0).code());
 }
 
 TEST_F(Test_Rpc, Delete_Claim)
@@ -891,14 +893,14 @@ TEST_F(Test_Rpc, Delete_Claim)
     command.add_identifier(claim_id_);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 }
 
 TEST_F(Test_Rpc, RegisterNym)
@@ -910,13 +912,13 @@ TEST_F(Test_Rpc, RegisterNym)
     command.set_notary(server.ID().str());
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
     // Register the other nyms.
     command = init(proto::RPCCOMMAND_REGISTERNYM);
@@ -925,13 +927,13 @@ TEST_F(Test_Rpc, RegisterNym)
     command.set_notary(server.ID().str());
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
     command = init(proto::RPCCOMMAND_REGISTERNYM);
     command.set_session(0);
@@ -939,13 +941,13 @@ TEST_F(Test_Rpc, RegisterNym)
     command.set_notary(server.ID().str());
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 }
 
 TEST_F(Test_Rpc, RegisterNym_No_Nym)
@@ -958,12 +960,12 @@ TEST_F(Test_Rpc, RegisterNym_No_Nym)
     command.set_notary(server.ID().str());
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 }
 
 TEST_F(Test_Rpc, List_Accounts_None)
@@ -979,23 +981,23 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
     auto& server = ot_.Server(0);
     command.set_notary(server.ID().str());
 
-    ASSERT_FALSE(unit_definition_id_->empty());
+    EXPECT_FALSE(unit_definition_id_->empty());
 
     command.set_unit(unit_definition_id_->str());
     command.add_identifier(ISSUER_ACCOUNT_LABEL);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.identifier_size());
 
     issuer_account_id_ = response.identifier(0);
 
-    ASSERT_TRUE(Identifier::Validate(issuer_account_id_));
+    EXPECT_TRUE(Identifier::Validate(issuer_account_id_));
 }
 
 TEST_F(Test_Rpc, Lookup_Account_ID)
@@ -1005,13 +1007,13 @@ TEST_F(Test_Rpc, Lookup_Account_ID)
     command.set_param(ISSUER_ACCOUNT_LABEL);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
     EXPECT_STREQ(response.identifier(0).c_str(), issuer_account_id_.c_str());
 }
 
@@ -1023,14 +1025,14 @@ TEST_F(Test_Rpc, Get_Unit_Definition)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.unit_size());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.unit_size());
 }
 
 TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
@@ -1042,36 +1044,36 @@ TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
     command.add_identifier(issuer_account_id_);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_TRUE(0 != response.balance_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_TRUE(0 != response.balance_size());
 
     const auto& accountdata = *response.balance().begin();
 
-    ASSERT_EQ(ACCOUNTDATA_VERSION, accountdata.version());
-    ASSERT_EQ(issuer_account_id_, accountdata.id());
+    EXPECT_EQ(ACCOUNTDATA_VERSION, accountdata.version());
+    EXPECT_EQ(issuer_account_id_, accountdata.id());
     EXPECT_STREQ(accountdata.label().c_str(), ISSUER_ACCOUNT_LABEL);
 
     const auto account = manager.Wallet().Account(
         Identifier::Factory(issuer_account_id_), reason);
 
-    ASSERT_TRUE(bool(account));
-    ASSERT_EQ(
+    EXPECT_TRUE(bool(account));
+    EXPECT_EQ(
         account.get().GetInstrumentDefinitionID().str(), accountdata.unit());
-    ASSERT_TRUE(account.get().VerifyOwnerByID(
+    EXPECT_TRUE(account.get().VerifyOwnerByID(
         identifier::Nym::Factory(accountdata.owner())));
 
     auto issuerid = manager.Storage().AccountIssuer(
         Identifier::Factory(issuer_account_id_));
 
-    ASSERT_EQ(issuerid->str(), accountdata.issuer());
-    ASSERT_EQ(account.get().GetBalance(), accountdata.balance());
-    ASSERT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
-    ASSERT_EQ(0, accountdata.balance());
+    EXPECT_EQ(issuerid->str(), accountdata.issuer());
+    EXPECT_EQ(account.get().GetBalance(), accountdata.balance());
+    EXPECT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
+    EXPECT_EQ(0, accountdata.balance());
     EXPECT_EQ(proto::ACCOUNTTYPE_ISSUER, accountdata.type());
 }
 
@@ -1083,20 +1085,20 @@ TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
     auto& server = ot_.Server(0);
     command.set_notary(server.ID().str());
 
-    ASSERT_FALSE(unit_definition_id_->empty());
+    EXPECT_FALSE(unit_definition_id_->empty());
 
     command.set_unit(unit_definition_id_->str());
     command.add_identifier(ISSUER_ACCOUNT_LABEL);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_UNNECESSARY, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(0, response.identifier_size());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_UNNECESSARY, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(0, response.identifier_size());
 }
 
 TEST_F(Test_Rpc, Create_Account)
@@ -1107,24 +1109,24 @@ TEST_F(Test_Rpc, Create_Account)
     auto& server = ot_.Server(0);
     command.set_notary(server.ID().str());
 
-    ASSERT_FALSE(unit_definition_id_->empty());
+    EXPECT_FALSE(unit_definition_id_->empty());
 
     command.set_unit(unit_definition_id_->str());
     command.add_identifier(USER_ACCOUNT_LABEL);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.identifier_size());
 
     {
         const auto& accountID = response.identifier(0);
 
-        ASSERT_TRUE(Identifier::Validate(accountID));
+        EXPECT_TRUE(Identifier::Validate(accountID));
 
         nym2_account_id_ = accountID;
     }
@@ -1138,20 +1140,20 @@ TEST_F(Test_Rpc, Create_Account)
     command.add_identifier(USER_ACCOUNT_LABEL);
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 
     {
         const auto& accountID = response.identifier(0);
 
-        ASSERT_TRUE(Identifier::Validate(accountID));
+        EXPECT_TRUE(Identifier::Validate(accountID));
 
         nym3_account1_id_ = response.identifier(0);
     }
@@ -1164,20 +1166,20 @@ TEST_F(Test_Rpc, Create_Account)
     command.add_identifier(USER_ACCOUNT_LABEL);
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 
     {
         const auto& accountID = response.identifier(0);
 
-        ASSERT_TRUE(Identifier::Validate(accountID));
+        EXPECT_TRUE(Identifier::Validate(accountID));
 
         nym3_account2_id_ = response.identifier(0);
     }
@@ -1193,7 +1195,7 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     auto nym3id = identifier::Nym::Factory(nym3_id_);
     auto sendpayment = command.mutable_sendpayment();
 
-    ASSERT_NE(nullptr, sendpayment);
+    EXPECT_NE(nullptr, sendpayment);
 
     sendpayment->set_version(SENDPAYMENT_VERSION);
     sendpayment->set_type(proto::RPCPAYMENTTYPE_TRANSFER);
@@ -1208,7 +1210,7 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     auto response = ot_.RPC(command);
 
     EXPECT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
@@ -1221,7 +1223,7 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
         const auto account = client.Wallet().Account(
             Identifier::Factory(issuer_account_id_), reason);
 
-        ASSERT_TRUE(account);
+        EXPECT_TRUE(account);
 
         EXPECT_EQ(-75, account.get().GetBalance());
     }
@@ -1236,7 +1238,7 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
         const auto account = client.Wallet().Account(
             Identifier::Factory(nym3_account1_id_), reason);
 
-        ASSERT_TRUE(account);
+        EXPECT_TRUE(account);
 
         EXPECT_EQ(75, account.get().GetBalance());
     }
@@ -1253,7 +1255,7 @@ TEST_F(Test_Rpc, Move_Funds)
     auto nym3id = identifier::Nym::Factory(nym3_id_);
     auto movefunds = command.mutable_movefunds();
 
-    ASSERT_NE(nullptr, movefunds);
+    EXPECT_NE(nullptr, movefunds);
 
     movefunds->set_version(MOVEFUNDS_VERSION);
     movefunds->set_type(proto::RPCPAYMENTTYPE_TRANSFER);
@@ -1263,8 +1265,8 @@ TEST_F(Test_Rpc, Move_Funds)
     movefunds->set_amount(25);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
@@ -1277,7 +1279,7 @@ TEST_F(Test_Rpc, Move_Funds)
         const auto account = manager.Wallet().Account(
             Identifier::Factory(nym3_account1_id_), reason);
 
-        ASSERT_TRUE(account);
+        EXPECT_TRUE(account);
         EXPECT_EQ(50, account.get().GetBalance());
     }
 
@@ -1291,7 +1293,7 @@ TEST_F(Test_Rpc, Move_Funds)
         const auto account = manager.Wallet().Account(
             Identifier::Factory(nym3_account2_id_), reason);
 
-        ASSERT_TRUE(account);
+        EXPECT_TRUE(account);
         EXPECT_EQ(25, account.get().GetBalance());
     }
 }
@@ -1311,7 +1313,7 @@ TEST_F(Test_Rpc, Get_Workflow)
         proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
         proto::PAYMENTWORKFLOWSTATE_COMPLETED);
 
-    ASSERT_TRUE(!workflows.empty());
+    EXPECT_TRUE(!workflows.empty());
 
     auto workflowid = *workflows.begin();
 
@@ -1326,16 +1328,16 @@ TEST_F(Test_Rpc, Get_Workflow)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
     EXPECT_EQ(RESPONSE_VERSION, response.version());
 
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.workflow_size());
+    EXPECT_EQ(1, response.workflow_size());
 
     const auto& paymentworkflow = response.workflow(0);
     EXPECT_STREQ(workflowid->str().c_str(), paymentworkflow.id().c_str());
@@ -1357,10 +1359,10 @@ TEST_F(Test_Rpc, Get_Compatible_Account_No_Cheque)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
     EXPECT_EQ(RESPONSE_VERSION, response.version());
 
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_CHEQUE_NOT_FOUND, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
@@ -1376,10 +1378,10 @@ TEST_F(Test_Rpc, Get_Account_Activity)
     command.add_identifier(nym3_account2_id_);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
     EXPECT_EQ(RESPONSE_VERSION, response.version());
 
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
@@ -1393,14 +1395,14 @@ TEST_F(Test_Rpc, Get_Account_Activity)
     command.add_identifier(nym3_account2_id_);
     response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
-    ASSERT_EQ(2, response.accountevent_size());
+    EXPECT_EQ(2, response.accountevent_size());
 
     const auto& accountevent = response.accountevent(0);
     EXPECT_EQ(ACCOUNTEVENT_VERSION, accountevent.version());
@@ -1417,10 +1419,10 @@ TEST_F(Test_Rpc, Get_Account_Activities)
     command.add_identifier(nym3_account2_id_);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
     EXPECT_EQ(RESPONSE_VERSION, response.version());
 
-    ASSERT_EQ(2, response.status_size());
+    EXPECT_EQ(2, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
@@ -1441,40 +1443,40 @@ TEST_F(Test_Rpc, Get_Account_Balance)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_TRUE(0 != response.balance_size());
+    EXPECT_TRUE(0 != response.balance_size());
 
     const auto& accountdata = *response.balance().begin();
-    ASSERT_EQ(ACCOUNTDATA_VERSION, accountdata.version());
-    ASSERT_EQ(nym3_account2_id_, accountdata.id());
+    EXPECT_EQ(ACCOUNTDATA_VERSION, accountdata.version());
+    EXPECT_EQ(nym3_account2_id_, accountdata.id());
 
     EXPECT_STREQ(accountdata.label().c_str(), USER_ACCOUNT_LABEL);
 
     const auto account = manager.Wallet().Account(
         Identifier::Factory(nym3_account2_id_), reason);
-    ASSERT_TRUE(bool(account));
+    EXPECT_TRUE(bool(account));
 
-    ASSERT_EQ(
+    EXPECT_EQ(
         account.get().GetInstrumentDefinitionID().str(), accountdata.unit());
 
-    ASSERT_TRUE(account.get().VerifyOwnerByID(
+    EXPECT_TRUE(account.get().VerifyOwnerByID(
         identifier::Nym::Factory(accountdata.owner())));
 
     auto issuerid =
         manager.Storage().AccountIssuer(Identifier::Factory(nym3_account2_id_));
-    ASSERT_EQ(issuerid->str(), accountdata.issuer());
+    EXPECT_EQ(issuerid->str(), accountdata.issuer());
 
-    ASSERT_EQ(account.get().GetBalance(), accountdata.balance());
-    ASSERT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
+    EXPECT_EQ(account.get().GetBalance(), accountdata.balance());
+    EXPECT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
 
-    ASSERT_EQ(25, accountdata.balance());
+    EXPECT_EQ(25, accountdata.balance());
     EXPECT_EQ(proto::ACCOUNTTYPE_NORMAL, accountdata.type());
 }
 
@@ -1492,17 +1494,17 @@ TEST_F(Test_Rpc, Get_Account_Balances)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(3, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
-    ASSERT_EQ(proto::RPCRESPONSE_ACCOUNT_NOT_FOUND, response.status(2).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(3, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
+    EXPECT_EQ(proto::RPCRESPONSE_ACCOUNT_NOT_FOUND, response.status(2).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(2, response.balance_size());
+    EXPECT_EQ(2, response.balance_size());
 }
 
 TEST_F(Test_Rpc, Rename_Account_Not_Found)
@@ -1521,9 +1523,9 @@ TEST_F(Test_Rpc, Rename_Account_Not_Found)
 
     EXPECT_TRUE(proto::Validate(response, VERBOSE));
     EXPECT_EQ(1, response.status_size());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
     EXPECT_EQ(proto::RPCRESPONSE_ACCOUNT_NOT_FOUND, response.status(0).code());
 }
@@ -1587,15 +1589,15 @@ TEST_F(Test_Rpc, List_Nyms)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(3, response.identifier_size());
+    EXPECT_EQ(3, response.identifier_size());
 }
 
 TEST_F(Test_Rpc, Get_Nym)
@@ -1606,23 +1608,23 @@ TEST_F(Test_Rpc, Get_Nym)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.nym_size());
+    EXPECT_EQ(1, response.nym_size());
 
     const auto& credentialindex = response.nym(0);
-    ASSERT_EQ(identity::Nym::DefaultVersion, credentialindex.version());
-    ASSERT_STREQ(nym1_id_.c_str(), credentialindex.nymid().c_str());
-    ASSERT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
-    ASSERT_EQ(6, credentialindex.revision());
-    ASSERT_EQ(1, credentialindex.activecredentials_size());
-    ASSERT_EQ(0, credentialindex.revokedcredentials_size());
+    EXPECT_EQ(identity::Nym::DefaultVersion, credentialindex.version());
+    EXPECT_STREQ(nym1_id_.c_str(), credentialindex.nymid().c_str());
+    EXPECT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
+    EXPECT_EQ(4, credentialindex.revision());
+    EXPECT_EQ(1, credentialindex.activecredentials_size());
+    EXPECT_EQ(0, credentialindex.revokedcredentials_size());
 }
 
 TEST_F(Test_Rpc, Get_Nyms)
@@ -1637,31 +1639,32 @@ TEST_F(Test_Rpc, Get_Nyms)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(4, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(2).code());
-    ASSERT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(3).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(4, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(2).code());
+    EXPECT_EQ(proto::RPCRESPONSE_NYM_NOT_FOUND, response.status(3).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(3, response.nym_size());
+    EXPECT_EQ(3, response.nym_size());
 
     auto& credentialindex = response.nym(0);
-    ASSERT_EQ(identity::Nym::DefaultVersion, credentialindex.version());
-    ASSERT_TRUE(
+    EXPECT_EQ(identity::Nym::DefaultVersion, credentialindex.version());
+    EXPECT_TRUE(
         nym1_id_ == credentialindex.nymid() ||
         nym2_id_ == credentialindex.nymid() ||
         nym3_id_ == credentialindex.nymid());
-    ASSERT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
-    ASSERT_EQ(6, credentialindex.revision());
-    ASSERT_EQ(1, credentialindex.activecredentials_size());
-    ASSERT_EQ(0, credentialindex.revokedcredentials_size());
+    EXPECT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
+    EXPECT_EQ(4, credentialindex.revision());
+    EXPECT_EQ(1, credentialindex.activecredentials_size());
+    EXPECT_EQ(0, credentialindex.revokedcredentials_size());
 }
 
+#if OT_CRYPTO_WITH_BIP39
 TEST_F(Test_Rpc, Import_Seed_Invalid)
 {
     auto command = init(proto::RPCCOMMAND_IMPORTHDSEED);
@@ -1673,15 +1676,15 @@ TEST_F(Test_Rpc, Import_Seed_Invalid)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_INVALID, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_INVALID, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(0, response.identifier_size());
+    EXPECT_EQ(0, response.identifier_size());
 }
 
 TEST_F(Test_Rpc, Import_Seed)
@@ -1695,15 +1698,15 @@ TEST_F(Test_Rpc, Import_Seed)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(1, response.identifier_size());
 
     seed_id_ = response.identifier(0);
 }
@@ -1715,15 +1718,15 @@ TEST_F(Test_Rpc, List_Seeds)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(2, response.identifier_size());
+    EXPECT_EQ(2, response.identifier_size());
 
     if (seed_id_ == response.identifier(0)) {
         seed2_id_ = response.identifier(1);
@@ -1741,19 +1744,19 @@ TEST_F(Test_Rpc, Get_Seed)
     command.add_identifier(seed_id_);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.seed_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.seed_size());
 
     auto seed = response.seed(0);
 
-    ASSERT_STREQ(seed_id_.c_str(), seed.id().c_str());
-    ASSERT_STREQ(TEST_SEED, seed.words().c_str());
-    ASSERT_STREQ(TEST_SEED_PASSPHRASE, seed.passphrase().c_str());
+    EXPECT_STREQ(seed_id_.c_str(), seed.id().c_str());
+    EXPECT_STREQ(TEST_SEED, seed.words().c_str());
+    EXPECT_STREQ(TEST_SEED_PASSPHRASE, seed.passphrase().c_str());
 }
 
 TEST_F(Test_Rpc, Get_Seeds)
@@ -1764,22 +1767,22 @@ TEST_F(Test_Rpc, Get_Seeds)
     command.add_identifier(seed2_id_);
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(2, response.status_size());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
-    ASSERT_EQ(RESPONSE_VERSION, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(2, response.seed_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(2, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(1).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(2, response.seed_size());
 
     auto seed = response.seed(0);
 
     if (seed.id() != seed_id_) { seed = response.seed(1); }
 
-    ASSERT_STREQ(seed_id_.c_str(), seed.id().c_str());
-    ASSERT_STREQ(TEST_SEED, seed.words().c_str());
-    ASSERT_STREQ(TEST_SEED_PASSPHRASE, seed.passphrase().c_str());
+    EXPECT_STREQ(seed_id_.c_str(), seed.id().c_str());
+    EXPECT_STREQ(TEST_SEED, seed.words().c_str());
+    EXPECT_STREQ(TEST_SEED_PASSPHRASE, seed.passphrase().c_str());
 }
 
 TEST_F(Test_Rpc, Get_Transaction_Data)
@@ -1789,8 +1792,9 @@ TEST_F(Test_Rpc, Get_Transaction_Data)
     command.add_identifier(seed_id_);  // Not a real uuid
     auto response = ot_.RPC(command);
 
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    ASSERT_EQ(1, response.status_size());
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_UNIMPLEMENTED, response.status(0).code());
 }
+#endif  // OT_CRYPTO_WITH_BIP39
 }  // namespace

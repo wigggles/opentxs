@@ -37,7 +37,13 @@ protected:
 #if OT_CRYPTO_WITH_BIP39
     OTSymmetricKey storage_encryption_key_;
 #endif
-    void init(const api::Factory& factory, const api::HDSeed& seeds);
+    void init(
+        const api::Factory& factory
+#if OT_CRYPTO_WITH_BIP39
+        ,
+        const api::HDSeed& seeds
+#endif  // OT_CRYPTO_WITH_BIP39
+    );
     void start();
 
     StorageParent(

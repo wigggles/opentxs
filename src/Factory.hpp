@@ -364,6 +364,8 @@ public:
     static identity::internal::Nym* Nym(
         const api::Core& api,
         const NymParameters& nymParameters,
+        const proto::ContactItemType type,
+        const std::string name,
         const opentxs::PasswordPrompt& reason);
     static identity::internal::Nym* Nym(
         const api::Core& api,

@@ -12,10 +12,10 @@ namespace opentxs::api::crypto::implementation
 class Asymmetric final : virtual public api::crypto::internal::Asymmetric
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     ECKey InstantiateECKey(
         const proto::AsymmetricKey& serialized,
         const PasswordPrompt& reason) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     HDKey InstantiateHDKey(
         const proto::AsymmetricKey& serialized,
         const PasswordPrompt& reason) const final;

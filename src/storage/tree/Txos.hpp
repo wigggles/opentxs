@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/Editor.hpp"
 
 #include "Node.hpp"
@@ -59,3 +60,4 @@ private:
     Txos operator=(Txos&&) = delete;
 };
 }  // namespace opentxs::storage
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD

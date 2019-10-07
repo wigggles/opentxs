@@ -21,11 +21,13 @@ public:
     const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance) const override;
+#if OT_CRYPTO_WITH_BIP39
     const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance,
         const std::string& recoverWords,
         const std::string& recoverPassphrase) const override;
+#endif  // OT_CRYPTO_WITH_BIP39
     const api::server::Manager& StartServer(
         const ArgList& args,
         const int instance,

@@ -85,6 +85,7 @@ public:
     EXPORT virtual std::string Bip47RemotePaymentCode(
         const identifier::Nym& nymID,
         const Identifier& channelID) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual std::set<std::string> BlockchainAccountList(
         const std::string& nymID,
         const proto::ContactItemType type) const = 0;
@@ -95,6 +96,7 @@ public:
         proto::ContactItemType chain,
         std::string address) const = 0;
     EXPORT virtual ObjectList BlockchainTransactionList() const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #if OT_CASH
     EXPORT virtual bool CheckTokenSpent(
         const identifier::Server& notary,
@@ -126,20 +128,24 @@ public:
         std::string& output,
         std::string& alias,
         const bool checking = false) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Load(
         const std::string& nymID,
         const std::string& accountID,
         std::shared_ptr<proto::HDAccount>& output,
         const bool checking = false) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Load(
         const identifier::Nym& nymID,
         const Identifier& channelID,
         std::shared_ptr<proto::Bip47Channel>& output,
         const bool checking = false) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& transaction,
         const bool checking = false) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
@@ -221,11 +227,13 @@ public:
         std::shared_ptr<proto::ServerContract>& contract,
         std::string& alias,
         const bool checking = false) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Load(
         const identifier::Nym& nym,
         const api::client::blockchain::Coin& id,
         std::shared_ptr<proto::StorageBlockchainTxo>& output,
         const bool checking = false) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Load(
         const std::string& nymId,
         const std::string& threadId,
@@ -243,6 +251,7 @@ public:
         std::string& alias,
         const bool checking = false) const = 0;
     EXPORT virtual const std::set<std::string> LocalNyms() const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual std::set<OTNymID> LookupBlockchainTransaction(
         const std::string& txid) const = 0;
     EXPORT virtual std::set<api::client::blockchain::Coin> LookupElement(
@@ -251,6 +260,7 @@ public:
     EXPORT virtual std::set<api::client::blockchain::Coin> LookupTxid(
         const identifier::Nym& nym,
         const std::string& txid) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual void MapPublicNyms(NymLambda& lambda) const = 0;
     EXPORT virtual void MapServers(ServerLambda& lambda) const = 0;
     EXPORT virtual void MapUnitDefinitions(UnitLambda& lambda) const = 0;
@@ -302,9 +312,11 @@ public:
         const identifier::Nym& nym,
         const Identifier& thread,
         const std::string& id) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool RemoveTxo(
         const identifier::Nym& nym,
         const api::client::blockchain::Coin& id) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool RemoveUnitDefinition(const std::string& id) const = 0;
     EXPORT virtual bool RenameThread(
         const std::string& nymId,
@@ -356,17 +368,21 @@ public:
         const identifier::Server& server,
         const identifier::UnitDefinition& contract,
         const proto::ContactItemType unit) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Store(
         const std::string& nymID,
         const proto::ContactItemType type,
         const proto::HDAccount& data) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Store(
         const identifier::Nym& nymID,
         const proto::Bip47Channel& data,
         Identifier& channelID) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Store(
         const identifier::Nym& nym,
         const proto::BlockchainTransaction& data) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Store(
         const proto::Contact& data,
         std::map<OTData, OTIdentifier>& changed) const = 0;
@@ -407,9 +423,11 @@ public:
     EXPORT virtual bool Store(
         const proto::ServerContract& data,
         const std::string& alias = std::string("")) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Store(
         const identifier::Nym& nym,
         const proto::StorageBlockchainTxo& data) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual bool Store(const proto::Ciphertext& serialized) const = 0;
     EXPORT virtual bool Store(
         const proto::UnitDefinition& data,

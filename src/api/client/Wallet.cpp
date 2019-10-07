@@ -7,11 +7,16 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -146,6 +151,25 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
     OT_ASSERT(nullptr != child);
 
     return Editor<opentxs::ServerContext>(child, callback);
+}
+
+void Wallet::nym_to_contact(
+    const identity::Nym& nym,
+    const std::string& name,
+    const PasswordPrompt& reason) const noexcept
+{
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    auto code = api_.Factory().PaymentCode(nym.PaymentCode(reason), reason);
+#endif
+    client_.Contacts().NewContact(
+        name,
+        nym.ID()
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            ,
+        code
+#endif
+        ,
+        reason);
 }
 
 std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(

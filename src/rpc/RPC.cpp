@@ -60,7 +60,9 @@
 #define ACCOUNTEVENT_VERSION 2
 #define ACCOUNTDATA_VERSION 2
 #define RPCTASK_VERSION 1
+#if OT_CRYPTO_WITH_BIP39
 #define SEED_VERSION 1
+#endif  // OT_CRYPTO_WITH_BIP39
 #define SESSION_DATA_VERSION 1
 #define RPCPUSH_VERSION 3
 #define TASKCOMPLETE_VERSION 2
@@ -528,22 +530,22 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
     INIT_CLIENT_ONLY();
 
     const auto& createnym = command.createnym();
-    auto identifier = client.Exec().CreateNymHD(
-        createnym.type(),
+    const auto pNym = client.Wallet().Nym(
+        reason,
         createnym.name(),
-        createnym.seedid(),
-        createnym.index());
+        {createnym.seedid(), createnym.index()},
+        createnym.type());
 
-    if (identifier.empty()) {
+    if (false == bool(pNym)) {
         add_output_status(output, proto::RPCRESPONSE_CREATE_NYM_FAILED);
 
         return output;
     }
 
-    if (0 < createnym.claims_size()) {
-        auto nymdata = client.Wallet().mutable_Nym(
+    const auto& nym = *pNym;
 
-            identifier::Nym::Factory(identifier), reason);
+    if (0 < createnym.claims_size()) {
+        auto nymdata = client.Wallet().mutable_Nym(nym.ID(), reason);
 
         for (const auto& addclaim : createnym.claims()) {
             const auto& contactitem = addclaim.item();
@@ -561,7 +563,7 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
         }
     }
 
-    output.add_identifier(identifier);
+    output.add_identifier(nym.ID().str());
     add_output_status(output, proto::RPCRESPONSE_SUCCESS);
 
     return output;
@@ -1024,6 +1026,7 @@ proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
     INIT_SESSION();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
+#if OT_CRYPTO_WITH_BIP39
     const auto& hdseeds = session.Seeds();
 
     for (const auto& id : command.identifier()) {
@@ -1041,6 +1044,7 @@ proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
             add_output_status(output, proto::RPCRESPONSE_NONE);
         }
     }
+#endif  // OT_CRYPTO_WITH_BIP39
 
     return output;
 }
@@ -1221,6 +1225,7 @@ proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
 {
     INIT_SESSION();
 
+#if OT_CRYPTO_WITH_BIP39
     auto& seed = command.hdseed();
     OTPassword words;
     words.setPassword(seed.words());
@@ -1235,6 +1240,7 @@ proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
         output.add_identifier(identifier);
         add_output_status(output, proto::RPCRESPONSE_SUCCESS);
     }
+#endif  // OT_CRYPTO_WITH_BIP39
 
     return output;
 }

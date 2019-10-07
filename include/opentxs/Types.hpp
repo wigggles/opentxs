@@ -51,7 +51,6 @@ using TransactionNumber = std::int64_t;
 using RequestNumber = std::int64_t;
 using Amount = std::int64_t;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 using Bip32Network = std::uint32_t;
 using Bip32Depth = std::uint8_t;
 using Bip32Fingerprint = std::uint32_t;
@@ -86,6 +85,7 @@ enum class Bip32Child : Bip32Index {
     HARDENED = 0x80000000,
 };
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace crypto
 {
 namespace key

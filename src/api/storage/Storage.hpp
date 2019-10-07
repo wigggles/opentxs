@@ -79,6 +79,7 @@ public:
     std::string Bip47RemotePaymentCode(
         const identifier::Nym& nymID,
         const Identifier& channelID) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::set<std::string> BlockchainAccountList(
         const std::string& nymID,
         const proto::ContactItemType type) const final;
@@ -89,6 +90,7 @@ public:
         proto::ContactItemType chain,
         std::string address) const final;
     ObjectList BlockchainTransactionList() const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #if OT_CASH
     bool CheckTokenSpent(
         const identifier::Server& notary,
@@ -119,20 +121,24 @@ public:
         std::string& output,
         std::string& alias,
         const bool checking = false) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         const std::string& nymID,
         const std::string& accountID,
         std::shared_ptr<proto::HDAccount>& output,
         const bool checking = false) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         const identifier::Nym& nymID,
         const Identifier& channelID,
         std::shared_ptr<proto::Bip47Channel>& output,
         const bool checking = false) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::BlockchainTransaction>& transaction,
         const bool checking = false) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::Contact>& contact,
@@ -214,11 +220,13 @@ public:
         std::shared_ptr<proto::ServerContract>& contract,
         std::string& alias,
         const bool checking = false) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         const identifier::Nym& nym,
         const api::client::blockchain::Coin& id,
         std::shared_ptr<proto::StorageBlockchainTxo>& output,
         const bool checking = false) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         const std::string& nymId,
         const std::string& threadId,
@@ -236,6 +244,7 @@ public:
         std::string& alias,
         const bool checking = false) const final;
     const std::set<std::string> LocalNyms() const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::set<OTNymID> LookupBlockchainTransaction(
         const std::string& txid) const final;
     std::set<api::client::blockchain::Coin> LookupElement(
@@ -244,6 +253,7 @@ public:
     std::set<api::client::blockchain::Coin> LookupTxid(
         const identifier::Nym& nym,
         const std::string& txid) const noexcept final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     void MapPublicNyms(NymLambda& lambda) const final;
     void MapServers(ServerLambda& lambda) const final;
     void MapUnitDefinitions(UnitLambda& lambda) const final;
@@ -291,9 +301,11 @@ public:
         const identifier::Nym& nym,
         const Identifier& thread,
         const std::string& id) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool RemoveTxo(
         const identifier::Nym& nym,
         const api::client::blockchain::Coin& id) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool RemoveUnitDefinition(const std::string& id) const final;
     bool RenameThread(
         const std::string& nymId,
@@ -339,17 +351,21 @@ public:
         const identifier::Server& server,
         const identifier::UnitDefinition& contract,
         const proto::ContactItemType unit) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(
         const std::string& nymID,
         const proto::ContactItemType type,
         const proto::HDAccount& data) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(
         const identifier::Nym& nymID,
         const proto::Bip47Channel& data,
         Identifier& channelID) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(
         const identifier::Nym& nym,
         const proto::BlockchainTransaction& data) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(
         const proto::Contact& data,
         std::map<OTData, OTIdentifier>& changed) const final;
@@ -386,9 +402,11 @@ public:
     bool Store(
         const proto::ServerContract& data,
         const std::string& alias = std::string("")) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(
         const identifier::Nym& nym,
         const proto::StorageBlockchainTxo& data) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(const proto::Ciphertext& serialized) const final;
     bool Store(
         const proto::UnitDefinition& data,

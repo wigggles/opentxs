@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -73,4 +74,5 @@ public:
 };
 }  // namespace crypto
 }  // namespace opentxs
+#endif  // OT_CRYPTO_WITH_BIP32
 #endif

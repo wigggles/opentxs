@@ -89,7 +89,11 @@ Asymmetric::ECKey Asymmetric::InstantiateECKey(
         }
     }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     return ECKey{new opentxs::crypto::key::implementation::NullHD};
+#else
+    return ECKey{new opentxs::crypto::key::implementation::NullEC};
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD

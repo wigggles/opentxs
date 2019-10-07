@@ -251,12 +251,9 @@ void Test_Rpc_Async::setup()
 
     ASSERT_TRUE(started);
 
-    sender_nym_id_ = identifier::Nym::Factory(senderClient.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_4));
+    sender_nym_id_ = senderClient.Wallet().Nym(reasonS, TEST_NYM_4)->ID();
 
-    receiver_nym_id_ =
-        identifier::Nym::Factory(receiverClient.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_5));
+    receiver_nym_id_ = receiverClient.Wallet().Nym(reasonR, TEST_NYM_5)->ID();
 
     auto unit_definition = senderClient.Wallet().UnitDefinition(
         sender_nym_id_->str(),
@@ -1028,8 +1025,8 @@ TEST_F(Test_Rpc_Async, Create_Account)
     command.set_session(sender_session_);
 
     auto& client_a = ot_.Client(get_index(sender_session_));
-    auto nym_id =
-        client_a.Exec().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_6);
+    auto reason = client_a.Factory().PasswordPrompt(__FUNCTION__);
+    auto nym_id = client_a.Wallet().Nym(reason, TEST_NYM_6)->ID().str();
 
     ASSERT_FALSE(nym_id.empty());
 

@@ -170,7 +170,7 @@ private:
     const OTNymID id_;
     const proto::NymMode mode_;
     std::int32_t version_;
-    Bip32Index index_;
+    std::uint32_t index_;
     std::string alias_;
     std::atomic<std::uint64_t> revision_;
     mutable std::unique_ptr<opentxs::ContactData> contact_data_;

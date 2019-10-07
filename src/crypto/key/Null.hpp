@@ -151,7 +151,6 @@ private:
     Null* clone() const override { return new Null; }
 };
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 class NullEC : virtual public key::EllipticCurve, public Null
 {
 public:
@@ -180,6 +179,7 @@ public:
     ~NullEC() override = default;
 };
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 class NullHD final : virtual public key::HD, public NullEC
 {
 public:

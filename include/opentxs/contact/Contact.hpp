@@ -27,9 +27,11 @@ namespace opentxs
 class Contact
 {
 public:
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     using AddressStyle = api::client::blockchain::AddressStyle;
     using BlockchainType = blockchain::Type;
     using BlockchainAddress = std::tuple<OTData, AddressStyle, BlockchainType>;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     static std::shared_ptr<ContactItem> Best(const ContactGroup& group);
     static std::string ExtractLabel(const identity::Nym& nym);
@@ -50,7 +52,9 @@ public:
     std::string BestEmail() const;
     std::string BestPhoneNumber() const;
     std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::vector<BlockchainAddress> BlockchainAddresses() const;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<ContactData> Data() const;
     std::string EmailAddresses(bool active = true) const;
     const Identifier& ID() const;
@@ -69,6 +73,7 @@ public:
     const std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
     proto::ContactItemType Type() const;
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool AddBlockchainAddress(
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_UNKNOWN);
@@ -76,6 +81,7 @@ public:
         const api::client::blockchain::AddressStyle& style,
         const blockchain::Type chain,
         const opentxs::Data& bytes);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool AddEmail(
         const std::string& value,
         const bool primary,
@@ -124,11 +130,13 @@ private:
         const VersionNumber in,
         const VersionNumber targetVersion);
     static OTIdentifier generate_id(const api::Core& api);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     static BlockchainAddress translate(
         const api::client::Manager& api,
         const proto::ContactItemType chain,
         const std::string& value,
         const std::string& subtype) noexcept(false);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     std::shared_ptr<ContactGroup> payment_codes(
         const Lock& lock,

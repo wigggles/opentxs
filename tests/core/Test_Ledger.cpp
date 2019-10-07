@@ -33,12 +33,10 @@ struct Ledger : public ::testing::Test {
 
 TEST_F(Ledger, init)
 {
-    const auto nymID =
-        client_.Exec().CreateNymHD(ot::proto::CITEMTYPE_INDIVIDUAL, "Alice");
+    nym_id_ = client_.Wallet().Nym(reason_c_, "Alice")->ID();
 
-    ASSERT_FALSE(nymID.empty());
+    ASSERT_FALSE(nym_id_->empty());
 
-    nym_id_->SetString(nymID);
     const auto serverContract =
         server_.Wallet().Server(server_.ID(), reason_s_);
 
