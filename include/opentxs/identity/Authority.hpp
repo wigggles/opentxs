@@ -22,12 +22,12 @@ namespace identity
 class Authority
 {
 public:
-    using Serialized = proto::CredentialSet;
+    using Serialized = proto::Authority;
 
     EXPORT virtual VersionNumber ContactCredentialVersion() const = 0;
     EXPORT virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const = 0;
-    EXPORT virtual const std::string GetMasterCredID() const = 0;
+    EXPORT virtual OTIdentifier GetMasterCredID() const = 0;
     EXPORT virtual const crypto::key::Asymmetric& GetPublicAuthKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
@@ -66,10 +66,6 @@ public:
     EXPORT virtual bool Path(proto::HDPath& output) const = 0;
     EXPORT virtual std::shared_ptr<Serialized> Serialize(
         const CredentialIndexModeFlag mode) const = 0;
-    EXPORT virtual bool Sign(
-        const credential::Primary& credential,
-        proto::Signature& sig,
-        const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,

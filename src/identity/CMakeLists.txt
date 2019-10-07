@@ -4,6 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 add_subdirectory(credential)
+add_subdirectory(wot)
 
 set(cxx-sources "Authority.cpp" "Nym.cpp" "Source.cpp")
 set(

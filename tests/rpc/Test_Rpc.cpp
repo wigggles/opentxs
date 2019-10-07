@@ -1619,7 +1619,7 @@ TEST_F(Test_Rpc, Get_Nym)
     const auto& credentialindex = response.nym(0);
     ASSERT_EQ(identity::Nym::DefaultVersion, credentialindex.version());
     ASSERT_STREQ(nym1_id_.c_str(), credentialindex.nymid().c_str());
-    ASSERT_EQ(proto::CREDINDEX_PUBLIC, credentialindex.mode());
+    ASSERT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
     ASSERT_EQ(6, credentialindex.revision());
     ASSERT_EQ(1, credentialindex.activecredentials_size());
     ASSERT_EQ(0, credentialindex.revokedcredentials_size());
@@ -1656,7 +1656,7 @@ TEST_F(Test_Rpc, Get_Nyms)
         nym1_id_ == credentialindex.nymid() ||
         nym2_id_ == credentialindex.nymid() ||
         nym3_id_ == credentialindex.nymid());
-    ASSERT_EQ(proto::CREDINDEX_PUBLIC, credentialindex.mode());
+    ASSERT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
     ASSERT_EQ(6, credentialindex.revision());
     ASSERT_EQ(1, credentialindex.activecredentials_size());
     ASSERT_EQ(0, credentialindex.revokedcredentials_size());

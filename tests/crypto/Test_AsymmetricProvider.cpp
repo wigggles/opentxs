@@ -138,7 +138,7 @@ public:
         return !verified;
     }
 
-    bool crosscheck_signature(
+    [[maybe_unused]] bool crosscheck_signature(
         const Data& plaintext,
         const crypto::AsymmetricProvider& signer,
         const crypto::AsymmetricProvider& verifier,

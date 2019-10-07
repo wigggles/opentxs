@@ -153,11 +153,11 @@ public:
         const bool checking = false) const final;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& nym,
+        std::shared_ptr<proto::Nym>& nym,
         const bool checking = false) const final;
     bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& nym,
+        std::shared_ptr<proto::Nym>& nym,
         std::string& alias,
         const bool checking = false) const final;
     bool Load(
@@ -356,7 +356,7 @@ public:
     bool Store(const proto::Context& data) const final;
     bool Store(const proto::Credential& data) const final;
     bool Store(
-        const proto::CredentialIndex& data,
+        const proto::Nym& data,
         const std::string& alias = std::string("")) const final;
     bool Store(const std::string& nymID, const proto::Issuer& data) const final;
     bool Store(const std::string& nymID, const proto::PaymentWorkflow& data)

@@ -82,7 +82,7 @@ void Nyms::Map(NymLambda lambda) const
         const auto& node = *nym(id);
         const auto& hash = node.credentials_;
 
-        std::shared_ptr<proto::CredentialIndex> serialized;
+        std::shared_ptr<proto::Nym> serialized;
 
         if (Node::BLANK_HASH == hash) { continue; }
 
@@ -248,7 +248,7 @@ void Nyms::UpgradeLocalnym()
     for (const auto& index : item_map_) {
         const auto& id = index.first;
         const auto& node = *nym(lock, id);
-        auto credentials = std::make_shared<proto::CredentialIndex>();
+        auto credentials = std::make_shared<proto::Nym>();
         std::string alias{};
         const auto loaded = node.Load(credentials, alias, false);
 

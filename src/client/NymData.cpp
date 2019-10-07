@@ -286,13 +286,6 @@ bool NymData::SetScope(
     return nym().SetScope(type, name, reason, primary);
 }
 
-bool NymData::SetVerificationSet(
-    const proto::VerificationSet& data,
-    const PasswordPrompt& reason)
-{
-    return nym().SetVerificationSet(data, reason);
-}
-
 std::string NymData::SocialMediaProfiles(
     const proto::ContactItemType type,
     bool active) const
@@ -308,11 +301,6 @@ std::set<proto::ContactItemType> NymData::SocialMediaProfileTypes() const
 proto::ContactItemType NymData::Type() const { return data().Type(); }
 
 bool NymData::Valid() const { return bool(nym_); }
-
-std::unique_ptr<proto::VerificationSet> NymData::VerificationSet() const
-{
-    return nym().VerificationSet();
-}
 
 NymData::~NymData() { release(); }
 }  // namespace opentxs

@@ -16,98 +16,124 @@ class Base : virtual public credential::internal::Base
 public:
     using SerializedType = proto::Credential;
 
-    std::string asString(const bool asPrivate = false) const override;
+    std::string asString(const bool asPrivate = false) const final;
+    const Identifier& CredentialID() const final { return id_.get(); }
     bool GetContactData(
-        std::unique_ptr<proto::ContactData>& contactData) const override;
-    bool GetVerificationSet(std::unique_ptr<proto::VerificationSet>&
-                                verificationSet) const override;
-    bool hasCapability(const NymCapability& capability) const override;
-    const std::string& MasterID() const override { return master_id_; }
-    SerializedSignature MasterSignature() const override;
-    proto::KeyMode Mode() const override { return mode_; }
-    const std::string& NymID() const override { return nym_id_; }
-    proto::CredentialRole Role() const override { return role_; }
-    bool Private() const override { return (proto::KEYMODE_PRIVATE == mode_); }
-    bool Save() const override;
+        std::unique_ptr<proto::ContactData>& output) const override
+    {
+        return false;
+    }
+    bool GetVerificationSet(
+        std::unique_ptr<proto::VerificationSet>& output) const override
+    {
+        return false;
+    }
+    bool hasCapability(const NymCapability& capability) const override
+    {
+        return false;
+    }
+    SerializedSignature MasterSignature() const final;
+    proto::KeyMode Mode() const final { return mode_; }
+    proto::CredentialRole Role() const final { return role_; }
+    bool Private() const final { return (proto::KEYMODE_PRIVATE == mode_); }
+    bool Save() const final;
     SerializedSignature SelfSignature(
-        CredentialModeFlag version = PUBLIC_VERSION) const override;
-    OTData Serialize() const override;
+        CredentialModeFlag version = PUBLIC_VERSION) const final;
+    OTData Serialize() const final;
     std::shared_ptr<SerializedType> Serialized(
         const SerializationModeFlag asPrivate,
-        const SerializationSignatureFlag asSigned) const override;
-    SerializedSignature SourceSignature() const override;
+        const SerializationSignatureFlag asSigned) const final;
+    SerializedSignature SourceSignature() const final;
     bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
         const PasswordPrompt& reason) const override;
-    proto::CredentialType Type() const override;
-    bool Validate(const PasswordPrompt& reason) const override;
+    proto::CredentialType Type() const final { return type_; }
+    bool Validate(const PasswordPrompt& reason) const final;
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
         const PasswordPrompt& reason,
-        const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
+        const proto::KeyRole key = proto::KEYROLE_SIGN) const override
+    {
+        return false;
+    }
     bool Verify(
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
         const proto::Signature& masterSig,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const override
+    {
+        return false;
+    }
 
-    void ReleaseSignatures(const bool onlyPrivate) override;
+    void ReleaseSignatures(const bool onlyPrivate) final;
 
     ~Base() override = default;
 
 protected:
     const api::Core& api_;
     const identity::internal::Authority& parent_;
+    const identity::Source& source_;
+    const std::string nym_id_;
+    const std::string master_id_;
     const proto::CredentialType type_;
     const proto::CredentialRole role_;
     const proto::KeyMode mode_;
-    const std::string master_id_;
-    const std::string nym_id_;
+
+    static std::string get_master_id(const internal::Primary& master) noexcept;
+    static std::string get_master_id(
+        const proto::Credential& serialized,
+        const internal::Primary& master) noexcept(false);
 
     virtual std::shared_ptr<SerializedType> serialize(
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const override;
+    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
     virtual bool verify_internally(
         const Lock& lock,
         const PasswordPrompt& reason) const;
 
-    bool AddMasterSignature(const Lock& lock, const PasswordPrompt& reason);
-    bool New(const NymParameters& nymParameters, const PasswordPrompt& reason)
-        override;
+    void init(
+        const identity::credential::internal::Primary& master,
+        const PasswordPrompt& reason) noexcept(false);
+    virtual void sign(
+        const identity::credential::internal::Primary& master,
+        const PasswordPrompt& reason) noexcept(false);
 
     Base(
         const api::Core& api,
         const identity::internal::Authority& owner,
+        const identity::Source& source,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const proto::CredentialRole role,
         const proto::KeyMode mode,
-        const std::string& masterID,
-        const std::string& nymID) noexcept;
+        const std::string& masterID) noexcept;
     Base(
         const api::Core& api,
         const identity::internal::Authority& owner,
-        const proto::Credential& serializedCred,
-        const std::string& masterID) noexcept;
+        const identity::Source& source,
+        const proto::Credential& serialized,
+        const std::string& masterID) noexcept(false);
 
 private:
-    OTIdentifier GetID(const Lock& lock) const override;
+    OTIdentifier GetID(const Lock& lock) const final;
     // Syntax (non cryptographic) validation
     bool isValid(const Lock& lock) const;
     // Returns the serialized form to prevent unnecessary serializations
     bool isValid(const Lock& lock, std::shared_ptr<SerializedType>& credential)
         const;
-    std::string Name() const override;
-    bool VerifyMasterID() const;
-    bool VerifyNymID() const;
+    std::string Name() const final { return id_->str(); }
     bool verify_master_signature(const Lock& lock, const PasswordPrompt& reason)
         const;
+
+    void add_master_signature(
+        const Lock& lock,
+        const identity::credential::internal::Primary& master,
+        const PasswordPrompt& reason) noexcept(false);
 
     Base() = delete;
     Base(const Base&) = delete;

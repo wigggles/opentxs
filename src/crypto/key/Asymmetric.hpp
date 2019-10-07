@@ -31,7 +31,7 @@ public:
     const proto::KeyRole& Role() const final { return role_; }
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const final;
-    proto::HashType SigHashType() const final { return StandardHash; }
+    proto::HashType SigHashType() const override { return StandardHash; }
     bool Sign(
         const Data& plaintext,
         proto::Signature& sig,
@@ -53,7 +53,7 @@ public:
         const PasswordPrompt& reason) const final;
     VersionNumber Version() const final { return version_; }
 
-    void Release() final;
+    void Release() override;
     void ReleaseKey() final { Release(); }
     /** Don't use this, normally it's not necessary. */
     void SetAsPublic() final

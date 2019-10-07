@@ -954,9 +954,7 @@ proto::ContactItemType Contact::Type() const
     return type(lock);
 }
 
-void Contact::Update(
-    const proto::CredentialIndex& serialized,
-    const PasswordPrompt& reason)
+void Contact::Update(const proto::Nym& serialized, const PasswordPrompt& reason)
 {
     auto nym = api_.Wallet().Nym(serialized, reason);
 

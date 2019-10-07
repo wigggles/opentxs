@@ -181,7 +181,7 @@ protected:
 
     bool check_hash(const std::string& hash) const;
     std::uint64_t extract_revision(const proto::Contact& input) const;
-    std::uint64_t extract_revision(const proto::CredentialIndex& input) const;
+    std::uint64_t extract_revision(const proto::Nym& input) const;
     std::uint64_t extract_revision(const proto::Seed& input) const;
     std::string get_alias(const std::string& id) const;
     bool load_raw(

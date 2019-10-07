@@ -890,7 +890,7 @@ bool Storage::Load(
 
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::CredentialIndex>& nym,
+    std::shared_ptr<proto::Nym>& nym,
     const bool checking) const
 {
     std::string notUsed;
@@ -900,7 +900,7 @@ bool Storage::Load(
 
 bool Storage::Load(
     const std::string& id,
-    std::shared_ptr<proto::CredentialIndex>& nym,
+    std::shared_ptr<proto::Nym>& nym,
     std::string& alias,
     const bool checking) const
 {
@@ -2174,9 +2174,7 @@ bool Storage::Store(const proto::Credential& data) const
         .Store(data, notUsed);
 }
 
-bool Storage::Store(
-    const proto::CredentialIndex& data,
-    const std::string& alias) const
+bool Storage::Store(const proto::Nym& data, const std::string& alias) const
 {
     std::string plaintext;
     const bool saved = mutable_Root()

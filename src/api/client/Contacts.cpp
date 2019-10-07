@@ -10,7 +10,6 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -456,7 +455,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
     ,
     const PaymentCode& code
 #endif
-    ) const
+) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -721,7 +720,7 @@ void Contacts::start(const PasswordPrompt& reason)
 }
 
 std::shared_ptr<const opentxs::Contact> Contacts::Update(
-    const proto::CredentialIndex& serialized,
+    const proto::Nym& serialized,
     const PasswordPrompt& reason) const
 {
     auto nym = api_.Wallet().Nym(serialized, reason);

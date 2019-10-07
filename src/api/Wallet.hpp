@@ -92,8 +92,7 @@ public:
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const final;
-    Nym_p Nym(const proto::CredentialIndex& nym, const PasswordPrompt& reason)
-        const final;
+    Nym_p Nym(const proto::Nym& nym, const PasswordPrompt& reason) const final;
     Nym_p Nym(
         const NymParameters& nymParameters,
         const PasswordPrompt& reason,

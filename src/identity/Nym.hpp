@@ -31,7 +31,6 @@ public:
         const proto::ContactItemType currency,
         const bool onlyActive) const final;
     std::string EmailAddresses(bool active) const final;
-    const String& GetDescription() const final { return m_strDescription; }
     void GetIdentifier(identifier::Nym& theIdentifier) const final;
     void GetIdentifier(String& theIdentifier) const final;
     const crypto::key::Asymmetric& GetPrivateAuthKey(
@@ -51,7 +50,7 @@ public:
     const crypto::key::Asymmetric& GetPublicSignKey(
         proto::AsymmetricKeyType keytype) const final;
     bool HasCapability(const NymCapability& capability) const final;
-    const identifier::Nym& ID() const final { return m_nymID; }
+    const identifier::Nym& ID() const final { return id_; }
     bool Lock(
         const OTPassword& password,
         crypto::key::Symmetric& key,
@@ -78,7 +77,7 @@ public:
         bool active) const final;
     const std::set<proto::ContactItemType> SocialMediaProfileTypes()
         const final;
-    const identity::Source& Source() const final { return *source_; }
+    const identity::Source& Source() const final { return source_; }
     std::unique_ptr<OTPassword> TransportKey(
         Data& pubkey,
         const PasswordPrompt& reason) const final;
@@ -86,8 +85,6 @@ public:
         const proto::Ciphertext& input,
         crypto::key::Symmetric& key,
         OTPassword& password) const final;
-    VersionNumber VerificationCredentialVersion() const final;
-    std::unique_ptr<proto::VerificationSet> VerificationSet() const final;
     bool VerifyPseudonym(const PasswordPrompt& reason) const final;
     bool WriteCredentials() const final;
 
@@ -131,9 +128,6 @@ public:
         const bool primary,
         const bool active) final;
     bool DeleteClaim(const Identifier& id, const PasswordPrompt& reason) final;
-    bool LoadCredentialIndex(
-        const Serialized& index,
-        const PasswordPrompt& reason) final;
     void SetAlias(const std::string& alias) final;
     void SetAliasStartup(const std::string& alias) final { alias_ = alias; }
     bool SetCommonName(const std::string& name, const PasswordPrompt& reason)
@@ -141,20 +135,11 @@ public:
     bool SetContactData(
         const proto::ContactData& data,
         const PasswordPrompt& reason) final;
-    void SetDescription(const String& strLocation) final
-    {
-        eLock lock(shared_lock_);
-
-        m_strDescription = strLocation;
-    }
     bool SetScope(
         const proto::ContactItemType type,
         const std::string& name,
         const PasswordPrompt& reason,
         const bool primary) final;
-    bool SetVerificationSet(
-        const proto::VerificationSet& data,
-        const PasswordPrompt& reason) final;
     bool Sign(
         const ProtobufType& input,
         const proto::SignatureRole role,
@@ -169,8 +154,9 @@ public:
     ~Nym() final = default;
 
 private:
-    using mapOfCredentialSets =
-        std::map<std::string, std::unique_ptr<identity::internal::Authority>>;
+    using MasterID = OTIdentifier;
+    using CredentialMap =
+        std::map<MasterID, std::unique_ptr<identity::internal::Authority>>;
 
     friend opentxs::Factory;
 
@@ -179,23 +165,40 @@ private:
         contact_credential_to_contact_data_version_;
 
     const api::Core& api_;
+    const std::unique_ptr<const identity::Source> source_p_;
+    const identity::Source& source_;
+    const OTNymID id_;
+    const proto::NymMode mode_;
     std::int32_t version_;
     Bip32Index index_;
     std::string alias_;
     std::atomic<std::uint64_t> revision_;
-    proto::CredentialIndexMode mode_;
-    OTString m_strVersion;
-    OTString m_strDescription;
-    const OTNymID m_nymID;
-    std::unique_ptr<identity::Source> source_;
     mutable std::unique_ptr<opentxs::ContactData> contact_data_;
-    // The credentials for this Nym. (Each with a master key credential and
-    // various child credentials.)
-    mapOfCredentialSets m_mapCredentialSets;
-    mapOfCredentialSets m_mapRevokedSets;
+    CredentialMap m_mapCredentialSets;
+    CredentialMap m_mapRevokedSets;
     // Revoked child credential IDs
     String::List m_listRevokedIDs;
 
+    static CredentialMap create_authority(
+        const api::Core& api,
+        const identity::Nym& parent,
+        const identity::Source& source,
+        const VersionNumber version,
+        const NymParameters& params,
+        const PasswordPrompt& reason) noexcept(false);
+    static CredentialMap load_authorities(
+        const api::Core& api,
+        const identity::Nym& parent,
+        const identity::Source& source,
+        const Serialized& serialized,
+        const PasswordPrompt& reason) noexcept(false);
+    static String::List load_revoked(
+        const api::Core& api,
+        const identity::Nym& parent,
+        const identity::Source& source,
+        const Serialized& serialized,
+        const PasswordPrompt& reason,
+        CredentialMap& revoked) noexcept(false);
     static NymParameters normalize(
         const api::Core& api,
         const NymParameters& in,
@@ -231,10 +234,6 @@ private:
         const eLock& lock,
         const proto::VerificationSet& data,
         const PasswordPrompt& reason);
-    bool load_credential_index(
-        const eLock& lock,
-        const Serialized& index,
-        const PasswordPrompt& reason);
     void revoke_contact_credentials(const eLock& lock);
     void revoke_verification_credentials(const eLock& lock);
     bool update_nym(
@@ -244,13 +243,12 @@ private:
 
     Nym(const api::Core& api,
         NymParameters& nymParameters,
-        std::unique_ptr<identity::Source> source,
+        std::unique_ptr<const identity::Source> source,
         const PasswordPrompt& reason) noexcept(false);
     Nym(const api::Core& api,
-        const identifier::Nym& nymID,
-        const proto::CredentialIndexMode mode,
-        const VersionNumber version,
-        const Bip32Index index = 0);
+        const proto::Nym& serialized,
+        const std::string& alias,
+        const opentxs::PasswordPrompt& reason) noexcept(false);
     Nym() = delete;
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;

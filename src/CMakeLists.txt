@@ -90,6 +90,7 @@ set(
   $<TARGET_OBJECTS:opentxs-crypto-library>
   $<TARGET_OBJECTS:opentxs-crypto>
   $<TARGET_OBJECTS:opentxs-ext>
+  $<TARGET_OBJECTS:opentxs-identity-wot-verification>
   $<TARGET_OBJECTS:opentxs-identity-credential>
   $<TARGET_OBJECTS:opentxs-identity>
   $<TARGET_OBJECTS:opentxs-iterator>

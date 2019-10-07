@@ -22,7 +22,7 @@ public:
     {
         return *master_;
     }
-    const std::string GetMasterCredID() const final;
+    OTIdentifier GetMasterCredID() const final;
     const crypto::key::Asymmetric& GetPublicAuthKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const final;
@@ -61,10 +61,6 @@ public:
     std::shared_ptr<Serialized> Serialize(
         const CredentialIndexModeFlag mode) const final;
     bool Sign(
-        const credential::Primary& credential,
-        proto::Signature& sig,
-        const PasswordPrompt& reason) const final;
-    bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
@@ -90,7 +86,7 @@ public:
     bool VerifyInternally(const PasswordPrompt& reason) const final;
 
     std::string AddChildKeyCredential(
-        const NymParameters& nymParameters,
+        const NymParameters& parameters,
         const PasswordPrompt& reason) final;
     bool AddVerificationCredential(
         const proto::VerificationSet& verificationSet,
@@ -113,6 +109,8 @@ private:
         std::map<OTIdentifier, std::unique_ptr<credential::internal::Contact>>;
     using KeyCredentialMap = std::
         map<OTIdentifier, std::unique_ptr<credential::internal::Secondary>>;
+    using KeyCredentialItem = std::
+        pair<OTIdentifier, std::unique_ptr<credential::internal::Secondary>>;
     using VerificationCredentialMap = std::
         map<OTIdentifier, std::unique_ptr<credential::internal::Verification>>;
     using mapOfCredentials =
@@ -126,19 +124,72 @@ private:
 
     const api::Core& api_;
     const identity::Nym& parent_;
+    const VersionNumber version_{0};
+    Bip32Index index_{0};
     std::unique_ptr<credential::internal::Primary> master_;
     KeyCredentialMap key_credentials_;
     ContactCredentialMap contact_credentials_;
     VerificationCredentialMap verification_credentials_;
     mapOfCredentials m_mapRevokedCredentials;
-    const OTPassword* m_pImportPassword = nullptr;
-    VersionNumber version_{0};
-    Bip32Index index_{0};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
 
     static bool is_revoked(
         const std::string& id,
         const String::List* plistRevokedIDs);
+    static KeyCredentialMap create_child_credential(
+        const api::Core& api,
+        const NymParameters& parameters,
+        const identity::Source& source,
+        const credential::internal::Primary& master,
+        internal::Authority& parent,
+        const VersionNumber parentVersion,
+        Bip32Index& index,
+        const opentxs::PasswordPrompt& reason) noexcept(false);
+    static KeyCredentialItem create_key_credential(
+        const api::Core& api,
+        const NymParameters& parameters,
+        const identity::Source& source,
+        const credential::internal::Primary& master,
+        internal::Authority& parent,
+        const VersionNumber parentVersion,
+        Bip32Index& index,
+        const opentxs::PasswordPrompt& reason) noexcept(false);
+    static std::unique_ptr<credential::internal::Primary> create_master(
+        const api::Core& api,
+        identity::internal::Authority& owner,
+        const identity::Source& source,
+        const VersionNumber version,
+        const NymParameters& parameters,
+        const Bip32Index index,
+        const opentxs::PasswordPrompt& reason) noexcept(false);
+    template <typename Type>
+    static void extract_child(
+        const api::Core& api,
+        const identity::Source& source,
+        internal::Authority& authority,
+        const credential::internal::Primary& master,
+        const credential::Base::SerializedType& serialized,
+        const proto::KeyMode mode,
+        const proto::CredentialRole role,
+        const opentxs::PasswordPrompt& reason,
+        std::map<OTIdentifier, std::unique_ptr<Type>>& map) noexcept(false);
+    static std::unique_ptr<credential::internal::Primary> load_master(
+        const api::Core& api,
+        identity::internal::Authority& owner,
+        const identity::Source& source,
+        const proto::KeyMode mode,
+        const Serialized& serialized,
+        const PasswordPrompt& reason) noexcept(false);
+    template <typename Type>
+    static std::map<OTIdentifier, std::unique_ptr<Type>> load_child(
+        const api::Core& api,
+        const identity::Source& source,
+        internal::Authority& authority,
+        const credential::internal::Primary& master,
+        const Serialized& serialized,
+        const proto::KeyMode mode,
+        const proto::CredentialRole role,
+        const opentxs::PasswordPrompt& reason) noexcept(false);
 
     const crypto::key::Keypair& get_keypair(
         const proto::AsymmetricKeyType type,
@@ -152,13 +203,6 @@ private:
     bool validate_credential(const Item& item, const PasswordPrompt& reason)
         const;
 
-    bool CreateMasterCredential(
-        const NymParameters& nymParameters,
-        const PasswordPrompt& reason);
-    bool Load_Master(
-        const String& strNymID,
-        const String& strMasterCredID,
-        const PasswordPrompt& reason);
     bool LoadChildKeyCredential(
         const String& strSubID,
         const PasswordPrompt& reason);
@@ -169,20 +213,15 @@ private:
     Authority(
         const api::Core& api,
         const identity::Nym& parent,
-        const VersionNumber version,
-        const Bip32Index index = 0,
-        const proto::KeyMode mode = proto::KEYMODE_PRIVATE,
-        const std::string& nymID = "") noexcept;
-    Authority(
-        const api::Core& api,
-        const identity::Nym& parent,
+        const identity::Source& source,
         const proto::KeyMode mode,
-        const Serialized& serializedAuthority,
-        const PasswordPrompt& reason) noexcept;
+        const Serialized& serialized,
+        const PasswordPrompt& reason) noexcept(false);
     Authority(
         const api::Core& api,
         const identity::Nym& parent,
-        const NymParameters& nymParameters,
+        const identity::Source& source,
+        const NymParameters& parameters,
         VersionNumber nymVersion,
         const PasswordPrompt& reason) noexcept(false);
     Authority() = delete;

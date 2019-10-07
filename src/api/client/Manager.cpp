@@ -19,7 +19,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -83,7 +82,6 @@ Manager::Manager(
           false,
           opentxs::Factory::FactoryAPIClient(*this))
     , zeromq_(opentxs::Factory::ZMQ(*this, running_))
-    , identity_(opentxs::Factory::Identity(*this))
     , contacts_(opentxs::Factory::ContactAPI(*this))
     , activity_(opentxs::Factory::Activity(*this, *contacts_))
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -103,7 +101,6 @@ Manager::Manager(
           *activity_,
           *contacts_,
           *zeromq_,
-          *identity_,
           *ot_api_,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
     , server_action_(opentxs::Factory::ServerAction(
@@ -130,7 +127,6 @@ Manager::Manager(
 
     OT_ASSERT(wallet_);
     OT_ASSERT(zeromq_);
-    OT_ASSERT(identity_);
     OT_ASSERT(contacts_);
     OT_ASSERT(activity_);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -187,7 +183,6 @@ void Manager::Cleanup()
 #endif
     activity_.reset();
     contacts_.reset();
-    identity_.reset();
     zeromq_.reset();
     Core::cleanup();
 }

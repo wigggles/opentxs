@@ -26,6 +26,8 @@ private:
     Secondary(
         const api::Core& api,
         const identity::internal::Authority& other,
+        const identity::Source& source,
+        const internal::Primary& master,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const PasswordPrompt& reason) noexcept(false);
@@ -33,7 +35,9 @@ private:
         const api::Core& api,
         const PasswordPrompt& reason,
         const identity::internal::Authority& other,
-        const proto::Credential& serializedCred) noexcept;
+        const identity::Source& source,
+        const internal::Primary& master,
+        const proto::Credential& serializedCred) noexcept(false);
     Secondary() = delete;
     Secondary(const Secondary&) = delete;
     Secondary(Secondary&&) = delete;

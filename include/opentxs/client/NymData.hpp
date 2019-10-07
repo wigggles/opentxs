@@ -145,11 +145,9 @@
 %ignore opentxs::NymData::PaymentCode;
 %ignore opentxs::NymData::SetContactData;
 %ignore opentxs::NymData::SetScope;
-%ignore opentxs::NymData::SetVerificationSet;
 %ignore opentxs::NymData::SocialMediaProfiles;
 %ignore opentxs::NymData::SocialMediaProfileTypes;
 %ignore opentxs::NymData::Type;
-%ignore opentxs::NymData::VerificationSet;
 %ignore opentxs::NymData::NymData(NymData&&);
 // clang-format on
 #endif
@@ -194,7 +192,6 @@ public:
     std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
     proto::ContactItemType Type() const;
     bool Valid() const;
-    std::unique_ptr<proto::VerificationSet> VerificationSet() const;
 
     std::string AddChildKeyCredential(
         const Identifier& strMasterID,
@@ -244,9 +241,6 @@ public:
         const proto::ContactItemType type,
         const std::string& name,
         const bool primary,
-        const PasswordPrompt& reason);
-    bool SetVerificationSet(
-        const proto::VerificationSet& data,
         const PasswordPrompt& reason);
 
     ~NymData();

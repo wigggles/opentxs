@@ -286,7 +286,7 @@ bool Dht::ProcessPublicNym(
 
         if (0 == data.size()) { continue; }
 
-        auto publicNym = proto::Factory<proto::CredentialIndex>(data);
+        auto publicNym = proto::Factory<proto::Nym>(data);
 
         if (key != publicNym.nymid()) { continue; }
 

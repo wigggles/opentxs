@@ -65,7 +65,7 @@ std::uint64_t Node::extract_revision(const proto::Contact& input) const
     return input.revision();
 }
 
-std::uint64_t Node::extract_revision(const proto::CredentialIndex& input) const
+std::uint64_t Node::extract_revision(const proto::Nym& input) const
 {
     return input.revision();
 }

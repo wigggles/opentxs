@@ -49,7 +49,7 @@ public:
         const identifier::Nym& nymID,
         const PasswordPrompt& reason) const final;
     std::shared_ptr<const class Contact> Update(
-        const proto::CredentialIndex& nym,
+        const proto::Nym& nym,
         const PasswordPrompt& reason) const final;
 
     ~Contacts() final = default;
@@ -117,7 +117,7 @@ private:
         ,
         const PaymentCode& paymentCode
 #endif
-        ) const;
+    ) const;
     void refresh_indices(
         const PasswordPrompt& reason,
         const rLock& lock,

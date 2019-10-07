@@ -21,7 +21,7 @@
 
 namespace opentxs
 {
-typedef std::function<void(const proto::CredentialIndex&)> NymLambda;
+typedef std::function<void(const proto::Nym&)> NymLambda;
 typedef std::function<void(const proto::ServerContract&)> ServerLambda;
 typedef std::function<void(const proto::UnitDefinition&)> UnitLambda;
 
@@ -160,11 +160,11 @@ public:
         const bool checking = false) const = 0;
     EXPORT virtual bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& nym,
+        std::shared_ptr<proto::Nym>& nym,
         const bool checking = false) const = 0;
     EXPORT virtual bool Load(
         const std::string& id,
-        std::shared_ptr<proto::CredentialIndex>& nym,
+        std::shared_ptr<proto::Nym>& nym,
         std::string& alias,
         const bool checking = false) const = 0;
     EXPORT virtual bool Load(
@@ -373,7 +373,7 @@ public:
     EXPORT virtual bool Store(const proto::Context& data) const = 0;
     EXPORT virtual bool Store(const proto::Credential& data) const = 0;
     EXPORT virtual bool Store(
-        const proto::CredentialIndex& data,
+        const proto::Nym& data,
         const std::string& alias = std::string("")) const = 0;
     EXPORT virtual bool Store(
         const std::string& nymID,

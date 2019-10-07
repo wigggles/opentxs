@@ -14,7 +14,6 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Identity.hpp"
 #if OT_CASH
 #include "opentxs/blind/Purse.hpp"
 #endif
@@ -1016,20 +1015,22 @@ Nym_p Wallet::Nym(
     bool valid = false;
 
     if (!inMap) {
-        std::shared_ptr<proto::CredentialIndex> serialized;
-
-        std::string alias;
-        bool loaded = api_.Storage().Load(nym, serialized, alias, true);
+        auto pSerialized = std::shared_ptr<proto::Nym>{};
+        auto alias = std::string{};
+        bool loaded = api_.Storage().Load(nym, pSerialized, alias, true);
 
         if (loaded) {
-            auto& pNym = nym_map_[nym].second;
-            pNym.reset(opentxs::Factory::Nym(api_, id));
+            OT_ASSERT(pSerialized)
 
-            if (pNym) {
-                if (pNym->LoadCredentialIndex(*serialized, reason)) {
-                    valid = pNym->VerifyPseudonym(reason);
-                    pNym->SetAliasStartup(alias);
-                }
+            const auto& serialized = *pSerialized;
+            auto& pNym = nym_map_[nym].second;
+            pNym.reset(opentxs::Factory::Nym(api_, serialized, alias, reason));
+
+            if (pNym && pNym->CompareID(id)) {
+                valid = pNym->VerifyPseudonym(reason);
+                pNym->SetAliasStartup(alias);
+                //             } else {
+                nym_map_.erase(nym);
             }
         } else {
             dht_nym_requester_->Send(nym);
@@ -1063,9 +1064,8 @@ Nym_p Wallet::Nym(
     return nullptr;
 }
 
-Nym_p Wallet::Nym(
-    const proto::CredentialIndex& serialized,
-    const PasswordPrompt& reason) const
+Nym_p Wallet::Nym(const proto::Nym& serialized, const PasswordPrompt& reason)
+    const
 {
     const auto& id = serialized.nymid();
     const auto nymID = identifier::Nym::Factory(id);
@@ -1085,22 +1085,24 @@ Nym_p Wallet::Nym(
 
         return existing;
     } else {
-        std::unique_ptr<identity::internal::Nym> candidate(
-            opentxs::Factory::Nym(api_, nymID));
+        auto pCandidate = std::unique_ptr<identity::internal::Nym>{
+            opentxs::Factory::Nym(api_, serialized, "", reason)};
 
-        OT_ASSERT(candidate)
+        if (false == bool(pCandidate)) { return {}; }
 
-        candidate->LoadCredentialIndex(serialized, reason);
+        auto& candidate = *pCandidate;
 
-        if (candidate->VerifyPseudonym(reason)) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Saving updated nym ")(id)(".")
+        if (false == candidate.CompareID(nymID)) { return existing; }
+
+        if (candidate.VerifyPseudonym(reason)) {
+            LogDetail(OT_METHOD)(__FUNCTION__)(": Saving updated nym ")(id)
                 .Flush();
-            candidate->WriteCredentials();
-            SaveCredentialIDs(*candidate);
+            candidate.WriteCredentials();
+            SaveCredentialIDs(candidate);
             Lock mapLock(nym_map_lock_);
             auto& mapNym = nym_map_[id].second;
             // TODO update existing nym rather than destroying it
-            mapNym.reset(candidate.release());
+            mapNym.reset(pCandidate.release());
             nym_publisher_->Send(id);
 
             return mapNym;

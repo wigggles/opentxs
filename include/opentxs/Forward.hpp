@@ -87,7 +87,6 @@ class Crypto;
 class Endpoints;
 class Factory;
 class HDSeed;
-class Identity;
 class Legacy;
 class Context;
 class Periodic;
@@ -158,6 +157,17 @@ class Primary;
 class Secondary;
 class Verification;
 }  // namespace credential
+
+namespace wot
+{
+namespace verification
+{
+class Group;
+class Item;
+class Nym;
+class Set;
+}  // namespace verification
+}  // namespace wot
 
 class Authority;
 class Nym;

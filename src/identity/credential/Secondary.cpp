@@ -28,29 +28,44 @@
 
 namespace opentxs
 {
-identity::credential::internal::Secondary* Factory::SecondaryCredential(
-    const api::Core& api,
-    const opentxs::PasswordPrompt& reason,
-    identity::internal::Authority& parent,
-    const proto::Credential& serialized)
-{
-    return new identity::credential::implementation::Secondary(
-        api, reason, parent, serialized);
-}
+using ReturnType = identity::credential::implementation::Secondary;
 
 identity::credential::internal::Secondary* Factory::SecondaryCredential(
     const api::Core& api,
     identity::internal::Authority& parent,
+    const identity::Source& source,
+    const identity::credential::internal::Primary& master,
     const NymParameters& parameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)
 {
     try {
-        return new identity::credential::implementation::Secondary(
-            api, parent, parameters, version, reason);
+
+        return new ReturnType(
+            api, parent, source, master, parameters, version, reason);
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(
             ": Failed to create credential: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
+}
+
+identity::credential::internal::Secondary* Factory::SecondaryCredential(
+    const api::Core& api,
+    identity::internal::Authority& parent,
+    const identity::Source& source,
+    const identity::credential::internal::Primary& master,
+    const proto::Credential& serialized,
+    const opentxs::PasswordPrompt& reason)
+{
+    try {
+
+        return new ReturnType(api, reason, parent, source, master, serialized);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to deserialize credential: ")(e.what())
             .Flush();
 
         return nullptr;
@@ -63,6 +78,8 @@ namespace opentxs::identity::credential::implementation
 Secondary::Secondary(
     const api::Core& api,
     const identity::internal::Authority& owner,
+    const identity::Source& source,
+    const internal::Primary& master,
     const NymParameters& nymParameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason) noexcept(false)
@@ -70,27 +87,31 @@ Secondary::Secondary(
     , credential::implementation::Key(
           api,
           owner,
+          source,
           nymParameters,
           version,
           proto::CREDROLE_CHILDKEY,
-          owner.GetMasterCredID(),
-          owner.Source().NymID()->str(),
-          reason)
+          reason,
+          get_master_id(master))
 {
+    init(master, reason);
 }
 
 Secondary::Secondary(
     const api::Core& api,
     const opentxs::PasswordPrompt& reason,
     const identity::internal::Authority& owner,
-    const proto::Credential& serialized) noexcept
+    const identity::Source& source,
+    const internal::Primary& master,
+    const proto::Credential& serialized) noexcept(false)
     : Signable({}, serialized.version())  // TODO Signable
     , credential::implementation::Key(
           api,
           reason,
           owner,
+          source,
           serialized,
-          serialized.childdata().masterid())
+          get_master_id(serialized, master))
 {
 }
 

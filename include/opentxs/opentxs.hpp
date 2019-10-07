@@ -140,6 +140,10 @@
 #include <opentxs/identity/credential/Primary.hpp>
 #include <opentxs/identity/credential/Secondary.hpp>
 #include <opentxs/identity/credential/Verification.hpp>
+#include <opentxs/identity/wot/verification/Group.hpp>
+#include <opentxs/identity/wot/verification/Item.hpp>
+#include <opentxs/identity/wot/verification/Nym.hpp>
+#include <opentxs/identity/wot/verification/Set.hpp>
 #include <opentxs/identity/Authority.hpp>
 #include <opentxs/identity/Nym.hpp>
 #include <opentxs/identity/Source.hpp>
