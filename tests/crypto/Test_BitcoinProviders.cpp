@@ -628,6 +628,13 @@ public:
 #endif
 };
 
+TEST_F(Test_Bitcoin_Providers, Common)
+{
+    EXPECT_TRUE(test_base58_encode());
+    EXPECT_TRUE(test_base58_decode());
+    EXPECT_TRUE(test_ripemd160());
+}
+
 #if OT_CRYPTO_USING_TREZOR
 TEST_F(Test_Bitcoin_Providers, Trezor)
 {

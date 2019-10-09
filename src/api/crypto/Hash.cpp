@@ -16,13 +16,6 @@
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/Ripemd160.hpp"
-#include "opentxs/crypto/library/Sodium.hpp"
-#if OT_CRYPTO_USING_TREZOR
-#include "opentxs/crypto/library/Trezor.hpp"
-#endif
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/crypto/library/OpenSSL.hpp"
-#endif
 
 #include "siphash/src/siphash.h"
 #include "smhasher/src/MurmurHash3.h"
@@ -36,22 +29,10 @@ namespace opentxs
 api::crypto::Hash* Factory::Hash(
     const api::crypto::Encode& encode,
     const crypto::HashingProvider& ssl,
-    const crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR
-    ,
-    const crypto::Ripemd160& bitcoin
-#endif
-)
+    const crypto::HashingProvider& sodium,
+    const crypto::Ripemd160& ripe)
 {
-    return new api::crypto::implementation::Hash(
-        encode,
-        ssl,
-        sodium
-#if OT_CRYPTO_USING_TREZOR
-        ,
-        bitcoin
-#endif
-    );
+    return new api::crypto::implementation::Hash(encode, ssl, sodium, ripe);
 }
 }  // namespace opentxs
 
@@ -60,29 +41,13 @@ namespace opentxs::api::crypto::implementation
 Hash::Hash(
     const api::crypto::Encode& encode,
     const opentxs::crypto::HashingProvider& ssl,
-    const opentxs::crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR
-    ,
-    const opentxs::crypto::Ripemd160& bitcoin
-#endif
-    ) noexcept
+    const opentxs::crypto::HashingProvider& sodium,
+    const opentxs::crypto::Ripemd160& ripe) noexcept
     : encode_(encode)
     , ssl_(ssl)
     , sodium_(sodium)
-#if OT_CRYPTO_USING_TREZOR
-    , bitcoin_(bitcoin)
-#endif
+    , ripe_(ripe)
 {
-}
-
-const opentxs::crypto::HashingProvider& Hash::SHA2() const noexcept
-{
-    return sodium_;
-}
-
-const opentxs::crypto::HashingProvider& Hash::Sodium() const noexcept
-{
-    return sodium_;
 }
 
 bool Hash::Allocate(const proto::HashType hashType, OTPassword& input) noexcept
@@ -114,10 +79,7 @@ bool Hash::Digest(
             return Sodium().Digest(hashType, input, inputSize, output);
         }
         case (proto::HASHTYPE_RIMEMD160): {
-#if OT_CRYPTO_USING_TREZOR
-            return dynamic_cast<const opentxs::crypto::Trezor&>(bitcoin_)
-                .RIPEMD160(input, inputSize, output);
-#endif
+            return ripe_.RIPEMD160(input, inputSize, output);
         }
         default: {
         }

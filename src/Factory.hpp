@@ -258,12 +258,8 @@ public:
     static api::crypto::Hash* Hash(
         const api::crypto::Encode& encode,
         const crypto::HashingProvider& ssl,
-        const crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR
-        ,
-        const crypto::Ripemd160& bitcoin
-#endif
-    );
+        const crypto::HashingProvider& sodium,
+        const crypto::Ripemd160& ripe);
 #if OT_CRYPTO_WITH_BIP39
     static api::HDSeed* HDSeed(
         const api::Factory& factory,

@@ -45,6 +45,7 @@ extern "C" {
 #include <openssl/opensslv.h>
 #include <openssl/ossl_typ.h>
 #include <openssl/rand.h>
+#include <openssl/ripemd.h>
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
 #include <openssl/ui.h>
@@ -319,14 +320,18 @@ const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
     const EVP_MD* OpenSSLType;
 
     switch (hashType) {
-        case proto::HASHTYPE_SHA256:
+        case proto::HASHTYPE_RIPMED160: {
+            OpenSSLType = EVP_ripemd160();
+        } break;
+        case proto::HASHTYPE_SHA256: {
             OpenSSLType = EVP_sha256();
-            break;
-        case proto::HASHTYPE_SHA512:
+        } break;
+        case proto::HASHTYPE_SHA512: {
             OpenSSLType = EVP_sha512();
-            break;
-        default:
+        } break;
+        default: {
             OpenSSLType = nullptr;
+        }
     }
     return OpenSSLType;
 }
@@ -917,6 +922,14 @@ bool OpenSSL::HMAC(
 
         return false;
     }
+}
+
+bool OpenSSL::RIPEMD160(
+    const std::uint8_t* input,
+    const std::size_t inputSize,
+    std::uint8_t* output) const
+{
+    return Digest(proto::HASHTYPE_RIMEMD160, input, inputSize, output);
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
