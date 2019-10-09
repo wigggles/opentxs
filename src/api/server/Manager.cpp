@@ -370,14 +370,23 @@ const identifier::Server& Manager::ID() const { return server_.GetServerID(); }
 void Manager::Init()
 {
     OT_ASSERT(dht_);
+#if OT_CRYPTO_WITH_BIP39
     OT_ASSERT(seeds_);
+#endif  // OT_CRYPTO_WITH_BIP39
 
 #if OT_CASH
     mint_thread_ = std::thread(&Manager::mint, this);
 #endif  // OT_CASH
 
     Scheduler::Start(storage_.get(), dht_.get());
-    StorageParent::init(factory_, *seeds_);
+    StorageParent::init(
+        factory_
+#if OT_CRYPTO_WITH_BIP39
+        ,
+        *seeds_
+#endif  // OT_CRYPTO_WITH_BIP39
+    );
+
     Start();
 }
 

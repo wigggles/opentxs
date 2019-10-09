@@ -7,6 +7,7 @@
 
 #include "Txos.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "storage/Plugin.hpp"
 
 #define OT_METHOD "opentxs::storage::Txos::"
@@ -176,3 +177,4 @@ bool Txos::Store(const PayloadType& data) noexcept
 }
 }  // namespace storage
 }  // namespace opentxs
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD

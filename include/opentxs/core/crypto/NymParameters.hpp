@@ -71,7 +71,7 @@ public:
     void setKeySize(std::int32_t keySize) { nBits_ = keySize; }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    void SetNym(const Bip32Index path) { nym_ = path; }
+    void SetNym(const Bip32Index path);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     void setNymParameterType(NymParameterType theKeytype);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -88,6 +88,7 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     explicit NymParameters(const std::int32_t keySize);
 #endif
+    NymParameters(const std::string& seedID, const int index);
     NymParameters(const NymParameters& rhs);
 
     ~NymParameters() = default;

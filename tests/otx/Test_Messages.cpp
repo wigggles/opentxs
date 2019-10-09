@@ -56,9 +56,9 @@ public:
             "spike nominee miss inquiry fee nothing belt list other "
             "daughter leave valley twelve gossip paper",
             "");
-        const_cast<std::string&>(Alice_) = client_.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
-        const_cast<OTNymID&>(alice_nym_id_) = identifier::Nym::Factory(Alice_);
+        const_cast<OTNymID&>(alice_nym_id_) =
+            client_.Wallet().Nym(reason_c_, "Alice", {SeedA_, 0})->ID();
+        const_cast<std::string&>(Alice_) = alice_nym_id_->str();
         const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
             server_.Wallet().Server(server_id_, reason_s_);
 

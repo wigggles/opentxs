@@ -38,9 +38,6 @@ public:
     static const std::string SeedA_;
     static const std::string SeedB_;
     static const std::string SeedC_;
-    static const std::string Alice_;
-    static const std::string Bob_;
-    static const std::string Issuer_;
     static const OTNymID alice_nym_id_;
     static const OTNymID bob_nym_id_;
     static const OTNymID issuer_nym_id_;
@@ -112,16 +109,15 @@ public:
                 "abandon abandon abandon abandon abandon abandon abandon "
                 "abandon abandon abandon abandon about",
                 "");
-        const_cast<std::string&>(Alice_) = alice_client_.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, ALEX, SeedA_, 0);
-        const_cast<std::string&>(Bob_) = bob_client_.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, BOB, SeedB_, 0);
-        const_cast<std::string&>(Issuer_) = issuer_client_.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, ISSUER, SeedC_, 0);
-        const_cast<OTNymID&>(alice_nym_id_) = identifier::Nym::Factory(Alice_);
-        const_cast<OTNymID&>(bob_nym_id_) = identifier::Nym::Factory(Bob_);
+        auto reasonA = alice_client_.Factory().PasswordPrompt(__FUNCTION__);
+        auto reasonB = bob_client_.Factory().PasswordPrompt(__FUNCTION__);
+        auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
+        const_cast<OTNymID&>(alice_nym_id_) =
+            alice_client_.Wallet().Nym(reasonA, ALEX, {SeedA_, 0})->ID();
+        const_cast<OTNymID&>(bob_nym_id_) =
+            bob_client_.Wallet().Nym(reasonB, BOB, {SeedB_, 0})->ID();
         const_cast<OTNymID&>(issuer_nym_id_) =
-            identifier::Nym::Factory(Issuer_);
+            issuer_client_.Wallet().Nym(reasonI, ISSUER, {SeedC_, 0})->ID();
         const_cast<OTServerID&>(server_1_id_) =
             identifier::Server::Factory(server_1_.ID().str());
         auto reason = server_1_.Factory().PasswordPrompt(__FUNCTION__);
@@ -147,9 +143,6 @@ const opentxs::ArgList Test_DepositCheques::args_{
 const std::string Test_DepositCheques::SeedA_{""};
 const std::string Test_DepositCheques::SeedB_{""};
 const std::string Test_DepositCheques::SeedC_{""};
-const std::string Test_DepositCheques::Alice_{""};
-const std::string Test_DepositCheques::Bob_{""};
-const std::string Test_DepositCheques::Issuer_{""};
 const OTNymID Test_DepositCheques::alice_nym_id_{identifier::Nym::Factory()};
 const OTNymID Test_DepositCheques::bob_nym_id_{identifier::Nym::Factory()};
 const OTNymID Test_DepositCheques::issuer_nym_id_{identifier::Nym::Factory()};

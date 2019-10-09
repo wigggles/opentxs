@@ -35,6 +35,7 @@
 
 #define OT_METHOD "opentxs::Contact::"
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 using AddressStyle = opentxs::Contact::AddressStyle;
 
 const std::map<AddressStyle, std::string> address_style_map_{
@@ -70,6 +71,7 @@ std::string translate_style(const AddressStyle& in) noexcept
         return std::to_string(static_cast<int>(AddressStyle::Unknown));
     }
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 namespace opentxs
 {
@@ -311,6 +313,7 @@ void Contact::add_verified_claim(
     cached_contact_data_.reset();
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Contact::AddBlockchainAddress(
     const std::string& address,
     const proto::ContactItemType currency)
@@ -355,6 +358,7 @@ bool Contact::AddBlockchainAddress(
 
     return add_claim(lock, claim);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Contact::AddEmail(
     const std::string& value,
@@ -529,6 +533,7 @@ std::string Contact::BestSocialMediaProfile(
     return data->BestSocialMediaProfile(type);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
 {
     auto output = std::vector<BlockchainAddress>{};
@@ -570,6 +575,7 @@ std::vector<Contact::BlockchainAddress> Contact::BlockchainAddresses() const
 
     return output;
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 VersionNumber Contact::check_version(
     const VersionNumber in,
@@ -918,6 +924,7 @@ const std::set<proto::ContactItemType> Contact::SocialMediaProfileTypes() const
     return data->SocialMediaProfileTypes();
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 Contact::BlockchainAddress Contact::translate(
     const api::client::Manager& api,
     const proto::ContactItemType chain,
@@ -935,6 +942,7 @@ Contact::BlockchainAddress Contact::translate(
 
     return output;
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 proto::ContactItemType Contact::type(const Lock& lock) const
 {

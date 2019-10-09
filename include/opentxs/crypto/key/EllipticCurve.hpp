@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 
@@ -51,5 +50,4 @@ private:
 }  // namespace key
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif

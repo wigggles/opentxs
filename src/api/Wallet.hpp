@@ -94,10 +94,10 @@ public:
             std::chrono::milliseconds(0)) const final;
     Nym_p Nym(const proto::Nym& nym, const PasswordPrompt& reason) const final;
     Nym_p Nym(
-        const NymParameters& nymParameters,
         const PasswordPrompt& reason,
-        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
-        const std::string name = "") const final;
+        const std::string name,
+        const NymParameters& parameters,
+        const proto::ContactItemType type) const final;
     NymData mutable_Nym(const identifier::Nym& id, const PasswordPrompt& reason)
         const final;
     std::unique_ptr<const opentxs::NymFile> Nymfile(
@@ -359,6 +359,12 @@ private:
         const Nym_p& signerNym,
         const identifier::Nym& id,
         const PasswordPrompt& reason) const;
+    virtual void nym_to_contact(
+        [[maybe_unused]] const identity::Nym& nym,
+        [[maybe_unused]] const std::string& name,
+        [[maybe_unused]] const PasswordPrompt& reason) const noexcept
+    {
+    }
     std::mutex& nymfile_lock(const identifier::Nym& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
     void publish_server(const identifier::Server& id) const;

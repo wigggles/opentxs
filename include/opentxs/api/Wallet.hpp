@@ -10,6 +10,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -229,10 +230,11 @@ public:
         const PasswordPrompt& reason) const = 0;
 
     EXPORT virtual Nym_p Nym(
-        const NymParameters& nymParameters,
         const PasswordPrompt& reason,
-        const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
-        const std::string name = "") const = 0;
+        const std::string name = "",
+        const NymParameters& parameters = {},
+        const proto::ContactItemType type =
+            proto::CITEMTYPE_INDIVIDUAL) const = 0;
 
     EXPORT virtual NymData mutable_Nym(
         const identifier::Nym& id,

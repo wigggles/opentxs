@@ -1116,13 +1116,13 @@ Nym_p Wallet::Nym(const proto::Nym& serialized, const PasswordPrompt& reason)
 }
 
 Nym_p Wallet::Nym(
-    const NymParameters& nymParameters,
     const PasswordPrompt& reason,
-    const proto::ContactItemType type,
-    const std::string name) const
+    const std::string name,
+    const NymParameters& parameters,
+    const proto::ContactItemType type) const
 {
     std::shared_ptr<identity::internal::Nym> pNym(
-        opentxs::Factory::Nym(api_, nymParameters, reason));
+        opentxs::Factory::Nym(api_, parameters, type, name, reason));
 
     if (false == bool(pNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create nym").Flush();
@@ -1133,16 +1133,22 @@ Nym_p Wallet::Nym(
     auto& nym = *pNym;
 
     if (nym.VerifyPseudonym(reason)) {
-        const bool nameAndTypeSet =
-            proto::CITEMTYPE_ERROR != type && !name.empty();
+        nym.SetAlias(name);
 
-        if (nameAndTypeSet) {
-            nym.SetScope(type, name, reason, true);
-            nym.SetAlias(name);
+        {
+            Lock mapLock(nym_map_lock_);
+            auto it = nym_map_.find(nym.ID().str());
+
+            if (nym_map_.end() != it) { return it->second.second; }
         }
 
-        if (SaveCredentialIDs(*pNym)) {
-            auto nymfile = mutable_nymfile(pNym, pNym, nym.ID(), reason);
+        if (SaveCredentialIDs(nym)) {
+            nym_to_contact(nym, name, reason);
+
+            {
+                auto nymfile = mutable_nymfile(pNym, pNym, nym.ID(), reason);
+            }
+
             Lock mapLock(nym_map_lock_);
             auto& pMapNym = nym_map_[nym.ID().str()].second;
             pMapNym = pNym;

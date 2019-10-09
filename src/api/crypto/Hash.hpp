@@ -52,9 +52,7 @@ private:
     const api::crypto::Encode& encode_;
     const opentxs::crypto::HashingProvider& ssl_;
     const opentxs::crypto::HashingProvider& sodium_;
-#if OT_CRYPTO_USING_TREZOR
-    const opentxs::crypto::Ripemd160& bitcoin_;
-#endif
+    const opentxs::crypto::Ripemd160& ripe_;
 
     static bool Allocate(
         const proto::HashType hashType,
@@ -69,12 +67,8 @@ private:
     Hash(
         const api::crypto::Encode& encode,
         const opentxs::crypto::HashingProvider& ssl,
-        const opentxs::crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR
-        ,
-        const opentxs::crypto::Ripemd160& bitcoin
-#endif
-        ) noexcept;
+        const opentxs::crypto::HashingProvider& sodium,
+        const opentxs::crypto::Ripemd160& ripe) noexcept;
     bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
@@ -82,8 +76,14 @@ private:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const noexcept;
-    const opentxs::crypto::HashingProvider& SHA2() const noexcept;
-    const opentxs::crypto::HashingProvider& Sodium() const noexcept;
+    const opentxs::crypto::HashingProvider& SHA2() const noexcept
+    {
+        return sodium_;
+    }
+    const opentxs::crypto::HashingProvider& Sodium() const noexcept
+    {
+        return sodium_;
+    }
 
     Hash(const Hash&) = delete;
     Hash(Hash&&) = delete;

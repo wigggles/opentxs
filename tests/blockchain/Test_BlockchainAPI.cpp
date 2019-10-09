@@ -179,18 +179,23 @@ public:
                     "predict cinnamon gauge spoon media food nurse improve "
                     "employ similar own kid genius seed ghost",
                     "");
-            alex_p_.reset(
-                new ot::OTNymID{api.Factory().NymID(api.Exec().CreateNymHD(
-                    individual_, "Alex", fingerprint_a_, 0))});
-            bob_p_.reset(
-                new ot::OTNymID{api.Factory().NymID(api.Exec().CreateNymHD(
-                    individual_, "Bob", fingerprint_b_, 0))});
-            chris_p_.reset(
-                new ot::OTNymID{api.Factory().NymID(api.Exec().CreateNymHD(
-                    individual_, "Chris", fingerprint_c_, 0))});
-            daniel_p_.reset(
-                new ot::OTNymID{api.Factory().NymID(api.Exec().CreateNymHD(
-                    individual_, "Daniel", fingerprint_a_, 1))});
+            alex_p_.reset(new ot::OTNymID{
+                api.Wallet()
+                    .Nym(*reason_p_, "Alex", {fingerprint_a_, 0}, individual_)
+                    ->ID()});
+            bob_p_.reset(new ot::OTNymID{
+                api.Wallet()
+                    .Nym(*reason_p_, "Bob", {fingerprint_b_, 0}, individual_)
+                    ->ID()});
+            chris_p_.reset(new ot::OTNymID{
+                api.Wallet()
+                    .Nym(*reason_p_, "Chris", {fingerprint_c_, 0}, individual_)
+                    ->ID()});
+            daniel_p_.reset(new ot::OTNymID{
+                api.Wallet()
+                    .Nym(*reason_p_, "Daniel", {fingerprint_a_, 1}, individual_)
+                    ->ID()});
+
             address_1_p_.reset(new ot::OTData{api.Factory().Data(
                 "0xf54a5851e9372b87810a8e60cdd2e7cfd80b6e31",
                 ot::StringStyle::Hex)});
@@ -767,10 +772,12 @@ TEST_F(Test_BlockchainAPI, TestBip32_standard_1)
 
     ASSERT_FALSE(fingerprint.empty());
 
-    const auto nymID = api_.Factory().NymID(
-        api_.Exec().CreateNymHD(individual_, "John Doe", fingerprint, 0));
+    const auto& nymID =
+        api_.Wallet()
+            .Nym(reason_, "John Doe", {fingerprint, 0}, individual_)
+            ->ID();
 
-    ASSERT_FALSE(nymID->empty());
+    ASSERT_FALSE(nymID.empty());
 
     const auto accountID = api_.Blockchain().NewHDSubaccount(
         nymID, ot::BlockchainAccountType::BIP32, btc_chain_, reason_);
@@ -812,10 +819,12 @@ TEST_F(Test_BlockchainAPI, TestBip32_standard_3)
 
     ASSERT_FALSE(fingerprint.empty());
 
-    const auto nymID = api_.Factory().NymID(
-        api_.Exec().CreateNymHD(individual_, "John Doe", fingerprint, 0));
+    const auto& nymID =
+        api_.Wallet()
+            .Nym(reason_, "John Doe", {fingerprint, 0}, individual_)
+            ->ID();
 
-    ASSERT_FALSE(nymID->empty());
+    ASSERT_FALSE(nymID.empty());
 
     const auto accountID = api_.Blockchain().NewHDSubaccount(
         nymID, ot::BlockchainAccountType::BIP32, btc_chain_, reason_);

@@ -75,6 +75,8 @@ namespace opentxs
 identity::internal::Nym* Factory::Nym(
     const api::Core& api,
     const NymParameters& params,
+    const proto::ContactItemType type,
+    const std::string name,
     const opentxs::PasswordPrompt& reason)
 {
     using ReturnType = identity::implementation::Nym;
@@ -98,6 +100,20 @@ identity::internal::Nym* Factory::Nym(
                 .Flush();
 
             return nullptr;
+        }
+
+        if (proto::CITEMTYPE_ERROR != type && !name.empty()) {
+            const auto version =
+                ReturnType::contact_credential_to_contact_data_version_.at(
+                    identity::internal::Authority::NymToContactCredential(
+                        identity::Nym::DefaultVersion));
+            const auto blank = ContactData{api,
+                                           pSource->NymID()->str(),
+                                           version,
+                                           version,
+                                           ContactData::SectionMap{}};
+            const auto scope = blank.SetScope(type, name);
+            revised.SetContactData(scope.Serialize());
         }
 
         return new ReturnType(api, revised, std::move(pSource), reason);
@@ -170,7 +186,7 @@ Nym::Nym(
     , version_(DefaultVersion)
     , index_(1)
     , alias_()
-    , revision_(1)
+    , revision_(0)
     , contact_data_(nullptr)
     , m_mapCredentialSets(
           create_authority(api_, *this, source_, version_, params, reason))

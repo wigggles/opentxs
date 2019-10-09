@@ -24,9 +24,11 @@ namespace client
 class Contacts
 {
 public:
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual OTIdentifier BlockchainAddressToContact(
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual std::shared_ptr<const class Contact> Contact(
         const Identifier& id,
         const PasswordPrompt& reason) const = 0;
@@ -54,11 +56,13 @@ public:
 #endif
         ,
         const PasswordPrompt& reason) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual std::shared_ptr<const class Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
         const PasswordPrompt& reason,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     /** Returns an existing contact ID if it exists, or creates a new one */
     EXPORT virtual OTIdentifier NymToContact(
         const identifier::Nym& nymID,

@@ -87,6 +87,16 @@ identity::internal::Authority* Factory::Authority(
 }
 }  // namespace opentxs
 
+namespace opentxs::identity::internal
+{
+VersionNumber Authority::NymToContactCredential(
+    const VersionNumber nym) noexcept(false)
+{
+    return ReturnType::authority_to_contact_.at(
+        ReturnType::nym_to_authority_.at(nym));
+}
+}  // namespace opentxs::identity::internal
+
 namespace opentxs::identity::implementation
 {
 const VersionConversionMap Authority::authority_to_contact_{
@@ -209,7 +219,14 @@ Authority::Authority(
           version_,
           index_,
           reason))
-    , contact_credentials_()
+    , contact_credentials_(create_contact_credental(
+          api,
+          parameters,
+          source,
+          *master_,
+          *this,
+          version_,
+          reason))
     , verification_credentials_()
     , m_mapRevokedCredentials()
     , mode_(proto::KEYMODE_PRIVATE)
@@ -396,6 +413,42 @@ auto Authority::create_child_credential(
 
     if (output.empty()) {
         throw std::runtime_error("Failed to generate child credentials");
+    }
+
+    return output;
+}
+
+auto Authority::create_contact_credental(
+    const api::Core& api,
+    const NymParameters& parameters,
+    const identity::Source& source,
+    const credential::internal::Primary& master,
+    internal::Authority& parent,
+    const VersionNumber parentVersion,
+    const opentxs::PasswordPrompt& reason) noexcept(false)
+    -> ContactCredentialMap
+{
+    auto output = ContactCredentialMap{};
+
+    if (parameters.ContactData()) {
+        auto pCredential = std::unique_ptr<credential::internal::Contact>{
+            opentxs::Factory::Credential<credential::internal::Contact>(
+                api,
+                parent,
+                source,
+                master,
+                authority_to_contact_.at(parentVersion),
+                parameters,
+                proto::CREDROLE_CONTACT,
+                reason)};
+
+        if (false == bool(pCredential)) {
+            throw std::runtime_error("Failed to create contact credentials");
+        }
+
+        auto& credential = *pCredential;
+        auto id = credential.ID();
+        output.emplace(std::move(id), std::move(pCredential));
     }
 
     return output;

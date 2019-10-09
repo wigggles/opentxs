@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/Types.hpp"
 
@@ -47,4 +48,5 @@ private:
 }  // namespace key
 }  // namespace crypto
 }  // namespace opentxs
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif

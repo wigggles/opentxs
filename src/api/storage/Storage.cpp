@@ -38,7 +38,9 @@
 #include "storage/tree/Thread.hpp"
 #include "storage/tree/Threads.hpp"
 #include "storage/tree/Tree.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "storage/tree/Txos.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "storage/tree/Units.hpp"
 #include "storage/StorageConfig.hpp"
 
@@ -605,6 +607,7 @@ std::string Storage::Bip47RemotePaymentCode(
         .RemotePaymentCode(channelID);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::set<std::string> Storage::BlockchainAccountList(
     const std::string& nymID,
     const proto::ContactItemType type) const
@@ -631,6 +634,7 @@ ObjectList Storage::BlockchainTransactionList() const
 
     return Root().Tree().Blockchain().List();
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 #if OT_CASH
 bool Storage::CheckTokenSpent(
@@ -809,6 +813,7 @@ bool Storage::Load(
     return Root().Tree().Accounts().Load(accountID, output, alias, checking);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Storage::Load(
     const std::string& nymID,
     const std::string& accountID,
@@ -817,6 +822,7 @@ bool Storage::Load(
 {
     return Root().Tree().Nyms().Nym(nymID).Load(accountID, output, checking);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Storage::Load(
     const identifier::Nym& nymID,
@@ -841,6 +847,7 @@ bool Storage::Load(
         .Load(channelID, output, checking);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Storage::Load(
     const std::string& id,
     std::shared_ptr<proto::BlockchainTransaction>& transaction,
@@ -848,6 +855,7 @@ bool Storage::Load(
 {
     return Root().Tree().Blockchain().Load(id, transaction, checking);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Storage::Load(
     const std::string& id,
@@ -1098,6 +1106,7 @@ bool Storage::Load(
     return Root().Tree().Servers().Load(id, contract, alias, checking);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Storage::Load(
     const identifier::Nym& nym,
     const api::client::blockchain::Coin& id,
@@ -1110,6 +1119,7 @@ bool Storage::Load(
 
     return nyms.Nym(nym.str()).TXOs().Load(id, output, checking);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Storage::Load(
     const std::string& nymId,
@@ -1162,6 +1172,7 @@ const std::set<std::string> Storage::LocalNyms() const
     return Root().Tree().Nyms().LocalNyms();
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::set<OTNymID> Storage::LookupBlockchainTransaction(
     const std::string& txid) const
 {
@@ -1189,6 +1200,7 @@ std::set<api::client::blockchain::Coin> Storage::LookupTxid(
 
     return nyms.Nym(nym.str()).TXOs().LookupTxid(txid);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 // Applies a lambda to all public nyms in the database in a detached thread.
 void Storage::MapPublicNyms(NymLambda& lambda) const
@@ -1735,6 +1747,7 @@ bool Storage::RemoveThreadItem(
     return true;
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Storage::RemoveTxo(
     const identifier::Nym& nym,
     const api::client::blockchain::Coin& id) const
@@ -1755,6 +1768,7 @@ bool Storage::RemoveTxo(
         .get()
         .Delete(id);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Storage::RemoveUnitDefinition(const std::string& id) const
 {
@@ -2075,6 +2089,7 @@ bool Storage::Store(
             unit);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Storage::Store(
     const std::string& nymID,
     const proto::ContactItemType type,
@@ -2090,6 +2105,7 @@ bool Storage::Store(
         .get()
         .Store(type, data);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Storage::Store(
     const identifier::Nym& nymID,
@@ -2118,6 +2134,7 @@ bool Storage::Store(
         .Store(data, channelID);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Storage::Store(
     const identifier::Nym& nym,
     const proto::BlockchainTransaction& data) const
@@ -2130,6 +2147,7 @@ bool Storage::Store(
         .get()
         .Store(nym, data);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Storage::Store(
     const proto::Contact& data,
@@ -2453,6 +2471,7 @@ bool Storage::Store(const proto::ServerContract& data, const std::string& alias)
     return false;
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Storage::Store(
     const identifier::Nym& nym,
     const proto::StorageBlockchainTxo& data) const
@@ -2473,6 +2492,7 @@ bool Storage::Store(
         .get()
         .Store(data);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Storage::Store(const proto::Ciphertext& serialized) const
 {

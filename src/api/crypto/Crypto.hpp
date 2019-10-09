@@ -61,15 +61,22 @@ private:
     std::unique_ptr<opentxs::crypto::OpenSSL> ssl_;
 #endif  // OT_CRYPTO_USING_OPENSSL
     const api::crypto::Util& util_;
+#if OT_CRYPTO_USING_TREZOR
     const opentxs::crypto::EcdsaProvider& secp256k1_helper_;
-    const opentxs::crypto::EncodingProvider& base58_;
+#endif  // OT_CRYPTO_USING_TREZOR
     const opentxs::crypto::Ripemd160& ripemd160_;
+#if OT_CRYPTO_WITH_BIP32
     const opentxs::crypto::Bip32& bip32_;
+#endif  // OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_WITH_BIP39
     const opentxs::crypto::Bip39& bip39_;
+#endif  // OT_CRYPTO_WITH_BIP39
 #if OT_CRYPTO_USING_LIBSECP256K1
     std::unique_ptr<opentxs::crypto::Secp256k1> secp256k1_;
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     const opentxs::crypto::EcdsaProvider& secp256k1_provider_;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<crypto::Encode> encode_;
     std::unique_ptr<crypto::Hash> hash_;
 

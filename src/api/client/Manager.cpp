@@ -210,9 +210,17 @@ const OTAPI_Exec& Manager::Exec(const std::string&) const
 
 void Manager::Init(const PasswordPrompt& reason)
 {
+#if OT_CRYPTO_WITH_BIP39
     OT_ASSERT(seeds_)
+#endif  // OT_CRYPTO_WITH_BIP39
 
-    StorageParent::init(factory_, *seeds_);
+    StorageParent::init(
+        factory_
+#if OT_CRYPTO_WITH_BIP39
+        ,
+        *seeds_
+#endif  // OT_CRYPTO_WITH_BIP39
+    );
     StartContacts(reason);
     StartActivity(reason);
     pair_->init();

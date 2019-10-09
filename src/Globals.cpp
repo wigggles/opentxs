@@ -9,6 +9,7 @@
 
 #include <array>
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 const std::map<opentxs::blockchain::Type, opentxs::proto::ContactItemType>
     type_map_{
         {opentxs::blockchain::Type::Unknown, opentxs::proto::CITEMTYPE_UNKNOWN},
@@ -28,6 +29,7 @@ const std::map<opentxs::blockchain::Type, opentxs::proto::ContactItemType>
     };
 const std::map<opentxs::proto::ContactItemType, opentxs::blockchain::Type>
     type_reverse_map_{opentxs::reverse_map(type_map_)};
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 namespace opentxs
 {
@@ -43,6 +45,7 @@ bool operator==(
     return sLeft == sRight;
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 proto::ContactItemType Translate(const blockchain::Type type) noexcept
 {
     try {
@@ -60,4 +63,5 @@ blockchain::Type Translate(const proto::ContactItemType type) noexcept
         return blockchain::Type::Unknown;
     }
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }  // namespace opentxs

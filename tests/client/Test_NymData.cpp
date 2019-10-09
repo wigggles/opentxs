@@ -35,11 +35,7 @@ public:
         : client_(opentxs::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , nymData_(client_.Wallet().mutable_Nym(
-              opentxs::identifier::Nym::Factory(client_.Exec().CreateNymHD(
-                  opentxs::proto::CITEMTYPE_INDIVIDUAL,
-                  "testNym",
-                  "",
-                  -1)),
+              client_.Wallet().Nym(reason_, "testNym")->ID(),
               reason_))
     {
     }

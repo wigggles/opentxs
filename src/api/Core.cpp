@@ -134,7 +134,9 @@ Core::Core(
     , timeout_thread_running_(false)
 {
     OT_ASSERT(endpoints_);
+#if OT_CRYPTO_WITH_BIP39
     OT_ASSERT(seeds_);
+#endif  // OT_CRYPTO_WITH_BIP39
     OT_ASSERT(dht_);
 
     if (master_secret_) {
@@ -315,12 +317,14 @@ const opentxs::crypto::key::Symmetric& Core::MasterKey(
     return master_key_;
 }
 
+#if OT_CRYPTO_WITH_BIP39
 const api::HDSeed& Core::Seeds() const
 {
     OT_ASSERT(seeds_);
 
     return *seeds_;
 }
+#endif  // OT_CRYPTO_WITH_BIP39
 
 void Core::SetMasterKeyTimeout(const std::chrono::seconds& timeout) const
 {

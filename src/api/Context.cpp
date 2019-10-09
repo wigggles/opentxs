@@ -398,6 +398,7 @@ const api::client::Manager& Context::StartClient(
     return *output;
 }
 
+#if OT_CRYPTO_WITH_BIP39
 const api::client::Manager& Context::StartClient(
     const ArgList& args,
     const int instance,
@@ -417,6 +418,7 @@ const api::client::Manager& Context::StartClient(
 
     return client;
 }
+#endif  // OT_CRYPTO_WITH_BIP39
 
 void Context::start_server(const Lock& lock, const ArgList& args) const
 {

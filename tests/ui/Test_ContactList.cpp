@@ -55,11 +55,9 @@ public:
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
               ""))
-        , nym_id_(identifier::Nym::Factory(client_.Exec().CreateNymHD(
-              proto::CITEMTYPE_INDIVIDUAL,
-              ALICE_NYM_NAME,
-              fingerprint_,
-              0)))
+        , nym_id_(client_.Wallet()
+                      .Nym(reason_, ALICE_NYM_NAME, {fingerprint_, 0})
+                      ->ID())
         , contact_widget_id_("")
         , counter_()
         , counter_lock_()

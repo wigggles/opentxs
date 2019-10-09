@@ -38,6 +38,10 @@ public:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const final;
+    bool RIPEMD160(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        std::uint8_t* output) const final;
 
     OTPassword* InstantiateBinarySecret() const;
 

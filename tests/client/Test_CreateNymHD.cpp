@@ -11,7 +11,7 @@ using namespace opentxs;
 
 namespace
 {
-
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 class Test_CreateNymHD : public ::testing::Test
 {
 public:
@@ -42,11 +42,8 @@ public:
         , BobID("ot274uRuN1VezD47R7SqAH27s2WKP1U5jKWk")
         , EveID("otwz4jCuiVg7UF2i1NgCSvTWeDS29EAHeL6")
         , FrankID("ot2BqchYuY5r747PnGK3SuM4A8bCLtuGASqY")
-        , Alice(
-              client_.Exec()
-                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0))
-        , Bob(client_.Exec()
-                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0))
+        , Alice(client_.Wallet().Nym(reason_, "Alice", {SeedA_, 0})->ID().str())
+        , Bob(client_.Wallet().Nym(reason_, "Bob", {SeedB_, 0})->ID().str())
     {
     }
 };
@@ -62,23 +59,16 @@ TEST_F(Test_CreateNymHD, TestNym_DeterministicIDs)
 
 TEST_F(Test_CreateNymHD, TestNym_ABCD)
 {
-    auto Charly = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Charly", SeedA_, 1);
-    auto Dave = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
-
-    const Nym_p NymA =
+    const auto NymA =
         client_.Wallet().Nym(identifier::Nym::Factory(Alice), reason_);
-    const Nym_p NymB =
+    const auto NymB =
         client_.Wallet().Nym(identifier::Nym::Factory(Bob), reason_);
-    const Nym_p NymC =
-        client_.Wallet().Nym(identifier::Nym::Factory(Charly), reason_);
-    const Nym_p NymD =
-        client_.Wallet().Nym(identifier::Nym::Factory(Dave), reason_);
+    const auto NymC = client_.Wallet().Nym(reason_, "Charly", {SeedA_, 1});
+    const auto NymD = client_.Wallet().Nym(reason_, "Dave", {SeedB_, 1});
 
     // Alice
     proto::HDPath pathA;
-    EXPECT_TRUE(NymA.get()->Path(pathA));
+    EXPECT_TRUE(NymA->Path(pathA));
     EXPECT_STREQ(pathA.root().c_str(), SeedA_.c_str());
     EXPECT_EQ(2, pathA.child_size());
 
@@ -92,7 +82,7 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
 
     // Bob
     proto::HDPath pathB;
-    EXPECT_TRUE(NymB.get()->Path(pathB));
+    EXPECT_TRUE(NymB->Path(pathB));
     EXPECT_STREQ(pathB.root().c_str(), SeedB_.c_str());
     EXPECT_EQ(2, pathB.child_size());
 
@@ -106,7 +96,7 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
 
     // Charly
     proto::HDPath pathC;
-    EXPECT_TRUE(NymC.get()->Path(pathC));
+    EXPECT_TRUE(NymC->Path(pathC));
     EXPECT_STREQ(pathC.root().c_str(), SeedA_.c_str());
     EXPECT_EQ(2, pathC.child_size());
 
@@ -121,13 +111,12 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
 
 TEST_F(Test_CreateNymHD, TestNym_Dave)
 {
-    const auto Dave = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
-    const Nym_p NymD =
-        client_.Wallet().Nym(identifier::Nym::Factory(Dave), reason_);
+    const auto NymD = client_.Wallet().Nym(reason_, "Dave", {SeedB_, 1});
+
+    ASSERT_TRUE(NymD);
 
     proto::HDPath pathD;
-    EXPECT_TRUE(NymD.get()->Path(pathD));
+    EXPECT_TRUE(NymD->Path(pathD));
     EXPECT_STREQ(pathD.root().c_str(), SeedB_.c_str());
     EXPECT_EQ(2, pathD.child_size());
 
@@ -142,18 +131,16 @@ TEST_F(Test_CreateNymHD, TestNym_Dave)
 
 TEST_F(Test_CreateNymHD, TestNym_Eve)
 {
-    auto NewEve = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Eve", SeedB_, 2);
+    const auto NymE = client_.Wallet().Nym(reason_, "Eve", {SeedB_, 2});
+
+    ASSERT_TRUE(NymE);
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    EXPECT_STREQ(EveID.c_str(), NewEve.c_str());
+    EXPECT_EQ(EveID, NymE->ID().str());
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
-    const Nym_p NymE =
-        client_.Wallet().Nym(identifier::Nym::Factory(NewEve), reason_);
-
     proto::HDPath pathE;
-    EXPECT_TRUE(NymE.get()->Path(pathE));
+    EXPECT_TRUE(NymE->Path(pathE));
     EXPECT_STREQ(pathE.root().c_str(), SeedB_.c_str());
     EXPECT_EQ(2, pathE.child_size());
 
@@ -168,25 +155,18 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
 
 TEST_F(Test_CreateNymHD, TestNym_Frank)
 {
-    auto Frank = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Frank", SeedB_, 3);
-    auto Frank2 = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Frank", SeedA_, 3);
+    const auto NymF = client_.Wallet().Nym(reason_, "Frank", {SeedB_, 3});
+    const auto NymF2 = client_.Wallet().Nym(reason_, "Frank", {SeedA_, 3});
 
-    EXPECT_STRNE(Frank.c_str(), Frank2.c_str());
+    EXPECT_NE(NymF->ID(), NymF2->ID());
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    EXPECT_STREQ(FrankID.c_str(), Frank.c_str());
+    EXPECT_EQ(FrankID, NymF->ID().str());
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
-    const Nym_p NymF =
-        client_.Wallet().Nym(identifier::Nym::Factory(Frank), reason_);
-    const Nym_p NymF2 =
-        client_.Wallet().Nym(identifier::Nym::Factory(Frank2), reason_);
-
     proto::HDPath pathF, pathF2;
-    EXPECT_TRUE(NymF.get()->Path(pathF));
-    EXPECT_TRUE(NymF2.get()->Path(pathF2));
+    EXPECT_TRUE(NymF->Path(pathF));
+    EXPECT_TRUE(NymF2->Path(pathF2));
 
     EXPECT_STREQ(pathF.root().c_str(), SeedB_.c_str());
     EXPECT_STREQ(pathF2.root().c_str(), SeedA_.c_str());
@@ -207,20 +187,12 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
 
 TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
 {
-    auto NymID1 = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedC_, 0);
-
-    auto NymID2 = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedC_, 0);
-
-    const Nym_p Nym1 =
-        client_.Wallet().Nym(identifier::Nym::Factory(NymID1), reason_);
-    const Nym_p Nym2 =
-        client_.Wallet().Nym(identifier::Nym::Factory(NymID2), reason_);
+    const auto Nym1 = client_.Wallet().Nym(reason_, "Nym1", {SeedC_, 0});
+    const auto Nym2 = client_.Wallet().Nym(reason_, "Nym2", {SeedC_, 0});
 
     proto::HDPath path1, path2;
-    EXPECT_TRUE(Nym1.get()->Path(path1));
-    EXPECT_TRUE(Nym2.get()->Path(path2));
+    EXPECT_TRUE(Nym1->Path(path1));
+    EXPECT_TRUE(Nym2->Path(path2));
 
     const auto nym1Index = path1.child(1);
     const auto nym2Index = path2.child(1);
@@ -230,24 +202,17 @@ TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
 
 TEST_F(Test_CreateNymHD, TestNym_NegativeIndex)
 {
-    auto NymID1 = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedD_, -1);
-
-    auto NymID2 = client_.Exec().CreateNymHD(
-        proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedD_, -1);
-
-    const Nym_p Nym1 =
-        client_.Wallet().Nym(identifier::Nym::Factory(NymID1), reason_);
-    const Nym_p Nym2 =
-        client_.Wallet().Nym(identifier::Nym::Factory(NymID2), reason_);
+    const auto Nym1 = client_.Wallet().Nym(reason_, "Nym1", {SeedD_, -1});
+    const auto Nym2 = client_.Wallet().Nym(reason_, "Nym2", {SeedD_, -1});
 
     proto::HDPath path1, path2;
-    EXPECT_TRUE(Nym1.get()->Path(path1));
-    EXPECT_TRUE(Nym2.get()->Path(path2));
+    EXPECT_TRUE(Nym1->Path(path1));
+    EXPECT_TRUE(Nym2->Path(path2));
 
     const auto nym1Index = path1.child(1);
     const auto nym2Index = path2.child(1);
 
     ASSERT_NE(nym1Index, nym2Index);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }  // namespace

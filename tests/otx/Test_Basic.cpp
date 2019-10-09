@@ -73,8 +73,6 @@ public:
     static const opentxs::ArgList args_;
     static const std::string SeedA_;
     static const std::string SeedB_;
-    static const std::string Alice_;
-    static const std::string Bob_;
     static const OTNymID alice_nym_id_;
     static const OTNymID bob_nym_id_;
     static const std::shared_ptr<const ServerContract> server_contract_;
@@ -197,12 +195,10 @@ public:
             "anchor skate property fringe obey butter text tank drama "
             "palm guilt pudding laundry stay axis prosper",
             "");
-        const_cast<std::string&>(Alice_) = client_1_.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
-        const_cast<std::string&>(Bob_) = client_2_.Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0);
-        const_cast<OTNymID&>(alice_nym_id_) = identifier::Nym::Factory(Alice_);
-        const_cast<OTNymID&>(bob_nym_id_) = identifier::Nym::Factory(Bob_);
+        const_cast<OTNymID&>(alice_nym_id_) =
+            client_1_.Wallet().Nym(reason_c1_, "Alice", {SeedA_, 0})->ID();
+        const_cast<OTNymID&>(bob_nym_id_) =
+            client_2_.Wallet().Nym(reason_c2_, "Bob", {SeedB_, 0})->ID();
         const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
             server_1_.Wallet().Server(server_1_id_, reason_s1_);
 
@@ -783,8 +779,6 @@ const opentxs::ArgList Test_Basic::args_{
     {{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 const std::string Test_Basic::SeedA_{""};
 const std::string Test_Basic::SeedB_{""};
-const std::string Test_Basic::Alice_{""};
-const std::string Test_Basic::Bob_{""};
 const OTNymID Test_Basic::alice_nym_id_{identifier::Nym::Factory()};
 const OTNymID Test_Basic::bob_nym_id_{identifier::Nym::Factory()};
 const std::shared_ptr<const ServerContract> Test_Basic::server_contract_{

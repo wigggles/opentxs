@@ -43,7 +43,6 @@ public:
         const EcdsaCurve& curve,
         const OTPassword& seed,
         const Path& path) const final;
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const final;
@@ -62,6 +61,7 @@ public:
         const Data& publicKey,
         const OTPassword& privateKey,
         OTPassword& secret) const final;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
     bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
         const final;
     bool Sign(
@@ -102,6 +102,7 @@ private:
 
     const curve_info* get_curve(const EcdsaCurve& curve) const;
     const curve_info* get_curve(const proto::AsymmetricKeyType& curve) const;
+    bool is_valid(const OTPassword& key) const;
 #endif
 
 #if OT_CRYPTO_WITH_BIP32
@@ -119,7 +120,6 @@ private:
         const OTPassword& seed,
         const Path& path,
         Bip32Fingerprint& parentID) const;
-    bool is_valid(const OTPassword& key) const;
 #endif
 
     Trezor(const api::Crypto& crypto);

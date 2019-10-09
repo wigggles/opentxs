@@ -31,15 +31,11 @@
 #include "EcdsaProvider.hpp"
 
 extern "C" {
-#if OT_CRYPTO_WITH_BIP39
 #include <bip39.h>
-#if OT_CRYPTO_WITH_BIP32
 #include <bignum.h>
 #include <bip32.h>
-#include <curves.h>
-#endif
-#endif
 #include <base58.h>
+#include <curves.h>
 #include <ecdsa.h>
 #include <ripemd160.h>
 }
@@ -284,37 +280,6 @@ std::unique_ptr<HDNode> Trezor::instantiate_node(
     return output;
 }
 
-bool Trezor::is_valid(const OTPassword& key) const
-{
-    std::unique_ptr<bignum256> input(new bignum256);
-    std::unique_ptr<bignum256> max(new bignum256);
-
-    OT_ASSERT(input);
-    OT_ASSERT(max);
-
-    bn_read_be(key.getMemory_uint8(), input.get());
-    bn_normalize(input.get());
-    bn_read_be(KeyMax, max.get());
-    bn_normalize(max.get());
-    const bool zero = bn_is_zero(input.get());
-    const bool size = bn_is_less(input.get(), max.get());
-
-    return (!zero && size);
-}
-
-bool Trezor::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
-{
-    bool valid = false;
-
-    do {
-        privateKey.randomizeMemory(256 / 8);
-
-        if (is_valid(privateKey)) { valid = true; }
-    } while (false == valid);
-
-    return ScalarBaseMultiply(privateKey, publicKey);
-}
-
 std::string Trezor::SeedToFingerprint(
     const EcdsaCurve& curve,
     const OTPassword& seed) const
@@ -426,6 +391,37 @@ const curve_info* Trezor::get_curve(const proto::AsymmetricKeyType& curve) const
             OT_FAIL
         }
     }
+}
+
+bool Trezor::is_valid(const OTPassword& key) const
+{
+    std::unique_ptr<bignum256> input(new bignum256);
+    std::unique_ptr<bignum256> max(new bignum256);
+
+    OT_ASSERT(input);
+    OT_ASSERT(max);
+
+    bn_read_be(key.getMemory_uint8(), input.get());
+    bn_normalize(input.get());
+    bn_read_be(KeyMax, max.get());
+    bn_normalize(max.get());
+    const bool zero = bn_is_zero(input.get());
+    const bool size = bn_is_less(input.get(), max.get());
+
+    return (!zero && size);
+}
+
+bool Trezor::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
+{
+    bool valid = false;
+
+    do {
+        privateKey.randomizeMemory(256 / 8);
+
+        if (is_valid(privateKey)) { valid = true; }
+    } while (false == valid);
+
+    return ScalarBaseMultiply(privateKey, publicKey);
 }
 
 bool Trezor::ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)

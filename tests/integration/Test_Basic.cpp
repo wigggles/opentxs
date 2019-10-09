@@ -109,7 +109,6 @@ struct User {
     bool init_;
     std::string seed_id_;
     std::uint32_t index_;
-    std::string id_;
     ot::OTNymID nym_id_;
     std::string payment_code_;
 
@@ -202,8 +201,11 @@ struct User {
         api_ = &api;
         seed_id_ = api.Exec().Wallet_ImportSeed(words_, passphrase_);
         index_ = index;
-        id_ = api.Exec().CreateNymHD(type, name_, seed_id_, index_);
-        nym_id_ = api.Factory().NymID(id_);
+        nym_id_ =
+            api.Wallet()
+                .Nym(
+                    Reason(), name_, {seed_id_, static_cast<int>(index_)}, type)
+                ->ID();
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         payment_code_ = api.Factory()
                             .PaymentCode(seed_id_, index_, 1, Reason())
@@ -224,7 +226,6 @@ struct User {
         , init_(false)
         , seed_id_()
         , index_()
-        , id_()
         , nym_id_(ot::identifier::Nym::Factory())
         , payment_code_()
         , lock_()
@@ -2659,7 +2660,11 @@ TEST_F(Integration, pair_trusted)
         EXPECT_EQ(issuer.PairingCode(), server_1_.password_);
         EXPECT_EQ(server_1_.id_, issuer.PrimaryServer(chris_.Reason()));
         EXPECT_FALSE(issuer.StoreSecretComplete());
+#if OT_CRYPTO_WITH_BIP39
         EXPECT_TRUE(issuer.StoreSecretInitiated());
+#else
+        EXPECT_FALSE(issuer.StoreSecretInitiated());
+#endif  // OT_CRYPTO_WITH_BIP39
     }
 }
 

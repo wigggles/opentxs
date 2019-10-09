@@ -69,8 +69,12 @@ StorageParent::StorageParent(
 }
 
 void StorageParent::init(
-    [[maybe_unused]] const api::Factory& factory,
-    [[maybe_unused]] const api::HDSeed& seeds)
+    [[maybe_unused]] const api::Factory& factory
+#if OT_CRYPTO_WITH_BIP39
+    ,
+    const api::HDSeed& seeds
+#endif  // OT_CRYPTO_WITH_BIP39
+)
 {
     if (encrypted_directory_->empty()) { return; }
 
