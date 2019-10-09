@@ -7,7 +7,6 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Lockable.hpp"
 
 #include "internal/api/Api.hpp"

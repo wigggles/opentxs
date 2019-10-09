@@ -34,7 +34,7 @@ std::int32_t LoadAbbreviatedRecord(
     std::int64_t& lTransactionNum,
     std::int64_t& lInRefTo,
     std::int64_t& lInRefDisplay,
-    time64_t& the_DATE_SIGNED,
+    Time& the_DATE_SIGNED,
     transactionType& theType,
     String& strHash,
     std::int64_t& lAdjustment,

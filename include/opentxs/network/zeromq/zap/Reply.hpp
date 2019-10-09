@@ -44,7 +44,7 @@ public:
     EXPORT virtual bool SetStatus(const std::string& status) = 0;
     EXPORT virtual bool SetUserID(const std::string& userID) = 0;
 
-    EXPORT virtual ~Reply() = default;
+    EXPORT ~Reply() override = default;
 
 protected:
     Reply() = default;
@@ -52,7 +52,9 @@ protected:
 private:
     friend OTZMQZAPReply;
 
-    virtual Reply* clone() const = 0;
+#ifndef _WIN32
+    Reply* clone() const override = 0;
+#endif
 
     Reply(const Reply&) = delete;
     Reply(Reply&&) = delete;

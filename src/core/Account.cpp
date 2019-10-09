@@ -920,7 +920,7 @@ void Account::UpdateContents(const PasswordPrompt& reason)
 
     if (IsStashAcct()) {
         TagPtr tagStash(new Tag("stashinfo"));
-        tagStash->add_attribute("cronItemNum", formatLong(stashTransNum_));
+        tagStash->add_attribute("cronItemNum", std::to_string(stashTransNum_));
         tag.add_tag(tagStash);
     }
     if (!inboxHash_->empty()) {
@@ -1063,8 +1063,8 @@ std::int32_t Account::ProcessXMLNode(
         // I convert to integer / std::int64_t and back to string.
         // (Just an easy way to keep the data clean.)
 
-        time64_t date = parseTimestamp((balanceDate_->Get()));
-        std::int64_t amount = balanceAmount_->ToLong();
+        const auto date = parseTimestamp((balanceDate_->Get()));
+        const Amount amount = balanceAmount_->ToLong();
 
         balanceDate_->Set(String::Factory(formatTimestamp(date)));
         balanceAmount_->Format("%" PRId64, amount);

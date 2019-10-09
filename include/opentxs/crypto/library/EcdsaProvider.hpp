@@ -81,7 +81,7 @@ public:
         OTPassword& privateKey,
         Data& publicKey) const = 0;
 
-    EXPORT virtual ~EcdsaProvider() = default;
+    EXPORT ~EcdsaProvider() override = default;
 
 protected:
     EcdsaProvider() = default;

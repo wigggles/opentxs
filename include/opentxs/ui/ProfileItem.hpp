@@ -37,7 +37,7 @@ public:
     EXPORT virtual bool SetValue(const std::string& value) const noexcept = 0;
     EXPORT virtual std::string Value() const noexcept = 0;
 
-    EXPORT virtual ~ProfileItem() = default;
+    EXPORT ~ProfileItem() override = default;
 
 protected:
     ProfileItem() noexcept = default;

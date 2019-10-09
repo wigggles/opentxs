@@ -64,7 +64,7 @@ public:
     EXPORT static OTNymID Factory(const identity::Nym& nym);
 #endif
 
-    EXPORT virtual ~Nym() = default;
+    EXPORT ~Nym() override = default;
 
 protected:
     Nym() = default;
@@ -72,8 +72,9 @@ protected:
 private:
     friend OTNymID;
 
-    virtual Nym* clone() const = 0;
-
+#ifndef _WIN32
+    Nym* clone() const override = 0;
+#endif
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;
     Nym& operator=(const Nym&) = delete;

@@ -12,7 +12,6 @@
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -88,8 +87,8 @@ OTPayment::OTPayment(const api::Core& core)
     , m_RecipientAcctID(api_.Factory().Identifier())
     , m_RemitterNymID(api_.Factory().NymID())
     , m_RemitterAcctID(api_.Factory().Identifier())
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
+    , m_VALID_FROM()
+    , m_VALID_TO()
 {
     InitPayment();
 }
@@ -113,8 +112,8 @@ OTPayment::OTPayment(const api::Core& core, const String& strPayment)
     , m_RecipientAcctID(api_.Factory().Identifier())
     , m_RemitterNymID(api_.Factory().NymID())
     , m_RemitterAcctID(api_.Factory().Identifier())
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
+    , m_VALID_FROM()
+    , m_VALID_TO()
 {
     InitPayment();
     SetPayment(strPayment);
@@ -290,13 +289,9 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
             }
 
             // NOTE: the "Recipient Acct" is NOT KNOWN when cheque is written,
-            // but
-            // only
-            // once the cheque gets deposited. Therefore if type is CHEQUE, then
-            // Recipient
-            // Acct ID is not set, and attempts to read it will result in
-            // failure.
-            //
+            // but only once the cheque gets deposited. Therefore if type is
+            // CHEQUE, then Recipient Acct ID is not set, and attempts to read
+            // it will result in failure.
             m_RecipientAcctID->Release();
 
             m_VALID_FROM = theInput.GetValidFrom();
@@ -1206,9 +1201,9 @@ bool OTPayment::GetTransactionNum(std::int64_t& lOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetValidFrom(time64_t& tOutput) const
+bool OTPayment::GetValidFrom(Time& tOutput) const
 {
-    tOutput = OT_TIME_ZERO;
+    tOutput = Time{};
 
     if (!m_bAreTempValuesSet) return false;
 
@@ -1233,9 +1228,9 @@ bool OTPayment::GetValidFrom(time64_t& tOutput) const
     return bSuccess;
 }
 
-bool OTPayment::GetValidTo(time64_t& tOutput) const
+bool OTPayment::GetValidTo(Time& tOutput) const
 {
-    tOutput = OT_TIME_ZERO;
+    tOutput = Time{};
 
     if (!m_bAreTempValuesSet) return false;
 
@@ -1271,16 +1266,17 @@ bool OTPayment::IsExpired(bool& bExpired)
 {
     if (!m_bAreTempValuesSet) return false;
 
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    const auto CURRENT_TIME = Clock::now();
 
     // If the current time is AFTER the valid-TO date,
     // AND the valid_to is a nonzero number (0 means "doesn't expire")
     // THEN return true (it's expired.)
     //
-    if ((CURRENT_TIME >= m_VALID_TO) && (m_VALID_TO > OT_TIME_ZERO))
+    if ((CURRENT_TIME >= m_VALID_TO) && (m_VALID_TO > Time{})) {
         bExpired = true;
-    else
+    } else {
         bExpired = false;
+    }
 
     return true;
 }
@@ -1291,13 +1287,14 @@ bool OTPayment::VerifyCurrentDate(bool& bVerified)
 {
     if (!m_bAreTempValuesSet) return false;
 
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    const auto CURRENT_TIME = Clock::now();
 
     if ((CURRENT_TIME >= m_VALID_FROM) &&
-        ((CURRENT_TIME <= m_VALID_TO) || (OT_TIME_ZERO == m_VALID_TO)))
+        ((CURRENT_TIME <= m_VALID_TO) || (Time{} == m_VALID_TO))) {
         bVerified = true;
-    else
+    } else {
         bVerified = false;
+    }
 
     return true;
 }
@@ -1572,8 +1569,8 @@ void OTPayment::InitPayment()
     m_lAmount = 0;
     m_lTransactionNum = 0;
     m_lTransNumDisplay = 0;
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
+    m_VALID_FROM = Time{};
+    m_VALID_TO = Time{};
     m_bAreTempValuesSet = false;
     m_bHasRecipient = false;
     m_bHasRemitter = false;
@@ -1847,8 +1844,8 @@ void OTPayment::Release_Payment()
     m_lAmount = 0;
     m_lTransactionNum = 0;
     m_lTransNumDisplay = 0;
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
+    m_VALID_FROM = Time{};
+    m_VALID_TO = Time{};
     m_strPayment->Release();
     m_bAreTempValuesSet = false;
     m_bHasRecipient = false;

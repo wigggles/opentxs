@@ -46,6 +46,7 @@ public:
     const LogSource& operator()(const OTUnitID& in) const noexcept;
     const LogSource& operator()(const identifier::UnitDefinition& in) const
         noexcept;
+    const LogSource& operator()(const Time in) const noexcept;
     template <typename T>
     const LogSource& operator()(const T& in) const noexcept
     {

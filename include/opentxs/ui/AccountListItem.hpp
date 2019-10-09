@@ -44,7 +44,7 @@ public:
     EXPORT virtual AccountType Type() const noexcept = 0;
     EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
 
-    EXPORT virtual ~AccountListItem() = default;
+    EXPORT ~AccountListItem() override = default;
 
 protected:
     AccountListItem() noexcept = default;

@@ -28,7 +28,7 @@ public:
         const opentxs::storage::Root& root,
         const bool syncPrimary) = 0;
 
-    virtual ~Multiplex() = default;
+    ~Multiplex() override = default;
 
 protected:
     Multiplex() = default;

@@ -147,7 +147,7 @@ public:
         Message& command,
         const PasswordPrompt& reason) = 0;
 
-    EXPORT virtual ~ServerContext() override = default;
+    EXPORT ~ServerContext() override = default;
 
 protected:
     ServerContext() = default;

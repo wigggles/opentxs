@@ -19,7 +19,6 @@
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "Server.hpp"
@@ -113,12 +112,8 @@ bool PayDividendVisitor::Trigger(
     // 3 months ==  7776000 Seconds
     // 6 months == 15552000 Seconds
 
-    const time64_t VALID_FROM =
-        OTTimeGetCurrentTime();  // This time is set to TODAY NOW
-    const time64_t VALID_TO = OTTimeAddTimeInterval(
-        VALID_FROM,
-        OTTimeGetSecondsFromTime(OT_TIME_SIX_MONTHS_IN_SECONDS));  // This time
-                                                                   // occurs in
+    const auto VALID_FROM = Clock::now();
+    const auto VALID_TO = VALID_FROM + std::chrono::hours(24 * 30 * 6);
     // 180 days (6 months).
     // Todo hardcoding.
     TransactionNumber lNewTransactionNumber = 0;
@@ -139,8 +134,7 @@ bool PayDividendVisitor::Trigger(
             VALID_FROM,  // The expiration date (valid from/to dates) of the
                          // cheque
             VALID_TO,  // Vouchers are automatically starting today and lasting
-                       // 6
-                       // months.
+                       // 6 months.
             theVoucherAcctID,  // The asset account the cheque is drawn on.
             theServerNymID,    // Nym ID of the sender (in this case the server
                                // nym.)

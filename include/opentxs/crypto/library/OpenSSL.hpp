@@ -42,7 +42,7 @@ public:
     virtual void Cleanup() = 0;
     virtual void Init() = 0;
 
-    virtual ~OpenSSL() = default;
+    ~OpenSSL() override = default;
 
 protected:
     OpenSSL() = default;

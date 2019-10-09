@@ -9,7 +9,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -28,8 +27,7 @@ class Factory;
 /** mapOfCronItems:      Mapped (uniquely) to transaction number. */
 typedef std::map<std::int64_t, std::shared_ptr<OTCronItem>> mapOfCronItems;
 /** multimapOfCronItems: Mapped to date the item was added to Cron. */
-typedef std::multimap<time64_t, std::shared_ptr<OTCronItem>>
-    multimapOfCronItems;
+typedef std::multimap<Time, std::shared_ptr<OTCronItem>> multimapOfCronItems;
 /** Mapped (uniquely) to market ID. */
 typedef std::map<std::string, std::shared_ptr<OTMarket>> mapOfMarkets;
 /** Cron stores a bunch of these on this list, which the server refreshes from
@@ -74,8 +72,8 @@ public:
     // RECURRING TRANSACTIONS
     bool AddCronItem(
         std::shared_ptr<OTCronItem> theItem,
-        bool bSaveReceipt,
-        time64_t tDateAdded);  // Date it was FIRST added to Cron.
+        const bool bSaveReceipt,
+        const Time tDateAdded);  // Date it was FIRST added to Cron.
     /** if returns false, item wasn't found. */
     bool RemoveCronItem(
         std::int64_t lTransactionNum,

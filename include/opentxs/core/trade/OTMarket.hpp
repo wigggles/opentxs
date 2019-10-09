@@ -19,9 +19,9 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <map>
@@ -60,8 +60,8 @@ public:
         OTTrade* pTrade,
         OTOffer& theOffer,
         const PasswordPrompt& reason,
-        bool bSaveFile = true,
-        time64_t tDateAddedToMarket = OT_TIME_ZERO);
+        const bool bSaveFile = true,
+        const Time tDateAddedToMarket = {});
     bool RemoveOffer(
         const std::int64_t& lTransactionNum,
         const PasswordPrompt& reason);

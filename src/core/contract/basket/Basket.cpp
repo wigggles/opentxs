@@ -10,7 +10,6 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 #include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Log.hpp"
@@ -300,8 +299,8 @@ void Basket::GenerateContents(StringXML& xmlUnsigned, bool bHideAccountID) const
 
     Tag tag("currencyBasket");
 
-    tag.add_attribute("contractCount", formatInt(m_nSubCount));
-    tag.add_attribute("minimumTransfer", formatLong(m_lMinimumTransfer));
+    tag.add_attribute("contractCount", std::to_string(m_nSubCount));
+    tag.add_attribute("minimumTransfer", std::to_string(m_lMinimumTransfer));
 
     // Only used in Request Basket (requesting an exchange in/out.)
     // (Versus a basket object used for ISSUING a basket currency, this is
@@ -313,10 +312,10 @@ void Basket::GenerateContents(StringXML& xmlUnsigned, bool bHideAccountID) const
         TagPtr tagRequest(new Tag("requestExchange"));
 
         tagRequest->add_attribute(
-            "transferMultiple", formatInt(m_nTransferMultiple));
+            "transferMultiple", std::to_string(m_nTransferMultiple));
         tagRequest->add_attribute("transferAccountID", strRequestAcctID->Get());
         tagRequest->add_attribute(
-            "closingTransactionNo", formatLong(m_lClosingTransactionNo));
+            "closingTransactionNo", std::to_string(m_lClosingTransactionNo));
         tagRequest->add_attribute("direction", m_bExchangingIn ? "in" : "out");
 
         tag.add_tag(tagRequest);
@@ -335,7 +334,7 @@ void Basket::GenerateContents(StringXML& xmlUnsigned, bool bHideAccountID) const
         TagPtr tagItem(new Tag("basketItem"));
 
         tagItem->add_attribute(
-            "minimumTransfer", formatLong(pItem->lMinimumTransferAmount));
+            "minimumTransfer", std::to_string(pItem->lMinimumTransferAmount));
         tagItem->add_attribute(
             "accountID", bHideAccountID ? "" : strAcctID->Get());
         tagItem->add_attribute("instrumentDefinitionID", strContractID->Get());
@@ -343,7 +342,7 @@ void Basket::GenerateContents(StringXML& xmlUnsigned, bool bHideAccountID) const
         if (IsExchanging()) {
             tagItem->add_attribute(
                 "closingTransactionNo",
-                formatLong(pItem->lClosingTransactionNo));
+                std::to_string(pItem->lClosingTransactionNo));
         }
 
         tag.add_tag(tagItem);

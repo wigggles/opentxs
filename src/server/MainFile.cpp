@@ -15,7 +15,6 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/AccountList.hpp"
@@ -59,7 +58,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     tag.add_attribute("serverNymID", server_.GetServerNym().ID().str());
     tag.add_attribute(
         "transactionNum",
-        formatLong(server_.GetTransactor().transactionNumber()));
+        std::to_string(server_.GetTransactor().transactionNumber()));
 
     // Save the basket account information
 

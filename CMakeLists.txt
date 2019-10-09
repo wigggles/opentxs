@@ -204,7 +204,7 @@ endif()
 
 set_common_defines()
 
-if (APPLE)
+if(APPLE)
   add_definitions(-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED)
 endif()
 

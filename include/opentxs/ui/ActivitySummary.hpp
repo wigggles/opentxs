@@ -35,7 +35,7 @@ public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem> Next()
         const noexcept = 0;
 
-    EXPORT virtual ~ActivitySummary() = default;
+    EXPORT ~ActivitySummary() override = default;
 
 protected:
     ActivitySummary() = default;

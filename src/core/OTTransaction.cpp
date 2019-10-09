@@ -60,7 +60,7 @@ OTTransaction::OTTransaction(const api::Core& core)
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
     , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_DATE_SIGNED()
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
@@ -94,7 +94,7 @@ OTTransaction::OTTransaction(const api::Core& core, const Ledger& theOwner)
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
     , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_DATE_SIGNED()
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
@@ -124,7 +124,7 @@ OTTransaction::OTTransaction(
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,
-    originType theOriginType /*=originType::not_applicable*/)
+    const originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(
           core,
           theNymID,
@@ -137,7 +137,7 @@ OTTransaction::OTTransaction(
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
     , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_DATE_SIGNED()
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
@@ -161,8 +161,8 @@ OTTransaction::OTTransaction(
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,
-    std::int64_t lTransactionNum,
-    originType theOriginType /*=originType::not_applicable*/)
+    const std::int64_t lTransactionNum,
+    const originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(
           core,
           theNymID,
@@ -176,7 +176,7 @@ OTTransaction::OTTransaction(
     , m_lDisplayAmount(0)
     , m_lInRefDisplay(0)
     , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_DATE_SIGNED()
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
@@ -208,18 +208,18 @@ OTTransaction::OTTransaction(
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,
     const std::int64_t& lNumberOfOrigin,
-    originType theOriginType,
+    const originType theOriginType,
     const std::int64_t& lTransactionNum,
     const std::int64_t& lInRefTo,
     const std::int64_t& lInRefDisplay,
-    time64_t the_DATE_SIGNED,
-    transactionType theType,
+    const Time the_DATE_SIGNED,
+    const transactionType theType,
     const String& strHash,
     const std::int64_t& lAdjustment,
     const std::int64_t& lDisplayValue,
     const std::int64_t& lClosingNum,
     const std::int64_t& lRequestNum,
-    bool bReplyTransSuccess,
+    const bool bReplyTransSuccess,
     NumList* pNumList)
     : OTTransactionType(
           core,
@@ -234,7 +234,7 @@ OTTransaction::OTTransaction(
     , m_lDisplayAmount(lDisplayValue)
     , m_lInRefDisplay(lInRefDisplay)
     , m_Hash(Identifier::Factory(strHash))
-    , m_DATE_SIGNED(the_DATE_SIGNED)
+    , m_DATE_SIGNED()
     , m_Type(theType)
     , m_listItems()
     , m_lClosingTransactionNo(lClosingNum)
@@ -3290,8 +3290,8 @@ void OTTransaction::InitTransaction()
     m_strContractType =
         String::Factory("TRANSACTION");  // CONTRACT, MESSAGE, TRANSACTION,
                                          // LEDGER, TRANSACTION ITEM
-    m_DATE_SIGNED = OT_TIME_ZERO;  // Make sure to set this to the current time
-                                   // whenever contract is signed.
+    m_DATE_SIGNED = Time{};  // Make sure to set this to the current time
+                             // whenever contract is signed.
     m_Type = transactionType::error_state;
     m_lClosingTransactionNo = 0;
     m_lRequestNumber = 0;
@@ -3920,7 +3920,7 @@ std::int32_t OTTransaction::ProcessXMLNode(
         std::int64_t lInRefTo = 0;
         std::int64_t lInRefDisplay = 0;
 
-        time64_t the_DATE_SIGNED = OT_TIME_ZERO;
+        Time the_DATE_SIGNED = Time{};
         transactionType theType = transactionType::error_state;  // default
         auto strHash = String::Factory();
 
@@ -4010,10 +4010,10 @@ std::int32_t OTTransaction::ProcessXMLNode(
 
         auto strDateSigned =
             String::Factory(xml->getAttributeValue("dateSigned"));
-        const std::int64_t lDateSigned =
-            strDateSigned->Exists() ? parseTimestamp(strDateSigned->Get()) : 0;
-        m_DATE_SIGNED =
-            OTTimeGetTimeFromSeconds(lDateSigned);  // Todo casting ?
+        const auto lDateSigned = strDateSigned->Exists()
+                                     ? parseTimestamp(strDateSigned->Get())
+                                     : Time{};
+        m_DATE_SIGNED = lDateSigned;
 
         const auto strAcctID =
             String::Factory(xml->getAttributeValue("accountID"));
@@ -4247,7 +4247,7 @@ void OTTransaction::UpdateContents(const PasswordPrompt& reason)
     tag.add_attribute("accountID", strAcctID->Get());
     tag.add_attribute("nymID", strNymID->Get());
     tag.add_attribute("notaryID", strNotaryID->Get());
-    tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    tag.add_attribute("numberOfOrigin", std::to_string(GetRawNumberOfOrigin()));
     tag.add_attribute("inboxHash", GetInboxHash()->str());
     tag.add_attribute("outboxHash", GetOutboxHash()->str());
     tag.add_attribute("accountHash", GetAccountHash()->str());
@@ -4257,15 +4257,15 @@ void OTTransaction::UpdateContents(const PasswordPrompt& reason)
         tag.add_attribute("originType", strOriginType->Get());
     }
 
-    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
-    tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+    tag.add_attribute("transactionNum", std::to_string(GetTransactionNum()));
+    tag.add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if (m_bCancelled) {
         tag.add_attribute("cancelled", formatBool(m_bCancelled));
     }
 
     if (transactionType::replyNotice == m_Type) {
-        tag.add_attribute("requestNumber", formatLong(m_lRequestNumber));
+        tag.add_attribute("requestNumber", std::to_string(m_lRequestNumber));
         tag.add_attribute("transSuccess", formatBool(m_bReplyTransSuccess));
     }
 
@@ -4337,7 +4337,7 @@ void OTTransaction::UpdateContents(const PasswordPrompt& reason)
             (transactionType::basketReceipt == m_Type)) {
             TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
             tagClosingNo->add_attribute(
-                "value", formatLong(m_lClosingTransactionNo));
+                "value", std::to_string(m_lClosingTransactionNo));
             tag.add_tag(tagClosingNo);
         }
 
@@ -4508,11 +4508,11 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(
     pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
     pTag->add_attribute("receiptHash", strHash->Get());
-    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
-    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
+    pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", formatLong(GetReferenceNumForDisplay(reason)));
-    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+    pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());
@@ -4600,11 +4600,11 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(
     pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
     pTag->add_attribute("receiptHash", strHash->Get());
-    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
-    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
+    pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", formatLong(GetReferenceNumForDisplay(reason)));
-    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+    pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());
@@ -4813,23 +4813,24 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(
     pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
     pTag->add_attribute("receiptHash", strHash->Get());
-    pTag->add_attribute("adjustment", formatLong(lAdjustment));
-    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
-    pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    pTag->add_attribute("adjustment", std::to_string(lAdjustment));
+    pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
+    pTag->add_attribute(
+        "numberOfOrigin", std::to_string(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType->Get());
     }
 
-    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", formatLong(GetReferenceNumForDisplay(reason)));
-    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+    pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if ((transactionType::finalReceipt == m_Type) ||
         (transactionType::basketReceipt == m_Type))
-        pTag->add_attribute("closingNum", formatLong(GetClosingNum()));
+        pTag->add_attribute("closingNum", std::to_string(GetClosingNum()));
 
     parent.add_tag(pTag);
 }
@@ -4945,10 +4946,10 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(
     pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
     pTag->add_attribute("receiptHash", strHash->Get());
-    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", formatLong(GetReferenceNumForDisplay(reason)));
-    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+    pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());
@@ -4960,12 +4961,13 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(
     // receipt notice. Probably can remove that line.
     if ((transactionType::finalReceipt == m_Type) ||
         (transactionType::basketReceipt == m_Type))
-        pTag->add_attribute("closingNum", formatLong(GetClosingNum()));
+        pTag->add_attribute("closingNum", std::to_string(GetClosingNum()));
     else {
         if (strListOfBlanks->Exists())
             pTag->add_attribute("totalListOfNumbers", strListOfBlanks->Get());
         if (bAddRequestNumber) {
-            pTag->add_attribute("requestNumber", formatLong(m_lRequestNumber));
+            pTag->add_attribute(
+                "requestNumber", std::to_string(m_lRequestNumber));
             pTag->add_attribute(
                 "transSuccess", formatBool(m_bReplyTransSuccess));
         }
@@ -4973,7 +4975,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(
             // IF this transaction is passing through on its
             // way to the paymentInbox, it will have a
             // displayValue.
-            pTag->add_attribute("displayValue", formatLong(lDisplayValue));
+            pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
         }
     }
 
@@ -5051,19 +5053,20 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(
     pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
     pTag->add_attribute("receiptHash", strHash->Get());
-    pTag->add_attribute("adjustment", formatLong(lAdjustment));
-    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
-    pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    pTag->add_attribute("adjustment", std::to_string(lAdjustment));
+    pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
+    pTag->add_attribute(
+        "numberOfOrigin", std::to_string(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType->Get());
     }
 
-    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", formatLong(GetReferenceNumForDisplay(reason)));
-    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+    pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     parent.add_tag(pTag);
 }
@@ -5208,23 +5211,24 @@ void OTTransaction::SaveAbbreviatedInboxRecord(
     pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
     pTag->add_attribute("receiptHash", strHash->Get());
-    pTag->add_attribute("adjustment", formatLong(lAdjustment));
-    pTag->add_attribute("displayValue", formatLong(lDisplayValue));
-    pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    pTag->add_attribute("adjustment", std::to_string(lAdjustment));
+    pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
+    pTag->add_attribute(
+        "numberOfOrigin", std::to_string(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());
         pTag->add_attribute("originType", strOriginType->Get());
     }
 
-    pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", formatLong(GetReferenceNumForDisplay(reason)));
-    pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+    pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if ((transactionType::finalReceipt == m_Type) ||
         (transactionType::basketReceipt == m_Type))
-        pTag->add_attribute("closingNum", formatLong(GetClosingNum()));
+        pTag->add_attribute("closingNum", std::to_string(GetClosingNum()));
 
     parent.add_tag(pTag);
 }

@@ -33,7 +33,7 @@ public:
     EXPORT virtual bool SetPrivateKey(const std::string& z85) const
         noexcept = 0;
 
-    EXPORT virtual ~Server() = default;
+    EXPORT ~Server() override = default;
 
 protected:
     Server() noexcept = default;

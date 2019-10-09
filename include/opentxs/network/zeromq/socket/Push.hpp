@@ -34,7 +34,7 @@ namespace socket
 class Push : virtual public curve::Client, virtual public Sender
 {
 public:
-    EXPORT virtual ~Push() = default;
+    EXPORT ~Push() override = default;
 
 protected:
     Push() noexcept = default;

@@ -35,7 +35,7 @@ public:
     EXPORT virtual void FinishAcknowledgements(const RequestNumbers& req) = 0;
     EXPORT virtual bool IssueNumber(const TransactionNumber& number) = 0;
 
-    virtual ~ClientContext() override = default;
+    EXPORT ~ClientContext() override = default;
 
 protected:
     ClientContext() = default;

@@ -26,7 +26,7 @@ public:
     EXPORT virtual OTPaymentCode LocalPaymentCode() const noexcept = 0;
     EXPORT virtual OTPaymentCode RemotePaymentCode() const noexcept = 0;
 
-    EXPORT virtual ~PaymentCode() = default;
+    EXPORT ~PaymentCode() override = default;
 
 protected:
     PaymentCode() noexcept = default;

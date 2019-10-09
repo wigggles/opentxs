@@ -1685,8 +1685,8 @@ TEST_F(Test_Basic, send_cheque)
     std::unique_ptr<Cheque> cheque{client_1_.OTAPI().WriteCheque(
         server_1_id_,
         CHEQUE_AMOUNT,
-        0,
-        0,
+        {},
+        {},
         find_issuer_account(),
         alice_nym_id_,
         String::Factory(CHEQUE_MEMO),

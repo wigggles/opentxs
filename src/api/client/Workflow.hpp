@@ -176,7 +176,6 @@ private:
     extract_conveyed_time(const proto::PaymentWorkflow& workflow);
     static bool isCheque(const opentxs::Cheque& cheque);
     static bool isTransfer(const Item& item);
-    static std::int64_t now() { return std::time(nullptr); }
     static bool validate_recipient(
         const identifier::Nym& nymID,
         const opentxs::Cheque& cheque);
@@ -202,8 +201,7 @@ private:
         const VersionNumber version,
         const identifier::Nym& recipientNymID,
         const OTTransaction& receipt,
-        const std::chrono::time_point<std::chrono::system_clock> time =
-            std::chrono::system_clock::from_time_t(now())) const;
+        const Time time = Clock::now()) const;
     bool add_transfer_event(
         const eLock& lock,
         const std::string& nymID,

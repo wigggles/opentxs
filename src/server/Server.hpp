@@ -9,7 +9,6 @@
 
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"

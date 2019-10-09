@@ -52,7 +52,7 @@ public:
         const proto::OTXPush& push,
         const PasswordPrompt& reason) = 0;
 
-    EXPORT virtual ~Reply() = default;
+    EXPORT ~Reply() override = default;
 
 protected:
     Reply() = default;

@@ -63,7 +63,7 @@ public:
 
     EXPORT virtual void Start() = 0;
 
-    EXPORT virtual ~Manager() = default;
+    EXPORT ~Manager() override = default;
 
 protected:
     Manager() = default;

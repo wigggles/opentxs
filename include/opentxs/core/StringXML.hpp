@@ -38,7 +38,7 @@ public:
     EXPORT virtual StringXML& operator=(const String& rhs) = 0;
     EXPORT virtual StringXML& operator=(const StringXML& rhs) = 0;
 
-    EXPORT virtual ~StringXML() = default;
+    EXPORT ~StringXML() override = default;
 
 protected:
     StringXML() = default;

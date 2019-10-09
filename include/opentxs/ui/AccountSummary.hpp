@@ -28,7 +28,7 @@ public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> Next() const
         noexcept = 0;
 
-    EXPORT virtual ~AccountSummary() = default;
+    EXPORT ~AccountSummary() override = default;
 
 protected:
     AccountSummary() noexcept = default;

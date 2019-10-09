@@ -28,7 +28,7 @@ class Sodium : virtual public api::crypto::Util
                virtual public SymmetricProvider
 {
 public:
-    virtual ~Sodium() = default;
+    ~Sodium() override = default;
 
 protected:
     Sodium() = default;

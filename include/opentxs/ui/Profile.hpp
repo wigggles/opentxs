@@ -134,7 +134,7 @@ public:
         const std::string& claimID,
         const std::string& value) const noexcept = 0;
 
-    EXPORT virtual ~Profile() = default;
+    EXPORT ~Profile() override = default;
 
 protected:
     Profile() noexcept = default;

@@ -13,7 +13,6 @@
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -227,31 +226,28 @@ bool OTCron::GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount)
         // --------------------------------------------
         const std::int64_t& lScale = pMarket->GetScale();
 
-        pMarketData->scale = to_string<std::int64_t>(lScale);
+        pMarketData->scale = std::to_string(lScale);
 
         const std::uint64_t theCurrentBid = pMarket->GetHighestBidPrice();
         const std::uint64_t theCurrentAsk = pMarket->GetLowestAskPrice();
 
-        pMarketData->current_bid = to_string<std::uint64_t>(theCurrentBid);
-        pMarketData->current_ask = to_string<std::uint64_t>(theCurrentAsk);
+        pMarketData->current_bid = std::to_string(theCurrentBid);
+        pMarketData->current_ask = std::to_string(theCurrentAsk);
 
         const std::int64_t& lLastSalePrice = pMarket->GetLastSalePrice();
         const std::int64_t& lTotalAvailableAssets =
             pMarket->GetTotalAvailableAssets();
 
-        pMarketData->total_assets =
-            to_string<std::int64_t>(lTotalAvailableAssets);
-        pMarketData->last_sale_price = to_string<std::int64_t>(lLastSalePrice);
+        pMarketData->total_assets = std::to_string(lTotalAvailableAssets);
+        pMarketData->last_sale_price = std::to_string(lLastSalePrice);
 
         pMarketData->last_sale_date = pMarket->GetLastSaleDate();
 
         const mapOfOffers::size_type theBidCount = pMarket->GetBidCount();
         const mapOfOffers::size_type theAskCount = pMarket->GetAskCount();
 
-        pMarketData->number_bids =
-            to_string<mapOfOffers::size_type>(theBidCount);
-        pMarketData->number_asks =
-            to_string<mapOfOffers::size_type>(theAskCount);
+        pMarketData->number_bids = std::to_string(theBidCount);
+        pMarketData->number_asks = std::to_string(theAskCount);
 
         // In the past 24 hours.
         // (I'm not collecting this data yet, (maybe never), so these values
@@ -400,10 +396,9 @@ std::int32_t OTCron::ProcessXMLNode(
     } else if (!strcmp("cronItem", xml->getNodeName())) {
         const auto str_date_added =
             String::Factory(xml->getAttributeValue("dateAdded"));
-        const std::int64_t lDateAdded =
-            (!str_date_added->Exists() ? 0
+        const auto tDateAdded =
+            (!str_date_added->Exists() ? Time{}
                                        : parseTimestamp(str_date_added->Get()));
-        const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
 
         auto strData = String::Factory();
 
@@ -554,7 +549,7 @@ void OTCron::UpdateContents(const PasswordPrompt& reason)
             "instrumentDefinitionID", str_INSTRUMENT_DEFINITION_ID->Get());
         tagMarket->add_attribute("currencyID", str_CURRENCY_ID->Get());
         tagMarket->add_attribute(
-            "marketScale", formatLong(pMarket->GetScale()));
+            "marketScale", std::to_string(pMarket->GetScale()));
         tag.add_tag(tagMarket);
     }
 
@@ -563,7 +558,7 @@ void OTCron::UpdateContents(const PasswordPrompt& reason)
         auto pItem = it.second;
         OT_ASSERT(false != bool(pItem));
 
-        time64_t tDateAdded = it.first;
+        const auto tDateAdded{it.first};
         auto strItem = String::Factory(*pItem);  // Extract the cron item
                                                  // contract into string form.
         auto ascItem =
@@ -578,7 +573,7 @@ void OTCron::UpdateContents(const PasswordPrompt& reason)
     //
     for (auto& lTransactionNumber : m_listTransactionNumbers) {
         TagPtr tagNumber(new Tag("transactionNum"));
-        tagNumber->add_attribute("value", formatLong(lTransactionNumber));
+        tagNumber->add_attribute("value", std::to_string(lTransactionNumber));
         tag.add_tag(tagNumber);
     }  // for
 
@@ -678,8 +673,8 @@ void OTCron::ProcessCronItems()
 // also make sure to delete it again if this call fails!
 bool OTCron::AddCronItem(
     std::shared_ptr<OTCronItem> theItem,
-    bool bSaveReceipt,
-    time64_t tDateAdded)
+    const bool bSaveReceipt,
+    const Time tDateAdded)
 {
     OT_ASSERT(nullptr != GetServerNym());
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
@@ -728,8 +723,7 @@ bool OTCron::AddCronItem(
         //
         m_multimapCronItems.insert(
             m_multimapCronItems.upper_bound(tDateAdded),
-            std::pair<time64_t, std::shared_ptr<OTCronItem>>(
-                tDateAdded, theItem));
+            std::pair<Time, std::shared_ptr<OTCronItem>>(tDateAdded, theItem));
 
         theItem->SetCronPointer(*this);
         theItem->setServerNym(m_pServerNym);

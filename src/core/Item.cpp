@@ -13,7 +13,6 @@
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -1887,20 +1886,20 @@ void Item::UpdateContents(const PasswordPrompt& reason)  // Before transmission
     tag.add_attribute("status", strStatus->Get());
     tag.add_attribute(
         "numberOfOrigin",  // GetRaw so it doesn't calculate.
-        formatLong(GetRawNumberOfOrigin()));
+        std::to_string(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());
         tag.add_attribute("originType", strOriginType->Get());
     }
 
-    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    tag.add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     tag.add_attribute("notaryID", strNotaryID->Get());
     tag.add_attribute("nymID", strNymID->Get());
     tag.add_attribute("fromAccountID", strFromAcctID->Get());
     tag.add_attribute("toAccountID", strToAcctID->Get());
-    tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
-    tag.add_attribute("amount", formatLong(m_lAmount));
+    tag.add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
+    tag.add_attribute("amount", std::to_string(m_lAmount));
 
     // Only used in server reply item:
     // atBalanceStatement. In cases
@@ -1916,7 +1915,7 @@ void Item::UpdateContents(const PasswordPrompt& reason)  // Before transmission
     // last signed receipt.
     if (m_lNewOutboxTransNum > 0)
         tag.add_attribute(
-            "outboxNewTransNum", formatLong(m_lNewOutboxTransNum));
+            "outboxNewTransNum", std::to_string(m_lNewOutboxTransNum));
     else {
         // IF this item is "acceptTransaction" then this
         // will serialize the list of transaction numbers
@@ -1964,12 +1963,13 @@ void Item::UpdateContents(const PasswordPrompt& reason)  // Before transmission
                 "type",
                 receiptType->Exists() ? receiptType->Get() : "error_state");
             tagReport->add_attribute(
-                "adjustment", formatLong(pItem->GetAmount()));
+                "adjustment", std::to_string(pItem->GetAmount()));
             tagReport->add_attribute("accountID", acctID->Get());
             tagReport->add_attribute("nymID", nymID->Get());
             tagReport->add_attribute("notaryID", notaryID->Get());
             tagReport->add_attribute(
-                "numberOfOrigin", formatLong(pItem->GetRawNumberOfOrigin()));
+                "numberOfOrigin",
+                std::to_string(pItem->GetRawNumberOfOrigin()));
 
             if (pItem->GetOriginType() != originType::not_applicable) {
                 auto strOriginType =
@@ -1978,11 +1978,12 @@ void Item::UpdateContents(const PasswordPrompt& reason)  // Before transmission
             }
 
             tagReport->add_attribute(
-                "transactionNum", formatLong(pItem->GetTransactionNum()));
+                "transactionNum", std::to_string(pItem->GetTransactionNum()));
             tagReport->add_attribute(
-                "closingTransactionNum", formatLong(pItem->GetClosingNum()));
+                "closingTransactionNum",
+                std::to_string(pItem->GetClosingNum()));
             tagReport->add_attribute(
-                "inReferenceTo", formatLong(pItem->GetReferenceToNum()));
+                "inReferenceTo", std::to_string(pItem->GetReferenceToNum()));
 
             tag.add_tag(tagReport);
         }

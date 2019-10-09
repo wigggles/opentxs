@@ -64,7 +64,7 @@ public:
     EXPORT virtual bool SetDraft(const std::string& draft) const noexcept = 0;
     EXPORT virtual std::string ThreadID() const noexcept = 0;
 
-    EXPORT virtual ~ActivityThread() = default;
+    EXPORT ~ActivityThread() override = default;
 
 protected:
     ActivityThread() noexcept = default;

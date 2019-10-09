@@ -29,7 +29,6 @@
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -1499,11 +1498,9 @@ void Notary::NotarizeWithdrawal(
                 // 3 months ==  7776000 Seconds
                 // 6 months == 15552000 Seconds
 
-                const time64_t VALID_FROM =
-                    OTTimeGetCurrentTime();  // This time is set to TODAY NOW
-                const time64_t VALID_TO = OTTimeAddTimeInterval(
-                    VALID_FROM,
-                    OTTimeGetSecondsFromTime(OT_TIME_SIX_MONTHS_IN_SECONDS));
+                const auto VALID_FROM = Clock::now();
+                const auto VALID_TO =
+                    VALID_FROM + std::chrono::hours(24 * 30 * 6);
 
                 // UPDATE: We now use a transaction number owned by the
                 // remitter, instead of the transaction server.
@@ -1513,7 +1510,7 @@ void Notary::NotarizeWithdrawal(
                 // lNewTransactionNumber);
                 // We save the transaction
                 // number on the server Nym (normally we'd discard it) because
-                const std::int64_t lAmount =
+                const Amount lAmount =
                     theVoucherRequest->GetAmount();  // when the cheque is
                 // deposited, the server nym,
                 // as the owner of
@@ -1536,8 +1533,7 @@ void Notary::NotarizeWithdrawal(
                     VALID_TO,  // Vouchers are automatically starting today and
                                // lasting 6 months.
                     VOUCHER_ACCOUNT_ID,  // The asset account the cheque is
-                                         // drawn
-                                         // on.
+                                         // drawn on.
                     NOTARY_NYM_ID,  // Nym ID of the sender (in this case the
                                     // server.)
                     strChequeMemo,  // Optional memo field. Includes item
@@ -2342,24 +2338,10 @@ void Notary::NotarizePayDividend(
                                     auto theVoucher{manager_.Factory().Cheque(
                                         NOTARY_ID,
                                         PAYOUT_INSTRUMENT_DEFINITION_ID)};
-
-                                    // 10 minutes ==    600 Seconds
-                                    // 1 hour    ==     3600 Seconds
-                                    // 1 day    ==    86400 Seconds
-                                    // 30 days    ==  2592000 Seconds
-                                    // 3 months ==  7776000 Seconds
-                                    // 6 months == 15552000 Seconds
-
-                                    const time64_t VALID_FROM =
-                                        OTTimeGetCurrentTime();  // This time is
-                                                                 // set to TODAY
-                                                                 // NOW
-                                    const time64_t VALID_TO =
-                                        OTTimeAddTimeInterval(
-                                            VALID_FROM,
-                                            OTTimeGetSecondsFromTime(
-                                                OT_TIME_SIX_MONTHS_IN_SECONDS));  // This time occurs in 180 days (6 months).  Todo hardcoding.
-
+                                    const auto VALID_FROM = Clock::now();
+                                    const auto VALID_TO =
+                                        VALID_FROM +
+                                        std::chrono::hours(24 * 30 * 6);
                                     std::int64_t lNewTransactionNumber = 0;
                                     const bool bGotNextTransNum =
                                         server_.GetTransactor()
@@ -2381,38 +2363,42 @@ void Notary::NotarizePayDividend(
                                         const bool bIssueVoucher =
                                             theVoucher->IssueCheque(
                                                 lLeftovers,  // The amount of
-                                                             // the
-                                                             // cheque.
+                                                             // the cheque.
                                                 lNewTransactionNumber,  // Requiring
                                                                         // a
-                                                // transaction
-                                                // number
-                                                // prevents
-                                                // double-spending
-                                                // of
-                                                // cheques.
+                                                                        // transaction
+                                                                        // number
+                                                                        // prevents
+                                                                        // double-spending
+                                                                        // of
+                                                                        // cheques.
                                                 VALID_FROM,  // The expiration
-                                                             // date
-                                                // (valid from/to dates)
-                                                // of the cheque
-                                                VALID_TO,  // Vouchers are
-                                                // automatically starting
-                                                // today and lasting 6
-                                                // months.
+                                                             // date (valid
+                                                             // from/to dates)
+                                                             // of the cheque
+                                                VALID_TO,    // Vouchers are
+                                                             // automatically
+                                                // starting today and
+                                                // lasting 6 months.
                                                 VOUCHER_ACCOUNT_ID,  // The
                                                                      // asset
-                                                // account the
-                                                // cheque is
-                                                // drawn on.
+                                                                     // account
+                                                                     // the
+                                                                     // cheque
+                                                                     // is drawn
+                                                                     // on.
                                                 NOTARY_NYM_ID,  // Nym ID of the
-                                                // sender (in this
-                                                // case the server
-                                                // nym.)
+                                                                // sender (in
+                                                                // this case the
+                                                                // server nym.)
                                                 strInReferenceTo,  // Optional
                                                                    // memo
-                                                // field. Includes
-                                                // item note and
-                                                // request memo.
+                                                                   // field.
+                                                                   // Includes
+                                                                   // item note
+                                                                   // and
+                                                                   // request
+                                                                   // memo.
                                                 NYM_ID);
 
                                         // All account crediting / debiting
@@ -3193,7 +3179,7 @@ void Notary::NotarizePaymentPlan(
                                     server_.Cron().AddCronItem(
                                         plan,
                                         true,
-                                        OTTimeGetCurrentTime()))  // bSaveReceipt=true
+                                        Clock::now()))  // bSaveReceipt=true
                                 {
                                     // todo need to be able to "roll back" if
                                     // anything inside this block fails.
@@ -4120,7 +4106,7 @@ void Notary::NotarizeSmartContract(
                     }
                     // Add it to Cron...
                     else if (server_.Cron().AddCronItem(
-                                 contract, true, OTTimeGetCurrentTime())) {
+                                 contract, true, Clock::now())) {
                         // We add the smart contract to the server's
                         // Cron object, which does regular processing.
                         // That object will take care of processing the
@@ -5756,7 +5742,7 @@ void Notary::NotarizeMarketOffer(
                 if (server_.Cron().AddCronItem(
                         trade,
                         true,
-                        OTTimeGetCurrentTime()))  // bSaveReceipt=true
+                        Clock::now()))  // bSaveReceipt=true
                 {
                     // todo need to be able to "roll back" if anything
                     // inside this block fails.

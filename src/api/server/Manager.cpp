@@ -193,13 +193,13 @@ void Manager::generate_mint(
     OT_ASSERT(mint)
 
     const auto& nym = server_.GetServerNym();
-    const std::time_t now = std::time(nullptr);
+    const auto now = Clock::now();
     const std::chrono::seconds expireInterval(
         std::chrono::hours(MINT_EXPIRE_MONTHS * 30 * 24));
     const std::chrono::seconds validInterval(
         std::chrono::hours(MINT_VALID_MONTHS * 30 * 24));
-    const std::time_t expires = now + expireInterval.count();
-    const std::time_t validTo = now + validInterval.count();
+    const auto expires = now + expireInterval;
+    const auto validTo = now + validInterval;
 
     if (false == verify_mint_directory(serverID)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create mint directory.")
@@ -495,11 +495,11 @@ void Manager::mint() const
             continue;
         }
 
-        const auto now = std::time(nullptr);
-        const std::time_t expires = mint->GetExpiration();
+        const auto now = Clock::now();
+        const auto expires = mint->GetExpiration();
         const std::chrono::seconds limit(
             std::chrono::hours(24 * MINT_GENERATE_DAYS));
-        const bool generate = ((now + limit.count()) > expires);
+        const bool generate = ((now + limit) > expires);
 
         if (generate) {
             generate_mint(serverID, unitID, next);

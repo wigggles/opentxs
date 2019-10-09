@@ -832,9 +832,9 @@ bool OTAgreement::SetProposal(
     ServerContext& context,
     const Account& MERCHANT_ACCT,
     const String& strConsideration,
-    time64_t VALID_FROM,
-    time64_t VALID_TO)  // VALID_TO is a length here. (i.e. it's ADDED to
-                        // valid_from)
+    const Time VALID_FROM,
+    const Time VALID_TO)  // VALID_TO is a length here. (i.e. it's ADDED to
+                          // valid_from)
 {
     const auto& nym = *context.Nym();
     const auto& id_MERCHANT_NYM = nym.ID();
@@ -873,7 +873,7 @@ bool OTAgreement::SetProposal(
     // --------------------------------------
     // Set the CREATION DATE
     //
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    const auto CURRENT_TIME = Clock::now();
 
     // Set the Creation Date.
     SetCreationDate(CURRENT_TIME);
@@ -884,30 +884,27 @@ bool OTAgreement::SetProposal(
     // VALID_FROM
     //
     // The default "valid from" time is NOW.
-    if (OT_TIME_ZERO >= VALID_FROM)  // if it's 0 or less, set to current time.
+    if (Time{} >= VALID_FROM) {
         SetValidFrom(CURRENT_TIME);
-    else  // Otherwise use whatever was passed in.
+    } else {
         SetValidFrom(VALID_FROM);
+    }
 
     // VALID_TO
     //
     // The default "valid to" time is 0 (which means no expiration date / cancel
     // anytime.)
-    if (OT_TIME_ZERO == VALID_TO)  // VALID_TO is 0
+    if (Time{} == VALID_TO)  // VALID_TO is 0
     {
-        SetValidTo(VALID_TO);  // Keep it at zero then, so it won't expire.
-    } else if (OT_TIME_ZERO < VALID_TO)  // VALID_TO is ABOVE zero...
+        SetValidTo(VALID_TO);      // Keep it at zero then, so it
+                                   // won't expire.
+    } else if (Time{} < VALID_TO)  // VALID_TO is ABOVE zero...
     {
-        SetValidTo(OTTimeAddTimeInterval(
-            GetValidFrom(),
-            OTTimeGetSecondsFromTime(VALID_TO)));  // Set it to
-                                                   // itself +
-                                                   // valid_from.
+        SetValidTo(VALID_TO);
     } else  // VALID_TO is a NEGATIVE number... Error.
     {
-        std::int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Negative value for valid_to: ")(
-            lValidTo)(".")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid value for valid_to: ")(
+            VALID_TO)
             .Flush();
 
         return false;
@@ -1124,9 +1121,8 @@ bool OTAgreement::Confirm(
     // This way, (since we still have the original proposal) we can see BOTH
     // times.
     //
-    time64_t CURRENT_TIME = OTTimeGetCurrentTime();
     // Set the Creation Date.
-    SetCreationDate(CURRENT_TIME);
+    SetCreationDate(Clock::now());
     LogTrace(OT_METHOD)(__FUNCTION__)(": Success!").Flush();
 
     return true;
@@ -1192,18 +1188,15 @@ std::int32_t OTAgreement::ProcessXMLNode(
         SetTransactionNum(
             String::StringToLong(xml->getAttributeValue("transactionNum")));
 
-        std::int64_t tCreation =
+        const auto tCreation =
             parseTimestamp(xml->getAttributeValue("creationDate"));
-
-        SetCreationDate(OTTimeGetTimeFromSeconds(tCreation));
-
-        std::int64_t tValidFrom =
+        const auto tValidFrom =
             parseTimestamp(xml->getAttributeValue("validFrom"));
-        std::int64_t tValidTo =
-            parseTimestamp(xml->getAttributeValue("validTo"));
+        const auto tValidTo = parseTimestamp(xml->getAttributeValue("validTo"));
 
-        SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
-        SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
+        SetCreationDate(tCreation);
+        SetValidFrom(tValidFrom);
+        SetValidTo(tValidTo);
 
         const auto strNotaryID =
                        String::Factory(xml->getAttributeValue("notaryID")),

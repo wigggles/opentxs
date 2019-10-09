@@ -38,7 +38,7 @@ public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()
         const noexcept = 0;
 
-    EXPORT virtual ~MessagableList() = default;
+    EXPORT ~MessagableList() override = default;
 
 protected:
     MessagableList() noexcept = default;

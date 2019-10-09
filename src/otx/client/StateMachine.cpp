@@ -1136,8 +1136,8 @@ StateMachine::TaskDone StateMachine::write_and_send_cheque(
     std::unique_ptr<Cheque> cheque(client_.OTAPI().WriteCheque(
         op_.ServerID(),
         value,
-        Clock::to_time_t(validFrom),
-        Clock::to_time_t(validTo),
+        validFrom,
+        validTo,
         accountID,
         op_.NymID(),
         String::Factory(memo.c_str()),

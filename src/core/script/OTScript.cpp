@@ -12,7 +12,6 @@
 #include "opentxs/core/script/OTScriptChai.hpp"
 #endif
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 

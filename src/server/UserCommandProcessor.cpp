@@ -2154,21 +2154,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
     if (0 != context.Request()) { return reregister_nym(reply); }
 
     context.IncrementRequest();
-    reply.SetSuccess(msgIn.WriteContract(
-        OTFolders::UserAcct().Get(), msgIn.m_strNymID->Get()));
-
-    if (false == reply.Success()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error saving new user account verification file.")
-            .Flush();
-
-        return false;
-    }
-
-    LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": Success saving new user account verification file.")
-        .Flush();
-
+    reply.SetSuccess(true);
     context.InitializeNymbox(reason_);
     context.SetRemoteNymboxHash(context.LocalNymboxHash());
 

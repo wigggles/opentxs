@@ -10,7 +10,6 @@
 #include "opentxs/core/Log.hpp"
 
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"

@@ -56,7 +56,7 @@ public:
         const std::string& value) const noexcept = 0;
     EXPORT virtual proto::ContactItemType Type() const noexcept = 0;
 
-    EXPORT virtual ~ProfileSubsection() = default;
+    EXPORT ~ProfileSubsection() override = default;
 
 protected:
     ProfileSubsection() noexcept = default;

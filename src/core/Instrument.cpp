@@ -10,7 +10,6 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -22,8 +21,8 @@ Instrument::Instrument(const api::Core& core)
     : OTScriptable(core)
     , m_InstrumentDefinitionID(api_.Factory().UnitID())
     , m_NotaryID(api_.Factory().ServerID())
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
+    , m_VALID_FROM()
+    , m_VALID_TO()
 {
     InitInstrument();
 }
@@ -35,8 +34,8 @@ Instrument::Instrument(
     : OTScriptable(core)
     , m_InstrumentDefinitionID(INSTRUMENT_DEFINITION_ID)
     , m_NotaryID(NOTARY_ID)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
+    , m_VALID_FROM()
+    , m_VALID_TO()
 {
     InitInstrument();
 }
@@ -49,13 +48,13 @@ Instrument::Instrument(
 // function answers that for you.
 bool Instrument::IsExpired()
 {
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    const auto CURRENT_TIME = Clock::now();
 
     // If the current time is AFTER the valid-TO date,
     // AND the valid_to is a nonzero number (0 means "doesn't expire")
     // THEN return true (it's expired.)
     //
-    if ((CURRENT_TIME >= m_VALID_TO) && (m_VALID_TO > OT_TIME_ZERO))
+    if ((CURRENT_TIME >= m_VALID_TO) && (m_VALID_TO > Time{}))
         return true;
     else
         return false;
@@ -64,10 +63,10 @@ bool Instrument::IsExpired()
 // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
 bool Instrument::VerifyCurrentDate()
 {
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    const auto CURRENT_TIME = Clock::now();
 
     if ((CURRENT_TIME >= m_VALID_FROM) &&
-        ((CURRENT_TIME <= m_VALID_TO) || (OT_TIME_ZERO == m_VALID_TO)))
+        ((CURRENT_TIME <= m_VALID_TO) || (Time{} == m_VALID_TO)))
         return true;
     else
         return false;
@@ -142,8 +141,7 @@ std::int32_t Instrument::ProcessXMLNode(
 Instrument::~Instrument()
 {
     Release_Instrument();
-
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
+    m_VALID_FROM = Time{};
+    m_VALID_TO = Time{};
 }
 }  // namespace opentxs

@@ -278,12 +278,9 @@ void OTScriptable::RegisterOTNativeCallsWithScript([
 std::string OTScriptable::GetTime()  // Returns a string, containing seconds as
                                      // std::int32_t. (Time in seconds.)
 {
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-    const std::int64_t lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
+    const std::int64_t lTime = Clock::to_time_t(Clock::now());
 
-    auto strTime = String::Factory();
-    strTime->Format("%" PRId64, lTime);
-    return strTime->Get();
+    return std::to_string(lTime);
 }
 
 // The server calls this when it wants to know if a certain party is allowed to
@@ -2280,8 +2277,8 @@ void OTScriptable::UpdateContentsToTag(Tag& parent, bool bCalculatingID) const
         "specifyInstrumentDefinitionID",
         formatBool(m_bSpecifyInstrumentDefinitionID));
     pTag->add_attribute("specifyParties", formatBool(m_bSpecifyParties));
-    pTag->add_attribute("numParties", formatUint(sizePartyMap));
-    pTag->add_attribute("numBylaws", formatUint(sizeBylawMap));
+    pTag->add_attribute("numParties", std::to_string(sizePartyMap));
+    pTag->add_attribute("numBylaws", std::to_string(sizeBylawMap));
 
     const std::string str_vector = vectorToString(openingNumsInOrderOfSigning_);
     pTag->add_attribute("openingNumsInOrderOfSigning", str_vector);

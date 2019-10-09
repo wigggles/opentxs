@@ -11,7 +11,6 @@
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -189,7 +188,7 @@ public:
         const Amount& quantity,
         const Amount& price,
         const bool selling,
-        const time64_t lifetime,
+        const Time lifetime,
         const Amount& activationPrice,
         const std::string& stopSign);
 
@@ -243,7 +242,7 @@ private:
     bool ack_{false};
     bool direction_{false};
     bool selling_{false};
-    time64_t lifetime_{OT_TIME_ZERO};
+    Time lifetime_{};
     std::int32_t nRequestNum_{-1};
     std::int32_t nTransNumsNeeded_{0};
     const api::client::Manager& api_;

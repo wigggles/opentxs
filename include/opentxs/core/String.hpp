@@ -133,7 +133,13 @@ private:
     friend OTString;
     friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
-    virtual String* clone() const = 0;
+#ifdef _WIN32
+public:
+#endif
+    EXPORT virtual String* clone() const = 0;
+#ifdef _WIN32
+private:
+#endif
 
     String(String&& rhs) = delete;
     String& operator=(const String& rhs) = delete;

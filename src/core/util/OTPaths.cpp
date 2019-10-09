@@ -11,7 +11,6 @@
 #ifdef _WIN32
 #include "opentxs/core/util/OTWindowsRegistryTools.hpp"
 #endif
-#include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -81,6 +80,38 @@
 #else
 #define OT_SCRIPTS_DIR "lib/opentxs"
 #endif
+
+// from: http://www.cplusplus.com/faq/sequences/strings/split/
+//
+struct split {
+    enum empties_t { empties_ok, no_empties };
+};
+
+template <typename Container>
+static Container& split_byChar(
+    Container& result,
+    const typename Container::value_type& s,
+    const typename Container::value_type& delimiters,
+    split::empties_t empties)
+{
+    result.clear();
+    std::int64_t next = -1;
+    do {
+        if (empties == split::no_empties) {
+            next = s.find_first_not_of(
+                delimiters, static_cast<std::uint32_t>(next) + 1);
+            if (static_cast<size_t>(next) == Container::value_type::npos) {
+                break;
+            }
+            next -= 1;
+        }
+        size_t current = static_cast<size_t>(next + 1);
+        next = s.find_first_of(delimiters, current);
+        result.push_back(
+            s.substr(current, static_cast<std::uint32_t>(next) - current));
+    } while (static_cast<size_t>(next) != Container::value_type::npos);
+    return result;
+}
 
 namespace opentxs
 {

@@ -10,7 +10,6 @@
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
@@ -340,11 +339,11 @@ protected:
     //
     void ReleaseLastSenderRecipientIDs();
     // (These two are lower level, and used by SetNextProcessTime).
-    void SetNextProcessDate(const time64_t& tNEXT_DATE)
+    void SetNextProcessDate(const Time tNEXT_DATE)
     {
         m_tNextProcessDate = tNEXT_DATE;
     }
-    const time64_t& GetNextProcessDate() const { return m_tNextProcessDate; }
+    const Time GetNextProcessDate() const { return m_tNextProcessDate; }
 
 private:
     friend api::implementation::Factory;
@@ -398,8 +397,8 @@ private:
 
     // If onProcess() is on a timer (say, to wake up in a week) then this will
     // contain the
-    time64_t m_tNextProcessDate{0};  // date that it WILL be, in a week. (Or
-                                     // zero.)
+    Time m_tNextProcessDate;  // date that it WILL be, in a week. (Or
+                              // zero.)
 
     // For moving money from one nym's account to another.
     // it is also nearly identically copied in OTPaymentPlan.

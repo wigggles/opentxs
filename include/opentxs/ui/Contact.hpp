@@ -41,7 +41,7 @@ public:
         const noexcept = 0;
     EXPORT virtual std::string PaymentCode() const noexcept = 0;
 
-    EXPORT virtual ~Contact() = default;
+    EXPORT ~Contact() override = default;
 
 protected:
     Contact() noexcept = default;

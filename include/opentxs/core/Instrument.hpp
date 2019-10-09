@@ -11,7 +11,6 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 
 #include <cstdint>
@@ -29,8 +28,8 @@ public:
     EXPORT bool IsExpired();  // Verify whether the CURRENT date is AFTER the
                               // the
                               // "VALID TO" date.
-    inline time64_t GetValidFrom() const { return m_VALID_FROM; }
-    inline time64_t GetValidTo() const { return m_VALID_TO; }
+    inline Time GetValidFrom() const { return m_VALID_FROM; }
+    inline Time GetValidTo() const { return m_VALID_TO; }
 
     inline const identifier::UnitDefinition& GetInstrumentDefinitionID() const
     {
@@ -46,16 +45,16 @@ protected:
     OTServerID m_NotaryID;
     // Expiration Date (valid from/to date)
     // The date, in seconds, when the instrument is valid FROM.
-    time64_t m_VALID_FROM{0};
+    Time m_VALID_FROM;
     // The date, in seconds, when the instrument expires.
-    time64_t m_VALID_TO{0};
+    Time m_VALID_TO;
 
     std::int32_t ProcessXMLNode(
         irr::io::IrrXMLReader*& xml,
         const PasswordPrompt& reason) override;
 
-    inline void SetValidFrom(time64_t TIME_FROM) { m_VALID_FROM = TIME_FROM; }
-    inline void SetValidTo(time64_t TIME_TO) { m_VALID_TO = TIME_TO; }
+    inline void SetValidFrom(const Time TIME_FROM) { m_VALID_FROM = TIME_FROM; }
+    inline void SetValidTo(const Time TIME_TO) { m_VALID_TO = TIME_TO; }
     inline void SetInstrumentDefinitionID(
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     {

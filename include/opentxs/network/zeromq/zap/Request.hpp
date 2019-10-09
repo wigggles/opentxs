@@ -46,7 +46,7 @@ public:
 
     EXPORT virtual Frame& AddCredential(const Data& credential) = 0;
 
-    EXPORT virtual ~Request() = default;
+    EXPORT ~Request() override = default;
 
 protected:
     Request() = default;
@@ -54,7 +54,9 @@ protected:
 private:
     friend OTZMQZAPRequest;
 
-    virtual Request* clone() const = 0;
+#ifndef _WIN32
+    Request* clone() const override = 0;
+#endif
 
     Request(const Request&) = delete;
     Request(Request&&) = delete;

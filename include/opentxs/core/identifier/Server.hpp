@@ -63,7 +63,7 @@ public:
     EXPORT static OTServerID Factory(const String& rhs);
 #endif
 
-    EXPORT virtual ~Server() = default;
+    EXPORT ~Server() override = default;
 
 protected:
     Server() = default;
@@ -71,8 +71,9 @@ protected:
 private:
     friend OTServerID;
 
-    virtual Server* clone() const = 0;
-
+#ifndef _WIN32
+    Server* clone() const override = 0;
+#endif
     Server(const Server&) = delete;
     Server(Server&&) = delete;
     Server& operator=(const Server&) = delete;

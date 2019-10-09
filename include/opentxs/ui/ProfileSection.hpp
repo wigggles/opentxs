@@ -126,7 +126,7 @@ public:
         const std::string& value) const noexcept = 0;
     EXPORT virtual proto::ContactSectionName Type() const noexcept = 0;
 
-    EXPORT virtual ~ProfileSection() = default;
+    EXPORT ~ProfileSection() override = default;
 
 protected:
     ProfileSection() noexcept = default;

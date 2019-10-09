@@ -39,7 +39,7 @@ public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem> Next()
         const noexcept = 0;
 
-    EXPORT virtual ~PayableList() = default;
+    EXPORT ~PayableList() override = default;
 
 protected:
     PayableList() noexcept = default;

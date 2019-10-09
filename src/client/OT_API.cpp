@@ -50,7 +50,6 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
@@ -76,6 +75,7 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/Proto.tpp"
 
+#include <cinttypes>
 #include <csignal>
 #include <cstdlib>
 #include <cassert>
@@ -448,7 +448,7 @@ bool OT_API::IsNym_RegisteredAtServer(
  Todo:  consider making this available on the server side as well,
  so the smart contracts can see what time it is.
  */
-time64_t OT_API::GetTime() const { return OTTimeGetCurrentTime(); }
+Time OT_API::GetTime() const { return Clock::now(); }
 
 /// === Verify Account Receipt ===
 /// Returns bool. Verifies any asset account (intermediary files) against its
@@ -480,8 +480,8 @@ bool OT_API::Create_SmartContract(
     const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                            // signing at this point is only to
                                            // cause a save.)
-    time64_t VALID_FROM,                   // Default (0 or nullptr) == NOW
-    time64_t VALID_TO,  // Default (0 or nullptr) == no expiry / cancel anytime
+    Time VALID_FROM,                       // Default (0 or nullptr) == NOW
+    Time VALID_TO,  // Default (0 or nullptr) == no expiry / cancel anytime
     bool SPECIFY_ASSETS,   // This means asset type IDs must be provided for
                            // every named account.
     bool SPECIFY_PARTIES,  // This means Nym IDs must be provided for every
@@ -525,8 +525,8 @@ bool OT_API::SmartContract_SetDates(
     const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                            // signing at this point is only to
                                            // cause a save.)
-    time64_t VALID_FROM,                   // Default (0 or nullptr) == NOW
-    time64_t VALID_TO,  // Default (0 or nullptr) == no expiry / cancel anytime.
+    Time VALID_FROM,                       // Default (0 or nullptr) == NOW
+    Time VALID_TO,  // Default (0 or nullptr) == no expiry / cancel anytime.
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
@@ -1933,8 +1933,8 @@ bool OT_API::SmartContract_RemoveVariable(
 Cheque* OT_API::WriteCheque(
     const identifier::Server& NOTARY_ID,
     const std::int64_t& CHEQUE_AMOUNT,
-    const time64_t& VALID_FROM,
-    const time64_t& VALID_TO,
+    const Time& VALID_FROM,
+    const Time& VALID_TO,
     const Identifier& SENDER_accountID,
     const identifier::Nym& SENDER_NYM_ID,
     const String& CHEQUE_MEMO,
@@ -2055,11 +2055,11 @@ Cheque* OT_API::WriteCheque(
 // so that he can retrieve the transaction numbers from it, for the same reason.
 OTPaymentPlan* OT_API::ProposePaymentPlan(
     const identifier::Server& NOTARY_ID,
-    const time64_t& VALID_FROM,  // Default (0) == NOW (It will set it to the
-                                 // current time in seconds since Jan 1970)
-    const time64_t& VALID_TO,    // Default (0) == no expiry / cancel anytime.
-                                 // Otherwise this is a LENGTH and is ADDED to
-                                 // VALID_FROM
+    const Time& VALID_FROM,  // Default (0) == NOW (It will set it to the
+                             // current time in seconds since Jan 1970)
+    const Time& VALID_TO,    // Default (0) == no expiry / cancel anytime.
+                             // Otherwise this is a LENGTH and is ADDED to
+                             // VALID_FROM
     const Identifier& pSENDER_accountID,
     const identifier::Nym& SENDER_NYM_ID,
     const String& PLAN_CONSIDERATION,  // Like a memo.
@@ -2069,16 +2069,21 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // initial
     const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // amount will be processed
                                                  // after
-    const time64_t& INITIAL_PAYMENT_DELAY,       // delay (seconds from now.)
+    const std::chrono::seconds INITIAL_PAYMENT_DELAY,  // delay (seconds from
+                                                       // now.)
     // ----------------------------------------  // AND SEPARATELY FROM THIS...
     const std::int64_t& PAYMENT_PLAN_AMOUNT,  // The regular amount charged,
-    const time64_t& PAYMENT_PLAN_DELAY,   // which begins occuring after delay
-    const time64_t& PAYMENT_PLAN_PERIOD,  // (seconds from now) and happens
+    const std::chrono::seconds PAYMENT_PLAN_DELAY,   // which begins occuring
+                                                     // after delay
+    const std::chrono::seconds PAYMENT_PLAN_PERIOD,  // (seconds from now) and
+                                                     // happens
     // ----------------------------------------// every period, ad infinitum,
-    time64_t PAYMENT_PLAN_LENGTH,  // until after the length (in seconds)
-    std::int32_t PAYMENT_PLAN_MAX_PAYMENTS  // expires, or after the maximum
-) const                                     // number of payments. These last
-{                                           // two arguments are optional.
+    const std::chrono::seconds PAYMENT_PLAN_LENGTH,  // until after the length
+                                                     // (in seconds)
+    const std::int32_t PAYMENT_PLAN_MAX_PAYMENTS     // expires, or after the
+                                                     // maximum
+) const  // number of payments. These last
+{        // two arguments are optional.
     auto reason = api_.Factory().PasswordPrompt("Proposing a payment plan");
     auto context = api_.Wallet().mutable_ServerContext(
         RECIPIENT_NYM_ID, NOTARY_ID, reason);
@@ -2159,7 +2164,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // the default, in case user chooses not to have a payment plan.
     bool bSuccessSetPaymentPlan = true;
     if ((INITIAL_PAYMENT_AMOUNT > 0) &&
-        (INITIAL_PAYMENT_DELAY >= OT_TIME_ZERO)) {
+        (INITIAL_PAYMENT_DELAY >= std::chrono::seconds{0})) {
         // The Initial payment delay is measured in seconds, starting from the
         // "Creation Date".
         bSuccessSetInitialPayment = pPlan->SetInitialPayment(
@@ -2186,21 +2191,19 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     {
         // The payment plan delay is measured in seconds, starting from the
         // "Creation Date".
-        time64_t PAYMENT_DELAY =
-            OT_TIME_MONTH_IN_SECONDS;  // Defaults to 30 days, measured in
-                                       // seconds (if you pass 0.)
+        std::chrono::seconds PAYMENT_DELAY = std::chrono::hours{24 * 30};
 
-        if (PAYMENT_PLAN_DELAY > OT_TIME_ZERO)
+        if (PAYMENT_PLAN_DELAY > std::chrono::seconds{0})
             PAYMENT_DELAY = PAYMENT_PLAN_DELAY;
         // Defaults to 30 days, measured in seconds (if you pass 0.)
-        time64_t PAYMENT_PERIOD = OT_TIME_MONTH_IN_SECONDS;
+        std::chrono::seconds PAYMENT_PERIOD = std::chrono::hours{24 * 30};
 
-        if (PAYMENT_PLAN_PERIOD > OT_TIME_ZERO)
+        if (PAYMENT_PLAN_PERIOD > std::chrono::seconds{0})
             PAYMENT_PERIOD = PAYMENT_PLAN_PERIOD;
         // Defaults to 0 seconds (for no max length).
-        time64_t PLAN_LENGTH = OT_TIME_ZERO;
+        std::chrono::seconds PLAN_LENGTH = std::chrono::seconds{0};
 
-        if (PAYMENT_PLAN_LENGTH > OT_TIME_ZERO)
+        if (PAYMENT_PLAN_LENGTH > std::chrono::seconds{0})
             PLAN_LENGTH = PAYMENT_PLAN_LENGTH;
         std::int32_t nMaxPayments =
             0;  // Defaults to 0 maximum payments (for no maximum).
@@ -3229,9 +3232,8 @@ CommandResult OT_API::payDividend(
     const auto SHARES_ISSUER_accountID =
         api_.Factory().Identifier(issuerAccount.get());
     // Expiration (ignored by server -- it sets its own for its vouchers.)
-    const time64_t VALID_FROM = OTTimeGetCurrentTime();
-    const time64_t VALID_TO = OTTimeAddTimeInterval(
-        VALID_FROM, OTTimeGetSecondsFromTime(OT_TIME_SIX_MONTHS_IN_SECONDS));
+    const auto VALID_FROM = Clock::now();
+    const auto VALID_TO = VALID_FROM + std::chrono::hours(24 * 30 * 6);
 
     // The server only uses the amount and instrument definition from this
     // cheque when it constructs the actual voucher (to the dividend payee.)
@@ -3444,11 +3446,8 @@ CommandResult OT_API::withdrawVoucher(
     const auto strChequeMemo = String::Factory(CHEQUE_MEMO.Get());
     const auto strRecipientNymID = String::Factory(RECIPIENT_NYM_ID);
     // Expiration (ignored by server -- it sets its own for its vouchers.)
-    const time64_t VALID_FROM =
-        OTTimeGetCurrentTime();  // This time is set to TODAY NOW
-    const time64_t VALID_TO = OTTimeAddTimeInterval(
-        VALID_FROM,
-        OTTimeGetSecondsFromTime(OT_TIME_SIX_MONTHS_IN_SECONDS));  // 6 months.
+    const auto VALID_FROM = Clock::now();
+    const auto VALID_TO = VALID_FROM + std::chrono::hours(24 * 30 * 6);
     // The server only uses the memo, amount, and recipient from this cheque
     // when it
     // constructs the actual voucher.
@@ -4244,9 +4243,9 @@ CommandResult OT_API::issueMarketOffer(
                                                 // Will be multiplied by
                                                 // minimum increment.
     const Amount PRICE_LIMIT,                   // Per Minimum Increment...
-    bool bBuyingOrSelling,                //  BUYING == false, SELLING == true.
-    time64_t tLifespanInSeconds,          // 86400 == 1 day.
-    char STOP_SIGN,                       // For stop orders, set to '<' or '>'
+    const bool bBuyingOrSelling,  //  BUYING == false, SELLING == true.
+    const std::chrono::seconds tLifespanInSeconds,  // 86400 == 1 day.
+    const char STOP_SIGN,                 // For stop orders, set to '<' or '>'
     const Amount ACTIVATION_PRICE) const  // For stop orders, this is
                                           // threshhold price.
 {
@@ -4360,13 +4359,13 @@ CommandResult OT_API::issueMarketOffer(
         .Flush();
 
     // defaults to RIGHT NOW aka OT_API_GetTime() if set to 0 anyway.
-    const time64_t VALID_FROM = GetTime();
+    const auto VALID_FROM = GetTime();
     // defaults to 24 hours (a "Day Order") aka OT_API_GetTime() + 86,400
-    const time64_t VALID_TO = OTTimeAddTimeInterval(
-        VALID_FROM,
-        OTTimeGetSecondsFromTime(
-            OT_TIME_ZERO == tLifespanInSeconds ? OT_TIME_DAY_IN_SECONDS
-                                               : tLifespanInSeconds));
+    const auto VALID_TO =
+        VALID_FROM +
+        std::chrono::seconds{(std::chrono::seconds{0} == tLifespanInSeconds)
+                                 ? std::chrono::hours{24}
+                                 : tLifespanInSeconds};
     std::int64_t lTotalAssetsOnOffer = 1, lMinimumIncrement = 1,
                  lPriceLimit = 0,  // your price limit, per scale of assets.
         lMarketScale = 1, lActivationPrice = 0;
@@ -4445,9 +4444,8 @@ CommandResult OT_API::issueMarketOffer(
                                  // sold for each transaction
         openingNumber->Value(),  // Transaction number matches on
                                  // transaction, item, offer, and trade.
-        VALID_FROM,              // defaults to RIGHT NOW aka OT_API_GetTime()
-        VALID_TO);               // defaults to 24 hours (a "Day Order") aka
-                                 // OT_API_GetTime() + 86,400
+        VALID_FROM,              // defaults to RIGHT NOW
+        VALID_TO);               // defaults to 24 hours (a "Day Order")
 
     if (false == bCreateOffer) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4519,9 +4517,8 @@ CommandResult OT_API::issueMarketOffer(
         bBuyingOrSelling ? "selling" : "buying")(", ")(strOfferType)(", ")(
         strPrice)(".")(" Assets for sale/purchase: ")(lTotalAssetsOnOffer)(
         ". In minimum increments of: ")(lMinimumIncrement)(
-        ". At market of scale: ")(lMarketScale)(". Valid From: ")(
-        OTTimeGetSecondsFromTime(VALID_FROM))(". To: ")(
-        OTTimeGetSecondsFromTime(VALID_TO))(".")
+        ". At market of scale: ")(lMarketScale)(". Valid From: ")(VALID_FROM)(
+        ". To: ")(VALID_TO)
         .Flush();
     auto transaction{api_.Factory().Transaction(
         nymID,

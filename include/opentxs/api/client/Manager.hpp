@@ -40,7 +40,7 @@ public:
     EXPORT virtual const client::Workflow& Workflow() const = 0;
     EXPORT virtual const network::ZMQ& ZMQ() const = 0;
 
-    EXPORT virtual ~Manager() = default;
+    EXPORT ~Manager() override = default;
 
 protected:
     Manager() = default;

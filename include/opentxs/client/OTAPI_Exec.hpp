@@ -9,11 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/client/OT_API.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
+#include <chrono>
 #include <cstdint>
 #include <mutex>
 #include <set>
@@ -35,38 +35,6 @@ class Manager;
 class OTAPI_Exec : Lockable
 {
 public:
-    // SetAppBinaryFolder
-    // OPTIONAL. Used in Android and Qt.
-    //
-    // Certain platforms use this to override the Prefix folder.
-    // Basically /usr/local is the prefix folder by default, meaning
-    // /usr/local/lib/opentxs will be the location of the scripts. But
-    // if you override AppBinary folder to, say, "res/raw"
-    // (Android does something like that) then even though the prefix remains
-    // as /usr/local, the scripts folder will be res/raw
-    //
-    //
-    EXPORT static void SetAppBinaryFolder(const std::string& Location);
-
-    // SetHomeFolder
-    // OPTIONAL. Used in Android.
-    //
-    // The AppDataFolder, such as /Users/au/.ot, is constructed from the home
-    // folder, such as /Users/au.
-    //
-    // Normally the home folder is auto-detected, but certain platforms, such as
-    // Android, require us to explicitly set this folder from the Java code.
-    // Then
-    // the AppDataFolder is constructed from it. (It's the only way it can be
-    // done.)
-    //
-    // In Android, you would SetAppBinaryFolder to the path to
-    // "/data/app/packagename/res/raw",
-    // and you would SetHomeFolder to "/data/data/[app package]/files/"
-    //
-    EXPORT static void SetHomeFolder(const std::string& Location);
-    // Then:
-
     /**
 
     PROPOSE PAYMENT PLAN --- Returns the payment plan in string form.
@@ -132,12 +100,12 @@ public:
     */
     EXPORT std::string ProposePaymentPlan(
         const std::string& NOTARY_ID,
-        const time64_t& VALID_FROM,  // Default (0 or nullptr) == current time
-                                     // measured in seconds since Jan 1970.
-        const time64_t& VALID_TO,    // Default (0 or nullptr) == no expiry /
-                                     // cancel
-                                     // anytime. Otherwise this is ADDED to
-                                     // VALID_FROM (it's a length.)
+        const Time& VALID_FROM,  // Default (0 or nullptr) == current time
+                                 // measured in seconds since Jan 1970.
+        const Time& VALID_TO,    // Default (0 or nullptr) == no expiry /
+                                 // cancel
+                                 // anytime. Otherwise this is ADDED to
+                                 // VALID_FROM (it's a length.)
         const std::string& SENDER_ACCT_ID,  // Mandatory parameters.
         const std::string& SENDER_NYM_ID,   // Both sender and recipient must
                                             // sign before submitting.
@@ -148,20 +116,26 @@ public:
         const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // zero or nullptr == no
                                                      // initial
                                                      // payment.
-        const time64_t& INITIAL_PAYMENT_DELAY,    // seconds from creation date.
-                                                  // Default is zero or nullptr.
+        const std::chrono::seconds& INITIAL_PAYMENT_DELAY,  // seconds from
+                                                            // creation date.
+                                                            // Default is zero
+                                                            // or nullptr.
         const std::int64_t& PAYMENT_PLAN_AMOUNT,  // Zero or nullptr == no
                                                   // regular
                                                   // payments.
-        const time64_t& PAYMENT_PLAN_DELAY,  // No. of seconds from creation
+        const std::chrono::seconds& PAYMENT_PLAN_DELAY,  // No. of seconds from
+                                                         // creation
         // date. Default is zero or nullptr.
         // (Causing 30 days.)
-        const time64_t& PAYMENT_PLAN_PERIOD,  // No. of seconds between
-                                              // payments.
-                                              // Default is zero or nullptr.
-                                              // (Causing 30 days.)
-        const time64_t& PAYMENT_PLAN_LENGTH,  // In seconds. Defaults to 0 or
-                                              // nullptr (no maximum length.)
+        const std::chrono::seconds& PAYMENT_PLAN_PERIOD,  // No. of seconds
+                                                          // between payments.
+                                                          // Default is zero or
+                                                          // nullptr. (Causing
+                                                          // 30 days.)
+        const std::chrono::seconds& PAYMENT_PLAN_LENGTH,  // In seconds.
+                                                          // Defaults to 0 or
+                                                          // nullptr (no maximum
+                                                          // length.)
         const std::int32_t& PAYMENT_PLAN_MAX_PAYMENTS  // integer. Defaults to 0
                                                        // or
         // nullptr (no maximum payments.)
@@ -221,9 +195,9 @@ public:
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                            // signing at this point is only to
                                            // cause a save.)
-        const time64_t& VALID_FROM,        // Default (0 or nullptr) == NOW
-        const time64_t& VALID_TO,  // Default (0 or nullptr) == no expiry /
-                                   // cancel anytime
+        const Time& VALID_FROM,            // Default (0 or nullptr) == NOW
+        const Time& VALID_TO,  // Default (0 or nullptr) == no expiry /
+                               // cancel anytime
         bool SPECIFY_ASSETS,  // Asset type IDs must be provided for every named
                               // account.
         bool SPECIFY_PARTIES  // Nym IDs must be provided for every party.
@@ -235,10 +209,10 @@ public:
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                            // signing at this point is only to
                                            // cause a save.)
-        const time64_t& VALID_FROM,        // Default (0 or nullptr) == NOW
-        const time64_t& VALID_TO  // Default (0 or nullptr) == no expiry /
-                                  // cancel
-                                  // anytime
+        const Time& VALID_FROM,            // Default (0 or nullptr) == NOW
+        const Time& VALID_TO  // Default (0 or nullptr) == no expiry /
+                              // cancel
+                              // anytime
     ) const;
 
     EXPORT bool Smart_ArePartiesSpecified(

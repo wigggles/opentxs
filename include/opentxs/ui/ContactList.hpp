@@ -39,7 +39,7 @@ public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()
         const noexcept = 0;
 
-    EXPORT virtual ~ContactList() = default;
+    EXPORT ~ContactList() override = default;
 
 protected:
     ContactList() noexcept = default;

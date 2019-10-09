@@ -38,7 +38,7 @@ public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next() const
         noexcept = 0;
 
-    EXPORT virtual ~AccountActivity() = default;
+    EXPORT ~AccountActivity() override = default;
 
 protected:
     AccountActivity() noexcept = default;

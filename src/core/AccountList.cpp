@@ -9,7 +9,6 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -62,7 +61,7 @@ void AccountList::Serialize(Tag& parent) const
     TagPtr pTag(new Tag("accountList"));
 
     pTag->add_attribute("type", acctType->Get());
-    pTag->add_attribute("count", formatUint(sizeMapAcctIDs));
+    pTag->add_attribute("count", std::to_string(sizeMapAcctIDs));
 
     for (auto& it : mapAcctIDs_) {
         std::string instrumentDefinitionID = it.first;

@@ -49,7 +49,13 @@ protected:
 private:
     friend OTZMQListenCallback;
 
-    virtual ListenCallback* clone() const = 0;
+#ifdef _WIN32
+public:
+#endif
+    EXPORT virtual ListenCallback* clone() const = 0;
+#ifdef _WIN32
+private:
+#endif
 
     ListenCallback(const ListenCallback&) = delete;
     ListenCallback(ListenCallback&&) = default;

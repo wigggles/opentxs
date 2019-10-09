@@ -138,13 +138,13 @@ std::int32_t OTTrade::ProcessXMLNode(
         const std::string validFromStr = xml->getAttributeValue("validFrom");
         const std::string validToStr = xml->getAttributeValue("validTo");
 
-        std::int64_t creation = parseTimestamp(creationStr);
-        std::int64_t validFrom = parseTimestamp(validFromStr);
-        std::int64_t validTo = parseTimestamp(validToStr);
+        const auto creation = parseTimestamp(creationStr);
+        const auto validFrom = parseTimestamp(validFromStr);
+        const auto validTo = parseTimestamp(validToStr);
 
-        SetCreationDate(OTTimeGetTimeFromSeconds(creation));
-        SetValidFrom(OTTimeGetTimeFromSeconds(validFrom));
-        SetValidTo(OTTimeGetTimeFromSeconds(validTo));
+        SetCreationDate(creation);
+        SetValidFrom(validFrom);
+        SetValidTo(validTo);
 
         auto activated =
             String::Factory(xml->getAttributeValue("hasActivated"));
@@ -279,8 +279,8 @@ void OTTrade::UpdateContents(const PasswordPrompt& reason)
     tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID->Get());
     tag.add_attribute("currencyAcctID", CURRENCY_ACCT_ID->Get());
     tag.add_attribute("nymID", NYM_ID->Get());
-    tag.add_attribute("completedNoTrades", formatInt(tradesAlreadyDone_));
-    tag.add_attribute("transactionNum", formatLong(m_lTransactionNum));
+    tag.add_attribute("completedNoTrades", std::to_string(tradesAlreadyDone_));
+    tag.add_attribute("transactionNum", std::to_string(m_lTransactionNum));
     tag.add_attribute("creationDate", formatTimestamp(GetCreationDate()));
     tag.add_attribute("validFrom", formatTimestamp(GetValidFrom()));
     tag.add_attribute("validTo", formatTimestamp(GetValidTo()));
@@ -295,15 +295,15 @@ void OTTrade::UpdateContents(const PasswordPrompt& reason)
         std::int64_t closingNumber = GetClosingTransactionNoAt(i);
         OT_ASSERT(closingNumber > 0);
         TagPtr tagClosing(new Tag("closingTransactionNumber"));
-        tagClosing->add_attribute("value", formatLong(closingNumber));
+        tagClosing->add_attribute("value", std::to_string(closingNumber));
         tag.add_tag(tagClosing);
     }
 
     if (('<' == stopSign_) || ('>' == stopSign_)) {
         TagPtr tagStopOrder(new Tag("stopOrder"));
         tagStopOrder->add_attribute("hasActivated", formatBool(stopActivated_));
-        tagStopOrder->add_attribute("sign", formatChar(stopSign_));
-        tagStopOrder->add_attribute("price", formatLong(stopPrice_));
+        tagStopOrder->add_attribute("sign", std::to_string(stopSign_));
+        tagStopOrder->add_attribute("price", std::to_string(stopPrice_));
         tag.add_tag(tagStopOrder);
     }
 
@@ -1020,19 +1020,19 @@ bool OTTrade::ProcessCron(const PasswordPrompt& reason)
     // Right now Cron is called 10 times per second.
     // I'm going to slow down all trades so they are once every
     // GetProcessInterval()
-    if (GetLastProcessDate() > OT_TIME_ZERO) {
+    if (GetLastProcessDate() > Time{}) {
         // (Default ProcessInterval is 1 second, but Trades will use 10 seconds,
         // and Payment Plans will use an hour or day.)
-        if (OTTimeGetTimeInterval(
-                OTTimeGetCurrentTime(), GetLastProcessDate()) <=
-            GetProcessInterval())
+        if ((Clock::now() - GetLastProcessDate()) <= GetProcessInterval()) {
+
             return true;
+        }
     }
 
     // Keep a record of the last time this was processed.
     // (NOT saved to storage, only used while the software is running.)
     // (Thus no need to release signatures, sign contract, save contract, etc.)
-    SetLastProcessDate(OTTimeGetCurrentTime());
+    SetLastProcessDate(Clock::now());
 
     // PAST END DATE?
     // First call the parent's version (which this overrides) so it has
@@ -1166,15 +1166,15 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
 
     tradesAlreadyDone_ = 0;
 
-    SetCreationDate(OTTimeGetCurrentTime());  // This time is set to TODAY NOW
-                                              // (OTCronItem)
+    SetCreationDate(Clock::now());  // This time is set to TODAY NOW
+                                    // (OTCronItem)
 
     // Validate the Notary ID, Instrument Definition ID, Currency Type ID, and
     // Date Range.
     if ((GetNotaryID() != offer.GetNotaryID()) ||
         (GetCurrencyID() != offer.GetCurrencyID()) ||
         (GetInstrumentDefinitionID() != offer.GetInstrumentDefinitionID()) ||
-        (offer.GetValidFrom() < OT_TIME_ZERO) ||
+        (offer.GetValidFrom() < Time{}) ||
         (offer.GetValidTo() < offer.GetValidFrom())) {
         return false;
     }
@@ -1225,10 +1225,9 @@ void OTTrade::InitTrade()
     // initialization here. Sometimes also called during cleanup to zero values.
     m_strContractType = String::Factory("TRADE");
 
-    SetProcessInterval(TradeProcessIntervalSeconds);  // Trades default to
-                                                      // processing every 10
-                                                      // seconds.
-    // (vs 1 second for Cron items and 1 hour for payment plans)
+    // Trades default to processing every 10 seconds. (vs 1 second for Cron
+    // items and 1 hour for payment plans)
+    SetProcessInterval(std::chrono::seconds{TradeProcessIntervalSeconds});
 
     tradesAlreadyDone_ = 0;
 

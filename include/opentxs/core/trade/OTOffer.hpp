@@ -11,7 +11,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Instrument.hpp"
 
@@ -62,12 +61,12 @@ public:
         const std::int64_t& lMinimumIncrement,  // The minimum increment that
                                                 // must be
         // bought or sold for each transaction
-        const std::int64_t& lTransactionNum,        // The transaction number
-                                                    // authorizing
-                                                    // this trade.
-        const time64_t& VALID_FROM = OT_TIME_ZERO,  // defaults to RIGHT NOW
-        const time64_t& VALID_TO = OT_TIME_ZERO);   // defaults to 24 hours (a
-                                                    // "Day Order")
+        const std::int64_t& lTransactionNum,  // The transaction number
+                                              // authorizing
+                                              // this trade.
+        const Time VALID_FROM = {},           // defaults to RIGHT NOW
+        const Time VALID_TO = {});            // defaults to 24 hours (a
+                                              // "Day Order")
     inline void IncrementFinishedSoFar(const std::int64_t& lFinishedSoFar)
     {
         m_lFinishedSoFar += lFinishedSoFar;
@@ -124,11 +123,12 @@ public:
     // Note: m_tDateAddedToMarket is not saved in the Offer Contract, but
     // OTMarket sets/saves/loads it.
     //
-    EXPORT time64_t GetDateAddedToMarket() const;  // Used in
-                                                   // OTMarket::GetOfferList and
-                                                   // GetNymOfferList.
-    EXPORT void SetDateAddedToMarket(time64_t tDate);  // Used in OTCron when
-                                                       // adding/loading offers.
+    EXPORT Time GetDateAddedToMarket() const;  // Used in
+                                               // OTMarket::GetOfferList and
+                                               // GetNymOfferList.
+    EXPORT void SetDateAddedToMarket(const Time tDate);  // Used in OTCron when
+                                                         // adding/loading
+                                                         // offers.
     // Overridden from Contract.
     void GetIdentifier(Identifier& theIdentifier) const override;
 
@@ -213,7 +213,7 @@ private:
 
     typedef Instrument ot_super;
 
-    time64_t m_tDateAddedToMarket{0};
+    Time m_tDateAddedToMarket;
 
     bool isPowerOfTen(const std::int64_t& x);
 

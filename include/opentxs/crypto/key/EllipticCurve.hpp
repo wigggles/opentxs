@@ -36,7 +36,7 @@ public:
     EXPORT virtual bool SetKey(const Data& key) = 0;
     EXPORT virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) = 0;
 
-    EXPORT virtual ~EllipticCurve() = default;
+    EXPORT ~EllipticCurve() override = default;
 
 protected:
     EllipticCurve() = default;

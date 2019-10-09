@@ -43,7 +43,7 @@ public:
         noexcept = 0;
     EXPORT virtual proto::ContactItemType Type() const noexcept = 0;
 
-    EXPORT virtual ~ContactSubsection() = default;
+    EXPORT ~ContactSubsection() override = default;
 
 protected:
     ContactSubsection() noexcept = default;

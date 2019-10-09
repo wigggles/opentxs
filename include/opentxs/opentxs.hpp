@@ -89,7 +89,6 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTScriptable.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/util/Common.hpp>
 #include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Account.hpp>

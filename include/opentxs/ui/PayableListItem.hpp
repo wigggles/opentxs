@@ -28,7 +28,7 @@ class PayableListItem : virtual public ContactListItem
 public:
     EXPORT virtual std::string PaymentCode() const noexcept = 0;
 
-    EXPORT virtual ~PayableListItem() = default;
+    EXPORT ~PayableListItem() override = default;
 
 protected:
     PayableListItem() noexcept = default;
