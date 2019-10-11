@@ -41,39 +41,75 @@ public:
     const opentxs::ContactData contactData_;
     const std::shared_ptr<opentxs::ContactItem> activeContactItem_;
 
-    void testAddItemMethod(
-        std::function<opentxs::ContactData(
-            const opentxs::ContactData&,
-            const std::string&,
-            const opentxs::proto::ContactItemType,
-            const bool,
-            const bool)> contactDataMethod,
-        opentxs::proto::ContactSectionName sectionName,
-        uint32_t version = CONTACT_CONTACT_DATA_VERSION,
-        uint32_t targetVersion = 0);
-
-    void testAddItemMethod2(
-        std::function<opentxs::ContactData(
-            const opentxs::ContactData&,
-            const std::string&,
-            const bool,
-            const bool)> contactDataMethod,
-        opentxs::proto::ContactSectionName sectionName,
-        opentxs::proto::ContactItemType itemType,
-        uint32_t version = CONTACT_CONTACT_DATA_VERSION,
-        uint32_t targetVersion = 0);
-};
-
-void Test_ContactData::testAddItemMethod(
-    std::function<opentxs::ContactData(
+    using CallbackType1 = opentxs::ContactData (*)(
         const opentxs::ContactData&,
         const std::string&,
         const opentxs::proto::ContactItemType,
         const bool,
-        const bool)> contactDataMethod,
+        const bool);
+    using CallbackType2 = opentxs::ContactData (*)(
+        const opentxs::ContactData&,
+        const std::string&,
+        const bool,
+        const bool);
+
+    void testAddItemMethod(
+        const CallbackType1 contactDataMethod,
+        opentxs::proto::ContactSectionName sectionName,
+        std::uint32_t version = CONTACT_CONTACT_DATA_VERSION,
+        std::uint32_t targetVersion = 0);
+
+    void testAddItemMethod2(
+        const CallbackType2 contactDataMethod,
+        opentxs::proto::ContactSectionName sectionName,
+        opentxs::proto::ContactItemType itemType,
+        std::uint32_t version = CONTACT_CONTACT_DATA_VERSION,
+        std::uint32_t targetVersion = 0);
+};
+
+opentxs::ContactData add_contract(
+    const opentxs::ContactData& data,
+    const std::string& id,
+    const opentxs::proto::ContactItemType type,
+    const bool active,
+    const bool primary)
+{
+    return data.AddContract(id, type, active, primary);
+}
+
+opentxs::ContactData add_email(
+    const opentxs::ContactData& data,
+    const std::string& id,
+    const bool active,
+    const bool primary)
+{
+    return data.AddEmail(id, active, primary);
+}
+
+opentxs::ContactData add_payment_code(
+    const opentxs::ContactData& data,
+    const std::string& id,
+    const opentxs::proto::ContactItemType type,
+    const bool active,
+    const bool primary)
+{
+    return data.AddPaymentCode(id, type, active, primary);
+}
+
+opentxs::ContactData add_phone_number(
+    const opentxs::ContactData& data,
+    const std::string& id,
+    const bool active,
+    const bool primary)
+{
+    return data.AddPhoneNumber(id, active, primary);
+}
+
+void Test_ContactData::testAddItemMethod(
+    const CallbackType1 contactDataMethod,
     opentxs::proto::ContactSectionName sectionName,
-    uint32_t version,
-    uint32_t targetVersion)
+    std::uint32_t version,
+    std::uint32_t targetVersion)
 {
     // Add a contact to a group with no primary.
     const auto& group1 =
@@ -222,15 +258,11 @@ void Test_ContactData::testAddItemMethod(
 }
 
 void Test_ContactData::testAddItemMethod2(
-    std::function<opentxs::ContactData(
-        const opentxs::ContactData&,
-        const std::string&,
-        const bool,
-        const bool)> contactDataMethod,
+    const CallbackType2 contactDataMethod,
     opentxs::proto::ContactSectionName sectionName,
     opentxs::proto::ContactItemType itemType,
-    uint32_t version,
-    uint32_t targetVersion)
+    std::uint32_t version,
+    std::uint32_t targetVersion)
 {
     // Add a contact to a group with no primary.
     const auto& group1 = std::shared_ptr<opentxs::ContactGroup>(
@@ -723,23 +755,13 @@ TEST_F(Test_ContactData, Serialize)
 
 TEST_F(Test_ContactData, AddContract)
 {
-    testAddItemMethod(
-        std::mem_fn<opentxs::ContactData(
-            const std::string&,
-            const opentxs::proto::ContactItemType,
-            const bool,
-            const bool) const>(&opentxs::ContactData::AddContract),
-        opentxs::proto::CONTACTSECTION_CONTRACT);
+    testAddItemMethod(add_contract, opentxs::proto::CONTACTSECTION_CONTRACT);
 }
 
 TEST_F(Test_ContactData, AddContract_different_versions)
 {
     testAddItemMethod(
-        std::mem_fn<opentxs::ContactData(
-            const std::string&,
-            const opentxs::proto::ContactItemType,
-            const bool,
-            const bool) const>(&opentxs::ContactData::AddContract),
+        add_contract,
         opentxs::proto::CONTACTSECTION_CONTRACT,
         3,  // version of CONTACTSECTION_CONTRACT section before CITEMTYPE_BCH
             // was added
@@ -749,9 +771,7 @@ TEST_F(Test_ContactData, AddContract_different_versions)
 TEST_F(Test_ContactData, AddEmail)
 {
     testAddItemMethod2(
-        std::mem_fn<opentxs::ContactData(
-            const std::string&, const bool, const bool) const>(
-            &opentxs::ContactData::AddEmail),
+        add_email,
         opentxs::proto::CONTACTSECTION_COMMUNICATION,
         opentxs::proto::CITEMTYPE_EMAIL);
 }
@@ -940,22 +960,13 @@ TEST_F(Test_ContactData, AddItem_item_different_versions)
 TEST_F(Test_ContactData, AddPaymentCode)
 {
     testAddItemMethod(
-        std::mem_fn<opentxs::ContactData(
-            const std::string&,
-            const opentxs::proto::ContactItemType,
-            const bool,
-            const bool) const>(&opentxs::ContactData::AddPaymentCode),
-        opentxs::proto::CONTACTSECTION_PROCEDURE);
+        add_payment_code, opentxs::proto::CONTACTSECTION_PROCEDURE);
 }
 
 TEST_F(Test_ContactData, AddPaymentCode_different_versions)
 {
     testAddItemMethod(
-        std::mem_fn<opentxs::ContactData(
-            const std::string&,
-            const opentxs::proto::ContactItemType,
-            const bool,
-            const bool) const>(&opentxs::ContactData::AddContract),
+        add_contract,
         opentxs::proto::CONTACTSECTION_PROCEDURE,
         3,  // version of CONTACTSECTION_PROCEDURE section before CITEMTYPE_BCH
             // was added
@@ -965,9 +976,7 @@ TEST_F(Test_ContactData, AddPaymentCode_different_versions)
 TEST_F(Test_ContactData, AddPhoneNumber)
 {
     testAddItemMethod2(
-        std::mem_fn<opentxs::ContactData(
-            const std::string&, const bool, const bool) const>(
-            &opentxs::ContactData::AddPhoneNumber),
+        add_phone_number,
         opentxs::proto::CONTACTSECTION_COMMUNICATION,
         opentxs::proto::CITEMTYPE_PHONE);
 }

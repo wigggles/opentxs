@@ -320,7 +320,7 @@ const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
     const EVP_MD* OpenSSLType;
 
     switch (hashType) {
-        case proto::HASHTYPE_RIPMED160: {
+        case proto::HASHTYPE_RIMEMD160: {
             OpenSSLType = EVP_ripemd160();
         } break;
         case proto::HASHTYPE_SHA256: {
