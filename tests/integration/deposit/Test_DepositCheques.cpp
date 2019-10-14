@@ -22,6 +22,7 @@ using namespace opentxs;
 #define UNIT_DEFINITION_TLA "USD"
 #define UNIT_DEFINITION_POWER 2
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME "cents"
+#define UNIT_DEFINITION_UNIT_OF_ACCOUNT opentxs::proto::CITEMTYPE_USD
 #define CHEQUE_AMOUNT_1 2000
 #define CHEQUE_MEMO_1 "memo"
 
@@ -358,6 +359,7 @@ TEST_F(Test_DepositCheques, issue_dollars)
         UNIT_DEFINITION_TLA,
         UNIT_DEFINITION_POWER,
         UNIT_DEFINITION_FRACTIONAL_UNIT_NAME,
+        UNIT_DEFINITION_UNIT_OF_ACCOUNT,
         reasonI);
 
     ASSERT_TRUE(contract);

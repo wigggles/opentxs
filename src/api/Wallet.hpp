@@ -217,14 +217,20 @@ public:
         const std::string& tla,
         const std::uint32_t power,
         const std::string& fraction,
-        const PasswordPrompt& reason) const final;
+        const proto::ContactItemType unitOfAccount,
+        const PasswordPrompt& reason,
+        const VersionNumber version =
+            UnitDefinition::DefaultVersion) const final;
     ConstUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const PasswordPrompt& reason) const final;
+        const proto::ContactItemType unitOfAccount,
+        const PasswordPrompt& reason,
+        const VersionNumber version =
+            UnitDefinition::DefaultVersion) const final;
     proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const identifier::UnitDefinition& contractID,
         const PasswordPrompt& reason) const final;

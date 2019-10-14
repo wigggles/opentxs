@@ -28,7 +28,9 @@ private:
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms);
+        const std::string& terms,
+        const proto::ContactItemType unitOfAccount,
+        const VersionNumber version);
 
     proto::UnitDefinition IDVersion(const Lock& lock) const final;
 

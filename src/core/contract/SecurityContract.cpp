@@ -29,8 +29,10 @@ SecurityContract::SecurityContract(
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
-    const std::string& terms)
-    : ot_super(api, nym, shortname, name, symbol, terms)
+    const std::string& terms,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version)
+    : ot_super(api, nym, shortname, name, symbol, terms, unitOfAccount, version)
 {
 }
 

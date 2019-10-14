@@ -39,7 +39,9 @@ private:
         const std::string& terms,
         const std::string& tla,
         const std::uint32_t power,
-        const std::string& fraction);
+        const std::string& fraction,
+        const proto::ContactItemType unitOfAccount,
+        const VersionNumber version);
 
     EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const final;
 

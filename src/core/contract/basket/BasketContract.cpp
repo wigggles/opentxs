@@ -46,8 +46,10 @@ BasketContract::BasketContract(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const std::uint64_t weight)
-    : ot_super(api, nym, shortname, name, symbol, terms)
+    const std::uint64_t weight,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version)
+    : ot_super(api, nym, shortname, name, symbol, terms, unitOfAccount, version)
     , subcontracts_()
     , weight_(weight)
 {

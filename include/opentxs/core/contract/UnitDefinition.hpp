@@ -24,8 +24,8 @@ class UnitDefinition : public Signable
 private:
     typedef Signable ot_super;
 
-    std::string primary_unit_name_;
-    std::string short_name_;
+    const std::string primary_unit_name_;
+    const std::string short_name_;
 
     proto::UnitDefinition contract(const Lock& lock) const;
     OTIdentifier GetID(const Lock& lock) const override;
@@ -36,7 +36,8 @@ private:
 
 protected:
     const api::Core& api_;
-    std::string primary_unit_symbol_;
+    const std::string primary_unit_symbol_;
+    const proto::ContactItemType unit_of_account_;
 
     static OTIdentifier GetID(
         const api::Core& api,
@@ -60,9 +61,14 @@ protected:
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
-        const std::string& terms);
+        const std::string& terms,
+        const proto::ContactItemType unitOfAccount,
+        const VersionNumber version);
 
 public:
+    EXPORT static const VersionNumber DefaultVersion;
+    EXPORT static const VersionNumber MaxVersion;
+
     EXPORT static UnitDefinition* Create(
         const api::Core& api,
         const Nym_p& nym,
@@ -73,7 +79,9 @@ public:
         const std::string& tla,
         const std::uint32_t power,
         const std::string& fraction,
-        const PasswordPrompt& reason);
+        const proto::ContactItemType unitOfAccount,
+        const PasswordPrompt& reason,
+        const VersionNumber version);
     EXPORT static UnitDefinition* Create(
         const api::Core& api,
         const Nym_p& nym,
@@ -81,7 +89,9 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const std::uint64_t weight);
+        const std::uint64_t weight,
+        const proto::ContactItemType unitOfAccount,
+        const VersionNumber version);
     EXPORT static UnitDefinition* Create(
         const api::Core& api,
         const Nym_p& nym,
@@ -89,7 +99,9 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const PasswordPrompt& reason);
+        const proto::ContactItemType unitOfAccount,
+        const PasswordPrompt& reason,
+        const VersionNumber version);
     EXPORT static UnitDefinition* Factory(
         const api::Core& api,
         const Nym_p& nym,
@@ -97,13 +109,11 @@ public:
         const PasswordPrompt& reason);
 
     // Some instrument definitions keep a list of "user" accounts (the
-    // complete set of
-    // that type.)
+    // complete set of that type.)
     // This is called when the user creates a new asset account, in order to add
     // it to that list.
     // (Currently only operational for "shares", not "currencies", since it's
-    // used exclusively
-    // for the payment of dividends.)
+    // used exclusively for the payment of dividends.)
 
     // adds the account to the list. (When account is created.)
     EXPORT bool AddAccountRecord(

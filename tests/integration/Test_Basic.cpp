@@ -18,6 +18,7 @@ namespace ot = opentxs;
 #define UNIT_DEFINITION_TLA "USD"
 #define UNIT_DEFINITION_POWER 2
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME "cents"
+#define UNIT_DEFINITION_UNIT_OF_ACCOUNT ot::proto::CITEMTYPE_USD
 #define CHEQUE_AMOUNT_1 100
 #define CHEQUE_AMOUNT_2 75
 #define CHEQUE_MEMO "memo"
@@ -2239,6 +2240,7 @@ TEST_F(Integration, issue_dollars)
         UNIT_DEFINITION_TLA,
         UNIT_DEFINITION_POWER,
         UNIT_DEFINITION_FRACTIONAL_UNIT_NAME,
+        UNIT_DEFINITION_UNIT_OF_ACCOUNT,
         issuer_.Reason());
 
     ASSERT_TRUE(contract);

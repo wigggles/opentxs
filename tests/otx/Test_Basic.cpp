@@ -27,6 +27,7 @@ using namespace opentxs;
 #define UNIT_DEFINITION_TLA "USA"
 #define UNIT_DEFINITION_POWER 2
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME "cents"
+#define UNIT_DEFINITION_UNIT_OF_ACCOUNT opentxs::proto::CITEMTYPE_USD
 #define UNIT_DEFINITION_CONTRACT_NAME_2 "Mt Gox BTC"
 #define UNIT_DEFINITION_TERMS_2 "YOLO"
 #define UNIT_DEFINITION_PRIMARY_UNIT_NAME_2 "bitcoins"
@@ -34,6 +35,8 @@ using namespace opentxs;
 #define UNIT_DEFINITION_TLA_2 "BTC"
 #define UNIT_DEFINITION_POWER_2 8
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME_2 "satoshis"
+#define UNIT_DEFINITION_UNIT_OF_ACCOUNT_2 opentxs::proto::CITEMTYPE_BTC
+
 #define MESSAGE_TEXT "example message text"
 #define NEW_SERVER_NAME "Awesome McCoolName"
 #define TEST_SEED                                                              \
@@ -239,6 +242,7 @@ public:
                 UNIT_DEFINITION_TLA,
                 UNIT_DEFINITION_POWER,
                 UNIT_DEFINITION_FRACTIONAL_UNIT_NAME,
+                UNIT_DEFINITION_UNIT_OF_ACCOUNT,
                 reason_c1_);
 
         ASSERT_TRUE(asset_contract_1_);
@@ -257,6 +261,7 @@ public:
                 UNIT_DEFINITION_TLA_2,
                 UNIT_DEFINITION_POWER_2,
                 UNIT_DEFINITION_FRACTIONAL_UNIT_NAME_2,
+                UNIT_DEFINITION_UNIT_OF_ACCOUNT_2,
                 reason_c2_);
 
         ASSERT_TRUE(asset_contract_2_);
