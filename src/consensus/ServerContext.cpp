@@ -67,6 +67,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cinttypes>
 #include <cstring>
 #include <iterator>
 
@@ -2821,14 +2822,11 @@ void ServerContext::process_accept_cron_receipt_reply(
 
         // TransID for original offer.
         // (Offer may trade many times.)
-        pData->transaction_id =
-            to_string<std::int64_t>(theTrade->GetTransactionNum());
+        pData->transaction_id = std::to_string(theTrade->GetTransactionNum());
         // TransID for BOTH receipts for current trade.
         // (Asset/Currency.)
-        pData->updated_id =
-            to_string<std::int64_t>(pServerItem->GetTransactionNum());
-        pData->completed_count =
-            to_string<std::int32_t>(theTrade->GetCompletedCount());
+        pData->updated_id = std::to_string(pServerItem->GetTransactionNum());
+        pData->completed_count = std::to_string(theTrade->GetCompletedCount());
         auto account = api_.Wallet().Account(accountID, reason);
 
         OT_ASSERT(account)
@@ -2848,7 +2846,7 @@ void ServerContext::process_accept_cron_receipt_reply(
             std::int64_t lAssetsThisTrade = pServerItem->GetAmount();
             pData->instrument_definition_id = strInstrumentDefinitionID->Get();
             // The amount of ASSETS moved, this trade.
-            pData->amount_sold = to_string<std::int64_t>(lAssetsThisTrade);
+            pData->amount_sold = std::to_string(lAssetsThisTrade);
             pData->asset_acct_id = strAcctID->Get();
             pData->asset_receipt = strServerTransaction->Get();
         } else if (bIsCurrency) {
@@ -2856,22 +2854,20 @@ void ServerContext::process_accept_cron_receipt_reply(
                 String::Factory(theTrade->GetCurrencyID());
             std::int64_t lCurrencyThisTrade = pServerItem->GetAmount();
             pData->currency_id = strCurrencyID->Get();
-            pData->currency_paid = to_string<std::int64_t>(lCurrencyThisTrade);
+            pData->currency_paid = std::to_string(lCurrencyThisTrade);
             pData->currency_acct_id = strAcctID->Get();
             pData->currency_receipt = strServerTransaction->Get();
         }
 
-        const time64_t& tProcessDate = inboxTransaction.GetDateSigned();
-        pData->date = to_string<time64_t>(tProcessDate);
+        const auto tProcessDate = inboxTransaction.GetDateSigned();
+        pData->date = std::to_string(Clock::to_time_t(tProcessDate));
 
-        // The original offer price. (Might
-        // be 0, if it's a market order.)
-        //
+        // The original offer price. (Might be 0, if it's a market order.)
         const std::int64_t& lPriceLimit = theOffer->GetPriceLimit();
-        pData->offer_price = to_string<std::int64_t>(lPriceLimit);
+        pData->offer_price = std::to_string(lPriceLimit);
         const std::int64_t& lFinishedSoFar = theOffer->GetFinishedSoFar();
-        pData->finished_so_far = to_string<std::int64_t>(lFinishedSoFar);
-        pData->scale = to_string<std::int64_t>(lScale);
+        pData->finished_so_far = std::to_string(lFinishedSoFar);
+        pData->scale = std::to_string(lScale);
         pData->is_bid = theOffer->IsBid();
 
         // save to local storage...

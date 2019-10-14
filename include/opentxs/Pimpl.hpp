@@ -34,14 +34,26 @@ public:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
     Pimpl(const Pimpl& rhs) noexcept
-        : pimpl_(rhs.pimpl_->clone())
+        : pimpl_(
+#ifndef _WIN32
+              rhs.pimpl_->clone()
+#else
+              dynamic_cast<C*>(rhs.pimpl_->clone())
+#endif
+          )
     {
         assert(pimpl_);
     }
 #pragma GCC diagnostic pop
 
     Pimpl(const C& rhs) noexcept
-        : pimpl_(rhs.clone())
+        : pimpl_(
+#ifndef _WIN32
+              rhs.clone()
+#else
+              dynamic_cast<C*>(rhs.clone())
+#endif
+          )
     {
         assert(pimpl_);
     }
@@ -56,7 +68,13 @@ public:
 #pragma GCC diagnostic ignored "-Wnull-dereference"
     Pimpl& operator=(const Pimpl& rhs) noexcept
     {
-        pimpl_.reset(rhs.pimpl_->clone());
+        pimpl_.reset(
+#ifndef _WIN32
+            rhs.pimpl_->clone()
+#else
+            dynamic_cast<C*>(rhs.pimpl_->clone())
+#endif
+        );
         assert(pimpl_);
 
         return *this;
@@ -73,7 +91,13 @@ public:
 
     Pimpl& operator=(const C& rhs) noexcept
     {
-        pimpl_.reset(rhs.clone());
+        pimpl_.reset(
+#ifndef _WIN32
+            rhs.clone()
+#else
+            dynamic_cast<C*>(rhs.clone())
+#endif
+        );
         assert(pimpl_);
 
         return *this;

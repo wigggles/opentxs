@@ -63,7 +63,7 @@ public:
     EXPORT static OTUnitID Factory(const String& rhs);
 #endif
 
-    EXPORT virtual ~UnitDefinition() = default;
+    EXPORT ~UnitDefinition() override = default;
 
 protected:
     UnitDefinition() = default;
@@ -71,7 +71,9 @@ protected:
 private:
     friend OTUnitID;
 
-    virtual UnitDefinition* clone() const = 0;
+#ifndef _WIN32
+    UnitDefinition* clone() const override = 0;
+#endif
 
     UnitDefinition(const UnitDefinition&) = delete;
     UnitDefinition(UnitDefinition&&) = delete;

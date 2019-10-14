@@ -49,7 +49,9 @@ protected:
 private:
     friend OTZMQPairEventCallback;
 
-    virtual PairEventCallback* clone() const override = 0;
+#ifndef _WIN32
+    PairEventCallback* clone() const override = 0;
+#endif
 
     PairEventCallback(const PairEventCallback&) = delete;
     PairEventCallback(PairEventCallback&&) = delete;

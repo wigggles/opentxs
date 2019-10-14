@@ -1421,7 +1421,7 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     const std::int64_t& lTransactionNum,
     const std::int64_t& lInRefTo,
     const std::int64_t& lInRefDisplay,
-    time64_t the_DATE_SIGNED,
+    const Time the_DATE_SIGNED,
     transactionType theType,
     const String& strHash,
     const std::int64_t& lAdjustment,

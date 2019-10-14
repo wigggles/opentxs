@@ -31,7 +31,7 @@ public:
     EXPORT virtual std::string ImageURI() const noexcept = 0;
     EXPORT virtual std::string Section() const noexcept = 0;
 
-    EXPORT virtual ~ContactListItem() = default;
+    EXPORT ~ContactListItem() override = default;
 
 protected:
     ContactListItem() noexcept = default;

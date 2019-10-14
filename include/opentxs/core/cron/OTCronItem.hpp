@@ -93,29 +93,27 @@ public:
         const std::string& dataFolder,
         const identifier::Nym& nymID,
         const identifier::Server& notaryID);
-    inline void SetCreationDate(const time64_t& CREATION_DATE)
+    inline void SetCreationDate(const Time CREATION_DATE)
     {
         m_CREATION_DATE = CREATION_DATE;
     }
-    inline const time64_t& GetCreationDate() const { return m_CREATION_DATE; }
+    inline const Time GetCreationDate() const { return m_CREATION_DATE; }
 
     EXPORT bool SetDateRange(
-        time64_t VALID_FROM = OT_TIME_ZERO,
-        time64_t VALID_TO = OT_TIME_ZERO);
-    inline void SetLastProcessDate(const time64_t& THE_DATE)
+        const Time VALID_FROM = Time{},
+        const Time VALID_TO = Time{});
+    inline void SetLastProcessDate(const Time THE_DATE)
     {
         m_LAST_PROCESS_DATE = THE_DATE;
     }
-    inline const time64_t& GetLastProcessDate() const
-    {
-        return m_LAST_PROCESS_DATE;
-    }
 
-    inline void SetProcessInterval(const std::int64_t& THE_DATE)
+    inline const Time GetLastProcessDate() const { return m_LAST_PROCESS_DATE; }
+
+    inline void SetProcessInterval(const std::chrono::seconds interval)
     {
-        m_PROCESS_INTERVAL = THE_DATE;
+        m_PROCESS_INTERVAL = interval;
     }
-    inline const std::int64_t& GetProcessInterval() const
+    inline const std::chrono::seconds GetProcessInterval() const
     {
         return m_PROCESS_INTERVAL;
     }
@@ -123,8 +121,8 @@ public:
     inline OTCron* GetCron() const { return m_pCron; }
     void setServerNym(Nym_p serverNym) { serverNym_ = serverNym; }
     void setNotaryID(const identifier::Server& notaryID);
-    // When first adding anything to Cron, a copy needs to be saved in a folder
-    // somewhere.
+    // When first adding anything to Cron, a copy needs to be saved in a
+    // folder somewhere.
     EXPORT bool SaveCronReceipt();  // server side only
     EXPORT bool SaveActiveCronReceipt(
         const identifier::Nym& theNymID);  // client
@@ -175,23 +173,26 @@ public:
         const PasswordPrompt& reason) override;
 
 protected:
-    std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING
-                                                     // a transaction.
+    std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for
+                                                     // CLOSING a
+                                                     // transaction.
                                                      // (finalReceipt.)
     OTNymID m_pCancelerNymID;
 
-    bool m_bCanceled{false};  // This defaults to false. But if someone cancels
-                              // it (BEFORE it is ever activated, just to nip it
-                              // in the bud and harvest the numbers, and send
-                              // the notices, etc) -- then we set this to true,
-                              // and we also set the canceler Nym ID. (So we can
-                              // see these values later and know whether it was
-                              // canceled before activation, and if so, who did
-                              // it.)
+    bool m_bCanceled{false};  // This defaults to false. But if someone
+                              // cancels it (BEFORE it is ever activated,
+                              // just to nip it in the bud and harvest the
+                              // numbers, and send the notices, etc) -- then
+                              // we set this to true, and we also set the
+                              // canceler Nym ID. (So we can see these
+                              // values later and know whether it was
+                              // canceled before activation, and if so, who
+                              // did it.)
 
-    bool m_bRemovalFlag{false};  // Set this to true and the cronitem will be
-                                 // removed from Cron on next process.
-    // (And its offer will be removed from the Market as well, if appropriate.)
+    bool m_bRemovalFlag{false};  // Set this to true and the cronitem will
+                                 // be removed from Cron on next process.
+    // (And its offer will be removed from the Market as well, if
+    // appropriate.)
     virtual void onActivate(const PasswordPrompt& reason) {
     }  // called by HookActivationOnCron().
 
@@ -222,14 +223,14 @@ protected:
 private:
     typedef OTTrackable ot_super;
 
-    OTCron* m_pCron{nullptr};
-    Nym_p serverNym_{nullptr};
+    OTCron* m_pCron;
+    Nym_p serverNym_;
     OTIdentifier notaryID_;
-    time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
-                                  // authorized.
-    time64_t m_LAST_PROCESS_DATE{0};  // The last time this item was processed.
-    std::int64_t m_PROCESS_INTERVAL{0};  // How often to Process Cron on this
-                                         // item.
+    Time m_CREATION_DATE;      // The date, in seconds, when the CronItem was
+                               // authorized.
+    Time m_LAST_PROCESS_DATE;  // The last time this item was processed.
+    std::chrono::seconds m_PROCESS_INTERVAL;  // How often to Process Cron
+                                              // on this item.
 
     OTCronItem() = delete;
     OTCronItem(const OTCronItem&) = delete;

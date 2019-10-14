@@ -29,7 +29,7 @@ class Secp256k1 :
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 {
 public:
-    virtual ~Secp256k1() = default;
+    ~Secp256k1() override = default;
 
 protected:
     Secp256k1() = default;

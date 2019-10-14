@@ -11,7 +11,6 @@
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTScript.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -375,7 +374,8 @@ void OTPartyAccount::Serialize(
     pTag->add_attribute(
         "agentName", bCalculatingID ? "" : m_strAgentName->Get());
     pTag->add_attribute(
-        "closingTransNo", formatLong(bCalculatingID ? 0 : m_lClosingTransNo));
+        "closingTransNo",
+        std::to_string(bCalculatingID ? 0 : m_lClosingTransNo));
 
     parent.add_tag(pTag);
 }

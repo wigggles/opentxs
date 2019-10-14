@@ -42,7 +42,7 @@ public:
         const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr) = 0;
 
-    virtual ~RSA() = default;
+    ~RSA() override = default;
 
 protected:
     RSA() = default;

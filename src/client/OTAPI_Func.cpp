@@ -17,7 +17,6 @@
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -120,7 +119,7 @@ OTAPI_Func::OTAPI_Func(
     , ack_(false)
     , direction_(false)
     , selling_(false)
-    , lifetime_(OT_TIME_ZERO)
+    , lifetime_()
     , nRequestNum_(-1)
     , nTransNumsNeeded_(0)
     , api_(api)
@@ -433,7 +432,7 @@ OTAPI_Func::OTAPI_Func(
     const Amount& quantity,
     const Amount& price,
     const bool selling,
-    const time64_t lifetime,
+    const Time lifetime,
     const Amount& activationPrice,
     const std::string& stopSign)
     : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)

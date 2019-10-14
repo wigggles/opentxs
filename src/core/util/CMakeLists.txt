@@ -5,9 +5,9 @@
 
 set(
   cxx-sources
+  Common.cpp
   OTFolders.cpp
   OTPaths.cpp
-  StringUtils.cpp
   Tag.cpp
 )
 set(
@@ -16,7 +16,6 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/util/OTFolders.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/util/OTPaths.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/util/OTWindowsRegistryTools.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/util/StringUtils.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/util/Tag.hpp"
 )
 set(cxx-headers ${cxx-install-headers})

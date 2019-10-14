@@ -27,7 +27,6 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"

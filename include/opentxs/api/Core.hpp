@@ -38,7 +38,7 @@ public:
     EXPORT virtual const api::Wallet& Wallet() const = 0;
     EXPORT virtual const opentxs::network::zeromq::Context& ZeroMQ() const = 0;
 
-    EXPORT virtual ~Core() = default;
+    EXPORT ~Core() override = default;
 
 protected:
     Core() = default;

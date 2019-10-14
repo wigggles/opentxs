@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
@@ -152,8 +151,8 @@ public:
     EXPORT bool GetTransNumDisplay(TransactionNumber& lOutput) const;
     EXPORT paymentType GetType() const { return m_Type; }
     EXPORT const char* GetTypeString() const { return _GetTypeString(m_Type); }
-    EXPORT bool GetValidFrom(time64_t& tOutput) const;
-    EXPORT bool GetValidTo(time64_t& tOutput) const;
+    EXPORT bool GetValidFrom(Time& tOutput) const;
+    EXPORT bool GetValidTo(Time& tOutput) const;
     EXPORT bool HasTransactionNum(
         const TransactionNumber& lInput,
         const PasswordPrompt& reason) const;
@@ -204,23 +203,23 @@ public:
 protected:
     // Contains the cheque / payment plan / etc in string form.
     OTString m_strPayment;
-    paymentType m_Type{ERROR_STATE};
+    paymentType m_Type;
     // Once the actual instrument is loaded up, we copy some temp values to
     // *this object. Until then, this bool (m_bAreTempValuesSet) is set to
     // false.
-    bool m_bAreTempValuesSet{false};
+    bool m_bAreTempValuesSet;
 
     // Here are the TEMP values: (These are not serialized.)
 
     // For cheques mostly, and payment plans too.
-    bool m_bHasRecipient{false};
+    bool m_bHasRecipient;
     // For vouchers (cashier's cheques), the Nym who bought the voucher is the
     // remitter, whereas the "sender" is the server Nym whose account the
     // voucher is drawn on.
-    bool m_bHasRemitter{false};
-    Amount m_lAmount{0};
-    TransactionNumber m_lTransactionNum{0};
-    TransactionNumber m_lTransNumDisplay{0};
+    bool m_bHasRemitter;
+    Amount m_lAmount;
+    TransactionNumber m_lTransactionNum;
+    TransactionNumber m_lTransNumDisplay;
     // Memo, Consideration, Subject, etc.
     OTString m_strMemo;
 
@@ -244,8 +243,8 @@ protected:
     // Whereas the account that was originally used to purchase the voucher is
     // the remitter account.
     OTIdentifier m_RemitterAcctID;
-    time64_t m_VALID_FROM{0};  // Temporary values. Not always available.
-    time64_t m_VALID_TO{0};    // Temporary values. Not always available.
+    Time m_VALID_FROM;  // Temporary values. Not always available.
+    Time m_VALID_TO;    // Temporary values. Not always available.
 
     void lowLevelSetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     void lowLevelSetTempValuesFromSmartContract(

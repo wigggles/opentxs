@@ -742,14 +742,14 @@ bool Purse::Verify(const api::server::Manager& server) const
             return false;
         }
 
-        if (token.ValidFrom() != Clock::from_time_t(mint.GetValidFrom())) {
+        if (token.ValidFrom() != mint.GetValidFrom()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect token valid from")
                 .Flush();
 
             return false;
         }
 
-        if (token.ValidTo() != Clock::from_time_t(mint.GetValidTo())) {
+        if (token.ValidTo() != mint.GetValidTo()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect token valid to")
                 .Flush();
 

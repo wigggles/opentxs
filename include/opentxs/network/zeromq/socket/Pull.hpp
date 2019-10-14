@@ -32,7 +32,7 @@ namespace socket
 class Pull : virtual public curve::Server
 {
 public:
-    EXPORT virtual ~Pull() = default;
+    EXPORT ~Pull() override = default;
 
 protected:
     Pull() noexcept = default;

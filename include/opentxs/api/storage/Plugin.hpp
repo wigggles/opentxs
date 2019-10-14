@@ -22,14 +22,12 @@ namespace storage
 class Plugin : public virtual Driver
 {
 public:
-    virtual bool EmptyBucket(const bool bucket) const = 0;
-
-    virtual std::string LoadRoot() const = 0;
-
+    virtual bool EmptyBucket(const bool bucket) const override = 0;
+    virtual std::string LoadRoot() const override = 0;
     virtual bool StoreRoot(const bool commit, const std::string& hash)
-        const = 0;
+        const override = 0;
 
-    virtual ~Plugin() = default;
+    ~Plugin() override = default;
 
 protected:
     Plugin() = default;

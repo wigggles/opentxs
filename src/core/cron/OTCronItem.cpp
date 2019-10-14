@@ -15,7 +15,6 @@
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -65,8 +64,8 @@ OTCronItem::OTCronItem(const api::Core& core)
     , m_pCron(nullptr)
     , serverNym_(nullptr)
     , notaryID_(api_.Factory().Identifier())
-    , m_CREATION_DATE(OT_TIME_ZERO)
-    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
+    , m_CREATION_DATE()
+    , m_LAST_PROCESS_DATE()
     , m_PROCESS_INTERVAL(1)
 {
     InitCronItem();
@@ -84,8 +83,8 @@ OTCronItem::OTCronItem(
     , m_pCron(nullptr)
     , serverNym_(nullptr)
     , notaryID_(api_.Factory().Identifier())
-    , m_CREATION_DATE(OT_TIME_ZERO)
-    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
+    , m_CREATION_DATE()
+    , m_LAST_PROCESS_DATE()
     , m_PROCESS_INTERVAL(1)
 {
     InitCronItem();
@@ -105,8 +104,8 @@ OTCronItem::OTCronItem(
     , m_pCron(nullptr)
     , serverNym_(nullptr)
     , notaryID_(api_.Factory().Identifier())
-    , m_CREATION_DATE(OT_TIME_ZERO)
-    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
+    , m_CREATION_DATE()
+    , m_LAST_PROCESS_DATE()
     , m_PROCESS_INTERVAL(1)
 
 {
@@ -575,50 +574,46 @@ bool OTCronItem::SaveCronReceipt()
     return bSaved;
 }
 
-bool OTCronItem::SetDateRange(time64_t VALID_FROM, time64_t VALID_TO)
+bool OTCronItem::SetDateRange(const Time VALID_FROM, const Time VALID_TO)
 {
-    // Set the CREATION DATE
-    //
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
-
-    // Set the Creation Date.
+    const auto CURRENT_TIME = Clock::now();
     SetCreationDate(CURRENT_TIME);
 
     // VALID_FROM
     //
     // The default "valid from" time is NOW.
-    if (OT_TIME_ZERO >= VALID_FROM)  // if it's 0 or less, set to current time.
+    if (Time{} >= VALID_FROM) {
         SetValidFrom(CURRENT_TIME);
-    else  // Otherwise use whatever was passed in.
+    } else {
         SetValidFrom(VALID_FROM);
+    }
 
     // VALID_TO
     //
     // The default "valid to" time is 0 (which means no expiration date / cancel
     // anytime.)
-    if (OT_TIME_ZERO == VALID_TO)  // VALID_TO is 0
+    if (Time{} == VALID_TO)  // VALID_TO is 0
     {
-        SetValidTo(VALID_TO);  // Keep it at zero then, so it won't expire.
-    } else if (OT_TIME_ZERO < VALID_TO)  // VALID_TO is ABOVE zero...
+        SetValidTo(Time{});        // Keep it at zero then, so it
+                                   // won't expire.
+    } else if (Time{} < VALID_TO)  // VALID_TO is ABOVE zero...
     {
         if (VALID_TO < VALID_FROM)  // If Valid-To date is EARLIER than
                                     // Valid-From date...
         {
-            std::int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
-            std::int64_t lValidFrom = OTTimeGetSecondsFromTime(VALID_FROM);
-            LogOutput(OT_METHOD)(__FUNCTION__)(": VALID_TO (")(lValidTo)(
-                ") is earlier than VALID_FROM (")(lValidFrom)(").")
+            LogOutput(OT_METHOD)(__FUNCTION__)(": VALID_TO (")(VALID_TO)(
+                ") is earlier than VALID_FROM (")(VALID_FROM)(").")
                 .Flush();
             return false;
         }
 
-        SetValidTo(VALID_TO);  // Set it to whatever it is, since it is now
-                               // validated as higher than Valid-From.
+        SetValidTo(VALID_TO);  // Set it to whatever it is,
+                               // since it is now validated as
+                               // higher than Valid-From.
     } else                     // VALID_TO is a NEGATIVE number... Error.
     {
-        std::int64_t lValidTo = OTTimeGetSecondsFromTime(VALID_TO);
         LogOutput(OT_METHOD)(__FUNCTION__)(": Negative value for valid_to: ")(
-            lValidTo)(".")
+            VALID_TO)
             .Flush();
 
         return false;
@@ -626,7 +621,6 @@ bool OTCronItem::SetDateRange(time64_t VALID_FROM, time64_t VALID_TO)
 
     return true;
 }
-
 // These are for finalReceipt
 // The Cron Item stores a list of these closing transaction numbers,
 // used for closing a transaction.
@@ -660,22 +654,25 @@ bool OTCronItem::CanRemoveItemFromCron(const ClientContext& context)
 {
     const auto strNotaryID = String::Factory(GetNotaryID());
 
-    // You don't just go willy-nilly and remove a cron item from a market unless
-    // you check first and make sure the Nym who requested it actually has said
-    // number (or a related closing number) signed out to him on his last
-    // receipt...
+    // You don't just go willy-nilly and remove a cron item from a market
+    // unless you check first and make sure the Nym who requested it
+    // actually has said number (or a related closing number) signed out to
+    // him on his last receipt...
     if (!context.Nym()->CompareID(GetSenderNymID())) {
         LogInsane(OT_METHOD)(__FUNCTION__)(
-            ": theNym is not the originator of this CronItem. (He could be a "
+            ": theNym is not the originator of this CronItem. (He could be "
+            "a "
             "recipient though, so this is normal.)")
             .Flush();
 
         return false;
     }
-    // By this point, that means theNym is DEFINITELY the originator (sender)...
+    // By this point, that means theNym is DEFINITELY the originator
+    // (sender)...
     else if (GetCountClosingNumbers() < 1) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": Weird: Sender tried to remove a cron item; expected at least "
+            ": Weird: Sender tried to remove a cron item; expected at "
+            "least "
             "1 closing number to be available"
             " -- that wasn't. (Found ")(GetCountClosingNumbers())(").")
             .Flush();
@@ -691,33 +688,34 @@ bool OTCronItem::CanRemoveItemFromCron(const ClientContext& context)
         return false;
     }
 
-    // By this point, we KNOW theNym is the sender, and we KNOW there are the
-    // proper number of transaction numbers available to close. We also know
-    // that this cron item really was on the cron object, since that is where it
-    // was looked up from, when this function got called! So I'm pretty sure, at
-    // this point, to authorize removal, as long as the transaction num is still
-    // issued to theNym (this check here.)
+    // By this point, we KNOW theNym is the sender, and we KNOW there are
+    // the proper number of transaction numbers available to close. We also
+    // know that this cron item really was on the cron object, since that is
+    // where it was looked up from, when this function got called! So I'm
+    // pretty sure, at this point, to authorize removal, as long as the
+    // transaction num is still issued to theNym (this check here.)
 
     return context.VerifyIssuedNumber(GetOpeningNum());
 
-    // Normally this will be all we need to check. The originator will have the
-    // transaction number signed-out to him still, if he is trying to close it.
-    // BUT--in some cases, someone who is NOT the originator can cancel. Like in
-    // a payment plan, the sender is also the depositor, who would normally be
-    // the person cancelling the plan. But technically, the RECIPIENT should
-    // also have the ability to cancel that payment plan.  BUT: the transaction
-    // number isn't signed out to the RECIPIENT... In THAT case, the below
-    // VerifyIssuedNum() won't work! In those cases, expect that the special
-    // code will be in the subclasses override of this function.
-    // (OTPaymentPlan::CanRemoveItem() etc)
+    // Normally this will be all we need to check. The originator will have
+    // the transaction number signed-out to him still, if he is trying to
+    // close it. BUT--in some cases, someone who is NOT the originator can
+    // cancel. Like in a payment plan, the sender is also the depositor, who
+    // would normally be the person cancelling the plan. But technically,
+    // the RECIPIENT should also have the ability to cancel that payment
+    // plan.  BUT: the transaction number isn't signed out to the
+    // RECIPIENT... In THAT case, the below VerifyIssuedNum() won't work! In
+    // those cases, expect that the special code will be in the subclasses
+    // override of this function. (OTPaymentPlan::CanRemoveItem() etc)
 
     // P.S. If you override this function, maybe call the parent
-    // (OTCronItem::CanRemoveItem) first, for the VerifyIssuedNum call above.
-    // Only if that fails, do you need to dig deeper...
+    // (OTCronItem::CanRemoveItem) first, for the VerifyIssuedNum call
+    // above. Only if that fails, do you need to dig deeper...
 }
 
 // OTCron calls this regularly, which is my chance to expire, etc.
-// Child classes will override this, AND call it (to verify valid date range.)
+// Child classes will override this, AND call it (to verify valid date
+// range.)
 //
 // Return False:    REMOVE this Cron Item from Cron.
 // Return True:        KEEP this Cron Item on Cron (for now.)
@@ -735,8 +733,8 @@ bool OTCronItem::ProcessCron(const PasswordPrompt& reason)
 
     // I call IsExpired() here instead of VerifyCurrentDate(). The Cron Item
     // will stay on
-    // Cron even if it is NOT YET valid. But once it actually expires, this will
-    // remove it.
+    // Cron even if it is NOT YET valid. But once it actually expires, this
+    // will remove it.
     if (IsExpired()) {
         LogDebug(OT_METHOD)(__FUNCTION__)(": Expired ")(m_strContractType)
             .Flush();
@@ -793,49 +791,45 @@ void OTCronItem::HookRemovalFromCron(
             "transaction numbers were available!")
             .Flush();
     } else {
-        // Everytime a payment processes, or a trade, then a receipt is put in
-        // the user's inbox.
-        // This contains a copy of the current payment or trade (which took
-        // money from the user's acct.)
+        // Everytime a payment processes, or a trade, then a receipt is put
+        // in the user's inbox. This contains a copy of the current payment
+        // or trade (which took money from the user's acct.)
         //
-        // ==> So I increment the payment count each time before dropping the
-        // receipt. (I also use a fresh
-        // transaction number when I put it into the inbox.) That way, the user
-        // will never get the same
+        // ==> So I increment the payment count each time before dropping
+        // the receipt. (I also use a fresh transaction number when I put it
+        // into the inbox.) That way, the user will never get the same
         // receipt for the same plan twice. It cannot take funds from his
         // account, without a new payment
-        // count and a new transaction number on a new receipt. Until the user
-        // accepts the receipt out
-        // of his inbox with a new balance agreement, the existing receipts can
-        // be added up and compared
-        // to the last balance agreement, to verify the current balance. Every
+        // count and a new transaction number on a new receipt. Until the
+        // user accepts the receipt out of his inbox with a new balance
+        // agreement, the existing receipts can be added up and compared to
+        // the last balance agreement, to verify the current balance. Every
         // receipt from a processing
-        // payment will have the user's authorization, signature, and terms, as
-        // well as the update in balances
-        // due to the payment, signed by the server.
+        // payment will have the user's authorization, signature, and terms,
+        // as well as the update in balances due to the payment, signed by
+        // the server.
 
-        // In the case of the FINAL RECEIPT, I do NOT increment the count, so
-        // you can see it will have the same
-        // payment count as the last paymentReceipt. (if there were 5
-        // paymentReceipts, from 1 to 5, then the
-        // finalReceipt will also be 5. This is evidence of what the last
-        // paymentReceipt WAS.)
+        // In the case of the FINAL RECEIPT, I do NOT increment the count,
+        // so you can see it will have the same payment count as the last
+        // paymentReceipt. (if there were 5 paymentReceipts, from 1 to 5,
+        // then the finalReceipt will also be 5. This is evidence of what
+        // the last paymentReceipt WAS.)
 
-        // The TRANSACTION will be dropped into the INBOX with "In Reference To"
-        // information,
-        // containing the ORIGINAL SIGNED REQUEST.
+        // The TRANSACTION will be dropped into the INBOX with "In Reference
+        // To" information, containing the ORIGINAL SIGNED REQUEST.
         //
         std::unique_ptr<OTCronItem> pOrigCronItem =
             OTCronItem::LoadCronReceipt(api_, GetTransactionNum(), reason);
         // OTCronItem::LoadCronReceipt loads the original version with the
         // user's signature.
-        // (Updated versions, as processing occurs, are signed by the server.)
+        // (Updated versions, as processing occurs, are signed by the
+        // server.)
         OT_ASSERT(false != bool(pOrigCronItem));
 
-        // Note: elsewhere, we verify the Nym's signature. But in this place, we
-        // verify the SERVER's
-        // signature. (The server signed the cron receipt just before it was
-        // first saved, so it has two signatures on it.)
+        // Note: elsewhere, we verify the Nym's signature. But in this
+        // place, we verify the SERVER's signature. (The server signed the
+        // cron receipt just before it was first saved, so it has two
+        // signatures on it.)
         //
         {
             bool bValidSignture =
@@ -867,8 +861,8 @@ void OTCronItem::HookRemovalFromCron(
                                        // also the server Nym.
         }  // This MIGHT be unnecessary, since pRemover is(I think) already
            // transmogrified
-        // ******************************************************* to pServer
-        // earlier, if they share the same ID.
+        // ******************************************************* to
+        // pServer earlier, if they share the same ID.
         //
         // If pRemover is NOT nullptr, and he has the Originator's ID...
         // then set the pointer accordingly.
@@ -876,35 +870,31 @@ void OTCronItem::HookRemovalFromCron(
         else if (
             (nullptr != pRemover) &&
             (true == pRemover->CompareID(pOrigCronItem->GetSenderNymID()))) {
-            pOriginator = pRemover;  // <======== now both pointers are set (to
-                                     // same Nym). DONE!
+            pOriginator = pRemover;  // <======== now both pointers are set
+                                     // (to same Nym). DONE!
         }
 
-        // At this point, pRemover MIGHT be set, or nullptr. (And that's that --
-        // pRemover may always be nullptr.)
+        // At this point, pRemover MIGHT be set, or nullptr. (And that's
+        // that -- pRemover may always be nullptr.)
         //
-        // if pRemover IS set, then pOriginator MIGHT point to it as well. (If
-        // the IDs match. Done above.)
-        // pOriginator might also still be nullptr. (If pRemover is nullptr,
-        // then
-        // pOriginator DEFINITELY is.)
-        // pRemover is loaded (or not). Next let's make SURE pOriginator is
-        // loaded, if it wasn't already...
+        // if pRemover IS set, then pOriginator MIGHT point to it as well.
+        // (If the IDs match. Done above.) pOriginator might also still be
+        // nullptr. (If pRemover is nullptr, then pOriginator DEFINITELY
+        // is.) pRemover is loaded (or not). Next let's make SURE
+        // pOriginator is loaded, if it wasn't already...
         //
         if (nullptr == pOriginator) {
-            // GetSenderNymID() should be the same on THIS (updated version of
-            // the same cron item)
-            // but for whatever reason, I'm checking the nymID on the original
-            // version. Sue me.
+            // GetSenderNymID() should be the same on THIS (updated version
+            // of the same cron item) but for whatever reason, I'm checking
+            // the nymID on the original version. Sue me.
             //
             const OTNymID NYM_ID = pOrigCronItem->GetSenderNymID();
             pOriginator = api_.Wallet().Nym(NYM_ID, reason);
         }
 
-        // pOriginator should NEVER be nullptr by this point, unless there was
-        // an
-        // ERROR in the above block.
-        // We even loaded the guy from storage, if we had to.
+        // pOriginator should NEVER be nullptr by this point, unless there
+        // was an ERROR in the above block. We even loaded the guy from
+        // storage, if we had to.
         //
         if (nullptr != pOriginator) {
             // Drop the FINAL RECEIPT(s) into the user's inbox(es)!!
@@ -956,13 +946,13 @@ void OTCronItem::onFinalReceipt(
 
     const auto strOrigCronItem = String::Factory(theOrigCronItem);
 
-    // First, we are closing the transaction number ITSELF, of this cron item,
-    // as an active issued number on the originating nym. (Changing it to
-    // CLOSED.)
+    // First, we are closing the transaction number ITSELF, of this cron
+    // item, as an active issued number on the originating nym. (Changing it
+    // to CLOSED.)
     //
-    // Second, we're verifying the CLOSING number, and using it as the closing
-    // number on the FINAL RECEIPT (with that receipt being "InReferenceTo"
-    // GetTransactionNum())
+    // Second, we're verifying the CLOSING number, and using it as the
+    // closing number on the FINAL RECEIPT (with that receipt being
+    // "InReferenceTo" GetTransactionNum())
     const TransactionNumber lOpeningNumber = theOrigCronItem.GetOpeningNum();
     const TransactionNumber lClosingNumber = theOrigCronItem.GetClosingNum();
 
@@ -973,19 +963,18 @@ void OTCronItem::onFinalReceipt(
     // That's why they have a different version of onFinalReceipt.
     if ((lOpeningNumber > 0) &&
         context.get().VerifyIssuedNumber(lOpeningNumber)) {
-        // The Nym (server side) stores a list of all opening and closing cron
-        // #s. So when the number is released from the Nym, we also take it off
-        // that list.
+        // The Nym (server side) stores a list of all opening and closing
+        // cron #s. So when the number is released from the Nym, we also
+        // take it off that list.
         context.get().CloseCronItem(lOpeningNumber);
         context.get().ConsumeIssued(lOpeningNumber);
 
-        // the RemoveIssued call means the original transaction# (to find this
-        // cron item on cron) is now CLOSED.
-        // But the Transaction itself is still OPEN. How? Because the CLOSING
-        // number is still signed out.
-        // The closing number is also USED, since the NotarizePaymentPlan or
-        // NotarizeMarketOffer call, but it
-        // remains ISSUED, until the final receipt itself is accepted during a
+        // the RemoveIssued call means the original transaction# (to find
+        // this cron item on cron) is now CLOSED. But the Transaction itself
+        // is still OPEN. How? Because the CLOSING number is still signed
+        // out. The closing number is also USED, since the
+        // NotarizePaymentPlan or NotarizeMarketOffer call, but it remains
+        // ISSUED, until the final receipt itself is accepted during a
         // process inbox.
         //
 
@@ -1046,12 +1035,10 @@ void OTCronItem::onFinalReceipt(
             .Flush();
     }
 
-    // QUESTION: Won't there be Cron Items that have no asset account at all?
-    // In which case, there'd be no need to drop a final receipt, but I don't
-    // think
-    // that's the case, since you have to use a transaction number to get onto
-    // cron
-    // in the first place.
+    // QUESTION: Won't there be Cron Items that have no asset account at
+    // all? In which case, there'd be no need to drop a final receipt, but I
+    // don't think that's the case, since you have to use a transaction
+    // number to get onto cron in the first place.
 }
 
 // This is the "DROPS FINAL RECEIPT" function.
@@ -1108,8 +1095,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
             lNewTransactionNumber)};
 
         // The inbox will get a receipt with the new transaction ID.
-        // That receipt has an "in reference to" field containing the original
-        // cron item.
+        // That receipt has an "in reference to" field containing the
+        // original cron item.
 
         OT_ASSERT(false != bool(pTrans1));
 
@@ -1123,14 +1110,12 @@ bool OTCronItem::DropFinalReceiptToInbox(
         pItem1->SetStatus(Item::acknowledgement);
 
         //
-        // Here I make sure that the receipt (the inbox notice) references the
-        // transaction number that the trader originally used to issue the cron
-        // item...
-        // This number is used to match up offers to trades, and used to track
-        // all cron items.
-        // (All Cron items require a transaction from the user to add them to
-        // Cron in the
-        // first place.)
+        // Here I make sure that the receipt (the inbox notice) references
+        // the transaction number that the trader originally used to issue
+        // the cron item... This number is used to match up offers to
+        // trades, and used to track all cron items. (All Cron items require
+        // a transaction from the user to add them to Cron in the first
+        // place.)
         //
         const std::int64_t lOpeningNum = GetOpeningNumber(NYM_ID);
 
@@ -1140,8 +1125,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // The reference on the transaction contains an OTCronItem, in this
         // case.
-        // The original cron item, versus the updated cron item (which is stored
-        // on the finalReceipt item just below here.)
+        // The original cron item, versus the updated cron item (which is
+        // stored on the finalReceipt item just below here.)
         //
         pTrans1->SetReferenceString(strOrigCronItem);
 
@@ -1160,12 +1145,13 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
         if (pstrNote->Exists()) {
-            pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
+            pItem1->SetNote(pstrNote);  // in markets, this is updated
+                                        // trade.
         }
 
-        // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the ** item.**
-        // (With the SERVER's signature on it!) // in markets, this is updated
-        // offer.
+        // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the **
+        // item.** (With the SERVER's signature on it!) // in markets, this
+        // is updated offer.
         //
         if (pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
 
@@ -1180,7 +1166,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
         pTrans1->SignContract(pServerNym, reason);
         pTrans1->SaveContract();
 
-        // Here the transaction we just created is actually added to the ledger.
+        // Here the transaction we just created is actually added to the
+        // ledger.
         std::shared_ptr<OTTransaction> trans1{pTrans1.release()};
         theInbox->AddTransaction(trans1);
 
@@ -1201,44 +1188,42 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
             if (account.get().SaveInbox(
                     *theInbox, api_.Factory().Identifier())) {
-                account.Release();  // inbox hash has changed here, so we save
-                                    // the account to reflect that change.
+                account.Release();  // inbox hash has changed here, so we
+                                    // save the account to reflect that
+                                    // change.
             } else {
                 account.Abort();
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed: account.get().VerifyAccount(*pServerNym).")
                     .Flush();
             }
-        } else  // todo: would the account EVER be null here? Should never be.
-                // Therefore should we save the inbox here?
+        } else  // todo: would the account EVER be null here? Should never
+                // be. Therefore should we save the inbox here?
         {
             theInbox->SaveInbox(api_.Factory().Identifier());
         }
 
-        // Notice above, if the account loads but fails to verify, then we do
-        // not save the Inbox.
-        // Todo: ponder wisdom of that decision.
+        // Notice above, if the account loads but fails to verify, then we
+        // do not save the Inbox. Todo: ponder wisdom of that decision.
 
         // Corresponds to the AddTransaction() just above.
         // Details are stored in separate file these days.
         //
         trans1->SaveBoxReceipt(*theInbox);
 
-        return true;  // Really this true should be predicated on ALL the above
-                      // functions returning true. Right?
+        return true;  // Really this true should be predicated on ALL the
+                      // above functions returning true. Right?
     }                 // ...Right?
 }
 
-// Done: IF ACTUAL NYM is NOT passed below, then need to LOAD HIM UP (so we can
-// update his NymboxHash after we update the Nymbox.)
+// Done: IF ACTUAL NYM is NOT passed below, then need to LOAD HIM UP (so we
+// can update his NymboxHash after we update the Nymbox.)
 
-// The final receipt doesn't have a closing number in the Nymbox, only in the
-// Inbox.
-// That's because in the Nymbox, it's just a notice, and it's not there to
-// enforce anything.
-// If you get one in your Nymbox, it's just so that you know to remove its "in
-// ref to" number (the opening number)
-// from your issued list (so your balance agreements will work :P)
+// The final receipt doesn't have a closing number in the Nymbox, only in
+// the Inbox. That's because in the Nymbox, it's just a notice, and it's not
+// there to enforce anything. If you get one in your Nymbox, it's just so
+// that you know to remove its "in ref to" number (the opening number) from
+// your issued list (so your balance agreements will work :P)
 //
 bool OTCronItem::DropFinalReceiptToNymbox(
     const identifier::Nym& NYM_ID,
@@ -1288,8 +1273,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         pTransaction->SetOriginType(theOriginType);
 
         // The nymbox will get a receipt with the new transaction ID.
-        // That receipt has an "in reference to" field containing the original
-        // cron item.
+        // That receipt has an "in reference to" field containing the
+        // original cron item.
 
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
@@ -1304,36 +1289,35 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         const std::int64_t lOpeningNumber = GetOpeningNumber(NYM_ID);
 
-        // Here I make sure that the receipt (the nymbox notice) references the
-        // transaction number that the trader originally used to issue the cron
-        // item...
-        // This number is used to match up offers to trades, and used to track
-        // all cron items.
-        // (All Cron items require a transaction from the user to add them to
-        // Cron in the
-        // first place.)
+        // Here I make sure that the receipt (the nymbox notice) references
+        // the transaction number that the trader originally used to issue
+        // the cron item... This number is used to match up offers to
+        // trades, and used to track all cron items. (All Cron items require
+        // a transaction from the user to add them to Cron in the first
+        // place.)
 
-        pTransaction->SetReferenceToNum(lOpeningNumber);  // Notice this same
-                                                          // number is set twice
+        pTransaction->SetReferenceToNum(lOpeningNumber);  // Notice this
+                                                          // same number is
+                                                          // set twice
                                                           // (again just
         // below), so might be an opportunity to store
         // something else in one of them.
 
         // The reference on the transaction contains an OTCronItem, in this
         // case.
-        // The original cron item, versus the updated cron item (which is stored
-        // on the finalReceipt item just below here.)
+        // The original cron item, versus the updated cron item (which is
+        // stored on the finalReceipt item just below here.)
         //
         pTransaction->SetReferenceString(strOrigCronItem);
 
         // Normally in the Inbox, the "Closing Num" is set to the closing
         // number, in reference to the opening number. (on a finalReceipt)
-        // But in the NYMBOX, we are sending the Opening Number in that spot.
-        // The purpose is so the client side will know not to use that
-        // opening number as a valid transaction # in its transaction statements
-        // and balance statements, since the number is now gone.
-        // Otherwise the Nym wouldn't know any better, and he'd keep signing for
-        // it, and therefore his balance agreements would start to fail.
+        // But in the NYMBOX, we are sending the Opening Number in that
+        // spot. The purpose is so the client side will know not to use that
+        // opening number as a valid transaction # in its transaction
+        // statements and balance statements, since the number is now gone.
+        // Otherwise the Nym wouldn't know any better, and he'd keep signing
+        // for it, and therefore his balance agreements would start to fail.
 
         pTransaction->SetClosingNum(lOpeningNumber);  // This transaction is the
                                                       // finalReceipt for
@@ -1345,12 +1329,13 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
         if (pstrNote->Exists()) {
-            pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
+            pItem1->SetNote(pstrNote);  // in markets, this is updated
+                                        // trade.
         }
 
-        // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the ** item.**
-        // (With the SERVER's signature on it!) // in markets, this is updated
-        // offer.
+        // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the **
+        // item.** (With the SERVER's signature on it!) // in markets, this
+        // is updated offer.
         //
         if (!pstrAttachment->Exists()) {
             pItem1->SetAttachment(pstrAttachment);
@@ -1367,7 +1352,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         pTransaction->SignContract(*pServerNym, reason);
         pTransaction->SaveContract();
 
-        // Here the transaction we just created is actually added to the ledger.
+        // Here the transaction we just created is actually added to the
+        // ledger.
         std::shared_ptr<OTTransaction> transaction{pTransaction.release()};
         theLedger->AddTransaction(transaction);
 
@@ -1442,48 +1428,49 @@ std::int64_t OTCronItem::GetClosingNumber(const Identifier& theAcctID) const
     return 0;
 }
 
-// You usually wouldn't want to use this, since if the transaction failed, the
-// opening number is already burned and gone. But there might be cases where
-// it's not, and you want to retrieve it. So I added this function for those
-// cases. In most cases, you will prefer HarvestClosingNumbers().
+// You usually wouldn't want to use this, since if the transaction failed,
+// the opening number is already burned and gone. But there might be cases
+// where it's not, and you want to retrieve it. So I added this function for
+// those cases. In most cases, you will prefer HarvestClosingNumbers().
 void OTCronItem::HarvestOpeningNumber(ServerContext& context)
 {
     // The Nym is the original sender. (If Compares true). IN CASES where
     // GetTransactionNum() isn't already burned, we can harvest it here.
     // Subclasses will have to override this function for recipients, etc.
     if (context.Nym()->CompareID(GetSenderNymID())) {
-        // This function will only "add it back" if it was really there in the
-        // first place. (Verifies it is on issued list first, before adding to
-        // available list.)
+        // This function will only "add it back" if it was really there in
+        // the first place. (Verifies it is on issued list first, before
+        // adding to available list.)
         context.RecoverAvailableNumber(GetOpeningNum());
     }
 
     // NOTE: if the message failed (transaction never actually ran) then the
-    // sender AND recipient can both reclaim their opening numbers. But if the
-    // message SUCCEEDED and the transaction FAILED, then only the recipient can
-    // claim his opening number -- the sender's is already burned. So then, what
-    // if you mistakenly call this function and pass the sender, when that
-    // number is already burned? There's nothing this function can do, because
-    // we have no way of telling, from inside here, whether the message
-    // succeeded or not, and whether the transaction succeeded or not. Therefore
-    // we MUST rely on the CALLER to know this, and to avoid calling this
-    // function in the first place, if he's sitting on a sender with a failed
-    // transaction.
+    // sender AND recipient can both reclaim their opening numbers. But if
+    // the message SUCCEEDED and the transaction FAILED, then only the
+    // recipient can claim his opening number -- the sender's is already
+    // burned. So then, what if you mistakenly call this function and pass
+    // the sender, when that number is already burned? There's nothing this
+    // function can do, because we have no way of telling, from inside here,
+    // whether the message succeeded or not, and whether the transaction
+    // succeeded or not. Therefore we MUST rely on the CALLER to know this,
+    // and to avoid calling this function in the first place, if he's
+    // sitting on a sender with a failed transaction.
 }
 
 // This is a good default implementation.
 // Also, some subclasses override this, but they STILL CALL IT.
 void OTCronItem::HarvestClosingNumbers(ServerContext& context)
 {
-    // The Nym is the original sender. (If Compares true). GetTransactionNum()
-    // is usually already burned, but we can harvest the closing numbers from
-    // the "Closing" list, which is only for the sender's numbers.
-    // Subclasses will have to override this function for recipients, etc.
+    // The Nym is the original sender. (If Compares true).
+    // GetTransactionNum() is usually already burned, but we can harvest the
+    // closing numbers from the "Closing" list, which is only for the
+    // sender's numbers. Subclasses will have to override this function for
+    // recipients, etc.
     if (context.Nym()->CompareID(GetSenderNymID())) {
         for (std::int32_t i = 0; i < GetCountClosingNumbers(); i++) {
-            // This function will only "add it back" if it was really there in
-            // the first place. (Verifies it is on issued list first, before
-            // adding to available list.)
+            // This function will only "add it back" if it was really there
+            // in the first place. (Verifies it is on issued list first,
+            // before adding to available list.)
             context.RecoverAvailableNumber(GetClosingTransactionNoAt(i));
         }
     }
@@ -1530,9 +1517,9 @@ void OTCronItem::ClearClosingNumbers() { m_dequeClosingNumbers.clear(); }
 
 void OTCronItem::Release_CronItem()
 {
-    m_CREATION_DATE = OT_TIME_ZERO;
-    m_LAST_PROCESS_DATE = OT_TIME_ZERO;
-    m_PROCESS_INTERVAL = 1;
+    m_CREATION_DATE = Time{};
+    m_LAST_PROCESS_DATE = Time{};
+    m_PROCESS_INTERVAL = std::chrono::seconds{1};
 
     ClearClosingNumbers();
 

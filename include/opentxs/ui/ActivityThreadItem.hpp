@@ -49,7 +49,7 @@ public:
         noexcept = 0;
     EXPORT virtual StorageBox Type() const noexcept = 0;
 
-    EXPORT virtual ~ActivityThreadItem() = default;
+    EXPORT ~ActivityThreadItem() override = default;
 
 protected:
     ActivityThreadItem() noexcept = default;

@@ -66,7 +66,7 @@ public:
     EXPORT virtual void SetRemoteNymboxHash(const Identifier& hash) = 0;
     EXPORT virtual void SetRequest(const RequestNumber req) = 0;
 
-    virtual ~Context() override = default;
+    EXPORT ~Context() override = default;
 
 protected:
     Context() = default;

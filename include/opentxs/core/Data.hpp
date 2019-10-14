@@ -167,7 +167,13 @@ protected:
 private:
     friend OTData;
 
+#ifdef _WIN32
+public:
+#endif
     EXPORT virtual Data* clone() const = 0;
+#ifdef _WIN32
+private:
+#endif
 
     Data(const Data& rhs) = delete;
     Data(Data&& rhs) = delete;

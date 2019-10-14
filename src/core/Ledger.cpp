@@ -13,7 +13,6 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
@@ -1756,7 +1755,7 @@ void Ledger::UpdateContents(const PasswordPrompt& reason)  // Before
 
     tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("type", strType->Get());
-    tag.add_attribute("numPartialRecords", formatInt(nPartialRecordCount));
+    tag.add_attribute("numPartialRecords", std::to_string(nPartialRecordCount));
     tag.add_attribute("accountID", strLedgerAcctID->Get());
     tag.add_attribute("nymID", strNymID->Get());
     tag.add_attribute("notaryID", strLedgerAcctNotaryID->Get());
@@ -2003,7 +2002,7 @@ std::int32_t Ledger::ProcessXMLNode(
                     std::int64_t lInRefTo = 0;
                     std::int64_t lInRefDisplay = 0;
 
-                    time64_t the_DATE_SIGNED = OT_TIME_ZERO;
+                    auto the_DATE_SIGNED = Time{};
                     transactionType theType =
                         transactionType::error_state;  // default
                     auto strHash = String::Factory();

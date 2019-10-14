@@ -6,7 +6,6 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Periodic.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 
@@ -45,7 +44,7 @@ bool Periodic::Reschedule(const int task, const std::chrono::seconds& interval)
 
     if (periodic_task_list_.end() == it) { return false; }
 
-    std::get<1>(it->second) = interval.count();
+    std::get<1>(it->second) = interval;
 
     return false;
 }
@@ -58,7 +57,7 @@ int Periodic::Schedule(
     const auto id = ++next_id_;
     Lock lock(periodic_lock_);
     periodic_task_list_.emplace(
-        id, TaskItem{last.count(), interval.count(), task});
+        id, TaskItem{Clock::from_time_t(last.count()), interval, task});
 
     return id;
 }
@@ -71,7 +70,7 @@ void Periodic::Shutdown()
 void Periodic::thread()
 {
     while (running_) {
-        std::time_t now = std::time(nullptr);
+        const auto now = Clock::now();
         Lock lock(periodic_lock_);
 
         for (auto& [key, value] : periodic_task_list_) {

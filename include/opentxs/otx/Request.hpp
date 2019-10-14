@@ -48,7 +48,7 @@ public:
         const RequestNumber number,
         const PasswordPrompt& reason) = 0;
 
-    EXPORT virtual ~Request() = default;
+    EXPORT ~Request() override = default;
 
 protected:
     Request() = default;

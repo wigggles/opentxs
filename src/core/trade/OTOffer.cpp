@@ -47,7 +47,7 @@ OTOffer::OTOffer(const api::Core& core)
     , m_lFinishedSoFar(0)
     , m_lScale(1)
     , m_lMinimumIncrement(1)
-    , m_tDateAddedToMarket(OT_TIME_ZERO)
+    , m_tDateAddedToMarket()
 {
     InitOffer();
 }
@@ -68,7 +68,7 @@ OTOffer::OTOffer(
     , m_lFinishedSoFar(0)
     , m_lScale(1)
     , m_lMinimumIncrement(1)
-    , m_tDateAddedToMarket(OT_TIME_ZERO)
+    , m_tDateAddedToMarket()
 {
     InitOffer();
     SetScale(lScale);
@@ -300,13 +300,14 @@ std::int32_t OTOffer::ProcessXMLNode(
         const auto str_valid_to =
             String::Factory(xml->getAttributeValue("validTo"));
 
-        std::int64_t tValidFrom = str_valid_from->Exists()
-                                      ? parseTimestamp(str_valid_from->Get())
-                                      : 0;
-        std::int64_t tValidTo =
-            str_valid_to->Exists() ? parseTimestamp(str_valid_to->Get()) : 0;
+        const auto tValidFrom = str_valid_from->Exists()
+                                    ? parseTimestamp(str_valid_from->Get())
+                                    : Time{};
+        const auto tValidTo = str_valid_to->Exists()
+                                  ? parseTimestamp(str_valid_to->Get())
+                                  : Time{};
 
-        if ((tValidTo < tValidFrom) && (tValidTo != 0)) {
+        if ((tValidTo < tValidFrom) && (tValidTo != Time{})) {
             LogNormal(OT_METHOD)(__FUNCTION__)(": Failure: validTo date (")(
                 tValidFrom)(") cannot be earlier than "
                             "validFrom date (")(tValidTo)(").")
@@ -314,8 +315,8 @@ std::int32_t OTOffer::ProcessXMLNode(
             return (-1);
         }
 
-        SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
-        SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
+        SetValidFrom(tValidFrom);
+        SetValidTo(tValidTo);
 
         LogTrace(OT_METHOD)(__FUNCTION__)(": Offer Transaction Number: ")(
             m_lTransactionNum)("\n Valid From: ")(tValidFrom)("\n Valid To: ")(
@@ -354,13 +355,14 @@ void OTOffer::UpdateContents(const PasswordPrompt& reason)
     tag.add_attribute(
         "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
     tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID->Get());
-    tag.add_attribute("priceLimit", formatLong(GetPriceLimit()));
+    tag.add_attribute("priceLimit", std::to_string(GetPriceLimit()));
     tag.add_attribute(
-        "totalAssetsOnOffer", formatLong(GetTotalAssetsOnOffer()));
-    tag.add_attribute("finishedSoFar", formatLong(GetFinishedSoFar()));
-    tag.add_attribute("marketScale", formatLong(GetScale()));
-    tag.add_attribute("minimumIncrement", formatLong(GetMinimumIncrement()));
-    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
+        "totalAssetsOnOffer", std::to_string(GetTotalAssetsOnOffer()));
+    tag.add_attribute("finishedSoFar", std::to_string(GetFinishedSoFar()));
+    tag.add_attribute("marketScale", std::to_string(GetScale()));
+    tag.add_attribute(
+        "minimumIncrement", std::to_string(GetMinimumIncrement()));
+    tag.add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     tag.add_attribute("validFrom", formatTimestamp(GetValidFrom()));
     tag.add_attribute("validTo", formatTimestamp(GetValidTo()));
 
@@ -384,8 +386,8 @@ bool OTOffer::MakeOffer(
     const std::int64_t& lTransactionNum,  // The transaction number authorizing
                                           // this
                                           // trade.
-    const time64_t& VALID_FROM,           // defaults to RIGHT NOW
-    const time64_t& VALID_TO)  // defaults to 24 hours (a "Day Order")
+    const Time VALID_FROM,                // defaults to RIGHT NOW
+    const Time VALID_TO)  // defaults to 24 hours (a "Day Order")
 {
     m_bSelling = bBuyingOrSelling;  // Bid or Ask?
     SetTransactionNum(lTransactionNum);
@@ -414,19 +416,14 @@ bool OTOffer::MakeOffer(
     SetFinishedSoFar(0);  // So far have already sold 350 bushels. Actual amount
                           // available is (total - finished).
 
-    time64_t REAL_VALID_FROM = VALID_FROM;
-    time64_t REAL_VALID_TO = VALID_TO;
+    Time REAL_VALID_FROM = VALID_FROM;
+    Time REAL_VALID_TO = VALID_TO;
 
-    if (OT_TIME_ZERO >= VALID_FROM) {
-        REAL_VALID_FROM =
-            OTTimeGetCurrentTime();  // This time is set to TODAY NOW
-    }
+    if (Time{} >= VALID_FROM) { REAL_VALID_FROM = Clock::now(); }
 
-    if (OT_TIME_ZERO >= VALID_TO) {
+    if (Time{} >= VALID_TO) {
         // (All offers default to a "DAY ORDER" if valid dates not specified.)
-        REAL_VALID_TO = OTTimeAddTimeInterval(
-            REAL_VALID_FROM,
-            OTTimeGetSecondsFromTime(OT_TIME_DAY_IN_SECONDS));  // 1 day.
+        REAL_VALID_TO = REAL_VALID_FROM + std::chrono::hours{24};
     }
 
     SetValidFrom(REAL_VALID_FROM);
@@ -438,15 +435,15 @@ bool OTOffer::MakeOffer(
 // Note: m_tDateAddedToMarket is not saved in the Offer Contract, but OTMarket
 // sets/saves/loads it.
 //
-time64_t OTOffer::GetDateAddedToMarket() const  // Used in
-                                                // OTMarket::GetOfferList
-                                                // and GetNymOfferList.
+Time OTOffer::GetDateAddedToMarket() const  // Used in
+                                            // OTMarket::GetOfferList
+                                            // and GetNymOfferList.
 {
     return m_tDateAddedToMarket;
 }
 
-void OTOffer::SetDateAddedToMarket(time64_t tDate)  // Used in OTCron when
-                                                    // adding/loading offers.
+void OTOffer::SetDateAddedToMarket(const Time tDate)  // Used in OTCron when
+                                                      // adding/loading offers.
 {
     m_tDateAddedToMarket = tDate;
 }

@@ -115,7 +115,7 @@ public:
     using ot_super::swap;
     EXPORT virtual void swap(Identifier& rhs) = 0;
 
-    EXPORT virtual ~Identifier() = default;
+    EXPORT ~Identifier() override = default;
 
 protected:
     Identifier() = default;
@@ -123,8 +123,9 @@ protected:
 private:
     friend opentxs::Pimpl<opentxs::Identifier>;
 
-    virtual Identifier* clone() const = 0;
-
+#ifndef _WIN32
+    Identifier* clone() const override = 0;
+#endif
     Identifier(const Identifier&) = delete;
     Identifier(Identifier&&) = delete;
     Identifier& operator=(const Identifier&) = delete;

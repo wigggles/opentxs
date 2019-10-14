@@ -33,7 +33,7 @@ public:
     EXPORT virtual bool IsPrimary() const noexcept = 0;
     EXPORT virtual std::string Value() const noexcept = 0;
 
-    EXPORT virtual ~ContactItem() = default;
+    EXPORT ~ContactItem() override = default;
 
 protected:
     ContactItem() noexcept = default;

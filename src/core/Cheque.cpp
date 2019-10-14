@@ -85,10 +85,10 @@ void Cheque::UpdateContents([[maybe_unused]] const PasswordPrompt& reason)
     Tag tag("cheque");
 
     tag.add_attribute("version", m_strVersion->Get());
-    tag.add_attribute("amount", formatLong(m_lAmount));
+    tag.add_attribute("amount", std::to_string(m_lAmount));
     tag.add_attribute(
         "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
-    tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
+    tag.add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     tag.add_attribute("notaryID", NOTARY_ID->Get());
     tag.add_attribute("senderAcctID", SENDER_ACCT_ID->Get());
     tag.add_attribute("senderNymID", SENDER_NYM_ID->Get());
@@ -253,9 +253,9 @@ void Cheque::CancelCheque()
 bool Cheque::IssueCheque(
     const std::int64_t& lAmount,
     const std::int64_t& lTransactionNum,
-    const time64_t& VALID_FROM,
-    const time64_t& VALID_TO,  // The expiration date (valid from/to dates) of
-                               // the cheque
+    const Time& VALID_FROM,
+    const Time& VALID_TO,  // The expiration date (valid from/to dates) of
+                           // the cheque
     const Identifier& SENDER_ACCT_ID,  // The asset account the cheque is drawn
                                        // on.
     const identifier::Nym& SENDER_NYM_ID,  // This ID must match the user ID on

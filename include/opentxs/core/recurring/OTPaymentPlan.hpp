@@ -9,7 +9,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 
 #include <cstdint>
@@ -23,8 +22,6 @@ namespace implementation
 class Factory;
 }  // namespace implementation
 }  // namespace api
-
-#define PLAN_PROCESS_INTERVAL OTTimeGetTimeFromSeconds(10)
 
 /*
  OTPaymentPlan
@@ -94,14 +91,15 @@ public:
     //  bool        SetAgreement(const std::int64_t& lTransactionNum, const
     //  OTString&
     //  strConsideration,
-    //                           const time64_t& VALID_FROM=0,   const time64_t&
+    //                           const Time VALID_FROM=0,   const Time
     //                           VALID_TO=0);
 
     // Then call one (or both) of these:
 
     EXPORT bool SetInitialPayment(
-        const std::int64_t& lAmount,
-        time64_t tTimeUntilInitialPayment = OT_TIME_ZERO);  // default: now.
+        const Amount lAmount,
+        const std::chrono::seconds tTimeUntilInitialPayment = {});  // default:
+                                                                    // now.
 
     // These two methods (above and below) can be called independent of each
     // other.
@@ -109,12 +107,14 @@ public:
     // Meaning: You can have an initial payment AND/OR a payment plan.
 
     EXPORT bool SetPaymentPlan(
-        const std::int64_t& lPaymentAmount,
-        time64_t tTimeUntilPlanStart = OT_TIME_MONTH_IN_SECONDS,
-        time64_t tBetweenPayments = OT_TIME_MONTH_IN_SECONDS,  // Default: 30
-                                                               // days.
-        time64_t tPlanLength = OT_TIME_ZERO,
-        std::int32_t nMaxPayments = 0);
+        const Amount lPaymentAmount,
+        const std::chrono::seconds tTimeUntilPlanStart = std::chrono::hours{24 *
+                                                                            30},
+        const std::chrono::seconds tBetweenPayments =
+            std::chrono::hours{24 * 30},  // Default: 30
+                                          // days.
+        const std::chrono::seconds tPlanLength = {},
+        const std::int32_t nMaxPayments = 0);
 
     // VerifyAgreement()
     // This function verifies both Nyms and both signatures. Due to the
@@ -146,7 +146,7 @@ public:
 
     // ************ "INITIAL PAYMENT" public GET METHODS **************
     inline bool HasInitialPayment() const { return m_bInitialPayment; }
-    inline const time64_t& GetInitialPaymentDate() const
+    inline const Time GetInitialPaymentDate() const
     {
         return m_tInitialPaymentDate;
     }
@@ -156,11 +156,11 @@ public:
     }
     inline bool IsInitialPaymentDone() const { return m_bInitialPaymentDone; }
 
-    inline const time64_t& GetInitialPaymentCompletedDate() const
+    inline const Time GetInitialPaymentCompletedDate() const
     {
         return m_tInitialPaymentCompletedDate;
     }
-    inline const time64_t& GetLastFailedInitialPaymentDate() const
+    inline const Time GetLastFailedInitialPaymentDate() const
     {
         return m_tFailedInitialPaymentDate;
     }
@@ -175,15 +175,15 @@ public:
     {
         return m_lPaymentPlanAmount;
     }
-    inline const time64_t& GetTimeBetweenPayments() const
+    inline const std::chrono::seconds GetTimeBetweenPayments() const
     {
         return m_tTimeBetweenPayments;
     }
-    inline const time64_t& GetPaymentPlanStartDate() const
+    inline const Time GetPaymentPlanStartDate() const
     {
         return m_tPaymentPlanStartDate;
     }
-    inline const time64_t& GetPaymentPlanLength() const
+    inline const std::chrono::seconds GetPaymentPlanLength() const
     {
         return m_tPaymentPlanLength;
     }
@@ -192,11 +192,11 @@ public:
         return m_nMaximumNoPayments;
     }
 
-    inline const time64_t& GetDateOfLastPayment() const
+    inline const Time GetDateOfLastPayment() const
     {
         return m_tDateOfLastPayment;
     }
-    inline const time64_t& GetDateOfLastFailedPayment() const
+    inline const Time GetDateOfLastFailedPayment() const
     {
         return m_tDateOfLastFailedPayment;
     }
@@ -247,7 +247,7 @@ private:
 
 protected:
     // "INITIAL PAYMENT" protected SET METHODS
-    inline void SetInitialPaymentDate(const time64_t& tInitialPaymentDate)
+    inline void SetInitialPaymentDate(const Time tInitialPaymentDate)
     {
         m_tInitialPaymentDate = tInitialPaymentDate;
     }
@@ -260,13 +260,12 @@ protected:
     // first to make sure not already done.)
     bool SetInitialPaymentDone();
 
-    inline void SetInitialPaymentCompletedDate(
-        const time64_t& tInitialPaymentDate)
+    inline void SetInitialPaymentCompletedDate(const Time tInitialPaymentDate)
     {
         m_tInitialPaymentCompletedDate = tInitialPaymentDate;
     }
     inline void SetLastFailedInitialPaymentDate(
-        const time64_t& tFailedInitialPaymentDate)
+        const Time tFailedInitialPaymentDate)
     {
         m_tFailedInitialPaymentDate = tFailedInitialPaymentDate;
     }
@@ -282,15 +281,15 @@ protected:
     {
         m_lPaymentPlanAmount = lAmount;
     }
-    inline void SetTimeBetweenPayments(const time64_t& tTimeBetween)
+    inline void SetTimeBetweenPayments(const std::chrono::seconds tTimeBetween)
     {
         m_tTimeBetweenPayments = tTimeBetween;
     }
-    inline void SetPaymentPlanStartDate(const time64_t& tPlanStartDate)
+    inline void SetPaymentPlanStartDate(const Time tPlanStartDate)
     {
         m_tPaymentPlanStartDate = tPlanStartDate;
     }
-    inline void SetPaymentPlanLength(const time64_t& tPlanLength)
+    inline void SetPaymentPlanLength(const std::chrono::seconds tPlanLength)
     {
         m_tPaymentPlanLength = tPlanLength;
     }
@@ -299,11 +298,11 @@ protected:
         m_nMaximumNoPayments = nMaxNoPayments;
     }
 
-    inline void SetDateOfLastPayment(const time64_t& tDateOfLast)
+    inline void SetDateOfLastPayment(const Time tDateOfLast)
     {
         m_tDateOfLastPayment = tDateOfLast;
     }
-    inline void SetDateOfLastFailedPayment(const time64_t& tDateOfLast)
+    inline void SetDateOfLastFailedPayment(const Time tDateOfLast)
     {
         m_tDateOfLastFailedPayment = tDateOfLast;
     }
@@ -335,40 +334,42 @@ private:
     typedef OTAgreement ot_super;
 
     // "INITIAL PAYMENT" private MEMBERS
-    bool m_bInitialPayment{false};      // Will there be an initial payment?
-    time64_t m_tInitialPaymentDate{0};  // Date of the initial payment, measured
-                                        // seconds after creation.
-    time64_t m_tInitialPaymentCompletedDate{0};  // Date the initial payment was
-                                                 // finally transacted.
-    time64_t m_tFailedInitialPaymentDate{0};     // Date of the last failed
-                                              // payment, measured seconds after
-                                              // creation.
-    std::int64_t m_lInitialPaymentAmount{0};  // Amount of the initial payment.
-    bool m_bInitialPaymentDone{false};  // Has the initial payment been made?
-    std::int32_t m_nNumberInitialFailures{0};  // If we've tried to process this
-                                               // multiple times, we'll know.
+    bool m_bInitialPayment;      // Will there be an initial payment?
+    Time m_tInitialPaymentDate;  // Date of the initial payment, measured
+                                 // seconds after creation.
+    Time m_tInitialPaymentCompletedDate;   // Date the initial payment was
+                                           // finally transacted.
+    Time m_tFailedInitialPaymentDate;      // Date of the last failed
+                                           // payment, measured seconds after
+                                           // creation.
+    std::int64_t m_lInitialPaymentAmount;  // Amount of the initial payment.
+    bool m_bInitialPaymentDone;            // Has the initial payment been made?
+    std::int32_t m_nNumberInitialFailures;  // If we've tried to process this
+                                            // multiple times, we'll know.
     // "PAYMENT PLAN" private MEMBERS
-    bool m_bPaymentPlan{false};            // Will there be a payment plan?
-    std::int64_t m_lPaymentPlanAmount{0};  // Amount of each payment.
-    time64_t m_tTimeBetweenPayments{0};   // How much time between each payment?
-    time64_t m_tPaymentPlanStartDate{0};  // Date for the first payment plan
-                                          // payment.
-    time64_t m_tPaymentPlanLength{0};     // Optional. Plan length measured in
-                                          // seconds since plan start.
-    std::int32_t m_nMaximumNoPayments{0};  // Optional. The most number of
-                                           // payments that are authorized.
+    bool m_bPaymentPlan;                // Will there be a payment plan?
+    std::int64_t m_lPaymentPlanAmount;  // Amount of each payment.
+    std::chrono::seconds m_tTimeBetweenPayments;  // How much time between
+                                                  // each payment?
+    Time m_tPaymentPlanStartDate;  // Date for the first payment plan
+                                   // payment.
+    std::chrono::seconds m_tPaymentPlanLength;  // Optional. Plan length
+                                                // measured in seconds since
+                                                // plan start.
+    std::int32_t m_nMaximumNoPayments;          // Optional. The most number of
+                                                // payments that are authorized.
 
-    time64_t m_tDateOfLastPayment{0};  // Recording of date of the last payment.
-    time64_t m_tDateOfLastFailedPayment{0};  // Recording of date of the last
-                                             // failed payment.
-    std::int32_t m_nNoPaymentsDone{0};    // Recording of the number of payments
-                                          // already processed.
-    std::int32_t m_nNoFailedPayments{0};  // Every time a payment fails, we
-                                          // record that here.
+    Time m_tDateOfLastPayment;         // Recording of date of the last payment.
+    Time m_tDateOfLastFailedPayment;   // Recording of date of the last
+                                       // failed payment.
+    std::int32_t m_nNoPaymentsDone;    // Recording of the number of payments
+                                       // already processed.
+    std::int32_t m_nNoFailedPayments;  // Every time a payment fails, we
+                                       // record that here.
     // These are NOT stored as part of the payment plan. They are merely used
     // during execution.
-    bool m_bProcessingInitialPayment{false};
-    bool m_bProcessingPaymentPlan{false};
+    bool m_bProcessingInitialPayment;
+    bool m_bProcessingPaymentPlan;
 
     OTPaymentPlan() = delete;
 };

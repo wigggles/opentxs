@@ -21,7 +21,7 @@ public:
 
     EXPORT virtual OTSignatureMetadata& getMetaData() = 0;
 
-    EXPORT virtual ~Signature() = default;
+    EXPORT ~Signature() override = default;
 
 protected:
     Signature() = default;

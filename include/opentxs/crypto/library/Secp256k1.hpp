@@ -19,7 +19,7 @@ class Secp256k1 : virtual public EcdsaProvider
 public:
     EXPORT virtual void Init() = 0;
 
-    EXPORT virtual ~Secp256k1() = default;
+    EXPORT ~Secp256k1() override = default;
 
 protected:
     Secp256k1() = default;

@@ -44,7 +44,7 @@ public:
         const Identifier& contact = Identifier::Factory(),
         const std::string& label = {}) const noexcept = 0;
 
-    EXPORT virtual ~Deterministic() = default;
+    EXPORT ~Deterministic() override = default;
 
 protected:
     Deterministic() noexcept = default;

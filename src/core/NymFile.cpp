@@ -17,7 +17,6 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -643,7 +642,7 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
     tag.add_attribute("nymID", nymID->Get());
 
     if (m_lUsageCredits != 0)
-        tag.add_attribute("usageCredits", formatLong(m_lUsageCredits));
+        tag.add_attribute("usageCredits", std::to_string(m_lUsageCredits));
 
     target_nym_->SerializeNymIDSource(tag);
 

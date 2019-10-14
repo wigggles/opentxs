@@ -47,9 +47,9 @@ Mint::Mint(
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-    , m_EXPIRATION(OT_TIME_ZERO)
+    , m_VALID_FROM(Time::min())
+    , m_VALID_TO(Time::min())
+    , m_EXPIRATION(Time::min())
     , m_CashAccountID(api_.Factory().Identifier())
 {
     m_strFoldername->Set(OTFolders::Mint().Get());
@@ -74,9 +74,9 @@ Mint::Mint(
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-    , m_EXPIRATION(OT_TIME_ZERO)
+    , m_VALID_FROM(Time::min())
+    , m_VALID_TO(Time::min())
+    , m_EXPIRATION(Time::min())
     , m_CashAccountID(api_.Factory().Identifier())
 {
     m_strFoldername->Set(OTFolders::Mint().Get());
@@ -98,9 +98,9 @@ Mint::Mint(const api::Core& core)
     , m_nDenominationCount(0)
     , m_bSavePrivateKeys(false)
     , m_nSeries(0)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-    , m_EXPIRATION(OT_TIME_ZERO)
+    , m_VALID_FROM(Time::min())
+    , m_VALID_TO(Time::min())
+    , m_EXPIRATION(Time::min())
     , m_CashAccountID(api_.Factory().Identifier())
 {
     InitMint();
@@ -110,12 +110,13 @@ Mint::Mint(const api::Core& core)
 // (As opposed to tokens, which are verified against the valid from/to dates.)
 bool Mint::Expired() const
 {
-    const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
+    const auto CURRENT_TIME = Clock::now();
 
-    if ((CURRENT_TIME >= m_VALID_FROM) && (CURRENT_TIME <= m_EXPIRATION))
+    if ((CURRENT_TIME >= m_VALID_FROM) && (CURRENT_TIME <= m_EXPIRATION)) {
         return false;
-    else
+    } else {
         return true;
+    }
 }
 
 void Mint::ReleaseDenominations()
@@ -158,9 +159,9 @@ void Mint::InitMint()
     // All tokens have the same series, and validity dates,
     // of the mint that created them.
     m_nSeries = 0;
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
-    m_EXPIRATION = OT_TIME_ZERO;
+    m_VALID_FROM = Time::min();
+    m_VALID_TO = Time::min();
+    m_EXPIRATION = Time::min();
 }
 
 bool Mint::LoadContract(const PasswordPrompt& reason)
@@ -487,7 +488,7 @@ void Mint::UpdateContents(const PasswordPrompt& reason)
     tag.add_attribute(
         "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
     tag.add_attribute("cashAcctID", CASH_ACCOUNT_ID->Get());
-    tag.add_attribute("series", formatInt(m_nSeries));
+    tag.add_attribute("series", std::to_string(m_nSeries));
     tag.add_attribute("expiration", formatTimestamp(m_EXPIRATION));
     tag.add_attribute("validFrom", formatTimestamp(m_VALID_FROM));
     tag.add_attribute("validTo", formatTimestamp(m_VALID_TO));
@@ -501,13 +502,14 @@ void Mint::UpdateContents(const PasswordPrompt& reason)
                 TagPtr tagPrivateInfo(
                     new Tag("mintPrivateInfo", it.second->Get()));
                 tagPrivateInfo->add_attribute(
-                    "denomination", formatLong(it.first));
+                    "denomination", std::to_string(it.first));
                 tag.add_tag(tagPrivateInfo);
             }
         }
         for (auto& it : m_mapPublic) {
             TagPtr tagPublicInfo(new Tag("mintPublicInfo", it.second->Get()));
-            tagPublicInfo->add_attribute("denomination", formatLong(it.first));
+            tagPublicInfo->add_attribute(
+                "denomination", std::to_string(it.first));
             tag.add_tag(tagPublicInfo);
         }
     }
@@ -562,10 +564,6 @@ std::int32_t Mint::ProcessXMLNode(
         m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
         m_CashAccountID->SetString(strCashAcctID);
 
-        std::int64_t nValidFrom = OTTimeGetSecondsFromTime(m_VALID_FROM);
-        std::int64_t nValidTo = OTTimeGetSecondsFromTime(m_VALID_TO);
-        std::int64_t nExpiration = OTTimeGetSecondsFromTime(m_EXPIRATION);
-
         LogDetail(OT_METHOD)(__FUNCTION__)
             //    "\n===> Loading XML for mint into memory structures..."
             (": Mint version: ")(m_strVersion)(" Notary ID: ")(strNotaryID)(
@@ -574,8 +572,8 @@ std::int32_t Mint::ProcessXMLNode(
                 (m_CashAccountID->empty()) ? "FAILURE" : "SUCCESS")(
                 " loading Cash Account into memory for pointer: ")(
                 "Mint::m_pReserveAcct ")(" Series: ")(m_nSeries)(
-                " Expiration: ")(nExpiration)(" Valid From: ")(nValidFrom)(
-                " Valid To: ")(nValidTo)
+                " Expiration: ")(m_EXPIRATION)(" Valid From: ")(m_VALID_FROM)(
+                " Valid To: ")(m_VALID_TO)
                 .Flush();
 
         nReturnVal = 1;
@@ -661,10 +659,10 @@ std::int32_t Mint::ProcessXMLNode(
 // 1, 5, 10, 20, 50, 100, 500, 1000, 10000, 100000);
 void Mint::GenerateNewMint(
     const api::Wallet& wallet,
-    std::int32_t nSeries,
-    time64_t VALID_FROM,
-    time64_t VALID_TO,
-    time64_t MINT_EXPIRATION,
+    const std::int32_t nSeries,
+    const Time VALID_FROM,
+    const Time VALID_TO,
+    const Time MINT_EXPIRATION,
     const identifier::UnitDefinition& theInstrumentDefinitionID,
     const identifier::Server& theNotaryID,
     const identity::Nym& theNotary,

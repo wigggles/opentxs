@@ -41,7 +41,7 @@ public:
         noexcept = 0;
     EXPORT virtual bool SetServerPubkey(const Data& key) const noexcept = 0;
 
-    EXPORT virtual ~Client() = default;
+    EXPORT ~Client() override = default;
 
 protected:
     EXPORT Client() noexcept = default;

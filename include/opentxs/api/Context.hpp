@@ -69,7 +69,7 @@ public:
     EXPORT virtual const api::network::ZAP& ZAP() const = 0;
     EXPORT virtual const opentxs::network::zeromq::Context& ZMQ() const = 0;
 
-    EXPORT virtual ~Context() = default;
+    EXPORT ~Context() override = default;
 
 protected:
     Context() = default;

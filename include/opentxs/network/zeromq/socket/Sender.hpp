@@ -41,7 +41,7 @@ public:
         return send(Context().Message(data));
     }
 
-    EXPORT virtual ~Sender() = default;
+    EXPORT ~Sender() override = default;
 
 protected:
     Sender() = default;

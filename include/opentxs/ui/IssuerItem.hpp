@@ -36,7 +36,7 @@ public:
         const noexcept = 0;
     EXPORT virtual bool Trusted() const noexcept = 0;
 
-    EXPORT virtual ~IssuerItem() = default;
+    EXPORT ~IssuerItem() override = default;
 
 protected:
     IssuerItem() noexcept = default;

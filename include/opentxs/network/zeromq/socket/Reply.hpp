@@ -32,7 +32,7 @@ namespace socket
 class Reply : virtual public curve::Server
 {
 public:
-    EXPORT virtual ~Reply() = default;
+    EXPORT ~Reply() override = default;
 
 protected:
     Reply() noexcept = default;
@@ -40,7 +40,13 @@ protected:
 private:
     friend OTZMQReplySocket;
 
-    virtual Reply* clone() const noexcept = 0;
+#ifdef _WIN32
+public:
+#endif
+    EXPORT virtual Reply* clone() const noexcept = 0;
+#ifdef _WIN32
+private:
+#endif
 
     Reply(const Reply&) = delete;
     Reply(Reply&&) = delete;

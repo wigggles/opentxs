@@ -1529,7 +1529,8 @@ void OTParty::Serialize(
     pTag->add_attribute(
         "ownerID", (bCalculatingID && !bSpecifyParties) ? "" : m_str_owner_id);
     pTag->add_attribute(
-        "openingTransNo", formatLong(bCalculatingID ? 0 : m_lOpeningTransNo));
+        "openingTransNo",
+        std::to_string(bCalculatingID ? 0 : m_lOpeningTransNo));
     pTag->add_attribute(
         "signedCopyProvided",
         formatBool((!bCalculatingID && m_strMySignedCopy->Exists())));
@@ -1537,8 +1538,8 @@ void OTParty::Serialize(
     pTag->add_attribute(
         "authorizingAgent", bCalculatingID ? "" : m_str_authorizing_agent);
     pTag->add_attribute(
-        "numAgents", formatUint(bCalculatingID ? 0 : numAgents));
-    pTag->add_attribute("numAccounts", formatUint(numAccounts));
+        "numAgents", std::to_string(bCalculatingID ? 0 : numAgents));
+    pTag->add_attribute("numAccounts", std::to_string(numAccounts));
 
     if (!bCalculatingID) {
         for (auto& it : m_mapAgents) {

@@ -35,7 +35,7 @@ public:
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
         noexcept = 0;
 
-    EXPORT virtual ~Subscribe() = default;
+    EXPORT ~Subscribe() override = default;
 
 protected:
     Subscribe() noexcept = default;

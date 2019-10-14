@@ -619,7 +619,7 @@ OTIdentifier Workflow::AllocateCash(
     auto& event = *workflow.add_event();
     event.set_version(
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH).event_);
-    event.set_time(now());
+    event.set_time(Clock::to_time_t(Clock::now()));
     event.set_type(proto::PAYMENTEVENTTYPE_CREATE);
     event.set_method(proto::TRANSPORTMETHOD_NONE);
     event.set_success(true);
@@ -817,7 +817,7 @@ bool Workflow::add_transfer_event(
     }
 
     event.set_success(success);
-    event.set_time(now());
+    event.set_time(Clock::to_time_t(Clock::now()));
 
     if (0 == workflow.party_size() && (false == eventNym.empty())) {
         workflow.add_party(eventNym);
@@ -1076,7 +1076,7 @@ bool Workflow::can_expire_cheque(
         return false;
     }
 
-    if (now() < cheque.GetValidTo()) {
+    if (Clock::now() < cheque.GetValidTo()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Can not expire valid cheque.")
             .Flush();
 
@@ -1187,7 +1187,7 @@ bool Workflow::ClearCheque(
     OT_ASSERT(1 == workflow->account_size())
 
     const bool needNym = (0 == workflow->party_size());
-    const auto time = std::chrono::system_clock::from_time_t(now());
+    const auto time = Clock::now();
     const auto output = add_cheque_event(
         lock,
         nymID,
@@ -1620,7 +1620,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
         event.set_method(proto::TRANSPORTMETHOD_OT);
         event.set_transport(message->m_strNotaryID->Get());
     } else {
-        event.set_time(now());
+        event.set_time(Clock::to_time_t(Clock::now()));
 
         if (proto::PAYMENTWORKFLOWSTATE_UNSENT == workflowState) {
             event.set_type(proto::PAYMENTEVENTTYPE_CREATE);
@@ -1710,7 +1710,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_transfer(
 
     auto& event = *workflow.add_event();
     event.set_version(eventVersion);
-    event.set_time(now());
+    event.set_time(Clock::to_time_t(Clock::now()));
 
     if (proto::PAYMENTWORKFLOWSTATE_INITIATED == workflowState) {
         event.set_type(proto::PAYMENTEVENTTYPE_CREATE);
@@ -1932,7 +1932,7 @@ bool Workflow::ExportCheque(const opentxs::Cheque& cheque) const
     event.set_version(
         versions_.at(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE).event_);
     event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
-    event.set_time(now());
+    event.set_time(Clock::to_time_t(Clock::now()));
     event.set_method(proto::TRANSPORTMETHOD_OOB);
     event.set_success(true);
 

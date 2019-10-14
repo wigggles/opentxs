@@ -35,7 +35,7 @@ public:
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::AccountListItem> Next()
         const noexcept = 0;
 
-    EXPORT virtual ~AccountList() = default;
+    EXPORT ~AccountList() override = default;
 
 protected:
     AccountList() noexcept = default;

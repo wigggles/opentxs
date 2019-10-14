@@ -10,7 +10,6 @@
 #include "opentxs/core/script/OTClause.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -89,17 +88,16 @@ void OTBylaw::Serialize(Tag& parent, bool bCalculatingID) const
     const std::uint64_t numHooks = m_mapHooks.size();
     const std::uint64_t numCallbacks = m_mapCallbacks.size();
 
-    pTag->add_attribute("numVariables", formatUlong(numVariables));
-    pTag->add_attribute("numClauses", formatUlong(numClauses));
-    pTag->add_attribute("numHooks", formatUlong(numHooks));
-    pTag->add_attribute("numCallbacks", formatUlong(numCallbacks));
+    pTag->add_attribute("numVariables", std::to_string(numVariables));
+    pTag->add_attribute("numClauses", std::to_string(numClauses));
+    pTag->add_attribute("numHooks", std::to_string(numHooks));
+    pTag->add_attribute("numCallbacks", std::to_string(numCallbacks));
 
     for (auto& it : m_mapVariables) {
         OTVariable* pVar = it.second;
         OT_ASSERT(nullptr != pVar);
-        // Variables save in a specific state during ID
-        // calculation (no matter their current actual
-        // value.)
+        // Variables save in a specific state during ID calculation (no matter
+        // their current actual value.)
         pVar->Serialize(*pTag, bCalculatingID);
     }
 

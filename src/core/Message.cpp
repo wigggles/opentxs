@@ -440,12 +440,13 @@ void Message::UpdateContents(const PasswordPrompt& reason)
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned->Release();
 
-    m_lTime = OTTimeGetCurrentTime();
+    m_lTime = Clock::to_time_t(Clock::now());
 
     Tag tag("notaryMessage");
 
     tag.add_attribute("version", m_strVersion->Get());
-    tag.add_attribute("dateSigned", formatTimestamp(m_lTime));
+    tag.add_attribute(
+        "dateSigned", formatTimestamp(Clock::from_time_t(m_lTime)));
 
     if (!updateContentsByType(tag)) {
         TagPtr pTag(new Tag(m_strCommand->Get()));
@@ -571,7 +572,8 @@ std::int32_t Message::processXmlNodeNotaryMessage(
 
     auto strDateSigned = String::Factory(xml->getAttributeValue("dateSigned"));
 
-    if (strDateSigned->Exists()) m_lTime = parseTimestamp(strDateSigned->Get());
+    if (strDateSigned->Exists())
+        m_lTime = Clock::to_time_t(parseTimestamp(strDateSigned->Get()));
 
     LogVerbose(OT_METHOD)(__FUNCTION__)(
         " ===> Loading XML for Message into memory structures... ")
@@ -697,7 +699,7 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("marketID", m.m_strNymID2->Get());
-        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+        pTag->add_attribute("depth", std::to_string(m.m_lDepth));
 
         parent.add_tag(pTag);
     }
@@ -739,7 +741,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+        pTag->add_attribute("depth", std::to_string(m.m_lDepth));
         pTag->add_attribute("marketID", m.m_strNymID2->Get());
 
         if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
@@ -860,7 +862,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+        pTag->add_attribute("depth", std::to_string(m.m_lDepth));
         pTag->add_attribute("marketID", m.m_strNymID2->Get());
 
         if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
@@ -979,7 +981,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+        pTag->add_attribute("depth", std::to_string(m.m_lDepth));
 
         if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
             (m.m_lDepth > 0)) {
@@ -1627,7 +1629,7 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("nymID2", m.m_strNymID2->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("adjustment", formatLong(m.m_lDepth));
+        pTag->add_attribute("adjustment", std::to_string(m.m_lDepth));
 
         parent.add_tag(pTag);
     }
@@ -1673,7 +1675,7 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("nymID2", m.m_strNymID2->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("totalCredits", formatLong(m.m_lDepth));
+        pTag->add_attribute("totalCredits", std::to_string(m.m_lDepth));
 
         parent.add_tag(pTag);
     }
@@ -1994,7 +1996,8 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("newRequestNum", formatLong(m.m_lNewRequestNum));
+        pTag->add_attribute(
+            "newRequestNum", std::to_string(m.m_lNewRequestNum));
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
         parent.add_tag(pTag);
@@ -2635,7 +2638,8 @@ public:
             "boxType",  // outbox is 2.
             (m.m_lDepth == 0) ? "nymbox"
                               : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
-        pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
+        pTag->add_attribute(
+            "transactionNum", std::to_string(m.m_lTransactionNum));
 
         parent.add_tag(pTag);
     }
@@ -2705,7 +2709,8 @@ public:
             "boxType",  // outbox is 2.
             (m.m_lDepth == 0) ? "nymbox"
                               : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
-        pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
+        pTag->add_attribute(
+            "transactionNum", std::to_string(m.m_lTransactionNum));
 
         if (m.m_ascInReferenceTo->GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
@@ -4000,7 +4005,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
-        pTag->add_attribute("smartContractID", formatLong(m.m_lTransactionNum));
+        pTag->add_attribute(
+            "smartContractID", std::to_string(m.m_lTransactionNum));
         pTag->add_attribute("clauseName", m.m_strNymID2->Get());
         pTag->add_attribute("hasParam", formatBool(m.m_ascPayload->Exists()));
 
@@ -4213,7 +4219,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("depth", formatLong(m.m_lDepth));
+        pTag->add_attribute("depth", std::to_string(m.m_lDepth));
 
         if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
             (m.m_lDepth > 0)) {

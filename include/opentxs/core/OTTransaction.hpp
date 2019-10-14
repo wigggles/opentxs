@@ -133,7 +133,7 @@ receipt itself is available for
  And what does it save?
  transactionType        m_Type;        // blank, pending, processInbox,
 transfer, deposit, withdrawal, trade, etc.
- time64_t                    m_DATE_SIGNED;        // The date, in seconds, when
+ Time                    m_DATE_SIGNED;        // The date, in seconds, when
 the instrument was last signed.
  std::int64_t                    m_lTransactionNum;    // The server issues this
 and
@@ -414,7 +414,7 @@ public:
         const PasswordPrompt& reason);
     EXPORT bool GetMemo(String& strMemo, const PasswordPrompt& reason);
 
-    inline time64_t GetDateSigned() const { return m_DATE_SIGNED; }
+    inline Time GetDateSigned() const { return m_DATE_SIGNED; }
 
     // Tries to determine, based on items within,
     // whether the transaction was a success or fail.
@@ -587,7 +587,6 @@ protected:
     // Usually a transaction object is inside a ledger object.
     // If this is not nullptr, then you can reference that object.
     const Ledger* m_pParent{nullptr};
-
     // Transactions can be loaded in abbreviated form from a ledger, but they
     // are not considered "actually loaded"
     // until their associated "box receipt" is also loaded up from storage, and
@@ -598,7 +597,6 @@ protected:
     // abbreviated form, then this is never
     // set to true in the first place.
     bool m_bIsAbbreviated{false};
-
     // The "Amount" of the transaction is not normally stored in the transaction
     // itself, but in one of its
     // transaction items. However, when saving/loading the transaction in
@@ -606,9 +604,7 @@ protected:
     // placed here, which makes it available for necessary calculations without
     // being forced to load up
     // all of the box receipts to do so.
-
-    std::int64_t m_lAbbrevAmount{0};
-
+    std::int64_t m_lAbbrevAmount;
     // Just like m_lAbbrevAmount, except it stores the display amount. For
     // example, a transferReceipt for
     // a 5000 clam transfer has an effective value of 0 (since the transfer is
@@ -626,14 +622,12 @@ protected:
     // current process of loading
     // transaction items from a string every time we need to check the amount,
     // can be time-consuming, CPU-wise.)
-    std::int64_t m_lDisplayAmount{0};
-
+    std::int64_t m_lDisplayAmount;
     // The value of GetReferenceNumForDisplay() is saved when saving an
     // abbreviated record of this transaction,
     // and then loaded into THIS member variable when loading the abbreviated
     // record.
-    std::int64_t m_lInRefDisplay{0};
-
+    std::int64_t m_lInRefDisplay;
     // This hash is not stored inside the box receipt itself (a transaction that
     // appears in an inbox, outbox, or nymbox)
     // but rather, is set from above, and then verified against the actual box
@@ -651,17 +645,14 @@ protected:
     // save again in abbreviated form.
     OTIdentifier m_Hash;  // todo: make this const and force it to be set during
                           // construction.
-
-    time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
-                                // last signed.
-    transactionType m_Type{
-        transactionType::error_state};  // blank, pending, processInbox,
-                                        // transfer, deposit, withdrawal,
-                                        // trade, etc.
+    Time m_DATE_SIGNED;   // The date, in seconds, when the instrument was
+                          // last signed.
+    transactionType m_Type;   // blank, pending, processInbox,
+                              // transfer, deposit, withdrawal,
+                              // trade, etc.
     listOfItems m_listItems;  // the various items in this transaction.
-
-    TransactionNumber m_lClosingTransactionNo{0};  // used by finalReceipt
-    OTArmored m_ascCancellationRequest;            // used by finalReceipt
+    TransactionNumber m_lClosingTransactionNo;  // used by finalReceipt
+    OTArmored m_ascCancellationRequest;         // used by finalReceipt
 
     // ONLY the "replyNotice" transaction uses this field.
     // When replyNotices are dropped into your Nymbox (server notices
@@ -672,9 +663,9 @@ protected:
     // have added a special variable here for request numbers, so that
     // replyNotices in the Nymbox can directly finger the messages they
     // came from.
-    RequestNumber m_lRequestNumber{0};  // Unused except by "replyNotice" in
-                                        // Nymbox.
-    bool m_bReplyTransSuccess{false};   // Used only by replyNotice
+    RequestNumber m_lRequestNumber;  // Unused except by "replyNotice" in
+                                     // Nymbox.
+    bool m_bReplyTransSuccess;       // Used only by replyNotice
     // Unused except for notarizeTransactionResponse, specifically for
     // @paymentPlan
     // and @smartContract. (And maybe @depositCheque...) There are specific
@@ -703,8 +694,7 @@ protected:
     // failed attempt marked as "rejected", versus a successful cancellation
     // marked as "rejected." All the client has to do is check m_bCancelled
     // to see if it's set to TRUE, and it will know.
-    bool m_bCancelled{false};
-
+    bool m_bCancelled;
     OTIdentifier m_inboxhash;
     OTIdentifier m_outboxhash;
     OTIdentifier m_accounthash;
@@ -724,22 +714,19 @@ private:
 
     OTTransaction(const api::Core& core);
     OTTransaction(const api::Core& core, const Ledger& theOwner);
-
     OTTransaction(
         const api::Core& core,
         const identifier::Nym& theNymID,
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,
-        originType theOriginType = originType::not_applicable);
-
+        const originType theOriginType = originType::not_applicable);
     OTTransaction(
         const api::Core& core,
         const identifier::Nym& theNymID,
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,
-        std::int64_t lTransactionNum,
-        originType theOriginType = originType::not_applicable);
-
+        const std::int64_t lTransactionNum,
+        const originType theOriginType = originType::not_applicable);
     // THIS constructor only used when loading an abbreviated box receipt
     // (inbox, nymbox, or outbox receipt).
     // The full receipt is loaded only after the abbreviated ones are loaded,
@@ -750,18 +737,18 @@ private:
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,
         const std::int64_t& lNumberOfOrigin,
-        originType theOriginType,
+        const originType theOriginType,
         const std::int64_t& lTransactionNum,
         const std::int64_t& lInRefTo,
         const std::int64_t& lInRefDisplay,
-        time64_t the_DATE_SIGNED,
-        transactionType theType,
+        const Time the_DATE_SIGNED,
+        const transactionType theType,
         const String& strHash,
         const std::int64_t& lAdjustment,
         const std::int64_t& lDisplayValue,
         const std::int64_t& lClosingNum,
         const std::int64_t& lRequestNum,
-        bool bReplyTransSuccess,
+        const bool bReplyTransSuccess,
         NumList* pNumList = nullptr);
 
     OTTransaction() = delete;

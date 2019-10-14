@@ -44,7 +44,7 @@ public:
         noexcept = 0;
     EXPORT virtual StorageBox Type() const noexcept = 0;
 
-    EXPORT virtual ~ActivitySummaryItem() = default;
+    EXPORT ~ActivitySummaryItem() override = default;
 
 protected:
     ActivitySummaryItem() noexcept = default;

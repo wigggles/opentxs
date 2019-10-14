@@ -114,12 +114,14 @@ public:
         const String& theData,
         bool bLineBreaks = true) = 0;
 
-    EXPORT ~Armored() = default;
+    EXPORT ~Armored() override = default;
 
 protected:
     friend OTArmored;
 
-    virtual Armored* clone() const = 0;
+#ifndef _WIN32
+    Armored* clone() const override = 0;
+#endif
 
     Armored() = default;
 

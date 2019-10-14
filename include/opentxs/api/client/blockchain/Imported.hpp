@@ -23,7 +23,7 @@ class Imported : virtual public BalanceNode
 public:
     EXPORT virtual ECKey Key() const = 0;
 
-    EXPORT virtual ~Imported() = default;
+    EXPORT ~Imported() override = default;
 
 protected:
     Imported() noexcept = default;

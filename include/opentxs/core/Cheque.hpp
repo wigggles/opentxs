@@ -8,10 +8,10 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/OTTrackable.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cstdint>
 
@@ -70,8 +70,8 @@ public:
     EXPORT bool IssueCheque(
         const std::int64_t& lAmount,
         const std::int64_t& lTransactionNum,
-        const time64_t& VALID_FROM,
-        const time64_t& VALID_TO,  // The expiration date (valid from/to dates.)
+        const Time& VALID_FROM,
+        const Time& VALID_TO,  // The expiration date (valid from/to dates.)
         const Identifier& SENDER_ACCT_ID,  // The asset account the cheque is
                                            // drawn on.
         const identifier::Nym& SENDER_NYM_ID,  // This ID must match the user ID

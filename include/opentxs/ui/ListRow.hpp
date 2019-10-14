@@ -28,7 +28,7 @@ public:
     EXPORT virtual bool Last() const noexcept = 0;
     EXPORT virtual bool Valid() const noexcept = 0;
 
-    EXPORT virtual ~ListRow() = default;
+    EXPORT ~ListRow() override = default;
 
 protected:
     ListRow() noexcept = default;

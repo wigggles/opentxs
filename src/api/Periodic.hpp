@@ -29,7 +29,7 @@ protected:
 
 private:
     /** Last performed, Interval, Task */
-    using TaskItem = std::tuple<time64_t, time64_t, PeriodicTask>;
+    using TaskItem = std::tuple<Time, std::chrono::seconds, PeriodicTask>;
     using TaskList = std::map<int, TaskItem>;
 
     mutable std::atomic<int> next_id_;

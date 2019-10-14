@@ -8,7 +8,6 @@
 #include "opentxs/core/script/OTStash.hpp"
 
 #include "opentxs/core/script/OTStashItem.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -76,7 +75,7 @@ void OTStash::Serialize(Tag& parent) const
     TagPtr pTag(new Tag("stash"));
 
     pTag->add_attribute("name", m_str_stash_name);
-    pTag->add_attribute("count", formatUint(sizeMapStashItems));
+    pTag->add_attribute("count", std::to_string(sizeMapStashItems));
 
     for (auto& it : m_mapStashItems) {
         const std::string str_instrument_definition_id = it.first;
@@ -90,7 +89,8 @@ void OTStash::Serialize(Tag& parent) const
         pTagItem->add_attribute(
             "instrumentDefinitionID",
             pStashItem->GetInstrumentDefinitionID().Get());
-        pTagItem->add_attribute("balance", formatLong(pStashItem->GetAmount()));
+        pTagItem->add_attribute(
+            "balance", std::to_string(pStashItem->GetAmount()));
 
         pTag->add_tag(pTagItem);
     }

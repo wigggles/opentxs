@@ -23,7 +23,7 @@ public:
     EXPORT virtual bool Path(proto::HDPath& output) const = 0;
     EXPORT virtual std::string Path() const = 0;
 
-    EXPORT virtual ~Primary() = default;
+    EXPORT ~Primary() override = default;
 
 protected:
     Primary() noexcept {}  // TODO Signable

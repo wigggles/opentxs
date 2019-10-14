@@ -12,7 +12,6 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/OTTransaction.hpp"
@@ -20,6 +19,7 @@
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/Types.hpp"
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -80,8 +80,8 @@ public:
     EXPORT Cheque* WriteCheque(
         const identifier::Server& NOTARY_ID,
         const std::int64_t& CHEQUE_AMOUNT,
-        const time64_t& VALID_FROM,
-        const time64_t& VALID_TO,
+        const Time& VALID_FROM,
+        const Time& VALID_TO,
         const Identifier& SENDER_accountID,
         const identifier::Nym& SENDER_NYM_ID,
         const String& CHEQUE_MEMO,
@@ -93,43 +93,30 @@ public:
     // (Caller responsible to delete.)
     //
     // Payment Plan Delay, and Payment Plan Period, both default to 30 days (if
-    // you pass 0),
-    // measured in seconds.
+    // you pass 0), measured in seconds.
     //
     // Payment Plan Length, and Payment Plan Max Payments, both default to 0,
-    // which means
-    // no maximum length and no maximum number of payments.
+    // which means no maximum length and no maximum number of payments.
     EXPORT OTPaymentPlan* ProposePaymentPlan(
         const identifier::Server& NOTARY_ID,
-        const time64_t& VALID_FROM,  // 0 defaults to the current time in
-                                     // seconds
-                                     // since Jan 1970.
-        const time64_t& VALID_TO,  // 0 defaults to "no expiry." Otherwise this
-                                   // value is ADDED to VALID_FROM. (It's a
-                                   // length.)
+        const Time& VALID_FROM,  // 0 defaults to the current time in
+                                 // seconds
+                                 // since Jan 1970.
+        const Time& VALID_TO,    // 0 defaults to "no expiry." Otherwise this
+                                 // value is ADDED to VALID_FROM. (It's a
+                                 // length.)
         const Identifier& pSENDER_ACCT_ID,
         const identifier::Nym& SENDER_NYM_ID,
         const String& PLAN_CONSIDERATION,  // like a memo.
         const Identifier& RECIPIENT_ACCT_ID,
         const identifier::Nym& RECIPIENT_NYM_ID,
-        // ----------------------------------------  // If it's above zero, the
-        // initial
-        const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // amount will be processed
-                                                     // after
-        const time64_t& INITIAL_PAYMENT_DELAY,  // delay (seconds from now.)
-        // ----------------------------------------  // AND SEPARATELY FROM
-        // THIS...
-        const std::int64_t& PAYMENT_PLAN_AMOUNT,  // The regular amount charged,
-        const time64_t& PAYMENT_PLAN_DELAY,       // which begins occuring after
-                                                  // delay
-        const time64_t& PAYMENT_PLAN_PERIOD,  // (seconds from now) and happens
-        // ----------------------------------------  // every period, ad
-        // infinitum, until
-        time64_t PAYMENT_PLAN_LENGTH = OT_TIME_ZERO,  // after the length (in
-                                                      // seconds)
-        std::int32_t PAYMENT_PLAN_MAX_PAYMENTS = 0    // expires, or after the
-                                                      // maximum
-        ) const;  // number of payments. These last
+        const std::int64_t& INITIAL_PAYMENT_AMOUNT,
+        const std::chrono::seconds INITIAL_PAYMENT_DELAY,
+        const std::int64_t& PAYMENT_PLAN_AMOUNT,
+        const std::chrono::seconds PAYMENT_PLAN_DELAY,
+        const std::chrono::seconds PAYMENT_PLAN_PERIOD,
+        const std::chrono::seconds PAYMENT_PLAN_LENGTH = {},
+        const std::int32_t PAYMENT_PLAN_MAX_PAYMENTS = 0) const;
 
     // CONFIRM PAYMENT PLAN (called by Customer)
     EXPORT bool ConfirmPaymentPlan(
@@ -268,8 +255,8 @@ public:
         const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
                                                // (The signing at this point is
                                                // only to cause a save.)
-        time64_t VALID_FROM,                   // Default (0 or nullptr) == NOW
-        time64_t VALID_TO,     // Default (0 or nullptr) == no expiry / cancel
+        Time VALID_FROM,                       // Default (0 or nullptr) == NOW
+        Time VALID_TO,         // Default (0 or nullptr) == no expiry / cancel
                                // anytime
         bool SPECIFY_ASSETS,   // This means asset type IDs must be provided for
                                // every named account.
@@ -283,9 +270,9 @@ public:
         const identifier::Nym& SIGNER_NYM_ID,  // Use any Nym you wish here.
                                                // (The signing at this point is
                                                // only to cause a save.)
-        time64_t VALID_FROM,                   // Default (0 or nullptr) == NOW
-        time64_t VALID_TO,  // Default (0 or nullptr) == no expiry / cancel
-                            // anytime.
+        Time VALID_FROM,                       // Default (0 or nullptr) == NOW
+        Time VALID_TO,  // Default (0 or nullptr) == no expiry / cancel
+                        // anytime.
         String& strOutput) const;
 
     EXPORT bool Smart_ArePartiesSpecified(const String& THE_CONTRACT) const;
@@ -541,11 +528,10 @@ public:
                                                     // sale
         // or purchase. Will be multiplied
         // by minimum increment.
-        const Amount PRICE_LIMIT,  // Per Minimum Increment...
-        bool bBuyingOrSelling,     // BUYING == false, SELLING == true.
-        time64_t tLifespanInSeconds = OT_TIME_DAY_IN_SECONDS,  // 86400 seconds
-                                                               // == 1 day.
-        char STOP_SIGN = 0,  // For stop orders, set to '<' or '>'
+        const Amount PRICE_LIMIT,     // Per Minimum Increment...
+        const bool bBuyingOrSelling,  // BUYING == false, SELLING == true.
+        const std::chrono::seconds tLifespanInSeconds = std::chrono::hours{24},
+        const char STOP_SIGN = 0,  // For stop orders, set to '<' or '>'
         const Amount ACTIVATION_PRICE = 0) const;  // For stop orders, set the
                                                    // threshold price here.
     EXPORT CommandResult getMarketList(ServerContext& context) const;
@@ -626,7 +612,7 @@ private:
         const identifier::Server& notaryID,
         const OTTransaction& source,
         String& note) const;
-    time64_t GetTime() const;
+    Time GetTime() const;
     itemType response_type(const transactionType sourceType, const bool success)
         const;
 
@@ -648,5 +634,4 @@ private:
     OT_API operator=(OT_API&&) = delete;
 };
 }  // namespace opentxs
-
 #endif

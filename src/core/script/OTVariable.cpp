@@ -73,7 +73,7 @@ void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
         case OTVariable::Var_Integer:
             str_type = "integer";
             pTag->add_attribute(
-                "value", formatInt(bCalculatingID ? 0 : m_nValue));
+                "value", std::to_string(bCalculatingID ? 0 : m_nValue));
             break;
         case OTVariable::Var_Bool:
             str_type = "bool";

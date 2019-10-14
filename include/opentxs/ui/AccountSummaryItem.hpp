@@ -31,7 +31,7 @@ public:
     EXPORT virtual std::string DisplayBalance() const noexcept = 0;
     EXPORT virtual std::string Name() const noexcept = 0;
 
-    EXPORT virtual ~AccountSummaryItem() = default;
+    EXPORT ~AccountSummaryItem() override = default;
 
 protected:
     AccountSummaryItem() noexcept = default;

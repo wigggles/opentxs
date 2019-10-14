@@ -112,7 +112,7 @@ public:
         stashTransNum_ = transNum;
     }
 
-    EXPORT virtual ~Account() override;
+    EXPORT ~Account() override;
 
 private:
     friend OTWallet;

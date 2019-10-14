@@ -92,7 +92,13 @@ protected:
 private:
     friend OTZMQMessage;
 
-    virtual Message* clone() const = 0;
+#ifdef _WIN32
+public:
+#endif
+    EXPORT virtual Message* clone() const = 0;
+#ifdef _WIN32
+private:
+#endif
 
     Message(const Message&) = delete;
     Message(Message&&) = default;

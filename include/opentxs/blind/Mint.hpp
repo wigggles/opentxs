@@ -25,7 +25,7 @@ public:
     EXPORT virtual bool Expired() const = 0;
     EXPORT virtual std::int64_t GetDenomination(std::int32_t nIndex) const = 0;
     EXPORT virtual std::int32_t GetDenominationCount() const = 0;
-    EXPORT virtual time64_t GetExpiration() const = 0;
+    EXPORT virtual Time GetExpiration() const = 0;
     EXPORT virtual std::int64_t GetLargestDenomination(
         std::int64_t lAmount) const = 0;
     EXPORT virtual bool GetPrivate(
@@ -34,8 +34,8 @@ public:
     EXPORT virtual bool GetPublic(Armored& theArmor, std::int64_t lDenomination)
         const = 0;
     EXPORT virtual std::int32_t GetSeries() const = 0;
-    EXPORT virtual time64_t GetValidFrom() const = 0;
-    EXPORT virtual time64_t GetValidTo() const = 0;
+    EXPORT virtual Time GetValidFrom() const = 0;
+    EXPORT virtual Time GetValidTo() const = 0;
     EXPORT virtual const identifier::UnitDefinition& InstrumentDefinitionID()
         const = 0;
 
@@ -46,10 +46,10 @@ public:
         const PasswordPrompt& reason) = 0;
     EXPORT virtual void GenerateNewMint(
         const api::Wallet& wallet,
-        std::int32_t nSeries,
-        time64_t VALID_FROM,
-        time64_t VALID_TO,
-        time64_t MINT_EXPIRATION,
+        const std::int32_t nSeries,
+        const Time VALID_FROM,
+        const Time VALID_TO,
+        const Time MINT_EXPIRATION,
         const identifier::UnitDefinition& theInstrumentDefinitionID,
         const identifier::Server& theNotaryID,
         const identity::Nym& theNotary,

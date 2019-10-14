@@ -11,6 +11,7 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
@@ -134,6 +135,11 @@ const LogSource& LogSource::operator()(
     const identifier::UnitDefinition& in) const noexcept
 {
     return operator()(in.str().c_str());
+}
+
+const LogSource& LogSource::operator()(const Time in) const noexcept
+{
+    return operator()(formatTimestamp(in));
 }
 
 void LogSource::Assert(

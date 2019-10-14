@@ -45,7 +45,7 @@ public:
         OTPassword& secret) const = 0;
 #endif
 
-    EXPORT virtual ~Trezor() = default;
+    EXPORT ~Trezor() override = default;
 
 protected:
     Trezor() = default;

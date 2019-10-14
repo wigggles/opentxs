@@ -11,7 +11,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
@@ -101,15 +100,15 @@ public:
     //
     //    bool    SetAgreement(const std::int64_t& lTransactionNum,    const
     // OTString& strConsideration,
-    //                       const time64_t& VALID_FROM=0,    const time64_t&
+    //                       const Time& VALID_FROM=0,    const Time&
     // VALID_TO=0);
 
     EXPORT bool SetProposal(
         ServerContext& context,
         const Account& MERCHANT_ACCT,
         const String& strConsideration,
-        time64_t VALID_FROM = OT_TIME_ZERO,
-        time64_t VALID_TO = OT_TIME_ZERO);
+        const Time VALID_FROM = {},
+        const Time VALID_TO = {});
 
     // Merchant Nym is passed here so we can verify the signature before
     // confirming.
@@ -149,14 +148,14 @@ public:
      THEN, (OTPaymentPlan) adds TWO OPTIONS (additional and independent of each
     other):
 
-     bool        SetInitialPayment(const std::int64_t& lAmount, time64_t
+     bool        SetInitialPayment(const std::int64_t& lAmount, Time
                     tTimeUntilInitialPayment=0); // default: now.
-     bool        SetPaymentPlan(const std::int64_t& lPaymentAmount, time64_t
+     bool        SetPaymentPlan(const std::int64_t& lPaymentAmount, Time
                                 tTimeUntilPlanStart=OT_TIME_MONTH_IN_SECONDS,
-                                time64_t
+                                Time
                                 tBetweenPayments=OT_TIME_MONTH_IN_SECONDS, //
     Default: 30 days.
-                                time64_t tPlanLength=0, std::int32_t
+                                Time tPlanLength=0, std::int32_t
     nMaxPayments=0);
 
 
@@ -277,9 +276,9 @@ public:
     /*
      inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
-     inline void SetCreationDate(const time64_t& CREATION_DATE) {
+     inline void SetCreationDate(const Time& CREATION_DATE) {
      m_CREATION_DATE = CREATION_DATE; }
-     inline const time64_t& GetCreationDate() const { return m_CREATION_DATE; }
+     inline const Time& GetCreationDate() const { return m_CREATION_DATE; }
 
      // These are for:
      // std::deque<std::int64_t> m_dequeClosingNumbers;
@@ -343,12 +342,12 @@ public:
      inline void SetNotaryID(const identifier::Server& NOTARY_ID) { m_NotaryID =
      NOTARY_ID; }
 
-     inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
-     inline time64_t GetValidTo()        const { return m_VALID_TO; }
+     inline Time GetValidFrom()    const { return m_VALID_FROM; }
+     inline Time GetValidTo()        const { return m_VALID_TO; }
 
-     inline void SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    =
+     inline void SetValidFrom(Time TIME_FROM)    { m_VALID_FROM    =
      TIME_FROM; }
-     inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO;
+     inline void SetValidTo(Time TIME_TO)        { m_VALID_TO    = TIME_TO;
      }
 
      bool VerifyCurrentDate(); // Verify the current date against the VALID FROM

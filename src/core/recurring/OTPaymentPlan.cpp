@@ -44,6 +44,23 @@ namespace opentxs
 {
 OTPaymentPlan::OTPaymentPlan(const api::Core& core)
     : ot_super(core)
+    , m_bInitialPayment(false)
+    , m_tInitialPaymentDate()
+    , m_tInitialPaymentCompletedDate()
+    , m_tFailedInitialPaymentDate()
+    , m_lInitialPaymentAmount(0)
+    , m_bInitialPaymentDone(false)
+    , m_nNumberInitialFailures(0)
+    , m_bPaymentPlan(false)
+    , m_lPaymentPlanAmount(0)
+    , m_tTimeBetweenPayments(0)
+    , m_tPaymentPlanStartDate()
+    , m_tPaymentPlanLength(0)
+    , m_nMaximumNoPayments(0)
+    , m_tDateOfLastPayment()
+    , m_tDateOfLastFailedPayment()
+    , m_nNoPaymentsDone(0)
+    , m_nNoFailedPayments(0)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -55,6 +72,23 @@ OTPaymentPlan::OTPaymentPlan(
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_bInitialPayment(false)
+    , m_tInitialPaymentDate()
+    , m_tInitialPaymentCompletedDate()
+    , m_tFailedInitialPaymentDate()
+    , m_lInitialPaymentAmount(0)
+    , m_bInitialPaymentDone(false)
+    , m_nNumberInitialFailures(0)
+    , m_bPaymentPlan(false)
+    , m_lPaymentPlanAmount(0)
+    , m_tTimeBetweenPayments(0)
+    , m_tPaymentPlanStartDate()
+    , m_tPaymentPlanLength(0)
+    , m_nMaximumNoPayments(0)
+    , m_tDateOfLastPayment()
+    , m_tDateOfLastFailedPayment()
+    , m_nNoPaymentsDone(0)
+    , m_nNoFailedPayments(0)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -77,6 +111,23 @@ OTPaymentPlan::OTPaymentPlan(
           SENDER_NYM_ID,
           RECIPIENT_ACCT_ID,
           RECIPIENT_NYM_ID)
+    , m_bInitialPayment(false)
+    , m_tInitialPaymentDate()
+    , m_tInitialPaymentCompletedDate()
+    , m_tFailedInitialPaymentDate()
+    , m_lInitialPaymentAmount(0)
+    , m_bInitialPaymentDone(false)
+    , m_nNumberInitialFailures(0)
+    , m_bPaymentPlan(false)
+    , m_lPaymentPlanAmount(0)
+    , m_tTimeBetweenPayments(0)
+    , m_tPaymentPlanStartDate()
+    , m_tPaymentPlanLength(0)
+    , m_nMaximumNoPayments(0)
+    , m_tDateOfLastPayment()
+    , m_tDateOfLastFailedPayment()
+    , m_nNoPaymentsDone(0)
+    , m_nNoFailedPayments(0)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -155,27 +206,27 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(
         const auto str_last_attempt =
             String::Factory(xml->getAttributeValue("dateOfLastFailedPayment"));
 
-        std::int64_t tBetween = str_between->ToLong();
-        std::int64_t tStart = parseTimestamp(str_start->Get());
-        std::int64_t tLength = str_length->ToLong();
-        std::int64_t tLast = parseTimestamp(str_last->Get());
-        std::int64_t tLastAttempt = parseTimestamp(str_last_attempt->Get());
+        const auto tBetween = std::chrono::seconds{str_between->ToLong()};
+        const auto tStart = parseTimestamp(str_start->Get());
+        const auto tLength = std::chrono::seconds{str_length->ToLong()};
+        const auto tLast = parseTimestamp(str_last->Get());
+        const auto tLastAttempt = parseTimestamp(str_last_attempt->Get());
 
-        SetTimeBetweenPayments(OTTimeGetTimeFromSeconds(tBetween));
-        SetPaymentPlanStartDate(OTTimeGetTimeFromSeconds(tStart));
-        SetPaymentPlanLength(OTTimeGetTimeFromSeconds(tLength));
-        SetDateOfLastPayment(OTTimeGetTimeFromSeconds(tLast));
-        SetDateOfLastFailedPayment(OTTimeGetTimeFromSeconds(tLastAttempt));
+        SetTimeBetweenPayments(tBetween);
+        SetPaymentPlanStartDate(tStart);
+        SetPaymentPlanLength(tLength);
+        SetDateOfLastPayment(tLast);
+        SetDateOfLastFailedPayment(tLastAttempt);
 
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Payment Plan. Amount per payment: ")(m_lPaymentPlanAmount)(
-            ". Time between payments: ")(tBetween)(
-            ". Payment plan Start Date: ")(tStart)(". Length: ")(tLength)(
-            ". Maximum No. of Payments: ")(m_nMaximumNoPayments)(
-            ". Completed No. of Payments: ")(m_nNoPaymentsDone)(
-            ". Failed No. of Payments: ")(m_nNoFailedPayments)(
-            ". Date of last payment: ")(tLast)(
-            ". Date of last failed payment: ")(tLastAttempt)(".")
+            ". Seconds between payments: ")(tBetween.count())(
+            ". Payment plan Start Date: ")(tStart)(". Length: ")(
+            tLength.count())(". Maximum No. of Payments: ")(
+            m_nMaximumNoPayments)(". Completed No. of Payments: ")(
+            m_nNoPaymentsDone)(". Failed No. of Payments: ")(
+            m_nNoFailedPayments)(". Date of last payment: ")(tLast)(
+            ". Date of last failed payment: ")(tLastAttempt)
             .Flush();
 
         nReturnVal = 1;
@@ -216,7 +267,7 @@ void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
     tag.add_attribute("recipientNymID", RECIPIENT_NYM_ID->Get());
     tag.add_attribute("canceled", formatBool(m_bCanceled));
     tag.add_attribute("cancelerNymID", m_bCanceled ? strCanceler->Get() : "");
-    tag.add_attribute("transactionNum", formatLong(m_lTransactionNum));
+    tag.add_attribute("transactionNum", std::to_string(m_lTransactionNum));
     tag.add_attribute("creationDate", formatTimestamp(GetCreationDate()));
     tag.add_attribute("validFrom", formatTimestamp(GetValidFrom()));
     tag.add_attribute("validTo", formatTimestamp(GetValidTo()));
@@ -232,7 +283,7 @@ void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
         OT_ASSERT(lClosingNumber > 0);
 
         TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
-        tagClosingNo->add_attribute("value", formatLong(lClosingNumber));
+        tagClosingNo->add_attribute("value", std::to_string(lClosingNumber));
         tag.add_tag(tagClosingNo);
     }
 
@@ -245,7 +296,7 @@ void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
         OT_ASSERT(lClosingNumber > 0);
 
         TagPtr tagClosingNo(new Tag("closingRecipientNumber"));
-        tagClosingNo->add_attribute("value", formatLong(lClosingNumber));
+        tagClosingNo->add_attribute("value", std::to_string(lClosingNumber));
         tag.add_tag(tagClosingNo);
     }
 
@@ -256,9 +307,9 @@ void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
         tagInitial->add_attribute(
             "date", formatTimestamp(GetInitialPaymentDate()));
         tagInitial->add_attribute(
-            "amount", formatLong(GetInitialPaymentAmount()));
+            "amount", std::to_string(GetInitialPaymentAmount()));
         tagInitial->add_attribute(
-            "numberOfAttempts", formatInt(GetNoInitialFailures()));
+            "numberOfAttempts", std::to_string(GetNoInitialFailures()));
         tagInitial->add_attribute(
             "dateOfLastAttempt",
             formatTimestamp(GetLastFailedInitialPaymentDate()));
@@ -272,25 +323,25 @@ void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
 
     // OTPaymentPlan
     if (HasPaymentPlan()) {
-        const std::int64_t lTimeBetween =
-            OTTimeGetSecondsFromTime(GetTimeBetweenPayments());
-        const std::int64_t lPlanLength =
-            OTTimeGetSecondsFromTime(GetPaymentPlanLength());
+        const auto lTimeBetween = GetTimeBetweenPayments();
+        const auto lPlanLength = GetPaymentPlanLength();
 
         TagPtr tagPlan(new Tag("paymentPlan"));
 
         tagPlan->add_attribute(
-            "amountPerPayment", formatLong(GetPaymentPlanAmount()));
-        tagPlan->add_attribute("timeBetweenPayments", formatLong(lTimeBetween));
+            "amountPerPayment", std::to_string(GetPaymentPlanAmount()));
+        tagPlan->add_attribute(
+            "timeBetweenPayments", std::to_string(lTimeBetween.count()));
         tagPlan->add_attribute(
             "planStartDate", formatTimestamp(GetPaymentPlanStartDate()));
-        tagPlan->add_attribute("planLength", formatLong(lPlanLength));
         tagPlan->add_attribute(
-            "maxNoPayments", formatInt(GetMaximumNoPayments()));
+            "planLength", std::to_string(lPlanLength.count()));
         tagPlan->add_attribute(
-            "completedNoPayments", formatInt(GetNoPaymentsDone()));
+            "maxNoPayments", std::to_string(GetMaximumNoPayments()));
         tagPlan->add_attribute(
-            "failedNoPayments", formatInt(GetNoFailedPayments()));
+            "completedNoPayments", std::to_string(GetNoPaymentsDone()));
+        tagPlan->add_attribute(
+            "failedNoPayments", std::to_string(GetNoFailedPayments()));
         tagPlan->add_attribute(
             "dateOfLastPayment", formatTimestamp(GetDateOfLastPayment()));
         tagPlan->add_attribute(
@@ -321,19 +372,15 @@ void OTPaymentPlan::UpdateContents(const PasswordPrompt& reason)
 // *** Set Initial Payment ***  / Make sure to call SetAgreement() first.
 
 bool OTPaymentPlan::SetInitialPayment(
-    const std::int64_t& amount,
-    time64_t tTimeUntilInitialPayment)
+    const Amount amount,
+    const std::chrono::seconds tTimeUntilInitialPayment)
 {
     m_bInitialPayment = true;       // There is now an initial payment.
     m_bInitialPaymentDone = false;  // It has not yet been paid.
 
     // The initial date passed it is measured relative to the creation date.
     // (Assumes SetAgreement() was already called...)
-    const time64_t INITIAL_PAYMENT_DATE = OTTimeAddTimeInterval(
-        GetCreationDate(), OTTimeGetSecondsFromTime(tTimeUntilInitialPayment));
-
-    SetInitialPaymentDate(INITIAL_PAYMENT_DATE);
-
+    SetInitialPaymentDate(GetCreationDate() + tTimeUntilInitialPayment);
     SetInitialPaymentAmount(amount);
 
     return true;
@@ -486,12 +533,11 @@ bool OTPaymentPlan::VerifyAgreement(
 // *** Set Payment Plan *** / Make sure to call SetAgreement() first.
 // default: 1st payment in 30 days
 bool OTPaymentPlan::SetPaymentPlan(
-    const std::int64_t& lPaymentAmount,
-    time64_t tTimeUntilPlanStart,
-    time64_t tBetweenPayments,  // Default: 30
-                                // days.
-    time64_t tPlanLength,
-    std::int32_t nMaxPayments)
+    const Amount lPaymentAmount,
+    const std::chrono::seconds tTimeUntilPlanStart,
+    const std::chrono::seconds tBetweenPayments,
+    const std::chrono::seconds tPlanLength,
+    const std::int32_t nMaxPayments)
 {
 
     if (lPaymentAmount <= 0) {
@@ -524,17 +570,9 @@ bool OTPaymentPlan::SetPaymentPlan(
     // itself.Rece
 
     SetTimeBetweenPayments(tBetweenPayments);
+    SetPaymentPlanStartDate(GetCreationDate() + tTimeUntilPlanStart);
 
-    // Assuming no need to check a time64_t for <0 since it's probably
-    // unsigned...
-    const time64_t PAYMENT_PLAN_START = OTTimeAddTimeInterval(
-        GetCreationDate(), OTTimeGetSecondsFromTime(tTimeUntilPlanStart));
-
-    SetPaymentPlanStartDate(PAYMENT_PLAN_START);
-
-    // Is this even a problem? todo: verify that time64_t is unisigned.
-    if (OT_TIME_ZERO > tPlanLength)  // if it's a negative number...
-    {
+    if (std::chrono::seconds{0} > tPlanLength) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Attempt to use negative number for plan length.")
             .Flush();
@@ -556,7 +594,7 @@ bool OTPaymentPlan::SetPaymentPlan(
                                          // value will do.
 
     // Set these to zero, they will be incremented later at the right times.
-    m_tDateOfLastPayment = OT_TIME_ZERO;
+    m_tDateOfLastPayment = Time{};
     m_nNoPaymentsDone = 0;
 
     // Okay, we're a payment plan! (Still need to add the object to OTCron...
@@ -574,7 +612,7 @@ bool OTPaymentPlan::SetInitialPaymentDone()
     m_bInitialPaymentDone = true;
     // We store the bool that it's done (above), and we also store the date when
     // it was done:
-    SetInitialPaymentCompletedDate(OTTimeGetCurrentTime());
+    SetInitialPaymentCompletedDate(Clock::now());
 
     return true;
 }
@@ -1025,7 +1063,7 @@ bool OTPaymentPlan::ProcessPayment(
                                                       // payment plan payment.
                 {
                     IncrementNoPaymentsDone();
-                    SetDateOfLastPayment(OTTimeGetCurrentTime());
+                    SetDateOfLastPayment(Clock::now());
                     LogNormal(OT_METHOD)(__FUNCTION__)(
                         ": Recurring payment performed.")
                         .Flush();
@@ -1051,13 +1089,13 @@ bool OTPaymentPlan::ProcessPayment(
 
                 if (m_bProcessingInitialPayment) {
                     IncrementNoInitialFailures();
-                    SetLastFailedInitialPaymentDate(OTTimeGetCurrentTime());
+                    SetLastFailedInitialPaymentDate(Clock::now());
                     LogNormal(OT_METHOD)(__FUNCTION__)(
                         ": Initial payment failed.")
                         .Flush();
                 } else if (m_bProcessingPaymentPlan) {
                     IncrementNoFailedPayments();
-                    SetDateOfLastFailedPayment(OTTimeGetCurrentTime());
+                    SetDateOfLastFailedPayment(Clock::now());
                     LogNormal(OT_METHOD)(__FUNCTION__)(
                         ": Recurring payment failed.")
                         .Flush();
@@ -1360,18 +1398,18 @@ bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
     // Right now Cron is called 10 times per second.
     // I'm going to slow down all trades so they are once every
     // GetProcessInterval()
-    if (GetLastProcessDate() > OT_TIME_ZERO) {
+    if (GetLastProcessDate() > Time{}) {
         // (Default ProcessInternal is 1 second, but Trades will use 10 seconds,
         // and Payment Plans will use an hour or day.)
-        if (OTTimeGetTimeInterval(
-                OTTimeGetCurrentTime(), GetLastProcessDate()) <=
-            GetProcessInterval())
+        if ((Clock::now() - GetLastProcessDate()) <= GetProcessInterval()) {
+
             return true;
+        }
     }
     // Keep a record of the last time this was processed.
     // (NOT saved to storage, only used while the software is running.)
     // (Thus no need to release signatures, sign contract, save contract, etc.)
-    SetLastProcessDate(OTTimeGetCurrentTime());
+    SetLastProcessDate(Clock::now());
 
     // END DATE --------------------------------
     // First call the parent's version (which this overrides) so it has
@@ -1403,22 +1441,11 @@ bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
 
     // First process the initial payment...
 
-    if (HasInitialPayment() &&      // If I have an initial payment...
-        !IsInitialPaymentDone() &&  // and I have not yet processed it...
-        (OTTimeGetCurrentTime() >
-         GetInitialPaymentDate()) &&  // and we're past the initial payment due
-                                      // date...
-        ((0 == GetLastFailedInitialPaymentDate()) ||  // And we've not yet got a
-                                                      // failed date, OR
-         (OTTimeGetTimeInterval(
-              OTTimeGetCurrentTime(),
-              GetLastFailedInitialPaymentDate()) >  // it's been more than a day
-          OTTimeGetSecondsFromTime(OT_TIME_DAY_IN_SECONDS)))  // since I last
-                                                              // failed
-                                                              // attmpting
-                                                              // this...
-    ) {  // THEN we're due for the initial payment! Process it!
-
+    if (HasInitialPayment() && !IsInitialPaymentDone() &&
+        (Clock::now() > GetInitialPaymentDate()) &&
+        ((Time{} == GetLastFailedInitialPaymentDate()) ||
+         ((Clock::now() - GetLastFailedInitialPaymentDate()) >
+          std::chrono::hours(24)))) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Cron: Processing initial payment...")
             .Flush();
@@ -1431,7 +1458,7 @@ bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
     //           << (IsFlaggedForRemoval() ? "TRUE" : "FALSE")
     //           << " Has Plan: " << (HasPaymentPlan() ? "TRUE" : "FALSE")
     //           << " Current time: "
-    //           << OTTimeGetSecondsFromTime(OTTimeGetCurrentTime())
+    //           << OTTimeGetSecondsFromTime(Clock::now())
     //           << " Start Date: "
     //           << OTTimeGetSecondsFromTime(GetPaymentPlanStartDate()) << "\n";
 
@@ -1441,15 +1468,15 @@ bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
     // before calling this block of code.
     //
     if (!IsFlaggedForRemoval() && HasPaymentPlan() &&
-        (OTTimeGetCurrentTime() > GetPaymentPlanStartDate())) {
+        (Clock::now() > GetPaymentPlanStartDate())) {
         //      otErr << "DEBUG: Payment Plan -------------\n";
 
         // First I'll calculate whether the next payment would be due, based on
         // start date,
         // time between payments, and date of last payment.
 
-        const std::int64_t DURATION_SINCE_START = OTTimeGetTimeInterval(
-            OTTimeGetCurrentTime(), GetPaymentPlanStartDate());
+        const auto DURATION_SINCE_START =
+            (Clock::now() - GetPaymentPlanStartDate());
 
         // Let's say the plan charges every week, and it's been 16 DAYS DURATION
         // since starting.
@@ -1478,9 +1505,7 @@ bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
         // Can also just add the TimeBetweenPayments to the DateOfLastPayment...
         //
         const std::int64_t nNoPaymentsThatShouldHaveHappenedByNow =
-            DURATION_SINCE_START /
-                OTTimeGetSecondsFromTime(GetTimeBetweenPayments()) +
-            1;
+            DURATION_SINCE_START.count() / GetTimeBetweenPayments().count() + 1;
         // The +1 is because it charges on the 1st day of the plan. So 14 days,
         // which is 7 times 2, equals *3* payments, not 2.
 
@@ -1498,11 +1523,9 @@ bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
         // Again, I check >0 because the plan length is optional and might just
         // be 0.
         else if (
-            (GetPaymentPlanLength() > OT_TIME_ZERO) &&
-            (OTTimeGetCurrentTime() >=
-             OTTimeAddTimeInterval(
-                 GetPaymentPlanStartDate(),
-                 OTTimeGetSecondsFromTime(GetPaymentPlanLength())))) {
+            (GetPaymentPlanLength() > std::chrono::seconds{0}) &&
+            (Clock::now() >=
+             GetPaymentPlanStartDate() + GetPaymentPlanLength())) {
             LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": Payment plan has expired by reaching its maximum length "
                 "of time.")
@@ -1517,26 +1540,24 @@ bool OTPaymentPlan::ProcessCron(const PasswordPrompt& reason)
             //            otLog3 << "DEBUG: Enough payments have already been
             //            made at the current time.\n";
         } else if (
-            OTTimeGetTimeInterval(
-                OTTimeGetCurrentTime(), GetDateOfLastPayment()) <
-            OTTimeGetSecondsFromTime(GetTimeBetweenPayments()))  // and the time
-                                                                 // since last
+            (Clock::now() - GetDateOfLastPayment()) <
+            GetTimeBetweenPayments())  // and the time
+                                       // since last
         // payment is more than the payment period...
         {
             LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": DEBUG: Not enough time has elapsed.")
                 .Flush();
         } else if (
-            (0 != GetDateOfLastFailedPayment()) &&
-            (OTTimeGetTimeInterval(
-                 OTTimeGetCurrentTime(), GetDateOfLastFailedPayment()) <
-             OTTimeGetSecondsFromTime(OT_TIME_DAY_IN_SECONDS)))  // and it
-                                                                 // hasn't been
-                                                                 // at least 24
-                                                                 // hrs since
-                                                                 // the last
-                                                                 // failed
-                                                                 // payment...
+            (Time{} != GetDateOfLastFailedPayment()) &&
+            ((Clock::now() - GetDateOfLastFailedPayment()) <
+             std::chrono::hours{24}))  // and it
+                                       // hasn't been
+                                       // at least 24
+                                       // hrs since
+                                       // the last
+                                       // failed
+                                       // payment...
         {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Cron (processing payment plan): Not enough time since "
@@ -1590,46 +1611,44 @@ void OTPaymentPlan::InitPaymentPlan()
 {
     m_strContractType = String::Factory("PAYMENT PLAN");
 
-    SetProcessInterval(OTTimeGetSecondsFromTime(
-        PLAN_PROCESS_INTERVAL));  // Payment plans currently process every hour.
-                                  // (Could be reduced even more, to every day.)
+    SetProcessInterval(std::chrono::seconds(10));
 
     // Initial Payment...
-    m_bInitialPayment = false;             // Will there be an initial payment?
-    m_tInitialPaymentDate = OT_TIME_ZERO;  // Date of the initial payment,
-                                           // measured seconds after creation
-                                           // date.
+    m_bInitialPayment = false;       // Will there be an initial payment?
+    m_tInitialPaymentDate = Time{};  // Date of the initial payment,
+                                     // measured seconds after creation
+                                     // date.
     m_tInitialPaymentCompletedDate =
-        OT_TIME_ZERO;  // Date the initial payment was finally completed.
+        Time{};  // Date the initial payment was finally completed.
     m_lInitialPaymentAmount = 0;    // Amount of the initial payment.
     m_bInitialPaymentDone = false;  // Has the initial payment been made?
     m_nNumberInitialFailures = 0;  // Number of times we failed to process this.
     m_tFailedInitialPaymentDate =
-        OT_TIME_ZERO;  // Date of the last failed initial payment.
+        Time{};  // Date of the last failed initial payment.
 
     // Payment Plan...
     m_bPaymentPlan = false;    // Will there be a payment plan?
     m_lPaymentPlanAmount = 0;  // Amount of each payment.
-    m_tTimeBetweenPayments = OT_TIME_MONTH_IN_SECONDS;  // How std::int64_t
-                                                        // between each payment?
-                                                        // (Default:
+    m_tTimeBetweenPayments = std::chrono::hours{24 * 30};  // How std::int64_t
+                                                           // between each
+                                                           // payment? (Default:
     // 30 days) // TODO don't hardcode.
-    m_tPaymentPlanStartDate = OT_TIME_ZERO;  // Date for the first payment plan
-                                             // payment. Measured seconds after
-                                             // creation.
+    m_tPaymentPlanStartDate = Time{};  // Date for the first payment plan
+                                       // payment. Measured seconds after
+                                       // creation.
 
-    m_tPaymentPlanLength = OT_TIME_ZERO;  // Optional. Plan length measured in
-                                          // seconds since plan start.
+    m_tPaymentPlanLength =
+        std::chrono::seconds{0};  // Optional. Plan length measured in
+                                  // seconds since plan start.
     m_nMaximumNoPayments =
         0;  // Optional. The most number of payments that are authorized.
 
-    m_tDateOfLastPayment =
-        OT_TIME_ZERO;  // Recording of date of the last payment.
+    m_tDateOfLastPayment = Time{};  // Recording of date of the last payment.
     m_nNoPaymentsDone =
         0;  // Recording of the number of payments already processed.
 
     m_tDateOfLastFailedPayment =
-        OT_TIME_ZERO;  // Recording of date of the last failed payment.
+        Time{};  // Recording of date of the last failed payment.
     m_nNoFailedPayments =
         0;  // Every time a payment fails, we record that here.
 }

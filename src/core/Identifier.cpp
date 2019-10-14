@@ -188,7 +188,13 @@ OTUnitID identifier::UnitDefinition::Factory()
 
 OTIdentifier Identifier::Factory(const Identifier& rhs)
 {
-    return OTIdentifier(rhs.clone());
+    return OTIdentifier(
+#ifndef _WIN32
+        rhs.clone()
+#else
+        dynamic_cast<Identifier*>(rhs.clone())
+#endif
+    );
 }
 
 OTIdentifier Identifier::Factory(const std::string& rhs)

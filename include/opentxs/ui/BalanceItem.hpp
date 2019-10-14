@@ -51,7 +51,7 @@ public:
     EXPORT virtual StorageBox Type() const noexcept = 0;
     EXPORT virtual std::string UUID() const noexcept = 0;
 
-    EXPORT virtual ~BalanceItem() = default;
+    EXPORT ~BalanceItem() override = default;
 
 protected:
     BalanceItem() noexcept = default;

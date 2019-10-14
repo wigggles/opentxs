@@ -21,7 +21,7 @@ namespace blockchain
 class HD : virtual public Deterministic
 {
 public:
-    EXPORT virtual ~HD() = default;
+    EXPORT ~HD() override = default;
 
 protected:
     HD() noexcept = default;

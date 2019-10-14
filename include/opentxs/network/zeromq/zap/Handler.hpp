@@ -34,7 +34,9 @@ protected:
 private:
     friend OTZMQZAPHandler;
 
-    virtual Handler* clone() const noexcept override = 0;
+#ifndef _WIN32
+    Handler* clone() const noexcept override = 0;
+#endif
 
     Handler(const Handler&) = delete;
     Handler(Handler&&) = delete;

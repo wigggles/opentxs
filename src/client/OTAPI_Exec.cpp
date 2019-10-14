@@ -42,7 +42,6 @@
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -67,10 +66,13 @@
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
+#include <cinttypes>
 #include <cstdint>
 #include <memory>
 #include <sstream>
 #include <string>
+
+#define OT_ERROR_AMOUNT INT64_MIN
 
 #define OT_METHOD "opentxs::OTAPI_Exec::"
 
@@ -98,16 +100,6 @@ OTAPI_Exec::OTAPI_Exec(
     // WARNING: do not access api_.Wallet() during construction
 }
 
-void OTAPI_Exec::SetAppBinaryFolder(const std::string& strFolder)
-{
-    OTPaths::SetAppBinaryFolder(String::Factory(strFolder.c_str()));
-}
-
-void OTAPI_Exec::SetHomeFolder(const std::string& strFolder)
-{
-    OTPaths::SetHomeFolder(String::Factory(strFolder.c_str()));
-}
-
 // PROPOSE PAYMENT PLAN
 //
 // (Return as STRING)
@@ -132,10 +124,10 @@ void OTAPI_Exec::SetHomeFolder(const std::string& strFolder)
 //
 std::string OTAPI_Exec::ProposePaymentPlan(
     const std::string& NOTARY_ID,
-    const time64_t& VALID_FROM,  // Default (0 or nullptr) == current time
-                                 // measured
-                                 // in seconds since Jan 1970.
-    const time64_t& VALID_TO,    // Default (0 or nullptr) == no expiry / cancel
+    const Time& VALID_FROM,  // Default (0 or nullptr) == current time
+                             // measured
+                             // in seconds since Jan 1970.
+    const Time& VALID_TO,    // Default (0 or nullptr) == no expiry / cancel
     // anytime. Otherwise this is ADDED to VALID_FROM
     // (it's a length.)
     const std::string& SENDER_ACCT_ID,  // Mandatory parameters. UPDATE: Making
@@ -148,16 +140,20 @@ std::string OTAPI_Exec::ProposePaymentPlan(
                                           // before submitting.
     const std::int64_t& INITIAL_PAYMENT_AMOUNT,  // zero or "" is no initial
                                                  // payment.
-    const time64_t& INITIAL_PAYMENT_DELAY,       // seconds from creation date.
-                                                 // Default is zero or "".
-    const std::int64_t& PAYMENT_PLAN_AMOUNT,     // Zero or "" is no regular
-                                                 // payments.
-    const time64_t& PAYMENT_PLAN_DELAY,   // No. of seconds from creation date.
-                                          // Default is zero or "".
-    const time64_t& PAYMENT_PLAN_PERIOD,  // No. of seconds between payments.
-                                          // Default is zero or "".
-    const time64_t& PAYMENT_PLAN_LENGTH,  // In seconds. Defaults to 0 or "" (no
-                                          // maximum length.)
+    const std::chrono::seconds& INITIAL_PAYMENT_DELAY,  // seconds from creation
+                                                        // date. Default is zero
+                                                        // or "".
+    const std::int64_t& PAYMENT_PLAN_AMOUNT,         // Zero or "" is no regular
+                                                     // payments.
+    const std::chrono::seconds& PAYMENT_PLAN_DELAY,  // No. of seconds from
+                                                     // creation date. Default
+                                                     // is zero or "".
+    const std::chrono::seconds& PAYMENT_PLAN_PERIOD,  // No. of seconds between
+                                                      // payments. Default is
+                                                      // zero or "".
+    const std::chrono::seconds& PAYMENT_PLAN_LENGTH,  // In seconds. Defaults to
+                                                      // 0 or "" (no maximum
+                                                      // length.)
     const std::int32_t& PAYMENT_PLAN_MAX_PAYMENTS  // Integer. Defaults to 0 or
                                                    // ""
                                                    // (no
@@ -172,14 +168,12 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     OT_VERIFY_ID_STR(RECIPIENT_NYM_ID);
     OT_VERIFY_ID_STR(RECIPIENT_ACCT_ID);
     OT_VERIFY_STD_STR(PLAN_CONSIDERATION);
-    OT_VERIFY_MIN_BOUND(VALID_FROM, OT_TIME_ZERO);
-    OT_VERIFY_MIN_BOUND(VALID_TO, OT_TIME_ZERO);
     OT_VERIFY_MIN_BOUND(INITIAL_PAYMENT_AMOUNT, 0);
-    OT_VERIFY_MIN_BOUND(INITIAL_PAYMENT_DELAY, OT_TIME_ZERO);
+    OT_VERIFY_MIN_BOUND(INITIAL_PAYMENT_DELAY, std::chrono::seconds{0});
     OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_AMOUNT, 0);
-    OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_DELAY, OT_TIME_ZERO);
-    OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_PERIOD, OT_TIME_ZERO);
-    OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_LENGTH, OT_TIME_ZERO);
+    OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_DELAY, std::chrono::seconds{0});
+    OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_PERIOD, std::chrono::seconds{0});
+    OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_LENGTH, std::chrono::seconds{0});
     OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_MAX_PAYMENTS, 0);
 
     OTIdentifier angelSenderAcctId = api_.Factory().Identifier();
@@ -190,8 +184,9 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     std::unique_ptr<OTPaymentPlan> pPlan(ot_api_.ProposePaymentPlan(
         api_.Factory().ServerID(NOTARY_ID),
         VALID_FROM,  // Default (0) == NOW
-        VALID_TO,    // Default (0) == no expiry / cancel anytime
-                     // We're making this acct optional here.
+        VALID_TO,    // Default (0) == no expiry / cancel
+                     // anytime We're making this acct optional
+                     // here.
         // (Customer acct is unknown until confirmation by customer.)
         angelSenderAcctId.get(),
         api_.Factory().NymID(SENDER_NYM_ID),
@@ -263,14 +258,14 @@ std::string OTAPI_Exec::EasyProposePlan(
     OT_VERIFY_ID_STR(RECIPIENT_ACCT_ID);
     OT_VERIFY_STD_STR(PLAN_CONSIDERATION);
 
-    time64_t VALID_FROM = OT_TIME_ZERO;
-    time64_t VALID_TO = OT_TIME_ZERO;
+    Time VALID_FROM = Clock::from_time_t(0);
+    Time VALID_TO = Clock::from_time_t(0);
     std::int64_t INITIAL_PAYMENT_AMOUNT = 0;
-    time64_t INITIAL_PAYMENT_DELAY = OT_TIME_ZERO;
+    std::chrono::seconds INITIAL_PAYMENT_DELAY{0};
     std::int64_t PAYMENT_PLAN_AMOUNT = 0;
-    time64_t PAYMENT_PLAN_DELAY = OT_TIME_ZERO;
-    time64_t PAYMENT_PLAN_PERIOD = OT_TIME_ZERO;
-    time64_t PAYMENT_PLAN_LENGTH = OT_TIME_ZERO;
+    std::chrono::seconds PAYMENT_PLAN_DELAY{0};
+    std::chrono::seconds PAYMENT_PLAN_PERIOD{0};
+    std::chrono::seconds PAYMENT_PLAN_LENGTH{0};
     std::int32_t PAYMENT_PLAN_MAX_PAYMENTS = 0;
     if (!DATE_RANGE.empty()) {
         NumList theList;
@@ -279,13 +274,13 @@ std::string OTAPI_Exec::EasyProposePlan(
         // VALID_FROM
         if (theList.Count() > 0) {
             std::int64_t lVal = 0;
-            if (theList.Peek(lVal)) VALID_FROM = OTTimeGetTimeFromSeconds(lVal);
+            if (theList.Peek(lVal)) VALID_FROM = Clock::from_time_t(lVal);
             theList.Pop();
         }
         // VALID_TO
         if (theList.Count() > 0) {
             std::int64_t lVal = 0;
-            if (theList.Peek(lVal)) VALID_TO = OTTimeGetTimeFromSeconds(lVal);
+            if (theList.Peek(lVal)) VALID_TO = Clock::from_time_t(lVal);
             theList.Pop();
         }
     }
@@ -303,7 +298,7 @@ std::string OTAPI_Exec::EasyProposePlan(
         if (theList.Count() > 0) {
             std::int64_t lVal = 0;
             if (theList.Peek(lVal))
-                INITIAL_PAYMENT_DELAY = OTTimeGetTimeFromSeconds(lVal);
+                INITIAL_PAYMENT_DELAY = std::chrono::seconds{lVal};
             theList.Pop();
         }
     }
@@ -321,14 +316,14 @@ std::string OTAPI_Exec::EasyProposePlan(
         if (theList.Count() > 0) {
             std::int64_t lVal = 0;
             if (theList.Peek(lVal))
-                PAYMENT_PLAN_DELAY = OTTimeGetTimeFromSeconds(lVal);
+                PAYMENT_PLAN_DELAY = std::chrono::seconds{lVal};
             theList.Pop();
         }
         // PAYMENT_PLAN_PERIOD
         if (theList.Count() > 0) {
             std::int64_t lVal = 0;
             if (theList.Peek(lVal))
-                PAYMENT_PLAN_PERIOD = OTTimeGetTimeFromSeconds(lVal);
+                PAYMENT_PLAN_PERIOD = std::chrono::seconds{lVal};
             theList.Pop();
         }
     }
@@ -340,7 +335,7 @@ std::string OTAPI_Exec::EasyProposePlan(
         if (theList.Count() > 0) {
             std::int64_t lVal = 0;
             if (theList.Peek(lVal))
-                PAYMENT_PLAN_LENGTH = OTTimeGetTimeFromSeconds(lVal);
+                PAYMENT_PLAN_LENGTH = std::chrono::seconds{lVal};
             theList.Pop();
         }
         // PAYMENT_PLAN_MAX_PAYMENTS
@@ -431,36 +426,35 @@ std::string OTAPI_Exec::Create_SmartContract(
                                        // signing
     // at this postd::int32_t is only to cause a
     // save.)
-    const time64_t& VALID_FROM,  // Default (0 or "") == NOW
-    const time64_t& VALID_TO,    // Default (0 or "") == no expiry / cancel
-                                 // anytime
-    bool SPECIFY_ASSETS,  // This means asset type IDs must be provided for
-                          // every named account.
-    bool SPECIFY_PARTIES  // This means Nym IDs must be provided for every
-                          // party.
+    const Time& VALID_FROM,  // Default (0 or "") == NOW
+    const Time& VALID_TO,    // Default (0 or "") == no expiry / cancel
+                             // anytime
+    bool SPECIFY_ASSETS,     // This means asset type IDs must be provided for
+                             // every named account.
+    bool SPECIFY_PARTIES     // This means Nym IDs must be provided for every
+                             // party.
 ) const
 {
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
-    if (OT_TIME_ZERO > VALID_FROM) {
+    if (Clock::from_time_t(0) > VALID_FROM) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Negative: VALID_FROM passed in!")
             .Flush();
         return {};
     }
-    if (OT_TIME_ZERO > VALID_TO) {
+    if (Clock::from_time_t(0) > VALID_TO) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Negative: VALID_TO passed in!")
             .Flush();
         return {};
     }
     const auto theSignerNymID = api_.Factory().NymID(SIGNER_NYM_ID);
-    time64_t tValidFrom = VALID_FROM;
-    time64_t tValidTo = VALID_TO;
     auto strOutput = String::Factory();
 
     const bool bCreated = ot_api_.Create_SmartContract(
         theSignerNymID,
-        tValidFrom,      // Default (0 or "") == NOW
-        tValidTo,        // Default (0 or "") == no expiry / cancel anytime
+        VALID_FROM,      // Default (0 or "") == NOW
+        VALID_TO,        // Default (0 or "") == no expiry / cancel
+                         // anytime
         SPECIFY_ASSETS,  // This means asset type IDs must be provided for every
                          // named account.
         SPECIFY_PARTIES,  // This means Nym IDs must be provided for every
@@ -500,36 +494,35 @@ std::string OTAPI_Exec::SmartContract_SetDates(
     const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                        // signing at this point is only to
                                        // cause a save.)
-    const time64_t& VALID_FROM,        // Default (0 or nullptr) == NOW
-    const time64_t& VALID_TO) const    // Default (0 or nullptr) == no expiry /
+    const Time& VALID_FROM,            // Default (0 or nullptr) == NOW
+    const Time& VALID_TO) const        // Default (0 or nullptr) == no expiry /
                                        // cancel
                                        // anytime.
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
-    if (OT_TIME_ZERO > VALID_FROM) {
+    if (Clock::from_time_t(0) > VALID_FROM) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Negative: VALID_FROM passed in!")
             .Flush();
         return {};
     }
-    if (OT_TIME_ZERO > VALID_TO) {
+    if (Clock::from_time_t(0) > VALID_TO) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Negative: VALID_TO passed in!")
             .Flush();
         return {};
     }
     const auto strContract = String::Factory(THE_CONTRACT);
     const auto theSignerNymID = api_.Factory().NymID(SIGNER_NYM_ID);
-    time64_t tValidFrom = VALID_FROM;
-    time64_t tValidTo = VALID_TO;
     auto strOutput = String::Factory();
 
     const bool bAdded = ot_api_.SmartContract_SetDates(
         strContract,     // The contract, about to have the dates changed on it.
         theSignerNymID,  // Use any Nym you wish here. (The signing at this
                          // point is only to cause a save.)
-        tValidFrom,      // Default (0 or "") == NOW
-        tValidTo,        // Default (0 or "") == no expiry / cancel anytime
+        VALID_FROM,      // Default (0 or "") == NOW
+        VALID_TO,        // Default (0 or "") == no expiry / cancel
+                         // anytime
         strOutput);
     if (!bAdded || !strOutput->Exists()) return {};
     // Success!

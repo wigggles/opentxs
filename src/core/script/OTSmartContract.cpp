@@ -521,6 +521,7 @@ various sequence numbers. Hm.
 #endif
 #include <irrxml/irrXML.hpp>
 
+#include <cinttypes>
 #include <ctime>
 #include <memory>
 
@@ -738,7 +739,7 @@ OTSmartContract::OTSmartContract(const api::Core& core)
     , m_strLastSenderAcct(String::Factory())
     , m_strLastRecipientUser(String::Factory())
     , m_strLastRecipientAcct(String::Factory())
-    , m_tNextProcessDate(OT_TIME_ZERO)
+    , m_tNextProcessDate()
 {
     InitSmartContract();
 }
@@ -753,7 +754,7 @@ OTSmartContract::OTSmartContract(
     , m_strLastSenderAcct(String::Factory())
     , m_strLastRecipientUser(String::Factory())
     , m_strLastRecipientAcct(String::Factory())
-    , m_tNextProcessDate(OT_TIME_ZERO)
+    , m_tNextProcessDate()
 {
     Instrument::SetNotaryID(NOTARY_ID);
     InitSmartContract();
@@ -1023,15 +1024,16 @@ void OTSmartContract::SetRemainingTimer(
             ": Blank input (str_seconds_from_now).")
             .Flush();
     } else {
-        const std::int64_t tPlus = String::StringToLong(str_seconds_from_now);
+        const auto tPlus =
+            std::chrono::seconds{String::StringToLong(str_seconds_from_now)};
 
-        if (tPlus > 0)
-            SetNextProcessDate(
-                OTTimeAddTimeInterval(OTTimeGetCurrentTime(), tPlus));
-        else
-            SetNextProcessDate(OT_TIME_ZERO);  // This way, you can deactivate
-                                               // the timer, by setting the next
-                                               // process date to 0.
+        if (tPlus > std::chrono::seconds{0}) {
+            SetNextProcessDate(Clock::now() + tPlus);
+        } else {
+            SetNextProcessDate(Time{});  // This way, you can deactivate
+                                         // the timer, by setting the next
+                                         // process date to 0.
+        }
     }
 }
 
@@ -1040,19 +1042,9 @@ std::string OTSmartContract::GetRemainingTimer() const  // returns seconds left
                                                         // string format, or
                                                         // "0".
 {
-    const time64_t& tNextDate = GetNextProcessDate();
-    const time64_t tCurrent = OTTimeGetCurrentTime();
-
-    auto strReturnVal =
-        String::Factory("0");  // the default return value is "0".
-
-    if (tNextDate > OT_TIME_ZERO) {
-        const std::int64_t tSecondsLeft =
-            OTTimeGetTimeInterval(tNextDate, tCurrent);
-        strReturnVal->Format("%" PRId64 "", tSecondsLeft);
-    }
-
-    return strReturnVal->Get();
+    return std::to_string(std::chrono::duration_cast<std::chrono::seconds>(
+                              GetNextProcessDate() - Clock::now())
+                              .count());
 }
 
 void OTSmartContract::onRemovalFromCron(const PasswordPrompt& reason)
@@ -3510,21 +3502,20 @@ bool OTSmartContract::ProcessCron(const PasswordPrompt& reason)
     // ones who are paying for those
     // kinds of resources. (Different lists will cost different server fees.)
     //
-    if (GetLastProcessDate() > OT_TIME_ZERO) {
+    if (GetLastProcessDate() > Time{}) {
         // Default ProcessInternal is 1 second, but Trades will use 10 seconds,
         // and Payment
         // Plans will use an hour or day. Smart contracts are currently 30
         // seconds. (For testing.)
         //
-        if (OTTimeGetTimeInterval(
-                OTTimeGetCurrentTime(), GetLastProcessDate()) <=
-            GetProcessInterval())
+        if (Clock::now() - GetLastProcessDate() <= GetProcessInterval()) {
             return true;
+        }
     }
     // Keep a record of the last time this was processed.
     // (NOT saved to storage, only used while the software is running.)
     // (Thus no need to release signatures, sign contract, save contract, etc.)
-    SetLastProcessDate(OTTimeGetCurrentTime());
+    SetLastProcessDate(Clock::now());
 
     // END DATE --------------------------------
     // First call the parent's version (which this overrides) so it has
@@ -3560,15 +3551,15 @@ bool OTSmartContract::ProcessCron(const PasswordPrompt& reason)
     // is reached. (If the timer's not set, then we go ahead and process every
     // time.)
     //
-    const time64_t& tNextProcessDate = GetNextProcessDate();
+    const auto tNextProcessDate = GetNextProcessDate();
 
-    if (tNextProcessDate > OT_TIME_ZERO)  // IF there is a timer set (as to when
-                                          // the next "onProcess" should
-                                          // occur)...
+    if (tNextProcessDate > Time{})  // IF there is a timer set (as to when
+                                    // the next "onProcess" should
+                                    // occur)...
     {
-        if (OTTimeGetCurrentTime() <=
-            tNextProcessDate)  // AND if the current time has NOT YET reached
-                               // that date (the date in the timer)...
+        if (Clock::now() <= tNextProcessDate)  // AND if the current time has
+                                               // NOT YET reached that date (the
+                                               // date in the timer)...
         {
             // ...Then RETURN (since the timer hasn't popped yet)
             // But return TRUE, so that this cron item stays active for now.
@@ -3576,7 +3567,7 @@ bool OTSmartContract::ProcessCron(const PasswordPrompt& reason)
             return true;
         } else  // else it HAS now reached the official timer date...
         {
-            SetNextProcessDate(OT_TIME_ZERO);  // Therefore timer has triggered,
+            SetNextProcessDate(Time{});  // Therefore timer has triggered,
             // so we will continue processing.
         }  // We also reset timer to 0 again since it has now "binged".
     }      // Continuing on....
@@ -4996,8 +4987,7 @@ bool OTSmartContract::ConfirmParty(
     // signer.
     // (The final date will be set upon activation.)
     //
-    const time64_t &CURRENT_TIME = OTTimeGetCurrentTime(),
-                   OLD_TIME = GetCreationDate();
+    const Time CURRENT_TIME = Clock::now(), OLD_TIME = GetCreationDate();
 
     // Set the Creation Date.
     SetCreationDate(CURRENT_TIME);
@@ -5066,13 +5056,12 @@ OTStash* OTSmartContract::GetStash(std::string str_stash_name)
 void OTSmartContract::InitSmartContract()
 {
     m_strContractType = String::Factory("SMARTCONTRACT");
-
-    SetProcessInterval(
-        SMART_CONTRACT_PROCESS_INTERVAL);  // Smart contracts current default is
-                                           // 30 seconds. Actual default will
-                                           // probably be configurable in config
-                                           // file, and most contracts will also
-                                           // probably override this.
+    SetProcessInterval(std::chrono::seconds{
+        SMART_CONTRACT_PROCESS_INTERVAL});  // Smart contracts current default
+                                            // is 30 seconds. Actual default
+                                            // will probably be configurable in
+                                            // config file, and most contracts
+                                            // will also probably override this.
 }
 
 void OTSmartContract::ReleaseStashes()
@@ -5189,14 +5178,14 @@ void OTSmartContract::UpdateContents(const PasswordPrompt& reason)
 
     if (m_bCanceled) m_pCancelerNymID->GetString(strCanceler);
 
-    std::string tCreation =
-        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetCreationDate());
-    std::string tValidFrom =
-        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetValidFrom());
-    std::string tValidTo =
-        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetValidTo());
-    std::string tNextProcess =
-        formatTimestamp(m_bCalculatingID ? OT_TIME_ZERO : GetNextProcessDate());
+    const auto tCreation =
+        formatTimestamp(m_bCalculatingID ? Time{} : GetCreationDate());
+    const auto tValidFrom =
+        formatTimestamp(m_bCalculatingID ? Time{} : GetValidFrom());
+    const auto tValidTo =
+        formatTimestamp(m_bCalculatingID ? Time{} : GetValidTo());
+    const auto tNextProcess =
+        formatTimestamp(m_bCalculatingID ? Time{} : GetNextProcessDate());
 
     // OTSmartContract
     Tag tag("smartContract");
@@ -5220,7 +5209,8 @@ void OTSmartContract::UpdateContents(const PasswordPrompt& reason)
     tag.add_attribute("canceled", formatBool(m_bCanceled));
     tag.add_attribute("cancelerNymID", m_bCanceled ? strCanceler->Get() : "");
     tag.add_attribute(
-        "transactionNum", formatLong(m_bCalculatingID ? 0 : m_lTransactionNum));
+        "transactionNum",
+        std::to_string(m_bCalculatingID ? 0 : m_lTransactionNum));
     tag.add_attribute("creationDate", tCreation);
     tag.add_attribute("validFrom", tValidFrom);
     tag.add_attribute("validTo", tValidTo);
@@ -5234,7 +5224,8 @@ void OTSmartContract::UpdateContents(const PasswordPrompt& reason)
 
             TagPtr tagClosingNo(new Tag("closingTransactionNumber"));
 
-            tagClosingNo->add_attribute("value", formatLong(lClosingNumber));
+            tagClosingNo->add_attribute(
+                "value", std::to_string(lClosingNumber));
 
             tag.add_tag(tagClosingNo);
 
@@ -5398,19 +5389,18 @@ std::int32_t OTSmartContract::ProcessXMLNode(
 
         SetTransactionNum(strTransNum->Exists() ? strTransNum->ToLong() : 0);
 
-        std::int64_t tValidFrom =
+        const auto tValidFrom =
             parseTimestamp(xml->getAttributeValue("validFrom"));
-        std::int64_t tValidTo =
-            parseTimestamp(xml->getAttributeValue("validTo"));
-        std::int64_t tCreation =
+        const auto tValidTo = parseTimestamp(xml->getAttributeValue("validTo"));
+        const auto tCreation =
             parseTimestamp(xml->getAttributeValue("creationDate"));
-        std::int64_t tNextProcess =
+        const auto tNextProcess =
             parseTimestamp(xml->getAttributeValue("nextProcessDate"));
 
-        SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
-        SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
-        SetCreationDate(OTTimeGetTimeFromSeconds(tCreation));
-        SetNextProcessDate(OTTimeGetTimeFromSeconds(tNextProcess));
+        SetValidFrom(tValidFrom);
+        SetValidTo(tValidTo);
+        SetCreationDate(tCreation);
+        SetNextProcessDate(tNextProcess);
 
         // These are stored for RECEIPTS, so if there is an inbox receipt with
         // an amount,
