@@ -84,7 +84,7 @@ void Periodic::thread()
         }
 
         lock.unlock();
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 }
 

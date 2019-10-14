@@ -105,7 +105,7 @@
     {                                                                          \
         if (!running_) { return false; }                                       \
                                                                                \
-        Log::Sleep(std::chrono::milliseconds(a));                              \
+        Sleep(std::chrono::milliseconds(a));                                   \
     }
 
 #define CONTACT_REFRESH_DAYS 1
@@ -821,7 +821,7 @@ bool OTX::CheckTransactionNumbers(
         auto status = Status(taskID);
 
         while (ThreadStatus::RUNNING == status) {
-            Log::Sleep(std::chrono::milliseconds(100));
+            Sleep(std::chrono::milliseconds(100));
             status = Status(taskID);
         }
 

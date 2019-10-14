@@ -124,9 +124,8 @@ bool VerifyBalanceReceipt(
             szFilename,
             "")) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Receipt file doesn't exist: ")(
-            context.LegacyDataFolder())(Log::PathSeparator())(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)
+            context.LegacyDataFolder())(PathSeparator())(szFolder1name)(
+            PathSeparator())(szFolder2name)(PathSeparator())(szFilename)
             .Flush();
         return false;
     }
@@ -141,8 +140,8 @@ bool VerifyBalanceReceipt(
 
     if (strFileContents.length() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
-            szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(".")
+            szFolder1name)(PathSeparator())(szFolder2name)(PathSeparator())(
+            szFilename)(".")
             .Flush();
         return false;
     }
@@ -150,10 +149,9 @@ bool VerifyBalanceReceipt(
     auto strTransaction = String::Factory(strFileContents.c_str());
 
     if (!tranOut->LoadContractFromString(strTransaction, reason)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load balance "
-            "statement: ")(szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(".")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load balance "
+                                           "statement: ")(szFolder1name)(
+            PathSeparator())(szFolder2name)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }
@@ -200,8 +198,7 @@ bool VerifyBalanceReceipt(
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to verify "
             "SERVER_NYM signature on balance statement: ")(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)(".")
+            PathSeparator())(szFolder2name)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }

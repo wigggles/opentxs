@@ -222,7 +222,7 @@ void Bidirectional<InterfaceType, MessageType>::thread() noexcept
     while (this->running_.get()) {
         if (this->have_callback()) { break; }
 
-        Log::Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
+        Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
     }
 
     LogVerbose(OT_METHOD_BIDIRECTIONAL)(__FUNCTION__)(": Callback ready")

@@ -259,8 +259,8 @@ void OTSignedFile::SetFilename(
     m_strFilename.Format("%s%s" // data_folder/
                          "%s%s" // nyms/
                          "%s",  // 5bf9a88c.nym
-                         OTLog::Path(), OTLog::PathSeparator(),
-                         m_strLocalDir.Get(), OTLog::PathSeparator(),
+                         OTLog::Path(), OTPathSeparator(),
+                         m_strLocalDir.Get(), OTPathSeparator(),
                          m_strSignedFilename.Get());
     */
     // Software Path + Local Sub-directory + Filename

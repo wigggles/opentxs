@@ -207,7 +207,7 @@ void MessageProcessor::run()
             server_.ProcessCron();
         }
 
-        Log::Sleep(std::chrono::milliseconds(50));
+        Sleep(std::chrono::milliseconds(50));
     }
 }
 

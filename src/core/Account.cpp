@@ -643,8 +643,8 @@ Account* Account::LoadExistingAccount(
             "",
             "")) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
-            account->m_strFoldername)(Log::PathSeparator())(
-            account->m_strFilename)(".")
+            account->m_strFoldername)(PathSeparator())(account->m_strFilename)(
+            ".")
             .Flush();
 
         return nullptr;

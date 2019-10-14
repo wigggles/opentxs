@@ -377,7 +377,7 @@ void Core::password_timeout() const
         }
 
         lock.unlock();
-        Log::Sleep(std::chrono::milliseconds(250));
+        Sleep(std::chrono::milliseconds(250));
     }
 }
 

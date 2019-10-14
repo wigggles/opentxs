@@ -9,6 +9,7 @@
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 #include "opentxs/identity/credential/Contact.hpp"
 
 #define OT_METHOD "opentxs::ContactItem::"

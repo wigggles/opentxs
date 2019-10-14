@@ -450,7 +450,7 @@ void Manager::mint() const
     opentxs::Lock updateLock(mint_update_lock_, std::defer_lock);
 
     while (server_.GetServerID().empty()) {
-        Log::Sleep(std::chrono::milliseconds(50));
+        Sleep(std::chrono::milliseconds(50));
     }
 
     const std::string serverID{server_.GetServerID().str()};
@@ -458,7 +458,7 @@ void Manager::mint() const
     OT_ASSERT(false == serverID.empty());
 
     while (running_) {
-        Log::Sleep(std::chrono::milliseconds(250));
+        Sleep(std::chrono::milliseconds(250));
 
         if (false == opentxs::server::ServerSettings::__cmd_get_mint) {
             continue;

@@ -76,7 +76,7 @@ void Test_DealerRouter::dealerSocketThread(const std::string& msg)
 
     auto end = std::time(nullptr) + 5;
     while (!replyProcessed && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyProcessed);
@@ -121,7 +121,7 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
 
     auto end = std::time(nullptr) + 15;
     while (!replyProcessed && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     ASSERT_TRUE(replyProcessed);
@@ -129,7 +129,7 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
     routerSocket->Send(replyMessage);
 
     // Give the router socket time to send the message.
-    Log::Sleep(std::chrono::milliseconds(500));
+    Sleep(std::chrono::milliseconds(500));
 }
 }  // namespace
 
@@ -194,7 +194,7 @@ TEST_F(Test_DealerRouter, Dealer_Router)
 
     auto end = std::time(nullptr) + 15;
     while (0 == replyMessage->size() && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     ASSERT_NE(0, replyMessage->size());
@@ -205,7 +205,7 @@ TEST_F(Test_DealerRouter, Dealer_Router)
 
     end = std::time(nullptr) + 15;
     while (!replyProcessed && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyProcessed);
@@ -425,7 +425,7 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
 
     auto end = std::time(nullptr) + 15;
     while (0 == replyMessage->size() && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     ASSERT_NE(0, replyMessage->size());
@@ -436,7 +436,7 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
 
     end = std::time(nullptr) + 15;
     while (!replyProcessed && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyProcessed);

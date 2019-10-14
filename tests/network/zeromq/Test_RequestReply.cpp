@@ -89,7 +89,7 @@ void Test_RequestReply::replySocketThread(const std::string& endpoint)
 
     auto end = std::time(nullptr) + 15;
     while (!replyReturned && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyReturned);

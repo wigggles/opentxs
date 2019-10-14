@@ -876,7 +876,7 @@ bool OTMarket::SaveMarket(const PasswordPrompt& reason)
     if (!SignContract(*(GetCron()->GetServerNym()), reason) ||
         !SaveContract() || !SaveContract(szFoldername, szFilename)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving Market: ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }
@@ -900,8 +900,7 @@ bool OTMarket::SaveMarket(const PasswordPrompt& reason)
                 ""))  // markets/recent/<Market_ID>.bin
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error saving recent trades for Market: ")(szFoldername)(
-                Log::PathSeparator())(szSubFolder)(Log::PathSeparator())(
-                szFilename)(".")
+                PathSeparator())(szSubFolder)(PathSeparator())(szFilename)(".")
                 .Flush();
     }
 

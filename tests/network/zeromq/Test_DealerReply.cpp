@@ -68,7 +68,7 @@ void Test_DealerReply::dealerSocketThread(const std::string& msg)
 
     auto end = std::time(nullptr) + 5;
     while (!replyProcessed && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyProcessed);
@@ -169,14 +169,14 @@ TEST_F(Test_DealerReply, Dealer_Reply)
 
     auto end = std::time(nullptr) + 5;
     while (!replyReturned && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyReturned);
 
     end = std::time(nullptr) + 5;
     while (!replyProcessed && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyProcessed);
@@ -310,14 +310,14 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
 
     auto end = std::time(nullptr) + 5;
     while (!replyReturned && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyReturned);
 
     end = std::time(nullptr) + 5;
     while (!replyProcessed && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     EXPECT_TRUE(replyProcessed);

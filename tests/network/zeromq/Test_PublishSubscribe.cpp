@@ -167,7 +167,7 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
     auto end = std::time(nullptr) + 30;
 
     while ((1 > callbackFinishedCount_) && (std::time(nullptr) < end)) {
-        Log::Sleep(std::chrono::milliseconds(1));
+        Sleep(std::chrono::milliseconds(1));
     }
 
     EXPECT_EQ(1, callbackFinishedCount_);

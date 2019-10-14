@@ -1747,8 +1747,8 @@ bool OTTransaction::VerifyBalanceReceipt(
     if (strFileContents.length() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error reading "
-            "transaction statement: ")(szFolder1name)(Log::PathSeparator())(
-            szFolder2name)(Log::PathSeparator())(szFilename)(".")
+            "transaction statement: ")(szFolder1name)(PathSeparator())(
+            szFolder2name)(PathSeparator())(szFilename)(".")
             .Flush();
 
         return false;
@@ -1760,8 +1760,8 @@ bool OTTransaction::VerifyBalanceReceipt(
     if (false == bool(pContents)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load "
-            "transaction statement: ")(szFolder1name)(Log::PathSeparator())(
-            szFolder2name)(Log::PathSeparator())(szFilename)(".")
+            "transaction statement: ")(szFolder1name)(PathSeparator())(
+            szFolder2name)(PathSeparator())(szFilename)(".")
             .Flush();
 
         return false;
@@ -1769,8 +1769,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to verify "
             "signature on transaction statement: ")(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)(".")
+            PathSeparator())(szFolder2name)(PathSeparator())(szFilename)(".")
             .Flush();
 
         return false;
@@ -1784,8 +1783,8 @@ bool OTTransaction::VerifyBalanceReceipt(
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Was expecting an "
             "OTTransaction to be stored in the transaction statement "
-            "at: ")(szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(".")
+            "at: ")(szFolder1name)(PathSeparator())(szFolder2name)(
+            PathSeparator())(szFilename)(".")
             .Flush();
 
         return false;
@@ -2993,9 +2992,8 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
             strFilename->Get())) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": Box receipt already doesn't exist, thus no need to delete: ")(
-            "At location: ")(strFolder1name)(Log::PathSeparator())(
-            strFolder2name)(Log::PathSeparator())(strFolder3name)(
-            Log::PathSeparator())(strFilename)
+            "At location: ")(strFolder1name)(PathSeparator())(strFolder2name)(
+            PathSeparator())(strFolder3name)(PathSeparator())(strFilename)
             .Flush();
         return false;
     }
@@ -3010,9 +3008,9 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
             ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error deleting (writing over) box receipt (failed "
-                "writing armored string): ")(strFolder1name)(
-                Log::PathSeparator())(strFolder2name)(Log::PathSeparator())(
-                strFolder3name)(Log::PathSeparator())(strFilename)(".")
+                "writing armored string): ")(strFolder1name)(PathSeparator())(
+                strFolder2name)(PathSeparator())(strFolder3name)(
+                PathSeparator())(strFilename)(".")
                 .Flush();
             return false;
         }
@@ -3047,9 +3045,8 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     if (!bDeleted)
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error deleting (writing over) file: ")(strFolder1name)(
-            Log::PathSeparator())(strFolder2name)(Log::PathSeparator())(
-            strFolder3name)(Log::PathSeparator())(strFilename)(". Contents: ")(
-            m_strRawFile)(".")
+            PathSeparator())(strFolder2name)(PathSeparator())(strFolder3name)(
+            PathSeparator())(strFilename)(". Contents: ")(m_strRawFile)(".")
             .Flush();
 
     return bDeleted;
@@ -3092,9 +3089,8 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
             strFilename->Get())) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Warning -- Box receipt already exists! (Overwriting)"
-            "At location: ")(strFolder1name)(Log::PathSeparator())(
-            strFolder2name)(Log::PathSeparator())(strFolder3name)(
-            Log::PathSeparator())(strFilename)(".")
+            "At location: ")(strFolder1name)(PathSeparator())(strFolder2name)(
+            PathSeparator())(strFolder3name)(PathSeparator())(strFilename)(".")
             .Flush();
         //        return false;
     }
@@ -3108,9 +3104,8 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
         ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving box receipt (failed writing armored string): ")(
-            strFolder1name)(Log::PathSeparator())(strFolder2name)(
-            Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(
-            strFilename)(".")
+            strFolder1name)(PathSeparator())(strFolder2name)(PathSeparator())(
+            strFolder3name)(PathSeparator())(strFilename)(".")
             .Flush();
         return false;
     }
@@ -3125,9 +3120,9 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
 
     if (!bSaved)
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error writing file: ")(
-            strFolder1name)(Log::PathSeparator())(strFolder2name)(
-            Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(
-            strFilename)(". Contents: ")(m_strRawFile)(".")
+            strFolder1name)(PathSeparator())(strFolder2name)(PathSeparator())(
+            strFolder3name)(PathSeparator())(strFilename)(". Contents: ")(
+            m_strRawFile)(".")
             .Flush();
 
     return bSaved;
