@@ -123,7 +123,7 @@ private:
         ,
         const PaymentCode& paymentCode
 #endif
-    ) const;
+        ) const;
     void refresh_indices(
         const PasswordPrompt& reason,
         const rLock& lock,

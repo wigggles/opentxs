@@ -158,7 +158,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
                                                    // ""
                                                    // (no
                                                    // maximum payments.)
-) const
+    ) const
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -249,7 +249,7 @@ std::string OTAPI_Exec::EasyProposePlan(
     // lifetime in seconds. 'number' is maximum
     // number of payments in seconds. 0 or "" is
     // unlimited.
-) const
+    ) const
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -433,7 +433,7 @@ std::string OTAPI_Exec::Create_SmartContract(
                              // every named account.
     bool SPECIFY_PARTIES     // This means Nym IDs must be provided for every
                              // party.
-) const
+    ) const
 {
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
@@ -805,7 +805,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
                                     // way we can find it.)
     const std::string& VAR_NAME     // The Variable's name as referenced in the
                                     // smart contract. (And the scripts...)
-) const
+    ) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -895,7 +895,7 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
     const std::string& CALLBACK_NAME  // The Callback's name as referenced in
                                       // the smart contract. (And the
                                       // scripts...)
-) const
+    ) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1080,7 +1080,7 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
     // save.)
     const std::string& PARTY_NAME  // The Party's NAME as referenced in the
                                    // smart contract. (And the scripts...)
-) const
+    ) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1167,7 +1167,7 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
                                     // smart contract. (And the scripts...)
     const std::string& ACCT_NAME    // The Account's name as referenced in the
                                     // smart contract
-) const
+    ) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -2687,7 +2687,8 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const std::uint64_t weight) const
+    const std::uint64_t weight,
+    const VersionNumber version) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto serverContract =
@@ -2696,7 +2697,15 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     if (!serverContract) { return {}; }
 
     auto basketTemplate = UnitDefinition::Create(
-        api_, serverContract->Nym(), shortname, name, symbol, terms, weight);
+        api_,
+        serverContract->Nym(),
+        shortname,
+        name,
+        symbol,
+        terms,
+        weight,
+        proto::CITEMTYPE_UNKNOWN,
+        version);
 
     return api_.Factory()
         .Armored(basketTemplate->PublicContract(), "BASKET CONTRACT")

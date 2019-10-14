@@ -10,6 +10,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/Proto.hpp"
@@ -678,7 +679,9 @@ public:
         const std::string& tla,
         const std::uint32_t power,
         const std::string& fraction,
-        const PasswordPrompt& reason) const = 0;
+        const proto::ContactItemType unitOfAccount,
+        const PasswordPrompt& reason,
+        const VersionNumber version = UnitDefinition::DefaultVersion) const = 0;
 
     /**   Create a new security contract
      *
@@ -698,7 +701,9 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const PasswordPrompt& reason) const = 0;
+        const proto::ContactItemType unitOfAccount,
+        const PasswordPrompt& reason,
+        const VersionNumber version = UnitDefinition::DefaultVersion) const = 0;
 
     EXPORT virtual proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const identifier::UnitDefinition& contractID,

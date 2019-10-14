@@ -145,6 +145,12 @@ rpc::internal::RPC* Factory::RPC(const api::Context& native)
 
 namespace opentxs::rpc::implementation
 {
+static const std::map<VersionNumber, VersionNumber> StatusVersionMap{
+    {1, 1},
+    {2, 2},
+    {3, 2},
+};
+
 RPC::RPC(const api::Context& native)
     : Lockable()
     , ot_(native)
@@ -344,7 +350,7 @@ void RPC::add_output_status(
     proto::RPCResponseCode code)
 {
     auto& status = *output.add_status();
-    status.set_version(output.version());
+    status.set_version(StatusVersionMap.at(output.version()));
     status.set_index(output.status_size() - 1);
     status.set_code(code);
 }
@@ -585,6 +591,7 @@ proto::RPCResponse RPC::create_unit_definition(
         createunit.tla(),
         createunit.power(),
         createunit.fractionalunitname(),
+        createunit.unitofaccount(),
         reason);
 
     if (unitdefinition) {
@@ -1159,8 +1166,13 @@ proto::RPCResponse RPC::get_unit_definitions(
             identifier::UnitDefinition::Factory(id), reason);
 
         if (contract) {
-            *output.add_unit() = contract->PublicContract();
-            add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+            if (contract->Version() > 1 && command.version() < 3) {
+                add_output_status(output, proto::RPCRESPONSE_INVALID);
+
+            } else {
+                *output.add_unit() = contract->PublicContract();
+                add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+            }
         } else {
             add_output_status(output, proto::RPCRESPONSE_NONE);
         }

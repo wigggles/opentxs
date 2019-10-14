@@ -37,7 +37,9 @@ private:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
-        const std::uint64_t weight);
+        const std::uint64_t weight,
+        const proto::ContactItemType unitOfAccount,
+        const VersionNumber version);
 
     EXPORT proto::UnitDefinition BasketIDVersion(const Lock& lock) const;
     EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const final;

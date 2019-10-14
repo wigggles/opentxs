@@ -7,8 +7,8 @@
 
 #include <gtest/gtest.h>
 
-#define COMMAND_VERSION 2
-#define RESPONSE_VERSION 2
+#define COMMAND_VERSION 3
+#define RESPONSE_VERSION 3
 #define ACCOUNTEVENT_VERSION 2
 #define APIARG_VERSION 1
 #define TEST_NYM_4 "testNym4"
@@ -264,6 +264,7 @@ void Test_Rpc_Async::setup()
         "GTD",
         2,
         "gcent",
+        opentxs::proto::CITEMTYPE_USD,
         reasonS);
 
     ASSERT_TRUE(bool(unit_definition));

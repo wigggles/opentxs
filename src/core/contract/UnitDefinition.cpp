@@ -40,6 +40,9 @@
 
 #define OT_METHOD "opentxs::UnitDefinition::"
 
+const opentxs::VersionNumber opentxs::UnitDefinition::DefaultVersion{2};
+const opentxs::VersionNumber opentxs::UnitDefinition::MaxVersion{2};
+
 namespace opentxs
 {
 UnitDefinition::UnitDefinition(
@@ -48,14 +51,17 @@ UnitDefinition::UnitDefinition(
     const std::string& shortname,
     const std::string& name,
     const std::string& symbol,
-    const std::string& terms)
+    const std::string& terms,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version)
     : ot_super(nym)
     , primary_unit_name_(name)
     , short_name_(shortname)
     , api_(api)
     , primary_unit_symbol_(symbol)
+    , unit_of_account_(unitOfAccount)
 {
-    version_ = 1;
+    version_ = version;
     conditions_ = terms;
 }
 
@@ -64,10 +70,11 @@ UnitDefinition::UnitDefinition(
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
     : ot_super(nym)
-    , primary_unit_name_()
-    , short_name_()
+    , primary_unit_name_(serialized.has_name() ? serialized.name() : "")
+    , short_name_(serialized.has_shortname() ? serialized.shortname() : "")
     , api_(api)
-    , primary_unit_symbol_()
+    , primary_unit_symbol_(serialized.has_symbol() ? serialized.symbol() : "")
+    , unit_of_account_(serialized.unitofaccount())
 {
     if (serialized.has_id()) { id_ = Identifier::Factory(serialized.id()); }
     if (serialized.has_signature()) {
@@ -76,9 +83,6 @@ UnitDefinition::UnitDefinition(
     }
     if (serialized.has_version()) { version_ = serialized.version(); }
     if (serialized.has_terms()) { conditions_ = serialized.terms(); }
-    if (serialized.has_name()) { primary_unit_name_ = serialized.name(); }
-    if (serialized.has_symbol()) { primary_unit_symbol_ = serialized.symbol(); }
-    if (serialized.has_shortname()) { short_name_ = serialized.shortname(); }
 }
 
 bool UnitDefinition::ParseFormatted(
@@ -622,10 +626,22 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& tla,
     const std::uint32_t power,
     const std::string& fraction,
-    const PasswordPrompt& reason)
+    const proto::ContactItemType unitOfAccount,
+    const PasswordPrompt& reason,
+    const VersionNumber version)
 {
     std::unique_ptr<UnitDefinition> contract(new CurrencyContract(
-        api, nym, shortname, name, symbol, terms, tla, power, fraction));
+        api,
+        nym,
+        shortname,
+        name,
+        symbol,
+        terms,
+        tla,
+        power,
+        fraction,
+        unitOfAccount,
+        version));
 
     if (!contract) { return nullptr; }
 
@@ -655,10 +671,12 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const PasswordPrompt& reason)
+    const proto::ContactItemType unitOfAccount,
+    const PasswordPrompt& reason,
+    const VersionNumber version)
 {
-    std::unique_ptr<UnitDefinition> contract(
-        new SecurityContract(api, nym, shortname, name, symbol, terms));
+    std::unique_ptr<UnitDefinition> contract(new SecurityContract(
+        api, nym, shortname, name, symbol, terms, unitOfAccount, version));
 
     if (!contract) { return nullptr; }
 
@@ -691,10 +709,20 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const std::uint64_t weight)
+    const std::uint64_t weight,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version)
 {
-    std::unique_ptr<UnitDefinition> contract(
-        new BasketContract(api, nym, shortname, name, symbol, terms, weight));
+    std::unique_ptr<UnitDefinition> contract(new BasketContract(
+        api,
+        nym,
+        shortname,
+        name,
+        symbol,
+        terms,
+        weight,
+        unitOfAccount,
+        version));
 
     return contract.release();
 }
@@ -762,6 +790,8 @@ proto::UnitDefinition UnitDefinition::IDVersion(const Lock& lock) const
     contract.set_name(primary_unit_name_);
     contract.set_symbol(primary_unit_symbol_);
     contract.set_type(Type());
+
+    if (version_ > 1) { contract.set_unitofaccount(unit_of_account_); }
 
     return contract;
 }

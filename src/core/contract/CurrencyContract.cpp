@@ -37,8 +37,10 @@ CurrencyContract::CurrencyContract(
     const std::string& terms,
     const std::string& tla,
     const std::uint32_t power,
-    const std::string& fraction)
-    : ot_super(api, nym, shortname, name, symbol, terms)
+    const std::string& fraction,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version)
+    : ot_super(api, nym, shortname, name, symbol, terms, unitOfAccount, version)
     , tla_(tla)
     , fractional_unit_name_(fraction)
 {

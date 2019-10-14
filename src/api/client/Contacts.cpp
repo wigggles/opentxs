@@ -459,7 +459,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
     ,
     const PaymentCode& code
 #endif
-) const
+    ) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");

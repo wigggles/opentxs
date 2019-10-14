@@ -2079,8 +2079,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
                                                      // (in seconds)
     const std::int32_t PAYMENT_PLAN_MAX_PAYMENTS     // expires, or after the
                                                      // maximum
-) const  // number of payments. These last
-{        // two arguments are optional.
+    ) const  // number of payments. These last
+{            // two arguments are optional.
     auto reason = api_.Factory().PasswordPrompt("Proposing a payment plan");
     auto context = api_.Wallet().mutable_ServerContext(
         RECIPIENT_NYM_ID, NOTARY_ID, reason);
@@ -2881,7 +2881,7 @@ CommandResult OT_API::exchangeBasket(
     const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
     const String& BASKET_INFO,
     bool bExchangeInOrOut  // exchanging in == true, out == false.
-) const
+    ) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));

@@ -163,8 +163,16 @@ bool Pair::State::check_state() const noexcept
     Lock lock(lock_);
 
     for (auto& [id, details] : state_) {
-        auto& [mutex, serverID, serverNymID, status, trusted, offered, registered, accountDetails, pending, needRename] =
-            details;
+        auto& [mutex,
+               serverID,
+               serverNymID,
+               status,
+               trusted,
+               offered,
+               registered,
+               accountDetails,
+               pending,
+               needRename] = details;
 
         OT_ASSERT(mutex);
 
@@ -380,8 +388,16 @@ void Pair::callback_nym(const zmq::Message& in) noexcept
         Lock lock(decision_lock_);
 
         for (auto& [id, details] : state_) {
-            auto& [mutex, serverID, serverNymID, status, trusted, offered, registered, accountDetails, pending, needRename] =
-                details;
+            auto& [mutex,
+                   serverID,
+                   serverNymID,
+                   status,
+                   trusted,
+                   offered,
+                   registered,
+                   accountDetails,
+                   pending,
+                   needRename] = details;
 
             OT_ASSERT(mutex);
 
@@ -1196,8 +1212,16 @@ void Pair::state_machine(const IssuerID& id) const
 
     OT_ASSERT(state_.end() != it);
 
-    auto& [mutex, serverID, serverNymID, status, trusted, offered, registeredAccounts, accountDetails, pending, needRename] =
-        it->second;
+    auto& [mutex,
+           serverID,
+           serverNymID,
+           status,
+           trusted,
+           offered,
+           registeredAccounts,
+           accountDetails,
+           pending,
+           needRename] = it->second;
 
     OT_ASSERT(mutex);
 

@@ -2501,7 +2501,9 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const std::string& tla,
     const std::uint32_t power,
     const std::string& fraction,
-    const PasswordPrompt& reason) const
+    const proto::ContactItemType unitOfAccount,
+    const PasswordPrompt& reason,
+    const VersionNumber version) const
 {
     std::string unit;
     auto nym = Nym(identifier::Nym::Factory(nymid), reason);
@@ -2518,7 +2520,9 @@ ConstUnitDefinition Wallet::UnitDefinition(
             tla,
             power,
             fraction,
-            reason));
+            unitOfAccount,
+            reason,
+            version));
         if (contract) {
 
             return (UnitDefinition(contract, reason));
@@ -2541,7 +2545,9 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const std::string& name,
     const std::string& symbol,
     const std::string& terms,
-    const PasswordPrompt& reason) const
+    const proto::ContactItemType unitOfAccount,
+    const PasswordPrompt& reason,
+    const VersionNumber version) const
 {
     std::string unit;
     auto nym = Nym(identifier::Nym::Factory(nymid), reason);
@@ -2549,7 +2555,15 @@ ConstUnitDefinition Wallet::UnitDefinition(
     if (nym) {
         std::unique_ptr<opentxs::UnitDefinition> contract;
         contract.reset(UnitDefinition::Create(
-            api_, nym, shortname, name, symbol, terms, reason));
+            api_,
+            nym,
+            shortname,
+            name,
+            symbol,
+            terms,
+            unitOfAccount,
+            reason,
+            version));
 
         if (contract) {
 
