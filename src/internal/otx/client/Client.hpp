@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -320,7 +320,7 @@ struct StateMachine {
     using Result = api::client::OTX::Result;
     using TaskID = api::client::OTX::TaskID;
 
-    virtual const api::Core& api() const = 0;
+    virtual const api::internal::Core& api() const = 0;
     virtual BackgroundTask DepositPayment(
         const otx::client::DepositPaymentTask& params) const = 0;
     virtual BackgroundTask DownloadUnitDefinition(

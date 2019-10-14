@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -46,6 +46,8 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 
 #include <cstdint>
@@ -62,7 +64,7 @@ const VersionConversionMap Letter::akey_to_envelope_version_{
 };
 
 bool Letter::AddRSARecipients(
-    [[maybe_unused]] const api::Core& api,
+    [[maybe_unused]] const api::internal::Core& api,
     [[maybe_unused]] const mapOfAsymmetricKeys& recipients,
     [[maybe_unused]] const crypto::key::Symmetric& sessionKey,
     [[maybe_unused]] proto::Envelope& envelope,
@@ -164,7 +166,7 @@ bool Letter::SortRecipients(
 }
 
 bool Letter::Seal(
-    const api::Core& api,
+    const api::internal::Core& api,
     const mapOfAsymmetricKeys& RecipPubKeys,
     const String& theInput,
     Data& dataOutput,
@@ -325,7 +327,7 @@ bool Letter::Seal(
 }
 
 bool Letter::Open(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Data& dataInput,
     const identity::Nym& theRecipient,
     String& theOutput,

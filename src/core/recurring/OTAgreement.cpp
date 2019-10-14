@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -28,6 +28,8 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 #include <cstring>
 #include <cstdint>
@@ -41,7 +43,7 @@
 
 namespace opentxs
 {
-OTAgreement::OTAgreement(const api::Core& core)
+OTAgreement::OTAgreement(const api::internal::Core& core)
     : ot_super(core)
     , m_RECIPIENT_ACCT_ID(api_.Factory().Identifier())
     , m_RECIPIENT_NYM_ID(api_.Factory().NymID())
@@ -53,7 +55,7 @@ OTAgreement::OTAgreement(const api::Core& core)
 }
 
 OTAgreement::OTAgreement(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
@@ -67,7 +69,7 @@ OTAgreement::OTAgreement(
 }
 
 OTAgreement::OTAgreement(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const Identifier& SENDER_ACCT_ID,
@@ -97,7 +99,7 @@ void OTAgreement::setCustomerNymId(const identifier::Nym& NYM_ID)
 }
 
 bool OTAgreement::SendNoticeToAllParties(
-    const api::Core& core,
+    const api::internal::Core& core,
     bool bSuccessMsg,
     const identity::Nym& theServerNym,
     const identifier::Server& theNotaryID,
@@ -155,7 +157,7 @@ bool OTAgreement::SendNoticeToAllParties(
 // Used by payment plans and smart contracts. Nym receives an
 // Item::acknowledgment or Item::rejection.
 bool OTAgreement::DropServerNoticeToNymbox(
-    const api::Core& core,
+    const api::internal::Core& core,
     bool bSuccessMsg,
     const identity::Nym& theServerNym,
     const identifier::Server& NOTARY_ID,

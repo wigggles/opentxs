@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -47,7 +47,7 @@ extern "C" std::int32_t internal_password_cb(
 
     const bool askTwice = (1 == rwflag);
     const auto& reason = *static_cast<opentxs::PasswordPrompt*>(userdata);
-    const auto& api = reason.api();
+    const auto& api = opentxs::api::implementation::Core::get_api(reason);
     opentxs::Lock lock(api.Lock());
     opentxs::OTPassword secret{};
 
@@ -89,11 +89,11 @@ Core::Core(
     const std::string& dataFolder,
     const int instance,
     const bool dhtDefault,
-    api::internal::Factory* factory)
+    std::unique_ptr<api::internal::Factory> factory)
     : api::internal::Core()
-    , StorageParent(running, args, crypto, config, dataFolder)
+    , StorageParent(running, args, crypto, config, parent.Legacy(), dataFolder)
     , Scheduler(parent, running)
-    , factory_p_(make_factory(*this, factory))
+    , factory_p_(std::move(factory))
     , factory_(*factory_p_)
     , zmq_context_(zmq)
     , asymmetric_(factory_.Asymmetric())
@@ -184,6 +184,11 @@ const api::Endpoints& Core::Endpoints() const
     return *endpoints_;
 }
 
+const api::internal::Core& Core::get_api(const PasswordPrompt& reason) noexcept
+{
+    return reason.api_;
+}
+
 INTERNAL_PASSWORD_CALLBACK* Core::GetInternalPasswordCallback() const
 {
     return &internal_password_cb;
@@ -240,23 +245,6 @@ bool Core::GetSecret(
     secret = *master_secret_;
 
     return true;
-}
-
-std::unique_ptr<api::internal::Factory> Core::make_factory(
-    const api::internal::Core& me,
-    api::internal::Factory* provided)
-{
-    std::unique_ptr<api::internal::Factory> output{};
-
-    if (nullptr == provided) {
-        output.reset(opentxs::Factory::FactoryAPI(me));
-    } else {
-        output.reset(provided);
-    }
-
-    OT_ASSERT(output);
-
-    return output;
 }
 
 OTSymmetricKey Core::make_master_key(

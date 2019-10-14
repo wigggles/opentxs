@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -70,7 +70,7 @@ protected:
         const identity::credential::internal::Primary& master,
         const PasswordPrompt& reason) noexcept(false) override;
 
-    Key(const api::Core& api,
+    Key(const api::internal::Core& api,
         const identity::internal::Authority& owner,
         const identity::Source& source,
         const NymParameters& nymParameters,
@@ -79,7 +79,7 @@ protected:
         const PasswordPrompt& reason,
         const std::string& masterID,
         const bool useProvidedSigningKey = false) noexcept(false);
-    Key(const api::Core& api,
+    Key(const api::internal::Core& api,
         const PasswordPrompt& reason,
         const identity::internal::Authority& owner,
         const identity::Source& source,
@@ -91,18 +91,18 @@ private:
     static const VersionConversionMap subversion_to_key_version_;
 
     static OTKeypair deserialize_key(
-        const api::Core& api,
+        const api::internal::Core& api,
         const PasswordPrompt& reason,
         const int index,
         const proto::Credential& credential);
     static OTKeypair new_key(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::KeyRole role,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const PasswordPrompt& reason) noexcept(false);
     static OTKeypair signing_key(
-        const api::Core& api,
+        const api::internal::Core& api,
         const NymParameters& params,
         const VersionNumber subversion,
         const bool useProvided,

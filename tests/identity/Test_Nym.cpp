@@ -1,10 +1,11 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
 
+#include "internal/api/client/Client.hpp"
 #include "internal/identity/Identity.hpp"
 
 #include <gtest/gtest.h>
@@ -16,11 +17,12 @@ namespace
 class Test_Nym : public ::testing::Test
 {
 public:
-    const ot::api::client::Manager& client_;
+    const ot::api::client::internal::Manager& client_;
     const ot::OTPasswordPrompt reason_;
 
     Test_Nym()
-        : client_(ot::Context().StartClient({}, 0))
+        : client_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              ot::Context().StartClient({}, 0)))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
     {
     }

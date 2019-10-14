@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -36,7 +36,7 @@ public:
 protected:
     static const proto::SymmetricMode mode_;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     Purse& purse_;
     proto::TokenState state_;
     const OTServerID notary_;
@@ -53,9 +53,12 @@ protected:
 
     proto::Token Serialize() const override;
 
-    Token(const api::Core& api, Purse& purse, const proto::Token& serialized);
     Token(
-        const api::Core& api,
+        const api::internal::Core& api,
+        Purse& purse,
+        const proto::Token& serialized);
+    Token(
+        const api::internal::Core& api,
         Purse& purse,
         const VersionNumber version,
         const proto::TokenState state,
@@ -74,7 +77,7 @@ private:
     virtual Token* clone() const noexcept override = 0;
 
     Token(
-        const api::Core& api,
+        const api::internal::Core& api,
         Purse& purse,
         const proto::TokenState state,
         const proto::CashType type,

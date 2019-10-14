@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
+
 #include "PeerObject.hpp"
 
 #define OT_METHOD "opentxs::peer::implementation::Object::"
@@ -32,7 +34,7 @@
 namespace opentxs
 {
 opentxs::PeerObject* Factory::PeerObject(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& senderNym,
     const std::string& message,
     const opentxs::PasswordPrompt& reason)
@@ -46,7 +48,7 @@ opentxs::PeerObject* Factory::PeerObject(
 }
 
 opentxs::PeerObject* Factory::PeerObject(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& senderNym,
     const std::string& payment,
     const bool isPayment,
@@ -66,7 +68,7 @@ opentxs::PeerObject* Factory::PeerObject(
 
 #if OT_CASH
 opentxs::PeerObject* Factory::PeerObject(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& senderNym,
     const std::shared_ptr<blind::Purse> purse,
     const opentxs::PasswordPrompt& reason)
@@ -81,7 +83,7 @@ opentxs::PeerObject* Factory::PeerObject(
 #endif
 
 opentxs::PeerObject* Factory::PeerObject(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::shared_ptr<const PeerRequest> request,
     const std::shared_ptr<const PeerReply> reply,
     const VersionNumber version,
@@ -96,7 +98,7 @@ opentxs::PeerObject* Factory::PeerObject(
 }
 
 opentxs::PeerObject* Factory::PeerObject(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::shared_ptr<const PeerRequest> request,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)
@@ -111,7 +113,7 @@ opentxs::PeerObject* Factory::PeerObject(
 
 opentxs::PeerObject* Factory::PeerObject(
     const api::client::Contacts& contacts,
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& signerNym,
     const proto::PeerObject& serialized,
     const opentxs::PasswordPrompt& reason)
@@ -133,7 +135,7 @@ opentxs::PeerObject* Factory::PeerObject(
 
 opentxs::PeerObject* Factory::PeerObject(
     const api::client::Contacts& contacts,
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& recipientNym,
     const opentxs::Armored& encrypted,
     const opentxs::PasswordPrompt& reason)
@@ -159,7 +161,7 @@ opentxs::PeerObject* Factory::PeerObject(
 namespace opentxs::peer::implementation
 {
 Object::Object(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const std::string& message,
     const std::string& payment,
@@ -187,7 +189,7 @@ Object::Object(
 
 Object::Object(
     const api::client::Contacts& contacts,
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& signerNym,
     const proto::PeerObject serialized,
     const opentxs::PasswordPrompt& reason)
@@ -257,7 +259,7 @@ Object::Object(
 }
 
 Object::Object(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& senderNym,
     const std::string& message,
     const opentxs::PasswordPrompt& reason)
@@ -279,7 +281,7 @@ Object::Object(
 
 #if OT_CASH
 Object::Object(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& senderNym,
     const std::shared_ptr<blind::Purse> purse,
     const opentxs::PasswordPrompt& reason)
@@ -299,7 +301,7 @@ Object::Object(
 #endif
 
 Object::Object(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& payment,
     const Nym_p& senderNym,
     const opentxs::PasswordPrompt& reason)
@@ -320,7 +322,7 @@ Object::Object(
 }
 
 Object::Object(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::shared_ptr<const PeerRequest> request,
     const std::shared_ptr<const PeerReply> reply,
     const VersionNumber version,
@@ -342,7 +344,7 @@ Object::Object(
 }
 
 Object::Object(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::shared_ptr<const PeerRequest> request,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason)

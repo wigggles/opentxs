@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,9 +7,9 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -19,6 +19,8 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -35,7 +37,7 @@
 namespace opentxs::blind::mint::implementation
 {
 Mint::Mint(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
@@ -52,7 +54,7 @@ Mint::Mint(
     , m_EXPIRATION(Time::min())
     , m_CashAccountID(api_.Factory().Identifier())
 {
-    m_strFoldername->Set(OTFolders::Mint().Get());
+    m_strFoldername->Set(api_.Legacy().Mint());
     m_strFilename->Format(
         "%s%s%s",
         strNotaryID.Get(),
@@ -63,7 +65,7 @@ Mint::Mint(
 }
 
 Mint::Mint(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
     : m_mapPrivate()
@@ -79,7 +81,7 @@ Mint::Mint(
     , m_EXPIRATION(Time::min())
     , m_CashAccountID(api_.Factory().Identifier())
 {
-    m_strFoldername->Set(OTFolders::Mint().Get());
+    m_strFoldername->Set(api_.Legacy().Mint());
     m_strFilename->Format(
         "%s%s%s",
         strNotaryID.Get(),
@@ -89,7 +91,7 @@ Mint::Mint(
     InitMint();
 }
 
-Mint::Mint(const api::Core& core)
+Mint::Mint(const api::internal::Core& core)
     : m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(api_.Factory().ServerID())
@@ -176,8 +178,7 @@ bool Mint::LoadMint(
                            // here. client never
                            // should. Enforcement?
 {
-    if (!m_strFoldername->Exists())
-        m_strFoldername->Set(OTFolders::Mint().Get());
+    if (!m_strFoldername->Exists()) m_strFoldername->Set(api_.Legacy().Mint());
 
     const auto strNotaryID = String::Factory(m_NotaryID),
                strInstrumentDefinitionID =
@@ -212,8 +213,8 @@ bool Mint::LoadMint(
         strFilename =
             String::Factory(strInstrumentDefinitionID->Get());  // client side
 
-    const char* szFolder1name = OTFolders::Mint().Get();  // "mints"
-    const char* szFolder2name = strNotaryID->Get();       // "mints/NOTARY_ID"
+    const char* szFolder1name = api_.Legacy().Mint();  // "mints"
+    const char* szFolder2name = strNotaryID->Get();    // "mints/NOTARY_ID"
     const char* szFilename =
         strFilename
             ->Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
@@ -256,8 +257,7 @@ bool Mint::LoadMint(
 
 bool Mint::SaveMint(const char* szAppend)
 {
-    if (!m_strFoldername->Exists())
-        m_strFoldername->Set(OTFolders::Mint().Get());
+    if (!m_strFoldername->Exists()) m_strFoldername->Set(api_.Legacy().Mint());
 
     const auto strNotaryID = String::Factory(m_NotaryID),
                strInstrumentDefinitionID =
@@ -285,7 +285,7 @@ bool Mint::SaveMint(const char* szAppend)
     else
         strFilename = String::Factory(strInstrumentDefinitionID->Get());
 
-    const char* szFolder1name = OTFolders::Mint().Get();
+    const char* szFolder1name = api_.Legacy().Mint();
     const char* szFolder2name = strNotaryID->Get();
     const char* szFilename = strFilename->Get();
 

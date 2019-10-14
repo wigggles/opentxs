@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -123,7 +123,7 @@ private:
     static const VersionConversionMap authority_to_verification_;
     static const VersionConversionMap nym_to_authority_;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const identity::Nym& parent_;
     const VersionNumber version_{0};
     std::uint32_t index_{0};
@@ -138,7 +138,7 @@ private:
         const std::string& id,
         const String::List* plistRevokedIDs);
     static KeyCredentialMap create_child_credential(
-        const api::Core& api,
+        const api::internal::Core& api,
         const NymParameters& parameters,
         const identity::Source& source,
         const credential::internal::Primary& master,
@@ -147,7 +147,7 @@ private:
         Bip32Index& index,
         const opentxs::PasswordPrompt& reason) noexcept(false);
     static ContactCredentialMap create_contact_credental(
-        const api::Core& api,
+        const api::internal::Core& api,
         const NymParameters& parameters,
         const identity::Source& source,
         const credential::internal::Primary& master,
@@ -155,7 +155,7 @@ private:
         const VersionNumber parentVersion,
         const opentxs::PasswordPrompt& reason) noexcept(false);
     static KeyCredentialItem create_key_credential(
-        const api::Core& api,
+        const api::internal::Core& api,
         const NymParameters& parameters,
         const identity::Source& source,
         const credential::internal::Primary& master,
@@ -164,7 +164,7 @@ private:
         Bip32Index& index,
         const opentxs::PasswordPrompt& reason) noexcept(false);
     static std::unique_ptr<credential::internal::Primary> create_master(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& owner,
         const identity::Source& source,
         const VersionNumber version,
@@ -173,7 +173,7 @@ private:
         const opentxs::PasswordPrompt& reason) noexcept(false);
     template <typename Type>
     static void extract_child(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Source& source,
         internal::Authority& authority,
         const credential::internal::Primary& master,
@@ -183,7 +183,7 @@ private:
         const opentxs::PasswordPrompt& reason,
         std::map<OTIdentifier, std::unique_ptr<Type>>& map) noexcept(false);
     static std::unique_ptr<credential::internal::Primary> load_master(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& owner,
         const identity::Source& source,
         const proto::KeyMode mode,
@@ -191,7 +191,7 @@ private:
         const PasswordPrompt& reason) noexcept(false);
     template <typename Type>
     static std::map<OTIdentifier, std::unique_ptr<Type>> load_child(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Source& source,
         internal::Authority& authority,
         const credential::internal::Primary& master,
@@ -220,14 +220,14 @@ private:
         const PasswordPrompt& reason);
 
     Authority(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const proto::KeyMode mode,
         const Serialized& serialized,
         const PasswordPrompt& reason) noexcept(false);
     Authority(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const NymParameters& parameters,

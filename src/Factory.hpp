@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,14 +15,14 @@ public:
     static opentxs::Armored* Armored(const opentxs::String& input);
     static opentxs::Armored* Armored(const opentxs::OTEnvelope& input);
     static identity::internal::Authority* Authority(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const proto::KeyMode mode,
         const proto::Authority& serialized,
         const opentxs::PasswordPrompt& reason);
     static identity::internal::Authority* Authority(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const NymParameters& nymParameters,
@@ -31,13 +31,13 @@ public:
     static ui::implementation::AccountListRowInternal* AccountListItem(
         const opentxs::PasswordPrompt& reason,
         const ui::implementation::AccountListInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::AccountListRowID& rowID,
         const ui::implementation::AccountListSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const proto::ContactItemType currency
@@ -51,17 +51,17 @@ public:
     static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
         const opentxs::PasswordPrompt& reason,
         const ui::implementation::IssuerItemInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::IssuerItemRowID& rowID,
         const ui::implementation::IssuerItemSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static api::client::internal::Activity* Activity(
-        const api::Core& api,
+        const api::internal::Core& api,
         const api::client::Contacts& contact);
     static ui::implementation::ActivitySummaryRowInternal* ActivitySummaryItem(
         const ui::implementation::ActivitySummaryInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivitySummaryRowID& rowID,
@@ -72,7 +72,7 @@ public:
         const api::internal::Core& api);
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::AccountActivityRowID& rowID,
         const ui::implementation::AccountActivitySortKey& sortKey,
@@ -82,7 +82,7 @@ public:
     static crypto::Bitcoin* Bitcoin(const api::Crypto& crypto);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::Blockchain* BlockchainAPI(
-        const api::Core& api,
+        const api::internal::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts);
     static api::client::blockchain::internal::BalanceList*
@@ -106,12 +106,12 @@ public:
         Identifier& id);
 #endif
     static internal::ClientContext* ClientContext(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server);
     static internal::ClientContext* ClientContext(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::Context& serialized,
         const Nym_p& local,
         const Nym_p& remote,
@@ -126,7 +126,7 @@ public:
         const std::string& dataFolder,
         const int instance);
     static identity::credential::internal::Contact* ContactCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -134,7 +134,7 @@ public:
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
     static identity::credential::internal::Contact* ContactCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -142,22 +142,22 @@ public:
         const opentxs::PasswordPrompt& reason);
     static ui::implementation::ContactListRowInternal* ContactListItem(
         const ui::implementation::ContactListInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactListRowID& rowID,
         const ui::implementation::ContactListSortKey& key);
     static api::client::internal::Contacts* ContactAPI(
-        const api::client::Manager& api);
+        const api::client::internal::Manager& api);
     static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
         const ui::implementation::ContactSubsectionInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactSubsectionRowID& rowID,
         const ui::implementation::ContactSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static ui::implementation::ContactRowInternal* ContactSectionWidget(
         const ui::implementation::ContactInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactRowID& rowID,
         const ui::implementation::ContactSortKey& key,
@@ -172,7 +172,7 @@ public:
     static ui::implementation::ContactSectionRowInternal*
     ContactSubsectionWidget(
         const ui::implementation::ContactSectionInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactSectionRowID& rowID,
         const ui::implementation::ContactSectionSortKey& key,
@@ -191,7 +191,7 @@ public:
         OTCaller* externalPasswordCallback = nullptr);
     template <class C>
     static C* Credential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -201,7 +201,7 @@ public:
         const opentxs::PasswordPrompt& reason);
     template <class C>
     static C* Credential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -217,7 +217,7 @@ public:
         const network::zeromq::ListenCallback& callback);
     static api::network::Dht* Dht(
         const bool defaultEnable,
-        const api::Core& api,
+        const api::internal::Core& api,
         std::int64_t& nymPublishInterval,
         std::int64_t& nymRefreshInterval,
         std::int64_t& serverPublishInterval,
@@ -252,9 +252,10 @@ public:
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
         const int instance);
-    static api::internal::Factory* FactoryAPI(const api::internal::Core& api);
     static api::internal::Factory* FactoryAPIClient(
         const api::client::internal::Manager& api);
+    static api::internal::Factory* FactoryAPIServer(
+        const api::server::internal::Manager& api);
     static api::crypto::Hash* Hash(
         const api::crypto::Encode& encode,
         const crypto::HashingProvider& ssl,
@@ -279,7 +280,7 @@ public:
         const identifier::Nym& issuerID);
     static ui::implementation::AccountSummaryRowInternal* IssuerItem(
         const ui::implementation::AccountSummaryInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::AccountSummaryRowID& rowID,
         const ui::implementation::AccountSummarySortKey& sortKey,
@@ -294,18 +295,18 @@ public:
     );
     static crypto::key::Keypair* Keypair();
     static crypto::key::Keypair* Keypair(
-        const api::Core& api,
+        const api::internal::Core& api,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const proto::KeyRole role,
         const opentxs::PasswordPrompt& reason);
     static crypto::key::Keypair* Keypair(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey,
         const opentxs::PasswordPrompt& reason);
     static crypto::key::Keypair* Keypair(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const opentxs::PasswordPrompt& reason);
     static api::Legacy* Legacy();
@@ -314,7 +315,7 @@ public:
         const std::string& endpoint);
     static ui::implementation::ActivityThreadRowInternal* MailItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
@@ -324,7 +325,7 @@ public:
         const bool pending);
     static ui::implementation::ActivityThreadRowInternal* MailItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
@@ -334,7 +335,7 @@ public:
         const TransactionNumber number,
         opentxs::ServerContext& context);
     static ui::implementation::MessagableExternalInterface* MessagableList(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID
 #if OT_QT
@@ -345,50 +346,50 @@ public:
 #endif
     );
 #if OT_CASH
-    static blind::Mint* MintLucre(const api::Core& core);
+    static blind::Mint* MintLucre(const api::internal::Core& core);
     static blind::Mint* MintLucre(
-        const api::Core& core,
+        const api::internal::Core& core,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID);
     static blind::Mint* MintLucre(
-        const api::Core& core,
+        const api::internal::Core& core,
         const String& strNotaryID,
         const String& strServerNymID,
         const String& strInstrumentDefinitionID);
 #endif
     static OTCallback* NullCallback();
     static identity::internal::Nym* Nym(
-        const api::Core& api,
+        const api::internal::Core& api,
         const NymParameters& nymParameters,
         const proto::ContactItemType type,
         const std::string name,
         const opentxs::PasswordPrompt& reason);
     static identity::internal::Nym* Nym(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::Nym& serialized,
         const std::string& alias,
         const opentxs::PasswordPrompt& reason);
     static internal::NymFile* NymFile(
-        const api::Core& core,
+        const api::internal::Core& core,
         Nym_p targetNym,
         Nym_p signerNym);
     static identity::Source* NymIDSource(
-        const api::Core& api,
+        const api::internal::Core& api,
         NymParameters& parameters,
         const opentxs::PasswordPrompt& reason);
     static identity::Source* NymIDSource(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::NymIDSource& serialized,
         const opentxs::PasswordPrompt& reason);
     static crypto::OpenSSL* OpenSSL(const api::Crypto& crypto);
     static otx::client::internal::Operation* Operation(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const identifier::Nym& nym,
         const identifier::Server& server,
         const opentxs::PasswordPrompt& reason);
     static api::client::OTX* OTX(
         const Flag& running,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         OTClient& otclient,
         const ContextLockCallback& lockCallback);
     static opentxs::PasswordPrompt* PasswordPrompt(
@@ -396,7 +397,7 @@ public:
         const std::string& text);
     static api::client::internal::Pair* PairAPI(
         const Flag& running,
-        const api::client::Manager& client);
+        const api::client::internal::Manager& client);
     static network::zeromq::socket::Pair* PairSocket(
         const network::zeromq::Context& context,
         const network::zeromq::ListenCallback& callback,
@@ -410,7 +411,7 @@ public:
         const network::zeromq::ListenCallback& callback,
         const std::string& endpoint);
     static ui::implementation::PayableExternalInterface* PayableList(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const proto::ContactItemType& currency
@@ -423,7 +424,7 @@ public:
     );
     static ui::implementation::PayableListRowInternal* PayableListItem(
         const ui::implementation::PayableInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::PayableListRowID& rowID,
         const ui::implementation::PayableListSortKey& key,
@@ -431,15 +432,15 @@ public:
         const proto::ContactItemType& currency);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     static opentxs::PaymentCode* PaymentCode(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& base58,
         const opentxs::PasswordPrompt& reason);
     static opentxs::PaymentCode* PaymentCode(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::PaymentCode& serialized,
         const opentxs::PasswordPrompt& reason);
     static opentxs::PaymentCode* PaymentCode(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& seed,
         const Bip32Index nym,
         const std::uint8_t version,
@@ -450,56 +451,56 @@ public:
 #endif
     static ui::implementation::ActivityThreadRowInternal* PaymentItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static opentxs::PeerObject* PeerObject(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& senderNym,
         const std::string& message,
         const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& senderNym,
         const std::string& payment,
         const bool isPayment,
         const opentxs::PasswordPrompt& reason);
 #if OT_CASH
     static opentxs::PeerObject* PeerObject(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse,
         const opentxs::PasswordPrompt& reason);
 #endif
     static opentxs::PeerObject* PeerObject(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& signerNym,
         const proto::PeerObject& serialized,
         const opentxs::PasswordPrompt& reason);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& recipientNym,
         const opentxs::Armored& encrypted,
         const opentxs::PasswordPrompt& reason);
     static ui::implementation::ActivityThreadRowInternal* PendingSend(
         const ui::implementation::ActivityThreadInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
@@ -507,32 +508,32 @@ public:
         const ui::implementation::CustomData& custom);
     static opentxs::PIDFile* PIDFile(const std::string& path);
     static opentxs::network::zeromq::Pipeline* Pipeline(
-        const api::Core& api,
+        const api::internal::Core& api,
         const network::zeromq::Context& context,
         std::function<void(network::zeromq::Message&)> callback);
     static identity::credential::internal::Primary* PrimaryCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const NymParameters& nymParameters,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
     static identity::credential::internal::Primary* PrimaryCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const proto::Credential& credential,
         const opentxs::PasswordPrompt& reason);
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ProfileSubsectionRowID& rowID,
         const ui::implementation::ProfileSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static ui::implementation::ProfileRowInternal* ProfileSectionWidget(
         const ui::implementation::ProfileInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ProfileRowID& rowID,
         const ui::implementation::ProfileSortKey& key,
@@ -547,7 +548,7 @@ public:
     static ui::implementation::ProfileSectionRowInternal*
     ProfileSubsectionWidget(
         const ui::implementation::ProfileSectionInternalInterface& parent,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ProfileSectionRowID& rowID,
         const ui::implementation::ProfileSectionSortKey& key,
@@ -561,17 +562,17 @@ public:
     );
 #if OT_CASH
     static blind::Purse* Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::Purse& serialized);
     static blind::Purse* Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const opentxs::ServerContext& context,
         const proto::CashType type,
         const blind::Mint& mint,
         const Amount totalValue,
         const opentxs::PasswordPrompt& reason);
     static blind::Purse* Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& owner,
         const identifier::Server& server,
         const identity::Nym& serverNym,
@@ -580,12 +581,12 @@ public:
         const Amount totalValue,
         const opentxs::PasswordPrompt& reason);
     static blind::Purse* Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const blind::Purse& request,
         const identity::Nym& requester,
         const opentxs::PasswordPrompt& reason);
     static blind::Purse* Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& owner,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
@@ -626,7 +627,7 @@ public:
         const bool direction,
         const network::zeromq::ListenCallback& callback);
     static identity::credential::internal::Secondary* SecondaryCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -634,7 +635,7 @@ public:
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
     static identity::credential::internal::Secondary* SecondaryCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -669,10 +670,10 @@ public:
         const opentxs::PasswordPrompt& reason);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::ServerAction* ServerAction(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const ContextLockCallback& lockCallback);
     static internal::ServerContext* ServerContext(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& requestSent,
         const network::zeromq::socket::Publish& replyReceived,
         const Nym_p& local,
@@ -680,7 +681,7 @@ public:
         const identifier::Server& server,
         network::ServerConnection& connection);
     static internal::ServerContext* ServerContext(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& requestSent,
         const network::zeromq::socket::Publish& replyReceived,
         const proto::Context& serialized,
@@ -703,6 +704,7 @@ public:
         const Flag& running,
         const api::Crypto& crypto,
         const api::Settings& config,
+        const api::Legacy& legacy,
         const std::string& dataFolder,
         const String& defaultPluginCLI,
         const String& archiveDirectoryCLI,
@@ -759,7 +761,7 @@ public:
     static network::zeromq::socket::Subscribe* SubscribeSocket(
         const network::zeromq::Context& context,
         const network::zeromq::ListenCallback& callback);
-    static api::crypto::Symmetric* Symmetric(const api::Core& api);
+    static api::crypto::Symmetric* Symmetric(const api::internal::Core& api);
     static crypto::key::Symmetric* SymmetricKey();
     static crypto::key::Symmetric* SymmetricKey(
         const api::internal::Core& api,
@@ -785,11 +787,11 @@ public:
         const opentxs::PasswordPrompt& reason);
 #if OT_CASH
     static blind::Token* Token(
-        const api::Core& api,
+        const api::internal::Core& api,
         blind::Purse& purse,
         const proto::Token& serialized);
     static blind::Token* Token(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& owner,
         const blind::Mint& mint,
         const std::uint64_t value,
@@ -799,7 +801,7 @@ public:
 #endif
     static crypto::Trezor* Trezor(const api::Crypto& crypto);
     static api::client::UI* UI(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const Flag& running
 #if OT_QT
         ,
@@ -807,7 +809,7 @@ public:
 #endif
     );
     static identity::credential::internal::Verification* VerificationCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -815,7 +817,7 @@ public:
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
     static identity::credential::internal::Verification* VerificationCredential(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -849,21 +851,23 @@ public:
         identity::wot::verification::internal::Group& parent,
         const proto::VerificationIdentity& serialized);
     static identity::wot::verification::internal::Set* VerificationSet(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identifier::Nym& nym,
         const VersionNumber version);
     static identity::wot::verification::internal::Set* VerificationSet(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identifier::Nym& nym,
         const proto::VerificationSet& serialized);
-    static api::Wallet* Wallet(const api::client::Manager& client);
-    static api::Wallet* Wallet(const api::server::Manager& server);
+    static api::Wallet* Wallet(const api::client::internal::Manager& client);
+    static api::Wallet* Wallet(const api::server::internal::Manager& server);
     static api::client::Workflow* Workflow(
-        const api::Core& api,
+        const api::internal::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contact);
     static api::network::ZAP* ZAP(const network::zeromq::Context& context);
-    static api::network::ZMQ* ZMQ(const api::Core& api, const Flag& running);
+    static api::network::ZMQ* ZMQ(
+        const api::internal::Core& api,
+        const Flag& running);
     static network::zeromq::Context* ZMQContext();
     static network::zeromq::Frame* ZMQFrame();
     static network::zeromq::Frame* ZMQFrame(

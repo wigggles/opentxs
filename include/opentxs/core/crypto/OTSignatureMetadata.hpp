@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,6 +10,13 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
 
 class OTSignatureMetadata
 {
@@ -37,11 +44,11 @@ public:
 
     inline char FirstCharChildCredID() const { return metaChildCredID_; }
 
-    OTSignatureMetadata(const api::Core& api);
+    OTSignatureMetadata(const api::internal::Core& api);
     OTSignatureMetadata& operator=(const OTSignatureMetadata& rhs);
 
 private:
-    const api::Core& api_;
+    const api::internal::Core& api_;
     // Defaults to false. Is set true by calling SetMetadata
     bool hasMetadata_{false};
     // Can be A, E, or S (authentication, encryption, or signing.

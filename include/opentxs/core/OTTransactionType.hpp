@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 // OTTransactionType is a base class for OTLedger, OTTransaction, and Item.
 class OTTransactionType : public Contract
 {
@@ -708,19 +716,19 @@ protected:
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
     explicit OTTransactionType(
-        const api::Core& core,
+        const api::internal::Core& core,
         const identifier::Nym& theNymID,
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,
         originType theOriginType = originType::not_applicable);
     explicit OTTransactionType(
-        const api::Core& core,
+        const api::internal::Core& core,
         const identifier::Nym& theNymID,
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,
         std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable);
-    explicit OTTransactionType(const api::Core& core);
+    explicit OTTransactionType(const api::internal::Core& core);
 
 private:
     typedef Contract ot_super;

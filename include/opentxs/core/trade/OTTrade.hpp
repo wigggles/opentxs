@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -23,15 +23,17 @@
 
 namespace opentxs
 {
-
 namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
 /*
@@ -222,9 +224,9 @@ private:
 
     OTString marketOffer_;  // The market offer associated with this trade.
 
-    OTTrade(const api::Core& core);
+    OTTrade(const api::internal::Core& api);
     OTTrade(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
         const Identifier& assetAcctId,

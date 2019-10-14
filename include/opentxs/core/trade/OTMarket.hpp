@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -33,10 +33,13 @@ namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
 #define MAX_MARKET_QUERY_DEPTH                                                 \
@@ -219,10 +222,10 @@ private:
     // which instrument definition (currency type) it is being priced in. Other
     // than that, the two are technically interchangeable.
 
-    OTMarket(const api::Core& core);
-    OTMarket(const api::Core& core, const char* szFilename);
+    OTMarket(const api::internal::Core& api);
+    OTMarket(const api::internal::Core& api, const char* szFilename);
     OTMarket(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const identifier::UnitDefinition& CURRENCY_TYPE_ID,

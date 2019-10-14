@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,7 @@ public:
 private:
     friend otx::Request;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const OTNymID initiator_;
     const OTServerID server_;
     const proto::ServerRequestType type_{proto::SERVERREQUEST_ERROR};
@@ -35,7 +35,7 @@ private:
     OTFlag include_nym_;
 
     static Nym_p extract_nym(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::ServerRequest serialized,
         const PasswordPrompt& reason);
 
@@ -54,13 +54,13 @@ private:
         const PasswordPrompt& reason) const final;
 
     Request(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p signer,
         const identifier::Nym& initiator,
         const identifier::Server& server,
         const proto::ServerRequestType type);
     Request(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::ServerRequest serialized,
         const PasswordPrompt& reason);
     Request() = delete;

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,6 +14,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 // OTTrackable is very similar to OTInstrument.
 // The difference is, it may have identifying info on it:
 // TRANSACTION NUMBER, SENDER USER ID (NYM ID), AND SENDER ACCOUNT ID.
@@ -63,13 +71,13 @@ protected:
     void SetSenderAcctID(const Identifier& ACCT_ID);
     void SetSenderNymID(const identifier::Nym& NYM_ID);
 
-    OTTrackable(const api::Core& core);
+    OTTrackable(const api::internal::Core& api);
     OTTrackable(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTTrackable(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& ACCT_ID,

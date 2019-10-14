@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -35,13 +35,13 @@ class Letter
 {
 public:
     static bool Seal(
-        const api::Core& api,
+        const api::internal::Core& api,
         const mapOfAsymmetricKeys& RecipPubKeys,
         const String& theInput,
         Data& dataOutput,
         const PasswordPrompt& reason);
     static bool Open(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Data& dataInput,
         const identity::Nym& theRecipient,
         String& theOutput,
@@ -53,7 +53,7 @@ private:
     static const VersionConversionMap akey_to_envelope_version_;
 
     static bool AddRSARecipients(
-        const api::Core& api,
+        const api::internal::Core& api,
         const mapOfAsymmetricKeys& recipients,
         const crypto::key::Symmetric& sessionKey,
         proto::Envelope& envelope,

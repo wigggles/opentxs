@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,7 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
 
+#include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
 #include "Row.hpp"
 
@@ -30,7 +31,7 @@ namespace opentxs
 {
 ui::internal::PayableListItem* Factory::PayableListItem(
     const ui::implementation::PayableInternalInterface& parent,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const ui::implementation::PayableListRowID& rowID,
     const ui::implementation::PayableListSortKey& key,
@@ -46,7 +47,7 @@ namespace opentxs::ui::implementation
 {
 PayableListItem::PayableListItem(
     const PayableInternalInterface& parent,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const PayableListRowID& rowID,
     const PayableListSortKey& key,

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,6 +13,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/identity/Nym.hpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/identity/wot/verification/Verification.hpp"
 
 #include <stdexcept>
@@ -151,7 +152,7 @@ Item::operator SerializedType() const noexcept
 }
 
 auto Item::calculate_id(
-    const api::Core& api,
+    const api::internal::Core& api,
     const VersionNumber version,
     const Identifier& claim,
     const Type value,

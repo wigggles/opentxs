@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -30,7 +30,7 @@ public:
 private:
     friend otx::Reply;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const OTNymID recipient_;
     const OTServerID server_;
     const proto::ServerReplyType type_{proto::SERVERREPLY_ERROR};
@@ -39,7 +39,7 @@ private:
     std::shared_ptr<proto::OTXPush> payload_{nullptr};
 
     static Nym_p extract_nym(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::ServerReply serialized,
         const PasswordPrompt& reason);
 
@@ -58,14 +58,14 @@ private:
         const PasswordPrompt& reason) const final;
 
     Reply(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p signer,
         const identifier::Nym& recipient,
         const identifier::Server& server,
         const proto::ServerReplyType type,
         const bool success);
     Reply(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::ServerReply serialized,
         const PasswordPrompt& reason);
     Reply() = delete;

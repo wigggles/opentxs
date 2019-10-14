@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -74,7 +74,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const Nym_p target_nym_{nullptr};
     const Nym_p signer_nym_{nullptr};
     std::int64_t m_lUsageCredits{-1};
@@ -134,7 +134,7 @@ private:
         const std::string& str_id,
         const Identifier& theInput);
 
-    NymFile(const api::Core& core, Nym_p targetNym, Nym_p signerNym);
+    NymFile(const api::internal::Core& core, Nym_p targetNym, Nym_p signerNym);
     NymFile() = delete;
     NymFile(const NymFile&) = delete;
     NymFile(NymFile&&) = delete;

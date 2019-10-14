@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -34,6 +34,8 @@
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <ostream>
@@ -58,7 +60,7 @@ const VersionConversionMap Key::subversion_to_key_version_{
 };
 
 Key::Key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const NymParameters& params,
@@ -96,7 +98,7 @@ Key::Key(
 }
 
 Key::Key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const PasswordPrompt& reason,
     const identity::internal::Authority& parent,
     const identity::Source& source,
@@ -200,7 +202,7 @@ bool Key::addKeytoSerializedKeyCredential(
 }
 
 OTKeypair Key::deserialize_key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const PasswordPrompt& reason,
     const int index,
     const proto::Credential& credential)
@@ -359,7 +361,7 @@ bool Key::hasCapability(const NymCapability& capability) const
 }
 
 OTKeypair Key::new_key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::KeyRole role,
     const NymParameters& params,
     const VersionNumber version,
@@ -499,7 +501,7 @@ bool Key::Sign(
 }
 
 OTKeypair Key::signing_key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& params,
     const VersionNumber subversion,
     const bool useProvided,

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -70,7 +70,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::server
 {
 Server::Server(
-    const opentxs::api::server::Manager& manager,
+    const opentxs::api::server::internal::Manager& manager,
     const PasswordPrompt& reason)
     : manager_(manager)
     , reason_(reason)
@@ -84,7 +84,7 @@ Server::Server(
     , m_notaryID(manager_.Factory().ServerID())
     , m_strServerNymID()
     , m_nymServer(nullptr)
-    , m_Cron(manager.Factory().Cron(manager))
+    , m_Cron(manager.Factory().Cron())
     , notification_socket_(
           manager_.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
 {
@@ -103,8 +103,6 @@ void Server::ActivateCron()
         LogNormal(OT_METHOD)(__FUNCTION__)(": Activate Cron. (FAILED)").Flush();
     }
 }
-
-const api::Core& Server::API() const { return manager_; }
 
 /// Currently the test server calls this 10 times per second.
 /// It also processes all the input/output at the same rate.

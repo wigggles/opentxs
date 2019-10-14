@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -39,7 +39,7 @@ public:
     const identifier::UnitDefinition& Unit() const override { return unit_; }
     bool Unlock(const identity::Nym& nym, const PasswordPrompt& reason)
         const override;
-    bool Verify(const api::server::Manager& server) const override;
+    bool Verify(const api::server::internal::Manager& server) const override;
     Amount Value() const override { return total_value_; }
 
     bool AddNym(const identity::Nym& nym, const PasswordPrompt& reason)
@@ -68,7 +68,7 @@ private:
 
     static const proto::SymmetricMode mode_;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const VersionNumber version_;
     const proto::CashType type_;
     const OTServerID notary_;
@@ -95,18 +95,18 @@ private:
     void recalculate_times();
 
     Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identifier::Nym& owner,
         const identifier::Server& server,
         const proto::CashType type,
         const Mint& mint);
     Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const proto::CashType type);
     Purse(
-        const api::Core& api,
+        const api::internal::Core& api,
         const VersionNumber version,
         const proto::CashType type,
         const identifier::Server& notary,
@@ -120,8 +120,8 @@ private:
         const std::vector<proto::SessionKey>& primaryPasswords,
         const std::shared_ptr<OTSymmetricKey> secondary,
         const std::shared_ptr<proto::Ciphertext> secondaryPassword);
-    Purse(const api::Core& api, const Purse& owner);
-    Purse(const api::Core& api, const proto::Purse& serialized);
+    Purse(const api::internal::Core& api, const Purse& owner);
+    Purse(const api::internal::Core& api, const proto::Purse& serialized);
     Purse() = delete;
     Purse(const Purse&);
     Purse(Purse&&) = delete;

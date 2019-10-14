@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -24,6 +24,21 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 class Contact
 {
 public:
@@ -42,9 +57,11 @@ public:
 
     Contact(
         const PasswordPrompt& reason,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const proto::Contact& serialized);
-    Contact(const api::client::Manager& api, const std::string& label);
+    Contact(
+        const api::client::internal::Manager& api,
+        const std::string& label);
 
     operator proto::Contact() const;
     Contact& operator+=(Contact& rhs);
@@ -113,7 +130,7 @@ public:
     ~Contact() = default;
 
 private:
-    const api::client::Manager& api_;
+    const api::client::internal::Manager& api_;
     VersionNumber version_{0};
     std::string label_{""};
     mutable std::mutex lock_{};
@@ -129,10 +146,10 @@ private:
     static VersionNumber check_version(
         const VersionNumber in,
         const VersionNumber targetVersion);
-    static OTIdentifier generate_id(const api::Core& api);
+    static OTIdentifier generate_id(const api::internal::Core& api);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static BlockchainAddress translate(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const proto::ContactItemType chain,
         const std::string& value,
         const std::string& subtype) noexcept(false);

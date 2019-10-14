@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -85,7 +85,7 @@ const Wallet::UnitNameMap Wallet::unit_of_account_{
 const Wallet::UnitNameReverse Wallet::unit_lookup_{
     reverse_unit_map(unit_of_account_)};
 
-Wallet::Wallet(const api::Core& core)
+Wallet::Wallet(const api::internal::Core& core)
     : api_(core)
     , context_map_()
     , context_map_lock_()

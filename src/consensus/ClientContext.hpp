@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -63,12 +63,12 @@ private:
     std::string type() const final { return "client"; }
 
     ClientContext(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& local,
         const Nym_p& remote,
         const identifier::Server& server);
     ClientContext(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::Context& serialized,
         const Nym_p& local,
         const Nym_p& remote,

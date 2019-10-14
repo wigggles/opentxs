@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 class ContactData
 {
 public:
@@ -28,13 +36,13 @@ public:
     static std::string PrintContactData(const proto::ContactData& data);
 
     ContactData(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber targetVersion,
         const SectionMap& sections);
     ContactData(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber targetVersion,
         const proto::ContactData& serialized);
@@ -116,7 +124,7 @@ private:
         pair<proto::ContactItemType, std::shared_ptr<const ContactGroup>>
             Scope;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const VersionNumber version_{0};
     const std::string nym_{};
     const SectionMap sections_{};
@@ -125,7 +133,7 @@ private:
         const VersionNumber in,
         const VersionNumber targetVersion);
     static SectionMap extract_sections(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber targetVersion,
         const proto::ContactData& serialized);

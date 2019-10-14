@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -24,6 +24,11 @@ namespace implementation
 {
 class Wallet;
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 
 namespace server
 {
@@ -139,7 +144,7 @@ private:
     std::string alias_;
 
     static Account* GenerateNewAccount(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& nymID,
         const identifier::Server& notaryID,
         const identity::Nym& serverNym,
@@ -151,7 +156,7 @@ private:
     // Let's say you don't have or know the NymID, and you just want to load
     // the damn thing up. Then call this function. It will set nymID for you.
     static Account* LoadExistingAccount(
-        const api::Core& core,
+        const api::internal::Core& api,
         const Identifier& accountId,
         const identifier::Server& notaryID,
         const PasswordPrompt& reason);
@@ -196,21 +201,21 @@ private:
     void UpdateContents(const PasswordPrompt& reason) override;
 
     Account(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& nymID,
         const Identifier& accountId,
         const identifier::Server& notaryID,
         const String& name);
     Account(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& nymID,
         const Identifier& accountId,
         const identifier::Server& notaryID);
     Account(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& nymID,
         const identifier::Server& notaryID);
-    Account(const api::Core& core);
+    Account(const api::internal::Core& api);
     Account() = delete;
 };
 }  // namespace opentxs

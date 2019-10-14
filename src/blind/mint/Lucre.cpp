@@ -1,4 +1,4 @@
-// // Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -22,6 +22,7 @@
 #include "blind/Lucre.hpp"
 #include "blind/Mint.hpp"
 #include "crypto/library/OpenSSL_BIO.hpp"
+#include "internal/api/Api.hpp"
 
 #include <openssl/bio.h>
 #include <openssl/bn.h>
@@ -42,13 +43,13 @@
 
 namespace opentxs
 {
-blind::Mint* Factory::MintLucre(const api::Core& core)
+blind::Mint* Factory::MintLucre(const api::internal::Core& core)
 {
     return new blind::mint::implementation::Lucre(core);
 }
 
 blind::Mint* Factory::MintLucre(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
 {
@@ -57,7 +58,7 @@ blind::Mint* Factory::MintLucre(
 }
 
 blind::Mint* Factory::MintLucre(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
@@ -70,14 +71,14 @@ blind::Mint* Factory::MintLucre(
 
 namespace opentxs::blind::mint::implementation
 {
-Lucre::Lucre(const api::Core& core)
+Lucre::Lucre(const api::internal::Core& core)
     : Contract(core)
     , Mint(core)
 {
 }
 
 Lucre::Lucre(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
     : Contract(core, strInstrumentDefinitionID)
@@ -86,7 +87,7 @@ Lucre::Lucre(
 }
 
 Lucre::Lucre(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)

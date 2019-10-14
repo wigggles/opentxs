@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,6 +15,17 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
 class ServerContext : virtual public Context
 {
 public:
@@ -97,16 +108,16 @@ public:
     EXPORT virtual NetworkReplyMessage PingNotary(
         const PasswordPrompt& reason) = 0;
     EXPORT virtual bool ProcessNotification(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const otx::Reply& notification,
         const PasswordPrompt& reason) = 0;
     EXPORT virtual QueueResult Queue(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         const PasswordPrompt& reason,
         const ExtraArgs& args = ExtraArgs{}) = 0;
     EXPORT virtual QueueResult Queue(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         std::shared_ptr<Ledger> inbox,
         std::shared_ptr<Ledger> outbox,
@@ -114,14 +125,14 @@ public:
         const PasswordPrompt& reason,
         const ExtraArgs& args = ExtraArgs{}) = 0;
     EXPORT virtual QueueResult RefreshNymbox(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const PasswordPrompt& reason) = 0;
     EXPORT virtual bool RemoveTentativeNumber(
         const TransactionNumber& number) = 0;
     EXPORT virtual void ResetThread() = 0;
     EXPORT virtual bool Resync(const proto::Context& serialized) = 0;
     [[deprecated]] EXPORT virtual NetworkReplyMessage SendMessage(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& pending,
         ServerContext& context,
         const Message& message,

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <sstream>
 
 #define OT_METHOD "opentxs::ContactData::"
@@ -24,7 +26,7 @@
 namespace opentxs
 {
 ContactData::ContactData(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber targetVersion,
@@ -50,7 +52,7 @@ ContactData::ContactData(const ContactData& rhs)
 }
 
 ContactData::ContactData(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber targetVersion,
     const proto::ContactData& serialized)
@@ -656,7 +658,7 @@ std::string ContactData::EmailAddresses(bool active) const
 }
 
 ContactData::SectionMap ContactData::extract_sections(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber targetVersion,
     const proto::ContactData& serialized)

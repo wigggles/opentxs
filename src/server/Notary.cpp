@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,6 +11,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
@@ -29,7 +30,6 @@
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -46,6 +46,7 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "Macros.hpp"
 #include "Server.hpp"
 #include "PayDividendVisitor.hpp"
@@ -75,7 +76,7 @@ typedef std::vector<ExclusiveAccount> listOfAccounts;
 Notary::Notary(
     Server& server,
     const PasswordPrompt& reason,
-    const opentxs::api::server::Manager& manager)
+    const opentxs::api::server::internal::Manager& manager)
     : server_(server)
     , reason_(reason)
     , manager_(manager)
@@ -6713,7 +6714,7 @@ bool Notary::NotarizeProcessNymbox(
             strPath->Format(const_cast<char*>("%s.fail"), strNymID->Get());
         }
 
-        const char* szFoldername = OTFolders::Receipt().Get();
+        const char* szFoldername = server_.API().Legacy().Receipt();
         tranOut.SaveContract(szFoldername, strPath->Get());
     }
 
@@ -8069,7 +8070,7 @@ send_message:
     } else
         strPath->Format(const_cast<char*>("%s.fail"), strAcctID->Get());
 
-    const char* szFoldername = OTFolders::Receipt().Get();
+    const char* szFoldername = server_.API().Legacy().Receipt();
 
     // Save the receipt. (My outgoing transaction including the client's
     // signed request that triggered it.)

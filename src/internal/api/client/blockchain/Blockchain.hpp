@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -55,7 +55,7 @@ namespace opentxs::api::client::blockchain::internal
 using ActivityMap = std::map<Coin, std::pair<blockchain::Key, Amount>>;
 
 struct BalanceList : virtual public blockchain::BalanceList {
-    virtual const api::Core& API() const noexcept = 0;
+    virtual const api::internal::Core& API() const noexcept = 0;
 
     virtual bool AddHDNode(
         const identifier::Nym& nym,
@@ -104,7 +104,7 @@ struct BalanceNode : virtual public blockchain::BalanceNode {
 };
 
 struct BalanceTree : virtual public blockchain::BalanceTree {
-    virtual const api::Core& API() const noexcept = 0;
+    virtual const api::internal::Core& API() const noexcept = 0;
     EXPORT virtual bool AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,

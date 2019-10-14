@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,6 +16,17 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace server
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace server
+}  // namespace api
+
 namespace blind
 {
 class Purse
@@ -44,7 +55,8 @@ public:
     EXPORT virtual bool Unlock(
         const identity::Nym& nym,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool Verify(const api::server::Manager& server) const = 0;
+    EXPORT virtual bool Verify(
+        const api::server::internal::Manager& server) const = 0;
     EXPORT virtual Amount Value() const = 0;
 
     EXPORT virtual bool AddNym(

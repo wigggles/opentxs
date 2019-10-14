@@ -1,10 +1,11 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
-#include "Internal.hpp"
+
+#include "internal/api/client/Client.hpp"
 
 #include <gtest/gtest.h>
 
@@ -15,7 +16,7 @@ namespace
 class Test_Signatures : public ::testing::Test
 {
 public:
-    const opentxs::api::client::Manager& client_;
+    const opentxs::api::client::internal::Manager& client_;
     const std::string fingerprint_;
     const proto::HashType hash_sha256_{proto::HASHTYPE_SHA256};
     const proto::HashType hash_sha512_{proto::HASHTYPE_SHA512};
@@ -50,7 +51,8 @@ public:
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 
     Test_Signatures()
-        : client_(opentxs::Context().StartClient({}, 0))
+        : client_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
+              opentxs::Context().StartClient({}, 0)))
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",

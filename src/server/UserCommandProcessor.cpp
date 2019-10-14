@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,6 +10,8 @@
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
@@ -24,7 +26,6 @@
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
@@ -43,6 +44,7 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "Macros.hpp"
 #include "MainFile.hpp"
 #include "Notary.hpp"
@@ -66,7 +68,7 @@
 namespace opentxs::server
 {
 UserCommandProcessor::FinalizeResponse::FinalizeResponse(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identity::Nym& nym,
     ReplyMessage& reply,
     Ledger& ledger)
@@ -151,7 +153,7 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
 UserCommandProcessor::UserCommandProcessor(
     Server& server,
     const PasswordPrompt& reason,
-    const opentxs::api::server::Manager& manager)
+    const opentxs::api::server::internal::Manager& manager)
     : server_(server)
     , reason_(reason)
     , manager_(manager)

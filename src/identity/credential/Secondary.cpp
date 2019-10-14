@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -31,7 +31,7 @@ namespace opentxs
 using ReturnType = identity::credential::implementation::Secondary;
 
 identity::credential::internal::Secondary* Factory::SecondaryCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
@@ -53,7 +53,7 @@ identity::credential::internal::Secondary* Factory::SecondaryCredential(
 }
 
 identity::credential::internal::Secondary* Factory::SecondaryCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
@@ -76,7 +76,7 @@ identity::credential::internal::Secondary* Factory::SecondaryCredential(
 namespace opentxs::identity::credential::implementation
 {
 Secondary::Secondary(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& owner,
     const identity::Source& source,
     const internal::Primary& master,
@@ -98,7 +98,7 @@ Secondary::Secondary(
 }
 
 Secondary::Secondary(
-    const api::Core& api,
+    const api::internal::Core& api,
     const opentxs::PasswordPrompt& reason,
     const identity::internal::Authority& owner,
     const identity::Source& source,

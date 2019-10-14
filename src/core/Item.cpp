@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -29,6 +29,8 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 
 #include <cstdint>
@@ -46,7 +48,7 @@ namespace opentxs
 // probvably not actually. If I end up back here, it's because
 // sometimes I dont' WANT to assign the stuff, but leave it blank
 // because I'm about to load it.
-Item::Item(const api::Core& core)
+Item::Item(const api::internal::Core& core)
     : OTTransactionType(core)
     , m_ascNote(Armored::Factory())
     , m_ascAttachment(Armored::Factory())
@@ -63,7 +65,7 @@ Item::Item(const api::Core& core)
 
 // From owner we can get acct ID, server ID, and transaction Num
 Item::Item(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const OTTransaction& theOwner)
     : OTTransactionType(
@@ -88,7 +90,7 @@ Item::Item(
 
 // From owner we can get acct ID, server ID, and transaction Num
 Item::Item(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const Item& theOwner)
     : OTTransactionType(
@@ -112,7 +114,7 @@ Item::Item(
 }
 
 Item::Item(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const OTTransaction& theOwner,
     itemType theType,

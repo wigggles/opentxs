@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,12 +12,14 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/credential/Contact.hpp"
 
+#include "internal/api/Api.hpp"
+
 #define OT_METHOD "opentxs::ContactItem::"
 
 namespace opentxs
 {
 ContactItem::ContactItem(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
@@ -65,7 +67,7 @@ ContactItem::ContactItem(const ContactItem& rhs)
 }
 
 ContactItem::ContactItem(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
@@ -86,7 +88,7 @@ ContactItem::ContactItem(
 }
 
 ContactItem::ContactItem(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber parentVersion,
     const proto::ContactSectionName section,

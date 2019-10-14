@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,6 +15,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 // Agent is always either the Owner Nym acting in his own interests,
 // or is an employee Nym acting actively in a role on behalf of an Entity formed
 // by contract
@@ -316,7 +324,7 @@ public:
         OTString pstrAttachment = String::Factory());
 
     bool DropServerNoticeToNymbox(
-        const api::Core& api,
+        const api::internal::Core& api,
         bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
         const identity::Nym& theServerNym,
         const identifier::Server& theNotaryID,

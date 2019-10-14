@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -115,7 +115,7 @@ private:
     static const std::map<Type, Category> category_;
     static const std::map<Type, std::size_t> transaction_numbers_;
 
-    const api::client::Manager& api_;
+    const api::client::internal::Manager& api_;
     const OTPasswordPrompt reason_;
     const OTNymID nym_id_;
     const OTServerID server_id_;
@@ -264,7 +264,7 @@ private:
     void transaction_numbers();
 
     Operation(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const identifier::Nym& nym,
         const identifier::Server& server,
         const PasswordPrompt& reason);

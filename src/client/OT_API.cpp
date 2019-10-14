@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/blind/Mint.hpp"
@@ -50,7 +51,6 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -75,6 +75,9 @@
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/client/Client.hpp"
+#include "internal/api/Api.hpp"
+
 #include <cinttypes>
 #include <csignal>
 #include <cstdlib>
@@ -97,6 +100,7 @@ namespace opentxs
 namespace
 {
 bool VerifyBalanceReceipt(
+    const api::internal::Core& api,
     const ServerContext& context,
     const identifier::Server& NOTARY_ID,
     const Identifier& accountID,
@@ -105,14 +109,14 @@ bool VerifyBalanceReceipt(
     const auto& SERVER_NYM = context.RemoteNym();
     // Load the last successful BALANCE STATEMENT...
 
-    auto tranOut{context.Api().Factory().Transaction(
-        SERVER_NYM.ID(), accountID, NOTARY_ID)};
+    auto tranOut{
+        api.Factory().Transaction(SERVER_NYM.ID(), accountID, NOTARY_ID)};
 
     OT_ASSERT(false != bool(tranOut));
 
     auto strFilename = String::Factory();
     strFilename->Format("%s.success", accountID.str().c_str());
-    const char* szFolder1name = OTFolders::Receipt().Get();  // receipts
+    const char* szFolder1name = api.Legacy().Receipt();   // receipts
     const char* szFolder2name = NOTARY_ID.str().c_str();  // receipts/NOTARY_ID
     const char* szFilename =
         strFilename->Get();  // receipts/NOTARY_ID/accountID.success
@@ -183,7 +187,7 @@ bool VerifyBalanceReceipt(
             return false;
         }
 
-        transaction = LoadBoxReceipt(*tranOut, lBoxType, reason);
+        transaction = LoadBoxReceipt(api, *tranOut, lBoxType, reason);
         if (false == bool(transaction)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading from "
                                                "abbreviated transaction: "
@@ -211,7 +215,7 @@ bool VerifyBalanceReceipt(
 }  // namespace
 
 OT_API::OT_API(
-    const api::Core& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     const api::client::Workflow& workflow,
@@ -268,7 +272,7 @@ void OT_API::AddHashesToTransaction(
     const Identifier& accountid,
     const PasswordPrompt& reason) const
 {
-    auto account = context.Api().Wallet().Account(accountid, reason);
+    auto account = api_.Wallet().Account(accountid, reason);
     AddHashesToTransaction(transaction, context, account.get(), reason);
 }
 
@@ -470,7 +474,7 @@ bool OT_API::VerifyAccountReceipt(
         return false;
     }
 
-    return VerifyBalanceReceipt(*context, NOTARY_ID, ACCOUNT_ID, reason);
+    return VerifyBalanceReceipt(api_, *context, NOTARY_ID, ACCOUNT_ID, reason);
 }
 
 bool OT_API::Create_SmartContract(
@@ -2079,8 +2083,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
                                                      // (in seconds)
     const std::int32_t PAYMENT_PLAN_MAX_PAYMENTS     // expires, or after the
                                                      // maximum
-    ) const  // number of payments. These last
-{            // two arguments are optional.
+) const  // number of payments. These last
+{        // two arguments are optional.
     auto reason = api_.Factory().PasswordPrompt("Proposing a payment plan");
     auto context = api_.Wallet().mutable_ServerContext(
         RECIPIENT_NYM_ID, NOTARY_ID, reason);
@@ -2581,7 +2585,7 @@ CommandResult OT_API::issueBasket(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -2881,7 +2885,7 @@ CommandResult OT_API::exchangeBasket(
     const identifier::UnitDefinition& BASKET_INSTRUMENT_DEFINITION_ID,
     const String& BASKET_INFO,
     bool bExchangeInOrOut  // exchanging in == true, out == false.
-    ) const
+) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -3049,7 +3053,7 @@ CommandResult OT_API::exchangeBasket(
 
     account.Release();
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         managed,
         context,
         *message,
@@ -3374,7 +3378,7 @@ CommandResult OT_API::payDividend(
     dividendAccount.Release();
     issuerAccount.Release();
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         managed,
         context,
         *message,
@@ -3539,7 +3543,7 @@ CommandResult OT_API::withdrawVoucher(
 
     account.Release();
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -3687,7 +3691,7 @@ CommandResult OT_API::depositPaymentPlan(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -3740,7 +3744,7 @@ CommandResult OT_API::triggerClause(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4061,7 +4065,7 @@ CommandResult OT_API::activateSmartContract(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4214,7 +4218,7 @@ CommandResult OT_API::cancelCronItem(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         managed,
         context,
         *message,
@@ -4575,7 +4579,7 @@ CommandResult OT_API::issueMarketOffer(
     assetAccount.Release();
     currencyAccount.Release();
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         managed,
         context,
         *message,
@@ -4617,7 +4621,7 @@ CommandResult OT_API::getMarketList(ServerContext& context) const
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4661,7 +4665,7 @@ CommandResult OT_API::getMarketOffers(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4708,7 +4712,7 @@ CommandResult OT_API::getMarketRecentTrades(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4747,7 +4751,7 @@ CommandResult OT_API::getNymMarketOffers(ServerContext& context) const
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4793,7 +4797,7 @@ CommandResult OT_API::queryInstrumentDefinitions(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4837,7 +4841,7 @@ CommandResult OT_API::deleteAssetAccount(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4875,7 +4879,7 @@ CommandResult OT_API::usageCredits(
     }
 
     result = context.SendMessage(
-        dynamic_cast<const api::client::Manager&>(api_),
+        dynamic_cast<const api::client::internal::Manager&>(api_),
         {},
         context,
         *message,
@@ -4907,7 +4911,7 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
 
     if (0 < requestNum) {
         result = context.SendMessage(
-            dynamic_cast<const api::client::Manager&>(api_),
+            dynamic_cast<const api::client::internal::Manager&>(api_),
             {},
             context,
             *message,

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 /** The server needs to store a list of accounts, by instrument definition ID,
  * to store the backing funds for vouchers. The below class is useful for that.
  * It's also useful for the same purpose for stashes, in smart contracts.
@@ -49,15 +57,17 @@ public:
         const PasswordPrompt& reason,
         std::int64_t stashTransNum = 0);
 
-    explicit AccountList(const api::Core& core);
-    explicit AccountList(const api::Core& core, Account::AccountType acctType);
+    explicit AccountList(const api::internal::Core& core);
+    explicit AccountList(
+        const api::internal::Core& core,
+        Account::AccountType acctType);
 
     ~AccountList();
 
 private:
     typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     Account::AccountType acctType_;
 
     /** AcctIDs as second mapped by ASSET TYPE ID as first. */

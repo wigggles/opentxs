@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -88,16 +88,16 @@ public:
     OTManagedNumber NextTransactionNumber(const MessageType reason) override;
     NetworkReplyMessage PingNotary(const PasswordPrompt& reason) override;
     bool ProcessNotification(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const otx::Reply& notification,
         const PasswordPrompt& reason) override;
     QueueResult Queue(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         const PasswordPrompt& reason,
         const ExtraArgs& args) override;
     QueueResult Queue(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         std::shared_ptr<Ledger> inbox,
         std::shared_ptr<Ledger> outbox,
@@ -105,13 +105,13 @@ public:
         const PasswordPrompt& reason,
         const ExtraArgs& args) override;
     QueueResult RefreshNymbox(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const PasswordPrompt& reason) override;
     bool RemoveTentativeNumber(const TransactionNumber& number) override;
     void ResetThread() override;
     bool Resync(const proto::Context& serialized) override;
     NetworkReplyMessage SendMessage(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& pending,
         opentxs::ServerContext& context,
         const Message& message,
@@ -167,7 +167,7 @@ private:
     // WARNING the lifetime of the object pointed to by this member variable
     // has a shorter lifetime than this ServerContext object. Call Join()
     // on all ServerContext objects before allowing the client api to shut down.
-    std::atomic<const api::client::Manager*> client_;
+    std::atomic<const api::client::internal::Manager*> client_;
     network::ServerConnection& connection_;
     std::mutex message_lock_{};
     std::string admin_password_{""};
@@ -192,12 +192,13 @@ private:
     OTZMQPushSocket find_server_;
     OTZMQPushSocket find_unit_definition_;
 
-    static const api::client::Manager& client(const api::Core& api);
+    static const api::client::internal::Manager& client(
+        const api::internal::Core& api);
     static TransactionNumbers extract_numbers(OTTransaction& input);
     static Exit get_item_type(OTTransaction& input, itemType& output);
     static BoxType get_type(const std::int64_t depth);
     static std::unique_ptr<opentxs::Message> instantiate_message(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& serialized);
     static bool need_request_number(const MessageType type);
     static void scan_number_set(
@@ -216,7 +217,7 @@ private:
         const PasswordPrompt& reason) const;
     bool add_item_to_workflow(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& transportItem,
         const std::string& item,
         const PasswordPrompt& reason) const;
@@ -228,7 +229,7 @@ private:
     const identifier::Nym& client_nym_id(const Lock& lock) const override;
     bool create_instrument_notice_from_peer_object(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& message,
         const PeerObject& peerObject,
         const TransactionNumber number,
@@ -255,7 +256,7 @@ private:
         const Item& response,
         const PasswordPrompt& reason) const;
     std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& theNym,
         std::shared_ptr<OTTransaction> pTransaction,
         const PasswordPrompt& reason);
@@ -275,13 +276,13 @@ private:
         const TransactionNumbers& adding,
         const TransactionNumbers& without) const;
     std::shared_ptr<OTPayment> get_instrument(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& theNym,
         Ledger& ledger,
         std::shared_ptr<OTTransaction> pTransaction,
         const PasswordPrompt& reason);
     std::shared_ptr<OTPayment> get_instrument_by_receipt_id(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& theNym,
         const TransactionNumber lReceiptId,
         Ledger& ledger,
@@ -304,7 +305,7 @@ private:
         const PasswordPrompt& reason) const;
     void process_accept_pending_reply(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Identifier& accountID,
         const Item& acceptItemReceipt,
         const Message& reply,
@@ -312,7 +313,7 @@ private:
 #if OT_CASH
     bool process_incoming_cash(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const TransactionNumber number,
         const PeerObject& incoming,
         const Message& message,
@@ -326,7 +327,7 @@ private:
         const PasswordPrompt& reason) const;
     void process_incoming_message(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const OTTransaction& receipt,
         const PasswordPrompt& reason) const;
     std::string type() const override { return "server"; }
@@ -341,7 +342,7 @@ private:
 
     bool accept_entire_nymbox(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         Ledger& theNymbox,
         Message& output,
         ReplyNoticeOutcomes& notices,
@@ -363,12 +364,12 @@ private:
     NetworkReplyMessage attempt_delivery(
         const Lock& contextLock,
         const Lock& messageLock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         Message& message,
         const PasswordPrompt& reason);
     bool harvest_unused(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
     void init_sockets();
     RequestNumber initialize_server_command(
@@ -392,19 +393,19 @@ private:
         OTTransaction& acceptTransaction,
         const TransactionNumbers& accept = {});
     void need_box_items(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
     void need_nymbox(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
     void need_process_nymbox(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
     OTManagedNumber next_transaction_number(
         const Lock& lock,
         const MessageType reason);
     void pending_send(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const PasswordPrompt& reason);
     void process_accept_basket_receipt_reply(
         const Lock& lock,
@@ -419,7 +420,7 @@ private:
         const OTTransaction& inboxTransaction);
     void process_accept_item_receipt_reply(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Identifier& accountID,
         const Message& reply,
         const OTTransaction& inboxTransaction,
@@ -435,19 +436,19 @@ private:
         const PasswordPrompt& reason);
     bool process_account_push(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const proto::OTXPush& push,
         const PasswordPrompt& reason);
     bool process_box_item(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Identifier& accountID,
         const proto::OTXPush& push,
         const PasswordPrompt& reason);
     bool process_check_nym_response(
         const Lock& lock,
         const PasswordPrompt& reason,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply);
     bool process_get_account_data(
         const Lock& lock,
@@ -455,12 +456,12 @@ private:
         const PasswordPrompt& reason);
     bool process_get_box_receipt_response(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         const PasswordPrompt& reason);
     bool process_get_box_receipt_response(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Identifier& accountID,
         const std::shared_ptr<OTTransaction> receipt,
         const String& serialized,
@@ -498,19 +499,19 @@ private:
         const PasswordPrompt& reason);
     bool process_notarize_transaction_response(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         const PasswordPrompt& reason);
     bool process_process_box_response(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         const BoxType inbox,
         const Identifier& accountID,
         const PasswordPrompt& reason);
     bool process_process_inbox_response(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         Ledger& ledger,
         Ledger& responseLedger,
@@ -532,18 +533,18 @@ private:
     bool process_request_admin_response(const Lock& lock, const Message& reply);
     bool process_register_nym_response(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         const PasswordPrompt& reason);
     bool process_reply(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& managed,
         const Message& reply,
         const PasswordPrompt& reason);
     void process_response_transaction(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         OTTransaction& responseTransaction,
         const PasswordPrompt& reason);
@@ -559,7 +560,7 @@ private:
         const PasswordPrompt& reason);
 #endif
     void process_response_transaction_cheque_deposit(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Identifier& accountID,
         const Message* reply,
         const Item& replyItem,
@@ -572,7 +573,7 @@ private:
         const PasswordPrompt& reason);
     void process_response_transaction_deposit(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         const itemType type,
         OTTransaction& response,
@@ -590,7 +591,7 @@ private:
         OTTransaction& response);
     void process_response_transaction_transfer(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         const itemType type,
         OTTransaction& response,
@@ -598,7 +599,7 @@ private:
 #if OT_CASH
     void process_response_transaction_withdrawal(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         const itemType type,
         OTTransaction& response,
@@ -614,7 +615,7 @@ private:
         const PasswordPrompt& reason);
     void process_unseen_reply(
         const Lock& lock,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Item& input,
         ReplyNoticeOutcomes& notices,
         const PasswordPrompt& reason);
@@ -641,7 +642,7 @@ private:
     QueueResult start(
         const Lock& decisionLock,
         const PasswordPrompt& reason,
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         const ExtraArgs& args,
         const proto::DeliveryState state = proto::DELIVERTYSTATE_PENDINGSEND,
@@ -684,7 +685,7 @@ private:
         const TransactionNumber& number) const;
 
     ServerContext(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& requestSent,
         const network::zeromq::socket::Publish& replyReceived,
         const Nym_p& local,
@@ -692,7 +693,7 @@ private:
         const identifier::Server& server,
         network::ServerConnection& connection);
     ServerContext(
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& requestSent,
         const network::zeromq::socket::Publish& replyReceived,
         const proto::Context& serialized,

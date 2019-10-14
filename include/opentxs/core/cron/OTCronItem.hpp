@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 class OTCronItem : public OTTrackable
 {
 public:
@@ -74,20 +82,22 @@ public:
     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
     EXPORT static std::unique_ptr<OTCronItem> LoadCronReceipt(
-        const api::Core& core,
+        const api::internal::Core& api,
         const TransactionNumber& lTransactionNum,
         const PasswordPrompt& reason);  // Server-side only.
     EXPORT static std::unique_ptr<OTCronItem> LoadActiveCronReceipt(
-        const api::Core& core,
+        const api::internal::Core& api,
         const TransactionNumber& lTransactionNum,
         const identifier::Server& notaryID,
         const PasswordPrompt& reason);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const TransactionNumber& lTransactionNum,
         const identifier::Nym& nymID,
         const identifier::Server& notaryID);  // Client-side only.
     EXPORT static bool GetActiveCronTransNums(
+        const api::internal::Core& api,
         NumList& output,  // Client-side
                           // only.
         const std::string& dataFolder,
@@ -209,16 +219,16 @@ protected:
     void ClearClosingNumbers();
 
     OTCronItem(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTCronItem(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& ACCT_ID,
         const identifier::Nym& NYM_ID);
-    OTCronItem(const api::Core& core);
+    OTCronItem(const api::internal::Core& api);
 
 private:
     typedef OTTrackable ot_super;

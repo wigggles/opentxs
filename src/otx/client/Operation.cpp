@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
@@ -25,7 +26,6 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -259,7 +259,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs
 {
 otx::client::internal::Operation* Factory::Operation(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nym,
     const identifier::Server& server,
     const opentxs::PasswordPrompt& reason)
@@ -321,7 +321,7 @@ const std::map<Operation::Type, std::size_t> Operation::transaction_numbers_{
 };
 
 Operation::Operation(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nym,
     const identifier::Server& server,
     const opentxs::PasswordPrompt& reason)
@@ -1293,14 +1293,14 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
     const auto& unitID = account.get().GetInstrumentDefinitionID();
     const bool exists = OTDB::Exists(
         api_.DataFolder(),
-        OTFolders::Mint().Get(),
+        api_.Legacy().Mint(),
         serverID.str(),
         unitID.str(),
         "");
 
     if (false == exists) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
-            OTFolders::Mint())(PathSeparator())(serverID)(PathSeparator())(
+            api_.Legacy().Mint())(PathSeparator())(serverID)(PathSeparator())(
             unitID)
             .Flush();
 
@@ -1860,6 +1860,7 @@ bool Operation::get_receipts(
         }
 
         const auto exists = VerifyBoxReceiptExists(
+            api_,
             api_.DataFolder(),
             server_id_,
             nym_id_,

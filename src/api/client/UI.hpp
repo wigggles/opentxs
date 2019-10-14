@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -107,7 +107,7 @@ private:
     using PayableListMap = std::map<PayableListKey, PayableListValue>;
     using ProfileMap = std::map<ProfileKey, ProfileValue>;
 
-    const api::client::Manager& api_;
+    const api::client::internal::Manager& api_;
     const Flag& running_;
 #if OT_QT
     const bool enable_qt_;
@@ -139,7 +139,7 @@ private:
         const identifier::Nym& nymID) const;
     ProfileMap::mapped_type& profile(const identifier::Nym& nymID) const;
 
-    UI(const api::client::Manager& api,
+    UI(const api::client::internal::Manager& api,
        const Flag& running
 #if OT_QT
        ,

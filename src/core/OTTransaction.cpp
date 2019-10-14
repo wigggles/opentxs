@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,6 +9,7 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
@@ -18,7 +19,6 @@
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -37,6 +37,8 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 
 #include <cstdint>
@@ -52,7 +54,7 @@
 namespace opentxs
 {
 // private and hopefully not needed
-OTTransaction::OTTransaction(const api::Core& core)
+OTTransaction::OTTransaction(const api::internal::Core& core)
     : OTTransactionType(core)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
@@ -82,7 +84,9 @@ OTTransaction::OTTransaction(const api::Core& core)
 // off of
 // the inbox itself (which you presumably just read from a file or socket.)
 //
-OTTransaction::OTTransaction(const api::Core& core, const Ledger& theOwner)
+OTTransaction::OTTransaction(
+    const api::internal::Core& core,
+    const Ledger& theOwner)
     : OTTransactionType(
           core,
           theOwner.GetNymID(),
@@ -120,7 +124,7 @@ OTTransaction::OTTransaction(const api::Core& core, const Ledger& theOwner)
 //      Then it can grab whatever it needs from those. I'm doing something
 // similar in Item
 OTTransaction::OTTransaction(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,
@@ -157,7 +161,7 @@ OTTransaction::OTTransaction(
 }
 
 OTTransaction::OTTransaction(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,
@@ -203,7 +207,7 @@ OTTransaction::OTTransaction(
 // See: bool OTTransaction::VerifyItems(identity::Nym& theNym)
 //
 OTTransaction::OTTransaction(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,
@@ -940,7 +944,7 @@ bool OTTransaction::HarvestOpeningNumber(
                     {
                     public:
                         _getRecipientOpeningNum(
-                            const api::Core& core,
+                            const api::internal::Core& core,
                             const PasswordPrompt& reason)
                             : api_(core)
                             , reason_(reason)
@@ -979,7 +983,7 @@ bool OTTransaction::HarvestOpeningNumber(
                         }
 
                     private:
-                        const api::Core& api_;
+                        const api::internal::Core& api_;
                         const PasswordPrompt& reason_;
                     };  // class _getRecipientOpeningNum
 
@@ -1728,7 +1732,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     // Load the last TRANSACTION STATEMENT as well...
     auto strFilename = String::Factory();
     strFilename->Format("%s.success", strReceiptID->Get());
-    const char* szFolder1name = OTFolders::Receipt().Get();
+    const char* szFolder1name = api_.Legacy().Receipt();
     const char* szFolder2name = strNotaryID->Get();
     const char* szFilename = strFilename->Get();
 
@@ -2973,6 +2977,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
          strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
+            api_,
             theLedger,
             *this,
             "OTTransaction::DeleteBoxReceipt",
@@ -3070,6 +3075,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
          strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
+            api_,
             lLedgerType,
             *this,
             "OTTransaction::SaveBoxReceipt",

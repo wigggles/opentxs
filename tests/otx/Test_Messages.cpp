@@ -1,9 +1,12 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+
+#include "internal/api/client/Client.hpp"
+#include "internal/api/server/Server.hpp"
 
 #include <gtest/gtest.h>
 
@@ -22,15 +25,17 @@ public:
     static const OTNymID alice_nym_id_;
     static const std::shared_ptr<const ServerContract> server_contract_;
 
-    const opentxs::api::client::Manager& client_;
-    const opentxs::api::server::Manager& server_;
+    const opentxs::api::client::internal::Manager& client_;
+    const opentxs::api::server::internal::Manager& server_;
     opentxs::OTPasswordPrompt reason_c_;
     opentxs::OTPasswordPrompt reason_s_;
     const identifier::Server& server_id_;
 
     Test_Messages()
-        : client_(Context().StartClient(args_, 0))
-        , server_(Context().StartServer(args_, 0, true))
+        : client_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
+              Context().StartClient(args_, 0)))
+        , server_(dynamic_cast<const opentxs::api::server::internal::Manager&>(
+              Context().StartServer(args_, 0, true)))
         , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
         , server_id_(server_.ID())

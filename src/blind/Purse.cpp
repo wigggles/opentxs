@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,7 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
 
+#include "internal/api/server/Server.hpp"
 #include "Token.hpp"
 
 #include <limits>
@@ -39,7 +40,7 @@
 namespace opentxs
 {
 blind::Purse* Factory::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const opentxs::ServerContext& context,
     const proto::CashType type,
     const blind::Mint& mint,
@@ -58,7 +59,7 @@ blind::Purse* Factory::Purse(
 }
 
 blind::Purse* Factory::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& nym,
     const identifier::Server& server,
     const identity::Nym& serverNym,
@@ -94,14 +95,14 @@ blind::Purse* Factory::Purse(
 }
 
 blind::Purse* Factory::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Purse& serialized)
 {
     return new blind::implementation::Purse(api, serialized);
 }
 
 blind::Purse* Factory::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const blind::Purse& request,
     const identity::Nym& requester,
     const opentxs::PasswordPrompt& reason)
@@ -120,7 +121,7 @@ blind::Purse* Factory::Purse(
 }
 
 blind::Purse* Factory::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& owner,
     const identifier::Server& server,
     const identifier::UnitDefinition& unit,
@@ -148,7 +149,7 @@ namespace opentxs::blind::implementation
 const proto::SymmetricMode Purse::mode_{proto::SMODE_CHACHA20POLY1305};
 
 Purse::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const VersionNumber version,
     const proto::CashType type,
     const identifier::Server& notary,
@@ -203,7 +204,7 @@ Purse::Purse(const Purse& rhs)
 }
 
 Purse::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identifier::Nym& owner,
     const identifier::Server& server,
     const proto::CashType type,
@@ -236,7 +237,7 @@ Purse::Purse(
 }
 
 Purse::Purse(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identifier::Server& server,
     const identifier::UnitDefinition& unit,
     const proto::CashType type)
@@ -263,7 +264,7 @@ Purse::Purse(
     OT_ASSERT(primary_);
 }
 
-Purse::Purse(const api::Core& api, const proto::Purse& in)
+Purse::Purse(const api::internal::Core& api, const proto::Purse& in)
     : Purse(
           api,
           in.version(),
@@ -314,7 +315,7 @@ Purse::Purse(const api::Core& api, const proto::Purse& in)
     }
 }
 
-Purse::Purse(const api::Core& api, const Purse& owner)
+Purse::Purse(const api::internal::Core& api, const Purse& owner)
     : Purse(
           api,
           owner.version_,
@@ -664,7 +665,7 @@ bool Purse::Unlock(
     return unlocked_;
 }
 
-bool Purse::Verify(const api::server::Manager& server) const
+bool Purse::Verify(const api::server::internal::Manager& server) const
 {
     Amount total{0};
     auto validFrom{Time::min()};

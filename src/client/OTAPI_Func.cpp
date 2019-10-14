@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -81,7 +81,7 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
 OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     std::recursive_mutex& apiLock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const OTAPI_Func_Type type)
@@ -147,7 +147,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID)
     : OTAPI_Func(reason, apilock, api, nymID, serverID, theType)
@@ -165,7 +165,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const proto::UnitDefinition& unitDefinition,
@@ -190,7 +190,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identifier::Nym& nymID2)
@@ -216,7 +216,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const Identifier& recipientID,
@@ -245,7 +245,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identifier::Nym& nymID2,
@@ -280,7 +280,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const TransactionNumber& transactionNumber,
@@ -318,7 +318,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const Identifier& accountID,
@@ -360,7 +360,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identifier::Nym& nymID2,
@@ -396,7 +396,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const identifier::UnitDefinition& instrumentDefinitionID,
@@ -422,7 +422,7 @@ OTAPI_Func::OTAPI_Func(
     const PasswordPrompt& reason,
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const identifier::Nym& nymID,
     const identifier::Server& serverID,
     const Identifier& assetAccountID,

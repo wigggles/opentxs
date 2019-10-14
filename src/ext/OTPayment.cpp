@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,8 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -68,7 +70,7 @@ char const* const __TypeStringsPayment[] = {
     // payment is removed when the notice is received into the record box.
     "ERROR_STATE"};
 
-OTPayment::OTPayment(const api::Core& core)
+OTPayment::OTPayment(const api::internal::Core& core)
     : Contract(core)
     , m_strPayment(String::Factory())
     , m_Type(OTPayment::ERROR_STATE)
@@ -93,7 +95,7 @@ OTPayment::OTPayment(const api::Core& core)
     InitPayment();
 }
 
-OTPayment::OTPayment(const api::Core& core, const String& strPayment)
+OTPayment::OTPayment(const api::internal::Core& core, const String& strPayment)
     : Contract(core)
     , m_strPayment(String::Factory())
     , m_Type(OTPayment::ERROR_STATE)

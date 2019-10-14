@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,6 +16,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 namespace otx
 {
 class Reply : virtual public Signable
@@ -25,7 +33,7 @@ public:
     EXPORT static const VersionNumber MaxVersion;
 
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p signer,
         const identifier::Nym& recipient,
         const identifier::Server& server,
@@ -33,7 +41,7 @@ public:
         const bool success,
         const PasswordPrompt& reason);
     EXPORT static Pimpl<opentxs::otx::Reply> Factory(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::ServerReply serialized,
         const PasswordPrompt& reason);
 

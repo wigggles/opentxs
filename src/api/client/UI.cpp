@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -32,6 +32,7 @@
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/client/Client.hpp"
 #include "ui/AccountActivity.hpp"
 #include "ui/AccountList.hpp"
 #include "ui/ActivitySummary.hpp"
@@ -51,7 +52,7 @@
 namespace opentxs
 {
 api::client::UI* Factory::UI(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const Flag& running
 #if OT_QT
     ,
@@ -73,7 +74,7 @@ api::client::UI* Factory::UI(
 namespace opentxs::api::client::implementation
 {
 UI::UI(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const Flag& running
 #if OT_QT
     ,

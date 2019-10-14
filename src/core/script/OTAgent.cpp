@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -641,7 +641,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
 }
 
 bool OTAgent::DropServerNoticeToNymbox(
-    const api::Core& api,
+    const api::internal::Core& api,
     bool bSuccessMsg,  // Added this so we can notify smart contract parties
                        // when
                        // it FAILS to activate.

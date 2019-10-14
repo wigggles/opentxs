@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,11 +9,11 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -29,6 +29,8 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -61,7 +63,7 @@ char const* const __TypeStringsAccount[] = {
 
 // Used for generating accounts, thus no accountID needed.
 Account::Account(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& nymID,
     const identifier::Server& notaryID)
     : OTTransactionType(core)
@@ -81,7 +83,7 @@ Account::Account(
     SetPurportedNotaryID(notaryID);
 }
 
-Account::Account(const api::Core& core)
+Account::Account(const api::internal::Core& core)
     : OTTransactionType(core)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(api_.Factory().UnitID())
@@ -97,7 +99,7 @@ Account::Account(const api::Core& core)
 }
 
 Account::Account(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& nymID,
     const Identifier& accountId,
     const identifier::Server& notaryID,
@@ -118,7 +120,7 @@ Account::Account(
 }
 
 Account::Account(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& nymID,
     const Identifier& accountId,
     const identifier::Server& notaryID)
@@ -490,15 +492,14 @@ bool Account::LoadContract(const PasswordPrompt& reason)
     auto id = String::Factory();
     GetIdentifier(id);
 
-    return Contract::LoadContract(
-        OTFolders::Account().Get(), id->Get(), reason);
+    return Contract::LoadContract(api_.Legacy().Account(), id->Get(), reason);
 }
 
 bool Account::SaveAccount()
 {
     auto id = String::Factory();
     GetIdentifier(id);
-    return SaveContract(OTFolders::Account().Get(), id->Get());
+    return SaveContract(api_.Legacy().Account(), id->Get());
 }
 
 // Debit a certain amount from the account (presumably the same amount is being
@@ -601,7 +602,7 @@ bool Account::VerifyOwnerByID(const identifier::Nym& nymId) const
 }
 
 Account* Account::LoadExistingAccount(
-    const api::Core& core,
+    const api::internal::Core& core,
     const Identifier& accountId,
     const identifier::Server& notaryID,
     const PasswordPrompt& reason)
@@ -613,7 +614,9 @@ Account* Account::LoadExistingAccount(
     auto strAccountPath = String::Factory("");
 
     if (!OTPaths::AppendFolder(
-            strAccountPath, strDataFolder, OTFolders::Account())) {
+            strAccountPath,
+            strDataFolder,
+            String::Factory(core.Legacy().Account()))) {
         OT_FAIL;
     }
 
@@ -621,7 +624,7 @@ Account* Account::LoadExistingAccount(
             strAccountPath, folderAlreadyExist, folderIsNew)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to find or create accounts folder: ")(
-            OTFolders::Account())(".")
+            core.Legacy().Account())(".")
             .Flush();
         return nullptr;
     }
@@ -633,7 +636,7 @@ Account* Account::LoadExistingAccount(
     account->SetRealAccountID(accountId);
     account->SetRealNotaryID(notaryID);
     auto strAcctID = String::Factory(accountId);
-    account->m_strFoldername = String::Factory(OTFolders::Account().Get());
+    account->m_strFoldername = String::Factory(core.Legacy().Account());
     account->m_strFilename = String::Factory(strAcctID->Get());
 
     if (!OTDB::Exists(
@@ -659,7 +662,7 @@ Account* Account::LoadExistingAccount(
 }
 
 Account* Account::GenerateNewAccount(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& nymID,
     const identifier::Server& notaryID,
     const identity::Nym& serverNym,
@@ -734,7 +737,7 @@ bool Account::GenerateNewAccount(
     m_strName->Set(strID);
 
     // Next we create the full path filename for the account using the ID.
-    m_strFoldername = String::Factory(OTFolders::Account().Get());
+    m_strFoldername = String::Factory(api_.Legacy().Account());
     m_strFilename = String::Factory(strID->Get());
 
     // Then we try to load it, in order to make sure that it doesn't already

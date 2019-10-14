@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,6 +12,8 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <ostream>
 #include <string>
 
@@ -19,7 +21,7 @@
 
 namespace opentxs
 {
-OTSignatureMetadata::OTSignatureMetadata(const api::Core& api)
+OTSignatureMetadata::OTSignatureMetadata(const api::internal::Core& api)
     : api_(api)
     , hasMetadata_(false)
     , metaKeyType_(0)

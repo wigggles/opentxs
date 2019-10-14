@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -66,6 +66,8 @@
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <cinttypes>
 #include <cstdint>
 #include <memory>
@@ -84,7 +86,7 @@ const std::int32_t OT_ERROR = (-1);
 #endif
 
 OTAPI_Exec::OTAPI_Exec(
-    const api::Core& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     const api::network::ZMQ& zeromq,
@@ -158,7 +160,7 @@ std::string OTAPI_Exec::ProposePaymentPlan(
                                                    // ""
                                                    // (no
                                                    // maximum payments.)
-    ) const
+) const
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -249,7 +251,7 @@ std::string OTAPI_Exec::EasyProposePlan(
     // lifetime in seconds. 'number' is maximum
     // number of payments in seconds. 0 or "" is
     // unlimited.
-    ) const
+) const
 {
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(SENDER_NYM_ID);
@@ -433,7 +435,7 @@ std::string OTAPI_Exec::Create_SmartContract(
                              // every named account.
     bool SPECIFY_PARTIES     // This means Nym IDs must be provided for every
                              // party.
-    ) const
+) const
 {
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
 
@@ -805,7 +807,7 @@ std::string OTAPI_Exec::SmartContract_RemoveVariable(
                                     // way we can find it.)
     const std::string& VAR_NAME     // The Variable's name as referenced in the
                                     // smart contract. (And the scripts...)
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -895,7 +897,7 @@ std::string OTAPI_Exec::SmartContract_RemoveCallback(
     const std::string& CALLBACK_NAME  // The Callback's name as referenced in
                                       // the smart contract. (And the
                                       // scripts...)
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1080,7 +1082,7 @@ std::string OTAPI_Exec::SmartContract_RemoveParty(
     // save.)
     const std::string& PARTY_NAME  // The Party's NAME as referenced in the
                                    // smart contract. (And the scripts...)
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);
@@ -1167,7 +1169,7 @@ std::string OTAPI_Exec::SmartContract_RemoveAccount(
                                     // smart contract. (And the scripts...)
     const std::string& ACCT_NAME    // The Account's name as referenced in the
                                     // smart contract
-    ) const
+) const
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_ID_STR(SIGNER_NYM_ID);

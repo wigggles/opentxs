@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -35,6 +35,14 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 typedef std::list<OTSignature> listOfSignatures;
 
 OTString trim(const String& str);
@@ -79,7 +87,6 @@ public:
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
 
-    const api::Core& API() const { return api_; }
     void SetIdentifier(const Identifier& theID);
 
     // TODO: a contract needs to have certain required fields in order to be
@@ -137,7 +144,7 @@ public:
      * write it to strOutput. This is due to the fact that OT was never really
      * designed for signing flat text, only contracts. */
     EXPORT static bool SignFlatText(
-        const api::Core& api,
+        const api::internal::Core& api,
         String& strFlatText,
         const String& strContractType,  // "LEDGER" or "PURSE" etc.
         const identity::Nym& theSigner,
@@ -307,7 +314,7 @@ public:
     EXPORT Nym_p GetContractPublicNym() const;
 
 protected:
-    const api::Core& api_;
+    const api::internal::Core& api_;
 
     /** Contract name as shown in the wallet. */
     OTString m_strName;
@@ -378,15 +385,15 @@ protected:
         irr::io::IrrXMLReader*& xml,
         const PasswordPrompt& reason);
 
-    explicit Contract(const api::Core& core);
+    explicit Contract(const api::internal::Core& core);
     explicit Contract(
-        const api::Core& core,
+        const api::internal::Core& core,
         const String& name,
         const String& foldername,
         const String& filename,
         const String& strID);
-    explicit Contract(const api::Core& core, const Identifier& theID);
-    explicit Contract(const api::Core& core, const String& strID);
+    explicit Contract(const api::internal::Core& core, const Identifier& theID);
+    explicit Contract(const api::internal::Core& core, const String& strID);
 
 private:
     Contract() = delete;

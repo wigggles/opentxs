@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -34,7 +34,7 @@
 namespace opentxs
 {
 api::client::internal::Contacts* Factory::ContactAPI(
-    const api::client::Manager& api)
+    const api::client::internal::Manager& api)
 {
     return new opentxs::api::client::implementation::Contacts(api);
 }
@@ -42,7 +42,7 @@ api::client::internal::Contacts* Factory::ContactAPI(
 
 namespace opentxs::api::client::implementation
 {
-Contacts::Contacts(const api::client::Manager& api)
+Contacts::Contacts(const api::client::internal::Manager& api)
     : api_(api)
     , lock_()
     , contact_map_()
@@ -459,7 +459,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
     ,
     const PaymentCode& code
 #endif
-    ) const
+) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");

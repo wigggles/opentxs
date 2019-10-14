@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,7 +15,7 @@
 namespace opentxs::identity::wot::verification::internal
 {
 struct Group : virtual public verification::Group {
-    virtual const api::Core& API() const noexcept = 0;
+    virtual const api::internal::Core& API() const noexcept = 0;
     virtual bool External() const noexcept = 0;
     virtual const identifier::Nym& NymID() const noexcept = 0;
 
@@ -31,7 +31,7 @@ struct Item : virtual public verification::Item {
     ~Item() override = default;
 };
 struct Nym : virtual public verification::Nym {
-    virtual const api::Core& API() const noexcept = 0;
+    virtual const api::internal::Core& API() const noexcept = 0;
     virtual const identifier::Nym& NymID() const noexcept = 0;
 
     using verification::Nym::AddItem;
@@ -43,7 +43,7 @@ struct Nym : virtual public verification::Nym {
     ~Nym() override = default;
 };
 struct Set : virtual public verification::Set {
-    virtual const api::Core& API() const noexcept = 0;
+    virtual const api::internal::Core& API() const noexcept = 0;
     virtual const identifier::Nym& NymID() const noexcept = 0;
 
     virtual void Register(

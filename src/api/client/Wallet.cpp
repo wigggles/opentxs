@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,8 @@
 #include "opentxs/network/zeromq/Context.hpp"
 
 #include "api/Wallet.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/Api.hpp"
 
 #include "Wallet.hpp"
 
@@ -32,7 +34,7 @@
 
 namespace opentxs
 {
-api::Wallet* Factory::Wallet(const api::client::Manager& client)
+api::Wallet* Factory::Wallet(const api::client::internal::Manager& client)
 {
     return new api::client::implementation::Wallet(client);
 }
@@ -40,7 +42,7 @@ api::Wallet* Factory::Wallet(const api::client::Manager& client)
 
 namespace opentxs::api::client::implementation
 {
-Wallet::Wallet(const api::client::Manager& client)
+Wallet::Wallet(const api::client::internal::Manager& client)
     : ot_super(client)
     , client_(client)
     , request_sent_(client.ZeroMQ().PublishSocket())

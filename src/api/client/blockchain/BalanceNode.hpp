@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -99,7 +99,7 @@ protected:
         opentxs::crypto::key::EllipticCurve& key_;
 
         static std::unique_ptr<opentxs::crypto::key::EllipticCurve> instantiate(
-            const api::Core& api,
+            const api::internal::Core& api,
             const proto::AsymmetricKey& serialized,
             const opentxs::PasswordPrompt& reason) noexcept(false);
 
@@ -117,7 +117,7 @@ protected:
         Element() = delete;
     };
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const internal::BalanceTree& parent_;
     const opentxs::blockchain::Type chain_;
     const BalanceNodeType type_;

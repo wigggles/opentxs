@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -34,7 +34,7 @@ private:
 
     using ot_super = api::implementation::Wallet;
 
-    const api::client::Manager& client_;
+    const api::client::internal::Manager& client_;
     OTZMQPublishSocket request_sent_;
     OTZMQPublishSocket reply_received_;
 
@@ -51,7 +51,7 @@ private:
     Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
         const final;
 
-    Wallet(const api::client::Manager& client);
+    Wallet(const api::client::internal::Manager& client);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;

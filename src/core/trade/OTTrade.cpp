@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -24,6 +24,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 #include <cstdlib>
 #include <cstring>
@@ -39,7 +41,7 @@ namespace opentxs
 {
 enum { TradeProcessIntervalSeconds = 10 };
 
-OTTrade::OTTrade(const api::Core& core)
+OTTrade::OTTrade(const api::internal::Core& core)
     : ot_super(core)
     , currencyTypeID_(api_.Factory().UnitID())
     , currencyAcctID_(api_.Factory().Identifier())
@@ -55,7 +57,7 @@ OTTrade::OTTrade(const api::Core& core)
 }
 
 OTTrade::OTTrade(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& notaryID,
     const identifier::UnitDefinition& instrumentDefinitionID,
     const Identifier& assetAcctId,

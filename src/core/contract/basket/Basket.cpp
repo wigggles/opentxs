@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,6 +16,8 @@
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -72,7 +74,7 @@
 namespace opentxs
 {
 Basket::Basket(
-    const api::Core& core,
+    const api::internal::Core& core,
     std::int32_t nCount,
     std::int64_t lMinimumTransferAmount)
     : Contract(core)
@@ -87,7 +89,7 @@ Basket::Basket(
 {
 }
 
-Basket::Basket(const api::Core& core)
+Basket::Basket(const api::internal::Core& core)
     : Basket(core, 0, 0)
 {
 }

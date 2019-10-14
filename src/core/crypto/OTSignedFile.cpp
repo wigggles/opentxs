@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,6 +18,8 @@
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 
 #include <cstdint>
@@ -29,7 +31,7 @@
 
 namespace opentxs
 {
-OTSignedFile::OTSignedFile(const api::Core& core)
+OTSignedFile::OTSignedFile(const api::internal::Core& core)
     : Contract(core)
     , m_strSignedFilePayload(String::Factory())
     , m_strLocalDir(String::Factory())
@@ -42,7 +44,7 @@ OTSignedFile::OTSignedFile(const api::Core& core)
 }
 
 OTSignedFile::OTSignedFile(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& LOCAL_SUBDIR,
     const String& FILE_NAME)
     : Contract(core)
@@ -59,7 +61,7 @@ OTSignedFile::OTSignedFile(
 }
 
 OTSignedFile::OTSignedFile(
-    const api::Core& core,
+    const api::internal::Core& core,
     const char* LOCAL_SUBDIR,
     const String& FILE_NAME)
     : Contract(core)
@@ -78,7 +80,7 @@ OTSignedFile::OTSignedFile(
 }
 
 OTSignedFile::OTSignedFile(
-    const api::Core& core,
+    const api::internal::Core& core,
     const char* LOCAL_SUBDIR,
     const char* FILE_NAME)
     : Contract(core)

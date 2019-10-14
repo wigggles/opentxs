@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -164,7 +164,7 @@ private:
     static const VersionConversionMap
         contact_credential_to_contact_data_version_;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const std::unique_ptr<const identity::Source> source_p_;
     const identity::Source& source_;
     const OTNymID id_;
@@ -180,27 +180,27 @@ private:
     String::List m_listRevokedIDs;
 
     static CredentialMap create_authority(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const VersionNumber version,
         const NymParameters& params,
         const PasswordPrompt& reason) noexcept(false);
     static CredentialMap load_authorities(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const Serialized& serialized,
         const PasswordPrompt& reason) noexcept(false);
     static String::List load_revoked(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const Serialized& serialized,
         const PasswordPrompt& reason,
         CredentialMap& revoked) noexcept(false);
     static NymParameters normalize(
-        const api::Core& api,
+        const api::internal::Core& api,
         const NymParameters& in,
         const PasswordPrompt& reason) noexcept(false);
 
@@ -241,11 +241,11 @@ private:
         const std::int32_t version,
         const PasswordPrompt& reason);
 
-    Nym(const api::Core& api,
+    Nym(const api::internal::Core& api,
         NymParameters& nymParameters,
         std::unique_ptr<const identity::Source> source,
         const PasswordPrompt& reason) noexcept(false);
-    Nym(const api::Core& api,
+    Nym(const api::internal::Core& api,
         const proto::Nym& serialized,
         const std::string& alias,
         const opentxs::PasswordPrompt& reason) noexcept(false);

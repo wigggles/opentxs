@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -107,13 +107,13 @@ protected:
     Time m_EXPIRATION;
     OTIdentifier m_CashAccountID;
 
-    Mint(const api::Core& core);
+    Mint(const api::internal::Core& core);
     Mint(
-        const api::Core& core,
+        const api::internal::Core& core,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID);
     Mint(
-        const api::Core& core,
+        const api::internal::Core& core,
         const String& strNotaryID,
         const String& strServerNymID,
         const String& strInstrumentDefinitionID);

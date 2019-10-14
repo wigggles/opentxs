@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,6 +27,8 @@
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <memory>
 #include <ostream>
 
@@ -37,7 +39,7 @@
 namespace opentxs
 {
 identity::Source* Factory::NymIDSource(
-    const api::Core& api,
+    const api::internal::Core& api,
     NymParameters& params,
     const opentxs::PasswordPrompt& reason)
 {
@@ -118,7 +120,7 @@ identity::Source* Factory::NymIDSource(
 }
 
 identity::Source* Factory::NymIDSource(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::NymIDSource& serialized,
     const opentxs::PasswordPrompt& reason)
 {

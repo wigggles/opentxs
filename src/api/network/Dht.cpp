@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,7 @@
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
 #include "network/DhtConfig.hpp"
 #if OT_DHT
 #include "network/OpenDHT.hpp"
@@ -45,7 +46,7 @@ namespace opentxs
 {
 api::network::Dht* Factory::Dht(
     const bool defaultEnable,
-    const api::Core& api,
+    const api::internal::Core& api,
     std::int64_t& nymPublishInterval,
     std::int64_t& nymRefreshInterval,
     std::int64_t& serverPublishInterval,
@@ -122,7 +123,7 @@ api::network::Dht* Factory::Dht(
 
 namespace opentxs::api::network::implementation
 {
-Dht::Dht(DhtConfig& config, const api::Core& api)
+Dht::Dht(DhtConfig& config, const api::internal::Core& api)
     : api_(api)
     , config_(new DhtConfig(config))
 #if OT_DHT
@@ -266,7 +267,7 @@ OTZMQMessage Dht::process_request(
 
 #if OT_DHT
 bool Dht::ProcessPublicNym(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -321,7 +322,7 @@ bool Dht::ProcessPublicNym(
 }
 
 bool Dht::ProcessServerContract(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)
@@ -371,7 +372,7 @@ bool Dht::ProcessServerContract(
 }
 
 bool Dht::ProcessUnitDefinition(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string key,
     const DhtResults& values,
     NotifyCB notifyCB)

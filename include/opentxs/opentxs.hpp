@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -50,7 +50,6 @@
 #include <opentxs/api/Endpoints.hpp>
 #include <opentxs/api/Factory.hpp>
 #include <opentxs/api/HDSeed.hpp>
-#include <opentxs/api/Legacy.hpp>
 #include <opentxs/api/Periodic.hpp>
 #include <opentxs/api/Wallet.hpp>
 #if OT_CASH
@@ -72,6 +71,9 @@
 #include <opentxs/contact/ContactGroup.hpp>
 #include <opentxs/contact/ContactItem.hpp>
 #include <opentxs/contact/ContactSection.hpp>
+#include <opentxs/core/contract/peer/PeerObject.hpp>
+#include <opentxs/core/contract/peer/PeerReply.hpp>
+#include <opentxs/core/contract/peer/PeerRequest.hpp>
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/contract/UnitDefinition.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
@@ -89,7 +91,6 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTScriptable.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Armored.hpp>

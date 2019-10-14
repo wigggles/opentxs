@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,12 +10,14 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/OTStorage.hpp"
+#include "opentxs/core/String.hpp"
 
 #include "internal/api/storage/Storage.hpp"
 #include "storage/tree/Accounts.hpp"
@@ -72,6 +74,7 @@ api::storage::StorageInternal* Factory::Storage(
     const Flag& running,
     const api::Crypto& crypto,
     const api::Settings& config,
+    const api::Legacy& legacy,
     const std::string& dataFolder,
     const String& defaultPluginCLI,
     const String& archiveDirectoryCLI,
@@ -90,12 +93,11 @@ api::storage::StorageInternal* Factory::Storage(
     Random random =
         std::bind(&api::crypto::Encode::RandomFilename, &(crypto.Encode()));
     std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
-    std::string root_path = OTFolders::Common().Get();
+    std::string root_path = legacy.Common();
     std::string path;
 
-    if (0 <=
-        storage->ConstructAndCreatePath(
-            path, dataFolder, OTFolders::Common().Get(), ".temp", "", "")) {
+    if (0 <= storage->ConstructAndCreatePath(
+                 path, dataFolder, legacy.Common(), ".temp", "", "")) {
         path.erase(path.end() - 5, path.end());
     }
 
@@ -277,12 +279,7 @@ api::storage::StorageInternal* Factory::Storage(
 
     if (defaultPluginName == OT_STORAGE_PRIMARY_PLUGIN_LMDB) {
         if (0 <= storage->ConstructAndCreatePath(
-                     path,
-                     dataFolder,
-                     OTFolders::Common().Get(),
-                     "_lmdb",
-                     ".temp",
-                     "")) {
+                     path, dataFolder, legacy.Common(), "_lmdb", ".temp", "")) {
             path.erase(path.end() - 5, path.end());
         }
 

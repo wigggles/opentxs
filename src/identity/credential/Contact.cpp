@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,7 @@
 #include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
 #include "Base.hpp"
@@ -33,7 +34,7 @@ namespace opentxs
 using ReturnType = identity::credential::implementation::Contact;
 
 identity::credential::internal::Contact* Factory::ContactCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
@@ -55,7 +56,7 @@ identity::credential::internal::Contact* Factory::ContactCredential(
 }
 
 identity::credential::internal::Contact* Factory::ContactCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
@@ -79,7 +80,7 @@ namespace opentxs::identity::credential
 {
 // static
 std::string Contact::ClaimID(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nymid,
     const std::uint32_t section,
     const proto::ContactItem& item)
@@ -99,7 +100,7 @@ std::string Contact::ClaimID(
 
 // static
 std::string Contact::ClaimID(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nymid,
     const proto::ContactSectionName section,
     const proto::ContactItemType type,
@@ -123,7 +124,7 @@ std::string Contact::ClaimID(
 
 // static
 OTIdentifier Contact::ClaimID(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Claim& preimage)
 {
     auto output = Identifier::Factory();
@@ -134,7 +135,7 @@ OTIdentifier Contact::ClaimID(
 
 // static
 Claim Contact::asClaim(
-    const api::Core& api,
+    const api::internal::Core& api,
     const String& nymid,
     const std::uint32_t section,
     const proto::ContactItem& item)
@@ -156,7 +157,7 @@ Claim Contact::asClaim(
 namespace opentxs::identity::credential::implementation
 {
 Contact::Contact(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const internal::Primary& master,
@@ -179,7 +180,7 @@ Contact::Contact(
 }
 
 Contact::Contact(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const internal::Primary& master,

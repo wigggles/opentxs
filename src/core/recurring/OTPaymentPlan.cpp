@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -28,6 +28,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 #include <cstdlib>
 #include <cstring>
@@ -42,7 +44,7 @@
 
 namespace opentxs
 {
-OTPaymentPlan::OTPaymentPlan(const api::Core& core)
+OTPaymentPlan::OTPaymentPlan(const api::internal::Core& core)
     : ot_super(core)
     , m_bInitialPayment(false)
     , m_tInitialPaymentDate()
@@ -68,7 +70,7 @@ OTPaymentPlan::OTPaymentPlan(const api::Core& core)
 }
 
 OTPaymentPlan::OTPaymentPlan(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
@@ -96,7 +98,7 @@ OTPaymentPlan::OTPaymentPlan(
 }
 
 OTPaymentPlan::OTPaymentPlan(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const Identifier& SENDER_ACCT_ID,

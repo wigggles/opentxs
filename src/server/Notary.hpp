@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -57,7 +57,7 @@ private:
 
     Server& server_;
     const PasswordPrompt& reason_;
-    const opentxs::api::server::Manager& manager_;
+    const opentxs::api::server::internal::Manager& manager_;
     OTZMQPushSocket notification_socket_;
 
     void AddHashesToTransaction(
@@ -244,7 +244,7 @@ private:
     Notary(
         Server& server,
         const PasswordPrompt& reason,
-        const opentxs::api::server::Manager& manager);
+        const opentxs::api::server::internal::Manager& manager);
     Notary() = delete;
     Notary(const Notary&) = delete;
     Notary(Notary&&) = delete;

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,13 +20,15 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
+
 #define OT_METHOD "opentxs::ServerContract::"
 
 namespace opentxs
 {
 const VersionNumber ServerContract::DefaultVersion{2};
 
-ServerContract::ServerContract(const api::Core& api, const Nym_p& nym)
+ServerContract::ServerContract(const api::internal::Core& api, const Nym_p& nym)
     : ot_super(nym)
     , api_{api}
     , listen_params_()
@@ -36,7 +38,7 @@ ServerContract::ServerContract(const api::Core& api, const Nym_p& nym)
 }
 
 ServerContract::ServerContract(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::ServerContract& serialized)
     : ServerContract(api, nym)
@@ -64,7 +66,7 @@ ServerContract::ServerContract(
 }
 
 ServerContract* ServerContract::Create(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
@@ -133,7 +135,7 @@ std::string ServerContract::EffectiveName(const PasswordPrompt& reason) const
 }
 
 ServerContract* ServerContract::Factory(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::ServerContract& serialized,
     const PasswordPrompt& reason)

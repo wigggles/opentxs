@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -126,7 +126,7 @@ public:
 
     otx::client::implementation::PaymentTasks payment_tasks_;
 
-    const api::Core& api() const override { return client_; }
+    const api::internal::Core& api() const override { return client_; }
     BackgroundTask DepositPayment(
         const DepositPaymentTask& params) const override
     {
@@ -151,10 +151,10 @@ public:
     void Shutdown() { op_.Shutdown(); }
 
     StateMachine(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const api::client::internal::OTX& parent,
         const Flag& running,
-        const api::client::Manager& api,
+        const api::client::internal::Manager& api,
         const ContextID& id,
         std::atomic<TaskID>& nextTaskID,
         const UniqueQueue<CheckNymTask>& missingNyms,
@@ -168,7 +168,7 @@ private:
     enum class TaskDone : int { no, yes, retry };
     enum class State : int { needServerContract, needRegistration, ready };
 
-    const api::client::Manager& client_;
+    const api::client::internal::Manager& client_;
     const api::client::internal::OTX& parent_;
     std::atomic<TaskID>& next_task_id_;
     const UniqueQueue<CheckNymTask>& missing_nyms_;

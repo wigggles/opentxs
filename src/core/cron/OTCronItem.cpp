@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,13 +9,13 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -29,6 +29,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -55,7 +57,7 @@
 
 namespace opentxs
 {
-OTCronItem::OTCronItem(const api::Core& core)
+OTCronItem::OTCronItem(const api::internal::Core& core)
     : ot_super(core)
     , m_dequeClosingNumbers{}
     , m_pCancelerNymID(api_.Factory().NymID())
@@ -72,7 +74,7 @@ OTCronItem::OTCronItem(const api::Core& core)
 }
 
 OTCronItem::OTCronItem(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
@@ -91,7 +93,7 @@ OTCronItem::OTCronItem(
 }
 
 OTCronItem::OTCronItem(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const Identifier& ACCT_ID,
@@ -113,14 +115,14 @@ OTCronItem::OTCronItem(
 }
 
 std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
-    const api::Core& core,
+    const api::internal::Core& core,
     const TransactionNumber& lTransactionNum,
     const PasswordPrompt& reason)
 {
     auto strFilename = String::Factory();
     strFilename->Format("%" PRId64 ".crn", lTransactionNum);
 
-    const char* szFoldername = OTFolders::Cron().Get();
+    const char* szFoldername = core.Legacy().Cron();
     const char* szFilename = strFilename->Get();
 
     if (!OTDB::Exists(core.DataFolder(), szFoldername, szFilename, "", "")) {
@@ -153,7 +155,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
 
 // static
 std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
-    const api::Core& core,
+    const api::internal::Core& core,
     const TransactionNumber& lTransactionNum,
     const identifier::Server& notaryID,
     const PasswordPrompt& reason)  // Client-side only.
@@ -162,7 +164,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
          strNotaryID = String::Factory(notaryID);
     strFilename->Format("%" PRId64 ".crn", lTransactionNum);
 
-    const char* szFoldername = OTFolders::Cron().Get();
+    const char* szFoldername = core.Legacy().Cron();
     const char* szFilename = strFilename->Get();
 
     if (!OTDB::Exists(
@@ -205,12 +207,13 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
 // static
 // Client-side only.
 bool OTCronItem::GetActiveCronTransNums(
+    const api::internal::Core& api,
     NumList& output,
     const std::string& dataFolder,
     const identifier::Nym& nymID,
     const identifier::Server& notaryID)
 {
-    const char* szFoldername = OTFolders::Cron().Get();
+    const char* szFoldername = api.Legacy().Cron();
 
     output.Release();
 
@@ -257,6 +260,7 @@ bool OTCronItem::GetActiveCronTransNums(
 // static
 // Client-side only.
 bool OTCronItem::EraseActiveCronReceipt(
+    const api::internal::Core& api,
     const std::string& dataFolder,
     const TransactionNumber& lTransactionNum,
     const identifier::Nym& nymID,
@@ -266,7 +270,7 @@ bool OTCronItem::EraseActiveCronReceipt(
          strNotaryID = String::Factory(notaryID);
     strFilename->Format("%" PRId64 ".crn", lTransactionNum);
 
-    const char* szFoldername = OTFolders::Cron().Get();
+    const char* szFoldername = api.Legacy().Cron();
     const char* szFilename = strFilename->Get();
 
     // Before we remove the cron item receipt itself, first we need to load up
@@ -395,7 +399,7 @@ bool OTCronItem::SaveActiveCronReceipt(
          strNotaryID = String::Factory(GetNotaryID());
     strFilename->Format("%" PRId64 ".crn", lOpeningNum);
 
-    const char* szFoldername = OTFolders::Cron().Get();  // cron
+    const char* szFoldername = api_.Legacy().Cron();  // cron
     const char* szFilename = strFilename->Get();  // cron/TRANSACTION_NUM.crn
 
     if (OTDB::Exists(
@@ -536,7 +540,7 @@ bool OTCronItem::SaveCronReceipt()
     auto strFilename = String::Factory();
     strFilename->Format("%" PRId64 ".crn", GetTransactionNum());
 
-    const char* szFoldername = OTFolders::Cron().Get();  // cron
+    const char* szFoldername = api_.Legacy().Cron();  // cron
     const char* szFilename = strFilename->Get();  // cron/TRANSACTION_NUM.crn
 
     if (OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "")) {

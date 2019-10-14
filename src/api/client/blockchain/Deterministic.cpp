@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,6 +14,7 @@
 #include "opentxs/core/PasswordPrompt.hpp"
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
+#include "internal/api/Api.hpp"
 
 #include "Deterministic.hpp"
 
@@ -85,7 +86,9 @@ std::optional<Bip32Index> Deterministic::GenerateNext(
     }
 }
 
-HDKey Deterministic::instantiate_key(const api::Core& api, proto::HDPath& path)
+HDKey Deterministic::instantiate_key(
+    const api::internal::Core& api,
+    proto::HDPath& path)
 {
     std::string fingerprint{path.root()};
     auto reason = api.Factory().PasswordPrompt("Loading account xpriv");

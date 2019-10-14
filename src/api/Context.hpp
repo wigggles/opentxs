@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,35 +10,37 @@ namespace opentxs::api::implementation
 class Context final : api::internal::Context, Lockable, Periodic
 {
 public:
-    const api::client::Manager& Client(const int instance) const override;
-    std::size_t Clients() const override { return client_.size(); }
-    const api::Settings& Config(const std::string& path) const override;
-    const api::Crypto& Crypto() const override;
-    void HandleSignals(ShutdownCallback* shutdown) const override;
-    proto::RPCResponse RPC(const proto::RPCCommand& command) const override;
-    const api::server::Manager& Server(const int instance) const override;
-    std::size_t Servers() const override { return server_.size(); }
-    const api::client::Manager& StartClient(
+    const api::client::internal::Manager& Client(
+        const int instance) const final;
+    std::size_t Clients() const final { return client_.size(); }
+    const api::Settings& Config(const std::string& path) const final;
+    const api::Crypto& Crypto() const final;
+    void HandleSignals(ShutdownCallback* shutdown) const final;
+    const api::Legacy& Legacy() const noexcept final { return *legacy_; }
+    proto::RPCResponse RPC(const proto::RPCCommand& command) const final;
+    const api::server::Manager& Server(const int instance) const final;
+    std::size_t Servers() const final { return server_.size(); }
+    const api::client::internal::Manager& StartClient(
         const ArgList& args,
-        const int instance) const override;
+        const int instance) const final;
 #if OT_CRYPTO_WITH_BIP39
-    const api::client::Manager& StartClient(
+    const api::client::internal::Manager& StartClient(
         const ArgList& args,
         const int instance,
         const std::string& recoverWords,
-        const std::string& recoverPassphrase) const override;
+        const std::string& recoverPassphrase) const final;
 #endif  // OT_CRYPTO_WITH_BIP39
     const api::server::Manager& StartServer(
         const ArgList& args,
         const int instance,
-        const bool inproc) const override;
-    const api::network::ZAP& ZAP() const override;
-    const opentxs::network::zeromq::Context& ZMQ() const override
+        const bool inproc) const final;
+    const api::network::ZAP& ZAP() const final;
+    const opentxs::network::zeromq::Context& ZMQ() const final
     {
         return zmq_context_.get();
     }
 
-    OTCaller& GetPasswordCaller() const override;
+    OTCaller& GetPasswordCaller() const final;
 
 private:
     friend opentxs::Factory;
@@ -81,9 +83,9 @@ private:
     void Init_Crypto();
     void Init_Log(const std::int32_t argLevel);
     void Init_Zap();
-    void Init() override;
+    void Init() final;
     void setup_default_external_password_callback();
-    void shutdown() override;
+    void shutdown() final;
 
     explicit Context(
         Flag& running,
@@ -96,6 +98,6 @@ private:
     Context& operator=(const Context&) = delete;
     Context& operator=(Context&&) = delete;
 
-    ~Context() override;
+    ~Context() final;
 };
 }  // namespace opentxs::api::implementation

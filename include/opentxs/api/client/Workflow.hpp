@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,11 @@ namespace opentxs
 {
 namespace api
 {
+namespace internal
+{
+struct Core;
+}  // namespace internal
+
 namespace client
 {
 /** Store and retrieve payment workflow events
@@ -121,20 +126,20 @@ public:
 #endif
     static std::string ExtractTransfer(const proto::PaymentWorkflow& workflow);
     static Cheque InstantiateCheque(
-        const api::Core& core,
+        const api::internal::Core& api,
         const proto::PaymentWorkflow& workflow,
         const PasswordPrompt& reason);
 #if OT_CASH
     static Purse InstantiatePurse(
-        const api::Core& core,
+        const api::internal::Core& api,
         const proto::PaymentWorkflow& workflow);
 #endif
     static Transfer InstantiateTransfer(
-        const api::Core& core,
+        const api::internal::Core& api,
         const proto::PaymentWorkflow& workflow,
         const PasswordPrompt& reason);
     static OTIdentifier UUID(
-        const api::Core& core,
+        const api::internal::Core& api,
         const proto::PaymentWorkflow& workflow,
         const PasswordPrompt& reason);
     static OTIdentifier UUID(

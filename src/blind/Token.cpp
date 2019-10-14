@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -22,7 +22,7 @@
 namespace opentxs
 {
 blind::Token* Factory::Token(
-    const api::Core& api,
+    const api::internal::Core& api,
     blind::Purse& purse,
     const proto::Token& serialized)
 {
@@ -43,7 +43,7 @@ blind::Token* Factory::Token(
 }
 
 blind::Token* Factory::Token(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& owner,
     const blind::Mint& mint,
     const blind::Token::Denomination value,
@@ -79,7 +79,7 @@ namespace opentxs::blind::token::implementation
 const proto::SymmetricMode Token::mode_{proto::SMODE_CHACHA20POLY1305};
 
 Token::Token(
-    const api::Core& api,
+    const api::internal::Core& api,
     Purse& purse,
     const proto::TokenState state,
     const proto::CashType type,
@@ -120,7 +120,10 @@ Token::Token(const Token& rhs)
 {
 }
 
-Token::Token(const api::Core& api, Purse& purse, const proto::Token& in)
+Token::Token(
+    const api::internal::Core& api,
+    Purse& purse,
+    const proto::Token& in)
     : Token(
           api,
           purse,
@@ -137,7 +140,7 @@ Token::Token(const api::Core& api, Purse& purse, const proto::Token& in)
 }
 
 Token::Token(
-    const api::Core& api,
+    const api::internal::Core& api,
     Purse& purse,
     const VersionNumber version,
     const proto::TokenState state,

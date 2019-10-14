@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,10 +18,18 @@ namespace opentxs
 {
 namespace api
 {
+namespace server
+{
 namespace implementation
 {
 class Factory;
 }  // namespace implementation
+
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace server
 }  // namespace api
 
 /** mapOfCronItems:      Mapped (uniquely) to transaction number. */
@@ -157,7 +165,7 @@ public:
 private:
     typedef Contract ot_super;
 
-    friend api::implementation::Factory;
+    friend api::server::implementation::Factory;
 
     // Number of transaction numbers Cron  will grab for itself, when it gets
     // low, before each round.
@@ -184,7 +192,7 @@ private:
     // I'll need this for later.
     Nym_p m_pServerNym{nullptr};
 
-    explicit OTCron(const api::Core& server);
+    explicit OTCron(const api::internal::Core& server);
 
     OTCron() = delete;
 };

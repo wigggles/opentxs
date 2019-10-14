@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
@@ -37,7 +38,6 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -63,6 +63,8 @@
 #include "opentxs/Proto.tpp"
 
 #include "core/StateMachine.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/Api.hpp"
 #include "Context.hpp"
 
 #include <algorithm>
@@ -95,7 +97,7 @@
 namespace opentxs
 {
 internal::ServerContext* Factory::ServerContext(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
     const Nym_p& local,
@@ -108,7 +110,7 @@ internal::ServerContext* Factory::ServerContext(
 }
 
 internal::ServerContext* Factory::ServerContext(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
     const proto::Context& serialized,
@@ -131,7 +133,7 @@ const std::set<MessageType> ServerContext::do_not_need_request_number_{
 };
 
 ServerContext::ServerContext(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
     const Nym_p& local,
@@ -174,7 +176,7 @@ ServerContext::ServerContext(
 }
 
 ServerContext::ServerContext(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& requestSent,
     const network::zeromq::socket::Publish& replyReceived,
     const proto::Context& serialized,
@@ -239,7 +241,7 @@ ServerContext::ServerContext(
 
 bool ServerContext::accept_entire_nymbox(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     Ledger& nymbox,
     Message& output,
     ReplyNoticeOutcomes& notices,
@@ -389,7 +391,7 @@ bool ServerContext::accept_entire_nymbox(
                 }
 
                 OTCronItem::EraseActiveCronReceipt(
-                    api_.DataFolder(), number, nymID, server_id_);
+                    api_, api_.DataFolder(), number, nymID, server_id_);
                 make_accept_item(
                     reason,
                     itemType::acceptFinalReceipt,
@@ -625,7 +627,7 @@ bool ServerContext::add_item_to_payment_inbox(
 
 bool ServerContext::add_item_to_workflow(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& transportItem,
     const std::string& item,
     const PasswordPrompt& reason) const
@@ -798,7 +800,7 @@ const std::string& ServerContext::AdminPassword() const
 NetworkReplyMessage ServerContext::attempt_delivery(
     const Lock& contextLock,
     const Lock& messageLock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     Message& message,
     const PasswordPrompt& reason)
 {
@@ -930,7 +932,7 @@ network::ServerConnection& ServerContext::Connection() { return connection_; }
 
 bool ServerContext::create_instrument_notice_from_peer_object(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& message,
     const PeerObject& peerObject,
     const TransactionNumber number,
@@ -1149,7 +1151,7 @@ std::unique_ptr<Item> ServerContext::extract_original_item(
 
 std::shared_ptr<OTPayment> ServerContext::
     extract_payment_instrument_from_notice(
-        const api::Core& api,
+        const api::internal::Core& api,
         const identity::Nym& theNym,
         std::shared_ptr<OTTransaction> pTransaction,
         const PasswordPrompt& reason)
@@ -1176,7 +1178,7 @@ std::shared_ptr<OTPayment> ServerContext::
             return nullptr;
         }
         // --------------------
-        auto pMsg{pTransaction->API().Factory().Message()};
+        auto pMsg{api.Factory().Message()};
         if (false == bool(pMsg)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Null: Assert while allocating memory "
@@ -1227,8 +1229,7 @@ std::shared_ptr<OTPayment> ServerContext::
             // strEnvelopeContents contains a PURSE or CHEQUE
             // (etc) and not specifically a generic "PAYMENT".
             //
-            auto pPayment{
-                pTransaction->API().Factory().Payment(strEnvelopeContents)};
+            auto pPayment{api.Factory().Payment(strEnvelopeContents)};
             if (false == bool(pPayment) || !pPayment->IsValid())
                 LogNormal(OT_METHOD)(__FUNCTION__)(
                     ": Failed: after decryption, payment is invalid. "
@@ -1242,7 +1243,7 @@ std::shared_ptr<OTPayment> ServerContext::
         }
     } else if (transactionType::notice == pTransaction->GetType()) {
         auto strNotice = String::Factory(*pTransaction);
-        auto pPayment{pTransaction->API().Factory().Payment(strNotice)};
+        auto pPayment{api.Factory().Payment(strNotice)};
 
         if (false == bool(pPayment) || !pPayment->IsValid())
             LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -1490,7 +1491,7 @@ std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
 }
 
 std::shared_ptr<OTPayment> ServerContext::get_instrument(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& theNym,
     Ledger& ledger,
     std::shared_ptr<OTTransaction> pTransaction,
@@ -1566,7 +1567,7 @@ std::shared_ptr<OTPayment> ServerContext::get_instrument(
 }
 
 std::shared_ptr<OTPayment> ServerContext::get_instrument_by_receipt_id(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& theNym,
     const TransactionNumber lReceiptId,
     Ledger& ledger,
@@ -1656,7 +1657,7 @@ ServerContext::BoxType ServerContext::get_type(const std::int64_t depth)
 
 bool ServerContext::harvest_unused(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
     OT_ASSERT(verify_write_lock(lock));
@@ -2029,7 +2030,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
 }
 
 std::unique_ptr<opentxs::Message> ServerContext::instantiate_message(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& serialized)
 {
     auto reason = api.Factory().PasswordPrompt("Loading server context");
@@ -2114,7 +2115,7 @@ std::unique_ptr<Ledger> ServerContext::load_account_inbox(
 
     bool output = OTDB::Exists(
         api_.DataFolder(),
-        OTFolders::Inbox().Get(),
+        api_.Legacy().Inbox(),
         server_id_->str().c_str(),
         accountID.str().c_str(),
         "");
@@ -2146,7 +2147,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
 
     bool output = OTDB::Exists(
         api_.DataFolder(),
-        OTFolders::RecordBox().Get(),
+        api_.Legacy().RecordBox(),
         server_id_->str().c_str(),
         accountID.str().c_str(),
         "");
@@ -2194,7 +2195,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox(
 
     bool output = OTDB::Exists(
         api_.DataFolder(),
-        OTFolders::PaymentInbox().Get(),
+        api_.Legacy().PaymentInbox(),
         server_id_->str().c_str(),
         nymID.str().c_str(),
         "");
@@ -2240,7 +2241,7 @@ Editor<blind::Purse> ServerContext::mutable_Purse(
 #endif
 
 void ServerContext::need_box_items(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
@@ -2283,6 +2284,7 @@ void ServerContext::need_box_items(
         }
 
         const auto exists = VerifyBoxReceiptExists(
+            api_,
             api_.DataFolder(),
             server_id_,
             nym_->ID(),
@@ -2351,7 +2353,7 @@ void ServerContext::need_box_items(
 }
 
 void ServerContext::need_nymbox(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
@@ -2402,7 +2404,7 @@ void ServerContext::need_nymbox(
 }
 
 void ServerContext::need_process_nymbox(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
@@ -2620,7 +2622,7 @@ OTManagedNumber ServerContext::NextTransactionNumber(const MessageType reason)
 }
 
 void ServerContext::pending_send(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
     Lock messageLock(message_lock_, std::defer_lock);
@@ -2733,7 +2735,7 @@ NetworkReplyMessage ServerContext::PingNotary(const PasswordPrompt& reason)
 }
 
 bool ServerContext::ProcessNotification(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const otx::Reply& notification,
     const PasswordPrompt& reason)
 {
@@ -2876,7 +2878,7 @@ void ServerContext::process_accept_cron_receipt_reply(
 
         if (OTDB::Exists(
                 api_.DataFolder(),
-                OTFolders::Nym().Get(),
+                api_.Legacy().Nym(),
                 "trades",  // todo stop
                            // hardcoding.
                 server_id_->str().c_str(),
@@ -2884,7 +2886,7 @@ void ServerContext::process_accept_cron_receipt_reply(
             pList.reset(dynamic_cast<OTDB::TradeListNym*>(OTDB::QueryObject(
                 OTDB::STORED_OBJ_TRADE_LIST_NYM,
                 api_.DataFolder(),
-                OTFolders::Nym().Get(),
+                api_.Legacy().Nym(),
                 "trades",  // todo stop
                 // hardcoding.
                 server_id_->str().c_str(),
@@ -2972,7 +2974,7 @@ void ServerContext::process_accept_cron_receipt_reply(
         if (false == OTDB::StoreObject(
                          *pList,
                          api_.DataFolder(),
-                         OTFolders::Nym().Get(),
+                         api_.Legacy().Nym(),
                          "trades",  // todo stop hardcoding.
                          server_id_->str().c_str(),
                          strNymID->Get()))
@@ -3007,6 +3009,7 @@ void ServerContext::process_accept_final_receipt_reply(
     }
 
     OTCronItem::EraseActiveCronReceipt(
+        api_,
         api_.DataFolder(),
         inboxTransaction.GetReferenceToNum(),
         nym_->ID(),
@@ -3015,7 +3018,7 @@ void ServerContext::process_accept_final_receipt_reply(
 
 void ServerContext::process_accept_item_receipt_reply(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Identifier& accountID,
     const Message& reply,
     const OTTransaction& inboxTransaction,
@@ -3126,7 +3129,7 @@ void ServerContext::process_accept_item_receipt_reply(
 
 void ServerContext::process_accept_pending_reply(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Identifier& accountID,
     const Item& acceptItemReceipt,
     const Message& reply,
@@ -3287,6 +3290,7 @@ bool ServerContext::process_account_data(
             }
 
             OTCronItem::EraseActiveCronReceipt(
+                api_,
                 api_.DataFolder(),
                 transaction.GetReferenceToNum(),
                 nym_->ID(),
@@ -3345,7 +3349,7 @@ bool ServerContext::process_account_data(
 
 bool ServerContext::process_account_push(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const proto::OTXPush& push,
     const PasswordPrompt& reason)
 {
@@ -3375,7 +3379,7 @@ bool ServerContext::process_account_push(
 
 bool ServerContext::process_box_item(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Identifier& accountID,
     const proto::OTXPush& push,
     const PasswordPrompt& reason)
@@ -3492,7 +3496,7 @@ bool ServerContext::process_get_nymbox_response(
 bool ServerContext::process_check_nym_response(
     const Lock& lock,
     const PasswordPrompt& reason,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply)
 {
     update_nymbox_hash(lock, reply);
@@ -3574,7 +3578,7 @@ bool ServerContext::process_get_account_data(
 
 bool ServerContext::process_get_box_receipt_response(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     const PasswordPrompt& reason)
 {
@@ -3607,7 +3611,7 @@ bool ServerContext::process_get_box_receipt_response(
 
 bool ServerContext::process_get_box_receipt_response(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Identifier& accountID,
     const std::shared_ptr<OTTransaction> receipt,
     const String& serialized,
@@ -3739,7 +3743,7 @@ bool ServerContext::process_get_market_list_response(
     if (reply.m_lDepth == 0) {
         bool success = storage.EraseValueByKey(
             api_.DataFolder(),
-            OTFolders::Market().Get(),   // "markets"
+            api_.Legacy().Market(),      // "markets"
             reply.m_strNotaryID->Get(),  // "markets/<notaryID>"
             marketDatafile->Get(),
             "");  // "markets/<notaryID>/market_data.bin"
@@ -3794,7 +3798,7 @@ bool ServerContext::process_get_market_list_response(
     bool success = storage.StoreObject(
         *pMarketList,
         api_.DataFolder(),
-        OTFolders::Market().Get(),   // "markets"
+        api_.Legacy().Market(),      // "markets"
         reply.m_strNotaryID->Get(),  // "markets/<notaryID>"
         marketDatafile->Get(),
         "");  // "markets/<notaryID>/market_data.bin"
@@ -3830,7 +3834,7 @@ bool ServerContext::process_get_market_offers_response(
     if (reply.m_lDepth == 0) {
         auto success = storage.EraseValueByKey(
             api_.DataFolder(),
-            OTFolders::Market().Get(),   // "markets"
+            api_.Legacy().Market(),      // "markets"
             reply.m_strNotaryID->Get(),  // "markets/<notaryID>",
             "offers",                    // "markets/<notaryID>/offers"
                                          // todo stop hardcoding.
@@ -3885,7 +3889,7 @@ bool ServerContext::process_get_market_offers_response(
     bool success = storage.StoreObject(
         *pOfferList,
         api_.DataFolder(),
-        OTFolders::Market().Get(),   // "markets"
+        api_.Legacy().Market(),      // "markets"
         reply.m_strNotaryID->Get(),  // "markets/<notaryID>",
         "offers",                    // "markets/<notaryID>/offers"
                                      // todo stop hardcoding.
@@ -3923,7 +3927,7 @@ bool ServerContext::process_get_market_recent_trades_response(
     if (reply.m_lDepth == 0) {
         bool success = storage.EraseValueByKey(
             api_.DataFolder(),
-            OTFolders::Market().Get(),   // "markets"
+            api_.Legacy().Market(),      // "markets"
             reply.m_strNotaryID->Get(),  // "markets/<notaryID>recent",
                                          // //
                                          // "markets/<notaryID>/recent"
@@ -3981,7 +3985,7 @@ bool ServerContext::process_get_market_recent_trades_response(
     bool success = storage.StoreObject(
         *pTradeList,
         api_.DataFolder(),
-        OTFolders::Market().Get(),   // "markets"
+        api_.Legacy().Market(),      // "markets"
         reply.m_strNotaryID->Get(),  // "markets/<notaryID>"
         "recent",                    // "markets/<notaryID>/recent"
                                      // todo stop hardcoding.
@@ -4042,7 +4046,7 @@ bool ServerContext::process_get_nym_market_offers_response(
     if (reply.m_lDepth == 0) {
         bool success = storage.EraseValueByKey(
             api_.DataFolder(),
-            OTFolders::Nym().Get(),      // "nyms"
+            api_.Legacy().Nym(),         // "nyms"
             reply.m_strNotaryID->Get(),  // "nyms/<notaryID>",
             "offers",                    // "nyms/<notaryID>/offers"
                                          // todo stop hardcoding.
@@ -4096,7 +4100,7 @@ bool ServerContext::process_get_nym_market_offers_response(
     bool success = storage.StoreObject(
         *pOfferList,
         api_.DataFolder(),
-        OTFolders::Nym().Get(),      // "nyms"
+        api_.Legacy().Nym(),         // "nyms"
         reply.m_strNotaryID->Get(),  // "nyms/<notaryID>",
         "offers",                    // "nyms/<notaryID>/offers",
         offerDatafile->Get());       // "nyms/<notaryID>/offers/<NymID>.bin"
@@ -4125,7 +4129,7 @@ void ServerContext::process_incoming_instrument(
 
 void ServerContext::process_incoming_message(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const OTTransaction& receipt,
     const PasswordPrompt& reason) const
 {
@@ -4314,7 +4318,7 @@ bool ServerContext::process_issue_unit_definition_response(
 
 bool ServerContext::process_notarize_transaction_response(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     const PasswordPrompt& reason)
 {
@@ -4385,7 +4389,7 @@ bool ServerContext::process_notarize_transaction_response(
 
 bool ServerContext::process_process_box_response(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     const BoxType type,
     const Identifier& accountID,
@@ -4478,7 +4482,7 @@ bool ServerContext::process_process_box_response(
         OTDB::StorePlainString(
             encoded->Get(),
             api_.DataFolder(),
-            OTFolders::Receipt().Get(),
+            api_.Legacy().Receipt(),
             notaryID->Get(),
             filename->Get(),
             "");
@@ -4492,7 +4496,7 @@ bool ServerContext::process_process_box_response(
         OTDB::StorePlainString(
             encoded->Get(),
             api_.DataFolder(),
-            OTFolders::Receipt().Get(),
+            api_.Legacy().Receipt(),
             notaryID->Get(),
             filename->Get(),
             "");
@@ -4503,7 +4507,7 @@ bool ServerContext::process_process_box_response(
 
 bool ServerContext::process_process_inbox_response(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     Ledger& ledger,
     Ledger& responseLedger,
@@ -4814,7 +4818,7 @@ bool ServerContext::process_request_admin_response(
 
 bool ServerContext::process_register_nym_response(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     const PasswordPrompt& reason)
 {
@@ -4836,7 +4840,7 @@ bool ServerContext::process_register_nym_response(
 
 bool ServerContext::process_reply(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const std::set<OTManagedNumber>& managed,
     const Message& reply,
     const PasswordPrompt& reason)
@@ -4970,7 +4974,7 @@ bool ServerContext::process_reply(
 
 void ServerContext::process_response_transaction(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     OTTransaction& response,
     const PasswordPrompt& reason)
@@ -5048,7 +5052,7 @@ void ServerContext::process_response_transaction(
     if (false == armored->WriteArmoredString(encoded, "TRANSACTION")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving transaction receipt "
-            "(failed writing armored string): ")(OTFolders::Receipt())(
+            "(failed writing armored string): ")(api_.Legacy().Receipt())(
             PathSeparator())(server_id_->str())(PathSeparator())(receiptID)
             .Flush();
 
@@ -5067,7 +5071,7 @@ void ServerContext::process_response_transaction(
         OTDB::StorePlainString(
             encoded->Get(),
             api_.DataFolder(),
-            OTFolders::Receipt().Get(),
+            api_.Legacy().Receipt(),
             server_id_->str(),
             filename->Get(),
             "");
@@ -5076,7 +5080,7 @@ void ServerContext::process_response_transaction(
         OTDB::StorePlainString(
             encoded->Get(),
             api_.DataFolder(),
-            OTFolders::Receipt().Get(),
+            api_.Legacy().Receipt(),
             server_id_->str(),
             filename->Get(),
             "");
@@ -5206,7 +5210,7 @@ void ServerContext::process_response_transaction_cash_deposit(
 #endif
 
 void ServerContext::process_response_transaction_cheque_deposit(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Identifier& accountID,
     const Message* reply,
     const Item& replyItem,
@@ -5472,13 +5476,13 @@ void ServerContext::process_response_transaction_cron(
     {
         const bool bExists1 = OTDB::Exists(
             api_.DataFolder(),
-            OTFolders::PaymentInbox().Get(),
+            api_.Legacy().PaymentInbox(),
             server_id_->str(),
             nymID.str(),
             "");
         const bool bExists2 = OTDB::Exists(
             api_.DataFolder(),
-            OTFolders::RecordBox().Get(),
+            api_.Legacy().RecordBox(),
             server_id_->str(),
             nymID.str(),
             "");
@@ -5849,7 +5853,7 @@ void ServerContext::process_response_transaction_cron(
 
 void ServerContext::process_response_transaction_deposit(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     const itemType type,
     OTTransaction& response,
@@ -5990,7 +5994,7 @@ void ServerContext::process_response_transaction_pay_dividend(
 
 void ServerContext::process_response_transaction_transfer(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     const itemType type,
     OTTransaction& response,
@@ -6064,7 +6068,7 @@ void ServerContext::process_response_transaction_transfer(
 #if OT_CASH
 void ServerContext::process_response_transaction_withdrawal(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Message& reply,
     const itemType type,
     OTTransaction& response,
@@ -6117,7 +6121,7 @@ void ServerContext::process_response_transaction_withdrawal(
 
 bool ServerContext::process_incoming_cash(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const TransactionNumber number,
     const PeerObject& incoming,
     const Message& message,
@@ -6335,7 +6339,7 @@ bool ServerContext::process_unregister_nym_response(
 
 void ServerContext::process_unseen_reply(
     const Lock& lock,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const Item& input,
     ReplyNoticeOutcomes& notices,
     const PasswordPrompt& reason)
@@ -6391,7 +6395,7 @@ std::shared_ptr<const blind::Purse> ServerContext::Purse(
 #endif
 
 ServerContext::QueueResult ServerContext::Queue(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     std::shared_ptr<Message> message,
     const PasswordPrompt& reason,
     const ExtraArgs& args)
@@ -6402,7 +6406,7 @@ ServerContext::QueueResult ServerContext::Queue(
 }
 
 ServerContext::QueueResult ServerContext::Queue(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     std::shared_ptr<Message> message,
     std::shared_ptr<Ledger> inbox,
     std::shared_ptr<Ledger> outbox,
@@ -6440,7 +6444,7 @@ ServerContext::QueueResult ServerContext::Queue(
 }
 
 ServerContext::QueueResult ServerContext::RefreshNymbox(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const PasswordPrompt& reason)
 {
     START();
@@ -6686,13 +6690,13 @@ bool ServerContext::remove_nymbox_item(
                 const auto notaryID = String::Factory(server_id_);
                 const bool exists1 = OTDB::Exists(
                     api_.DataFolder(),
-                    OTFolders::PaymentInbox().Get(),
+                    api_.Legacy().PaymentInbox(),
                     notaryID->Get(),
                     nymID.str(),
                     "");
                 const bool exists2 = OTDB::Exists(
                     api_.DataFolder(),
-                    OTFolders::RecordBox().Get(),
+                    api_.Legacy().RecordBox(),
                     notaryID->Get(),
                     nymID.str(),
                     "");
@@ -6962,6 +6966,7 @@ bool ServerContext::remove_nymbox_item(
             }
 
             OTCronItem::EraseActiveCronReceipt(
+                api_,
                 api_.DataFolder(),
                 serverTransaction->GetReferenceToNum(),
                 nymID,
@@ -7105,7 +7110,7 @@ void ServerContext::scan_number_set(
 }
 
 NetworkReplyMessage ServerContext::SendMessage(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const std::set<OTManagedNumber>& pending,
     opentxs::ServerContext& context,
     const Message& message,
@@ -7334,7 +7339,7 @@ bool ServerContext::ShouldRename(
 ServerContext::QueueResult ServerContext::start(
     const Lock& decisionLock,
     const PasswordPrompt& reason,
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     std::shared_ptr<Message> message,
     const ExtraArgs& args,
     const proto::DeliveryState state,
