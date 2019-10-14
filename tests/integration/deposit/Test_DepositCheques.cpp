@@ -406,10 +406,17 @@ TEST_F(Test_DepositCheques, pay_alice)
     EXPECT_EQ(proto::LASTREPLYSTATUS_MESSAGESUCCESS, future.get().first);
 
     issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_id_).get();
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
 }
 
 TEST_F(Test_DepositCheques, accept_cheque_alice)
 {
+    // No meaning to this operation other than to ensure the state machine has
+    // completed one full cycle
+    alice_client_.OTX()
+        .DownloadServerContract(alice_nym_id_, server_1_id_, server_1_id_)
+        .second.get();
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
     const auto count = alice_client_.OTX().DepositCheques(alice_nym_id_);
 
     EXPECT_EQ(1, count);
