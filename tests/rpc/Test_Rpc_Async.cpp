@@ -129,7 +129,7 @@ void Test_Rpc_Async::cleanup()
     notification_socket_.reset();
     notification_callback_.reset();
 
-    Log::Sleep(std::chrono::seconds(2));
+    Sleep(std::chrono::seconds(2));
 }
 
 std::size_t Test_Rpc_Async::get_index(const std::int32_t instance)
@@ -715,7 +715,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
             proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE,
             proto::PAYMENTWORKFLOWSTATE_CONVEYED);
 
-        if (workflows.empty()) { Log::Sleep(std::chrono::milliseconds(100)); }
+        if (workflows.empty()) { Sleep(std::chrono::milliseconds(100)); }
     } while (workflows.empty() && std::time(nullptr) < end);
 
     ASSERT_TRUE(!workflows.empty());
@@ -782,7 +782,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
             proto::PAYMENTWORKFLOWSTATE_COMPLETED);
 
         if (receiverworkflows.empty()) {
-            Log::Sleep(std::chrono::milliseconds(100));
+            Sleep(std::chrono::milliseconds(100));
         }
     } while (receiverworkflows.empty() && std::time(nullptr) < end);
 

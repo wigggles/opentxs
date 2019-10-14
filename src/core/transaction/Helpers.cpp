@@ -337,8 +337,8 @@ bool VerifyBoxReceiptExists(
 
     LogDetail(OT_METHOD)(__FUNCTION__)(": ")(
         bExists ? "(Already have this one)" : "(Need to download this one) : ")(
-        strFolder1name)(Log::PathSeparator())(strFolder2name)(
-        Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(strFilename)
+        strFolder1name)(PathSeparator())(strFolder2name)(PathSeparator())(
+        strFolder3name)(PathSeparator())(strFilename)
         .Flush();
 
     return bExists;
@@ -369,8 +369,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     if (!theAbbrev.IsAbbreviated()) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load box receipt ")(
             theAbbrev.GetTransactionNum())(
-            ": "
-            "(Because argument 'theAbbrev' wasn't abbreviated).")
+            ": (Because argument 'theAbbrev' wasn't abbreviated).")
             .Flush();
         return nullptr;
     }
@@ -400,9 +399,8 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
             strFolder3name->Get(),
             strFilename->Get())) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Box receipt does not exist: ")(
-            strFolder1name)(Log::PathSeparator())(strFolder2name)(
-            Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(
-            strFilename)
+            strFolder1name)(PathSeparator())(strFolder2name)(PathSeparator())(
+            strFolder3name)(PathSeparator())(strFilename)
             .Flush();
         return nullptr;
     }
@@ -417,9 +415,8 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
         strFilename->Get()));
     if (strFileContents.length() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
-            strFolder1name)(Log::PathSeparator())(strFolder2name)(
-            Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(
-            strFilename)(".")
+            strFolder1name)(PathSeparator())(strFolder2name)(PathSeparator())(
+            strFolder3name)(PathSeparator())(strFilename)(".")
             .Flush();
         return nullptr;
     }
@@ -429,9 +426,9 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     if (!strRawFile->Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error reading file (resulting output "
-            "string is empty): ")(strFolder1name)(Log::PathSeparator())(
-            strFolder2name)(Log::PathSeparator())(strFolder3name)(
-            Log::PathSeparator())(strFilename)(".")
+            "string is empty): ")(strFolder1name)(PathSeparator())(
+            strFolder2name)(PathSeparator())(strFolder3name)(PathSeparator())(
+            strFilename)(".")
             .Flush();
         return nullptr;
     }
@@ -442,11 +439,10 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     auto pTransType = theAbbrev.API().Factory().Transaction(strRawFile, reason);
 
     if (false == bool(pTransType)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error instantiating transaction "
-            "type based on strRawFile: ")(strFolder1name)(Log::PathSeparator())(
-            strFolder2name)(Log::PathSeparator())(strFolder3name)(
-            Log::PathSeparator())(strFilename)(".")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error instantiating transaction "
+                                           "type based on strRawFile: ")(
+            strFolder1name)(PathSeparator())(strFolder2name)(PathSeparator())(
+            strFolder3name)(PathSeparator())(strFilename)(".")
             .Flush();
         return nullptr;
     }
@@ -458,8 +454,8 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error dynamic_cast from transaction "
             "type to transaction, based on strRawFile: ")(strFolder1name)(
-            Log::PathSeparator())(strFolder2name)(Log::PathSeparator())(
-            strFolder3name)(Log::PathSeparator())(strFilename)(".")
+            PathSeparator())(strFolder2name)(PathSeparator())(strFolder3name)(
+            PathSeparator())(strFilename)(".")
             .Flush();
         return nullptr;
     }
@@ -474,17 +470,16 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
 
     if (!bSuccess) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed verifying Box Receipt: ")(
-            strFolder1name)(Log::PathSeparator())(strFolder2name)(
-            Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(
-            strFilename)(".")
+            strFolder1name)(PathSeparator())(strFolder2name)(PathSeparator())(
+            strFolder3name)(PathSeparator())(strFilename)(".")
             .Flush();
 
         return nullptr;
     } else
         LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": Successfully loaded Box Receipt in: ")(strFolder1name)(
-            Log::PathSeparator())(strFolder2name)(Log::PathSeparator())(
-            strFolder3name)(Log::PathSeparator())(strFilename)
+            PathSeparator())(strFolder2name)(PathSeparator())(strFolder3name)(
+            PathSeparator())(strFilename)
             .Flush();
 
     // Todo: security analysis. By this point we've verified the hash of the

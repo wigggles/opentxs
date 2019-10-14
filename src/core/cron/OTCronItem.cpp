@@ -125,7 +125,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
 
     if (!OTDB::Exists(core.DataFolder(), szFoldername, szFilename, "", "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
         return nullptr;
     }
@@ -138,7 +138,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
 
     if (strFileContents->GetLength() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
         return nullptr;
     } else
@@ -172,8 +172,8 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
             szFilename,
             "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
-            szFoldername)(Log::PathSeparator())(strNotaryID)(
-            Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
+            szFilename)(".")
             .Flush();
         return nullptr;
     }
@@ -188,8 +188,8 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
 
     if (strFileContents->GetLength() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
-            szFoldername)(Log::PathSeparator())(strNotaryID)(
-            Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
+            szFilename)(".")
             .Flush();
         return nullptr;
     } else
@@ -321,8 +321,8 @@ bool OTCronItem::EraseActiveCronReceipt(
                     "")) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(
                     ": FYI, failure erasing recurring IDs file: ")(
-                    szFoldername)(Log::PathSeparator())(strNotaryID)(
-                    Log::PathSeparator())(strListFilename)(".")
+                    szFoldername)(PathSeparator())(strNotaryID)(
+                    PathSeparator())(strListFilename)(".")
                     .Flush();
             }
         } else {
@@ -336,8 +336,8 @@ bool OTCronItem::EraseActiveCronReceipt(
             {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error re-saving recurring IDs (failed writing "
-                    "armored string): ")(szFoldername)(Log::PathSeparator())(
-                    strNotaryID)(Log::PathSeparator())(strListFilename)(".")
+                    "armored string): ")(szFoldername)(PathSeparator())(
+                    strNotaryID)(PathSeparator())(strListFilename)(".")
                     .Flush();
                 return false;
             } else {
@@ -352,8 +352,8 @@ bool OTCronItem::EraseActiveCronReceipt(
                 if (!bSaved) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Error re-saving recurring IDs: ")(szFoldername)(
-                        Log::PathSeparator())(strNotaryID)(
-                        Log::PathSeparator())(strListFilename)(".")
+                        PathSeparator())(strNotaryID)(PathSeparator())(
+                        strListFilename)(".")
                         .Flush();
                     return false;
                 }
@@ -367,8 +367,8 @@ bool OTCronItem::EraseActiveCronReceipt(
     if (!OTDB::Exists(
             dataFolder, szFoldername, strNotaryID->Get(), szFilename, "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
-            szFoldername)(Log::PathSeparator())(strNotaryID)(
-            Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
+            szFilename)(".")
             .Flush();
         return false;
     }
@@ -376,8 +376,8 @@ bool OTCronItem::EraseActiveCronReceipt(
     if (!OTDB::EraseValueByKey(
             dataFolder, szFoldername, strNotaryID->Get(), szFilename, "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error erasing file: ")(
-            szFoldername)(Log::PathSeparator())(strNotaryID)(
-            Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
+            szFilename)(".")
             .Flush();
         return false;
     }
@@ -406,9 +406,8 @@ bool OTCronItem::SaveActiveCronReceipt(
             "")) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": Cron Record already exists for transaction ")(
-            GetTransactionNum())(" ")(szFoldername)(Log::PathSeparator())(
-            strNotaryID)(Log::PathSeparator())(szFilename)(", ")(
-            "overwriting. ")
+            GetTransactionNum())(" ")(szFoldername)(PathSeparator())(
+            strNotaryID)(PathSeparator())(szFilename)(", ")("overwriting. ")
             .Flush();
         // NOTE: We could just return here. But what if the record we have is
         // corrupted somehow?
@@ -463,8 +462,8 @@ bool OTCronItem::SaveActiveCronReceipt(
             {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error saving recurring IDs (failed writing armored "
-                    "string): ")(szFoldername)(Log::PathSeparator())(
-                    strNotaryID)(Log::PathSeparator())(strListFilename)(".")
+                    "string): ")(szFoldername)(PathSeparator())(strNotaryID)(
+                    PathSeparator())(strListFilename)(".")
                     .Flush();
                 return false;
             }
@@ -480,7 +479,7 @@ bool OTCronItem::SaveActiveCronReceipt(
             if (!bSaved) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error saving recurring IDs: ")(szFoldername)(
-                    Log::PathSeparator())(strNotaryID)(Log::PathSeparator())(
+                    PathSeparator())(strNotaryID)(PathSeparator())(
                     strListFilename)(".")
                     .Flush();
                 return false;
@@ -495,8 +494,8 @@ bool OTCronItem::SaveActiveCronReceipt(
         ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving file (failed writing armored string): ")(
-            szFoldername)(Log::PathSeparator())(strNotaryID)(
-            Log::PathSeparator())(szFilename)("")
+            szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
+            szFilename)("")
             .Flush();
         return false;
     }
@@ -511,8 +510,8 @@ bool OTCronItem::SaveActiveCronReceipt(
 
     if (!bSaved) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving file: ")(
-            szFoldername)(Log::PathSeparator())(strNotaryID)(
-            Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
+            szFilename)(".")
             .Flush();
         return false;
     }
@@ -543,7 +542,7 @@ bool OTCronItem::SaveCronReceipt()
     if (OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Cron Record already exists for transaction ")(
-            GetTransactionNum())(" ")(szFoldername)(Log::PathSeparator())(
+            GetTransactionNum())(" ")(szFoldername)(PathSeparator())(
             szFilename)(", yet inexplicably attempted to record it again.")
             .Flush();
         return false;
@@ -556,7 +555,7 @@ bool OTCronItem::SaveCronReceipt()
         ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving file (failed writing armored string): ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }
@@ -566,7 +565,7 @@ bool OTCronItem::SaveCronReceipt()
 
     if (!bSaved) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving file: ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }

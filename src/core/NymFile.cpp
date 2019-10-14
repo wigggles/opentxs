@@ -737,7 +737,7 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
         strNym->Get(), api_.DataFolder(), szFoldername, szFilename, "", "");
     if (!bSaved)
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving file: ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
 
     return bSaved;

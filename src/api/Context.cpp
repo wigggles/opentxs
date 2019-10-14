@@ -237,7 +237,6 @@ void Context::Init_Log(const std::int32_t argLevel)
     OT_ASSERT(legacy_)
 
     const auto& config = Config(legacy_->LogConfigFilePath());
-    const auto init = Log::Init(config);
     bool notUsed{false};
     std::int64_t level{0};
 
@@ -256,10 +255,6 @@ void Context::Init_Log(const std::int32_t argLevel)
             notUsed);
         level = argLevel;
     }
-
-    Log::SetLogLevel(static_cast<std::int32_t>(level));
-
-    if (false == init) { abort(); }
 }
 
 void Context::init_pid(const Lock& lock) const
@@ -349,7 +344,6 @@ void Context::shutdown()
     server_.clear();
     client_.clear();
     crypto_.reset();
-    Log::Cleanup();
 
     for (auto& config : config_) { config.second.reset(); }
 

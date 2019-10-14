@@ -129,7 +129,7 @@ void ServerConnection::activity_timer()
             }
         }
 
-        Log::Sleep(std::chrono::seconds(1));
+        Sleep(std::chrono::seconds(1));
     }
 }
 

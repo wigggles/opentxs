@@ -53,7 +53,7 @@
     {                                                                          \
         if (!running_) { return; }                                             \
                                                                                \
-        Log::Sleep(std::chrono::milliseconds(50));                             \
+        Sleep(std::chrono::milliseconds(50));                                  \
     }
 
 #define OT_METHOD "opentxs::api::client::implementation::Pair::"
@@ -216,7 +216,7 @@ repeat:
     LogTrace(OT_METHOD)(__FUNCTION__)(": Repeating").Flush();
     // Rate limit state machine to reduce unproductive execution while waiting
     // on network activity
-    Log::Sleep(std::chrono::milliseconds(50));
+    Sleep(std::chrono::milliseconds(50));
 
     return true;
 }

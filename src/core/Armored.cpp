@@ -565,7 +565,7 @@ bool Armored::WriteArmoredString(
         bEscaped ? szEscape : "",
         OT_BEGIN_ARMORED,
         str_type.c_str(),  // "%s%s %s-----\n"
-        Log::Version(),    // "Version: Open Transactions %s\n"
+        Version(),         // "Version: Open Transactions %s\n"
         /* No variable */  // "Comment:
         // http://github.com/FellowTraveler/Open-Transactions/wiki\n\n",
         Get(),  //  "%s"     <==== CONTENTS OF THIS OBJECT BEING

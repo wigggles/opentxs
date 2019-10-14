@@ -907,7 +907,7 @@ bool Contract::AddBookendsAroundContent(
             "Comment: "
             "http://opentransactions.org\n",
             strContractType.Get(),
-            Log::Version());
+            Version());
 
         if (sig->getMetaData().HasMetadata())
             strTemp->Concatenate(
@@ -974,7 +974,7 @@ bool Contract::WriteContract(
     if (!m_strRawFile->Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving file (contract contents are empty): ")(folder)(
-            Log::PathSeparator())(filename)(".")
+            PathSeparator())(filename)(".")
             .Flush();
 
         return false;
@@ -987,7 +987,7 @@ bool Contract::WriteContract(
         ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving file (failed writing armored string): ")(folder)(
-            Log::PathSeparator())(filename)(".")
+            PathSeparator())(filename)(".")
             .Flush();
 
         return false;
@@ -998,7 +998,7 @@ bool Contract::WriteContract(
 
     if (!bSaved) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving file: ")(folder)(
-            Log::PathSeparator())(filename)(".")
+            PathSeparator())(filename)(".")
             .Flush();
 
         return false;
@@ -1034,7 +1034,7 @@ bool Contract::LoadContractRawFile()
 
     if (!OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "")) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }
@@ -1047,7 +1047,7 @@ bool Contract::LoadContractRawFile()
 
     if (!strFileContents->Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
-            szFoldername)(Log::PathSeparator())(szFilename)(".")
+            szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }
@@ -1088,7 +1088,7 @@ bool Contract::LoadContract(
     else {
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Failed loading raw contract file: ")(m_strFoldername)(
-            Log::PathSeparator())(m_strFilename)(".")
+            PathSeparator())(m_strFilename)(".")
             .Flush();
     }
     return false;
@@ -1159,7 +1159,7 @@ bool Contract::ParseRawFile(const PasswordPrompt& reason)
     if (!m_strRawFile->GetLength()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Empty m_strRawFile in Contract::ParseRawFile. Filename: ")(
-            m_strFoldername)(Log::PathSeparator())(m_strFilename)(".")
+            m_strFoldername)(PathSeparator())(m_strFilename)(".")
             .Flush();
         return false;
     }

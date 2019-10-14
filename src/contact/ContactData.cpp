@@ -15,6 +15,7 @@
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <sstream>
 

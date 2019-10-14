@@ -118,7 +118,7 @@ void Scheduler::thread()
     while (running_) {
         // Storage has its own interval checking.
         storage_gc_hook();
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 }
 

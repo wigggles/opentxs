@@ -109,7 +109,7 @@ const api::Core& Server::API() const { return manager_; }
 /// Currently the test server calls this 10 times per second.
 /// It also processes all the input/output at the same rate.
 /// It sleeps in between. (See testserver.cpp for the call
-/// and OTLog::Sleep() for the sleep code.)
+/// and OTSleep() for the sleep code.)
 ///
 void Server::ProcessCron()
 {

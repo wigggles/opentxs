@@ -4486,8 +4486,8 @@ bool ServerContext::process_process_box_response(
         // This should never happen...
         filename->Format("%s.error", receiptID->Get());
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error saving transaction receipt: ")(notaryID)(
-            Log::PathSeparator())(filename)(".")
+            ": Error saving transaction receipt: ")(notaryID)(PathSeparator())(
+            filename)(".")
             .Flush();
         OTDB::StorePlainString(
             encoded->Get(),
@@ -5046,10 +5046,10 @@ void ServerContext::process_response_transaction(
     auto encoded = String::Factory();
 
     if (false == armored->WriteArmoredString(encoded, "TRANSACTION")) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving transaction receipt "
-                                           "(failed writing armored string): ")(
-            OTFolders::Receipt())(Log::PathSeparator())(server_id_->str())(
-            Log::PathSeparator())(receiptID)
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error saving transaction receipt "
+            "(failed writing armored string): ")(OTFolders::Receipt())(
+            PathSeparator())(server_id_->str())(PathSeparator())(receiptID)
             .Flush();
 
         return;

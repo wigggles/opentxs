@@ -9,12 +9,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/LogSource.hpp"
-#include "opentxs/core/String.hpp"
 
 #include <chrono>
-#include <cstdint>
-#include <iostream>
-#include <mutex>
 
 #define OT_TRACE                                                               \
     {                                                                          \
@@ -152,71 +148,16 @@
 
 namespace opentxs
 {
-extern LogSource LogOutput;
-extern LogSource LogNormal;
-extern LogSource LogDetail;
-extern LogSource LogVerbose;
-extern LogSource LogDebug;
-extern LogSource LogTrace;
-extern LogSource LogInsane;
+EXPORT extern LogSource LogOutput;
+EXPORT extern LogSource LogNormal;
+EXPORT extern LogSource LogDetail;
+EXPORT extern LogSource LogVerbose;
+EXPORT extern LogSource LogDebug;
+EXPORT extern LogSource LogTrace;
+EXPORT extern LogSource LogInsane;
 
-class Log
-{
-public:
-    EXPORT static bool Init(
-        const api::Settings& config,
-        const OTString strThreadContext = String::Factory(),
-        const std::int32_t& nLogLevel = 0);
-    EXPORT static bool Cleanup();
-
-    EXPORT static const char* PathSeparator();
-    EXPORT static bool SetLogLevel(const std::int32_t& nLogLevel);
-    EXPORT static bool Sleep(const std::chrono::microseconds us);
-    EXPORT static bool StringFill(
-        String& out_strString,
-        const char* szString,
-        std::int32_t iLength,
-        const char* szAppend = nullptr);
-    EXPORT static void vError(const char* szError, ...)  // stderr
-        ATTR_PRINTF(1, 2);
-    EXPORT static const char* Version();
-    EXPORT static void vOutput(
-        std::int32_t nVerbosity,
-        const char* szOutput,
-        ...) ATTR_PRINTF(2, 3);
-
-private:
-    static Log* pLogger;
-    static const OTString m_strVersion;
-    static const OTString m_strPathSeparator;
-
-    const api::Settings& config_;
-    std::int32_t m_nLogLevel;
-    bool m_bInitialized;
-    bool write_log_file_;
-    OTString m_strLogFileName;
-    OTString m_strLogFilePath;
-    std::recursive_mutex lock_;
-
-    static bool CheckLogger(Log* pLogger);
-    static void Error(const char* szError);
-    static const String& GetLogFilePath();
-    static const String& GetPathSeparator();
-    static const String& GetVersion();
-    static bool IsInitialized();
-    static const char* LogFilePath();
-    static std::int32_t LogLevel();
-    static bool LogToFile(const String& strOutput);
-    static void Output(
-        std::int32_t nVerbosity,
-        const char* szOutput);  // stdout
-
-    Log(const api::Settings& config);
-    Log() = delete;
-    Log(const Log&) = delete;
-    Log(Log&&) = delete;
-    Log& operator=(const Log&) = delete;
-    Log& operator=(Log&&) = delete;
-};
+EXPORT const char* PathSeparator();
+EXPORT bool Sleep(const std::chrono::microseconds us);
+EXPORT const char* Version();
 }  // namespace opentxs
 #endif

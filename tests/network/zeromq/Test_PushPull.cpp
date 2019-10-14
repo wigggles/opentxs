@@ -78,7 +78,7 @@ TEST_F(Test_PushPull, Push_Pull)
 
     auto end = std::time(nullptr) + 15;
     while (!callbackFinished && std::time(nullptr) < end) {
-        Log::Sleep(std::chrono::milliseconds(100));
+        Sleep(std::chrono::milliseconds(100));
     }
 
     ASSERT_TRUE(callbackFinished);

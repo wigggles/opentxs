@@ -514,7 +514,7 @@ bool Ledger::LoadGeneric(
         if (!OTDB::Exists(api_.DataFolder(), path1, path2, path3, "")) {
             LogDebug(OT_METHOD)(__FUNCTION__)(
                 ": does not exist in OTLedger::Load")(pszType)(": ")(path1)(
-                Log::PathSeparator())(m_strFilename)
+                PathSeparator())(m_strFilename)
                 .Flush();
             return false;
         }
@@ -529,7 +529,7 @@ bool Ledger::LoadGeneric(
 
         if (strFileContents.length() < 2) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(path1)(
-                Log::PathSeparator())(m_strFilename)
+                PathSeparator())(m_strFilename)
                 .Flush();
             return false;
         }
@@ -541,7 +541,7 @@ bool Ledger::LoadGeneric(
     //       LoadContractFromString already handles that automatically.
     if (!strRawFile->Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load box (")(path1)(
-            Log::PathSeparator())(m_strFilename)(") from empty string.")
+            PathSeparator())(m_strFilename)(") from empty string.")
             .Flush();
         return false;
     }
@@ -552,13 +552,13 @@ bool Ledger::LoadGeneric(
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading ")(pszType)(" ")(
             (pString.Exists()) ? "from string"
                                : "from file")(" in OTLedger::Load")(pszType)(
-            ": ")(path1)(Log::PathSeparator())(m_strFilename)
+            ": ")(path1)(PathSeparator())(m_strFilename)
             .Flush();
         return false;
     } else {
         LogVerbose(OT_METHOD)(__FUNCTION__)("Successfully loaded ")(pszType)(
             " ")((pString.Exists()) ? "from string" : "from file")(
-            " in OTLedger::Load")(pszType)(": ")(path1)(Log::PathSeparator())(
+            " in OTLedger::Load")(pszType)(": ")(path1)(PathSeparator())(
             m_strFilename)
             .Flush();
     }
@@ -595,7 +595,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
     if (false ==
         ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving ")(pszType)(
-            " (failed writing armored string): ")(path1)(Log::PathSeparator())(
+            " (failed writing armored string): ")(path1)(PathSeparator())(
             m_strFilename)
             .Flush();
         return false;
@@ -610,12 +610,12 @@ bool Ledger::SaveGeneric(ledgerType theType)
         "");  // <=== SAVING TO DATA STORE.
     if (!bSaved) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error writing ")(pszType)(
-            " to file: ")(path1)(Log::PathSeparator())(m_strFilename)
+            " to file: ")(path1)(PathSeparator())(m_strFilename)
             .Flush();
         return false;
     } else
         LogVerbose(OT_METHOD)(__FUNCTION__)("Successfully saved ")(pszType)(
-            ": ")(path1)(Log::PathSeparator())(m_strFilename)
+            ": ")(path1)(PathSeparator())(m_strFilename)
             .Flush();
 
     return bSaved;
@@ -736,7 +736,7 @@ std::tuple<bool, std::string, std::string, std::string> Ledger::make_filename(
 
     if (false == m_strFilename->Exists()) {
         m_strFilename->Format(
-            "%s%s%s", two.c_str(), Log::PathSeparator(), three.c_str());
+            "%s%s%s", two.c_str(), PathSeparator(), three.c_str());
     }
 
     if (2 > one.size()) { return output; }
@@ -872,51 +872,33 @@ bool Ledger::generate_ledger(
         case ledgerType::nymbox:  // stored by NymID ONLY.
             m_strFoldername = String::Factory(OTFolders::Nymbox().Get());
             m_strFilename->Format(
-                "%s%s%s",
-                strNotaryID->Get(),
-                Log::PathSeparator(),
-                strID->Get());
+                "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::inbox:  // stored by AcctID ONLY.
             m_strFoldername = String::Factory(OTFolders::Inbox().Get());
             m_strFilename->Format(
-                "%s%s%s",
-                strNotaryID->Get(),
-                Log::PathSeparator(),
-                strID->Get());
+                "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::outbox:  // stored by AcctID ONLY.
             m_strFoldername = String::Factory(OTFolders::Outbox().Get());
             m_strFilename->Format(
-                "%s%s%s",
-                strNotaryID->Get(),
-                Log::PathSeparator(),
-                strID->Get());
+                "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::paymentInbox:  // stored by NymID ONLY.
             m_strFoldername = String::Factory(OTFolders::PaymentInbox().Get());
             m_strFilename->Format(
-                "%s%s%s",
-                strNotaryID->Get(),
-                Log::PathSeparator(),
-                strID->Get());
+                "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::recordBox:  // stored by Acct ID *and* Nym ID
                                      // (depending on the box.)
             m_strFoldername = String::Factory(OTFolders::RecordBox().Get());
             m_strFilename->Format(
-                "%s%s%s",
-                strNotaryID->Get(),
-                Log::PathSeparator(),
-                strID->Get());
+                "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::expiredBox:  // stored by Nym ID only.
             m_strFoldername = String::Factory(OTFolders::ExpiredBox().Get());
             m_strFilename->Format(
-                "%s%s%s",
-                strNotaryID->Get(),
-                Log::PathSeparator(),
-                strID->Get());
+                "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::message:
             LogTrace(OT_METHOD)(__FUNCTION__)("Generating message ledger...")
@@ -966,16 +948,15 @@ bool Ledger::generate_ledger(
                 "")) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": ERROR: trying to generate ledger that already exists: ")(
-                szFolder1name)(Log::PathSeparator())(szFolder2name)(
-                Log::PathSeparator())(szFilename)(".")
+                szFolder1name)(PathSeparator())(szFolder2name)(PathSeparator())(
+                szFilename)(".")
                 .Flush();
             return false;
         }
 
         // Okay, it doesn't already exist. Let's generate it.
         LogDetail(OT_METHOD)(__FUNCTION__)(": Generating ")(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)(".")
+            PathSeparator())(szFolder2name)(PathSeparator())(szFilename)(".")
             .Flush();
     }
 

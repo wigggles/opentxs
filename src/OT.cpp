@@ -92,7 +92,7 @@ const api::Context& InitContext(
 void Join()
 {
     while (nullptr != instance_pointer_) {
-        Log::Sleep(std::chrono::milliseconds(250));
+        Sleep(std::chrono::milliseconds(250));
     }
 }
 }  // namespace opentxs

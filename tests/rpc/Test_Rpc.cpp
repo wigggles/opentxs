@@ -170,12 +170,12 @@ protected:
         ThreadStatus status{ThreadStatus::RUNNING};
 
         while (0 == std::get<0>(task)) {
-            Log::Sleep(std::chrono::milliseconds(100));
+            Sleep(std::chrono::milliseconds(100));
             task = api.OTX().DownloadNym(nymID, serverID, nymID);
         }
 
         while (ThreadStatus::RUNNING == status) {
-            Log::Sleep(std::chrono::milliseconds(10));
+            Sleep(std::chrono::milliseconds(10));
             status = api.OTX().Status(std::get<0>(task));
         }
 
@@ -192,12 +192,12 @@ protected:
         ThreadStatus status{ThreadStatus::RUNNING};
 
         while (0 == std::get<0>(task)) {
-            Log::Sleep(std::chrono::milliseconds(100));
+            Sleep(std::chrono::milliseconds(100));
             task = api.OTX().ProcessInbox(nymID, serverID, accountID);
         }
 
         while (ThreadStatus::RUNNING == status) {
-            Log::Sleep(std::chrono::milliseconds(10));
+            Sleep(std::chrono::milliseconds(10));
             status = api.OTX().Status(std::get<0>(task));
         }
 
@@ -1388,7 +1388,7 @@ TEST_F(Test_Rpc, Get_Account_Activity)
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(0, response.accountevent_size());
 
-    Log::Sleep(std::chrono::seconds(1));
+    Sleep(std::chrono::seconds(1));
 
     command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
     command.set_session(0);

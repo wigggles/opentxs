@@ -56,7 +56,7 @@ Mint::Mint(
     m_strFilename->Format(
         "%s%s%s",
         strNotaryID.Get(),
-        Log::PathSeparator(),
+        PathSeparator(),
         strInstrumentDefinitionID.Get());
 
     InitMint();
@@ -83,7 +83,7 @@ Mint::Mint(
     m_strFilename->Format(
         "%s%s%s",
         strNotaryID.Get(),
-        Log::PathSeparator(),
+        PathSeparator(),
         strInstrumentDefinitionID.Get());
 
     InitMint();
@@ -188,15 +188,15 @@ bool Mint::LoadMint(
             m_strFilename->Format(
                 "%s%s%s%s",
                 strNotaryID->Get(),
-                Log::PathSeparator(),  // server appends ".1"
-                                       // or ".PUBLIC" here.
+                PathSeparator(),  // server appends ".1"
+                                  // or ".PUBLIC" here.
                 strInstrumentDefinitionID->Get(),
                 szAppend);
         else
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
-                Log::PathSeparator(),
+                PathSeparator(),
                 strInstrumentDefinitionID->Get());  // client uses only
                                                     // instrument definition
                                                     // id, no append.
@@ -221,8 +221,8 @@ bool Mint::LoadMint(
     if (!OTDB::Exists(
             api_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
-            szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)
+            szFolder1name)(PathSeparator())(szFolder2name)(PathSeparator())(
+            szFilename)
             .Flush();
         return false;
     }
@@ -237,8 +237,8 @@ bool Mint::LoadMint(
 
     if (strFileContents.length() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
-            szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(".")
+            szFolder1name)(PathSeparator())(szFolder2name)(PathSeparator())(
+            szFilename)(".")
             .Flush();
         return false;
     }
@@ -268,14 +268,14 @@ bool Mint::SaveMint(const char* szAppend)
             m_strFilename->Format(
                 "%s%s%s%s",
                 strNotaryID->Get(),
-                Log::PathSeparator(),  // server side
+                PathSeparator(),  // server side
                 strInstrumentDefinitionID->Get(),
                 szAppend);
         else
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
-                Log::PathSeparator(),
+                PathSeparator(),
                 strInstrumentDefinitionID->Get());  // client side
     }
 
@@ -294,8 +294,7 @@ bool Mint::SaveMint(const char* szAppend)
     if (!SaveContractRaw(strRawFile)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving Mintfile (to string): ")(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)(".")
+            PathSeparator())(szFolder2name)(PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }
@@ -307,8 +306,8 @@ bool Mint::SaveMint(const char* szAppend)
         ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error saving mint (Failed writing armored "
-            "string): ")(szFolder1name)(Log::PathSeparator())(szFolder2name)(
-            Log::PathSeparator())(szFilename)(".")
+            "string): ")(szFolder1name)(PathSeparator())(szFolder2name)(
+            PathSeparator())(szFilename)(".")
             .Flush();
         return false;
     }
@@ -323,13 +322,13 @@ bool Mint::SaveMint(const char* szAppend)
     if (!bSaved) {
         if (nullptr != szAppend)
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error writing to file: ")(
-                szFolder1name)(Log::PathSeparator())(szFolder2name)(
-                Log::PathSeparator())(szFilename)(szAppend)(".")
+                szFolder1name)(PathSeparator())(szFolder2name)(PathSeparator())(
+                szFilename)(szAppend)(".")
                 .Flush();
         else
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error writing to file: ")(
-                szFolder1name)(Log::PathSeparator())(szFolder2name)(
-                Log::PathSeparator())(szFilename)(".")
+                szFolder1name)(PathSeparator())(szFolder2name)(PathSeparator())(
+                szFilename)(".")
                 .Flush();
 
         return false;

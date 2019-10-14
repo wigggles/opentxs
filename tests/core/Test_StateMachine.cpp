@@ -25,7 +25,7 @@ public:
     bool callback()
     {
         while (step_.load() <= counter_.load()) {
-            opentxs::Log::Sleep(std::chrono::microseconds(10));
+            opentxs::Sleep(std::chrono::microseconds(10));
         }
 
         ++counter_;

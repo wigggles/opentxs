@@ -318,7 +318,6 @@ class Item;
 class Ledger;
 class Letter;
 class ListenCallbackSwig;
-class Log;
 class ManagedNumber;
 class Message;
 class NumList;

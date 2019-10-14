@@ -48,8 +48,7 @@
             return false;                                                      \
         }                                                                      \
                                                                                \
-        Log::Sleep(                                                            \
-            std::chrono::milliseconds(STATE_MACHINE_READY_MILLISECONDS));      \
+        Sleep(std::chrono::milliseconds(STATE_MACHINE_READY_MILLISECONDS));    \
                                                                                \
         if (shutdown().load()) {                                               \
             op_.Shutdown();                                                    \
@@ -81,8 +80,7 @@
                                                                                \
             return task_done(false);                                           \
         }                                                                      \
-        Log::Sleep(                                                            \
-            std::chrono::milliseconds(STATE_MACHINE_READY_MILLISECONDS));      \
+        Sleep(std::chrono::milliseconds(STATE_MACHINE_READY_MILLISECONDS));    \
                                                                                \
         if (shutdown().load()) {                                               \
             op_.Shutdown();                                                    \
@@ -112,7 +110,7 @@
     {                                                                          \
         if (shutdown().load()) { return false; }                               \
                                                                                \
-        Log::Sleep(std::chrono::milliseconds(a));                              \
+        Sleep(std::chrono::milliseconds(a));                                   \
                                                                                \
         if (shutdown().load()) { return false; }                               \
     }

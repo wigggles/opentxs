@@ -24,6 +24,30 @@
 
 #define OT_METHOD "opentxs::Settings"
 
+bool StringFill(
+    opentxs::String& out_strString,
+    const char* szString,
+    std::int32_t iLength,
+    const char* szAppend = nullptr);
+bool StringFill(
+    opentxs::String& out_strString,
+    const char* szString,
+    std::int32_t iLength,
+    const char* szAppend)
+{
+    std::string strString(szString);
+
+    if (nullptr != szAppend) strString.append(szAppend);
+
+    for (; (static_cast<std::int32_t>(strString.length()) < iLength);
+         strString.append(" "))
+        ;
+
+    out_strString.Set(strString.c_str());
+
+    return true;
+}
+
 namespace opentxs
 {
 api::Settings* Factory::Settings()
@@ -187,8 +211,8 @@ bool Settings::LogChange_str(
                                     : "nullptr";
 
     auto strCategory = String::Factory(), strOption = String::Factory();
-    if (!Log::StringFill(strCategory, strSection.Get(), 12)) return false;
-    if (!Log::StringFill(strOption, strKey.Get(), 30, " to:")) return false;
+    if (!StringFill(strCategory, strSection.Get(), 12)) return false;
+    if (!StringFill(strOption, strKey.Get(), 30, " to:")) return false;
 
     LogDetail(OT_METHOD)(__FUNCTION__)(": Setting ")(strCategory)(" ")(
         strOption)(" ")(szValue)
