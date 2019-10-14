@@ -5,6 +5,8 @@
 
 #include "opentxs/opentxs.hpp"
 
+#include "internal/identity/Identity.hpp"
+
 #include <gtest/gtest.h>
 
 namespace ot = opentxs;
@@ -25,6 +27,57 @@ public:
 };
 
 TEST_F(Test_Nym, init_ot) {}
+
+TEST_F(Test_Nym, storage)
+{
+    const auto alias = std::string{"alias"};
+    std::unique_ptr<ot::identity::internal::Nym> pNym(ot::Factory::Nym(
+        client_, {}, ot::proto::CITEMTYPE_INDIVIDUAL, alias, reason_));
+
+    ASSERT_TRUE(pNym);
+
+    auto& nym = *pNym;
+    nym.SetAlias(alias);
+    const auto id = ot::OTNymID{nym.ID()};
+
+    EXPECT_TRUE(nym.VerifyPseudonym(reason_));
+
+    {
+        const auto serialized = nym.SerializeCredentialIndex(
+            ot::identity::internal::Nym::Mode::Abbreviated);
+
+        EXPECT_TRUE(ot::proto::Validate(serialized, ot::VERBOSE));
+        EXPECT_TRUE(client_.Storage().Store(serialized, nym.Alias()));
+    }
+
+    {
+        const auto nymList = client_.Storage().NymList();
+
+        ASSERT_EQ(1, nymList.size());
+
+        const auto& item = *nymList.begin();
+
+        EXPECT_EQ(item.first, id->str());
+        EXPECT_EQ(item.second, alias);
+    }
+
+    {
+        auto pSerialized = std::shared_ptr<ot::proto::Nym>{};
+
+        ASSERT_TRUE(client_.Storage().Load(id->str(), pSerialized));
+        ASSERT_TRUE(pSerialized);
+
+        const auto& serialized = *pSerialized;
+        pNym.reset(ot::Factory::Nym(client_, serialized, alias, reason_));
+
+        ASSERT_TRUE(pNym);
+
+        const auto& loadedNym = *pNym;
+
+        EXPECT_TRUE(loadedNym.CompareID(id));
+        EXPECT_TRUE(loadedNym.VerifyPseudonym(reason_));
+    }
+}
 
 TEST_F(Test_Nym, default_params)
 {

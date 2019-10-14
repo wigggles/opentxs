@@ -1029,7 +1029,7 @@ Nym_p Wallet::Nym(
             if (pNym && pNym->CompareID(id)) {
                 valid = pNym->VerifyPseudonym(reason);
                 pNym->SetAliasStartup(alias);
-                //             } else {
+            } else {
                 nym_map_.erase(nym);
             }
         } else {
@@ -2071,8 +2071,7 @@ bool Wallet::SaveCredentialIDs(const identity::Nym& nym) const
 
     if (!api_.Storage().Store(index, nym.Alias())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure trying to store "
-            "credential list for Nym: ")(nym.ID())(".")
+            ": Failure trying to store credential list for Nym: ")(nym.ID())
             .Flush();
 
         return false;
