@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,6 +15,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 typedef std::multimap<std::string, crypto::key::Asymmetric*>
     mapOfAsymmetricKeys;
 typedef std::set<const identity::Nym*> setOfNyms;
@@ -22,9 +30,9 @@ typedef std::set<const identity::Nym*> setOfNyms;
 class OTEnvelope
 {
 public:
-    EXPORT OTEnvelope(const api::Core& api);
+    EXPORT OTEnvelope(const api::internal::Core& api);
     EXPORT explicit OTEnvelope(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Armored& theArmoredText);
 
     /** Retrieve ciphertext in ascii armored form */
@@ -58,7 +66,7 @@ public:
 private:
     friend Letter;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     OTData ciphertext_;
 
     OTEnvelope() = delete;

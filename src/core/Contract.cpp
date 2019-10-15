@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,11 +9,11 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
@@ -25,6 +25,8 @@
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.tpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -50,7 +52,7 @@ OTString trim(const String& str)
     return String::Factory(String::trim(s));
 }
 
-Contract::Contract(const api::Core& core)
+Contract::Contract(const api::internal::Core& core)
     : Contract(
           core,
           String::Factory(),
@@ -61,7 +63,7 @@ Contract::Contract(const api::Core& core)
 }
 
 Contract::Contract(
-    const api::Core& core,
+    const api::internal::Core& core,
     const String& name,
     const String& foldername,
     const String& filename,
@@ -85,7 +87,7 @@ Contract::Contract(
 {
 }
 
-Contract::Contract(const api::Core& core, const String& strID)
+Contract::Contract(const api::internal::Core& core, const String& strID)
     : Contract(
           core,
           String::Factory(),
@@ -95,7 +97,7 @@ Contract::Contract(const api::Core& core, const String& strID)
 {
 }
 
-Contract::Contract(const api::Core& core, const Identifier& theID)
+Contract::Contract(const api::internal::Core& core, const Identifier& theID)
     : Contract(core, String::Factory(theID))
 {
 }
@@ -181,7 +183,7 @@ Contract::~Contract() { Release_Contract(); }
 
 bool Contract::SaveToContractFolder()
 {
-    OTString strFoldername(String::Factory(OTFolders::Contract().Get())),
+    OTString strFoldername(String::Factory(api_.Legacy().Contract())),
         strFilename = String::Factory();
 
     GetIdentifier(strFilename);
@@ -801,7 +803,7 @@ void Contract::UpdateContents(const PasswordPrompt& reason)
 //
 // static
 bool Contract::SignFlatText(
-    const api::Core& api,
+    const api::internal::Core& api,
     String& strFlatText,
     const String& strContractType,
     const identity::Nym& theSigner,

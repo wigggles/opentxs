@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,6 +14,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStoragePB.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -778,7 +780,7 @@ Storable* QueryObject(
 
 // Store/Retrieve a Storable object to/from an Armored object.
 
-std::string EncodeObject(const api::Core& api, Storable& theContents)
+std::string EncodeObject(const api::internal::Core& api, Storable& theContents)
 {
     Storage* pStorage = details::s_pStorage;
 
@@ -2422,7 +2424,9 @@ Storable* Storage::QueryObject(
     return pStorable;  // caller is responsible to delete.
 }
 
-std::string Storage::EncodeObject(const api::Core& api, Storable& theContents)
+std::string Storage::EncodeObject(
+    const api::internal::Core& api,
+    Storable& theContents)
 {
     std::string strReturnValue("");
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -249,7 +249,7 @@ protected:
     using ContextMap =
         std::map<ContextID, std::shared_ptr<opentxs::internal::Context>>;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     mutable ContextMap context_map_;
     mutable std::mutex context_map_lock_;
 
@@ -268,7 +268,7 @@ protected:
         const PasswordPrompt& reason,
         Identifier& nymOrNotaryID) const;
 
-    Wallet(const api::Core& core);
+    Wallet(const api::internal::Core& core);
 
 private:
     using AccountMap = std::map<OTIdentifier, AccountLock>;

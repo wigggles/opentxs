@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,7 @@ namespace opentxs::api::client::blockchain::implementation
 class BalanceList final : virtual public internal::BalanceList
 {
 public:
-    const api::Core& API() const noexcept { return api_; }
+    const api::internal::Core& API() const noexcept { return api_; }
     const_iterator::value_type& at(const std::size_t position) const
         noexcept(false) final;
     const_iterator begin() const noexcept final
@@ -48,7 +48,7 @@ private:
     friend opentxs::Factory;
 
     const client::internal::Blockchain& parent_;
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const opentxs::blockchain::Type chain_;
     mutable std::mutex lock_;
     std::vector<std::unique_ptr<internal::BalanceTree>> trees_;

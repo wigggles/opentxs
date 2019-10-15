@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,6 +18,7 @@
 #include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
 
@@ -45,7 +46,7 @@ Function for_each(Range& range, Function f)
 using ReturnType = identity::implementation::Authority;
 
 identity::internal::Authority* Factory::Authority(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const proto::KeyMode mode,
@@ -65,7 +66,7 @@ identity::internal::Authority* Factory::Authority(
 }
 
 identity::internal::Authority* Factory::Authority(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const NymParameters& parameters,
@@ -140,7 +141,7 @@ const VersionConversionMap Authority::nym_to_authority_{
 };
 
 Authority::Authority(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const proto::KeyMode mode,
@@ -191,7 +192,7 @@ Authority::Authority(
 }
 
 Authority::Authority(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const NymParameters& parameters,
@@ -344,7 +345,7 @@ bool Authority::AddVerificationCredential(
 }
 
 auto Authority::create_child_credential(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& parameters,
     const identity::Source& source,
     const credential::internal::Primary& master,
@@ -418,7 +419,7 @@ auto Authority::create_child_credential(
 }
 
 auto Authority::create_contact_credental(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& parameters,
     const identity::Source& source,
     const credential::internal::Primary& master,
@@ -454,7 +455,7 @@ auto Authority::create_contact_credental(
 }
 
 auto Authority::create_key_credential(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& parameters,
     const identity::Source& source,
     const credential::internal::Primary& master,
@@ -493,7 +494,7 @@ auto Authority::create_key_credential(
 }
 
 std::unique_ptr<credential::internal::Primary> Authority::create_master(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& owner,
     const identity::Source& source,
     const VersionNumber version,
@@ -530,7 +531,7 @@ std::unique_ptr<credential::internal::Primary> Authority::create_master(
 
 template <typename Type>
 void Authority::extract_child(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Source& source,
     internal::Authority& authority,
     const credential::internal::Primary& master,
@@ -740,7 +741,7 @@ bool Authority::is_revoked(
 
 template <typename Type>
 auto Authority::load_child(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Source& source,
     internal::Authority& authority,
     const credential::internal::Primary& master,
@@ -890,7 +891,7 @@ bool Authority::LoadChildKeyCredential(
 }
 
 std::unique_ptr<credential::internal::Primary> Authority::load_master(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& owner,
     const identity::Source& source,
     const proto::KeyMode mode,

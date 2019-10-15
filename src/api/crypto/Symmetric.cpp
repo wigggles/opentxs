@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,6 +13,8 @@
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <string>
 
 #include "Symmetric.hpp"
@@ -21,7 +23,7 @@
 
 namespace opentxs
 {
-api::crypto::Symmetric* Factory::Symmetric(const api::Core& api)
+api::crypto::Symmetric* Factory::Symmetric(const api::internal::Core& api)
 {
     return new api::crypto::implementation::Symmetric(api);
 }
@@ -29,7 +31,7 @@ api::crypto::Symmetric* Factory::Symmetric(const api::Core& api)
 
 namespace opentxs::api::crypto::implementation
 {
-Symmetric::Symmetric(const api::Core& api)
+Symmetric::Symmetric(const api::internal::Core& api)
     : api_(api)
 {
 }

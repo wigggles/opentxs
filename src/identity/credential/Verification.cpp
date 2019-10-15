@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,6 +20,7 @@
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
 #include "Base.hpp"
@@ -37,7 +38,7 @@ namespace opentxs
 using ReturnType = identity::credential::implementation::Verification;
 
 identity::credential::internal::Verification* Factory::VerificationCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
@@ -59,7 +60,7 @@ identity::credential::internal::Verification* Factory::VerificationCredential(
 }
 
 identity::credential::internal::Verification* Factory::VerificationCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
@@ -92,7 +93,7 @@ proto::Verification Verification::SigningForm(const proto::Verification& item)
 
 // static
 std::string Verification::VerificationID(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Verification& item)
 {
     auto id = Identifier::Factory();
@@ -105,7 +106,7 @@ std::string Verification::VerificationID(
 namespace opentxs::identity::credential::implementation
 {
 Verification::Verification(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const internal::Primary& master,
@@ -130,7 +131,7 @@ Verification::Verification(
 }
 
 Verification::Verification(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const internal::Primary& master,

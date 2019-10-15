@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -31,6 +31,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 namespace network
 {
 namespace zeromq
@@ -110,7 +118,7 @@ public:
         const ListenCallback& callback,
         const std::string& endpoint) const noexcept = 0;
     EXPORT virtual Pimpl<network::zeromq::Pipeline> Pipeline(
-        const api::Core& api,
+        const api::internal::Core& api,
         std::function<void(zeromq::Message&)> callback) const noexcept = 0;
     EXPORT virtual Pimpl<network::zeromq::Proxy> Proxy(
         socket::Socket& frontend,

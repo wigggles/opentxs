@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,12 +9,12 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
 #include "opentxs/core/Data.hpp"
@@ -24,6 +24,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.tpp"
+
+#include "internal/api/Api.hpp"
 
 #include <ctype.h>
 #include <cstddef>
@@ -46,7 +48,7 @@ const opentxs::VersionNumber opentxs::UnitDefinition::MaxVersion{2};
 namespace opentxs
 {
 UnitDefinition::UnitDefinition(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
@@ -66,7 +68,7 @@ UnitDefinition::UnitDefinition(
 }
 
 UnitDefinition::UnitDefinition(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
     : ot_super(nym)
@@ -319,7 +321,7 @@ bool UnitDefinition::VisitAccountRecords(
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
         OTDB::STORED_OBJ_STRING_MAP,
         dataFolder,
-        OTFolders::Contract().Get(),
+        api_.Legacy().Contract(),
         strAcctRecordFile->Get(),
         "",
         ""));
@@ -423,7 +425,7 @@ bool UnitDefinition::AddAccountRecord(
 
     if (OTDB::Exists(
             dataFolder,
-            OTFolders::Contract().Get(),
+            api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
             "",
             ""))  // the file already exists; let's
@@ -431,7 +433,7 @@ bool UnitDefinition::AddAccountRecord(
         pStorable = OTDB::QueryObject(
             OTDB::STORED_OBJ_STRING_MAP,
             dataFolder,
-            OTFolders::Contract().Get(),
+            api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
             "",
             "");
@@ -504,7 +506,7 @@ bool UnitDefinition::AddAccountRecord(
     if (!OTDB::StoreObject(
             *pMap,
             dataFolder,
-            OTFolders::Contract().Get(),
+            api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
             "",
             "")) {
@@ -546,7 +548,7 @@ bool UnitDefinition::EraseAccountRecord(
 
     if (OTDB::Exists(
             dataFolder,
-            OTFolders::Contract().Get(),
+            api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
             "",
             ""))  // the file already exists; let's
@@ -554,7 +556,7 @@ bool UnitDefinition::EraseAccountRecord(
         pStorable = OTDB::QueryObject(
             OTDB::STORED_OBJ_STRING_MAP,
             dataFolder,
-            OTFolders::Contract().Get(),
+            api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
             "",
             "");
@@ -598,7 +600,7 @@ bool UnitDefinition::EraseAccountRecord(
     if (!OTDB::StoreObject(
             *pMap,
             dataFolder,
-            OTFolders::Contract().Get(),
+            api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
             "",
             "")) {
@@ -617,7 +619,7 @@ bool UnitDefinition::EraseAccountRecord(
 }
 
 UnitDefinition* UnitDefinition::Create(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
@@ -665,7 +667,7 @@ UnitDefinition* UnitDefinition::Create(
 }
 
 UnitDefinition* UnitDefinition::Create(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
@@ -703,7 +705,7 @@ UnitDefinition* UnitDefinition::Create(
 // valid contract. This is used on the client side to produce a template for
 // the server, which actually creates the contract.
 UnitDefinition* UnitDefinition::Create(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const std::string& shortname,
     const std::string& name,
@@ -728,7 +730,7 @@ UnitDefinition* UnitDefinition::Create(
 }
 
 UnitDefinition* UnitDefinition::Factory(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::UnitDefinition& serialized,
     const PasswordPrompt& reason)
@@ -835,7 +837,7 @@ OTIdentifier UnitDefinition::GetID(const Lock& lock) const
 }
 
 OTIdentifier UnitDefinition::GetID(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::UnitDefinition& contract)
 {
     auto id = Identifier::Factory();

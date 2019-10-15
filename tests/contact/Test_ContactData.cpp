@@ -1,10 +1,11 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
-#include "Internal.hpp"
+
+#include "internal/api/client/Client.hpp"
 
 #include <gtest/gtest.h>
 
@@ -15,7 +16,8 @@ class Test_ContactData : public ::testing::Test
 {
 public:
     Test_ContactData()
-        : api_(opentxs::Context().StartClient({}, 0))
+        : api_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
+              opentxs::Context().StartClient({}, 0)))
         , contactData_(
               api_,
               std::string("contactDataNym"),
@@ -37,7 +39,7 @@ public:
     {
     }
 
-    const opentxs::api::client::Manager& api_;
+    const opentxs::api::client::internal::Manager& api_;
     const opentxs::ContactData contactData_;
     const std::shared_ptr<opentxs::ContactItem> activeContactItem_;
 

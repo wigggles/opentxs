@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,13 +7,13 @@
 
 #include "opentxs/core/trade/OTMarket.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -27,6 +27,8 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -43,7 +45,7 @@
 
 namespace opentxs
 {
-OTMarket::OTMarket(const api::Core& core, const char* szFilename)
+OTMarket::OTMarket(const api::internal::Core& core, const char* szFilename)
     : Contract(core)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
@@ -61,10 +63,10 @@ OTMarket::OTMarket(const api::Core& core, const char* szFilename)
 
     InitMarket();
     m_strFilename->Set(szFilename);
-    m_strFoldername->Set(OTFolders::Market().Get());
+    m_strFoldername->Set(api_.Legacy().Market());
 }
 
-OTMarket::OTMarket(const api::Core& core)
+OTMarket::OTMarket(const api::internal::Core& core)
     : Contract(core)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
@@ -82,7 +84,7 @@ OTMarket::OTMarket(const api::Core& core)
 }
 
 OTMarket::OTMarket(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const identifier::UnitDefinition& CURRENCY_TYPE_ID,
@@ -819,7 +821,7 @@ bool OTMarket::LoadMarket(const PasswordPrompt& reason)
     auto MARKET_ID = Identifier::Factory(*this);
     auto str_MARKET_ID = String::Factory(MARKET_ID);
 
-    const char* szFoldername = OTFolders::Market().Get();
+    const char* szFoldername = api_.Legacy().Market();
     const char* szFilename = str_MARKET_ID->Get();
 
     bool bSuccess =
@@ -861,7 +863,7 @@ bool OTMarket::SaveMarket(const PasswordPrompt& reason)
     auto MARKET_ID = Identifier::Factory(*this);
     auto str_MARKET_ID = String::Factory(MARKET_ID);
 
-    const char* szFoldername = OTFolders::Market().Get();
+    const char* szFoldername = api_.Legacy().Market();
     const char* szFilename = str_MARKET_ID->Get();
 
     // Remember, if the market has changed, the new contents will not be written

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,22 +18,22 @@ public:
         const proto::ContactItemType currency =
             proto::CITEMTYPE_BTC) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    std::shared_ptr<const class Contact> Contact(
+    std::shared_ptr<const opentxs::Contact> Contact(
         const Identifier& id,
         const PasswordPrompt& reason) const final;
     OTIdentifier ContactID(const identifier::Nym& nymID) const final;
     ObjectList ContactList() const final;
     std::string ContactName(const Identifier& contactID) const final;
-    std::shared_ptr<const class Contact> Merge(
+    std::shared_ptr<const opentxs::Contact> Merge(
         const Identifier& parent,
         const Identifier& child,
         const PasswordPrompt& reason) const final;
     std::unique_ptr<Editor<class Contact>> mutable_Contact(
         const Identifier& id,
         const PasswordPrompt& reason) const final;
-    std::shared_ptr<const class Contact> NewContact(
+    std::shared_ptr<const opentxs::Contact> NewContact(
         const std::string& label) const final;
-    std::shared_ptr<const class Contact> NewContact(
+    std::shared_ptr<const opentxs::Contact> NewContact(
         const std::string& label,
         const identifier::Nym& nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -43,7 +43,7 @@ public:
         ,
         const PasswordPrompt& reason) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::shared_ptr<const class Contact> NewContactFromAddress(
+    std::shared_ptr<const opentxs::Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
         const PasswordPrompt& reason,
@@ -52,7 +52,7 @@ public:
     OTIdentifier NymToContact(
         const identifier::Nym& nymID,
         const PasswordPrompt& reason) const final;
-    std::shared_ptr<const class Contact> Update(
+    std::shared_ptr<const opentxs::Contact> Update(
         const proto::Nym& nym,
         const PasswordPrompt& reason) const final;
 
@@ -66,7 +66,7 @@ private:
     using ContactMap = std::map<OTIdentifier, ContactLock>;
     using ContactNameMap = std::map<OTIdentifier, std::string>;
 
-    const api::client::Manager& api_;
+    const api::client::internal::Manager& api_;
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
     mutable ContactNameMap contact_name_map_;
@@ -93,10 +93,10 @@ private:
         const std::string& address,
         const proto::ContactItemType currency) const;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    std::shared_ptr<const class Contact> contact(
+    std::shared_ptr<const opentxs::Contact> contact(
         const rLock& lock,
         const std::string& label) const;
-    std::shared_ptr<const class Contact> contact(
+    std::shared_ptr<const opentxs::Contact> contact(
         const PasswordPrompt& reason,
         const rLock& lock,
         const Identifier& id) const;
@@ -114,7 +114,7 @@ private:
         const PasswordPrompt& reason,
         const rLock& lock,
         const Identifier& id) const;
-    std::shared_ptr<const class Contact> new_contact(
+    std::shared_ptr<const opentxs::Contact> new_contact(
         const rLock& lock,
         const PasswordPrompt& reason,
         const std::string& label,
@@ -123,14 +123,14 @@ private:
         ,
         const PaymentCode& paymentCode
 #endif
-        ) const;
+    ) const;
     void refresh_indices(
         const PasswordPrompt& reason,
         const rLock& lock,
         class Contact& contact) const;
     void save(const PasswordPrompt& reason, class Contact* contact) const;
     void start(const PasswordPrompt& reason) final;
-    std::shared_ptr<const class Contact> update_existing_contact(
+    std::shared_ptr<const opentxs::Contact> update_existing_contact(
         const PasswordPrompt& reason,
         const rLock& lock,
         const std::string& label,
@@ -145,7 +145,7 @@ private:
         class Contact& contact,
         const bool replace = false) const;
 
-    Contacts(const api::client::Manager& api);
+    Contacts(const api::client::internal::Manager& api);
     Contacts() = delete;
     Contacts(const Contacts&) = delete;
     Contacts(Contacts&&) = delete;

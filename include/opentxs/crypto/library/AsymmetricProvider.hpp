@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,6 +13,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 namespace crypto
 {
 class AsymmetricProvider
@@ -24,7 +32,7 @@ public:
         const proto::AsymmetricKeyType& type);
 
     EXPORT virtual bool Sign(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const proto::HashType hashType,
@@ -32,7 +40,7 @@ public:
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const = 0;
     EXPORT virtual bool SignContract(
-        const api::Core& api,
+        const api::internal::Core& api,
         const String& strContractUnsigned,
         const key::Asymmetric& theKey,
         Signature& theSignature,  // output

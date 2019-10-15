@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -75,12 +75,12 @@ private:
         const proto::RPCCommand& command) const;
     proto::RPCResponse delete_claim(const proto::RPCCommand& command) const;
     void evaluate_deposit_payment(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const api::client::OTX::Result& result,
         proto::TaskComplete& output,
         const PasswordPrompt& reason) const;
     void evaluate_move_funds(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const api::client::OTX::Result& result,
         proto::RPCResponse& output,
         const PasswordPrompt& reason) const;
@@ -96,19 +96,20 @@ private:
         const api::client::OTX::Result& result,
         proto::TaskComplete& output) const;
     void evaluate_send_payment_transfer(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const api::client::OTX::Result& result,
         proto::RPCResponse& output,
         const PasswordPrompt& reason) const;
     template <typename T>
     void evaluate_transaction_reply(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const Message& reply,
         T& output,
         const PasswordPrompt& reason,
         const proto::RPCResponseCode code =
             proto::RPCRESPONSE_TRANSACTION_FAILED) const;
-    const api::client::Manager* get_client(std::int32_t instance) const;
+    const api::client::internal::Manager* get_client(
+        std::int32_t instance) const;
     proto::RPCResponse get_account_activity(
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_account_balance(
@@ -133,17 +134,17 @@ private:
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_workflow(const proto::RPCCommand& command) const;
     bool immediate_create_account(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const identifier::Nym& owner,
         const identifier::Server& notary,
         const identifier::UnitDefinition& unit,
         const PasswordPrompt& reason) const;
     bool immediate_register_issuer_account(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const identifier::Nym& owner,
         const identifier::Server& notary) const;
     bool immediate_register_nym(
-        const api::client::Manager& client,
+        const api::client::internal::Manager& client,
         const identifier::Server& notary,
         const PasswordPrompt& reason) const;
     proto::RPCResponse import_seed(const proto::RPCCommand& command) const;

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -30,6 +30,7 @@ StorageParent::StorageParent(
     const ArgList& args,
     const api::Crypto& crypto,
     const api::Settings& config,
+    const api::Legacy& legacy,
     const std::string& dataFolder)
     : crypto_(crypto)
     , config_(config)
@@ -54,6 +55,7 @@ StorageParent::StorageParent(
           running,
           crypto_,
           config_,
+          legacy,
           data_folder_,
           primary_storage_plugin_,
           archive_directory_,

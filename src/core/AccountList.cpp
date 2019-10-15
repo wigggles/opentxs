@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <sys/types.h>
@@ -37,14 +39,16 @@ using namespace io;
 
 namespace opentxs
 {
-AccountList::AccountList(const api::Core& core)
+AccountList::AccountList(const api::internal::Core& core)
     : api_(core)
     , acctType_(Account::voucher)
     , mapAcctIDs_{}
 {
 }
 
-AccountList::AccountList(const api::Core& core, Account::AccountType acctType)
+AccountList::AccountList(
+    const api::internal::Core& core,
+    Account::AccountType acctType)
     : api_(core)
     , acctType_(acctType)
     , mapAcctIDs_{}

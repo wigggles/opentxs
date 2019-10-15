@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,6 +15,8 @@
 #include "opentxs/otx/Request.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
+
 #include "Request.hpp"
 
 template class opentxs::Pimpl<opentxs::otx::Request>;
@@ -27,7 +29,7 @@ const VersionNumber Request::DefaultVersion{2};
 const VersionNumber Request::MaxVersion{2};
 
 OTXRequest Request::Factory(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p signer,
     const identifier::Server& server,
     const proto::ServerRequestType type,
@@ -50,7 +52,7 @@ OTXRequest Request::Factory(
 }
 
 OTXRequest Request::Factory(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::ServerRequest serialized,
     const PasswordPrompt& reason)
 {
@@ -61,7 +63,7 @@ OTXRequest Request::Factory(
 namespace opentxs::otx::implementation
 {
 Request::Request(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p signer,
     const identifier::Nym& initiator,
     const identifier::Server& server,
@@ -78,7 +80,7 @@ Request::Request(
 }
 
 Request::Request(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::ServerRequest serialized,
     const PasswordPrompt& reason)
     : Signable(extract_nym(api, serialized, reason), serialized.version(), "")
@@ -116,7 +118,7 @@ proto::ServerRequest Request::Contract() const
 }
 
 Nym_p Request::extract_nym(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::ServerRequest serialized,
     const PasswordPrompt& reason)
 {

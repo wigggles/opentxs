@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,6 +9,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
@@ -16,7 +17,6 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -27,6 +27,7 @@
 #include "opentxs/Types.hpp"
 
 #include "api/Core.hpp"
+#include "internal/api/server/Server.hpp"
 #include "internal/api/storage/Storage.hpp"
 #include "internal/api/Api.hpp"
 #include "server/MessageProcessor.hpp"
@@ -123,7 +124,9 @@ Manager::Manager(
           context,
           dataFolder,
           instance,
-          true)
+          true,
+          std::unique_ptr<api::internal::Factory>{
+              opentxs::Factory::FactoryAPIServer(*this)})
     , reason_(factory_.PasswordPrompt("Notary operation"))
     , server_p_(new opentxs::server::Server(*this, reason_))
     , server_(*server_p_)
@@ -402,7 +405,7 @@ std::int32_t Manager::last_generated_series(
             unitID + SERIES_DIVIDER + std::to_string(output);
         const auto exists = OTDB::Exists(
             data_folder_,
-            OTFolders::Mint().Get(),
+            parent_.Legacy().Mint(),
             serverID.c_str(),
             filename.c_str(),
             "");
@@ -614,7 +617,9 @@ bool Manager::verify_mint_directory(const std::string& serverID) const
     auto serverDir = String::Factory();
     auto mintDir = String::Factory();
     const auto haveMint = OTPaths::AppendFolder(
-        mintDir, String::Factory(data_folder_.c_str()), OTFolders::Mint());
+        mintDir,
+        String::Factory(data_folder_.c_str()),
+        String::Factory(parent_.Legacy().Mint()));
     const auto haveServer = OTPaths::AppendFolder(
         serverDir, mintDir, String::Factory(serverID.c_str()));
 

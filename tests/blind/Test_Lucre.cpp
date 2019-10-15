@@ -1,10 +1,11 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
-#include "Internal.hpp"
+
+#include "internal/api/client/Client.hpp"
 #include "Factory.hpp"
 
 #include <gtest/gtest.h>
@@ -34,13 +35,14 @@ public:
     static ot::Time valid_from_;
     static ot::Time valid_to_;
 
-    const ot::api::client::Manager& api_;
+    const ot::api::client::internal::Manager& api_;
     ot::OTPasswordPrompt reason_;
     ot::Nym_p alice_;
     ot::Nym_p bob_;
 
     Test_Basic()
-        : api_(ot::Context().StartClient(args_, 0))
+        : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              ot::Context().StartClient(args_, 0)))
         , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
         , alice_()
         , bob_()

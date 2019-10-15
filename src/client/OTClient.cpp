@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -35,7 +35,6 @@
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -66,7 +65,7 @@
 
 namespace opentxs
 {
-OTClient::OTClient(const api::Core& core)
+OTClient::OTClient(const api::internal::Core& core)
     : api_(core)
 {
     // WARNING: do not access api_.Wallet() during construction

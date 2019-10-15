@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,11 +14,13 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <cstdint>
 
 namespace opentxs
 {
-OTTrackable::OTTrackable(const api::Core& core)
+OTTrackable::OTTrackable(const api::internal::Core& core)
     : Instrument(core)
     , m_lTransactionNum(0)
     , m_SENDER_ACCT_ID(api_.Factory().Identifier())
@@ -28,7 +30,7 @@ OTTrackable::OTTrackable(const api::Core& core)
 }
 
 OTTrackable::OTTrackable(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
@@ -40,7 +42,7 @@ OTTrackable::OTTrackable(
 }
 
 OTTrackable::OTTrackable(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const Identifier& ACCT_ID,

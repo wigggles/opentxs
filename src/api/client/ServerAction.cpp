@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,7 @@
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "client/OTAPI_Func.hpp"
+#include "internal/api/client/Client.hpp"
 
 #include "ServerAction.hpp"
 
@@ -27,7 +28,7 @@
 namespace opentxs
 {
 api::client::ServerAction* Factory::ServerAction(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const ContextLockCallback& lockCallback)
 {
     return new api::client::implementation::ServerAction(api, lockCallback);
@@ -37,7 +38,7 @@ api::client::ServerAction* Factory::ServerAction(
 namespace opentxs::api::client::implementation
 {
 ServerAction::ServerAction(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const ContextLockCallback& lockCallback)
     : api_(api)
     , lock_callback_(lockCallback)

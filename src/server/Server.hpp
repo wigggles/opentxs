@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -30,7 +30,7 @@ namespace opentxs::server
 class Server
 {
 public:
-    const api::Core& API() const;
+    const api::internal::Core& API() const { return manager_; }
     bool GetConnectInfo(
         proto::AddressType& type,
         std::string& hostname,
@@ -81,7 +81,7 @@ private:
     const std::uint32_t MIN_TCP_PORT = 1024;
     const std::uint32_t MAX_TCP_PORT = 63356;
 
-    const opentxs::api::server::Manager& manager_;
+    const opentxs::api::server::internal::Manager& manager_;
     const PasswordPrompt& reason_;
     MainFile mainFile_;
     Notary notary_;
@@ -135,7 +135,7 @@ private:
         const Message& msg);
 
     Server(
-        const opentxs::api::server::Manager& manager,
+        const opentxs::api::server::internal::Manager& manager,
         const PasswordPrompt& reason);
     Server() = delete;
     Server(const Server&) = delete;

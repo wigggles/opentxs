@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -22,9 +22,10 @@
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 
-#include <ostream>
-
+#include "internal/api/Api.hpp"
 #include "Null.hpp"
+
+#include <ostream>
 
 #include "Keypair.hpp"
 
@@ -40,7 +41,7 @@ crypto::key::Keypair* Factory::Keypair()
 }
 
 crypto::key::Keypair* Factory::Keypair(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& nymParameters,
     const VersionNumber version,
     const proto::KeyRole role,
@@ -51,7 +52,7 @@ crypto::key::Keypair* Factory::Keypair(
 }
 
 crypto::key::Keypair* Factory::Keypair(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey,
     const opentxs::PasswordPrompt& reason)
@@ -61,7 +62,7 @@ crypto::key::Keypair* Factory::Keypair(
 }
 
 crypto::key::Keypair* Factory::Keypair(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const opentxs::PasswordPrompt& reason)
 {
@@ -73,7 +74,7 @@ crypto::key::Keypair* Factory::Keypair(
 namespace opentxs::crypto::key::implementation
 {
 Keypair::Keypair(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& params,
     const VersionNumber version,
     const proto::KeyRole role,
@@ -104,7 +105,7 @@ Keypair::Keypair(
 }
 
 Keypair::Keypair(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey,
     const PasswordPrompt& reason) noexcept
@@ -118,7 +119,7 @@ Keypair::Keypair(
 }
 
 Keypair::Keypair(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::AsymmetricKey& serializedPubkey,
     const PasswordPrompt& reason) noexcept
     : api_(api)

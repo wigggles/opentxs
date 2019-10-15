@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -146,7 +146,7 @@ private:
 
     static const VersionMap versions_;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const Activity& activity_;
     const Contacts& contact_;
     const OTZMQPublishSocket account_publisher_;
@@ -330,7 +330,7 @@ private:
         const std::string& memo) const;
 
     Workflow(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Activity& activity,
         const Contacts& contact);
     Workflow() = delete;

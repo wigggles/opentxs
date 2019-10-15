@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,11 +13,13 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <cstdint>
 
 namespace opentxs
 {
-Instrument::Instrument(const api::Core& core)
+Instrument::Instrument(const api::internal::Core& core)
     : OTScriptable(core)
     , m_InstrumentDefinitionID(api_.Factory().UnitID())
     , m_NotaryID(api_.Factory().ServerID())
@@ -28,7 +30,7 @@ Instrument::Instrument(const api::Core& core)
 }
 
 Instrument::Instrument(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID)
     : OTScriptable(core)

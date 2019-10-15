@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,10 +20,13 @@ namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 /*
   The PAYMENT can be of types:
@@ -258,8 +261,8 @@ private:
 
     using ot_super = Contract;
 
-    EXPORT OTPayment(const api::Core& core);
-    EXPORT OTPayment(const api::Core& core, const String& strPayment);
+    EXPORT OTPayment(const api::internal::Core& api);
+    EXPORT OTPayment(const api::internal::Core& api, const String& strPayment);
 
     OTPayment() = delete;
 };

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,13 +27,15 @@
 
 namespace opentxs
 {
-OTEnvelope::OTEnvelope(const api::Core& api)
+OTEnvelope::OTEnvelope(const api::internal::Core& api)
     : api_(api)
     , ciphertext_(Data::Factory())
 {
 }
 
-OTEnvelope::OTEnvelope(const api::Core& api, const Armored& theArmoredText)
+OTEnvelope::OTEnvelope(
+    const api::internal::Core& api,
+    const Armored& theArmoredText)
     : api_(api)
     , ciphertext_(Data::Factory())
 {

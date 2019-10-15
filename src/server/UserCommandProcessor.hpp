@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#include "internal/api/server/Server.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -45,7 +46,7 @@ private:
     {
     public:
         FinalizeResponse(
-            const api::Core& core,
+            const api::internal::Core& core,
             const identity::Nym& nym,
             ReplyMessage& reply,
             Ledger& ledger);
@@ -61,7 +62,7 @@ private:
         ~FinalizeResponse();
 
     private:
-        const api::Core& api_;
+        const api::internal::Core& api_;
         const identity::Nym& nym_;
         ReplyMessage& reply_;
         Ledger& ledger_;
@@ -70,7 +71,7 @@ private:
 
     Server& server_;
     const PasswordPrompt& reason_;
-    const opentxs::api::server::Manager& manager_;
+    const api::server::internal::Manager& manager_;
 
     bool add_numbers_to_nymbox(
         const TransactionNumber transactionNumber,
@@ -168,7 +169,7 @@ private:
     UserCommandProcessor(
         Server& server,
         const PasswordPrompt& reason,
-        const opentxs::api::server::Manager& manager);
+        const opentxs::api::server::internal::Manager& manager);
     UserCommandProcessor() = delete;
     UserCommandProcessor(const UserCommandProcessor&) = delete;
     UserCommandProcessor(UserCommandProcessor&&) = delete;

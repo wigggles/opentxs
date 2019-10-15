@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,6 +20,7 @@
 #endif
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 #include "opentxs/core/crypto/PaymentCode.hpp"
@@ -57,14 +58,6 @@
 #include "Factory.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::Factory::"
-
-namespace opentxs
-{
-api::internal::Factory* Factory::FactoryAPI(const api::internal::Core& api)
-{
-    return new api::implementation::Factory(api);
-}
-}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
@@ -173,7 +166,7 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
     const OTTransaction& receipt,
     const opentxs::PasswordPrompt& reason) const
 {
-    std::unique_ptr<opentxs::Cheque> output{new opentxs::Cheque{receipt.API()}};
+    std::unique_ptr<opentxs::Cheque> output{new opentxs::Cheque{api_}};
 
     OT_ASSERT(output)
 
@@ -298,13 +291,7 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
     return nullptr;
 }
 
-std::unique_ptr<OTCron> Factory::Cron(const api::Core& server) const
-{
-    std::unique_ptr<opentxs::OTCron> cron;
-    cron.reset(new opentxs::OTCron(server));
-
-    return cron;
-}
+std::unique_ptr<OTCron> Factory::Cron() const { return {}; }
 
 std::unique_ptr<OTCronItem> Factory::CronItem(
     const String& strCronItem,
@@ -561,11 +548,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
     const opentxs::Identifier& pDestinationAcctID) const
 {
     std::unique_ptr<opentxs::Item> pItem{new opentxs::Item(
-        theOwner.API(),
-        theOwner.GetNymID(),
-        theOwner,
-        theType,
-        pDestinationAcctID)};
+        api_, theOwner.GetNymID(), theOwner, theType, pDestinationAcctID)};
 
     if (false != bool(pItem)) {
         pItem->SetPurportedAccountID(theOwner.GetPurportedAccountID());

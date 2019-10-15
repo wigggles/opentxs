@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -107,17 +107,19 @@ private:
             const identifier::Nym& localNymID,
             const bool onlyTrusted) const noexcept;
 
-        State(std::mutex& lock, const api::client::Manager& client) noexcept;
+        State(
+            std::mutex& lock,
+            const api::client::internal::Manager& client) noexcept;
 
     private:
         std::mutex& lock_;
-        const api::client::Manager& client_;
+        const api::client::internal::Manager& client_;
         mutable StateMap state_;
         std::set<OTNymID> issuers_;
     };
 
     const Flag& running_;
-    const api::client::Manager& client_;
+    const api::client::internal::Manager& client_;
     mutable State state_;
     std::promise<void> startup_promise_;
     std::shared_future<void> startup_;
@@ -216,7 +218,7 @@ private:
     void callback_peer_reply(const zmq::Message& in) noexcept;
     void callback_peer_request(const zmq::Message& in) noexcept;
 
-    Pair(const Flag& running, const api::client::Manager& client);
+    Pair(const Flag& running, const api::client::internal::Manager& client);
     Pair() = delete;
     Pair(const Pair&) = delete;
     Pair(Pair&&) = delete;

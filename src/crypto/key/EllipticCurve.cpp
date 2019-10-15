@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -209,7 +209,7 @@ std::unique_ptr<proto::Ciphertext> EllipticCurve::encrypt_key(
 }
 
 bool EllipticCurve::encrypt_key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const PasswordPrompt& reason,
     const OTPassword& plaintext,
     proto::Ciphertext& ciphertext) noexcept
@@ -246,7 +246,7 @@ void EllipticCurve::erase_private_data()
 }
 
 std::unique_ptr<proto::Ciphertext> EllipticCurve::extract_key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
     const proto::AsymmetricKey& serialized,
     Data& publicKey,

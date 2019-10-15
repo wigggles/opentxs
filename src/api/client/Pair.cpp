@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -64,7 +64,7 @@ namespace opentxs
 {
 api::client::internal::Pair* Factory::PairAPI(
     const Flag& running,
-    const api::client::Manager& client)
+    const api::client::internal::Manager& client)
 {
     return new api::client::implementation::Pair(running, client);
 }
@@ -72,7 +72,7 @@ api::client::internal::Pair* Factory::PairAPI(
 
 namespace opentxs::api::client::implementation
 {
-Pair::Pair(const Flag& running, const api::client::Manager& client)
+Pair::Pair(const Flag& running, const api::client::internal::Manager& client)
     : opentxs::api::client::Pair()
     , internal::Pair()
     , Lockable()
@@ -109,7 +109,7 @@ Pair::Pair(const Flag& running, const api::client::Manager& client)
 
 Pair::State::State(
     std::mutex& lock,
-    const api::client::Manager& client) noexcept
+    const api::client::internal::Manager& client) noexcept
     : lock_(lock)
     , client_(client)
     , state_()
@@ -163,16 +163,8 @@ bool Pair::State::check_state() const noexcept
     Lock lock(lock_);
 
     for (auto& [id, details] : state_) {
-        auto& [mutex,
-               serverID,
-               serverNymID,
-               status,
-               trusted,
-               offered,
-               registered,
-               accountDetails,
-               pending,
-               needRename] = details;
+        auto& [mutex, serverID, serverNymID, status, trusted, offered, registered, accountDetails, pending, needRename] =
+            details;
 
         OT_ASSERT(mutex);
 
@@ -388,16 +380,8 @@ void Pair::callback_nym(const zmq::Message& in) noexcept
         Lock lock(decision_lock_);
 
         for (auto& [id, details] : state_) {
-            auto& [mutex,
-                   serverID,
-                   serverNymID,
-                   status,
-                   trusted,
-                   offered,
-                   registered,
-                   accountDetails,
-                   pending,
-                   needRename] = details;
+            auto& [mutex, serverID, serverNymID, status, trusted, offered, registered, accountDetails, pending, needRename] =
+                details;
 
             OT_ASSERT(mutex);
 
@@ -1212,16 +1196,8 @@ void Pair::state_machine(const IssuerID& id) const
 
     OT_ASSERT(state_.end() != it);
 
-    auto& [mutex,
-           serverID,
-           serverNymID,
-           status,
-           trusted,
-           offered,
-           registeredAccounts,
-           accountDetails,
-           pending,
-           needRename] = it->second;
+    auto& [mutex, serverID, serverNymID, status, trusted, offered, registeredAccounts, accountDetails, pending, needRename] =
+        it->second;
 
     OT_ASSERT(mutex);
 

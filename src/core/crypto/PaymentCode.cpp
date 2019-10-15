@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -33,6 +33,8 @@
 #include "opentxs/identity/credential/Primary.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/Types.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <array>
 #include <cstdint>
@@ -76,7 +78,7 @@ namespace opentxs
 const VersionNumber PaymentCode::DefaultVersion{1};
 
 opentxs::PaymentCode* Factory::PaymentCode(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& base58,
     const opentxs::PasswordPrompt& reason)
 {
@@ -84,7 +86,7 @@ opentxs::PaymentCode* Factory::PaymentCode(
 }
 
 opentxs::PaymentCode* Factory::PaymentCode(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::PaymentCode& serialized,
     const opentxs::PasswordPrompt& reason)
 {
@@ -92,7 +94,7 @@ opentxs::PaymentCode* Factory::PaymentCode(
 }
 
 opentxs::PaymentCode* Factory::PaymentCode(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& seed,
     const Bip32Index nym,
     const std::uint8_t version,
@@ -116,7 +118,7 @@ opentxs::PaymentCode* Factory::PaymentCode(
 namespace opentxs::implementation
 {
 PaymentCode::PaymentCode(
-    const api::Core& api,
+    const api::internal::Core& api,
     const PasswordPrompt& reason,
     const std::string& base58)
     : api_(api)
@@ -160,7 +162,7 @@ PaymentCode::PaymentCode(
 }
 
 PaymentCode::PaymentCode(
-    const api::Core& api,
+    const api::internal::Core& api,
     const PasswordPrompt& reason,
     const proto::PaymentCode& paycode)
     : api_(api)
@@ -194,7 +196,7 @@ PaymentCode::PaymentCode(
 }
 
 PaymentCode::PaymentCode(
-    const api::Core& api,
+    const api::internal::Core& api,
     const PasswordPrompt& reason,
     const std::string& seed,
     const Bip32Index nym,
@@ -387,7 +389,7 @@ const OTNymID PaymentCode::ID() const
 }
 
 std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& seed,
     const Bip32Index index,
     const PasswordPrompt& reason)

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,6 +18,8 @@
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <irrxml/irrXML.hpp>
 
 #include <cinttypes>
@@ -36,7 +38,7 @@
 
 namespace opentxs
 {
-OTOffer::OTOffer(const api::Core& core)
+OTOffer::OTOffer(const api::internal::Core& core)
     : Instrument(core)
     , m_pTrade(nullptr)
     , m_CURRENCY_TYPE_ID(api_.Factory().Identifier())
@@ -53,7 +55,7 @@ OTOffer::OTOffer(const api::Core& core)
 }
 
 OTOffer::OTOffer(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID,
     const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
     const identifier::UnitDefinition& CURRENCY_ID,

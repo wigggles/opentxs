@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 class PeerRequest : public Signable
 {
 private:
@@ -32,7 +40,7 @@ private:
         std::unique_ptr<PeerRequest>& contract,
         const PasswordPrompt& reason);
     static OTIdentifier GetID(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::PeerRequest& contract);
     static bool FinalizeContract(
         PeerRequest& contract,
@@ -48,7 +56,7 @@ private:
     PeerRequest() = delete;
 
 protected:
-    const api::Core& api_;
+    const api::internal::Core& api_;
 
     virtual proto::PeerRequest IDVersion(const Lock& lock) const;
     bool validate(const Lock& lock, const PasswordPrompt& reason)
@@ -59,23 +67,23 @@ protected:
         const PasswordPrompt& reason) const override;
 
     PeerRequest(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::PeerRequest& serialized);
     PeerRequest(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::PeerRequest& serialized,
         const std::string& conditions);
     PeerRequest(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         VersionNumber version,
         const identifier::Nym& recipient,
         const identifier::Server& serverID,
         const proto::PeerRequestType& type);
     PeerRequest(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         VersionNumber version,
         const identifier::Nym& recipient,
@@ -85,14 +93,14 @@ protected:
 
 public:
     static std::unique_ptr<PeerRequest> Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::PeerRequestType& type,
         const identifier::UnitDefinition& unitID,
         const identifier::Server& serverID,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& sender,
         const proto::PeerRequestType& type,
         const identifier::UnitDefinition& unitID,
@@ -103,7 +111,7 @@ public:
         const Amount& amount,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::PeerRequestType& type,
         const identifier::UnitDefinition& unitID,
@@ -112,7 +120,7 @@ public:
         const std::string& terms,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& sender,
         const proto::PeerRequestType& type,
         const proto::ConnectionInfoType connectionType,
@@ -120,7 +128,7 @@ public:
         const identifier::Server& serverID,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& sender,
         const proto::PeerRequestType& type,
         const proto::SecretType secretType,
@@ -130,7 +138,7 @@ public:
         const identifier::Server& serverID,
         const PasswordPrompt& reason);
     static std::unique_ptr<PeerRequest> Factory(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::PeerRequest& serialized,
         const PasswordPrompt& reason);

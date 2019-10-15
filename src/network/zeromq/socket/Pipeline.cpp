@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,6 +16,8 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include "Pipeline.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::Pipeline>;
@@ -26,7 +28,7 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Pipeline>;
 namespace opentxs
 {
 opentxs::network::zeromq::Pipeline* Factory::Pipeline(
-    const api::Core& api,
+    const api::internal::Core& api,
     const network::zeromq::Context& context,
     std::function<void(network::zeromq::Message&)> callback)
 {
@@ -38,7 +40,7 @@ opentxs::network::zeromq::Pipeline* Factory::Pipeline(
 namespace opentxs::network::zeromq::socket::implementation
 {
 Pipeline::Pipeline(
-    const api::Core& api,
+    const api::internal::Core& api,
     const zeromq::Context& context,
     std::function<void(zeromq::Message&)> callback) noexcept
     : callback_(ListenCallback::Factory(callback))

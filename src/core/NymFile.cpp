@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,6 +10,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -17,7 +18,6 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -41,6 +41,7 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/core/Core.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -69,7 +70,7 @@
 namespace opentxs
 {
 internal::NymFile* Factory::NymFile(
-    const api::Core& core,
+    const api::internal::Core& core,
     Nym_p targetNym,
     Nym_p signerNym)
 {
@@ -79,7 +80,10 @@ internal::NymFile* Factory::NymFile(
 
 namespace opentxs::implementation
 {
-NymFile::NymFile(const api::Core& core, Nym_p targetNym, Nym_p signerNym)
+NymFile::NymFile(
+    const api::internal::Core& core,
+    Nym_p targetNym,
+    Nym_p signerNym)
     : api_{core}
     , target_nym_{targetNym}
     , signer_nym_{signerNym}
@@ -488,7 +492,8 @@ bool NymFile::load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
-    auto theNymFile = api_.Factory().SignedFile(OTFolders::Nym(), nymID);
+    auto theNymFile =
+        api_.Factory().SignedFile(String::Factory(api_.Legacy().Nym()), nymID);
 
     if (!theNymFile->LoadFile(reason)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -760,8 +765,7 @@ bool NymFile::save_signed_nymfile(const T& lock, const PasswordPrompt& reason)
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
-    auto theNymFile =
-        api_.Factory().SignedFile(OTFolders::Nym().Get(), strNymID);
+    auto theNymFile = api_.Factory().SignedFile(api_.Legacy().Nym(), strNymID);
     theNymFile->GetFilename(m_strNymFile);
 
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Saving nym to: ")(m_strNymFile)

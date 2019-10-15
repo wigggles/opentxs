@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -23,6 +23,7 @@
 #include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
 #include "identity/credential/Key.hpp"
@@ -39,7 +40,7 @@ namespace opentxs
 using ReturnType = identity::credential::implementation::Primary;
 
 identity::credential::internal::Primary* Factory::PrimaryCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const NymParameters& parameters,
@@ -59,7 +60,7 @@ identity::credential::internal::Primary* Factory::PrimaryCredential(
 }
 
 identity::credential::internal::Primary* Factory::PrimaryCredential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const proto::Credential& serialized,
@@ -90,7 +91,7 @@ const VersionConversionMap Primary::credential_to_master_params_{
 };
 
 Primary::Primary(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const NymParameters& params,
@@ -113,7 +114,7 @@ Primary::Primary(
 }
 
 Primary::Primary(
-    const api::Core& api,
+    const api::internal::Core& api,
     const opentxs::PasswordPrompt& reason,
     const identity::internal::Authority& parent,
     const identity::Source& source,

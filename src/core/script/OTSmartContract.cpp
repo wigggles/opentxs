@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -507,6 +507,8 @@ various sequence numbers. Hm.
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/identity/Nym.hpp"
 
+#include "internal/api/Api.hpp"
+
 #if OT_SCRIPT_CHAI
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnoexcept"
@@ -731,7 +733,7 @@ typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
 //                                                             std::int64_t
 //                                                             lAmount);
 
-OTSmartContract::OTSmartContract(const api::Core& core)
+OTSmartContract::OTSmartContract(const api::internal::Core& core)
     : ot_super(core)
     , m_mapStashes()
     , m_StashAccts(core, Account::stash)
@@ -745,7 +747,7 @@ OTSmartContract::OTSmartContract(const api::Core& core)
 }
 
 OTSmartContract::OTSmartContract(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Server& NOTARY_ID)
     : ot_super(core)
     , m_mapStashes()

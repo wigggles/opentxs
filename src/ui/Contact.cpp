@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,6 +27,7 @@
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactSection.hpp"
 
+#include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
 #include "List.hpp"
 
@@ -72,7 +73,7 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
     {proto::CONTACTSECTION_PROFILE, 1}};
 
 Contact::Contact(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const Identifier& contactID
 #if OT_QT

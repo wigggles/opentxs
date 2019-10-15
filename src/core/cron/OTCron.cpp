@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,10 +9,10 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -23,6 +23,8 @@
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <cstring>
@@ -53,7 +55,7 @@ std::int32_t OTCron::__cron_max_items_per_nym{10};
 
 Time OTCron::last_executed_{};
 
-OTCron::OTCron(const api::Core& server)
+OTCron::OTCron(const api::internal::Core& server)
     : Contract(server)
     , m_mapMarkets()
     , m_mapCronItems()
@@ -73,7 +75,7 @@ OTCron::OTCron(const api::Core& server)
 // used for signing and verifying..
 bool OTCron::LoadCron()
 {
-    const char* szFoldername = OTFolders::Cron().Get();
+    const char* szFoldername = api_.Legacy().Cron();
     const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
@@ -88,7 +90,7 @@ bool OTCron::LoadCron()
 
 bool OTCron::SaveCron()
 {
-    const char* szFoldername = OTFolders::Cron().Get();
+    const char* szFoldername = api_.Legacy().Cron();
     const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 

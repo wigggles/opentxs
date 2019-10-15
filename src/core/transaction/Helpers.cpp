@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,8 +9,8 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -21,6 +21,8 @@
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -292,6 +294,7 @@ std::int32_t LoadAbbreviatedRecord(
 }
 
 bool VerifyBoxReceiptExists(
+    const api::internal::Core& api,
     const std::string& dataFolder,
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& NYM_ID,  // Unused here for now, but still
@@ -301,7 +304,7 @@ bool VerifyBoxReceiptExists(
     const std::int32_t nBoxType,    // 0/nymbox, 1/inbox, 2/outbox
     const std::int64_t& lTransactionNum)
 {
-    const std::int64_t lLedgerType = static_cast<int64_t>(nBoxType);
+    const std::int64_t lLedgerType = static_cast<std::int64_t>(nBoxType);
 
     const auto strNotaryID = String::Factory(NOTARY_ID),
                strUserOrAcctID = String::Factory(
@@ -315,6 +318,7 @@ bool VerifyBoxReceiptExists(
          strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
+            api,
             lLedgerType,  // nBoxType is lLedgerType
             strUserOrAcctID,
             strNotaryID,
@@ -345,15 +349,18 @@ bool VerifyBoxReceiptExists(
 }
 
 std::unique_ptr<OTTransaction> LoadBoxReceipt(
+    const api::internal::Core& api,
     OTTransaction& theAbbrev,
     Ledger& theLedger,
     const PasswordPrompt& reason)
 {
-    const std::int64_t lLedgerType = static_cast<int64_t>(theLedger.GetType());
-    return LoadBoxReceipt(theAbbrev, lLedgerType, reason);
+    const std::int64_t lLedgerType =
+        static_cast<std::int64_t>(theLedger.GetType());
+    return LoadBoxReceipt(api, theAbbrev, lLedgerType, reason);
 }
 
 std::unique_ptr<OTTransaction> LoadBoxReceipt(
+    const api::internal::Core& api,
     OTTransaction& theAbbrev,
     std::int64_t lLedgerType,
     const PasswordPrompt& reason)
@@ -381,6 +388,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
          strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
+            api,
             lLedgerType,
             theAbbrev,
             __FUNCTION__,  // "OTTransaction::LoadBoxReceipt",
@@ -393,7 +401,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // See if the box receipt exists before trying to load it...
     //
     if (!OTDB::Exists(
-            theAbbrev.API().DataFolder(),
+            api.DataFolder(),
             strFolder1name->Get(),
             strFolder2name->Get(),
             strFolder3name->Get(),
@@ -408,7 +416,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // Try to load the box receipt from local storage.
     //
     std::string strFileContents(OTDB::QueryPlainString(
-        theAbbrev.API().DataFolder(),
+        api.DataFolder(),
         strFolder1name->Get(),  // <=== LOADING FROM DATA STORE.
         strFolder2name->Get(),
         strFolder3name->Get(),
@@ -436,7 +444,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // Finally, try to load the transaction from that string and see if
     // successful.
     //
-    auto pTransType = theAbbrev.API().Factory().Transaction(strRawFile, reason);
+    auto pTransType = api.Factory().Transaction(strRawFile, reason);
 
     if (false == bool(pTransType)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error instantiating transaction "
@@ -501,6 +509,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
 }
 
 bool SetupBoxReceiptFilename(
+    const api::internal::Core& api,
     std::int64_t lLedgerType,
     const String& strUserOrAcctID,
     const String& strNotaryID,
@@ -516,23 +525,23 @@ bool SetupBoxReceiptFilename(
     const char* pszFolder = nullptr;  // "nymbox" (or "inbox" or "outbox")
     switch (lLedgerType) {
         case 0:
-            pszFolder = OTFolders::Nymbox().Get();
+            pszFolder = api.Legacy().Nymbox();
             break;
         case 1:
-            pszFolder = OTFolders::Inbox().Get();
+            pszFolder = api.Legacy().Inbox();
             break;
         case 2:
-            pszFolder = OTFolders::Outbox().Get();
+            pszFolder = api.Legacy().Outbox();
             break;
         //      case 3: (message ledger.)
         case 4:
-            pszFolder = OTFolders::PaymentInbox().Get();
+            pszFolder = api.Legacy().PaymentInbox();
             break;
         case 5:
-            pszFolder = OTFolders::RecordBox().Get();
+            pszFolder = api.Legacy().RecordBox();
             break;
         case 6:
-            pszFolder = OTFolders::ExpiredBox().Get();
+            pszFolder = api.Legacy().ExpiredBox();
             break;
         default:
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error: Unknown box type: ")(
@@ -555,6 +564,7 @@ bool SetupBoxReceiptFilename(
 }
 
 bool SetupBoxReceiptFilename(
+    const api::internal::Core& api,
     std::int64_t lLedgerType,
     OTTransaction& theTransaction,
     const char* szCaller,
@@ -569,6 +579,7 @@ bool SetupBoxReceiptFilename(
     const auto strNotaryID = String::Factory(theTransaction.GetRealNotaryID());
 
     return SetupBoxReceiptFilename(
+        api,
         lLedgerType,
         strUserOrAcctID,
         strNotaryID,
@@ -581,6 +592,7 @@ bool SetupBoxReceiptFilename(
 }
 
 bool SetupBoxReceiptFilename(
+    const api::internal::Core& api,
     Ledger& theLedger,
     OTTransaction& theTransaction,
     const char* szCaller,
@@ -619,6 +631,7 @@ bool SetupBoxReceiptFilename(
     }
 
     return SetupBoxReceiptFilename(
+        api,
         lLedgerType,
         theTransaction,
         szCaller,
@@ -627,5 +640,4 @@ bool SetupBoxReceiptFilename(
         strFolder3name,
         strFilename);
 }
-
 }  // namespace opentxs

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,6 +25,8 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -227,7 +229,7 @@ const std::map<MessageType, MessageType> Message::reply_message_{
 
 const Message::ReverseTypeMap Message::message_types_ = make_reverse_map();
 
-Message::Message(const api::Core& core)
+Message::Message(const api::internal::Core& core)
     : Contract(core)
     , m_bIsSigned(false)
     , m_strCommand(String::Factory())

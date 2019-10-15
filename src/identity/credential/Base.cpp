@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,7 @@
 #include "opentxs/identity/Source.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/identity/credential/Credential.hpp"
 #include "internal/identity/Identity.hpp"
 
@@ -34,7 +35,7 @@
 namespace opentxs::identity::credential::implementation
 {
 Base::Base(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const NymParameters& nymParameters,
@@ -55,7 +56,7 @@ Base::Base(
 }
 
 Base::Base(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const proto::Credential& serialized,

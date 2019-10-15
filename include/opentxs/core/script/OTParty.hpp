@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,6 +17,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 // Party is always either an Owner Nym, or an Owner Entity formed by Contract.
 //
 // Either way, the agents are there to represent the interests of the parties.
@@ -89,7 +97,7 @@ public:
         OTString pstrNote = String::Factory(),
         OTString pstrAttachment = String::Factory());
     bool SendNoticeToParty(
-        const api::Core& api,
+        const api::internal::Core& api,
         bool bSuccessMsg,
         const identity::Nym& theServerNym,
         const identifier::Server& theNotaryID,

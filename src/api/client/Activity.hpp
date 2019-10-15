@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -204,7 +204,7 @@ private:
     typedef std::map<OTIdentifier, std::shared_ptr<const std::string>>
         MailCache;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const client::Contacts& contact_;
     mutable std::mutex mail_cache_lock_;
     mutable MailCache mail_cache_;
@@ -243,7 +243,7 @@ private:
     void publish(const identifier::Nym& nymID, const std::string& threadID)
         const;
 
-    Activity(const api::Core& api, const client::Contacts& contact);
+    Activity(const api::internal::Core& api, const client::Contacts& contact);
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;

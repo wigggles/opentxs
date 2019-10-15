@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,12 +10,12 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -26,6 +26,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 
+#include "internal/api/Api.hpp"
 #include "Server.hpp"
 #include "Transactor.hpp"
 
@@ -161,7 +162,7 @@ bool MainFile::CreateMainFile(
     if (!OTDB::StorePlainString(
             strContract,
             server_.API().DataFolder(),
-            OTFolders::Contract().Get(),
+            server_.API().Legacy().Contract(),
             strNotaryID,
             "",
             "")) {
@@ -174,7 +175,7 @@ bool MainFile::CreateMainFile(
     if (!strCert.empty() && !OTDB::StorePlainString(
                                 strCert,
                                 server_.API().DataFolder(),
-                                OTFolders::Cert().Get(),
+                                server_.API().Legacy().Cert(),
                                 strNymID,
                                 "",
                                 "")) {

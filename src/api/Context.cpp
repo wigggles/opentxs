@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -25,7 +25,6 @@
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -142,7 +141,7 @@ int Context::client_instance(const int count)
     return (2 * count);
 }
 
-const api::client::Manager& Context::Client(const int instance) const
+const api::client::internal::Manager& Context::Client(const int instance) const
 {
     auto& output = client_.at(instance);
 
@@ -371,7 +370,7 @@ void Context::start_client(const Lock& lock, const ArgList& args) const
         instance));
 }
 
-const api::client::Manager& Context::StartClient(
+const api::client::internal::Manager& Context::StartClient(
     const ArgList& args,
     const int instance) const
 {
@@ -393,7 +392,7 @@ const api::client::Manager& Context::StartClient(
 }
 
 #if OT_CRYPTO_WITH_BIP39
-const api::client::Manager& Context::StartClient(
+const api::client::internal::Manager& Context::StartClient(
     const ArgList& args,
     const int instance,
     const std::string& recoverWords,

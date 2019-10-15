@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,7 +12,7 @@ class Set final : public internal::Set
 public:
     operator SerializedType() const noexcept final;
 
-    const api::Core& API() const noexcept final { return api_; }
+    const api::internal::Core& API() const noexcept final { return api_; }
     const Group& External() const noexcept final { return *external_; }
     const Group& Internal() const noexcept final { return *internal_; }
     const identifier::Nym& NymID() const noexcept { return nym_id_; }
@@ -45,7 +45,7 @@ private:
     using GroupPointer = std::unique_ptr<internal::Group>;
     using ChildType = verification::Group::SerializedType;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const VersionNumber version_;
     const OTNymID nym_id_;
     GroupPointer internal_;
@@ -57,10 +57,10 @@ private:
         const ChildType& serialized,
         bool external) noexcept;
 
-    Set(const api::Core& api,
+    Set(const api::internal::Core& api,
         const identifier::Nym& nym,
         const VersionNumber version = DefaultVersion) noexcept(false);
-    Set(const api::Core& api,
+    Set(const api::internal::Core& api,
         const identifier::Nym& nym,
         const SerializedType& serialized) noexcept(false);
     Set() = delete;

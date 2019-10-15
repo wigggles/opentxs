@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,7 +17,7 @@ public:
     std::set<OTIdentifier> AccountList(
         const identifier::Nym& nymID,
         const Chain chain) const noexcept final;
-    const api::Core& API() const noexcept final { return api_; }
+    const api::internal::Core& API() const noexcept final { return api_; }
     bool AssignContact(
         const identifier::Nym& nymID,
         const Identifier& accountID,
@@ -131,7 +131,7 @@ private:
     static const StyleMap address_style_map_;
     static const StyleReverseMap address_style_reverse_map_;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
     mutable std::mutex lock_;
@@ -175,7 +175,7 @@ private:
     bool validate_nym(const identifier::Nym& nymID) const noexcept;
 
     Blockchain(
-        const api::Core& api,
+        const api::internal::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts) noexcept;
     Blockchain() = delete;

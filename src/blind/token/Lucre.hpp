@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -37,9 +37,12 @@ public:
         const Mint& mint,
         const PasswordPrompt& reason) override;
 
-    Lucre(const api::Core& api, Purse& purse, const proto::Token& serialized);
     Lucre(
-        const api::Core& api,
+        const api::internal::Core& api,
+        Purse& purse,
+        const proto::Token& serialized);
+    Lucre(
+        const api::internal::Core& api,
         const identity::Nym& owner,
         const Mint& mint,
         const Denomination value,
@@ -66,7 +69,7 @@ private:
     Lucre* clone() const noexcept override { return new Lucre(*this); }
 
     Lucre(
-        const api::Core& api,
+        const api::internal::Core& api,
         Purse& purse,
         const VersionNumber version,
         const proto::TokenState state,

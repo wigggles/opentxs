@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,12 +11,14 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/String.hpp"
 
+#include "internal/api/Api.hpp"
+
 #define CURRENT_VERSION 4
 
 namespace opentxs
 {
 OutBailmentRequest::OutBailmentRequest(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::PeerRequest& serialized)
     : ot_super(api, nym, serialized, serialized.outbailment().instructions())
@@ -27,7 +29,7 @@ OutBailmentRequest::OutBailmentRequest(
 }
 
 OutBailmentRequest::OutBailmentRequest(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const identifier::Nym& recipientID,
     const identifier::UnitDefinition& unitID,

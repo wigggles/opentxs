@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,6 +12,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 #ifndef OT_KEY_TIMER
 // TODO:
 // 1. Add this value to the config file so it becomes merely a default value
@@ -46,7 +54,7 @@ private:
     class LowLevelKeyGeneratorOpenSSLdp;
 #endif
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     std::unique_ptr<LowLevelKeyGeneratordp> dp;
     std::unique_ptr<NymParameters> pkeyData_;
 
@@ -60,7 +68,9 @@ public:
      * this to false, it will NOT cleanup. */
     bool m_bCleanup;
 
-    LowLevelKeyGenerator(const api::Core& api, const NymParameters& pkeyData);
+    LowLevelKeyGenerator(
+        const api::internal::Core& api,
+        const NymParameters& pkeyData);
 
     bool MakeNewKeypair();
     bool SetOntoKeypair(

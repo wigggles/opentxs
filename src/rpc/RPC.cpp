@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -48,6 +48,7 @@
 #include "opentxs/ui/BalanceItem.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/client/Client.hpp"
 #include "internal/rpc/RPC.hpp"
 
 #include <algorithm>
@@ -629,7 +630,7 @@ proto::RPCResponse RPC::delete_claim(const proto::RPCCommand& command) const
 }
 
 void RPC::evaluate_deposit_payment(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const api::client::OTX::Result& result,
     proto::TaskComplete& output,
     const PasswordPrompt& reason) const
@@ -654,7 +655,7 @@ void RPC::evaluate_deposit_payment(
 }
 
 void RPC::evaluate_move_funds(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const api::client::OTX::Result& result,
     proto::RPCResponse& output,
     const PasswordPrompt& reason) const
@@ -698,7 +699,7 @@ void RPC::evaluate_send_payment_cheque(
 }
 
 void RPC::evaluate_send_payment_transfer(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const api::client::OTX::Result& result,
     proto::RPCResponse& output,
     const PasswordPrompt& reason) const
@@ -849,7 +850,8 @@ ArgList RPC::get_args(const Args& serialized)
     return output;
 }
 
-const api::client::Manager* RPC::get_client(const std::int32_t instance) const
+const api::client::internal::Manager* RPC::get_client(
+    const std::int32_t instance) const
 {
     if (is_server_session(instance)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: provided instance ")(
@@ -859,7 +861,8 @@ const api::client::Manager* RPC::get_client(const std::int32_t instance) const
         return nullptr;
     } else {
         try {
-            return &ot_.Client(get_index(instance));
+            return &dynamic_cast<const api::client::internal::Manager&>(
+                ot_.Client(get_index(instance)));
         } catch (...) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error: provided instance ")(
                 instance)(" is not a valid client session.")
@@ -1204,7 +1207,7 @@ proto::RPCResponse RPC::get_workflow(const proto::RPCCommand& command) const
 }
 
 bool RPC::immediate_create_account(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const identifier::Nym& owner,
     const identifier::Server& notary,
     const identifier::UnitDefinition& unit,
@@ -1218,7 +1221,7 @@ bool RPC::immediate_create_account(
 }
 
 bool RPC::immediate_register_issuer_account(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const identifier::Nym& owner,
     const identifier::Server& notary) const
 {
@@ -1226,7 +1229,7 @@ bool RPC::immediate_register_issuer_account(
 }
 
 bool RPC::immediate_register_nym(
-    const api::client::Manager& client,
+    const api::client::internal::Manager& client,
     const identifier::Server& notary,
     const PasswordPrompt& reason) const
 {

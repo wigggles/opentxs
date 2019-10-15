@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -9,11 +9,11 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -30,6 +30,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Types.hpp"
+
+#include "internal/api/Api.hpp"
 
 #include <cstdlib>
 #include <sys/types.h>
@@ -69,7 +71,7 @@ char const* const __TypeStringsLedger[] = {
 // Since a ledger is normally used as an inbox for a specific account, in a
 // specific file, then I've decided to restrict ledgers to a single account.
 Ledger::Ledger(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID)
@@ -87,7 +89,7 @@ Ledger::Ledger(
 // their user ID. So you call this function to get it loaded up, and the NymID
 // will hopefully be loaded up with the rest of it.
 Ledger::Ledger(
-    const api::Core& core,
+    const api::internal::Core& core,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID)
     : OTTransactionType(core)
@@ -101,7 +103,7 @@ Ledger::Ledger(
 }
 
 // This is private now and hopefully will stay that way.
-Ledger::Ledger(const api::Core& core)
+Ledger::Ledger(const api::internal::Core& core)
     : OTTransactionType(core)
     , m_Type(ledgerType::message)
     , m_bLoadedLegacyData(false)
@@ -354,7 +356,8 @@ bool Ledger::LoadBoxReceipt(
     // abbreviated
     // (which it must be.) So I don't bother checking twice.
     //
-    auto pBoxReceipt = ::opentxs::LoadBoxReceipt(*pTransaction, *this, reason);
+    auto pBoxReceipt =
+        ::opentxs::LoadBoxReceipt(api_, *pTransaction, *this, reason);
 
     // success
     if (false != bool(pBoxReceipt)) {
@@ -687,22 +690,22 @@ std::tuple<bool, std::string, std::string, std::string> Ledger::make_filename(
 
     switch (theType) {
         case ledgerType::nymbox: {
-            pszFolder = OTFolders::Nymbox().Get();
+            pszFolder = api_.Legacy().Nymbox();
         } break;
         case ledgerType::inbox: {
-            pszFolder = OTFolders::Inbox().Get();
+            pszFolder = api_.Legacy().Inbox();
         } break;
         case ledgerType::outbox: {
-            pszFolder = OTFolders::Outbox().Get();
+            pszFolder = api_.Legacy().Outbox();
         } break;
         case ledgerType::paymentInbox: {
-            pszFolder = OTFolders::PaymentInbox().Get();
+            pszFolder = api_.Legacy().PaymentInbox();
         } break;
         case ledgerType::recordBox: {
-            pszFolder = OTFolders::RecordBox().Get();
+            pszFolder = api_.Legacy().RecordBox();
         } break;
         case ledgerType::expiredBox: {
-            pszFolder = OTFolders::ExpiredBox().Get();
+            pszFolder = api_.Legacy().ExpiredBox();
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -870,33 +873,33 @@ bool Ledger::generate_ledger(
 
     switch (theType) {
         case ledgerType::nymbox:  // stored by NymID ONLY.
-            m_strFoldername = String::Factory(OTFolders::Nymbox().Get());
+            m_strFoldername = String::Factory(api_.Legacy().Nymbox());
             m_strFilename->Format(
                 "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::inbox:  // stored by AcctID ONLY.
-            m_strFoldername = String::Factory(OTFolders::Inbox().Get());
+            m_strFoldername = String::Factory(api_.Legacy().Inbox());
             m_strFilename->Format(
                 "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::outbox:  // stored by AcctID ONLY.
-            m_strFoldername = String::Factory(OTFolders::Outbox().Get());
+            m_strFoldername = String::Factory(api_.Legacy().Outbox());
             m_strFilename->Format(
                 "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::paymentInbox:  // stored by NymID ONLY.
-            m_strFoldername = String::Factory(OTFolders::PaymentInbox().Get());
+            m_strFoldername = String::Factory(api_.Legacy().PaymentInbox());
             m_strFilename->Format(
                 "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::recordBox:  // stored by Acct ID *and* Nym ID
                                      // (depending on the box.)
-            m_strFoldername = String::Factory(OTFolders::RecordBox().Get());
+            m_strFoldername = String::Factory(api_.Legacy().RecordBox());
             m_strFilename->Format(
                 "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
         case ledgerType::expiredBox:  // stored by Nym ID only.
-            m_strFoldername = String::Factory(OTFolders::ExpiredBox().Get());
+            m_strFoldername = String::Factory(api_.Legacy().ExpiredBox());
             m_strFilename->Format(
                 "%s%s%s", strNotaryID->Get(), PathSeparator(), strID->Get());
             break;
@@ -2306,6 +2309,7 @@ std::int32_t Ledger::ProcessXMLNode(
 
                         const bool bBoxReceiptAlreadyExists =
                             VerifyBoxReceiptExists(
+                                api_,
                                 api_.DataFolder(),
                                 transaction->GetRealNotaryID(),
                                 transaction->GetNymID(),

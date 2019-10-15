@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,6 @@
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -50,6 +49,7 @@
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/identity/Identity.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -72,7 +72,7 @@
 namespace opentxs
 {
 identity::internal::Nym* Factory::Nym(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& params,
     const proto::ContactItemType type,
     const std::string name,
@@ -126,7 +126,7 @@ identity::internal::Nym* Factory::Nym(
 }
 
 identity::internal::Nym* Factory::Nym(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Nym& serialized,
     const std::string& alias,
     const opentxs::PasswordPrompt& reason)
@@ -153,7 +153,7 @@ const VersionNumber Nym::MaxVersion{6};
 namespace opentxs::identity::implementation
 {
 bool session_key_from_iv(
-    const api::Core& api,
+    const api::internal::Core& api,
     const crypto::key::Asymmetric& signingKey,
     const Data& iv,
     const proto::HashType hashType,
@@ -173,7 +173,7 @@ const VersionConversionMap Nym::contact_credential_to_contact_data_version_{
 };
 
 Nym::Nym(
-    const api::Core& api,
+    const api::internal::Core& api,
     NymParameters& params,
     std::unique_ptr<const identity::Source> source,
     const opentxs::PasswordPrompt& reason) noexcept(false)
@@ -199,7 +199,7 @@ Nym::Nym(
 }
 
 Nym::Nym(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Nym& serialized,
     const std::string& alias,
     const opentxs::PasswordPrompt& reason) noexcept(false)
@@ -525,7 +525,7 @@ std::set<OTIdentifier> Nym::Contracts(
 }
 
 auto Nym::create_authority(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const VersionNumber version,
@@ -878,7 +878,7 @@ void Nym::init_claims(const eLock& lock) const
 }
 
 auto Nym::load_authorities(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const Serialized& serialized,
@@ -911,7 +911,7 @@ auto Nym::load_authorities(
 }
 
 String::List Nym::load_revoked(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
     const Serialized& serialized,
@@ -1027,7 +1027,7 @@ std::string Nym::Name() const
 }
 
 NymParameters Nym::normalize(
-    const api::Core& api,
+    const api::internal::Core& api,
     const NymParameters& in,
     const PasswordPrompt& reason) noexcept(false)
 {
@@ -1344,7 +1344,7 @@ void Nym::SerializeNymIDSource(Tag& parent) const
 }
 
 bool session_key_from_iv(
-    const api::Core& api,
+    const api::internal::Core& api,
     const crypto::key::Asymmetric& signingKey,
     const Data& iv,
     const proto::HashType hashType,

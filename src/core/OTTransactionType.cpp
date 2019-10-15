@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -22,6 +22,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include <cstdint>
 #include <ostream>
 
@@ -31,7 +33,7 @@ namespace opentxs
 {
 // keeping constructor private in order to force people to use the other
 // constructors and therefore provide the requisite IDs.
-OTTransactionType::OTTransactionType(const api::Core& core)
+OTTransactionType::OTTransactionType(const api::internal::Core& core)
     : Contract(core)
     , m_AcctID(core.Factory().Identifier())
     , m_NotaryID(core.Factory().ServerID())
@@ -52,7 +54,7 @@ OTTransactionType::OTTransactionType(const api::Core& core)
 }
 
 OTTransactionType::OTTransactionType(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,
@@ -75,7 +77,7 @@ OTTransactionType::OTTransactionType(
 }
 
 OTTransactionType::OTTransactionType(
-    const api::Core& core,
+    const api::internal::Core& core,
     const identifier::Nym& theNymID,
     const Identifier& theAccountID,
     const identifier::Server& theNotaryID,

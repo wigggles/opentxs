@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,7 +8,7 @@
 namespace opentxs
 {
 template identity::credential::internal::Secondary* Factory::Credential(
-    const api::Core&,
+    const api::internal::Core&,
     identity::internal::Authority&,
     const identity::Source&,
     const identity::credential::internal::Primary&,
@@ -17,7 +17,7 @@ template identity::credential::internal::Secondary* Factory::Credential(
     const proto::CredentialRole,
     const opentxs::PasswordPrompt&);
 template identity::credential::internal::Contact* Factory::Credential(
-    const api::Core&,
+    const api::internal::Core&,
     identity::internal::Authority&,
     const identity::Source&,
     const identity::credential::internal::Primary& master,
@@ -26,7 +26,7 @@ template identity::credential::internal::Contact* Factory::Credential(
     const proto::CredentialRole,
     const opentxs::PasswordPrompt&);
 template identity::credential::internal::Verification* Factory::Credential(
-    const api::Core&,
+    const api::internal::Core&,
     identity::internal::Authority&,
     const identity::Source&,
     const identity::credential::internal::Primary& master,
@@ -35,7 +35,7 @@ template identity::credential::internal::Verification* Factory::Credential(
     const proto::CredentialRole,
     const opentxs::PasswordPrompt&);
 template identity::credential::internal::Secondary* Factory::Credential(
-    const api::Core&,
+    const api::internal::Core&,
     identity::internal::Authority&,
     const identity::Source&,
     const identity::credential::internal::Primary&,
@@ -44,7 +44,7 @@ template identity::credential::internal::Secondary* Factory::Credential(
     const proto::CredentialRole,
     const opentxs::PasswordPrompt&);
 template identity::credential::internal::Contact* Factory::Credential(
-    const api::Core&,
+    const api::internal::Core&,
     identity::internal::Authority&,
     const identity::Source&,
     const identity::credential::internal::Primary&,
@@ -53,7 +53,7 @@ template identity::credential::internal::Contact* Factory::Credential(
     const proto::CredentialRole,
     const opentxs::PasswordPrompt&);
 template identity::credential::internal::Verification* Factory::Credential(
-    const api::Core&,
+    const api::internal::Core&,
     identity::internal::Authority&,
     const identity::Source&,
     const identity::credential::internal::Primary&,
@@ -65,7 +65,7 @@ template identity::credential::internal::Verification* Factory::Credential(
 template <typename C>
 struct deserialize_credential {
     static C* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -74,7 +74,7 @@ struct deserialize_credential {
 template <typename C>
 struct make_credential {
     static C* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -86,7 +86,7 @@ struct make_credential {
 template <>
 struct deserialize_credential<identity::credential::internal::Contact> {
     static identity::credential::internal::Contact* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -100,7 +100,7 @@ struct deserialize_credential<identity::credential::internal::Contact> {
 template <>
 struct deserialize_credential<identity::credential::internal::Secondary> {
     static identity::credential::internal::Secondary* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -114,7 +114,7 @@ struct deserialize_credential<identity::credential::internal::Secondary> {
 template <>
 struct deserialize_credential<identity::credential::internal::Verification> {
     static identity::credential::internal::Verification* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -128,7 +128,7 @@ struct deserialize_credential<identity::credential::internal::Verification> {
 template <>
 struct make_credential<identity::credential::internal::Contact> {
     static identity::credential::internal::Contact* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -143,7 +143,7 @@ struct make_credential<identity::credential::internal::Contact> {
 template <>
 struct make_credential<identity::credential::internal::Secondary> {
     static identity::credential::internal::Secondary* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -158,7 +158,7 @@ struct make_credential<identity::credential::internal::Secondary> {
 template <>
 struct make_credential<identity::credential::internal::Verification> {
     static identity::credential::internal::Verification* Get(
-        const api::Core& api,
+        const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
@@ -173,7 +173,7 @@ struct make_credential<identity::credential::internal::Verification> {
 
 template <class C>
 C* Factory::Credential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
@@ -200,7 +200,7 @@ C* Factory::Credential(
 
 template <class C>
 C* Factory::Credential(
-    const api::Core& api,
+    const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,

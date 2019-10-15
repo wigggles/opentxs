@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -33,6 +33,7 @@ namespace opentxs::api::internal
 struct Context : virtual public api::Context {
     virtual OTCaller& GetPasswordCaller() const = 0;
     virtual void Init() = 0;
+    virtual const api::Legacy& Legacy() const noexcept = 0;
     virtual void shutdown() = 0;
 
     virtual ~Context() = default;
@@ -47,6 +48,7 @@ struct Core : virtual public api::Core {
         OTPassword& secret,
         const PasswordPrompt& reason,
         const bool twice) const = 0;
+    virtual const api::Legacy& Legacy() const noexcept = 0;
     virtual std::mutex& Lock() const = 0;
     virtual const opentxs::crypto::key::Symmetric& MasterKey(
         const opentxs::Lock& lock) const = 0;

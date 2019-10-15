@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -21,6 +21,11 @@ namespace implementation
 {
 class Factory;
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
 /*
@@ -231,13 +236,13 @@ public:
 private:
     friend api::implementation::Factory;
 
-    OTPaymentPlan(const api::Core& core);
+    OTPaymentPlan(const api::internal::Core& core);
     OTPaymentPlan(
-        const api::Core& core,
+        const api::internal::Core& core,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTPaymentPlan(
-        const api::Core& core,
+        const api::internal::Core& core,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -49,7 +49,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     Nym_p nym_{nullptr};
     std::unique_ptr<std::string> message_{nullptr};
     std::unique_ptr<std::string> payment_{nullptr};
@@ -63,40 +63,40 @@ private:
 
     Object(
         const api::client::Contacts& contacts,
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& signerNym,
         const proto::PeerObject serialized,
         const PasswordPrompt& reason);
     Object(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& senderNym,
         const std::string& message,
         const PasswordPrompt& reason);
 #if OT_CASH
     Object(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& senderNym,
         const std::shared_ptr<blind::Purse> purse,
         const PasswordPrompt& reason);
 #endif
     Object(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& payment,
         const Nym_p& senderNym,
         const PasswordPrompt& reason);
     Object(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const std::shared_ptr<const PeerReply> reply,
         const VersionNumber version,
         const PasswordPrompt& reason);
     Object(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::shared_ptr<const PeerRequest> request,
         const VersionNumber version,
         const PasswordPrompt& reason);
     Object(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const std::string& message,
         const std::string& payment,

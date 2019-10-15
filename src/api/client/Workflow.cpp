@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -31,6 +31,8 @@
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
@@ -49,7 +51,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs
 {
 api::client::Workflow* Factory::Workflow(
-    const api::Core& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contact)
 {
@@ -191,7 +193,7 @@ std::string Workflow::ExtractTransfer(const proto::PaymentWorkflow& workflow)
 }
 
 Workflow::Cheque Workflow::InstantiateCheque(
-    const api::Core& core,
+    const api::internal::Core& core,
     const proto::PaymentWorkflow& workflow,
     const PasswordPrompt& reason)
 {
@@ -242,7 +244,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
 
 #if OT_CASH
 Workflow::Purse Workflow::InstantiatePurse(
-    const api::Core& core,
+    const api::internal::Core& core,
     const proto::PaymentWorkflow& workflow)
 {
     Purse output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
@@ -287,7 +289,7 @@ Workflow::Purse Workflow::InstantiatePurse(
 #endif
 
 Workflow::Transfer Workflow::InstantiateTransfer(
-    const api::Core& core,
+    const api::internal::Core& core,
     const proto::PaymentWorkflow& workflow,
     const PasswordPrompt& reason)
 {
@@ -333,7 +335,7 @@ Workflow::Transfer Workflow::InstantiateTransfer(
 }
 
 OTIdentifier Workflow::UUID(
-    const api::Core& core,
+    const api::internal::Core& core,
     const proto::PaymentWorkflow& workflow,
     const PasswordPrompt& reason)
 {
@@ -415,7 +417,7 @@ const Workflow::VersionMap Workflow::versions_{
 };
 
 Workflow::Workflow(
-    const api::Core& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contact)
     : api_(api)

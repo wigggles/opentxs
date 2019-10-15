@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,7 +10,7 @@ namespace opentxs::api::client::blockchain::implementation
 class BalanceTree final : public internal::BalanceTree
 {
 public:
-    const api::Core& API() const noexcept { return api_; }
+    const api::internal::Core& API() const noexcept { return api_; }
     bool AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,
@@ -182,7 +182,7 @@ private:
         NodeGroup<PaymentCodeAccounts, internal::PaymentCode>;
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const internal::BalanceList& parent_;
     const opentxs::blockchain::Type chain_;
     const OTNymID nym_id_;

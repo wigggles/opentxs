@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,6 +15,8 @@
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
+
 #include "Reply.hpp"
 
 template class opentxs::Pimpl<opentxs::otx::Reply>;
@@ -27,7 +29,7 @@ const VersionNumber Reply::DefaultVersion{1};
 const VersionNumber Reply::MaxVersion{1};
 
 OTXReply Reply::Factory(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p signer,
     const identifier::Nym& recipient,
     const identifier::Server& server,
@@ -52,7 +54,7 @@ OTXReply Reply::Factory(
 }
 
 OTXReply Reply::Factory(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::ServerReply serialized,
     const PasswordPrompt& reason)
 {
@@ -63,7 +65,7 @@ OTXReply Reply::Factory(
 namespace opentxs::otx::implementation
 {
 Reply::Reply(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p signer,
     const identifier::Nym& recipient,
     const identifier::Server& server,
@@ -82,7 +84,7 @@ Reply::Reply(
 }
 
 Reply::Reply(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::ServerReply serialized,
     const PasswordPrompt& reason)
     : Signable(extract_nym(api, serialized, reason), serialized.version(), "")
@@ -122,7 +124,7 @@ proto::ServerReply Reply::Contract() const
 }
 
 Nym_p Reply::extract_nym(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::ServerReply serialized,
     const PasswordPrompt& reason)
 {

@@ -1,11 +1,12 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
+
+#include "internal/api/client/Client.hpp"
+#include "internal/api/server/Server.hpp"
 #include "internal/otx/client/Client.hpp"
 #include "server/Server.hpp"
 #include "server/Transactor.hpp"
@@ -97,10 +98,10 @@ public:
     static std::shared_ptr<blind::Purse> untrusted_purse_;
 #endif
 
-    const opentxs::api::client::Manager& client_1_;
-    const opentxs::api::client::Manager& client_2_;
-    const opentxs::api::server::Manager& server_1_;
-    const opentxs::api::server::Manager& server_2_;
+    const opentxs::api::client::internal::Manager& client_1_;
+    const opentxs::api::client::internal::Manager& client_2_;
+    const opentxs::api::server::internal::Manager& server_1_;
+    const opentxs::api::server::internal::Manager& server_2_;
     opentxs::OTPasswordPrompt reason_c1_;
     opentxs::OTPasswordPrompt reason_c2_;
     opentxs::OTPasswordPrompt reason_s1_;
@@ -110,10 +111,18 @@ public:
     const opentxs::ServerContext::ExtraArgs extra_args_;
 
     Test_Basic()
-        : client_1_(Context().StartClient(args_, 0))
-        , client_2_(Context().StartClient(args_, 1))
-        , server_1_(Context().StartServer(args_, 0, true))
-        , server_2_(Context().StartServer(args_, 1, true))
+        : client_1_(
+              dynamic_cast<const opentxs::api::client::internal::Manager&>(
+                  Context().StartClient(args_, 0)))
+        , client_2_(
+              dynamic_cast<const opentxs::api::client::internal::Manager&>(
+                  Context().StartClient(args_, 1)))
+        , server_1_(
+              dynamic_cast<const opentxs::api::server::internal::Manager&>(
+                  Context().StartServer(args_, 0, true)))
+        , server_2_(
+              dynamic_cast<const opentxs::api::server::internal::Manager&>(
+                  Context().StartServer(args_, 1, true)))
         , reason_c1_(client_1_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_c2_(client_2_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s1_(server_1_.Factory().PasswordPrompt(__FUNCTION__))

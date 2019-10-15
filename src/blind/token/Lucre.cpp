@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,6 +20,7 @@
 
 #include "blind/Lucre.hpp"
 #include "crypto/library/OpenSSL_BIO.hpp"
+#include "internal/api/Api.hpp"
 
 #include <openssl/bio.h>
 #include <openssl/ossl_typ.h>
@@ -40,7 +41,7 @@
 namespace opentxs::blind::token::implementation
 {
 Lucre::Lucre(
-    const api::Core& api,
+    const api::internal::Core& api,
     Purse& purse,
     const VersionNumber version,
     const proto::TokenState state,
@@ -86,7 +87,10 @@ Lucre::Lucre(const Lucre& rhs)
 {
 }
 
-Lucre::Lucre(const api::Core& api, Purse& purse, const proto::Token& in)
+Lucre::Lucre(
+    const api::internal::Core& api,
+    Purse& purse,
+    const proto::Token& in)
     : Lucre(
           api,
           purse,
@@ -149,7 +153,7 @@ Lucre::Lucre(const api::Core& api, Purse& purse, const proto::Token& in)
 }
 
 Lucre::Lucre(
-    const api::Core& api,
+    const api::internal::Core& api,
     const identity::Nym& owner,
     const Mint& mint,
     const Denomination value,

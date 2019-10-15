@@ -1,10 +1,11 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
-#include "Internal.hpp"
+
+#include "internal/api/client/Client.hpp"
 
 #include <gtest/gtest.h>
 
@@ -14,7 +15,7 @@ namespace
 class Test_NymData : public ::testing::Test
 {
 public:
-    const opentxs::api::client::Manager& client_;
+    const opentxs::api::client::internal::Manager& client_;
     opentxs::OTPasswordPrompt reason_;
     opentxs::NymData nymData_;
 
@@ -32,7 +33,8 @@ public:
     }
 
     Test_NymData()
-        : client_(opentxs::Context().StartClient({}, 0))
+        : client_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
+              opentxs::Context().StartClient({}, 0)))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , nymData_(client_.Wallet().mutable_Nym(
               client_.Wallet().Nym(reason_, "testNym")->ID(),

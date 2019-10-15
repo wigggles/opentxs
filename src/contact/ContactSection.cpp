@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -17,7 +17,7 @@
 namespace opentxs
 {
 ContactSection::ContactSection(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
@@ -41,7 +41,7 @@ ContactSection::ContactSection(const ContactSection& rhs)
 }
 
 ContactSection::ContactSection(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber version,
     const VersionNumber parentVersion,
@@ -63,7 +63,7 @@ ContactSection::ContactSection(
 }
 
 ContactSection::ContactSection(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber parentVersion,
     const proto::ContactSection& serialized)
@@ -243,7 +243,7 @@ ContactSection::GroupMap::const_iterator ContactSection::end() const
 }
 
 ContactSection::GroupMap ContactSection::extract_groups(
-    const api::Core& api,
+    const api::internal::Core& api,
     const std::string& nym,
     const VersionNumber parentVersion,
     const proto::ContactSection& serialized)

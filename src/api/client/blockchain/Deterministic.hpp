@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -47,7 +47,9 @@ protected:
     mutable IndexMap generated_;
     mutable IndexMap used_;
 
-    static HDKey instantiate_key(const api::Core& api, proto::HDPath& path);
+    static HDKey instantiate_key(
+        const api::internal::Core& api,
+        proto::HDPath& path);
 
     std::optional<Bip32Index> bump_generated(
         const Lock& lock,

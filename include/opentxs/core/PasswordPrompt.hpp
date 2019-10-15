@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,6 +20,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+class Core;
+}  // namespace implementation
+}  // namespace api
+
 /*
  PasswordPrompt
  This class is used for passing user data to the password callback.
@@ -43,7 +51,6 @@ namespace opentxs
 class PasswordPrompt
 {
 public:
-    const api::internal::Core& api() const;
     EXPORT const char* GetDisplayString() const;
     EXPORT const std::unique_ptr<const OTPassword>& Password() const;
 
@@ -55,6 +62,7 @@ public:
 private:
     friend OTPasswordPrompt;
     friend opentxs::Factory;
+    friend api::implementation::Core;
 
     PasswordPrompt* clone() const noexcept { return new PasswordPrompt(*this); }
 

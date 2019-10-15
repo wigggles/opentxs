@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -24,10 +24,13 @@ namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
 typedef std::list<std::shared_ptr<Item>> listOfItems;
@@ -224,19 +227,19 @@ private:  // Private prevents erroneous use by other classes.
     // related. Every transaction has a list of items, and these perform the
     // transaction. A transaction trying to TRANSFER would have these items:
     // transfer, serverfee, balance, and possibly outboxhash.
-    Item(const api::Core& core);
+    Item(const api::internal::Core& api);
     Item(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& theNymID,
         const Item& theOwner);  // From owner we can get acct ID, server ID,
                                 // and transaction Num
     Item(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& theNymID,
         const OTTransaction& theOwner);  // From owner we can get acct ID,
                                          // server ID, and transaction Num
     Item(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& theNymID,
         const OTTransaction& theOwner,
         itemType theType,

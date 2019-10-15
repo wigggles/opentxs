@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,8 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 
+#include "internal/api/Api.hpp"
+
 #include "EcdsaProvider.hpp"
 
 #define OT_METHOD "opentxs::EcdsaProvider::"
@@ -31,7 +33,7 @@ EcdsaProvider::EcdsaProvider(const api::Crypto& crypto)
 }
 
 bool EcdsaProvider::AsymmetricKeyToECPrivatekey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const crypto::key::EllipticCurve& asymmetricKey,
     const PasswordPrompt& reason,
     OTPassword& privkey) const
@@ -45,7 +47,7 @@ bool EcdsaProvider::AsymmetricKeyToECPrivatekey(
 }
 
 bool EcdsaProvider::AsymmetricKeyToECPrivkey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Ciphertext& asymmetricKey,
     const PasswordPrompt& reason,
     OTPassword& privkey) const
@@ -61,7 +63,7 @@ bool EcdsaProvider::AsymmetricKeyToECPubkey(
 }
 
 bool EcdsaProvider::DecryptPrivateKey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Ciphertext& encryptedKey,
     const PasswordPrompt& reason,
     OTPassword& plaintextKey) const
@@ -80,7 +82,7 @@ bool EcdsaProvider::DecryptPrivateKey(
 }
 
 bool EcdsaProvider::DecryptPrivateKey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Ciphertext& encryptedKey,
     const proto::Ciphertext& encryptedChaincode,
     const PasswordPrompt& reason,
@@ -97,7 +99,7 @@ bool EcdsaProvider::DecryptPrivateKey(
 }
 
 bool EcdsaProvider::DecryptSessionKeyECDH(
-    const api::Core& api,
+    const api::internal::Core& api,
     const crypto::key::EllipticCurve& privateKey,
     const crypto::key::EllipticCurve& publicKey,
     crypto::key::Symmetric& sessionKey,
@@ -117,7 +119,7 @@ bool EcdsaProvider::DecryptSessionKeyECDH(
 }
 
 bool EcdsaProvider::DecryptSessionKeyECDH(
-    const api::Core& api,
+    const api::internal::Core& api,
     const crypto::key::EllipticCurve& privateKey,
     const crypto::key::EllipticCurve& publicKey,
     crypto::key::Symmetric& sessionKey,
@@ -165,7 +167,7 @@ bool EcdsaProvider::DecryptSessionKeyECDH(
 }
 
 bool EcdsaProvider::ECPrivatekeyToAsymmetricKey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const OTPassword& privkey,
     const PasswordPrompt& reason,
     crypto::key::EllipticCurve& asymmetricKey) const
@@ -183,7 +185,7 @@ bool EcdsaProvider::ECPubkeyToAsymmetricKey(
 }
 
 bool EcdsaProvider::EncryptPrivateKey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const OTPassword& plaintextKey,
     const PasswordPrompt& reason,
     proto::Ciphertext& encryptedKey) const
@@ -198,7 +200,7 @@ bool EcdsaProvider::EncryptPrivateKey(
 }
 
 bool EcdsaProvider::EncryptPrivateKey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const OTPassword& key,
     const OTPassword& chaincode,
     const PasswordPrompt& reason,
@@ -219,7 +221,7 @@ bool EcdsaProvider::EncryptPrivateKey(
 }
 
 bool EcdsaProvider::EncryptSessionKeyECDH(
-    const api::Core& api,
+    const api::internal::Core& api,
     const crypto::key::EllipticCurve& privateKey,
     const crypto::key::EllipticCurve& publicKey,
     crypto::key::Symmetric& sessionKey,
@@ -276,7 +278,7 @@ bool EcdsaProvider::EncryptSessionKeyECDH(
 }
 
 bool EcdsaProvider::ExportECPrivatekey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const OTPassword& privkey,
     const PasswordPrompt& reason,
     crypto::key::EllipticCurve& asymmetricKey) const
@@ -289,7 +291,7 @@ bool EcdsaProvider::ExportECPrivatekey(
 }
 
 bool EcdsaProvider::ImportECPrivatekey(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Ciphertext& asymmetricKey,
     const PasswordPrompt& reason,
     OTPassword& privkey) const
@@ -298,7 +300,7 @@ bool EcdsaProvider::ImportECPrivatekey(
 }
 
 bool EcdsaProvider::PrivateToPublic(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::AsymmetricKey& privateKey,
     proto::AsymmetricKey& publicKey,
     const PasswordPrompt& reason) const
@@ -320,7 +322,7 @@ bool EcdsaProvider::PrivateToPublic(
 }
 
 bool EcdsaProvider::PrivateToPublic(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::Ciphertext& privateKey,
     Data& publicKey,
     const PasswordPrompt& reason) const

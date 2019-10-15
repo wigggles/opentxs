@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -36,6 +36,11 @@ namespace implementation
 {
 class Manager;
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace client
 }  // namespace api
 
@@ -556,7 +561,7 @@ public:
 private:
     friend class api::client::implementation::Manager;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
     const api::client::Workflow& workflow_;
@@ -621,7 +626,7 @@ private:
     bool LoadConfigFile();
 
     OT_API(
-        const api::Core& api,
+        const api::internal::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts,
         const api::client::Workflow& workflow,

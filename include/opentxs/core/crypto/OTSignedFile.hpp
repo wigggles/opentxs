@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,10 +19,13 @@ namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
 class OTSignedFile : public Contract
@@ -90,17 +93,17 @@ private:  // Private prevents erroneous use by other classes.
     // These assume SetFilename() was already called,
     // or at least one of the constructors that uses it.
     //
-    explicit OTSignedFile(const api::Core& core);
+    explicit OTSignedFile(const api::internal::Core& core);
     explicit OTSignedFile(
-        const api::Core& core,
+        const api::internal::Core& core,
         const String& LOCAL_SUBDIR,
         const String& FILE_NAME);
     explicit OTSignedFile(
-        const api::Core& core,
+        const api::internal::Core& core,
         const char* LOCAL_SUBDIR,
         const String& FILE_NAME);
     explicit OTSignedFile(
-        const api::Core& core,
+        const api::internal::Core& core,
         const char* LOCAL_SUBDIR,
         const char* FILE_NAME);
 

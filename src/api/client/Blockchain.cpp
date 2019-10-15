@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -49,7 +49,7 @@
 namespace opentxs
 {
 api::client::Blockchain* Factory::BlockchainAPI(
-    const api::Core& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts)
 {
@@ -83,7 +83,7 @@ const Blockchain::StyleReverseMap Blockchain::address_style_reverse_map_{
     reverse_map(address_style_map_)};
 
 Blockchain::Blockchain(
-    const api::Core& api,
+    const api::internal::Core& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts) noexcept
     : api_(api)

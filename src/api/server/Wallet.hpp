@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -32,7 +32,7 @@ private:
 
     using ot_super = api::implementation::Wallet;
 
-    const api::server::Manager& server_;
+    const api::server::internal::Manager& server_;
 
     void instantiate_client_context(
         const proto::Context& serialized,
@@ -47,7 +47,7 @@ private:
     Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
         const final;
 
-    Wallet(const api::server::Manager& server);
+    Wallet(const api::server::internal::Manager& server);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;

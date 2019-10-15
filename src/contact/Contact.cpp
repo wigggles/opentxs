@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,6 +27,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Types.hpp"
+
+#include "internal/api/client/Client.hpp"
+#include "internal/api/Api.hpp"
 
 #include <sstream>
 #include <stdexcept>
@@ -77,7 +80,7 @@ namespace opentxs
 {
 Contact::Contact(
     const PasswordPrompt& reason,
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const proto::Contact& serialized)
     : api_(api)
     , version_(check_version(serialized.version(), OT_CONTACT_VERSION))
@@ -114,7 +117,9 @@ Contact::Contact(
     init_nyms(reason);
 }
 
-Contact::Contact(const api::client::Manager& api, const std::string& label)
+Contact::Contact(
+    const api::client::internal::Manager& api,
+    const std::string& label)
     : api_(api)
     , version_(OT_CONTACT_VERSION)
     , label_(label)
@@ -594,7 +599,7 @@ std::shared_ptr<ContactData> Contact::Data() const
     return merged_data(lock);
 }
 
-OTIdentifier Contact::generate_id(const api::Core& api)
+OTIdentifier Contact::generate_id(const api::internal::Core& api)
 {
     auto& encode = api.Crypto().Encode();
     auto random = Data::Factory();
@@ -926,7 +931,7 @@ const std::set<proto::ContactItemType> Contact::SocialMediaProfileTypes() const
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 Contact::BlockchainAddress Contact::translate(
-    const api::client::Manager& api,
+    const api::client::internal::Manager& api,
     const proto::ContactItemType chain,
     const std::string& value,
     const std::string& subtype) noexcept(false)

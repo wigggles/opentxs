@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,10 +19,13 @@ namespace api
 {
 namespace implementation
 {
-
 class Factory;
-
 }  // namespace implementation
+
+namespace internal
+{
+struct Core;
+}  // namespace internal
 }  // namespace api
 
 /*
@@ -712,16 +715,16 @@ protected:
 private:
     friend api::implementation::Factory;
 
-    OTTransaction(const api::Core& core);
-    OTTransaction(const api::Core& core, const Ledger& theOwner);
+    OTTransaction(const api::internal::Core& api);
+    OTTransaction(const api::internal::Core& api, const Ledger& theOwner);
     OTTransaction(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& theNymID,
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,
         const originType theOriginType = originType::not_applicable);
     OTTransaction(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& theNymID,
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,
@@ -732,7 +735,7 @@ private:
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
     OTTransaction(
-        const api::Core& core,
+        const api::internal::Core& api,
         const identifier::Nym& theNymID,
         const Identifier& theAccountID,
         const identifier::Server& theNotaryID,

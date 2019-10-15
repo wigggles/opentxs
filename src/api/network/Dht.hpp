@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     mutable CallbackMap callback_map_{};
     std::unique_ptr<const DhtConfig> config_{nullptr};
 #if OT_DHT
@@ -42,17 +42,17 @@ private:
 
 #if OT_DHT
     static bool ProcessPublicNym(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessServerContract(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
@@ -62,7 +62,7 @@ private:
         const opentxs::network::zeromq::Message& incoming,
         void (Dht::*get)(const std::string&) const) const;
 
-    Dht(DhtConfig& config, const api::Core& api);
+    Dht(DhtConfig& config, const api::internal::Core& api);
     Dht() = delete;
     Dht(const Dht&) = delete;
     Dht(Dht&&) = delete;

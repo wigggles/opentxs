@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -20,6 +20,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 class ServerContract final : public Signable
 {
 public:
@@ -35,7 +43,7 @@ public:
         Endpoint;
 
     static ServerContract* Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const std::list<Endpoint>& endpoints,
         const std::string& terms,
@@ -43,7 +51,7 @@ public:
         const VersionNumber version,
         const PasswordPrompt& reason);
     static ServerContract* Factory(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::ServerContract& serialized,
         const PasswordPrompt& reason);
@@ -72,7 +80,7 @@ public:
 private:
     typedef Signable ot_super;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     std::list<Endpoint> listen_params_{};
     std::string name_{""};
     OTData transport_key_;
@@ -90,9 +98,9 @@ private:
     bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
 
     ServerContract() = delete;
-    ServerContract(const api::Core& api, const Nym_p& nym);
+    ServerContract(const api::internal::Core& api, const Nym_p& nym);
     ServerContract(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::ServerContract& serialized);
 };

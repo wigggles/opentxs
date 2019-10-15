@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -41,7 +41,7 @@
 namespace opentxs
 {
 api::client::internal::Activity* Factory::Activity(
-    const api::Core& api,
+    const api::internal::Core& api,
     const api::client::Contacts& contact)
 {
     return new api::client::implementation::Activity(api, contact);
@@ -50,7 +50,9 @@ api::client::internal::Activity* Factory::Activity(
 
 namespace opentxs::api::client::implementation
 {
-Activity::Activity(const api::Core& api, const client::Contacts& contact)
+Activity::Activity(
+    const api::internal::Core& api,
+    const client::Contacts& contact)
     : api_(api)
     , contact_(contact)
     , mail_cache_lock_()

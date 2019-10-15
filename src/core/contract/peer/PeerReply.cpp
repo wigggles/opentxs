@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -22,12 +22,14 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
+
 #define OT_METHOD "opentxs::PeerReply::"
 
 namespace opentxs
 {
 PeerReply::PeerReply(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::PeerReply& serialized)
     : ot_super(nym)
@@ -45,7 +47,7 @@ PeerReply::PeerReply(
 }
 
 PeerReply::PeerReply(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const VersionNumber version,
     const identifier::Nym& initiator,
@@ -80,7 +82,7 @@ proto::PeerReply PeerReply::Contract() const
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::PeerRequestType& type,
     const Identifier& requestID,
@@ -125,7 +127,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const Identifier& requestID,
     const identifier::Server& server,
@@ -163,7 +165,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const Identifier& request,
     const identifier::Server& server,
@@ -207,7 +209,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Factory(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const proto::PeerReply& serialized,
     const PasswordPrompt& reason)
@@ -319,7 +321,7 @@ OTIdentifier PeerReply::GetID(const Lock& lock) const
 }
 
 OTIdentifier PeerReply::GetID(
-    const api::Core& api,
+    const api::internal::Core& api,
     const proto::PeerReply& contract)
 {
     auto id = Identifier::Factory();
@@ -352,7 +354,7 @@ proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
 }
 
 std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
-    const api::Core& api,
+    const api::internal::Core& api,
     const Nym_p& nym,
     const Identifier& requestID)
 {

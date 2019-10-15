@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,6 +18,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 typedef std::map<std::string, OTBylaw*> mapOfBylaws;
 typedef std::map<std::string, OTClause*> mapOfClauses;
 typedef std::map<std::string, OTParty*> mapOfParties;
@@ -346,7 +354,7 @@ protected:
                           // smart contract would normally want to log its
                           // transaction #, not just the clause name.)
 
-    OTScriptable(const api::Core& core);
+    OTScriptable(const api::internal::Core& api);
 
 private:
     typedef Contract ot_super;

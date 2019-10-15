@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,18 +13,26 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 namespace crypto
 {
 class EcdsaProvider : virtual public AsymmetricProvider
 {
 public:
     EXPORT virtual bool AsymmetricKeyToECPrivatekey(
-        const api::Core& api,
+        const api::internal::Core& api,
         const crypto::key::EllipticCurve& asymmetricKey,
         const PasswordPrompt& reason,
         OTPassword& privkey) const = 0;
     EXPORT virtual bool DecryptSessionKeyECDH(
-        const api::Core& api,
+        const api::internal::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
         crypto::key::Symmetric& sessionKey,
@@ -32,14 +40,14 @@ public:
         OTPassword& plaintextKey,
         const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool DecryptSessionKeyECDH(
-        const api::Core& api,
+        const api::internal::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
         crypto::key::Symmetric& sessionKey,
         PasswordPrompt& sessionKeyPassword,
         const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool ECPrivatekeyToAsymmetricKey(
-        const api::Core& api,
+        const api::internal::Core& api,
         const OTPassword& privkey,
         const PasswordPrompt& reason,
         crypto::key::EllipticCurve& asymmetricKey) const = 0;
@@ -47,7 +55,7 @@ public:
         const Data& pubkey,
         crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool EncryptSessionKeyECDH(
-        const api::Core& api,
+        const api::internal::Core& api,
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
         crypto::key::Symmetric& sessionKey,
@@ -55,22 +63,22 @@ public:
         OTPassword& newKeyPassword,
         const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool ExportECPrivatekey(
-        const api::Core& api,
+        const api::internal::Core& api,
         const OTPassword& privkey,
         const PasswordPrompt& reason,
         crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool ImportECPrivatekey(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::Ciphertext& asymmetricKey,
         const PasswordPrompt& reason,
         OTPassword& privkey) const = 0;
     EXPORT virtual bool PrivateToPublic(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::AsymmetricKey& privateKey,
         proto::AsymmetricKey& publicKey,
         const PasswordPrompt& reason) const = 0;
     EXPORT virtual bool PrivateToPublic(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::Ciphertext& privateKey,
         Data& publicKey,
         const PasswordPrompt& reason) const = 0;

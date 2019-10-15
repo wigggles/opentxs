@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,6 +19,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 class UnitDefinition : public Signable
 {
 private:
@@ -35,12 +43,12 @@ private:
         const PasswordPrompt& reason) const override;
 
 protected:
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const std::string primary_unit_symbol_;
     const proto::ContactItemType unit_of_account_;
 
     static OTIdentifier GetID(
-        const api::Core& api,
+        const api::internal::Core& api,
         const proto::UnitDefinition& contract);
 
     virtual proto::UnitDefinition IDVersion(const Lock& lock) const;
@@ -52,11 +60,11 @@ protected:
         override;
 
     UnitDefinition(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::UnitDefinition serialized);
     UnitDefinition(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -70,7 +78,7 @@ public:
     EXPORT static const VersionNumber MaxVersion;
 
     EXPORT static UnitDefinition* Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -83,7 +91,7 @@ public:
         const PasswordPrompt& reason,
         const VersionNumber version);
     EXPORT static UnitDefinition* Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -93,7 +101,7 @@ public:
         const proto::ContactItemType unitOfAccount,
         const VersionNumber version);
     EXPORT static UnitDefinition* Create(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const std::string& shortname,
         const std::string& name,
@@ -103,7 +111,7 @@ public:
         const PasswordPrompt& reason,
         const VersionNumber version);
     EXPORT static UnitDefinition* Factory(
-        const api::Core& api,
+        const api::internal::Core& api,
         const Nym_p& nym,
         const proto::UnitDefinition& serialized,
         const PasswordPrompt& reason);

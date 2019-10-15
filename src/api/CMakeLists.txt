@@ -1,4 +1,4 @@
-# Copyright (c) 2019 The Open-Transactions developers
+# Copyright (c) 2010-2019 The Open-Transactions developers
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -32,7 +32,6 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Endpoints.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Factory.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/HDSeed.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/api/Legacy.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Periodic.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Settings.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/Wallet.hpp"
@@ -40,7 +39,8 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
-  ${opentxs_SOURCE_DIR}/src/internal/api/Api.hpp
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/Legacy.hpp"
+  "${opentxs_SOURCE_DIR}/src/internal/api/Api.hpp"
   Context.hpp
   Core.hpp
   Endpoints.hpp

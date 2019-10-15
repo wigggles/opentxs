@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,19 +15,12 @@
 
 namespace opentxs
 {
-
-class String;
-class OTTransaction;
-class Ledger;
-class Identifier;
-class NumList;
-
 EXPORT const char* GetTransactionTypeString(
     int transactionTypeIndex);  // enum transactionType
 EXPORT const char* GetOriginTypeToString(int originTypeIndex);  // enum
                                                                 // originType
 
-std::int32_t LoadAbbreviatedRecord(
+EXPORT std::int32_t LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml,
     std::int64_t& lNumberOfOrigin,
     originType& theOriginType,
@@ -45,6 +38,7 @@ std::int32_t LoadAbbreviatedRecord(
     NumList* pNumList = nullptr);
 
 EXPORT bool VerifyBoxReceiptExists(
+    const api::internal::Core& api,
     const std::string& dataFolder,
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& NYM_ID,
@@ -53,17 +47,20 @@ EXPORT bool VerifyBoxReceiptExists(
     std::int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
     const std::int64_t& lTransactionNum);
 
-std::unique_ptr<OTTransaction> LoadBoxReceipt(
+EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
+    const api::internal::Core& api,
     OTTransaction& theAbbrev,
     Ledger& theLedger,
     const PasswordPrompt& reason);
 
 EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
+    const api::internal::Core& api,
     OTTransaction& theAbbrev,
     std::int64_t lLedgerType,
     const PasswordPrompt& reason);
 
-bool SetupBoxReceiptFilename(
+EXPORT bool SetupBoxReceiptFilename(
+    const api::internal::Core& api,
     std::int64_t lLedgerType,
     OTTransaction& theTransaction,
     const char* szCaller,
@@ -72,7 +69,8 @@ bool SetupBoxReceiptFilename(
     String& strFolder3name,
     String& strFilename);
 
-bool SetupBoxReceiptFilename(
+EXPORT bool SetupBoxReceiptFilename(
+    const api::internal::Core& api,
     Ledger& theLedger,
     OTTransaction& theTransaction,
     const char* szCaller,
@@ -81,7 +79,8 @@ bool SetupBoxReceiptFilename(
     String& strFolder3name,
     String& strFilename);
 
-bool SetupBoxReceiptFilename(
+EXPORT bool SetupBoxReceiptFilename(
+    const api::internal::Core& api,
     std::int64_t lLedgerType,
     const String& strUserOrAcctID,
     const String& strNotaryID,
@@ -91,7 +90,5 @@ bool SetupBoxReceiptFilename(
     String& strFolder2name,
     String& strFolder3name,
     String& strFilename);
-
 }  // namespace opentxs
-
 #endif

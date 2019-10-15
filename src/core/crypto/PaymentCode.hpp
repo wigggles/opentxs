@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -42,7 +42,7 @@ private:
 
     const std::uint8_t BIP47_VERSION_BYTE{0x47};
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     std::uint8_t version_{1};
     std::string seed_{""};
     std::int32_t index_{-1};
@@ -54,7 +54,7 @@ private:
     std::uint8_t bitmessage_stream_{0};
 
     static std::tuple<bool, std::unique_ptr<OTPassword>, OTData> make_key(
-        const api::Core& api,
+        const api::internal::Core& api,
         const std::string& seed,
         const Bip32Index index,
         const PasswordPrompt& reason);
@@ -65,15 +65,15 @@ private:
     OTAsymmetricKey signing_key(const PasswordPrompt& reason) const;
 
     PaymentCode(
-        const api::Core& api,
+        const api::internal::Core& api,
         const PasswordPrompt& reason,
         const std::string& base58);
     PaymentCode(
-        const api::Core& api,
+        const api::internal::Core& api,
         const PasswordPrompt& reason,
         const proto::PaymentCode& paycode);
     PaymentCode(
-        const api::Core& api,
+        const api::internal::Core& api,
         const PasswordPrompt& reason,
         const std::string& seed,
         const Bip32Index nym,

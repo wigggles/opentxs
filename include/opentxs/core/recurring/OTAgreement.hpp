@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -21,6 +21,14 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace internal
+{
+struct Core;
+}  // namespace internal
+}  // namespace api
+
 // An Agreement occurs between TWO PEOPLE, and is for a CONSIDERATION.
 // Thus, we add the RECIPIENT (already have SENDER from OTTrackable.)
 //
@@ -378,7 +386,7 @@ public:
 
      */
     EXPORT bool SendNoticeToAllParties(
-        const api::Core& core,
+        const api::internal::Core& core,
         bool bSuccessMsg,
         const identity::Nym& theServerNym,
         const identifier::Server& theNotaryID,
@@ -393,7 +401,7 @@ public:
 
     // Nym receives an Item::acknowledgment or Item::rejection.
     EXPORT static bool DropServerNoticeToNymbox(
-        const api::Core& core,
+        const api::internal::Core& core,
         bool bSuccessMsg,
         const identity::Nym& theServerNym,
         const identifier::Server& NOTARY_ID,
@@ -427,13 +435,13 @@ public:
                    // is where the ledger saves its contents
 
 protected:
-    OTAgreement(const api::Core& core);
+    OTAgreement(const api::internal::Core& core);
     OTAgreement(
-        const api::Core& core,
+        const api::internal::Core& core,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);
     OTAgreement(
-        const api::Core& core,
+        const api::internal::Core& core,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -139,7 +139,7 @@ public:
         const std::int32_t& PAYMENT_PLAN_MAX_PAYMENTS  // integer. Defaults to 0
                                                        // or
         // nullptr (no maximum payments.)
-        ) const;
+    ) const;
 
     // The above version has too many arguments for boost::function apparently
     // (for Chaiscript.)
@@ -176,7 +176,7 @@ public:
                                         // lifetime in seconds. 'number' is
         // maximum number of payments in seconds.
         // 0 or "" is unlimited (for both.)
-        ) const;
+    ) const;
 
     // Called by Customer. Pass in the plan obtained in the above call.
     //
@@ -201,7 +201,7 @@ public:
         bool SPECIFY_ASSETS,  // Asset type IDs must be provided for every named
                               // account.
         bool SPECIFY_PARTIES  // Nym IDs must be provided for every party.
-        ) const;
+    ) const;
 
     EXPORT std::string SmartContract_SetDates(
         const std::string& THE_CONTRACT,   // The contract, about to have the
@@ -213,7 +213,7 @@ public:
         const Time& VALID_TO  // Default (0 or nullptr) == no expiry /
                               // cancel
                               // anytime
-        ) const;
+    ) const;
 
     EXPORT bool Smart_ArePartiesSpecified(
         const std::string& THE_CONTRACT) const;
@@ -235,7 +235,7 @@ public:
                                            // cause a save.)
         const std::string& BYLAW_NAME  // The Bylaw's NAME as referenced in the
                                        // smart contract. (And the scripts...)
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_RemoveBylaw(
@@ -246,7 +246,7 @@ public:
                                            // cause a save.)
         const std::string& BYLAW_NAME  // The Bylaw's NAME as referenced in the
                                        // smart contract. (And the scripts...)
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_AddClause(
@@ -262,7 +262,7 @@ public:
                                            // scripts...)
         const std::string& SOURCE_CODE     // The actual source code for the
                                            // clause.
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_UpdateClause(
@@ -278,7 +278,7 @@ public:
                                            // scripts...)
         const std::string& SOURCE_CODE     // The actual source code for the
                                            // clause.
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_RemoveClause(
@@ -292,7 +292,7 @@ public:
         const std::string& CLAUSE_NAME     // The Clause's name as referenced in
                                            // the smart contract. (And the
                                            // scripts...)
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_AddVariable(
@@ -315,7 +315,7 @@ public:
         // a std::int64_t. If type is bool, the strings
         // "true" or "false" are expected here in
         // order to convert to a bool.
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_RemoveVariable(
@@ -328,7 +328,7 @@ public:
                                            // (This way we can find it.)
         const std::string& VAR_NAME  // The Variable's name as referenced in the
                                      // smart contract. (And the scripts...)
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_AddCallback(
@@ -345,7 +345,7 @@ public:
         const std::string& CLAUSE_NAME     // The actual clause that will be
                                            // triggered by the callback. (Must
                                            // exist.)
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_RemoveCallback(
@@ -359,7 +359,7 @@ public:
         const std::string& CALLBACK_NAME   // The Callback's name as referenced
                                            // in the smart contract. (And the
                                            // scripts...)
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_AddHook(
@@ -377,7 +377,7 @@ public:
                                         // triggered by the hook. (You can call
         // this multiple times, and have multiple
         // clauses trigger on the same hook.)
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_RemoveHook(
@@ -395,7 +395,7 @@ public:
                                         // triggered by the hook. (You can call
         // this multiple times, and have multiple
         // clauses trigger on the same hook.)
-        ) const;
+    ) const;
 
     // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
     EXPORT std::string SmartContract_AddParty(
@@ -411,7 +411,7 @@ public:
                                         // smart contract. (And the scripts...)
         const std::string& AGENT_NAME   // An AGENT will be added by default for
                                         // this party. Need Agent NAME.
-        ) const;
+    ) const;
 
     // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
     EXPORT std::string SmartContract_RemoveParty(
@@ -422,7 +422,7 @@ public:
                                            // cause a save.)
         const std::string& PARTY_NAME  // The Party's NAME as referenced in the
                                        // smart contract. (And the scripts...)
-        ) const;
+    ) const;
 
     // (FYI, that is basically the only option, until I code Entities and Roles.
     // Until then, a party can ONLY be
@@ -447,7 +447,7 @@ public:
         const std::string& INSTRUMENT_DEFINITION_ID  // Instrument Definition ID
                                                      // for the
                                                      // Account.
-        ) const;
+    ) const;
 
     // returns: the updated smart contract (or nullptr)
     EXPORT std::string SmartContract_RemoveAccount(
@@ -460,7 +460,7 @@ public:
                                         // smart contract. (And the scripts...)
         const std::string& ACCT_NAME  // The Account's name as referenced in the
                                       // smart contract
-        ) const;
+    ) const;
 
     /** This function returns the count of how many trans#s a Nym needs in order
     to confirm as
@@ -495,7 +495,7 @@ public:
                                            // account.
         const std::string& ACCT_ID         // AcctID for the asset account. (For
                                            // acct_name).
-        ) const;
+    ) const;
 
     /** ----------------------------------------
     // Called by each Party. Pass in the smart contract obtained in the above
@@ -788,7 +788,7 @@ public:
 private:
     friend class api::client::implementation::Manager;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
     const api::network::ZMQ& zeromq_;
@@ -796,7 +796,7 @@ private:
     ContextLockCallback lock_callback_;
 
     OTAPI_Exec(
-        const api::Core& api,
+        const api::internal::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts,
         const api::network::ZMQ& zeromq,

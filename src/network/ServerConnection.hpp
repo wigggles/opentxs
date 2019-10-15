@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -30,7 +30,7 @@ private:
     friend opentxs::network::ServerConnection;
 
     const api::network::ZMQ& zmq_;
-    const api::Core& api_;
+    const api::internal::Core& api_;
     const zeromq::socket::Publish& updates_;
     const std::string server_id_{};
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
@@ -81,7 +81,7 @@ private:
     void reset_timer();
 
     ServerConnection(
-        const api::Core& api,
+        const api::internal::Core& api,
         const api::network::ZMQ& zmq,
         const zeromq::socket::Publish& updates,
         const std::shared_ptr<const ServerContract>& contract);

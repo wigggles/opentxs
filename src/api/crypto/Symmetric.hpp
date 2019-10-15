@@ -1,4 +1,4 @@
-// Copyright (c) 2019 The Open-Transactions developers
+// Copyright (c) 2010-2019 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -33,12 +33,12 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Core& api_;
+    const api::internal::Core& api_;
 
     const opentxs::crypto::SymmetricProvider* GetEngine(
         const proto::SymmetricMode mode) const;
 
-    Symmetric(const api::Core& api);
+    Symmetric(const api::internal::Core& api);
     Symmetric() = delete;
     Symmetric(const Symmetric&) = delete;
     Symmetric(Symmetric&&) = delete;
