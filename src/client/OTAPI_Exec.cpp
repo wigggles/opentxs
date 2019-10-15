@@ -42,7 +42,6 @@
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTVariable.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"

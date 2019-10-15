@@ -26,7 +26,6 @@
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -168,7 +167,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 {
 #if OT_CRYPTO_WITH_BIP39
     const auto backup = OTDB::QueryPlainString(
-        manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
+        manager_, manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
     std::string seed{};
 
     if (false == backup.empty()) {
@@ -370,7 +369,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     auto& wallet = manager_.Wallet();
     const auto existing = String::Factory(
         OTDB::QueryPlainString(
-            manager_.DataFolder(), SERVER_CONTRACT_FILE, "", "", "")
+            manager_, manager_.DataFolder(), SERVER_CONTRACT_FILE, "", "", "")
             .data());
 
     if (existing->empty()) {
@@ -433,6 +432,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     auto strBookended = String::Factory();
     ascContract->WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(
+        manager_,
         strBookended->Get(),
         manager_.DataFolder(),
         SERVER_CONTRACT_FILE,
@@ -463,10 +463,10 @@ void Server::CreateMainFile(bool& mainFileExists)
     json += "\" }\n";
 
     OTDB::StorePlainString(
-        json, manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
+        manager_, json, manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
 
-    mainFileExists = mainFile_.CreateMainFile(
-        strBookended->Get(), strNotaryID, "", nymID.str());
+    mainFileExists =
+        mainFile_.CreateMainFile(strBookended->Get(), strNotaryID, nymID.str());
 
     manager_.Config().Save();
 }
@@ -484,11 +484,15 @@ void Server::Init(bool readOnly)
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
 
     // Load up the transaction number and other Server data members.
-    bool mainFileExists =
-        WalletFilename().Exists()
-            ? OTDB::Exists(
-                  manager_.DataFolder(), ".", WalletFilename().Get(), "", "")
-            : false;
+    bool mainFileExists = WalletFilename().Exists()
+                              ? OTDB::Exists(
+                                    manager_,
+                                    manager_.DataFolder(),
+                                    ".",
+                                    WalletFilename().Get(),
+                                    "",
+                                    "")
+                              : false;
 
     if (false == mainFileExists) {
         if (readOnly) {
@@ -508,7 +512,12 @@ void Server::Init(bool readOnly)
                 ": Error in Loading Main File, re-creating.")
                 .Flush();
             OTDB::EraseValueByKey(
-                manager_.DataFolder(), ".", WalletFilename().Get(), "", "");
+                manager_,
+                manager_.DataFolder(),
+                ".",
+                WalletFilename().Get(),
+                "",
+                "");
             CreateMainFile(mainFileExists);
 
             OT_ASSERT(mainFileExists);

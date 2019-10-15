@@ -6,14 +6,11 @@
 set(
   cxx-sources
   Common.cpp
-  OTPaths.cpp
   Tag.cpp
 )
 set(
   cxx-install-headers
   "${opentxs_SOURCE_DIR}/include/opentxs/core/util/Common.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/util/OTPaths.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/util/OTWindowsRegistryTools.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/util/Tag.hpp"
 )
 set(cxx-headers ${cxx-install-headers})

@@ -514,7 +514,7 @@ bool Ledger::LoadGeneric(
     if (pString.Exists()) {  // Loading FROM A STRING.
         strRawFile->Set(pString.Get());
     } else {  // Loading FROM A FILE.
-        if (!OTDB::Exists(api_.DataFolder(), path1, path2, path3, "")) {
+        if (!OTDB::Exists(api_, api_.DataFolder(), path1, path2, path3, "")) {
             LogDebug(OT_METHOD)(__FUNCTION__)(
                 ": does not exist in OTLedger::Load")(pszType)(": ")(path1)(
                 PathSeparator())(m_strFilename)
@@ -524,6 +524,7 @@ bool Ledger::LoadGeneric(
 
         // Try to load the ledger from local storage.
         std::string strFileContents(OTDB::QueryPlainString(
+            api_,
             api_.DataFolder(),
             path1,
             path2,
@@ -605,6 +606,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
     }
 
     bool bSaved = OTDB::StorePlainString(
+        api_,
         strFinal->Get(),
         api_.DataFolder(),
         path1,
@@ -944,6 +946,7 @@ bool Ledger::generate_ledger(
                                  // "outbox/NOTARY_ID/ACCT_ID")
 
         if (OTDB::Exists(
+                api_,
                 api_.DataFolder(),
                 szFolder1name,
                 szFolder2name,

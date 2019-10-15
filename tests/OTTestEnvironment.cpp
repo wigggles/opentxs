@@ -6,16 +6,9 @@
 #include "OTTestEnvironment.hpp"
 
 #include "opentxs/opentxs.hpp"
-#include "opentxs/core/String.hpp"
 
 // Insure FAIL macro has correct definition
 #include <gtest/gtest.h>
-
-std::string OTTestEnvironment::Home()
-{
-    std::string home = opentxs::OTPaths::AppDataFolder().Get();
-    return home;
-}
 
 void OTTestEnvironment::SetUp()
 {

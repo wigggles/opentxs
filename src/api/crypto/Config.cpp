@@ -7,7 +7,6 @@
 
 #include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include <ostream>

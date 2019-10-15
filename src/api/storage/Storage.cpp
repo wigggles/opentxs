@@ -93,15 +93,32 @@ api::storage::StorageInternal* Factory::Storage(
     Random random =
         std::bind(&api::crypto::Encode::RandomFilename, &(crypto.Encode()));
     std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
-    std::string root_path = legacy.Common();
-    std::string path;
 
-    if (0 <= storage->ConstructAndCreatePath(
-                 path, dataFolder, legacy.Common(), ".temp", "", "")) {
-        path.erase(path.end() - 5, path.end());
+    {
+        auto path = String::Factory();
+
+        if (false == legacy.AppendFolder(
+                         path,
+                         String::Factory(legacy.AppDataFolder()),
+                         String::Factory(legacy.Common()))) {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                "Failed to calculate storage path")
+                .Flush();
+
+            return nullptr;
+        }
+
+        if (false == legacy.BuildFolderPath(path)) {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                "Failed to construct storage path")
+                .Flush();
+
+            return nullptr;
+        }
+
+        storageConfig.path_ = path->Get();
     }
 
-    storageConfig.path_ = path;
     bool notUsed;
     bool migrate{false};
     auto old = String::Factory();
@@ -278,12 +295,31 @@ api::storage::StorageInternal* Factory::Storage(
     const std::string defaultPluginName(defaultPlugin.get().Get());
 
     if (defaultPluginName == OT_STORAGE_PRIMARY_PLUGIN_LMDB) {
-        if (0 <= storage->ConstructAndCreatePath(
-                     path, dataFolder, legacy.Common(), "_lmdb", ".temp", "")) {
-            path.erase(path.end() - 5, path.end());
-        }
+        {
+            auto path = String::Factory();
+            const auto subdir = std::string{legacy.Common()} + "_lmdb";
 
-        storageConfig.path_ = path;
+            if (false == legacy.AppendFolder(
+                             path,
+                             String::Factory(legacy.AppDataFolder()),
+                             String::Factory(subdir))) {
+                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                    "Failed to calculate lmdb storage path")
+                    .Flush();
+
+                return nullptr;
+            }
+
+            if (false == legacy.BuildFolderPath(path)) {
+                LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                    "Failed to construct lmdb storage path")
+                    .Flush();
+
+                return nullptr;
+            }
+
+            storageConfig.path_ = path->Get();
+        }
     }
 
     config.Set_str(

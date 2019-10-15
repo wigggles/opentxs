@@ -138,6 +138,7 @@ bool MainFile::SaveMainFile()
     // being used).
     //
     const bool bSaved = OTDB::StorePlainString(
+        server_.API(),
         strFinal->Get(),
         server_.API().DataFolder(),
         ".",
@@ -156,10 +157,10 @@ bool MainFile::SaveMainFile()
 bool MainFile::CreateMainFile(
     const std::string& strContract,
     const std::string& strNotaryID,
-    const std::string& strCert,
     const std::string& strNymID)
 {
     if (!OTDB::StorePlainString(
+            server_.API(),
             strContract,
             server_.API().DataFolder(),
             server_.API().Legacy().Contract(),
@@ -168,19 +169,6 @@ bool MainFile::CreateMainFile(
             "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to store the server contract.")
-            .Flush();
-        return false;
-    }
-
-    if (!strCert.empty() && !OTDB::StorePlainString(
-                                strCert,
-                                server_.API().DataFolder(),
-                                server_.API().Legacy().Cert(),
-                                strNymID,
-                                "",
-                                "")) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed trying to store the server Nym's public/private cert.")
             .Flush();
         return false;
     }
@@ -206,6 +194,7 @@ bool MainFile::CreateMainFile(
     std::string str_Notary(strNotaryFile->Get());
 
     if (!OTDB::StorePlainString(
+            server_.API(),
             str_Notary,
             server_.API().DataFolder(),
             ".",
@@ -243,6 +232,7 @@ bool MainFile::CreateMainFile(
 bool MainFile::LoadMainFile(bool bReadOnly)
 {
     if (!OTDB::Exists(
+            server_.API(),
             server_.API().DataFolder(),
             ".",
             server_.WalletFilename().Get(),
@@ -254,6 +244,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         return false;
     }
     auto strFileContents = String::Factory(OTDB::QueryPlainString(
+        server_.API(),
         server_.API().DataFolder(),
         ".",
         server_.WalletFilename().Get(),

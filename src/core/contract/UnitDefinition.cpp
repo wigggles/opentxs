@@ -319,6 +319,7 @@ bool UnitDefinition::VisitAccountRecords(
     strAcctRecordFile->Format("%s.a", strInstrumentDefinitionID->Get());
 
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
+        api_,
         OTDB::STORED_OBJ_STRING_MAP,
         dataFolder,
         api_.Legacy().Contract(),
@@ -424,6 +425,7 @@ bool UnitDefinition::AddAccountRecord(
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(
+            api_,
             dataFolder,
             api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
@@ -431,6 +433,7 @@ bool UnitDefinition::AddAccountRecord(
             ""))  // the file already exists; let's
                   // try to load it up.
         pStorable = OTDB::QueryObject(
+            api_,
             OTDB::STORED_OBJ_STRING_MAP,
             dataFolder,
             api_.Legacy().Contract(),
@@ -504,6 +507,7 @@ bool UnitDefinition::AddAccountRecord(
     // Then save it back to local storage:
     //
     if (!OTDB::StoreObject(
+            api_,
             *pMap,
             dataFolder,
             api_.Legacy().Contract(),
@@ -547,6 +551,7 @@ bool UnitDefinition::EraseAccountRecord(
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(
+            api_,
             dataFolder,
             api_.Legacy().Contract(),
             strAcctRecordFile->Get(),
@@ -554,6 +559,7 @@ bool UnitDefinition::EraseAccountRecord(
             ""))  // the file already exists; let's
                   // try to load it up.
         pStorable = OTDB::QueryObject(
+            api_,
             OTDB::STORED_OBJ_STRING_MAP,
             dataFolder,
             api_.Legacy().Contract(),
@@ -598,6 +604,7 @@ bool UnitDefinition::EraseAccountRecord(
     // Then save it back to local storage:
     //
     if (!OTDB::StoreObject(
+            api_,
             *pMap,
             dataFolder,
             api_.Legacy().Contract(),

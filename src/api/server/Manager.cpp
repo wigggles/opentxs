@@ -10,6 +10,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/blind/Mint.hpp"
@@ -17,7 +18,6 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -68,7 +68,7 @@ api::server::Manager* Factory::ServerManager(
     const std::string& dataFolder,
     const int instance)
 {
-    api::server::implementation::Manager* manager =
+    auto manager = std::unique_ptr<api::server::implementation::Manager>{
         new api::server::implementation::Manager(
             parent,
             running,
@@ -77,8 +77,9 @@ api::server::Manager* Factory::ServerManager(
             config,
             context,
             dataFolder,
-            instance);
-    if (nullptr != manager) {
+            instance)};
+
+    if (manager) {
         try {
             manager->Init();
         } catch (const std::invalid_argument& e) {
@@ -86,21 +87,18 @@ api::server::Manager* Factory::ServerManager(
                 ": There was a problem creating the server. The server "
                 "contract will be deleted. Error: ")(e.what())
                 .Flush();
-
             const std::string datafolder = manager->DataFolder();
-
-            delete manager;
-
             OTDB::EraseValueByKey(
-                datafolder, ".", "NEW_SERVER_CONTRACT.otc", "", "");
-            OTDB::EraseValueByKey(datafolder, ".", "notaryServer.xml", "", "");
-            OTDB::EraseValueByKey(datafolder, ".", "seed_backup.json", "", "");
-
+                *manager, datafolder, ".", "NEW_SERVER_CONTRACT.otc", "", "");
+            OTDB::EraseValueByKey(
+                *manager, datafolder, ".", "notaryServer.xml", "", "");
+            OTDB::EraseValueByKey(
+                *manager, datafolder, ".", "seed_backup.json", "", "");
             std::rethrow_exception(std::current_exception());
         }
     }
 
-    return manager;
+    return manager.release();
 }
 }  // namespace opentxs
 
@@ -404,6 +402,7 @@ std::int32_t Manager::last_generated_series(
         const std::string filename =
             unitID + SERIES_DIVIDER + std::to_string(output);
         const auto exists = OTDB::Exists(
+            *this,
             data_folder_,
             parent_.Legacy().Mint(),
             serverID.c_str(),
@@ -613,20 +612,19 @@ std::shared_ptr<blind::Mint> Manager::verify_mint(
 
 bool Manager::verify_mint_directory(const std::string& serverID) const
 {
-    bool created{false};
     auto serverDir = String::Factory();
     auto mintDir = String::Factory();
-    const auto haveMint = OTPaths::AppendFolder(
+    const auto haveMint = parent_.Legacy().AppendFolder(
         mintDir,
         String::Factory(data_folder_.c_str()),
         String::Factory(parent_.Legacy().Mint()));
-    const auto haveServer = OTPaths::AppendFolder(
+    const auto haveServer = parent_.Legacy().AppendFolder(
         serverDir, mintDir, String::Factory(serverID.c_str()));
 
     OT_ASSERT(haveMint)
     OT_ASSERT(haveServer)
 
-    return OTPaths::BuildFolderPath(serverDir, created);
+    return parent_.Legacy().BuildFolderPath(serverDir);
 }
 #endif  // OT_CASH
 

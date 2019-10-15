@@ -58,7 +58,7 @@ set(
 add_library(opentxs-api OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(
   opentxs-api SYSTEM
-  PRIVATE "${opentxs_SOURCE_DIR}/deps/"
+  PRIVATE "${opentxs_SOURCE_DIR}/deps/" "${Boost_INCLUDE_DIRS}"
 )
 set_property(TARGET opentxs-api PROPERTY POSITION_INDEPENDENT_CODE 1)
 

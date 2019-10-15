@@ -18,8 +18,8 @@
 namespace opentxs::api::implementation
 {
 class Core : virtual public api::internal::Core,
-             public api::implementation::StorageParent,
-             public Scheduler
+             public Scheduler,
+             public api::implementation::StorageParent
 {
 public:
     static const api::internal::Core& get_api(

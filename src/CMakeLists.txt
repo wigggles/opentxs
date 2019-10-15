@@ -159,7 +159,7 @@ add_library(opentxs::libopentxs ALIAS opentxs)
 target_link_libraries(
   opentxs
   PUBLIC libopentxs-proto
-  PRIVATE Threads::Threads ZLIB::ZLIB Boost::system
+  PRIVATE Threads::Threads ZLIB::ZLIB Boost::system Boost::filesystem
 )
 
 if(Boost_stacktrace_basic_FOUND)
@@ -191,7 +191,7 @@ if(DHT_EXPORT)
 endif()
 
 if(FS_EXPORT)
-  target_link_libraries(opentxs PRIVATE Boost::filesystem Boost::iostreams)
+  target_link_libraries(opentxs PRIVATE Boost::iostreams)
 endif()
 
 if(SQLITE_EXPORT)

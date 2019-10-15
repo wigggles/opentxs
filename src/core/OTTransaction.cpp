@@ -1737,7 +1737,12 @@ bool OTTransaction::VerifyBalanceReceipt(
     const char* szFilename = strFilename->Get();
 
     if (!OTDB::Exists(
-            api_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
+            api_,
+            api_.DataFolder(),
+            szFolder1name,
+            szFolder2name,
+            szFilename,
+            "")) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Receipt file doesn't exist in ")(
             szFilename)
             .Flush();
@@ -1746,7 +1751,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     }
 
     const std::string strFileContents(OTDB::QueryPlainString(
-        api_.DataFolder(), szFolder1name, szFolder2name, szFilename, ""));
+        api_, api_.DataFolder(), szFolder1name, szFolder2name, szFilename, ""));
 
     if (strFileContents.length() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -2990,6 +2995,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     // See if the box receipt exists before trying to save over it...
     //
     if (!OTDB::Exists(
+            api_,
             api_.DataFolder(),
             strFolder1name->Get(),
             strFolder2name->Get(),
@@ -3041,6 +3047,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
             "MARKED_FOR_DELETION");  // todo hardcoded.
 
     bool bDeleted = OTDB::StorePlainString(
+        api_,
         strOutput->Get(),
         api_.DataFolder(),
         strFolder1name->Get(),
@@ -3088,6 +3095,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     // See if the box receipt exists before trying to save over it...
     //
     if (OTDB::Exists(
+            api_,
             api_.DataFolder(),
             strFolder1name->Get(),
             strFolder2name->Get(),
@@ -3117,6 +3125,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     }
 
     bool bSaved = OTDB::StorePlainString(
+        api_,
         strFinal->Get(),
         api_.DataFolder(),
         strFolder1name->Get(),

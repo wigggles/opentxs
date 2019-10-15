@@ -2114,6 +2114,7 @@ std::unique_ptr<Ledger> ServerContext::load_account_inbox(
     OT_ASSERT(inbox);
 
     bool output = OTDB::Exists(
+        api_,
         api_.DataFolder(),
         api_.Legacy().Inbox(),
         server_id_->str().c_str(),
@@ -2146,6 +2147,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
     OT_ASSERT(recordBox);
 
     bool output = OTDB::Exists(
+        api_,
         api_.DataFolder(),
         api_.Legacy().RecordBox(),
         server_id_->str().c_str(),
@@ -2194,6 +2196,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox(
     OT_ASSERT(paymentInbox);
 
     bool output = OTDB::Exists(
+        api_,
         api_.DataFolder(),
         api_.Legacy().PaymentInbox(),
         server_id_->str().c_str(),
@@ -2877,6 +2880,7 @@ void ServerContext::process_accept_cron_receipt_reply(
         std::unique_ptr<OTDB::TradeListNym> pList;
 
         if (OTDB::Exists(
+                api_,
                 api_.DataFolder(),
                 api_.Legacy().Nym(),
                 "trades",  // todo stop
@@ -2884,6 +2888,7 @@ void ServerContext::process_accept_cron_receipt_reply(
                 server_id_->str().c_str(),
                 strNymID->Get()))
             pList.reset(dynamic_cast<OTDB::TradeListNym*>(OTDB::QueryObject(
+                api_,
                 OTDB::STORED_OBJ_TRADE_LIST_NYM,
                 api_.DataFolder(),
                 api_.Legacy().Nym(),
@@ -2972,6 +2977,7 @@ void ServerContext::process_accept_cron_receipt_reply(
         if (!bWeFoundIt) { pList->AddTradeDataNym(*pData); }
 
         if (false == OTDB::StoreObject(
+                         api_,
                          *pList,
                          api_.DataFolder(),
                          api_.Legacy().Nym(),
@@ -3742,6 +3748,7 @@ bool ServerContext::process_get_market_list_response(
     // items.)
     if (reply.m_lDepth == 0) {
         bool success = storage.EraseValueByKey(
+            api_,
             api_.DataFolder(),
             api_.Legacy().Market(),      // "markets"
             reply.m_strNotaryID->Get(),  // "markets/<notaryID>"
@@ -3796,6 +3803,7 @@ bool ServerContext::process_get_market_list_response(
     }
 
     bool success = storage.StoreObject(
+        api_,
         *pMarketList,
         api_.DataFolder(),
         api_.Legacy().Market(),      // "markets"
@@ -3833,6 +3841,7 @@ bool ServerContext::process_get_market_offers_response(
     // items.)
     if (reply.m_lDepth == 0) {
         auto success = storage.EraseValueByKey(
+            api_,
             api_.DataFolder(),
             api_.Legacy().Market(),      // "markets"
             reply.m_strNotaryID->Get(),  // "markets/<notaryID>",
@@ -3887,6 +3896,7 @@ bool ServerContext::process_get_market_offers_response(
     }
 
     bool success = storage.StoreObject(
+        api_,
         *pOfferList,
         api_.DataFolder(),
         api_.Legacy().Market(),      // "markets"
@@ -3926,6 +3936,7 @@ bool ServerContext::process_get_market_recent_trades_response(
     //
     if (reply.m_lDepth == 0) {
         bool success = storage.EraseValueByKey(
+            api_,
             api_.DataFolder(),
             api_.Legacy().Market(),      // "markets"
             reply.m_strNotaryID->Get(),  // "markets/<notaryID>recent",
@@ -3983,6 +3994,7 @@ bool ServerContext::process_get_market_recent_trades_response(
     }
 
     bool success = storage.StoreObject(
+        api_,
         *pTradeList,
         api_.DataFolder(),
         api_.Legacy().Market(),      // "markets"
@@ -4045,6 +4057,7 @@ bool ServerContext::process_get_nym_market_offers_response(
     //
     if (reply.m_lDepth == 0) {
         bool success = storage.EraseValueByKey(
+            api_,
             api_.DataFolder(),
             api_.Legacy().Nym(),         // "nyms"
             reply.m_strNotaryID->Get(),  // "nyms/<notaryID>",
@@ -4098,6 +4111,7 @@ bool ServerContext::process_get_nym_market_offers_response(
     }
 
     bool success = storage.StoreObject(
+        api_,
         *pOfferList,
         api_.DataFolder(),
         api_.Legacy().Nym(),         // "nyms"
@@ -4480,6 +4494,7 @@ bool ServerContext::process_process_box_response(
 
     if (replyItem) {
         OTDB::StorePlainString(
+            api_,
             encoded->Get(),
             api_.DataFolder(),
             api_.Legacy().Receipt(),
@@ -4494,6 +4509,7 @@ bool ServerContext::process_process_box_response(
             filename)(".")
             .Flush();
         OTDB::StorePlainString(
+            api_,
             encoded->Get(),
             api_.DataFolder(),
             api_.Legacy().Receipt(),
@@ -5069,6 +5085,7 @@ void ServerContext::process_response_transaction(
         }
 
         OTDB::StorePlainString(
+            api_,
             encoded->Get(),
             api_.DataFolder(),
             api_.Legacy().Receipt(),
@@ -5078,6 +5095,7 @@ void ServerContext::process_response_transaction(
     } else {
         filename->Format("%s.error", receiptID->Get());
         OTDB::StorePlainString(
+            api_,
             encoded->Get(),
             api_.DataFolder(),
             api_.Legacy().Receipt(),
@@ -5475,12 +5493,14 @@ void ServerContext::process_response_transaction_cron(
     //  if (Item::rejection == replyItem.GetStatus())
     {
         const bool bExists1 = OTDB::Exists(
+            api_,
             api_.DataFolder(),
             api_.Legacy().PaymentInbox(),
             server_id_->str(),
             nymID.str(),
             "");
         const bool bExists2 = OTDB::Exists(
+            api_,
             api_.DataFolder(),
             api_.Legacy().RecordBox(),
             server_id_->str(),
@@ -6689,12 +6709,14 @@ bool ServerContext::remove_nymbox_item(
 
                 const auto notaryID = String::Factory(server_id_);
                 const bool exists1 = OTDB::Exists(
+                    api_,
                     api_.DataFolder(),
                     api_.Legacy().PaymentInbox(),
                     notaryID->Get(),
                     nymID.str(),
                     "");
                 const bool exists2 = OTDB::Exists(
+                    api_,
                     api_.DataFolder(),
                     api_.Legacy().RecordBox(),
                     notaryID->Get(),

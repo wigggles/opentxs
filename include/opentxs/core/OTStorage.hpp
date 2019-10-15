@@ -382,6 +382,7 @@ protected:
     // for this class, it is.
     //
     virtual bool onStorePackedBuffer(
+        const api::internal::Core& api,
         PackedBuffer& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -390,6 +391,7 @@ protected:
         const std::string& threeStr) = 0;
 
     virtual bool onQueryPackedBuffer(
+        const api::internal::Core& api,
         PackedBuffer& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -398,6 +400,7 @@ protected:
         const std::string& threeStr) = 0;
 
     virtual bool onStorePlainString(
+        const api::internal::Core& api,
         const std::string& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -406,6 +409,7 @@ protected:
         const std::string& threeStr) = 0;
 
     virtual bool onQueryPlainString(
+        const api::internal::Core& api,
         std::string& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -414,6 +418,7 @@ protected:
         const std::string& threeStr) = 0;
 
     virtual bool onEraseValueByKey(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
         const std::string& oneStr,
@@ -422,26 +427,21 @@ protected:
 
 public:
     // Use GetPacker() to access the Packer, throughout duration of this Storage
-    // object.
-    // If it doesn't exist yet, this function will create it on the first call.
-    // (The
-    // parameter allows you the choose what type will be created, other than
-    // default.)
+    // object. If it doesn't exist yet, this function will create it on the
+    // first call. (The parameter allows you the choose what type will be
+    // created, other than default.)
     //
     // This way, whenever using an OT Storage, you KNOW the packer is always the
-    // right
-    // one, and that you don't have to fiddle with it at all. You can also
-    // therefore use
-    // it for creating instances of various Storables and PackedBuffers, and
-    // knowing
-    // that the right types will be instantiated automatically, with the buffer
-    // being
-    // the appropriate subclass for the packer.
-    //
+    // right one, and that you don't have to fiddle with it at all. You can also
+    // therefore use it for creating instances of various Storables and
+    // PackedBuffers, and knowing that the right types will be instantiated
+    // automatically, with the buffer being the appropriate subclass for the
+    // packer.
     EXPORT OTPacker* GetPacker(PackType ePackType = OTDB_DEFAULT_PACKER);
 
     // See if the file is there.
     virtual bool Exists(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
         const std::string& oneStr,
@@ -449,6 +449,7 @@ public:
         const std::string& threeStr) = 0;
 
     virtual std::int64_t FormPathString(
+        const api::internal::Core& api,
         std::string& strOutput,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -465,6 +466,7 @@ public:
     // Store/Retrieve a string.
 
     EXPORT bool StoreString(
+        const api::internal::Core& api,
         const std::string& strContents,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -473,6 +475,7 @@ public:
         const std::string& threeStr);
 
     EXPORT std::string QueryString(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
         const std::string& oneStr,
@@ -480,6 +483,7 @@ public:
         const std::string& threeStr);
 
     EXPORT bool StorePlainString(
+        const api::internal::Core& api,
         const std::string& strContents,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -488,6 +492,7 @@ public:
         const std::string& threeStr);
 
     EXPORT std::string QueryPlainString(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
         const std::string& oneStr,
@@ -497,6 +502,7 @@ public:
     // Store/Retrieve an object. (Storable.)
 
     EXPORT bool StoreObject(
+        const api::internal::Core& api,
         Storable& theContents,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -506,6 +512,7 @@ public:
 
     // Use %newobject OTDB::Storage::QueryObject();
     EXPORT Storable* QueryObject(
+        const api::internal::Core& api,
         const StoredObjectType& theObjectType,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -526,6 +533,7 @@ public:
     // Erase any value based on its location.
 
     EXPORT bool EraseValueByKey(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
         const std::string& oneStr,
@@ -585,6 +593,7 @@ EXPORT bool CheckStringsExistInOrder(
 // See if the file is there.
 //
 EXPORT bool Exists(
+    const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string strFolder,
     const std::string oneStr,
@@ -592,6 +601,7 @@ EXPORT bool Exists(
     const std::string threeStr);
 
 EXPORT std::int64_t FormPathString(
+    const api::internal::Core& api,
     std::string& strOutput,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -601,6 +611,7 @@ EXPORT std::int64_t FormPathString(
 // Store/Retrieve a string.
 //
 EXPORT bool StoreString(
+    const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -609,6 +620,7 @@ EXPORT bool StoreString(
     const std::string& threeStr);
 
 EXPORT std::string QueryString(
+    const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
@@ -616,6 +628,7 @@ EXPORT std::string QueryString(
     const std::string& threeStr);
 
 EXPORT bool StorePlainString(
+    const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -624,6 +637,7 @@ EXPORT bool StorePlainString(
     const std::string& threeStr);
 
 EXPORT std::string QueryPlainString(
+    const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
@@ -633,6 +647,7 @@ EXPORT std::string QueryPlainString(
 // Store/Retrieve an object. (Storable.)
 //
 EXPORT bool StoreObject(
+    const api::internal::Core& api,
     Storable& theContents,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -642,6 +657,7 @@ EXPORT bool StoreObject(
 
 // Use %newobject OTDB::Storage::Query();
 EXPORT Storable* QueryObject(
+    const api::internal::Core& api,
     const StoredObjectType theObjectType,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -662,6 +678,7 @@ EXPORT Storable* DecodeObject(
 // Erase any value based on its location.
 
 EXPORT bool EraseValueByKey(
+    const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
@@ -1630,6 +1647,7 @@ protected:
 
     // Confirms if a file exists.  If it exists at path; return length.
     std::int64_t ConstructAndConfirmPath(
+        const api::internal::Core& api,
         std::string& strOutput,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -1640,6 +1658,7 @@ protected:
 public:
     // Verifies whether path exists AND creates folders where necessary.
     std::int64_t ConstructAndCreatePath(
+        const api::internal::Core& api,
         std::string& strOutput,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -1649,6 +1668,7 @@ public:
 
 private:
     std::int64_t ConstructAndConfirmPathImp(
+        const api::internal::Core& api,
         const bool bMakePath,
         std::string& strOutput,
         const std::string& dataFolder,
@@ -1663,6 +1683,7 @@ protected:
     // The below 6 methods are the only overrides you need to copy.
     //
     bool onStorePackedBuffer(
+        const api::internal::Core& api,
         PackedBuffer& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -1671,6 +1692,7 @@ protected:
         const std::string& threeStr) override;
 
     bool onQueryPackedBuffer(
+        const api::internal::Core& api,
         PackedBuffer& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -1679,6 +1701,7 @@ protected:
         const std::string& threeStr) override;
 
     bool onStorePlainString(
+        const api::internal::Core& api,
         const std::string& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -1687,6 +1710,7 @@ protected:
         const std::string& threeStr) override;
 
     bool onQueryPlainString(
+        const api::internal::Core& api,
         std::string& theBuffer,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -1695,6 +1719,7 @@ protected:
         const std::string& threeStr) override;
 
     bool onEraseValueByKey(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
         const std::string& oneStr,
@@ -1703,6 +1728,7 @@ protected:
 
 public:
     bool Exists(
+        const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
         const std::string& oneStr,
@@ -1710,6 +1736,7 @@ public:
         const std::string& threeStr) override;
 
     std::int64_t FormPathString(
+        const api::internal::Core& api,
         std::string& strOutput,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -1720,19 +1747,7 @@ public:
     static StorageFS* Instantiate() { return new StorageFS; }
 
     ~StorageFS() override;
-
-    // lower level calls.
-
-    bool ConfirmOrCreateFolder(
-        const char* szFolderName,
-        struct stat* pst = nullptr);  // local to
-                                      // data_folder
-    bool ConfirmFile(
-        const std::string& dataFolder,
-        const char* szFileName,
-        struct stat* pst = nullptr);  // local to data_folder
 };
-
 }  // namespace OTDB
 
 // IStorable-derived types...

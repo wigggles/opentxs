@@ -125,7 +125,8 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
     const char* szFoldername = core.Legacy().Cron();
     const char* szFilename = strFilename->Get();
 
-    if (!OTDB::Exists(core.DataFolder(), szFoldername, szFilename, "", "")) {
+    if (!OTDB::Exists(
+            core, core.DataFolder(), szFoldername, szFilename, "", "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
             szFoldername)(PathSeparator())(szFilename)(".")
             .Flush();
@@ -133,10 +134,11 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
     }
 
     auto strFileContents = String::Factory(OTDB::QueryPlainString(
-        core.DataFolder(), szFoldername, szFilename, "", ""));  // <===
-                                                                // LOADING
-                                                                // FROM DATA
-                                                                // STORE.
+        core, core.DataFolder(), szFoldername, szFilename, "", ""));  // <===
+                                                                      // LOADING
+                                                                      // FROM
+                                                                      // DATA
+                                                                      // STORE.
 
     if (strFileContents->GetLength() < 2) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error reading file: ")(
@@ -168,6 +170,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
     const char* szFilename = strFilename->Get();
 
     if (!OTDB::Exists(
+            core,
             core.DataFolder(),
             szFoldername,
             strNotaryID->Get(),
@@ -181,6 +184,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
     }
 
     auto strFileContents = String::Factory(OTDB::QueryPlainString(
+        core,
         core.DataFolder(),
         szFoldername,
         strNotaryID->Get(),
@@ -224,6 +228,7 @@ bool OTCronItem::GetActiveCronTransNums(
     strListFilename->Concatenate(".lst");  // nymID.lst
 
     if (OTDB::Exists(
+            api,
             dataFolder,
             szFoldername,
             strNotaryID->Get(),
@@ -232,6 +237,7 @@ bool OTCronItem::GetActiveCronTransNums(
         // Load up existing list, if it exists.
         //
         auto strNumlist = String::Factory(OTDB::QueryPlainString(
+            api,
             dataFolder,
             szFoldername,
             strNotaryID->Get(),
@@ -282,6 +288,7 @@ bool OTCronItem::EraseActiveCronReceipt(
     strListFilename->Concatenate(".lst");  // nymID.lst
 
     if (OTDB::Exists(
+            api,
             dataFolder,
             szFoldername,
             strNotaryID->Get(),
@@ -292,6 +299,7 @@ bool OTCronItem::EraseActiveCronReceipt(
         NumList numlist;
 
         auto strNumlist = String::Factory(OTDB::QueryPlainString(
+            api,
             dataFolder,
             szFoldername,
             strNotaryID->Get(),
@@ -318,6 +326,7 @@ bool OTCronItem::EraseActiveCronReceipt(
 
         if (0 == numlist.Count()) {
             if (!OTDB::EraseValueByKey(
+                    api,
                     dataFolder,
                     szFoldername,
                     strNotaryID->Get(),
@@ -346,6 +355,7 @@ bool OTCronItem::EraseActiveCronReceipt(
                 return false;
             } else {
                 bool bSaved = OTDB::StorePlainString(
+                    api,
                     strFinal->Get(),
                     dataFolder,
                     szFoldername,
@@ -369,7 +379,12 @@ bool OTCronItem::EraseActiveCronReceipt(
     // item itself.
     //
     if (!OTDB::Exists(
-            dataFolder, szFoldername, strNotaryID->Get(), szFilename, "")) {
+            api,
+            dataFolder,
+            szFoldername,
+            strNotaryID->Get(),
+            szFilename,
+            "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
             szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
             szFilename)(".")
@@ -378,7 +393,12 @@ bool OTCronItem::EraseActiveCronReceipt(
     }
 
     if (!OTDB::EraseValueByKey(
-            dataFolder, szFoldername, strNotaryID->Get(), szFilename, "")) {
+            api,
+            dataFolder,
+            szFoldername,
+            strNotaryID->Get(),
+            szFilename,
+            "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error erasing file: ")(
             szFoldername)(PathSeparator())(strNotaryID)(PathSeparator())(
             szFilename)(".")
@@ -403,6 +423,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     const char* szFilename = strFilename->Get();  // cron/TRANSACTION_NUM.crn
 
     if (OTDB::Exists(
+            api_,
             api_.DataFolder(),
             szFoldername,
             strNotaryID->Get(),
@@ -425,6 +446,7 @@ bool OTCronItem::SaveActiveCronReceipt(
         NumList numlist;
 
         if (OTDB::Exists(
+                api_,
                 api_.DataFolder(),
                 szFoldername,
                 strNotaryID->Get(),
@@ -433,6 +455,7 @@ bool OTCronItem::SaveActiveCronReceipt(
             // Load up existing list, to add the new transaction num to it.
             //
             auto strNumlist = String::Factory(OTDB::QueryPlainString(
+                api_,
                 api_.DataFolder(),
                 szFoldername,
                 strNotaryID->Get(),
@@ -473,6 +496,7 @@ bool OTCronItem::SaveActiveCronReceipt(
             }
 
             bool bSaved = OTDB::StorePlainString(
+                api_,
                 strFinal->Get(),
                 api_.DataFolder(),
                 szFoldername,
@@ -505,6 +529,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     }
 
     bool bSaved = OTDB::StorePlainString(
+        api_,
         strFinal->Get(),
         api_.DataFolder(),
         szFoldername,
@@ -543,7 +568,8 @@ bool OTCronItem::SaveCronReceipt()
     const char* szFoldername = api_.Legacy().Cron();  // cron
     const char* szFilename = strFilename->Get();  // cron/TRANSACTION_NUM.crn
 
-    if (OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "")) {
+    if (OTDB::Exists(
+            api_, api_.DataFolder(), szFoldername, szFilename, "", "")) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Cron Record already exists for transaction ")(
             GetTransactionNum())(" ")(szFoldername)(PathSeparator())(
@@ -565,7 +591,13 @@ bool OTCronItem::SaveCronReceipt()
     }
 
     bool bSaved = OTDB::StorePlainString(
-        strFinal->Get(), api_.DataFolder(), szFoldername, szFilename, "", "");
+        api_,
+        strFinal->Get(),
+        api_.DataFolder(),
+        szFoldername,
+        szFilename,
+        "",
+        "");
 
     if (!bSaved) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving file: ")(

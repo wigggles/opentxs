@@ -21,7 +21,6 @@ public:
     bool CreateMainFile(
         const std::string& strContract,
         const std::string& strNotaryID,
-        const std::string& strCert,
         const std::string& strNymID);
     bool LoadMainFile(bool readOnly = false);
     bool LoadServerUserAndContract();

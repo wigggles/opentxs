@@ -51,6 +51,7 @@
 #include <opentxs/api/Factory.hpp>
 #include <opentxs/api/HDSeed.hpp>
 #include <opentxs/api/Periodic.hpp>
+#include <opentxs/api/Settings.hpp>
 #include <opentxs/api/Wallet.hpp>
 #if OT_CASH
 #include <opentxs/blind/Mint.hpp>
@@ -91,7 +92,6 @@
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTScriptable.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/Account.hpp>
 #include <opentxs/core/Armored.hpp>
 #include <opentxs/core/Cheque.hpp>
