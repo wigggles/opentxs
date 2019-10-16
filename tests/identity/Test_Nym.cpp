@@ -3,12 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/identity/Identity.hpp"
-
-#include <gtest/gtest.h>
+#include "OTTestEnvironment.hpp"
 
 namespace ot = opentxs;
 
@@ -18,11 +13,101 @@ class Test_Nym : public ::testing::Test
 {
 public:
     const ot::api::client::internal::Manager& client_;
+#if OT_STORAGE_FS
+    const ot::api::client::internal::Manager& client_fs_;
+#endif  // OT_STORAGE_FS
+#if OT_STORAGE_SQLITE
+    const ot::api::client::internal::Manager& client_sqlite_;
+#endif  // OT_STORAGE_SQLITE
+#if OT_STORAGE_LMDB
+    const ot::api::client::internal::Manager& client_lmdb_;
+#endif  // OT_STORAGE_LMDB
     const ot::OTPasswordPrompt reason_;
+
+    bool test_storage(const ot::api::client::internal::Manager& api)
+    {
+        const auto reason = api.Factory().PasswordPrompt(__FUNCTION__);
+        const auto alias = std::string{"alias"};
+        std::unique_ptr<ot::identity::internal::Nym> pNym(ot::Factory::Nym(
+            api, {}, ot::proto::CITEMTYPE_INDIVIDUAL, alias, reason));
+
+        EXPECT_TRUE(pNym);
+
+        if (!pNym) { return false; }
+
+        auto& nym = *pNym;
+        nym.SetAlias(alias);
+        const auto id = ot::OTNymID{nym.ID()};
+
+        EXPECT_TRUE(nym.VerifyPseudonym(reason));
+
+        {
+            const auto serialized = nym.SerializeCredentialIndex(
+                ot::identity::internal::Nym::Mode::Abbreviated);
+
+            EXPECT_TRUE(ot::proto::Validate(serialized, ot::VERBOSE));
+            EXPECT_TRUE(api.Storage().Store(serialized, nym.Alias()));
+        }
+
+        {
+            const auto nymList = api.Storage().NymList();
+
+            EXPECT_EQ(1, nymList.size());
+
+            if (1 > nymList.size()) { return false; }
+
+            const auto& item = *nymList.begin();
+
+            EXPECT_EQ(item.first, id->str());
+            EXPECT_EQ(item.second, alias);
+        }
+
+        {
+            auto pSerialized = std::shared_ptr<ot::proto::Nym>{};
+
+            EXPECT_TRUE(api.Storage().Load(id->str(), pSerialized));
+            EXPECT_TRUE(pSerialized);
+
+            if (!pSerialized) { return false; }
+
+            const auto& serialized = *pSerialized;
+            pNym.reset(ot::Factory::Nym(api, serialized, alias, reason));
+
+            EXPECT_TRUE(pNym);
+
+            if (!pNym) { return false; }
+
+            const auto& loadedNym = *pNym;
+
+            EXPECT_TRUE(loadedNym.CompareID(id));
+            EXPECT_TRUE(loadedNym.VerifyPseudonym(reason));
+        }
+
+        return true;
+    }
 
     Test_Nym()
         : client_(dynamic_cast<const ot::api::client::internal::Manager&>(
               ot::Context().StartClient({}, 0)))
+#if OT_STORAGE_FS
+        , client_fs_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              ot::Context().StartClient(
+                  {{OPENTXS_ARG_STORAGE_PLUGIN, {"fs"}}},
+                  1)))
+#endif  // OT_STORAGE_FS
+#if OT_STORAGE_SQLITE
+        , client_sqlite_(
+              dynamic_cast<const ot::api::client::internal::Manager&>(
+                  ot::Context().StartClient(
+                      {{OPENTXS_ARG_STORAGE_PLUGIN, {"sqlite"}}},
+                      2)))
+#endif  // OT_STORAGE_SQLITE
+#if OT_STORAGE_LMDB
+        , client_lmdb_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              ot::Context().StartClient(
+                  {{OPENTXS_ARG_STORAGE_PLUGIN, {"lmdb"}}},
+                  3)))
+#endif  // OT_STORAGE_LMDB
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
     {
     }
@@ -30,56 +115,17 @@ public:
 
 TEST_F(Test_Nym, init_ot) {}
 
-TEST_F(Test_Nym, storage)
-{
-    const auto alias = std::string{"alias"};
-    std::unique_ptr<ot::identity::internal::Nym> pNym(ot::Factory::Nym(
-        client_, {}, ot::proto::CITEMTYPE_INDIVIDUAL, alias, reason_));
+TEST_F(Test_Nym, storage_memdb) { EXPECT_TRUE(test_storage(client_)); }
 
-    ASSERT_TRUE(pNym);
-
-    auto& nym = *pNym;
-    nym.SetAlias(alias);
-    const auto id = ot::OTNymID{nym.ID()};
-
-    EXPECT_TRUE(nym.VerifyPseudonym(reason_));
-
-    {
-        const auto serialized = nym.SerializeCredentialIndex(
-            ot::identity::internal::Nym::Mode::Abbreviated);
-
-        EXPECT_TRUE(ot::proto::Validate(serialized, ot::VERBOSE));
-        EXPECT_TRUE(client_.Storage().Store(serialized, nym.Alias()));
-    }
-
-    {
-        const auto nymList = client_.Storage().NymList();
-
-        ASSERT_EQ(1, nymList.size());
-
-        const auto& item = *nymList.begin();
-
-        EXPECT_EQ(item.first, id->str());
-        EXPECT_EQ(item.second, alias);
-    }
-
-    {
-        auto pSerialized = std::shared_ptr<ot::proto::Nym>{};
-
-        ASSERT_TRUE(client_.Storage().Load(id->str(), pSerialized));
-        ASSERT_TRUE(pSerialized);
-
-        const auto& serialized = *pSerialized;
-        pNym.reset(ot::Factory::Nym(client_, serialized, alias, reason_));
-
-        ASSERT_TRUE(pNym);
-
-        const auto& loadedNym = *pNym;
-
-        EXPECT_TRUE(loadedNym.CompareID(id));
-        EXPECT_TRUE(loadedNym.VerifyPseudonym(reason_));
-    }
-}
+#if OT_STORAGE_FS
+TEST_F(Test_Nym, storage_fs) { EXPECT_TRUE(test_storage(client_fs_)); }
+#endif  // OT_STORAGE_FS
+#if OT_STORAGE_SQLITE
+TEST_F(Test_Nym, storage_sqlite) { EXPECT_TRUE(test_storage(client_sqlite_)); }
+#endif  // OT_STORAGE_SQLITE
+#if OT_STORAGE_LMDB
+TEST_F(Test_Nym, storage_lmdb) { EXPECT_TRUE(test_storage(client_lmdb_)); }
+#endif  // OT_STORAGE_LMDB
 
 TEST_F(Test_Nym, default_params)
 {

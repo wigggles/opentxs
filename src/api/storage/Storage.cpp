@@ -93,14 +93,24 @@ api::storage::StorageInternal* Factory::Storage(
     Random random =
         std::bind(&api::crypto::Encode::RandomFilename, &(crypto.Encode()));
     std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
+    auto root = String::Factory();
+
+    if (false == legacy.AppendFolder(
+                     root,
+                     String::Factory(legacy.AppDataFolder()),
+                     String::Factory(dataFolder))) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            "Failed to calculate storage path")
+            .Flush();
+
+        return nullptr;
+    }
 
     {
         auto path = String::Factory();
 
-        if (false == legacy.AppendFolder(
-                         path,
-                         String::Factory(legacy.AppDataFolder()),
-                         String::Factory(legacy.Common()))) {
+        if (false ==
+            legacy.AppendFolder(path, root, String::Factory(legacy.Common()))) {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(
                 "Failed to calculate storage path")
                 .Flush();
@@ -299,10 +309,8 @@ api::storage::StorageInternal* Factory::Storage(
             auto path = String::Factory();
             const auto subdir = std::string{legacy.Common()} + "_lmdb";
 
-            if (false == legacy.AppendFolder(
-                             path,
-                             String::Factory(legacy.AppDataFolder()),
-                             String::Factory(subdir))) {
+            if (false ==
+                legacy.AppendFolder(path, root, String::Factory(subdir))) {
                 LogOutput("opentxs::Factory::")(__FUNCTION__)(
                     "Failed to calculate lmdb storage path")
                     .Flush();

@@ -3,11 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include <gtest/gtest.h>
-
-#include <mutex>
+#include "OTTestEnvironment.hpp"
 
 using namespace opentxs;
 
@@ -35,7 +31,6 @@ bool init_{false};
 class Test_DepositCheques : public ::testing::Test
 {
 public:
-    static const opentxs::ArgList args_;
     static const std::string SeedA_;
     static const std::string SeedB_;
     static const std::string SeedC_;
@@ -68,10 +63,12 @@ public:
     const opentxs::api::client::Manager& issuer_client_;
 
     Test_DepositCheques()
-        : alice_client_(Context().StartClient(args_, 0))
-        , bob_client_(Context().StartClient(args_, 1))
-        , server_1_(Context().StartServer(args_, 0, true))
-        , issuer_client_(Context().StartClient(args_, 2))
+        : alice_client_(Context().StartClient(OTTestEnvironment::test_args_, 0))
+        , bob_client_(Context().StartClient(OTTestEnvironment::test_args_, 1))
+        , server_1_(
+              Context().StartServer(OTTestEnvironment::test_args_, 0, true))
+        , issuer_client_(
+              Context().StartClient(OTTestEnvironment::test_args_, 2))
     {
 #if OT_CASH
         server_1_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
@@ -139,8 +136,6 @@ public:
     }
 };
 
-const opentxs::ArgList Test_DepositCheques::args_{
-    {{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 const std::string Test_DepositCheques::SeedA_{""};
 const std::string Test_DepositCheques::SeedB_{""};
 const std::string Test_DepositCheques::SeedC_{""};

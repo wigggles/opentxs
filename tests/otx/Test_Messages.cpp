@@ -3,12 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/api/server/Server.hpp"
-
-#include <gtest/gtest.h>
+#include "OTTestEnvironment.hpp"
 
 using namespace opentxs;
 
@@ -19,7 +14,6 @@ bool init_{false};
 class Test_Messages : public ::testing::Test
 {
 public:
-    static const opentxs::ArgList args_;
     static const std::string SeedA_;
     static const std::string Alice_;
     static const OTNymID alice_nym_id_;
@@ -33,9 +27,9 @@ public:
 
     Test_Messages()
         : client_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
-              Context().StartClient(args_, 0)))
+              Context().StartClient(OTTestEnvironment::test_args_, 0)))
         , server_(dynamic_cast<const opentxs::api::server::internal::Manager&>(
-              Context().StartServer(args_, 0, true)))
+              Context().StartServer(OTTestEnvironment::test_args_, 0, true)))
         , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
         , server_id_(server_.ID())
@@ -76,8 +70,6 @@ public:
     }
 };
 
-const opentxs::ArgList Test_Messages::args_{
-    {{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 const std::string Test_Messages::SeedA_{""};
 const std::string Test_Messages::Alice_{""};
 const OTNymID Test_Messages::alice_nym_id_{identifier::Nym::Factory()};

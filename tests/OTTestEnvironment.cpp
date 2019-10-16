@@ -5,16 +5,10 @@
 
 #include "OTTestEnvironment.hpp"
 
-#include "opentxs/opentxs.hpp"
+const opentxs::ArgList OTTestEnvironment::test_args_{
+    {OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}};
 
-// Insure FAIL macro has correct definition
-#include <gtest/gtest.h>
-
-void OTTestEnvironment::SetUp()
-{
-    opentxs::ArgList args{{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}};
-    opentxs::InitContext(args);
-}
+void OTTestEnvironment::SetUp() { opentxs::InitContext(test_args_); }
 
 void OTTestEnvironment::TearDown() { opentxs::Cleanup(); }
 

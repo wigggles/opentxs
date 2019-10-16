@@ -3,22 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "Factory.hpp"
-
-#include <gtest/gtest.h>
+#include "OTTestEnvironment.hpp"
 
 #define MINT_EXPIRE_MONTHS 6
 #define MINT_VALID_MONTHS 12
 #define REQUEST_PURSE_VALUE 20000
 
-namespace ot = opentxs;
-
 namespace
 {
-const ot::ArgList args_{{{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 bool init_{false};
 
 class Test_Basic : public ::testing::Test
@@ -42,7 +34,7 @@ public:
 
     Test_Basic()
         : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
-              ot::Context().StartClient(args_, 0)))
+              ot::Context().StartClient(OTTestEnvironment::test_args_, 0)))
         , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
         , alice_()
         , bob_()

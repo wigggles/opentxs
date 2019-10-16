@@ -6,16 +6,30 @@
 #ifndef TESTS_OTTESTENVIRONMENT_HPP_
 #define TESTS_OTTESTENVIRONMENT_HPP_
 
+#include <opentxs/opentxs.hpp>
+
+#include "core/StateMachine.hpp"
+#include "opentxs/crypto/library/Trezor.hpp"
+#include "internal/api/client/Client.hpp"
+#include "internal/api/server/Server.hpp"
+#include "internal/identity/Identity.hpp"
+#include "internal/otx/client/Client.hpp"
+#include "server/Server.hpp"
+#include "server/Transactor.hpp"
+#include "Factory.hpp"
+
 #include <gtest/gtest.h>
+
+namespace ot = opentxs;
 
 class OTTestEnvironment : public testing::Environment
 {
 public:
-    virtual ~OTTestEnvironment();
+    static const opentxs::ArgList test_args_;
 
     virtual void SetUp();
-
     virtual void TearDown();
-};
 
+    virtual ~OTTestEnvironment();
+};
 #endif /* TESTS_OTTESTENVIRONMENT_HPP_ */

@@ -3,15 +3,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include "internal/api/client/Client.hpp"
-
-#include <gtest/gtest.h>
+#include "OTTestEnvironment.hpp"
 
 namespace
 {
-
 class Test_NymData : public ::testing::Test
 {
 public:

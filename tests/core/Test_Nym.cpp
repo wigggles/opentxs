@@ -3,16 +3,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include <gtest/gtest.h>
+#include "OTTestEnvironment.hpp"
 
 #define TEST_MASTER_PASSWORD "test password"
 #define TEST_PLAINTEXT "The quick brown fox jumped over the lazy dog."
 
 namespace
 {
-const opentxs::ArgList args_{{{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 bool init_{false};
 
 struct Test_Symmetric : public ::testing::Test {
@@ -33,7 +30,7 @@ struct Test_Symmetric : public ::testing::Test {
     opentxs::Nym_p bob_;
 
     Test_Symmetric()
-        : api_(opentxs::Context().StartClient(args_, 0))
+        : api_(opentxs::Context().StartClient(OTTestEnvironment::test_args_, 0))
         , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
         , alice_()
         , bob_()

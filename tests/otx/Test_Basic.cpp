@@ -3,15 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include "internal/api/client/Client.hpp"
-#include "internal/api/server/Server.hpp"
-#include "internal/otx/client/Client.hpp"
-#include "server/Server.hpp"
-#include "server/Transactor.hpp"
-
-#include <gtest/gtest.h>
+#include "OTTestEnvironment.hpp"
 
 using namespace opentxs;
 
@@ -74,7 +66,6 @@ public:
 
     static opentxs::RequestNumber alice_counter_;
     static opentxs::RequestNumber bob_counter_;
-    static const opentxs::ArgList args_;
     static const std::string SeedA_;
     static const std::string SeedB_;
     static const OTNymID alice_nym_id_;
@@ -113,16 +104,18 @@ public:
     Test_Basic()
         : client_1_(
               dynamic_cast<const opentxs::api::client::internal::Manager&>(
-                  Context().StartClient(args_, 0)))
+                  Context().StartClient(OTTestEnvironment::test_args_, 0)))
         , client_2_(
               dynamic_cast<const opentxs::api::client::internal::Manager&>(
-                  Context().StartClient(args_, 1)))
+                  Context().StartClient(OTTestEnvironment::test_args_, 1)))
         , server_1_(
               dynamic_cast<const opentxs::api::server::internal::Manager&>(
-                  Context().StartServer(args_, 0, true)))
+                  Context()
+                      .StartServer(OTTestEnvironment::test_args_, 0, true)))
         , server_2_(
               dynamic_cast<const opentxs::api::server::internal::Manager&>(
-                  Context().StartServer(args_, 1, true)))
+                  Context()
+                      .StartServer(OTTestEnvironment::test_args_, 1, true)))
         , reason_c1_(client_1_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_c2_(client_2_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s1_(server_1_.Factory().PasswordPrompt(__FUNCTION__))
@@ -789,8 +782,6 @@ public:
 
 opentxs::RequestNumber Test_Basic::alice_counter_{0};
 opentxs::RequestNumber Test_Basic::bob_counter_{0};
-const opentxs::ArgList Test_Basic::args_{
-    {{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 const std::string Test_Basic::SeedA_{""};
 const std::string Test_Basic::SeedB_{""};
 const OTNymID Test_Basic::alice_nym_id_{identifier::Nym::Factory()};

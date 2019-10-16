@@ -3,13 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
+#include "OTTestEnvironment.hpp"
 
-#include <gtest/gtest.h>
-
-namespace ot = opentxs;
-
-const ot::ArgList args_{{{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 ot::OTNymID nym_id_{ot::identifier::Nym::Factory()};
 ot::OTServerID server_id_{ot::identifier::Server::Factory()};
 
@@ -22,8 +17,9 @@ struct Ledger : public ::testing::Test {
     opentxs::OTPasswordPrompt reason_s_;
 
     Ledger()
-        : client_(ot::Context().StartClient(args_, 0))
-        , server_(ot::Context().StartServer(args_, 0, true))
+        : client_(ot::Context().StartClient(OTTestEnvironment::test_args_, 0))
+        , server_(
+              ot::Context().StartServer(OTTestEnvironment::test_args_, 0, true))
         , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
     {
