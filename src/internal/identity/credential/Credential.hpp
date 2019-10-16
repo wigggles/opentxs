@@ -19,11 +19,17 @@ namespace opentxs::identity::credential::internal
 struct Base : virtual public identity::credential::Base {
     virtual void ReleaseSignatures(const bool onlyPrivate) = 0;
 
+#ifdef _MSC_VER
+    Base() {}
+#endif  // _MSC_VER
     virtual ~Base() = default;
 };
 struct Contact : virtual public Base,
                  virtual public identity::credential::Contact {
 
+#ifdef _MSC_VER
+    Contact() {}
+#endif  // _MSC_VER
     virtual ~Contact() = default;
 };
 struct Key : virtual public Base, virtual public identity::credential::Key {
@@ -32,20 +38,32 @@ struct Key : virtual public Base, virtual public identity::credential::Key {
         const OTPassword* exportPassword = nullptr,
         const bool onlyPrivate = false) = 0;
 
+#ifdef _MSC_VER
+    Key() {}
+#endif  // _MSC_VER
     virtual ~Key() = default;
 };
 struct Primary : virtual public Key,
                  virtual public identity::credential::Primary {
 
+#ifdef _MSC_VER
+    Primary() {}
+#endif  // _MSC_VER
     virtual ~Primary() = default;
 };
 struct Secondary : virtual public Key,
                    virtual public identity::credential::Secondary {
 
+#ifdef _MSC_VER
+    Secondary() {}
+#endif  // _MSC_VER
     virtual ~Secondary() = default;
 };
 struct Verification : virtual public Base,
                       virtual public identity::credential::Verification {
+#ifdef _MSC_VER
+    Verification() {}
+#endif  // _MSC_VER
     virtual ~Verification() = default;
 };
 }  // namespace opentxs::identity::credential::internal

@@ -33,6 +33,13 @@ FrameIterator::FrameIterator(const FrameIterator& frameIterator)
     OT_ASSERT(nullptr != parent_);
 }
 
+FrameIterator::FrameIterator(FrameIterator&& frameIterator)
+    : position_(frameIterator.position_.load())
+    , parent_(std::move(frameIterator.parent_))
+{
+    OT_ASSERT(nullptr != parent_);
+}
+
 FrameIterator& FrameIterator::operator=(const FrameIterator& frameIterator)
 {
     position_ = frameIterator.position_.load();

@@ -97,7 +97,7 @@ void* ot_secure_memset(void* v, std::uint8_t c, std::uint32_t n)
 bool OTPassword::ot_lockPage(void* addr, std::size_t len)
 {
 #ifdef _WIN32
-// return VirtualLock(addr, len);
+    return VirtualLock(addr, len);
 #elif defined(PREDEF_PLATFORM_UNIX)
     static bool bWarned = false;
     if (mlock(addr, len) && !bWarned) {
@@ -121,7 +121,7 @@ bool OTPassword::ot_lockPage(void* addr, std::size_t len)
 bool OTPassword::ot_unlockPage(void* addr, std::size_t len)
 {
 #ifdef _WIN32
-//    return VirtualUnlock(addr, len);
+    return VirtualUnlock(addr, len);
 #elif defined(PREDEF_PLATFORM_UNIX)
     static bool bWarned = false;
     if (munlock(addr, len) && !bWarned) {

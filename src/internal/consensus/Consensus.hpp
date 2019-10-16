@@ -23,16 +23,25 @@ struct Context : virtual public opentxs::Context {
         const Lock& lock,
         const PasswordPrompt& reason) = 0;
 
+#ifdef _MSC_VER
+    Context() {}
+#endif  // _MSC_VER
     virtual ~Context() = default;
 };
 struct ClientContext : virtual public opentxs::ClientContext,
                        virtual public internal::Context {
 
+#ifdef _MSC_VER
+    ClientContext() {}
+#endif  // _MSC_VER
     virtual ~ClientContext() = default;
 };
 struct ServerContext : virtual public opentxs::ServerContext,
                        virtual public internal::Context {
 
+#ifdef _MSC_VER
+    ServerContext() {}
+#endif  // _MSC_VER
     virtual ~ServerContext() = default;
 };
 }  // namespace opentxs::internal

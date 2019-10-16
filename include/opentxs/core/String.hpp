@@ -59,9 +59,6 @@ public:
         const std::string& str,
         const std::string& charsFrom,
         const char& charTo);
-#ifdef _WIN32
-    EXPORT static std::wstring s2ws(const std::string& s);
-#endif
     EXPORT static std::size_t safe_strlen(const char* s, std::size_t max);
     EXPORT static std::int32_t StringToInt(const std::string& number);
     EXPORT static std::int64_t StringToLong(const std::string& number);
@@ -73,9 +70,6 @@ public:
         const char* fmt,
         std::va_list* pvl,
         std::string& s) ATTR_PRINTF(1, 0);
-#ifdef _WIN32
-    EXPORT static std::string ws2s(const std::wstring& s);
-#endif
 
     EXPORT virtual bool operator>(const String& rhs) const = 0;
     EXPORT virtual bool operator<(const String& rhs) const = 0;

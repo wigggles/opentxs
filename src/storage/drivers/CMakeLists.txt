@@ -29,10 +29,7 @@ set(
 add_library(opentxs-storage-drivers OBJECT ${cxx-sources} ${cxx-headers})
 
 if(FS_EXPORT)
-  target_include_directories(
-    opentxs-storage-drivers SYSTEM
-    PRIVATE ${Boost_INCLUDE_DIRS}
-  )
+  target_link_libraries(opentxs-storage-drivers PRIVATE Boost::headers)
 endif()
 
 if(OT_STORAGE_SQLITE)

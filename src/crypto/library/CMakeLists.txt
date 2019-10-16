@@ -79,8 +79,9 @@ if(OPENSSL_EXPORT)
   )
   target_include_directories(
     opentxs-crypto-library-openssl SYSTEM
-    PRIVATE "${OPENSSL_INCLUDE_DIR}" "${Boost_INCLUDE_DIRS}"
+    PRIVATE "${OPENSSL_INCLUDE_DIR}"
   )
+  target_link_libraries(opentxs-crypto-library-openssl PRIVATE Boost::headers)
   set_property(
     TARGET opentxs-crypto-library-openssl
     PROPERTY POSITION_INDEPENDENT_CODE 1
