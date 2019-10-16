@@ -697,8 +697,9 @@ public:
         const network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);
-    static api::Settings* Settings();
-    static api::Settings* Settings(const String& path);
+    static api::Settings* Settings(
+        const api::Legacy& legacy,
+        const String& path);
     static crypto::Sodium* Sodium(const api::Crypto& crypto);
     static api::storage::StorageInternal* Storage(
         const Flag& running,

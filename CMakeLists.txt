@@ -140,7 +140,7 @@ find_package(opentxs-proto REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(
   Boost REQUIRED
-  COMPONENTS system
+  COMPONENTS system filesystem
   OPTIONAL_COMPONENTS stacktrace_basic
 )
 
@@ -162,7 +162,7 @@ if(OT_DHT)
 endif()
 
 if(OT_STORAGE_FS)
-  find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
+  find_package(Boost REQUIRED COMPONENTS iostreams)
 endif()
 
 if(OT_STORAGE_SQLITE)

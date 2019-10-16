@@ -11,8 +11,6 @@
 class OTTestEnvironment : public testing::Environment
 {
 public:
-    static std::string Home();
-
     virtual ~OTTestEnvironment();
 
     virtual void SetUp();

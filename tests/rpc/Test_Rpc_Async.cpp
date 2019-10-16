@@ -1055,8 +1055,8 @@ TEST_F(Test_Rpc_Async, Add_Server_Session_Bad_Argument)
     ArgList args{{OPENTXS_ARG_COMMANDPORT, {"8922"}}};
 
     auto command = init(proto::RPCCOMMAND_ADDSERVERSESSION);
-
     command.set_session(-1);
+
     for (auto& arg : args) {
         auto apiarg = command.add_arg();
         apiarg->set_version(APIARG_VERSION);
@@ -1067,7 +1067,6 @@ TEST_F(Test_Rpc_Async, Add_Server_Session_Bad_Argument)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(RESPONSE_VERSION, response.version());
@@ -1076,8 +1075,8 @@ TEST_F(Test_Rpc_Async, Add_Server_Session_Bad_Argument)
 
     // Try to start a second server on the same port.
     command = init(proto::RPCCOMMAND_ADDSERVERSESSION);
-
     command.set_session(-1);
+
     for (auto& arg : args) {
         auto apiarg = command.add_arg();
         apiarg->set_version(APIARG_VERSION);
@@ -1088,7 +1087,6 @@ TEST_F(Test_Rpc_Async, Add_Server_Session_Bad_Argument)
     response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(
         proto::RPCRESPONSE_BAD_SERVER_ARGUMENT, response.status(0).code());

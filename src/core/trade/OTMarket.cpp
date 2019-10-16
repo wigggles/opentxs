@@ -825,7 +825,7 @@ bool OTMarket::LoadMarket(const PasswordPrompt& reason)
     const char* szFilename = str_MARKET_ID->Get();
 
     bool bSuccess =
-        OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "");
+        OTDB::Exists(api_, api_.DataFolder(), szFoldername, szFilename, "", "");
 
     if (bSuccess)
         bSuccess = LoadContract(szFoldername, szFilename, reason);  // todo ??
@@ -844,6 +844,7 @@ bool OTMarket::LoadMarket(const PasswordPrompt& reason)
         const char* szSubFolder = "recent";  // todo stop hardcoding.
 
         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(OTDB::QueryObject(
+            api_,
             OTDB::STORED_OBJ_TRADE_LIST_MARKET,
             api_.DataFolder(),
             szFoldername,  // markets
@@ -894,6 +895,7 @@ bool OTMarket::SaveMarket(const PasswordPrompt& reason)
 
         // If this fails, oh well. It's informational, anyway.
         if (!OTDB::StoreObject(
+                api_,
                 *m_pTradeList,
                 api_.DataFolder(),
                 szFoldername,  // markets

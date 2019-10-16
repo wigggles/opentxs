@@ -220,7 +220,12 @@ bool Mint::LoadMint(
             ->Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
 
     if (!OTDB::Exists(
-            api_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
+            api_,
+            api_.DataFolder(),
+            szFolder1name,
+            szFolder2name,
+            szFilename,
+            "")) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
             szFolder1name)(PathSeparator())(szFolder2name)(PathSeparator())(
             szFilename)
@@ -229,6 +234,7 @@ bool Mint::LoadMint(
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
+        api_,
         api_.DataFolder(),
         szFolder1name,
         szFolder2name,
@@ -313,6 +319,7 @@ bool Mint::SaveMint(const char* szAppend)
     }
 
     bool bSaved = OTDB::StorePlainString(
+        api_,
         strFinal->Get(),
         api_.DataFolder(),
         szFolder1name,

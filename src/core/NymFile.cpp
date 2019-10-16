@@ -739,7 +739,13 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
     serialize_nymfile(lock, strNym);
 
     bool bSaved = OTDB::StorePlainString(
-        strNym->Get(), api_.DataFolder(), szFoldername, szFilename, "", "");
+        api_,
+        strNym->Get(),
+        api_.DataFolder(),
+        szFoldername,
+        szFilename,
+        "",
+        "");
     if (!bSaved)
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error saving file: ")(
             szFoldername)(PathSeparator())(szFilename)(".")

@@ -80,6 +80,11 @@ api::internal::Context* Factory::Context(
 }
 }  // namespace opentxs
 
+namespace opentxs::api
+{
+std::string Context::Home() noexcept { return api::Legacy::AppDataFolder(); }
+}  // namespace opentxs::api
+
 namespace opentxs::api::implementation
 {
 Context::Context(
@@ -156,7 +161,8 @@ const api::Settings& Context::Config(const std::string& path) const
     auto& config = config_[path];
 
     if (!config) {
-        config.reset(opentxs::Factory::Settings(String::Factory(path)));
+        config.reset(
+            opentxs::Factory::Settings(*legacy_, String::Factory(path)));
     }
 
     OT_ASSERT(config);

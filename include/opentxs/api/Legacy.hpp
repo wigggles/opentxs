@@ -17,17 +17,32 @@ namespace api
 class Legacy
 {
 public:
+    EXPORT static std::string AppDataFolder() noexcept;
+
     EXPORT virtual const char* Account() const noexcept = 0;
-    EXPORT virtual const char* Cert() const noexcept = 0;
+    EXPORT virtual bool AppendFile(
+        String& out,
+        const String& base,
+        const String& file) const noexcept = 0;
+    EXPORT virtual bool AppendFolder(
+        String& out,
+        const String& base,
+        const String& folder) const noexcept = 0;
+    EXPORT virtual bool BuildFolderPath(const String& path) const noexcept = 0;
+    EXPORT virtual bool BuildFilePath(const String& path) const noexcept = 0;
     EXPORT virtual std::string ClientConfigFilePath(const int instance) const
         noexcept = 0;
     EXPORT virtual std::string ClientDataFolder(const int instance) const
         noexcept = 0;
     EXPORT virtual const char* Common() const noexcept = 0;
+    EXPORT virtual bool ConfirmCreateFolder(const String& path) const
+        noexcept = 0;
     EXPORT virtual const char* Contract() const noexcept = 0;
     EXPORT virtual const char* Cron() const noexcept = 0;
     EXPORT virtual std::string CryptoConfigFilePath() const noexcept = 0;
     EXPORT virtual const char* ExpiredBox() const noexcept = 0;
+    EXPORT virtual bool FileExists(const String& path, std::size_t& size) const
+        noexcept = 0;
     EXPORT virtual const char* Inbox() const noexcept = 0;
     EXPORT virtual std::string LogConfigFilePath() const noexcept = 0;
     EXPORT virtual const char* Market() const noexcept = 0;
@@ -35,17 +50,15 @@ public:
     EXPORT virtual const char* Nym() const noexcept = 0;
     EXPORT virtual const char* Nymbox() const noexcept = 0;
     EXPORT virtual const char* Outbox() const noexcept = 0;
+    EXPORT virtual bool PathExists(const String& path) const noexcept = 0;
     EXPORT virtual std::string PIDFilePath() const noexcept = 0;
     EXPORT virtual const char* PaymentInbox() const noexcept = 0;
-    EXPORT virtual const char* Purse() const noexcept = 0;
     EXPORT virtual const char* Receipt() const noexcept = 0;
     EXPORT virtual const char* RecordBox() const noexcept = 0;
     EXPORT virtual std::string ServerConfigFilePath(const int instance) const
         noexcept = 0;
     EXPORT virtual std::string ServerDataFolder(const int instance) const
         noexcept = 0;
-    EXPORT virtual const char* Spent() const noexcept = 0;
-    EXPORT virtual const char* UserAcct() const noexcept = 0;
 
     EXPORT virtual ~Legacy() = default;
 

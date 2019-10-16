@@ -1292,6 +1292,7 @@ std::shared_ptr<Message> Operation::construct_withdraw_cash()
 
     const auto& unitID = account.get().GetInstrumentDefinitionID();
     const bool exists = OTDB::Exists(
+        api_,
         api_.DataFolder(),
         api_.Legacy().Mint(),
         serverID.str(),

@@ -343,7 +343,6 @@ class OTOffer;
 class OTParty;
 class OTPartyAccount;
 class OTPassword;
-class OTPaths;
 class OTPayment;
 class OTPaymentPlan;
 class OTScript;

@@ -51,7 +51,6 @@
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -122,6 +121,7 @@ bool VerifyBalanceReceipt(
         strFilename->Get();  // receipts/NOTARY_ID/accountID.success
 
     if (!OTDB::Exists(
+            api,
             context.LegacyDataFolder(),
             szFolder1name,
             szFolder2name,
@@ -135,6 +135,7 @@ bool VerifyBalanceReceipt(
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
+        api,
         context.LegacyDataFolder(),
         szFolder1name,
         szFolder2name,
@@ -321,12 +322,7 @@ bool OT_API::LoadConfigFile()
     // then we pass it to the OpenPid function.
     auto strDataPath = String::Factory(api_.DataFolder().c_str());
 
-    {
-        bool bExists = false, bIsNew = false;
-        if (!OTPaths::ConfirmCreateFolder(strDataPath, bExists, bIsNew)) {
-            return false;
-        }
-    }
+    if (!api_.Legacy().ConfirmCreateFolder(strDataPath)) { return false; }
 
     // This way, everywhere else I can use the default storage context (for now)
     // and it will work everywhere I put it. (Because it's now set up...)

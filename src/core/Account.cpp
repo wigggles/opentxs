@@ -14,7 +14,6 @@
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -607,21 +606,17 @@ Account* Account::LoadExistingAccount(
     const identifier::Server& notaryID,
     const PasswordPrompt& reason)
 {
-    bool folderAlreadyExist = false;
-    bool folderIsNew = false;
-
     auto strDataFolder = String::Factory(core.DataFolder().c_str());
     auto strAccountPath = String::Factory("");
 
-    if (!OTPaths::AppendFolder(
+    if (!core.Legacy().AppendFolder(
             strAccountPath,
             strDataFolder,
             String::Factory(core.Legacy().Account()))) {
         OT_FAIL;
     }
 
-    if (!OTPaths::ConfirmCreateFolder(
-            strAccountPath, folderAlreadyExist, folderIsNew)) {
+    if (!core.Legacy().ConfirmCreateFolder(strAccountPath)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to find or create accounts folder: ")(
             core.Legacy().Account())(".")
@@ -640,6 +635,7 @@ Account* Account::LoadExistingAccount(
     account->m_strFilename = String::Factory(strAcctID->Get());
 
     if (!OTDB::Exists(
+            core,
             core.DataFolder(),
             account->m_strFoldername->Get(),
             account->m_strFilename->Get(),
@@ -743,6 +739,7 @@ bool Account::GenerateNewAccount(
     // Then we try to load it, in order to make sure that it doesn't already
     // exist.
     if (OTDB::Exists(
+            api_,
             api_.DataFolder(),
             m_strFoldername->Get(),
             m_strFilename->Get(),

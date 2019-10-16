@@ -9,23 +9,23 @@
 
 namespace opentxs::api::implementation
 {
-class Settings : virtual public api::Settings
+class Settings final : public api::Settings
 {
 public:
-    void SetConfigFilePath(const String& strConfigFilePath) const override;
-    bool HasConfigFilePath() const override;
+    void SetConfigFilePath(const String& strConfigFilePath) const final;
+    bool HasConfigFilePath() const final;
 
     // Core (Public Load and Save)
-    bool Load() const override;
-    bool Save() const override;
+    bool Load() const final;
+    bool Save() const final;
 
-    const Flag& IsLoaded() const override;
+    const Flag& IsLoaded() const final;
 
     // Configuration Helpers
     //
 
     // Core (Reset Config, and Check if Config is empty)
-    bool IsEmpty() const override;
+    bool IsEmpty() const final;
 
     // Check Only (get value of key from configuration, if the key exists, then
     // out_bKeyExist will be true.)
@@ -33,17 +33,17 @@ public:
         const String& strSection,
         const String& strKey,
         String& out_strResult,
-        bool& out_bKeyExist) const override;
+        bool& out_bKeyExist) const final;
     bool Check_long(
         const String& strSection,
         const String& strKey,
         std::int64_t& out_lResult,
-        bool& out_bKeyExist) const override;
+        bool& out_bKeyExist) const final;
     bool Check_bool(
         const String& strSection,
         const String& strKey,
         bool& out_bResult,
-        bool& out_bKeyExist) const override;
+        bool& out_bKeyExist) const final;
 
     // Set Only (set new or update value, out_bNewOrUpdate will be true if the
     // value changes.)
@@ -52,26 +52,26 @@ public:
         const String& strKey,
         const String& strValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = String::Factory()) const override;
+        const String& strComment = String::Factory()) const final;
     bool Set_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = String::Factory()) const override;
+        const String& strComment = String::Factory()) const final;
     bool Set_bool(
         const String& strSection,
         const String& strKey,
         const bool& bValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = String::Factory()) const override;
+        const String& strComment = String::Factory()) const final;
 
     // Check for a Section, if the section dosn't exist, it will be made and
     // out_bIsNewSection will be true.)
     bool CheckSetSection(
         const String& strSection,
         const String& strComment,
-        bool& out_bIsNewSection) const override;
+        bool& out_bIsNewSection) const final;
 
     // Check for Key, and returns if the key exists, otherwise will set the
     // default key. If the default key is set, then out_bIsNew will be true.)
@@ -81,44 +81,45 @@ public:
         const String& strDefault,
         std::string& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const override;
+        const String& strComment = String::Factory()) const final;
     bool CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         String& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const override;
+        const String& strComment = String::Factory()) const final;
     bool CheckSet_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lDefault,
         std::int64_t& out_lResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const override;
+        const String& strComment = String::Factory()) const final;
     bool CheckSet_bool(
         const String& strSection,
         const String& strKey,
         const bool& bDefault,
         bool& out_bResult,
         bool& out_bIsNew,
-        const String& strComment = String::Factory()) const override;
+        const String& strComment = String::Factory()) const final;
 
     // Set Option helper function for setting bool's
     bool SetOption_bool(
         const String& strSection,
         const String& strKey,
-        bool& bVariableName) const override;
+        bool& bVariableName) const final;
 
-    bool Reset() override;
+    bool Reset() final;
 
-    ~Settings() override;
+    ~Settings() final;
 
 private:
     friend opentxs::Factory;
 
     class SettingsPvt;
 
+    const api::Legacy& legacy_;
     std::unique_ptr<SettingsPvt> pvt_;
     mutable OTFlag loaded_;
     mutable std::recursive_mutex lock_;
@@ -136,8 +137,9 @@ private:
 
     bool Init();
 
-    Settings();
-    explicit Settings(const String& strConfigFilePath);
+    explicit Settings(
+        const api::Legacy& legacy,
+        const String& strConfigFilePath);
     Settings(const Settings&) = delete;
     Settings& operator=(const Settings&) = delete;
 };

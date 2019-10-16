@@ -235,6 +235,7 @@ bool OTSignedFile::LoadFile(const PasswordPrompt& reason)
     // m_strFoldername.Get(), m_strFilename.Get());
 
     if (OTDB::Exists(
+            api_,
             api_.DataFolder(),
             m_strFoldername->Get(),
             m_strFilename->Get(),

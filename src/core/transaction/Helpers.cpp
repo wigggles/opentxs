@@ -333,6 +333,7 @@ bool VerifyBoxReceiptExists(
     // See if the box receipt exists before trying to save over it...
     //
     const bool bExists = OTDB::Exists(
+        api,
         dataFolder,
         strFolder1name->Get(),
         strFolder2name->Get(),
@@ -401,6 +402,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // See if the box receipt exists before trying to load it...
     //
     if (!OTDB::Exists(
+            api,
             api.DataFolder(),
             strFolder1name->Get(),
             strFolder2name->Get(),
@@ -416,6 +418,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // Try to load the box receipt from local storage.
     //
     std::string strFileContents(OTDB::QueryPlainString(
+        api,
         api.DataFolder(),
         strFolder1name->Get(),  // <=== LOADING FROM DATA STORE.
         strFolder2name->Get(),

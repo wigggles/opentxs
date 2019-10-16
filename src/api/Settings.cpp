@@ -5,8 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Types.hpp"
 
@@ -50,14 +50,9 @@ bool StringFill(
 
 namespace opentxs
 {
-api::Settings* Factory::Settings()
+api::Settings* Factory::Settings(const api::Legacy& legacy, const String& path)
 {
-    return new api::implementation::Settings();
-}
-
-api::Settings* Factory::Settings(const String& path)
-{
-    return new api::implementation::Settings(path);
+    return new api::implementation::Settings(legacy, path);
 }
 }  // namespace opentxs
 
@@ -78,29 +73,21 @@ public:
     }
 };
 
-Settings::Settings(const String& strConfigFilePath)
-    : pvt_(new SettingsPvt())
+Settings::Settings(const api::Legacy& legacy, const String& strConfigFilePath)
+    : legacy_(legacy)
+    , pvt_(new SettingsPvt())
     , loaded_(Flag::Factory(false))
     , lock_()
     , m_strConfigurationFileExactPath(strConfigFilePath)
 {
     if (!m_strConfigurationFileExactPath->Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error: "
-            "m_strConfigurationFileExactPath is empty!")
+            ": Error: m_strConfigurationFileExactPath is empty!")
             .Flush();
         OT_FAIL;
     }
 
     if (!Init()) { OT_FAIL; }
-}
-
-Settings::Settings()
-    : pvt_(new SettingsPvt())
-    , loaded_(Flag::Factory(false))
-    , lock_()
-    , m_strConfigurationFileExactPath(String::Factory())
-{
 }
 
 bool Settings::Init()
@@ -138,11 +125,7 @@ bool Settings::Load(const String& strConfigurationFileExactPath) const
         return false;
     }
 
-    bool bFolderCreated(false);
-    if (!OTPaths::BuildFilePath(
-            strConfigurationFileExactPath, bFolderCreated)) {
-        OT_FAIL;
-    };
+    if (!legacy_.BuildFilePath(strConfigurationFileExactPath)) { OT_FAIL; };
 
     if (!IsEmpty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Bad: p_Settings "
@@ -151,8 +134,9 @@ bool Settings::Load(const String& strConfigurationFileExactPath) const
         OT_FAIL;
     }
 
-    std::int64_t lFilelength = 0;
-    if (!OTPaths::FileExists(
+    auto lFilelength = std::size_t{0};
+
+    if (!legacy_.FileExists(
             strConfigurationFileExactPath,
             lFilelength))  // we don't have a config file, lets
                            // create a blank one first.

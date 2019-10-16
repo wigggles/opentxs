@@ -91,8 +91,8 @@ Core::Core(
     const bool dhtDefault,
     std::unique_ptr<api::internal::Factory> factory)
     : api::internal::Core()
-    , StorageParent(running, args, crypto, config, parent.Legacy(), dataFolder)
     , Scheduler(parent, running)
+    , StorageParent(running, args, crypto, config, parent.Legacy(), dataFolder)
     , factory_p_(std::move(factory))
     , factory_(*factory_p_)
     , zmq_context_(zmq)
