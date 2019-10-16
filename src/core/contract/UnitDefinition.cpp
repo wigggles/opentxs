@@ -42,11 +42,14 @@
 
 #define OT_METHOD "opentxs::UnitDefinition::"
 
-const opentxs::VersionNumber opentxs::UnitDefinition::DefaultVersion{2};
-const opentxs::VersionNumber opentxs::UnitDefinition::MaxVersion{2};
-
 namespace opentxs
 {
+const VersionNumber UnitDefinition::DefaultVersion{2};
+const VersionNumber UnitDefinition::MaxVersion{2};
+
+const std::map<VersionNumber, VersionNumber>
+    UnitDefinition::unit_of_account_version_map_{{2, 6}};
+
 UnitDefinition::UnitDefinition(
     const api::internal::Core& api,
     const Nym_p& nym,
@@ -85,6 +88,21 @@ UnitDefinition::UnitDefinition(
     }
     if (serialized.has_version()) { version_ = serialized.version(); }
     if (serialized.has_terms()) { conditions_ = serialized.terms(); }
+}
+
+std::set<proto::ContactItemType> UnitDefinition::ValidUnits(
+    const VersionNumber version) noexcept
+{
+    try {
+
+        return proto::AllowedItemTypes.at(
+            {unit_of_account_version_map_.at(version),
+             proto::CONTACTSECTION_CONTRACT});
+
+    } catch (...) {
+
+        return {};
+    }
 }
 
 bool UnitDefinition::ParseFormatted(

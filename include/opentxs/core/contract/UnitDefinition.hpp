@@ -42,6 +42,9 @@ private:
         const proto::Signature& signature,
         const PasswordPrompt& reason) const override;
 
+    static const std::map<VersionNumber, VersionNumber>
+        unit_of_account_version_map_;
+
 protected:
     const api::internal::Core& api_;
     const std::string primary_unit_symbol_;
@@ -116,6 +119,9 @@ public:
         const proto::UnitDefinition& serialized,
         const PasswordPrompt& reason);
 
+    EXPORT static std::set<proto::ContactItemType> ValidUnits(
+        const VersionNumber version = DefaultVersion) noexcept;
+
     // Some instrument definitions keep a list of "user" accounts (the
     // complete set of that type.)
     // This is called when the user creates a new asset account, in order to add
@@ -186,7 +192,10 @@ public:
     EXPORT virtual std::string TLA() const { return short_name_; }
 
     EXPORT virtual proto::UnitType Type() const = 0;
-
+    EXPORT proto::ContactItemType UnitOfAccount() const
+    {
+        return unit_of_account_;
+    }
     EXPORT void SetAlias(const std::string& alias) override;
 
     EXPORT ~UnitDefinition() override = default;

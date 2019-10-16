@@ -688,8 +688,11 @@ proto::ContactItemType Wallet::extract_unit(
     const opentxs::UnitDefinition& contract) const
 {
     try {
+        if (contract.Version() < 2) {
+            return unit_of_account_.at(contract.TLA());
+        }
 
-        return unit_of_account_.at(contract.TLA());
+        return contract.UnitOfAccount();
     } catch (...) {
 
         return proto::CITEMTYPE_UNKNOWN;

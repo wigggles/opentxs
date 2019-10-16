@@ -5,6 +5,7 @@
 
 #include "OTTestEnvironment.hpp"
 
+#define UNIT_DEFINITION_CONTRACT_VERSION 2
 #define UNIT_DEFINITION_CONTRACT_NAME "Mt Gox USD"
 #define UNIT_DEFINITION_TERMS "YOLO"
 #define UNIT_DEFINITION_PRIMARY_UNIT_NAME "dollars"
@@ -1924,6 +1925,12 @@ TEST_F(Integration, instantiate_ui_objects)
 
 TEST_F(Integration, initial_state)
 {
+    EXPECT_TRUE(ot::UnitDefinition::ValidUnits(1).empty());
+    EXPECT_EQ(
+        ot::UnitDefinition::ValidUnits(2),
+        ot::proto::AllowedItemTypes.at(
+            {6, ot::proto::CONTACTSECTION_CONTRACT}));
+
     EXPECT_TRUE(state_.at(alex_.name_).at(Widget::ActivitySummary).at(0)());
     EXPECT_TRUE(state_.at(alex_.name_).at(Widget::MessagableList).at(0)());
     EXPECT_TRUE(state_.at(alex_.name_).at(Widget::PayableListBCH).at(0)());
@@ -2239,7 +2246,9 @@ TEST_F(Integration, issue_dollars)
         issuer_.Reason());
 
     ASSERT_TRUE(contract);
+    EXPECT_EQ(UNIT_DEFINITION_CONTRACT_VERSION, contract->Version());
     EXPECT_EQ(ot::proto::UNITTYPE_CURRENCY, contract->Type());
+    EXPECT_EQ(UNIT_DEFINITION_UNIT_OF_ACCOUNT, contract->UnitOfAccount());
     EXPECT_TRUE(unit_id_->empty());
 
     unit_id_->Assign(contract->ID());
