@@ -40,6 +40,7 @@ public:
 
     EXPORT FrameIterator();
     EXPORT FrameIterator(const FrameIterator&);
+    EXPORT FrameIterator(FrameIterator&&);
     EXPORT FrameIterator(const Message* parent, std::size_t position = 0);
     EXPORT FrameIterator& operator=(const FrameIterator&);
 
@@ -57,7 +58,6 @@ private:
     std::atomic<std::size_t> position_{0};
     const Message* parent_{nullptr};
 
-    FrameIterator(FrameIterator&&) = delete;
     FrameIterator& operator=(FrameIterator&&) = delete;
 };
 }  // namespace zeromq

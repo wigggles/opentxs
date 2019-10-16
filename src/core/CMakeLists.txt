@@ -96,8 +96,8 @@ target_include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}/otprotob"
     "${opentxs_SOURCE_DIR}/deps/"
     "${sodium_INCLUDE_DIR}"
-    "${Boost_INCLUDE_DIRS}"
 )
+target_link_libraries(opentxs-core PRIVATE Boost::headers)
 set_property(TARGET opentxs-core PROPERTY POSITION_INDEPENDENT_CODE 1)
 add_dependencies(opentxs-core otprotob)
 

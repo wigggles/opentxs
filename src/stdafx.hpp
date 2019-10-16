@@ -14,10 +14,10 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include <winsock2.h>
-#include <windows.h>
+#include <WinSock2.h>
+#include <Windows.h>
 #include <direct.h>
-#include <shlobj.h>
+#include <ShlObj.h>
 #include <xstring>
 #endif
 

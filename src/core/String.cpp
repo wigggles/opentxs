@@ -117,18 +117,6 @@ std::string String::replace_chars(
     return l_str;
 }
 
-#ifdef _WIN32
-std::wstring String::s2ws(const std::string& s)
-{
-    std::int32_t len;
-    std::int32_t slength = (int32_t)s.length() + 1;
-    len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
-    std::wstring r(len, L'\0');
-    MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, &r[0], len);
-    return r;
-}
-#endif
-
 std::size_t String::safe_strlen(const char* s, std::size_t max)
 {
     OT_ASSERT_MSG(
@@ -301,18 +289,6 @@ bool String::vformat(const char* fmt, va_list* pvl, std::string& str_Output)
     buffer = nullptr;
     return true;
 }
-
-#ifdef _WIN32
-std::string String::ws2s(const std::wstring& s)
-{
-    std::int32_t len;
-    std::int32_t slength = (int32_t)s.length() + 1;
-    len = WideCharToMultiByte(CP_ACP, 0, s.c_str(), slength, 0, 0, 0, 0);
-    std::string r(len, '\0');
-    WideCharToMultiByte(CP_ACP, 0, s.c_str(), slength, &r[0], len, 0, 0);
-    return r;
-}
-#endif
 }  // namespace opentxs
 
 namespace opentxs::implementation

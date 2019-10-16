@@ -3,11 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(
-  cxx-sources
-  Common.cpp
-  Tag.cpp
-)
+set(cxx-sources Common.cpp Tag.cpp)
 set(
   cxx-install-headers
   "${opentxs_SOURCE_DIR}/include/opentxs/core/util/Common.hpp"

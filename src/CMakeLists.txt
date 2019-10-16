@@ -159,7 +159,11 @@ add_library(opentxs::libopentxs ALIAS opentxs)
 target_link_libraries(
   opentxs
   PUBLIC libopentxs-proto
-  PRIVATE Threads::Threads ZLIB::ZLIB Boost::system Boost::filesystem
+  PRIVATE
+    Threads::Threads
+    ZLIB::ZLIB
+    Boost::system
+    Boost::filesystem
 )
 
 if(Boost_stacktrace_basic_FOUND)
