@@ -3,13 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "opentxs/opentxs.hpp"
-
-#include <gtest/gtest.h>
-
-#include <mutex>
-
-namespace ot = opentxs;
+#include "OTTestEnvironment.hpp"
 
 #define UNIT_DEFINITION_CONTRACT_NAME "Mt Gox USD"
 #define UNIT_DEFINITION_TERMS "YOLO"
@@ -366,7 +360,6 @@ struct Issuer {
 class Integration : public ::testing::Test
 {
 public:
-    static const ot::ArgList args_;
     static const User alex_;
     static const User bob_;
     static const User issuer_;
@@ -397,11 +390,14 @@ public:
     ot::OTZMQSubscribeSocket chris_rename_notary_listener_;
 
     Integration()
-        : api_alex_(ot::Context().StartClient(args_, 0))
-        , api_bob_(ot::Context().StartClient(args_, 1))
-        , api_issuer_(ot::Context().StartClient(args_, 2))
-        , api_chris_(ot::Context().StartClient(args_, 3))
-        , api_server_1_(ot::Context().StartServer(args_, 0, true))
+        : api_alex_(ot::Context().StartClient(OTTestEnvironment::test_args_, 0))
+        , api_bob_(ot::Context().StartClient(OTTestEnvironment::test_args_, 1))
+        , api_issuer_(
+              ot::Context().StartClient(OTTestEnvironment::test_args_, 2))
+        , api_chris_(
+              ot::Context().StartClient(OTTestEnvironment::test_args_, 3))
+        , api_server_1_(
+              ot::Context().StartServer(OTTestEnvironment::test_args_, 0, true))
         , issuer_peer_request_cb_(ot::network::zeromq::ListenCallback::Factory(
               [this](const auto& in) { issuer_peer_request(in); }))
         , chris_rename_notary_cb_(ot::network::zeromq::ListenCallback::Factory(
@@ -512,7 +508,6 @@ public:
     }
 };
 
-const ot::ArgList Integration::args_{{{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}}};
 const User Integration::alex_{
     "spike nominee miss inquiry fee nothing belt list other daughter leave "
     "valley twelve gossip paper",
