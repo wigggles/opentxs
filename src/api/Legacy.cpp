@@ -223,7 +223,7 @@ fs::path Legacy::get_suffix() noexcept
 #if TARGET_OS_IPHONE  // iOS
         "Documents/"
 #else                 // OSX
-        "OpenTransactions/"
+        "Library/Application Support/OpenTransactions/"
 #endif
 #elif defined(ANDROID)
         "ot/"
