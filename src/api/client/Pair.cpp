@@ -119,8 +119,8 @@ Pair::State::State(
 
 void Pair::State::Add(
     const Lock& lock,
-    OTNymID&& localNymID,
-    OTNymID&& issuerNymID,
+    const identifier::Nym& localNymID,
+    const identifier::Nym& issuerNymID,
     const bool trusted) noexcept
 {
     OT_ASSERT(CheckLock(lock, lock_));
@@ -128,7 +128,7 @@ void Pair::State::Add(
     issuers_.emplace(issuerNymID);  // copy, then move
     state_.emplace(
         std::piecewise_construct,
-        std::forward_as_tuple(std::move(localNymID), std::move(issuerNymID)),
+        std::forward_as_tuple(OTNymID{localNymID}, OTNymID{issuerNymID}),
         std::forward_as_tuple(
             std::make_unique<std::mutex>(),
             client_.Factory().ServerID(),
@@ -725,18 +725,14 @@ void Pair::init() noexcept
 {
     Lock lock(decision_lock_);
 
-    for (auto& nymID : client_.Wallet().LocalNyms()) {
-        for (auto& issuerID : client_.Wallet().IssuerList(nymID)) {
+    for (const auto& nymID : client_.Wallet().LocalNyms()) {
+        for (const auto& issuerID : client_.Wallet().IssuerList(nymID)) {
             const auto pIssuer = client_.Wallet().Issuer(nymID, issuerID);
 
             OT_ASSERT(pIssuer);
 
             const auto& issuer = *pIssuer;
-            state_.Add(
-                lock,
-                std::move(const_cast<OTNymID&>(nymID)),
-                std::move(const_cast<OTNymID&>(issuerID)),
-                issuer.Paired());
+            state_.Add(lock, nymID, issuerID, issuer.Paired());
         }
 
         process_peer_replies(lock, nymID);

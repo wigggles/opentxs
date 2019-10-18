@@ -93,8 +93,8 @@ private:
             const bool trusted) noexcept;
         void Add(
             const Lock& lock,
-            OTNymID&& localNymID,
-            OTNymID&& issuerNymID,
+            const identifier::Nym& localNymID,
+            const identifier::Nym& issuerNymID,
             const bool trusted) noexcept;
         StateMap::iterator begin() noexcept { return state_.begin(); }
         StateMap::iterator end() noexcept { return state_.end(); }
