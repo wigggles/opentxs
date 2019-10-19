@@ -60,15 +60,6 @@ public:
         RowCallbacks insert,
         RowCallbacks remove)>;
 
-    enum Roles {
-        IDRole = Qt::UserRole + 1,
-        NameRole = Qt::UserRole + 2,
-        ImageRole = Qt::UserRole + 3,
-        TextRole = Qt::UserRole + 4,
-        TimestampRole = Qt::UserRole + 5,
-        TypeRole = Qt::UserRole + 6,
-    };
-
     int columnCount(const QModelIndex& parent = QModelIndex()) const
         noexcept final;
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const

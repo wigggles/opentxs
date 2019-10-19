@@ -72,17 +72,8 @@ AccountList::AccountList(
           qt,
           insertCallback,
           removeCallback,
-          Roles{{AccountListQt::IDRole, "id"},
-                {AccountListQt::BalancePolarityRole, "balancepolarity"},
-                {AccountListQt::ContractIDRole, "contractid"},
-                {AccountListQt::DisplayBalanceRole, "displaybalance"},
-                {AccountListQt::DisplayUnit, "displayunit"},
-                {AccountListQt::NameRole, "name"},
-                {AccountListQt::NotaryIDRole, "notaryid"},
-                {AccountListQt::NotaryNameRole, "notaryname"},
-                {AccountListQt::TypeRole, "type"},
-                {AccountListQt::UnitRole, "unit"}},
-          1
+          Roles{},
+          10
 #endif
           )
     , listeners_{
@@ -118,35 +109,35 @@ QVariant AccountList::data(const QModelIndex& index, int role) const noexcept
 
     const auto& row = *pRow;
 
-    switch (role) {
-        case AccountListQt::IDRole: {
+    switch (index.column()) {
+        case 0: {
             return row.AccountID().c_str();
         }
-        case AccountListQt::BalancePolarityRole: {
+        case 1: {
             return polarity(row.Balance());
         }
-        case AccountListQt::ContractIDRole: {
+        case 2: {
             return row.ContractID().c_str();
         }
-        case AccountListQt::DisplayBalanceRole: {
+        case 3: {
             return row.DisplayBalance().c_str();
         }
-        case AccountListQt::DisplayUnit: {
+        case 4: {
             return row.DisplayUnit().c_str();
         }
-        case AccountListQt::NameRole: {
+        case 5: {
             return row.Name().c_str();
         }
-        case AccountListQt::NotaryIDRole: {
+        case 6: {
             return row.NotaryID().c_str();
         }
-        case AccountListQt::NotaryNameRole: {
+        case 7: {
             return row.NotaryName().c_str();
         }
-        case AccountListQt::TypeRole: {
+        case 8: {
             return static_cast<int>(row.Type());
         }
-        case AccountListQt::UnitRole: {
+        case 9: {
             return static_cast<int>(row.Unit());
         }
         default: {

@@ -42,35 +42,12 @@
 
 #define OT_METHOD "opentxs::ui::implementation::PayableList::"
 
-namespace opentxs
-{
-ui::PayableList* Factory::PayableList(
-    const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID,
-    const proto::ContactItemType& currency
 #if OT_QT
-    ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
-#endif
-)
+namespace opentxs::ui
 {
-    return new ui::implementation::PayableList(
-        api,
-        publisher,
-        nymID,
-        currency
-#if OT_QT
-        ,
-        qt,
-        insertCallback,
-        removeCallback
+QT_MODEL_WRAPPER(PayableListQt, PayableList)
+}  // namespace opentxs::ui
 #endif
-    );
-}
-}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -94,7 +71,9 @@ PayableList::PayableList(
           ,
           qt,
           insertCallback,
-          removeCallback
+          removeCallback,
+          Roles{},
+          5
 #endif
           )
     , listeners_({
@@ -134,7 +113,8 @@ void PayableList::construct_row(
 }
 
 #if OT_QT
-QVariant PayableList::data(const QModelIndex& index, int role) const noexcept
+QVariant PayableList::data(const QModelIndex& index, [[maybe_unused]] int role)
+    const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -142,20 +122,20 @@ QVariant PayableList::data(const QModelIndex& index, int role) const noexcept
 
     const auto& row = *pRow;
 
-    switch (role) {
-        case IDRole: {
+    switch (index.column()) {
+        case 0: {
             return row.ContactID().c_str();
         }
-        case NameRole: {
+        case 1: {
             return row.DisplayName().c_str();
         }
-        case ImageRole: {
+        case 2: {
             return row.ImageURI().c_str();
         }
-        case SectionRole: {
+        case 3: {
             return row.Section().c_str();
         }
-        case PaymentCodeRole: {
+        case 4: {
             return row.PaymentCode().c_str();
         }
         default: {

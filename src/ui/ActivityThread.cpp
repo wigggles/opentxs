@@ -116,15 +116,8 @@ ActivityThread::ActivityThread(
 #if OT_QT
         ,
         qt, insertCallback, removeCallback,
-        Roles{{ActivityThreadQt::AmountPolarityRole, "amountpolarity"},
-              {ActivityThreadQt::DisplayAmountRole, "displayamount"},
-              {ActivityThreadQt::MemoRole, "memo"},
-              {ActivityThreadQt::TextRole, "text"},
-              {ActivityThreadQt::TimestampRole, "timestamp"},
-              {ActivityThreadQt::TypeRole, "type"},
-              {ActivityThreadQt::LoadingRole, "loading"},
-              {ActivityThreadQt::PendingRole, "pending"}},
-        1
+        Roles{},
+        8
 #endif
     )
     , StateMachine(std::bind(&ActivityThread::process_drafts, this))
@@ -237,7 +230,9 @@ void ActivityThread::construct_row(
 }
 
 #if OT_QT
-QVariant ActivityThread::data(const QModelIndex& index, int role) const noexcept
+QVariant ActivityThread::data(
+    const QModelIndex& index,
+    [[maybe_unused]] int role) const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -245,32 +240,32 @@ QVariant ActivityThread::data(const QModelIndex& index, int role) const noexcept
 
     const auto& row = *pRow;
 
-    switch (role) {
-        case ActivityThreadQt::AmountPolarityRole: {
+    switch (index.column()) {
+        case 0: {
             return polarity(row.Amount());
         }
-        case ActivityThreadQt::DisplayAmountRole: {
+        case 1: {
             return row.DisplayAmount().c_str();
         }
-        case ActivityThreadQt::MemoRole: {
+        case 2: {
             return row.Memo().c_str();
         }
-        case ActivityThreadQt::TextRole: {
+        case 3: {
             return row.Text().c_str();
         }
-        case ActivityThreadQt::TimestampRole: {
+        case 4: {
             QDateTime qdatetime;
             qdatetime.setSecsSinceEpoch(
                 std::chrono::system_clock::to_time_t(row.Timestamp()));
             return qdatetime;
         }
-        case ActivityThreadQt::TypeRole: {
+        case 5: {
             return static_cast<int>(row.Type());
         }
-        case ActivityThreadQt::LoadingRole: {
+        case 6: {
             return row.Loading();
         }
-        case ActivityThreadQt::PendingRole: {
+        case 7: {
             return row.Pending();
         }
         default: {

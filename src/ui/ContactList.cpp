@@ -82,11 +82,8 @@ ContactList::ContactList(
           qt,
           insertCallback,
           removeCallback,
-          Roles{{ContactListQt::IDRole, "id"},
-                {ContactListQt::NameRole, "name"},
-                {ContactListQt::ImageRole, "image"},
-                {ContactListQt::SectionRole, "section"}},
-          1,
+          Roles{},
+          4,
           1
 #endif
           )
@@ -160,32 +157,26 @@ void ContactList::construct_row(
 }
 
 #if OT_QT
-QVariant ContactList::data(const QModelIndex& index, int role) const noexcept
+QVariant ContactList::data(const QModelIndex& index, [[maybe_unused]] int role)
+    const noexcept
 {
-    if (false == index.isValid()) { return {}; }
+    const auto [valid, pRow] = check_index(index);
 
-    if (columnCount() < index.column()) { return {}; }
-
-    const ContactListItem* pRow{
-        (0 == index.row())
-            ? owner_.get()
-            : static_cast<ContactListItem*>(index.internalPointer())};
-
-    if (nullptr == pRow) { return {}; }
+    if (false == valid) { return {}; }
 
     const auto& row = *pRow;
 
-    switch (role) {
-        case ContactListQt::IDRole: {
+    switch (index.column()) {
+        case 0: {
             return row.ContactID().c_str();
         }
-        case ContactListQt::NameRole: {
+        case 1: {
             return row.DisplayName().c_str();
         }
-        case ContactListQt::ImageRole: {
+        case 2: {
             return row.ImageURI().c_str();
         }
-        case ContactListQt::SectionRole: {
+        case 3: {
             return row.Section().c_str();
         }
         default: {

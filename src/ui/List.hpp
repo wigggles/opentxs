@@ -183,7 +183,7 @@ protected:
         if (nullptr == index.internalPointer()) { return output; }
 
         row = static_cast<RowInterface*>(index.internalPointer());
-        valid = true;
+        valid = (nullptr != row);
 
         return output;
     }

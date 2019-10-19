@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
@@ -39,6 +41,8 @@
 #include "ui/ActivityThread.hpp"
 #include "ui/Contact.hpp"
 #include "ui/ContactList.hpp"
+#include "ui/MessagableList.hpp"
+#include "ui/PayableList.hpp"
 #include "ui/Profile.hpp"
 
 #include <map>
@@ -93,11 +97,36 @@ UI::UI(
     , contacts_()
     , contact_lists_()
     , messagable_lists_()
+    , payable_lists_()
+    , activity_threads_()
+    , profiles_()
+#if OT_QT
+    , blank_()
+#endif  // OT_QT
     , widget_update_publisher_(api_.ZeroMQ().PublishSocket())
 {
     // WARNING: do not access api_.Wallet() during construction
     widget_update_publisher_->Start(api_.Endpoints().WidgetUpdate());
 }
+
+#if OT_QT
+ui::BlankModel* UI::Blank::get(const std::size_t columns) noexcept
+{
+    Lock lock(lock_);
+
+    {
+        auto it = map_.find(columns);
+
+        if (map_.end() != it) { return &(it->second); }
+    }
+
+    return &(map_.emplace(
+                     std::piecewise_construct,
+                     std::forward_as_tuple(columns),
+                     std::forward_as_tuple(columns))
+                 .first->second);
+}
+#endif  // OT_QT
 
 UI::AccountActivityMap::mapped_type& UI::account_activity(
     const identifier::Nym& nymID,
@@ -420,53 +449,105 @@ ui::ContactListQt* UI::ContactListQt(const identifier::Nym& nymID) const
 }
 #endif
 
-const ui::MessagableList& UI::MessagableList(const identifier::Nym& nymID) const
+UI::MessagableListMap::mapped_type& UI::messagable_list(
+    const identifier::Nym& nymID) const
 {
     Lock lock(lock_);
-    auto& output = messagable_lists_[nymID];
+    MessagableListKey key(nymID);
+    auto it = messagable_lists_.find(key);
 
-    if (false == bool(output)) {
-        output.reset(opentxs::Factory::MessagableList(
-            api_,
-            widget_update_publisher_,
-            nymID
+    if (messagable_lists_.end() == it) {
+        it =
+            messagable_lists_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
 #if OT_QT
-            ,
-            enable_qt_
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::MessagableList(
+                                api_,
+                                widget_update_publisher_,
+                                nymID,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::MessagableList(
+                            api_, widget_update_publisher_, nymID)
 #endif
-            ));
+                        ))
+                .first;
     }
 
-    OT_ASSERT(output)
+    return it->second;
+}
 
-    return *output;
+const ui::MessagableList& UI::MessagableList(const identifier::Nym& nymID) const
+{
+    return *messagable_list(nymID);
+}
+
+#if OT_QT
+ui::MessagableListQt* UI::MessagableListQt(const identifier::Nym& nymID) const
+{
+    return &messagable_list(nymID);
+}
+#endif
+
+UI::PayableListMap::mapped_type& UI::payable_list(
+    const identifier::Nym& nymID,
+    const proto::ContactItemType currency) const
+{
+    Lock lock(lock_);
+    auto key = PayableListKey{nymID, currency};
+    auto it = payable_lists_.find(key);
+
+    if (payable_lists_.end() == it) {
+        it =
+            payable_lists_
+                .emplace(
+                    std::piecewise_construct,
+                    std::forward_as_tuple(std::move(key)),
+                    std::forward_as_tuple(
+#if OT_QT
+                        [&](RowCallbacks insert, RowCallbacks remove) -> auto* {
+                            return new ui::implementation::PayableList(
+                                api_,
+                                widget_update_publisher_,
+                                nymID,
+                                currency,
+                                enable_qt_,
+                                insert,
+                                remove);
+                        }
+#else
+                        new ui::implementation::PayableList(
+                            api_, widget_update_publisher_, nymID, currency)
+#endif
+                        ))
+                .first;
+    }
+
+    return it->second;
 }
 
 const ui::PayableList& UI::PayableList(
     const identifier::Nym& nymID,
     proto::ContactItemType currency) const
 {
-    Lock lock(lock_);
-    auto& output = payable_lists_[std::pair<OTNymID, proto::ContactItemType>(
-        nymID, currency)];
-
-    if (false == bool(output)) {
-        output.reset(opentxs::Factory::PayableList(
-            api_,
-            widget_update_publisher_,
-            nymID,
-            currency
-#if OT_QT
-            ,
-            enable_qt_
-#endif
-            ));
-    }
-
-    OT_ASSERT(output)
-
-    return *output;
+    return *payable_list(nymID, currency);
 }
+
+#if OT_QT
+ui::PayableListQt* UI::PayableListQt(
+    const identifier::Nym& nymID,
+    proto::ContactItemType currency) const
+{
+    return &payable_list(nymID, currency);
+}
+#endif
 
 UI::ProfileMap::mapped_type& UI::profile(const identifier::Nym& nymID) const
 {

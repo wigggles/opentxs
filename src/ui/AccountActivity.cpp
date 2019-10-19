@@ -81,16 +81,8 @@ AccountActivity::AccountActivity(
           qt,
           insertCallback,
           removeCallback,
-          Roles{{AccountActivityQt::IDRole, "id"},
-                {AccountActivityQt::AmountPolarityRole, "amountpolarity"},
-                {AccountActivityQt::ContactsRole, "contacts"},
-                {AccountActivityQt::DisplayAmountRole, "displayamount"},
-                {AccountActivityQt::MemoRole, "memo"},
-                {AccountActivityQt::WorkflowRole, "workflow"},
-                {AccountActivityQt::TextRole, "text"},
-                {AccountActivityQt::TimestampRole, "timestamp"},
-                {AccountActivityQt::TypeRole, "type"}},
-          1
+          Roles{},
+          9
 #endif
           )
     , listeners_({
@@ -134,8 +126,9 @@ void AccountActivity::construct_row(
 }
 
 #if OT_QT
-QVariant AccountActivity::data(const QModelIndex& index, int role) const
-    noexcept
+QVariant AccountActivity::data(
+    const QModelIndex& index,
+    [[maybe_unused]] int role) const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -143,14 +136,14 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
 
     const auto& row = *pRow;
 
-    switch (role) {
-        case AccountActivityQt::IDRole: {
+    switch (index.column()) {
+        case 0: {
             return row.UUID().c_str();
         }
-        case AccountActivityQt::AmountPolarityRole: {
+        case 1: {
             return polarity(row.Amount());
         }
-        case AccountActivityQt::ContactsRole: {
+        case 2: {
             std::string contacts;
             auto contact = row.Contacts().cbegin();
 
@@ -163,26 +156,26 @@ QVariant AccountActivity::data(const QModelIndex& index, int role) const
 
             return contacts.c_str();
         }
-        case AccountActivityQt::DisplayAmountRole: {
+        case 3: {
             return row.DisplayAmount().c_str();
         }
-        case AccountActivityQt::MemoRole: {
+        case 4: {
             return row.Memo().c_str();
         }
-        case AccountActivityQt::WorkflowRole: {
+        case 5: {
             return row.Workflow().c_str();
         }
-        case AccountActivityQt::TextRole: {
+        case 6: {
             return row.Text().c_str();
         }
-        case AccountActivityQt::TimestampRole: {
+        case 7: {
             QDateTime qdatetime;
             qdatetime.setSecsSinceEpoch(
                 std::chrono::system_clock::to_time_t(row.Timestamp()));
 
             return qdatetime;
         }
-        case AccountActivityQt::TypeRole: {
+        case 8: {
             return static_cast<int>(row.Type());
         }
         default: {

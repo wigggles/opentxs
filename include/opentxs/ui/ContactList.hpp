@@ -7,7 +7,6 @@
 #define OPENTXS_UI_CONTACTLIST_HPP
 
 #ifndef Q_MOC_RUN
-
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/List.hpp"
@@ -62,13 +61,6 @@ class opentxs::ui::ContactListQt final : public QAbstractItemModel
 public:
     using ConstructorCallback = std::function<
         implementation::ContactList*(RowCallbacks insert, RowCallbacks remove)>;
-
-    enum Roles {
-        IDRole = Qt::UserRole + 1,
-        NameRole = Qt::UserRole + 2,
-        ImageRole = Qt::UserRole + 3,
-        SectionRole = Qt::UserRole + 4,
-    };
 
     Q_INVOKABLE QString addContact(
         const QString& label,

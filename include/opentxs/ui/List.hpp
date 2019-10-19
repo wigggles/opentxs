@@ -6,6 +6,7 @@
 #ifndef OPENTXS_UI_LIST_HPP
 #define OPENTXS_UI_LIST_HPP
 
+#ifndef Q_MOC_RUN
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/Widget.hpp"
@@ -37,4 +38,48 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
+#endif
+
+#if OT_QT || defined(Q_MOC_RUN)
+namespace opentxs
+{
+namespace ui
+{
+struct BlankModel final : public QAbstractItemModel {
+    Q_OBJECT
+
+public:
+    int columnCount(const QModelIndex& = QModelIndex()) const noexcept final
+    {
+        return columns_;
+    }
+    QVariant data(const QModelIndex&, int = Qt::DisplayRole) const
+        noexcept final
+    {
+        return {};
+    }
+    QModelIndex index(int, int, const QModelIndex& = QModelIndex()) const
+        noexcept final
+    {
+        return {};
+    }
+    QModelIndex parent(const QModelIndex&) const noexcept final { return {}; }
+    int rowCount(const QModelIndex& = QModelIndex()) const noexcept final
+    {
+        return 0;
+    }
+
+    BlankModel(const std::size_t columns)
+        : columns_(columns)
+    {
+    }
+
+private:
+    const std::size_t columns_;
+
+    BlankModel() = delete;
+};
+}  // namespace ui
+}  // namespace opentxs
+#endif
 #endif

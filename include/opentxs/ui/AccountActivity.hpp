@@ -63,18 +63,6 @@ public:
         RowCallbacks insert,
         RowCallbacks remove)>;
 
-    enum Roles {
-        IDRole = Qt::UserRole + 1,
-        AmountPolarityRole = Qt::UserRole + 2,
-        ContactsRole = Qt::UserRole + 3,
-        DisplayAmountRole = Qt::UserRole + 4,
-        MemoRole = Qt::UserRole + 5,
-        WorkflowRole = Qt::UserRole + 6,
-        TextRole = Qt::UserRole + 7,
-        TimestampRole = Qt::UserRole + 8,
-        TypeRole = Qt::UserRole + 9,
-    };
-
     int balancePolarity() const noexcept;
     QString displayBalance() const noexcept;
 
