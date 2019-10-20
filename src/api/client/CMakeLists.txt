@@ -54,6 +54,7 @@ set(
 )
 
 add_library(opentxs-api-client OBJECT ${cxx-sources} ${cxx-headers})
+target_link_libraries(opentxs-api-client PRIVATE Boost::headers)
 set_property(TARGET opentxs-api-client PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

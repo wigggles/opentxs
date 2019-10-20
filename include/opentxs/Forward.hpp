@@ -28,6 +28,7 @@ class BalanceList;
 class BalanceNode;
 class BalanceTree;
 class Deterministic;
+class Ethereum;
 class HD;
 class Imported;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -102,6 +103,37 @@ class Purse;
 class Token;
 }  // namespace blind
 #endif
+
+#if OT_BLOCKCHAIN
+namespace blockchain
+{
+namespace block
+{
+namespace bitcoin
+{
+class Header;
+}  // namespace bitcoin
+
+class Header;
+}  // namespace block
+
+namespace client
+{
+class HeaderOracle;
+}  // namespace client
+
+namespace p2p
+{
+class Address;
+class Peer;
+}  // namespace p2p
+
+class BloomFilter;
+class Network;
+class NumericHash;
+class Work;
+}  // namespace blockchain
+#endif  // OT_BLOCKCHAIN
 
 namespace client
 {
@@ -430,6 +462,13 @@ using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
 using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
 using OTZMQZAPReply = Pimpl<network::zeromq::zap::Reply>;
 using OTZMQZAPRequest = Pimpl<network::zeromq::zap::Request>;
+
+#if OT_BLOCKCHAIN
+using OTBlockchainAddress = Pimpl<blockchain::p2p::Address>;
+using OTBloomFilter = Pimpl<blockchain::BloomFilter>;
+using OTNumericHash = Pimpl<blockchain::NumericHash>;
+using OTWork = Pimpl<blockchain::Work>;
+#endif  // OT_BLOCKCHAIN
 
 using ExclusiveAccount = Exclusive<Account>;
 

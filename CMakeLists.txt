@@ -54,6 +54,7 @@ option(OT_CRYPTO_SUPPORTED_KEY_SECP256K1 "Enable secp256k1 key support" ON)
 option(OT_CRYPTO_USING_OPENSSL "Use OpenSSL crypto library" ON)
 option(OT_CRYPTO_USING_LIBSECP256K1 "Use libsecp256k1 crypto library" ON)
 option(OT_CRYPTO_USING_TREZOR "Use trezor crypto library" ON)
+option(OT_WITH_BLOCKCHAIN "Enable blockchain client support" ON)
 option(OT_CASH_USING_LUCRE "Enable Lucre support" OFF)
 option(OT_LUCRE_DEBUG "Output Lucre debug info" OFF)
 option(OT_SCRIPT_USING_CHAI "Use chaiscript" ON)
@@ -112,6 +113,9 @@ message(STATUS "OpenSSL:                ${OT_CRYPTO_USING_OPENSSL}")
 message(STATUS "libsecp256k1:           ${OT_CRYPTO_USING_LIBSECP256K1}")
 message(STATUS "trezor-crypto:          ${OT_CRYPTO_USING_TREZOR}")
 
+message(STATUS "Blockchain-----------------------------------")
+message(STATUS "Blockchain client:      ${OT_WITH_BLOCKCHAIN}")
+
 message(STATUS "Cash library providers---------------------")
 message(STATUS "Lucre:                  ${OT_CASH_USING_LUCRE}")
 message(STATUS "Lucre debug info:       ${OT_LUCRE_DEBUG}")
@@ -139,10 +143,14 @@ find_package(Protobuf REQUIRED)
 find_package(opentxs-proto REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(
-  Boost REQUIRED
+  Boost 1.66.0 REQUIRED
   COMPONENTS system filesystem
   OPTIONAL_COMPONENTS stacktrace_basic
 )
+
+if(OT_WITH_BLOCKCHAIN)
+  find_package(Boost REQUIRED thread)
+endif()
 
 if(OT_USE_VCPKG_TARGETS)
   find_package(unofficial-sodium CONFIG REQUIRED)
@@ -334,6 +342,28 @@ if(OT_CRYPTO_SUPPORTED_KEY_HD)
 else()
   set(BIP32_EXPORT 0)
   set(BIP39_EXPORT 0)
+endif()
+
+if(OT_WITH_BLOCKCHAIN)
+  if(NOT OT_STORAGE_LMDB)
+    message(FATAL_ERROR "Blockchain support requires LMDB")
+  endif()
+
+  if(NOT OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
+    message(FATAL_ERROR "Blockchain support requires secp256k1 key support")
+  endif()
+
+  if(NOT OT_CRYPTO_SUPPORTED_KEY_HD)
+    message(FATAL_ERROR "Blockchain support requires HD key support")
+  endif()
+
+  if(NOT OT_CRYPTO_SUPPORTED_SOURCE_BIP47)
+    message(FATAL_ERROR "Blockchain support requires bip47 support")
+  endif()
+
+  set(OT_BLOCKCHAIN_EXPORT 1)
+else()
+  set(OT_BLOCKCHAIN_EXPORT 0)
 endif()
 
 if(OT_CASH_USING_LUCRE)

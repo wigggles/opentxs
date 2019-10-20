@@ -40,6 +40,27 @@ public:
 
     std::unique_ptr<OTPassword> BinarySecret() const final;
 
+#if OT_BLOCKCHAIN
+    OTBlockchainAddress BlockchainAddress(
+        const blockchain::p2p::Protocol protocol,
+        const blockchain::p2p::Network network,
+        const opentxs::Data& bytes,
+        const std::uint16_t port,
+        const blockchain::Type chain,
+        const Time lastConnected,
+        const std::set<blockchain::p2p::Service>& services) const final;
+    std::unique_ptr<blockchain::block::Header> BlockHeader(
+        const proto::BlockchainBlockHeader& serialized) const final;
+    std::unique_ptr<blockchain::block::Header> BlockHeader(
+        const blockchain::Type type,
+        const opentxs::Data& raw) const final;
+    std::unique_ptr<blockchain::block::Header> BlockHeader(
+        const blockchain::Type type,
+        const blockchain::block::Hash& hash,
+        const blockchain::block::Hash& parent,
+        const blockchain::block::Height height) const final;
+#endif  // OT_BLOCKCHAIN
+
     std::unique_ptr<opentxs::Cheque> Cheque(
         const OTTransaction& receipt,
         const opentxs::PasswordPrompt& reason) const final;

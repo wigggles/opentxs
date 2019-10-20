@@ -12,6 +12,13 @@
 #include "opentxs/crypto/library/Trezor.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/server/Server.hpp"
+#if OT_BLOCKCHAIN
+#include "blockchain/bitcoin/CompactSize.hpp"
+#include "blockchain/p2p/bitcoin/message/Getblocks.hpp"
+#include "blockchain/p2p/bitcoin/Message.hpp"
+#include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "internal/identity/Identity.hpp"
 #include "internal/otx/client/Client.hpp"
 #include "server/Server.hpp"

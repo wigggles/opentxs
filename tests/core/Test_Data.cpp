@@ -334,3 +334,25 @@ TEST(Data, endian_64)
     EXPECT_TRUE(data2->Extract(recovered2, 4));
     EXPECT_EQ(recovered2, 268435456u);
 }
+
+TEST(Data, extract)
+{
+    const auto vector =
+        Data::Factory("00000000000000000000ffff178140ba", Data::Mode::Hex);
+    const auto prefix =
+        Data::Factory("00000000000000000000ffff", Data::Mode::Hex);
+    const auto suffix = Data::Factory("178140ba", Data::Mode::Hex);
+
+    auto calculatedPrefix = Data::Factory();
+    auto calculatedSuffix = Data::Factory();
+
+    EXPECT_EQ(16, vector->size());
+    EXPECT_EQ(12, prefix->size());
+    EXPECT_EQ(4, suffix->size());
+    EXPECT_TRUE(vector->Extract(prefix->size(), calculatedPrefix));
+    EXPECT_TRUE(
+        vector->Extract(suffix->size(), calculatedSuffix, prefix->size()));
+
+    EXPECT_EQ(prefix, calculatedPrefix);
+    EXPECT_EQ(suffix, calculatedSuffix);
+}

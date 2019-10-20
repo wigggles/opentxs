@@ -1,0 +1,16 @@
+# Copyright (c) 2010-2019 The Open-Transactions developers
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+set(cxx-sources Network.cpp PeerManager.cpp)
+
+set(cxx-headers Network.hpp PeerManager.hpp)
+
+add_library(opentxs-blockchain-client-bitcoin OBJECT ${cxx-sources}
+                                                     ${cxx-headers})
+target_link_libraries(opentxs-blockchain-client-bitcoin PRIVATE Boost::headers)
+set_property(
+  TARGET opentxs-blockchain-client-bitcoin
+  PROPERTY POSITION_INDEPENDENT_CODE 1
+)

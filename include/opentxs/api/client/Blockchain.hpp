@@ -52,6 +52,11 @@ public:
         const Style style,
         const Chain chain,
         const Data& data) const noexcept = 0;
+#if OT_BLOCKCHAIN
+    /// throws std::out_of_range if chain has not been started
+    EXPORT virtual const opentxs::blockchain::Network& GetChain(
+        const Chain type) const noexcept(false) = 0;
+#endif  // OT_BLOCKCHAIN
     /// Throws std::out_of_range if the specified account does not exist
     EXPORT virtual const blockchain::HD& HDSubaccount(
         const identifier::Nym& nymID,
@@ -61,6 +66,11 @@ public:
         const BlockchainAccountType standard,
         const Chain chain,
         const PasswordPrompt& reason) const noexcept = 0;
+#if OT_BLOCKCHAIN
+    EXPORT virtual bool Start(
+        const Chain type,
+        const std::string& seednode = "") const noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     EXPORT virtual bool StoreTransaction(
         const identifier::Nym& nymID,
         const Chain chain,
@@ -86,4 +96,4 @@ private:
 }  // namespace api
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#endif
+#endif  // OPENTXS_API_CLIENT_BLOCKCHAIN_HPP
