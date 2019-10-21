@@ -18,6 +18,7 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceNode.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/BalanceTree.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Deterministic.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Ethereum.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/HD.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/Imported.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/api/client/blockchain/PaymentCode.hpp"

@@ -5,15 +5,29 @@
 
 set(name unittests-opentxs-blockchain)
 
-set(cxx-sources ${PROJECT_SOURCE_DIR}/tests/main.cpp Test_BlockchainAPI.cpp
-                ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp)
+set(
+  cxx-sources
+  ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
+  ${PROJECT_SOURCE_DIR}/tests/main.cpp
+  Test_BlockchainAPI.cpp
+  Test_Filters.cpp
+  Test_HeaderOracle.cpp
+  Test_NumericHash.cpp
+  Test_BlockHeader.cpp
+  Test_CompactSize.cpp
+  Test_Message.cpp
+)
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
                     ${GTEST_INCLUDE_DIRS})
 
 add_executable(${name} ${cxx-sources})
-target_link_libraries(${name} opentxs::libopentxs ${GTEST_LIBRARY})
-
+target_link_libraries(
+  ${name}
+  opentxs::libopentxs
+  ${GTEST_LIBRARY}
+  Boost::headers
+)
 set_target_properties(
   ${name}
   PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests

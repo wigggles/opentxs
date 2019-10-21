@@ -17,6 +17,7 @@
 #include <opentxs/api/client/blockchain/BalanceNode.hpp>
 #include <opentxs/api/client/blockchain/BalanceTree.hpp>
 #include <opentxs/api/client/blockchain/Deterministic.hpp>
+#include <opentxs/api/client/blockchain/Ethereum.hpp>
 #include <opentxs/api/client/blockchain/HD.hpp>
 #include <opentxs/api/client/blockchain/Imported.hpp>
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -63,6 +64,17 @@
 #include <opentxs/client/OT_API.hpp>
 #include <opentxs/client/ServerAction.hpp>
 #include <opentxs/client/SwigWrap.hpp>
+#if OT_BLOCKCHAIN
+#include <opentxs/blockchain/block/bitcoin/Header.hpp>
+#include <opentxs/blockchain/block/Header.hpp>
+#include <opentxs/blockchain/client/HeaderOracle.hpp>
+#include <opentxs/blockchain/p2p/Address.hpp>
+#include <opentxs/blockchain/p2p/Peer.hpp>
+#include <opentxs/blockchain/BloomFilter.hpp>
+#include <opentxs/blockchain/Network.hpp>
+#include <opentxs/blockchain/NumericHash.hpp>
+#include <opentxs/blockchain/Work.hpp>
+#endif  // OT_BLOCKCHAIN
 #include <opentxs/consensus/ClientContext.hpp>
 #include <opentxs/consensus/Context.hpp>
 #include <opentxs/consensus/ManagedNumber.hpp>

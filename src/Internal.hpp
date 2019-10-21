@@ -9,6 +9,10 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/Blockchain.hpp"
+#endif  // OT_BLOCKCHAIN
+
 #define PAYMENT_CODE_VERSION 1
 #define PEER_MESSAGE_VERSION 2
 #define PEER_PAYMENT_VERSION 5
@@ -24,6 +28,16 @@
 #define MESSAGE_SUCCESS_FALSE 0
 #define MESSAGE_SUCCESS_TRUE 1
 #define FIRST_REQUEST_NUMBER 1
+
+#if OT_BLOCKCHAIN
+namespace boost
+{
+namespace asio
+{
+class io_context;
+}  // namespace asio
+}  // namespace boost
+#endif  // OT_BLOCKCHAIN
 
 namespace opentxs
 {
@@ -132,6 +146,108 @@ class Token;
 }  // namespace implementation
 }  // namespace token
 }  // namespace blind
+
+#if OT_BLOCKCHAIN
+namespace blockchain
+{
+namespace bitcoin
+{
+class CompactSize;
+class Inventory;
+}  // namespace bitcoin
+
+namespace block
+{
+namespace bitcoin
+{
+namespace internal
+{
+struct Header;
+}  // namespace internal
+}  // namespace bitcoin
+}  // namespace block
+
+namespace client
+{
+namespace internal
+{
+struct FilterOracle;
+struct HeaderDatabase;
+struct HeaderOracle;
+struct Network;
+struct PeerManager;
+struct UpdateTransaction;
+struct Wallet;
+}  // namespace internal
+}  // namespace client
+
+namespace internal
+{
+struct Database;
+struct GCS;
+}  // namespace internal
+
+namespace p2p
+{
+namespace bitcoin
+{
+namespace message
+{
+namespace internal
+{
+struct Addr;
+struct Block;
+struct Blocktxn;
+struct Cfcheckpt;
+struct Cfheaders;
+struct Cfilter;
+struct Filteradd;
+struct Filterclear;
+struct Filterload;
+struct Getaddr;
+struct Getcfcheckpt;
+struct Getcfheaders;
+struct Getcfilters;
+struct Getdata;
+struct Getheaders;
+struct Headers;
+struct Inv;
+struct Mempool;
+struct Notfound;
+struct Ping;
+struct Pong;
+struct Sendheaders;
+struct Verack;
+struct Version;
+}  // namespace internal
+
+class Checkorder;
+class Cmpctblock;
+class Feefilter;
+class Getblocks;
+class Getblocktxn;
+class Merkleblock;
+class Reject;
+class Reply;
+class Sendcmpct;
+class Submitorder;
+class Tx;
+}  // namespace message
+
+class Body;
+class Header;
+class Message;
+class Peer;
+}  // namespace bitcoin
+
+namespace internal
+{
+struct Address;
+struct Peer;
+}  // namespace internal
+}  // namespace p2p
+}  // namespace blockchain
+#endif  // OT_BLOCKCHAIN
 
 namespace crypto
 {

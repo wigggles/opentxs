@@ -28,6 +28,7 @@
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/api/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 
 #include <map>
 #include <mutex>
@@ -44,7 +45,7 @@
 #define PATH_VERSION 1
 #define COMPRESSED_PUBKEY_SIZE 33
 
-#define OT_METHOD "opentxs::Blockchain::"
+#define OT_METHOD "opentxs::api::client::implementation::Blockchain::"
 
 namespace opentxs
 {
@@ -93,6 +94,7 @@ Blockchain::Blockchain(
     , nym_lock_()
     , balance_lists_(*this)
     , txo_db_(*this)
+    , networks_()
 {
     // WARNING: do not access api_.Wallet() during construction
 }
@@ -582,6 +584,16 @@ std::string Blockchain::EncodeAddress(
     }
 }
 
+#if OT_BLOCKCHAIN
+const opentxs::blockchain::Network& Blockchain::GetChain(const Chain type) const
+    noexcept(false)
+{
+    Lock lock(lock_);
+
+    return *networks_.at(type);
+}
+#endif  // OT_BLOCKCHAIN
+
 const blockchain::HD& Blockchain::HDSubaccount(
     const identifier::Nym& nymID,
     const Identifier& accountID) const noexcept(false)
@@ -885,6 +897,50 @@ OTData Blockchain::PubkeyHash(
 
     return pubkeyHash;
 }
+
+#if OT_BLOCKCHAIN
+bool Blockchain::Start(const Chain type, const std::string& seednode) const
+    noexcept
+{
+    switch (type) {
+        case Chain::Bitcoin:
+        case Chain::Bitcoin_testnet3:
+        case Chain::BitcoinCash:
+        case Chain::BitcoinCash_testnet3:
+            break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported chain").Flush();
+
+            return false;
+        }
+    }
+
+    Lock lock(lock_);
+
+    if (0 != networks_.count(type)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Chain already running").Flush();
+
+        return true;
+    }
+
+    switch (type) {
+        case Chain::Bitcoin:
+        case Chain::Bitcoin_testnet3:
+        case Chain::BitcoinCash:
+        case Chain::BitcoinCash_testnet3: {
+            networks_.emplace(
+                type,
+                opentxs::Factory::BlockchainNetworkBitcoin(
+                    api_, type, seednode));
+        } break;
+        default: {
+            OT_FAIL;
+        }
+    }
+
+    return true;
+}
+#endif  // OT_BLOCKCHAIN
 
 bool Blockchain::StoreTransaction(
     const identifier::Nym& nymID,

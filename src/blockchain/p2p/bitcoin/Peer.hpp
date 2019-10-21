@@ -1,0 +1,172 @@
+// Copyright (c) 2010-2019 The Open-Transactions developers
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#pragma once
+
+namespace opentxs::blockchain::p2p::bitcoin::implementation
+{
+class Peer final : public p2p::implementation::Peer
+{
+public:
+    using MessageType = bitcoin::Message;
+    using HeaderType = bitcoin::Header;
+
+    ~Peer() final;
+
+private:
+    friend opentxs::Factory;
+
+    using CommandFunction =
+        void (Peer::*)(std::unique_ptr<HeaderType>, const zmq::Frame&);
+    using Nonce = bitcoin::Nonce;
+
+    static const std::map<Command, CommandFunction> command_map_;
+    static const ProtocolVersion default_protocol_version_{70015};
+    static const std::string user_agent_;
+
+    const blockchain::Type chain_;
+    std::atomic<ProtocolVersion> protocol_;
+    const Nonce nonce_;
+    const Magic magic_;
+    const std::set<p2p::Service> local_services_;
+    const std::set<p2p::Service> remote_services_;
+    std::atomic<bool> relay_;
+
+    static std::set<p2p::Service> get_local_services(
+        const ProtocolVersion version,
+        const blockchain::Type network,
+        const std::set<p2p::Service>& input) noexcept;
+    static std::set<p2p::Service> get_remote_services(
+        const ProtocolVersion version,
+        const blockchain::Type network,
+        const std::set<p2p::Service>& input) noexcept;
+    static Nonce nonce(const api::internal::Core& api) noexcept;
+
+    void get_body_size() noexcept final;
+    void ping() noexcept final;
+    void pong() noexcept final;
+    void process_message(const zmq::Message& message) noexcept final;
+    void request_addresses() noexcept final;
+    using p2p::implementation::Peer::request_headers;
+    void request_headers() noexcept final;
+    void request_headers(const block::Hash& hash) noexcept;
+    void start_handshake() noexcept final;
+
+    void process_addr(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_block(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_blocktxn(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_cfcheckpt(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_cfheaders(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_cfilter(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_cmpctblock(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_feefilter(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_filteradd(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_filterclear(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_filterload(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getaddr(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getblocks(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getblocktxn(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getcfcheckpt(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getcfheaders(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getcfilters(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getdata(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_getheaders(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_headers(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_inv(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_mempool(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_merkleblock(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_notfound(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_ping(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_pong(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_reject(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_sendcmpct(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_sendheaders(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_tx(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_verack(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+    void process_version(
+        std::unique_ptr<HeaderType> header,
+        const zmq::Frame& payload);
+
+    Peer(
+        const api::internal::Core& api,
+        const client::internal::Network& network,
+        const client::internal::PeerManager& manager,
+        const int id,
+        std::unique_ptr<internal::Address> address,
+        boost::asio::io_context& context,
+        const bool relay = true,
+        const std::set<p2p::Service>& remoteServices = {},
+        const std::set<p2p::Service>& localServices = {},
+        const ProtocolVersion protocol = 0) noexcept;
+
+    Peer() = delete;
+    Peer(const Peer&) = delete;
+    Peer(Peer&&) = delete;
+    Peer& operator=(const Peer&) = delete;
+    Peer& operator=(Peer&&) = delete;
+};
+}  // namespace opentxs::blockchain::p2p::bitcoin::implementation

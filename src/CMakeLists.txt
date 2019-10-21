@@ -51,6 +51,24 @@ else()
   set(openssl-wrapper "")
 endif()
 
+if(OT_BLOCKCHAIN_EXPORT)
+  set(
+    blockchain
+    $<TARGET_OBJECTS:opentxs-blockchain-bitcoin>
+    $<TARGET_OBJECTS:opentxs-blockchain-block-bitcoin>
+    $<TARGET_OBJECTS:opentxs-blockchain-block>
+    $<TARGET_OBJECTS:opentxs-blockchain-client-bitcoin>
+    $<TARGET_OBJECTS:opentxs-blockchain-client>
+    $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin-message>
+    $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin>
+    $<TARGET_OBJECTS:opentxs-blockchain-p2p>
+    $<TARGET_OBJECTS:opentxs-blockchain>
+  )
+  add_subdirectory(blockchain)
+else()
+  set(blockchain "")
+endif()
+
 if(CASH_LUCRE_EXPORT)
   set(lucre $<TARGET_OBJECTS:lucre>)
 else()
@@ -75,6 +93,7 @@ set(
   $<TARGET_OBJECTS:opentxs-api-server>
   $<TARGET_OBJECTS:opentxs-api-storage>
   $<TARGET_OBJECTS:opentxs-api>
+  ${blockchain}
   $<TARGET_OBJECTS:opentxs-client>
   $<TARGET_OBJECTS:opentxs-consensus>
   $<TARGET_OBJECTS:opentxs-contact>
@@ -168,6 +187,10 @@ target_link_libraries(
 
 if(Boost_stacktrace_basic_FOUND)
   target_link_libraries(opentxs PRIVATE Boost::stacktrace_basic)
+endif()
+
+if(OT_BLOCKCHAIN_EXPORT)
+  target_link_libraries(opentxs PRIVATE Boost::thread)
 endif()
 
 if(OT_USE_VCPKG_TARGETS)

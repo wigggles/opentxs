@@ -16,6 +16,7 @@
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/Ripemd160.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
 
 #include "siphash/src/siphash.h"
 #include "smhasher/src/MurmurHash3.h"
@@ -64,63 +65,6 @@ bool Hash::Allocate(const proto::HashType hashType, Data& input) noexcept
 
 bool Hash::Digest(
     const proto::HashType hashType,
-    const std::uint8_t* input,
-    const size_t inputSize,
-    std::uint8_t* output) const noexcept
-{
-    switch (hashType) {
-        case (proto::HASHTYPE_SHA256):
-        case (proto::HASHTYPE_SHA512): {
-            return SHA2().Digest(hashType, input, inputSize, output);
-        }
-        case (proto::HASHTYPE_BLAKE2B160):
-        case (proto::HASHTYPE_BLAKE2B256):
-        case (proto::HASHTYPE_BLAKE2B512): {
-            return Sodium().Digest(hashType, input, inputSize, output);
-        }
-        case (proto::HASHTYPE_RIMEMD160): {
-            return ripe_.RIPEMD160(input, inputSize, output);
-        }
-        default: {
-        }
-    }
-
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported hash type.").Flush();
-
-    return false;
-}
-
-bool Hash::HMAC(
-    const proto::HashType hashType,
-    const std::uint8_t* input,
-    const size_t inputSize,
-    const std::uint8_t* key,
-    const size_t keySize,
-    std::uint8_t* output) const noexcept
-{
-    switch (hashType) {
-        case (proto::HASHTYPE_SHA256):
-        case (proto::HASHTYPE_SHA512): {
-            return SHA2().HMAC(
-                hashType, input, inputSize, key, keySize, output);
-        }
-        case (proto::HASHTYPE_BLAKE2B160):
-        case (proto::HASHTYPE_BLAKE2B256):
-        case (proto::HASHTYPE_BLAKE2B512): {
-            return Sodium().HMAC(
-                hashType, input, inputSize, key, keySize, output);
-        }
-        default: {
-        }
-    }
-
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported hash type.").Flush();
-
-    return false;
-}
-
-bool Hash::Digest(
-    const proto::HashType hashType,
     const OTPassword& data,
     OTPassword& digest) const noexcept
 {
@@ -160,7 +104,7 @@ bool Hash::Digest(
         hashType,
         static_cast<const std::uint8_t*>(data.data()),
         data.size(),
-        static_cast<std::uint8_t*>(const_cast<void*>(digest.data())));
+        static_cast<std::uint8_t*>(digest.data()));
 }
 
 bool Hash::Digest(
@@ -179,7 +123,26 @@ bool Hash::Digest(
         hashType,
         reinterpret_cast<const std::uint8_t*>(data.Get()),
         data.GetLength(),
-        static_cast<std::uint8_t*>(const_cast<void*>(digest.data())));
+        static_cast<std::uint8_t*>(digest.data()));
+}
+
+bool Hash::Digest(
+    const proto::HashType hashType,
+    const opentxs::network::zeromq::Frame& data,
+    Data& digest) const noexcept
+{
+    if (false == Allocate(hashType, digest)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
+            .Flush();
+
+        return false;
+    }
+
+    return Digest(
+        hashType,
+        static_cast<const std::uint8_t*>(data.data()),
+        data.size(),
+        static_cast<std::uint8_t*>(digest.data()));
 }
 
 bool Hash::Digest(
@@ -198,7 +161,27 @@ bool Hash::Digest(
         hashType,
         reinterpret_cast<const std::uint8_t*>(data.c_str()),
         data.size(),
-        static_cast<std::uint8_t*>(const_cast<void*>(digest.data())));
+        static_cast<std::uint8_t*>(digest.data()));
+}
+
+bool Hash::Digest(
+    const proto::HashType hashType,
+    const void* data,
+    const std::size_t size,
+    Data& digest) const noexcept
+{
+    if (false == Allocate(hashType, digest)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
+            .Flush();
+
+        return false;
+    }
+
+    return Digest(
+        hashType,
+        static_cast<const std::uint8_t*>(data),
+        size,
+        static_cast<std::uint8_t*>(digest.data()));
 }
 
 bool Hash::Digest(
@@ -227,6 +210,34 @@ bool Hash::Digest(
     return success;
 }
 
+bool Hash::Digest(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    std::uint8_t* output) const noexcept
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_SHA256):
+        case (proto::HASHTYPE_SHA512): {
+            return SHA2().Digest(hashType, input, inputSize, output);
+        }
+        case (proto::HASHTYPE_BLAKE2B160):
+        case (proto::HASHTYPE_BLAKE2B256):
+        case (proto::HASHTYPE_BLAKE2B512): {
+            return Sodium().Digest(hashType, input, inputSize, output);
+        }
+        case (proto::HASHTYPE_RIMEMD160): {
+            return ripe_.RIPEMD160(input, inputSize, output);
+        }
+        default: {
+        }
+    }
+
+    LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported hash type.").Flush();
+
+    return false;
+}
+
 bool Hash::HMAC(
     const proto::HashType hashType,
     const OTPassword& key,
@@ -253,6 +264,35 @@ bool Hash::HMAC(
         static_cast<const std::uint8_t*>(key.getMemory()),
         key.getMemorySize(),
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
+}
+
+bool Hash::HMAC(
+    const proto::HashType hashType,
+    const std::uint8_t* input,
+    const size_t inputSize,
+    const std::uint8_t* key,
+    const size_t keySize,
+    std::uint8_t* output) const noexcept
+{
+    switch (hashType) {
+        case (proto::HASHTYPE_SHA256):
+        case (proto::HASHTYPE_SHA512): {
+            return SHA2().HMAC(
+                hashType, input, inputSize, key, keySize, output);
+        }
+        case (proto::HASHTYPE_BLAKE2B160):
+        case (proto::HASHTYPE_BLAKE2B256):
+        case (proto::HASHTYPE_BLAKE2B512): {
+            return Sodium().HMAC(
+                hashType, input, inputSize, key, keySize, output);
+        }
+        default: {
+        }
+    }
+
+    LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported hash type.").Flush();
+
+    return false;
 }
 
 void Hash::MurmurHash3_32(

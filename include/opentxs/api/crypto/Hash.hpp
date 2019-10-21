@@ -19,7 +19,6 @@ namespace api
 {
 namespace crypto
 {
-
 class Hash
 {
 public:
@@ -38,6 +37,15 @@ public:
     EXPORT virtual bool Digest(
         const proto::HashType hashType,
         const std::string& data,
+        Data& digest) const noexcept = 0;
+    EXPORT virtual bool Digest(
+        const proto::HashType hashType,
+        const opentxs::network::zeromq::Frame& data,
+        Data& digest) const noexcept = 0;
+    EXPORT virtual bool Digest(
+        const proto::HashType hashType,
+        const void* data,
+        const std::size_t size,
         Data& digest) const noexcept = 0;
     EXPORT virtual bool Digest(
         const std::uint32_t type,

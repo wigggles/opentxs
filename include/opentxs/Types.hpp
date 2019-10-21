@@ -130,12 +130,67 @@ using HDKey = std::shared_ptr<const opentxs::crypto::key::HD>;
 /// account id, chain, index
 using Key = std::tuple<std::string, Subchain, Bip32Index>;
 using Activity = std::tuple<Coin, Key, Amount>;
+using Nonce = Amount;
 }  // namespace blockchain
 }  // namespace client
 }  // namespace api
 
 namespace blockchain
 {
+#ifdef OT_BLOCKCHAIN
+namespace block
+{
+using Version = std::int32_t;
+}  // namespace block
+
+namespace filter
+{
+enum class Type : std::uint8_t {
+    Basic = 0,
+    Undefined = 1,
+    Unknown = 255,
+};
+}  // namespace filter
+
+namespace p2p
+{
+namespace bitcoin
+{
+using ProtocolVersion = std::int32_t;
+using ProtocolVersionUnsigned = std::uint32_t;
+}  // namespace bitcoin
+
+enum class Network : std::uint8_t {
+    ipv6 = 0,
+    ipv4 = 1,
+    onion2 = 2,
+    onion3 = 3,
+    eep = 4,
+    cjdns = 5,
+};
+enum class Protocol : std::uint8_t {
+    opentxs = 0,
+    bitcoin = 1,
+    ethereum = 2,
+};
+
+enum class Service : std::uint8_t {
+    None = 0,
+    Network = 1,
+    UTXO = 2,
+    Bloom = 3,
+    Witness = 4,
+    Xthin = 5,
+    BitcoinCash = 6,
+    Graphene = 7,
+    WeakBlocks = 8,
+    CF = 9,
+    XThinner = 10,
+    Limited = 11,
+};
+}  // namespace p2p
+#endif  // OT_BLOCKCHAIN
+
 enum class Type : std::uint32_t {
     Unknown = 0,
     Bitcoin = 1,
@@ -147,6 +202,14 @@ enum class Type : std::uint32_t {
     Litecoin = 7,
     Litecoin_testnet4 = 8,
 };
+
+#ifdef OT_BLOCKCHAIN
+enum class BloomUpdateFlag : std::uint8_t { None = 0, All = 1, PubkeyOnly = 2 };
+
+using Amount = std::uint64_t;
+using ChainHeight = std::int64_t;
+using HDIndex = std::uint32_t;
+#endif  // OT_BLOCKCHAIN
 }  // namespace blockchain
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 

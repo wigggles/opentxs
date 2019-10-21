@@ -8,7 +8,7 @@
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace opentxs::api::client::implementation
 {
-class Blockchain : virtual public internal::Blockchain
+class Blockchain final : virtual public internal::Blockchain
 {
 public:
     const blockchain::BalanceTree& Account(
@@ -42,6 +42,10 @@ public:
         const Style style,
         const Chain chain,
         const Data& data) const noexcept final;
+#if OT_BLOCKCHAIN
+    const opentxs::blockchain::Network& GetChain(const Chain type) const
+        noexcept(false) final;
+#endif  // OT_BLOCKCHAIN
     const blockchain::HD& HDSubaccount(
         const identifier::Nym& nymID,
         const Identifier& accountID) const noexcept(false) final;
@@ -50,6 +54,10 @@ public:
         const BlockchainAccountType standard,
         const Chain chain,
         const PasswordPrompt& reason) const noexcept final;
+#if OT_BLOCKCHAIN
+    bool Start(const Chain type, const std::string& seednode) const
+        noexcept final;
+#endif  // OT_BLOCKCHAIN
     bool StoreTransaction(
         const identifier::Nym& nymID,
         const Chain chain,
@@ -138,6 +146,12 @@ private:
     mutable IDLock nym_lock_;
     mutable BalanceLists balance_lists_;
     mutable Txo txo_db_;
+#if OT_BLOCKCHAIN
+    mutable std::map<
+        Chain,
+        std::unique_ptr<opentxs::blockchain::client::internal::Network>>
+        networks_;
+#endif  // OT_BLOCKCHAIN
 
     OTData address_prefix(const Style style, const Chain chain) const
         noexcept(false);

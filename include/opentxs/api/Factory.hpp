@@ -8,6 +8,9 @@
 
 #include "opentxs/Forward.hpp"
 
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/Blockchain.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -47,6 +50,27 @@ public:
         std::int64_t lMinimumTransferAmount) const = 0;
 
     EXPORT virtual std::unique_ptr<OTPassword> BinarySecret() const = 0;
+
+#if OT_BLOCKCHAIN
+    EXPORT virtual OTBlockchainAddress BlockchainAddress(
+        const blockchain::p2p::Protocol protocol,
+        const blockchain::p2p::Network network,
+        const opentxs::Data& bytes,
+        const std::uint16_t port,
+        const blockchain::Type chain,
+        const Time lastConnected,
+        const std::set<blockchain::p2p::Service>& services) const = 0;
+    EXPORT virtual std::unique_ptr<blockchain::block::Header> BlockHeader(
+        const proto::BlockchainBlockHeader& serialized) const = 0;
+    EXPORT virtual std::unique_ptr<blockchain::block::Header> BlockHeader(
+        const blockchain::Type type,
+        const Data& raw) const = 0;
+    EXPORT virtual std::unique_ptr<blockchain::block::Header> BlockHeader(
+        const blockchain::Type type,
+        const blockchain::block::Hash& hash,
+        const blockchain::block::Hash& parent,
+        const blockchain::block::Height height) const = 0;
+#endif  // OT_BLOCKCHAIN
 
     EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque(
         const OTTransaction& receipt,

@@ -18,6 +18,11 @@
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Purse.hpp"
 #endif
+#if OT_BLOCKCHAIN
+#include "opentxs/blockchain/block/bitcoin/Header.hpp"
+#include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/blockchain/p2p/Address.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -52,6 +57,10 @@
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
 #include "internal/api/Api.hpp"
+#if OT_BLOCKCHAIN
+#include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/p2p/P2P.hpp"
+#endif  // OT_BLOCKCHAIN
 
 #include <array>
 
@@ -148,6 +157,84 @@ std::unique_ptr<opentxs::Basket> Factory::Basket(
 
     return basket;
 }
+
+#if OT_BLOCKCHAIN
+OTBlockchainAddress Factory::BlockchainAddress(
+    const blockchain::p2p::Protocol protocol,
+    const blockchain::p2p::Network network,
+    const opentxs::Data& bytes,
+    const std::uint16_t port,
+    const blockchain::Type chain,
+    const Time lastConnected,
+    const std::set<blockchain::p2p::Service>& services) const
+{
+    return OTBlockchainAddress{opentxs::Factory::BlockchainAddress(
+        api_, protocol, network, bytes, port, chain, lastConnected, services)};
+}
+
+std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
+    const proto::BlockchainBlockHeader& serialized) const
+{
+    if (false == proto::Validate(serialized, VERBOSE)) { return {}; }
+
+    const auto type(static_cast<blockchain::Type>(serialized.type()));
+
+    switch (type) {
+        case blockchain::Type::Bitcoin: {
+            return std::unique_ptr<blockchain::block::Header>(
+                opentxs::Factory::BitcoinBlockHeader(api_, serialized));
+        }
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                static_cast<std::uint32_t>(type))(")")
+                .Flush();
+
+            return {};
+        }
+    }
+}
+
+std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
+    const blockchain::Type type,
+    const opentxs::Data& raw) const
+{
+    switch (type) {
+        case blockchain::Type::Bitcoin: {
+            return std::unique_ptr<blockchain::block::Header>(
+                opentxs::Factory::BitcoinBlockHeader(api_, raw));
+        }
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                static_cast<std::uint32_t>(type))(")")
+                .Flush();
+
+            return {};
+        }
+    }
+}
+
+std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
+    const blockchain::Type type,
+    const blockchain::block::Hash& hash,
+    const blockchain::block::Hash& parent,
+    const blockchain::block::Height height) const
+{
+    switch (type) {
+        case blockchain::Type::Bitcoin: {
+            return std::unique_ptr<blockchain::block::Header>(
+                opentxs::Factory::BitcoinBlockHeader(
+                    api_, hash, parent, height));
+        }
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
+                static_cast<std::uint32_t>(type))(")")
+                .Flush();
+
+            return {};
+        }
+    }
+}
+#endif  // OT_BLOCKCHAIN
 
 std::unique_ptr<OTPassword> Factory::BinarySecret() const
 {

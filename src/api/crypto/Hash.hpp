@@ -25,6 +25,15 @@ public:
         const std::string& data,
         Data& digest) const noexcept final;
     bool Digest(
+        const proto::HashType hashType,
+        const opentxs::network::zeromq::Frame& data,
+        Data& digest) const noexcept final;
+    bool Digest(
+        const proto::HashType hashType,
+        const void* data,
+        const std::size_t size,
+        Data& digest) const noexcept final;
+    bool Digest(
         const std::uint32_t type,
         const std::string& data,
         std::string& encodedDigest) const noexcept final;
@@ -62,7 +71,7 @@ private:
     bool Digest(
         const proto::HashType hashType,
         const std::uint8_t* input,
-        const size_t inputSize,
+        const size_t size,
         std::uint8_t* output) const noexcept;
     Hash(
         const api::crypto::Encode& encode,
