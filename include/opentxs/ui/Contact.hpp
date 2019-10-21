@@ -65,8 +65,6 @@ public:
     using ConstructorCallback = std::function<
         implementation::Contact*(RowCallbacks insert, RowCallbacks remove)>;
 
-    enum Roles {};
-
     QString displayName() const noexcept;
     QString contactID() const noexcept;
     QString paymentCode() const noexcept;

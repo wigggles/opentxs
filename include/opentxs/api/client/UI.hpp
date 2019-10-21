@@ -65,7 +65,7 @@ public:
         const identifier::Nym& nymID) const = 0;
     EXPORT virtual const ui::PayableList& PayableList(
         const identifier::Nym& nymID,
-        proto::ContactItemType currency) const = 0;
+        const proto::ContactItemType currency) const = 0;
     EXPORT virtual const ui::Profile& Profile(
         const identifier::Nym& nymID) const = 0;
 
@@ -85,11 +85,21 @@ public:
         const identifier::Nym& nymID,
         const Identifier& threadID) const = 0;
     /// Caller does not own this pointer
+    EXPORT virtual QAbstractItemModel* BlankModel(
+        const std::size_t columns) const = 0;
+    /// Caller does not own this pointer
     EXPORT virtual ui::ContactQt* ContactQt(
         const Identifier& contactID) const = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::ContactListQt* ContactListQt(
         const identifier::Nym& nymID) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::MessagableListQt* MessagableListQt(
+        const identifier::Nym& nymID) const = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::PayableListQt* PayableListQt(
+        const identifier::Nym& nymID,
+        const proto::ContactItemType currency) const = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::ProfileQt* ProfileQt(
         const identifier::Nym& nymID) const = 0;

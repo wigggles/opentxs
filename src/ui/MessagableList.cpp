@@ -38,33 +38,12 @@
 
 #define OT_METHOD "opentxs::ui::implementation::MessagableList::"
 
-namespace opentxs
-{
-ui::implementation::MessagableExternalInterface* Factory::MessagableList(
-    const api::client::internal::Manager& api,
-    const network::zeromq::socket::Publish& publisher,
-    const identifier::Nym& nymID
 #if OT_QT
-    ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
-#endif
-)
+namespace opentxs::ui
 {
-    return new ui::implementation::MessagableList(
-        api,
-        publisher,
-        nymID
-#if OT_QT
-        ,
-        qt,
-        insertCallback,
-        removeCallback
+QT_MODEL_WRAPPER(MessagableListQt, MessagableList)
+}  // namespace opentxs::ui
 #endif
-    );
-}
-}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -87,7 +66,9 @@ MessagableList::MessagableList(
           ,
           qt,
           insertCallback,
-          removeCallback
+          removeCallback,
+          Roles{},
+          4
 #endif
           )
     , listeners_({
@@ -117,7 +98,9 @@ void MessagableList::construct_row(
 }
 
 #if OT_QT
-QVariant MessagableList::data(const QModelIndex& index, int role) const noexcept
+QVariant MessagableList::data(
+    const QModelIndex& index,
+    [[maybe_unused]] int role) const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -125,17 +108,17 @@ QVariant MessagableList::data(const QModelIndex& index, int role) const noexcept
 
     const auto& row = *pRow;
 
-    switch (role) {
-        case IDRole: {
+    switch (index.column()) {
+        case 0: {
             return row.ContactID().c_str();
         }
-        case NameRole: {
+        case 1: {
             return row.DisplayName().c_str();
         }
-        case ImageRole: {
+        case 2: {
             return row.ImageURI().c_str();
         }
-        case SectionRole: {
+        case 3: {
             return row.Section().c_str();
         }
         default: {

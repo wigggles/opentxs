@@ -334,17 +334,6 @@ public:
     static opentxs::ManagedNumber* ManagedNumber(
         const TransactionNumber number,
         opentxs::ServerContext& context);
-    static ui::implementation::MessagableExternalInterface* MessagableList(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID
-#if OT_QT
-        ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
-#endif
-    );
 #if OT_CASH
     static blind::Mint* MintLucre(const api::internal::Core& core);
     static blind::Mint* MintLucre(
@@ -410,18 +399,6 @@ public:
         const network::zeromq::Context& context,
         const network::zeromq::ListenCallback& callback,
         const std::string& endpoint);
-    static ui::implementation::PayableExternalInterface* PayableList(
-        const api::client::internal::Manager& api,
-        const network::zeromq::socket::Publish& publisher,
-        const identifier::Nym& nymID,
-        const proto::ContactItemType& currency
-#if OT_QT
-        ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
-#endif
-    );
     static ui::implementation::PayableListRowInternal* PayableListItem(
         const ui::implementation::PayableInternalInterface& parent,
         const api::client::internal::Manager& api,

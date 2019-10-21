@@ -7,7 +7,6 @@
 #define OPENTXS_UI_PROFILE_HPP
 
 #ifndef Q_MOC_RUN
-
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/List.hpp"
@@ -150,7 +149,7 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ProfileQt final : public QAbstractItemModel
+class opentxs::ui::ProfileQt : public QAbstractItemModel
 {
     Q_OBJECT
 
@@ -158,33 +157,34 @@ public:
     using ConstructorCallback = std::function<
         implementation::Profile*(RowCallbacks insert, RowCallbacks remove)>;
 
-    enum Roles {};
-
     QString displayName() const noexcept;
     QString nymID() const noexcept;
     QString paymentCode() const noexcept;
 
     int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
+        noexcept override;
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
+        noexcept override;
     QModelIndex index(
         int row,
         int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
+        const QModelIndex& parent = QModelIndex()) const noexcept override;
+    QModelIndex parent(const QModelIndex& index) const noexcept override;
+    QHash<int, QByteArray> roleNames() const noexcept override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
+        noexcept override;
 
     const Profile& operator*() const noexcept;
 
     // Throws std::runtime_error if callback returns invalid pointer
     ProfileQt(ConstructorCallback cb) noexcept(false);
-    ~ProfileQt() final;
+    ~ProfileQt() override;
 
 signals:
     void updated() const;
+
+protected:
+    ProfileQt() = default;
 
 private:
     Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
@@ -202,7 +202,6 @@ private:
         int first,
         int last) noexcept;
 
-    ProfileQt() = delete;
     ProfileQt(const ProfileQt&) = delete;
     ProfileQt(ProfileQt&&) = delete;
     ProfileQt& operator=(const ProfileQt&) = delete;

@@ -89,17 +89,6 @@ public:
         RowCallbacks insert,
         RowCallbacks remove)>;
 
-    enum Roles {
-        AmountPolarityRole = Qt::UserRole + 1,
-        DisplayAmountRole = Qt::UserRole + 2,
-        MemoRole = Qt::UserRole + 3,
-        TextRole = Qt::UserRole + 4,
-        TimestampRole = Qt::UserRole + 5,
-        TypeRole = Qt::UserRole + 6,
-        LoadingRole = Qt::UserRole + 7,
-        PendingRole = Qt::UserRole + 8,
-    };
-
     QString displayName() const noexcept;
     QString getDraft() const noexcept;
     QString participants() const noexcept;

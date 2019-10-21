@@ -67,13 +67,8 @@ ActivitySummary::ActivitySummary(
           qt,
           insertCallback,
           removeCallback,
-          Roles{{ActivitySummaryQt::IDRole, "id"},
-                {ActivitySummaryQt::NameRole, "name"},
-                {ActivitySummaryQt::ImageRole, "image"},
-                {ActivitySummaryQt::TextRole, "text"},
-                {ActivitySummaryQt::TimestampRole, "timestamp"},
-                {ActivitySummaryQt::TypeRole, "type"}},
-          1
+          Roles{},
+          6
 #endif
           )
     , listeners_{{api_.Activity().ThreadPublisher(nymID),
@@ -89,8 +84,9 @@ ActivitySummary::ActivitySummary(
 }
 
 #if OT_QT
-QVariant ActivitySummary::data(const QModelIndex& index, int role) const
-    noexcept
+QVariant ActivitySummary::data(
+    const QModelIndex& index,
+    [[maybe_unused]] int role) const noexcept
 {
     const auto [valid, pRow] = check_index(index);
 
@@ -98,26 +94,26 @@ QVariant ActivitySummary::data(const QModelIndex& index, int role) const
 
     const auto& row = *pRow;
 
-    switch (role) {
-        case ActivitySummaryQt::IDRole: {
+    switch (index.column()) {
+        case 0: {
             return row.ThreadID().c_str();
         }
-        case ActivitySummaryQt::NameRole: {
+        case 1: {
             return row.DisplayName().c_str();
         }
-        case ActivitySummaryQt::ImageRole: {
+        case 2: {
             return row.ImageURI().c_str();
         }
-        case ActivitySummaryQt::TextRole: {
+        case 3: {
             return row.Text().c_str();
         }
-        case ActivitySummaryQt::TimestampRole: {
+        case 4: {
             QDateTime qdatetime;
             qdatetime.setSecsSinceEpoch(
                 std::chrono::system_clock::to_time_t(row.Timestamp()));
             return qdatetime;
         }
-        case ActivitySummaryQt::TypeRole: {
+        case 5: {
             return static_cast<int>(row.Type());
         }
         default: {

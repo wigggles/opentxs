@@ -37,6 +37,7 @@ public:
 
 private:
     friend opentxs::Factory;
+    friend api::client::implementation::UI;
 
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;

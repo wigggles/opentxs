@@ -59,19 +59,6 @@ public:
     using ConstructorCallback = std::function<
         implementation::AccountList*(RowCallbacks insert, RowCallbacks remove)>;
 
-    enum Roles {
-        IDRole = Qt::UserRole + 1,
-        BalancePolarityRole = Qt::UserRole + 2,
-        ContractIDRole = Qt::UserRole + 3,
-        DisplayBalanceRole = Qt::UserRole + 4,
-        DisplayUnit = Qt::UserRole + 5,
-        NameRole = Qt::UserRole + 6,
-        NotaryIDRole = Qt::UserRole + 7,
-        NotaryNameRole = Qt::UserRole + 8,
-        TypeRole = Qt::UserRole + 9,
-        UnitRole = Qt::UserRole + 10,
-    };
-
     int columnCount(const QModelIndex& parent = QModelIndex()) const
         noexcept final;
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const

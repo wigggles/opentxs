@@ -51,6 +51,9 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivityThread.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/Contact.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/List.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/MessagableList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableList.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/Profile.hpp"
 )
 set(
@@ -67,10 +70,7 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactSection.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ContactSubsection.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/IssuerItem.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/ui/List.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ListRow.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/ui/MessagableList.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableList.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/PayableListItem.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileItem.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ProfileSection.hpp"
