@@ -82,6 +82,9 @@ private:
 
     void Init_Crypto();
     void Init_Log(const std::int32_t argLevel);
+#ifndef _WIN32
+    void Init_Rlimit() noexcept;
+#endif  // _WIN32
     void Init_Zap();
     void Init() final;
     void setup_default_external_password_callback();
