@@ -27,35 +27,38 @@ Network::Network(
     const std::string& seednode) noexcept
     : StateMachine(std::bind(&Network::state_machine, this))
     , database_p_(Factory::BlockchainDatabase(api, *this, type))
-    , filter_p_()
-    , header_p_(Factory::HeaderOracle(api, *this, type))
-    , peer_p_(Factory::BlockchainPeerManager(api, *this, type, seednode))
+    , filter_p_(Factory::BlockchainFilterOracle(api, *this, *database_p_))
+    , header_p_(Factory::HeaderOracle(api, *this, *database_p_, type))
+    , peer_p_(Factory::BlockchainPeerManager(
+          api,
+          *this,
+          *database_p_,
+          type,
+          seednode))
     , wallet_p_()
     , api_(api)
     , chain_(type)
     , database_(*database_p_)
+    , filters_(*filter_p_)
     , header_(*header_p_)
     , peer_(*peer_p_)
     , local_chain_height_(0)
     , remote_chain_height_(0)
-    , new_headers_(
-          Factory::Pipeline(api_, api_.ZeroMQ(), [this](auto& in) -> void {
-              this->process_header(in);
-          }))
+    , new_headers_(Factory::Pipeline(
+          api_,
+          api_.ZeroMQ(),
+          [this](auto& in) { this->process_header(in); }))
+    , new_filters_(Factory::Pipeline(api_, api_.ZeroMQ(), [this](auto& in) {
+        this->process_filter(in);
+    }))
 {
     OT_ASSERT(database_p_);
+    OT_ASSERT(filter_p_);
     OT_ASSERT(header_p_);
     OT_ASSERT(peer_p_);
+
+    filters_.Start();
 }
-
-bool Network::Connect() noexcept
-{
-    // TODO
-
-    return false;
-}
-
-void Network::cleanup() noexcept { new_headers_->Close(); }
 
 bool Network::Disconnect() noexcept
 {
@@ -71,17 +74,25 @@ ChainHeight Network::GetConfirmations(const std::string& txid) const noexcept
     return -1;
 }
 
-std::size_t Network::GetPeerCount() const noexcept
-{
-    // TODO
-
-    return {};
-}
-
 void Network::init() noexcept
 {
     local_chain_height_.store(header_.BestChain().first);
-    peer_.init();
+}
+
+void Network::process_filter(network::zeromq::Message& in) noexcept
+{
+    const auto& body = in.Body();
+
+    if (3 != body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        return;
+    }
+
+    filters_.AddFilter(
+        body.at(0).as<filter::Type>(),
+        Data::Factory(body.at(1)),
+        Data::Factory(body.at(2)));
 }
 
 void Network::process_header(network::zeromq::Message& in) noexcept
@@ -96,6 +107,14 @@ void Network::process_header(network::zeromq::Message& in) noexcept
 
     const auto& payload = body.at(0);
     header_.AddHeader(instantiate_header(payload));
+}
+
+void Network::RequestFilters(
+    const filter::Type type,
+    const block::Height start,
+    const block::Hash& stop) const noexcept
+{
+    peer_.RequestFilters(type, start, stop);
 }
 
 std::string Network::SendToAddress(
@@ -120,14 +139,18 @@ std::string Network::SendToPaymentCode(
 
 bool Network::Shutdown() noexcept
 {
-    // TODO
+    filters_.Shutdown();
+    peer_.Shutdown();
+    Stop().get();
+    new_filters_->Close();
+    new_headers_->Close();
 
-    return false;
+    return true;
 }
 
 bool Network::state_machine() noexcept
 {
-    // TODO
+    filters_.CheckBlocks();
 
     return false;
 }
@@ -148,5 +171,5 @@ void Network::UpdateLocalHeight(const block::Position position) const noexcept
     Trigger();
 }
 
-Network::~Network() { Stop().get(); }
+Network::~Network() { Shutdown(); }
 }  // namespace opentxs::blockchain::client::implementation

@@ -171,10 +171,12 @@ namespace client
 {
 namespace internal
 {
+struct FilterDatabase;
 struct FilterOracle;
 struct HeaderDatabase;
 struct HeaderOracle;
 struct Network;
+struct PeerDatabase;
 struct PeerManager;
 struct UpdateTransaction;
 struct Wallet;

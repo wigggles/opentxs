@@ -44,30 +44,31 @@ Peer::Peer(
     , api_(api)
     , network_(network)
     , manager_(manager)
-    , id_(id)
+    , endpoint_(
+          make_endpoint(address->Type(), address->Bytes(), address->Port()))
     , send_promise_()
     , send_future_(send_promise_.get_future())
-    , socket_(context)
     , address_(std::move(address))
     , download_peers_()
-    , endpoint_(
-          make_endpoint(address_.Type(), address_.Bytes(), address_.Port()))
     , header_(make_buffer(headerSize))
-    , body_(Data::Factory())
     , body_bytes_(0)
     , outgoing_handshake_(false)
     , incoming_handshake_(false)
-    , handshake_promise_()
-    , handshake_(handshake_promise_.get_future())
-    , shutdown_()
+    , cfilter_worker_(api, [this](auto& in) { request_cfilter(in); })
+    , id_(id)
     , context_(context)
+    , socket_(context_)
     , send_(api.Factory().Pipeline(
           std::bind(&Peer::transmit, this, std::placeholders::_1)))
     , process_(api.Factory().Pipeline(
           std::bind(&Peer::process_message, this, std::placeholders::_1)))
+    , incoming_body_(Data::Factory())
+    , outgoing_message_(Data::Factory())
     , running_(true)
     , connection_promise_()
     , connected_(connection_promise_.get_future())
+    , handshake_promise_()
+    , handshake_(handshake_promise_.get_future())
     , send_promises_()
     , activity_()
     , state_(State::Handshake)
@@ -97,6 +98,16 @@ Peer::SendPromises::SendPromises() noexcept
     : lock_()
     , counter_(0)
     , map_()
+{
+}
+
+Peer::Worker::Worker(
+    const api::internal::Core& api,
+    zmq::ListenCallback::ReceiveCallback callback) noexcept
+    : callback_(zmq::ListenCallback::Factory(callback))
+    , socket_(api.ZeroMQ().PullSocket(
+          callback_,
+          zmq::socket::Socket::Direction::Connect))
 {
 }
 
@@ -148,6 +159,13 @@ std::uint16_t Peer::Address::Port() const noexcept
     return address_->Port();
 }
 
+std::set<Service> Peer::Address::Services() const noexcept
+{
+    Lock lock(lock_);
+
+    return address_->Services();
+}
+
 Network Peer::Address::Type() const noexcept
 {
     Lock lock(lock_);
@@ -185,6 +203,13 @@ Time Peer::DownloadPeers::get() const noexcept
     return downloaded_;
 }
 
+void Peer::SendPromises::Break()
+{
+    Lock lock(lock_);
+
+    for (auto& [id, promise] : map_) { promise = {}; }
+}
+
 std::pair<std::future<bool>, int> Peer::SendPromises::NewPromise()
 {
     Lock lock(lock_);
@@ -209,6 +234,14 @@ void Peer::SendPromises::SetPromise(const int promise, const bool value)
 
         map_.erase(it);
     }
+}
+
+void Peer::break_promises() noexcept
+{
+    handshake_promise_ = {};
+    connection_promise_ = {};
+    send_promise_ = {};
+    send_promises_.Break();
 }
 
 void Peer::check_activity() noexcept
@@ -246,18 +279,18 @@ void Peer::check_handshake() noexcept
             LogNormal("Connected to ")(blockchain::internal::DisplayString(
                 address_.Chain()))(" peer at ")(address_.Display())
                 .Flush();
+            LogNormal("Advertised services: ").Flush();
+
+            for (const auto& service : address_.Services()) {
+                LogNormal(" * ")(p2p::DisplayService(service)).Flush();
+            }
+
         } catch (...) {
         }
 
         request_headers();
         request_addresses();
     }
-}
-
-void Peer::cleanup() noexcept
-{
-    send_->Close();
-    process_->Close();
 }
 
 void Peer::connect() noexcept
@@ -273,7 +306,7 @@ void Peer::connect() noexcept
 void Peer::connect_handler(const boost::system::error_code& error) noexcept
 {
     if (error) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
         connection_promise_.set_value(false);
         disconnect();
     } else {
@@ -286,12 +319,7 @@ void Peer::connect_handler(const boost::system::error_code& error) noexcept
     }
 }
 
-void Peer::disconnect() noexcept
-{
-    handshake_promise_ = {};
-    connection_promise_ = {};
-    manager_.Disconnect(id_);
-}
+void Peer::disconnect() noexcept { manager_.Disconnect(id_); }
 
 void Peer::handshake() noexcept
 {
@@ -299,7 +327,9 @@ void Peer::handshake() noexcept
     auto handshakeDone{handshake_};
 
     try {
-        handshakeDone.get();
+        const auto status = handshakeDone.wait_for(std::chrono::seconds(10));
+
+        if (std::future_status::ready != status) { disconnect(); }
     } catch (...) {
         disconnect();
     }
@@ -362,29 +392,33 @@ tcp::endpoint Peer::make_endpoint(
 
 void Peer::read_body() noexcept
 {
-    asio::async_read(
-        socket_,
-        asio::buffer(body_->data(), body_->size()),
-        std::bind(&Peer::receive_body, this, std::placeholders::_1));
+    if (running_.load()) {
+        asio::async_read(
+            socket_,
+            asio::buffer(incoming_body_->data(), incoming_body_->size()),
+            std::bind(&Peer::receive_body, this, std::placeholders::_1));
+    }
 }
 
 void Peer::read_header() noexcept
 {
-    asio::async_read(
-        socket_,
-        asio::buffer(header_->data(), header_->size()),
-        std::bind(&Peer::receive_header, this, std::placeholders::_1));
+    if (running_.load()) {
+        asio::async_read(
+            socket_,
+            asio::buffer(header_->data(), header_->size()),
+            std::bind(&Peer::receive_header, this, std::placeholders::_1));
+    }
 }
 
 void Peer::receive_body(const boost::system::error_code& error) noexcept
 {
     if (error) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
         disconnect();
     } else {
         auto body = Data::Factory();
 
-        if (body_->Extract(body_bytes_, body)) {
+        if (incoming_body_->Extract(body_bytes_, body)) {
             auto message = zmq::Message::Factory();
             message->AddFrame(header_);
             message->AddFrame(body);
@@ -392,21 +426,21 @@ void Peer::receive_body(const boost::system::error_code& error) noexcept
         }
     }
 
-    body_ = Data::Factory();
+    incoming_body_ = Data::Factory();
     run();
 }
 
 void Peer::receive_header(const boost::system::error_code& error) noexcept
 {
     if (error) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
         disconnect();
     } else {
         activity_.Bump();
         get_body_size();
 
         if (0 < body_bytes_) {
-            body_->SetSize(body_bytes_);
+            incoming_body_->SetSize(body_bytes_);
             read_body();
         } else {
             auto message = zmq::Message::Factory();
@@ -414,7 +448,7 @@ void Peer::receive_header(const boost::system::error_code& error) noexcept
             message->AddFrame(header_);
             message->AddFrame();
             process_->Push(message);
-            body_ = Data::Factory();
+            incoming_body_ = Data::Factory();
             run();
         }
     }
@@ -422,8 +456,6 @@ void Peer::receive_header(const boost::system::error_code& error) noexcept
 
 void Peer::run() noexcept
 {
-    Lock lock(shutdown_);
-
     if (running_.load()) { read_header(); }
 }
 
@@ -441,8 +473,6 @@ Peer::SendStatus Peer::send(OTData in) noexcept
         return {};
     }
 
-    Lock lock(shutdown_);
-
     if (running_.load()) {
         auto [future, promise] = send_promises_.NewPromise();
         auto message = zmq::Message::Factory();
@@ -454,6 +484,30 @@ Peer::SendStatus Peer::send(OTData in) noexcept
     } else {
         return {};
     }
+}
+
+void Peer::Shutdown() noexcept
+{
+    const auto running = running_.exchange(false);
+
+    if (false == running) { return; }
+
+    try {
+        socket_.shutdown(tcp::socket::shutdown_both);
+    } catch (...) {
+    }
+
+    break_promises();
+    cfilter_worker_.Stop();
+    process_->Close();
+    send_->Close();
+    Stop().get();
+    socket_.close();
+    break_promises();
+
+    if (State::Handshake != state_.load()) { update_address_activity(); }
+
+    LogNormal("Disconnected from ")(address_.Display()).Flush();
 }
 
 bool Peer::state_machine() noexcept
@@ -552,47 +606,14 @@ void Peer::transmit(zmq::Message& message) noexcept
 
 void Peer::update_address_activity() noexcept
 {
-    network_.Database().AddOrUpdate(address_.UpdateTime(activity_.get()));
+    manager_.Database().AddOrUpdate(address_.UpdateTime(activity_.get()));
 }
 
 void Peer::update_address_services(
     const std::set<p2p::Service>& services) noexcept
 {
-    network_.Database().AddOrUpdate(address_.UpdateServices(services));
+    manager_.Database().AddOrUpdate(address_.UpdateServices(services));
 }
 
-Peer::~Peer()
-{
-    Stop().get();
-
-    Lock lock(shutdown_);
-    running_.store(false);
-    lock.unlock();
-
-    try {
-        socket_.shutdown(tcp::socket::shutdown_receive);
-    } catch (...) {
-    }
-
-    try {
-        socket_.shutdown(tcp::socket::shutdown_send);
-    } catch (...) {
-    }
-
-    try {
-        socket_.close();
-    } catch (...) {
-    }
-
-    LogNormal("Disconnected from ")(address_.Display()).Flush();
-    handshake_promise_ = std::promise<void>{};
-
-    if (State::Handshake != state_.load()) { update_address_activity(); }
-
-    try {
-        send_promise_ = SendPromise{};
-        send_future_ = SendFuture{};
-    } catch (...) {
-    }
-}
+Peer::~Peer() { Shutdown(); }
 }  // namespace opentxs::blockchain::p2p::implementation

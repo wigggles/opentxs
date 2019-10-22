@@ -91,7 +91,8 @@ struct SerializedBloomFilter {
     SerializedBloomFilter() noexcept;
 };
 
-struct Database : virtual public client::internal::HeaderDatabase,
+struct Database : virtual public client::internal::FilterDatabase,
+                  virtual public client::internal::HeaderDatabase,
                   virtual public client::internal::PeerDatabase {
 
     virtual ~Database() = default;

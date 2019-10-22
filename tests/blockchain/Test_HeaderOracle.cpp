@@ -39,60 +39,6 @@ public:
     using BestChainVector = std::vector<std::string>;
     using ExpectedSiblings = std::set<std::string>;
 
-    struct DummyNetwork final : public bc::internal::Network {
-        bool AddPeer(const b::p2p::Address&) const noexcept { return {}; }
-        const ot::blockchain::internal::Database& Database() const noexcept
-        {
-            return *database_;
-        }
-        ot::blockchain::ChainHeight GetConfirmations(const std::string&) const
-            noexcept
-        {
-            return {};
-        }
-        ot::blockchain::ChainHeight GetHeight() const noexcept { return {}; }
-        std::size_t GetPeerCount() const noexcept { return {}; }
-        ot::blockchain::Type GetType() const noexcept { return {}; }
-        const ot::network::zeromq::Pipeline& HeaderPipeline() const noexcept
-        {
-            abort();
-        }
-        bool IsSynchronized() const noexcept { return {}; }
-        std::string SendToAddress(
-            const std::string&,
-            const ot::blockchain::Amount,
-            const ot::api::client::blockchain::BalanceTree&) const noexcept
-        {
-            return {};
-        }
-        std::string SendToPaymentCode(
-            const std::string&,
-            const ot::blockchain::Amount,
-            const ot::api::client::blockchain::PaymentCode&) const noexcept
-        {
-            return {};
-        }
-        void UpdateHeight(const ot::blockchain::block::Height) const noexcept {}
-        void UpdateLocalHeight(const ot::blockchain::block::Position) const
-            noexcept
-        {
-        }
-
-        bool Connect() noexcept { return {}; }
-        bool Disconnect() noexcept { return {}; }
-        bool Shutdown() noexcept { return {}; }
-
-        std::unique_ptr<ot::blockchain::internal::Database> database_;
-
-        DummyNetwork(const ot::api::internal::Core& api) noexcept
-            : database_(ot::Factory::BlockchainDatabase(
-                  api,
-                  *this,
-                  ot::blockchain::Type::Bitcoin))
-        {
-        }
-    };
-
     static const std::vector<Test> sequence_1_;
     static const PostStateVector post_state_1_;
     static const BestChainVector best_chain_1_;
@@ -136,8 +82,9 @@ public:
     static const std::vector<std::string> bitcoin_;
 
     const ot::api::client::internal::Manager& api_;
-    std::unique_ptr<bc::HeaderOracle> header_oracle_;
-    DummyNetwork network_;
+    const b::Type type_;
+    std::unique_ptr<bc::internal::Network> network_;
+    bc::HeaderOracle& header_oracle_;
 
     bool apply_blocks(const std::vector<Test>& vector)
     {
@@ -148,9 +95,9 @@ public:
                 ot::Data::Factory(block.first, ot::Data::Mode::Raw),
                 -1);
 
-            EXPECT_TRUE(header_oracle_->AddHeader(std::move(header)));
+            EXPECT_TRUE(header_oracle_.AddHeader(std::move(header)));
 
-            const auto [height, hash] = header_oracle_->BestChain();
+            const auto [height, hash] = header_oracle_.BestChain();
 
             EXPECT_EQ(height, position.first);
             EXPECT_EQ(
@@ -167,7 +114,7 @@ public:
         bb::Height i{0};
 
         for (const auto& expectedHash : vector) {
-            const auto hash = header_oracle_->BestHash(i);
+            const auto hash = header_oracle_.BestHash(i);
 
             EXPECT_EQ(
                 expectedHash,
@@ -176,7 +123,7 @@ public:
             ++i;
         }
 
-        const auto [heightAfter, hashAfter] = header_oracle_->BestChain();
+        const auto [heightAfter, hashAfter] = header_oracle_.BestChain();
         const auto hash = hashAfter;
 
         EXPECT_EQ(heightAfter, vector.size() - 1);
@@ -192,7 +139,7 @@ public:
         for (const auto& [sHash, spHash, height, status, pStatus] : vector) {
             const auto hash = ot::Data::Factory(sHash, ot::Data::Mode::Raw);
             const auto pHash = ot::Data::Factory(spHash, ot::Data::Mode::Raw);
-            const auto pBlock = header_oracle_->LoadHeader(hash);
+            const auto pBlock = header_oracle_.LoadHeader(hash);
 
             EXPECT_TRUE(pBlock);
 
@@ -212,7 +159,7 @@ public:
 
     bool verify_siblings(const ExpectedSiblings& vector)
     {
-        const auto siblings = header_oracle_->Siblings();
+        const auto siblings = header_oracle_.Siblings();
 
         EXPECT_EQ(siblings.size(), vector.size());
 
@@ -227,10 +174,10 @@ public:
 
     Test_HeaderOracle()
         : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
-              ot::Context().StartClient(OTTestEnvironment::test_args_, 0)))
-        , header_oracle_(
-              ot::Factory::HeaderOracle(api_, network_, b::Type::Bitcoin))
-        , network_(api_)
+              ot::Context().StartClient({}, 0)))
+        , type_(b::Type::Bitcoin)
+        , network_(opentxs::Factory::BlockchainNetworkBitcoin(api_, type_, ""))
+        , header_oracle_(network_->HeaderOracle())
     {
     }
 };
@@ -2657,7 +2604,7 @@ TEST_F(Test_HeaderOracle, init_opentxs) {}
 
 TEST_F(Test_HeaderOracle, basic_sequence)
 {
-    const auto [heightBefore, hashBefore] = header_oracle_->BestChain();
+    const auto [heightBefore, hashBefore] = header_oracle_.BestChain();
 
     EXPECT_EQ(heightBefore, 0);
     EXPECT_EQ(hashBefore, bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin));
@@ -2678,14 +2625,14 @@ TEST_F(Test_HeaderOracle, basic_reorg)
 
 TEST_F(Test_HeaderOracle, checkpoint_prevents_update)
 {
-    const auto [height1, hash1] = header_oracle_->GetCheckpoint();
+    const auto [height1, hash1] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(height1, -1);
     EXPECT_TRUE(hash1->empty());
-    EXPECT_TRUE(header_oracle_->AddCheckpoint(
+    EXPECT_TRUE(header_oracle_.AddCheckpoint(
         4, ot::Data::Factory(BLOCK_8, ot::Data::Mode::Raw)));
 
-    const auto [height2, hash2] = header_oracle_->GetCheckpoint();
+    const auto [height2, hash2] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(height2, 4);
     EXPECT_EQ(hash2, ot::Data::Factory(BLOCK_8, ot::Data::Mode::Raw));
@@ -2698,10 +2645,10 @@ TEST_F(Test_HeaderOracle, checkpoint_prevents_update)
 
 TEST_F(Test_HeaderOracle, checkpoint_prevents_reorg)
 {
-    EXPECT_TRUE(header_oracle_->AddCheckpoint(
+    EXPECT_TRUE(header_oracle_.AddCheckpoint(
         4, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw)));
 
-    const auto [cpHeight, cpHash] = header_oracle_->GetCheckpoint();
+    const auto [cpHeight, cpHash] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(cpHeight, 4);
     EXPECT_EQ(cpHash, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw));
@@ -2727,10 +2674,10 @@ TEST_F(Test_HeaderOracle, add_checkpoint_already_in_best_chain)
     EXPECT_TRUE(verify_best_chain(best_chain_1_));
     EXPECT_TRUE(verify_siblings(siblings_1_));
 
-    EXPECT_TRUE(header_oracle_->AddCheckpoint(
+    EXPECT_TRUE(header_oracle_.AddCheckpoint(
         6, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw)));
 
-    const auto [height, hash] = header_oracle_->GetCheckpoint();
+    const auto [height, hash] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(height, 6);
     EXPECT_EQ(hash, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw));
@@ -2746,10 +2693,10 @@ TEST_F(Test_HeaderOracle, reorg_to_checkpoint)
     EXPECT_TRUE(verify_best_chain(best_chain_2_));
     EXPECT_TRUE(verify_siblings(siblings_2_));
 
-    EXPECT_TRUE(header_oracle_->AddCheckpoint(
+    EXPECT_TRUE(header_oracle_.AddCheckpoint(
         3, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw)));
 
-    const auto [height, hash] = header_oracle_->GetCheckpoint();
+    const auto [height, hash] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(height, 3);
     EXPECT_EQ(hash, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw));
@@ -2765,10 +2712,10 @@ TEST_F(Test_HeaderOracle, reorg_to_checkpoint_descendent)
     EXPECT_TRUE(verify_best_chain(best_chain_8a_));
     EXPECT_TRUE(verify_siblings(siblings_8a_));
 
-    EXPECT_TRUE(header_oracle_->AddCheckpoint(
+    EXPECT_TRUE(header_oracle_.AddCheckpoint(
         2, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw)));
 
-    const auto [height, hash] = header_oracle_->GetCheckpoint();
+    const auto [height, hash] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(height, 2);
     EXPECT_EQ(hash, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw));
@@ -2784,10 +2731,10 @@ TEST_F(Test_HeaderOracle, add_checkpoint_disconnected)
     EXPECT_TRUE(verify_best_chain(best_chain_2_));
     EXPECT_TRUE(verify_siblings(siblings_2_));
 
-    EXPECT_TRUE(header_oracle_->AddCheckpoint(
+    EXPECT_TRUE(header_oracle_.AddCheckpoint(
         2, ot::Data::Factory(BLOCK_9, ot::Data::Mode::Raw)));
 
-    const auto [height, hash] = header_oracle_->GetCheckpoint();
+    const auto [height, hash] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(height, 2);
     EXPECT_EQ(hash, ot::Data::Factory(BLOCK_9, ot::Data::Mode::Raw));
@@ -2798,10 +2745,10 @@ TEST_F(Test_HeaderOracle, add_checkpoint_disconnected)
 
 TEST_F(Test_HeaderOracle, delete_checkpoint)
 {
-    EXPECT_TRUE(header_oracle_->AddCheckpoint(
+    EXPECT_TRUE(header_oracle_.AddCheckpoint(
         2, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw)));
 
-    const auto [height, hash] = header_oracle_->GetCheckpoint();
+    const auto [height, hash] = header_oracle_.GetCheckpoint();
 
     EXPECT_EQ(height, 2);
     EXPECT_EQ(hash, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw));
@@ -2811,7 +2758,7 @@ TEST_F(Test_HeaderOracle, delete_checkpoint)
     EXPECT_TRUE(verify_best_chain(best_chain_8b_));
     EXPECT_TRUE(verify_siblings(siblings_8b_));
 
-    EXPECT_TRUE(header_oracle_->DeleteCheckpoint());
+    EXPECT_TRUE(header_oracle_.DeleteCheckpoint());
 
     EXPECT_TRUE(verify_post_state(post_state_8a_));
     EXPECT_TRUE(verify_best_chain(best_chain_8a_));
@@ -2826,14 +2773,14 @@ TEST_F(Test_HeaderOracle, bitcoin)
             api_.Factory().BlockHeader(ot::blockchain::Type::Bitcoin, raw);
 
         ASSERT_TRUE(pHeader);
-        EXPECT_TRUE(header_oracle_->AddHeader(std::move(pHeader)));
+        EXPECT_TRUE(header_oracle_.AddHeader(std::move(pHeader)));
     }
 
-    const auto [height, hash] = header_oracle_->BestChain();
+    const auto [height, hash] = header_oracle_.BestChain();
 
     EXPECT_EQ(height, bitcoin_.size());
 
-    const auto header = header_oracle_->LoadHeader(hash);
+    const auto header = header_oracle_.LoadHeader(hash);
 
     ASSERT_TRUE(header);
 

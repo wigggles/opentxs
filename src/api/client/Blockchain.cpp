@@ -928,17 +928,18 @@ bool Blockchain::Start(const Chain type, const std::string& seednode) const
         case Chain::Bitcoin_testnet3:
         case Chain::BitcoinCash:
         case Chain::BitcoinCash_testnet3: {
-            networks_.emplace(
+            auto [it, added] = networks_.emplace(
                 type,
                 opentxs::Factory::BlockchainNetworkBitcoin(
                     api_, type, seednode));
-        } break;
+
+            return it->second->Connect();
+        }
         default: {
-            OT_FAIL;
         }
     }
 
-    return true;
+    return false;
 }
 #endif  // OT_BLOCKCHAIN
 

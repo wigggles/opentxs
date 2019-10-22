@@ -527,6 +527,10 @@ public:
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const blockchain::Type type);
+    static blockchain::client::internal::FilterOracle* BlockchainFilterOracle(
+        const api::internal::Core& api,
+        const blockchain::client::internal::Network& network,
+        const blockchain::client::internal::FilterDatabase& database);
     static blockchain::client::internal::Network* BlockchainNetworkBitcoin(
         const api::internal::Core& api,
         const blockchain::Type type,
@@ -534,6 +538,7 @@ public:
     static blockchain::client::internal::PeerManager* BlockchainPeerManager(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
+        const blockchain::client::internal::PeerDatabase& database,
         const blockchain::Type type,
         const std::string& seednode);
     static blockchain::BloomFilter* BloomFilter(
@@ -736,6 +741,7 @@ public:
     static blockchain::client::internal::HeaderOracle* HeaderOracle(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
+        const blockchain::client::internal::HeaderDatabase& database,
         const blockchain::Type type);
 #endif  // OT_BLOCKCHAIN
     static api::client::Issuer* Issuer(

@@ -13,6 +13,8 @@
 
 #include "internal/blockchain/Blockchain.hpp"
 
+#include <map>
+
 #define BITMASK(n) ((1 << (n)) - 1)
 
 namespace opentxs::blockchain::internal
@@ -277,4 +279,34 @@ std::string DisplayString(const Type type) noexcept
 }
 }  // namespace opentxs::blockchain::internal
 
+namespace opentxs::blockchain::p2p
+{
+const std::map<Service, std::string> service_name_map_{
+    {Service::None, "none"},
+    {Service::Avalanche, "Avalanche"},
+    {Service::BitcoinCash, "Bitcoin Cash"},
+    {Service::Bloom, "Bloom"},
+    {Service::CompactFilters, "Compact Filters"},
+    {Service::Graphene, "Graphene"},
+    {Service::Limited, "Limited"},
+    {Service::Network, "Network"},
+    {Service::Segwit2X, "Segwit2X"},
+    {Service::UTXO, "GetUTXO"},
+    {Service::WeakBlocks, "Weak blocks"},
+    {Service::Witness, "Witness"},
+    {Service::XThin, "XThin"},
+    {Service::XThinner, "XThinner"},
+};
+
+std::string DisplayService(const Service service) noexcept
+{
+    try {
+
+        return service_name_map_.at(service);
+    } catch (...) {
+
+        return {};
+    }
+}
+}  // namespace opentxs::blockchain::p2p
 #undef BITMASK

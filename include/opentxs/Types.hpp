@@ -176,17 +176,19 @@ enum class Protocol : std::uint8_t {
 
 enum class Service : std::uint8_t {
     None = 0,
-    Network = 1,
-    UTXO = 2,
+    Avalanche = 1,
+    BitcoinCash = 2,
     Bloom = 3,
-    Witness = 4,
-    Xthin = 5,
-    BitcoinCash = 6,
-    Graphene = 7,
-    WeakBlocks = 8,
-    CF = 9,
-    XThinner = 10,
-    Limited = 11,
+    CompactFilters = 4,
+    Graphene = 5,
+    Limited = 6,
+    Network = 7,
+    Segwit2X = 8,
+    UTXO = 9,
+    WeakBlocks = 10,
+    Witness = 11,
+    XThin = 12,
+    XThinner = 13,
 };
 }  // namespace p2p
 #endif  // OT_BLOCKCHAIN

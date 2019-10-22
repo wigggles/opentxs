@@ -219,4 +219,20 @@ std::set<p2p::Service> TranslateServices(
 
 bitcoin::Service convert_service_bit(BitVector8 value) noexcept;
 BitVector8 convert_service_bit(const bitcoin::Service value) noexcept;
+template <typename OuterKey, typename InnerKey, typename InnerValue>
+std::map<OuterKey, std::map<InnerValue, InnerKey>> reverse_nested_map(
+    const std::map<OuterKey, std::map<InnerKey, InnerValue>>& map) noexcept
+{
+    std::map<OuterKey, std::map<InnerValue, InnerKey>> output{};
+
+    for (const auto& [outerKey, innerMap] : map) {
+        auto& outputMap = output[outerKey];
+
+        for (const auto& [innerKey, innerValue] : innerMap) {
+            outputMap.emplace(innerValue, innerKey);
+        }
+    }
+
+    return output;
+}
 }  // namespace opentxs::blockchain::p2p::bitcoin

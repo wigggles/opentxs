@@ -10,17 +10,25 @@ namespace opentxs::blockchain::client::implementation
 class HeaderOracle final : virtual public internal::HeaderOracle
 {
 public:
+    block::Position BestChain() const noexcept final;
+    block::pHash BestHash(const block::Height height) const noexcept final;
+    std::pair<block::Position, block::Position> CommonParent(
+        const block::Position& position) const noexcept final;
+    block::Position GetCheckpoint() const noexcept final;
+    bool IsInBestChain(const block::Hash& hash) const noexcept final;
+    std::unique_ptr<block::Header> LoadHeader(const block::Hash& hash) const
+        noexcept final;
+    std::vector<block::pHash> RecentHashes() const noexcept final
+    {
+        return database_.RecentHashes();
+    }
+    std::set<block::pHash> Siblings() const noexcept final;
+
     bool AddCheckpoint(
         const block::Height position,
         const block::Hash& requiredHash) noexcept final;
     bool AddHeader(std::unique_ptr<block::Header> header) noexcept final;
-    block::Position BestChain() noexcept final;
-    block::pHash BestHash(const block::Height height) noexcept final;
     bool DeleteCheckpoint() noexcept final;
-    block::Position GetCheckpoint() noexcept final;
-    std::unique_ptr<block::Header> LoadHeader(
-        const block::Hash& hash) noexcept final;
-    std::set<block::pHash> Siblings() noexcept final;
 
     ~HeaderOracle() final = default;
 
@@ -29,11 +37,15 @@ private:
 
     const api::internal::Core& api_;
     const internal::Network& network_;
-    std::mutex lock_;
+    const internal::HeaderDatabase& database_;
+    const blockchain::Type chain_;
+    mutable std::mutex lock_;
 
     static bool evaluate_candidate(
         const block::Header& current,
         const block::Header& candidate) noexcept;
+
+    block::Position best_chain(const Lock& lock) const noexcept;
 
     void blacklist_to_checkpoint(
         const Lock& lock,
@@ -57,6 +69,8 @@ private:
         const Lock& lock,
         std::unique_ptr<block::Header> header,
         std::unique_ptr<internal::UpdateTransaction> update) noexcept;
+    bool is_in_best_chain(const Lock& lock, const block::Hash& hash) const
+        noexcept;
     void reverse_blacklist(
         const Lock& lock,
         block::Header& header,
@@ -79,6 +93,7 @@ private:
     HeaderOracle(
         const api::internal::Core& api,
         const internal::Network& network,
+        const internal::HeaderDatabase& database,
         const blockchain::Type type) noexcept;
     HeaderOracle() = delete;
     HeaderOracle(const HeaderOracle&) = delete;

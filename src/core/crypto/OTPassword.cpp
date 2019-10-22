@@ -563,6 +563,7 @@ std::int32_t OTPassword::setPassword_uint8(
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR: String length of szInput did not match nInputSize.")
             .Flush();
+
         return (-1);
     }
 

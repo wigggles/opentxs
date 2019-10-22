@@ -18,6 +18,70 @@
 
 namespace opentxs::blockchain::p2p::bitcoin
 {
+const std::map<blockchain::Type, std::map<bitcoin::Service, p2p::Service>>
+    service_bit_map_{
+        {blockchain::Type::Bitcoin,
+         {
+             {bitcoin::Service::None, p2p::Service::None},
+             {bitcoin::Service::Bit1, p2p::Service::Network},
+             {bitcoin::Service::Bit2, p2p::Service::UTXO},
+             {bitcoin::Service::Bit3, p2p::Service::Bloom},
+             {bitcoin::Service::Bit4, p2p::Service::Witness},
+             {bitcoin::Service::Bit5, p2p::Service::XThin},
+             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+             {bitcoin::Service::Bit7, p2p::Service::CompactFilters},
+             {bitcoin::Service::Bit8, p2p::Service::Segwit2X},
+             {bitcoin::Service::Bit11, p2p::Service::Limited},
+         }},
+        {blockchain::Type::Bitcoin_testnet3,
+         {
+             {bitcoin::Service::None, p2p::Service::None},
+             {bitcoin::Service::Bit1, p2p::Service::Network},
+             {bitcoin::Service::Bit2, p2p::Service::UTXO},
+             {bitcoin::Service::Bit3, p2p::Service::Bloom},
+             {bitcoin::Service::Bit4, p2p::Service::Witness},
+             {bitcoin::Service::Bit5, p2p::Service::XThin},
+             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+             {bitcoin::Service::Bit7, p2p::Service::CompactFilters},
+             {bitcoin::Service::Bit8, p2p::Service::Segwit2X},
+             {bitcoin::Service::Bit11, p2p::Service::Limited},
+         }},
+        {blockchain::Type::BitcoinCash,
+         {
+             {bitcoin::Service::None, p2p::Service::None},
+             {bitcoin::Service::Bit1, p2p::Service::Network},
+             {bitcoin::Service::Bit2, p2p::Service::UTXO},
+             {bitcoin::Service::Bit3, p2p::Service::Bloom},
+             {bitcoin::Service::Bit4, p2p::Service::Witness},
+             {bitcoin::Service::Bit5, p2p::Service::XThin},
+             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+             {bitcoin::Service::Bit7, p2p::Service::Graphene},
+             {bitcoin::Service::Bit8, p2p::Service::WeakBlocks},
+             {bitcoin::Service::Bit9, p2p::Service::CompactFilters},
+             {bitcoin::Service::Bit10, p2p::Service::XThinner},
+             {bitcoin::Service::Bit11, p2p::Service::Limited},
+             {bitcoin::Service::Bit25, p2p::Service::Avalanche},
+         }},
+        {blockchain::Type::BitcoinCash_testnet3,
+         {
+             {bitcoin::Service::None, p2p::Service::None},
+             {bitcoin::Service::Bit1, p2p::Service::Network},
+             {bitcoin::Service::Bit2, p2p::Service::UTXO},
+             {bitcoin::Service::Bit3, p2p::Service::Bloom},
+             {bitcoin::Service::Bit4, p2p::Service::Witness},
+             {bitcoin::Service::Bit5, p2p::Service::XThin},
+             {bitcoin::Service::Bit6, p2p::Service::BitcoinCash},
+             {bitcoin::Service::Bit7, p2p::Service::Graphene},
+             {bitcoin::Service::Bit8, p2p::Service::WeakBlocks},
+             {bitcoin::Service::Bit9, p2p::Service::CompactFilters},
+             {bitcoin::Service::Bit10, p2p::Service::XThinner},
+             {bitcoin::Service::Bit11, p2p::Service::Limited},
+             {bitcoin::Service::Bit25, p2p::Service::Avalanche},
+         }},
+    };
+const std::map<blockchain::Type, std::map<p2p::Service, bitcoin::Service>>
+    service_bit_reverse_map_{reverse_nested_map(service_bit_map_)};
+
 const MagicMap network_map_{
     {blockchain::Type::Bitcoin, Magic::Bitcoin},
     {blockchain::Type::Bitcoin_testnet3, Magic::BTCTestnet3},
@@ -274,30 +338,38 @@ CommandField SerializeCommand(const Command command) noexcept
 }
 
 std::set<bitcoin::Service> TranslateServices(
-    [[maybe_unused]] const blockchain::Type chain,
+    const blockchain::Type chain,
     [[maybe_unused]] const ProtocolVersion version,
     const std::set<p2p::Service>& input) noexcept
 {
-    // TODO implement this correctly
     std::set<bitcoin::Service> output{};
     std::for_each(
-        std::begin(input), std::end(input), [&output](const auto& in) -> void {
-            output.emplace(static_cast<bitcoin::Service>(in));
+        std::begin(input),
+        std::end(input),
+        [&output, chain](const auto& in) -> void {
+            try {
+                output.emplace(service_bit_reverse_map_.at(chain).at(in));
+            } catch (...) {
+            }
         });
 
     return output;
 }
 
 std::set<p2p::Service> TranslateServices(
-    [[maybe_unused]] const blockchain::Type chain,
+    const blockchain::Type chain,
     [[maybe_unused]] const ProtocolVersion version,
     const std::set<bitcoin::Service>& input) noexcept
 {
-    // TODO implement this correctly
     std::set<p2p::Service> output{};
     std::for_each(
-        std::begin(input), std::end(input), [&output](const auto& in) -> void {
-            output.emplace(static_cast<p2p::Service>(in));
+        std::begin(input),
+        std::end(input),
+        [&output, chain](const auto& in) -> void {
+            try {
+                output.emplace(service_bit_map_.at(chain).at(in));
+            } catch (...) {
+            }
         });
 
     return output;

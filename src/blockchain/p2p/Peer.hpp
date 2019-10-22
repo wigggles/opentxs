@@ -14,6 +14,7 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
+#include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 
 #include <boost/asio.hpp>
@@ -40,6 +41,7 @@ public:
     ConnectionStatus Connected() const noexcept final { return connected_; }
     Handshake HandshakeComplete() const noexcept final { return handshake_; }
     void Heartbeat() const noexcept final { Trigger(); }
+    void Shutdown() noexcept final;
 
     ~Peer() override;
 
@@ -47,6 +49,7 @@ protected:
     using SendResult = std::pair<boost::system::error_code, std::size_t>;
     using SendPromise = std::promise<SendResult>;
     using SendFuture = std::future<SendResult>;
+    using Task = client::internal::PeerManager::Task;
 
     struct Address {
         using pointer = std::unique_ptr<internal::Address>;
@@ -56,6 +59,7 @@ protected:
         std::string Display() const noexcept;
         OTIdentifier ID() const noexcept;
         std::uint16_t Port() const noexcept;
+        std::set<Service> Services() const noexcept;
         Network Type() const noexcept;
 
         pointer UpdateServices(const std::set<p2p::Service>& services) noexcept;
@@ -80,28 +84,42 @@ protected:
         Time downloaded_;
     };
 
+    struct Worker {
+        void Start(const std::string& endpoint) noexcept
+        {
+            socket_->Start(endpoint);
+        }
+        void Stop() noexcept { socket_->Close(); }
+
+        Worker(
+            const api::internal::Core& api,
+            zmq::ListenCallback::ReceiveCallback callback) noexcept;
+        ~Worker() { Stop(); }
+
+    private:
+        OTZMQListenCallback callback_;
+        OTZMQPullSocket socket_;
+
+        Worker() = delete;
+    };
+
     const api::internal::Core& api_;
     const client::internal::Network& network_;
     const client::internal::PeerManager& manager_;
-    const int id_;
+    const tcp::endpoint endpoint_;
     SendPromise send_promise_;
     SendFuture send_future_;
-    tcp::socket socket_;
     Address address_;
     DownloadPeers download_peers_;
-    const tcp::endpoint endpoint_;
     OTData header_;
-    OTData body_;
     std::size_t body_bytes_;
     bool outgoing_handshake_;
     bool incoming_handshake_;
-    std::promise<void> handshake_promise_;
-    Handshake handshake_;
-    std::mutex shutdown_;
+    Worker cfilter_worker_;
 
     void check_handshake() noexcept;
-    void cleanup() noexcept;
     void disconnect() noexcept;
+    auto local_endpoint() noexcept { return socket_.local_endpoint(); }
     // NOTE call init in every final child class constructor
     void init() noexcept;
     virtual void ping() noexcept = 0;
@@ -127,6 +145,7 @@ private:
     enum class State : std::uint8_t {
         Handshake,
         Run,
+        Shutdown,
     };
 
     struct Activity {
@@ -142,6 +161,7 @@ private:
     };
 
     struct SendPromises {
+        void Break();
         std::pair<std::future<bool>, int> NewPromise();
         void SetPromise(const int promise, const bool value);
 
@@ -153,12 +173,18 @@ private:
         std::map<int, std::promise<bool>> map_;
     };
 
+    const int id_;
     boost::asio::io_context& context_;
+    tcp::socket socket_;
     OTZMQPipeline send_;
     OTZMQPipeline process_;
+    OTData incoming_body_;
+    OTData outgoing_message_;
     std::atomic<bool> running_;
     std::promise<bool> connection_promise_;
     std::shared_future<bool> connected_;
+    std::promise<void> handshake_promise_;
+    Handshake handshake_;
     SendPromises send_promises_;
     Activity activity_;
     mutable std::atomic<State> state_;
@@ -171,6 +197,7 @@ private:
 
     Time get_activity() const noexcept;
 
+    void break_promises() noexcept;
     void check_activity() noexcept;
     void check_download_peers() noexcept;
     void connect() noexcept;
@@ -184,6 +211,7 @@ private:
     void read_header() noexcept;
     void receive_body(const boost::system::error_code& error) noexcept;
     void receive_header(const boost::system::error_code& error) noexcept;
+    virtual void request_cfilter(zmq::Message& message) noexcept = 0;
     void run() noexcept;
     virtual void start_handshake() noexcept = 0;
     void transmit(zmq::Message& message) noexcept;
