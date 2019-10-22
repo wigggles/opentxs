@@ -25,6 +25,7 @@ namespace opentxs::blockchain::p2p::internal
 {
 struct Address : virtual public p2p::Address {
     virtual std::unique_ptr<Address> clone_internal() const noexcept = 0;
+    virtual Time PreviousLastConnected() const noexcept = 0;
 
     ~Address() override = default;
 };

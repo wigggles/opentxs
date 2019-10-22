@@ -8,7 +8,6 @@
 #include "Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/core/Lockable.hpp"
 #include "opentxs/Types.hpp"
 
 #include <atomic>
@@ -31,35 +30,13 @@ Flag::Flag(const bool state)
 {
 }
 
-Flag::operator bool() const
-{
-#if OT_VALGRIND
-    Lock lock(lock_);
-#endif
-
-    return flag_.load();
-}
-
-Flag* Flag::clone() const { return new Flag(flag_.load()); }
-
-bool Flag::Off() { return Set(false); }
-
-bool Flag::On() { return !Set(true); }
-
-bool Flag::Set(const bool value)
-{
-#if OT_VALGRIND
-    Lock lock(lock_);
-#endif
-    return flag_.exchange(value);
-}
-
 bool Flag::Toggle()
 {
-    Lock lock(lock_);
-    const auto value{flag_.load()};
+    auto expected = flag_.load();
 
-    return flag_.exchange(!value);
+    while (false == flag_.compare_exchange_weak(expected, !expected)) { ; }
+
+    return expected;
 }
 }  // namespace implementation
 }  // namespace opentxs

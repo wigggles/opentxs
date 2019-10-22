@@ -83,7 +83,6 @@ PeerManager::PeerManager(
     , StateMachine(std::bind(&PeerManager::state_machine, this))
     , api_(api)
     , database_(database)
-    , shutdown_()
     , running_(Flag::Factory(true))
     , io_context_()
     , peers_(api, network, database_, *this, chain, seednode, io_context_)
@@ -106,14 +105,17 @@ PeerManager::IO::IO() noexcept
 }
 
 PeerManager::Jobs::Jobs(const api::internal::Core& api) noexcept
-    : getcfilters_(
+    : getheaders_(api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
+    , getcfilters_(
           api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , endpoint_map_()
     , socket_map_({
+          {Task::Getheaders, &getheaders_.get()},
           {Task::Getcfilters, &getcfilters_.get()},
       })
 {
     // NOTE endpoint_map_ should never be modified after construction
+    listen(Task::Getheaders, getheaders_);
     listen(Task::Getcfilters, getcfilters_);
 }
 
@@ -371,14 +373,25 @@ void PeerManager::Peers::Shutdown() noexcept
 
 bool PeerManager::AddPeer(const p2p::Address& address) const noexcept
 {
+    if (false == running_.get()) { return false; }
+
     const auto output = peers_.AddPeer(address);
     Trigger();
 
     return output;
 }
 
+bool PeerManager::Connect() noexcept
+{
+    if (false == running_.get()) { return false; }
+
+    return Trigger();
+}
+
 void PeerManager::Disconnect(const int id) const noexcept
 {
+    if (false == running_.get()) { return; }
+
     peers_.QueueDisconnect(id);
     Trigger();
 }
@@ -395,10 +408,8 @@ void PeerManager::RequestFilters(
     const block::Height start,
     const block::Hash& stop) const noexcept
 {
-    Lock lock(shutdown_, std::try_to_lock);
-
-    if (false == lock.owns_lock()) { return; }
     if (false == running_.get()) { return; }
+
     if (0 == peers_.Count()) { return; }
 
     auto work = zmq::Message::Factory();
@@ -408,11 +419,22 @@ void PeerManager::RequestFilters(
     jobs_.Dispatch(Task::Getcfilters, work);
 }
 
+void PeerManager::RequestHeaders() const noexcept
+{
+    if (false == running_.get()) { return; }
+
+    if (0 == peers_.Count()) { return; }
+
+    auto work = zmq::Message::Factory();
+    jobs_.Dispatch(Task::Getheaders, work);
+}
+
 void PeerManager::Shutdown() noexcept
 {
-    Lock lock(shutdown_);
     running_->Off();
+    api_.Cancel(heartbeat_task_);
     Stop().get();
+    jobs_.Shutdown();
     peers_.Shutdown();
 }
 
@@ -425,12 +447,7 @@ bool PeerManager::state_machine() noexcept
 
 PeerManager::~PeerManager()
 {
-    Lock lock(shutdown_);
-    running_->Off();
-    Stop().get();
-    api_.Cancel(heartbeat_task_);
-    jobs_.Shutdown();
-    peers_.Shutdown();
+    Shutdown();
     io_context_.Shutdown();
 }
 }  // namespace opentxs::blockchain::client::implementation

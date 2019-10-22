@@ -99,10 +99,10 @@ Header::Header(
     const blockchain::Work& work,
     const blockchain::Work& inheritWork) noexcept
     : api_(api)
+    , hash_(hash)
     , parent_hash_(parentHash)
     , version_(version)
     , type_(type)
-    , hash_(hash)
     , work_(work)
     , height_(height)
     , status_(status)

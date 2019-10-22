@@ -7,14 +7,14 @@
 
 namespace opentxs::implementation
 {
-class Flag final : virtual public opentxs::Flag, Lockable
+class Flag final : virtual public opentxs::Flag
 {
 public:
-    operator bool() const final;
+    operator bool() const final { return flag_.load(); }
 
-    bool Off() final;
-    bool On() final;
-    bool Set(const bool value) final;
+    bool Off() final { return Set(false); }
+    bool On() final { return !Set(true); }
+    bool Set(const bool value) final { return flag_.exchange(value); }
     bool Toggle() final;
 
     Flag(const bool state);
@@ -24,7 +24,7 @@ public:
 private:
     std::atomic<bool> flag_;
 
-    Flag* clone() const final;
+    Flag* clone() const final { return new Flag(flag_.load()); }
 
     Flag() = delete;
     Flag(const Flag&) = delete;

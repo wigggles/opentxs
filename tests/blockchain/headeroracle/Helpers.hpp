@@ -9,20 +9,20 @@ namespace b = ot::blockchain;
 namespace bb = b::block;
 namespace bc = b::client;
 
-#define BLOCK_1 "block 1"
-#define BLOCK_2 "block 2"
-#define BLOCK_3 "block 3"
-#define BLOCK_4 "block 4"
-#define BLOCK_5 "block 5"
-#define BLOCK_6 "block 6"
-#define BLOCK_7 "block 7"
-#define BLOCK_8 "block 8"
-#define BLOCK_9 "block 9"
-#define BLOCK_10 "block 10"
-#define BLOCK_11 "block 11"
-#define BLOCK_12 "block 12"
-#define BLOCK_13 "block 13"
-#define BLOCK_14 "block 14"
+#define BLOCK_1 "block 01_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_2 "block 02_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_3 "block 03_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_4 "block 04_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_5 "block 05_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_6 "block 06_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_7 "block 07_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_8 "block 08_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_9 "block 09_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_10 "block 10_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_11 "block 11_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_12 "block 12_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_13 "block 13_XXXXXXXXXXXXXXXXXXXXXXX"
+#define BLOCK_14 "block 14_XXXXXXXXXXXXXXXXXXXXXXX"
 
 namespace
 {
@@ -31,42 +31,50 @@ class Test_HeaderOracle : public ::testing::Test
 public:
     using Block = std::pair<std::string, std::string>;
     using Position = std::pair<bb::Height, std::string>;
-    using Test = std::pair<Block, Position>;
+    using BestChainVector = std::vector<std::string>;
+    using Test = std::tuple<std::string, Position, BestChainVector>;
     using Status = bb::Header::Status;
     using HeaderData =
         std::tuple<std::string, std::string, bb::Height, Status, Status>;
     using PostStateVector = std::vector<HeaderData>;
-    using BestChainVector = std::vector<std::string>;
     using ExpectedSiblings = std::set<std::string>;
 
+    static const std::vector<Block> create_1_;
     static const std::vector<Test> sequence_1_;
     static const PostStateVector post_state_1_;
     static const BestChainVector best_chain_1_;
     static const ExpectedSiblings siblings_1_;
+    static const std::vector<Block> create_2_;
     static const std::vector<Test> sequence_2_;
     static const PostStateVector post_state_2_;
     static const BestChainVector best_chain_2_;
     static const ExpectedSiblings siblings_2_;
+    static const std::vector<Block> create_3_;
     static const std::vector<Test> sequence_3_;
     static const PostStateVector post_state_3_;
     static const BestChainVector best_chain_3_;
     static const ExpectedSiblings siblings_3_;
+    static const std::vector<Block> create_4_;
     static const std::vector<Test> sequence_4_;
     static const PostStateVector post_state_4_;
     static const BestChainVector best_chain_4_;
     static const ExpectedSiblings siblings_4_;
+    static const std::vector<Block> create_5_;
     static const std::vector<Test> sequence_5_;
     static const PostStateVector post_state_5_;
     static const BestChainVector best_chain_5_;
     static const ExpectedSiblings siblings_5_;
+    static const std::vector<Block> create_6_;
     static const std::vector<Test> sequence_6_;
     static const PostStateVector post_state_6_;
     static const BestChainVector best_chain_6_;
     static const ExpectedSiblings siblings_6_;
+    static const std::vector<Block> create_7_;
     static const std::vector<Test> sequence_7_;
     static const PostStateVector post_state_7_;
     static const BestChainVector best_chain_7_;
     static const ExpectedSiblings siblings_7_;
+    static const std::vector<Block> create_8_;
     static const std::vector<Test> sequence_8_;
     static const PostStateVector post_state_8a_;
     static const PostStateVector post_state_8b_;
@@ -74,10 +82,12 @@ public:
     static const BestChainVector best_chain_8b_;
     static const ExpectedSiblings siblings_8a_;
     static const ExpectedSiblings siblings_8b_;
+    static const std::vector<Block> create_9_;
     static const std::vector<Test> sequence_9_;
     static const PostStateVector post_state_9_;
     static const BestChainVector best_chain_9_;
     static const ExpectedSiblings siblings_9_;
+    static const std::vector<Block> create_10_;
     static const std::vector<Test> sequence_10_;
     static const std::vector<std::string> bitcoin_;
 
@@ -85,26 +95,84 @@ public:
     const b::Type type_;
     std::unique_ptr<bc::internal::Network> network_;
     bc::HeaderOracle& header_oracle_;
+    std::map<std::string, std::unique_ptr<bb::Header>> test_blocks_;
 
-    bool apply_blocks(const std::vector<Test>& vector)
+    [[maybe_unused]] bool apply_blocks(const std::vector<Test>& vector)
     {
-        for (const auto& [block, position] : vector) {
-            auto header = api_.Factory().BlockHeader(
-                ot::blockchain::Type::Bitcoin,
-                ot::Data::Factory(block.second, ot::Data::Mode::Raw),
-                ot::Data::Factory(block.first, ot::Data::Mode::Raw),
-                -1);
+        for (const auto& [block, position, best] : vector) {
+            auto header = get_test_block(block);
 
             EXPECT_TRUE(header_oracle_.AddHeader(std::move(header)));
 
             const auto [height, hash] = header_oracle_.BestChain();
 
             EXPECT_EQ(height, position.first);
-            EXPECT_EQ(
-                std::string(
-                    static_cast<const char*>(hash->data()), hash->size()),
-                position.second);
+            EXPECT_EQ(hash, get_block_hash(position.second));
+            EXPECT_TRUE(verify_best_chain(best));
         }
+
+        return true;
+    }
+
+    [[maybe_unused]] bool apply_blocks_batch(const std::vector<Test>& vector)
+    {
+        auto headers = std::vector<std::unique_ptr<bb::Header>>{};
+
+        for (const auto& [block, position, best] : vector) {
+            headers.emplace_back(get_test_block(block));
+        }
+
+        return header_oracle_.AddHeaders(headers);
+    }
+
+    [[maybe_unused]] bool create_blocks(const std::vector<Block>& vector)
+    {
+        for (const auto& [parent, child] : vector) {
+            const bb::pHash previous{
+                parent.empty()
+                    ? bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin)
+                    : get_block_hash(parent).get()};
+
+            if (false == make_test_block(child, previous)) { return false; }
+        }
+
+        return true;
+    }
+
+    [[maybe_unused]] bb::pHash get_block_hash(const std::string& hash)
+    {
+        try {
+
+            return test_blocks_.at(hash)->Hash();
+        } catch (...) {
+
+            return ot::Data::Factory();
+        }
+    }
+
+    [[maybe_unused]] std::unique_ptr<bb::Header> get_test_block(
+        const std::string& hash)
+    {
+        try {
+
+            return test_blocks_.at(hash)->clone();
+        } catch (...) {
+
+            return {};
+        }
+    }
+
+    [[maybe_unused]] bool make_test_block(
+        const std::string& hash,
+        const bb::Hash& parent)
+    {
+        const auto child = ot::Data::Factory(hash, ot::Data::Mode::Raw);
+        auto pHeader =
+            api_.Factory().BlockHeader(b::Type::Bitcoin, child, parent, -1);
+
+        if (false == bool(pHeader)) { return false; }
+
+        test_blocks_.emplace(hash, std::move(pHeader));
 
         return true;
     }
@@ -114,12 +182,13 @@ public:
         bb::Height i{0};
 
         for (const auto& expectedHash : vector) {
+            const bb::pHash compareHash{
+                expectedHash.empty()
+                    ? bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin)
+                    : get_block_hash(expectedHash).get()};
             const auto hash = header_oracle_.BestHash(i);
 
-            EXPECT_EQ(
-                expectedHash,
-                std::string(
-                    static_cast<const char*>(hash->data()), hash->size()));
+            EXPECT_EQ(compareHash, hash);
             ++i;
         }
 
@@ -127,18 +196,19 @@ public:
         const auto hash = hashAfter;
 
         EXPECT_EQ(heightAfter, vector.size() - 1);
-        EXPECT_EQ(
-            std::string(static_cast<const char*>(hash->data()), hash->size()),
-            *vector.crbegin());
+        EXPECT_EQ(hash, get_block_hash(*vector.crbegin()));
 
         return true;
     }
 
-    bool verify_post_state(const PostStateVector& vector)
+    [[maybe_unused]] bool verify_post_state(const PostStateVector& vector)
     {
         for (const auto& [sHash, spHash, height, status, pStatus] : vector) {
-            const auto hash = ot::Data::Factory(sHash, ot::Data::Mode::Raw);
-            const auto pHash = ot::Data::Factory(spHash, ot::Data::Mode::Raw);
+            const auto hash = get_block_hash(sHash);
+            const bb::pHash pHash{
+                spHash.empty()
+                    ? bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin)
+                    : get_block_hash(spHash).get()};
             const auto pBlock = header_oracle_.LoadHeader(hash);
 
             EXPECT_TRUE(pBlock);
@@ -157,27 +227,31 @@ public:
         return true;
     }
 
-    bool verify_siblings(const ExpectedSiblings& vector)
+    [[maybe_unused]] bool verify_siblings(const ExpectedSiblings& vector)
     {
         const auto siblings = header_oracle_.Siblings();
 
         EXPECT_EQ(siblings.size(), vector.size());
 
         for (const auto& sHash : vector) {
-            const auto hash = ot::Data::Factory(sHash, ot::Data::Mode::Raw);
-
-            EXPECT_EQ(1, siblings.count(hash));
+            EXPECT_EQ(1, siblings.count(get_block_hash(sHash)));
         }
 
         return true;
     }
 
-    Test_HeaderOracle()
+    [[maybe_unused]] Test_HeaderOracle()
         : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
               ot::Context().StartClient({}, 0)))
         , type_(b::Type::Bitcoin)
-        , network_(ot::Factory::BlockchainNetworkBitcoin(api_, type_, ""))
+        , network_(ot::Factory::BlockchainNetworkBitcoin(
+              api_,
+              dynamic_cast<const ot::api::client::internal::Blockchain&>(
+                  api_.Blockchain()),
+              type_,
+              ""))
         , header_oracle_(network_->HeaderOracle())
+        , test_blocks_()
     {
     }
 };
@@ -185,25 +259,68 @@ public:
 //  basic_sequence
 //
 //  1   2   3   4   5   6   7   8   9   10
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_1_{
+    {"", BLOCK_1},
+    {BLOCK_1, BLOCK_2},
+    {BLOCK_2, BLOCK_3},
+    {BLOCK_3, BLOCK_4},
+    {BLOCK_4, BLOCK_5},
+    {BLOCK_5, BLOCK_6},
+    {BLOCK_6, BLOCK_7},
+    {BLOCK_7, BLOCK_8},
+    {BLOCK_8, BLOCK_9},
+    {BLOCK_9, BLOCK_10}};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_1_{
-    {{bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(), BLOCK_1},
-     {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_2}, {2, BLOCK_2}},
-    {{BLOCK_2, BLOCK_3}, {3, BLOCK_3}},
-    {{BLOCK_3, BLOCK_4}, {4, BLOCK_4}},
-    {{BLOCK_4, BLOCK_5}, {5, BLOCK_5}},
-    {{BLOCK_5, BLOCK_6}, {6, BLOCK_6}},
-    {{BLOCK_6, BLOCK_7}, {7, BLOCK_7}},
-    {{BLOCK_7, BLOCK_8}, {8, BLOCK_8}},
-    {{BLOCK_8, BLOCK_9}, {9, BLOCK_9}},
-    {{BLOCK_9, BLOCK_10}, {10, BLOCK_10}},
+    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_5, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+    {BLOCK_6,
+     {6, BLOCK_6},
+     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5, BLOCK_6}},
+    {BLOCK_7,
+     {7, BLOCK_7},
+     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5, BLOCK_6, BLOCK_7}},
+    {BLOCK_8,
+     {8, BLOCK_8},
+     {"",
+      BLOCK_1,
+      BLOCK_2,
+      BLOCK_3,
+      BLOCK_4,
+      BLOCK_5,
+      BLOCK_6,
+      BLOCK_7,
+      BLOCK_8}},
+    {BLOCK_9,
+     {9, BLOCK_9},
+     {"",
+      BLOCK_1,
+      BLOCK_2,
+      BLOCK_3,
+      BLOCK_4,
+      BLOCK_5,
+      BLOCK_6,
+      BLOCK_7,
+      BLOCK_8,
+      BLOCK_9}},
+    {BLOCK_10,
+     {10, BLOCK_10},
+     {"",
+      BLOCK_1,
+      BLOCK_2,
+      BLOCK_3,
+      BLOCK_4,
+      BLOCK_5,
+      BLOCK_6,
+      BLOCK_7,
+      BLOCK_8,
+      BLOCK_9,
+      BLOCK_10}},
 };
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_1_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
     {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
@@ -215,7 +332,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_1_{
     {BLOCK_10, BLOCK_9, 10, Status::Normal, Status::Normal},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_1_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_2,
     BLOCK_3,
@@ -234,23 +351,28 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_1_{};
 //  1   2   3   7   8
 //          4
 //          5   6
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_2_{
+    {"", BLOCK_1},
+    {BLOCK_1, BLOCK_2},
+    {BLOCK_2, BLOCK_3},
+    {BLOCK_2, BLOCK_4},
+    {BLOCK_2, BLOCK_5},
+    {BLOCK_5, BLOCK_6},
+    {BLOCK_3, BLOCK_7},
+    {BLOCK_7, BLOCK_8},
+};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_2_{
-    {{bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(), BLOCK_1},
-     {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_2}, {2, BLOCK_2}},
-    {{BLOCK_2, BLOCK_3}, {3, BLOCK_3}},
-    {{BLOCK_2, BLOCK_4}, {3, BLOCK_3}},
-    {{BLOCK_2, BLOCK_5}, {3, BLOCK_3}},
-    {{BLOCK_5, BLOCK_6}, {4, BLOCK_6}},
-    {{BLOCK_3, BLOCK_7}, {4, BLOCK_6}},
-    {{BLOCK_7, BLOCK_8}, {5, BLOCK_8}},
+    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_6, {4, BLOCK_6}, {"", BLOCK_1, BLOCK_2, BLOCK_5, BLOCK_6}},
+    {BLOCK_7, {4, BLOCK_6}, {"", BLOCK_1, BLOCK_2, BLOCK_5, BLOCK_6}},
+    {BLOCK_8, {5, BLOCK_8}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_7, BLOCK_8}},
 };
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_2_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
     {BLOCK_4, BLOCK_2, 3, Status::Normal, Status::Normal},
@@ -260,7 +382,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_2_{
     {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::Normal},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_2_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_2,
     BLOCK_3,
@@ -276,25 +398,34 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_2_{
 //  1   2   3   4   5   6
 //              7
 //             (8)  9   10
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_3_{
+    {"", BLOCK_1},
+    {BLOCK_1, BLOCK_2},
+    {BLOCK_2, BLOCK_3},
+    {BLOCK_3, BLOCK_4},
+    {BLOCK_4, BLOCK_5},
+    {BLOCK_5, BLOCK_6},
+    {BLOCK_3, BLOCK_7},
+    {BLOCK_3, BLOCK_8},
+    {BLOCK_8, BLOCK_9},
+    {BLOCK_9, BLOCK_10},
+};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_3_{
-    {{bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(), BLOCK_1},
-     {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_2}, {2, BLOCK_2}},
-    {{BLOCK_2, BLOCK_3}, {3, BLOCK_3}},
-    {{BLOCK_3, BLOCK_4}, {3, BLOCK_3}},
-    {{BLOCK_4, BLOCK_5}, {3, BLOCK_3}},
-    {{BLOCK_5, BLOCK_6}, {3, BLOCK_3}},
-    {{BLOCK_3, BLOCK_7}, {3, BLOCK_3}},
-    {{BLOCK_3, BLOCK_8}, {4, BLOCK_8}},
-    {{BLOCK_8, BLOCK_9}, {5, BLOCK_9}},
-    {{BLOCK_9, BLOCK_10}, {6, BLOCK_10}},
+    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_6, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_7, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_8, {4, BLOCK_8}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8}},
+    {BLOCK_9, {5, BLOCK_9}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8, BLOCK_9}},
+    {BLOCK_10,
+     {6, BLOCK_10},
+     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_8, BLOCK_9, BLOCK_10}},
 };
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_3_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
     {BLOCK_4, BLOCK_3, 4, Status::CheckpointBanned, Status::Normal},
@@ -306,7 +437,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_3_{
     {BLOCK_10, BLOCK_9, 6, Status::Normal, Status::Normal},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_3_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_2,
     BLOCK_3,
@@ -323,25 +454,34 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_3_{
 //  1   2   3  (4)  10
 //              5
 //              6   7   8   9
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_4_{
+    {"", BLOCK_1},
+    {BLOCK_1, BLOCK_2},
+    {BLOCK_2, BLOCK_3},
+    {BLOCK_3, BLOCK_4},
+    {BLOCK_3, BLOCK_5},
+    {BLOCK_3, BLOCK_6},
+    {BLOCK_6, BLOCK_7},
+    {BLOCK_7, BLOCK_8},
+    {BLOCK_8, BLOCK_9},
+    {BLOCK_4, BLOCK_10},
+};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_4_{
-    {{bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(), BLOCK_1},
-     {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_2}, {2, BLOCK_2}},
-    {{BLOCK_2, BLOCK_3}, {3, BLOCK_3}},
-    {{BLOCK_3, BLOCK_4}, {4, BLOCK_4}},
-    {{BLOCK_3, BLOCK_5}, {4, BLOCK_4}},
-    {{BLOCK_3, BLOCK_6}, {4, BLOCK_4}},
-    {{BLOCK_6, BLOCK_7}, {4, BLOCK_4}},
-    {{BLOCK_7, BLOCK_8}, {4, BLOCK_4}},
-    {{BLOCK_8, BLOCK_9}, {4, BLOCK_4}},
-    {{BLOCK_4, BLOCK_10}, {5, BLOCK_10}},
+    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_5, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_6, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_7, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_8, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_9, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_10,
+     {5, BLOCK_10},
+     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_10}},
 };
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_4_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
     {BLOCK_4, BLOCK_3, 4, Status::Checkpoint, Status::Normal},
@@ -353,7 +493,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_4_{
     {BLOCK_10, BLOCK_4, 5, Status::Normal, Status::Normal},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_4_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_2,
     BLOCK_3,
@@ -369,29 +509,73 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_4_{
 //                      7   8   9
 //  1   2   3   12  4   5   6   13  14
 //              10  11
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_5_{
+    {"", BLOCK_1},
+    {BLOCK_1, BLOCK_2},
+    {BLOCK_2, BLOCK_3},
+    {BLOCK_3, BLOCK_10},
+    {BLOCK_10, BLOCK_11},
+    {BLOCK_3, BLOCK_12},
+    {BLOCK_12, BLOCK_4},
+    {BLOCK_4, BLOCK_5},
+    {BLOCK_5, BLOCK_6},
+    {BLOCK_6, BLOCK_13},
+    {BLOCK_13, BLOCK_14},
+    {BLOCK_4, BLOCK_7},
+    {BLOCK_7, BLOCK_8},
+    {BLOCK_8, BLOCK_9},
+};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_5_{
-    {{bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(), BLOCK_1},
-     {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_2}, {2, BLOCK_2}},
-    {{BLOCK_2, BLOCK_3}, {3, BLOCK_3}},
-    {{BLOCK_12, BLOCK_4}, {3, BLOCK_3}},
-    {{BLOCK_4, BLOCK_5}, {3, BLOCK_3}},
-    {{BLOCK_5, BLOCK_6}, {3, BLOCK_3}},
-    {{BLOCK_4, BLOCK_7}, {3, BLOCK_3}},
-    {{BLOCK_7, BLOCK_8}, {3, BLOCK_3}},
-    {{BLOCK_8, BLOCK_9}, {3, BLOCK_3}},
-    {{BLOCK_3, BLOCK_10}, {4, BLOCK_10}},
-    {{BLOCK_10, BLOCK_11}, {5, BLOCK_11}},
-    {{BLOCK_3, BLOCK_12}, {8, BLOCK_9}},
-    {{BLOCK_6, BLOCK_13}, {8, BLOCK_9}},
-    {{BLOCK_13, BLOCK_14}, {9, BLOCK_14}},
+    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_4, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_5, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_6, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_7, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_8, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_9, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_10, {4, BLOCK_10}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_10}},
+    {BLOCK_11,
+     {5, BLOCK_11},
+     {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_10, BLOCK_11}},
+    {BLOCK_12,
+     {8, BLOCK_9},
+     {"",
+      BLOCK_1,
+      BLOCK_2,
+      BLOCK_3,
+      BLOCK_12,
+      BLOCK_4,
+      BLOCK_7,
+      BLOCK_8,
+      BLOCK_9}},
+    {BLOCK_13,
+     {8, BLOCK_9},
+     {"",
+      BLOCK_1,
+      BLOCK_2,
+      BLOCK_3,
+      BLOCK_12,
+      BLOCK_4,
+      BLOCK_7,
+      BLOCK_8,
+      BLOCK_9}},
+    {BLOCK_14,
+     {9, BLOCK_14},
+     {"",
+      BLOCK_1,
+      BLOCK_2,
+      BLOCK_3,
+      BLOCK_12,
+      BLOCK_4,
+      BLOCK_5,
+      BLOCK_6,
+      BLOCK_13,
+      BLOCK_14}},
 };
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_5_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
     {BLOCK_4, BLOCK_12, 5, Status::Normal, Status::Normal},
@@ -407,7 +591,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_5_{
     {BLOCK_14, BLOCK_13, 9, Status::Normal, Status::Normal},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_5_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_2,
     BLOCK_3,
@@ -425,14 +609,12 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_5_{
 //  add_checkpoint_already_in_best_chain
 //
 //  1   2   3   4   5  (6)  7   8   9   10
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_6_{
+    Test_HeaderOracle::create_1_};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_6_{
     Test_HeaderOracle::sequence_1_};
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_6_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
     {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
@@ -453,14 +635,12 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_6_{
 //  1   2   3   7   8
 //         (4)
 //          5   6
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_7_{
+    Test_HeaderOracle::create_2_};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_7_{
     Test_HeaderOracle::sequence_2_};
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_7_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::CheckpointBanned, Status::Normal},
     {BLOCK_4, BLOCK_2, 3, Status::Checkpoint, Status::Normal},
@@ -470,7 +650,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_7_{
     {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::CheckpointBanned},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_7_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_2,
     BLOCK_4,
@@ -483,24 +663,30 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_7_{
 //          8   9
 //     (6)  7
 //  1   2   3   4   5
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_8_{
+    {"", BLOCK_1},
+    {BLOCK_1, BLOCK_2},
+    {BLOCK_2, BLOCK_3},
+    {BLOCK_3, BLOCK_4},
+    {BLOCK_4, BLOCK_5},
+    {BLOCK_1, BLOCK_6},
+    {BLOCK_6, BLOCK_7},
+    {BLOCK_6, BLOCK_8},
+    {BLOCK_8, BLOCK_9},
+};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_8_{
-    {{bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(), BLOCK_1},
-     {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_2}, {2, BLOCK_2}},
-    {{BLOCK_2, BLOCK_3}, {3, BLOCK_3}},
-    {{BLOCK_3, BLOCK_4}, {4, BLOCK_4}},
-    {{BLOCK_4, BLOCK_5}, {5, BLOCK_5}},
-    {{BLOCK_1, BLOCK_6}, {5, BLOCK_5}},
-    {{BLOCK_6, BLOCK_7}, {5, BLOCK_5}},
-    {{BLOCK_6, BLOCK_8}, {5, BLOCK_5}},
-    {{BLOCK_8, BLOCK_9}, {5, BLOCK_5}},
+    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_2, {2, BLOCK_2}, {"", BLOCK_1, BLOCK_2}},
+    {BLOCK_3, {3, BLOCK_3}, {"", BLOCK_1, BLOCK_2, BLOCK_3}},
+    {BLOCK_4, {4, BLOCK_4}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4}},
+    {BLOCK_5, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+    {BLOCK_6, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+    {BLOCK_7, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+    {BLOCK_8, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
+    {BLOCK_9, {5, BLOCK_5}, {"", BLOCK_1, BLOCK_2, BLOCK_3, BLOCK_4, BLOCK_5}},
 };
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_8a_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::Normal, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::Normal},
     {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::Normal},
@@ -511,11 +697,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_8a_{
     {BLOCK_9, BLOCK_8, 4, Status::Normal, Status::Normal},
 };
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_8b_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::CheckpointBanned, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
     {BLOCK_4, BLOCK_3, 4, Status::Normal, Status::CheckpointBanned},
@@ -526,7 +708,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_8b_{
     {BLOCK_9, BLOCK_8, 4, Status::Normal, Status::Normal},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_8a_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_2,
     BLOCK_3,
@@ -534,7 +716,7 @@ const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_8a_{
     BLOCK_5,
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_8b_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
     BLOCK_6,
     BLOCK_8,
@@ -554,14 +736,12 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_8b_{
 //          5   6
 //
 //     (9)
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_9_{
+    Test_HeaderOracle::create_2_};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_9_{
     Test_HeaderOracle::sequence_2_};
 const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_9_{
-    {BLOCK_1,
-     bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
-     1,
-     Status::Normal,
-     Status::Normal},
+    {BLOCK_1, "", 1, Status::Normal, Status::Normal},
     {BLOCK_2, BLOCK_1, 2, Status::CheckpointBanned, Status::Normal},
     {BLOCK_3, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
     {BLOCK_4, BLOCK_2, 3, Status::Normal, Status::CheckpointBanned},
@@ -571,7 +751,7 @@ const Test_HeaderOracle::PostStateVector Test_HeaderOracle::post_state_9_{
     {BLOCK_8, BLOCK_7, 5, Status::Normal, Status::CheckpointBanned},
 };
 const Test_HeaderOracle::BestChainVector Test_HeaderOracle::best_chain_9_{
-    bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(),
+    "",
     BLOCK_1,
 };
 const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_9_{
@@ -583,17 +763,27 @@ const Test_HeaderOracle::ExpectedSiblings Test_HeaderOracle::siblings_9_{
 //          8   9
 //     (6)  7
 //  1   2   3   4   5
+const std::vector<Test_HeaderOracle::Block> Test_HeaderOracle::create_10_{
+    {"", BLOCK_1},
+    {BLOCK_1, BLOCK_2},
+    {BLOCK_2, BLOCK_3},
+    {BLOCK_3, BLOCK_4},
+    {BLOCK_4, BLOCK_5},
+    {BLOCK_1, BLOCK_6},
+    {BLOCK_6, BLOCK_7},
+    {BLOCK_6, BLOCK_8},
+    {BLOCK_8, BLOCK_9},
+};
 const std::vector<Test_HeaderOracle::Test> Test_HeaderOracle::sequence_10_{
-    {{bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin).str(), BLOCK_1},
-     {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_2}, {1, BLOCK_1}},
-    {{BLOCK_2, BLOCK_3}, {1, BLOCK_1}},
-    {{BLOCK_3, BLOCK_4}, {1, BLOCK_1}},
-    {{BLOCK_4, BLOCK_5}, {1, BLOCK_1}},
-    {{BLOCK_1, BLOCK_6}, {2, BLOCK_6}},
-    {{BLOCK_6, BLOCK_7}, {3, BLOCK_7}},
-    {{BLOCK_6, BLOCK_8}, {3, BLOCK_7}},
-    {{BLOCK_8, BLOCK_9}, {4, BLOCK_9}},
+    {BLOCK_1, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_2, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_3, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_4, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_5, {1, BLOCK_1}, {"", BLOCK_1}},
+    {BLOCK_6, {2, BLOCK_6}, {"", BLOCK_1, BLOCK_6}},
+    {BLOCK_7, {3, BLOCK_7}, {"", BLOCK_1, BLOCK_6, BLOCK_7}},
+    {BLOCK_8, {3, BLOCK_7}, {"", BLOCK_1, BLOCK_6, BLOCK_7}},
+    {BLOCK_9, {4, BLOCK_9}, {"", BLOCK_1, BLOCK_6, BLOCK_8, BLOCK_9}},
 };
 // clang-format off
 const std::vector<std::string> Test_HeaderOracle::bitcoin_{
@@ -2599,193 +2789,4 @@ const std::vector<std::string> Test_HeaderOracle::bitcoin_{
     {"0100000026a22e3c2d19d49a1c1cb8a68e6ab77440c30e5974404a2a806d49a100000000eabf215e0cc526ff9802fe16717dfe87d734bc90bbeaddbcd61a0831e672f010bbcc7e49ffff001d0035ceb2"},
 };
 // clang-format on
-
-TEST_F(Test_HeaderOracle, init_opentxs) {}
-
-TEST_F(Test_HeaderOracle, basic_sequence)
-{
-    const auto [heightBefore, hashBefore] = header_oracle_.BestChain();
-
-    EXPECT_EQ(heightBefore, 0);
-    EXPECT_EQ(hashBefore, bc::HeaderOracle::GenesisBlockHash(b::Type::Bitcoin));
-
-    EXPECT_TRUE(apply_blocks(sequence_1_));
-    EXPECT_TRUE(verify_post_state(post_state_1_));
-    EXPECT_TRUE(verify_best_chain(best_chain_1_));
-    EXPECT_TRUE(verify_siblings(siblings_1_));
-}
-
-TEST_F(Test_HeaderOracle, basic_reorg)
-{
-    EXPECT_TRUE(apply_blocks(sequence_2_));
-    EXPECT_TRUE(verify_post_state(post_state_2_));
-    EXPECT_TRUE(verify_best_chain(best_chain_2_));
-    EXPECT_TRUE(verify_siblings(siblings_2_));
-}
-
-TEST_F(Test_HeaderOracle, checkpoint_prevents_update)
-{
-    const auto [height1, hash1] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(height1, -1);
-    EXPECT_TRUE(hash1->empty());
-    EXPECT_TRUE(header_oracle_.AddCheckpoint(
-        4, ot::Data::Factory(BLOCK_8, ot::Data::Mode::Raw)));
-
-    const auto [height2, hash2] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(height2, 4);
-    EXPECT_EQ(hash2, ot::Data::Factory(BLOCK_8, ot::Data::Mode::Raw));
-
-    EXPECT_TRUE(apply_blocks(sequence_3_));
-    EXPECT_TRUE(verify_post_state(post_state_3_));
-    EXPECT_TRUE(verify_best_chain(best_chain_3_));
-    EXPECT_TRUE(verify_siblings(siblings_3_));
-}
-
-TEST_F(Test_HeaderOracle, checkpoint_prevents_reorg)
-{
-    EXPECT_TRUE(header_oracle_.AddCheckpoint(
-        4, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw)));
-
-    const auto [cpHeight, cpHash] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(cpHeight, 4);
-    EXPECT_EQ(cpHash, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw));
-
-    EXPECT_TRUE(apply_blocks(sequence_4_));
-    EXPECT_TRUE(verify_post_state(post_state_4_));
-    EXPECT_TRUE(verify_best_chain(best_chain_4_));
-    EXPECT_TRUE(verify_siblings(siblings_4_));
-}
-
-TEST_F(Test_HeaderOracle, receive_headers_out_of_order)
-{
-    EXPECT_TRUE(apply_blocks(sequence_5_));
-    EXPECT_TRUE(verify_post_state(post_state_5_));
-    EXPECT_TRUE(verify_best_chain(best_chain_5_));
-    EXPECT_TRUE(verify_siblings(siblings_5_));
-}
-
-TEST_F(Test_HeaderOracle, add_checkpoint_already_in_best_chain)
-{
-    EXPECT_TRUE(apply_blocks(sequence_6_));
-    EXPECT_TRUE(verify_post_state(post_state_1_));
-    EXPECT_TRUE(verify_best_chain(best_chain_1_));
-    EXPECT_TRUE(verify_siblings(siblings_1_));
-
-    EXPECT_TRUE(header_oracle_.AddCheckpoint(
-        6, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw)));
-
-    const auto [height, hash] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(height, 6);
-    EXPECT_EQ(hash, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw));
-    EXPECT_TRUE(verify_post_state(post_state_6_));
-    EXPECT_TRUE(verify_best_chain(best_chain_6_));
-    EXPECT_TRUE(verify_siblings(siblings_6_));
-}
-
-TEST_F(Test_HeaderOracle, reorg_to_checkpoint)
-{
-    EXPECT_TRUE(apply_blocks(sequence_7_));
-    EXPECT_TRUE(verify_post_state(post_state_2_));
-    EXPECT_TRUE(verify_best_chain(best_chain_2_));
-    EXPECT_TRUE(verify_siblings(siblings_2_));
-
-    EXPECT_TRUE(header_oracle_.AddCheckpoint(
-        3, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw)));
-
-    const auto [height, hash] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(height, 3);
-    EXPECT_EQ(hash, ot::Data::Factory(BLOCK_4, ot::Data::Mode::Raw));
-    EXPECT_TRUE(verify_post_state(post_state_7_));
-    EXPECT_TRUE(verify_best_chain(best_chain_7_));
-    EXPECT_TRUE(verify_siblings(siblings_7_));
-}
-
-TEST_F(Test_HeaderOracle, reorg_to_checkpoint_descendent)
-{
-    EXPECT_TRUE(apply_blocks(sequence_8_));
-    EXPECT_TRUE(verify_post_state(post_state_8a_));
-    EXPECT_TRUE(verify_best_chain(best_chain_8a_));
-    EXPECT_TRUE(verify_siblings(siblings_8a_));
-
-    EXPECT_TRUE(header_oracle_.AddCheckpoint(
-        2, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw)));
-
-    const auto [height, hash] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(height, 2);
-    EXPECT_EQ(hash, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw));
-    EXPECT_TRUE(verify_post_state(post_state_8b_));
-    EXPECT_TRUE(verify_best_chain(best_chain_8b_));
-    EXPECT_TRUE(verify_siblings(siblings_8b_));
-}
-
-TEST_F(Test_HeaderOracle, add_checkpoint_disconnected)
-{
-    EXPECT_TRUE(apply_blocks(sequence_9_));
-    EXPECT_TRUE(verify_post_state(post_state_2_));
-    EXPECT_TRUE(verify_best_chain(best_chain_2_));
-    EXPECT_TRUE(verify_siblings(siblings_2_));
-
-    EXPECT_TRUE(header_oracle_.AddCheckpoint(
-        2, ot::Data::Factory(BLOCK_9, ot::Data::Mode::Raw)));
-
-    const auto [height, hash] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(height, 2);
-    EXPECT_EQ(hash, ot::Data::Factory(BLOCK_9, ot::Data::Mode::Raw));
-    EXPECT_TRUE(verify_post_state(post_state_9_));
-    EXPECT_TRUE(verify_best_chain(best_chain_9_));
-    EXPECT_TRUE(verify_siblings(siblings_9_));
-}
-
-TEST_F(Test_HeaderOracle, delete_checkpoint)
-{
-    EXPECT_TRUE(header_oracle_.AddCheckpoint(
-        2, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw)));
-
-    const auto [height, hash] = header_oracle_.GetCheckpoint();
-
-    EXPECT_EQ(height, 2);
-    EXPECT_EQ(hash, ot::Data::Factory(BLOCK_6, ot::Data::Mode::Raw));
-
-    EXPECT_TRUE(apply_blocks(sequence_10_));
-    EXPECT_TRUE(verify_post_state(post_state_8b_));
-    EXPECT_TRUE(verify_best_chain(best_chain_8b_));
-    EXPECT_TRUE(verify_siblings(siblings_8b_));
-
-    EXPECT_TRUE(header_oracle_.DeleteCheckpoint());
-
-    EXPECT_TRUE(verify_post_state(post_state_8a_));
-    EXPECT_TRUE(verify_best_chain(best_chain_8a_));
-    EXPECT_TRUE(verify_siblings(siblings_8a_));
-}
-
-TEST_F(Test_HeaderOracle, bitcoin)
-{
-    for (const auto& hex : bitcoin_) {
-        const auto raw = ot::Data::Factory(hex, ot::Data::Mode::Hex);
-        auto pHeader =
-            api_.Factory().BlockHeader(ot::blockchain::Type::Bitcoin, raw);
-
-        ASSERT_TRUE(pHeader);
-        EXPECT_TRUE(header_oracle_.AddHeader(std::move(pHeader)));
-    }
-
-    const auto [height, hash] = header_oracle_.BestChain();
-
-    EXPECT_EQ(height, bitcoin_.size());
-
-    const auto header = header_oracle_.LoadHeader(hash);
-
-    ASSERT_TRUE(header);
-
-    const auto expectedWork = std::to_string(bitcoin_.size() + 1);
-
-    EXPECT_EQ(expectedWork, header->Work()->Decimal());
-}
 }  // namespace

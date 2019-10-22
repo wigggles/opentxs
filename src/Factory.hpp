@@ -616,9 +616,11 @@ public:
 #endif  // OT_BLOCKCHAIN
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::Blockchain* BlockchainAPI(
-        const api::internal::Core& api,
+        const api::client::internal::Manager& api,
         const api::client::Activity& activity,
-        const api::client::Contacts& contacts);
+        const api::client::Contacts& contacts,
+        const api::Legacy& legacy,
+        const std::string& dataFolder);
     static api::client::blockchain::internal::BalanceList*
     BlockchainBalanceList(
         const api::client::internal::Blockchain& parent,
@@ -652,6 +654,7 @@ public:
     static blockchain::internal::Database* BlockchainDatabase(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
+        const api::client::blockchain::database::implementation::Database& db,
         const blockchain::Type type);
     static blockchain::client::internal::FilterOracle* BlockchainFilterOracle(
         const api::internal::Core& api,
@@ -659,6 +662,7 @@ public:
         const blockchain::client::internal::FilterDatabase& database);
     OPENTXS_EXPORT static auto BlockchainNetworkBitcoin(
         const api::internal::Core& api,
+        const api::client::internal::Blockchain& blockchain,
         const blockchain::Type type,
         const std::string& seednode) -> blockchain::client::internal::Network*;
     static blockchain::client::internal::PeerManager* BlockchainPeerManager(
@@ -1631,10 +1635,6 @@ public:
         const proto::UnitDefinition serialized,
         const opentxs::PasswordPrompt& reason) noexcept
         -> std::shared_ptr<contract::Unit>;
-#if OT_BLOCKCHAIN
-    static blockchain::client::internal::UpdateTransaction* UpdateTransaction(
-        const api::Core& api);
-#endif  // OT_BLOCKCHAIN
     static identity::credential::internal::Verification* VerificationCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,

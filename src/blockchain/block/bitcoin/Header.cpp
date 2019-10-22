@@ -141,11 +141,12 @@ Header::Header(
           minimum_work())
     , subversion_(subversion_default_)
     , block_version_(0)
-    , merkle_root_(make_blank<block::pHash>::value(api))
+    , merkle_root_(hash)
     , timestamp_(make_blank<Time>::value(api))
     , nbits_(NumericHash::MaxTarget)
     , nonce_(0)
 {
+    const_cast<OTData&>(hash_) = calculate_hash(api, Serialize());
 }
 
 Header::Header(

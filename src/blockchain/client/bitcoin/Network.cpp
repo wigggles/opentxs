@@ -23,12 +23,13 @@ namespace opentxs
 {
 blockchain::client::internal::Network* Factory::BlockchainNetworkBitcoin(
     const api::internal::Core& api,
+    const api::client::internal::Blockchain& blockchain,
     const blockchain::Type type,
     const std::string& seednode)
 {
     using ReturnType = blockchain::client::bitcoin::implementation::Network;
 
-    return new ReturnType{api, type, seednode};
+    return new ReturnType{api, blockchain, type, seednode};
 }
 }  // namespace opentxs
 
@@ -36,9 +37,10 @@ namespace opentxs::blockchain::client::bitcoin::implementation
 {
 Network::Network(
     const api::internal::Core& api,
+    const api::client::internal::Blockchain& blockchain,
     const Type type,
     const std::string& seednode)
-    : ot_super(api, type, seednode)
+    : ot_super(api, blockchain, type, seednode)
 {
     init();
 }

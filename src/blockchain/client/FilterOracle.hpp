@@ -17,9 +17,9 @@ public:
         const filter::Type type,
         const block::Hash& block,
         const Data& filter) const noexcept final;
-    void CheckBlocks() const noexcept final { Trigger(); }
+    void CheckBlocks() const noexcept final;
 
-    void Start() noexcept { Trigger(); }
+    void Start() noexcept;
     void Shutdown() noexcept;
 
     ~FilterOracle() final;
@@ -51,6 +51,7 @@ private:
     const api::internal::Core& api_;
     const internal::Network& network_;
     const internal::FilterDatabase& database_;
+    OTFlag running_;
     mutable std::mutex lock_;
     mutable RequestQueue requests_;
     OTZMQPipeline new_filters_;

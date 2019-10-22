@@ -28,12 +28,21 @@ public:
         const block::Height position,
         const block::Hash& requiredHash) noexcept final;
     bool AddHeader(std::unique_ptr<block::Header> header) noexcept final;
+    bool AddHeaders(
+        std::vector<std::unique_ptr<block::Header>>&) noexcept final;
     bool DeleteCheckpoint() noexcept final;
 
     ~HeaderOracle() final = default;
 
 private:
     friend opentxs::Factory;
+
+    struct Candidate {
+        bool blacklisted_{false};
+        std::vector<block::Position> chain_{};
+    };
+
+    using Candidates = std::vector<Candidate>;
 
     const api::internal::Core& api_;
     const internal::Network& network_;
@@ -46,49 +55,50 @@ private:
         const block::Header& candidate) noexcept;
 
     block::Position best_chain(const Lock& lock) const noexcept;
+    bool is_in_best_chain(const Lock& lock, const block::Hash& hash) const
+        noexcept;
 
-    void blacklist_to_checkpoint(
+    bool add_header(
         const Lock& lock,
-        const block::Position& checkpoint,
-        block::Header& header,
-        internal::UpdateTransaction& update);
-    bool calculate_reorg(
+        UpdateTransaction& update,
+        std::unique_ptr<block::Header> header) noexcept;
+    bool apply_checkpoint(
         const Lock& lock,
-        const block::Header& header,
-        internal::UpdateTransaction& update) noexcept;
+        const block::Height height,
+        UpdateTransaction& update) noexcept;
+    std::pair<bool, bool> choose_candidate(
+        const block::Header& current,
+        const Candidates& candidates,
+        UpdateTransaction& update) noexcept(false);
     void connect_children(
         const Lock& lock,
         block::Header& parentHeader,
-        std::vector<std::unique_ptr<block::Header>>& reconnectedTips,
-        internal::UpdateTransaction& update);
+        Candidates& candidates,
+        Candidate& candidate,
+        UpdateTransaction& update);
+    // Returns true if the child is checkpoint blacklisted
     bool connect_to_parent(
         const Lock& lock,
+        const UpdateTransaction& update,
         const block::Header& parent,
         block::Header& child) noexcept;
-    bool insert_disconnected_block(
+    Candidate& initialize_candidate(
         const Lock& lock,
-        std::unique_ptr<block::Header> header,
-        std::unique_ptr<internal::UpdateTransaction> update) noexcept;
-    bool is_in_best_chain(const Lock& lock, const block::Hash& hash) const
-        noexcept;
-    void reverse_blacklist(
+        const block::Header& best,
+        const block::Header& parent,
+        UpdateTransaction& update,
+        Candidates& candidates,
+        block::Header& child,
+        const block::Hash& stopHash = Data::Factory()) noexcept(false);
+    const block::Header* is_disconnected(
+        const block::Hash& parent,
+        UpdateTransaction& update) noexcept;
+    void stage_candidate(
         const Lock& lock,
-        block::Header& header,
-        internal::UpdateTransaction& update);
-    bool reorg_to_checkpoint(
-        const Lock& lock,
-        const block::Position& checkpoint,
-        internal::UpdateTransaction& update);
-    block::Position scan_disconnected(
-        const Lock& lock,
-        const bool isCandidate,
-        block::Header& parent,
-        internal::UpdateTransaction& update,
-        std::unique_ptr<const block::Header>& candidate);
-    bool scan_for_checkpoint(
-        const Lock& lock,
-        const block::Position& checkpoint,
-        const block::Header& header);
+        const block::Header& best,
+        Candidates& candidates,
+        UpdateTransaction& update,
+        block::Header& child) noexcept(false);
 
     HeaderOracle(
         const api::internal::Core& api,

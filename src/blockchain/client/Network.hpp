@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
 #include "core/StateMachine.hpp"
@@ -20,10 +21,7 @@ class Network : virtual public internal::Network,
                 public opentxs::internal::StateMachine
 {
 public:
-    bool AddPeer(const p2p::Address& address) const noexcept final
-    {
-        return peer_.AddPeer(address);
-    }
+    bool AddPeer(const p2p::Address& address) const noexcept final;
     Type Chain() const noexcept final { return chain_; }
     const network::zeromq::Pipeline& FilterPipeline() const noexcept final
     {
@@ -34,10 +32,7 @@ public:
     {
         return local_chain_height_.load();
     }
-    std::size_t GetPeerCount() const noexcept final
-    {
-        return peer_.GetPeerCount();
-    }
+    std::size_t GetPeerCount() const noexcept final;
     Type GetType() const noexcept final { return chain_; }
     const internal::HeaderOracle& HeaderOracle() const noexcept final
     {
@@ -68,7 +63,7 @@ public:
     void UpdateHeight(const block::Height height) const noexcept final;
     void UpdateLocalHeight(const block::Position position) const noexcept final;
 
-    bool Connect() noexcept final { return peer_.Connect(); }
+    bool Connect() noexcept final;
     bool Disconnect() noexcept final;
     internal::HeaderOracle& HeaderOracle() noexcept final { return header_; }
     bool Shutdown() noexcept final;
@@ -89,18 +84,21 @@ protected:
     internal::FilterOracle& filters_;
     internal::HeaderOracle& header_;
     internal::PeerManager& peer_;
+    OTFlag running_;
 
     // NOTE call init in every final constructor body
     void init() noexcept;
 
     Network(
         const api::internal::Core& api,
+        const api::client::internal::Blockchain& blockchain,
         const Type type,
         const std::string& seednode) noexcept;
 
 private:
     mutable std::atomic<block::Height> local_chain_height_;
     mutable std::atomic<block::Height> remote_chain_height_;
+    OTFlag processing_headers_;
     OTZMQPipeline new_headers_;
     OTZMQPipeline new_filters_;
 

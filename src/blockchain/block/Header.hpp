@@ -44,6 +44,7 @@ public:
 
 protected:
     const api::internal::Core& api_;
+    const OTData hash_;
     const OTData parent_hash_;
 
     static OTWork minimum_work();
@@ -68,7 +69,6 @@ private:
 
     const VersionNumber version_;
     const blockchain::Type type_;
-    const OTData hash_;
     const OTWork work_;
     block::Height height_;
     Status status_;

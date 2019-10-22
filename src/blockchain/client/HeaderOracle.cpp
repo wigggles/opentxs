@@ -14,6 +14,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "blockchain/client/UpdateTransaction.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 
@@ -69,7 +70,8 @@ const std::map<Type, block::pHash> genesis_hashes_{
          Data::Mode::Hex)},
 };
 
-const block::Hash& HeaderOracle::GenesisBlockHash(const blockchain::Type type)
+auto HeaderOracle::GenesisBlockHash(const blockchain::Type type)
+    -> const block::Hash&
 {
     return genesis_hashes_.at(type);
 }
@@ -91,171 +93,184 @@ HeaderOracle::HeaderOracle(
 {
 }
 
-bool HeaderOracle::AddCheckpoint(
+auto HeaderOracle::AddCheckpoint(
     const block::Height position,
-    const block::Hash& requiredHash) noexcept
+    const block::Hash& requiredHash) noexcept -> bool
 {
     Lock lock(lock_);
-    block::Position checkpoint{position, requiredHash};
-    std::unique_ptr<internal::UpdateTransaction> pUpdate{
-        Factory::UpdateTransaction(api_)};
+    auto update = UpdateTransaction{api_, database_};
 
-    OT_ASSERT(pUpdate);
-
-    auto& update = *pUpdate;
-
-    if (database_.HaveCheckpoint()) {
+    if (update.EffectiveCheckpoint()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Checkpoint already exists")
             .Flush();
 
         return false;
     }
 
-    if (database_.HeaderExists(requiredHash)) {
-        try {
-            auto& header =
-                update.ModifyExistingBlock(database_.LoadHeader(requiredHash));
-            header.CompareToCheckpoint(checkpoint);
-        } catch (...) {
-            return false;
-        }
-    }
-
-    const auto currentPosition = database_.CurrentBest()->Position();
-    const auto [height, hash] = currentPosition;
-
-    if (position <= height) {
-        try {
-            if (requiredHash != database_.BestBlock(position)) {
-                update.AddSibling(currentPosition);
-                auto& header =
-                    update.ModifyExistingBlock(database_.LoadHeader(hash));
-                blacklist_to_checkpoint(lock, checkpoint, header, update);
-                reorg_to_checkpoint(lock, checkpoint, update);
-                update.SetReorg(true);
-            }
-        } catch (...) {
-            return false;
-        }
-    }
-
-    update.SetCheckpoint(std::move(checkpoint));
-
-    return database_.ApplyUpdate(std::move(pUpdate));
-}
-
-bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
-{
-    if (false == bool(pHeader)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid header").Flush();
+    if (2 > position) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid position").Flush();
 
         return false;
     }
 
-    auto& header = *pHeader;
+    update.SetCheckpoint({position, requiredHash});
+
+    if (apply_checkpoint(lock, position, update)) {
+
+        return database_.ApplyUpdate(update);
+    } else {
+
+        return false;
+    }
+}
+
+auto HeaderOracle::AddHeader(std::unique_ptr<block::Header> header) noexcept
+    -> bool
+{
+    auto headers = std::vector<std::unique_ptr<block::Header>>{};
+    headers.emplace_back(std::move(header));
+
+    return AddHeaders(headers);
+}
+
+auto HeaderOracle::AddHeaders(
+    std::vector<std::unique_ptr<block::Header>>& headers) noexcept -> bool
+{
+    if (0 == headers.size()) { return false; }
+
     Lock lock(lock_);
-    const auto& incomingHash = header.Hash();
-    const auto& incomingParent = header.ParentHash();
-    auto pCurrent = database_.CurrentBest();
-    const auto& current = *pCurrent;
-    const auto [currentHeight, currentHash] = current.Position();
-    std::unique_ptr<internal::UpdateTransaction> pUpdate{
-        Factory::UpdateTransaction(api_)};
+    auto update = UpdateTransaction{api_, database_};
 
-    OT_ASSERT(pUpdate);
+    for (auto& header : headers) {
+        if (false == bool(header)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid header").Flush();
 
-    auto& update = *pUpdate;
+            return false;
+        }
 
-    if (database_.HeaderExists(incomingHash)) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)(": Header already exists").Flush();
+        if (false == add_header(lock, update, std::move(header))) {
+
+            return false;
+        }
+    }
+
+    return database_.ApplyUpdate(update);
+}
+
+auto HeaderOracle::add_header(
+    const Lock& lock,
+    UpdateTransaction& update,
+    std::unique_ptr<block::Header> pHeader) noexcept -> bool
+{
+    if (update.EffectiveHeaderExists(pHeader->Hash())) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Header already processed")
+            .Flush();
 
         return true;
     }
 
-    bool addDisconnected{false};
-    const auto pParent = database_.TryLoadHeader(incomingParent);
+    auto& header = update.Stage(std::move(pHeader));
+    const auto& current = update.Stage();
+    const auto [currentHeight, currentHash] = current.Position();
+    const auto* pParent = is_disconnected(header.ParentHash(), update);
 
-    if (pParent) {
-        addDisconnected = pParent->IsDisconnected();
-    } else {
-        addDisconnected = true;
-    }
-
-    if (addDisconnected) {
+    if (nullptr == pParent) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Adding disconnected header")
             .Flush();
+        header.SetDisconnectedState();
+        update.DisconnectBlock(header);
 
-        return insert_disconnected_block(
-            lock, std::move(pHeader), std::move(pUpdate));
+        return true;
     }
+
+    OT_ASSERT(nullptr != pParent);
 
     const auto& parent = *pParent;
-    auto isCandidate = connect_to_parent(lock, parent, header);
-    const bool extendsCurrentBest = (incomingParent == currentHash);
-    const bool extendsSibling = database_.IsSibling(incomingParent);
 
-    if (extendsSibling) { update.RemoveSibling(incomingParent); }
-
-    if (isCandidate) { update.SetTip(header.Position()); }
-
-    std::unique_ptr<const block::Header> pCandidate{header.clone()};
-
-    if (database_.HasDisconnectedChildren(incomingHash)) {
-        try {
-            auto tip = scan_disconnected(
-                lock, isCandidate, header, update, pCandidate);
-
-            if (-1 != tip.first) {
-                update.SetTip(std::move(tip));
-                isCandidate = true;
-            }
-        } catch (...) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to connect children")
-                .Flush();
-
-            return false;
-        }
+    if (update.EffectiveIsSibling(header.ParentHash())) {
+        update.RemoveSibling(header.ParentHash());
     }
 
-    OT_ASSERT(pCandidate);
+    auto candidates = Candidates{};
 
-    const auto& candidate = *pCandidate;
+    try {
+        auto& candidate = initialize_candidate(
+            lock, current, parent, update, candidates, header);
+        connect_children(lock, header, candidates, candidate, update);
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to connect children")
+            .Flush();
 
-    if (isCandidate) {
-        update.SetTipBest(evaluate_candidate(current, candidate));
+        return false;
     }
 
-    if (update.TipIsBest()) {
-        if (false == extendsCurrentBest) {
-            update.AddSibling(current.Position());
-        }
-
-        if (false == calculate_reorg(lock, header, update)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate reorg")
-                .Flush();
-
-            return false;
-        }
-    } else {
-        update.AddSibling({header.Height(), incomingHash});
-    }
-
-    return database_.ApplyUpdate(std::move(pHeader), std::move(pUpdate));
+    return choose_candidate(current, candidates, update).first;
 }
 
-block::Position HeaderOracle::best_chain(const Lock& lock) const noexcept
+auto HeaderOracle::apply_checkpoint(
+    const Lock& lock,
+    const block::Height position,
+    UpdateTransaction& update) noexcept -> bool
+{
+    auto& best = update.Stage();
+
+    if (position > best.Height()) { return true; }
+
+    try {
+        const auto& ancestor = update.Stage(position - 1);
+        auto candidates = Candidates{};
+        stage_candidate(lock, ancestor, candidates, update, best);
+
+        for (const auto& hash : update.EffectiveSiblingHashes()) {
+            stage_candidate(
+                lock, ancestor, candidates, update, update.Stage(hash));
+        }
+
+        for (auto& [invalid, chain] : candidates) {
+            const block::Header* pParent = &ancestor;
+
+            for (const auto& [height, hash] : chain) {
+                auto& child = update.Header(hash);
+                invalid = connect_to_parent(lock, update, *pParent, child);
+                pParent = &child;
+            }
+        }
+
+        const auto [success, found] =
+            choose_candidate(ancestor, candidates, update);
+
+        if (false == success) { return false; }
+
+        if (false == found) {
+            const auto fallback = ancestor.Position();
+            update.SetReorgParent(fallback);
+            update.AddToBestChain(fallback);
+        }
+
+        return true;
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to process sibling chains")
+            .Flush();
+
+        return false;
+    }
+}
+
+auto HeaderOracle::best_chain(const Lock& lock) const noexcept
+    -> block::Position
 {
     return database_.CurrentBest()->Position();
 }
 
-block::Position HeaderOracle::BestChain() const noexcept
+auto HeaderOracle::BestChain() const noexcept -> block::Position
 {
     Lock lock(lock_);
 
     return best_chain(lock);
 }
 
-block::pHash HeaderOracle::BestHash(const block::Height height) const noexcept
+auto HeaderOracle::BestHash(const block::Height height) const noexcept
+    -> block::pHash
 {
     Lock lock(lock_);
 
@@ -266,80 +281,79 @@ block::pHash HeaderOracle::BestHash(const block::Height height) const noexcept
     }
 }
 
-void HeaderOracle::blacklist_to_checkpoint(
-    const Lock& lock,
-    const block::Position& checkpoint,
-    block::Header& header,
-    internal::UpdateTransaction& update)
+auto HeaderOracle::choose_candidate(
+    const block::Header& current,
+    const Candidates& candidates,
+    UpdateTransaction& update) noexcept(false) -> std::pair<bool, bool>
 {
-    const auto height{header.Height()};
-    const auto checkpointHeight{checkpoint.first};
+    auto output = std::pair<bool, bool>{false, false};
+    auto& [success, found] = output;
 
-    if (height == checkpointHeight) {
-        header.CompareToCheckpoint(checkpoint);
+    try {
+        const block::Header* pBest{&current};
 
-        return;
-    }
+        for (const auto& candidate : candidates) {
+            if (candidate.blacklisted_) { continue; }
 
-    auto& parent =
-        update.ModifyExistingBlock(database_.LoadHeader(header.ParentHash()));
-    blacklist_to_checkpoint(lock, checkpoint, parent, update);
-    header.InheritState(parent);
-}
+            OT_ASSERT(0 < candidate.chain_.size());
 
-bool HeaderOracle::calculate_reorg(
-    const Lock& lock,
-    const block::Header& header,
-    internal::UpdateTransaction& update) noexcept
-{
-    OT_ASSERT(0 < header.Height());
+            const auto& position = *candidate.chain_.crbegin();
+            const auto& tip = update.Header(position.second);
 
-    update.AddToBestChain(update.Tip());
-    auto height{header.Height() - 1};
-    block::pHash hash{header.ParentHash()};
+            if (evaluate_candidate(*pBest, tip)) { pBest = &tip; }
+        }
 
-    while (true) {
-        try {
-            if (database_.BestBlock(height) == hash) {
-                update.SetReorgParent({height, hash});
-                break;
-            } else {
-                if (0 == height) {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Reorg of genesis block is not allowed")
-                        .Flush();
+        OT_ASSERT(nullptr != pBest);
 
-                    return false;
-                } else {
-                    update.SetReorg(true);
-                    update.AddToBestChain(height, hash);
+        const auto& best = *pBest;
+
+        for (const auto& candidate : candidates) {
+            OT_ASSERT(0 < candidate.chain_.size());
+
+            const auto& position = *candidate.chain_.crbegin();
+            const auto& tip = update.Header(position.second);
+
+            if (tip.Hash() == best.Hash()) {
+                found = true;
+                auto reorg{false};
+
+                for (const auto& segment : candidate.chain_) {
+                    const auto& [height, hash] = segment;
+
+                    if ((height <= current.Height()) && (false == reorg)) {
+                        if (hash.get() == update.EffectiveBestBlock(height)) {
+                            continue;
+                        } else {
+                            reorg = true;
+                            const auto parent = block::Position{
+                                height - 1,
+                                update.EffectiveBestBlock(height - 1)};
+                            update.SetReorgParent(parent);
+                            update.AddToBestChain(segment);
+                            update.AddSibling(current.Position());
+                        }
+                    } else {
+                        update.AddToBestChain(segment);
+                    }
                 }
-            }
-        } catch (...) {
-            update.AddToBestChain(height, hash);
-        }
-
-        try {
-            hash = update.Header(hash).ParentHash();
-        } catch (...) {
-            try {
-                hash = database_.LoadHeader(hash)->ParentHash();
-            } catch (...) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load header")
-                    .Flush();
-
-                return false;
+            } else {
+                update.AddSibling(tip.Position());
             }
         }
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error evaluating candidates")
+            .Flush();
 
-        --height;
+        return output;
     }
 
-    return true;
+    success = true;
+
+    return output;
 }
 
-std::pair<block::Position, block::Position> HeaderOracle::CommonParent(
-    const block::Position& position) const noexcept
+auto HeaderOracle::CommonParent(const block::Position& position) const noexcept
+    -> std::pair<block::Position, block::Position>
 {
     Lock lock(lock_);
     const auto& database = database_;
@@ -370,152 +384,162 @@ std::pair<block::Position, block::Position> HeaderOracle::CommonParent(
     return output;
 }
 
-void HeaderOracle::connect_children(
+auto HeaderOracle::connect_children(
     const Lock& lock,
-    block::Header& parentHeader,
-    std::vector<std::unique_ptr<block::Header>>& reconnectedTips,
-    internal::UpdateTransaction& update)
+    block::Header& parent,
+    Candidates& candidates,
+    Candidate& candidate,
+    UpdateTransaction& update) -> void
 {
-    const auto disconnected = database_.DisconnectedHashes();
-    const auto [first, last] = disconnected.equal_range(parentHeader.Hash());
-    const auto children = std::distance(first, last);
+    auto& chain = candidate.chain_;
+    auto& end = *chain.crbegin();
 
-    if (0 == children) {
-        reconnectedTips.emplace_back(parentHeader.clone());
-    } else {
-        std::for_each(first, last, [&](const auto& in) -> void {
-            const auto& [parentHash, childHash] = in;
-            update.ConnectBlock({parentHash, childHash});
-            auto& childHeader =
-                update.ModifyExistingBlock(database_.LoadHeader(childHash));
-            connect_to_parent(lock, parentHeader, childHeader);
-            connect_children(lock, childHeader, reconnectedTips, update);
-        });
+    OT_ASSERT(end.first + 1 == parent.Position().first);
+
+    chain.emplace_back(parent.Position());
+
+    if (false == update.EffectiveHasDisconnectedChildren(parent.Hash())) {
+        return;
     }
+
+    const auto disconnected = update.EffectiveDisconnectedHashes();
+    const auto [first, last] = disconnected.equal_range(parent.Hash());
+    std::atomic<bool> firstChild{true};
+    const auto original{candidate};
+    std::for_each(first, last, [&](const auto& in) -> void {
+        const auto& [parentHash, childHash] = in;
+        update.ConnectBlock({parentHash, childHash});
+        auto& child = update.Stage(childHash);
+        candidate.blacklisted_ = connect_to_parent(lock, update, parent, child);
+        // The first child block extends the current candidate. Subsequent child
+        // blocks create a new candidate to extend. This transforms the tree
+        // of disconnected blocks into a table of candidates.
+        auto& chainToExtend = firstChild.exchange(false)
+                                  ? candidate
+                                  : candidates.emplace_back(original);
+        connect_children(lock, child, candidates, chainToExtend, update);
+    });
 }
 
-bool HeaderOracle::connect_to_parent(
+auto HeaderOracle::connect_to_parent(
     const Lock& lock,
+    const UpdateTransaction& update,
     const block::Header& parent,
-    block::Header& child) noexcept
+    block::Header& child) noexcept -> bool
 {
     child.InheritWork(parent.Work());
     child.InheritState(parent);
     child.InheritHeight(parent);
-    child.CompareToCheckpoint(database_.CurrentCheckpoint());
+    child.CompareToCheckpoint(update.Checkpoint());
 
-    if (child.IsBlacklisted()) { return false; }
-
-    return true;
+    return child.IsBlacklisted();
 }
 
-bool HeaderOracle::DeleteCheckpoint() noexcept
+auto HeaderOracle::DeleteCheckpoint() noexcept -> bool
 {
     Lock lock(lock_);
+    auto update = UpdateTransaction{api_, database_};
 
-    if (false == database_.HaveCheckpoint()) {
+    if (false == update.EffectiveCheckpoint()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": No checkpoint").Flush();
 
         return false;
     }
 
-    std::unique_ptr<internal::UpdateTransaction> pUpdate{
-        Factory::UpdateTransaction(api_)};
-
-    OT_ASSERT(pUpdate);
-
-    auto& update = *pUpdate;
+    const auto position = update.Checkpoint().first;
     update.ClearCheckpoint();
-    const auto checkpoint = database_.CurrentCheckpoint();
 
-    try {
-        if (database_.HeaderExists(checkpoint.second)) {
-            auto& checkpointBlock = update.ModifyExistingBlock(
-                database_.LoadHeader(checkpoint.second));
-            checkpointBlock.RemoveCheckpointState();
-            std::vector<block::Position> candidateTips{};
+    if (apply_checkpoint(lock, position, update)) {
 
-            for (const auto& hash : database_.SiblingHashes()) {
-                auto pHeader = database_.LoadHeader(hash);
-                auto& header = *pHeader;
-                const auto blacklisted = header.IsBlacklisted();
+        return database_.ApplyUpdate(update);
+    } else {
 
-                if (blacklisted) {
-                    candidateTips.emplace_back(header.Position());
-                    auto& modified =
-                        update.ModifyExistingBlock(std::move(pHeader));
-                    reverse_blacklist(lock, modified, update);
-                }
-            }
-
-            auto pPrevious = database_.CurrentBest();
-            const auto& previous = *pPrevious;
-            update.SetTip(previous.Position());
-            const auto current = update.Tip();
-            auto& tip = update.Tip();
-
-            for (const auto& position : candidateTips) {
-                auto pHeader = database_.LoadHeader(position.second);
-                auto& header = *pHeader;
-
-                if (evaluate_candidate(previous, header)) {
-                    pPrevious = std::move(pHeader);
-                    update.SetTip(position);
-                }
-            }
-
-            if (current != tip) {
-                calculate_reorg(
-                    lock, *database_.LoadHeader(tip.second), update);
-                update.SetReorg(true);
-                update.AddSibling(current);
-            }
-        }
-    } catch (...) {
         return false;
     }
-
-    return database_.ApplyUpdate(std::move(pUpdate));
 }
 
-bool HeaderOracle::evaluate_candidate(
+auto HeaderOracle::evaluate_candidate(
     const block::Header& current,
-    const block::Header& candidate) noexcept
+    const block::Header& candidate) noexcept -> bool
 {
     return candidate.Work() > current.Work();
 }
 
-block::Position HeaderOracle::GetCheckpoint() const noexcept
+auto HeaderOracle::GetCheckpoint() const noexcept -> block::Position
 {
     Lock lock(lock_);
 
     return database_.CurrentCheckpoint();
 }
 
-bool HeaderOracle::insert_disconnected_block(
+auto HeaderOracle::initialize_candidate(
     const Lock& lock,
-    std::unique_ptr<block::Header> header,
-    std::unique_ptr<internal::UpdateTransaction> pUpdate) noexcept
+    const block::Header& best,
+    const block::Header& parent,
+    UpdateTransaction& update,
+    Candidates& candidates,
+    block::Header& child,
+    const block::Hash& stopHash) noexcept(false) -> Candidate&
 {
-    OT_ASSERT(header);
-    OT_ASSERT(pUpdate);
+    const auto blacklisted = connect_to_parent(lock, update, parent, child);
+    auto position{parent.Position()};
+    auto& output = candidates.emplace_back(Candidate{blacklisted, {}});
+    auto& chain = output.chain_;
+    const block::Header* grandparent = &parent;
+    using StopFunction = std::function<bool(const block::Position&)>;
+    auto run =
+        stopHash.empty() ? StopFunction{[&update](const auto& in) -> bool {
+            return update.EffectiveBestBlock(in.first) != in.second;
+        }}
+                         : StopFunction{[&stopHash](const auto& in) -> bool {
+                               return stopHash != in.second;
+                           }};
 
-    auto& update = *pUpdate;
-    header->SetDisconnectedState();
-    update.DisconnectBlock(*header);
+    while (run(position)) {
+        OT_ASSERT(0 <= position.first);
+        OT_ASSERT(grandparent);
 
-    return database_.ApplyUpdate(std::move(header), std::move(pUpdate));
+        chain.insert(chain.begin(), position);
+        grandparent = &update.Stage(grandparent->ParentHash());
+        position = grandparent->Position();
+    }
+
+    if (0 == chain.size()) { chain.emplace_back(position); }
+
+    OT_ASSERT(0 < chain.size());
+
+    return output;
 }
 
-bool HeaderOracle::IsInBestChain(const block::Hash& hash) const noexcept
+auto HeaderOracle::IsInBestChain(const block::Hash& hash) const noexcept -> bool
 {
     Lock lock(lock_);
 
     return is_in_best_chain(lock, hash);
 }
 
-bool HeaderOracle::is_in_best_chain(const Lock& lock, const block::Hash& hash)
-    const noexcept
+auto HeaderOracle::is_disconnected(
+    const block::Hash& parent,
+    UpdateTransaction& update) noexcept -> const block::Header*
+{
+    try {
+        const auto& header = update.Stage(parent);
+
+        if (header.IsDisconnected()) {
+
+            return nullptr;
+        } else {
+
+            return &header;
+        }
+    } catch (...) {
+
+        return nullptr;
+    }
+}
+
+auto HeaderOracle::is_in_best_chain(const Lock& lock, const block::Hash& hash)
+    const noexcept -> bool
 {
     const auto pHeader = database_.TryLoadHeader(hash);
 
@@ -532,144 +556,43 @@ bool HeaderOracle::is_in_best_chain(const Lock& lock, const block::Hash& hash)
     }
 }
 
-std::unique_ptr<block::Header> HeaderOracle::LoadHeader(
-    const block::Hash& hash) const noexcept
+auto HeaderOracle::LoadHeader(const block::Hash& hash) const noexcept
+    -> std::unique_ptr<block::Header>
 {
     return database_.TryLoadHeader(hash);
 }
 
-bool HeaderOracle::reorg_to_checkpoint(
+auto HeaderOracle::stage_candidate(
     const Lock& lock,
-    const block::Position& checkpoint,
-    internal::UpdateTransaction& update)
+    const block::Header& best,
+    Candidates& candidates,
+    UpdateTransaction& update,
+    block::Header& child) noexcept(false) -> void
 {
-    const auto& tip = update.Tip();
-    bool checkpointIsBest{false};
-    std::vector<block::Position> candidateTips{};
+    const auto position = best.Height() + 1;
 
-    for (const auto& hash : database_.SiblingHashes()) {
-        auto pHeader = database_.LoadHeader(hash);
-        const auto& header = *pHeader;
+    if (child.Height() < position) {
 
-        if (header.Height() < checkpoint.first) { continue; }
-
-        if (header.Height() == checkpoint.first) {
-            auto& modified = update.ModifyExistingBlock(std::move(pHeader));
-            modified.CompareToCheckpoint(checkpoint);
-            checkpointIsBest = true;
-            update.RemoveSibling(hash);
-
-            continue;
-        }
-
-        auto containsCheckpoint = scan_for_checkpoint(lock, checkpoint, header);
-
-        if (containsCheckpoint) {
-            candidateTips.emplace_back(header.Position());
-        } else {
-            auto& modified = update.ModifyExistingBlock(std::move(pHeader));
-            blacklist_to_checkpoint(lock, checkpoint, modified, update);
-        }
-    }
-
-    if (checkpointIsBest) {
-        update.SetTip(checkpoint);
+        return;
+    } else if (child.Height() == position) {
+        candidates.emplace_back(Candidate{false, {child.Position()}});
     } else {
-        const block::Height beforeCheckpoint{checkpoint.first - 1};
-        update.SetTip(
-            {beforeCheckpoint, database_.BestBlock(beforeCheckpoint)});
+        auto& candidate = initialize_candidate(
+            lock,
+            best,
+            update.Stage(child.ParentHash()),
+            update,
+            candidates,
+            child,
+            best.Hash());
+        candidate.chain_.emplace_back(child.Position());
+        const auto first = candidate.chain_.cbegin()->first;
 
-        for (const auto& position : candidateTips) {
-            const auto currentHeader = database_.LoadHeader(tip.second);
-            const auto candidateHeader = database_.LoadHeader(position.second);
-
-            if (evaluate_candidate(*currentHeader, *candidateHeader)) {
-                update.SetTip(position);
-            }
-        }
-    }
-
-    return calculate_reorg(lock, *database_.LoadHeader(tip.second), update);
-}
-
-void HeaderOracle::reverse_blacklist(
-    const Lock& lock,
-    block::Header& header,
-    internal::UpdateTransaction& update)
-{
-    if (0 == header.Height()) { return; }
-
-    const bool recurse = header.IsBlacklisted();
-    header.RemoveBlacklistState();
-
-    if (recurse) {
-        auto& parent = update.ModifyExistingBlock(
-            database_.LoadHeader(header.ParentHash()));
-        reverse_blacklist(lock, parent, update);
+        OT_ASSERT(position == first);
     }
 }
 
-block::Position HeaderOracle::scan_disconnected(
-    const Lock& lock,
-    const bool isCandidate,
-    block::Header& parent,
-    internal::UpdateTransaction& update,
-    std::unique_ptr<const block::Header>& candidate)
-{
-    std::vector<std::unique_ptr<block::Header>> reconnectedTips{};
-    connect_children(lock, parent, reconnectedTips, update);
-    auto potentialTip =
-        (isCandidate) ? parent.clone() : std::unique_ptr<block::Header>();
-
-    for (auto& pHeader : reconnectedTips) {
-        const auto& child = *pHeader;
-        const auto position = child.Position();
-        const auto status = child.EffectiveState();
-
-        update.AddSibling(position);
-        const auto candidate =
-            block::Header::Status::CheckpointBanned != status;
-
-        if (candidate) {
-            if (block::Header::Status::Checkpoint == status) {
-                potentialTip = std::move(pHeader);
-            } else if (false == bool(potentialTip)) {
-                potentialTip = std::move(pHeader);
-            } else if (evaluate_candidate(*potentialTip, child)) {
-                potentialTip = std::move(pHeader);
-            }
-        }
-    }
-
-    if (potentialTip) {
-        const auto output = potentialTip->Position();
-        candidate = std::move(potentialTip);
-
-        return output;
-    } else {
-
-        return make_blank<block::Position>::value(api_);
-    }
-}
-
-bool HeaderOracle::scan_for_checkpoint(
-    const Lock& lock,
-    const block::Position& checkpoint,
-    const block::Header& header)
-{
-    const auto height = header.Height();
-    const auto& hash = header.Hash();
-    const auto& parentHash = header.ParentHash();
-
-    OT_ASSERT(height >= checkpoint.first);
-
-    if (height == checkpoint.first) { return hash == checkpoint.second; }
-
-    return scan_for_checkpoint(
-        lock, checkpoint, *database_.LoadHeader(parentHash));
-}
-
-std::set<block::pHash> HeaderOracle::Siblings() const noexcept
+auto HeaderOracle::Siblings() const noexcept -> std::set<block::pHash>
 {
     Lock lock(lock_);
 

@@ -18,6 +18,10 @@ public:
     const Identifier& ID() const noexcept final { return id_; }
     Time LastConnected() const noexcept final { return last_connected_; }
     std::uint16_t Port() const noexcept final { return port_; }
+    Time PreviousLastConnected() const noexcept final
+    {
+        return previous_last_connected_;
+    }
     std::set<Service> Services() const noexcept final { return services_; }
     Protocol Style() const noexcept final { return protocol_; }
     Network Type() const noexcept final { return network_; }
@@ -53,6 +57,7 @@ private:
     const OTData bytes_;
     const std::uint16_t port_;
     const blockchain::Type chain_;
+    const Time previous_last_connected_;
     Time last_connected_;
     std::set<Service> services_;
 

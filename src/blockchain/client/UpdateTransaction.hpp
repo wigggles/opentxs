@@ -5,60 +5,88 @@
 
 #pragma once
 
-namespace opentxs::blockchain::client::implementation
+#include "Internal.hpp"
+
+#include "opentxs/blockchain/Blockchain.hpp"
+
+#include "internal/blockchain/client/Client.hpp"
+
+#include <optional>
+
+namespace opentxs::blockchain::client
 {
-class UpdateTransaction final : virtual public internal::UpdateTransaction
+class UpdateTransaction
 {
 public:
-    const BestHashes& BestChain() const { return reorg_; }
-    const block::Position& Checkpoint() const { return checkpoint_; }
+    const BestHashes& BestChain() const { return best_; }
+    block::Position Checkpoint() const;
     const Segments& Connected() const { return connect_; }
     const Segments& Disconnected() const { return disconnected_; }
+    block::pHash EffectiveBestBlock(const block::Height height) const
+        noexcept(false);
+    bool EffectiveCheckpoint() const noexcept;
+    const DisconnectedList& EffectiveDisconnectedHashes() const noexcept
+    {
+        return disconnected();
+    }
+    bool EffectiveHasDisconnectedChildren(const block::Hash& hash) const
+        noexcept;
+    bool EffectiveHeaderExists(const block::Hash& hash) const noexcept;
+    bool EffectiveIsSibling(const block::Hash& hash) const noexcept
+    {
+        return 0 < siblings().count(hash);
+    }
+    const Hashes& EffectiveSiblingHashes() const noexcept { return siblings(); }
     bool HaveCheckpoint() const { return have_checkpoint_; }
     bool HaveReorg() const { return have_reorg_; }
-    // throws std::out_of_range if header does not exist
-    const block::Header& Header(const block::Hash& hash) const;
-    bool IsInBestChain(const block::Position& position) const;
-    bool IsInBestChain(const block::Height height, const block::Hash& hash)
-        const;
     const block::Position& ReorgParent() const { return reorg_from_; }
     const Hashes& SiblingsToAdd() const { return add_sib_; }
     const Hashes& SiblingsToDelete() const { return delete_sib_; }
-    const block::Position& Tip() const { return tip_; }
-    bool TipIsBest() const { return is_best_; }
+    const UpdatedHeader& UpdatedHeaders() const { return headers_; }
 
     void AddSibling(const block::Position& position);
     void AddToBestChain(const block::Position& position);
-    void AddToBestChain(const block::Height height, const block::Hash& hash);
     void ClearCheckpoint();
     void ConnectBlock(ChainSegment&& segment);
     void DisconnectBlock(const block::Header& header);
-    block::Header& ModifyExistingBlock(std::unique_ptr<block::Header> header);
+    // throws std::out_of_range if header does not exist
+    block::Header& Header(const block::Hash& hash) noexcept(false);
     void RemoveSibling(const block::Hash& hash);
     void SetCheckpoint(block::Position&& checkpoint);
-    void SetReorg(const bool value) { have_reorg_ = value; }
-    void SetReorgParent(const block::Position& pos) { reorg_from_ = pos; }
-    void SetTip(const block::Position& position) { tip_ = position; }
-    void SetTipBest(const bool isBest) { is_best_ = isBest; }
-    UpdatedHeader& UpdatedHeaders() { return headers_; }
+    void SetReorgParent(const block::Position& pos) noexcept;
+    // Stages best block for possible metadata update
+    block::Header& Stage() noexcept;
+    // Stages a brand new header
+    block::Header& Stage(std::unique_ptr<block::Header> header) noexcept;
+    // Stages an existing header for possible metadata update
+    block::Header& Stage(const block::Hash& hash) noexcept(false);
+    // Stages an existing header for possible metadata update
+    block::Header& Stage(const block::Height& height) noexcept(false);
+
+    UpdateTransaction(const api::Core& api, const internal::HeaderDatabase& db);
 
 private:
     friend opentxs::Factory;
 
     const api::Core& api_;
-    bool is_best_;
+    const internal::HeaderDatabase& db_;
     bool have_reorg_;
     bool have_checkpoint_;
-    block::Position tip_;
     block::Position reorg_from_;
     block::Position checkpoint_;
     UpdatedHeader headers_;
-    BestHashes reorg_;
+    BestHashes best_;
     Hashes add_sib_;
     Hashes delete_sib_;
     Segments connect_;
     Segments disconnected_;
+    mutable std::optional<DisconnectedList> cached_disconnected_;
+    mutable std::optional<Hashes> cached_siblings_;
 
-    UpdateTransaction(const api::Core& api);
+    DisconnectedList& disconnected() const noexcept;
+    Hashes& siblings() const noexcept;
+    block::Header& stage(
+        const bool newHeader,
+        std::unique_ptr<block::Header> header) noexcept;
 };
-}  // namespace opentxs::blockchain::client::implementation
+}  // namespace opentxs::blockchain::client

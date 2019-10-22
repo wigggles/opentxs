@@ -46,6 +46,7 @@ Peer::Peer(
     , manager_(manager)
     , endpoint_(
           make_endpoint(address->Type(), address->Bytes(), address->Port()))
+    , running_(Flag::Factory(true))
     , send_promise_()
     , send_future_(send_promise_.get_future())
     , address_(std::move(address))
@@ -54,6 +55,7 @@ Peer::Peer(
     , body_bytes_(0)
     , outgoing_handshake_(false)
     , incoming_handshake_(false)
+    , header_worker_(api, [this](auto& in) { request_headers(); })
     , cfilter_worker_(api, [this](auto& in) { request_cfilter(in); })
     , id_(id)
     , context_(context)
@@ -64,7 +66,6 @@ Peer::Peer(
           std::bind(&Peer::process_message, this, std::placeholders::_1)))
     , incoming_body_(Data::Factory())
     , outgoing_message_(Data::Factory())
-    , running_(true)
     , connection_promise_()
     , connected_(connection_promise_.get_future())
     , handshake_promise_()
@@ -392,7 +393,7 @@ tcp::endpoint Peer::make_endpoint(
 
 void Peer::read_body() noexcept
 {
-    if (running_.load()) {
+    if (running_.get()) {
         asio::async_read(
             socket_,
             asio::buffer(incoming_body_->data(), incoming_body_->size()),
@@ -402,7 +403,7 @@ void Peer::read_body() noexcept
 
 void Peer::read_header() noexcept
 {
-    if (running_.load()) {
+    if (running_.get()) {
         asio::async_read(
             socket_,
             asio::buffer(header_->data(), header_->size()),
@@ -456,7 +457,7 @@ void Peer::receive_header(const boost::system::error_code& error) noexcept
 
 void Peer::run() noexcept
 {
-    if (running_.load()) { read_header(); }
+    if (running_.get()) { read_header(); }
 }
 
 Peer::SendStatus Peer::send(OTData in) noexcept
@@ -473,7 +474,7 @@ Peer::SendStatus Peer::send(OTData in) noexcept
         return {};
     }
 
-    if (running_.load()) {
+    if (running_.get()) {
         auto [future, promise] = send_promises_.NewPromise();
         auto message = zmq::Message::Factory();
         message->AddFrame(in);
@@ -486,22 +487,27 @@ Peer::SendStatus Peer::send(OTData in) noexcept
     }
 }
 
+void Peer::Heartbeat() const noexcept
+{
+    if (false == running_.get()) { return; }
+
+    Trigger();
+}
+
 void Peer::Shutdown() noexcept
 {
-    const auto running = running_.exchange(false);
-
-    if (false == running) { return; }
+    if (false == running_->Off()) { return; }
 
     try {
         socket_.shutdown(tcp::socket::shutdown_both);
     } catch (...) {
     }
 
+    Stop().get();
     break_promises();
     cfilter_worker_.Stop();
     process_->Close();
     send_->Close();
-    Stop().get();
     socket_.close();
     break_promises();
 
@@ -530,6 +536,8 @@ bool Peer::state_machine() noexcept
 
 void Peer::transmit(zmq::Message& message) noexcept
 {
+    if (false == running_.get()) { return; }
+
     struct Cleanup {
         Cleanup(const bool& sucess, const zmq::Frame& frame, Peer& parent)
             : success_(sucess)
@@ -579,7 +587,7 @@ void Peer::transmit(zmq::Message& message) noexcept
     auto result = SendResult{};
 
     try {
-        while (running_.load()) {
+        while (running_.get()) {
             const auto status =
                 send_future_.wait_for(std::chrono::milliseconds(5));
 

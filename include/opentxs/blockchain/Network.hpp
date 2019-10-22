@@ -32,7 +32,6 @@ public:
 
     virtual bool Connect() noexcept = 0;
     virtual bool Disconnect() noexcept = 0;
-    virtual bool Shutdown() noexcept = 0;
 
     virtual ~Network() = default;
 

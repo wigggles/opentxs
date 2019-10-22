@@ -70,6 +70,7 @@ Address::Address(
     , bytes_(bytes)
     , port_(port)
     , chain_(chain)
+    , previous_last_connected_(lastConnected)
     , last_connected_(lastConnected)
     , services_(services)
 {
@@ -116,6 +117,7 @@ Address::Address(const Address& rhs) noexcept
     , bytes_(rhs.bytes_)
     , port_(rhs.port_)
     , chain_(rhs.chain_)
+    , previous_last_connected_(rhs.previous_last_connected_)
     , last_connected_(rhs.last_connected_)
     , services_(rhs.services_)
 {

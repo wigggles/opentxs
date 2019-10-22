@@ -40,6 +40,10 @@ set(
 
 add_library(opentxs-blockchain OBJECT ${cxx-sources} ${cxx-headers})
 target_link_libraries(opentxs-blockchain PRIVATE Boost::headers)
+target_include_directories(
+  opentxs-blockchain SYSTEM
+  PRIVATE ${LMDB_INCLUDE_DIR}
+)
 set_property(TARGET opentxs-blockchain PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

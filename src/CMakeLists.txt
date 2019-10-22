@@ -54,6 +54,7 @@ endif()
 if(OT_BLOCKCHAIN_EXPORT)
   set(
     blockchain
+    $<TARGET_OBJECTS:opentxs-api-client-blockchain-database>
     $<TARGET_OBJECTS:opentxs-blockchain-bitcoin>
     $<TARGET_OBJECTS:opentxs-blockchain-block-bitcoin>
     $<TARGET_OBJECTS:opentxs-blockchain-block>

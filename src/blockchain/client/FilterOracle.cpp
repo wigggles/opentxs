@@ -9,6 +9,7 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -54,6 +55,7 @@ FilterOracle::FilterOracle(
     , api_(api)
     , network_(network)
     , database_(database)
+    , running_(Flag::Factory(true))
     , lock_()
     , requests_(api_)
     , new_filters_(api_.ZeroMQ().Pipeline(api_, [this](auto& in) {
@@ -118,11 +120,27 @@ void FilterOracle::AddFilter(
     const block::Hash& block,
     const Data& filter) const noexcept
 {
+    if (false == running_.get()) { return; }
+
     auto work = zmq::Message::Factory();
     work->AddFrame(Data::Factory(&type, sizeof(type)));
     work->AddFrame(block);
     work->AddFrame(filter);
     new_filters_->Push(work);
+}
+
+void FilterOracle::CheckBlocks() const noexcept
+{
+    if (false == running_.get()) { return; }
+
+    Trigger();
+}
+
+void FilterOracle::Start() noexcept
+{
+    if (false == running_.get()) { return; }
+
+    Trigger();
 }
 
 bool FilterOracle::have_all_filters(
@@ -159,6 +177,8 @@ bool FilterOracle::have_all_filters(
 
 void FilterOracle::process_cfilter(const zmq::Message& in) noexcept
 {
+    if (false == running_.get()) { return; }
+
     const auto& body = in.Body();
 
     if (3 != body.size()) {
@@ -219,8 +239,9 @@ void FilterOracle::process_cfilter(const zmq::Message& in) noexcept
 
 void FilterOracle::Shutdown() noexcept
 {
-    new_filters_->Close();
+    running_->Off();
     Stop().get();
+    new_filters_->Close();
 }
 
 bool FilterOracle::state_machine() noexcept

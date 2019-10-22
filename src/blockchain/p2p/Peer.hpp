@@ -9,6 +9,7 @@
 
 #include "opentxs/blockchain/p2p/Peer.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
@@ -40,7 +41,7 @@ public:
     OTIdentifier AddressID() const noexcept final { return address_.ID(); }
     ConnectionStatus Connected() const noexcept final { return connected_; }
     Handshake HandshakeComplete() const noexcept final { return handshake_; }
-    void Heartbeat() const noexcept final { Trigger(); }
+    void Heartbeat() const noexcept final;
     void Shutdown() noexcept final;
 
     ~Peer() override;
@@ -107,6 +108,7 @@ protected:
     const client::internal::Network& network_;
     const client::internal::PeerManager& manager_;
     const tcp::endpoint endpoint_;
+    OTFlag running_;
     SendPromise send_promise_;
     SendFuture send_future_;
     Address address_;
@@ -115,6 +117,7 @@ protected:
     std::size_t body_bytes_;
     bool outgoing_handshake_;
     bool incoming_handshake_;
+    Worker header_worker_;
     Worker cfilter_worker_;
 
     void check_handshake() noexcept;
@@ -180,7 +183,6 @@ private:
     OTZMQPipeline process_;
     OTData incoming_body_;
     OTData outgoing_message_;
-    std::atomic<bool> running_;
     std::promise<bool> connection_promise_;
     std::shared_future<bool> connected_;
     std::promise<void> handshake_promise_;
