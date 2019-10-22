@@ -54,6 +54,10 @@
 #include "Periodic.hpp"
 #include "Scheduler.hpp"
 
+#ifndef _WIN32
+#include <sys/resource.h>
+#endif  // _WIN32
+
 #include <algorithm>
 #include <atomic>
 #include <ctime>
@@ -228,6 +232,9 @@ void Context::Init()
 
     Init_Log(argLevel);
     Init_Crypto();
+#ifndef _WIN32
+    Init_Rlimit();
+#endif  // _WIN32
     Init_Zap();
 }
 
@@ -277,6 +284,24 @@ void Context::init_pid(const Lock& lock) const
     OT_ASSERT(pid_);
     OT_ASSERT(pid_->isOpen());
 }
+
+#ifndef _WIN32
+void Context::Init_Rlimit() noexcept
+{
+    auto limit = ::rlimit{};
+    limit.rlim_cur = 16384;
+    limit.rlim_max = 16384;
+
+    if (0 != setrlimit(RLIMIT_NOFILE, &limit)) {
+        LogNormal("Failed to set open file limit to 16384. You must increase "
+                  "this user account's resource limits via the method "
+                  "appropriate for your operating system.")
+            .Flush();
+
+        abort();
+    }
+}
+#endif  // _WIN32
 
 void Context::Init_Zap()
 {
