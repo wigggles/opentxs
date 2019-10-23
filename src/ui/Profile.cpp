@@ -46,19 +46,52 @@ template struct std::pair<int, std::string>;
 
 #define OT_METHOD "opentxs::ui::implementation::Profile::"
 
+namespace opentxs
+{
+ui::implementation::Profile* Factory::ProfileModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::Profile(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::ProfileQt* Factory::ProfileQtModel(ui::implementation::Profile& parent)
+{
+    using ReturnType = ui::ProfileQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(ProfileQt, Profile)
+QT_PROXY_MODEL_WRAPPER(ProfileQt, implementation::Profile)
 
 QString ProfileQt::displayName() const noexcept
 {
-    return parent_->DisplayName().c_str();
+    return parent_.DisplayName().c_str();
 }
-QString ProfileQt::nymID() const noexcept { return parent_->ID().c_str(); }
+QString ProfileQt::nymID() const noexcept { return parent_.ID().c_str(); }
 QString ProfileQt::paymentCode() const noexcept
 {
-    return parent_->PaymentCode().c_str();
+    return parent_.PaymentCode().c_str();
 }
 }  // namespace opentxs::ui
 #endif
@@ -79,9 +112,7 @@ Profile::Profile(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : ProfileList(
@@ -90,9 +121,7 @@ Profile::Profile(
           nymID
 #if OT_QT
           ,
-          qt,
-          insertCallback,
-          removeCallback
+          qt
 #endif
           )
     , listeners_({
@@ -219,9 +248,7 @@ void Profile::construct_row(
             custom
 #if OT_QT
             ,
-            enable_qt_,
-            insert_callbacks_,
-            remove_callbacks_
+            enable_qt_
 #endif
             ));
 }

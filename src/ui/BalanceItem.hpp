@@ -35,7 +35,11 @@ public:
         const implementation::AccountActivitySortKey& key,
         const implementation::CustomData& custom) noexcept override;
 
-    virtual ~BalanceItem() override;
+#if OT_QT
+    QVariant qt_data(const int column, const int role) const noexcept final;
+#endif
+
+    ~BalanceItem() override;
 
 protected:
     const OTNymID nym_id_;

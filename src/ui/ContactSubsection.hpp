@@ -23,8 +23,10 @@ using ContactSubsectionRow = RowType<
     ContactSectionInternalInterface,
     ContactSectionRowID>;
 
-class ContactSubsection final : public ContactSubsectionList,
-                                public ContactSubsectionRow
+class ContactSubsection final : public Combined<
+                                    ContactSubsectionList,
+                                    ContactSubsectionRow,
+                                    ContactSectionSortKey>
 {
 public:
     std::string Name(const std::string& lang) const noexcept final;
@@ -67,9 +69,7 @@ private:
         const CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     ContactSubsection() = delete;

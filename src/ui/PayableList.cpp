@@ -45,9 +45,45 @@
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(PayableListQt, PayableList)
+QT_PROXY_MODEL_WRAPPER(PayableListQt, implementation::PayableList)
 }  // namespace opentxs::ui
 #endif
+
+namespace opentxs
+{
+ui::implementation::PayableList* Factory::PayableListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const proto::ContactItemType& currency
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::PayableList(
+        api,
+        publisher,
+        nymID,
+        currency
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::PayableListQt* Factory::PayableListQtModel(
+    ui::implementation::PayableList& parent)
+{
+    using ReturnType = ui::PayableListQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
@@ -58,9 +94,7 @@ PayableList::PayableList(
     const proto::ContactItemType& currency
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     )
     : PayableListList(
@@ -70,10 +104,9 @@ PayableList::PayableList(
 #if OT_QT
           ,
           qt,
-          insertCallback,
-          removeCallback,
-          Roles{},
-          5
+          Roles{{PayableListQt::ContactIDRole, "id"},
+                {PayableListQt::SectionRole, "section"}},
+          2
 #endif
           )
     , listeners_({
@@ -111,39 +144,6 @@ void PayableList::construct_row(
         Factory::PayableListItem(
             *this, api_, publisher_, id, index, *paymentCode, currency_));
 }
-
-#if OT_QT
-QVariant PayableList::data(const QModelIndex& index, [[maybe_unused]] int role)
-    const noexcept
-{
-    const auto [valid, pRow] = check_index(index);
-
-    if (false == valid) { return {}; }
-
-    const auto& row = *pRow;
-
-    switch (index.column()) {
-        case 0: {
-            return row.ContactID().c_str();
-        }
-        case 1: {
-            return row.DisplayName().c_str();
-        }
-        case 2: {
-            return row.ImageURI().c_str();
-        }
-        case 3: {
-            return row.Section().c_str();
-        }
-        case 4: {
-            return row.PaymentCode().c_str();
-        }
-        default: {
-            return {};
-        }
-    }
-}
-#endif
 
 const Identifier& PayableList::ID() const { return owner_contact_id_; }
 

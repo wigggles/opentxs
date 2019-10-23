@@ -54,55 +54,44 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::AccountActivityQt final : public QAbstractItemModel
+class opentxs::ui::AccountActivityQt final : public QIdentityProxyModel
 {
     Q_OBJECT
-
-public:
-    using ConstructorCallback = std::function<implementation::AccountActivity*(
-        RowCallbacks insert,
-        RowCallbacks remove)>;
-
-    int balancePolarity() const noexcept;
-    QString displayBalance() const noexcept;
-
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-
-    const AccountActivity& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    AccountActivityQt(ConstructorCallback cb) noexcept(false);
-    ~AccountActivityQt() final;
+    Q_PROPERTY(int balancePolarity READ balancePolarity NOTIFY updated)
+    Q_PROPERTY(QString displayBalance READ displayBalance NOTIFY updated)
 
 signals:
     void updated() const;
 
-private:
-    Q_PROPERTY(int balancePolarity READ balancePolarity NOTIFY updated)
-    Q_PROPERTY(QString displayBalance READ displayBalance NOTIFY updated)
+public:
+    // Table layout
+    enum Roles {
+        PolarityRole = Qt::UserRole + 0,
+        ContactsRole = Qt::UserRole + 1,
+        WorkflowRole = Qt::UserRole + 2,
+        TypeRole = Qt::UserRole + 3,
+    };
+    enum Columns {
+        AmountColumn = 0,
+        TextColumn = 1,
+        MemoColumn = 2,
+        TimeColumn = 3,
+        UUIDColumn = 4,
+    };
 
-    std::unique_ptr<implementation::AccountActivity> parent_;
+    int balancePolarity() const noexcept;
+    QString displayBalance() const noexcept;
+
+    ~AccountActivityQt() final = default;
+
+private:
+    friend opentxs::Factory;
+
+    implementation::AccountActivity& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
+    AccountActivityQt(implementation::AccountActivity& parent) noexcept;
     AccountActivityQt() = delete;
     AccountActivityQt(const AccountActivityQt&) = delete;
     AccountActivityQt(AccountActivityQt&&) = delete;

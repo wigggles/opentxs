@@ -44,15 +44,12 @@ public:
         return polarity(balance_.load());
     }
     Amount Balance() const noexcept final { return balance_.load(); }
-#if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-#endif
     std::string DisplayBalance() const noexcept final;
-    ~AccountActivity();
+
+    ~AccountActivity() final;
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     using EventRow =
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
@@ -88,9 +85,7 @@ private:
         const Identifier& accountID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     AccountActivity() = delete;

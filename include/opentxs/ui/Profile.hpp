@@ -149,59 +149,33 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ProfileQt : public QAbstractItemModel
+class opentxs::ui::ProfileQt final : public QIdentityProxyModel
 {
     Q_OBJECT
+    Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
+    Q_PROPERTY(QString nymID READ nymID NOTIFY updated)
+    Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
+
+signals:
+    void updated() const;
 
 public:
-    using ConstructorCallback = std::function<
-        implementation::Profile*(RowCallbacks insert, RowCallbacks remove)>;
+    // Tree layout
 
     QString displayName() const noexcept;
     QString nymID() const noexcept;
     QString paymentCode() const noexcept;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept override;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept override;
-    QModelIndex parent(const QModelIndex& index) const noexcept override;
-    QHash<int, QByteArray> roleNames() const noexcept override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept override;
-
-    const Profile& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    ProfileQt(ConstructorCallback cb) noexcept(false);
-    ~ProfileQt() override;
-
-signals:
-    void updated() const;
-
-protected:
-    ProfileQt() = default;
+    ~ProfileQt() final = default;
 
 private:
-    Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
-    Q_PROPERTY(QString nymID READ nymID NOTIFY updated)
-    Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
+    friend opentxs::Factory;
 
-    std::unique_ptr<implementation::Profile> parent_;
+    implementation::Profile& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
+    ProfileQt(implementation::Profile& parent) noexcept;
     ProfileQt(const ProfileQt&) = delete;
     ProfileQt(ProfileQt&&) = delete;
     ProfileQt& operator=(const ProfileQt&) = delete;

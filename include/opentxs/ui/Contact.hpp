@@ -57,56 +57,33 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ContactQt final : public QAbstractItemModel
+class opentxs::ui::ContactQt final : public QIdentityProxyModel
 {
     Q_OBJECT
+    Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
+    Q_PROPERTY(QString contactID READ contactID NOTIFY updated)
+    Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
+
+signals:
+    void updated() const;
 
 public:
-    using ConstructorCallback = std::function<
-        implementation::Contact*(RowCallbacks insert, RowCallbacks remove)>;
+    // Tree layout
 
     QString displayName() const noexcept;
     QString contactID() const noexcept;
     QString paymentCode() const noexcept;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-
-    const Contact& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    ContactQt(ConstructorCallback cb) noexcept(false);
-    ~ContactQt() final;
-
-signals:
-    void updated() const;
+    ~ContactQt() final = default;
 
 private:
-    Q_PROPERTY(QString displayName READ displayName NOTIFY updated)
-    Q_PROPERTY(QString contactID READ contactID NOTIFY updated)
-    Q_PROPERTY(QString paymentCode READ paymentCode NOTIFY updated)
+    friend opentxs::Factory;
 
-    std::unique_ptr<implementation::Contact> parent_;
+    implementation::Contact& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
+    ContactQt(implementation::Contact& parent) noexcept;
     ContactQt() = delete;
     ContactQt(const ContactQt&) = delete;
     ContactQt(ContactQt&&) = delete;

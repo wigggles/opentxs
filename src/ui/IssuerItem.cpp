@@ -27,8 +27,7 @@
 
 #include "internal/api/client/Client.hpp"
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
-#include "Row.hpp"
+#include "Combined.hpp"
 
 #include <atomic>
 
@@ -50,9 +49,7 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
 )
 {
@@ -66,9 +63,7 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
         currency
 #if OT_QT
         ,
-        qt,
-        insertCallback,
-        removeCallback
+        qt
 #endif
     );
 }
@@ -81,34 +76,33 @@ IssuerItem::IssuerItem(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const AccountSummaryRowID& rowID,
-    const AccountSummarySortKey& sortKey,
+    const AccountSummarySortKey& key,
     [[maybe_unused]] const CustomData& custom,
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
-    : IssuerItemList(
+    : Combined(
           api,
           publisher,
           parent.NymID(),
-          parent.WidgetID()
+          parent.WidgetID(),
+          parent,
+          rowID,
+          key
 #if OT_QT
-              ,
+          ,
           qt,
-          insertCallback,
-          removeCallback
+          Roles{},
+          2
 #endif
           )
-    , IssuerItemRow(parent, rowID, true)
     , listeners_({
           {api_.Endpoints().AccountUpdate(),
            new MessageProcessor<IssuerItem>(&IssuerItem::process_account)},
       })
-    , key_{sortKey}
     , name_{std::get<1>(key_)}
     , connection_{std::get<0>(key_)}
     , issuer_{api_.Wallet().Issuer(parent.NymID(), rowID)}
@@ -193,6 +187,44 @@ void IssuerItem::process_account(
         OT_FAIL;
     }
 }
+
+#if OT_QT
+QVariant IssuerItem::qt_data(const int column, int role) const noexcept
+{
+    switch (role) {
+        case Qt::DisplayRole: {
+            switch (column) {
+                case AccountSummaryQt::IssuerNameColumn: {
+                    return Name().c_str();
+                }
+                default: {
+                    return {};
+                }
+            }
+        }
+        case Qt::ToolTipRole: {
+            return Debug().c_str();
+        }
+        case Qt::CheckStateRole: {
+            switch (column) {
+                case AccountSummaryQt::ConnectionStateColumn: {
+                    return ConnectionState();
+                }
+                case AccountSummaryQt::TrustedColumn: {
+                    return Trusted();
+                }
+                default: {
+                }
+            }
+
+            [[fallthrough]];
+        }
+        default: {
+            return {};
+        }
+    }
+}
+#endif
 
 void IssuerItem::refresh_accounts() noexcept
 {

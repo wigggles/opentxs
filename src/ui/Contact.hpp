@@ -24,12 +24,19 @@ class Contact : public ContactType
 public:
     std::string ContactID() const noexcept final;
     std::string DisplayName() const noexcept final;
+#if OT_QT
+    int FindRow(const ContactRowID& id, const ContactSortKey& key) const
+        noexcept final
+    {
+        return find_row(id, key);
+    }
+#endif
     std::string PaymentCode() const noexcept final;
 
     ~Contact();
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
@@ -63,9 +70,7 @@ private:
         const Identifier& contactID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     Contact() = delete;

@@ -50,49 +50,30 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::MessagableListQt final : public QAbstractItemModel
+class opentxs::ui::MessagableListQt final : public QIdentityProxyModel
 {
     Q_OBJECT
-
-public:
-    using ConstructorCallback = std::function<implementation::MessagableList*(
-        RowCallbacks insert,
-        RowCallbacks remove)>;
-
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-
-    const MessagableList& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    MessagableListQt(ConstructorCallback cb) noexcept(false);
-    ~MessagableListQt() final;
 
 signals:
     void updated() const;
 
+public:
+    // List layout
+    enum Roles {
+        ContactIDRole = Qt::UserRole + 0,
+        SectionRole = Qt::UserRole + 1,
+    };
+
+    ~MessagableListQt() final = default;
+
 private:
-    std::unique_ptr<implementation::MessagableList> parent_;
+    friend opentxs::Factory;
+
+    implementation::MessagableList& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
+    MessagableListQt(implementation::MessagableList& parent) noexcept;
     MessagableListQt() = delete;
     MessagableListQt(const MessagableListQt&) = delete;
     MessagableListQt(MessagableListQt&&) = delete;

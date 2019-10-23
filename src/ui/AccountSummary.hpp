@@ -23,6 +23,13 @@ class AccountSummary final : public AccountSummaryList
 {
 public:
     proto::ContactItemType Currency() const noexcept final { return currency_; }
+#if OT_QT
+    int FindRow(const AccountSummaryRowID& id, const AccountSummarySortKey& key)
+        const noexcept final
+    {
+        return find_row(id, key);
+    }
+#endif
     const identifier::Nym& NymID() const noexcept final { return primary_id_; }
 
     ~AccountSummary();
@@ -59,9 +66,7 @@ private:
         const proto::ContactItemType currency
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     AccountSummary() = delete;

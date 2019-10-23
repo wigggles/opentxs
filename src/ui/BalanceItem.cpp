@@ -205,6 +205,65 @@ std::string BalanceItem::get_contact_name(const identifier::Nym& nymID) const
     return output;
 }
 
+#if OT_QT
+QVariant BalanceItem::qt_data(const int column, int role) const noexcept
+{
+    switch (role) {
+        case Qt::DisplayRole: {
+            switch (column) {
+                case AccountActivityQt::AmountColumn: {
+                    return DisplayAmount().c_str();
+                }
+                case AccountActivityQt::TextColumn: {
+                    return Text().c_str();
+                }
+                case AccountActivityQt::MemoColumn: {
+                    return Memo().c_str();
+                }
+                case AccountActivityQt::TimeColumn: {
+                    auto qdatetime = QDateTime{};
+                    qdatetime.setSecsSinceEpoch(
+                        std::chrono::system_clock::to_time_t(Timestamp()));
+
+                    return qdatetime;
+                }
+                case AccountActivityQt::UUIDColumn: {
+                    return UUID().c_str();
+                }
+                default: {
+                    return {};
+                }
+            }
+        }
+        case AccountActivityQt::PolarityRole: {
+            return polarity(Amount());
+        }
+        case AccountActivityQt::ContactsRole: {
+            std::string contacts;
+            auto contact = Contacts().cbegin();
+
+            if (contact != Contacts().cend()) {
+                contacts = *contact;
+                while (++contact != Contacts().cend()) {
+                    contacts += ", " + *contact;
+                }
+            }
+
+            return contacts.c_str();
+        }
+        case AccountActivityQt::WorkflowRole: {
+            return Workflow().c_str();
+        }
+        case AccountActivityQt::TypeRole: {
+            return static_cast<int>(Type());
+        }
+        default: {
+            return {};
+        }
+    };
+}
+#endif
+
 const proto::PaymentEvent& BalanceItem::recover_event(
     const CustomData& custom) noexcept
 {

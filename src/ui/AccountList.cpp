@@ -43,10 +43,44 @@
 
 #define OT_METHOD "opentxs::ui::implementation::AccountList::"
 
+namespace opentxs
+{
+ui::implementation::AccountList* Factory::AccountListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::AccountList(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::AccountListQt* Factory::AccountListQtModel(
+    ui::implementation::AccountList& parent)
+{
+    using ReturnType = ui::AccountListQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(AccountListQt, AccountList)
+QT_PROXY_MODEL_WRAPPER(AccountListQt, implementation::AccountList)
 }  // namespace opentxs::ui
 #endif
 
@@ -58,9 +92,7 @@ AccountList::AccountList(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : AccountListList(
@@ -70,8 +102,6 @@ AccountList::AccountList(
 #if OT_QT
           ,
           qt,
-          insertCallback,
-          removeCallback,
           Roles{},
           10
 #endif
@@ -99,53 +129,6 @@ void AccountList::construct_row(
             reason, *this, api_, publisher_, id, index, custom));
     names_.emplace(id, index);
 }
-
-#if OT_QT
-QVariant AccountList::data(const QModelIndex& index, int role) const noexcept
-{
-    const auto [valid, pRow] = check_index(index);
-
-    if (false == valid) { return {}; }
-
-    const auto& row = *pRow;
-
-    switch (index.column()) {
-        case 0: {
-            return row.AccountID().c_str();
-        }
-        case 1: {
-            return polarity(row.Balance());
-        }
-        case 2: {
-            return row.ContractID().c_str();
-        }
-        case 3: {
-            return row.DisplayBalance().c_str();
-        }
-        case 4: {
-            return row.DisplayUnit().c_str();
-        }
-        case 5: {
-            return row.Name().c_str();
-        }
-        case 6: {
-            return row.NotaryID().c_str();
-        }
-        case 7: {
-            return row.NotaryName().c_str();
-        }
-        case 8: {
-            return static_cast<int>(row.Type());
-        }
-        case 9: {
-            return static_cast<int>(row.Unit());
-        }
-        default: {
-            return {};
-        }
-    }
-}
-#endif
 
 void AccountList::process_account(const Identifier& id) noexcept
 {

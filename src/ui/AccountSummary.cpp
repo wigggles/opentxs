@@ -49,16 +49,14 @@
 
 namespace opentxs
 {
-ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
+ui::implementation::AccountSummary* Factory::AccountSummaryModel(
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
     const identifier::Nym& nymID,
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
 )
 {
@@ -69,13 +67,28 @@ ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
         currency
 #if OT_QT
         ,
-        qt,
-        insertCallback,
-        removeCallback
+        qt
 #endif
     );
 }
+
+#if OT_QT
+ui::AccountSummaryQt* Factory::AccountSummaryQtModel(
+    ui::implementation::AccountSummary& parent)
+{
+    using ReturnType = ui::AccountSummaryQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
 }  // namespace opentxs
+
+#if OT_QT
+namespace opentxs::ui
+{
+QT_PROXY_MODEL_WRAPPER(AccountSummaryQt, implementation::AccountSummary)
+}  // namespace opentxs::ui
+#endif
 
 namespace opentxs::ui::implementation
 {
@@ -86,9 +99,7 @@ AccountSummary::AccountSummary(
     const proto::ContactItemType currency
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : AccountSummaryList(
@@ -98,8 +109,10 @@ AccountSummary::AccountSummary(
 #if OT_QT
           ,
           qt,
-          insertCallback,
-          removeCallback
+          Roles{{AccountSummaryQt::NotaryIDRole, "notary"},
+                {AccountSummaryQt::AccountIDRole, "account"},
+                {AccountSummaryQt::BalanceRole, "balance"}},
+          3
 #endif
           )
     , listeners_({
@@ -144,9 +157,7 @@ void AccountSummary::construct_row(
             currency_
 #if OT_QT
             ,
-            enable_qt_,
-            insert_callbacks_,
-            remove_callbacks_
+            enable_qt_
 #endif
             ));
     names_.emplace(id, index);

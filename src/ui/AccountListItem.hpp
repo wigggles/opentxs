@@ -39,6 +39,10 @@ public:
     AccountType Type() const noexcept final { return type_; }
     proto::ContactItemType Unit() const noexcept final { return unit_; }
 
+#if OT_QT
+    QVariant qt_data(const int column, const int role) const noexcept final;
+#endif
+
     ~AccountListItem() = default;
 
 private:

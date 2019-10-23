@@ -29,15 +29,10 @@ class PayableList final : public PayableListList
 public:
     const Identifier& ID() const final;
 
-#if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-#endif
-    ~PayableList();
+    ~PayableList() final;
 
 private:
     friend opentxs::Factory;
-    friend api::client::implementation::UI;
 
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
@@ -66,9 +61,7 @@ private:
         const proto::ContactItemType& currency
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
     );
     PayableList() = delete;

@@ -27,14 +27,10 @@ using AccountListList = List<
 class AccountList final : public AccountListList
 {
 public:
-#if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-#endif
-    ~AccountList();
+    ~AccountList() final;
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
 
@@ -58,9 +54,7 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     AccountList() = delete;

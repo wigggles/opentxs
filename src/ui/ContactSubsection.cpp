@@ -20,8 +20,7 @@
 #include "opentxs/ui/ContactSubsection.hpp"
 
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
-#include "RowType.hpp"
+#include "Combined.hpp"
 
 #include <map>
 #include <memory>
@@ -47,9 +46,7 @@ ui::implementation::ContactSectionRowInternal* Factory::ContactSubsectionWidget(
     const ui::implementation::CustomData& custom
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
 )
 {
@@ -62,9 +59,7 @@ ui::implementation::ContactSectionRowInternal* Factory::ContactSubsectionWidget(
         custom
 #if OT_QT
         ,
-        qt,
-        insertCallback,
-        removeCallback
+        qt
 #endif
     );
 }
@@ -81,24 +76,22 @@ ContactSubsection::ContactSubsection(
     const CustomData& custom
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
-    : ContactSubsectionList(
+    : Combined(
           api,
           publisher,
           Identifier::Factory(parent.ContactID()),
-          parent.WidgetID()
+          parent.WidgetID(),
+          parent,
+          rowID,
+          key
 #if OT_QT
-              ,
-          qt,
-          insertCallback,
-          removeCallback
+          ,
+          qt
 #endif
-          )
-    , ContactSubsectionRow(parent, rowID, true)
+      )
 {
     init();
     startup_.reset(new std::thread(&ContactSubsection::startup, this, custom));

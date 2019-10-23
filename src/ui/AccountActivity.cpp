@@ -42,18 +42,54 @@
 
 #define OT_METHOD "opentxs::ui::implementation::AccountActivity::"
 
+namespace opentxs
+{
+ui::implementation::AccountActivity* Factory::AccountActivityModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const Identifier& accountID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::AccountActivity(
+        api,
+        publisher,
+        nymID,
+        accountID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::AccountActivityQt* Factory::AccountActivityQtModel(
+    ui::implementation::AccountActivity& parent)
+{
+    using ReturnType = ui::AccountActivityQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(AccountActivityQt, AccountActivity)
+QT_PROXY_MODEL_WRAPPER(AccountActivityQt, implementation::AccountActivity)
 
 int AccountActivityQt::balancePolarity() const noexcept
 {
-    return parent_->BalancePolarity();
+    return parent_.BalancePolarity();
 }
 QString AccountActivityQt::displayBalance() const noexcept
 {
-    return parent_->DisplayBalance().c_str();
+    return parent_.DisplayBalance().c_str();
 }
 }  // namespace opentxs::ui
 #endif
@@ -67,9 +103,7 @@ AccountActivity::AccountActivity(
     const Identifier& accountID
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : AccountActivityList(
@@ -79,10 +113,13 @@ AccountActivity::AccountActivity(
 #if OT_QT
           ,
           qt,
-          insertCallback,
-          removeCallback,
-          Roles{},
-          9
+          Roles{
+              {AccountActivityQt::PolarityRole, "polarity"},
+              {AccountActivityQt::ContactsRole, "contacts"},
+              {AccountActivityQt::WorkflowRole, "workflow"},
+              {AccountActivityQt::TypeRole, "type"},
+          },
+          5
 #endif
           )
     , listeners_({
@@ -124,66 +161,6 @@ void AccountActivity::construct_row(
             account_id_));
     names_.emplace(id, index);
 }
-
-#if OT_QT
-QVariant AccountActivity::data(
-    const QModelIndex& index,
-    [[maybe_unused]] int role) const noexcept
-{
-    const auto [valid, pRow] = check_index(index);
-
-    if (false == valid) { return {}; }
-
-    const auto& row = *pRow;
-
-    switch (index.column()) {
-        case 0: {
-            return row.UUID().c_str();
-        }
-        case 1: {
-            return polarity(row.Amount());
-        }
-        case 2: {
-            std::string contacts;
-            auto contact = row.Contacts().cbegin();
-
-            if (contact != row.Contacts().cend()) {
-                contacts = *contact;
-                while (++contact != row.Contacts().cend()) {
-                    contacts += ", " + *contact;
-                }
-            }
-
-            return contacts.c_str();
-        }
-        case 3: {
-            return row.DisplayAmount().c_str();
-        }
-        case 4: {
-            return row.Memo().c_str();
-        }
-        case 5: {
-            return row.Workflow().c_str();
-        }
-        case 6: {
-            return row.Text().c_str();
-        }
-        case 7: {
-            QDateTime qdatetime;
-            qdatetime.setSecsSinceEpoch(
-                std::chrono::system_clock::to_time_t(row.Timestamp()));
-
-            return qdatetime;
-        }
-        case 8: {
-            return static_cast<int>(row.Type());
-        }
-        default: {
-            return {};
-        }
-    }
-}
-#endif
 
 std::string AccountActivity::DisplayBalance() const noexcept
 {

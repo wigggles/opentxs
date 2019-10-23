@@ -36,10 +36,46 @@
 
 #define OT_METHOD "opentxs::ui::implementation::ActivitySummary::"
 
+namespace opentxs
+{
+ui::implementation::ActivitySummary* Factory::ActivitySummaryModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const Flag& running,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::ActivitySummary(
+        api,
+        publisher,
+        running,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::ActivitySummaryQt* Factory::ActivitySummaryQtModel(
+    ui::implementation::ActivitySummary& parent)
+{
+    using ReturnType = ui::ActivitySummaryQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(ActivitySummaryQt, ActivitySummary)
+QT_PROXY_MODEL_WRAPPER(ActivitySummaryQt, implementation::ActivitySummary)
 }  // namespace opentxs::ui
 #endif
 
@@ -53,9 +89,7 @@ ActivitySummary::ActivitySummary(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : ActivitySummaryList(
@@ -65,8 +99,6 @@ ActivitySummary::ActivitySummary(
 #if OT_QT
           ,
           qt,
-          insertCallback,
-          removeCallback,
           Roles{},
           6
 #endif
@@ -82,46 +114,6 @@ ActivitySummary::ActivitySummary(
 
     OT_ASSERT(startup_)
 }
-
-#if OT_QT
-QVariant ActivitySummary::data(
-    const QModelIndex& index,
-    [[maybe_unused]] int role) const noexcept
-{
-    const auto [valid, pRow] = check_index(index);
-
-    if (false == valid) { return {}; }
-
-    const auto& row = *pRow;
-
-    switch (index.column()) {
-        case 0: {
-            return row.ThreadID().c_str();
-        }
-        case 1: {
-            return row.DisplayName().c_str();
-        }
-        case 2: {
-            return row.ImageURI().c_str();
-        }
-        case 3: {
-            return row.Text().c_str();
-        }
-        case 4: {
-            QDateTime qdatetime;
-            qdatetime.setSecsSinceEpoch(
-                std::chrono::system_clock::to_time_t(row.Timestamp()));
-            return qdatetime;
-        }
-        case 5: {
-            return static_cast<int>(row.Type());
-        }
-        default: {
-            return {};
-        }
-    }
-}
-#endif
 
 void ActivitySummary::construct_row(
     const ActivitySummaryRowID& id,

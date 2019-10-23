@@ -20,6 +20,10 @@ public:
     std::string ImageURI() const noexcept final;
     std::string Section() const noexcept final;
 
+#if OT_QT
+    QVariant qt_data(const int column, const int role) const noexcept override;
+#endif
+
     void reindex(
         const ContactListSortKey&,
         const CustomData&) noexcept override;

@@ -47,29 +47,65 @@ template class std::
 
 namespace zmq = opentxs::network::zeromq;
 
+namespace opentxs
+{
+ui::implementation::ActivityThread* Factory::ActivityThreadModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID,
+    const Identifier& threadID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::ActivityThread(
+        api,
+        publisher,
+        nymID,
+        threadID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::ActivityThreadQt* Factory::ActivityThreadQtModel(
+    ui::implementation::ActivityThread& parent)
+{
+    using ReturnType = ui::ActivityThreadQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(ActivityThreadQt, ActivityThread)
+QT_PROXY_MODEL_WRAPPER(ActivityThreadQt, implementation::ActivityThread)
 
 QString ActivityThreadQt::displayName() const noexcept
 {
-    return parent_->DisplayName().c_str();
+    return parent_.DisplayName().c_str();
 }
 QString ActivityThreadQt::getDraft() const noexcept
 {
-    return parent_->GetDraft().c_str();
+    return parent_.GetDraft().c_str();
 }
 QString ActivityThreadQt::participants() const noexcept
 {
-    return parent_->Participants().c_str();
+    return parent_.Participants().c_str();
 }
 bool ActivityThreadQt::pay(
     const QString& amount,
     const QString& sourceAccount,
     const QString& memo) const noexcept
 {
-    return parent_->Pay(
+    return parent_.Pay(
         amount.toStdString(),
         Identifier::Factory(sourceAccount.toStdString()),
         memo.toStdString(),
@@ -77,20 +113,20 @@ bool ActivityThreadQt::pay(
 }
 QString ActivityThreadQt::paymentCode(const int currency) const noexcept
 {
-    return parent_->PaymentCode(static_cast<proto::ContactItemType>(currency))
+    return parent_.PaymentCode(static_cast<proto::ContactItemType>(currency))
         .c_str();
 }
 bool ActivityThreadQt::sendDraft() const noexcept
 {
-    return parent_->SendDraft();
+    return parent_.SendDraft();
 }
 bool ActivityThreadQt::setDraft(const QString& draft) const noexcept
 {
-    return parent_->SetDraft(draft.toStdString());
+    return parent_.SetDraft(draft.toStdString());
 }
 QString ActivityThreadQt::threadID() const noexcept
 {
-    return parent_->ThreadID().c_str();
+    return parent_.ThreadID().c_str();
 }
 }  // namespace opentxs::ui
 #endif
@@ -104,9 +140,7 @@ ActivityThread::ActivityThread(
     const Identifier& threadID
 #if OT_QT
         ,
-        const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+        const bool qt
 #endif
     ) noexcept
     : ActivityThreadList(
@@ -115,9 +149,11 @@ ActivityThread::ActivityThread(
         nymID
 #if OT_QT
         ,
-        qt, insertCallback, removeCallback,
-        Roles{},
-        8
+        qt,
+        Roles{{ActivityThreadQt::PolarityRole, "polarity"},
+              {ActivityThreadQt::TypeRole, "type"},
+        },
+        6
 #endif
     )
     , StateMachine(std::bind(&ActivityThread::process_drafts, this))
@@ -228,52 +264,6 @@ void ActivityThread::construct_row(
         }
     }
 }
-
-#if OT_QT
-QVariant ActivityThread::data(
-    const QModelIndex& index,
-    [[maybe_unused]] int role) const noexcept
-{
-    const auto [valid, pRow] = check_index(index);
-
-    if (false == valid) { return {}; }
-
-    const auto& row = *pRow;
-
-    switch (index.column()) {
-        case 0: {
-            return polarity(row.Amount());
-        }
-        case 1: {
-            return row.DisplayAmount().c_str();
-        }
-        case 2: {
-            return row.Memo().c_str();
-        }
-        case 3: {
-            return row.Text().c_str();
-        }
-        case 4: {
-            QDateTime qdatetime;
-            qdatetime.setSecsSinceEpoch(
-                std::chrono::system_clock::to_time_t(row.Timestamp()));
-            return qdatetime;
-        }
-        case 5: {
-            return static_cast<int>(row.Type());
-        }
-        case 6: {
-            return row.Loading();
-        }
-        case 7: {
-            return row.Pending();
-        }
-        default: {
-            return {};
-        }
-    }
-}
-#endif
 
 std::string ActivityThread::DisplayName() const noexcept
 {

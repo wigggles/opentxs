@@ -50,49 +50,30 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::PayableListQt final : public QAbstractItemModel
+class opentxs::ui::PayableListQt final : public QIdentityProxyModel
 {
     Q_OBJECT
-
-public:
-    using ConstructorCallback = std::function<
-        implementation::PayableList*(RowCallbacks insert, RowCallbacks remove)>;
-
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-
-    const PayableList& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    PayableListQt(ConstructorCallback cb) noexcept(false);
-    ~PayableListQt() final;
 
 signals:
     void updated() const;
 
+public:
+    // Table layout: name, payment code
+    enum Roles {
+        ContactIDRole = Qt::UserRole + 0,
+        SectionRole = Qt::UserRole + 1,
+    };
+
+    ~PayableListQt() final = default;
+
 private:
-    std::unique_ptr<implementation::PayableList> parent_;
+    friend opentxs::Factory;
+
+    implementation::PayableList& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
-    PayableListQt() = delete;
+    PayableListQt(implementation::PayableList& parent) noexcept;
     PayableListQt(const PayableListQt&) = delete;
     PayableListQt(PayableListQt&&) = delete;
     PayableListQt& operator=(const PayableListQt&) = delete;

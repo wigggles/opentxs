@@ -21,7 +21,8 @@ using ProfileSectionList = List<
 using ProfileSectionRow =
     RowType<ProfileRowInternal, ProfileInternalInterface, ProfileRowID>;
 
-class ProfileSection final : public ProfileSectionList, public ProfileSectionRow
+class ProfileSection final
+    : public Combined<ProfileSectionList, ProfileSectionRow, ProfileSortKey>
 {
 public:
     bool AddClaim(
@@ -32,6 +33,13 @@ public:
     bool Delete(const int type, const std::string& claimID) const
         noexcept final;
     ItemTypeList Items(const std::string& lang) const noexcept final;
+#if OT_QT
+    int FindRow(const ProfileSectionRowID& id, const ProfileSectionSortKey& key)
+        const noexcept final
+    {
+        return find_row(id, key);
+    }
+#endif
     std::string Name(const std::string& lang) const noexcept final;
     const identifier::Nym& NymID() const noexcept final { return primary_id_; }
     bool SetActive(
@@ -82,9 +90,7 @@ private:
         const CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     ProfileSection() = delete;

@@ -174,6 +174,38 @@ std::string ActivitySummaryItem::ImageURI() const noexcept
     return {};
 }
 
+#if OT_QT
+QVariant ActivitySummaryItem::qt_data(const int column, int role) const noexcept
+{
+    switch (column) {
+        case 0: {
+            return ThreadID().c_str();
+        }
+        case 1: {
+            return DisplayName().c_str();
+        }
+        case 2: {
+            return ImageURI().c_str();
+        }
+        case 3: {
+            return Text().c_str();
+        }
+        case 4: {
+            QDateTime qdatetime;
+            qdatetime.setSecsSinceEpoch(
+                std::chrono::system_clock::to_time_t(Timestamp()));
+            return qdatetime;
+        }
+        case 5: {
+            return static_cast<int>(Type());
+        }
+        default: {
+            return {};
+        }
+    }
+}
+#endif
+
 void ActivitySummaryItem::reindex(
     const ActivitySummarySortKey& key,
     const CustomData& custom) noexcept

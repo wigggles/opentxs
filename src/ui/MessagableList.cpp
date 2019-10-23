@@ -38,10 +38,44 @@
 
 #define OT_METHOD "opentxs::ui::implementation::MessagableList::"
 
+namespace opentxs
+{
+ui::implementation::MessagableList* Factory::MessagableListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::MessagableList(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::MessagableListQt* Factory::MessagableListQtModel(
+    ui::implementation::MessagableList& parent)
+{
+    using ReturnType = ui::MessagableListQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(MessagableListQt, MessagableList)
+QT_PROXY_MODEL_WRAPPER(MessagableListQt, implementation::MessagableList)
 }  // namespace opentxs::ui
 #endif
 
@@ -53,9 +87,7 @@ MessagableList::MessagableList(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : MessagableListList(
@@ -65,10 +97,9 @@ MessagableList::MessagableList(
 #if OT_QT
           ,
           qt,
-          insertCallback,
-          removeCallback,
-          Roles{},
-          4
+          Roles{{MessagableListQt::ContactIDRole, "id"},
+                {MessagableListQt::SectionRole, "section"}},
+          1
 #endif
           )
     , listeners_({
@@ -96,37 +127,6 @@ void MessagableList::construct_row(
     items_[index].emplace(
         id, Factory::ContactListItem(*this, api_, publisher_, id, index));
 }
-
-#if OT_QT
-QVariant MessagableList::data(
-    const QModelIndex& index,
-    [[maybe_unused]] int role) const noexcept
-{
-    const auto [valid, pRow] = check_index(index);
-
-    if (false == valid) { return {}; }
-
-    const auto& row = *pRow;
-
-    switch (index.column()) {
-        case 0: {
-            return row.ContactID().c_str();
-        }
-        case 1: {
-            return row.DisplayName().c_str();
-        }
-        case 2: {
-            return row.ImageURI().c_str();
-        }
-        case 3: {
-            return row.Section().c_str();
-        }
-        default: {
-            return {};
-        }
-    }
-}
-#endif
 
 const Identifier& MessagableList::ID() const noexcept
 {
