@@ -5,8 +5,24 @@
 
 #include "OTTestEnvironment.hpp"
 
+#include <boost/filesystem.hpp>
+
 const opentxs::ArgList OTTestEnvironment::test_args_{
-    {OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}};
+    {OPENTXS_ARG_HOME, {OTTestEnvironment::random_path()}},
+    {OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}},
+};
+
+namespace fs = boost::filesystem;
+
+std::string OTTestEnvironment::random_path()
+{
+    const auto path = fs::temp_directory_path() /
+                      fs::unique_path("opentxs-test-%%%%-%%%%-%%%%-%%%%");
+
+    assert(fs::create_directories(path));
+
+    return path.string();
+}
 
 void OTTestEnvironment::SetUp() { opentxs::InitContext(test_args_); }
 

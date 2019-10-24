@@ -26,7 +26,7 @@ target_link_libraries(
   ${name}
   opentxs::libopentxs
   ${GTEST_LIBRARY}
-  Boost::headers
+  Boost::filesystem
 )
 set_target_properties(
   ${name}

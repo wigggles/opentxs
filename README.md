@@ -36,13 +36,6 @@ master.
 
 Use clang-format and cmake-format.
 
-#### Running the tests
-
-The OT directory in `~/.ot` is deleted on every `ninja test` in the `build`
-directory.
-
-BE ADVISED: Run `ninja test` in *development only*.
-
 #### CppCheck and clang-format Git hooks
 
 For convenience please enable the git hooks which will trigger cppcheck and
@@ -58,8 +51,15 @@ To check your code without pushing the following command can be used:
 
 ### Build Instructions
 
+Ensure opentxs is fully checked out prior to running cmake:
+
+    git submodule update --init --recursive
+
+Basic build instructions:
+
     mkdir build
     cd build
     cmake -GNinja -DBUILD_SHARED_LIBS=ON ..
-    ninja
-    ninja install
+    cmake --build .
+    ctest -j4
+    sudo cmake --install .

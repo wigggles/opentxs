@@ -65,8 +65,8 @@ private:
     static const char* payment_inbox_;
     static const char* receipt_;
     static const char* record_box_;
-    static const fs::path app_data_folder_;
 
+    const fs::path app_data_folder_;
     const std::string client_data_folder_;
     const std::string server_data_folder_;
     const std::string client_config_file_;
@@ -75,7 +75,7 @@ private:
     const std::string server_config_file_;
     const std::string pid_file_;
 
-    static fs::path get_app_data_folder() noexcept;
+    static fs::path get_app_data_folder(const std::string& home) noexcept;
     static fs::path get_home_directory() noexcept;
     static fs::path get_suffix() noexcept;
 
@@ -84,7 +84,8 @@ private:
     std::string get_file(const std::string& fragment, const int instance = 0)
         const noexcept;
 
-    Legacy() noexcept;
+    Legacy(const std::string& home) noexcept;
+    Legacy() = delete;
     Legacy(const Legacy&) = delete;
     Legacy(Legacy&&) = delete;
     Legacy& operator=(const Legacy&) = delete;

@@ -47,9 +47,10 @@ private:
 
     typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
 
-    const std::chrono::seconds gc_interval_{0};
-    OTPassword word_list_{};
-    OTPassword passphrase_{};
+    const std::chrono::seconds gc_interval_;
+    const std::string home_;
+    OTPassword word_list_;
+    OTPassword passphrase_;
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
@@ -61,10 +62,10 @@ private:
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::network::ZAP> zap_;
     const ArgList args_;
-    mutable ShutdownCallback* shutdown_callback_{nullptr};
-    std::unique_ptr<OTCallback> null_callback_{nullptr};
-    std::unique_ptr<OTCaller> default_external_password_callback_{nullptr};
-    OTCaller* external_password_callback_{nullptr};
+    mutable ShutdownCallback* shutdown_callback_;
+    std::unique_ptr<OTCallback> null_callback_;
+    std::unique_ptr<OTCaller> default_external_password_callback_;
+    OTCaller* external_password_callback_;
     mutable std::unique_ptr<opentxs::PIDFile> pid_;
     mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
     mutable std::vector<std::unique_ptr<api::client::internal::Manager>>

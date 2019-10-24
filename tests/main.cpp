@@ -10,10 +10,5 @@ int main(int argc, char** argv)
     ::testing::AddGlobalTestEnvironment(new OTTestEnvironment());
     ::testing::InitGoogleTest(&argc, argv);
 
-    std::string command("rm -r \"");
-    command.append(opentxs::api::Context::Home());
-    command.append("\"");
-    [[maybe_unused]] const auto result{system(command.c_str())};
-
     return RUN_ALL_TESTS();
 }

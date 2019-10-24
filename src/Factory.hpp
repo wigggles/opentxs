@@ -783,7 +783,7 @@ public:
         const api::internal::Core& api,
         const proto::AsymmetricKey& serializedPubkey,
         const opentxs::PasswordPrompt& reason);
-    static api::Legacy* Legacy();
+    static api::Legacy* Legacy(const std::string& home);
     static api::internal::Log* Log(
         const network::zeromq::Context& zmq,
         const std::string& endpoint);

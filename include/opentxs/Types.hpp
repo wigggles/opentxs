@@ -30,10 +30,13 @@
 #define OPENTXS_ARG_ENCRYPTED_DIRECTORY "encrypteddirectory"
 #define OPENTXS_ARG_EXTERNALIP "externalip"
 #define OPENTXS_ARG_GC "gc"
+#define OPENTXS_ARG_HOME "home"
 #define OPENTXS_ARG_INIT "only-init"
 #define OPENTXS_ARG_INPROC "inproc"
 #define OPENTXS_ARG_LISTENCOMMAND "listencommand"
 #define OPENTXS_ARG_LISTENNOTIFY "listennotify"
+#define OPENTXS_ARG_LOGENDPOINT "logendpoint"
+#define OPENTXS_ARG_LOGLEVEL "log_level"
 #define OPENTXS_ARG_NAME "name"
 #define OPENTXS_ARG_NOTIFICATIONPORT "notificationport"
 #define OPENTXS_ARG_ONION "onion"
@@ -42,8 +45,6 @@
 #define OPENTXS_ARG_TERMS "terms"
 #define OPENTXS_ARG_VERSION "version"
 #define OPENTXS_ARG_WORDS "words"
-#define OPENTXS_ARG_LOGENDPOINT "logendpoint"
-#define OPENTXS_ARG_LOGLEVEL "log_level"
 
 namespace opentxs
 {
