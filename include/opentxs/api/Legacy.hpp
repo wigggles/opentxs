@@ -17,8 +17,6 @@ namespace api
 class Legacy
 {
 public:
-    EXPORT static std::string AppDataFolder() noexcept;
-
     EXPORT virtual const char* Account() const noexcept = 0;
     EXPORT virtual bool AppendFile(
         String& out,

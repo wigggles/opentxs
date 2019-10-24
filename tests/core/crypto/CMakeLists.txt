@@ -12,7 +12,12 @@ include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
                     ${GTEST_INCLUDE_DIRS})
 
 add_executable(${name} ${cxx-sources})
-target_link_libraries(${name} opentxs::libopentxs ${GTEST_LIBRARY})
+target_link_libraries(
+  ${name}
+  opentxs::libopentxs
+  ${GTEST_LIBRARY}
+  Boost::filesystem
+)
 
 set_target_properties(
   ${name}

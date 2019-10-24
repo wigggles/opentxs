@@ -25,8 +25,6 @@ class Context : virtual public Periodic
 public:
     using ShutdownCallback = std::function<void()>;
 
-    EXPORT static std::string Home() noexcept;
-
     EXPORT virtual const api::client::Manager& Client(
         const int instance) const = 0;
     EXPORT virtual std::size_t Clients() const = 0;

@@ -40,6 +40,7 @@ target_link_libraries(
   opentxs::libopentxs
   ${GTEST_BOTH_LIBRARIES}
   ${ZMQ_LIBRARIES}
+  Boost::filesystem
 )
 set_target_properties(
   ${name}

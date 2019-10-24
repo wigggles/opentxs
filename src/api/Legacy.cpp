@@ -35,16 +35,11 @@ extern "C" {
 
 namespace opentxs
 {
-api::Legacy* Factory::Legacy() { return new api::implementation::Legacy(); }
-}  // namespace opentxs
-
-namespace opentxs::api
+api::Legacy* Factory::Legacy(const std::string& home)
 {
-std::string Legacy::AppDataFolder() noexcept
-{
-    return implementation::Legacy::app_data_folder_.string();
+    return new api::implementation::Legacy(home);
 }
-}  // namespace opentxs::api
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
@@ -62,10 +57,10 @@ const char* Legacy::outbox_{"outbox"};
 const char* Legacy::payment_inbox_{"paymentinbox"};
 const char* Legacy::receipt_{"receipt"};
 const char* Legacy::record_box_{"recordbox"};
-const fs::path Legacy::app_data_folder_{get_app_data_folder()};
 
-Legacy::Legacy() noexcept
-    : client_data_folder_(std::string(CLIENT_CONFIG_KEY) + DATA_FOLDER_EXT)
+Legacy::Legacy(const std::string& home) noexcept
+    : app_data_folder_(get_app_data_folder(home))
+    , client_data_folder_(std::string(CLIENT_CONFIG_KEY) + DATA_FOLDER_EXT)
     , server_data_folder_(std::string(SERVER_CONFIG_KEY) + DATA_FOLDER_EXT)
     , client_config_file_(std::string(CLIENT_CONFIG_KEY) + CONFIG_FILE_EXT)
     , crypto_config_file_(std::string(CRYPTO_CONFIG_KEY) + CONFIG_FILE_EXT)
@@ -177,8 +172,10 @@ bool Legacy::FileExists(const String& path, std::size_t& size) const noexcept
     }
 }
 
-fs::path Legacy::get_app_data_folder() noexcept
+fs::path Legacy::get_app_data_folder(const std::string& home) noexcept
 {
+    if (false == home.empty()) { return home; }
+
     return get_home_directory() / get_suffix();
 }
 

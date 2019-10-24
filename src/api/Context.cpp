@@ -84,11 +84,6 @@ api::internal::Context* Factory::Context(
 }
 }  // namespace opentxs
 
-namespace opentxs::api
-{
-std::string Context::Home() noexcept { return api::Legacy::AppDataFolder(); }
-}  // namespace opentxs::api
-
 namespace opentxs::api::implementation
 {
 Context::Context(
@@ -100,6 +95,9 @@ Context::Context(
     , Lockable()
     , Periodic(running)
     , gc_interval_(gcInterval)
+    , home_(get_arg(args, OPENTXS_ARG_HOME))
+    , word_list_()
+    , passphrase_()
     , config_lock_()
     , task_list_lock_()
     , signal_handler_lock_()
@@ -110,12 +108,12 @@ Context::Context(
           zmq_context_,
           get_arg(args, OPENTXS_ARG_LOGENDPOINT)))
     , crypto_(nullptr)
-    , legacy_(opentxs::Factory::Legacy())
+    , legacy_(opentxs::Factory::Legacy(home_))
     , zap_(nullptr)
     , args_(args)
-    , shutdown_callback_{nullptr}
-    , null_callback_{nullptr}
-    , default_external_password_callback_{nullptr}
+    , shutdown_callback_(nullptr)
+    , null_callback_(nullptr)
+    , default_external_password_callback_(nullptr)
     , external_password_callback_{externalPasswordCallback}
     , pid_(nullptr)
     , server_()

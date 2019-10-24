@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef TESTS_OTTESTENVIRONMENT_HPP_
-#define TESTS_OTTESTENVIRONMENT_HPP_
+#pragma once
 
 #include <opentxs/opentxs.hpp>
 
@@ -38,5 +37,7 @@ public:
     virtual void TearDown();
 
     virtual ~OTTestEnvironment();
+
+private:
+    static std::string random_path();
 };
-#endif /* TESTS_OTTESTENVIRONMENT_HPP_ */
