@@ -1099,8 +1099,7 @@ public:
         const opentxs::PasswordPrompt& reason);
     static crypto::Secp256k1* Secp256k1(
         const api::Crypto& crypto,
-        const api::crypto::Util& util,
-        const crypto::EcdsaProvider& ecdsa);
+        const api::crypto::Util& util);
     static crypto::key::Secp256k1* Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,

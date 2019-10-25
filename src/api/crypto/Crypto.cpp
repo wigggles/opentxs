@@ -71,7 +71,6 @@ Crypto::Crypto(const api::Settings& settings)
 #endif
     , util_(*sodium_)
 #if OT_CRYPTO_USING_TREZOR
-    , secp256k1_helper_(*trezor_)
     , ripemd160_(*trezor_)
 #if OT_CRYPTO_WITH_BIP32
     , bip32_(*trezor_)
@@ -83,7 +82,7 @@ Crypto::Crypto(const api::Settings& settings)
     , ripemd160_(*ssl_)
 #endif  // OT_CRYPTO_USING_TREZOR
 #if OT_CRYPTO_USING_LIBSECP256K1
-    , secp256k1_(opentxs::Factory::Secp256k1(*this, util_, secp256k1_helper_))
+    , secp256k1_(opentxs::Factory::Secp256k1(*this, util_))
     , secp256k1_provider_(*secp256k1_)
 #elif OT_CRYPTO_USING_TREZOR
     , secp256k1_provider_(*trezor_)

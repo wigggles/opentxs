@@ -21,9 +21,6 @@
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
-#if OT_CRYPTO_USING_TREZOR
-#include "opentxs/crypto/library/Trezor.hpp"
-#endif
 #include "opentxs/Proto.hpp"
 
 #include "AsymmetricProvider.hpp"
@@ -31,6 +28,7 @@
 
 extern "C" {
 #include "secp256k1.h"
+#include "secp256k1_ecdh.h"
 }
 
 #include <cstdint>
@@ -44,10 +42,9 @@ namespace opentxs
 {
 crypto::Secp256k1* Factory::Secp256k1(
     const api::Crypto& crypto,
-    const api::crypto::Util& util,
-    const crypto::EcdsaProvider& ecdsa)
+    const api::crypto::Util& util)
 {
-    return new crypto::implementation::Secp256k1(crypto, util, ecdsa);
+    return new crypto::implementation::Secp256k1(crypto, util);
 }
 }  // namespace opentxs
 
@@ -55,14 +52,10 @@ namespace opentxs::crypto::implementation
 {
 bool Secp256k1::Initialized_ = false;
 
-Secp256k1::Secp256k1(
-    const api::Crypto& crypto,
-    const api::crypto::Util& ssl,
-    const crypto::EcdsaProvider& ecdsa)
+Secp256k1::Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl)
     : EcdsaProvider(crypto)
     , context_(secp256k1_context_create(
           SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
-    , ecdsa_(ecdsa)
     , ssl_(ssl)
 {
 }
@@ -237,12 +230,45 @@ bool Secp256k1::ECDH(
     const OTPassword& privateKey,
     OTPassword& secret) const
 {
-#if OT_CRYPTO_USING_TREZOR
-    return dynamic_cast<const Trezor&>(ecdsa_).ECDH(
-        publicKey, privateKey, secret);
-#else
-    return false;
-#endif
+    auto parsedPubkey = secp256k1_pubkey{};
+    auto success = ::secp256k1_ec_pubkey_parse(
+        context_,
+        &parsedPubkey,
+        static_cast<const unsigned char*>(publicKey.data()),
+        publicKey.size());
+
+    if (0 == success) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to parse public key")
+            .Flush();
+
+        return false;
+    }
+
+    if (false == privateKey.isMemory()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key format")
+            .Flush();
+
+        return false;
+    }
+
+    if (32 != privateKey.getMemorySize()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key size (")(
+            privateKey.getMemorySize())(")")
+            .Flush();
+
+        return false;
+    }
+
+    secret.randomizeMemory(32);
+
+    OT_ASSERT(secret.isMemory());
+    OT_ASSERT(32 == secret.getMemorySize());
+
+    return 1 == ::secp256k1_ecdh(
+                    context_,
+                    static_cast<unsigned char*>(secret.getMemoryWritable()),
+                    &parsedPubkey,
+                    static_cast<const unsigned char*>(privateKey.getMemory()));
 }
 
 void Secp256k1::Init()

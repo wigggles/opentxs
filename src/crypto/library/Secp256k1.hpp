@@ -40,8 +40,7 @@ private:
     static const int PublicKeySize = 33;
     static bool Initialized_;
 
-    secp256k1_context* context_{nullptr};
-    const crypto::EcdsaProvider& ecdsa_;
+    secp256k1_context* context_;
     const api::crypto::Util& ssl_;
 
     bool ParsePublicKey(const Data& input, secp256k1_pubkey& output) const;
@@ -55,10 +54,7 @@ private:
     bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
         const final;
 
-    Secp256k1(
-        const api::Crypto& crypto,
-        const api::crypto::Util& ssl,
-        const crypto::EcdsaProvider& ecdsa);
+    Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl);
     Secp256k1() = delete;
     Secp256k1(const Secp256k1&) = delete;
     Secp256k1(Secp256k1&&) = delete;
