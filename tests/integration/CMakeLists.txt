@@ -6,3 +6,4 @@
 add_opentx_test(unittests-opentxs-integration Test_Basic.cpp)
 add_opentx_test(unittests-opentxs-integration-addcontact Test_AddContact.cpp)
 add_opentx_test(unittests-opentxs-integration-deposit Test_DepositCheques.cpp)
+add_opentx_test(unittests-opentxs-integration-pair Test_Pair.cpp)

@@ -10,22 +10,22 @@
 namespace
 {
 enum class Widget : int {
-    AccountActivityUSD = 0,
-    AccountList = 1,
-    AccountSummaryBTC = 2,
-    AccountSummaryBCH = 3,
-    AccountSummaryUSD = 4,
-    ActivitySummary = 5,
-    ContactList = 6,
-    MessagableList = 7,
-    Profile = 8,
-    PayableListBTC = 9,
-    PayableListBCH = 10,
-    ActivityThreadAlice = 11,
-    ActivityThreadBob = 12,
-    ActivityThreadIssuer = 13,
-    ContactIssuer = 14,
-    AccountSummary = 15,
+    AccountActivityUSD,
+    AccountList,
+    AccountSummaryBTC,
+    AccountSummaryBCH,
+    AccountSummaryUSD,
+    ActivitySummary,
+    ContactList,
+    MessagableList,
+    Profile,
+    PayableListBTC,
+    PayableListBCH,
+    ActivityThreadAlice,
+    ActivityThreadBob,
+    ActivityThreadIssuer,
+    ContactIssuer,
+    AccountSummary,
 };
 
 using WidgetCallback = std::function<bool()>;
