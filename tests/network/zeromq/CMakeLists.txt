@@ -3,49 +3,34 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(name unittests-opentxs-network-zeromq)
-
-set(
-  cxx-sources
-  ${PROJECT_SOURCE_DIR}/tests/main.cpp
-  Test_DealerReply.cpp
-  Test_DealerRouter.cpp
-  Test_DealerSocket.cpp
-  Test_Frame.cpp
-  Test_FrameIterator.cpp
-  Test_FrameSection.cpp
-  Test_ListenCallback.cpp
-  Test_Message.cpp
-  Test_PairSocket.cpp
-  Test_PublishSocket.cpp
-  Test_PublishSubscribe.cpp
-  Test_PushPull.cpp
-  Test_ReplyCallback.cpp
-  Test_ReplySocket.cpp
-  Test_RequestReply.cpp
-  Test_RequestRouter.cpp
-  Test_RequestSocket.cpp
-  Test_RouterDealer.cpp
-  Test_RouterSocket.cpp
-  Test_SubscribeSocket.cpp
-  ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
-)
-
-include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
-                    ${GTEST_INCLUDE_DIRS})
-
-add_executable(${name} ${cxx-sources})
-target_link_libraries(
-  ${name}
-  opentxs::libopentxs
-  ${GTEST_BOTH_LIBRARIES}
-  ${ZMQ_LIBRARIES}
-  Boost::filesystem
-)
-set_target_properties(
-  ${name}
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests
-)
-add_test(${name} ${PROJECT_BINARY_DIR}/tests/${name}
-         --gtest_output=xml:gtestresults.xml)
-target_include_directories(${name} PRIVATE ${ZMQ_INCLUDE_DIRS})
+add_opentx_test(unittests-opentxs-network-zeromq-dealer Test_DealerSocket.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-dealerreply
+                Test_DealerReply.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-dealerrouter
+                Test_DealerRouter.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-frame Test_Frame.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-frameinterator
+                Test_FrameIterator.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-framesection
+                Test_FrameSection.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-listencallback
+                Test_ListenCallback.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-message Test_Message.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-pair Test_PairSocket.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-publish Test_PublishSocket.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-publishsubscribe
+                Test_PublishSubscribe.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-pushpull Test_PushPull.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-reply Test_ReplySocket.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-replycallback
+                Test_ReplyCallback.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-request Test_RequestSocket.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-requestreply
+                Test_RequestReply.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-requestrouter
+                Test_RequestRouter.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-router Test_RouterSocket.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-routerdealer
+                Test_RouterDealer.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-subscribe
+                Test_SubscribeSocket.cpp)

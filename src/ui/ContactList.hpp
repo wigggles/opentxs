@@ -44,6 +44,31 @@ public:
 private:
     friend opentxs::Factory;
 
+    struct ParsedArgs {
+        OTNymID nym_id_;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        OTPaymentCode payment_code_;
+#endif
+        ParsedArgs(
+            const api::internal::Core& api,
+            const PasswordPrompt& reason,
+            const std::string& purportedID,
+            const std::string& purportedPaymentCode) noexcept;
+
+    private:
+        static OTNymID extract_nymid(
+            const api::internal::Core& api,
+            const std::string& purportedID,
+            const std::string& purportedPaymentCode) noexcept;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        static OTPaymentCode extract_paymentcode(
+            const api::internal::Core& api,
+            const PasswordPrompt& reason,
+            const std::string& purportedID,
+            const std::string& purportedPaymentCode) noexcept;
+#endif
+    };
+
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
     std::shared_ptr<ContactListRowInternal> owner_;

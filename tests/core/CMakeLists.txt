@@ -5,32 +5,7 @@
 
 add_subdirectory(crypto)
 
-set(name unittests-opentxs-core)
-
-set(
-  cxx-sources
-  ${PROJECT_SOURCE_DIR}/tests/main.cpp
-  Test_Data.cpp
-  Test_Ledger.cpp
-  Test_Nym.cpp
-  Test_StateMachine.cpp
-  ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
-)
-
-include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
-                    ${GTEST_INCLUDE_DIRS})
-
-add_executable(${name} ${cxx-sources})
-target_link_libraries(
-  ${name}
-  opentxs::libopentxs
-  ${GTEST_LIBRARY}
-  Boost::filesystem
-)
-
-set_target_properties(
-  ${name}
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests
-)
-add_test(${name} ${PROJECT_BINARY_DIR}/tests/${name}
-         --gtest_output=xml:gtestresults.xml)
+add_opentx_test(unittests-opentxs-core-data Test_Data.cpp)
+add_opentx_test(unittests-opentxs-core-ledger Test_Ledger.cpp)
+add_opentx_test(unittests-opentxs-core-nym Test_Nym.cpp)
+add_opentx_test(unittests-opentxs-core-statemachine Test_StateMachine.cpp)

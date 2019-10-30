@@ -617,6 +617,8 @@ bool PaymentCode::Verify(
 
 bool PaymentCode::VerifyInternally() const
 {
+    if (0 == version_) { return false; }
+
     return (proto::Validate<proto::PaymentCode>(*Serialize(), SILENT));
 }
 }  // namespace opentxs::implementation
