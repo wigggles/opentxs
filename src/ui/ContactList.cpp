@@ -139,18 +139,95 @@ ContactList::ContactList(
     OT_ASSERT(startup_)
 }
 
+ContactList::ParsedArgs::ParsedArgs(
+    const api::internal::Core& api,
+    const PasswordPrompt& reason,
+    const std::string& purportedID,
+    const std::string& purportedPaymentCode) noexcept
+    : nym_id_(extract_nymid(api, purportedID, purportedPaymentCode))
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    , payment_code_(
+          extract_paymentcode(api, reason, purportedID, purportedPaymentCode))
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+{
+}
+
+OTNymID ContactList::ParsedArgs::extract_nymid(
+    const api::internal::Core& api,
+    const std::string& purportedID,
+    const std::string& purportedPaymentCode) noexcept
+{
+    auto output = api.Factory().NymID();
+
+    if (false == purportedID.empty()) {
+        // Case 1: purportedID is a nym id
+        output = api.Factory().NymID(purportedID);
+
+        if (false == output->empty()) { return output; }
+
+        // Case 2: purportedID is a payment code
+        output = api.Factory().NymIDFromPaymentCode(purportedID);
+
+        if (false == output->empty()) { return output; }
+    }
+
+    if (false == purportedPaymentCode.empty()) {
+        // Case 3: purportedPaymentCode is a payment code
+        output = api.Factory().NymIDFromPaymentCode(purportedPaymentCode);
+
+        if (false == output->empty()) { return output; }
+
+        // Case 4: purportedPaymentCode is a nym id
+        output->SetString(purportedPaymentCode);
+
+        if (false == output->empty()) { return output; }
+    }
+
+    // Case 5: not possible to extract a nym id
+
+    return output;
+}
+
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+OTPaymentCode ContactList::ParsedArgs::extract_paymentcode(
+    const api::internal::Core& api,
+    const PasswordPrompt& reason,
+    const std::string& purportedID,
+    const std::string& purportedPaymentCode) noexcept
+{
+    if (false == purportedPaymentCode.empty()) {
+        // Case 1: purportedPaymentCode is a payment code
+        auto output = api.Factory().PaymentCode(purportedPaymentCode, reason);
+
+        if (output->VerifyInternally()) { return output; }
+    }
+
+    if (false == purportedID.empty()) {
+        // Case 2: purportedID is a payment code
+        auto output = api.Factory().PaymentCode(purportedID, reason);
+
+        if (output->VerifyInternally()) { return output; }
+    }
+
+    // Case 3: not possible to extract a payment code
+
+    return api.Factory().PaymentCode("", reason);
+}
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+
 std::string ContactList::AddContact(
     const std::string& label,
     const std::string& paymentCode,
     const std::string& nymID) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt("Adding a new contact");
+    auto args = ParsedArgs{api_, reason, nymID, paymentCode};
     const auto contact = api_.Contacts().NewContact(
         label,
-        identifier::Nym::Factory(nymID),
+        args.nym_id_,
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        api_.Factory().PaymentCode(paymentCode, reason),
-#endif
+        args.payment_code_,
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         reason);
     const auto& id = contact->ID();
     api_.OTX().CanMessage(primary_id_, id, true);

@@ -205,6 +205,8 @@ public:
     EXPORT virtual OTNymID NymID() const = 0;
     EXPORT virtual OTNymID NymID(const std::string& serialized) const = 0;
     EXPORT virtual OTNymID NymID(const opentxs::String& serialized) const = 0;
+    EXPORT virtual OTNymID NymIDFromPaymentCode(
+        const std::string& serialized) const = 0;
 
     EXPORT virtual std::unique_ptr<OTOffer> Offer()
         const = 0;  // The constructor contains

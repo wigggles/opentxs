@@ -288,5 +288,21 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
     proto::AsymmetricKey privKey = *privatekey;
     ASSERT_TRUE(bool(privatekey));
 }
+
+TEST_F(Test_PaymentCode, nymid)
+{
+    EXPECT_EQ(
+        client_.Factory().PaymentCode(paycode_0, reason_)->ID(),
+        client_.Factory().NymIDFromPaymentCode(paycode_0));
+    EXPECT_EQ(
+        client_.Factory().PaymentCode(paycode_1, reason_)->ID(),
+        client_.Factory().NymIDFromPaymentCode(paycode_1));
+    EXPECT_EQ(
+        client_.Factory().PaymentCode(paycode_2, reason_)->ID(),
+        client_.Factory().NymIDFromPaymentCode(paycode_2));
+    EXPECT_EQ(
+        client_.Factory().PaymentCode(paycode_3, reason_)->ID(),
+        client_.Factory().NymIDFromPaymentCode(paycode_3));
+}
 }  // namespace
 #endif

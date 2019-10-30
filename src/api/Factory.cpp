@@ -9,6 +9,7 @@
 
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP39
@@ -891,6 +892,20 @@ OTNymID Factory::NymID(const std::string& serialized) const
 OTNymID Factory::NymID(const opentxs::String& serialized) const
 {
     return identifier::Nym::Factory(serialized);
+}
+
+OTNymID Factory::NymIDFromPaymentCode(const std::string& input) const
+{
+    auto output = NymID();
+    auto key = Data::Factory();
+    const auto bytes = Data::Factory(
+        api_.Crypto().Encode().IdentifierDecode(input), Data::Mode::Raw);
+
+    if (81 != bytes->size()) { return output; }
+
+    if (bytes->Extract(65, key, 3)) { output->CalculateDigest(key); }
+
+    return output;
 }
 
 std::unique_ptr<OTOffer> Factory::Offer() const

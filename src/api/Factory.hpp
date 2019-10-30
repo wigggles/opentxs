@@ -187,6 +187,7 @@ public:
     OTNymID NymID() const final;
     OTNymID NymID(const std::string& serialized) const final;
     OTNymID NymID(const opentxs::String& serialized) const final;
+    OTNymID NymIDFromPaymentCode(const std::string& serialized) const final;
 
     std::unique_ptr<OTOffer> Offer() const final;  // The constructor
                                                    // contains the 3
