@@ -36,6 +36,13 @@ public:
     bool Delete(const int section, const int type, const std::string& claimID)
         const noexcept final;
     std::string DisplayName() const noexcept final;
+#if OT_QT
+    int FindRow(const ProfileRowID& id, const ProfileSortKey& key) const
+        noexcept final
+    {
+        return find_row(id, key);
+    }
+#endif
     const identifier::Nym& NymID() const noexcept final { return primary_id_; }
     std::string ID() const noexcept final { return primary_id_->str(); }
     std::string PaymentCode() const noexcept final;
@@ -58,7 +65,7 @@ public:
     ~Profile();
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
     std::string name_;
@@ -93,9 +100,7 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     Profile() = delete;

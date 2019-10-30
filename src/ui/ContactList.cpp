@@ -40,20 +40,52 @@
 
 #define OT_METHOD "opentxs::ui::implementation::ContactList::"
 
+namespace opentxs
+{
+ui::implementation::ContactList* Factory::ContactListModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const identifier::Nym& nymID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::ContactList(
+        api,
+        publisher,
+        nymID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::ContactListQt* Factory::ContactListQtModel(
+    ui::implementation::ContactList& parent)
+{
+    using ReturnType = ui::ContactListQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(ContactListQt, ContactList)
+QT_PROXY_MODEL_WRAPPER(ContactListQt, implementation::ContactList)
 
 QString ContactListQt::addContact(
     const QString& label,
     const QString& paymentCode,
     const QString& nymID) const noexcept
 {
-    if (nullptr == parent_) { return {}; }
-
     return parent_
-        ->AddContact(
+        .AddContact(
             label.toStdString(), paymentCode.toStdString(), nymID.toStdString())
         .c_str();
 }
@@ -68,9 +100,7 @@ ContactList::ContactList(
     const identifier::Nym& nymID
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : ContactListList(
@@ -80,10 +110,9 @@ ContactList::ContactList(
 #if OT_QT
           ,
           qt,
-          insertCallback,
-          removeCallback,
-          Roles{},
-          4,
+          Roles{{ContactListQt::ContactIDRole, "id"},
+                {ContactListQt::SectionRole, "section"}},
+          1,
           1
 #endif
           )
@@ -156,36 +185,6 @@ void ContactList::construct_row(
         id, Factory::ContactListItem(*this, api_, publisher_, id, index));
 }
 
-#if OT_QT
-QVariant ContactList::data(const QModelIndex& index, [[maybe_unused]] int role)
-    const noexcept
-{
-    const auto [valid, pRow] = check_index(index);
-
-    if (false == valid) { return {}; }
-
-    const auto& row = *pRow;
-
-    switch (index.column()) {
-        case 0: {
-            return row.ContactID().c_str();
-        }
-        case 1: {
-            return row.DisplayName().c_str();
-        }
-        case 2: {
-            return row.ImageURI().c_str();
-        }
-        case 3: {
-            return row.Section().c_str();
-        }
-        default: {
-            return {};
-        }
-    }
-}
-#endif
-
 /** Returns owner contact. Sets up iterators for next row */
 std::shared_ptr<const ContactListRowInternal> ContactList::first(
     const Lock& lock) const noexcept
@@ -203,31 +202,16 @@ std::shared_ptr<const ContactListRowInternal> ContactList::first(
 QModelIndex ContactList::index(int row, int column, const QModelIndex& parent)
     const noexcept
 {
-    if (columnCount() < column) { return {}; }
+    const auto* pointer = get_pointer(parent);
 
-    if (0 == row) {
-
-        return createIndex(row, column, owner_.get());
-    } else {
-        Lock lock(lock_);
-        int i{start_row_};
-        ContactListItem* item{nullptr};
-
-        for (const auto& [sortKey, map] : items_) {
-            for (const auto& [index, pRow] : map) {
-                if (i == row) {
-                    item = pRow.get();
-                    goto exit;
-                } else {
-                    ++i;
-                }
-            }
+    if (nullptr == parent.internalPointer()) {
+        if (0 == row) {
+            return createIndex(row, column, owner_.get());
+        } else {
+            return get_index(row, column);
         }
-
-    exit:
-        if (nullptr == item) { return {}; }
-
-        return createIndex(row, column, item);
+    } else {
+        return pointer->qt_index(row, column);
     }
 }
 #endif

@@ -51,50 +51,24 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ActivitySummaryQt final : public QAbstractItemModel
+class opentxs::ui::ActivitySummaryQt final : public QIdentityProxyModel
 {
     Q_OBJECT
-
-public:
-    using ConstructorCallback = std::function<implementation::ActivitySummary*(
-        RowCallbacks insert,
-        RowCallbacks remove)>;
-
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-
-    const ActivitySummary& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    ActivitySummaryQt(ConstructorCallback cb) noexcept(false);
-    ~ActivitySummaryQt() final;
 
 signals:
     void updated() const;
 
+public:
+    ~ActivitySummaryQt() final = default;
+
 private:
-    std::unique_ptr<implementation::ActivitySummary> parent_;
+    friend opentxs::Factory;
+
+    implementation::ActivitySummary& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
-    ActivitySummaryQt() = delete;
+    ActivitySummaryQt(implementation::ActivitySummary& parent) noexcept;
     ActivitySummaryQt(const ActivitySummaryQt&) = delete;
     ActivitySummaryQt(ActivitySummaryQt&&) = delete;
     ActivitySummaryQt& operator=(const ActivitySummaryQt&) = delete;

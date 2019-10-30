@@ -42,22 +42,55 @@
 
 #define OT_METHOD "opentxs::ui::implementation::Contact::"
 
+namespace opentxs
+{
+ui::implementation::Contact* Factory::ContactModel(
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const Identifier& contactID
+#if OT_QT
+    ,
+    const bool qt
+#endif
+)
+{
+    return new ui::implementation::Contact(
+        api,
+        publisher,
+        contactID
+#if OT_QT
+        ,
+        qt
+#endif
+    );
+}
+
+#if OT_QT
+ui::ContactQt* Factory::ContactQtModel(ui::implementation::Contact& parent)
+{
+    using ReturnType = ui::ContactQt;
+
+    return new ReturnType(parent);
+}
+#endif  // OT_QT
+}  // namespace opentxs
+
 #if OT_QT
 namespace opentxs::ui
 {
-QT_MODEL_WRAPPER(ContactQt, Contact)
+QT_PROXY_MODEL_WRAPPER(ContactQt, implementation::Contact)
 
 QString ContactQt::displayName() const noexcept
 {
-    return parent_->DisplayName().c_str();
+    return parent_.DisplayName().c_str();
 }
 QString ContactQt::contactID() const noexcept
 {
-    return parent_->ContactID().c_str();
+    return parent_.ContactID().c_str();
 }
 QString ContactQt::paymentCode() const noexcept
 {
-    return parent_->PaymentCode().c_str();
+    return parent_.PaymentCode().c_str();
 }
 }  // namespace opentxs::ui
 #endif
@@ -78,9 +111,7 @@ Contact::Contact(
     const Identifier& contactID
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
     : ContactType(
@@ -89,9 +120,7 @@ Contact::Contact(
           contactID
 #if OT_QT
           ,
-          qt,
-          insertCallback,
-          removeCallback
+          qt
 #endif
           )
     , listeners_({
@@ -131,9 +160,7 @@ void Contact::construct_row(
             custom
 #if OT_QT
             ,
-            enable_qt_,
-            insert_callbacks_,
-            remove_callbacks_
+            enable_qt_
 #endif
             ));
 }

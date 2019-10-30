@@ -6,6 +6,7 @@
 #ifndef OPENTXS_UI_ACCOUNTSUMMARY_HPP
 #define OPENTXS_UI_ACCOUNTSUMMARY_HPP
 
+#ifndef Q_MOC_RUN
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/ui/List.hpp"
@@ -20,6 +21,11 @@ namespace opentxs
 {
 namespace ui
 {
+namespace implementation
+{
+class AccountSummary;
+}  // namespace implementation
+
 class AccountSummary : virtual public List
 {
 public:
@@ -41,4 +47,45 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
+#endif
+
+#if OT_QT || defined(Q_MOC_RUN)
+class opentxs::ui::AccountSummaryQt final : public QIdentityProxyModel
+{
+    Q_OBJECT
+
+signals:
+    void updated() const;
+
+public:
+    // Tree layout
+    enum Roles {
+        NotaryIDRole = Qt::UserRole + 0,
+        AccountIDRole = Qt::UserRole + 1,
+        BalanceRole = Qt::UserRole + 2,
+    };
+    enum Columns {
+        IssuerNameColumn = 0,
+        ConnectionStateColumn = 1,
+        TrustedColumn = 2,
+        AccountNameColumn = 3,
+        BalanceColumn = 4,
+    };
+
+    ~AccountSummaryQt() final = default;
+
+private:
+    friend opentxs::Factory;
+
+    implementation::AccountSummary& parent_;
+
+    void notify() const noexcept;
+
+    AccountSummaryQt(implementation::AccountSummary& parent) noexcept;
+    AccountSummaryQt(const AccountSummaryQt&) = delete;
+    AccountSummaryQt(AccountSummaryQt&&) = delete;
+    AccountSummaryQt& operator=(const AccountSummaryQt&) = delete;
+    AccountSummaryQt& operator=(AccountSummaryQt&&) = delete;
+};
+#endif
 #endif

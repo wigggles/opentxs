@@ -27,16 +27,12 @@ using MessagableListList = List<
 class MessagableList final : public MessagableListList
 {
 public:
-#if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-#endif
     const Identifier& ID() const noexcept final;
 
-    ~MessagableList();
+    ~MessagableList() final;
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
@@ -63,9 +59,7 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     MessagableList() = delete;

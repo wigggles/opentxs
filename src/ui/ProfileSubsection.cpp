@@ -21,8 +21,7 @@
 #include "opentxs/ui/ProfileSubsection.hpp"
 
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
-#include "RowType.hpp"
+#include "Combined.hpp"
 
 #include <map>
 #include <memory>
@@ -48,9 +47,7 @@ ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
     const ui::implementation::CustomData& custom
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
 )
 {
@@ -63,9 +60,7 @@ ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
         custom
 #if OT_QT
         ,
-        qt,
-        insertCallback,
-        removeCallback
+        qt
 #endif
     );
 }
@@ -82,24 +77,22 @@ ProfileSubsection::ProfileSubsection(
     const CustomData& custom
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
-    : ProfileSubsectionList(
+    : Combined(
           api,
           publisher,
           parent.NymID(),
-          parent.WidgetID()
+          parent.WidgetID(),
+          parent,
+          rowID,
+          key
 #if OT_QT
-              ,
-          qt,
-          insertCallback,
-          removeCallback
+          ,
+          qt
 #endif
-          )
-    , ProfileSubsectionRow(parent, rowID, true)
+      )
 {
     init();
     startup_.reset(new std::thread(&ProfileSubsection::startup, this, custom));

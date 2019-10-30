@@ -15,7 +15,7 @@
 %extend opentxs::api::client::UI {
     const ui::AccountSummary& AccountSummary(
         const identifier::Nym& nymID,
-        const int currency) const
+        const int currency) const noexcept
     {
         return $self->AccountSummary(
             nymID,
@@ -23,7 +23,7 @@
     }
     const opentxs::ui::PayableList& PayableList(
         const identifier::Nym& nymID,
-        const int currency) const
+        const int currency) const noexcept
     {
         return $self->PayableList(
             nymID,
@@ -46,69 +46,73 @@ class UI
 public:
     EXPORT virtual const ui::AccountActivity& AccountActivity(
         const identifier::Nym& nymID,
-        const Identifier& accountID) const = 0;
+        const Identifier& accountID) const noexcept = 0;
     EXPORT virtual const ui::AccountList& AccountList(
-        const identifier::Nym& nym) const = 0;
+        const identifier::Nym& nym) const noexcept = 0;
     EXPORT virtual const ui::AccountSummary& AccountSummary(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const = 0;
+        const proto::ContactItemType currency) const noexcept = 0;
     EXPORT virtual const ui::ActivitySummary& ActivitySummary(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID) const noexcept = 0;
     EXPORT virtual const ui::ActivityThread& ActivityThread(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const = 0;
-    EXPORT virtual const ui::Contact& Contact(
-        const Identifier& contactID) const = 0;
+        const Identifier& threadID) const noexcept = 0;
+    EXPORT virtual const ui::Contact& Contact(const Identifier& contactID) const
+        noexcept = 0;
     EXPORT virtual const ui::ContactList& ContactList(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID) const noexcept = 0;
     EXPORT virtual const ui::MessagableList& MessagableList(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID) const noexcept = 0;
     EXPORT virtual const ui::PayableList& PayableList(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const = 0;
+        const proto::ContactItemType currency) const noexcept = 0;
     EXPORT virtual const ui::Profile& Profile(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID) const noexcept = 0;
 
 #if OT_QT
     /// Caller does not own this pointer
     EXPORT virtual ui::AccountActivityQt* AccountActivityQt(
         const identifier::Nym& nymID,
-        const Identifier& accountID) const = 0;
+        const Identifier& accountID) const noexcept = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::AccountListQt* AccountListQt(
-        const identifier::Nym& nym) const = 0;
+        const identifier::Nym& nym) const noexcept = 0;
+    /// Caller does not own this pointer
+    EXPORT virtual ui::AccountSummaryQt* AccountSummaryQt(
+        const identifier::Nym& nymID,
+        const proto::ContactItemType currency) const noexcept = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::ActivitySummaryQt* ActivitySummaryQt(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID) const noexcept = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::ActivityThreadQt* ActivityThreadQt(
         const identifier::Nym& nymID,
-        const Identifier& threadID) const = 0;
+        const Identifier& threadID) const noexcept = 0;
     /// Caller does not own this pointer
     EXPORT virtual QAbstractItemModel* BlankModel(
-        const std::size_t columns) const = 0;
+        const std::size_t columns) const noexcept = 0;
     /// Caller does not own this pointer
-    EXPORT virtual ui::ContactQt* ContactQt(
-        const Identifier& contactID) const = 0;
+    EXPORT virtual ui::ContactQt* ContactQt(const Identifier& contactID) const
+        noexcept = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::ContactListQt* ContactListQt(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID) const noexcept = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::MessagableListQt* MessagableListQt(
-        const identifier::Nym& nymID) const = 0;
+        const identifier::Nym& nymID) const noexcept = 0;
     /// Caller does not own this pointer
     EXPORT virtual ui::PayableListQt* PayableListQt(
         const identifier::Nym& nymID,
-        const proto::ContactItemType currency) const = 0;
+        const proto::ContactItemType currency) const noexcept = 0;
     /// Caller does not own this pointer
-    EXPORT virtual ui::ProfileQt* ProfileQt(
-        const identifier::Nym& nymID) const = 0;
+    EXPORT virtual ui::ProfileQt* ProfileQt(const identifier::Nym& nymID) const
+        noexcept = 0;
 #endif
 
     virtual ~UI() = default;
 
 protected:
-    UI() = default;
+    UI() noexcept = default;
 
 private:
     UI(const UI&) = delete;

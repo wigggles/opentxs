@@ -15,12 +15,11 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
 
 #ifndef Q_MOC_RUN
-
-#include <QtCore/QObject>
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QDateTime>
+#include <QtCore/QIdentityProxyModel>
+#include <QtCore/QObject>
 #include <QtQml/QQmlEngine>
-
 #endif
 
 #pragma GCC diagnostic pop

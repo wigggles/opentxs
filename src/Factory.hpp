@@ -28,6 +28,29 @@ public:
         const NymParameters& nymParameters,
         const VersionNumber nymVersion,
         const opentxs::PasswordPrompt& reason);
+    static ui::implementation::AccountActivity* AccountActivityModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID,
+        const Identifier& accountID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
+#if OT_QT
+    static ui::AccountActivityQt* AccountActivityQtModel(
+        ui::implementation::AccountActivity& parent);
+#endif
+    static ui::implementation::AccountList* AccountListModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     static ui::implementation::AccountListRowInternal* AccountListItem(
         const opentxs::PasswordPrompt& reason,
         const ui::implementation::AccountListInternalInterface& parent,
@@ -36,16 +59,18 @@ public:
         const ui::implementation::AccountListRowID& rowID,
         const ui::implementation::AccountListSortKey& sortKey,
         const ui::implementation::CustomData& custom);
-    static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
+#if OT_QT
+    static ui::AccountListQt* AccountListQtModel(
+        ui::implementation::AccountList& parent);
+#endif
+    static ui::implementation::AccountSummary* AccountSummaryModel(
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
         const identifier::Nym& nymID,
         const proto::ContactItemType currency
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
+        const bool qt
 #endif
     );
     static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
@@ -56,9 +81,23 @@ public:
         const ui::implementation::IssuerItemRowID& rowID,
         const ui::implementation::IssuerItemSortKey& sortKey,
         const ui::implementation::CustomData& custom);
+#if OT_QT
+    static ui::AccountSummaryQt* AccountSummaryQtModel(
+        ui::implementation::AccountSummary& parent);
+#endif
     static api::client::internal::Activity* Activity(
         const api::internal::Core& api,
         const api::client::Contacts& contact);
+    static ui::implementation::ActivitySummary* ActivitySummaryModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const Flag& running,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
     static ui::implementation::ActivitySummaryRowInternal* ActivitySummaryItem(
         const ui::implementation::ActivitySummaryInternalInterface& parent,
         const api::client::internal::Manager& api,
@@ -68,6 +107,24 @@ public:
         const ui::implementation::ActivitySummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
         const Flag& running);
+#if OT_QT
+    static ui::ActivitySummaryQt* ActivitySummaryQtModel(
+        ui::implementation::ActivitySummary& parent);
+#endif
+    static ui::implementation::ActivityThread* ActivityThreadModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID,
+        const Identifier& threadID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
+#if OT_QT
+    static ui::ActivityThreadQt* ActivityThreadQtModel(
+        ui::implementation::ActivityThread& parent);
+#endif
     static api::crypto::internal::Asymmetric* AsymmetricAPI(
         const api::internal::Core& api);
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
@@ -571,6 +628,8 @@ public:
         const network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);
+    static api::client::internal::Contacts* ContactAPI(
+        const api::client::internal::Manager& api);
     static identity::credential::internal::Contact* ContactCredential(
         const api::internal::Core& api,
         identity::internal::Authority& parent,
@@ -592,8 +651,6 @@ public:
         const network::zeromq::socket::Publish& publisher,
         const ui::implementation::ContactListRowID& rowID,
         const ui::implementation::ContactListSortKey& key);
-    static api::client::internal::Contacts* ContactAPI(
-        const api::client::internal::Manager& api);
     static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
         const ui::implementation::ContactSubsectionInternalInterface& parent,
         const api::client::internal::Manager& api,
@@ -601,6 +658,31 @@ public:
         const ui::implementation::ContactSubsectionRowID& rowID,
         const ui::implementation::ContactSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom);
+    static ui::implementation::ContactList* ContactListModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
+#if OT_QT
+    static ui::ContactListQt* ContactListQtModel(
+        ui::implementation::ContactList& parent);
+#endif
+    static ui::implementation::Contact* ContactModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const Identifier& contactID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
+#if OT_QT
+    static ui::ContactQt* ContactQtModel(ui::implementation::Contact& parent);
+#endif
     static ui::implementation::ContactRowInternal* ContactSectionWidget(
         const ui::implementation::ContactInternalInterface& parent,
         const api::client::internal::Manager& api,
@@ -610,9 +692,7 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
+        const bool qt
 #endif
     );
     static ui::implementation::ContactSectionRowInternal*
@@ -625,9 +705,7 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
+        const bool qt
 #endif
     );
     static api::internal::Context* Context(
@@ -762,9 +840,7 @@ public:
         const proto::ContactItemType currency
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
+        const bool qt
 #endif
     );
     static crypto::key::Keypair* Keypair();
@@ -808,6 +884,19 @@ public:
     static opentxs::ManagedNumber* ManagedNumber(
         const TransactionNumber number,
         opentxs::ServerContext& context);
+    static ui::implementation::MessagableList* MessagableListModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
+#if OT_QT
+    static ui::MessagableListQt* MessagableListQtModel(
+        ui::implementation::MessagableList& parent);
+#endif
 #if OT_CASH
     static blind::Mint* MintLucre(const api::internal::Core& core);
     static blind::Mint* MintLucre(
@@ -886,6 +975,20 @@ public:
         const ui::implementation::PayableListSortKey& key,
         const std::string& paymentcode,
         const proto::ContactItemType& currency);
+    static ui::implementation::PayableList* PayableListModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID,
+        const proto::ContactItemType& currency
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
+#if OT_QT
+    static ui::PayableListQt* PayableListQtModel(
+        ui::implementation::PayableList& parent);
+#endif
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     static opentxs::PaymentCode* PaymentCode(
         const api::internal::Core& api,
@@ -987,6 +1090,18 @@ public:
         const ui::implementation::ProfileSubsectionRowID& rowID,
         const ui::implementation::ProfileSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom);
+    static ui::implementation::Profile* ProfileModel(
+        const api::client::internal::Manager& api,
+        const network::zeromq::socket::Publish& publisher,
+        const identifier::Nym& nymID
+#if OT_QT
+        ,
+        const bool qt
+#endif
+    );
+#if OT_QT
+    static ui::ProfileQt* ProfileQtModel(ui::implementation::Profile& parent);
+#endif
     static ui::implementation::ProfileRowInternal* ProfileSectionWidget(
         const ui::implementation::ProfileInternalInterface& parent,
         const api::client::internal::Manager& api,
@@ -996,9 +1111,7 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
+        const bool qt
 #endif
     );
     static ui::implementation::ProfileSectionRowInternal*
@@ -1011,9 +1124,7 @@ public:
         const ui::implementation::CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback = {},
-        const RowCallbacks removeCallback = {}
+        const bool qt
 #endif
     );
 #if OT_CASH

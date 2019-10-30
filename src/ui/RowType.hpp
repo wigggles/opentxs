@@ -13,7 +13,14 @@ template <typename InterfaceType, typename ParentType, typename IdentifierType>
 class RowType : virtual public InterfaceType
 {
 public:
+    using RowInterfaceType = InterfaceType;
+    using RowParentType = ParentType;
+    using RowIdentifierType = IdentifierType;
+
     bool Last() const noexcept final { return parent_.last(row_id_); }
+#if OT_QT
+    QModelIndex qt_parent() const noexcept final { return parent_.me(); }
+#endif  // OT_QT
     bool Valid() const noexcept final { return valid_; }
 
 protected:

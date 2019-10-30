@@ -17,6 +17,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -65,6 +66,23 @@ std::string PayableListItem::PaymentCode() const noexcept
 
     return payment_code_;
 }
+
+#if OT_QT
+QVariant PayableListItem::qt_data(const int column, int role) const noexcept
+{
+    if (0 == column) { return ContactListItem::qt_data(column, role); }
+
+    switch (role) {
+        case Qt::DisplayRole: {
+
+            return PaymentCode().c_str();
+        }
+        default: {
+            return {};
+        }
+    }
+}
+#endif
 
 void PayableListItem::reindex(
     const ContactListSortKey& key,

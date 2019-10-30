@@ -9,12 +9,16 @@
 
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/AccountList.hpp"
 #include "opentxs/ui/AccountListItem.hpp"
-#include "opentxs/ui/ActivitySummaryItem.hpp"
+#include "opentxs/ui/AccountSummary.hpp"
 #include "opentxs/ui/AccountSummaryItem.hpp"
+#include "opentxs/ui/ActivitySummary.hpp"
+#include "opentxs/ui/ActivitySummaryItem.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
+#include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactItem.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/ContactSection.hpp"
@@ -55,140 +59,193 @@ struct make_blank<ui::implementation::ActivityThreadRowID> {
 
 namespace opentxs::ui::internal
 {
-struct AccountActivity {
+struct List : virtual public ui::List {
+#if OT_QT
+    virtual void emit_begin_insert_rows(
+        const QModelIndex& parent,
+        int first,
+        int last) const noexcept = 0;
+    virtual void emit_begin_remove_rows(
+        const QModelIndex& parent,
+        int first,
+        int last) const noexcept = 0;
+    virtual void emit_end_insert_rows() const noexcept = 0;
+    virtual void emit_end_remove_rows() const noexcept = 0;
+    virtual QModelIndex me() const noexcept = 0;
+#endif
+
+    ~List() override = default;
+};
+
+struct Row : virtual public ui::ListRow {
+#if OT_QT
+    virtual int qt_column_count() const noexcept { return 0; }
+    virtual QVariant qt_data(
+        [[maybe_unused]] const int column,
+        [[maybe_unused]] const int role) const noexcept
+    {
+        return {};
+    }
+    virtual QModelIndex qt_index(
+        [[maybe_unused]] const int row,
+        [[maybe_unused]] const int column) const noexcept
+    {
+        return {};
+    }
+    virtual QModelIndex qt_parent() const noexcept = 0;
+    virtual int qt_row_count() const noexcept { return 0; }
+#endif  // OT_QT
+
+    ~Row() override = default;
+};
+struct AccountActivity : virtual public List,
+                         virtual public ui::AccountActivity {
     virtual const Identifier& AccountID() const = 0;
     virtual bool last(const implementation::AccountActivityRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
 
-    virtual ~AccountActivity() = default;
+    ~AccountActivity() override = default;
 };
-struct AccountList {
+struct AccountList : virtual public List, virtual public ui::AccountList {
     virtual bool last(const implementation::AccountListRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
 
-    virtual ~AccountList() = default;
+    ~AccountList() override = default;
 };
-struct AccountListItem : virtual public ui::AccountListItem {
+struct AccountListItem : virtual public Row,
+                         virtual public ui::AccountListItem {
     virtual void reindex(
         const implementation::AccountListSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~AccountListItem() = default;
+    ~AccountListItem() override = default;
 };
-struct AccountSummary {
+struct AccountSummary : virtual public List, virtual public ui::AccountSummary {
+    virtual proto::ContactItemType Currency() const = 0;
+#if OT_QT
+    virtual int FindRow(
+        const implementation::AccountSummaryRowID& id,
+        const implementation::AccountSummarySortKey& key) const noexcept = 0;
+#endif
     virtual bool last(const implementation::AccountSummaryRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
-    // custom
-    virtual proto::ContactItemType Currency() const = 0;
     virtual const identifier::Nym& NymID() const = 0;
 
-    virtual ~AccountSummary() = default;
+    ~AccountSummary() override = default;
 };
-struct AccountSummaryItem : virtual public ui::AccountSummaryItem {
+struct AccountSummaryItem : virtual public Row,
+                            virtual public ui::AccountSummaryItem {
     virtual void reindex(
         const implementation::IssuerItemSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~AccountSummaryItem() = default;
+    ~AccountSummaryItem() override = default;
 };
-struct ActivitySummary {
+struct ActivitySummary : virtual public List,
+                         virtual public ui::ActivitySummary {
     virtual bool last(const implementation::ActivitySummaryRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
 
-    virtual ~ActivitySummary() = default;
+    ~ActivitySummary() override = default;
 };
-struct ActivitySummaryItem : virtual public ui::ActivitySummaryItem {
+struct ActivitySummaryItem : virtual public Row,
+                             virtual public ui::ActivitySummaryItem {
     virtual void reindex(
         const implementation::ActivitySummarySortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~ActivitySummaryItem() = default;
+    ~ActivitySummaryItem() override = default;
 };
-struct ActivityThread {
+struct ActivityThread : virtual public List {
     virtual bool last(const implementation::ActivityThreadRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
     // custom
     virtual std::string ThreadID() const = 0;
 
-    virtual ~ActivityThread() = default;
+    ~ActivityThread() override = default;
 };
-struct ActivityThreadItem : virtual public ui::ActivityThreadItem {
+struct ActivityThreadItem : virtual public Row,
+                            virtual public ui::ActivityThreadItem {
     virtual void reindex(
         const implementation::ActivityThreadSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~ActivityThreadItem() = default;
+    ~ActivityThreadItem() override = default;
 };
-struct BalanceItem : virtual public ui::BalanceItem {
+struct BalanceItem : virtual public Row, virtual public ui::BalanceItem {
     virtual void reindex(
         const implementation::AccountActivitySortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~BalanceItem() = default;
+    ~BalanceItem() override = default;
 };
-struct Contact {
+struct Contact : virtual public List, virtual public ui::Contact {
+#if OT_QT
+    virtual int FindRow(
+        const implementation::ContactRowID& id,
+        const implementation::ContactSortKey& key) const noexcept = 0;
+#endif
     virtual bool last(const implementation::ContactRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
-    // custom
-    virtual std::string ContactID() const = 0;
 
-    virtual ~Contact() = default;
+    ~Contact() override = default;
 };
-struct ContactItem : virtual public ui::ContactItem {
+struct ContactItem : virtual public Row, virtual public ui::ContactItem {
     virtual void reindex(
         const implementation::ContactSubsectionSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~ContactItem() = default;
+    ~ContactItem() override = default;
 };
-struct ContactList {
+struct ContactList : virtual public List {
     virtual bool last(const implementation::ContactListRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
     // custom
     virtual const Identifier& ID() const = 0;
 
-    virtual ~ContactList() = default;
+    ~ContactList() override = default;
 };
-struct ContactListItem : virtual public ui::ContactListItem {
+struct ContactListItem : virtual public Row,
+                         virtual public ui::ContactListItem {
     virtual void reindex(
         const implementation::ContactListSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~ContactListItem() = default;
+    ~ContactListItem() override = default;
 };
-struct ContactSection : virtual public ui::ContactSection {
-    // Row
+struct ContactSection : virtual public List,
+                        virtual public Row,
+                        virtual public ui::ContactSection {
+    virtual std::string ContactID() const noexcept = 0;
+#if OT_QT
+    virtual int FindRow(
+        const implementation::ContactSectionRowID& id,
+        const implementation::ContactSectionSortKey& key) const noexcept = 0;
+#endif
+    virtual bool last(const implementation::ContactSectionRowID& id) const
+        noexcept = 0;
+
     virtual void reindex(
         const implementation::ContactSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
-    // List
-    virtual bool last(const implementation::ContactSectionRowID& id) const
-        noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
-    // custom
-    virtual std::string ContactID() const noexcept = 0;
 
-    virtual ~ContactSection() = default;
+    ~ContactSection() override = default;
 };
-struct ContactSubsection : virtual public ui::ContactSubsection {
+struct ContactSubsection : virtual public List,
+                           virtual public Row,
+                           virtual public ui::ContactSubsection {
     virtual void reindex(
         const implementation::ContactSectionSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
     // List
     virtual bool last(const implementation::ContactSubsectionRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
 
-    virtual ~ContactSubsection() = default;
+    ~ContactSubsection() override = default;
 };
-struct IssuerItem : virtual public ui::IssuerItem {
+struct IssuerItem : virtual public List,
+                    virtual public Row,
+                    virtual public ui::IssuerItem {
     // Row
     virtual void reindex(
         const implementation::AccountSummarySortKey& key,
@@ -196,41 +253,56 @@ struct IssuerItem : virtual public ui::IssuerItem {
     // List
     virtual bool last(const implementation::IssuerItemRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
 
-    virtual ~IssuerItem() = default;
+    ~IssuerItem() override = default;
 };
-struct PayableListItem : virtual public ui::PayableListItem {
+struct MessagableList : virtual public ContactList {
+    ~MessagableList() override = default;
+};
+struct PayableList : virtual public ContactList {
+    ~PayableList() override = default;
+};
+struct PayableListItem : virtual public Row,
+                         virtual public ui::PayableListItem {
     virtual void reindex(
         const implementation::PayableListSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~PayableListItem() = default;
+    ~PayableListItem() override = default;
 };
-struct Profile : virtual public ui::Profile {
+struct Profile : virtual public List, virtual public ui::Profile {
+#if OT_QT
+    virtual int FindRow(
+        const implementation::ProfileRowID& id,
+        const implementation::ProfileSortKey& key) const noexcept = 0;
+#endif
     virtual bool last(const implementation::ProfileRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
-    // custom
     virtual const identifier::Nym& NymID() const = 0;
 
-    virtual ~Profile() = default;
+    ~Profile() override = default;
 };
-struct ProfileSection : virtual public ui::ProfileSection {
-    // Row
+struct ProfileSection : virtual public List,
+                        virtual public Row,
+                        virtual public ui::ProfileSection {
+#if OT_QT
+    virtual int FindRow(
+        const implementation::ProfileSectionRowID& id,
+        const implementation::ProfileSectionSortKey& key) const noexcept = 0;
+#endif
+    virtual bool last(const implementation::ProfileSectionRowID& id) const
+        noexcept = 0;
+    virtual const identifier::Nym& NymID() const noexcept = 0;
+
     virtual void reindex(
         const implementation::ProfileSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
-    // List
-    virtual bool last(const implementation::ProfileSectionRowID& id) const
-        noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
-    // custom
-    virtual const identifier::Nym& NymID() const noexcept = 0;
 
-    virtual ~ProfileSection() = default;
+    ~ProfileSection() override = default;
 };
-struct ProfileSubsection : virtual public ui::ProfileSubsection {
+struct ProfileSubsection : virtual public List,
+                           virtual public Row,
+                           virtual public ui::ProfileSubsection {
     // Row
     virtual void reindex(
         const implementation::ProfileSectionSortKey& key,
@@ -238,97 +310,31 @@ struct ProfileSubsection : virtual public ui::ProfileSubsection {
     // List
     virtual bool last(const implementation::ProfileSubsectionRowID& id) const
         noexcept = 0;
-    virtual OTIdentifier WidgetID() const noexcept = 0;
     // custom
     virtual const identifier::Nym& NymID() const noexcept = 0;
     virtual proto::ContactSectionName Section() const noexcept = 0;
 
-    virtual ~ProfileSubsection() = default;
+    ~ProfileSubsection() override = default;
 };
-struct ProfileItem : virtual public ui::ProfileItem {
+struct ProfileItem : virtual public Row, virtual public ui::ProfileItem {
     virtual void reindex(
         const implementation::ProfileSubsectionSortKey& key,
         const implementation::CustomData& custom) noexcept = 0;
 
-    virtual ~ProfileItem() = default;
+    ~ProfileItem() override = default;
 };
 
 #if OT_QT
-#define QT_MODEL_WRAPPER(WrapperType, InterfaceType)                           \
-    WrapperType::WrapperType(ConstructorCallback cb) noexcept(false)           \
-        : parent_(                                                             \
-              (cb) ? cb({std::bind(                                            \
-                             &WrapperType::start_row_add,                      \
-                             this,                                             \
-                             std::placeholders::_1,                            \
-                             std::placeholders::_2,                            \
-                             std::placeholders::_3),                           \
-                         std::bind(&WrapperType::finish_row_add, this)},       \
-                        {std::bind(                                            \
-                             &WrapperType::start_row_delete,                   \
-                             this,                                             \
-                             std::placeholders::_1,                            \
-                             std::placeholders::_2,                            \
-                             std::placeholders::_3),                           \
-                         std::bind(&WrapperType::finish_row_delete, this)})    \
-                   : nullptr)                                                  \
+#define QT_PROXY_MODEL_WRAPPER(WrapperType, InterfaceType)                     \
+    WrapperType::WrapperType(InterfaceType& parent) noexcept                   \
+        : parent_(parent)                                                      \
     {                                                                          \
         QQmlEngine::setObjectOwnership(this, QQmlEngine::CppOwnership);        \
-                                                                               \
-        if (false == bool(parent_)) {                                          \
-            throw std::runtime_error("Invalid model");                         \
-        }                                                                      \
-                                                                               \
-        parent_->SetCallback([this]() -> void { notify(); });                  \
+        parent_.SetCallback([this]() -> void { notify(); });                   \
+        setSourceModel(&parent_);                                              \
     }                                                                          \
                                                                                \
-    const InterfaceType& WrapperType::operator*() const noexcept               \
-    {                                                                          \
-        return *parent_;                                                       \
-    }                                                                          \
-                                                                               \
-    int WrapperType::columnCount(const QModelIndex& parent) const noexcept     \
-    {                                                                          \
-        return parent_->columnCount(parent);                                   \
-    }                                                                          \
-    QVariant WrapperType::data(const QModelIndex& index, int role)             \
-        const noexcept                                                         \
-    {                                                                          \
-        return parent_->data(index, role);                                     \
-    }                                                                          \
-    QModelIndex WrapperType::index(                                            \
-        int row, int column, const QModelIndex& parent) const noexcept         \
-    {                                                                          \
-        return parent_->index(row, column, parent);                            \
-    }                                                                          \
-    void WrapperType::notify() const noexcept { emit updated(); }              \
-    QModelIndex WrapperType::parent(const QModelIndex& index) const noexcept   \
-    {                                                                          \
-        return parent_->parent(index);                                         \
-    }                                                                          \
-    QHash<int, QByteArray> WrapperType::roleNames() const noexcept             \
-    {                                                                          \
-        return parent_->roleNames();                                           \
-    }                                                                          \
-    int WrapperType::rowCount(const QModelIndex& parent) const noexcept        \
-    {                                                                          \
-        return parent_->rowCount(parent);                                      \
-    }                                                                          \
-                                                                               \
-    void WrapperType::finish_row_add() noexcept { endInsertRows(); }           \
-    void WrapperType::finish_row_delete() noexcept { endRemoveRows(); }        \
-    void WrapperType::start_row_add(                                           \
-        const QModelIndex& parent, int first, int last) noexcept               \
-    {                                                                          \
-        beginInsertRows(parent, first, last);                                  \
-    }                                                                          \
-    void WrapperType::start_row_delete(                                        \
-        const QModelIndex& parent, int first, int last) noexcept               \
-    {                                                                          \
-        beginRemoveRows(parent, first, last);                                  \
-    }                                                                          \
-                                                                               \
-    WrapperType::~WrapperType() = default;
+    void WrapperType::notify() const noexcept { emit updated(); }
 #endif
 
 namespace blank
@@ -340,14 +346,30 @@ struct Widget : virtual public ui::Widget {
         return Identifier::Factory();
     }
 };
-struct Row : virtual public ui::ListRow, public Widget {
+struct Row : virtual public ui::internal::Row, public Widget {
     bool Last() const noexcept final { return true; }
+#if OT_QT
+    QModelIndex qt_parent() const noexcept final { return {}; }
+#endif  // OT_QT
     bool Valid() const noexcept final { return false; }
 };
 template <typename ListType, typename RowType, typename RowIDType>
 struct List : virtual public ListType, public Row {
     RowType First() const noexcept final { return RowType{nullptr}; }
     bool last(const RowIDType&) const noexcept final { return false; }
+#if OT_QT
+    void emit_begin_insert_rows(const QModelIndex& parent, int first, int last)
+        const noexcept
+    {
+    }
+    void emit_begin_remove_rows(const QModelIndex& parent, int first, int last)
+        const noexcept
+    {
+    }
+    void emit_end_insert_rows() const noexcept {}
+    void emit_end_remove_rows() const noexcept {}
+    QModelIndex me() const noexcept final { return {}; }
+#endif
     RowType Next() const noexcept final { return RowType{nullptr}; }
     OTIdentifier WidgetID() const noexcept final
     {
@@ -477,6 +499,14 @@ struct ContactSection final : public List<
                                   OTUIContactSubsection,
                                   implementation::ContactSectionRowID> {
     std::string ContactID() const noexcept final { return {}; }
+#if OT_QT
+    int FindRow(
+        const implementation::ContactSectionRowID& id,
+        const implementation::ContactSectionSortKey& key) const noexcept final
+    {
+        return -1;
+    }
+#endif
     std::string Name(const std::string& lang) const noexcept final
     {
         return {};
@@ -565,6 +595,14 @@ struct ProfileSection : public List<
     {
         return false;
     }
+#if OT_QT
+    int FindRow(
+        const implementation::ProfileSectionRowID& id,
+        const implementation::ProfileSectionSortKey& key) const noexcept final
+    {
+        return -1;
+    }
+#endif
     ItemTypeList Items(const std::string&) const noexcept final { return {}; }
     std::string Name(const std::string& lang) const noexcept final
     {

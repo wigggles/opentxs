@@ -11,6 +11,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
+#include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -50,6 +51,59 @@ bool ActivityThreadItem::MarkRead() const noexcept
     return api_.Activity().MarkRead(
         nym_id_, Identifier::Factory(parent_.ThreadID()), item_id_);
 }
+
+#if OT_QT
+QVariant ActivityThreadItem::qt_data(const int column, int role) const noexcept
+{
+    switch (role) {
+        case Qt::DisplayRole: {
+            switch (column) {
+                case ActivityThreadQt::TextColumn: {
+                    return Text().c_str();
+                }
+                case ActivityThreadQt::AmountColumn: {
+                    return DisplayAmount().c_str();
+                }
+                case ActivityThreadQt::MemoColumn: {
+                    return Memo().c_str();
+                }
+                case ActivityThreadQt::TimeColumn: {
+                    QDateTime qdatetime;
+                    qdatetime.setSecsSinceEpoch(
+                        std::chrono::system_clock::to_time_t(Timestamp()));
+                    return qdatetime;
+                }
+                default: {
+                    return {};
+                }
+            }
+        }
+        case ActivityThreadQt::PolarityRole: {
+            return polarity(Amount());
+        }
+        case ActivityThreadQt::TypeRole: {
+            return static_cast<int>(Type());
+        }
+        case Qt::CheckStateRole: {
+            switch (column) {
+                case ActivityThreadQt::LoadingColumn: {
+                    return Loading();
+                }
+                case ActivityThreadQt::PendingColumn: {
+                    return Pending();
+                }
+                default: {
+                }
+            }
+
+            [[fallthrough]];
+        }
+        default: {
+            return {};
+        }
+    }
+}
+#endif
 
 void ActivityThreadItem::reindex(
     const ActivityThreadSortKey&,

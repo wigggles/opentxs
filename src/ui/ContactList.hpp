@@ -31,10 +31,6 @@ public:
         const std::string& label,
         const std::string& paymentCode,
         const std::string& nymID) const noexcept final;
-#if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-#endif
     const Identifier& ID() const noexcept final { return owner_contact_id_; }
 #if OT_QT
     QModelIndex index(
@@ -43,10 +39,10 @@ public:
         const QModelIndex& parent = QModelIndex()) const noexcept final;
 #endif
 
-    ~ContactList();
+    ~ContactList() final;
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
@@ -77,9 +73,7 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     ContactList() = delete;

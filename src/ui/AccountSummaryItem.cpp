@@ -103,6 +103,41 @@ std::string AccountSummaryItem::Name() const noexcept
     return name_;
 }
 
+#if OT_QT
+QVariant AccountSummaryItem::qt_data(const int column, int role) const noexcept
+{
+    switch (column) {
+        case AccountSummaryQt::AccountNameColumn: {
+            switch (role) {
+                case Qt::DisplayRole: {
+                    return Name().c_str();
+                }
+                case AccountSummaryQt::NotaryIDRole: {
+                    // TODO
+                    return {};
+                }
+                case AccountSummaryQt::AccountIDRole: {
+                    return AccountID().c_str();
+                }
+                case AccountSummaryQt::BalanceRole: {
+                    return static_cast<unsigned long long>(Balance());
+                }
+                default: {
+                }
+            }
+        } break;
+        case AccountSummaryQt::BalanceColumn: {
+            if (Qt::DisplayRole == role) { return DisplayBalance().c_str(); }
+        } break;
+        default: {
+            return {};
+        }
+    }
+
+    return {};
+}
+#endif
+
 void AccountSummaryItem::reindex(
     const IssuerItemSortKey& key,
     const CustomData& custom) noexcept

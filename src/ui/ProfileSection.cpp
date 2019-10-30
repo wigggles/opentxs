@@ -20,8 +20,7 @@
 #include "opentxs/ui/ProfileSubsection.hpp"
 
 #include "internal/ui/UI.hpp"
-#include "List.hpp"
-#include "RowType.hpp"
+#include "Combined.hpp"
 
 #include <map>
 #include <memory>
@@ -47,9 +46,7 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
     const ui::implementation::CustomData& custom
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
 )
 {
@@ -62,9 +59,7 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
         custom
 #if OT_QT
         ,
-        qt,
-        insertCallback,
-        removeCallback
+        qt
 #endif
     );
 }
@@ -179,24 +174,22 @@ ProfileSection::ProfileSection(
     const CustomData& custom
 #if OT_QT
     ,
-    const bool qt,
-    const RowCallbacks insertCallback,
-    const RowCallbacks removeCallback
+    const bool qt
 #endif
     ) noexcept
-    : ProfileSectionList(
+    : Combined(
           api,
           publisher,
           parent.NymID(),
-          parent.WidgetID()
+          parent.WidgetID(),
+          parent,
+          rowID,
+          key
 #if OT_QT
-              ,
-          qt,
-          insertCallback,
-          removeCallback
+          ,
+          qt
 #endif
-          )
-    , ProfileSectionRow(parent, rowID, true)
+      )
 {
     init();
     startup_.reset(new std::thread(&ProfileSection::startup, this, custom));
@@ -240,9 +233,7 @@ void ProfileSection::construct_row(
             custom
 #if OT_QT
             ,
-            enable_qt_,
-            insert_callbacks_,
-            remove_callbacks_
+            enable_qt_
 #endif
             ));
 }

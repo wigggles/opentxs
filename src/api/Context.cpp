@@ -295,8 +295,6 @@ void Context::Init_Rlimit() noexcept
                   "this user account's resource limits via the method "
                   "appropriate for your operating system.")
             .Flush();
-
-        abort();
     }
 }
 #endif  // _WIN32

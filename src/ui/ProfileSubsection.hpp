@@ -23,8 +23,10 @@ using ProfileSubsectionRow = RowType<
     ProfileSectionInternalInterface,
     ProfileSectionRowID>;
 
-class ProfileSubsection final : public ProfileSubsectionList,
-                                public ProfileSubsectionRow
+class ProfileSubsection final : public Combined<
+                                    ProfileSubsectionList,
+                                    ProfileSubsectionRow,
+                                    ProfileSectionSortKey>
 {
 public:
     bool AddItem(
@@ -83,9 +85,7 @@ private:
         const CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     ProfileSubsection() = delete;

@@ -23,13 +23,18 @@ using IssuerItemRow = RowType<
     AccountSummaryInternalInterface,
     AccountSummaryRowID>;
 
-class IssuerItem final : public IssuerItemList, public IssuerItemRow
+class IssuerItem final
+    : public Combined<IssuerItemList, IssuerItemRow, AccountSummarySortKey>
 {
 public:
     bool ConnectionState() const noexcept final { return connection_.load(); }
     std::string Debug() const noexcept final;
     std::string Name() const noexcept final;
     bool Trusted() const noexcept final { return issuer_->Paired(); }
+
+#if OT_QT
+    QVariant qt_data(const int column, const int role) const noexcept final;
+#endif
 
     void reindex(
         const AccountSummarySortKey& key,
@@ -41,7 +46,6 @@ private:
     friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
-    AccountSummarySortKey key_;
     const std::string& name_;
     std::atomic<bool> connection_{false};
     const std::shared_ptr<const api::client::Issuer> issuer_{nullptr};
@@ -67,9 +71,7 @@ private:
         const proto::ContactItemType currency
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     IssuerItem() = delete;

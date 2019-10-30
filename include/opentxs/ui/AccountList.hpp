@@ -51,49 +51,24 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::AccountListQt final : public QAbstractItemModel
+class opentxs::ui::AccountListQt final : public QIdentityProxyModel
 {
     Q_OBJECT
-
-public:
-    using ConstructorCallback = std::function<
-        implementation::AccountList*(RowCallbacks insert, RowCallbacks remove)>;
-
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-
-    const AccountList& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    AccountListQt(ConstructorCallback cb) noexcept(false);
-    ~AccountListQt() final;
 
 signals:
     void updated() const;
 
+public:
+    ~AccountListQt() final = default;
+
 private:
-    std::unique_ptr<implementation::AccountList> parent_;
+    friend opentxs::Factory;
+
+    implementation::AccountList& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
-    AccountListQt() = delete;
+    AccountListQt(implementation::AccountList& parent) noexcept;
     AccountListQt(const AccountListQt&) = delete;
     AccountListQt(AccountListQt&&) = delete;
     AccountListQt& operator=(const AccountListQt&) = delete;

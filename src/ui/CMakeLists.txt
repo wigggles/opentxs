@@ -47,6 +47,7 @@ set(
   ot-qobject-install-headers
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountActivity.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountList.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountSummary.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivitySummary.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivityThread.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/Contact.hpp"
@@ -59,7 +60,6 @@ set(
 set(
   cxx-install-headers
   ${ot-qobject-install-headers}
-  "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountSummary.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountListItem.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/AccountSummaryItem.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/ui/ActivitySummaryItem.hpp"
@@ -91,6 +91,7 @@ set(
   ActivityThread.hpp
   ActivityThreadItem.hpp
   BalanceItem.hpp
+  Combined.hpp
   Contact.hpp
   ContactItem.hpp
   ContactList.hpp

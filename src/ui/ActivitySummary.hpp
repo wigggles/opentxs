@@ -29,14 +29,10 @@ using ActivitySummaryList = List<
 class ActivitySummary final : public ActivitySummaryList
 {
 public:
-#if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-#endif
-    ~ActivitySummary();
+    ~ActivitySummary() final;
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
     const Flag& running_;
@@ -62,9 +58,7 @@ private:
         const identifier::Nym& nymID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     ActivitySummary() = delete;

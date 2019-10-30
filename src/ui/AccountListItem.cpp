@@ -98,4 +98,49 @@ std::string AccountListItem::DisplayBalance() const noexcept
 
     return std::to_string(balance_);
 }
+
+#if OT_QT
+QVariant AccountListItem::qt_data(const int column, int role) const noexcept
+{
+    if (Qt::DisplayRole == role) {
+        switch (column) {
+            case 0: {
+                return AccountID().c_str();
+            }
+            case 1: {
+                return polarity(Balance());
+            }
+            case 2: {
+                return ContractID().c_str();
+            }
+            case 3: {
+                return DisplayBalance().c_str();
+            }
+            case 4: {
+                return DisplayUnit().c_str();
+            }
+            case 5: {
+                return Name().c_str();
+            }
+            case 6: {
+                return NotaryID().c_str();
+            }
+            case 7: {
+                return NotaryName().c_str();
+            }
+            case 8: {
+                return static_cast<int>(Type());
+            }
+            case 9: {
+                return static_cast<int>(Unit());
+            }
+            default: {
+                return {};
+            }
+        }
+    } else {
+        return {};
+    }
+}
+#endif
 }  // namespace opentxs::ui::implementation

@@ -21,10 +21,18 @@ using ContactSectionList = List<
 using ContactSectionRow =
     RowType<ContactRowInternal, ContactInternalInterface, ContactRowID>;
 
-class ContactSection final : public ContactSectionList, public ContactSectionRow
+class ContactSection final
+    : public Combined<ContactSectionList, ContactSectionRow, ContactSortKey>
 {
 public:
     std::string ContactID() const noexcept final { return primary_id_->str(); }
+#if OT_QT
+    int FindRow(const ContactSectionRowID& id, const ContactSectionSortKey& key)
+        const noexcept final
+    {
+        return find_row(id, key);
+    }
+#endif
     std::string Name(const std::string& lang) const noexcept final
     {
         return proto::TranslateSectionName(row_id_, lang);
@@ -72,9 +80,7 @@ private:
         const CustomData& custom
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
     ContactSection() = delete;

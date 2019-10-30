@@ -54,53 +54,35 @@ private:
 #endif
 
 #if OT_QT || defined(Q_MOC_RUN)
-class opentxs::ui::ContactListQt final : public QAbstractItemModel
+class opentxs::ui::ContactListQt final : public QIdentityProxyModel
 {
     Q_OBJECT
 
+signals:
+    void updated() const;
+
 public:
-    using ConstructorCallback = std::function<
-        implementation::ContactList*(RowCallbacks insert, RowCallbacks remove)>;
+    // List layout
+    enum Roles {
+        ContactIDRole = Qt::UserRole + 0,
+        SectionRole = Qt::UserRole + 1,
+    };
 
     Q_INVOKABLE QString addContact(
         const QString& label,
         const QString& paymentCode = "",
         const QString& nymID = "") const noexcept;
 
-    int columnCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-    QModelIndex index(
-        int row,
-        int column,
-        const QModelIndex& parent = QModelIndex()) const noexcept final;
-    QModelIndex parent(const QModelIndex& index) const noexcept final;
-    QHash<int, QByteArray> roleNames() const noexcept final;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const
-        noexcept final;
-
-    const ContactList& operator*() const noexcept;
-
-    // Throws std::runtime_error if callback returns invalid pointer
-    ContactListQt(ConstructorCallback cb) noexcept(false);
-    ~ContactListQt() final;
-
-signals:
-    void updated() const;
+    ~ContactListQt() final = default;
 
 private:
-    std::unique_ptr<implementation::ContactList> parent_;
+    friend opentxs::Factory;
+
+    implementation::ContactList& parent_;
 
     void notify() const noexcept;
-    void finish_row_add() noexcept;
-    void finish_row_delete() noexcept;
-    void start_row_add(const QModelIndex& parent, int first, int last) noexcept;
-    void start_row_delete(
-        const QModelIndex& parent,
-        int first,
-        int last) noexcept;
 
+    ContactListQt(implementation::ContactList& parent) noexcept;
     ContactListQt() = delete;
     ContactListQt(const ContactListQt&) = delete;
     ContactListQt(ContactListQt&&) = delete;

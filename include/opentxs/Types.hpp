@@ -265,11 +265,6 @@ enum class StringStyle : bool { Hex = true, Raw = false };
 
 using GetPreimage = std::function<std::string()>;
 using SimpleCallback = std::function<void()>;
-#if OT_QT
-using RowCallback =
-    std::function<void(const QModelIndex& parent, int first, int last)>;
-using RowCallbacks = std::pair<RowCallback, SimpleCallback>;
-#endif
 
 typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 

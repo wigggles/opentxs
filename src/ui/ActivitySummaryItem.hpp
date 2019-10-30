@@ -28,7 +28,11 @@ public:
         const ActivitySummarySortKey& key,
         const CustomData& custom) noexcept final;
 
-    ~ActivitySummaryItem();
+#if OT_QT
+    QVariant qt_data(const int column, const int role) const noexcept final;
+#endif
+
+    ~ActivitySummaryItem() final;
 
 private:
     friend opentxs::Factory;

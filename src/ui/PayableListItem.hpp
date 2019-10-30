@@ -17,6 +17,10 @@ class PayableListItem final : public PayableListRowInternal,
 public:
     std::string PaymentCode() const noexcept final;
 
+#if OT_QT
+    QVariant qt_data(const int column, const int role) const noexcept final;
+#endif
+
     ~PayableListItem() = default;
 
 private:

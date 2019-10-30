@@ -83,10 +83,6 @@ class ActivityThread final : public ActivityThreadList,
                              public opentxs::internal::StateMachine
 {
 public:
-#if OT_QT
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const
-        noexcept final;
-#endif
     std::string DisplayName() const noexcept final;
     std::string GetDraft() const noexcept final;
     std::string Participants() const noexcept final;
@@ -108,10 +104,10 @@ public:
     bool SetDraft(const std::string& draft) const noexcept final;
     std::string ThreadID() const noexcept final;
 
-    ~ActivityThread();
+    ~ActivityThread() final;
 
 private:
-    friend api::client::implementation::UI;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
     const OTIdentifier threadID_;
@@ -153,9 +149,7 @@ private:
         const Identifier& threadID
 #if OT_QT
         ,
-        const bool qt,
-        const RowCallbacks insertCallback,
-        const RowCallbacks removeCallback
+        const bool qt
 #endif
         ) noexcept;
 
