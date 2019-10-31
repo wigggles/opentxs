@@ -21,6 +21,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -2692,25 +2693,27 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     const VersionNumber version) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto serverContract =
-        api_.Wallet().Server(api_.Factory().ServerID(serverID), reason);
 
-    if (!serverContract) { return {}; }
+    try {
+        const auto serverContract =
+            api_.Wallet().Server(api_.Factory().ServerID(serverID), reason);
+        const auto basketTemplate = api_.Factory().BasketContract(
+            serverContract->Nym(),
+            shortname,
+            name,
+            symbol,
+            terms,
+            weight,
+            proto::CITEMTYPE_UNKNOWN,
+            version);
 
-    auto basketTemplate = UnitDefinition::Create(
-        api_,
-        serverContract->Nym(),
-        shortname,
-        name,
-        symbol,
-        terms,
-        weight,
-        proto::CITEMTYPE_UNKNOWN,
-        version);
+        return api_.Factory()
+            .Armored(basketTemplate->PublicContract(), "BASKET CONTRACT")
+            ->Get();
+    } catch (...) {
 
-    return api_.Factory()
-        .Armored(basketTemplate->PublicContract(), "BASKET CONTRACT")
-        ->Get();
+        return {};
+    }
 }
 
 // ADD BASKET CREATION ITEM

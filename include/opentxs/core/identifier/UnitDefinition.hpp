@@ -32,22 +32,22 @@
 namespace opentxs
 {
 #ifndef SWIG
-bool operator==(
+OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::identifier::UnitDefinition>& lhs,
     const opentxs::Identifier& rhs);
-bool operator!=(
+OPENTXS_EXPORT bool operator!=(
     const opentxs::Pimpl<opentxs::identifier::UnitDefinition>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<(
+OPENTXS_EXPORT bool operator<(
     const opentxs::Pimpl<opentxs::identifier::UnitDefinition>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>(
+OPENTXS_EXPORT bool operator>(
     const opentxs::Pimpl<opentxs::identifier::UnitDefinition>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<=(
+OPENTXS_EXPORT bool operator<=(
     const opentxs::Pimpl<opentxs::identifier::UnitDefinition>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>=(
+OPENTXS_EXPORT bool operator>=(
     const opentxs::Pimpl<opentxs::identifier::UnitDefinition>& lhs,
     const opentxs::Identifier& rhs);
 #endif
@@ -58,12 +58,12 @@ class UnitDefinition : virtual public opentxs::Identifier
 {
 public:
 #ifndef SWIG
-    EXPORT static OTUnitID Factory();
-    EXPORT static OTUnitID Factory(const std::string& rhs);
-    EXPORT static OTUnitID Factory(const String& rhs);
+    OPENTXS_EXPORT static OTUnitID Factory();
+    OPENTXS_EXPORT static OTUnitID Factory(const std::string& rhs);
+    OPENTXS_EXPORT static OTUnitID Factory(const String& rhs);
 #endif
 
-    EXPORT ~UnitDefinition() override = default;
+    OPENTXS_EXPORT ~UnitDefinition() override = default;
 
 protected:
     UnitDefinition() = default;

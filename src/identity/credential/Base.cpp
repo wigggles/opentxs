@@ -43,8 +43,7 @@ Base::Base(
     const proto::CredentialRole role,
     const proto::KeyMode mode,
     const std::string& masterID) noexcept
-    : Signable({}, version)
-    , api_(api)
+    : Signable(api, {}, version, {}, {})
     , parent_(parent)
     , source_(source)
     , nym_id_(source.NymID()->str())
@@ -61,8 +60,14 @@ Base::Base(
     const identity::Source& source,
     const proto::Credential& serialized,
     const std::string& masterID) noexcept(false)
-    : Signable({}, serialized.version())
-    , api_(api)
+    : Signable(
+          api,
+          {},
+          serialized.version(),
+          {},
+          {},
+          api.Factory().Identifier(serialized.id()),
+          extract_signatures(serialized))
     , parent_(parent)
     , source_(source)
     , nym_id_(source.NymID()->str())
@@ -71,12 +76,6 @@ Base::Base(
     , role_(serialized.role())
     , mode_(serialized.mode())
 {
-    id_ = Identifier::Factory(serialized.id());
-
-    for (auto& it : serialized.signature()) {
-        signatures_.push_back(std::make_shared<proto::Signature>(it));
-    }
-
     if (serialized.nymid() != nym_id_) {
         throw std::runtime_error(
             "Attempting to load credential for incorrect nym");
@@ -117,6 +116,17 @@ std::string Base::asString(const bool asPrivate) const
     armoredCredential->WriteArmoredString(stringCredential, "Credential");
 
     return stringCredential->Get();
+}
+
+auto Base::extract_signatures(const SerializedType& serialized) -> Signatures
+{
+    auto output = Signatures{};
+
+    for (auto& it : serialized.signature()) {
+        output.push_back(std::make_shared<proto::Signature>(it));
+    }
+
+    return output;
 }
 
 std::string Base::get_master_id(const internal::Primary& master) noexcept
@@ -196,10 +206,10 @@ bool Base::isValid(
         true);  // with signatures
 }
 
-SerializedSignature Base::MasterSignature() const
+Base::Signature Base::MasterSignature() const
 {
-    SerializedSignature masterSignature;
-    proto::SignatureRole targetRole = proto::SIGROLE_PUBCREDENTIAL;
+    auto masterSignature = Signature{};
+    const auto targetRole{proto::SIGROLE_PUBCREDENTIAL};
 
     for (auto& it : signatures_) {
         if ((it->role() == targetRole) && (it->credentialid() == master_id_)) {
@@ -251,17 +261,12 @@ bool Base::Save() const
     return true;
 }
 
-SerializedSignature Base::SelfSignature(CredentialModeFlag version) const
+Base::Signature Base::SelfSignature(CredentialModeFlag version) const
 {
-    proto::SignatureRole targetRole;
-
-    if (PRIVATE_VERSION == version) {
-        targetRole = proto::SIGROLE_PRIVCREDENTIAL;
-    } else {
-        targetRole = proto::SIGROLE_PUBCREDENTIAL;
-    }
-
-    const std::string self = String::Factory(id_)->Get();
+    const auto targetRole{(PRIVATE_VERSION == version)
+                              ? proto::SIGROLE_PRIVCREDENTIAL
+                              : proto::SIGROLE_PUBCREDENTIAL};
+    const auto self = id_->str();
 
     for (auto& it : signatures_) {
         if ((it->role() == targetRole) && (it->credentialid() == self)) {
@@ -354,18 +359,14 @@ void Base::sign(
 {
     Lock lock(lock_);
 
-    if (false == CalculateID(lock)) {
-        throw std::runtime_error("Failed to calculate credential id");
-    }
-
     if (proto::CREDROLE_MASTERKEY != role_) {
         add_master_signature(lock, master, reason);
     }
 }
 
-SerializedSignature Base::SourceSignature() const
+Base::Signature Base::SourceSignature() const
 {
-    auto signature = SerializedSignature{};
+    auto signature = Signature{};
 
     for (auto& it : signatures_) {
         if ((it->role() == proto::SIGROLE_NYMIDSOURCE) &&

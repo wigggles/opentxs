@@ -346,9 +346,11 @@ bool Dht::ProcessServerContract(
 
         if (key != contract.id()) { continue; }
 
-        auto saved = api.Wallet().Server(contract, reason);
-
-        if (!saved) { continue; }
+        try {
+            auto saved = api.Wallet().Server(contract, reason);
+        } catch (...) {
+            continue;
+        }
 
         LogDebug(OT_METHOD)(__FUNCTION__)(": Saved contract: ")(key).Flush();
         foundValid = true;
@@ -396,9 +398,12 @@ bool Dht::ProcessUnitDefinition(
 
         if (key != contract.id()) { continue; }
 
-        auto saved = api.Wallet().UnitDefinition(contract, reason);
+        try {
+            api.Wallet().UnitDefinition(contract, reason);
+        } catch (...) {
 
-        if (!saved) { continue; }
+            continue;
+        }
 
         LogDebug(OT_METHOD)(__FUNCTION__)(": Saved unit definition: ")(key)
             .Flush();

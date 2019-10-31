@@ -32,10 +32,10 @@ namespace socket
 class Subscribe : virtual public curve::Client
 {
 public:
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
+    OPENTXS_EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
         noexcept = 0;
 
-    EXPORT ~Subscribe() override = default;
+    OPENTXS_EXPORT ~Subscribe() override = default;
 
 protected:
     Subscribe() noexcept = default;

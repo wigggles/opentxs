@@ -12,39 +12,34 @@
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class ConnectionRequest final : public PeerRequest
+namespace request
 {
-private:
-    typedef PeerRequest ot_super;
-    friend class PeerRequest;
-
-    proto::ConnectionInfoType connection_type_;
-
-    proto::PeerRequest IDVersion(const Lock& lock) const final;
-
-    ConnectionRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequest& serialized);
-    ConnectionRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const identifier::Nym& recipientID,
-        const proto::ConnectionInfoType type,
-        const identifier::Server& serverID);
-    ConnectionRequest() = delete;
-
+class Connection : virtual public peer::Request
+{
 public:
-    ~ConnectionRequest() final = default;
-};
-}  // namespace opentxs
+    OPENTXS_EXPORT ~Connection() override = default;
 
+protected:
+    Connection() noexcept = default;
+
+private:
+    friend OTConnectionRequest;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Connection* clone() const noexcept override = 0;
+#endif
+
+    Connection(const Connection&) = delete;
+    Connection(Connection&&) = delete;
+    Connection& operator=(const Connection&) = delete;
+    Connection& operator=(Connection&&) = delete;
+};
+}  // namespace request
+}  // namespace peer
+}  // namespace contract
+}  // namespace opentxs
 #endif

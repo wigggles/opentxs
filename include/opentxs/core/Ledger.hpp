@@ -50,7 +50,7 @@ public:
 
     inline ledgerType GetType() const { return m_Type; }
 
-    EXPORT bool LoadedLegacyData() const { return m_bLoadedLegacyData; }
+    OPENTXS_EXPORT bool LoadedLegacyData() const { return m_bLoadedLegacyData; }
 
     // This function assumes that this is an INBOX.
     // If you don't use an INBOX to call this method, then it will return
@@ -61,14 +61,14 @@ public:
     // have to keep the latest receipt, unlike systems that don't store balance
     // agreement.  We also store a list of issued transactions, the new balance,
     // and the outbox hash.
-    EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
+    OPENTXS_EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
         const ServerContext& context,
         const Account& theAccount,
         Ledger& theOutbox,
         const PasswordPrompt& reason) const;
-    EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
+    OPENTXS_EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
         const ServerContext& context,
@@ -77,39 +77,40 @@ public:
         const std::set<TransactionNumber>& without,
         const PasswordPrompt& reason) const;
 
-    EXPORT void ProduceOutboxReport(
+    OPENTXS_EXPORT void ProduceOutboxReport(
         Item& theBalanceItem,
         const PasswordPrompt& reason);
 
-    EXPORT bool AddTransaction(std::shared_ptr<OTTransaction> theTransaction);
-    EXPORT bool RemoveTransaction(
+    OPENTXS_EXPORT bool AddTransaction(
+        std::shared_ptr<OTTransaction> theTransaction);
+    OPENTXS_EXPORT bool RemoveTransaction(
         const TransactionNumber number);  // if false,
                                           // transaction
                                           // wasn't
                                           // found.
 
-    EXPORT std::set<std::int64_t> GetTransactionNums(
+    OPENTXS_EXPORT std::set<std::int64_t> GetTransactionNums(
         const std::set<std::int32_t>* pOnlyForIndices = nullptr) const;
 
-    EXPORT std::shared_ptr<OTTransaction> GetTransaction(
+    OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetTransaction(
         transactionType theType);
-    EXPORT std::shared_ptr<OTTransaction> GetTransaction(
+    OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetTransaction(
         const TransactionNumber number) const;
-    EXPORT std::shared_ptr<OTTransaction> GetTransactionByIndex(
+    OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetTransactionByIndex(
         std::int32_t nIndex) const;
-    EXPORT std::shared_ptr<OTTransaction> GetFinalReceipt(
+    OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetFinalReceipt(
         std::int64_t lReferenceNum);
-    EXPORT std::shared_ptr<OTTransaction> GetTransferReceipt(
+    OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetTransferReceipt(
         std::int64_t lNumberOfOrigin,
         const PasswordPrompt& reason);
-    EXPORT std::shared_ptr<OTTransaction> GetChequeReceipt(
+    OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetChequeReceipt(
         std::int64_t lChequeNum,
         const PasswordPrompt& reason);
-    EXPORT std::int32_t GetTransactionIndex(
+    OPENTXS_EXPORT std::int32_t GetTransactionIndex(
         const TransactionNumber number);  // if not
                                           // found,
                                           // returns -1
-    EXPORT std::shared_ptr<OTTransaction> GetReplyNotice(
+    OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetReplyNotice(
         const std::int64_t& lRequestNum);
 
     // This calls OTTransactionType::VerifyAccount(), which calls
@@ -122,75 +123,76 @@ public:
     // expects/uses a pubkey from inside the contract in order to verify
     // it.
     //
-    EXPORT bool VerifyAccount(
+    OPENTXS_EXPORT bool VerifyAccount(
         const identity::Nym& theNym,
         const PasswordPrompt& reason) override;
     // For ALL abbreviated transactions, load the actual box receipt for each.
-    EXPORT bool LoadBoxReceipts(
+    OPENTXS_EXPORT bool LoadBoxReceipts(
         const PasswordPrompt& reason,
         std::set<std::int64_t>* psetUnloaded = nullptr);  // if psetUnloaded
                                                           // passed
                                                           // in, then use it to
                                                           // return the #s that
                                                           // weren't there.
-    EXPORT bool SaveBoxReceipts();  // For all "full version" transactions, save
-                                    // the actual box receipt for each.
+    OPENTXS_EXPORT bool SaveBoxReceipts();  // For all "full version"
+                                            // transactions, save the actual box
+                                            // receipt for each.
     // Verifies the abbreviated form exists first, and then loads the
     // full version and compares the two. Returns success / fail.
     //
-    EXPORT bool LoadBoxReceipt(
+    OPENTXS_EXPORT bool LoadBoxReceipt(
         const std::int64_t& lTransactionNum,
         const PasswordPrompt& reason);
     // Saves the Box Receipt separately.
-    EXPORT bool SaveBoxReceipt(const std::int64_t& lTransactionNum);
+    OPENTXS_EXPORT bool SaveBoxReceipt(const std::int64_t& lTransactionNum);
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
-    EXPORT bool DeleteBoxReceipt(const std::int64_t& lTransactionNum);
+    OPENTXS_EXPORT bool DeleteBoxReceipt(const std::int64_t& lTransactionNum);
 
-    EXPORT bool LoadInbox(const PasswordPrompt& reason);
-    EXPORT bool LoadNymbox(const PasswordPrompt& reason);
-    EXPORT bool LoadOutbox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadInbox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadNymbox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadOutbox(const PasswordPrompt& reason);
 
     // If you pass the identifier in, the hash is recorded there
-    EXPORT bool SaveInbox();
-    EXPORT bool SaveInbox(Identifier& pInboxHash);
-    EXPORT bool SaveNymbox();
-    EXPORT bool SaveNymbox(Identifier& pNymboxHash);
-    EXPORT bool SaveOutbox();
-    EXPORT bool SaveOutbox(Identifier& pOutboxHash);
+    OPENTXS_EXPORT bool SaveInbox();
+    OPENTXS_EXPORT bool SaveInbox(Identifier& pInboxHash);
+    OPENTXS_EXPORT bool SaveNymbox();
+    OPENTXS_EXPORT bool SaveNymbox(Identifier& pNymboxHash);
+    OPENTXS_EXPORT bool SaveOutbox();
+    OPENTXS_EXPORT bool SaveOutbox(Identifier& pOutboxHash);
 
-    EXPORT bool CalculateHash(Identifier& theOutput) const;
-    EXPORT bool CalculateInboxHash(Identifier& theOutput) const;
-    EXPORT bool CalculateOutboxHash(Identifier& theOutput) const;
-    EXPORT bool CalculateNymboxHash(Identifier& theOutput) const;
-    EXPORT bool SavePaymentInbox();
-    EXPORT bool LoadPaymentInbox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool CalculateHash(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool CalculateInboxHash(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool CalculateOutboxHash(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool CalculateNymboxHash(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool SavePaymentInbox();
+    OPENTXS_EXPORT bool LoadPaymentInbox(const PasswordPrompt& reason);
 
-    EXPORT bool SaveRecordBox();
-    EXPORT bool LoadRecordBox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool SaveRecordBox();
+    OPENTXS_EXPORT bool LoadRecordBox(const PasswordPrompt& reason);
 
-    EXPORT bool SaveExpiredBox();
-    EXPORT bool LoadExpiredBox(const PasswordPrompt& reason);
-    EXPORT bool LoadLedgerFromString(
+    OPENTXS_EXPORT bool SaveExpiredBox();
+    OPENTXS_EXPORT bool LoadExpiredBox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadLedgerFromString(
         const String& theStr,
         const PasswordPrompt& reason);  // Auto-detects
                                         // ledger type.
     // (message/nymbox/inbox/outbox)
-    EXPORT bool LoadInboxFromString(
+    OPENTXS_EXPORT bool LoadInboxFromString(
         const String& strBox,
         const PasswordPrompt& reason);
-    EXPORT bool LoadOutboxFromString(
+    OPENTXS_EXPORT bool LoadOutboxFromString(
         const String& strBox,
         const PasswordPrompt& reason);
-    EXPORT bool LoadNymboxFromString(
+    OPENTXS_EXPORT bool LoadNymboxFromString(
         const String& strBox,
         const PasswordPrompt& reason);
-    EXPORT bool LoadPaymentInboxFromString(
+    OPENTXS_EXPORT bool LoadPaymentInboxFromString(
         const String& strBox,
         const PasswordPrompt& reason);
-    EXPORT bool LoadRecordBoxFromString(
+    OPENTXS_EXPORT bool LoadRecordBoxFromString(
         const String& strBox,
         const PasswordPrompt& reason);
-    EXPORT bool LoadExpiredBoxFromString(
+    OPENTXS_EXPORT bool LoadExpiredBoxFromString(
         const String& strBox,
         const PasswordPrompt& reason);
     // inline for the top one only.
@@ -198,19 +200,19 @@ public:
     {
         return static_cast<std::int32_t>(m_mapTransactions.size());
     }
-    EXPORT std::int32_t GetTransactionCountInRefTo(
+    OPENTXS_EXPORT std::int32_t GetTransactionCountInRefTo(
         std::int64_t lReferenceNum) const;
-    EXPORT std::int64_t GetTotalPendingValue(
+    OPENTXS_EXPORT std::int64_t GetTotalPendingValue(
         const PasswordPrompt& reason);  // for inbox only, allows you
                                         // to
     // lookup the total value of pending
     // transfers within.
-    EXPORT const mapOfTransactions& GetTransactionMap() const;
+    OPENTXS_EXPORT const mapOfTransactions& GetTransactionMap() const;
 
-    EXPORT void Release() override;
-    EXPORT void Release_Ledger();
+    OPENTXS_EXPORT void Release() override;
+    OPENTXS_EXPORT void Release_Ledger();
 
-    EXPORT void ReleaseTransactions();
+    OPENTXS_EXPORT void ReleaseTransactions();
     // ONLY call this if you need to load a ledger where you don't already know
     // the person's NymID
     // For example, if you need to load someone ELSE's inbox in order to send
@@ -219,25 +221,28 @@ public:
     // function to get it
     // loaded up, and the NymID will hopefully be loaded up with the rest of
     // it.
-    EXPORT void InitLedger();
+    OPENTXS_EXPORT void InitLedger();
 
-    [[deprecated]] EXPORT bool GenerateLedger(
+    [[deprecated]] OPENTXS_EXPORT bool GenerateLedger(
         const Identifier& theAcctID,
         const identifier::Server& theNotaryID,
         ledgerType theType,
         const PasswordPrompt& reason,
         bool bCreateFile = false);
-    EXPORT bool CreateLedger(
+    OPENTXS_EXPORT bool CreateLedger(
         const identifier::Nym& theNymID,
         const Identifier& theAcctID,
         const identifier::Server& theNotaryID,
         ledgerType theType,
         bool bCreateFile = false);
 
-    EXPORT static char const* _GetTypeString(ledgerType theType);
-    EXPORT char const* GetTypeString() const { return _GetTypeString(m_Type); }
+    OPENTXS_EXPORT static char const* _GetTypeString(ledgerType theType);
+    OPENTXS_EXPORT char const* GetTypeString() const
+    {
+        return _GetTypeString(m_Type);
+    }
 
-    EXPORT ~Ledger() override;
+    OPENTXS_EXPORT ~Ledger() override;
 
 protected:
     bool LoadGeneric(

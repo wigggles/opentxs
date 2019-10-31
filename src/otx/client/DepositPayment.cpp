@@ -141,9 +141,9 @@ OTIdentifier DepositPayment::get_account_id(
 
     if (1 == accounts.size()) { return *accounts.begin(); }
 
-    const auto contract = parent_.api().Wallet().UnitDefinition(unit, reason);
-
-    if (false == bool(contract)) {
+    try {
+        parent_.api().Wallet().UnitDefinition(unit, reason);
+    } catch (...) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Downloading unit definition")
             .Flush();
         parent_.DownloadUnitDefinition(unit);

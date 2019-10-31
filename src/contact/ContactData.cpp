@@ -399,7 +399,7 @@ ContactData ContactData::AddSocialMediaProfile(
 
     // Add the item to the communication section.
     auto commSectionTypes =
-        proto::AllowedItemTypes.at(proto::ContactSectionVersion(
+        proto::AllowedItemTypes().at(proto::ContactSectionVersion(
             version, proto::CONTACTSECTION_COMMUNICATION));
     if (commSectionTypes.count(type)) {
         auto& commSection = map[proto::CONTACTSECTION_COMMUNICATION];
@@ -452,7 +452,7 @@ ContactData ContactData::AddSocialMediaProfile(
 
     // Add the item to the identifier section.
     auto identifierSectionTypes =
-        proto::AllowedItemTypes.at(proto::ContactSectionVersion(
+        proto::AllowedItemTypes().at(proto::ContactSectionVersion(
             version, proto::CONTACTSECTION_IDENTIFIER));
     if (identifierSectionTypes.count(type)) {
         auto& identifierSection = map[proto::CONTACTSECTION_IDENTIFIER];
@@ -980,7 +980,7 @@ std::string ContactData::SocialMediaProfiles(
 const std::set<proto::ContactItemType> ContactData::SocialMediaProfileTypes()
     const
 {
-    return proto::AllowedItemTypes.at(proto::ContactSectionVersion(
+    return proto::AllowedItemTypes().at(proto::ContactSectionVersion(
         CONTACT_CONTACT_DATA_VERSION, proto::CONTACTSECTION_PROFILE));
 }
 

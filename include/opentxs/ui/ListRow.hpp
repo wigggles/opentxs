@@ -25,10 +25,10 @@ namespace ui
 class ListRow : virtual public Widget
 {
 public:
-    EXPORT virtual bool Last() const noexcept = 0;
-    EXPORT virtual bool Valid() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Last() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Valid() const noexcept = 0;
 
-    EXPORT ~ListRow() override = default;
+    OPENTXS_EXPORT ~ListRow() override = default;
 
 protected:
     ListRow() noexcept = default;

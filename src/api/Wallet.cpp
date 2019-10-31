@@ -24,9 +24,12 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -45,7 +48,6 @@
 #include "internal/api/client/Client.hpp"
 #include "internal/core/Core.hpp"
 #include "Exclusive.tpp"
-#include "Shared.tpp"
 
 #include <functional>
 #include <stdexcept>
@@ -346,6 +348,31 @@ OTIdentifier Wallet::AccountPartialMatch(const std::string& hint) const
     return Identifier::Factory();
 }
 
+auto Wallet::BasketContract(
+    const identifier::UnitDefinition& id,
+    const PasswordPrompt& reason,
+    const std::chrono::milliseconds& timeout) const noexcept(false)
+    -> OTBasketContract
+{
+    UnitDefinition(id, reason, timeout);
+
+    Lock mapLock(unit_map_lock_);
+    auto it = unit_map_.find(id.str());
+
+    if (unit_map_.end() == it) {
+        throw std::runtime_error("Basket contract ID not found");
+    }
+
+    auto output = std::dynamic_pointer_cast<contract::unit::Basket>(it->second);
+
+    if (output) {
+
+        return OTBasketContract{std::move(output)};
+    } else {
+        throw std::runtime_error("Unit definition is not a basket contract");
+    }
+}
+
 ExclusiveAccount Wallet::CreateAccount(
     const identifier::Nym& ownerNymID,
     const identifier::Server& notaryID,
@@ -357,18 +384,8 @@ ExclusiveAccount Wallet::CreateAccount(
 {
     Lock mapLock(account_map_lock_);
 
-    auto contract = UnitDefinition(instrumentDefinitionID, reason);
-
-    if (false == bool(contract)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load unit definition contract ")(
-            instrumentDefinitionID)(".")
-            .Flush();
-
-        return {};
-    }
-
     try {
+        const auto contract = UnitDefinition(instrumentDefinitionID, reason);
         std::unique_ptr<opentxs::Account> newAccount(
             opentxs::Account::GenerateNewAccount(
                 api_,
@@ -612,52 +629,54 @@ bool Wallet::UpdateAccount(
     OT_ASSERT(pAccount)
 
     const auto& unitID = pAccount->GetInstrumentDefinitionID();
-    const auto contract = UnitDefinition(unitID, reason);
 
-    if (false == bool(contract)) {
+    try {
+        const auto contract = UnitDefinition(unitID, reason);
+        auto raw = String::Factory();
+        auto saved = pAccount->SaveContractRaw(raw);
+
+        if (false == saved) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Unable to serialized account.")
+                .Flush();
+
+            return false;
+        }
+
+        const auto alias = account_alias(accountID.str(), label);
+        saved = api_.Storage().Store(
+            accountID.str(),
+            raw->Get(),
+            alias,
+            localNym.ID(),
+            localNym.ID(),
+            contract->Nym()->ID(),
+            context.Server(),
+            unitID,
+            extract_unit(contract));
+
+        if (false == saved) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to save account.")
+                .Flush();
+
+            return false;
+        }
+
+        pAccount->SetAlias(alias);
+        const auto balance = pAccount->GetBalance();
+        auto message = opentxs::network::zeromq::Message::Factory();
+        message->AddFrame(accountID.str());
+        message->AddFrame(Data::Factory(&balance, sizeof(balance)));
+        account_publisher_->Send(message);
+
+        return true;
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load unit definition contract ")(unitID)(".")
             .Flush();
 
         return false;
     }
-
-    auto raw = String::Factory();
-    auto saved = pAccount->SaveContractRaw(raw);
-
-    if (false == saved) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to serialized account.")
-            .Flush();
-
-        return false;
-    }
-
-    const auto alias = account_alias(accountID.str(), label);
-    saved = api_.Storage().Store(
-        accountID.str(),
-        raw->Get(),
-        alias,
-        localNym.ID(),
-        localNym.ID(),
-        contract->Nym()->ID(),
-        context.Server(),
-        unitID,
-        extract_unit(*contract));
-
-    if (false == saved) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to save account.").Flush();
-
-        return false;
-    }
-
-    pAccount->SetAlias(alias);
-    const auto balance = pAccount->GetBalance();
-    auto message = opentxs::network::zeromq::Message::Factory();
-    message->AddFrame(accountID.str());
-    message->AddFrame(Data::Factory(&balance, sizeof(balance)));
-    account_publisher_->Send(message);
-
-    return true;
 }
 
 proto::ContactItemType Wallet::CurrencyTypeBasedOnUnitType(
@@ -671,21 +690,21 @@ proto::ContactItemType Wallet::extract_unit(
     const PasswordPrompt& reason,
     const identifier::UnitDefinition& contractID) const
 {
-    const auto contract = UnitDefinition(contractID, reason);
+    try {
+        const auto contract = UnitDefinition(contractID, reason);
 
-    if (false == bool(contract)) {
+        return extract_unit(contract);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load unit definition contract ")(contractID)(".")
             .Flush();
 
         return proto::CITEMTYPE_UNKNOWN;
     }
-
-    return extract_unit(*contract);
 }
 
 proto::ContactItemType Wallet::extract_unit(
-    const opentxs::UnitDefinition& contract) const
+    const contract::Unit& contract) const
 {
     try {
         if (contract.Version() < 2) {
@@ -863,9 +882,34 @@ bool Wallet::ImportAccount(
         OT_ASSERT(pAccount)
 
         const auto& contractID = pAccount->GetInstrumentDefinitionID();
-        const auto contract = UnitDefinition(contractID, reason);
 
-        if (false == bool(contract)) {
+        try {
+            const auto contract = UnitDefinition(contractID, reason);
+            auto serialized = String::Factory();
+            auto alias = String::Factory();
+            pAccount->SaveContractRaw(serialized);
+            pAccount->GetName(alias);
+            const auto saved = api_.Storage().Store(
+                accountID.str(),
+                serialized->Get(),
+                alias->Get(),
+                pAccount->GetNymID(),
+                pAccount->GetNymID(),
+                contract->Nym()->ID(),
+                pAccount->GetRealNotaryID(),
+                contractID,
+                extract_unit(contract));
+
+            if (false == saved) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save account.")
+                    .Flush();
+                imported.reset(pAccount.release());
+
+                return false;
+            }
+
+            return true;
+        } catch (...) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Unable to load unit definition.")
                 .Flush();
@@ -873,31 +917,6 @@ bool Wallet::ImportAccount(
 
             return false;
         }
-
-        auto serialized = String::Factory();
-        auto alias = String::Factory();
-        pAccount->SaveContractRaw(serialized);
-        pAccount->GetName(alias);
-        const auto saved = api_.Storage().Store(
-            accountID.str(),
-            serialized->Get(),
-            alias->Get(),
-            pAccount->GetNymID(),
-            pAccount->GetNymID(),
-            contract->Nym()->ID(),
-            pAccount->GetRealNotaryID(),
-            contractID,
-            extract_unit(*contract));
-
-        if (false == saved) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save account.")
-                .Flush();
-            imported.reset(pAccount.release());
-
-            return false;
-        }
-
-        return true;
     } catch (...) {
     }
 
@@ -1543,13 +1562,13 @@ bool Wallet::PeerReplyReceive(
         return false;
     }
 
-    if (!reply.Request()) {
+    if (0 == reply.Request()->Version()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Null request.").Flush();
 
         return false;
     }
 
-    if (!reply.Reply()) {
+    if (0 == reply.Reply()->Version()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Null reply.").Flush();
 
         return false;
@@ -1765,7 +1784,7 @@ bool Wallet::PeerRequestReceive(
         return false;
     }
 
-    if (!request.Request()) {
+    if (0 == request.Request()->Version()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Null request.").Flush();
 
         return false;
@@ -2096,7 +2115,7 @@ bool Wallet::SetNymAlias(const identifier::Nym& id, const std::string& alias)
     return api_.Storage().SetNymAlias(id.str(), alias);
 }
 
-ConstServerContract Wallet::Server(
+OTServerContract Wallet::Server(
     const identifier::Server& id,
     const PasswordPrompt& reason,
     const std::chrono::milliseconds& timeout) const
@@ -2122,12 +2141,14 @@ ConstServerContract Wallet::Server(
 
             if (nym) {
                 auto& pServer = server_map_[server];
-                pServer.reset(
-                    ServerContract::Factory(api_, nym, *serialized, reason));
+                pServer = opentxs::Factory::ServerContract(
+                    api_, nym, *serialized, reason);
 
                 if (pServer) {
                     valid = true;  // Factory() performs validation
-                    pServer->Signable::SetAlias(alias);
+                    pServer->InitAlias(alias);
+                } else {
+                    server_map_.erase(server);
                 }
             }
         } else {
@@ -2158,26 +2179,21 @@ ConstServerContract Wallet::Server(
         if (pServer) { valid = pServer->Validate(reason); }
     }
 
-    if (valid) { return server_map_[server]; }
+    if (valid) { return OTServerContract{server_map_[server]}; }
 
-    return nullptr;
+    throw std::runtime_error("Server contract not found");
 }
 
-ConstServerContract Wallet::Server(
-    std::unique_ptr<ServerContract>& contract,
-    const PasswordPrompt& reason) const
+OTServerContract Wallet::server(
+    std::unique_ptr<contract::Server> contract,
+    const PasswordPrompt& reason) const noexcept(false)
 {
     if (false == bool(contract)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null server contract.").Flush();
-
-        return {};
+        throw std::runtime_error("Null server contract");
     }
 
     if (false == contract->Validate(reason)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server contract.")
-            .Flush();
-
-        return {};
+        throw std::runtime_error("Invalid server contract");
     }
 
     const auto id =
@@ -2202,7 +2218,7 @@ ConstServerContract Wallet::Server(
     return Server(identifier::Server::Factory(server), reason);
 }
 
-ConstServerContract Wallet::Server(
+OTServerContract Wallet::Server(
     const proto::ServerContract& contract,
     const PasswordPrompt& reason) const
 {
@@ -2210,19 +2226,12 @@ ConstServerContract Wallet::Server(
     auto serverID = identifier::Server::Factory(server);
 
     if (serverID->empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server contract.")
-            .Flush();
-
-        return {};
+        throw std::runtime_error("Invalid server contract");
     }
 
     const auto nymID = identifier::Nym::Factory(contract.nymid());
 
-    if (nymID->empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym ID.").Flush();
-
-        return {};
-    }
+    if (nymID->empty()) { throw std::runtime_error("Invalid nym ID"); }
 
     auto nym = Nym(nymID, reason);
 
@@ -2231,8 +2240,8 @@ ConstServerContract Wallet::Server(
     }
 
     if (nym) {
-        std::unique_ptr<ServerContract> candidate{
-            ServerContract::Factory(api_, nym, contract, reason)};
+        auto candidate = std::unique_ptr<contract::Server>{
+            opentxs::Factory::ServerContract(api_, nym, contract, reason)};
 
         if (candidate) {
             if (candidate->Validate(reason)) {
@@ -2260,25 +2269,37 @@ ConstServerContract Wallet::Server(
     return Server(serverID, reason);
 }
 
-ConstServerContract Wallet::Server(
+OTServerContract Wallet::Server(
     const std::string& nymid,
     const std::string& name,
     const std::string& terms,
-    const std::list<ServerContract::Endpoint>& endpoints,
-    const PasswordPrompt& reason,
+    const std::list<contract::Server::Endpoint>& endpoints,
+    const opentxs::PasswordPrompt& reason,
     const VersionNumber version) const
 {
     std::string server;
     auto nym = Nym(identifier::Nym::Factory(nymid), reason);
 
     if (nym) {
-        std::unique_ptr<ServerContract> contract;
-        contract.reset(ServerContract::Create(
-            api_, nym, endpoints, terms, name, version, reason));
+        auto list = std::list<Endpoint>{};
+        std::transform(
+            std::begin(endpoints),
+            std::end(endpoints),
+            std::back_inserter(list),
+            [](const auto& in) -> Endpoint {
+                return {static_cast<int>(std::get<0>(in)),
+                        static_cast<int>(std::get<1>(in)),
+                        std::get<2>(in),
+                        std::get<3>(in),
+                        std::get<4>(in)};
+            });
+        auto pContract =
+            std::unique_ptr<contract::Server>{opentxs::Factory::ServerContract(
+                api_, nym, list, terms, name, version, reason)};
 
-        if (contract) {
+        if (pContract) {
 
-            return (Server(contract, reason));
+            return this->server(std::move(pContract), reason);
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error: Failed to create contract.")
@@ -2309,27 +2330,28 @@ OTNymID Wallet::server_to_nym(const PasswordPrompt& reason, Identifier& input)
 
         for (const auto& item : list) {
             const auto& serverID = item.first;
-            auto server = Server(identifier::Server::Factory(serverID), reason);
 
-            OT_ASSERT(server);
+            try {
+                auto server =
+                    Server(identifier::Server::Factory(serverID), reason);
 
-            if (server->Nym()->ID() == input) {
-                matches++;
-                // set input to the notary ID
-                input.Assign(server->ID());
+                if (server->Nym()->ID() == input) {
+                    matches++;
+                    // set input to the notary ID
+                    input.Assign(server->ID());
+                }
+            } catch (...) {
             }
         }
 
         OT_ASSERT(2 > matches);
     } else {
-        auto contract = Server(
-
-            identifier::Server::Factory(input.str()),
-            reason);  // TODO conversion
-
-        if (contract) {
+        try {
+            const auto contract = Server(
+                identifier::Server::Factory(input.str()),
+                reason);  // TODO conversion
             output->SetString(contract->Contract().nymid());
-        } else {
+        } catch (...) {
             LogDetail(OT_METHOD)(__FUNCTION__)(": Non-existent server: ")(input)
                 .Flush();
         }
@@ -2378,7 +2400,7 @@ ObjectList Wallet::UnitDefinitionList() const
     return api_.Storage().UnitDefinitionList();
 }
 
-const ConstUnitDefinition Wallet::UnitDefinition(
+OTUnitDefinition Wallet::UnitDefinition(
     const identifier::UnitDefinition& id,
     const PasswordPrompt& reason,
     const std::chrono::milliseconds& timeout) const
@@ -2404,12 +2426,14 @@ const ConstUnitDefinition Wallet::UnitDefinition(
 
             if (nym) {
                 auto& pUnit = unit_map_[unit];
-                pUnit.reset(
-                    UnitDefinition::Factory(api_, nym, *serialized, reason));
+                pUnit = opentxs::Factory::UnitDefinition(
+                    api_, nym, *serialized, reason);
 
                 if (pUnit) {
                     valid = true;  // Factory() performs validation
-                    pUnit->Signable::SetAlias(alias);
+                    pUnit->InitAlias(alias);
+                } else {
+                    unit_map_.erase(unit);
                 }
             }
         } else {
@@ -2439,13 +2463,13 @@ const ConstUnitDefinition Wallet::UnitDefinition(
         if (pUnit) { valid = pUnit->Validate(reason); }
     }
 
-    if (valid) { return unit_map_[unit]; }
+    if (valid) { return OTUnitDefinition{unit_map_[unit]}; }
 
-    return nullptr;
+    throw std::runtime_error("Unit definition does not exist");
 }
 
-ConstUnitDefinition Wallet::UnitDefinition(
-    std::unique_ptr<opentxs::UnitDefinition>& contract,
+OTUnitDefinition Wallet::unit_definition(
+    std::shared_ptr<contract::Unit>&& contract,
     const PasswordPrompt& reason) const
 {
     std::string unit = contract->ID()->str();
@@ -2454,7 +2478,14 @@ ConstUnitDefinition Wallet::UnitDefinition(
         if (contract->Validate(reason)) {
             if (api_.Storage().Store(contract->Contract(), contract->Alias())) {
                 Lock mapLock(unit_map_lock_);
-                unit_map_[unit].reset(contract.release());
+                auto it = unit_map_.find(unit);
+
+                if (unit_map_.end() == it) {
+                    unit_map_.emplace(unit, std::move(contract));
+                } else {
+                    it->second = std::move(contract);
+                }
+
                 mapLock.unlock();
             }
         }
@@ -2463,7 +2494,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     return UnitDefinition(identifier::UnitDefinition::Factory(unit), reason);
 }
 
-ConstUnitDefinition Wallet::UnitDefinition(
+OTUnitDefinition Wallet::UnitDefinition(
     const proto::UnitDefinition& contract,
     const PasswordPrompt& reason) const
 {
@@ -2477,15 +2508,22 @@ ConstUnitDefinition Wallet::UnitDefinition(
     }
 
     if (nym) {
-        std::unique_ptr<opentxs::UnitDefinition> candidate(
-            UnitDefinition::Factory(api_, nym, contract, reason));
+        auto candidate =
+            opentxs::Factory::UnitDefinition(api_, nym, contract, reason);
 
         if (candidate) {
             if (candidate->Validate(reason)) {
                 if (api_.Storage().Store(
                         candidate->Contract(), candidate->Alias())) {
                     Lock mapLock(unit_map_lock_);
-                    unit_map_[unit].reset(candidate.release());
+                    auto it = unit_map_.find(unit);
+
+                    if (unit_map_.end() == it) {
+                        unit_map_.emplace(unit, std::move(candidate));
+                    } else {
+                        it->second = std::move(candidate);
+                    }
+
                     mapLock.unlock();
                 }
             }
@@ -2495,7 +2533,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     return UnitDefinition(identifier::UnitDefinition::Factory(unit), reason);
 }
 
-ConstUnitDefinition Wallet::UnitDefinition(
+OTUnitDefinition Wallet::UnitDefinition(
     const std::string& nymid,
     const std::string& shortname,
     const std::string& name,
@@ -2508,12 +2546,11 @@ ConstUnitDefinition Wallet::UnitDefinition(
     const PasswordPrompt& reason,
     const VersionNumber version) const
 {
-    std::string unit;
+    auto unit = std::string{};
     auto nym = Nym(identifier::Nym::Factory(nymid), reason);
 
     if (nym) {
-        std::unique_ptr<opentxs::UnitDefinition> contract;
-        contract.reset(UnitDefinition::Create(
+        auto contract = opentxs::Factory::CurrencyContract(
             api_,
             nym,
             shortname,
@@ -2524,11 +2561,12 @@ ConstUnitDefinition Wallet::UnitDefinition(
             power,
             fraction,
             unitOfAccount,
-            reason,
-            version));
+            version,
+            reason);
+
         if (contract) {
 
-            return (UnitDefinition(contract, reason));
+            return unit_definition(std::move(contract), reason);
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error: Failed to create contract.")
@@ -2542,7 +2580,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     return UnitDefinition(identifier::UnitDefinition::Factory(unit), reason);
 }
 
-ConstUnitDefinition Wallet::UnitDefinition(
+OTUnitDefinition Wallet::UnitDefinition(
     const std::string& nymid,
     const std::string& shortname,
     const std::string& name,
@@ -2556,8 +2594,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     auto nym = Nym(identifier::Nym::Factory(nymid), reason);
 
     if (nym) {
-        std::unique_ptr<opentxs::UnitDefinition> contract;
-        contract.reset(UnitDefinition::Create(
+        auto contract = opentxs::Factory::SecurityContract(
             api_,
             nym,
             shortname,
@@ -2565,12 +2602,12 @@ ConstUnitDefinition Wallet::UnitDefinition(
             symbol,
             terms,
             unitOfAccount,
-            reason,
-            version));
+            version,
+            reason);
 
         if (contract) {
 
-            return (UnitDefinition(contract, reason));
+            return unit_definition(std::move(contract), reason);
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error: Failed to create contract.")

@@ -15,6 +15,7 @@
 #include "opentxs/otx/Request.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
 
 #include "Request.hpp"
@@ -33,17 +34,17 @@ OTXRequest Request::Factory(
     const Nym_p signer,
     const identifier::Server& server,
     const proto::ServerRequestType type,
+    const RequestNumber number,
     const PasswordPrompt& reason)
 {
     OT_ASSERT(signer);
 
-    std::unique_ptr<implementation::Request> output{
-        new implementation::Request(api, signer, signer->ID(), server, type)};
+    std::unique_ptr<implementation::Request> output{new implementation::Request(
+        api, signer, signer->ID(), server, type, number)};
 
     OT_ASSERT(output);
 
     Lock lock(output->lock_);
-    output->CalculateID(lock);
     output->update_signature(lock, reason);
 
     OT_ASSERT(false == output->id(lock)->empty());
@@ -67,40 +68,46 @@ Request::Request(
     const Nym_p signer,
     const identifier::Nym& initiator,
     const identifier::Server& server,
-    const proto::ServerRequestType type)
-    : Signable(signer, DefaultVersion, "")
-    , otx::Request()
-    , api_(api)
+    const proto::ServerRequestType type,
+    const RequestNumber number)
+    : Signable(api, signer, DefaultVersion, "", "")
     , initiator_(initiator)
     , server_(server)
     , type_(type)
-    , number_(0)
+    , number_(number)
     , include_nym_(Flag::Factory(false))
 {
+    Lock lock(lock_);
+    first_time_init(lock);
 }
 
 Request::Request(
     const api::internal::Core& api,
     const proto::ServerRequest serialized,
     const PasswordPrompt& reason)
-    : Signable(extract_nym(api, serialized, reason), serialized.version(), "")
-    , otx::Request()
-    , api_(api)
+    : Signable(
+          api,
+          extract_nym(api, serialized, reason),
+          serialized.version(),
+          "",
+          "",
+          api.Factory().Identifier(serialized.id()),
+          serialized.has_signature()
+              ? Signatures{std::make_shared<proto::Signature>(
+                    serialized.signature())}
+              : Signatures{})
     , initiator_((nym_) ? nym_->ID() : api.Factory().NymID().get())
     , server_(api.Factory().ServerID(serialized.server()))
     , type_(serialized.type())
     , number_(serialized.request())
     , include_nym_(Flag::Factory(false))
 {
-    id_ = api.Factory().Identifier(serialized.id());
-    signatures_.push_front(SerializedSignature(
-        std::make_shared<proto::Signature>(serialized.signature())));
+    Lock lock(lock_);
+    init_serialized(lock);
 }
 
 Request::Request(const Request& rhs)
-    : Signable(rhs.nym_, rhs.version_, rhs.conditions_)
-    , otx::Request()
-    , api_(rhs.api_)
+    : Signable(rhs)
     , initiator_(rhs.initiator_)
     , server_(rhs.server_)
     , type_(rhs.type_)
@@ -194,16 +201,6 @@ bool Request::SetIncludeNym(const bool include, const PasswordPrompt& reason)
     } else {
         include_nym_->Off();
     }
-
-    return update_signature(lock, reason);
-}
-
-bool Request::SetNumber(
-    const RequestNumber number,
-    const PasswordPrompt& reason)
-{
-    Lock lock(lock_);
-    number_ = number;
 
     return update_signature(lock, reason);
 }

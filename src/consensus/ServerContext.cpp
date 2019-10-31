@@ -140,8 +140,7 @@ ServerContext::ServerContext(
     const Nym_p& remote,
     const identifier::Server& server,
     network::ServerConnection& connection)
-    : Signable(local, CURRENT_VERSION)
-    , implementation::Context(api, CURRENT_VERSION, local, remote, server)
+    : implementation::Context(api, CURRENT_VERSION, local, remote, server)
     , StateMachine(std::bind(&ServerContext::state_machine, this))
     , request_sent_(requestSent)
     , reply_received_(replyReceived)
@@ -171,7 +170,13 @@ ServerContext::ServerContext(
           api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
     , find_unit_definition_(
           api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Connect))
+
 {
+    {
+        Lock lock(lock_);
+        first_time_init(lock);
+    }
+
     init_sockets();
 }
 
@@ -183,8 +188,7 @@ ServerContext::ServerContext(
     const Nym_p& local,
     const Nym_p& remote,
     network::ServerConnection& connection)
-    : Signable(local, CURRENT_VERSION)
-    , implementation::Context(
+    : implementation::Context(
           api,
           CURRENT_VERSION,
           serialized,
@@ -234,6 +238,11 @@ ServerContext::ServerContext(
     if (3 > serialized.version()) {
         state_.store(proto::DELIVERTYSTATE_IDLE);
         last_status_.store(proto::LASTREPLYSTATUS_NONE);
+    }
+
+    {
+        Lock lock(lock_);
+        init_serialized(lock);
     }
 
     init_sockets();
@@ -4261,35 +4270,44 @@ bool ServerContext::process_get_unit_definition_response(
             if (contract) { return (unitID->str() == serialized.nymid()); }
         } break;
         case ContractType::server: {
-            auto serialized = proto::Factory<proto::ServerContract>(raw);
-            auto contract = api_.Wallet().Server(serialized, reason);
+            try {
+                const auto serialized =
+                    proto::Factory<proto::ServerContract>(raw);
+                api_.Wallet().Server(serialized, reason);
 
-            if (contract) { return (unitID->str() == serialized.id()); }
+                return (unitID->str() == serialized.id());
+            } catch (...) {
+            }
         } break;
         case ContractType::unit: {
             auto serialized = proto::Factory<proto::UnitDefinition>(raw);
-            auto contract = api_.Wallet().UnitDefinition(serialized, reason);
 
-            if (contract) { return (unitID->str() == serialized.id()); }
+            try {
+                api_.Wallet().UnitDefinition(serialized, reason);
+
+                return (unitID->str() == serialized.id());
+            } catch (...) {
+            }
         } break;
         case ContractType::invalid:
         default: {
             auto serialized = proto::Factory<proto::UnitDefinition>(raw);
-            auto contract = api_.Wallet().UnitDefinition(serialized, reason);
 
-            if (contract) {
+            try {
+                api_.Wallet().UnitDefinition(serialized, reason);
 
                 return (unitID->str() == serialized.id());
-            } else {
+            } catch (...) {
                 // Maybe it's actually a server contract?
                 auto serializedServerContract =
                     proto::Factory<proto::ServerContract>(raw);
 
-                auto serverContract =
-                    api_.Wallet().Server(serializedServerContract, reason);
+                try {
+                    auto serverContract =
+                        api_.Wallet().Server(serializedServerContract, reason);
 
-                if (serverContract) {
                     return (unitID->str() == serializedServerContract.id());
+                } catch (...) {
                 }
             }
         }
@@ -7342,20 +7360,20 @@ bool ServerContext::ShouldRename(
     const PasswordPrompt& reason,
     const std::string& defaultName) const
 {
-    auto pContract = api_.Wallet().Server(server_id_, reason);
+    try {
+        const auto contract = api_.Wallet().Server(server_id_, reason);
 
-    if (false == bool(pContract)) {
+        if (contract->Alias() != contract->EffectiveName(reason)) {
+            return true;
+        }
+
+        return defaultName == contract->EffectiveName(reason);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing server contract.")
             .Flush();
 
         return false;
     }
-
-    const auto& contract = *pContract;
-
-    if (contract.Alias() != contract.EffectiveName(reason)) { return true; }
-
-    return defaultName == contract.EffectiveName(reason);
 }
 
 ServerContext::QueueResult ServerContext::start(

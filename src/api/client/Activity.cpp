@@ -168,7 +168,7 @@ Activity::ChequeData Activity::Cheque(
     const std::string& workflowID,
     const PasswordPrompt& reason) const
 {
-    ChequeData output;
+    auto output = ChequeData{nullptr, api_.Factory().UnitDefinition()};
     auto& [cheque, contract] = output;
     auto [type, state] =
         api_.Storage().PaymentWorkflowState(nym.str(), workflowID);
@@ -213,9 +213,10 @@ Activity::ChequeData Activity::Cheque(
     OT_ASSERT(cheque)
 
     const auto& unit = cheque->GetInstrumentDefinitionID();
-    contract = api_.Wallet().UnitDefinition(unit, reason);
 
-    if (false == bool(contract)) {
+    try {
+        contract = api_.Wallet().UnitDefinition(unit, reason);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load unit definition contract.")
             .Flush();
@@ -230,11 +231,10 @@ Activity::TransferData Activity::Transfer(
     const std::string& workflowID,
     const PasswordPrompt& reason) const
 {
-    TransferData output;
+    auto output = TransferData{nullptr, api_.Factory().UnitDefinition()};
     auto& [transfer, contract] = output;
     auto [type, state] =
         api_.Storage().PaymentWorkflowState(nym.str(), workflowID);
-    [[maybe_unused]] const auto& notUsed = state;
 
     switch (type) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
@@ -254,7 +254,7 @@ Activity::TransferData Activity::Transfer(
         }
     }
 
-    std::shared_ptr<proto::PaymentWorkflow> workflow{nullptr};
+    auto workflow = std::shared_ptr<proto::PaymentWorkflow>{nullptr};
     const auto loaded = api_.Storage().Load(nym.str(), workflowID, workflow);
 
     if (false == loaded) {
@@ -291,9 +291,10 @@ Activity::TransferData Activity::Transfer(
 
         return output;
     }
-    contract = api_.Wallet().UnitDefinition(unit, reason);
 
-    if (false == bool(contract)) {
+    try {
+        contract = api_.Wallet().UnitDefinition(unit, reason);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load unit definition contract.")
             .Flush();
@@ -650,7 +651,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
 
             OT_ASSERT(cheque)
 
-            if (contract) {
+            if (0 < contract->Version()) {
                 std::string amount{};
                 const bool haveAmount = contract->FormatAmountLocale(
                     cheque->GetAmount(), amount, ",", ".");
@@ -671,7 +672,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
 
             OT_ASSERT(transfer)
 
-            if (contract) {
+            if (0 < contract->Version()) {
                 std::string amount{};
                 const bool haveAmount = contract->FormatAmountLocale(
                     transfer->GetAmount(), amount, ",", ".");

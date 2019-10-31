@@ -34,9 +34,9 @@ namespace socket
 class Pair : virtual public socket::Socket, virtual public Sender
 {
 public:
-    EXPORT virtual const std::string& Endpoint() const noexcept = 0;
+    OPENTXS_EXPORT virtual const std::string& Endpoint() const noexcept = 0;
 
-    EXPORT ~Pair() override = default;
+    OPENTXS_EXPORT ~Pair() override = default;
 
 protected:
     Pair() noexcept = default;

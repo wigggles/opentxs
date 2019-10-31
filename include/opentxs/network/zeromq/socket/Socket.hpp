@@ -53,18 +53,19 @@ public:
     using SendResult = std::pair<opentxs::SendResult, OTZMQMessage>;
     enum class Direction : bool { Bind = false, Connect = true };
 
-    EXPORT virtual operator void*() const noexcept = 0;
+    OPENTXS_EXPORT virtual operator void*() const noexcept = 0;
 
-    EXPORT virtual bool Close() const noexcept = 0;
-    EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
-    EXPORT virtual bool SetTimeouts(
+    OPENTXS_EXPORT virtual bool Close() const noexcept = 0;
+    OPENTXS_EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetTimeouts(
         const std::chrono::milliseconds& linger,
         const std::chrono::milliseconds& send,
         const std::chrono::milliseconds& receive) const noexcept = 0;
-    EXPORT virtual bool Start(const std::string& endpoint) const noexcept = 0;
-    EXPORT virtual SocketType Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Start(const std::string& endpoint) const
+        noexcept = 0;
+    OPENTXS_EXPORT virtual SocketType Type() const noexcept = 0;
 
-    EXPORT virtual ~Socket() = default;
+    OPENTXS_EXPORT virtual ~Socket() = default;
 
 protected:
     Socket() noexcept = default;

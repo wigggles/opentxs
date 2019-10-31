@@ -610,25 +610,27 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     }
 
     const auto& contractID = account.get().GetInstrumentDefinitionID();
-    auto contract = server_.API().Wallet().UnitDefinition(contractID, reason_);
 
-    if (false == bool(contract)) {
+    try {
+        const auto contract =
+            server_.API().Wallet().UnitDefinition(contractID, reason_);
+
+        if (contract->Type() == proto::UNITTYPE_SECURITY) {
+            if (false == contract->EraseAccountRecord(
+                             server_.API().DataFolder(), accountID)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Unable to delete account record ")(contractID)(".")
+                    .Flush();
+
+                return false;
+            }
+        }
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load unit definition ")(
-            contractID)(".")
+            contractID)
             .Flush();
 
         return false;
-    }
-
-    if (contract->Type() == proto::UNITTYPE_SECURITY) {
-        if (false == contract->EraseAccountRecord(
-                         server_.API().DataFolder(), accountID)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Unable to delete account record ")(contractID)(".")
-                .Flush();
-
-            return false;
-        }
     }
 
     reply.SetSuccess(true);
@@ -904,21 +906,25 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
 
     if (0 == msgIn.enum_) {
         // try everything
-        auto unitDefiniton =
-            server_.API().Wallet().UnitDefinition(unitID, reason_);
-        // Perhaps the provided ID is actually a server contract, not an
-        // instrument definition?
-        auto server = server_.API().Wallet().Server(serverID, reason_);
-
-        if (unitDefiniton) {
+        try {
+            const auto unitDefiniton =
+                server_.API().Wallet().UnitDefinition(unitID, reason_);
             serialized =
                 manager_.Factory().Data(unitDefiniton->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
-        } else if (server) {
+        } catch (...) {
+        }
+
+        try {
+            const auto server =
+                server_.API().Wallet().Server(serverID, reason_);
             serialized = manager_.Factory().Data(server->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
+
+            return true;
+        } catch (...) {
         }
     } else if (ContractType::nym == static_cast<ContractType>(msgIn.enum_)) {
         auto contract = server_.API().Wallet().Nym(nymID, reason_);
@@ -929,20 +935,24 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
             reply.SetBool(true);
         }
     } else if (ContractType::server == static_cast<ContractType>(msgIn.enum_)) {
-        auto contract = server_.API().Wallet().Server(serverID, reason_);
-
-        if (contract) {
+        try {
+            const auto contract =
+                server_.API().Wallet().Server(serverID, reason_);
             serialized = manager_.Factory().Data(contract->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
+
+            return true;
+        } catch (...) {
         }
     } else if (ContractType::unit == static_cast<ContractType>(msgIn.enum_)) {
-        auto contract = server_.API().Wallet().UnitDefinition(unitID, reason_);
-
-        if (contract) {
+        try {
+            const auto contract =
+                server_.API().Wallet().UnitDefinition(unitID, reason_);
             serialized = manager_.Factory().Data(contract->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
+        } catch (...) {
         }
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid type: ")(msgIn.enum_)
@@ -1286,7 +1296,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // reason_ with the AccountID removed before calculating.
     auto basketAccountID = Identifier::Factory();
     const auto BASKET_ID =
-        BasketContract::CalculateBasketID(server_.API(), serialized);
+        contract::unit::Basket::CalculateBasketID(server_.API(), serialized);
 
     const bool exists = server_.GetTransactor().lookupBasketAccountID(
         BASKET_ID, basketAccountID);
@@ -1308,10 +1318,11 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // currency as a sub-currency is if it's already issued on this server.
     for (auto& it : serialized.basket().item()) {
         const auto& subcontractID = it.unit();
-        auto contract = server_.API().Wallet().UnitDefinition(
-            identifier::UnitDefinition::Factory(subcontractID), reason_);
 
-        if (!contract) {
+        try {
+            server_.API().Wallet().UnitDefinition(
+                identifier::UnitDefinition::Factory(subcontractID), reason_);
+        } catch (...) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Missing subcurrency ")(
                 subcontractID)(".")
                 .Flush();
@@ -1351,7 +1362,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         }
     }
 
-    if (false == BasketContract::FinalizeTemplate(
+    if (false == contract::unit::Basket::FinalizeTemplate(
                      server_.API(), serverNym, serialized, reason_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to finalize basket contract.")
@@ -1367,74 +1378,73 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         return false;
     }
 
-    const auto contract =
-        server_.API().Wallet().UnitDefinition(serialized, reason_);
+    try {
+        const auto contract =
+            server_.API().Wallet().UnitDefinition(serialized, reason_);
+        const auto contractID = identifier::UnitDefinition::Factory(
+            contract->ID()->str());  // TODO conversion
+        reply.SetInstrumentDefinitionID(String::Factory(contractID));
 
-    if (false == bool(contract)) {
+        // I don't save this here. Instead, I wait for AddBasketAccountID and
+        // then I call SaveMainFile after that. See below.
+
+        // TODO need better code for reverting when something screws up halfway
+        // through a change. If I add this contract, it's not enough to just
+        // "not save" the file. I actually need to re-load the file in order to
+        // TRULY "make sure" this won't screw something up on down the line.
+
+        // Once the new Asset Type is generated, from which the BasketID can be
+        // requested at will, next we need to create the issuer account for that
+        // new Asset Type.  (We have the instrument definition ID and the
+        // contract file. Now let's create the issuer account the same as we
+        // would for any normal issuer account.)
+        //
+        // The issuer account is special compared to a normal issuer account,
+        // because within its walls, it must store an OTAccount for EACH
+        // sub-contract, in order to store the reserves. That's what makes the
+        // basket work.
+
+        auto basketAccount = server_.API().Wallet().CreateAccount(
+            serverNymID,
+            serverID,
+            contractID,
+            *serverNym,
+            Account::basket,
+            0,
+            reason_);
+
+        if (false == bool(basketAccount)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to instantiate basket account.")
+                .Flush();
+
+            return false;
+        }
+
+        basketAccount.get().GetIdentifier(basketAccountID);
+        reply.SetSuccess(true);
+        reply.SetAccount(String::Factory(basketAccountID));
+
+        // So the server can later use the BASKET_ID (which is universal) to
+        // lookup the account ID on this server corresponding to that basket.
+        // (The account ID will be different from server to server, thus the
+        // need to be able to look it up via the basket ID.)
+        server_.GetTransactor().addBasketAccountID(
+            BASKET_ID, basketAccountID, contractID);
+        server_.GetMainFile().SaveMainFile();
+#if OT_CASH
+        manager_.UpdateMint(contractID);
+#endif  // OT_CASH
+        basketAccount.Release();
+
+        return true;
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to construct basket contract object.")
             .Flush();
 
         return false;
     }
-
-    const auto contractID = identifier::UnitDefinition::Factory(
-        contract->ID()->str());  // TODO conversion
-    reply.SetInstrumentDefinitionID(String::Factory(contractID));
-
-    // I don't save this here. Instead, I wait for AddBasketAccountID and then I
-    // call SaveMainFile after that. See below.
-
-    // TODO need better code for reverting when something screws up halfway
-    // through a change. If I add this contract, it's not enough to just "not
-    // save" the file. I actually need to re-load the file in order to TRULY
-    // "make sure" this won't screw something up on down the line.
-
-    // Once the new Asset Type is generated, from which the BasketID can be
-    // requested at will, next we need to create the issuer account for that new
-    // Asset Type.  (We have the instrument definition ID and the contract file.
-    // Now let's create the issuer account the same as we would for any normal
-    // issuer account.)
-    //
-    // The issuer account is special compared to a normal issuer account,
-    // because within its walls, it must store an OTAccount for EACH
-    // sub-contract, in order to store the reserves. That's what makes the
-    // basket work.
-
-    auto basketAccount = server_.API().Wallet().CreateAccount(
-        serverNymID,
-        serverID,
-        contractID,
-        *serverNym,
-        Account::basket,
-        0,
-        reason_);
-
-    if (false == bool(basketAccount)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to instantiate basket account.")
-            .Flush();
-
-        return false;
-    }
-
-    basketAccount.get().GetIdentifier(basketAccountID);
-    reply.SetSuccess(true);
-    reply.SetAccount(String::Factory(basketAccountID));
-
-    // So the server can later use the BASKET_ID (which is universal) to lookup
-    // the account ID on this server corresponding to that basket. (The account
-    // ID will be different from server to server, thus the need to be able to
-    // look it up via the basket ID.)
-    server_.GetTransactor().addBasketAccountID(
-        BASKET_ID, basketAccountID, contractID);
-    server_.GetMainFile().SaveMainFile();
-#if OT_CASH
-    manager_.UpdateMint(contractID);
-#endif  // OT_CASH
-    basketAccount.Release();
-
-    return true;
 }
 
 bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
@@ -1832,12 +1842,12 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         // whether or not it's actually issued on this server." Future options
         // might include "issue", "audit", "contract", etc.
         if (0 == status.compare("exists")) {
-            auto pContract = server_.API().Wallet().UnitDefinition(
-                identifier::UnitDefinition::Factory(unitID), reason_);
+            try {
+                server_.API().Wallet().UnitDefinition(
+                    identifier::UnitDefinition::Factory(unitID), reason_);
 
-            if (pContract) {
                 newMap[unitID] = "true";
-            } else {
+            } catch (...) {
                 newMap[unitID] = "false";
             }
         }
@@ -1879,28 +1889,28 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         return false;
     }
 
-    auto contract = server_.API().Wallet().UnitDefinition(
-        account.get().GetInstrumentDefinitionID(), reason_);
+    try {
+        const auto contract = server_.API().Wallet().UnitDefinition(
+            account.get().GetInstrumentDefinitionID(), reason_);
 
-    if (false == bool(contract)) {
+        if (contract->Type() == proto::UNITTYPE_SECURITY) {
+            // The instrument definition keeps a list of all accounts for that
+            // type. (For shares, not for currencies.)
+            if (false == contract->AddAccountRecord(
+                             server_.API().DataFolder(), account.get())) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Unable to add account record ")(contractID)
+                    .Flush();
+
+                return false;
+            }
+        }
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load unit definition ")(
-            contractID)(".")
+            contractID)
             .Flush();
 
         return false;
-    }
-
-    if (contract->Type() == proto::UNITTYPE_SECURITY) {
-        // The instrument definition keeps a list of all accounts for that type.
-        // (For shares, not for currencies.)
-        if (false == contract->AddAccountRecord(
-                         server_.API().DataFolder(), account.get())) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Unable to add account record ")(contractID)(".")
-                .Flush();
-
-            return false;
-        }
     }
 
     auto accountID = Identifier::Factory();
@@ -1994,28 +2004,33 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
             const auto nym =
                 proto::Factory<proto::Nym>(Data::Factory(msgIn.m_ascPayload));
             reply.SetSuccess(bool(server_.API().Wallet().Nym(nym, reason_)));
-
-            break;
-        }
+        } break;
         case (ContractType::server): {
             const auto server = proto::Factory<proto::ServerContract>(
                 Data::Factory(msgIn.m_ascPayload));
-            reply.SetSuccess(
-                bool(server_.API().Wallet().Server(server, reason_)));
-
-            break;
-        }
+            try {
+                server_.API().Wallet().Server(server, reason_);
+                reply.SetSuccess(true);
+            } catch (const std::exception& e) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
+                reply.SetSuccess(false);
+            }
+        } break;
         case (ContractType::unit): {
-            const auto unit = proto::Factory<proto::UnitDefinition>(
-                Data::Factory(msgIn.m_ascPayload));
-            reply.SetSuccess(
-                bool(server_.API().Wallet().UnitDefinition(unit, reason_)));
-
-            break;
-        }
+            try {
+                server_.API().Wallet().UnitDefinition(
+                    proto::Factory<proto::UnitDefinition>(
+                        Data::Factory(msgIn.m_ascPayload)),
+                    reason_);
+                reply.SetSuccess(true);
+            } catch (const std::exception& e) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
+                reply.SetSuccess(false);
+            }
+        } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid contract type: ")(
-                msgIn.enum_)(".")
+                msgIn.enum_)
                 .Flush();
         }
     }
@@ -2034,15 +2049,15 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
-    auto contract = server_.API().Wallet().UnitDefinition(contractID, reason_);
-
     // Make sure the contract isn't already available on this server.
-    if (contract) {
+    try {
+        server_.API().Wallet().UnitDefinition(contractID, reason_);
         LogOutput(OT_METHOD)(__FUNCTION__)(": Instrument definition ")(
             contractID)(" already exists.")
             .Flush();
 
         return false;
+    } catch (...) {
     }
 
     const auto serialized = proto::Factory<proto::UnitDefinition>(
@@ -2054,16 +2069,17 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
-    contract = server_.API().Wallet().UnitDefinition(serialized, reason_);
+    try {
+        const auto contract =
+            server_.API().Wallet().UnitDefinition(serialized, reason_);
 
-    if (false == bool(contract)) {
+        if (contract->ID() != contractID) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": ID mismatch.").Flush();
+
+            return false;
+        }
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid contract.").Flush();
-
-        return false;
-    }
-
-    if (contract->ID() != contractID) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ID mismatch.").Flush();
 
         return false;
     }

@@ -238,11 +238,11 @@ void Test_Rpc_Async::setup()
 
     auto client_a_server_contract = senderClient.Wallet().Server(
         intro_server_contract->PublicContract(), reasonS);
-    senderClient.OTX().SetIntroductionServer(*client_a_server_contract);
+    senderClient.OTX().SetIntroductionServer(client_a_server_contract);
 
     auto client_b_server_contract = receiverClient.Wallet().Server(
         intro_server_contract->PublicContract(), reasonR);
-    receiverClient.OTX().SetIntroductionServer(*client_b_server_contract);
+    receiverClient.OTX().SetIntroductionServer(client_b_server_contract);
 
     auto started = notification_socket_->get().Start(
         ot.ZMQ().BuildEndpoint("rpc/push", -1, 1));
@@ -264,9 +264,6 @@ void Test_Rpc_Async::setup()
         "gcent",
         opentxs::proto::CITEMTYPE_USD,
         reasonS);
-
-    ASSERT_TRUE(bool(unit_definition));
-
     unit_definition_id_ =
         identifier::UnitDefinition::Factory(unit_definition->ID()->str());
     intro_server_ = intro_server.Instance();
@@ -284,8 +281,20 @@ TEST_F(Test_Rpc_Async, Setup)
     auto reasonS = senderClient.Factory().PasswordPrompt(__FUNCTION__);
     auto reasonR = receiverClient.Factory().PasswordPrompt(__FUNCTION__);
 
-    EXPECT_FALSE(senderClient.Wallet().Server(server_id_, reasonS));
-    EXPECT_FALSE(receiverClient.Wallet().Server(server_id_, reasonR));
+    try {
+        senderClient.Wallet().Server(server_id_, reasonS);
+        EXPECT_FALSE(true);
+    } catch (...) {
+        EXPECT_FALSE(false);
+    }
+
+    try {
+        receiverClient.Wallet().Server(server_id_, reasonR);
+        EXPECT_FALSE(true);
+    } catch (...) {
+        EXPECT_FALSE(false);
+    }
+
     EXPECT_NE(sender_session_, receiver_session_);
 }
 

@@ -33,15 +33,16 @@ public:
     using ReceiveCallback = std::function<void(Message&)>;
 
 #ifndef SWIG
-    EXPORT static OTZMQListenCallback Factory(ReceiveCallback callback);
-    EXPORT static OTZMQListenCallback Factory();
+    OPENTXS_EXPORT static OTZMQListenCallback Factory(ReceiveCallback callback);
+    OPENTXS_EXPORT static OTZMQListenCallback Factory();
 #endif
-    EXPORT static opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>
+    OPENTXS_EXPORT static opentxs::Pimpl<
+        opentxs::network::zeromq::ListenCallback>
     Factory(ListenCallbackSwig* callback);
 
-    EXPORT virtual void Process(Message& message) const = 0;
+    OPENTXS_EXPORT virtual void Process(Message& message) const = 0;
 
-    EXPORT virtual ~ListenCallback() = default;
+    OPENTXS_EXPORT virtual ~ListenCallback() = default;
 
 protected:
     ListenCallback() = default;
@@ -52,7 +53,7 @@ private:
 #ifdef _WIN32
 public:
 #endif
-    EXPORT virtual ListenCallback* clone() const = 0;
+    OPENTXS_EXPORT virtual ListenCallback* clone() const = 0;
 #ifdef _WIN32
 private:
 #endif

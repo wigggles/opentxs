@@ -26,54 +26,60 @@ struct Core;
 }  // namespace internal
 }  // namespace api
 
-class Context : virtual public Signable
+class Context : virtual public opentxs::contract::Signable
 {
 public:
     using TransactionNumbers = std::set<TransactionNumber>;
     using RequestNumbers = std::set<RequestNumber>;
 
-    EXPORT virtual RequestNumbers AcknowledgedNumbers() const = 0;
-    EXPORT virtual std::size_t AvailableNumbers() const = 0;
-    EXPORT virtual bool HaveLocalNymboxHash() const = 0;
-    EXPORT virtual bool HaveRemoteNymboxHash() const = 0;
-    EXPORT virtual TransactionNumbers IssuedNumbers() const = 0;
-    EXPORT virtual std::string LegacyDataFolder() const = 0;
-    EXPORT virtual OTIdentifier LocalNymboxHash() const = 0;
-    EXPORT virtual bool NymboxHashMatch() const = 0;
-    EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
+    OPENTXS_EXPORT virtual RequestNumbers AcknowledgedNumbers() const = 0;
+    OPENTXS_EXPORT virtual std::size_t AvailableNumbers() const = 0;
+    OPENTXS_EXPORT virtual bool HaveLocalNymboxHash() const = 0;
+    OPENTXS_EXPORT virtual bool HaveRemoteNymboxHash() const = 0;
+    OPENTXS_EXPORT virtual TransactionNumbers IssuedNumbers() const = 0;
+    OPENTXS_EXPORT virtual std::string LegacyDataFolder() const = 0;
+    OPENTXS_EXPORT virtual OTIdentifier LocalNymboxHash() const = 0;
+    OPENTXS_EXPORT virtual bool NymboxHashMatch() const = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual const identity::Nym& RemoteNym() const = 0;
-    EXPORT virtual OTIdentifier RemoteNymboxHash() const = 0;
-    EXPORT virtual RequestNumber Request() const = 0;
-    EXPORT virtual proto::Context Serialized() const = 0;
-    EXPORT virtual const identifier::Server& Server() const = 0;
-    EXPORT virtual proto::ConsensusType Type() const = 0;
-    EXPORT virtual bool VerifyAcknowledgedNumber(
+    OPENTXS_EXPORT virtual const identity::Nym& RemoteNym() const = 0;
+    OPENTXS_EXPORT virtual OTIdentifier RemoteNymboxHash() const = 0;
+    OPENTXS_EXPORT virtual RequestNumber Request() const = 0;
+    OPENTXS_EXPORT virtual proto::Context Serialized() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& Server() const = 0;
+    OPENTXS_EXPORT virtual proto::ConsensusType Type() const = 0;
+    OPENTXS_EXPORT virtual bool VerifyAcknowledgedNumber(
         const RequestNumber& req) const = 0;
-    EXPORT virtual bool VerifyAvailableNumber(
+    OPENTXS_EXPORT virtual bool VerifyAvailableNumber(
         const TransactionNumber& number) const = 0;
-    EXPORT virtual bool VerifyIssuedNumber(
+    OPENTXS_EXPORT virtual bool VerifyIssuedNumber(
         const TransactionNumber& number) const = 0;
 
-    EXPORT virtual bool AddAcknowledgedNumber(const RequestNumber req) = 0;
-    EXPORT virtual bool CloseCronItem(const TransactionNumber) = 0;
-    EXPORT virtual bool ConsumeAvailable(const TransactionNumber& number) = 0;
-    EXPORT virtual bool ConsumeIssued(const TransactionNumber& number) = 0;
-    EXPORT virtual RequestNumber IncrementRequest() = 0;
-    EXPORT virtual bool InitializeNymbox(const PasswordPrompt& reason) = 0;
-    EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
-        const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool OpenCronItem(const TransactionNumber) = 0;
-    EXPORT virtual bool RecoverAvailableNumber(
+    OPENTXS_EXPORT virtual bool AddAcknowledgedNumber(
+        const RequestNumber req) = 0;
+    OPENTXS_EXPORT virtual bool CloseCronItem(const TransactionNumber) = 0;
+    OPENTXS_EXPORT virtual bool ConsumeAvailable(
         const TransactionNumber& number) = 0;
-    EXPORT virtual bool RemoveAcknowledgedNumber(const RequestNumbers& req) = 0;
-    EXPORT virtual void Reset() = 0;
-    EXPORT virtual proto::Context Refresh(const PasswordPrompt& reason) = 0;
-    EXPORT virtual void SetLocalNymboxHash(const Identifier& hash) = 0;
-    EXPORT virtual void SetRemoteNymboxHash(const Identifier& hash) = 0;
-    EXPORT virtual void SetRequest(const RequestNumber req) = 0;
+    OPENTXS_EXPORT virtual bool ConsumeIssued(
+        const TransactionNumber& number) = 0;
+    OPENTXS_EXPORT virtual RequestNumber IncrementRequest() = 0;
+    OPENTXS_EXPORT virtual bool InitializeNymbox(
+        const PasswordPrompt& reason) = 0;
+    OPENTXS_EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
+        const PasswordPrompt& reason) = 0;
+    OPENTXS_EXPORT virtual bool OpenCronItem(const TransactionNumber) = 0;
+    OPENTXS_EXPORT virtual bool RecoverAvailableNumber(
+        const TransactionNumber& number) = 0;
+    OPENTXS_EXPORT virtual bool RemoveAcknowledgedNumber(
+        const RequestNumbers& req) = 0;
+    OPENTXS_EXPORT virtual void Reset() = 0;
+    OPENTXS_EXPORT virtual proto::Context Refresh(
+        const PasswordPrompt& reason) = 0;
+    OPENTXS_EXPORT virtual void SetLocalNymboxHash(const Identifier& hash) = 0;
+    OPENTXS_EXPORT virtual void SetRemoteNymboxHash(const Identifier& hash) = 0;
+    OPENTXS_EXPORT virtual void SetRequest(const RequestNumber req) = 0;
 
-    EXPORT ~Context() override = default;
+    OPENTXS_EXPORT ~Context() override = default;
 
 protected:
     Context() = default;

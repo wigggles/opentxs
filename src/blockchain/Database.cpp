@@ -14,6 +14,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 
@@ -48,14 +49,15 @@ Database::Database(
     const client::internal::Network& network,
     const blockchain::Type type) noexcept
     : internal::Database()
-    , filters_()
+    , filters_(api)
     , headers_(api, network, type)
     , peers_()
 {
 }
 
-Database::Filters::Filters() noexcept
-    : lock_()
+Database::Filters::Filters(const api::Core& api) noexcept
+    : api_(api)
+    , lock_()
     , tip_()
     , filters_()
 {
@@ -71,7 +73,7 @@ Database::Headers::Headers(
     , block_headers_(init_genesis(api, type))
     , best_chain_({{0, client::HeaderOracle::GenesisBlockHash(type)}})
     , disconnected_()
-    , checkpoint_(make_blank<block::Position>::value())
+    , checkpoint_(make_blank<block::Position>::value(api_))
     , sibling_chains_()
 {
     OT_ASSERT(1 == block_headers_.size());
@@ -98,7 +100,7 @@ block::Position Database::Filters::CurrentTip(const filter::Type type) const
         return tip_.at(type);
     } catch (...) {
 
-        return make_blank<block::Position>::value();
+        return make_blank<block::Position>::value(api_);
     }
 }
 
@@ -277,7 +279,7 @@ bool Database::Headers::HaveCheckpoint() const noexcept
 {
     Lock lock(lock_);
 
-    return make_blank<block::Position>::value() != checkpoint_;
+    return make_blank<block::Position>::value(api_) != checkpoint_;
 }
 
 bool Database::Headers::HeaderExists(const block::Hash& hash) const noexcept

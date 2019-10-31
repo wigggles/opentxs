@@ -10,52 +10,36 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
-#include <string>
-
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class ConnectionReply final : public PeerReply
+namespace reply
 {
-private:
-    typedef PeerReply ot_super;
-    friend class PeerReply;
-
-    bool success_{false};
-    std::string url_;
-    std::string login_;
-    std::string password_;
-    std::string key_;
-
-    proto::PeerReply IDVersion(const Lock& lock) const final;
-
-    ConnectionReply(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerReply& serialized);
-    ConnectionReply(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const identifier::Nym& initiator,
-        const Identifier& request,
-        const identifier::Server& server,
-        const bool ack,
-        const std::string& url,
-        const std::string& login,
-        const std::string& password,
-        const std::string& key);
-    ConnectionReply() = delete;
-
+class Connection : virtual public peer::Reply
+{
 public:
-    ~ConnectionReply() final = default;
-};
-}  // namespace opentxs
+    OPENTXS_EXPORT ~Connection() override = default;
 
+protected:
+    Connection() noexcept = default;
+
+private:
+    friend OTConnectionReply;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Connection* clone() const noexcept override = 0;
+#endif
+
+    Connection(const Connection&) = delete;
+    Connection(Connection&&) = delete;
+    Connection& operator=(const Connection&) = delete;
+    Connection& operator=(Connection&&) = delete;
+};
+}  // namespace reply
+}  // namespace peer
+}  // namespace contract
+}  // namespace opentxs
 #endif

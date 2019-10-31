@@ -51,13 +51,13 @@ class Core;
 class PasswordPrompt
 {
 public:
-    EXPORT const char* GetDisplayString() const;
-    EXPORT const std::unique_ptr<const OTPassword>& Password() const;
+    OPENTXS_EXPORT const char* GetDisplayString() const;
+    OPENTXS_EXPORT const std::unique_ptr<const OTPassword>& Password() const;
 
-    EXPORT bool ClearPassword();
-    EXPORT bool SetPassword(const OTPassword& password);
+    OPENTXS_EXPORT bool ClearPassword();
+    OPENTXS_EXPORT bool SetPassword(const OTPassword& password);
 
-    EXPORT ~PasswordPrompt();
+    OPENTXS_EXPORT ~PasswordPrompt();
 
 private:
     friend OTPasswordPrompt;

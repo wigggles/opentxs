@@ -35,9 +35,6 @@ TEST_F(Ledger, init)
 
     const auto serverContract =
         server_.Wallet().Server(server_.ID(), reason_s_);
-
-    ASSERT_TRUE(serverContract);
-
     client_.Wallet().Server(serverContract->PublicContract(), reason_c_);
     server_id_->SetString(serverContract->ID()->str());
 

@@ -33,14 +33,14 @@ public:
     using HDKey = std::unique_ptr<opentxs::crypto::key::HD>;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
-    EXPORT virtual ECKey InstantiateECKey(
+    OPENTXS_EXPORT virtual ECKey InstantiateECKey(
         const proto::AsymmetricKey& serialized,
         const PasswordPrompt& reason) const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual HDKey InstantiateHDKey(
+    OPENTXS_EXPORT virtual HDKey InstantiateHDKey(
         const proto::AsymmetricKey& serialized,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual HDKey InstantiateKey(
+    OPENTXS_EXPORT virtual HDKey InstantiateKey(
         const proto::AsymmetricKeyType type,
         const std::string& seedID,
         const opentxs::crypto::Bip32::Key& serialized,
@@ -49,11 +49,11 @@ public:
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual Key InstantiateKey(
+    OPENTXS_EXPORT virtual Key InstantiateKey(
         const proto::AsymmetricKey& serialized,
         const PasswordPrompt& reason) const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual HDKey NewHDKey(
+    OPENTXS_EXPORT virtual HDKey NewHDKey(
         const std::string& seedID,
         const OTPassword& seed,
         const EcdsaCurve& curve,
@@ -63,14 +63,14 @@ public:
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual Key NewKey(
+    OPENTXS_EXPORT virtual Key NewKey(
         const NymParameters& params,
         const PasswordPrompt& reason,
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::Asymmetric::DefaultVersion) const = 0;
 
-    EXPORT virtual ~Asymmetric() = default;
+    OPENTXS_EXPORT virtual ~Asymmetric() = default;
 
 protected:
     Asymmetric() = default;

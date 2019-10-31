@@ -26,37 +26,35 @@ struct Core;
 
 namespace otx
 {
-class Request : virtual public Signable
+class Request : virtual public opentxs::contract::Signable
 {
 public:
-    EXPORT static const VersionNumber DefaultVersion;
-    EXPORT static const VersionNumber MaxVersion;
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber MaxVersion;
 
-    EXPORT static Pimpl<opentxs::otx::Request> Factory(
+    OPENTXS_EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const api::internal::Core& api,
         const Nym_p signer,
         const identifier::Server& server,
         const proto::ServerRequestType type,
+        const RequestNumber number,
         const PasswordPrompt& reason);
-    EXPORT static Pimpl<opentxs::otx::Request> Factory(
+    OPENTXS_EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const api::internal::Core& api,
         const proto::ServerRequest serialized,
         const PasswordPrompt& reason);
 
-    EXPORT virtual proto::ServerRequest Contract() const = 0;
-    EXPORT virtual const identifier::Nym& Initiator() const = 0;
-    EXPORT virtual RequestNumber Number() const = 0;
-    EXPORT virtual const identifier::Server& Server() const = 0;
-    EXPORT virtual proto::ServerRequestType Type() const = 0;
+    OPENTXS_EXPORT virtual proto::ServerRequest Contract() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& Initiator() const = 0;
+    OPENTXS_EXPORT virtual RequestNumber Number() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& Server() const = 0;
+    OPENTXS_EXPORT virtual proto::ServerRequestType Type() const = 0;
 
-    EXPORT virtual bool SetIncludeNym(
+    OPENTXS_EXPORT virtual bool SetIncludeNym(
         const bool include,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool SetNumber(
-        const RequestNumber number,
-        const PasswordPrompt& reason) = 0;
 
-    EXPORT ~Request() override = default;
+    OPENTXS_EXPORT ~Request() override = default;
 
 protected:
     Request() = default;
@@ -64,7 +62,9 @@ protected:
 private:
     friend OTXRequest;
 
-    virtual Request* clone() const = 0;
+#ifndef _WIN32
+    Request* clone() const noexcept override = 0;
+#endif
 
     Request(const Request&) = delete;
     Request(Request&&) = delete;

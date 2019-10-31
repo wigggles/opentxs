@@ -9,48 +9,37 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class OutBailmentRequest final : public PeerRequest
+namespace request
 {
-private:
-    using ot_super = PeerRequest;
-    friend class PeerRequest;
-
-    OTUnitID unit_;
-    OTServerID server_;
-    Amount amount_{0};
-
-    proto::PeerRequest IDVersion(const Lock& lock) const final;
-
-    OutBailmentRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequest& serialized);
-    OutBailmentRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const identifier::Nym& recipientID,
-        const identifier::UnitDefinition& unitID,
-        const identifier::Server& serverID,
-        const std::uint64_t& amount,
-        const std::string& terms);
-    OutBailmentRequest() = delete;
-
+class Outbailment : virtual public peer::Request
+{
 public:
-    ~OutBailmentRequest() final = default;
+    OPENTXS_EXPORT ~Outbailment() override = default;
+
+protected:
+    Outbailment() noexcept = default;
+
+private:
+    friend OTOutbailmentRequest;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Outbailment* clone() const noexcept override = 0;
+#endif
+
+    Outbailment(const Outbailment&) = delete;
+    Outbailment(Outbailment&&) = delete;
+    Outbailment& operator=(const Outbailment&) = delete;
+    Outbailment& operator=(Outbailment&&) = delete;
 };
+}  // namespace request
+}  // namespace peer
+}  // namespace contract
 }  // namespace opentxs
 #endif

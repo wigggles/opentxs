@@ -645,7 +645,7 @@ const crypto::key::Asymmetric& Authority::GetPublicEncrKey(
 
 std::int32_t Authority::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
-    const Signature& theSignature,
+    const opentxs::Signature& theSignature,
     char cKeyType) const
 {
     std::int32_t output{0};

@@ -22,7 +22,16 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/Signable.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/UnitDefinition.hpp"
 )
-set(cxx-headers ${cxx-install-headers})
+set(
+  cxx-headers
+  ${cxx-install-headers}
+  "${opentxs_SOURCE_DIR}/src/internal/core/contract/Contract.hpp"
+  CurrencyContract.hpp
+  SecurityContract.hpp
+  ServerContract.hpp
+  Signable.hpp
+  UnitDefinition.hpp
+)
 add_library(opentxs-core-contract OBJECT ${cxx-sources} ${cxx-headers})
 set_property(TARGET opentxs-core-contract PROPERTY POSITION_INDEPENDENT_CODE 1)
 

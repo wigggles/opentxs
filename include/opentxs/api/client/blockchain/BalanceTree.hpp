@@ -28,18 +28,18 @@ public:
             Bidirectional<const HDAccounts, const value_type>;
 
         /// Throws std::out_of_range for invalid position
-        EXPORT virtual const value_type& at(const std::size_t position) const
-            noexcept(false) = 0;
+        OPENTXS_EXPORT virtual const value_type& at(
+            const std::size_t position) const noexcept(false) = 0;
         /// Throws std::out_of_range for invalid id
-        EXPORT virtual const value_type& at(const Identifier& id) const
+        OPENTXS_EXPORT virtual const value_type& at(const Identifier& id) const
             noexcept(false) = 0;
-        EXPORT virtual const_iterator begin() const noexcept = 0;
-        EXPORT virtual const_iterator cbegin() const noexcept = 0;
-        EXPORT virtual const_iterator cend() const noexcept = 0;
-        EXPORT virtual const_iterator end() const noexcept = 0;
-        EXPORT virtual std::size_t size() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator begin() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator cbegin() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator cend() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator end() const noexcept = 0;
+        OPENTXS_EXPORT virtual std::size_t size() const noexcept = 0;
 
-        EXPORT virtual ~HDAccounts() = default;
+        OPENTXS_EXPORT virtual ~HDAccounts() = default;
     };
     struct ImportedAccounts {
         using value_type = Imported;
@@ -47,18 +47,18 @@ public:
             Bidirectional<const ImportedAccounts, const value_type>;
 
         /// Throws std::out_of_range for invalid position
-        EXPORT virtual const value_type& at(const std::size_t position) const
-            noexcept(false) = 0;
+        OPENTXS_EXPORT virtual const value_type& at(
+            const std::size_t position) const noexcept(false) = 0;
         /// Throws std::out_of_range for invalid id
-        EXPORT virtual const value_type& at(const Identifier& id) const
+        OPENTXS_EXPORT virtual const value_type& at(const Identifier& id) const
             noexcept(false) = 0;
-        EXPORT virtual const_iterator begin() const noexcept = 0;
-        EXPORT virtual const_iterator cbegin() const noexcept = 0;
-        EXPORT virtual const_iterator cend() const noexcept = 0;
-        EXPORT virtual const_iterator end() const noexcept = 0;
-        EXPORT virtual std::size_t size() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator begin() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator cbegin() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator cend() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator end() const noexcept = 0;
+        OPENTXS_EXPORT virtual std::size_t size() const noexcept = 0;
 
-        EXPORT virtual ~ImportedAccounts() = default;
+        OPENTXS_EXPORT virtual ~ImportedAccounts() = default;
     };
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     struct PaymentCodeAccounts {
@@ -67,31 +67,32 @@ public:
             Bidirectional<const PaymentCodeAccounts, const value_type>;
 
         /// Throws std::out_of_range for invalid position
-        EXPORT virtual const value_type& at(const std::size_t position) const
-            noexcept(false) = 0;
+        OPENTXS_EXPORT virtual const value_type& at(
+            const std::size_t position) const noexcept(false) = 0;
         /// Throws std::out_of_range for invalid id
-        EXPORT virtual const value_type& at(const Identifier& id) const
+        OPENTXS_EXPORT virtual const value_type& at(const Identifier& id) const
             noexcept(false) = 0;
-        EXPORT virtual const_iterator begin() const noexcept = 0;
-        EXPORT virtual const_iterator cbegin() const noexcept = 0;
-        EXPORT virtual const_iterator cend() const noexcept = 0;
-        EXPORT virtual const_iterator end() const noexcept = 0;
-        EXPORT virtual std::size_t size() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator begin() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator cbegin() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator cend() const noexcept = 0;
+        OPENTXS_EXPORT virtual const_iterator end() const noexcept = 0;
+        OPENTXS_EXPORT virtual std::size_t size() const noexcept = 0;
 
-        EXPORT virtual ~PaymentCodeAccounts() = default;
+        OPENTXS_EXPORT virtual ~PaymentCodeAccounts() = default;
     };
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
-    EXPORT virtual const HDAccounts& GetHD() const noexcept = 0;
-    EXPORT virtual const ImportedAccounts& GetImported() const noexcept = 0;
+    OPENTXS_EXPORT virtual const HDAccounts& GetHD() const noexcept = 0;
+    OPENTXS_EXPORT virtual const ImportedAccounts& GetImported() const
+        noexcept = 0;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    EXPORT virtual const PaymentCodeAccounts& GetPaymentCode() const
+    OPENTXS_EXPORT virtual const PaymentCodeAccounts& GetPaymentCode() const
         noexcept = 0;
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    EXPORT virtual const identifier::Nym& NymID() const noexcept = 0;
-    EXPORT virtual const BalanceList& Parent() const noexcept = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& NymID() const noexcept = 0;
+    OPENTXS_EXPORT virtual const BalanceList& Parent() const noexcept = 0;
 
-    EXPORT virtual ~BalanceTree() = default;
+    OPENTXS_EXPORT virtual ~BalanceTree() = default;
 
 protected:
     BalanceTree() noexcept = default;

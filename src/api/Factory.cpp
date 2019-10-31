@@ -25,7 +25,23 @@
 #include "opentxs/blockchain/p2p/Address.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "opentxs/core/contract/peer/BailmentRequest.hpp"
+#include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
+#include "opentxs/core/contract/peer/ConnectionReply.hpp"
+#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
+#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/contract/peer/StoreSecret.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
@@ -141,6 +157,120 @@ OTAsymmetricKey Factory::AsymmetricKey(
         asymmetric_.InstantiateKey(serialized, reason).release()};
 }
 
+auto Factory::BailmentNotice(
+    const Nym_p& nym,
+    const identifier::Nym& recipientID,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID,
+    const opentxs::Identifier& requestID,
+    const std::string& txid,
+    const Amount& amount,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTBailmentNotice
+{
+    auto output = opentxs::Factory::BailmentNotice(
+        api_,
+        nym,
+        recipientID,
+        unitID,
+        serverID,
+        requestID,
+        txid,
+        amount,
+        reason);
+
+    if (output) {
+        return OTBailmentNotice{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create bailment notice");
+    }
+}
+
+auto Factory::BailmentNotice(
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTBailmentNotice
+{
+    auto output =
+        opentxs::Factory::BailmentNotice(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTBailmentNotice{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate bailment notice");
+    }
+}
+
+auto Factory::BailmentReply(
+    const Nym_p& nym,
+    const identifier::Nym& initiator,
+    const opentxs::Identifier& request,
+    const identifier::Server& server,
+    const std::string& terms,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTBailmentReply
+{
+    auto output = opentxs::Factory::BailmentReply(
+        api_, nym, initiator, request, server, terms, reason);
+
+    if (output) {
+        return OTBailmentReply{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create bailment reply");
+    }
+}
+
+auto Factory::BailmentReply(
+    const Nym_p& nym,
+    const proto::PeerReply& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTBailmentReply
+{
+    auto output =
+        opentxs::Factory::BailmentReply(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTBailmentReply{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate bailment reply");
+    }
+}
+
+auto Factory::BailmentRequest(
+    const Nym_p& nym,
+    const identifier::Nym& recipient,
+    const identifier::UnitDefinition& unit,
+    const identifier::Server& server,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTBailmentRequest
+{
+    auto output = opentxs::Factory::BailmentRequest(
+        api_, nym, recipient, unit, server, reason);
+
+    if (output) {
+        return OTBailmentRequest{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create bailment reply");
+    }
+}
+
+auto Factory::BailmentRequest(
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTBailmentRequest
+{
+    auto output =
+        opentxs::Factory::BailmentRequest(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTBailmentRequest{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate bailment request");
+    }
+}
+
 std::unique_ptr<opentxs::Basket> Factory::Basket() const
 {
     std::unique_ptr<opentxs::Basket> basket;
@@ -157,6 +287,50 @@ std::unique_ptr<opentxs::Basket> Factory::Basket(
     basket.reset(new opentxs::Basket(api_, nCount, lMinimumTransferAmount));
 
     return basket;
+}
+
+auto Factory::BasketContract(
+    const Nym_p& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::uint64_t weight,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version) const noexcept(false) -> OTBasketContract
+{
+    auto output = opentxs::Factory::BasketContract(
+        api_,
+        nym,
+        shortname,
+        name,
+        symbol,
+        terms,
+        weight,
+        unitOfAccount,
+        version);
+
+    if (output) {
+        return OTBasketContract{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create bailment reply");
+    }
+}
+
+auto Factory::BasketContract(
+    const Nym_p& nym,
+    const proto::UnitDefinition serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTBasketContract
+{
+    auto output =
+        opentxs::Factory::BasketContract(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTBasketContract{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate bailment request");
+    }
 }
 
 #if OT_BLOCKCHAIN
@@ -297,6 +471,89 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
         new opentxs::Cheque(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
 
     return cheque;
+}
+
+auto Factory::ConnectionReply(
+    const Nym_p& nym,
+    const identifier::Nym& initiator,
+    const opentxs::Identifier& request,
+    const identifier::Server& server,
+    const bool ack,
+    const std::string& url,
+    const std::string& login,
+    const std::string& password,
+    const std::string& key,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTConnectionReply
+{
+    auto output = opentxs::Factory::ConnectionReply(
+        api_,
+        nym,
+        initiator,
+        request,
+        server,
+        ack,
+        url,
+        login,
+        password,
+        key,
+        reason);
+
+    if (output) {
+        return OTConnectionReply{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create connection reply");
+    }
+}
+
+auto Factory::ConnectionReply(
+    const Nym_p& nym,
+    const proto::PeerReply& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTConnectionReply
+{
+    auto output =
+        opentxs::Factory::ConnectionReply(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTConnectionReply{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate connection reply");
+    }
+}
+
+auto Factory::ConnectionRequest(
+    const Nym_p& nym,
+    const identifier::Nym& recipient,
+    const proto::ConnectionInfoType type,
+    const identifier::Server& server,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTConnectionRequest
+{
+    auto output = opentxs::Factory::ConnectionRequest(
+        api_, nym, recipient, type, server, reason);
+
+    if (output) {
+        return OTConnectionRequest{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create bailment reply");
+    }
+}
+
+auto Factory::ConnectionRequest(
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTConnectionRequest
+{
+    auto output =
+        opentxs::Factory::ConnectionRequest(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTConnectionRequest{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate bailment reply");
+    }
 }
 
 std::unique_ptr<opentxs::Contract> Factory::Contract(
@@ -443,6 +700,57 @@ std::unique_ptr<OTCronItem> Factory::CronItem(
     if (pItem->LoadContractFromString(strContract, reason)) { return pItem; }
 
     return nullptr;
+}
+
+auto Factory::CurrencyContract(
+    const Nym_p& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::string& tla,
+    const std::uint32_t power,
+    const std::string& fraction,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTCurrencyContract
+{
+    auto output = opentxs::Factory::CurrencyContract(
+        api_,
+        nym,
+        shortname,
+        name,
+        symbol,
+        terms,
+        tla,
+        power,
+        fraction,
+        unitOfAccount,
+        version,
+        reason);
+
+    if (output) {
+        return OTCurrencyContract{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create currency contract");
+    }
+}
+
+auto Factory::CurrencyContract(
+    const Nym_p& nym,
+    const proto::UnitDefinition serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTCurrencyContract
+{
+    auto output =
+        opentxs::Factory::CurrencyContract(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTCurrencyContract{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate currency contract");
+    }
 }
 
 OTData Factory::Data() const { return Data::Factory(); }
@@ -929,6 +1237,77 @@ std::unique_ptr<OTOffer> Factory::Offer(
     return offer;
 }
 
+auto Factory::OutbailmentReply(
+    const Nym_p& nym,
+    const identifier::Nym& initiator,
+    const opentxs::Identifier& request,
+    const identifier::Server& server,
+    const std::string& terms,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTOutbailmentReply
+{
+    auto output = opentxs::Factory::OutBailmentReply(
+        api_, nym, initiator, request, server, terms, reason);
+
+    if (output) {
+        return OTOutbailmentReply{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create outbailment reply");
+    }
+}
+
+auto Factory::OutbailmentReply(
+    const Nym_p& nym,
+    const proto::PeerReply& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTOutbailmentReply
+{
+    auto output =
+        opentxs::Factory::OutBailmentReply(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTOutbailmentReply{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate outbailment reply");
+    }
+}
+
+auto Factory::OutbailmentRequest(
+    const Nym_p& nym,
+    const identifier::Nym& recipient,
+    const identifier::UnitDefinition& unit,
+    const identifier::Server& server,
+    const std::uint64_t& amount,
+    const std::string& terms,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTOutbailmentRequest
+{
+    auto output = opentxs::Factory::OutbailmentRequest(
+        api_, nym, recipient, unit, server, amount, terms, reason);
+
+    if (output) {
+        return OTOutbailmentRequest{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create outbailment reply");
+    }
+}
+
+auto Factory::OutbailmentRequest(
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTOutbailmentRequest
+{
+    auto output =
+        opentxs::Factory::OutbailmentRequest(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTOutbailmentRequest{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate outbailment request");
+    }
+}
+
 OTPasswordPrompt Factory::PasswordPrompt(const std::string& text) const
 {
     return OTPasswordPrompt{opentxs::Factory::PasswordPrompt(api_, text)};
@@ -1078,8 +1457,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 #endif
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    [[maybe_unused]] const std::shared_ptr<const PeerRequest> request,
-    [[maybe_unused]] const std::shared_ptr<const PeerReply> reply,
+    [[maybe_unused]] const OTPeerRequest request,
+    [[maybe_unused]] const OTPeerReply reply,
     [[maybe_unused]] const VersionNumber version,
     [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
@@ -1091,7 +1470,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    [[maybe_unused]] const std::shared_ptr<const PeerRequest> request,
+    [[maybe_unused]] const OTPeerRequest request,
     [[maybe_unused]] const VersionNumber version,
     [[maybe_unused]] const opentxs::PasswordPrompt& reason) const
 {
@@ -1124,6 +1503,84 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
         .Flush();
 
     return {};
+}
+
+auto Factory::PeerReply() const noexcept -> OTPeerReply
+{
+    return OTPeerReply{opentxs::Factory::PeerReply(api_)};
+}
+
+auto Factory::PeerReply(
+    const Nym_p& nym,
+    const proto::PeerReply& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false) -> OTPeerReply
+{
+    switch (serialized.type()) {
+        case proto::PEERREQUEST_BAILMENT: {
+            return BailmentReply(nym, serialized, reason)
+                .as<contract::peer::Reply>();
+        }
+        case proto::PEERREQUEST_CONNECTIONINFO: {
+            return ConnectionReply(nym, serialized, reason)
+                .as<contract::peer::Reply>();
+        }
+        case proto::PEERREQUEST_OUTBAILMENT: {
+            return OutbailmentReply(nym, serialized, reason)
+                .as<contract::peer::Reply>();
+        }
+        case proto::PEERREQUEST_PENDINGBAILMENT:
+        case proto::PEERREQUEST_STORESECRET: {
+            return ReplyAcknowledgement(nym, serialized, reason)
+                .as<contract::peer::Reply>();
+        }
+        case proto::PEERREQUEST_VERIFICATIONOFFER:
+        case proto::PEERREQUEST_FAUCET:
+        case proto::PEERREQUEST_ERROR:
+        default: {
+            throw std::runtime_error("Unsupported reply type");
+        }
+    }
+}
+
+auto Factory::PeerRequest() const noexcept -> OTPeerRequest
+{
+    return OTPeerRequest{opentxs::Factory::PeerRequest(api_)};
+}
+
+auto Factory::PeerRequest(
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTPeerRequest
+{
+    switch (serialized.type()) {
+        case proto::PEERREQUEST_BAILMENT: {
+            return BailmentRequest(nym, serialized, reason)
+                .as<contract::peer::Request>();
+        }
+        case proto::PEERREQUEST_OUTBAILMENT: {
+            return OutbailmentRequest(nym, serialized, reason)
+                .as<contract::peer::Request>();
+        }
+        case proto::PEERREQUEST_PENDINGBAILMENT: {
+            return BailmentNotice(nym, serialized, reason)
+                .as<contract::peer::Request>();
+        }
+        case proto::PEERREQUEST_CONNECTIONINFO: {
+            return ConnectionRequest(nym, serialized, reason)
+                .as<contract::peer::Request>();
+        }
+        case proto::PEERREQUEST_STORESECRET: {
+            return StoreSecret(nym, serialized, reason)
+                .as<contract::peer::Request>();
+        }
+        case proto::PEERREQUEST_VERIFICATIONOFFER:
+        case proto::PEERREQUEST_FAUCET:
+        case proto::PEERREQUEST_ERROR:
+        default: {
+            throw std::runtime_error("Unsupported reply type");
+        }
+    }
 }
 
 OTZMQPipeline Factory::Pipeline(
@@ -1164,6 +1621,42 @@ std::unique_ptr<blind::Purse> Factory::Purse(
         opentxs::Factory::Purse(api_, owner, server, unit, type, reason));
 }
 #endif  // OT_CASH
+
+auto Factory::ReplyAcknowledgement(
+    const Nym_p& nym,
+    const identifier::Nym& initiator,
+    const opentxs::Identifier& request,
+    const identifier::Server& server,
+    const proto::PeerRequestType type,
+    const bool& ack,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTReplyAcknowledgement
+{
+    auto output = opentxs::Factory::NoticeAcknowledgement(
+        api_, nym, initiator, request, server, type, ack, reason);
+
+    if (output) {
+        return OTReplyAcknowledgement{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create peer acknowledgement");
+    }
+}
+
+auto Factory::ReplyAcknowledgement(
+    const Nym_p& nym,
+    const proto::PeerReply& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTReplyAcknowledgement
+{
+    auto output =
+        opentxs::Factory::NoticeAcknowledgement(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTReplyAcknowledgement{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate peer acknowledgement");
+    }
+}
 
 std::unique_ptr<OTScriptable> Factory::Scriptable(
     const String& strInput,
@@ -1231,6 +1724,56 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(
     return nullptr;
 }
 
+auto Factory::SecurityContract(
+    const Nym_p& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTSecurityContract
+{
+    auto output = opentxs::Factory::SecurityContract(
+        api_,
+        nym,
+        shortname,
+        name,
+        symbol,
+        terms,
+        unitOfAccount,
+        version,
+        reason);
+
+    if (output) {
+        return OTSecurityContract{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create currency contract");
+    }
+}
+
+auto Factory::SecurityContract(
+    const Nym_p& nym,
+    const proto::UnitDefinition serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTSecurityContract
+{
+    auto output =
+        opentxs::Factory::SecurityContract(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTSecurityContract{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate currency contract");
+    }
+}
+
+auto Factory::ServerContract() const noexcept(false) -> OTServerContract
+{
+    return OTServerContract{opentxs::Factory::ServerContract(api_)};
+}
+
 OTServerID Factory::ServerID() const { return identifier::Server::Factory(); }
 
 OTServerID Factory::ServerID(const std::string& serialized) const
@@ -1295,6 +1838,41 @@ std::unique_ptr<OTSmartContract> Factory::SmartContract(
     smartcontract.reset(new OTSmartContract(api_, NOTARY_ID));
 
     return smartcontract;
+}
+
+auto Factory::StoreSecret(
+    const Nym_p& nym,
+    const identifier::Nym& recipient,
+    const proto::SecretType type,
+    const std::string& primary,
+    const std::string& secondary,
+    const identifier::Server& server,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTStoreSecret
+{
+    auto output = opentxs::Factory::StoreSecret(
+        api_, nym, recipient, type, primary, secondary, server, reason);
+
+    if (output) {
+        return OTStoreSecret{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to create bailment reply");
+    }
+}
+
+auto Factory::StoreSecret(
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTStoreSecret
+{
+    auto output = opentxs::Factory::StoreSecret(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTStoreSecret{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate bailment request");
+    }
 }
 
 OTSymmetricKey Factory::SymmetricKey() const
@@ -1587,6 +2165,27 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
     transaction->SetPurportedNotaryID(theNotaryID);
 
     return transaction;
+}
+
+auto Factory::UnitDefinition() const noexcept -> OTUnitDefinition
+{
+    return OTUnitDefinition{opentxs::Factory::UnitDefinition(api_)};
+}
+
+auto Factory::UnitDefinition(
+    const Nym_p& nym,
+    const proto::UnitDefinition serialized,
+    const opentxs::PasswordPrompt& reason) const noexcept(false)
+    -> OTUnitDefinition
+{
+    auto output =
+        opentxs::Factory::UnitDefinition(api_, nym, serialized, reason);
+
+    if (output) {
+        return OTUnitDefinition{std::move(output)};
+    } else {
+        throw std::runtime_error("Failed to instantiate unit definition");
+    }
 }
 
 OTUnitID Factory::UnitID() const

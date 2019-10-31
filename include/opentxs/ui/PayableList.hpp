@@ -29,12 +29,12 @@ class PayableList;
 class PayableList : virtual public List
 {
 public:
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem> First()
-        const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem> Next()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::PayableListItem>
+    Next() const noexcept = 0;
 
-    EXPORT ~PayableList() override = default;
+    OPENTXS_EXPORT ~PayableList() override = default;
 
 protected:
     PayableList() noexcept = default;

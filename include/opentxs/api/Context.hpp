@@ -25,31 +25,31 @@ class Context : virtual public Periodic
 public:
     using ShutdownCallback = std::function<void()>;
 
-    EXPORT virtual const api::client::Manager& Client(
+    OPENTXS_EXPORT virtual const api::client::Manager& Client(
         const int instance) const = 0;
-    EXPORT virtual std::size_t Clients() const = 0;
-    EXPORT virtual const api::Settings& Config(
+    OPENTXS_EXPORT virtual std::size_t Clients() const = 0;
+    OPENTXS_EXPORT virtual const api::Settings& Config(
         const std::string& path) const = 0;
-    EXPORT virtual const api::Crypto& Crypto() const = 0;
-    EXPORT virtual void HandleSignals(
+    OPENTXS_EXPORT virtual const api::Crypto& Crypto() const = 0;
+    OPENTXS_EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
-    EXPORT virtual proto::RPCResponse RPC(
+    OPENTXS_EXPORT virtual proto::RPCResponse RPC(
         const proto::RPCCommand& command) const = 0;
     /** Throws std::out_of_range if the specified server does not exist. */
-    EXPORT virtual const api::server::Manager& Server(
+    OPENTXS_EXPORT virtual const api::server::Manager& Server(
         const int instance) const = 0;
-    EXPORT virtual std::size_t Servers() const = 0;
+    OPENTXS_EXPORT virtual std::size_t Servers() const = 0;
     /** Start up a new client
      *
      *  If the specified instance exists, it will be returned.
      *
      *  Otherwise the next instance will be created
      */
-    EXPORT virtual const api::client::Manager& StartClient(
+    OPENTXS_EXPORT virtual const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance) const = 0;
 #if OT_CRYPTO_WITH_BIP39
-    EXPORT virtual const api::client::Manager& StartClient(
+    OPENTXS_EXPORT virtual const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance,
         const std::string& recoverWords,
@@ -61,15 +61,16 @@ public:
      *
      *  Otherwise the next instance will be created
      */
-    EXPORT virtual const api::server::Manager& StartServer(
+    OPENTXS_EXPORT virtual const api::server::Manager& StartServer(
         const ArgList& args,
         const int instance,
         const bool inproc = false) const = 0;
     /** Access ZAP configuration API */
-    EXPORT virtual const api::network::ZAP& ZAP() const = 0;
-    EXPORT virtual const opentxs::network::zeromq::Context& ZMQ() const = 0;
+    OPENTXS_EXPORT virtual const api::network::ZAP& ZAP() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::network::zeromq::Context& ZMQ()
+        const = 0;
 
-    EXPORT ~Context() override = default;
+    OPENTXS_EXPORT ~Context() override = default;
 
 protected:
     Context() = default;

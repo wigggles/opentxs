@@ -270,7 +270,7 @@ auto Nym::UpgradeItemVersion(
     try {
         while (true) {
             const auto [min, max] =
-                proto::VerificationIdentityAllowedVerification.at(nymVersion);
+                proto::VerificationIdentityAllowedVerification().at(nymVersion);
 
             if (itemVersion < min) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Version ")(itemVersion)(

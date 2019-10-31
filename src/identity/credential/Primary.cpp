@@ -97,8 +97,7 @@ Primary::Primary(
     const NymParameters& params,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason) noexcept(false)
-    : Signable({}, version)  // TODO Signable
-    , credential::implementation::Key(
+    : credential::implementation::Key(
           api,
           parent,
           source,
@@ -110,6 +109,11 @@ Primary::Primary(
           proto::SOURCETYPE_PUBKEY == params.SourceType())
     , source_proof_(source_proof(params))
 {
+    {
+        Lock lock(lock_);
+        first_time_init(lock);
+    }
+
     init(*this, reason);
 }
 
@@ -119,8 +123,7 @@ Primary::Primary(
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const proto::Credential& serialized) noexcept(false)
-    : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Key(
+    : credential::implementation::Key(
           api,
           reason,
           parent,
@@ -129,6 +132,8 @@ Primary::Primary(
           "")
     , source_proof_(serialized.masterdata().sourceproof())
 {
+    Lock lock(lock_);
+    init_serialized(lock);
 }
 
 bool Primary::hasCapability(const NymCapability& capability) const

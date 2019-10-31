@@ -35,7 +35,7 @@ template class opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem>;
 
 namespace opentxs
 {
-ui::implementation::IssuerItemRowInternal* Factory::AccountSummaryItem(
+auto Factory::AccountSummaryItem(
     const opentxs::PasswordPrompt& reason,
     const ui::implementation::IssuerItemInternalInterface& parent,
     const api::client::internal::Manager& api,
@@ -43,6 +43,7 @@ ui::implementation::IssuerItemRowInternal* Factory::AccountSummaryItem(
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
     const ui::implementation::CustomData& custom)
+    -> ui::implementation::IssuerItemRowInternal*
 {
     return new ui::implementation::AccountSummaryItem(
         reason, parent, api, publisher, rowID, sortKey, custom);
@@ -60,29 +61,31 @@ AccountSummaryItem::AccountSummaryItem(
     const IssuerItemSortKey& sortKey,
     const CustomData& custom) noexcept
     : AccountSummaryItemRow(parent, api, publisher, rowID, true)
-    , account_id_{std::get<0>(row_id_).get()}
-    , currency_{std::get<1>(row_id_)}
-    , balance_{extract_custom<Amount>(custom)}
-    , name_{sortKey}
-    , contract_{api_.Wallet().UnitDefinition(
-          api_.Storage().AccountContract(account_id_),
-          reason)}
+    , account_id_(std::get<0>(row_id_).get())
+    , currency_(std::get<1>(row_id_))
+    , balance_(extract_custom<Amount>(custom))
+    , name_(sortKey)
+    , contract_(load_unit(api_, account_id_, reason))
 {
 }
 
-std::string AccountSummaryItem::DisplayBalance() const noexcept
+auto AccountSummaryItem::DisplayBalance() const noexcept -> std::string
 {
     auto reason = api_.Factory().PasswordPrompt("Loading account balance");
 
-    if (false == bool(contract_)) {
+    if (0 == contract_->Version()) {
         eLock lock(shared_lock_);
-        contract_ = api_.Wallet().UnitDefinition(
-            api_.Storage().AccountContract(account_id_), reason);
+
+        try {
+            contract_ = api_.Wallet().UnitDefinition(
+                api_.Storage().AccountContract(account_id_), reason);
+        } catch (...) {
+        }
     }
 
     sLock lock(shared_lock_);
 
-    if (contract_) {
+    if (0 < contract_->Version()) {
         const auto amount = balance_.load();
         std::string output{};
         const auto formatted =
@@ -96,7 +99,21 @@ std::string AccountSummaryItem::DisplayBalance() const noexcept
     return {};
 }
 
-std::string AccountSummaryItem::Name() const noexcept
+auto AccountSummaryItem::load_unit(
+    const api::Core& api,
+    const Identifier& id,
+    const PasswordPrompt& reason) -> OTUnitDefinition
+{
+    try {
+        return api.Wallet().UnitDefinition(
+            api.Storage().AccountContract(id), reason);
+    } catch (...) {
+
+        return api.Factory().UnitDefinition();
+    }
+}
+
+auto AccountSummaryItem::Name() const noexcept -> std::string
 {
     sLock lock(shared_lock_);
 
@@ -104,7 +121,8 @@ std::string AccountSummaryItem::Name() const noexcept
 }
 
 #if OT_QT
-QVariant AccountSummaryItem::qt_data(const int column, int role) const noexcept
+auto AccountSummaryItem::qt_data(const int column, int role) const noexcept
+    -> QVariant
 {
     switch (column) {
         case AccountSummaryQt::AccountNameColumn: {
@@ -138,9 +156,9 @@ QVariant AccountSummaryItem::qt_data(const int column, int role) const noexcept
 }
 #endif
 
-void AccountSummaryItem::reindex(
+auto AccountSummaryItem::reindex(
     const IssuerItemSortKey& key,
-    const CustomData& custom) noexcept
+    const CustomData& custom) noexcept -> void
 {
     balance_.store(extract_custom<Amount>(custom));
     eLock lock(shared_lock_);

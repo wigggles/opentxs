@@ -20,16 +20,16 @@ namespace network
 class OpenDHT
 {
 public:
-    EXPORT virtual void Insert(
+    OPENTXS_EXPORT virtual void Insert(
         const std::string& key,
         const std::string& value,
         DhtDoneCallback cb = {}) const = 0;
-    EXPORT virtual void Retrieve(
+    OPENTXS_EXPORT virtual void Retrieve(
         const std::string& key,
         DhtResultsCallback vcb,
         DhtDoneCallback dcb = {}) const = 0;
 
-    EXPORT virtual ~OpenDHT() = default;
+    OPENTXS_EXPORT virtual ~OpenDHT() = default;
 
 protected:
     OpenDHT() = default;

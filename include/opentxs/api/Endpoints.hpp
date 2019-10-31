@@ -34,7 +34,7 @@ public:
      *
      *  This endpoint is active for all session types.
      */
-    EXPORT virtual std::string AccountUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string AccountUpdate() const = 0;
 
     /** Connection state notifications
      *
@@ -51,7 +51,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string ConnectionStatus() const = 0;
+    OPENTXS_EXPORT virtual std::string ConnectionStatus() const = 0;
 
     /** Contact update notifications
      *
@@ -63,7 +63,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string ContactUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string ContactUpdate() const = 0;
 
     /** Search for a nym in the DHT
      *
@@ -82,7 +82,7 @@ public:
      *
      *  This endpoint is active for all session types.
      */
-    EXPORT virtual std::string DhtRequestNym() const = 0;
+    OPENTXS_EXPORT virtual std::string DhtRequestNym() const = 0;
 
     /** Search for a notary in the DHT
      *
@@ -101,7 +101,7 @@ public:
      *
      *  This endpoint is active for all session types.
      */
-    EXPORT virtual std::string DhtRequestServer() const = 0;
+    OPENTXS_EXPORT virtual std::string DhtRequestServer() const = 0;
 
     /** Search for a unit definition in the DHT
      *
@@ -121,7 +121,7 @@ public:
      *
      *  This endpoint is active for all session types.
      */
-    EXPORT virtual std::string DhtRequestUnit() const = 0;
+    OPENTXS_EXPORT virtual std::string DhtRequestUnit() const = 0;
 
     /** Search for a nym on known notaries
      *
@@ -135,7 +135,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string FindNym() const = 0;
+    OPENTXS_EXPORT virtual std::string FindNym() const = 0;
 
     /** Search for a notary contract on known notaries
      *
@@ -149,7 +149,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string FindServer() const = 0;
+    OPENTXS_EXPORT virtual std::string FindServer() const = 0;
 
     /** Search for a unit definition on known notaries
      *
@@ -163,19 +163,20 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string FindUnitDefinition() const = 0;
+    OPENTXS_EXPORT virtual std::string FindUnitDefinition() const = 0;
 
     /** Push notification processing
      *
      *  This socket is for use by the Sync and ServerConnection classes only
      */
-    EXPORT virtual std::string InternalProcessPushNotification() const = 0;
+    OPENTXS_EXPORT virtual std::string InternalProcessPushNotification()
+        const = 0;
 
     /** Push notification initiation
      *
      *  This socket is for use by the Server and MessageProcessor classes only
      */
-    EXPORT virtual std::string InternalPushNotification() const = 0;
+    OPENTXS_EXPORT virtual std::string InternalPushNotification() const = 0;
 
     /** Issuer update notifications
      *
@@ -187,7 +188,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string IssuerUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string IssuerUpdate() const = 0;
 
     /** Nym update notifications
      *
@@ -199,7 +200,7 @@ public:
      *
      *  This endpoint is active for all session types.
      */
-    EXPORT virtual std::string NymDownload() const = 0;
+    OPENTXS_EXPORT virtual std::string NymDownload() const = 0;
 
     /** Node pairing event notification
      *
@@ -211,7 +212,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string PairEvent() const = 0;
+    OPENTXS_EXPORT virtual std::string PairEvent() const = 0;
 
     /** Peer reply event notification
      *
@@ -224,7 +225,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string PeerReplyUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string PeerReplyUpdate() const = 0;
 
     /** Peer request event notification
      *
@@ -237,7 +238,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string PeerRequestUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string PeerRequestUpdate() const = 0;
 
     /** Pending bailment notification
      *
@@ -249,7 +250,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string PendingBailment() const = 0;
+    OPENTXS_EXPORT virtual std::string PendingBailment() const = 0;
 
     /** Server reply notification
      *
@@ -261,7 +262,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string ServerReplyReceived() const = 0;
+    OPENTXS_EXPORT virtual std::string ServerReplyReceived() const = 0;
 
     /** Server request notification
      *
@@ -273,7 +274,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string ServerRequestSent() const = 0;
+    OPENTXS_EXPORT virtual std::string ServerRequestSent() const = 0;
 
     /** Server contract download notifications
      *
@@ -285,7 +286,7 @@ public:
      *
      *  This endpoint is active for all session types.
      */
-    EXPORT virtual std::string ServerUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string ServerUpdate() const = 0;
 
     /** Background task completion notification
      *
@@ -301,7 +302,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string TaskComplete() const = 0;
+    OPENTXS_EXPORT virtual std::string TaskComplete() const = 0;
 
     /** Activity thread update notification
      *
@@ -313,7 +314,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string ThreadUpdate(
+    OPENTXS_EXPORT virtual std::string ThreadUpdate(
         const std::string& thread) const = 0;
 
     /** UI widget update notification
@@ -326,7 +327,7 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string WidgetUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string WidgetUpdate() const = 0;
 
     /** Account update notification
      *
@@ -338,9 +339,9 @@ public:
      *
      *  This endpoint is active for client sessions only.
      */
-    EXPORT virtual std::string WorkflowAccountUpdate() const = 0;
+    OPENTXS_EXPORT virtual std::string WorkflowAccountUpdate() const = 0;
 
-    EXPORT virtual ~Endpoints() = default;
+    OPENTXS_EXPORT virtual ~Endpoints() = default;
 
 protected:
     Endpoints() = default;

@@ -5,12 +5,9 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/ServerContract.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -20,106 +17,172 @@
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/core/contract/Contract.hpp"
 
-#define OT_METHOD "opentxs::ServerContract::"
+#include "ServerContract.hpp"
+
+#define OT_METHOD "opentxs::contract::implementation::Server::"
 
 namespace opentxs
 {
-const VersionNumber ServerContract::DefaultVersion{2};
+using ReturnType = contract::implementation::Server;
 
-ServerContract::ServerContract(const api::internal::Core& api, const Nym_p& nym)
-    : ot_super(nym)
-    , api_{api}
-    , listen_params_()
-    , name_()
-    , transport_key_(Data::Factory())
+auto Factory::ServerContract(const api::Core& api) noexcept
+    -> std::unique_ptr<contract::Server>
 {
+    return std::make_unique<contract::blank::Server>(api);
 }
 
-ServerContract::ServerContract(
+auto Factory::ServerContract(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::ServerContract& serialized)
-    : ServerContract(api, nym)
-{
-    id_ = Identifier::Factory(serialized.id());
-    signatures_.push_front(SerializedSignature(
-        std::make_shared<proto::Signature>(serialized.signature())));
-    version_ = serialized.version();
-    conditions_ = serialized.terms();
-
-    for (auto& listen : serialized.address()) {
-        ServerContract::Endpoint endpoint{listen.type(),
-                                          listen.protocol(),
-                                          listen.host(),
-                                          listen.port(),
-                                          listen.version()};
-        // WARNING: preserve the order of this list, or signature verfication
-        // will fail!
-        listen_params_.push_back(endpoint);
-    }
-
-    name_ = serialized.name();
-    transport_key_->Assign(
-        serialized.transportkey().c_str(), serialized.transportkey().size());
-}
-
-ServerContract* ServerContract::Create(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const std::list<ServerContract::Endpoint>& endpoints,
+    const std::list<Endpoint>& endpoints,
     const std::string& terms,
     const std::string& name,
     const VersionNumber version,
-    const PasswordPrompt& reason)
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::unique_ptr<contract::Server>
 {
-    OT_ASSERT(nym);
-    OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));
+    if (false == bool(nym)) { return {}; }
+    if (false == nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION)) {
+        return {};
+    }
 
-    ServerContract* contract = new ServerContract(api, nym);
+    auto list = std::list<contract::Server::Endpoint>{};
+    std::transform(
+        std::begin(endpoints),
+        std::end(endpoints),
+        std::back_inserter(list),
+        [](const auto& in) -> contract::Server::Endpoint {
+            return {static_cast<proto::AddressType>(std::get<0>(in)),
+                    static_cast<proto::ProtocolVersion>(std::get<1>(in)),
+                    std::get<2>(in),
+                    std::get<3>(in),
+                    std::get<4>(in)};
+        });
 
-    if (nullptr != contract) {
-        contract->version_ = version;
-        contract->listen_params_ = endpoints;
-        contract->conditions_ = terms;
-        nym->TransportKey(contract->transport_key_, reason);
-        contract->name_ = name;
+    try {
+        auto key = api.Factory().Data();
+        nym->TransportKey(key, reason);
+        auto output = std::make_unique<ReturnType>(
+            api, nym, version, terms, name, std::move(list), std::move(key));
 
-        Lock lock(contract->lock_);
+        OT_ASSERT(output);
 
-        if (!contract->CalculateID(lock)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error calculating contract id")
-                .Flush();
+        auto& contract = *output;
+        Lock lock(contract.lock_);
 
-            return nullptr;
-        }
-
-        if (false == contract->update_signature(lock, reason)) {
+        if (false == contract.update_signature(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign contract")
                 .Flush();
 
             return nullptr;
         }
 
-        if (!contract->validate(lock, reason)) {
+        if (!contract.validate(lock, reason)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid contract").Flush();
 
             return nullptr;
         }
 
-        contract->alias_ = contract->name_;
-    } else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to create server contract.")
-            .Flush();
-    }
+        return std::move(output);
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
-    return contract;
+        return {};
+    }
 }
 
-std::string ServerContract::EffectiveName(const PasswordPrompt& reason) const
+auto Factory::ServerContract(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const proto::ServerContract& serialized,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::unique_ptr<contract::Server>
+{
+    if (false == proto::Validate<proto::ServerContract>(serialized, VERBOSE)) {
+        return nullptr;
+    }
+
+    auto contract = std::make_unique<ReturnType>(api, nym, serialized);
+
+    if (!contract) { return nullptr; }
+
+    Lock lock(contract->lock_);
+
+    if (!contract->validate(lock, reason)) { return nullptr; }
+
+    contract->alias_ = contract->name_;
+
+    return std::move(contract);
+}
+}  // namespace opentxs
+
+namespace opentxs::contract
+{
+const VersionNumber Server::DefaultVersion{2};
+}  // namespace opentxs::contract
+
+namespace opentxs::contract::implementation
+{
+Server::Server(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const VersionNumber version,
+    const std::string& terms,
+    const std::string& name,
+    std::list<contract::Server::Endpoint>&& endpoints,
+    OTData&& key,
+    const std::string& id,
+    Signatures&& signatures)
+    : Signable(
+          api,
+          nym,
+          version,
+          terms,
+          "",
+          api.Factory().Identifier(id),
+          std::move(signatures))
+    , listen_params_(std::move(endpoints))
+    , name_(name)
+    , transport_key_(std::move(key))
+{
+    Lock lock(lock_);
+    first_time_init(lock);
+}
+
+Server::Server(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const proto::ServerContract& serialized)
+    : Server(
+          api,
+          nym,
+          serialized.version(),
+          serialized.terms(),
+          serialized.name(),
+          extract_endpoints(serialized),
+          api.Factory().Data(serialized.transportkey(), StringStyle::Raw),
+          serialized.id(),
+          serialized.has_signature()
+              ? Signatures{std::make_shared<proto::Signature>(
+                    serialized.signature())}
+              : Signatures{})
+{
+    Lock lock(lock_);
+    init_serialized(lock);
+}
+
+Server::Server(const Server& rhs)
+    : Signable(rhs)
+    , listen_params_(rhs.listen_params_)
+    , name_(rhs.name_)
+    , transport_key_(rhs.transport_key_)
+{
+}
+std::string Server::EffectiveName(const PasswordPrompt& reason) const
 {
     OT_ASSERT(nym_)
 
@@ -134,31 +197,25 @@ std::string ServerContract::EffectiveName(const PasswordPrompt& reason) const
     return output;
 }
 
-ServerContract* ServerContract::Factory(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const proto::ServerContract& serialized,
-    const PasswordPrompt& reason)
+auto Server::extract_endpoints(const proto::ServerContract& serialized) noexcept
+    -> std::list<contract::Server::Endpoint>
 {
-    if (!proto::Validate<proto::ServerContract>(serialized, VERBOSE)) {
-        return nullptr;
+    auto output = std::list<contract::Server::Endpoint>{};
+
+    for (auto& listen : serialized.address()) {
+        // WARNING: preserve the order of this list, or signature verfication
+        // will fail!
+        output.emplace_back(contract::Server::Endpoint{listen.type(),
+                                                       listen.protocol(),
+                                                       listen.host(),
+                                                       listen.port(),
+                                                       listen.version()});
     }
 
-    std::unique_ptr<ServerContract> contract(
-        new ServerContract(api, nym, serialized));
-
-    if (!contract) { return nullptr; }
-
-    Lock lock(contract->lock_);
-
-    if (!contract->validate(lock, reason)) { return nullptr; }
-
-    contract->alias_ = contract->name_;
-
-    return contract.release();
+    return output;
 }
 
-OTIdentifier ServerContract::GetID(const Lock& lock) const
+OTIdentifier Server::GetID(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
     auto id = Identifier::Factory();
@@ -166,7 +223,7 @@ OTIdentifier ServerContract::GetID(const Lock& lock) const
     return id;
 }
 
-bool ServerContract::ConnectInfo(
+bool Server::ConnectInfo(
     std::string& strHostname,
     std::uint32_t& nPort,
     proto::AddressType& actual,
@@ -202,7 +259,7 @@ bool ServerContract::ConnectInfo(
     return false;
 }
 
-proto::ServerContract ServerContract::contract(const Lock& lock) const
+proto::ServerContract Server::contract(const Lock& lock) const
 {
     auto contract = SigVersion(lock);
     if (0 < signatures_.size()) {
@@ -212,14 +269,14 @@ proto::ServerContract ServerContract::contract(const Lock& lock) const
     return contract;
 }
 
-proto::ServerContract ServerContract::Contract() const
+proto::ServerContract Server::Contract() const
 {
     Lock lock(lock_);
 
     return contract(lock);
 }
 
-proto::ServerContract ServerContract::IDVersion(const Lock& lock) const
+proto::ServerContract Server::IDVersion(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -257,15 +314,14 @@ proto::ServerContract ServerContract::IDVersion(const Lock& lock) const
     return contract;
 }
 
-void ServerContract::SetAlias(const std::string& alias)
+void Server::SetAlias(const std::string& alias)
 {
-    ot_super::SetAlias(alias);
-
+    InitAlias(alias);
     api_.Wallet().SetServerAlias(
         identifier::Server::Factory(id_->str()), alias);  // TODO conversion
 }
 
-proto::ServerContract ServerContract::SigVersion(const Lock& lock) const
+proto::ServerContract Server::SigVersion(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
     contract.set_id(String::Factory(id(lock))->Get());
@@ -273,7 +329,7 @@ proto::ServerContract ServerContract::SigVersion(const Lock& lock) const
     return contract;
 }
 
-proto::ServerContract ServerContract::PublicContract() const
+proto::ServerContract Server::PublicContract() const
 {
     Lock lock(lock_);
 
@@ -287,7 +343,7 @@ proto::ServerContract ServerContract::PublicContract() const
     return serialized;
 }
 
-bool ServerContract::Statistics(String& strContents) const
+bool Server::Statistics(String& strContents) const
 {
     const auto strID = String::Factory(id_);
 
@@ -301,19 +357,16 @@ bool ServerContract::Statistics(String& strContents) const
     return true;
 }
 
-OTData ServerContract::Serialize() const
+OTData Server::Serialize() const
 {
     Lock lock(lock_);
 
     return api_.Factory().Data(contract(lock));
 }
 
-const Data& ServerContract::TransportKey() const
-{
-    return transport_key_.get();
-}
+const Data& Server::TransportKey() const { return transport_key_.get(); }
 
-std::unique_ptr<OTPassword> ServerContract::TransportKey(
+std::unique_ptr<OTPassword> Server::TransportKey(
     Data& pubkey,
     const PasswordPrompt& reason) const
 {
@@ -322,11 +375,9 @@ std::unique_ptr<OTPassword> ServerContract::TransportKey(
     return nym_->TransportKey(pubkey, reason);
 }
 
-bool ServerContract::update_signature(
-    const Lock& lock,
-    const PasswordPrompt& reason)
+bool Server::update_signature(const Lock& lock, const PasswordPrompt& reason)
 {
-    if (!ot_super::update_signature(lock, reason)) { return false; }
+    if (!Signable::update_signature(lock, reason)) { return false; }
 
     bool success = false;
     signatures_.clear();
@@ -345,8 +396,7 @@ bool ServerContract::update_signature(
     return success;
 }
 
-bool ServerContract::validate(const Lock& lock, const PasswordPrompt& reason)
-    const
+bool Server::validate(const Lock& lock, const PasswordPrompt& reason) const
 {
     bool validNym = false;
 
@@ -386,12 +436,12 @@ bool ServerContract::validate(const Lock& lock, const PasswordPrompt& reason)
     return true;
 }
 
-bool ServerContract::verify_signature(
+bool Server::verify_signature(
     const Lock& lock,
     const proto::Signature& signature,
     const PasswordPrompt& reason) const
 {
-    if (!ot_super::verify_signature(lock, signature, reason)) { return false; }
+    if (!Signable::verify_signature(lock, signature, reason)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
@@ -399,4 +449,4 @@ bool ServerContract::verify_signature(
 
     return nym_->Verify(serialized, sigProto, reason);
 }
-}  // namespace opentxs
+}  // namespace opentxs::contract::implementation

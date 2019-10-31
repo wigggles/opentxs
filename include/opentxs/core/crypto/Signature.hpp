@@ -23,14 +23,14 @@ struct Core;
 class Signature : virtual public Armored
 {
 public:
-    EXPORT static Pimpl<opentxs::Signature> Factory(
+    OPENTXS_EXPORT static Pimpl<opentxs::Signature> Factory(
         const api::internal::Core& api);
 
-    EXPORT virtual const OTSignatureMetadata& getMetaData() const = 0;
+    OPENTXS_EXPORT virtual const OTSignatureMetadata& getMetaData() const = 0;
 
-    EXPORT virtual OTSignatureMetadata& getMetaData() = 0;
+    OPENTXS_EXPORT virtual OTSignatureMetadata& getMetaData() = 0;
 
-    EXPORT ~Signature() override = default;
+    OPENTXS_EXPORT ~Signature() override = default;
 
 protected:
     Signature() = default;

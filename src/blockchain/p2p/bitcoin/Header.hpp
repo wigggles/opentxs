@@ -52,7 +52,7 @@ public:
     static std::size_t Size() noexcept { return sizeof(BitcoinFormat); }
 
     bitcoin::Command Command() const noexcept { return command_; }
-    OTData Encode() const noexcept;
+    OPENTXS_EXPORT OTData Encode() const noexcept;
     blockchain::Type Network() const noexcept { return chain_; }
     std::size_t PayloadSize() const noexcept { return payload_size_; }
     const opentxs::Data& Checksum() const noexcept { return checksum_; }

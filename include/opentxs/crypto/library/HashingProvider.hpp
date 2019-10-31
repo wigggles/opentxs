@@ -24,12 +24,12 @@ public:
     static OTString HashTypeToString(const proto::HashType hashType);
     static std::size_t HashSize(const proto::HashType hashType);
 
-    EXPORT virtual bool Digest(
+    OPENTXS_EXPORT virtual bool Digest(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const std::size_t inputSize,
         std::uint8_t* output) const = 0;
-    EXPORT virtual bool HMAC(
+    OPENTXS_EXPORT virtual bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
         const std::size_t inputSize,
@@ -37,7 +37,7 @@ public:
         const std::size_t keySize,
         std::uint8_t* output) const = 0;
 
-    EXPORT virtual ~HashingProvider() = default;
+    OPENTXS_EXPORT virtual ~HashingProvider() = default;
 
 protected:
     HashingProvider() = default;

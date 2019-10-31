@@ -101,7 +101,7 @@ public:
 
     // Then call one (or both) of these:
 
-    EXPORT bool SetInitialPayment(
+    OPENTXS_EXPORT bool SetInitialPayment(
         const Amount lAmount,
         const std::chrono::seconds tTimeUntilInitialPayment = {});  // default:
                                                                     // now.
@@ -111,7 +111,7 @@ public:
     //
     // Meaning: You can have an initial payment AND/OR a payment plan.
 
-    EXPORT bool SetPaymentPlan(
+    OPENTXS_EXPORT bool SetPaymentPlan(
         const Amount lPaymentAmount,
         const std::chrono::seconds tTimeUntilPlanStart = std::chrono::hours{24 *
                                                                             30},
@@ -231,7 +231,7 @@ public:
                    // this
                    // is where the ledger saves its contents
 
-    EXPORT ~OTPaymentPlan() override;
+    OPENTXS_EXPORT ~OTPaymentPlan() override;
 
 private:
     friend api::implementation::Factory;

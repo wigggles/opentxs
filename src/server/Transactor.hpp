@@ -27,7 +27,7 @@ public:
     Transactor(Server& server, const PasswordPrompt& reason);
     ~Transactor() = default;
 
-    bool issueNextTransactionNumber(TransactionNumber& txNumber);
+    OPENTXS_EXPORT bool issueNextTransactionNumber(TransactionNumber& txNumber);
     bool issueNextTransactionNumberToNym(
         ClientContext& context,
         TransactionNumber& txNumber);

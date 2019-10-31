@@ -42,17 +42,17 @@
 
 namespace opentxs
 {
-bool operator==(const OTData& lhs, const Data& rhs);
-bool operator!=(const OTData& lhs, const Data& rhs);
-bool operator<(const OTData& lhs, const Data& rhs);
-bool operator>(const OTData& lhs, const Data& rhs);
-bool operator<=(const OTData& lhs, const Data& rhs);
-bool operator>=(const OTData& lhs, const Data& rhs);
-OTData& operator+=(OTData& lhs, const OTData& rhs);
-OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
-OTData& operator+=(OTData& lhs, const std::uint16_t rhs);
-OTData& operator+=(OTData& lhs, const std::uint32_t rhs);
-OTData& operator+=(OTData& lhs, const std::uint64_t rhs);
+OPENTXS_EXPORT bool operator==(const OTData& lhs, const Data& rhs);
+OPENTXS_EXPORT bool operator!=(const OTData& lhs, const Data& rhs);
+OPENTXS_EXPORT bool operator<(const OTData& lhs, const Data& rhs);
+OPENTXS_EXPORT bool operator>(const OTData& lhs, const Data& rhs);
+OPENTXS_EXPORT bool operator<=(const OTData& lhs, const Data& rhs);
+OPENTXS_EXPORT bool operator>=(const OTData& lhs, const Data& rhs);
+OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const OTData& rhs);
+OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint8_t rhs);
+OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint16_t rhs);
+OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint32_t rhs);
+OPENTXS_EXPORT OTData& operator+=(OTData& lhs, const std::uint64_t rhs);
 
 class Data
 {
@@ -63,103 +63,108 @@ public:
     using const_iterator =
         opentxs::iterator::Bidirectional<const Data, const std::byte>;
 
-    EXPORT static Pimpl<opentxs::Data> Factory();
-    EXPORT static Pimpl<opentxs::Data> Factory(const Data& rhs);
+    OPENTXS_EXPORT static Pimpl<opentxs::Data> Factory();
+    OPENTXS_EXPORT static Pimpl<opentxs::Data> Factory(const Data& rhs);
 #ifndef SWIG
-    EXPORT static Pimpl<opentxs::Data> Factory(
+    OPENTXS_EXPORT static Pimpl<opentxs::Data> Factory(
         const void* data,
         std::size_t size);
-    EXPORT static OTData Factory(const Armored& source);
-    EXPORT static OTData Factory(const std::vector<unsigned char>& source);
-    EXPORT static OTData Factory(const std::vector<std::byte>& source);
-    EXPORT static OTData Factory(const network::zeromq::Frame& message);
-    EXPORT static OTData Factory(const std::uint8_t in);
+    OPENTXS_EXPORT static OTData Factory(const Armored& source);
+    OPENTXS_EXPORT static OTData Factory(
+        const std::vector<unsigned char>& source);
+    OPENTXS_EXPORT static OTData Factory(const std::vector<std::byte>& source);
+    OPENTXS_EXPORT static OTData Factory(const network::zeromq::Frame& message);
+    OPENTXS_EXPORT static OTData Factory(const std::uint8_t in);
     /// Bytes will be stored in big endian order
-    EXPORT static OTData Factory(const std::uint16_t in);
+    OPENTXS_EXPORT static OTData Factory(const std::uint16_t in);
     /// Bytes will be stored in big endian order
-    EXPORT static OTData Factory(const std::uint32_t in);
+    OPENTXS_EXPORT static OTData Factory(const std::uint32_t in);
     /// Bytes will be stored in big endian order
-    EXPORT static OTData Factory(const std::uint64_t in);
-    EXPORT static OTData Factory(const std::string in, const Mode mode);
+    OPENTXS_EXPORT static OTData Factory(const std::uint64_t in);
+    OPENTXS_EXPORT static OTData Factory(const std::string in, const Mode mode);
 #endif
 
-    EXPORT virtual bool operator==(const Data& rhs) const = 0;
-    EXPORT virtual bool operator!=(const Data& rhs) const = 0;
-    EXPORT virtual bool operator<(const Data& rhs) const = 0;
-    EXPORT virtual bool operator>(const Data& rhs) const = 0;
-    EXPORT virtual bool operator<=(const Data& rhs) const = 0;
-    EXPORT virtual bool operator>=(const Data& rhs) const = 0;
-    EXPORT virtual std::string asHex() const = 0;
-    EXPORT virtual const std::byte& at(const std::size_t position) const = 0;
-    EXPORT virtual const_iterator begin() const = 0;
-    EXPORT virtual const_iterator cbegin() const = 0;
-    EXPORT virtual const_iterator cend() const = 0;
-    EXPORT virtual const void* data() const = 0;
-    EXPORT virtual bool empty() const = 0;
-    EXPORT virtual const_iterator end() const = 0;
-    EXPORT virtual bool Extract(
+    OPENTXS_EXPORT virtual bool operator==(const Data& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator!=(const Data& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator<(const Data& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator>(const Data& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator<=(const Data& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator>=(const Data& rhs) const = 0;
+    OPENTXS_EXPORT virtual std::string asHex() const = 0;
+    OPENTXS_EXPORT virtual const std::byte& at(
+        const std::size_t position) const = 0;
+    OPENTXS_EXPORT virtual const_iterator begin() const = 0;
+    OPENTXS_EXPORT virtual const_iterator cbegin() const = 0;
+    OPENTXS_EXPORT virtual const_iterator cend() const = 0;
+    OPENTXS_EXPORT virtual const void* data() const = 0;
+    OPENTXS_EXPORT virtual bool empty() const = 0;
+    OPENTXS_EXPORT virtual const_iterator end() const = 0;
+    OPENTXS_EXPORT virtual bool Extract(
         const std::size_t amount,
         Data& output,
         const std::size_t pos = 0) const = 0;
-    EXPORT virtual bool Extract(std::uint8_t& output, const std::size_t pos = 0)
-        const = 0;
-    EXPORT virtual bool Extract(
+    OPENTXS_EXPORT virtual bool Extract(
+        std::uint8_t& output,
+        const std::size_t pos = 0) const = 0;
+    OPENTXS_EXPORT virtual bool Extract(
         std::uint16_t& output,
         const std::size_t pos = 0) const = 0;
-    EXPORT virtual bool Extract(
+    OPENTXS_EXPORT virtual bool Extract(
         std::uint32_t& output,
         const std::size_t pos = 0) const = 0;
-    EXPORT virtual bool Extract(
+    OPENTXS_EXPORT virtual bool Extract(
         std::uint64_t& output,
         const std::size_t pos = 0) const = 0;
 #ifndef SWIG
-    [[deprecated]] EXPORT virtual const void* GetPointer() const = 0;
+    [[deprecated]] OPENTXS_EXPORT virtual const void* GetPointer() const = 0;
 #endif
 #ifndef SWIG
-    [[deprecated]] EXPORT virtual std::size_t GetSize() const = 0;
+    [[deprecated]] OPENTXS_EXPORT virtual std::size_t GetSize() const = 0;
 #endif
 #ifndef SWIG
-    [[deprecated]] EXPORT virtual bool IsEmpty() const = 0;
+    [[deprecated]] OPENTXS_EXPORT virtual bool IsEmpty() const = 0;
 #endif
-    EXPORT virtual bool IsNull() const = 0;
-    EXPORT virtual std::size_t size() const = 0;
+    OPENTXS_EXPORT virtual bool IsNull() const = 0;
+    OPENTXS_EXPORT virtual std::size_t size() const = 0;
 
-    EXPORT virtual Data& operator+=(const Data& rhs) = 0;
-    EXPORT virtual Data& operator+=(const std::uint8_t rhs) = 0;
+    OPENTXS_EXPORT virtual Data& operator+=(const Data& rhs) = 0;
+    OPENTXS_EXPORT virtual Data& operator+=(const std::uint8_t rhs) = 0;
     /// Bytes will be stored in big endian order
-    EXPORT virtual Data& operator+=(const std::uint16_t rhs) = 0;
+    OPENTXS_EXPORT virtual Data& operator+=(const std::uint16_t rhs) = 0;
     /// Bytes will be stored in big endian order
-    EXPORT virtual Data& operator+=(const std::uint32_t rhs) = 0;
+    OPENTXS_EXPORT virtual Data& operator+=(const std::uint32_t rhs) = 0;
     /// Bytes will be stored in big endian order
-    EXPORT virtual Data& operator+=(const std::uint64_t rhs) = 0;
-    EXPORT virtual void Assign(const Data& source) = 0;
+    OPENTXS_EXPORT virtual Data& operator+=(const std::uint64_t rhs) = 0;
+    OPENTXS_EXPORT virtual void Assign(const Data& source) = 0;
 #ifndef SWIG
-    EXPORT virtual void Assign(const void* data, const std::size_t& size) = 0;
+    OPENTXS_EXPORT virtual void Assign(
+        const void* data,
+        const std::size_t& size) = 0;
 #endif
-    EXPORT virtual std::byte& at(const std::size_t position) = 0;
-    EXPORT virtual iterator begin() = 0;
+    OPENTXS_EXPORT virtual std::byte& at(const std::size_t position) = 0;
+    OPENTXS_EXPORT virtual iterator begin() = 0;
 #ifndef SWIG
-    EXPORT virtual void* data() = 0;
-    EXPORT virtual bool DecodeHex(const std::string& hex) = 0;
+    OPENTXS_EXPORT virtual void* data() = 0;
+    OPENTXS_EXPORT virtual bool DecodeHex(const std::string& hex) = 0;
 #endif
-    EXPORT virtual void Concatenate(
+    OPENTXS_EXPORT virtual void Concatenate(
         const void* data,
         const std::size_t& size) = 0;
 #ifndef SWIG
-    [[deprecated]] EXPORT virtual std::size_t OTfread(
+    [[deprecated]] OPENTXS_EXPORT virtual std::size_t OTfread(
         std::uint8_t* data,
         const std::size_t& size) = 0;
 #endif
-    EXPORT virtual iterator end() = 0;
-    EXPORT virtual bool Randomize(const std::size_t& size) = 0;
-    EXPORT virtual void Release() = 0;
-    EXPORT virtual void reset() = 0;
-    EXPORT virtual void SetSize(const std::size_t& size) = 0;
-    EXPORT virtual std::string str() const = 0;
-    EXPORT virtual void swap(Data&& rhs) = 0;
-    EXPORT virtual void zeroMemory() = 0;
+    OPENTXS_EXPORT virtual iterator end() = 0;
+    OPENTXS_EXPORT virtual bool Randomize(const std::size_t& size) = 0;
+    OPENTXS_EXPORT virtual void Release() = 0;
+    OPENTXS_EXPORT virtual void reset() = 0;
+    OPENTXS_EXPORT virtual void SetSize(const std::size_t& size) = 0;
+    OPENTXS_EXPORT virtual std::string str() const = 0;
+    OPENTXS_EXPORT virtual void swap(Data&& rhs) = 0;
+    OPENTXS_EXPORT virtual void zeroMemory() = 0;
 
-    EXPORT virtual ~Data() = default;
+    OPENTXS_EXPORT virtual ~Data() = default;
 
 protected:
     Data() = default;
@@ -170,7 +175,7 @@ private:
 #ifdef _WIN32
 public:
 #endif
-    EXPORT virtual Data* clone() const = 0;
+    OPENTXS_EXPORT virtual Data* clone() const = 0;
 #ifdef _WIN32
 private:
 #endif

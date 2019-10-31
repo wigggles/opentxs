@@ -32,7 +32,7 @@ namespace socket
 class Reply : virtual public curve::Server
 {
 public:
-    EXPORT ~Reply() override = default;
+    OPENTXS_EXPORT ~Reply() override = default;
 
 protected:
     Reply() noexcept = default;
@@ -43,7 +43,7 @@ private:
 #ifdef _WIN32
 public:
 #endif
-    EXPORT virtual Reply* clone() const noexcept = 0;
+    OPENTXS_EXPORT virtual Reply* clone() const noexcept = 0;
 #ifdef _WIN32
 private:
 #endif

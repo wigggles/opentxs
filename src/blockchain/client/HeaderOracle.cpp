@@ -14,6 +14,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 
 #include <algorithm>
@@ -97,7 +98,7 @@ bool HeaderOracle::AddCheckpoint(
     Lock lock(lock_);
     block::Position checkpoint{position, requiredHash};
     std::unique_ptr<internal::UpdateTransaction> pUpdate{
-        Factory::UpdateTransaction()};
+        Factory::UpdateTransaction(api_)};
 
     OT_ASSERT(pUpdate);
 
@@ -159,7 +160,7 @@ bool HeaderOracle::AddHeader(std::unique_ptr<block::Header> pHeader) noexcept
     const auto& current = *pCurrent;
     const auto [currentHeight, currentHash] = current.Position();
     std::unique_ptr<internal::UpdateTransaction> pUpdate{
-        Factory::UpdateTransaction()};
+        Factory::UpdateTransaction(api_)};
 
     OT_ASSERT(pUpdate);
 
@@ -261,7 +262,7 @@ block::pHash HeaderOracle::BestHash(const block::Height height) const noexcept
     try {
         return database_.BestBlock(height);
     } catch (...) {
-        return make_blank<block::pHash>::value();
+        return make_blank<block::pHash>::value(api_);
     }
 }
 
@@ -419,7 +420,7 @@ bool HeaderOracle::DeleteCheckpoint() noexcept
     }
 
     std::unique_ptr<internal::UpdateTransaction> pUpdate{
-        Factory::UpdateTransaction()};
+        Factory::UpdateTransaction(api_)};
 
     OT_ASSERT(pUpdate);
 
@@ -647,7 +648,7 @@ block::Position HeaderOracle::scan_disconnected(
         return output;
     } else {
 
-        return make_blank<block::Position>::value();
+        return make_blank<block::Position>::value(api_);
     }
 }
 

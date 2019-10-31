@@ -4,9 +4,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // clang-format off
-
 #ifndef OPENTXS_VERSION_HPP
 #define OPENTXS_VERSION_HPP
+
+#include "opentxs/opentxs_export.hpp"
+
+#include <string>
 
 #define OPENTXS_VERSION_MAJOR @VERSION_MAJOR@
 #define OPENTXS_VERSION_MINOR @VERSION_MINOR@
@@ -36,5 +39,9 @@
 #define OT_STORAGE_LMDB @LMDB_EXPORT@
 #define OT_BLOCKCHAIN @OT_BLOCKCHAIN_EXPORT@
 
+namespace opentxs
+{
+OPENTXS_EXPORT std::string stack_trace() noexcept;
+}  // namespace opentxs
 #endif // OPENTXS_VERSION_HPP
 // clang-format on

@@ -12,45 +12,31 @@
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace unit
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class SecurityContract final : public UnitDefinition
+class Security : virtual public contract::Unit
 {
-private:
-    typedef UnitDefinition ot_super;
-    friend ot_super;
-
-    SecurityContract(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::UnitDefinition serialized);
-    SecurityContract(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::string& shortname,
-        const std::string& name,
-        const std::string& symbol,
-        const std::string& terms,
-        const proto::ContactItemType unitOfAccount,
-        const VersionNumber version);
-
-    proto::UnitDefinition IDVersion(const Lock& lock) const final;
-
 public:
-    EXPORT proto::UnitType Type() const final
-    {
-        return proto::UNITTYPE_SECURITY;
-    }
+    OPENTXS_EXPORT ~Security() override = default;
 
-    EXPORT std::string TLA() const final { return primary_unit_symbol_; }
+protected:
+    Security() noexcept = default;
 
-    ~SecurityContract() final = default;
+private:
+    friend OTSecurityContract;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Security* clone() const noexcept override = 0;
+#endif
+
+    Security(const Security&) = delete;
+    Security(Security&&) = delete;
+    Security& operator=(const Security&) = delete;
+    Security& operator=(Security&&) = delete;
 };
+}  // namespace unit
+}  // namespace contract
 }  // namespace opentxs
 #endif

@@ -83,8 +83,7 @@ Secondary::Secondary(
     const NymParameters& nymParameters,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason) noexcept(false)
-    : Signable({}, version)  // TODO Signable
-    , credential::implementation::Key(
+    : credential::implementation::Key(
           api,
           owner,
           source,
@@ -94,6 +93,11 @@ Secondary::Secondary(
           reason,
           get_master_id(master))
 {
+    {
+        Lock lock(lock_);
+        first_time_init(lock);
+    }
+
     init(master, reason);
 }
 
@@ -104,8 +108,7 @@ Secondary::Secondary(
     const identity::Source& source,
     const internal::Primary& master,
     const proto::Credential& serialized) noexcept(false)
-    : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Key(
+    : credential::implementation::Key(
           api,
           reason,
           owner,
@@ -113,6 +116,8 @@ Secondary::Secondary(
           serialized,
           get_master_id(serialized, master))
 {
+    Lock lock(lock_);
+    init_serialized(lock);
 }
 
 std::shared_ptr<Base::SerializedType> Secondary::serialize(

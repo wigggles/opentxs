@@ -34,7 +34,7 @@ public:
      *
      *   \return True if the domain is valid and not already registered
      */
-    EXPORT virtual bool RegisterDomain(
+    OPENTXS_EXPORT virtual bool RegisterDomain(
         const std::string& domain,
         const Callback& callback) const = 0;
 
@@ -45,9 +45,9 @@ public:
      *  \param[in]  policy  Accept or reject ZAP requests for a domain which has
      *                      no registered callback
      */
-    EXPORT virtual bool SetDefaultPolicy(const Policy policy) const = 0;
+    OPENTXS_EXPORT virtual bool SetDefaultPolicy(const Policy policy) const = 0;
 
-    EXPORT virtual ~ZAP() = default;
+    OPENTXS_EXPORT virtual ~ZAP() = default;
 
 protected:
     ZAP() = default;

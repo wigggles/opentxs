@@ -27,43 +27,44 @@ class Manager : virtual public api::Core
 {
 public:
     /** Drop a specified number of incoming requests for testing purposes */
-    EXPORT virtual void DropIncoming(const int count) const = 0;
+    OPENTXS_EXPORT virtual void DropIncoming(const int count) const = 0;
     /** Drop a specified number of outgoing replies for testing purposes */
-    EXPORT virtual void DropOutgoing(const int count) const = 0;
-    EXPORT virtual std::string GetAdminNym() const = 0;
-    EXPORT virtual std::string GetAdminPassword() const = 0;
-    EXPORT virtual std::string GetCommandPort() const = 0;
-    EXPORT virtual std::string GetDefaultBindIP() const = 0;
-    EXPORT virtual std::string GetEEP() const = 0;
-    EXPORT virtual std::string GetExternalIP() const = 0;
-    EXPORT virtual std::string GetInproc() const = 0;
-    EXPORT virtual std::string GetListenCommand() const = 0;
-    EXPORT virtual std::string GetListenNotify() const = 0;
-    EXPORT virtual std::string GetOnion() const = 0;
+    OPENTXS_EXPORT virtual void DropOutgoing(const int count) const = 0;
+    OPENTXS_EXPORT virtual std::string GetAdminNym() const = 0;
+    OPENTXS_EXPORT virtual std::string GetAdminPassword() const = 0;
+    OPENTXS_EXPORT virtual std::string GetCommandPort() const = 0;
+    OPENTXS_EXPORT virtual std::string GetDefaultBindIP() const = 0;
+    OPENTXS_EXPORT virtual std::string GetEEP() const = 0;
+    OPENTXS_EXPORT virtual std::string GetExternalIP() const = 0;
+    OPENTXS_EXPORT virtual std::string GetInproc() const = 0;
+    OPENTXS_EXPORT virtual std::string GetListenCommand() const = 0;
+    OPENTXS_EXPORT virtual std::string GetListenNotify() const = 0;
+    OPENTXS_EXPORT virtual std::string GetOnion() const = 0;
 #if OT_CASH
-    EXPORT virtual std::shared_ptr<blind::Mint> GetPrivateMint(
+    OPENTXS_EXPORT virtual std::shared_ptr<blind::Mint> GetPrivateMint(
         const identifier::UnitDefinition& unitid,
         std::uint32_t series) const = 0;
-    EXPORT virtual std::shared_ptr<const blind::Mint> GetPublicMint(
+    OPENTXS_EXPORT virtual std::shared_ptr<const blind::Mint> GetPublicMint(
         const identifier::UnitDefinition& unitID) const = 0;
 #endif  // OT_CASH
-    EXPORT virtual std::string GetUserName() const = 0;
-    EXPORT virtual std::string GetUserTerms() const = 0;
-    EXPORT virtual const identifier::Server& ID() const = 0;
-    EXPORT virtual const identifier::Nym& NymID() const = 0;
+    OPENTXS_EXPORT virtual std::string GetUserName() const = 0;
+    OPENTXS_EXPORT virtual std::string GetUserTerms() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& ID() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& NymID() const = 0;
 #if OT_CASH
-    EXPORT virtual void ScanMints() const = 0;
+    OPENTXS_EXPORT virtual void ScanMints() const = 0;
 #endif  // OT_CASH
-    EXPORT virtual opentxs::server::Server& Server() const = 0;
+    OPENTXS_EXPORT virtual opentxs::server::Server& Server() const = 0;
 #if OT_CASH
-    EXPORT virtual void SetMintKeySize(const std::size_t size) const = 0;
-    EXPORT virtual void UpdateMint(
+    OPENTXS_EXPORT virtual void SetMintKeySize(
+        const std::size_t size) const = 0;
+    OPENTXS_EXPORT virtual void UpdateMint(
         const identifier::UnitDefinition& unitID) const = 0;
 #endif  // OT_CASH
 
-    EXPORT virtual void Start() = 0;
+    OPENTXS_EXPORT virtual void Start() = 0;
 
-    EXPORT ~Manager() override = default;
+    OPENTXS_EXPORT ~Manager() override = default;
 
 protected:
     Manager() = default;

@@ -30,21 +30,21 @@ public:
         opentxs::iterator::Bidirectional<const Group, const value_type>;
     using SerializedType = proto::VerificationGroup;
 
-    EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
 
-    EXPORT virtual operator SerializedType() const noexcept = 0;
+    OPENTXS_EXPORT virtual operator SerializedType() const noexcept = 0;
 
     /// Throws std::out_of_range for invalid position
-    EXPORT virtual const value_type& at(const std::size_t position) const
-        noexcept(false) = 0;
-    EXPORT virtual const_iterator begin() const noexcept = 0;
-    EXPORT virtual const_iterator cbegin() const noexcept = 0;
-    EXPORT virtual const_iterator cend() const noexcept = 0;
-    EXPORT virtual const_iterator end() const noexcept = 0;
-    EXPORT virtual std::size_t size() const noexcept = 0;
-    EXPORT virtual VersionNumber Version() const noexcept = 0;
+    OPENTXS_EXPORT virtual const value_type& at(
+        const std::size_t position) const noexcept(false) = 0;
+    OPENTXS_EXPORT virtual const_iterator begin() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator cbegin() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator cend() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator end() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::size_t size() const noexcept = 0;
+    OPENTXS_EXPORT virtual VersionNumber Version() const noexcept = 0;
 
-    EXPORT virtual bool AddItem(
+    OPENTXS_EXPORT virtual bool AddItem(
         const identifier::Nym& claimOwner,
         const Identifier& claim,
         const identity::Nym& signer,
@@ -53,17 +53,17 @@ public:
         const Time start = {},
         const Time end = {},
         const VersionNumber version = Item::DefaultVersion) noexcept = 0;
-    EXPORT virtual bool AddItem(
+    OPENTXS_EXPORT virtual bool AddItem(
         const identifier::Nym& verifier,
         const Item::SerializedType verification) noexcept = 0;
-    EXPORT virtual bool DeleteItem(const Identifier& item) noexcept = 0;
+    OPENTXS_EXPORT virtual bool DeleteItem(const Identifier& item) noexcept = 0;
     /// Throws std::out_of_range for invalid position
-    EXPORT virtual value_type& at(const std::size_t position) noexcept(
+    OPENTXS_EXPORT virtual value_type& at(const std::size_t position) noexcept(
         false) = 0;
-    EXPORT virtual iterator begin() noexcept = 0;
-    EXPORT virtual iterator end() noexcept = 0;
+    OPENTXS_EXPORT virtual iterator begin() noexcept = 0;
+    OPENTXS_EXPORT virtual iterator end() noexcept = 0;
 
-    EXPORT virtual ~Group() = default;
+    OPENTXS_EXPORT virtual ~Group() = default;
 
 protected:
     Group() = default;

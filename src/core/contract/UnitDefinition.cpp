@@ -5,20 +5,14 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/UnitDefinition.hpp"
-
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
 #include "opentxs/core/Data.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
@@ -26,92 +20,118 @@
 #include "opentxs/Proto.tpp"
 
 #include "internal/api/Api.hpp"
+#include "internal/core/contract/Contract.hpp"
 
-#include <ctype.h>
-#include <cstddef>
 #include <cmath>
-#include <cstdint>
+#include <cstddef>
 #include <deque>
 #include <fstream>
 #include <iomanip>
-#include <map>
 #include <memory>
 #include <sstream>
-#include <string>
 #include <utility>
 
-#define OT_METHOD "opentxs::UnitDefinition::"
+#include "UnitDefinition.hpp"
+
+#define OT_METHOD "opentxs::contract::implementation::Unit::"
+
+inline auto separateThousands(
+    std::stringstream& sss,
+    std::int64_t value,
+    const char* szSeparator) -> void
+{
+    if (value < 1000) {
+        sss << value;
+        return;
+    }
+
+    separateThousands(sss, value / 1000, szSeparator);
+    sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
+}
 
 namespace opentxs
 {
-const VersionNumber UnitDefinition::DefaultVersion{2};
-const VersionNumber UnitDefinition::MaxVersion{2};
+auto Factory::UnitDefinition(const api::Core& api) noexcept
+    -> std::shared_ptr<contract::Unit>
+{
+    return std::make_shared<contract::blank::Unit>(api);
+}
 
-const std::map<VersionNumber, VersionNumber>
-    UnitDefinition::unit_of_account_version_map_{{2, 6}};
-
-UnitDefinition::UnitDefinition(
+auto Factory::UnitDefinition(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const std::string& shortname,
-    const std::string& name,
-    const std::string& symbol,
-    const std::string& terms,
-    const proto::ContactItemType unitOfAccount,
-    const VersionNumber version)
-    : ot_super(nym)
-    , primary_unit_name_(name)
-    , short_name_(shortname)
-    , api_(api)
-    , primary_unit_symbol_(symbol)
-    , unit_of_account_(unitOfAccount)
+    const proto::UnitDefinition serialized,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::Unit>
 {
-    version_ = version;
-    conditions_ = terms;
-}
+    switch (serialized.type()) {
+        case proto::UNITTYPE_CURRENCY: {
 
-UnitDefinition::UnitDefinition(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const proto::UnitDefinition serialized)
-    : ot_super(nym)
-    , primary_unit_name_(serialized.has_name() ? serialized.name() : "")
-    , short_name_(serialized.has_shortname() ? serialized.shortname() : "")
-    , api_(api)
-    , primary_unit_symbol_(serialized.has_symbol() ? serialized.symbol() : "")
-    , unit_of_account_(serialized.unitofaccount())
-{
-    if (serialized.has_id()) { id_ = Identifier::Factory(serialized.id()); }
-    if (serialized.has_signature()) {
-        signatures_.push_front(SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
-    }
-    if (serialized.has_version()) { version_ = serialized.version(); }
-    if (serialized.has_terms()) { conditions_ = serialized.terms(); }
-}
+            return CurrencyContract(api, nym, serialized, reason);
+        }
+        case proto::UNITTYPE_SECURITY: {
 
-std::set<proto::ContactItemType> UnitDefinition::ValidUnits(
-    const VersionNumber version) noexcept
-{
-    try {
+            return SecurityContract(api, nym, serialized, reason);
+        }
+        case proto::UNITTYPE_BASKET: {
 
-        return proto::AllowedItemTypes.at(
-            {unit_of_account_version_map_.at(version),
-             proto::CONTACTSECTION_CONTRACT});
-
-    } catch (...) {
-
-        return {};
+            return BasketContract(api, nym, serialized, reason);
+        }
+        case proto::UNITTYPE_ERROR:
+        default: {
+            return {};
+        }
     }
 }
+}  // namespace opentxs
 
-bool UnitDefinition::ParseFormatted(
+namespace opentxs::contract
+{
+const VersionNumber Unit::DefaultVersion{2};
+const VersionNumber Unit::MaxVersion{2};
+
+auto Unit::formatLongAmount(
+    std::int64_t lValue,
+    std::int32_t nFactor,
+    std::int32_t nPower,
+    const char* szCurrencySymbol,
+    const char* szThousandSeparator,
+    const char* szDecimalPoint) -> std::string
+{
+    std::stringstream sss;
+
+    // Handle negative values
+    if (lValue < 0) {
+        sss << "-";
+        lValue = -lValue;
+    }
+
+    if (nullptr != szCurrencySymbol) sss << szCurrencySymbol << " ";
+
+    // For example, if 506 is supposed to be $5.06, then dividing by a factor of
+    // 100 results in 5 dollars (integer value) and 6 cents (fractional value).
+
+    // Handle integer value with thousand separaters
+    separateThousands(sss, lValue / nFactor, szThousandSeparator);
+
+    // Handle fractional value
+    if (1 < nFactor) {
+        sss << szDecimalPoint << std::setfill('0') << std::setw(nPower)
+            << (lValue % nFactor);
+    }
+
+    std::string str_result(sss.str());
+
+    return str_result;
+}
+
+auto Unit::ParseFormatted(
     std::int64_t& lResult,
     const std::string& str_input,
     std::int32_t nFactor,
     std::int32_t nPower,
     const char* szThousandSeparator,
-    const char* szDecimalPoint)
+    const char* szDecimalPoint) -> bool
 {
     OT_ASSERT(nullptr != szThousandSeparator);
     OT_ASSERT(nullptr != szDecimalPoint);
@@ -244,183 +264,86 @@ bool UnitDefinition::ParseFormatted(
     return true;
 }
 
-inline void separateThousands(
-    std::stringstream& sss,
-    std::int64_t value,
-    const char* szSeparator)
+auto Unit::ValidUnits(const VersionNumber version) noexcept
+    -> std::set<proto::ContactItemType>
 {
-    if (value < 1000) {
-        sss << value;
-        return;
-    }
+    try {
 
-    separateThousands(sss, value / 1000, szSeparator);
-    sss << szSeparator << std::setfill('0') << std::setw(3) << value % 1000;
+        return proto::AllowedItemTypes().at(
+            {implementation::Unit::unit_of_account_version_map_.at(version),
+             proto::CONTACTSECTION_CONTRACT});
+
+    } catch (...) {
+
+        return {};
+    }
+}
+}  // namespace opentxs::contract
+
+namespace opentxs::contract::implementation
+{
+const std::map<VersionNumber, VersionNumber> Unit::unit_of_account_version_map_{
+    {2, 6}};
+
+Unit::Unit(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version)
+    : Signable(
+          api,
+          nym,
+          version,
+          terms,
+          shortname,
+          api.Factory().Identifier(),
+          {})
+    , primary_unit_symbol_(symbol)
+    , unit_of_account_(unitOfAccount)
+    , primary_unit_name_(name)
+    , short_name_(shortname)
+{
 }
 
-std::string UnitDefinition::formatLongAmount(
-    std::int64_t lValue,
-    std::int32_t nFactor,
-    std::int32_t nPower,
-    const char* szCurrencySymbol,
-    const char* szThousandSeparator,
-    const char* szDecimalPoint)
+Unit::Unit(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const SerializedType serialized)
+    : Signable(
+          api,
+          nym,
+          serialized.version(),
+          serialized.terms(),
+          serialized.shortname(),
+          api.Factory().Identifier(serialized.id()),
+          serialized.has_signature()
+              ? Signatures{std::make_shared<proto::Signature>(
+                    serialized.signature())}
+              : Signatures{})
+    , primary_unit_symbol_(serialized.symbol())
+    , unit_of_account_(serialized.unitofaccount())
+    , primary_unit_name_(serialized.name())
+    , short_name_(serialized.shortname())
 {
-    std::stringstream sss;
-
-    // Handle negative values
-    if (lValue < 0) {
-        sss << "-";
-        lValue = -lValue;
-    }
-
-    if (nullptr != szCurrencySymbol) sss << szCurrencySymbol << " ";
-
-    // For example, if 506 is supposed to be $5.06, then dividing by a factor of
-    // 100 results in 5 dollars (integer value) and 6 cents (fractional value).
-
-    // Handle integer value with thousand separaters
-    separateThousands(sss, lValue / nFactor, szThousandSeparator);
-
-    // Handle fractional value
-    if (1 < nFactor) {
-        sss << szDecimalPoint << std::setfill('0') << std::setw(nPower)
-            << (lValue % nFactor);
-    }
-
-    std::string str_result(sss.str());
-
-    return str_result;
 }
 
-bool UnitDefinition::DisplayStatistics(String& strContents) const
+Unit::Unit(const Unit& rhs)
+    : Signable(rhs)
+    , primary_unit_symbol_(rhs.primary_unit_symbol_)
+    , unit_of_account_(rhs.unit_of_account_)
+    , primary_unit_name_(rhs.primary_unit_name_)
+    , short_name_(rhs.short_name_)
 {
-    std::string type = "error";
-
-    switch (Type()) {
-        case proto::UNITTYPE_CURRENCY:
-            type = "error";
-
-            break;
-        case proto::UNITTYPE_SECURITY:
-            type = "security";
-
-            break;
-        case proto::UNITTYPE_BASKET:
-            type = "basket currency";
-
-            break;
-        default:
-            break;
-    }
-
-    strContents.Concatenate(
-        " Asset Type:  %s\n"
-        " InstrumentDefinitionID: %s\n"
-        "\n",
-        type.c_str(),
-        id_->str().c_str());
-    return true;
 }
 
-// currently only "user" accounts (normal user asset accounts) are added to
-// this list Any "special" accounts, such as basket reserve accounts, or voucher
-// reserve accounts, or cash reserve accounts, are not included on this list.
-bool UnitDefinition::VisitAccountRecords(
+auto Unit::AddAccountRecord(
     const std::string& dataFolder,
-    AccountVisitor& visitor,
-    const PasswordPrompt& reason) const
+    const Account& theAccount) const -> bool
 {
-    Lock lock(lock_);
-    const auto strInstrumentDefinitionID = String::Factory(id(lock));
-    auto strAcctRecordFile = String::Factory();
-    strAcctRecordFile->Format("%s.a", strInstrumentDefinitionID->Get());
-
-    std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
-        api_,
-        OTDB::STORED_OBJ_STRING_MAP,
-        dataFolder,
-        api_.Legacy().Contract(),
-        strAcctRecordFile->Get(),
-        "",
-        ""));
-
-    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
-
-    // There was definitely a StringMap loaded from local storage.
-    // (Even an empty one, possibly.) This is the only block that matters in
-    // this function.
-    //
-    if (nullptr != pMap) {
-        const auto& pNotaryID = visitor.GetNotaryID();
-
-        OT_ASSERT(false == pNotaryID.empty());
-
-        auto& theMap = pMap->the_map;
-
-        // todo: optimize: will probably have to use a database for this,
-        // std::int64_t term.
-        // (What if there are a million acct IDs in this flat file? Not
-        // scaleable.)
-        //
-        for (auto& it : theMap) {
-            const std::string& str_acct_id =
-                it.first;  // Containing the account ID.
-            const std::string& str_instrument_definition_id =
-                it.second;  // Containing the instrument definition ID. (Just in
-                            // case
-                            // someone copied the wrong file here...)
-
-            if (!strInstrumentDefinitionID->Compare(
-                    str_instrument_definition_id.c_str())) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Error: wrong "
-                    "instrument definition ID (")(str_instrument_definition_id)(
-                    ") when expecting: ")(strInstrumentDefinitionID)(".")
-                    .Flush();
-            } else {
-                const auto& wallet = api_.Wallet();
-                const auto accountID = Identifier::Factory(str_acct_id);
-                auto account = wallet.Account(accountID, reason);
-
-                if (false == bool(account)) {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Unable to load account ")(str_acct_id)(".")
-                        .Flush();
-
-                    continue;
-                }
-
-                if (false == visitor.Trigger(account.get(), reason)) {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Error: Trigger failed for account ")(str_acct_id)(
-                        ".")
-                        .Flush();
-                }
-            }
-        }
-        return true;
-    }
-    return true;
-}
-
-bool UnitDefinition::AddAccountRecord(
-    const std::string& dataFolder,
-    const Account& theAccount) const  // adds
-                                      // the
-// account
-// to the
-// list.
-// (When
-// account
-// is
-// created.)
-{
-    //  Load up account list StringMap. Create it if doesn't already exist.
-    //  See if account is already there in the map. Add it otherwise.
-    //  Save the StringMap back again. (The account records list for a given
-    // instrument definition.)
-
     Lock lock(lock_);
 
     if (theAccount.GetInstrumentDefinitionID() != id_) {
@@ -546,16 +469,58 @@ bool UnitDefinition::AddAccountRecord(
     return true;
 }
 
-bool UnitDefinition::EraseAccountRecord(
-    const std::string& dataFolder,
-    const Identifier& theAcctID) const  // removes the account from the list.
-                                        // (When account is deleted.)
+auto Unit::Contract() const -> SerializedType
 {
-    //  Load up account list StringMap. Create it if doesn't already exist.
-    //  See if account is already there in the map. Erase it, if it is.
-    //  Save the StringMap back again. (The account records list for a given
-    // instrument definition.)
+    Lock lock(lock_);
 
+    return contract(lock);
+}
+
+auto Unit::contract(const Lock& lock) const -> SerializedType
+{
+    auto contract = SigVersion(lock);
+
+    if (1 <= signatures_.size()) {
+        *(contract.mutable_signature()) = *(signatures_.front());
+    }
+
+    return contract;
+}
+
+auto Unit::DisplayStatistics(String& strContents) const -> bool
+{
+    std::string type = "error";
+
+    switch (Type()) {
+        case proto::UNITTYPE_CURRENCY:
+            type = "error";
+
+            break;
+        case proto::UNITTYPE_SECURITY:
+            type = "security";
+
+            break;
+        case proto::UNITTYPE_BASKET:
+            type = "basket currency";
+
+            break;
+        default:
+            break;
+    }
+
+    strContents.Concatenate(
+        " Asset Type:  %s\n"
+        " InstrumentDefinitionID: %s\n"
+        "\n",
+        type.c_str(),
+        id_->str().c_str());
+    return true;
+}
+
+auto Unit::EraseAccountRecord(
+    const std::string& dataFolder,
+    const Identifier& theAcctID) const -> bool
+{
     Lock lock(lock_);
 
     const auto strAcctID = String::Factory(theAcctID);
@@ -643,164 +608,102 @@ bool UnitDefinition::EraseAccountRecord(
     return true;
 }
 
-UnitDefinition* UnitDefinition::Create(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const std::string& shortname,
-    const std::string& name,
-    const std::string& symbol,
-    const std::string& terms,
-    const std::string& tla,
-    const std::uint32_t power,
-    const std::string& fraction,
-    const proto::ContactItemType unitOfAccount,
-    const PasswordPrompt& reason,
-    const VersionNumber version)
+// Convert 912545 to "$9,125.45"
+//
+// (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
+//  separator of "," and decimal point of ".")
+auto Unit::FormatAmountLocale(
+    std::int64_t amount,
+    std::string& str_output,
+    const std::string& str_thousand,
+    const std::string& str_decimal) const -> bool
 {
-    std::unique_ptr<UnitDefinition> contract(new CurrencyContract(
-        api,
-        nym,
-        shortname,
-        name,
-        symbol,
-        terms,
-        tla,
-        power,
-        fraction,
-        unitOfAccount,
-        version));
+    // Lookup separator and decimal point symbols based on locale.
 
-    if (!contract) { return nullptr; }
+    // Get a moneypunct facet from the global ("C") locale
+    //
+    // NOTE: Turns out moneypunct kind of sucks.
+    // As a result, for internationalization purposes,
+    // these values have to be set here before compilation.
+    //
+    auto strSeparator =
+        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint =
+        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
-    Lock lock(contract->lock_);
+    // NOTE: from web searching, I've determined that locale / moneypunct has
+    // internationalization problems. Therefore it looks like if you want to
+    // build OT for various languages / regions, you're just going to have to
+    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
+    // variables.
+    //
+    // The best improvement I can think on that is to check locale and then use
+    // it to choose from our own list of hardcoded values. Todo.
 
-    if (!contract->CalculateID(lock)) { return nullptr; }
-
-    if (contract->nym_) {
-        auto serialized = contract->SigVersion(lock);
-        std::shared_ptr<proto::Signature> sig =
-            std::make_shared<proto::Signature>();
-
-        if (!contract->update_signature(lock, reason)) { return nullptr; }
-    }
-
-    if (!contract->validate(lock, reason)) { return nullptr; }
-
-    contract->alias_ = contract->short_name_;
-
-    return contract.release();
+    str_output = Unit::formatLongAmount(
+        amount,
+        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
+        DecimalPower(),
+        (proto::UNITTYPE_CURRENCY == Type()) ? primary_unit_symbol_.c_str()
+                                             : nullptr,
+        strSeparator->Get(),
+        strDecimalPoint->Get());
+    return true;  // Note: might want to return false if str_output is empty.
 }
 
-UnitDefinition* UnitDefinition::Create(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const std::string& shortname,
-    const std::string& name,
-    const std::string& symbol,
-    const std::string& terms,
-    const proto::ContactItemType unitOfAccount,
-    const PasswordPrompt& reason,
-    const VersionNumber version)
+// Convert 912545 to "9,125.45"
+//
+// (Example assumes a Factor of 100, Decimal Power of 2
+//  separator of "," and decimal point of ".")
+auto Unit::FormatAmountWithoutSymbolLocale(
+    std::int64_t amount,
+    std::string& str_output,
+    const std::string& str_thousand,
+    const std::string& str_decimal) const -> bool
 {
-    std::unique_ptr<UnitDefinition> contract(new SecurityContract(
-        api, nym, shortname, name, symbol, terms, unitOfAccount, version));
+    // --------------------------------------------------------
+    // Lookup separator and decimal point symbols based on locale.
+    // --------------------------------------------------------
+    // Get a moneypunct facet from the global ("C") locale
+    //
+    // NOTE: Turns out moneypunct kind of sucks.
+    // As a result, for internationalization purposes,
+    // these values have to be set here before compilation.
+    //
+    auto strSeparator =
+        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint =
+        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
-    if (!contract) { return nullptr; }
-
-    Lock lock(contract->lock_);
-
-    if (!contract->CalculateID(lock)) { return nullptr; }
-
-    if (contract->nym_) {
-        proto::UnitDefinition serialized = contract->SigVersion(lock);
-        std::shared_ptr<proto::Signature> sig =
-            std::make_shared<proto::Signature>();
-
-        if (!contract->update_signature(lock, reason)) { return nullptr; }
-    }
-
-    if (!contract->validate(lock, reason)) { return nullptr; }
-
-    contract->alias_ = contract->short_name_;
-
-    return contract.release();
+    str_output = Unit::formatLongAmount(
+        amount,
+        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
+        DecimalPower(),
+        nullptr,
+        strSeparator->Get(),
+        strDecimalPoint->Get());
+    return true;  // Note: might want to return false if str_output is empty.
 }
 
-// Unlike the other Create functions, this one does not produce a complete,
-// valid contract. This is used on the client side to produce a template for
-// the server, which actually creates the contract.
-UnitDefinition* UnitDefinition::Create(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const std::string& shortname,
-    const std::string& name,
-    const std::string& symbol,
-    const std::string& terms,
-    const std::uint64_t weight,
-    const proto::ContactItemType unitOfAccount,
-    const VersionNumber version)
+auto Unit::GetID(const Lock& lock) const -> OTIdentifier
 {
-    std::unique_ptr<UnitDefinition> contract(new BasketContract(
-        api,
-        nym,
-        shortname,
-        name,
-        symbol,
-        terms,
-        weight,
-        unitOfAccount,
-        version));
-
-    return contract.release();
+    return GetID(api_, IDVersion(lock));
 }
 
-UnitDefinition* UnitDefinition::Factory(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const proto::UnitDefinition& serialized,
-    const PasswordPrompt& reason)
+auto Unit::GetID(const api::internal::Core& api, const SerializedType& contract)
+    -> OTIdentifier
 {
-    if (!proto::Validate<proto::UnitDefinition>(serialized, VERBOSE, true)) {
+    auto id = Identifier::Factory();
+    id->CalculateDigest(api.Factory().Data(contract));
 
-        return nullptr;
-    }
-
-    std::unique_ptr<UnitDefinition> contract;
-
-    switch (serialized.type()) {
-        case proto::UNITTYPE_CURRENCY:
-            contract.reset(new CurrencyContract(api, nym, serialized));
-
-            break;
-        case proto::UNITTYPE_BASKET:
-            contract.reset(new BasketContract(api, nym, serialized));
-
-            break;
-        case proto::UNITTYPE_SECURITY:
-            contract.reset(new SecurityContract(api, nym, serialized));
-
-            break;
-        default:
-
-            return nullptr;
-    }
-
-    if (!contract) { return nullptr; }
-
-    Lock lock(contract->lock_);
-
-    if (!contract->validate(lock, reason)) { return nullptr; }
-
-    contract->alias_ = contract->short_name_;
-
-    return contract.release();
+    return id;
 }
 
-proto::UnitDefinition UnitDefinition::IDVersion(const Lock& lock) const
+auto Unit::IDVersion(const Lock& lock) const -> SerializedType
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    proto::UnitDefinition contract;
+    SerializedType contract;
     contract.set_version(version_);
     contract.clear_id();         // reinforcing that this field must be blank.
     contract.clear_signature();  // reinforcing that this field must be blank.
@@ -823,7 +726,36 @@ proto::UnitDefinition UnitDefinition::IDVersion(const Lock& lock) const
     return contract;
 }
 
-proto::UnitDefinition UnitDefinition::SigVersion(const Lock& lock) const
+auto Unit::PublicContract() const -> SerializedType
+{
+    Lock lock(lock_);
+
+    auto serialized = contract(lock);
+
+    if (nym_) {
+        auto publicNym = nym_->asPublicNym();
+        *(serialized.mutable_publicnym()) = publicNym;
+    }
+
+    return serialized;
+}
+
+auto Unit::Serialize() const -> OTData
+{
+    Lock lock(lock_);
+
+    return api_.Factory().Data(contract(lock));
+}
+
+auto Unit::SetAlias(const std::string& alias) -> void
+{
+    InitAlias(alias);
+    api_.Wallet().SetUnitDefinitionAlias(
+        identifier::UnitDefinition::Factory(id_->str()),
+        alias);  // TODO conversion
+}
+
+auto Unit::SigVersion(const Lock& lock) const -> SerializedType
 {
     auto contract = IDVersion(lock);
     contract.set_id(id(lock)->str().c_str());
@@ -831,60 +763,50 @@ proto::UnitDefinition UnitDefinition::SigVersion(const Lock& lock) const
     return contract;
 }
 
-proto::UnitDefinition UnitDefinition::contract(const Lock& lock) const
+// Convert "$9,125.45" to 912545.
+//
+// (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
+// point of ".")
+auto Unit::StringToAmountLocale(
+    std::int64_t& amount,
+    const std::string& str_input,
+    const std::string& str_thousand,
+    const std::string& str_decimal) const -> bool
 {
-    auto contract = SigVersion(lock);
+    // Lookup separator and decimal point symbols based on locale.
 
-    if (1 <= signatures_.size()) {
-        *(contract.mutable_signature()) = *(signatures_.front());
-    }
+    // Get a moneypunct facet from the global ("C") locale
+    //
 
-    return contract;
+    // NOTE: from web searching, I've determined that locale / moneypunct has
+    // internationalization problems. Therefore it looks like if you want to
+    // build OT for various languages / regions, you're just going to have to
+    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
+    // variables.
+    //
+    // The best improvement I can think on that is to check locale and then use
+    // it to choose from our own list of hardcoded values. Todo.
+
+    auto strSeparator =
+        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint =
+        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
+
+    bool bSuccess = Unit::ParseFormatted(
+        amount,
+        str_input,
+        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
+        DecimalPower(),
+        strSeparator->Get(),
+        strDecimalPoint->Get());
+
+    return bSuccess;
 }
 
-proto::UnitDefinition UnitDefinition::Contract() const
+auto Unit::update_signature(const Lock& lock, const PasswordPrompt& reason)
+    -> bool
 {
-    Lock lock(lock_);
-
-    return contract(lock);
-}
-
-OTData UnitDefinition::Serialize() const
-{
-    Lock lock(lock_);
-
-    return api_.Factory().Data(contract(lock));
-}
-
-OTIdentifier UnitDefinition::GetID(const Lock& lock) const
-{
-    return GetID(api_, IDVersion(lock));
-}
-
-OTIdentifier UnitDefinition::GetID(
-    const api::internal::Core& api,
-    const proto::UnitDefinition& contract)
-{
-    auto id = Identifier::Factory();
-    id->CalculateDigest(api.Factory().Data(contract));
-
-    return id;
-}
-
-void UnitDefinition::SetAlias(const std::string& alias)
-{
-    ot_super::SetAlias(alias);
-
-    api_.Wallet().SetUnitDefinitionAlias(
-        identifier::UnitDefinition::Factory(id_->str()),
-        alias);  // TODO conversion
-}
-
-bool UnitDefinition::update_signature(
-    const Lock& lock,
-    const PasswordPrompt& reason)
-{
-    if (!ot_super::update_signature(lock, reason)) { return false; }
+    if (!Signable::update_signature(lock, reason)) { return false; }
 
     bool success = false;
     signatures_.clear();
@@ -903,8 +825,8 @@ bool UnitDefinition::update_signature(
     return success;
 }
 
-bool UnitDefinition::validate(const Lock& lock, const PasswordPrompt& reason)
-    const
+auto Unit::validate(const Lock& lock, const PasswordPrompt& reason) const
+    -> bool
 {
     bool validNym = false;
 
@@ -926,153 +848,99 @@ bool UnitDefinition::validate(const Lock& lock, const PasswordPrompt& reason)
     return (validNym && validSyntax && validSig);
 }
 
-bool UnitDefinition::verify_signature(
+auto Unit::verify_signature(
     const Lock& lock,
     const proto::Signature& signature,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
-    if (!ot_super::verify_signature(lock, signature, reason)) { return false; }
+    if (!Signable::verify_signature(lock, signature, reason)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
     return nym_->Verify(serialized, sigProto, reason);
-    ;
 }
 
-proto::UnitDefinition UnitDefinition::PublicContract() const
+// currently only "user" accounts (normal user asset accounts) are added to
+// this list Any "special" accounts, such as basket reserve accounts, or voucher
+// reserve accounts, or cash reserve accounts, are not included on this list.
+auto Unit::VisitAccountRecords(
+    const std::string& dataFolder,
+    AccountVisitor& visitor,
+    const PasswordPrompt& reason) const -> bool
 {
     Lock lock(lock_);
+    const auto strInstrumentDefinitionID = String::Factory(id(lock));
+    auto strAcctRecordFile = String::Factory();
+    strAcctRecordFile->Format("%s.a", strInstrumentDefinitionID->Get());
 
-    auto serialized = contract(lock);
+    std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
+        api_,
+        OTDB::STORED_OBJ_STRING_MAP,
+        dataFolder,
+        api_.Legacy().Contract(),
+        strAcctRecordFile->Get(),
+        "",
+        ""));
 
-    if (nym_) {
-        auto publicNym = nym_->asPublicNym();
-        *(serialized.mutable_publicnym()) = publicNym;
+    OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
+
+    // There was definitely a StringMap loaded from local storage.
+    // (Even an empty one, possibly.) This is the only block that matters in
+    // this function.
+    //
+    if (nullptr != pMap) {
+        const auto& pNotaryID = visitor.GetNotaryID();
+
+        OT_ASSERT(false == pNotaryID.empty());
+
+        auto& theMap = pMap->the_map;
+
+        // todo: optimize: will probably have to use a database for this,
+        // std::int64_t term.
+        // (What if there are a million acct IDs in this flat file? Not
+        // scaleable.)
+        //
+        for (auto& it : theMap) {
+            const std::string& str_acct_id =
+                it.first;  // Containing the account ID.
+            const std::string& str_instrument_definition_id =
+                it.second;  // Containing the instrument definition ID. (Just in
+                            // case
+                            // someone copied the wrong file here...)
+
+            if (!strInstrumentDefinitionID->Compare(
+                    str_instrument_definition_id.c_str())) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Error: wrong "
+                    "instrument definition ID (")(str_instrument_definition_id)(
+                    ") when expecting: ")(strInstrumentDefinitionID)(".")
+                    .Flush();
+            } else {
+                const auto& wallet = api_.Wallet();
+                const auto accountID = Identifier::Factory(str_acct_id);
+                auto account = wallet.Account(accountID, reason);
+
+                if (false == bool(account)) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Unable to load account ")(str_acct_id)(".")
+                        .Flush();
+
+                    continue;
+                }
+
+                if (false == visitor.Trigger(account.get(), reason)) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Error: Trigger failed for account ")(str_acct_id)
+                        .Flush();
+                }
+            }
+        }
+
+        return true;
     }
 
-    return serialized;
+    return true;
 }
-
-// Convert 912545 to "$9,125.45"
-//
-// (Assuming a Factor of 100, Decimal Power of 2, Currency Symbol of "$",
-//  separator of "," and decimal point of ".")
-//
-bool UnitDefinition::FormatAmountLocale(
-    std::int64_t amount,
-    std::string& str_output,
-    const std::string& str_thousand,
-    const std::string& str_decimal) const
-{
-    // Lookup separator and decimal point symbols based on locale.
-
-    // Get a moneypunct facet from the global ("C") locale
-    //
-    // NOTE: Turns out moneypunct kind of sucks.
-    // As a result, for internationalization purposes,
-    // these values have to be set here before compilation.
-    //
-    auto strSeparator =
-        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    auto strDecimalPoint =
-        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
-
-    // NOTE: from web searching, I've determined that locale / moneypunct has
-    // internationalization problems. Therefore it looks like if you want to
-    // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
-    // variables.
-    //
-    // The best improvement I can think on that is to check locale and then use
-    // it to choose from our own list of hardcoded values. Todo.
-
-    str_output = UnitDefinition::formatLongAmount(
-        amount,
-        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
-        DecimalPower(),
-        (proto::UNITTYPE_CURRENCY == Type()) ? primary_unit_symbol_.c_str()
-                                             : nullptr,
-        strSeparator->Get(),
-        strDecimalPoint->Get());
-    return true;  // Note: might want to return false if str_output is empty.
-}
-
-// Convert 912545 to "9,125.45"
-//
-// (Example assumes a Factor of 100, Decimal Power of 2
-//  separator of "," and decimal point of ".")
-//
-bool UnitDefinition::FormatAmountWithoutSymbolLocale(
-    std::int64_t amount,
-    std::string& str_output,
-    const std::string& str_thousand,
-    const std::string& str_decimal) const
-{
-    // --------------------------------------------------------
-    // Lookup separator and decimal point symbols based on locale.
-    // --------------------------------------------------------
-    // Get a moneypunct facet from the global ("C") locale
-    //
-    // NOTE: Turns out moneypunct kind of sucks.
-    // As a result, for internationalization purposes,
-    // these values have to be set here before compilation.
-    //
-    auto strSeparator =
-        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    auto strDecimalPoint =
-        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
-
-    str_output = UnitDefinition::formatLongAmount(
-        amount,
-        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
-        DecimalPower(),
-        nullptr,
-        strSeparator->Get(),
-        strDecimalPoint->Get());
-    return true;  // Note: might want to return false if str_output is empty.
-}
-
-// Convert "$9,125.45" to 912545.
-//
-// (Assuming a Factor of 100, Decimal Power of 2, separator of "," and decimal
-// point of ".")
-//
-bool UnitDefinition::StringToAmountLocale(
-    std::int64_t& amount,
-    const std::string& str_input,
-    const std::string& str_thousand,
-    const std::string& str_decimal) const
-{
-    // Lookup separator and decimal point symbols based on locale.
-
-    // Get a moneypunct facet from the global ("C") locale
-    //
-
-    // NOTE: from web searching, I've determined that locale / moneypunct has
-    // internationalization problems. Therefore it looks like if you want to
-    // build OT for various languages / regions, you're just going to have to
-    // edit stdafx.hpp and change the OT_THOUSANDS_SEP and OT_DECIMAL_POINT
-    // variables.
-    //
-    // The best improvement I can think on that is to check locale and then use
-    // it to choose from our own list of hardcoded values. Todo.
-
-    auto strSeparator =
-        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    auto strDecimalPoint =
-        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
-
-    bool bSuccess = UnitDefinition::ParseFormatted(
-        amount,
-        str_input,
-        static_cast<std::int64_t>(std::pow(10, DecimalPower())),
-        DecimalPower(),
-        strSeparator->Get(),
-        strDecimalPoint->Get());
-
-    return bSuccess;
-}
-
-}  // namespace opentxs
+}  // namespace opentxs::contract::implementation

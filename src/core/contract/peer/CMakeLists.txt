@@ -33,7 +33,20 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/peer/PeerRequest.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/peer/StoreSecret.hpp"
 )
-set(cxx-headers ${cxx-install-headers} PeerObject.hpp)
+set(cxx-headers ${cxx-install-headers}
+  BailmentNotice.cpp
+  BailmentReply.cpp
+  BailmentRequest.cpp
+  ConnectionReply.cpp
+  ConnectionRequest.cpp
+  NoticeAcknowledgement.cpp
+  OutBailmentReply.cpp
+  OutBailmentRequest.cpp
+  PeerObject.hpp
+  PeerReply.cpp
+  PeerRequest.cpp
+  StoreSecret.cpp
+)
 
 add_library(opentxs-core-contract-peer OBJECT ${cxx-sources} ${cxx-headers})
 set_property(

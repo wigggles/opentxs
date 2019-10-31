@@ -205,8 +205,10 @@ Command GetCommand(const CommandField& bytes) noexcept;
 Magic GetMagic(const blockchain::Type type) noexcept;
 Magic GetMagic(const std::uint32_t magic) noexcept;
 blockchain::Type GetNetwork(const Magic magic) noexcept;
-BitVector8 GetServiceBytes(const std::set<bitcoin::Service>& services) noexcept;
-std::set<bitcoin::Service> GetServices(const BitVector8 data) noexcept;
+OPENTXS_EXPORT BitVector8
+GetServiceBytes(const std::set<bitcoin::Service>& services) noexcept;
+OPENTXS_EXPORT std::set<bitcoin::Service> GetServices(
+    const BitVector8 data) noexcept;
 CommandField SerializeCommand(const Command command) noexcept;
 std::set<bitcoin::Service> TranslateServices(
     const blockchain::Type chain,

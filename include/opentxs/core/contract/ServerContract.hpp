@@ -9,100 +9,63 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
-#include <list>
 #include <memory>
 #include <string>
 #include <tuple>
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
-{
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class ServerContract final : public Signable
+class Server : virtual public opentxs::contract::Signable
 {
 public:
-    static const VersionNumber DefaultVersion;
-
-    /** A server listen address */
-    typedef std::tuple<
+    using Endpoint = std::tuple<
         proto::AddressType,
         proto::ProtocolVersion,
-        std::string,    // hostname / address
-        std::uint32_t,  // port
-        VersionNumber>  // version
-        Endpoint;
+        std::string,     // hostname / address
+        std::uint32_t,   // port
+        VersionNumber>;  // version
 
-    static ServerContract* Create(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::list<Endpoint>& endpoints,
-        const std::string& terms,
-        const std::string& name,
-        const VersionNumber version,
-        const PasswordPrompt& reason);
-    static ServerContract* Factory(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::ServerContract& serialized,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
 
-    bool ConnectInfo(
+    OPENTXS_EXPORT virtual bool ConnectInfo(
         std::string& strHostname,
         std::uint32_t& nPort,
         proto::AddressType& actual,
-        const proto::AddressType& preferred) const;
-    proto::ServerContract Contract() const;
-    std::string EffectiveName(const PasswordPrompt& reason) const;
-    std::string Name() const final { return name_; }
-    proto::ServerContract PublicContract() const;
-    bool Statistics(String& strContents) const;
-    const unsigned char* PublicTransportKey() const;
-    OTData Serialize() const final;
-    const Data& TransportKey() const;
-    std::unique_ptr<OTPassword> TransportKey(
+        const proto::AddressType& preferred) const = 0;
+    OPENTXS_EXPORT virtual proto::ServerContract Contract() const = 0;
+    OPENTXS_EXPORT virtual std::string EffectiveName(
+        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual proto::ServerContract PublicContract() const = 0;
+    OPENTXS_EXPORT virtual bool Statistics(String& strContents) const = 0;
+    OPENTXS_EXPORT virtual const Data& TransportKey() const = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<OTPassword> TransportKey(
         Data& pubkey,
-        const PasswordPrompt& reason) const;
+        const PasswordPrompt& reason) const = 0;
 
-    void SetAlias(const std::string& alias) final;
+    OPENTXS_EXPORT virtual void InitAlias(const std::string& alias) = 0;
 
-    ~ServerContract() final = default;
+    OPENTXS_EXPORT ~Server() override = default;
+
+protected:
+    Server() noexcept = default;
 
 private:
-    typedef Signable ot_super;
+    friend OTServerContract;
 
-    const api::internal::Core& api_;
-    std::list<Endpoint> listen_params_{};
-    std::string name_{""};
-    OTData transport_key_;
+#ifndef _WIN32
+    OPENTXS_EXPORT Server* clone() const noexcept override = 0;
+#endif
 
-    proto::ServerContract contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const final;
-    proto::ServerContract IDVersion(const Lock& lock) const;
-    proto::ServerContract SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const final;
-
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
-
-    ServerContract() = delete;
-    ServerContract(const api::internal::Core& api, const Nym_p& nym);
-    ServerContract(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::ServerContract& serialized);
+    Server(const Server&) = delete;
+    Server(Server&&) = delete;
+    Server& operator=(const Server&) = delete;
+    Server& operator=(Server&&) = delete;
 };
+}  // namespace contract
 }  // namespace opentxs
 #endif

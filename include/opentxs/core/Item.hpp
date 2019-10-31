@@ -71,12 +71,13 @@ public:
     // signed off!!
     //
     //
-    EXPORT bool AddBlankNumbersToItem(const NumList& theAddition);
+    OPENTXS_EXPORT bool AddBlankNumbersToItem(const NumList& theAddition);
     std::int64_t GetClosingNum() const;
     void SetClosingNum(std::int64_t lClosingNum);
-    EXPORT std::int64_t GetNumberOfOrigin(
+    OPENTXS_EXPORT std::int64_t GetNumberOfOrigin(
         const PasswordPrompt& reason) override;
-    EXPORT void CalculateNumberOfOrigin(const PasswordPrompt& reason) override;
+    OPENTXS_EXPORT void CalculateNumberOfOrigin(
+        const PasswordPrompt& reason) override;
     // used for looping through the items in a few places.
     inline listOfItems& GetItemList() { return m_listItems; }
     std::shared_ptr<const Item> GetItem(std::int32_t nIndex) const;
@@ -129,7 +130,7 @@ public:
     // Call this on the server side, on a balanceStatement item, to verify
     // whether the wallet side set it up correctly (and thus it's okay to sign
     // and return with acknowledgement.)
-    EXPORT bool VerifyBalanceStatement(
+    OPENTXS_EXPORT bool VerifyBalanceStatement(
         std::int64_t lActualAdjustment,
         const ClientContext& context,
         const Ledger& THE_INBOX,
@@ -144,12 +145,12 @@ public:
                                                  // constructing the original
                                                  // request.) Unused when 0.
                                                  // server-side
-    EXPORT bool VerifyTransactionStatement(
+    OPENTXS_EXPORT bool VerifyTransactionStatement(
         const ClientContext& THE_NYM,
         const OTTransaction& TARGET_TRANSACTION,
         const std::set<TransactionNumber> newNumbers,
         const bool bIsRealTransaction = true) const;
-    EXPORT bool VerifyTransactionStatement(
+    OPENTXS_EXPORT bool VerifyTransactionStatement(
         const ClientContext& THE_NYM,
         const OTTransaction& TARGET_TRANSACTION,
         const bool bIsRealTransaction = true) const;
@@ -159,18 +160,20 @@ public:
     inline void SetType(itemType theType) { m_Type = theType; }
     inline std::int64_t GetAmount() const { return m_lAmount; }
     inline void SetAmount(std::int64_t lAmount) { m_lAmount = lAmount; }
-    EXPORT void GetNote(String& theStr) const;
-    EXPORT void SetNote(const String& theStr);
-    EXPORT void GetAttachment(String& theStr) const;
-    EXPORT void GetAttachment(Data& output) const;
-    EXPORT void SetAttachment(const String& theStr);
-    EXPORT void SetAttachment(const Data& input);
+    OPENTXS_EXPORT void GetNote(String& theStr) const;
+    OPENTXS_EXPORT void SetNote(const String& theStr);
+    OPENTXS_EXPORT void GetAttachment(String& theStr) const;
+    OPENTXS_EXPORT void GetAttachment(Data& output) const;
+    OPENTXS_EXPORT void SetAttachment(const String& theStr);
+    OPENTXS_EXPORT void SetAttachment(const Data& input);
     inline const Identifier& GetDestinationAcctID() const { return m_AcctToID; }
     inline void SetDestinationAcctID(const Identifier& theID)
     {
         m_AcctToID = theID;
     }
-    EXPORT static void GetStringFromType(itemType theType, String& strType);
+    OPENTXS_EXPORT static void GetStringFromType(
+        itemType theType,
+        String& strType);
     inline void GetTypeString(String& strType) const
     {
         GetStringFromType(GetType(), strType);

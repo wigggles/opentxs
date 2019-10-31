@@ -23,18 +23,21 @@ namespace key
 class HD : virtual public EllipticCurve
 {
 public:
-    EXPORT static Bip32Fingerprint CalculateFingerprint(
+    OPENTXS_EXPORT static Bip32Fingerprint CalculateFingerprint(
         const api::crypto::Hash& hash,
         const Data& pubkey);
 
-    EXPORT virtual OTData Chaincode(const PasswordPrompt& reason) const = 0;
-    EXPORT virtual int Depth() const = 0;
-    EXPORT virtual Bip32Fingerprint Fingerprint(
+    OPENTXS_EXPORT virtual OTData Chaincode(
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual std::string Xprv(const PasswordPrompt& reason) const = 0;
-    EXPORT virtual std::string Xpub(const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual int Depth() const = 0;
+    OPENTXS_EXPORT virtual Bip32Fingerprint Fingerprint(
+        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual std::string Xprv(
+        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual std::string Xpub(
+        const PasswordPrompt& reason) const = 0;
 
-    EXPORT ~HD() override = default;
+    OPENTXS_EXPORT ~HD() override = default;
 
 protected:
     HD() = default;

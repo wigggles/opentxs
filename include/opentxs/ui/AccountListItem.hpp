@@ -33,18 +33,18 @@ namespace ui
 class AccountListItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string AccountID() const noexcept = 0;
-    EXPORT virtual Amount Balance() const noexcept = 0;
-    EXPORT virtual std::string ContractID() const noexcept = 0;
-    EXPORT virtual std::string DisplayBalance() const noexcept = 0;
-    EXPORT virtual std::string DisplayUnit() const noexcept = 0;
-    EXPORT virtual std::string Name() const noexcept = 0;
-    EXPORT virtual std::string NotaryID() const noexcept = 0;
-    EXPORT virtual std::string NotaryName() const noexcept = 0;
-    EXPORT virtual AccountType Type() const noexcept = 0;
-    EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string AccountID() const noexcept = 0;
+    OPENTXS_EXPORT virtual Amount Balance() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string ContractID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayBalance() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayUnit() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Name() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string NotaryID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string NotaryName() const noexcept = 0;
+    OPENTXS_EXPORT virtual AccountType Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual proto::ContactItemType Unit() const noexcept = 0;
 
-    EXPORT ~AccountListItem() override = default;
+    OPENTXS_EXPORT ~AccountListItem() override = default;
 
 protected:
     AccountListItem() noexcept = default;

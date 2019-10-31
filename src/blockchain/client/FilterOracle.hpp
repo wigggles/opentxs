@@ -34,7 +34,7 @@ private:
         void Finish(const block::Hash& block) noexcept;
         void Start(const block::Hash& hash) noexcept;
 
-        RequestQueue() noexcept;
+        RequestQueue(const api::Core& api) noexcept;
 
     private:
         using Map = std::map<block::pHash, Time>;

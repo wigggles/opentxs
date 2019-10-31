@@ -361,29 +361,28 @@ bool ActivityThread::Pay(
         return false;
     }
 
-    const auto contract = api_.Wallet().UnitDefinition(unitID, reason);
+    try {
+        const auto contract = api_.Wallet().UnitDefinition(unitID, reason);
+        auto value = Amount{0};
+        const auto converted =
+            contract->StringToAmountLocale(value, amount, "", "");
 
-    if (false == bool(contract)) {
+        if (false == converted) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Error parsing amount (")(
+                amount)(")")
+                .Flush();
+
+            return false;
+        }
+
+        return Pay(value, sourceAccount, memo, type);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing unit definition (")(
             unitID)(")")
             .Flush();
 
         return false;
     }
-
-    Amount value{0};
-    const auto converted =
-        contract->StringToAmountLocale(value, amount, "", "");
-
-    if (false == converted) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Error parsing amount (")(amount)(
-            ")")
-            .Flush();
-
-        return false;
-    }
-
-    return Pay(value, sourceAccount, memo, type);
 }
 
 bool ActivityThread::Pay(
@@ -541,10 +540,13 @@ bool ActivityThread::send_cheque(
         return false;
     }
 
-    const auto contract = api_.Wallet().UnitDefinition(
-        api_.Storage().AccountContract(sourceAccount), reason);
+    auto displayAmount = std::string{};
 
-    if (false == bool(contract)) {
+    try {
+        const auto contract = api_.Wallet().UnitDefinition(
+            api_.Storage().AccountContract(sourceAccount), reason);
+        contract->FormatAmountLocale(amount, displayAmount, ",", ".");
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to load unit definition contract")
             .Flush();
@@ -552,9 +554,7 @@ bool ActivityThread::send_cheque(
         return false;
     }
 
-    std::string displayAmount{};
-    contract->FormatAmountLocale(amount, displayAmount, ",", ".");
-    auto task = make_blank<DraftTask>::value();
+    auto task = make_blank<DraftTask>::value(api_);
     auto& [id, otx] = task;
     otx = api_.OTX().SendCheque(
         primary_id_, sourceAccount, *participants_.begin(), amount, memo);
@@ -612,7 +612,7 @@ bool ActivityThread::SendDraft() const noexcept
         return false;
     }
 
-    auto task = make_blank<DraftTask>::value();
+    auto task = make_blank<DraftTask>::value(api_);
     auto& [id, otx] = task;
     otx =
         api_.OTX().MessageContact(primary_id_, *participants_.begin(), draft_);

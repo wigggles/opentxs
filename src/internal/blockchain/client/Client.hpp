@@ -23,14 +23,14 @@ namespace opentxs
 {
 template <>
 struct make_blank<blockchain::block::Height> {
-    static blockchain::block::Height value() { return -1; }
+    static blockchain::block::Height value(const api::Core&) { return -1; }
 };
 template <>
 struct make_blank<blockchain::block::Position> {
-    static blockchain::block::Position value()
+    static blockchain::block::Position value(const api::Core& api)
     {
-        return {make_blank<blockchain::block::Height>::value(),
-                make_blank<blockchain::block::pHash>::value()};
+        return {make_blank<blockchain::block::Height>::value(api),
+                make_blank<blockchain::block::pHash>::value(api)};
     }
 };
 }  // namespace opentxs

@@ -319,7 +319,7 @@ TEST_F(Test_Rpc, Add_Server_Session)
         clientmanager.Wallet().Server(servercontract->PublicContract(), reason);
 
     // Make the server the introduction server.
-    clientmanager.OTX().SetIntroductionServer(*clientservercontract);
+    clientmanager.OTX().SetIntroductionServer(clientservercontract);
 }
 
 TEST_F(Test_Rpc, Get_Server_Password)

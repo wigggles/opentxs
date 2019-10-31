@@ -5,49 +5,64 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/Signable.hpp"
-
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
-#define OT_METHOD "opentxs::Signable::"
+#include "internal/api/Api.hpp"
 
-namespace opentxs
+#include "Signable.hpp"
+
+#define OT_METHOD "opentxs::contract::implementation::Signable::"
+
+namespace opentxs::contract::implementation
 {
-Signable::Signable(const Nym_p& nym) noexcept
-    : alias_()
-    , id_(Identifier::Factory())
-    , nym_(nym)
-    , signatures_()
-    , version_()
-    , conditions_()
+Signable::Signable(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const VersionNumber version,
+    const std::string& conditions,
+    const std::string& alias,
+    OTIdentifier&& id,
+    Signatures&& signatures) noexcept
+    : api_(api)
     , lock_()
-{
-}
-
-Signable::Signable(const Nym_p& nym, const VersionNumber version) noexcept
-    : alias_()
-    , id_(Identifier::Factory())
     , nym_(nym)
-    , signatures_()
     , version_(version)
-    , conditions_()
-    , lock_()
+    , conditions_(conditions)
+    , id_(id)
+    , signatures_(std::move(signatures))
+    , alias_(alias)
 {
 }
 
 Signable::Signable(
+    const api::internal::Core& api,
     const Nym_p& nym,
     const VersionNumber version,
-    const std::string& conditions) noexcept
-    : alias_()
-    , id_(Identifier::Factory())
-    , nym_(nym)
-    , signatures_()
-    , version_(version)
-    , conditions_(conditions)
+    const std::string& conditions,
+    const std::string& alias) noexcept
+    : Signable(
+          api,
+          nym,
+          version,
+          conditions,
+          alias,
+          api.Factory().Identifier(),
+          {})
+{
+}
+
+Signable::Signable(const Signable& rhs) noexcept
+    : api_(rhs.api_)
     , lock_()
+    , nym_(rhs.nym_)
+    , version_(rhs.version_)
+    , conditions_(rhs.conditions_)
+    , id_(rhs.id_)
+    , signatures_(rhs.signatures_)
+    , alias_(rhs.alias_)
 {
 }
 
@@ -58,11 +73,11 @@ std::string Signable::Alias() const
     return alias_;
 }
 
-bool Signable::CalculateID(const Lock& lock)
+auto Signable::first_time_init(const Lock& lock) -> void
 {
-    id_ = Identifier::Factory(GetID(lock));
+    const_cast<OTIdentifier&>(id_) = GetID(lock);
 
-    return true;
+    if (id_->empty()) { throw std::runtime_error("Failed to calculate id"); }
 }
 
 bool Signable::CheckID(const Lock& lock) const { return (GetID(lock) == id_); }
@@ -79,6 +94,15 @@ OTIdentifier Signable::ID() const
     Lock lock(lock_);
 
     return id(lock);
+}
+
+auto Signable::init_serialized(const Lock& lock) noexcept(false) -> void
+{
+    const auto id = GetID(lock);
+
+    if (id_.get() != id) {
+        throw std::runtime_error("Calculated id does not match serialized id");
+    }
 }
 
 Nym_p Signable::Nym() const { return nym_; }
@@ -108,6 +132,12 @@ bool Signable::update_signature(const Lock& lock, const PasswordPrompt& reason)
     }
 
     return true;
+}
+
+void Signable::update_version(const VersionNumber version) noexcept
+{
+    signatures_.clear();
+    const_cast<VersionNumber&>(version_) = version;
 }
 
 bool Signable::Validate(const PasswordPrompt& reason) const
@@ -151,4 +181,4 @@ bool Signable::verify_signature(
 }
 
 VersionNumber Signable::Version() const { return version_; }
-}  // namespace opentxs
+}  // namespace opentxs::contract::implementation

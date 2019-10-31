@@ -93,7 +93,7 @@ private:
     static ReverseTypeMap make_reverse_map();
     static MessageType reply_command(const MessageType& type);
 
-    EXPORT Message(const api::internal::Core& api);
+    OPENTXS_EXPORT Message(const api::internal::Core& api);
 
     bool updateContentsByType(Tag& parent);
 
@@ -108,22 +108,22 @@ private:
         irr::io::IrrXMLReader*& xml);
 
 public:
-    EXPORT static std::string Command(const MessageType type);
-    EXPORT static MessageType Type(const std::string& type);
-    EXPORT static std::string ReplyCommand(const MessageType type);
+    OPENTXS_EXPORT static std::string Command(const MessageType type);
+    OPENTXS_EXPORT static MessageType Type(const std::string& type);
+    OPENTXS_EXPORT static std::string ReplyCommand(const MessageType type);
 
-    EXPORT ~Message() final;
+    OPENTXS_EXPORT ~Message() final;
 
     bool VerifyContractID() const final;
 
-    EXPORT bool SignContract(
+    OPENTXS_EXPORT bool SignContract(
         const identity::Nym& theNym,
         const PasswordPrompt& reason) final;
-    EXPORT bool VerifySignature(
+    OPENTXS_EXPORT bool VerifySignature(
         const identity::Nym& theNym,
         const PasswordPrompt& reason) const final;
 
-    EXPORT bool HarvestTransactionNumbers(
+    OPENTXS_EXPORT bool HarvestTransactionNumbers(
         ServerContext& context,
         bool bHarvestingForRetry,     // false until positively asserted.
         bool bReplyWasSuccess,        // false until positively asserted.
@@ -136,10 +136,11 @@ public:
     // So the message can get the list of numbers from the Nym, before sending,
     // that should be listed as acknowledged that the server reply has already
     // been seen for those request numbers.
-    EXPORT void SetAcknowledgments(const Context& context);
-    EXPORT void SetAcknowledgments(const std::set<RequestNumber>& numbers);
+    OPENTXS_EXPORT void SetAcknowledgments(const Context& context);
+    OPENTXS_EXPORT void SetAcknowledgments(
+        const std::set<RequestNumber>& numbers);
 
-    EXPORT static void registerStrategy(
+    OPENTXS_EXPORT static void registerStrategy(
         std::string name,
         OTMessageStrategy* strategy);
 

@@ -51,7 +51,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::unique_ptr<opentxs::ContactItem> item_{nullptr};
+    std::unique_ptr<opentxs::ContactItem> item_;
 
     ContactItem(
         const ContactSubsectionInternalInterface& parent,

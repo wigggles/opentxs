@@ -30,15 +30,15 @@ class AccountActivity;
 class AccountActivity : virtual public List
 {
 public:
-    EXPORT virtual Amount Balance() const noexcept = 0;
-    EXPORT virtual int BalancePolarity() const noexcept = 0;
-    EXPORT virtual std::string DisplayBalance() const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First() const
-        noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual Amount Balance() const noexcept = 0;
+    OPENTXS_EXPORT virtual int BalancePolarity() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayBalance() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
+        const noexcept = 0;
 
-    EXPORT ~AccountActivity() override = default;
+    OPENTXS_EXPORT ~AccountActivity() override = default;
 
 protected:
     AccountActivity() noexcept = default;

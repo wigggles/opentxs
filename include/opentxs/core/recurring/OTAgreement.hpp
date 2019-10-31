@@ -111,7 +111,7 @@ public:
     //                       const Time& VALID_FROM=0,    const Time&
     // VALID_TO=0);
 
-    EXPORT bool SetProposal(
+    OPENTXS_EXPORT bool SetProposal(
         ServerContext& context,
         const Account& MERCHANT_ACCT,
         const String& strConsideration,
@@ -120,7 +120,7 @@ public:
 
     // Merchant Nym is passed here so we can verify the signature before
     // confirming.
-    EXPORT bool Confirm(
+    OPENTXS_EXPORT bool Confirm(
         ServerContext& context,
         const Account& PAYER_ACCT,
         const identifier::Nym& p_id_MERCHANT_NYM,
@@ -267,9 +267,9 @@ public:
     // The recipient must also provide an opening and closing transaction
     // number(s).
     //
-    EXPORT std::int64_t GetRecipientClosingTransactionNoAt(
+    OPENTXS_EXPORT std::int64_t GetRecipientClosingTransactionNoAt(
         std::uint32_t nIndex) const;
-    EXPORT std::int32_t GetRecipientCountClosingNumbers() const;
+    OPENTXS_EXPORT std::int32_t GetRecipientCountClosingNumbers() const;
 
     void AddRecipientClosingTransactionNo(
         const std::int64_t& lClosingTransactionNo);
@@ -277,8 +277,8 @@ public:
     // This is a higher-level than the above functions. It calls them.
     // Below is the abstraction, above is the implementation.
 
-    EXPORT TransactionNumber GetRecipientOpeningNum() const;
-    EXPORT TransactionNumber GetRecipientClosingNum() const;
+    OPENTXS_EXPORT TransactionNumber GetRecipientOpeningNum() const;
+    OPENTXS_EXPORT TransactionNumber GetRecipientClosingNum() const;
 
     // From OTCronItem (parent class of this)
     /*
@@ -301,8 +301,8 @@ public:
      */
     bool CanRemoveItemFromCron(const ClientContext& context) override;
 
-    EXPORT void HarvestOpeningNumber(ServerContext& context) override;
-    EXPORT void HarvestClosingNumbers(ServerContext& context) override;
+    OPENTXS_EXPORT void HarvestOpeningNumber(ServerContext& context) override;
+    OPENTXS_EXPORT void HarvestClosingNumbers(ServerContext& context) override;
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -385,7 +385,7 @@ public:
      virtual bool SignContract (const identity::Nym& theNym);
 
      */
-    EXPORT bool SendNoticeToAllParties(
+    OPENTXS_EXPORT bool SendNoticeToAllParties(
         const api::internal::Core& core,
         bool bSuccessMsg,
         const identity::Nym& theServerNym,
@@ -400,7 +400,7 @@ public:
         identity::Nym* pActualNym = nullptr) const;
 
     // Nym receives an Item::acknowledgment or Item::rejection.
-    EXPORT static bool DropServerNoticeToNymbox(
+    OPENTXS_EXPORT static bool DropServerNoticeToNymbox(
         const api::internal::Core& core,
         bool bSuccessMsg,
         const identity::Nym& theServerNym,
@@ -422,7 +422,7 @@ public:
     void Release() override;
     void Release_Agreement();
     bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const override;
-    EXPORT std::int64_t GetOpeningNumber(
+    OPENTXS_EXPORT std::int64_t GetOpeningNumber(
         const identifier::Nym& theNymID) const override;
     std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.

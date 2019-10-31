@@ -21,30 +21,32 @@ namespace blind
 class Mint : virtual public Contract
 {
 public:
-    EXPORT virtual OTIdentifier AccountID() const = 0;
-    EXPORT virtual bool Expired() const = 0;
-    EXPORT virtual std::int64_t GetDenomination(std::int32_t nIndex) const = 0;
-    EXPORT virtual std::int32_t GetDenominationCount() const = 0;
-    EXPORT virtual Time GetExpiration() const = 0;
-    EXPORT virtual std::int64_t GetLargestDenomination(
+    OPENTXS_EXPORT virtual OTIdentifier AccountID() const = 0;
+    OPENTXS_EXPORT virtual bool Expired() const = 0;
+    OPENTXS_EXPORT virtual std::int64_t GetDenomination(
+        std::int32_t nIndex) const = 0;
+    OPENTXS_EXPORT virtual std::int32_t GetDenominationCount() const = 0;
+    OPENTXS_EXPORT virtual Time GetExpiration() const = 0;
+    OPENTXS_EXPORT virtual std::int64_t GetLargestDenomination(
         std::int64_t lAmount) const = 0;
-    EXPORT virtual bool GetPrivate(
+    OPENTXS_EXPORT virtual bool GetPrivate(
         Armored& theArmor,
         std::int64_t lDenomination) const = 0;
-    EXPORT virtual bool GetPublic(Armored& theArmor, std::int64_t lDenomination)
-        const = 0;
-    EXPORT virtual std::int32_t GetSeries() const = 0;
-    EXPORT virtual Time GetValidFrom() const = 0;
-    EXPORT virtual Time GetValidTo() const = 0;
-    EXPORT virtual const identifier::UnitDefinition& InstrumentDefinitionID()
-        const = 0;
+    OPENTXS_EXPORT virtual bool GetPublic(
+        Armored& theArmor,
+        std::int64_t lDenomination) const = 0;
+    OPENTXS_EXPORT virtual std::int32_t GetSeries() const = 0;
+    OPENTXS_EXPORT virtual Time GetValidFrom() const = 0;
+    OPENTXS_EXPORT virtual Time GetValidTo() const = 0;
+    OPENTXS_EXPORT virtual const identifier::UnitDefinition&
+    InstrumentDefinitionID() const = 0;
 
-    EXPORT virtual bool AddDenomination(
+    OPENTXS_EXPORT virtual bool AddDenomination(
         const identity::Nym& theNotary,
         const std::int64_t denomination,
         const std::size_t keySize,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual void GenerateNewMint(
+    OPENTXS_EXPORT virtual void GenerateNewMint(
         const api::Wallet& wallet,
         const std::int32_t nSeries,
         const Time VALID_FROM,
@@ -65,28 +67,28 @@ public:
         const std::int64_t nDenom10,
         const std::size_t keySize,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool LoadMint(
+    OPENTXS_EXPORT virtual bool LoadMint(
         const PasswordPrompt& reason,
         const char* szAppend = nullptr) = 0;
-    EXPORT virtual void Release_Mint() = 0;
-    EXPORT virtual void ReleaseDenominations() = 0;
-    EXPORT virtual bool SaveMint(const char* szAppend = nullptr) = 0;
-    EXPORT virtual void SetInstrumentDefinitionID(
+    OPENTXS_EXPORT virtual void Release_Mint() = 0;
+    OPENTXS_EXPORT virtual void ReleaseDenominations() = 0;
+    OPENTXS_EXPORT virtual bool SaveMint(const char* szAppend = nullptr) = 0;
+    OPENTXS_EXPORT virtual void SetInstrumentDefinitionID(
         const identifier::UnitDefinition& newID) = 0;
-    EXPORT virtual void SetSavePrivateKeys(bool bDoIt = true) = 0;
-    EXPORT virtual bool SignToken(
+    OPENTXS_EXPORT virtual void SetSavePrivateKeys(bool bDoIt = true) = 0;
+    OPENTXS_EXPORT virtual bool SignToken(
         const identity::Nym& notary,
         blind::Token& token,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool VerifyMint(
+    OPENTXS_EXPORT virtual bool VerifyMint(
         const identity::Nym& theOperator,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool VerifyToken(
+    OPENTXS_EXPORT virtual bool VerifyToken(
         const identity::Nym& notary,
         const blind::Token& token,
         const PasswordPrompt& reason) = 0;
 
-    EXPORT ~Mint() override = default;
+    OPENTXS_EXPORT ~Mint() override = default;
 
 protected:
     Mint() = default;

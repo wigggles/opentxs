@@ -43,8 +43,6 @@ public:
     static OTIdentifier contact_id_bob_issuer_;
     static OTIdentifier contact_id_issuer_alice_;
     static OTIdentifier contact_id_issuer_bob_;
-    static const std::shared_ptr<const ServerContract> server_contract_;
-    static const OTServerID server_1_id_;
 
     static const opentxs::api::client::Manager* alice_;
     static const opentxs::api::client::Manager* bob_;
@@ -61,6 +59,7 @@ public:
     const opentxs::api::client::Manager& bob_client_;
     const opentxs::api::server::Manager& server_1_;
     const opentxs::api::client::Manager& issuer_client_;
+    const OTServerContract server_contract_;
 
     Test_DepositCheques()
         : alice_client_(Context().StartClient(OTTestEnvironment::test_args_, 0))
@@ -69,6 +68,9 @@ public:
               Context().StartServer(OTTestEnvironment::test_args_, 0, true))
         , issuer_client_(
               Context().StartClient(OTTestEnvironment::test_args_, 2))
+        , server_contract_(server_1_.Wallet().Server(
+              server_1_.ID(),
+              server_1_.Factory().PasswordPrompt(__FUNCTION__)))
     {
 #if OT_CASH
         server_1_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
@@ -78,16 +80,13 @@ public:
     }
 
     void import_server_contract(
-        const ServerContract& contract,
+        const contract::Server& contract,
         const opentxs::api::client::Manager& client)
     {
         auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
         auto clientVersion =
             client.Wallet().Server(server_contract_->PublicContract(), reason);
-
-        OT_ASSERT(clientVersion)
-
-        client.OTX().SetIntroductionServer(*clientVersion);
+        client.OTX().SetIntroductionServer(clientVersion);
     }
 
     void init()
@@ -116,18 +115,10 @@ public:
             bob_client_.Wallet().Nym(reasonB, BOB, {SeedB_, 0})->ID();
         const_cast<OTNymID&>(issuer_nym_id_) =
             issuer_client_.Wallet().Nym(reasonI, ISSUER, {SeedC_, 0})->ID();
-        const_cast<OTServerID&>(server_1_id_) =
-            identifier::Server::Factory(server_1_.ID().str());
-        auto reason = server_1_.Factory().PasswordPrompt(__FUNCTION__);
-        const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
-            server_1_.Wallet().Server(server_1_id_, reason);
 
-        OT_ASSERT(server_contract_);
-        OT_ASSERT(false == server_1_id_->empty());
-
-        import_server_contract(*server_contract_, alice_client_);
-        import_server_contract(*server_contract_, bob_client_);
-        import_server_contract(*server_contract_, issuer_client_);
+        import_server_contract(server_contract_, alice_client_);
+        import_server_contract(server_contract_, bob_client_);
+        import_server_contract(server_contract_, issuer_client_);
 
         alice_ = &alice_client_;
         bob_ = &bob_client_;
@@ -150,10 +141,6 @@ OTIdentifier Test_DepositCheques::contact_id_bob_issuer_{Identifier::Factory()};
 OTIdentifier Test_DepositCheques::contact_id_issuer_alice_{
     Identifier::Factory()};
 OTIdentifier Test_DepositCheques::contact_id_issuer_bob_{Identifier::Factory()};
-const std::shared_ptr<const ServerContract>
-    Test_DepositCheques::server_contract_{nullptr};
-const OTServerID Test_DepositCheques::server_1_id_{
-    identifier::Server::Factory()};
 const opentxs::api::client::Manager* Test_DepositCheques::alice_{nullptr};
 const opentxs::api::client::Manager* Test_DepositCheques::bob_{nullptr};
 std::string Test_DepositCheques::alice_payment_code_;
@@ -246,17 +233,17 @@ TEST_F(Test_DepositCheques, introduction_server)
     alice_client_.OTX().StartIntroductionServer(alice_nym_id_);
     bob_client_.OTX().StartIntroductionServer(bob_nym_id_);
     auto task1 = alice_client_.OTX().RegisterNymPublic(
-        alice_nym_id_, server_1_id_, true);
+        alice_nym_id_, server_1_.ID(), true);
     auto task2 =
-        bob_client_.OTX().RegisterNymPublic(bob_nym_id_, server_1_id_, true);
+        bob_client_.OTX().RegisterNymPublic(bob_nym_id_, server_1_.ID(), true);
 
     ASSERT_NE(0, task1.first);
     ASSERT_NE(0, task2.first);
     EXPECT_EQ(proto::LASTREPLYSTATUS_MESSAGESUCCESS, task1.second.get().first);
     EXPECT_EQ(proto::LASTREPLYSTATUS_MESSAGESUCCESS, task2.second.get().first);
 
-    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
-    bob_client_.OTX().ContextIdle(bob_nym_id_, server_1_id_).get();
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_.ID()).get();
+    bob_client_.OTX().ContextIdle(bob_nym_id_, server_1_.ID()).get();
 }
 
 TEST_F(Test_DepositCheques, add_contacts)
@@ -357,7 +344,6 @@ TEST_F(Test_DepositCheques, issue_dollars)
         UNIT_DEFINITION_UNIT_OF_ACCOUNT,
         reasonI);
 
-    ASSERT_TRUE(contract);
     EXPECT_EQ(proto::UNITTYPE_CURRENCY, contract->Type());
     EXPECT_TRUE(unit_id_->empty());
 
@@ -368,13 +354,13 @@ TEST_F(Test_DepositCheques, issue_dollars)
     {
         auto issuer =
             issuer_client_.Wallet().mutable_Nym(issuer_nym_id_, reasonI);
-        issuer.AddPreferredOTServer(server_1_id_->str(), true, reasonI);
+        issuer.AddPreferredOTServer(server_1_.ID().str(), true, reasonI);
         issuer.AddContract(
             unit_id_->str(), proto::CITEMTYPE_USD, true, true, reasonI);
     }
 
     auto task = issuer_client_.OTX().IssueUnitDefinition(
-        issuer_nym_id_, server_1_id_, unit_id_);
+        issuer_nym_id_, server_1_.ID(), unit_id_);
     auto& [taskID, future] = task;
     const auto result = future.get();
 
@@ -386,7 +372,7 @@ TEST_F(Test_DepositCheques, issue_dollars)
 
     EXPECT_FALSE(issuer_account_id_->empty());
 
-    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_id_).get();
+    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_.ID()).get();
 }
 
 TEST_F(Test_DepositCheques, pay_alice)
@@ -402,8 +388,8 @@ TEST_F(Test_DepositCheques, pay_alice)
     ASSERT_NE(0, taskID);
     EXPECT_EQ(proto::LASTREPLYSTATUS_MESSAGESUCCESS, future.get().first);
 
-    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_id_).get();
-    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
+    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_.ID()).get();
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_.ID()).get();
 }
 
 TEST_F(Test_DepositCheques, accept_cheque_alice)
@@ -411,22 +397,22 @@ TEST_F(Test_DepositCheques, accept_cheque_alice)
     // No meaning to this operation other than to ensure the state machine has
     // completed one full cycle
     alice_client_.OTX()
-        .DownloadServerContract(alice_nym_id_, server_1_id_, server_1_id_)
+        .DownloadServerContract(alice_nym_id_, server_1_.ID(), server_1_.ID())
         .second.get();
-    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_.ID()).get();
     const auto count = alice_client_.OTX().DepositCheques(alice_nym_id_);
 
     EXPECT_EQ(1, count);
 
-    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
-    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_id_).get();
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_.ID()).get();
+    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_.ID()).get();
 }
 
 TEST_F(Test_DepositCheques, process_inbox_issuer)
 {
     auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
     auto task = issuer_client_.OTX().ProcessInbox(
-        issuer_nym_id_, server_1_id_, issuer_account_id_);
+        issuer_nym_id_, server_1_.ID(), issuer_account_id_);
     auto& [id, future] = task;
 
     ASSERT_NE(0, id);
@@ -444,8 +430,8 @@ TEST_F(Test_DepositCheques, process_inbox_issuer)
 
 TEST_F(Test_DepositCheques, shutdown)
 {
-    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_id_).get();
-    bob_client_.OTX().ContextIdle(bob_nym_id_, server_1_id_).get();
-    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_id_).get();
+    alice_client_.OTX().ContextIdle(alice_nym_id_, server_1_.ID()).get();
+    bob_client_.OTX().ContextIdle(bob_nym_id_, server_1_.ID()).get();
+    issuer_client_.OTX().ContextIdle(issuer_nym_id_, server_1_.ID()).get();
 }
 }  // namespace

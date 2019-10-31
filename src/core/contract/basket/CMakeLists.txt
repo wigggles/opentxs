@@ -10,7 +10,7 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/basket/BasketContract.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/basket/BasketItem.hpp"
 )
-set(cxx-headers ${cxx-install-headers})
+set(cxx-headers ${cxx-install-headers} BasketContract.hpp)
 
 add_library(opentxs-core-contract-basket OBJECT ${cxx-sources} ${cxx-headers})
 target_include_directories(

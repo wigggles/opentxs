@@ -12,6 +12,7 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -70,8 +71,8 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 #endif
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    const std::shared_ptr<const PeerRequest> request,
-    const std::shared_ptr<const PeerReply> reply,
+    const OTPeerRequest request,
+    const OTPeerReply reply,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason) const
 {
@@ -80,7 +81,7 @@ std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
-    const std::shared_ptr<const PeerRequest> request,
+    const OTPeerRequest request,
     const VersionNumber version,
     const opentxs::PasswordPrompt& reason) const
 {

@@ -193,7 +193,7 @@ public:
         const bool forcePrimary,
         const bool resync) const final;
     OTServerID SetIntroductionServer(
-        const ServerContract& contract) const final;
+        const contract::Server& contract) const final;
     BackgroundTask SendCheque(
         const identifier::Nym& localNymID,
         const Identifier& sourceAccountID,
@@ -340,7 +340,7 @@ private:
         const identifier::Server& serverID) const;
     OTServerID set_introduction_server(
         const Lock& lock,
-        const ServerContract& contract) const;
+        const contract::Server& contract) const;
     BackgroundTask start_task(const TaskID taskID, bool success) const final;
     ThreadStatus status(const Lock& lock, const TaskID taskID) const;
     void update_task(

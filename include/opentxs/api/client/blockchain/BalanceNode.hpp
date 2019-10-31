@@ -22,14 +22,14 @@ class BalanceNode
 {
 public:
     struct Element {
-        EXPORT virtual std::string Address(
+        OPENTXS_EXPORT virtual std::string Address(
             const AddressStyle format,
             const PasswordPrompt& reason) const noexcept = 0;
-        EXPORT virtual OTIdentifier Contact() const noexcept = 0;
-        EXPORT virtual ECKey Key() const noexcept = 0;
-        EXPORT virtual std::string Label() const noexcept = 0;
-        EXPORT virtual OTData PubkeyHash(const PasswordPrompt& reason) const
-            noexcept = 0;
+        OPENTXS_EXPORT virtual OTIdentifier Contact() const noexcept = 0;
+        OPENTXS_EXPORT virtual ECKey Key() const noexcept = 0;
+        OPENTXS_EXPORT virtual std::string Label() const noexcept = 0;
+        OPENTXS_EXPORT virtual OTData PubkeyHash(
+            const PasswordPrompt& reason) const noexcept = 0;
 
         virtual ~Element() = default;
 
@@ -38,14 +38,14 @@ public:
     };
 
     /// Throws std::out_of_range for invalid index
-    EXPORT virtual const Element& BalanceElement(
+    OPENTXS_EXPORT virtual const Element& BalanceElement(
         const Subchain type,
         const Bip32Index index) const noexcept(false) = 0;
-    EXPORT virtual const Identifier& ID() const noexcept = 0;
-    EXPORT virtual const BalanceTree& Parent() const noexcept = 0;
-    EXPORT virtual BalanceNodeType Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual const Identifier& ID() const noexcept = 0;
+    OPENTXS_EXPORT virtual const BalanceTree& Parent() const noexcept = 0;
+    OPENTXS_EXPORT virtual BalanceNodeType Type() const noexcept = 0;
 
-    EXPORT virtual ~BalanceNode() = default;
+    OPENTXS_EXPORT virtual ~BalanceNode() = default;
 
 protected:
     BalanceNode() noexcept = default;

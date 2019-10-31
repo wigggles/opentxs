@@ -25,8 +25,8 @@ namespace zap
 class Request : virtual public zeromq::Message
 {
 public:
-    EXPORT static Pimpl<Request> Factory();
-    EXPORT static Pimpl<Request> Factory(
+    OPENTXS_EXPORT static Pimpl<Request> Factory();
+    OPENTXS_EXPORT static Pimpl<Request> Factory(
         const std::string& address,
         const std::string& domain,
         const zap::Mechanism mechanism,
@@ -34,19 +34,19 @@ public:
         const Data& identity = Data::Factory(),
         const std::string& version = "1.0");
 
-    EXPORT virtual std::string Address() const = 0;
-    EXPORT virtual const FrameSection Credentials() const = 0;
-    EXPORT virtual std::string Debug() const = 0;
-    EXPORT virtual std::string Domain() const = 0;
-    EXPORT virtual OTData Identity() const = 0;
-    EXPORT virtual zap::Mechanism Mechanism() const = 0;
-    EXPORT virtual OTData RequestID() const = 0;
-    EXPORT virtual std::pair<bool, std::string> Validate() const = 0;
-    EXPORT virtual std::string Version() const = 0;
+    OPENTXS_EXPORT virtual std::string Address() const = 0;
+    OPENTXS_EXPORT virtual const FrameSection Credentials() const = 0;
+    OPENTXS_EXPORT virtual std::string Debug() const = 0;
+    OPENTXS_EXPORT virtual std::string Domain() const = 0;
+    OPENTXS_EXPORT virtual OTData Identity() const = 0;
+    OPENTXS_EXPORT virtual zap::Mechanism Mechanism() const = 0;
+    OPENTXS_EXPORT virtual OTData RequestID() const = 0;
+    OPENTXS_EXPORT virtual std::pair<bool, std::string> Validate() const = 0;
+    OPENTXS_EXPORT virtual std::string Version() const = 0;
 
-    EXPORT virtual Frame& AddCredential(const Data& credential) = 0;
+    OPENTXS_EXPORT virtual Frame& AddCredential(const Data& credential) = 0;
 
-    EXPORT ~Request() override = default;
+    OPENTXS_EXPORT ~Request() override = default;
 
 protected:
     Request() = default;

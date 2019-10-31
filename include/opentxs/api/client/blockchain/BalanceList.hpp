@@ -26,16 +26,16 @@ public:
         opentxs::iterator::Bidirectional<const BalanceList, const BalanceTree>;
 
     /// Throws std::out_of_range for invalid position
-    EXPORT virtual const_iterator::value_type& at(
+    OPENTXS_EXPORT virtual const_iterator::value_type& at(
         const std::size_t position) const noexcept(false) = 0;
-    EXPORT virtual const_iterator begin() const noexcept = 0;
-    EXPORT virtual const_iterator cbegin() const noexcept = 0;
-    EXPORT virtual const_iterator cend() const noexcept = 0;
-    EXPORT virtual opentxs::blockchain::Type Chain() const noexcept = 0;
-    EXPORT virtual const_iterator end() const noexcept = 0;
-    EXPORT virtual std::size_t size() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator begin() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator cbegin() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator cend() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::blockchain::Type Chain() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator end() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::size_t size() const noexcept = 0;
 
-    EXPORT virtual ~BalanceList() = default;
+    OPENTXS_EXPORT virtual ~BalanceList() = default;
 
 protected:
     BalanceList() noexcept = default;

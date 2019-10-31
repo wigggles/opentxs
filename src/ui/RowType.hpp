@@ -26,7 +26,7 @@ public:
 protected:
     const ParentType& parent_;
     const IdentifierType row_id_;
-    const bool valid_{false};
+    const bool valid_;
 
     RowType(
         const ParentType& parent,

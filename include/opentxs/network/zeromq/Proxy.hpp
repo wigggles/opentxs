@@ -34,7 +34,7 @@ public:
         socket::Socket& frontend,
         socket::Socket& backend);
 
-    EXPORT virtual ~Proxy() = default;
+    OPENTXS_EXPORT virtual ~Proxy() = default;
 
 protected:
     Proxy() = default;

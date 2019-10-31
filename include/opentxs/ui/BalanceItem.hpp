@@ -40,18 +40,19 @@ namespace ui
 class BalanceItem : virtual public ListRow
 {
 public:
-    EXPORT virtual opentxs::Amount Amount() const noexcept = 0;
-    EXPORT virtual std::vector<std::string> Contacts() const noexcept = 0;
-    EXPORT virtual std::string DisplayAmount() const noexcept = 0;
-    EXPORT virtual std::string Memo() const noexcept = 0;
-    EXPORT virtual std::string Workflow() const noexcept = 0;
-    EXPORT virtual std::string Text() const noexcept = 0;
-    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const
+    OPENTXS_EXPORT virtual opentxs::Amount Amount() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::vector<std::string> Contacts() const
         noexcept = 0;
-    EXPORT virtual StorageBox Type() const noexcept = 0;
-    EXPORT virtual std::string UUID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayAmount() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Memo() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Workflow() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Text() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::chrono::system_clock::time_point Timestamp()
+        const noexcept = 0;
+    OPENTXS_EXPORT virtual StorageBox Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string UUID() const noexcept = 0;
 
-    EXPORT ~BalanceItem() override = default;
+    OPENTXS_EXPORT ~BalanceItem() override = default;
 
 protected:
     BalanceItem() noexcept = default;

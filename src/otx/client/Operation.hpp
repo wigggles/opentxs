@@ -54,11 +54,11 @@ public:
         const SetID setID) override;
     bool SendPeerReply(
         const identifier::Nym& targetNymID,
-        const std::shared_ptr<const PeerReply> peerreply,
-        const std::shared_ptr<const PeerRequest> peerrequest) override;
+        const OTPeerReply peerreply,
+        const OTPeerRequest peerrequest) override;
     bool SendPeerRequest(
         const identifier::Nym& targetNymID,
-        const std::shared_ptr<const PeerRequest> peerrequest) override;
+        const OTPeerRequest peerrequest) override;
     bool SendTransfer(
         const Identifier& sourceAccountID,
         const Identifier& destinationAccountID,
@@ -151,8 +151,8 @@ private:
     std::set<OTIdentifier> redownload_accounts_;
     std::set<OTManagedNumber> numbers_;
     std::atomic<std::size_t> error_count_;
-    std::shared_ptr<const PeerReply> peer_reply_;
-    std::shared_ptr<const PeerRequest> peer_request_;
+    OTPeerReply peer_reply_;
+    OTPeerRequest peer_request_;
     SetID set_id_;
 
     static bool check_future(ServerContext::SendFuture& future);

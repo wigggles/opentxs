@@ -26,41 +26,37 @@ struct Core;
 
 namespace otx
 {
-class Reply : virtual public Signable
+class Reply : virtual public opentxs::contract::Signable
 {
 public:
-    EXPORT static const VersionNumber DefaultVersion;
-    EXPORT static const VersionNumber MaxVersion;
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber MaxVersion;
 
-    EXPORT static Pimpl<opentxs::otx::Reply> Factory(
+    OPENTXS_EXPORT static Pimpl<opentxs::otx::Reply> Factory(
         const api::internal::Core& api,
         const Nym_p signer,
         const identifier::Nym& recipient,
         const identifier::Server& server,
         const proto::ServerReplyType type,
+        const RequestNumber number,
         const bool success,
-        const PasswordPrompt& reason);
-    EXPORT static Pimpl<opentxs::otx::Reply> Factory(
+        const PasswordPrompt& reason,
+        std::shared_ptr<const proto::OTXPush>&& push = {});
+    OPENTXS_EXPORT static Pimpl<opentxs::otx::Reply> Factory(
         const api::internal::Core& api,
         const proto::ServerReply serialized,
         const PasswordPrompt& reason);
 
-    EXPORT virtual proto::ServerReply Contract() const = 0;
-    EXPORT virtual RequestNumber Number() const = 0;
-    EXPORT virtual std::shared_ptr<proto::OTXPush> Push() const = 0;
-    EXPORT virtual const identifier::Nym& Recipient() const = 0;
-    EXPORT virtual const identifier::Server& Server() const = 0;
-    EXPORT virtual bool Success() const = 0;
-    EXPORT virtual proto::ServerReplyType Type() const = 0;
+    OPENTXS_EXPORT virtual proto::ServerReply Contract() const = 0;
+    OPENTXS_EXPORT virtual RequestNumber Number() const = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<const proto::OTXPush> Push()
+        const = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& Recipient() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& Server() const = 0;
+    OPENTXS_EXPORT virtual bool Success() const = 0;
+    OPENTXS_EXPORT virtual proto::ServerReplyType Type() const = 0;
 
-    EXPORT virtual bool SetNumber(
-        const RequestNumber number,
-        const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool SetPush(
-        const proto::OTXPush& push,
-        const PasswordPrompt& reason) = 0;
-
-    EXPORT ~Reply() override = default;
+    OPENTXS_EXPORT ~Reply() override = default;
 
 protected:
     Reply() = default;
@@ -68,7 +64,9 @@ protected:
 private:
     friend OTXReply;
 
-    virtual Reply* clone() const = 0;
+#ifndef _WIN32
+    Reply* clone() const noexcept override = 0;
+#endif
 
     Reply(const Reply&) = delete;
     Reply(Reply&&) = delete;

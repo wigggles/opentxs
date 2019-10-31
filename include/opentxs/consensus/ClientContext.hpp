@@ -15,27 +15,30 @@ namespace opentxs
 class ClientContext : virtual public Context
 {
 public:
-    EXPORT virtual bool hasOpenTransactions() const = 0;
+    OPENTXS_EXPORT virtual bool hasOpenTransactions() const = 0;
     using Context::IssuedNumbers;
-    EXPORT virtual std::size_t IssuedNumbers(
+    OPENTXS_EXPORT virtual std::size_t IssuedNumbers(
         const TransactionNumbers& exclude) const = 0;
-    EXPORT virtual std::size_t OpenCronItems() const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual std::size_t OpenCronItems() const = 0;
+    OPENTXS_EXPORT virtual bool Verify(
         const TransactionStatement& statement,
         const TransactionNumbers& excluded,
         const TransactionNumbers& included) const = 0;
-    EXPORT virtual bool VerifyCronItem(
+    OPENTXS_EXPORT virtual bool VerifyCronItem(
         const TransactionNumber number) const = 0;
     using Context::VerifyIssuedNumber;
-    EXPORT virtual bool VerifyIssuedNumber(
+    OPENTXS_EXPORT virtual bool VerifyIssuedNumber(
         const TransactionNumber& number,
         const TransactionNumbers& exclude) const = 0;
 
-    EXPORT virtual bool AcceptIssuedNumbers(TransactionNumbers& newNumbers) = 0;
-    EXPORT virtual void FinishAcknowledgements(const RequestNumbers& req) = 0;
-    EXPORT virtual bool IssueNumber(const TransactionNumber& number) = 0;
+    OPENTXS_EXPORT virtual bool AcceptIssuedNumbers(
+        TransactionNumbers& newNumbers) = 0;
+    OPENTXS_EXPORT virtual void FinishAcknowledgements(
+        const RequestNumbers& req) = 0;
+    OPENTXS_EXPORT virtual bool IssueNumber(
+        const TransactionNumber& number) = 0;
 
-    EXPORT ~ClientContext() override = default;
+    OPENTXS_EXPORT ~ClientContext() override = default;
 
 protected:
     ClientContext() = default;

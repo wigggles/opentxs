@@ -2,34 +2,99 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/Log.hpp"
 
+#include "core/contract/peer/PeerRequest.hpp"
 #include "internal/api/Api.hpp"
+
+#include "BailmentNotice.hpp"
 
 #define CURRENT_VERSION 6
 
 namespace opentxs
 {
-BailmentNotice::BailmentNotice(
+using ParentType = contract::peer::implementation::Request;
+using ReturnType = contract::peer::request::implementation::BailmentNotice;
+
+auto Factory::BailmentNotice(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::PeerRequest& serialized)
-    : ot_super(api, nym, serialized)
-    , unit_(api_.Factory().UnitID(serialized.pendingbailment().unitid()))
-    , server_(api_.Factory().ServerID(serialized.pendingbailment().serverid()))
-    , requestID_(Identifier::Factory(serialized.pendingbailment().requestid()))
-    , txid_(serialized.pendingbailment().txid())
-    , amount_(serialized.pendingbailment().amount())
+    const identifier::Nym& recipientID,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID,
+    const opentxs::Identifier& requestID,
+    const std::string& txid,
+    const Amount& amount,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::peer::request::BailmentNotice>
 {
+    try {
+        api.Wallet().UnitDefinition(unitID, reason);
+        auto output = std::make_shared<ReturnType>(
+            api, nym, recipientID, unitID, serverID, requestID, txid, amount);
+
+        OT_ASSERT(output);
+
+        auto& reply = *output;
+
+        if (false == ParentType::Finish(reply, reason)) { return {}; }
+
+        return std::move(output);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
 }
 
+auto Factory::BailmentNotice(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::peer::request::BailmentNotice>
+{
+    if (false == proto::Validate(serialized, VERBOSE)) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Invalid serialized request.")
+            .Flush();
+
+        return {};
+    }
+
+    try {
+        auto output = std::make_shared<ReturnType>(api, nym, serialized);
+        auto& contract = *output;
+        Lock lock(contract.lock_);
+
+        if (false == contract.validate(lock, reason)) {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid request.")
+                .Flush();
+
+            return {};
+        }
+
+        return std::move(output);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
+}
+}  // namespace opentxs
+
+namespace opentxs::contract::peer::request::implementation
+{
 BailmentNotice::BailmentNotice(
     const api::internal::Core& api,
     const Nym_p& nym,
@@ -39,7 +104,7 @@ BailmentNotice::BailmentNotice(
     const Identifier& requestID,
     const std::string& txid,
     const Amount& amount)
-    : ot_super(
+    : Request(
           api,
           nym,
           CURRENT_VERSION,
@@ -52,12 +117,38 @@ BailmentNotice::BailmentNotice(
     , txid_(txid)
     , amount_(amount)
 {
+    Lock lock(lock_);
+    first_time_init(lock);
 }
 
-proto::PeerRequest BailmentNotice::IDVersion(const Lock& lock) const
+BailmentNotice::BailmentNotice(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const SerializedType& serialized)
+    : Request(api, nym, serialized)
+    , unit_(api_.Factory().UnitID(serialized.pendingbailment().unitid()))
+    , server_(api_.Factory().ServerID(serialized.pendingbailment().serverid()))
+    , requestID_(Identifier::Factory(serialized.pendingbailment().requestid()))
+    , txid_(serialized.pendingbailment().txid())
+    , amount_(serialized.pendingbailment().amount())
 {
-    auto contract = ot_super::IDVersion(lock);
+    Lock lock(lock_);
+    init_serialized(lock);
+}
 
+BailmentNotice::BailmentNotice(const BailmentNotice& rhs)
+    : Request(rhs)
+    , unit_(rhs.unit_)
+    , server_(rhs.server_)
+    , requestID_(rhs.requestID_)
+    , txid_(rhs.txid_)
+    , amount_(rhs.amount_)
+{
+}
+
+auto BailmentNotice::IDVersion(const Lock& lock) const -> SerializedType
+{
+    auto contract = Request::IDVersion(lock);
     auto& pendingbailment = *contract.mutable_pendingbailment();
     pendingbailment.set_version(version_);
     pendingbailment.set_unitid(String::Factory(unit_)->Get());
@@ -68,4 +159,4 @@ proto::PeerRequest BailmentNotice::IDVersion(const Lock& lock) const
 
     return contract;
 }
-}  // namespace opentxs
+}  // namespace opentxs::contract::peer::request::implementation

@@ -35,6 +35,7 @@ public:
         , counter_(0)
     {
     }
+    ~Test_State_Machine() override = default;
 };
 
 TEST_F(Test_State_Machine, stop_constructed)

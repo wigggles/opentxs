@@ -29,12 +29,12 @@ class AccountSummary;
 class AccountSummary : virtual public List
 {
 public:
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> First() const
-        noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> Next() const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> First()
+        const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::IssuerItem> Next()
+        const noexcept = 0;
 
-    EXPORT ~AccountSummary() override = default;
+    OPENTXS_EXPORT ~AccountSummary() override = default;
 
 protected:
     AccountSummary() noexcept = default;

@@ -33,91 +33,102 @@ public:
     typedef std::map<proto::ContactSectionName, std::shared_ptr<ContactSection>>
         SectionMap;
 
-    static std::string PrintContactData(const proto::ContactData& data);
+    OPENTXS_EXPORT static std::string PrintContactData(
+        const proto::ContactData& data);
 
-    ContactData(
+    OPENTXS_EXPORT ContactData(
         const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber targetVersion,
         const SectionMap& sections);
-    ContactData(
+    OPENTXS_EXPORT ContactData(
         const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber targetVersion,
         const proto::ContactData& serialized);
-    ContactData(const ContactData&);
+    OPENTXS_EXPORT ContactData(const ContactData&);
 
-    ContactData operator+(const ContactData& rhs) const;
+    OPENTXS_EXPORT ContactData operator+(const ContactData& rhs) const;
 
-    operator std::string() const;
+    OPENTXS_EXPORT operator std::string() const;
 
-    ContactData AddContract(
+    OPENTXS_EXPORT ContactData AddContract(
         const std::string& instrumentDefinitionID,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active) const;
-    ContactData AddEmail(
+    OPENTXS_EXPORT ContactData AddEmail(
         const std::string& value,
         const bool primary,
         const bool active) const;
-    ContactData AddItem(const Claim& claim) const;
-    ContactData AddItem(const std::shared_ptr<ContactItem>& item) const;
-    ContactData AddPaymentCode(
+    OPENTXS_EXPORT ContactData AddItem(const Claim& claim) const;
+    OPENTXS_EXPORT ContactData
+    AddItem(const std::shared_ptr<ContactItem>& item) const;
+    OPENTXS_EXPORT ContactData AddPaymentCode(
         const std::string& code,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active) const;
-    ContactData AddPhoneNumber(
+    OPENTXS_EXPORT ContactData AddPhoneNumber(
         const std::string& value,
         const bool primary,
         const bool active) const;
-    ContactData AddPreferredOTServer(const Identifier& id, const bool primary)
-        const;
-    ContactData AddSocialMediaProfile(
+    OPENTXS_EXPORT ContactData
+    AddPreferredOTServer(const Identifier& id, const bool primary) const;
+    OPENTXS_EXPORT ContactData AddSocialMediaProfile(
         const std::string& value,
         const proto::ContactItemType type,
         const bool primary,
         const bool active) const;
-    SectionMap::const_iterator begin() const { return sections_.begin(); }
-    std::string BestEmail() const;
-    std::string BestPhoneNumber() const;
-    std::string BestSocialMediaProfile(const proto::ContactItemType type) const;
-    std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
-    std::set<OTIdentifier> Contracts(
+    OPENTXS_EXPORT SectionMap::const_iterator begin() const
+    {
+        return sections_.begin();
+    }
+    OPENTXS_EXPORT std::string BestEmail() const;
+    OPENTXS_EXPORT std::string BestPhoneNumber() const;
+    OPENTXS_EXPORT std::string BestSocialMediaProfile(
+        const proto::ContactItemType type) const;
+    OPENTXS_EXPORT std::shared_ptr<ContactItem> Claim(
+        const Identifier& item) const;
+    OPENTXS_EXPORT std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const;
-    ContactData Delete(const Identifier& id) const;
-    std::string EmailAddresses(bool active = true) const;
-    SectionMap::const_iterator end() const { return sections_.end(); }
-    std::shared_ptr<ContactGroup> Group(
+    OPENTXS_EXPORT ContactData Delete(const Identifier& id) const;
+    OPENTXS_EXPORT std::string EmailAddresses(bool active = true) const;
+    OPENTXS_EXPORT SectionMap::const_iterator end() const
+    {
+        return sections_.end();
+    }
+    OPENTXS_EXPORT std::shared_ptr<ContactGroup> Group(
         const proto::ContactSectionName& section,
         const proto::ContactItemType& type) const;
-    bool HaveClaim(const Identifier& item) const;
-    bool HaveClaim(
+    OPENTXS_EXPORT bool HaveClaim(const Identifier& item) const;
+    OPENTXS_EXPORT bool HaveClaim(
         const proto::ContactSectionName& section,
         const proto::ContactItemType& type,
         const std::string& value) const;
-    std::string Name() const;
-    std::string PhoneNumbers(bool active = true) const;
-    OTServerID PreferredOTServer() const;
-    std::shared_ptr<ContactSection> Section(
+    OPENTXS_EXPORT std::string Name() const;
+    OPENTXS_EXPORT std::string PhoneNumbers(bool active = true) const;
+    OPENTXS_EXPORT OTServerID PreferredOTServer() const;
+    OPENTXS_EXPORT std::shared_ptr<ContactSection> Section(
         const proto::ContactSectionName& section) const;
-    proto::ContactData Serialize(const bool withID = false) const;
-    ContactData SetCommonName(const std::string& name) const;
-    ContactData SetName(const std::string& name, const bool primary = true)
-        const;
-    ContactData SetScope(
-        const proto::ContactItemType type,
-        const std::string& name) const;
-    std::string SocialMediaProfiles(
+    OPENTXS_EXPORT proto::ContactData Serialize(
+        const bool withID = false) const;
+    OPENTXS_EXPORT ContactData SetCommonName(const std::string& name) const;
+    OPENTXS_EXPORT ContactData
+    SetName(const std::string& name, const bool primary = true) const;
+    OPENTXS_EXPORT ContactData
+    SetScope(const proto::ContactItemType type, const std::string& name) const;
+    OPENTXS_EXPORT std::string SocialMediaProfiles(
         const proto::ContactItemType type,
         bool active = true) const;
-    const std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
-    proto::ContactItemType Type() const;
-    VersionNumber Version() const;
+    OPENTXS_EXPORT const std::set<proto::ContactItemType>
+    SocialMediaProfileTypes() const;
+    OPENTXS_EXPORT proto::ContactItemType Type() const;
+    OPENTXS_EXPORT VersionNumber Version() const;
 
-    ~ContactData() = default;
+    OPENTXS_EXPORT ~ContactData() = default;
 
 private:
     typedef std::

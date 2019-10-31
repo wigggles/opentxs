@@ -176,19 +176,19 @@ public:
 #endif
     bool RemoveServer(const identifier::Server& id) const final;
     bool RemoveUnitDefinition(const identifier::UnitDefinition& id) const final;
-    ConstServerContract Server(
+    OTServerContract Server(
         const identifier::Server& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const final;
-    ConstServerContract Server(
+    OTServerContract Server(
         const proto::ServerContract& contract,
         const PasswordPrompt& reason) const final;
-    ConstServerContract Server(
+    OTServerContract Server(
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
-        const std::list<ServerContract::Endpoint>& endpoints,
+        const std::list<contract::Server::Endpoint>& endpoints,
         const PasswordPrompt& reason,
         const VersionNumber version) const final;
     ObjectList ServerList() const final;
@@ -200,15 +200,20 @@ public:
         const identifier::UnitDefinition& id,
         const std::string& alias) const final;
     ObjectList UnitDefinitionList() const final;
-    const ConstUnitDefinition UnitDefinition(
+    OTUnitDefinition UnitDefinition(
         const identifier::UnitDefinition& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const final;
-    ConstUnitDefinition UnitDefinition(
+    OTBasketContract BasketContract(
+        const identifier::UnitDefinition& id,
+        const PasswordPrompt& reason,
+        const std::chrono::milliseconds& timeout =
+            std::chrono::milliseconds(0)) const noexcept(false) final;
+    OTUnitDefinition UnitDefinition(
         const proto::UnitDefinition& contract,
         const PasswordPrompt& reason) const final;
-    ConstUnitDefinition UnitDefinition(
+    OTUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
@@ -220,8 +225,8 @@ public:
         const proto::ContactItemType unitOfAccount,
         const PasswordPrompt& reason,
         const VersionNumber version =
-            UnitDefinition::DefaultVersion) const final;
-    ConstUnitDefinition UnitDefinition(
+            contract::Unit::DefaultVersion) const final;
+    OTUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
@@ -230,7 +235,7 @@ public:
         const proto::ContactItemType unitOfAccount,
         const PasswordPrompt& reason,
         const VersionNumber version =
-            UnitDefinition::DefaultVersion) const final;
+            contract::Unit::DefaultVersion) const final;
     proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const identifier::UnitDefinition& contractID,
         const PasswordPrompt& reason) const final;
@@ -260,8 +265,7 @@ protected:
     proto::ContactItemType extract_unit(
         const PasswordPrompt& reason,
         const identifier::UnitDefinition& contractID) const;
-    proto::ContactItemType extract_unit(
-        const opentxs::UnitDefinition& contract) const;
+    proto::ContactItemType extract_unit(const contract::Unit& contract) const;
     void save(const PasswordPrompt& reason, opentxs::internal::Context* context)
         const;
     OTNymID server_to_nym(
@@ -275,10 +279,8 @@ private:
     using NymLock =
         std::pair<std::mutex, std::shared_ptr<identity::internal::Nym>>;
     using NymMap = std::map<std::string, NymLock>;
-    using ServerMap =
-        std::map<std::string, std::shared_ptr<opentxs::ServerContract>>;
-    using UnitMap =
-        std::map<std::string, std::shared_ptr<opentxs::UnitDefinition>>;
+    using ServerMap = std::map<std::string, std::shared_ptr<contract::Server>>;
+    using UnitMap = std::map<std::string, std::shared_ptr<contract::Unit>>;
     using IssuerID = std::pair<OTIdentifier, OTIdentifier>;
     using IssuerLock =
         std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
@@ -412,28 +414,11 @@ private:
         const identifier::Nym& issuerID,
         const bool create) const;
 
-    /**   Save an instantiated server contract to storage and add to internal
-     *    map.
-     *
-     *    The smart pointer will not be initialized if the provided serialized
-     *    contract is invalid.
-     *
-     *    \param[in] contract the instantiated ServerContract object
-     */
-    ConstServerContract Server(
-        std::unique_ptr<ServerContract>& contract,
-        const PasswordPrompt& reason) const;
-
-    /**   Save an instantiated unit definition to storage and add to internal
-     *    map.
-     *
-     *    The smart pointer will not be initialized if the provided serialized
-     *    contract is invalid.
-     *
-     *    \param[in] contract the instantiated UnitDefinition object
-     */
-    ConstUnitDefinition UnitDefinition(
-        std::unique_ptr<opentxs::UnitDefinition>& contract,
+    OTServerContract server(
+        std::unique_ptr<contract::Server> contract,
+        const PasswordPrompt& reason) const noexcept(false);
+    OTUnitDefinition unit_definition(
+        std::shared_ptr<contract::Unit>&& contract,
         const PasswordPrompt& reason) const;
 
     Wallet() = delete;

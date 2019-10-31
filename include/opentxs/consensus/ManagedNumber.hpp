@@ -17,11 +17,11 @@ bool operator<(const OTManagedNumber& lhs, const OTManagedNumber& rhs);
 class ManagedNumber
 {
 public:
-    EXPORT virtual void SetSuccess(const bool value = true) const = 0;
-    EXPORT virtual bool Valid() const = 0;
-    EXPORT virtual TransactionNumber Value() const = 0;
+    OPENTXS_EXPORT virtual void SetSuccess(const bool value = true) const = 0;
+    OPENTXS_EXPORT virtual bool Valid() const = 0;
+    OPENTXS_EXPORT virtual TransactionNumber Value() const = 0;
 
-    EXPORT virtual ~ManagedNumber() = default;
+    OPENTXS_EXPORT virtual ~ManagedNumber() = default;
 
 protected:
     ManagedNumber() = default;

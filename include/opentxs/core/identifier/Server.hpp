@@ -32,22 +32,22 @@
 namespace opentxs
 {
 #ifndef SWIG
-bool operator==(
+OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
     const opentxs::Identifier& rhs);
-bool operator!=(
+OPENTXS_EXPORT bool operator!=(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<(
+OPENTXS_EXPORT bool operator<(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>(
+OPENTXS_EXPORT bool operator>(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<=(
+OPENTXS_EXPORT bool operator<=(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>=(
+OPENTXS_EXPORT bool operator>=(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,
     const opentxs::Identifier& rhs);
 #endif
@@ -58,12 +58,12 @@ class Server : virtual public opentxs::Identifier
 {
 public:
 #ifndef SWIG
-    EXPORT static OTServerID Factory();
-    EXPORT static OTServerID Factory(const std::string& rhs);
-    EXPORT static OTServerID Factory(const String& rhs);
+    OPENTXS_EXPORT static OTServerID Factory();
+    OPENTXS_EXPORT static OTServerID Factory(const std::string& rhs);
+    OPENTXS_EXPORT static OTServerID Factory(const String& rhs);
 #endif
 
-    EXPORT ~Server() override = default;
+    OPENTXS_EXPORT ~Server() override = default;
 
 protected:
     Server() = default;

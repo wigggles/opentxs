@@ -94,39 +94,41 @@ public:
     using ItemType = std::pair<proto::ContactItemType, std::string>;
     using ItemTypeList = std::vector<ItemType>;
 
-    EXPORT static ItemTypeList AllowedItems(
+    OPENTXS_EXPORT static ItemTypeList AllowedItems(
         const proto::ContactSectionName section,
         const std::string& lang) noexcept;
 
-    EXPORT virtual bool AddClaim(
+    OPENTXS_EXPORT virtual bool AddClaim(
         const proto::ContactItemType type,
         const std::string& value,
         const bool primary,
         const bool active) const noexcept = 0;
-    EXPORT virtual bool Delete(const int type, const std::string& claimID) const
+    OPENTXS_EXPORT virtual bool Delete(
+        const int type,
+        const std::string& claimID) const noexcept = 0;
+    OPENTXS_EXPORT virtual ItemTypeList Items(const std::string& lang) const
         noexcept = 0;
-    EXPORT virtual ItemTypeList Items(const std::string& lang) const
+    OPENTXS_EXPORT virtual std::string Name(const std::string& lang) const
         noexcept = 0;
-    EXPORT virtual std::string Name(const std::string& lang) const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection> First()
-        const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection> Next()
-        const noexcept = 0;
-    EXPORT virtual bool SetActive(
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>
+    Next() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetActive(
         const int type,
         const std::string& claimID,
         const bool active) const noexcept = 0;
-    EXPORT virtual bool SetPrimary(
+    OPENTXS_EXPORT virtual bool SetPrimary(
         const int type,
         const std::string& claimID,
         const bool primary) const noexcept = 0;
-    EXPORT virtual bool SetValue(
+    OPENTXS_EXPORT virtual bool SetValue(
         const int type,
         const std::string& claimID,
         const std::string& value) const noexcept = 0;
-    EXPORT virtual proto::ContactSectionName Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual proto::ContactSectionName Type() const noexcept = 0;
 
-    EXPORT ~ProfileSection() override = default;
+    OPENTXS_EXPORT ~ProfileSection() override = default;
 
 protected:
     ProfileSection() noexcept = default;

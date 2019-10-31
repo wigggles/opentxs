@@ -31,12 +31,12 @@ public:
     using Key =
         std::tuple<OTPassword, OTPassword, OTData, Path, Bip32Fingerprint>;
 
-    EXPORT virtual Key DeriveKey(
+    OPENTXS_EXPORT virtual Key DeriveKey(
         const api::crypto::Hash& hash,
         const EcdsaCurve& curve,
         const OTPassword& seed,
         const Path& path) const = 0;
-    EXPORT virtual bool DeserializePrivate(
+    OPENTXS_EXPORT virtual bool DeserializePrivate(
         const std::string& serialized,
         Bip32Network& network,
         Bip32Depth& depth,
@@ -44,7 +44,7 @@ public:
         Bip32Index& index,
         Data& chainCode,
         OTPassword& key) const = 0;
-    EXPORT virtual bool DeserializePublic(
+    OPENTXS_EXPORT virtual bool DeserializePublic(
         const std::string& serialized,
         Bip32Network& network,
         Bip32Depth& depth,
@@ -52,17 +52,17 @@ public:
         Bip32Index& index,
         Data& chainCode,
         Data& key) const = 0;
-    EXPORT virtual std::string SeedToFingerprint(
+    OPENTXS_EXPORT virtual std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
-    EXPORT virtual std::string SerializePrivate(
+    OPENTXS_EXPORT virtual std::string SerializePrivate(
         const Bip32Network network,
         const Bip32Depth depth,
         const Bip32Fingerprint parent,
         const Bip32Index index,
         const Data& chainCode,
         const OTPassword& key) const = 0;
-    EXPORT virtual std::string SerializePublic(
+    OPENTXS_EXPORT virtual std::string SerializePublic(
         const Bip32Network network,
         const Bip32Depth depth,
         const Bip32Fingerprint parent,
@@ -70,7 +70,7 @@ public:
         const Data& chainCode,
         const Data& key) const = 0;
 
-    EXPORT virtual ~Bip32() = default;
+    OPENTXS_EXPORT virtual ~Bip32() = default;
 };
 }  // namespace crypto
 }  // namespace opentxs

@@ -59,6 +59,7 @@ TransferBalanceItem::TransferBalanceItem(
           custom,
           nymID,
           accountID)
+    , transfer_()
 {
     startup_.reset(
         new std::thread(&TransferBalanceItem::startup, this, custom));
@@ -116,7 +117,7 @@ opentxs::Amount TransferBalanceItem::effective_amount() const noexcept
 bool TransferBalanceItem::get_contract(const PasswordPrompt& reason) const
     noexcept
 {
-    if (contract_) { return true; }
+    if (0 < contract_->Version()) { return true; }
 
     auto contractID = identifier::UnitDefinition::Factory();
     const auto in = parent_.AccountID() == transfer_->GetDestinationAcctID();
@@ -129,16 +130,17 @@ bool TransferBalanceItem::get_contract(const PasswordPrompt& reason) const
             api_.Storage().AccountContract(transfer_->GetPurportedAccountID());
     }
 
-    eLock lock(shared_lock_);
-    contract_ = api_.Wallet().UnitDefinition(contractID, reason);
-    lock.unlock();
+    try {
+        eLock lock(shared_lock_);
+        contract_ = api_.Wallet().UnitDefinition(contractID, reason);
 
-    if (contract_) { return true; }
+        return true;
+    } catch (...) {
+        api_.OTX().DownloadUnitDefinition(
+            nym_id_, api_.OTX().IntroductionServer(), contractID);
 
-    api_.OTX().DownloadUnitDefinition(
-        nym_id_, api_.OTX().IntroductionServer(), contractID);
-
-    return false;
+        return false;
+    }
 }
 
 std::string TransferBalanceItem::Memo() const noexcept

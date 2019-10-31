@@ -2,27 +2,109 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
+#include "Internal.hpp"
 
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include "core/contract/peer/PeerReply.hpp"
+#include "internal/api/Api.hpp"
+
+#include "NoticeAcknowledgement.hpp"
 
 #define CURRENT_VERSION 4
 
 namespace opentxs
 {
-NoticeAcknowledgement::NoticeAcknowledgement(
+using ParentType = contract::peer::implementation::Reply;
+using ReturnType = contract::peer::reply::implementation::Acknowledgement;
+
+auto Factory::NoticeAcknowledgement(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::PeerReply& serialized)
-    : ot_super(api, nym, serialized)
-    , ack_(serialized.notice().ack())
+    const identifier::Nym& initiator,
+    const Identifier& request,
+    const identifier::Server& server,
+    const proto::PeerRequestType type,
+    const bool& ack,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::peer::reply::Acknowledgement>
 {
+    try {
+        auto pRequest = ParentType::LoadRequest(api, nym, request);
+
+        if (false == bool(pRequest)) { return {}; }
+
+        const auto peerRequest = *pRequest;
+        auto output = std::make_shared<ReturnType>(
+            api,
+            nym,
+            api.Factory().NymID(peerRequest.initiator()),
+            request,
+            server,
+            type,
+            ack);
+
+        OT_ASSERT(output);
+
+        auto& reply = *output;
+
+        if (false == ParentType::Finish(reply, reason)) { return {}; }
+
+        return std::move(output);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
 }
 
-NoticeAcknowledgement::NoticeAcknowledgement(
+auto Factory::NoticeAcknowledgement(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const proto::PeerReply& serialized,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::peer::reply::Acknowledgement>
+{
+    if (false == proto::Validate(serialized, VERBOSE)) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Invalid serialized reply.")
+            .Flush();
+
+        return {};
+    }
+
+    try {
+        auto output = std::make_shared<ReturnType>(api, nym, serialized);
+
+        OT_ASSERT(output);
+
+        auto& contract = *output;
+        Lock lock(contract.lock_);
+
+        if (false == contract.validate(lock, reason)) {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid reply.")
+                .Flush();
+
+            return {};
+        }
+
+        return std::move(output);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
+}
+}  // namespace opentxs
+
+namespace opentxs::contract::peer::reply::implementation
+{
+Acknowledgement::Acknowledgement(
     const api::internal::Core& api,
     const Nym_p& nym,
     const identifier::Nym& initiator,
@@ -30,19 +112,37 @@ NoticeAcknowledgement::NoticeAcknowledgement(
     const identifier::Server& server,
     const proto::PeerRequestType type,
     const bool& ack)
-    : ot_super(api, nym, CURRENT_VERSION, initiator, server, type, request)
+    : Reply(api, nym, CURRENT_VERSION, initiator, server, type, request)
     , ack_(ack)
+{
+    Lock lock(lock_);
+    first_time_init(lock);
+}
+
+Acknowledgement::Acknowledgement(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const SerializedType& serialized)
+    : Reply(api, nym, serialized)
+    , ack_(serialized.notice().ack())
+{
+    Lock lock(lock_);
+    init_serialized(lock);
+}
+
+Acknowledgement::Acknowledgement(const Acknowledgement& rhs)
+    : Reply(rhs)
+    , ack_(rhs.ack_)
 {
 }
 
-proto::PeerReply NoticeAcknowledgement::IDVersion(const Lock& lock) const
+auto Acknowledgement::IDVersion(const Lock& lock) const -> SerializedType
 {
-    auto contract = ot_super::IDVersion(lock);
-
+    auto contract = Reply::IDVersion(lock);
     auto& notice = *contract.mutable_notice();
     notice.set_version(version_);
     notice.set_ack(ack_);
 
     return contract;
 }
-}  // namespace opentxs
+}  // namespace opentxs::contract::peer::reply::implementation

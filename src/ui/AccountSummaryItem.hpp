@@ -35,9 +35,14 @@ private:
 
     const Identifier& account_id_;
     const proto::ContactItemType& currency_;
-    mutable std::atomic<Amount> balance_{0};
-    IssuerItemSortKey name_{""};
-    mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
+    mutable std::atomic<Amount> balance_;
+    IssuerItemSortKey name_;
+    mutable OTUnitDefinition contract_;
+
+    static OTUnitDefinition load_unit(
+        const api::Core& api,
+        const Identifier& id,
+        const PasswordPrompt& reason);
 
     AccountSummaryItem(
         const PasswordPrompt& reason,

@@ -8,6 +8,8 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/UniqueQueue.hpp"
 
 #include "core/StateMachine.hpp"
@@ -24,6 +26,35 @@ namespace std
 using MESSAGETASK = tuple<opentxs::OTNymID, string, opentxs::SetID>;
 using PAYMENTTASK =
     pair<opentxs::OTIdentifier, shared_ptr<const opentxs::OTPayment>>;
+using PEERREPLYTASK =
+    tuple<opentxs::OTNymID, opentxs::OTPeerReply, opentxs::OTPeerRequest>;
+using PEERREQUESTTASK = pair<opentxs::OTNymID, opentxs::OTPeerRequest>;
+
+template <>
+struct less<MESSAGETASK> {
+    bool operator()(const MESSAGETASK& lhs, const MESSAGETASK& rhs) const
+    {
+        /* TODO: use structured bindings */
+        const auto& lID = std::get<0>(lhs);
+        const auto& lMessage = std::get<1>(lhs);
+        const auto& lFunction = std::get<2>(lhs);
+        const auto& rID = std::get<0>(rhs);
+        const auto& rMessage = std::get<1>(rhs);
+        const auto& rFunction = std::get<2>(rhs);
+
+        if (lID->str() < rID->str()) { return true; }
+
+        if (rID->str() < lID->str()) { return false; }
+
+        if (lMessage < rMessage) { return true; }
+
+        if (rMessage < lMessage) { return false; }
+
+        if (&lFunction < &rFunction) { return true; }
+
+        return false;
+    }
+};
 
 template <>
 struct less<PAYMENTTASK> {
@@ -52,26 +83,47 @@ struct less<PAYMENTTASK> {
 };
 
 template <>
-struct less<MESSAGETASK> {
-    bool operator()(const MESSAGETASK& lhs, const MESSAGETASK& rhs) const
+struct less<PEERREPLYTASK> {
+    bool operator()(const PEERREPLYTASK& lhs, const PEERREPLYTASK& rhs) const
+    {
+        /* TODO: use structured bindings */
+        const auto& lNym = std::get<0>(lhs);
+        const auto& lReply = std::get<1>(lhs);
+        const auto& lRequest = std::get<2>(lhs);
+        const auto& rNym = std::get<0>(rhs);
+        const auto& rReply = std::get<1>(rhs);
+        const auto& rRequest = std::get<2>(rhs);
+
+        if (lNym->str() < rNym->str()) { return true; }
+
+        if (rNym->str() < lNym->str()) { return false; }
+
+        if (lReply->ID()->str() < rReply->ID()->str()) { return true; }
+
+        if (rReply->ID()->str() < lReply->ID()->str()) { return false; }
+
+        if (lRequest->ID()->str() < rRequest->ID()->str()) { return true; }
+
+        return false;
+    }
+};
+
+template <>
+struct less<PEERREQUESTTASK> {
+    bool operator()(const PEERREQUESTTASK& lhs, const PEERREQUESTTASK& rhs)
+        const
     {
         /* TODO: use structured bindings */
         const auto& lID = std::get<0>(lhs);
-        const auto& lMessage = std::get<1>(lhs);
-        const auto& lFunction = std::get<2>(lhs);
+        const auto& lRequest = std::get<1>(lhs);
         const auto& rID = std::get<0>(rhs);
-        const auto& rMessage = std::get<1>(rhs);
-        const auto& rFunction = std::get<2>(rhs);
+        const auto& rRequest = std::get<1>(rhs);
 
         if (lID->str() < rID->str()) { return true; }
 
         if (rID->str() < lID->str()) { return false; }
 
-        if (lMessage < rMessage) { return true; }
-
-        if (rMessage < lMessage) { return false; }
-
-        if (&lFunction < &rFunction) { return true; }
+        if (lRequest->ID()->str() < rRequest->ID()->str()) { return true; }
 
         return false;
     }
@@ -287,8 +339,8 @@ private:
     bool issue_unit_definition_wrapper(
         const TaskID taskID,
         const IssueUnitDefinitionTask& task) const;
-    template <typename T, typename C, typename I>
-    std::shared_ptr<const C> load_contract(const I& id) const;
+    template <typename T, typename I>
+    bool load_contract(const I& id) const;
     bool message_nym(const TaskID taskID, const MessageTask& task) const;
     TaskID next_task_id() const override { return ++next_task_id_; }
     bool pay_nym(const TaskID taskID, const PaymentTask& task) const;

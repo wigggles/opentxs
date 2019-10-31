@@ -25,18 +25,19 @@ public:
 
     enum class Policy : bool { Accept = true, Reject = false };
 
-    EXPORT static OTZMQZAPCallback Factory(
+    OPENTXS_EXPORT static OTZMQZAPCallback Factory(
         const std::string& domain,
         const ReceiveCallback& callback);
-    EXPORT static OTZMQZAPCallback Factory();
+    OPENTXS_EXPORT static OTZMQZAPCallback Factory();
 
-    EXPORT virtual OTZMQZAPReply Process(const Request& request) const = 0;
-    EXPORT virtual bool SetDomain(
+    OPENTXS_EXPORT virtual OTZMQZAPReply Process(
+        const Request& request) const = 0;
+    OPENTXS_EXPORT virtual bool SetDomain(
         const std::string& domain,
         const ReceiveCallback& callback) const = 0;
-    EXPORT virtual bool SetPolicy(const Policy policy) const = 0;
+    OPENTXS_EXPORT virtual bool SetPolicy(const Policy policy) const = 0;
 
-    EXPORT virtual ~Callback() = default;
+    OPENTXS_EXPORT virtual ~Callback() = default;
 
 protected:
     Callback() = default;

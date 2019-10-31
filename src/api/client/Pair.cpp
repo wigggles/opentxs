@@ -677,18 +677,18 @@ bool Pair::CheckIssuer(
 {
     auto reason = client_.Factory().PasswordPrompt("Looking up an issuer");
 
-    const auto contract =
-        client_.Wallet().UnitDefinition(unitDefinitionID, reason);
+    try {
+        const auto contract =
+            client_.Wallet().UnitDefinition(unitDefinitionID, reason);
 
-    if (false == bool(contract)) {
+        return AddIssuer(localNymID, contract->Nym()->ID(), "");
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unit definition contract does not exist.")
             .Flush();
 
         return false;
     }
-
-    return AddIssuer(localNymID, contract->Nym()->ID(), "");
 }
 
 std::shared_future<void> Pair::cleanup() const noexcept
@@ -751,12 +751,12 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
     const identifier::UnitDefinition& unitID) const
 {
     auto reason = client_.Factory().PasswordPrompt("Initiating bailment");
-
-    std::pair<bool, OTIdentifier> output(false, Identifier::Factory());
+    auto output = std::pair<bool, OTIdentifier>{false, Identifier::Factory()};
     auto& success = std::get<0>(output);
-    const auto contract = client_.Wallet().UnitDefinition(unitID, reason);
 
-    if (false == bool(contract)) {
+    try {
+        client_.Wallet().UnitDefinition(unitID, reason);
+    } catch (...) {
         queue_unit_definition(nymID, serverID, unitID);
 
         return output;
@@ -1152,9 +1152,10 @@ std::pair<bool, OTIdentifier> Pair::register_account(
 
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, accountID] = output;
-    const auto contract = client_.Wallet().UnitDefinition(unitID, reason);
 
-    if (false == bool(contract)) {
+    try {
+        client_.Wallet().UnitDefinition(unitID, reason);
+    } catch (...) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Waiting for unit definition ")(
             unitID)
             .Flush();
@@ -1271,11 +1272,16 @@ void Pair::state_machine(const IssuerID& id) const
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Local nym not registered on issuer's notary.")
                     .Flush();
-                auto contract = client_.Wallet().Server(serverID, reason);
 
-                SHUTDOWN()
+                try {
+                    const auto contract =
+                        client_.Wallet().Server(serverID, reason);
 
-                if (false == bool(contract)) {
+                    SHUTDOWN()
+
+                    pending.emplace_back(
+                        queue_nym_registration(localNymID, serverID, trusted));
+                } catch (...) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Waiting on server contract.")
                         .Flush();
@@ -1284,11 +1290,6 @@ void Pair::state_machine(const IssuerID& id) const
 
                     return;
                 }
-
-                SHUTDOWN()
-
-                pending.emplace_back(
-                    queue_nym_registration(localNymID, serverID, trusted));
 
                 return;
             } else {
@@ -1305,11 +1306,13 @@ void Pair::state_machine(const IssuerID& id) const
                 .Flush();
 
             if (serverNymID->empty()) {
-                const auto contract = client_.Wallet().Server(serverID, reason);
+                try {
+                    serverNymID =
+                        client_.Wallet().Server(serverID, reason)->Nym()->ID();
+                } catch (...) {
 
-                OT_ASSERT(contract);
-
-                serverNymID = contract->Nym()->ID();
+                    return;
+                }
             }
 
             SHUTDOWN()

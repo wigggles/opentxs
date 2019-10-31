@@ -168,7 +168,6 @@ set(
   ${cxx-install-headers}
   "${CMAKE_CURRENT_SOURCE_DIR}/Internal.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Exclusive.tpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Shared.tpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.hpp"
 )
 
@@ -254,10 +253,25 @@ set_target_properties(
     1
 )
 
+include(GenerateExportHeader)
+generate_export_header(
+  opentxs
+  EXPORT_FILE_NAME
+  "${${PROJECT_NAME}_BINARY_DIR}/src/opentxs/opentxs_export.hpp"
+  EXPORT_MACRO_NAME
+  OPENTXS_EXPORT
+)
+
 install(
   TARGETS opentxs DESTINATION ${CMAKE_INSTALL_LIBDIR}
   EXPORT opentxs-targets
   COMPONENT main
 )
 
-install(FILES ${cxx-install-headers} DESTINATION include/opentxs COMPONENT dev)
+install(
+  FILES
+    ${cxx-install-headers}
+    "${${PROJECT_NAME}_BINARY_DIR}/src/opentxs/opentxs_export.hpp"
+  DESTINATION include/opentxs
+  COMPONENT dev
+)

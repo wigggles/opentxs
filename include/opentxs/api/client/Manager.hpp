@@ -21,26 +21,27 @@ namespace client
 class Manager : virtual public api::Core
 {
 public:
-    EXPORT virtual const api::client::Activity& Activity() const = 0;
+    OPENTXS_EXPORT virtual const api::client::Activity& Activity() const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual const api::client::Blockchain& Blockchain() const = 0;
+    OPENTXS_EXPORT virtual const api::client::Blockchain& Blockchain()
+        const = 0;
 #endif
-    EXPORT virtual const api::client::Contacts& Contacts() const = 0;
-    EXPORT virtual const OTAPI_Exec& Exec(
+    OPENTXS_EXPORT virtual const api::client::Contacts& Contacts() const = 0;
+    OPENTXS_EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;
-    EXPORT virtual std::recursive_mutex& Lock(
+    OPENTXS_EXPORT virtual std::recursive_mutex& Lock(
         const identifier::Nym& nymID,
         const identifier::Server& serverID) const = 0;
-    EXPORT virtual const OT_API& OTAPI(
+    OPENTXS_EXPORT virtual const OT_API& OTAPI(
         const std::string& wallet = "") const = 0;
-    EXPORT virtual const client::OTX& OTX() const = 0;
-    EXPORT virtual const client::Pair& Pair() const = 0;
-    EXPORT virtual const client::ServerAction& ServerAction() const = 0;
-    EXPORT virtual const api::client::UI& UI() const = 0;
-    EXPORT virtual const client::Workflow& Workflow() const = 0;
-    EXPORT virtual const network::ZMQ& ZMQ() const = 0;
+    OPENTXS_EXPORT virtual const client::OTX& OTX() const = 0;
+    OPENTXS_EXPORT virtual const client::Pair& Pair() const = 0;
+    OPENTXS_EXPORT virtual const client::ServerAction& ServerAction() const = 0;
+    OPENTXS_EXPORT virtual const api::client::UI& UI() const = 0;
+    OPENTXS_EXPORT virtual const client::Workflow& Workflow() const = 0;
+    OPENTXS_EXPORT virtual const network::ZMQ& ZMQ() const = 0;
 
-    EXPORT ~Manager() override = default;
+    OPENTXS_EXPORT ~Manager() override = default;
 
 protected:
     Manager() = default;

@@ -872,7 +872,7 @@ const StateMap Integration::state_{
                    EXPECT_STREQ("", row->Name().c_str());
                    EXPECT_EQ(server_1_.id_->str(), row->NotaryID());
                    EXPECT_EQ(
-                       server_1_.contract_->EffectiveName(reason),
+                       server_1_.Contract()->EffectiveName(reason),
                        row->NotaryName());
                    EXPECT_EQ(ot::AccountType::Custodial, row->Type());
                    EXPECT_EQ(ot::proto::CITEMTYPE_USD, row->Unit());
@@ -1563,10 +1563,10 @@ TEST_F(Integration, instantiate_ui_objects)
 
 TEST_F(Integration, initial_state)
 {
-    EXPECT_TRUE(ot::UnitDefinition::ValidUnits(1).empty());
+    EXPECT_TRUE(ot::contract::Unit::ValidUnits(1).empty());
     EXPECT_EQ(
-        ot::UnitDefinition::ValidUnits(2),
-        ot::proto::AllowedItemTypes.at(
+        ot::contract::Unit::ValidUnits(2),
+        ot::proto::AllowedItemTypes().at(
             {6, ot::proto::CONTACTSECTION_CONTRACT}));
 
     EXPECT_TRUE(state_.at(alex_.name_).at(Widget::ActivitySummary).at(0)());
@@ -1883,7 +1883,6 @@ TEST_F(Integration, issue_dollars)
         UNIT_DEFINITION_UNIT_OF_ACCOUNT,
         issuer_.Reason());
 
-    ASSERT_TRUE(contract);
     EXPECT_EQ(UNIT_DEFINITION_CONTRACT_VERSION, contract->Version());
     EXPECT_EQ(ot::proto::UNITTYPE_CURRENCY, contract->Type());
     EXPECT_EQ(UNIT_DEFINITION_UNIT_OF_ACCOUNT, contract->UnitOfAccount());

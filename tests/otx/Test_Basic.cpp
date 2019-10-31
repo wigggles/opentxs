@@ -20,7 +20,7 @@ using namespace opentxs;
 #define UNIT_DEFINITION_TLA "USA"
 #define UNIT_DEFINITION_POWER 2
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME "cents"
-#define UNIT_DEFINITION_UNIT_OF_ACCOUNT opentxs::proto::CITEMTYPE_USD
+#define UNIT_DEFINITION_UNIT_OF_ACCOUNT ot::proto::CITEMTYPE_USD
 #define UNIT_DEFINITION_CONTRACT_NAME_2 "Mt Gox BTC"
 #define UNIT_DEFINITION_TERMS_2 "YOLO"
 #define UNIT_DEFINITION_PRIMARY_UNIT_NAME_2 "bitcoins"
@@ -28,7 +28,7 @@ using namespace opentxs;
 #define UNIT_DEFINITION_TLA_2 "BTC"
 #define UNIT_DEFINITION_POWER_2 8
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME_2 "satoshis"
-#define UNIT_DEFINITION_UNIT_OF_ACCOUNT_2 opentxs::proto::CITEMTYPE_BTC
+#define UNIT_DEFINITION_UNIT_OF_ACCOUNT_2 ot::proto::CITEMTYPE_BTC
 
 #define MESSAGE_TEXT "example message text"
 #define NEW_SERVER_NAME "Awesome McCoolName"
@@ -64,15 +64,12 @@ public:
         const std::string id_;
     };
 
-    static opentxs::RequestNumber alice_counter_;
-    static opentxs::RequestNumber bob_counter_;
+    static ot::RequestNumber alice_counter_;
+    static ot::RequestNumber bob_counter_;
     static const std::string SeedA_;
     static const std::string SeedB_;
     static const OTNymID alice_nym_id_;
     static const OTNymID bob_nym_id_;
-    static const std::shared_ptr<const ServerContract> server_contract_;
-    static const std::shared_ptr<const UnitDefinition> asset_contract_1_;
-    static const std::shared_ptr<const UnitDefinition> asset_contract_2_;
     static TransactionNumber cheque_transaction_number_;
     static std::string bob_account_1_id_;
     static std::string bob_account_2_id_;
@@ -81,49 +78,51 @@ public:
     static std::string outgoing_transfer_workflow_id_;
     static std::string incoming_transfer_workflow_id_;
     static std::string internal_transfer_workflow_id_;
-    static std::unique_ptr<opentxs::otx::client::internal::Operation>
+    static const std::string unit_id_1_;
+    static const std::string unit_id_2_;
+    static std::unique_ptr<ot::otx::client::internal::Operation>
         alice_state_machine_;
-    static std::unique_ptr<opentxs::otx::client::internal::Operation>
+    static std::unique_ptr<ot::otx::client::internal::Operation>
         bob_state_machine_;
 #if OT_CASH
     static std::shared_ptr<blind::Purse> untrusted_purse_;
 #endif
 
-    const opentxs::api::client::internal::Manager& client_1_;
-    const opentxs::api::client::internal::Manager& client_2_;
-    const opentxs::api::server::internal::Manager& server_1_;
-    const opentxs::api::server::internal::Manager& server_2_;
-    opentxs::OTPasswordPrompt reason_c1_;
-    opentxs::OTPasswordPrompt reason_c2_;
-    opentxs::OTPasswordPrompt reason_s1_;
-    opentxs::OTPasswordPrompt reason_s2_;
-    const opentxs::identifier::Server& server_1_id_;
-    const opentxs::identifier::Server& server_2_id_;
-    const opentxs::ServerContext::ExtraArgs extra_args_;
+    const ot::api::client::internal::Manager& client_1_;
+    const ot::api::client::internal::Manager& client_2_;
+    const ot::api::server::internal::Manager& server_1_;
+    const ot::api::server::internal::Manager& server_2_;
+    ot::OTPasswordPrompt reason_c1_;
+    ot::OTPasswordPrompt reason_c2_;
+    ot::OTPasswordPrompt reason_s1_;
+    ot::OTPasswordPrompt reason_s2_;
+    const OTUnitDefinition asset_contract_1_;
+    const OTUnitDefinition asset_contract_2_;
+    const ot::identifier::Server& server_1_id_;
+    const ot::identifier::Server& server_2_id_;
+    const OTServerContract server_contract_;
+    const ot::ServerContext::ExtraArgs extra_args_;
 
     Test_Basic()
-        : client_1_(
-              dynamic_cast<const opentxs::api::client::internal::Manager&>(
-                  Context().StartClient(OTTestEnvironment::test_args_, 0)))
-        , client_2_(
-              dynamic_cast<const opentxs::api::client::internal::Manager&>(
-                  Context().StartClient(OTTestEnvironment::test_args_, 1)))
-        , server_1_(
-              dynamic_cast<const opentxs::api::server::internal::Manager&>(
-                  Context()
-                      .StartServer(OTTestEnvironment::test_args_, 0, true)))
-        , server_2_(
-              dynamic_cast<const opentxs::api::server::internal::Manager&>(
-                  Context()
-                      .StartServer(OTTestEnvironment::test_args_, 1, true)))
+        : client_1_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              Context().StartClient(OTTestEnvironment::test_args_, 0)))
+        , client_2_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              Context().StartClient(OTTestEnvironment::test_args_, 1)))
+        , server_1_(dynamic_cast<const ot::api::server::internal::Manager&>(
+              Context().StartServer(OTTestEnvironment::test_args_, 0, true)))
+        , server_2_(dynamic_cast<const ot::api::server::internal::Manager&>(
+              Context().StartServer(OTTestEnvironment::test_args_, 1, true)))
         , reason_c1_(client_1_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_c2_(client_2_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s1_(server_1_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s2_(server_2_.Factory().PasswordPrompt(__FUNCTION__))
+        , asset_contract_1_(load_unit(client_1_, unit_id_1_, reason_c1_))
+        , asset_contract_2_(load_unit(client_2_, unit_id_2_, reason_c2_))
         , server_1_id_(
-              dynamic_cast<const opentxs::identifier::Server&>(server_1_.ID()))
+              dynamic_cast<const ot::identifier::Server&>(server_1_.ID()))
         , server_2_id_(
-              dynamic_cast<const opentxs::identifier::Server&>(server_2_.ID()))
+              dynamic_cast<const ot::identifier::Server&>(server_2_.ID()))
+        , server_contract_(server_1_.Wallet().Server(server_1_id_, reason_s1_))
         , extra_args_()
     {
         if (false == init_) { init(); }
@@ -134,6 +133,19 @@ public:
         matchID matchid(id);
 
         return std::find_if(list.begin(), list.end(), matchid) != list.end();
+    }
+
+    static OTUnitDefinition load_unit(
+        const ot::api::Core& api,
+        const std::string& id,
+        const ot::PasswordPrompt& reason) noexcept
+    {
+        try {
+            return api.Wallet().UnitDefinition(
+                api.Factory().UnitID(id), reason);
+        } catch (...) {
+            return api.Factory().UnitDefinition();
+        }
     }
 
     static SendResult translate_result(const proto::LastReplyStatus status)
@@ -173,16 +185,13 @@ public:
     }
 
     void import_server_contract(
-        const ServerContract& contract,
-        const opentxs::api::client::Manager& client)
+        const contract::Server& contract,
+        const ot::api::client::Manager& client)
     {
         auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
         auto clientVersion =
             client.Wallet().Server(server_contract_->PublicContract(), reason);
-
-        OT_ASSERT(clientVersion)
-
-        client.OTX().SetIntroductionServer(*clientVersion);
+        client.OTX().SetIntroductionServer(clientVersion);
     }
 
     void init()
@@ -204,26 +213,23 @@ public:
             client_1_.Wallet().Nym(reason_c1_, "Alice", {SeedA_, 0})->ID();
         const_cast<OTNymID&>(bob_nym_id_) =
             client_2_.Wallet().Nym(reason_c2_, "Bob", {SeedB_, 0})->ID();
-        const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
-            server_1_.Wallet().Server(server_1_id_, reason_s1_);
 
-        OT_ASSERT(server_contract_);
         OT_ASSERT(false == server_1_id_.empty());
 
-        import_server_contract(*server_contract_, client_1_);
-        import_server_contract(*server_contract_, client_2_);
+        import_server_contract(server_contract_, client_1_);
+        import_server_contract(server_contract_, client_2_);
 
 #if OT_CASH
         server_1_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
         server_2_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
 #endif
-        alice_state_machine_.reset(opentxs::Factory::Operation(
+        alice_state_machine_.reset(ot::Factory::Operation(
             client_1_, alice_nym_id_, server_1_id_, reason_c1_));
 
         OT_ASSERT(alice_state_machine_);
 
         alice_state_machine_->SetPush(false);
-        bob_state_machine_.reset(opentxs::Factory::Operation(
+        bob_state_machine_.reset(ot::Factory::Operation(
             client_2_, bob_nym_id_, server_1_id_, reason_c2_));
 
         OT_ASSERT(bob_state_machine_);
@@ -234,7 +240,7 @@ public:
 
     void create_unit_definition_1()
     {
-        const_cast<std::shared_ptr<const UnitDefinition>&>(asset_contract_1_) =
+        const_cast<OTUnitDefinition&>(asset_contract_1_) =
             client_1_.Wallet().UnitDefinition(
                 alice_nym_id_->str(),
                 UNIT_DEFINITION_CONTRACT_NAME,
@@ -246,14 +252,18 @@ public:
                 UNIT_DEFINITION_FRACTIONAL_UNIT_NAME,
                 UNIT_DEFINITION_UNIT_OF_ACCOUNT,
                 reason_c1_);
-
-        ASSERT_TRUE(asset_contract_1_);
         EXPECT_EQ(proto::UNITTYPE_CURRENCY, asset_contract_1_->Type());
+
+        if (asset_contract_1_->ID()->empty()) {
+            throw std::runtime_error("Failed to create unit definition 1");
+        }
+
+        const_cast<std::string&>(unit_id_1_) = asset_contract_1_->ID()->str();
     }
 
     void create_unit_definition_2()
     {
-        const_cast<std::shared_ptr<const UnitDefinition>&>(asset_contract_2_) =
+        const_cast<OTUnitDefinition&>(asset_contract_2_) =
             client_2_.Wallet().UnitDefinition(
                 bob_nym_id_->str(),
                 UNIT_DEFINITION_CONTRACT_NAME_2,
@@ -265,9 +275,13 @@ public:
                 UNIT_DEFINITION_FRACTIONAL_UNIT_NAME_2,
                 UNIT_DEFINITION_UNIT_OF_ACCOUNT_2,
                 reason_c2_);
-
-        ASSERT_TRUE(asset_contract_2_);
         EXPECT_EQ(proto::UNITTYPE_CURRENCY, asset_contract_2_->Type());
+
+        if (asset_contract_2_->ID()->empty()) {
+            throw std::runtime_error("Failed to create unit definition 2");
+        }
+
+        const_cast<std::string&>(unit_id_2_) = asset_contract_2_->ID()->str();
     }
 
     OTIdentifier find_issuer_account()
@@ -295,8 +309,6 @@ public:
 
     OTUnitID find_unit_definition_id_2()
     {
-        OT_ASSERT(asset_contract_2_);
-
         // TODO conversion
         return identifier::UnitDefinition::Factory(
             asset_contract_2_->ID()->str());
@@ -313,8 +325,8 @@ public:
     }
 
     void receive_reply(
-        const std::shared_ptr<const PeerReply>& peerreply,
-        const std::shared_ptr<const PeerRequest>& peerrequest,
+        const OTPeerReply& peerreply,
+        const OTPeerRequest& peerrequest,
         ProtoHasReply protohasreply,
         ProtoHasRequest protohasrequest,
         proto::PeerRequestType prototype)
@@ -434,7 +446,7 @@ public:
     }
 
     void receive_request(
-        const std::shared_ptr<PeerRequest>& peerrequest,
+        const OTPeerRequest& peerrequest,
         ProtoHasRequest protohasrequest,
         proto::PeerRequestType prototype)
     {
@@ -506,8 +518,8 @@ public:
     }
 
     void send_peer_reply(
-        const std::shared_ptr<const PeerReply>& peerreply,
-        const std::shared_ptr<const PeerRequest>& peerrequest,
+        const OTPeerReply& peerreply,
+        const OTPeerRequest& peerrequest,
         ProtoHasReply protohasreply,
         proto::PeerRequestType prototype)
     {
@@ -619,7 +631,7 @@ public:
     }
 
     void send_peer_request(
-        const std::shared_ptr<PeerRequest>& peerrequest,
+        const OTPeerRequest& peerrequest,
         ProtoHasRequest protohasrequest,
         proto::PeerRequestType prototype)
     {
@@ -740,7 +752,7 @@ public:
     }
 
     void verify_state_post(
-        const opentxs::api::client::Manager& client,
+        const ot::api::client::Manager& client,
         const ClientContext& clientContext,
         const ServerContext& serverContext,
         const RequestNumber initialRequestNumber,
@@ -750,7 +762,7 @@ public:
         const std::shared_ptr<Message>& message,
         const bool messageSuccess,
         const std::size_t expectedNymboxItems,
-        opentxs::RequestNumber& counter)
+        ot::RequestNumber& counter)
     {
         auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
         EXPECT_EQ(messageRequestNumber, initialRequestNumber);
@@ -780,18 +792,12 @@ public:
     }
 };
 
-opentxs::RequestNumber Test_Basic::alice_counter_{0};
-opentxs::RequestNumber Test_Basic::bob_counter_{0};
+ot::RequestNumber Test_Basic::alice_counter_{0};
+ot::RequestNumber Test_Basic::bob_counter_{0};
 const std::string Test_Basic::SeedA_{""};
 const std::string Test_Basic::SeedB_{""};
 const OTNymID Test_Basic::alice_nym_id_{identifier::Nym::Factory()};
 const OTNymID Test_Basic::bob_nym_id_{identifier::Nym::Factory()};
-const std::shared_ptr<const ServerContract> Test_Basic::server_contract_{
-    nullptr};
-const std::shared_ptr<const UnitDefinition> Test_Basic::asset_contract_1_{
-    nullptr};
-const std::shared_ptr<const UnitDefinition> Test_Basic::asset_contract_2_{
-    nullptr};
 TransactionNumber Test_Basic::cheque_transaction_number_{0};
 std::string Test_Basic::bob_account_1_id_{""};
 std::string Test_Basic::bob_account_2_id_{""};
@@ -800,9 +806,11 @@ std::string Test_Basic::incoming_cheque_workflow_id_{};
 std::string Test_Basic::outgoing_transfer_workflow_id_{};
 std::string Test_Basic::incoming_transfer_workflow_id_{};
 std::string Test_Basic::internal_transfer_workflow_id_{};
-std::unique_ptr<opentxs::otx::client::internal::Operation>
+const std::string Test_Basic::unit_id_1_{};
+const std::string Test_Basic::unit_id_2_{};
+std::unique_ptr<ot::otx::client::internal::Operation>
     Test_Basic::alice_state_machine_{nullptr};
-std::unique_ptr<opentxs::otx::client::internal::Operation>
+std::unique_ptr<ot::otx::client::internal::Operation>
     Test_Basic::bob_state_machine_{nullptr};
 #if OT_CASH
 std::shared_ptr<blind::Purse> Test_Basic::untrusted_purse_{};
@@ -811,7 +819,7 @@ std::shared_ptr<blind::Purse> Test_Basic::untrusted_purse_{};
 TEST_F(Test_Basic, zmq_disconnected)
 {
     EXPECT_EQ(
-        opentxs::ConnectionState::NOT_ESTABLISHED,
+        ot::ConnectionState::NOT_ESTABLISHED,
         client_1_.ZMQ().Status(server_1_id_.str()));
 }
 
@@ -838,7 +846,7 @@ TEST_F(Test_Basic, getRequestNumber_not_registered)
 TEST_F(Test_Basic, zmq_connected)
 {
     EXPECT_EQ(
-        opentxs::ConnectionState::ACTIVE,
+        ot::ConnectionState::ACTIVE,
         client_1_.ZMQ().Status(server_1_id_.str()));
 }
 
@@ -1006,9 +1014,6 @@ TEST_F(Test_Basic, issueAsset)
     ASSERT_TRUE(clientContext);
 
     create_unit_definition_1();
-
-    ASSERT_TRUE(asset_contract_1_);
-
     verify_state_pre(*clientContext, context, sequence);
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
@@ -1288,9 +1293,6 @@ TEST_F(Test_Basic, publishServer)
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *alice_state_machine_;
     auto server = server_2_.Wallet().Server(server_2_id_, reason_s2_);
-
-    ASSERT_TRUE(server);
-
     client_1_.Wallet().Server(server->PublicContract(), reason_c1_);
     auto started = stateMachine.PublishContract(server_2_id_);
 
@@ -1420,8 +1422,8 @@ TEST_F(Test_Basic, registerNym_Bob)
 
 TEST_F(Test_Basic, getInstrumentDefinition_missing)
 {
-    const RequestNumber sequence = bob_counter_;
-    const RequestNumber messages{1};
+    const auto sequence = RequestNumber{bob_counter_};
+    const auto messages = RequestNumber{1};
     bob_counter_ += messages;
     auto serverContext = client_2_.Wallet().mutable_ServerContext(
         bob_nym_id_, server_1_id_, reason_c2_);
@@ -1432,9 +1434,6 @@ TEST_F(Test_Basic, getInstrumentDefinition_missing)
     ASSERT_TRUE(clientContext);
 
     create_unit_definition_2();
-
-    ASSERT_TRUE(asset_contract_2_);
-
     verify_state_pre(*clientContext, context, sequence);
     ServerContext::DeliveryResult finished{};
     auto& stateMachine = *bob_state_machine_;
@@ -3046,7 +3045,6 @@ TEST_F(Test_Basic, renameServer)
 
     const auto server = client_1_.Wallet().Server(server_1_id_, reason_c1_);
 
-    ASSERT_TRUE(server);
     EXPECT_STREQ(NEW_SERVER_NAME, server->EffectiveName(reason_c1_).c_str());
 }
 
@@ -3103,47 +3101,45 @@ TEST_F(Test_Basic, addClaim_not_admin)
 
 TEST_F(Test_Basic, initiate_and_acknowledge_bailment)
 {
-
     const auto aliceNym = client_1_.Wallet().Nym(alice_nym_id_, reason_c1_);
 
     ASSERT_TRUE(aliceNym);
 
-    std::shared_ptr<PeerRequest> peerrequest{PeerRequest::Create(
-        client_1_,
+    auto peerrequest = client_1_.Factory().BailmentRequest(
         aliceNym,
-        proto::PEERREQUEST_BAILMENT,
+        bob_nym_id_,
         find_unit_definition_id_2(),
         server_1_id_,
-        reason_c1_)};
-
-    ASSERT_TRUE(peerrequest);
-
+        reason_c1_);
     ProtoHasRequest protohasrequest = &proto::PeerRequest::has_bailment;
     send_peer_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_BAILMENT);
-    receive_request(peerrequest, protohasrequest, proto::PEERREQUEST_BAILMENT);
-
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_BAILMENT);
+    receive_request(
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_BAILMENT);
     const auto bobNym = client_2_.Wallet().Nym(bob_nym_id_, reason_c2_);
 
     ASSERT_TRUE(bobNym);
 
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_,
+    auto peerreply = client_2_.Factory().BailmentReply(
         bobNym,
-        proto::PEERREQUEST_BAILMENT,
+        alice_nym_id_,
         peerrequest->ID(),
         server_1_id_,
         "instructions",
-        reason_c2_)};
-
-    ASSERT_TRUE(peerreply);
-
+        reason_c2_);
     ProtoHasReply protohasreply = &proto::PeerReply::has_bailment;
     send_peer_reply(
-        peerreply, peerrequest, protohasreply, proto::PEERREQUEST_BAILMENT);
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasreply,
+        proto::PEERREQUEST_BAILMENT);
     receive_reply(
-        peerreply,
-        peerrequest,
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
         protohasreply,
         protohasrequest,
         proto::PEERREQUEST_BAILMENT);
@@ -3156,45 +3152,43 @@ TEST_F(Test_Basic, initiate_and_acknowledge_outbailment)
 
     ASSERT_TRUE(aliceNym);
 
-    std::shared_ptr<PeerRequest> peerrequest{PeerRequest::Create(
-        client_1_,
+    auto peerrequest = client_1_.Factory().OutbailmentRequest(
         aliceNym,
-        proto::PEERREQUEST_OUTBAILMENT,
+        bob_nym_id_,
         find_unit_definition_id_2(),
         server_1_id_,
         1000,
         "message",
-        reason_c1_)};
-
-    ASSERT_TRUE(peerrequest);
-
+        reason_c1_);
     ProtoHasRequest protohasrequest = &proto::PeerRequest::has_outbailment;
     send_peer_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_OUTBAILMENT);
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_OUTBAILMENT);
     receive_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_OUTBAILMENT);
-
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_OUTBAILMENT);
     const auto bobNym = client_2_.Wallet().Nym(bob_nym_id_, reason_c2_);
 
     ASSERT_TRUE(bobNym);
 
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_,
+    auto peerreply = client_2_.Factory().OutbailmentReply(
         bobNym,
-        proto::PEERREQUEST_OUTBAILMENT,
+        alice_nym_id_,
         peerrequest->ID(),
         server_1_id_,
         "details",
-        reason_c2_)};
-
-    ASSERT_TRUE(peerreply);
-
+        reason_c2_);
     ProtoHasReply protohasreply = &proto::PeerReply::has_outbailment;
     send_peer_reply(
-        peerreply, peerrequest, protohasreply, proto::PEERREQUEST_OUTBAILMENT);
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasreply,
+        proto::PEERREQUEST_OUTBAILMENT);
     receive_reply(
-        peerreply,
-        peerrequest,
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
         protohasreply,
         protohasrequest,
         proto::PEERREQUEST_OUTBAILMENT);
@@ -3206,44 +3200,45 @@ TEST_F(Test_Basic, notify_bailment_and_acknowledge_notice)
 
     ASSERT_TRUE(aliceNym);
 
-    std::shared_ptr<PeerRequest> peerrequest{PeerRequest::Create(
-        client_1_,
+    auto peerrequest = client_1_.Factory().BailmentNotice(
         aliceNym,
-        proto::PEERREQUEST_PENDINGBAILMENT,
+        bob_nym_id_,
         find_unit_definition_id_2(),
         server_1_id_,
-        bob_nym_id_,
         Identifier::Random(),
         Identifier::Random()->str(),
         1000,
-        reason_c1_)};
-
-    ASSERT_TRUE(peerrequest);
-
+        reason_c1_);
     ProtoHasRequest protohasrequest = &proto::PeerRequest::has_pendingbailment;
     send_peer_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_PENDINGBAILMENT);
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_PENDINGBAILMENT);
     receive_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_PENDINGBAILMENT);
-
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_PENDINGBAILMENT);
     const auto bobNym = client_2_.Wallet().Nym(bob_nym_id_, reason_c2_);
 
     ASSERT_TRUE(bobNym);
 
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_, bobNym, peerrequest->ID(), server_1_id_, true, reason_c2_)};
-
-    ASSERT_TRUE(peerreply);
-
+    auto peerreply = client_2_.Factory().ReplyAcknowledgement(
+        bobNym,
+        alice_nym_id_,
+        peerrequest->ID(),
+        server_1_id_,
+        proto::PEERREQUEST_PENDINGBAILMENT,
+        true,
+        reason_c2_);
     ProtoHasReply protohasreply = &proto::PeerReply::has_notice;
     send_peer_reply(
-        peerreply,
-        peerrequest,
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
         protohasreply,
         proto::PEERREQUEST_PENDINGBAILMENT);
     receive_reply(
-        peerreply,
-        peerrequest,
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
         protohasreply,
         protohasrequest,
         proto::PEERREQUEST_PENDINGBAILMENT);
@@ -3255,30 +3250,28 @@ TEST_F(Test_Basic, initiate_request_connection_and_acknowledge_connection)
 
     ASSERT_TRUE(aliceNym);
 
-    std::shared_ptr<PeerRequest> peerrequest{PeerRequest::Create(
-        client_1_,
+    auto peerrequest = client_1_.Factory().ConnectionRequest(
         aliceNym,
-        proto::PEERREQUEST_CONNECTIONINFO,
-        proto::CONNECTIONINFO_BITCOIN,
         bob_nym_id_,
+        proto::CONNECTIONINFO_BITCOIN,
         server_1_id_,
-        reason_c1_)};
-
-    ASSERT_TRUE(peerrequest);
-
+        reason_c1_);
     ProtoHasRequest protohasrequest = &proto::PeerRequest::has_connectioninfo;
     send_peer_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_CONNECTIONINFO);
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_CONNECTIONINFO);
     receive_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_CONNECTIONINFO);
-
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_CONNECTIONINFO);
     const auto bobNym = client_2_.Wallet().Nym(bob_nym_id_, reason_c2_);
 
     ASSERT_TRUE(bobNym);
 
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_,
+    auto peerreply = client_2_.Factory().ConnectionReply(
         bobNym,
+        alice_nym_id_,
         peerrequest->ID(),
         server_1_id_,
         true,
@@ -3286,19 +3279,16 @@ TEST_F(Test_Basic, initiate_request_connection_and_acknowledge_connection)
         "user",
         "password",
         "key",
-        reason_c2_)};
-
-    ASSERT_TRUE(peerreply);
-
+        reason_c2_);
     ProtoHasReply protohasreply = &proto::PeerReply::has_connectioninfo;
     send_peer_reply(
-        peerreply,
-        peerrequest,
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
         protohasreply,
         proto::PEERREQUEST_CONNECTIONINFO);
     receive_reply(
-        peerreply,
-        peerrequest,
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
         protohasreply,
         protohasrequest,
         proto::PEERREQUEST_CONNECTIONINFO);
@@ -3310,40 +3300,44 @@ TEST_F(Test_Basic, initiate_store_secret_and_acknowledge_notice)
 
     ASSERT_TRUE(aliceNym);
 
-    std::shared_ptr<PeerRequest> peerrequest{PeerRequest::Create(
-        client_1_,
+    auto peerrequest = client_1_.Factory().StoreSecret(
         aliceNym,
-        proto::PEERREQUEST_STORESECRET,
-        proto::SECRETTYPE_BIP39,
         bob_nym_id_,
+        proto::SECRETTYPE_BIP39,
         TEST_SEED,
         TEST_SEED_PASSPHRASE,
         server_1_id_,
-        reason_c1_)};
-
-    ASSERT_TRUE(peerrequest);
-
+        reason_c1_);
     ProtoHasRequest protohasrequest = &proto::PeerRequest::has_storesecret;
     send_peer_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_STORESECRET);
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_STORESECRET);
     receive_request(
-        peerrequest, protohasrequest, proto::PEERREQUEST_STORESECRET);
-
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasrequest,
+        proto::PEERREQUEST_STORESECRET);
     const auto bobNym = client_2_.Wallet().Nym(bob_nym_id_, reason_c2_);
 
     ASSERT_TRUE(bobNym);
 
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_2_, bobNym, peerrequest->ID(), server_1_id_, true, reason_c2_)};
-
-    ASSERT_TRUE(peerreply);
-
+    auto peerreply = client_2_.Factory().ReplyAcknowledgement(
+        bobNym,
+        alice_nym_id_,
+        peerrequest->ID(),
+        server_1_id_,
+        proto::PEERREQUEST_STORESECRET,
+        true,
+        reason_c2_);
     ProtoHasReply protohasreply = &proto::PeerReply::has_notice;
     send_peer_reply(
-        peerreply, peerrequest, protohasreply, proto::PEERREQUEST_STORESECRET);
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
+        protohasreply,
+        proto::PEERREQUEST_STORESECRET);
     receive_reply(
-        peerreply,
-        peerrequest,
+        peerreply.as<ot::contract::peer::Reply>(),
+        peerrequest.as<ot::contract::peer::Request>(),
         protohasreply,
         protohasrequest,
         proto::PEERREQUEST_STORESECRET);
@@ -3477,7 +3471,6 @@ TEST_F(Test_Basic, withdrawCash)
         serverAccount.get().GetBalance());
     EXPECT_EQ(
         serverAccount.get().GetBalance(), clientAccount.get().GetBalance());
-    ASSERT_TRUE(asset_contract_1_);
 
     // TODO conversion
     auto purseEditor = context.mutable_Purse(
@@ -3675,8 +3668,6 @@ TEST_F(Test_Basic, depositCash)
         server_1_.Wallet().ClientContext(alice_nym_id_, reason_s1_);
 
     ASSERT_TRUE(clientContext);
-    ASSERT_TRUE(asset_contract_1_);
-
     const auto& alice = *context.Nym();
     const auto accountID = find_issuer_account();
     // TODO conversion

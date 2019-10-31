@@ -179,16 +179,16 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (serverID->empty()) { return output; }
 
-    auto server = api_.Wallet().Server(serverID, reason);
-
-    if (false == bool(server)) { return output; }
-
-    name = server->Alias();
-    const auto& serverNymID = server->Nym()->ID();
-    eLock lock(shared_lock_);
-    nym_server_map_.emplace(serverNymID, serverID);
-    server_issuer_map_.emplace(serverID, issuerID);
-    lock.unlock();
+    try {
+        const auto server = api_.Wallet().Server(serverID, reason);
+        name = server->Alias();
+        const auto& serverNymID = server->Nym()->ID();
+        eLock lock(shared_lock_);
+        nym_server_map_.emplace(serverNymID, serverID);
+        server_issuer_map_.emplace(serverID, issuerID);
+    } catch (...) {
+        return output;
+    }
 
     switch (api_.ZMQ().Status(serverID->str())) {
         case ConnectionState::ACTIVE: {

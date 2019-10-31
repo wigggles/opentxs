@@ -197,7 +197,7 @@ auto Set::UpgradeGroupVersion(const VersionNumber groupVersion) noexcept -> bool
     try {
         while (true) {
             const auto [min, max] =
-                proto::VerificationSetAllowedGroup.at(nymVersion);
+                proto::VerificationSetAllowedGroup().at(nymVersion);
 
             if (groupVersion < min) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Version ")(groupVersion)(

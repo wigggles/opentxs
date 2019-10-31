@@ -23,11 +23,11 @@ public:
         const std::string& serverPublic,
         const std::string& clientPrivate,
         const std::string& clientPublic) const noexcept final;
-    bool SetServerPubkey(const ServerContract& contract) const noexcept final;
+    bool SetServerPubkey(const contract::Server& contract) const noexcept final;
     bool SetServerPubkey(const Data& key) const noexcept final;
 
 protected:
-    bool set_public_key(const ServerContract& contract) const noexcept;
+    bool set_public_key(const contract::Server& contract) const noexcept;
     bool set_public_key(const Data& key) const noexcept;
 
     Client(zeromq::socket::implementation::Socket& socket) noexcept;

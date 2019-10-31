@@ -30,44 +30,47 @@ public:
     typedef std::map<proto::ContactItemType, std::shared_ptr<ContactGroup>>
         GroupMap;
 
-    ContactSection(
+    OPENTXS_EXPORT ContactSection(
         const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const GroupMap& groups);
-    ContactSection(
+    OPENTXS_EXPORT ContactSection(
         const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber version,
         const VersionNumber parentVersion,
         const proto::ContactSectionName section,
         const std::shared_ptr<ContactItem>& item);
-    ContactSection(
+    OPENTXS_EXPORT ContactSection(
         const api::internal::Core& api,
         const std::string& nym,
         const VersionNumber parentVersion,
         const proto::ContactSection& serialized);
-    ContactSection(const ContactSection&);
+    OPENTXS_EXPORT ContactSection(const ContactSection&);
 
-    ContactSection operator+(const ContactSection& rhs) const;
+    OPENTXS_EXPORT ContactSection operator+(const ContactSection& rhs) const;
 
-    ContactSection AddItem(const std::shared_ptr<ContactItem>& item) const;
-    GroupMap::const_iterator begin() const;
-    std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
-    ContactSection Delete(const Identifier& id) const;
-    GroupMap::const_iterator end() const;
-    std::shared_ptr<ContactGroup> Group(
+    OPENTXS_EXPORT ContactSection
+    AddItem(const std::shared_ptr<ContactItem>& item) const;
+    OPENTXS_EXPORT GroupMap::const_iterator begin() const;
+    OPENTXS_EXPORT std::shared_ptr<ContactItem> Claim(
+        const Identifier& item) const;
+    OPENTXS_EXPORT ContactSection Delete(const Identifier& id) const;
+    OPENTXS_EXPORT GroupMap::const_iterator end() const;
+    OPENTXS_EXPORT std::shared_ptr<ContactGroup> Group(
         const proto::ContactItemType& type) const;
-    bool HaveClaim(const Identifier& item) const;
-    bool SerializeTo(proto::ContactData& data, const bool withIDs = false)
-        const;
-    std::size_t Size() const;
-    const proto::ContactSectionName& Type() const;
-    VersionNumber Version() const;
+    OPENTXS_EXPORT bool HaveClaim(const Identifier& item) const;
+    OPENTXS_EXPORT bool SerializeTo(
+        proto::ContactData& data,
+        const bool withIDs = false) const;
+    OPENTXS_EXPORT std::size_t Size() const;
+    OPENTXS_EXPORT const proto::ContactSectionName& Type() const;
+    OPENTXS_EXPORT VersionNumber Version() const;
 
-    ~ContactSection() = default;
+    OPENTXS_EXPORT ~ContactSection() = default;
 
 private:
     const api::internal::Core& api_;

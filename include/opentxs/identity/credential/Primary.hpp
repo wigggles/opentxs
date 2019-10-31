@@ -20,10 +20,10 @@ namespace credential
 class Primary : virtual public identity::credential::Key
 {
 public:
-    EXPORT virtual bool Path(proto::HDPath& output) const = 0;
-    EXPORT virtual std::string Path() const = 0;
+    OPENTXS_EXPORT virtual bool Path(proto::HDPath& output) const = 0;
+    OPENTXS_EXPORT virtual std::string Path() const = 0;
 
-    EXPORT ~Primary() override = default;
+    OPENTXS_EXPORT ~Primary() override = default;
 
 protected:
     Primary() noexcept {}  // TODO Signable

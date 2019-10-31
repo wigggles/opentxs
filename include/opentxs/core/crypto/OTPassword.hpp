@@ -81,71 +81,87 @@ namespace opentxs
 class OTPassword
 {
 public:
-    EXPORT explicit OTPassword();
-    EXPORT explicit OTPassword(const OTPassword& rhs);
+    OPENTXS_EXPORT explicit OTPassword();
+    OPENTXS_EXPORT explicit OTPassword(const OTPassword& rhs);
 #ifndef SWIG
-    EXPORT explicit OTPassword(const char* input, std::size_t size);
-    EXPORT explicit OTPassword(const std::uint8_t* input, std::size_t size);
-    EXPORT explicit OTPassword(const void* input, std::size_t size);
+    OPENTXS_EXPORT explicit OTPassword(const char* input, std::size_t size);
+    OPENTXS_EXPORT explicit OTPassword(
+        const std::uint8_t* input,
+        std::size_t size);
+    OPENTXS_EXPORT explicit OTPassword(const void* input, std::size_t size);
 #endif
-    EXPORT ~OTPassword();
-    EXPORT OTPassword& operator=(const OTPassword& rhs);
+    OPENTXS_EXPORT ~OTPassword();
+    OPENTXS_EXPORT OTPassword& operator=(const OTPassword& rhs);
 
-    EXPORT bool isPassword() const;
-    EXPORT const std::uint8_t* getPassword_uint8() const;
+    OPENTXS_EXPORT bool isPassword() const;
+    OPENTXS_EXPORT const std::uint8_t* getPassword_uint8() const;
 
-    EXPORT const char* getPassword() const;
-    EXPORT std::uint8_t* getPasswordWritable();
-    EXPORT char* getPasswordWritable_char();
+    OPENTXS_EXPORT const char* getPassword() const;
+    OPENTXS_EXPORT std::uint8_t* getPasswordWritable();
+    OPENTXS_EXPORT char* getPasswordWritable_char();
     // (FYI, truncates if nInputSize larger than getBlockSize.)
-    EXPORT std::int32_t setPassword(const std::string& input);
+    OPENTXS_EXPORT std::int32_t setPassword(const std::string& input);
 #ifndef SWIG
-    EXPORT std::int32_t setPassword(const char* input, std::int32_t size);
+    OPENTXS_EXPORT std::int32_t setPassword(
+        const char* input,
+        std::int32_t size);
     // (FYI, truncates if nInputSize larger than getBlockSize.)
-    EXPORT std::int32_t setPassword_uint8(
+    OPENTXS_EXPORT std::int32_t setPassword_uint8(
         const std::uint8_t* input,
         std::size_t size);
 #endif
-    EXPORT bool addChar(std::uint8_t c);
-    EXPORT std::int32_t randomizePassword(
+    OPENTXS_EXPORT bool addChar(std::uint8_t c);
+    OPENTXS_EXPORT std::int32_t randomizePassword(
         std::uint32_t size = OT_DEFAULT_BLOCKSIZE);
-    EXPORT static bool randomizePassword_uint8(
+    OPENTXS_EXPORT static bool randomizePassword_uint8(
         std::uint8_t* destination,
         std::uint32_t size);
-    EXPORT static bool randomizePassword(char* destination, std::uint32_t size);
-    EXPORT bool isMemory() const;
-    EXPORT const void* getMemory() const;
-    EXPORT const std::uint8_t* getMemory_uint8() const;
-    EXPORT void* getMemoryWritable();
+    OPENTXS_EXPORT static bool randomizePassword(
+        char* destination,
+        std::uint32_t size);
+    OPENTXS_EXPORT bool isMemory() const;
+    OPENTXS_EXPORT const void* getMemory() const;
+    OPENTXS_EXPORT const std::uint8_t* getMemory_uint8() const;
+    OPENTXS_EXPORT void* getMemoryWritable();
     // (FYI, truncates if size larger than getBlockSize.)
-    EXPORT std::int32_t setMemory(const Data& data);
+    OPENTXS_EXPORT std::int32_t setMemory(const Data& data);
 #ifndef SWIG
-    EXPORT std::int32_t setMemory(const void* input, std::uint32_t size);
+    OPENTXS_EXPORT std::int32_t setMemory(
+        const void* input,
+        std::uint32_t size);
     // (FYI, truncates if size + getPasswordSize() is larger than
     // getBlockSize.)
-    EXPORT std::int32_t addMemory(const void* append, std::uint32_t size);
+    OPENTXS_EXPORT std::int32_t addMemory(
+        const void* append,
+        std::uint32_t size);
 #endif
-    EXPORT std::int32_t randomizeMemory(
+    OPENTXS_EXPORT std::int32_t randomizeMemory(
         std::uint32_t size = OT_DEFAULT_BLOCKSIZE);
-    EXPORT static bool randomizeMemory_uint8(
+    OPENTXS_EXPORT static bool randomizeMemory_uint8(
         std::uint8_t* destination,
         std::uint32_t size);
-    EXPORT static bool randomizeMemory(void* destination, std::uint32_t size);
-    EXPORT std::size_t getBlockSize() const;
-    EXPORT bool Compare(OTPassword& rhs) const;
-    EXPORT std::uint32_t getPasswordSize() const;
-    EXPORT std::uint32_t getMemorySize() const;
-    EXPORT void zeroMemory();
-    EXPORT static void zeroMemory(std::uint8_t* szMemory, std::uint32_t size);
-    EXPORT static void zeroMemory(void* vMemory, std::uint32_t size);
-    EXPORT static void* safe_memcpy(
+    OPENTXS_EXPORT static bool randomizeMemory(
+        void* destination,
+        std::uint32_t size);
+    OPENTXS_EXPORT std::size_t getBlockSize() const;
+    OPENTXS_EXPORT bool Compare(OTPassword& rhs) const;
+    OPENTXS_EXPORT std::uint32_t getPasswordSize() const;
+    OPENTXS_EXPORT std::uint32_t getMemorySize() const;
+    OPENTXS_EXPORT void zeroMemory();
+    OPENTXS_EXPORT static void zeroMemory(
+        std::uint8_t* szMemory,
+        std::uint32_t size);
+    OPENTXS_EXPORT static void zeroMemory(void* vMemory, std::uint32_t size);
+    OPENTXS_EXPORT static void* safe_memcpy(
         void* dest,
         const std::size_t dsize,
         const void* src,
         const std::size_t ssize,
         bool zeroSource = false);
     inline void reset() { position_ = 0; }
-    EXPORT std::uint32_t OTfread(std::uint8_t* data, std::uint32_t size);
+    OPENTXS_EXPORT std::uint32_t OTfread(
+        std::uint8_t* data,
+        std::uint32_t size);
 
     // OTPassword thePass; will create a text password.
     // But use the below function if you want one that has
@@ -155,7 +171,7 @@ public:
     // (Such as the OpenSSL password callback...)
     // CALLER IS RESPONSIBLE TO DELETE.
     // asserts already.
-    EXPORT static OTPassword* CreateTextBuffer();
+    OPENTXS_EXPORT static OTPassword* CreateTextBuffer();
 
     // There are certain weird cases, like in
     // crypto::key::LegacySymmetric::GetPassphraseFromUser,
@@ -168,7 +184,7 @@ public:
     // those odd cases where it's necessary. That being said, YOU should
     // normally NEVER
     // need to use this function, so just pretend it doesn't exist.
-    EXPORT bool SetSize(std::uint32_t size);
+    OPENTXS_EXPORT bool SetSize(std::uint32_t size);
 
 private:
     std::size_t size_{0};

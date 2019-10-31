@@ -54,7 +54,7 @@ struct Core;
 class OTOffer : public Instrument
 {
 public:
-    EXPORT bool MakeOffer(
+    OPENTXS_EXPORT bool MakeOffer(
         bool bBuyingOrSelling,            // True == SELLING, False == BUYING
         const std::int64_t& lPriceLimit,  // Per Scale...
         const std::int64_t& lTotalAssetsOffer,  // Total assets available for
@@ -125,12 +125,13 @@ public:
     // Note: m_tDateAddedToMarket is not saved in the Offer Contract, but
     // OTMarket sets/saves/loads it.
     //
-    EXPORT Time GetDateAddedToMarket() const;  // Used in
-                                               // OTMarket::GetOfferList and
-                                               // GetNymOfferList.
-    EXPORT void SetDateAddedToMarket(const Time tDate);  // Used in OTCron when
-                                                         // adding/loading
-                                                         // offers.
+    OPENTXS_EXPORT Time GetDateAddedToMarket() const;  // Used in
+                                                       // OTMarket::GetOfferList
+                                                       // and GetNymOfferList.
+    OPENTXS_EXPORT void SetDateAddedToMarket(
+        const Time tDate);  // Used in OTCron when
+                            // adding/loading
+                            // offers.
     // Overridden from Contract.
     void GetIdentifier(Identifier& theIdentifier) const override;
 
@@ -149,7 +150,7 @@ public:
                    // serialization, this is where the
                    // ledger saves its contents
 
-    EXPORT ~OTOffer() override;
+    OPENTXS_EXPORT ~OTOffer() override;
 
 protected:
     // If this offer is actually connected to a trade, it will have a pointer.

@@ -69,8 +69,7 @@ Key::Key(
     const PasswordPrompt& reason,
     const std::string& masterID,
     const bool useProvided) noexcept(false)
-    : Signable({}, version)  // TODO Signable
-    , credential::implementation::Base(
+    : credential::implementation::Base(
           api,
           parent,
           source,
@@ -104,8 +103,7 @@ Key::Key(
     const identity::Source& source,
     const proto::Credential& serialized,
     const std::string& masterID) noexcept(false)
-    : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Base(
+    : credential::implementation::Base(
           api,
           parent,
           source,
@@ -271,7 +269,7 @@ const crypto::key::Keypair& Key::GetKeypair(
 // matching pubkeys based on a full match of the metadata.
 std::int32_t Key::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
-    const Signature& theSignature,
+    const opentxs::Signature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
                           // or 'A' (authentication key)
 {
@@ -405,9 +403,8 @@ bool Key::SelfSign(
     const bool onlyPrivate)
 {
     Lock lock(lock_);
-    CalculateID(lock);
-    SerializedSignature publicSignature = std::make_shared<proto::Signature>();
-    SerializedSignature privateSignature = std::make_shared<proto::Signature>();
+    auto publicSignature = std::make_shared<proto::Signature>();
+    auto privateSignature = std::make_shared<proto::Signature>();
     bool havePublicSig = false;
 
     if (!onlyPrivate) {

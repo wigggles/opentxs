@@ -28,13 +28,13 @@ namespace credential
 class Verification : virtual public Base
 {
 public:
-    EXPORT static proto::Verification SigningForm(
+    OPENTXS_EXPORT static proto::Verification SigningForm(
         const proto::Verification& item);
-    EXPORT static std::string VerificationID(
+    OPENTXS_EXPORT static std::string VerificationID(
         const api::internal::Core& api,
         const proto::Verification& item);
 
-    EXPORT ~Verification() override = default;
+    OPENTXS_EXPORT ~Verification() override = default;
 
 protected:
     Verification() noexcept {}  // TODO Signable

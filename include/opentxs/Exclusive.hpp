@@ -29,30 +29,30 @@ public:
     using Container = std::unique_ptr<C>;
     using Save = std::function<void(Container&, eLock&, bool)>;
 
-    operator bool() const;
+    OPENTXS_EXPORT operator bool() const;
 #ifndef SWIG
-    operator const C&() const;
-    const C& get() const;
+    OPENTXS_EXPORT operator const C&() const;
+    OPENTXS_EXPORT const C& get() const;
 
-    operator C&();
+    OPENTXS_EXPORT operator C&();
 #endif
 
-    bool Abort();
-    C& get();
-    bool Release();
+    OPENTXS_EXPORT bool Abort();
+    OPENTXS_EXPORT C& get();
+    OPENTXS_EXPORT bool Release();
 
-    Exclusive(
+    OPENTXS_EXPORT Exclusive(
         Container* in,
         std::shared_mutex& lock,
         Save save,
         const Callback callback = nullptr) noexcept;
-    Exclusive() noexcept;
+    OPENTXS_EXPORT Exclusive() noexcept;
     Exclusive(const Exclusive&) = delete;
-    Exclusive(Exclusive&&) noexcept;
+    OPENTXS_EXPORT Exclusive(Exclusive&&) noexcept;
     Exclusive& operator=(const Exclusive&) noexcept = delete;
-    Exclusive& operator=(Exclusive&&) noexcept;
+    OPENTXS_EXPORT Exclusive& operator=(Exclusive&&) noexcept;
 
-    ~Exclusive();
+    OPENTXS_EXPORT ~Exclusive();
 
 private:
     Container* p_{nullptr};

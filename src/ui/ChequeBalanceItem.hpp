@@ -26,7 +26,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
+    std::unique_ptr<const opentxs::Cheque> cheque_;
 
     opentxs::Amount effective_amount() const noexcept final;
     bool get_contract(const PasswordPrompt& reason) const noexcept final;

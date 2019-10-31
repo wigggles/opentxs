@@ -151,7 +151,7 @@ void AccountList::process_account(
     const Amount balance,
     const std::string& name) noexcept
 {
-    auto index = make_blank<AccountListSortKey>::value();
+    auto index = make_blank<AccountListSortKey>::value(api_);
     auto& [type, notary] = index;
     type = api_.Storage().AccountUnit(id);
     notary = api_.Storage().AccountServer(id)->str();

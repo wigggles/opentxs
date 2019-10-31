@@ -10,41 +10,36 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
-#include <string>
-
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class BailmentReply final : public PeerReply
+namespace reply
 {
-private:
-    typedef PeerReply ot_super;
-    friend class PeerReply;
-
-    proto::PeerReply IDVersion(const Lock& lock) const final;
-
-    BailmentReply(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerReply& serialized);
-    BailmentReply(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const identifier::Nym& initiator,
-        const Identifier& request,
-        const identifier::Server& server,
-        const std::string& terms);
-    BailmentReply() = delete;
-
+class Bailment : virtual public peer::Reply
+{
 public:
-    ~BailmentReply() final = default;
+    OPENTXS_EXPORT ~Bailment() override = default;
+
+protected:
+    Bailment() noexcept = default;
+
+private:
+    friend OTBailmentReply;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Bailment* clone() const noexcept override = 0;
+#endif
+
+    Bailment(const Bailment&) = delete;
+    Bailment(Bailment&&) = delete;
+    Bailment& operator=(const Bailment&) = delete;
+    Bailment& operator=(Bailment&&) = delete;
 };
+}  // namespace reply
+}  // namespace peer
+}  // namespace contract
 }  // namespace opentxs
 #endif

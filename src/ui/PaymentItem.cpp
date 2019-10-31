@@ -181,7 +181,7 @@ void PaymentItem::load() noexcept
                 memo = cheque->GetMemo().Get();
                 amount = cheque->GetAmount();
 
-                if (contract) {
+                if (0 < contract->Version()) {
                     contract->FormatAmountLocale(
                         amount, displayAmount, ",", ".");
                 }

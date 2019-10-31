@@ -37,7 +37,7 @@ Context::Context(
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
-    : api_(api)
+    : Signable(api, local, targetVersion, {}, {})
     , server_id_(server)
     , remote_nym_(remote)
     , available_transaction_numbers_()
@@ -57,7 +57,17 @@ Context::Context(
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
-    : api_(api)
+    : Signable(
+          api,
+          local,
+          targetVersion,
+          {},
+          {},
+          api.Factory().Identifier(),
+          serialized.has_signature()
+              ? Signatures{std::make_shared<proto::Signature>(
+                    serialized.signature())}
+              : Signatures{})
     , server_id_(server)
     , remote_nym_(remote)
     , available_transaction_numbers_()
@@ -79,9 +89,6 @@ Context::Context(
     for (const auto& it : serialized.issuedtransactionnumber()) {
         issued_transaction_numbers_.insert(it);
     }
-
-    signatures_.push_front(SerializedSignature(
-        std::make_shared<proto::Signature>(serialized.signature())));
 }
 
 std::set<RequestNumber> Context::AcknowledgedNumbers() const
@@ -545,7 +552,7 @@ void Context::set_local_nymbox_hash(const Lock& lock, const Identifier& hash)
     LogVerbose(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
         "Set local nymbox hash to: ")(local_nymbox_hash_->asHex())
         .Flush();
-    CalculateID(lock);
+    Signable::first_time_init(lock);
 }
 
 void Context::set_remote_nymbox_hash(const Lock& lock, const Identifier& hash)
@@ -556,7 +563,7 @@ void Context::set_remote_nymbox_hash(const Lock& lock, const Identifier& hash)
     LogVerbose(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
         "Set remote nymbox hash to: ")(remote_nymbox_hash_->asHex())
         .Flush();
-    CalculateID(lock);
+    Signable::first_time_init(lock);
 }
 
 void Context::SetLocalNymboxHash(const Identifier& hash)
@@ -594,10 +601,8 @@ bool Context::update_signature(const Lock& lock, const PasswordPrompt& reason)
 
     if (!Signable::update_signature(lock, reason)) { return false; }
 
-    if (version_ < target_version_) { version_ = target_version_; }
-
+    update_version(target_version_);
     bool success = false;
-    signatures_.clear();
     auto serialized = SigVersion(lock);
     auto& signature = *serialized.mutable_signature();
     success = nym_->Sign(serialized, proto::SIGROLE_CONTEXT, signature, reason);

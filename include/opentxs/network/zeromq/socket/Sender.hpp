@@ -29,19 +29,23 @@ namespace socket
 class Sender : virtual public Socket
 {
 public:
-    EXPORT bool Send(opentxs::Pimpl<opentxs::network::zeromq::Message>& message)
-        const noexcept
+    OPENTXS_EXPORT bool Send(
+        opentxs::Pimpl<opentxs::network::zeromq::Message>& message) const
+        noexcept
     {
         return send(message.get());
     }
-    EXPORT bool Send(Message& message) const noexcept { return send(message); }
+    OPENTXS_EXPORT bool Send(Message& message) const noexcept
+    {
+        return send(message);
+    }
     template <typename Input>
-    EXPORT bool Send(const Input& data) const noexcept
+    OPENTXS_EXPORT bool Send(const Input& data) const noexcept
     {
         return send(Context().Message(data));
     }
 
-    EXPORT ~Sender() override = default;
+    OPENTXS_EXPORT ~Sender() override = default;
 
 protected:
     Sender() = default;

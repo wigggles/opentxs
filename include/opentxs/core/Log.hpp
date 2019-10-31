@@ -148,16 +148,16 @@
 
 namespace opentxs
 {
-EXPORT extern LogSource LogOutput;
-EXPORT extern LogSource LogNormal;
-EXPORT extern LogSource LogDetail;
-EXPORT extern LogSource LogVerbose;
-EXPORT extern LogSource LogDebug;
-EXPORT extern LogSource LogTrace;
-EXPORT extern LogSource LogInsane;
+OPENTXS_EXPORT extern LogSource LogOutput;
+OPENTXS_EXPORT extern LogSource LogNormal;
+OPENTXS_EXPORT extern LogSource LogDetail;
+OPENTXS_EXPORT extern LogSource LogVerbose;
+OPENTXS_EXPORT extern LogSource LogDebug;
+OPENTXS_EXPORT extern LogSource LogTrace;
+OPENTXS_EXPORT extern LogSource LogInsane;
 
-EXPORT const char* PathSeparator();
-EXPORT bool Sleep(const std::chrono::microseconds us);
-EXPORT const char* Version();
+OPENTXS_EXPORT const char* PathSeparator();
+OPENTXS_EXPORT bool Sleep(const std::chrono::microseconds us);
+OPENTXS_EXPORT const char* Version();
 }  // namespace opentxs
 #endif

@@ -20,14 +20,14 @@ namespace opentxs
  *
  *  \throws std::runtime_error if the context is not initialized
  */
-const api::Context& Context();
+OPENTXS_EXPORT const api::Context& Context();
 
 /** Shut down context
  *
  *  Call this when the application is closing, after all OT operations
  *  are complete.
  */
-void Cleanup();
+OPENTXS_EXPORT void Cleanup();
 
 /** Start up context
  *
@@ -38,7 +38,7 @@ void Cleanup();
  *
  *  \throws std::runtime_error if the context is already initialized
  */
-const api::Context& InitContext(
+OPENTXS_EXPORT const api::Context& InitContext(
     const ArgList& args = {},
     const std::chrono::seconds gcInterval = std::chrono::seconds(0),
     OTCaller* externalPasswordCallback = nullptr);
@@ -47,6 +47,6 @@ const api::Context& InitContext(
  *
  *  Blocks until the context has been shut down
  */
-void Join();
+OPENTXS_EXPORT void Join();
 }  // namespace opentxs
 #endif

@@ -20,7 +20,7 @@ private:
     bool bCleanup;
     bool bFreeOnly;
 
-    EXPORT static BIO* assertBioNotNull(BIO* pBIO);
+    static BIO* assertBioNotNull(BIO* pBIO);
 
     void read_bio(
         const std::size_t amount,
@@ -29,14 +29,14 @@ private:
         std::vector<std::byte>& output);
 
 public:
-    EXPORT OpenSSL_BIO(BIO* pBIO);
+    OpenSSL_BIO(BIO* pBIO);
 
-    EXPORT ~OpenSSL_BIO();
+    ~OpenSSL_BIO();
 
-    EXPORT operator BIO*() const;
+    operator BIO*() const;
 
-    EXPORT void release();
-    EXPORT void setFreeOnly();
+    void release();
+    void setFreeOnly();
 
     std::vector<std::byte> ToBytes();
     OTString ToString();

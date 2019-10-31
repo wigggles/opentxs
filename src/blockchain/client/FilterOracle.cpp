@@ -55,16 +55,16 @@ FilterOracle::FilterOracle(
     , network_(network)
     , database_(database)
     , lock_()
-    , requests_()
+    , requests_(api_)
     , new_filters_(api_.ZeroMQ().Pipeline(api_, [this](auto& in) {
         process_cfilter(in);
     }))
 {
 }
 
-FilterOracle::RequestQueue::RequestQueue() noexcept
+FilterOracle::RequestQueue::RequestQueue(const api::Core& api) noexcept
     : lock_()
-    , highest_(make_blank<block::Position>::value())
+    , highest_(make_blank<block::Position>::value(api))
     , hashes_()
 {
 }
@@ -274,7 +274,7 @@ bool FilterOracle::state_machine() noexcept
 
     std::size_t requestCount{0};
     auto requestHeight{start.first};
-    auto requestHash{make_blank<block::pHash>::value()};
+    auto requestHash{make_blank<block::pHash>::value(api_)};
     auto nextHash{requestHash};
 
     for (auto i{requestHeight}; i <= best.first; ++i) {

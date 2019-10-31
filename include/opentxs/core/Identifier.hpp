@@ -33,22 +33,22 @@
 namespace opentxs
 {
 #ifndef SWIG
-bool operator==(
+OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
-bool operator!=(
+OPENTXS_EXPORT bool operator!=(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<(
+OPENTXS_EXPORT bool operator<(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>(
+OPENTXS_EXPORT bool operator>(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<=(
+OPENTXS_EXPORT bool operator<=(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>=(
+OPENTXS_EXPORT bool operator>=(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
 #endif
@@ -60,62 +60,63 @@ class Identifier : virtual public Data
 public:
     using ot_super = opentxs::Data;
 
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Random();
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory();
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Random();
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory();
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const Identifier& rhs);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const std::string& rhs);
 #ifndef SWIG
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const String& rhs);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const identity::Nym& nym);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const Cheque& cheque);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(const Item& item);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const Item& item);
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const Contract& contract);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const proto::ContactItemType type,
         const proto::HDPath& path);
 #endif
-    EXPORT static bool Validate(const std::string& id);
+    OPENTXS_EXPORT static bool Validate(const std::string& id);
 
     using ot_super::operator==;
-    EXPORT virtual bool operator==(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator==(const Identifier& rhs) const = 0;
     using ot_super::operator!=;
-    EXPORT virtual bool operator!=(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator!=(const Identifier& rhs) const = 0;
     using ot_super::operator>;
-    EXPORT virtual bool operator>(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator>(const Identifier& rhs) const = 0;
     using ot_super::operator<;
-    EXPORT virtual bool operator<(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator<(const Identifier& rhs) const = 0;
     using ot_super::operator<=;
-    EXPORT virtual bool operator<=(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator<=(const Identifier& rhs) const = 0;
     using ot_super::operator>=;
-    EXPORT virtual bool operator>=(const Identifier& rhs) const = 0;
+    OPENTXS_EXPORT virtual bool operator>=(const Identifier& rhs) const = 0;
 
 #ifndef SWIG
-    EXPORT virtual void GetString(String& theStr) const = 0;
+    OPENTXS_EXPORT virtual void GetString(String& theStr) const = 0;
 #endif
-    EXPORT virtual const ID& Type() const = 0;
+    OPENTXS_EXPORT virtual const ID& Type() const = 0;
 
-    EXPORT virtual bool CalculateDigest(
+    OPENTXS_EXPORT virtual bool CalculateDigest(
         const Data& input,
         const ID type = ID::blake2b) = 0;
 #ifndef SWIG
-    EXPORT virtual bool CalculateDigest(
+    OPENTXS_EXPORT virtual bool CalculateDigest(
         const String& input,
         const ID type = ID::blake2b) = 0;
 #endif
-    EXPORT virtual void SetString(const std::string& encoded) = 0;
+    OPENTXS_EXPORT virtual void SetString(const std::string& encoded) = 0;
 #ifndef SWIG
-    EXPORT virtual void SetString(const String& encoded) = 0;
+    OPENTXS_EXPORT virtual void SetString(const String& encoded) = 0;
 #endif
     using ot_super::swap;
-    EXPORT virtual void swap(Identifier& rhs) = 0;
+    OPENTXS_EXPORT virtual void swap(Identifier& rhs) = 0;
 
-    EXPORT ~Identifier() override = default;
+    OPENTXS_EXPORT ~Identifier() override = default;
 
 protected:
     Identifier() = default;

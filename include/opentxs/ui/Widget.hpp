@@ -33,10 +33,10 @@ class Widget
 public:
     using Callback = std::function<void()>;
 
-    EXPORT virtual void SetCallback(Callback cb) const noexcept = 0;
-    EXPORT virtual OTIdentifier WidgetID() const noexcept = 0;
+    OPENTXS_EXPORT virtual void SetCallback(Callback cb) const noexcept = 0;
+    OPENTXS_EXPORT virtual OTIdentifier WidgetID() const noexcept = 0;
 
-    EXPORT virtual ~Widget() = default;
+    OPENTXS_EXPORT virtual ~Widget() = default;
 
 protected:
     Widget() noexcept = default;

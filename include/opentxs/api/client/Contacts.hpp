@@ -25,29 +25,29 @@ class Contacts
 {
 public:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual OTIdentifier BlockchainAddressToContact(
+    OPENTXS_EXPORT virtual OTIdentifier BlockchainAddressToContact(
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual std::shared_ptr<const class Contact> Contact(
+    OPENTXS_EXPORT virtual std::shared_ptr<const class Contact> Contact(
         const Identifier& id,
         const PasswordPrompt& reason) const = 0;
     /** Returns the contact ID for a nym, if it exists */
-    EXPORT virtual OTIdentifier ContactID(
+    OPENTXS_EXPORT virtual OTIdentifier ContactID(
         const identifier::Nym& nymID) const = 0;
-    EXPORT virtual ObjectList ContactList() const = 0;
-    EXPORT virtual std::string ContactName(
+    OPENTXS_EXPORT virtual ObjectList ContactList() const = 0;
+    OPENTXS_EXPORT virtual std::string ContactName(
         const Identifier& contactID) const = 0;
-    EXPORT virtual std::shared_ptr<const class Contact> Merge(
+    OPENTXS_EXPORT virtual std::shared_ptr<const class Contact> Merge(
         const Identifier& parent,
         const Identifier& child,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual std::unique_ptr<Editor<class Contact>> mutable_Contact(
-        const Identifier& id,
-        const PasswordPrompt& reason) const = 0;
-    EXPORT virtual std::shared_ptr<const class Contact> NewContact(
+    OPENTXS_EXPORT virtual std::unique_ptr<Editor<class Contact>>
+    mutable_Contact(const Identifier& id, const PasswordPrompt& reason)
+        const = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<const class Contact> NewContact(
         const std::string& label) const = 0;
-    EXPORT virtual std::shared_ptr<const class Contact> NewContact(
+    OPENTXS_EXPORT virtual std::shared_ptr<const class Contact> NewContact(
         const std::string& label,
         const identifier::Nym& nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -57,17 +57,18 @@ public:
         ,
         const PasswordPrompt& reason) const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPORT virtual std::shared_ptr<const class Contact> NewContactFromAddress(
+    OPENTXS_EXPORT virtual std::shared_ptr<const class Contact>
+    NewContactFromAddress(
         const std::string& address,
         const std::string& label,
         const PasswordPrompt& reason,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     /** Returns an existing contact ID if it exists, or creates a new one */
-    EXPORT virtual OTIdentifier NymToContact(
+    OPENTXS_EXPORT virtual OTIdentifier NymToContact(
         const identifier::Nym& nymID,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual std::shared_ptr<const class Contact> Update(
+    OPENTXS_EXPORT virtual std::shared_ptr<const class Contact> Update(
         const identity::Nym::Serialized& nym,
         const PasswordPrompt& reason) const = 0;
 

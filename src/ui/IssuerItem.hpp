@@ -47,8 +47,8 @@ private:
 
     const ListenerDefinitions listeners_;
     const std::string& name_;
-    std::atomic<bool> connection_{false};
-    const std::shared_ptr<const api::client::Issuer> issuer_{nullptr};
+    std::atomic<bool> connection_;
+    const std::shared_ptr<const api::client::Issuer> issuer_;
     const proto::ContactItemType currency_;
 
     void construct_row(

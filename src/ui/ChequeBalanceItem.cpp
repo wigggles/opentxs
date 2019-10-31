@@ -104,13 +104,17 @@ opentxs::Amount ChequeBalanceItem::effective_amount() const noexcept
 bool ChequeBalanceItem::get_contract(const PasswordPrompt& reason) const
     noexcept
 {
-    if (contract_) { return true; }
+    if (0 < contract_->Version()) { return true; }
 
     eLock lock(shared_lock_);
     const auto& contractID = cheque_->GetInstrumentDefinitionID();
-    contract_ = api_.Wallet().UnitDefinition(contractID, reason);
 
-    if (contract_) { return true; }
+    try {
+        contract_ = api_.Wallet().UnitDefinition(contractID, reason);
+
+        return true;
+    } catch (...) {
+    }
 
     api_.OTX().DownloadUnitDefinition(
         nym_id_, api_.OTX().IntroductionServer(), contractID);

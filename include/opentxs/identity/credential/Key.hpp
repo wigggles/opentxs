@@ -25,14 +25,14 @@ namespace credential
 class Key : virtual public Base
 {
 public:
-    EXPORT virtual const crypto::key::Keypair& GetKeypair(
+    OPENTXS_EXPORT virtual const crypto::key::Keypair& GetKeypair(
         const proto::AsymmetricKeyType type,
         const proto::KeyRole role) const = 0;
-    EXPORT virtual std::int32_t GetPublicKeysBySignature(
+    OPENTXS_EXPORT virtual std::int32_t GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
-        const Signature& theSignature,
+        const opentxs::Signature& theSignature,
         char cKeyType = '0') const = 0;
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
@@ -40,7 +40,7 @@ public:
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
 
-    EXPORT ~Key() override = default;
+    OPENTXS_EXPORT ~Key() override = default;
 
 protected:
     Key() noexcept {}  // TODO Signable

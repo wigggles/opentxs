@@ -70,7 +70,7 @@ public:
     // that the cheque is written...
 
     // Calling this function is like writing a check...
-    EXPORT bool IssueCheque(
+    OPENTXS_EXPORT bool IssueCheque(
         const std::int64_t& lAmount,
         const std::int64_t& lTransactionNum,
         const Time& VALID_FROM,
@@ -86,8 +86,8 @@ public:
                                                     // be a blank
                                                     // cheque.)
 
-    EXPORT void CancelCheque();  // You still need to re-sign the cheque after
-                                 // doing this.
+    OPENTXS_EXPORT void CancelCheque();  // You still need to re-sign the cheque
+                                         // after doing this.
 
     void InitCheque();
     void Release() override;
@@ -97,7 +97,7 @@ public:
                                                  // serialization, this is where
                                                  // the token saves its contents
 
-    EXPORT ~Cheque() override;
+    OPENTXS_EXPORT ~Cheque() override;
 
 protected:
     Amount m_lAmount{0};
@@ -119,8 +119,8 @@ private:  // Private prevents erroneous use by other classes.
 
     typedef OTTrackable ot_super;
 
-    EXPORT Cheque(const api::internal::Core& core);
-    EXPORT Cheque(
+    OPENTXS_EXPORT Cheque(const api::internal::Core& core);
+    OPENTXS_EXPORT Cheque(
         const api::internal::Core& core,
         const identifier::Server& NOTARY_ID,
         const identifier::UnitDefinition& INSTRUMENT_DEFINITION_ID);

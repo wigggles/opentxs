@@ -12,64 +12,31 @@
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace unit
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class CurrencyContract final : public UnitDefinition
+class Currency : virtual public contract::Unit
 {
-private:
-    typedef UnitDefinition ot_super;
-    friend ot_super;
-
-    // ISO-4217. E.g., USD, AUG, PSE. Take as hint, not as contract.
-    std::string tla_;
-    // If value is 103, decimal power of 0 displays 103 (actual value.) Whereas
-    // decimal power of 2 displays 1.03 and 4 displays .0103
-    std::uint32_t power_{};
-    // "cents"
-    std::string fractional_unit_name_;
-
-    EXPORT CurrencyContract(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::UnitDefinition serialized);
-    EXPORT CurrencyContract(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::string& shortname,
-        const std::string& name,
-        const std::string& symbol,
-        const std::string& terms,
-        const std::string& tla,
-        const std::uint32_t power,
-        const std::string& fraction,
-        const proto::ContactItemType unitOfAccount,
-        const VersionNumber version);
-
-    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const final;
-
 public:
-    EXPORT proto::UnitType Type() const final
-    {
-        return proto::UNITTYPE_CURRENCY;
-    }
+    OPENTXS_EXPORT ~Currency() override = default;
 
-    EXPORT std::int32_t DecimalPower() const final { return power_; }
-    EXPORT std::string FractionalUnitName() const final
-    {
-        return fractional_unit_name_;
-    }  // "cents"    (for example)
-    EXPORT std::string TLA() const final
-    {
-        return tla_;
-    }  // "USD""     (for example)
+protected:
+    Currency() noexcept = default;
 
-    ~CurrencyContract() final = default;
+private:
+    friend OTCurrencyContract;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Currency* clone() const noexcept override = 0;
+#endif
+
+    Currency(const Currency&) = delete;
+    Currency(Currency&&) = delete;
+    Currency& operator=(const Currency&) = delete;
+    Currency& operator=(Currency&&) = delete;
 };
+}  // namespace unit
+}  // namespace contract
 }  // namespace opentxs
 #endif

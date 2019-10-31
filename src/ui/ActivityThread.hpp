@@ -59,10 +59,10 @@ using DraftTask = std::pair<
 
 template <>
 struct make_blank<DraftTask> {
-    static DraftTask value()
+    static DraftTask value(const api::Core& api)
     {
-        return {make_blank<ui::implementation::ActivityThreadRowID>::value(),
-                make_blank<api::client::OTX::BackgroundTask>::value()};
+        return {make_blank<ui::implementation::ActivityThreadRowID>::value(api),
+                make_blank<api::client::OTX::BackgroundTask>::value(api)};
     }
 };
 }  // namespace opentxs
@@ -115,10 +115,10 @@ private:
     mutable std::promise<void> participants_promise_;
     mutable std::shared_future<void> participants_future_;
     mutable std::mutex contact_lock_;
-    mutable std::string draft_{""};
+    mutable std::string draft_;
     mutable std::vector<DraftTask> draft_tasks_;
     std::shared_ptr<const opentxs::Contact> contact_;
-    std::unique_ptr<std::thread> contact_thread_{nullptr};
+    std::unique_ptr<std::thread> contact_thread_;
 
     std::string comma(const std::set<std::string>& list) const noexcept;
     void can_message() const noexcept;

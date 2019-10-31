@@ -23,7 +23,7 @@ namespace zap
 class Reply : virtual public zeromq::Message
 {
 public:
-    EXPORT static Pimpl<Reply> Factory(
+    OPENTXS_EXPORT static Pimpl<Reply> Factory(
         const Request& request,
         const zap::Status& code = zap::Status::Unknown,
         const std::string& status = "",
@@ -31,20 +31,20 @@ public:
         const Data& metadata = Data::Factory(),
         const std::string& version = "1.0");
 
-    EXPORT virtual zap::Status Code() const = 0;
-    EXPORT virtual std::string Debug() const = 0;
-    EXPORT virtual OTData Metadata() const = 0;
-    EXPORT virtual OTData RequestID() const = 0;
-    EXPORT virtual std::string Status() const = 0;
-    EXPORT virtual std::string UserID() const = 0;
-    EXPORT virtual std::string Version() const = 0;
+    OPENTXS_EXPORT virtual zap::Status Code() const = 0;
+    OPENTXS_EXPORT virtual std::string Debug() const = 0;
+    OPENTXS_EXPORT virtual OTData Metadata() const = 0;
+    OPENTXS_EXPORT virtual OTData RequestID() const = 0;
+    OPENTXS_EXPORT virtual std::string Status() const = 0;
+    OPENTXS_EXPORT virtual std::string UserID() const = 0;
+    OPENTXS_EXPORT virtual std::string Version() const = 0;
 
-    EXPORT virtual bool SetCode(const zap::Status& code) = 0;
-    EXPORT virtual bool SetMetadata(const Data& metadata) = 0;
-    EXPORT virtual bool SetStatus(const std::string& status) = 0;
-    EXPORT virtual bool SetUserID(const std::string& userID) = 0;
+    OPENTXS_EXPORT virtual bool SetCode(const zap::Status& code) = 0;
+    OPENTXS_EXPORT virtual bool SetMetadata(const Data& metadata) = 0;
+    OPENTXS_EXPORT virtual bool SetStatus(const std::string& status) = 0;
+    OPENTXS_EXPORT virtual bool SetUserID(const std::string& userID) = 0;
 
-    EXPORT ~Reply() override = default;
+    OPENTXS_EXPORT ~Reply() override = default;
 
 protected:
     Reply() = default;

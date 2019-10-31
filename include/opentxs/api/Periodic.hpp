@@ -15,8 +15,8 @@ namespace api
 class Periodic
 {
 public:
-    EXPORT virtual bool Cancel(const int task) const = 0;
-    EXPORT virtual bool Reschedule(
+    OPENTXS_EXPORT virtual bool Cancel(const int task) const = 0;
+    OPENTXS_EXPORT virtual bool Reschedule(
         const int task,
         const std::chrono::seconds& interval) const = 0;
     /** Adds a task to the periodic task list with the specified interval. By
@@ -24,12 +24,12 @@ public:
      *
      * \returns: task identifier which may be used to manage the task
      */
-    EXPORT virtual int Schedule(
+    OPENTXS_EXPORT virtual int Schedule(
         const std::chrono::seconds& interval,
         const opentxs::PeriodicTask& task,
         const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
 
-    EXPORT virtual ~Periodic() = default;
+    OPENTXS_EXPORT virtual ~Periodic() = default;
 
 protected:
     Periodic() = default;

@@ -36,27 +36,30 @@ namespace ui
 class ProfileSubsection : virtual public List, virtual public ListRow
 {
 public:
-    EXPORT virtual bool AddItem(
+    OPENTXS_EXPORT virtual bool AddItem(
         const std::string& value,
         const bool primary,
         const bool active) const noexcept = 0;
-    EXPORT virtual bool Delete(const std::string& claimID) const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> First() const
+    OPENTXS_EXPORT virtual bool Delete(const std::string& claimID) const
         noexcept = 0;
-    EXPORT virtual std::string Name(const std::string& lang) const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> Next() const
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Name(const std::string& lang) const
         noexcept = 0;
-    EXPORT virtual bool SetActive(const std::string& claimID, const bool active)
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ProfileItem> Next()
         const noexcept = 0;
-    EXPORT virtual bool SetPrimary(
+    OPENTXS_EXPORT virtual bool SetActive(
+        const std::string& claimID,
+        const bool active) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetPrimary(
         const std::string& claimID,
         const bool primary) const noexcept = 0;
-    EXPORT virtual bool SetValue(
+    OPENTXS_EXPORT virtual bool SetValue(
         const std::string& claimID,
         const std::string& value) const noexcept = 0;
-    EXPORT virtual proto::ContactItemType Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual proto::ContactItemType Type() const noexcept = 0;
 
-    EXPORT ~ProfileSubsection() override = default;
+    OPENTXS_EXPORT ~ProfileSubsection() override = default;
 
 protected:
     ProfileSubsection() noexcept = default;

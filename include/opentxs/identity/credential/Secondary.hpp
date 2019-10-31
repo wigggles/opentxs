@@ -19,7 +19,7 @@ namespace credential
 class Secondary : virtual public Key
 {
 public:
-    EXPORT ~Secondary() override = default;
+    OPENTXS_EXPORT ~Secondary() override = default;
 
 protected:
     Secondary() noexcept {}  // TODO Signable

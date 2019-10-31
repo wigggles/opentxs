@@ -132,7 +132,7 @@ public:
     std::int64_t GetClosingTransNo(std::string str_for_acct_name) const;
     // as used "IN THE SCRIPT."
     //
-    EXPORT std::string GetPartyName(
+    OPENTXS_EXPORT std::string GetPartyName(
         bool* pBoolSuccess = nullptr) const;  // "sales_director",
                                               // "marketer",
                                               // etc
@@ -155,7 +155,7 @@ public:
     std::string GetEntityID(bool* pBoolSuccess = nullptr) const;
 
     // If party is a Nym, this is the NymID. Else return EntityID().
-    EXPORT std::string GetPartyID(bool* pBoolSuccess = nullptr) const;
+    OPENTXS_EXPORT std::string GetPartyID(bool* pBoolSuccess = nullptr) const;
     // Some agents are passive (voting groups) and cannot behave actively, and
     // so cannot do
     // certain things that only Nyms can do. But they can still act as an agent
@@ -173,8 +173,8 @@ public:
     {
         return static_cast<std::int32_t>(m_mapAgents.size());
     }
-    EXPORT OTAgent* GetAgent(const std::string& str_agent_name) const;
-    EXPORT OTAgent* GetAgentByIndex(std::int32_t nIndex) const;
+    OPENTXS_EXPORT OTAgent* GetAgent(const std::string& str_agent_name) const;
+    OPENTXS_EXPORT OTAgent* GetAgentByIndex(std::int32_t nIndex) const;
     const std::string& GetAuthorizingAgentName() const
     {
         return m_str_authorizing_agent;
@@ -209,19 +209,19 @@ public:
         const PasswordPrompt& reason,
         OTAgent** ppAgent = nullptr);
     bool AddAccount(OTPartyAccount& thePartyAcct);
-    EXPORT bool AddAccount(
+    OPENTXS_EXPORT bool AddAccount(
         const String& strAgentName,
         const String& strName,
         const String& strAcctID,
         const String& strInstrumentDefinitionID,
         std::int64_t lClosingTransNo);
-    EXPORT bool AddAccount(
+    OPENTXS_EXPORT bool AddAccount(
         const String& strAgentName,
         const char* szAcctName,
         Account& theAccount,
         std::int64_t lClosingTransNo);
 
-    EXPORT bool RemoveAccount(const std::string str_Name);
+    OPENTXS_EXPORT bool RemoveAccount(const std::string str_Name);
 
     std::int32_t GetAccountCount() const
     {
@@ -229,12 +229,13 @@ public:
     }  // returns total of all accounts owned by this party.
     std::int32_t GetAccountCount(std::string str_agent_name)
         const;  // Only counts accounts authorized for str_agent_name.
-    EXPORT OTPartyAccount* GetAccount(
+    OPENTXS_EXPORT OTPartyAccount* GetAccount(
         const std::string& str_acct_name) const;  // Get PartyAcct by name.
-    EXPORT OTPartyAccount* GetAccountByIndex(std::int32_t nIndex);  // by index
-    EXPORT OTPartyAccount* GetAccountByAgent(
+    OPENTXS_EXPORT OTPartyAccount* GetAccountByIndex(
+        std::int32_t nIndex);  // by index
+    OPENTXS_EXPORT OTPartyAccount* GetAccountByAgent(
         const std::string& str_agent_name);  // by agent name
-    EXPORT OTPartyAccount* GetAccountByID(
+    OPENTXS_EXPORT OTPartyAccount* GetAccountByID(
         const Identifier& theAcctID) const;  // by asset acct id
     // If account is present for Party, set account's pointer to theAccount and
     // return true.
@@ -250,7 +251,7 @@ public:
         const String& strNotaryID,
         const PasswordPrompt& reason,
         bool bBurnTransNo = false);
-    EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
+    OPENTXS_EXPORT bool CopyAcctsToConfirmingParty(OTParty& theParty)
         const;  // When confirming a party, a new version replaces the original.
                 // This is part of that process.
     void RegisterAccountsForExecution(OTScript& theScript);
@@ -273,8 +274,10 @@ public:
     // speak directly
     // to said agent.)
 
-    EXPORT OTParty(const api::Wallet& wallet, const std::string& dataFolder);
-    EXPORT OTParty(
+    OPENTXS_EXPORT OTParty(
+        const api::Wallet& wallet,
+        const std::string& dataFolder);
+    OPENTXS_EXPORT OTParty(
         const api::Wallet& wallet,
         const std::string& dataFolder,
         const char* szName,
@@ -282,7 +285,7 @@ public:
         const char* szOwnerID,
         const char* szAuthAgent,
         bool bCreateAgent = false);
-    EXPORT OTParty(
+    OPENTXS_EXPORT OTParty(
         const api::Wallet& wallet,
         const std::string& dataFolder,
         std::string str_PartyName,

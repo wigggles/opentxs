@@ -1881,583 +1881,609 @@ void Notary::NotarizePayDividend(
                 "voucher: ")(strVoucherRequest)
                 .Flush();
         } else {
-            // the request voucher (sent from client) contains the payout amount
-            // per share. Whereas pItem contains lTotalCostOfDividend, which is
-            // the total cost (the payout multiplied by number of shares.)
-            //
-            // already validated, just above.
-            const std::int64_t lAmountPerShare = theVoucherRequest->GetAmount();
-            const Identifier& SHARES_ISSUER_ACCT_ID =
-                theVoucherRequest->GetSenderAcctID();
-            const auto strSharesIssuerAcct =
-                String::Factory(SHARES_ISSUER_ACCT_ID);
-            // Get the asset contract for the shares type, stored in the voucher
-            // request, inside pItem. (Make sure it's NOT the same instrument
-            // definition as theSourceAccount.get().)
-            const Identifier& SHARES_INSTRUMENT_DEFINITION_ID =
-                theVoucherRequest->GetInstrumentDefinitionID();
-            auto pSharesContract = manager_.Wallet().UnitDefinition(
-                theVoucherRequest->GetInstrumentDefinitionID(), reason_);
-            ExclusiveAccount sharesIssuerAccount;
-
-            if (pSharesContract) {
-                sharesIssuerAccount = manager_.Wallet().mutable_Account(
-                    SHARES_ISSUER_ACCT_ID, reason_);
-            }
-
-            const auto& purportedID = context.RemoteNym().ID();
-
-            if (!pSharesContract) {
-                const auto strSharesType =
-                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR unable to find shares contract based on "
-                    "instrument definition ID: ")(strSharesType)
-                    .Flush();
-            } else if (pSharesContract->Type() != proto::UNITTYPE_SECURITY) {
-                const auto strSharesType =
-                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": FAILURE: Asset contract is not shares-based. Asset type "
-                    "ID: ")(strSharesType)
-                    .Flush();
-            } else if (!(purportedID == pSharesContract->Nym()->ID())) {
-                const auto strSharesType =
-                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(": ERROR only the issuer (")(
-                    strNymID)(") of contract ")(strSharesType)(
-                    ") may pay dividends.")
-                    .Flush();
-            } else if (!pSharesContract->Validate(reason_)) {
-                const auto strSharesType =
-                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR unable to verify signature for Nym (")(strNymID)(
-                    ") on shares contract with instrument definition id: ")(
-                    strSharesType)
-                    .Flush();
-            } else if (false == bool(sharesIssuerAccount)) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR unable to find issuer account for shares: ")(
-                    strSharesIssuerAcct)
-                    .Flush();
-            } else if (
-                PAYOUT_INSTRUMENT_DEFINITION_ID ==
-                SHARES_INSTRUMENT_DEFINITION_ID)  // these can't be the
-                                                  // same
-            {
-                const auto strSharesType =
-                    String::Factory(PAYOUT_INSTRUMENT_DEFINITION_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR dividend payout attempted, using shares "
-                    "instrument definition as payout type also. (It's "
-                    "logically impossible for it to payout to itself, using "
-                    "ITSELF as the instrument definition for the payout): ")(
-                    strSharesType)
-                    .Flush();
-            } else if (!sharesIssuerAccount.get().VerifyAccount(
-                           server_.GetServerNym(), reason_)) {
-                const auto strIssuerAcctID =
-                    String::Factory(SHARES_ISSUER_ACCT_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR failed trying to verify issuer account: ")(
-                    strIssuerAcctID)
-                    .Flush();
-            } else if (!sharesIssuerAccount.get().VerifyOwner(
-                           context.RemoteNym())) {
-                const auto strIssuerAcctID =
-                    String::Factory(SHARES_ISSUER_ACCT_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR verifying signer's ownership of shares issuer "
-                    "account (")(strIssuerAcctID)(
-                    "), while trying to pay dividend from source account: ")(
-                    strAccountID)
-                    .Flush();
-            }
-            // Make sure the share issuer's account balance (number of shares
-            // issued * (-1)),
-            // when multiplied by the dividend "amount payout per share", equals
-            // the "total cost of dividend"
-            // as expected based on the value from pItem->GetAmount.
-            //
-            //
-            else if (
-                (sharesIssuerAccount.get().GetBalance() * (-1) *
-                 lAmountPerShare) != lTotalCostOfDividend) {
-                const auto strIssuerAcctID =
-                    String::Factory(SHARES_ISSUER_ACCT_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR: total payout of dividend as calculated (")(
-                    (sharesIssuerAccount.get().GetBalance() * (-1) *
-                     lAmountPerShare))(") doesn't match client's request (")(
-                    lTotalCostOfDividend)(") for source acct: ")(strAccountID)
-                    .Flush();
-            } else if (
-                theSourceAccount.get().GetBalance() < lTotalCostOfDividend) {
-                const auto strIssuerAcctID =
-                    String::Factory(SHARES_ISSUER_ACCT_ID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": FAILURE: not enough funds (")(
-                    theSourceAccount.get().GetBalance())(
-                    ") to cover total dividend payout (")(lTotalCostOfDividend)(
-                    ") for source acct: ")(strAccountID)
-                    .Flush();
-            } else {
-                // Remove all the funds at once (so the balance agreement
-                // matches up.)
-                // Then, iterate through the asset accounts and use a functor to
-                // send a voucher to each one.
-                // (Or back to the issuer, for any that fail.)
-
-                // UPDATE: unfortunately the balance agreement will be a lie
-                // unless the complete amount is removed.
-                // Therefore, failures must be sent back to the issuer as
-                // individual receipts, containing the vouchers
-                // for any failures, so he can have a record of them, and so he
-                // can recover the funds.
-
-                // contains the server's funds to back vouchers of a specific
-                // instrument definition.
-                ExclusiveAccount voucherReserveAccount;
-                // If the ID on the "from" account that was passed in, does
-                // not match the "Acct From" ID on this transaction item...
+            try {
+                // the request voucher (sent from client) contains the payout
+                // amount per share. Whereas pItem contains
+                // lTotalCostOfDividend, which is the total cost (the payout
+                // multiplied by number of shares.)
                 //
-                // TODO see if this is already verified by the caller function
-                // and if so, remove. (I believe the item would have entirely
-                // failed to load, if the account ID, and other IDs, hadn't
-                // matched up with the transaction when we loaded it.)
-                if (SOURCE_ACCT_ID != pItem->GetPurportedAccountID()) {
+                // already validated, just above.
+                const std::int64_t lAmountPerShare =
+                    theVoucherRequest->GetAmount();
+                const Identifier& SHARES_ISSUER_ACCT_ID =
+                    theVoucherRequest->GetSenderAcctID();
+                const auto strSharesIssuerAcct =
+                    String::Factory(SHARES_ISSUER_ACCT_ID);
+                // Get the asset contract for the shares type, stored in the
+                // voucher request, inside pItem. (Make sure it's NOT the same
+                // instrument definition as theSourceAccount.get().)
+                const Identifier& SHARES_INSTRUMENT_DEFINITION_ID =
+                    theVoucherRequest->GetInstrumentDefinitionID();
+                auto pSharesContract = manager_.Wallet().UnitDefinition(
+                    theVoucherRequest->GetInstrumentDefinitionID(), reason_);
+                auto sharesIssuerAccount = manager_.Wallet().mutable_Account(
+                    SHARES_ISSUER_ACCT_ID, reason_);
+                const auto& purportedID = context.RemoteNym().ID();
+
+                if (pSharesContract->Type() != proto::UNITTYPE_SECURITY) {
+                    const auto strSharesType =
+                        String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                     LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Error: Account ID does not match account ID on the "
-                        "'pay dividend' item.")
+                        ": FAILURE: Asset contract is not shares-based. Asset "
+                        "type ID: ")(strSharesType)
+                        .Flush();
+                } else if (!(purportedID == pSharesContract->Nym()->ID())) {
+                    const auto strSharesType =
+                        String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR only the issuer (")(strNymID)(
+                        ") of contract ")(strSharesType)(") may pay dividends.")
+                        .Flush();
+                } else if (!pSharesContract->Validate(reason_)) {
+                    const auto strSharesType =
+                        String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR unable to verify signature for Nym (")(
+                        strNymID)(
+                        ") on shares contract with instrument definition id: ")(
+                        strSharesType)
+                        .Flush();
+                } else if (false == bool(sharesIssuerAccount)) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR unable to find issuer account for shares: ")(
+                        strSharesIssuerAcct)
+                        .Flush();
+                } else if (
+                    PAYOUT_INSTRUMENT_DEFINITION_ID ==
+                    SHARES_INSTRUMENT_DEFINITION_ID)  // these can't be the
+                                                      // same
+                {
+                    const auto strSharesType =
+                        String::Factory(PAYOUT_INSTRUMENT_DEFINITION_ID);
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR dividend payout attempted, using shares "
+                        "instrument definition as payout type also. (It's "
+                        "logically impossible for it to payout to itself, "
+                        "using ITSELF as the instrument definition for the "
+                        "payout): ")(strSharesType)
+                        .Flush();
+                } else if (!sharesIssuerAccount.get().VerifyAccount(
+                               server_.GetServerNym(), reason_)) {
+                    const auto strIssuerAcctID =
+                        String::Factory(SHARES_ISSUER_ACCT_ID);
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR failed trying to verify issuer account: ")(
+                        strIssuerAcctID)
+                        .Flush();
+                } else if (!sharesIssuerAccount.get().VerifyOwner(
+                               context.RemoteNym())) {
+                    const auto strIssuerAcctID =
+                        String::Factory(SHARES_ISSUER_ACCT_ID);
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR verifying signer's ownership of shares issuer "
+                        "account (")(strIssuerAcctID)(
+                        "), while trying to pay dividend from source "
+                        "account: ")(strAccountID)
                         .Flush();
                 }
-                // The server will already have a special account for issuing
-                // vouchers. Actually, a list of them --
-                // one for each instrument definition. Since this is the normal
-                // way of
-                // doing business, GetTransactor().getVoucherAccount() will
-                // just create it if it doesn't already exist, and then return
-                // the pointer. Therefore, a failure here
-                // is a catastrophic failure!  Should never fail.
+                // Make sure the share issuer's account balance (number of
+                // shares issued * (-1)), when multiplied by the dividend
+                // "amount payout per share", equals the "total cost of
+                // dividend" as expected based on the value from
+                // pItem->GetAmount.
+                //
                 //
                 else if (
-                    (voucherReserveAccount =
-                         server_.GetTransactor().getVoucherAccount(
-                             PAYOUT_INSTRUMENT_DEFINITION_ID)) &&
-                    voucherReserveAccount) {
-                    const auto VOUCHER_ACCOUNT_ID =
-                        server_.API().Factory().Identifier(
-                            voucherReserveAccount.get());
+                    (sharesIssuerAccount.get().GetBalance() * (-1) *
+                     lAmountPerShare) != lTotalCostOfDividend) {
+                    const auto strIssuerAcctID =
+                        String::Factory(SHARES_ISSUER_ACCT_ID);
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR: total payout of dividend as calculated (")((
+                        sharesIssuerAccount.get().GetBalance() * (-1) *
+                        lAmountPerShare))(") doesn't match client's request (")(
+                        lTotalCostOfDividend)(") for source acct: ")(
+                        strAccountID)
+                        .Flush();
+                } else if (
+                    theSourceAccount.get().GetBalance() <
+                    lTotalCostOfDividend) {
+                    const auto strIssuerAcctID =
+                        String::Factory(SHARES_ISSUER_ACCT_ID);
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": FAILURE: not enough funds (")(
+                        theSourceAccount.get().GetBalance())(
+                        ") to cover total dividend payout (")(
+                        lTotalCostOfDividend)(") for source acct: ")(
+                        strAccountID)
+                        .Flush();
+                } else {
+                    // Remove all the funds at once (so the balance agreement
+                    // matches up.)
+                    // Then, iterate through the asset accounts and use a
+                    // functor to send a voucher to each one. (Or back to the
+                    // issuer, for any that fail.)
 
-                    // This amount must be the total amount based on the amount
-                    // issued.
-                    // For example if 1000 shares of Pepsi were issued, and the
-                    // dividend is $2 per share,
-                    // then loading the issuer's account will show a balance of
-                    // -1000, and I must have
-                    // $2000 in my source account if I am going to pay this
-                    // dividend.
+                    // UPDATE: unfortunately the balance agreement will be a lie
+                    // unless the complete amount is removed.
+                    // Therefore, failures must be sent back to the issuer as
+                    // individual receipts, containing the vouchers
+                    // for any failures, so he can have a record of them, and so
+                    // he can recover the funds.
+
+                    // contains the server's funds to back vouchers of a
+                    // specific instrument definition.
+                    ExclusiveAccount voucherReserveAccount;
+                    // If the ID on the "from" account that was passed in, does
+                    // not match the "Acct From" ID on this transaction item...
                     //
-                    // This $2000 is entirely removed from my account at once,
-                    // and the below balance agreement
-                    // must be for $2000. The vouchers are sent to the owners of
-                    // each account, in amounts
-                    // proportionate to the number of shares in the account. For
-                    // any voucher that fails to be
-                    // sent (for whatever reason) it is sent back to theNym
-                    // instead.
-                    //
-                    if (!(pBalanceItem->VerifyBalanceStatement(
-                            lTotalCostOfDividend * (-1),  // My account's
-                                                          // balance will go
-                                                          // down by this much.
-                            context,
-                            inbox,
-                            outbox,
-                            theSourceAccount.get(),
-                            tranIn,
-                            std::set<TransactionNumber>(),
-                            reason_))) {
+                    // TODO see if this is already verified by the caller
+                    // function and if so, remove. (I believe the item would
+                    // have entirely failed to load, if the account ID, and
+                    // other IDs, hadn't matched up with the transaction when we
+                    // loaded it.)
+                    if (SOURCE_ACCT_ID != pItem->GetPurportedAccountID()) {
                         LogOutput(OT_METHOD)(__FUNCTION__)(
-                            ": ERROR verifying balance statement while trying "
-                            "to pay dividend. Source Acct ID: ")(strAccountID)
+                            ": Error: Account ID does not match account ID on "
+                            "the "
+                            "'pay dividend' item.")
                             .Flush();
-                    } else  // successfully verified the balance agreement.
-                    {
-                        pResponseBalanceItem->SetStatus(
-                            Item::acknowledgement);  // the transaction
-                                                     // agreement was
-                                                     // successful.
-                        // IF we successfully created the voucher, AND the
-                        // voucher amount is greater than 0,
-                        // AND debited the user's account,
-                        // AND credited the server's voucher account,
+                    }
+                    // The server will already have a special account for
+                    // issuing vouchers. Actually, a list of them -- one for
+                    // each instrument definition. Since this is the normal way
+                    // of doing business, GetTransactor().getVoucherAccount()
+                    // will just create it if it doesn't already exist, and then
+                    // return the pointer. Therefore, a failure here is a
+                    // catastrophic failure!  Should never fail.
+                    //
+                    else if (
+                        (voucherReserveAccount =
+                             server_.GetTransactor().getVoucherAccount(
+                                 PAYOUT_INSTRUMENT_DEFINITION_ID)) &&
+                        voucherReserveAccount) {
+                        const auto VOUCHER_ACCOUNT_ID =
+                            server_.API().Factory().Identifier(
+                                voucherReserveAccount.get());
+
+                        // This amount must be the total amount based on the
+                        // amount issued. For example if 1000 shares of Pepsi
+                        // were issued, and the dividend is $2 per share, then
+                        // loading the issuer's account will show a balance of
+                        // -1000, and I must have
+                        // $2000 in my source account if I am going to pay this
+                        // dividend.
                         //
-                        // THEN save the accounts and pay the dividend out to
-                        // the shareholders.
+                        // This $2000 is entirely removed from my account at
+                        // once, and the below balance agreement must be for
+                        // $2000. The vouchers are sent to the owners of each
+                        // account, in amounts proportionate to the number of
+                        // shares in the account. For any voucher that fails to
+                        // be sent (for whatever reason) it is sent back to
+                        // theNym instead.
                         //
-                        if ((lTotalCostOfDividend > 0) &&
-                            theSourceAccount.get().Debit(
-                                lTotalCostOfDividend)  // todo: failsafe: update
-                                                       // this code in case of
-                                                       // problems in this
-                                                       // sensitive area. need
-                                                       // better funds transfer
-                                                       // code.
-                        ) {
-                            const auto strVoucherAcctID =
-                                String::Factory(VOUCHER_ACCOUNT_ID);
+                        if (!(pBalanceItem->VerifyBalanceStatement(
+                                lTotalCostOfDividend * (-1),  // My account's
+                                                              // balance will go
+                                                              // down by this
+                                                              // much.
+                                context,
+                                inbox,
+                                outbox,
+                                theSourceAccount.get(),
+                                tranIn,
+                                std::set<TransactionNumber>(),
+                                reason_))) {
+                            LogOutput(OT_METHOD)(__FUNCTION__)(
+                                ": ERROR verifying balance statement while "
+                                "trying to pay dividend. Source Acct ID: ")(
+                                strAccountID)
+                                .Flush();
+                        } else  // successfully verified the balance agreement.
+                        {
+                            pResponseBalanceItem->SetStatus(
+                                Item::acknowledgement);  // the transaction
+                                                         // agreement was
+                                                         // successful.
+                            // IF we successfully created the voucher, AND the
+                            // voucher amount is greater than 0,
+                            // AND debited the user's account,
+                            // AND credited the server's voucher account,
+                            //
+                            // THEN save the accounts and pay the dividend out
+                            // to the shareholders.
+                            //
+                            if ((lTotalCostOfDividend > 0) &&
+                                theSourceAccount.get().Debit(
+                                    lTotalCostOfDividend)  // todo: failsafe:
+                                                           // update this code
+                                                           // in case of
+                                                           // problems in this
+                                                           // sensitive area.
+                                                           // need better funds
+                                                           // transfer code.
+                            ) {
+                                const auto strVoucherAcctID =
+                                    String::Factory(VOUCHER_ACCOUNT_ID);
 
-                            if (false ==
-                                voucherReserveAccount.get().Credit(
-                                    lTotalCostOfDividend))  // theVoucherRequest->GetAmount()))
-                            {
-                                LogOutput(OT_METHOD)(__FUNCTION__)(
-                                    ": Failed crediting ")(
-                                    lTotalCostOfDividend)(
-                                    " units to voucher reserve account: ")(
-                                    strVoucherAcctID)
-                                    .Flush();
-                                // Since pVoucherReserveAcct->Credit failed, we
-                                // have to return
-                                // the funds from theSourceAccount.get().Debit
-                                // (Credit them back.)
-                                //
-                                if (false == theSourceAccount.get().Credit(
-                                                 lTotalCostOfDividend))
-                                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                                        ": Failed crediting back the user "
-                                        "account, after taking his funds and "
-                                        "failing to credit them to the voucher "
-                                        "reserve account.")
-                                        .Flush();
-                            } else  // By this point, we have taken the full
-                                    // funds
-                                    // and moved them to the voucher
-                            {  // reserve account. So now, let's iterate all the
-                                // accounts for that share type,
-                                // and send a voucher to the owner of each one,
-                                // to payout his dividend.
-
-                                // todo: determine whether I need to attach
-                                // anything here at all...
-                                pResponseItem->SetStatus(Item::acknowledgement);
-
-                                bOutSuccess = true;  // The paying of the
-                                // dividends was successful.
-                                //
-                                //
-                                // SAVE THE ACCOUNTS WITH THE NEW BALANCES
-                                // (FUNDS ARE MOVED)
-                                //
-                                // At this point, we save the accounts, so that
-                                // the funds transfer is solid before we start
-                                // mailing vouchers out to people.
-
-                                // Release any signatures that were there before
-                                // (They won't verify anymore anyway, since the
-                                // content has changed.)
-                                theSourceAccount.get().GetIdentifier(
-                                    accountHash);
-                                theSourceAccount.Release();
-
-                                // We also need to save the Voucher cash reserve
-                                // account. (Any issued voucher cheque is
-                                // automatically backed by this reserve account.
-                                // If a cheque is deposited, the funds come back
-                                // out of this account. If the cheque expires,
-                                // then after the expiry period, if it remains
-                                // in the account, it is now the property of the
-                                // transaction server.)
-                                voucherReserveAccount.Release();
-
-                                //
-                                // PAY THE SHAREHOLDERS
-                                //
-                                // Here's where we actually loop through the
-                                // asset accounts for the share type,
-                                // and send a voucher to the owner of each one.
-                                PayDividendVisitor actionPayDividend(
-                                    server_,
-                                    NOTARY_ID,
-                                    NYM_ID,
-                                    PAYOUT_INSTRUMENT_DEFINITION_ID,
-                                    VOUCHER_ACCOUNT_ID,
-                                    strInReferenceTo,  // Memo for each voucher
-                                                       // (containing original
-                                                       // payout request pItem)
-                                    lAmountPerShare);
-
-                                // Loops through all the accounts for a given
-                                // instrument definition
-                                // (PAYOUT_INSTRUMENT_DEFINITION_ID),
-                                // and triggers
-                                // actionPayDividend for each one. This sends
-                                // the owner nym for each, a voucher drawn on
-                                // VOUCHER_ACCOUNT_ID. (In the amount of
-                                // lAmountPerShare * number of shares in
-                                // account.)
-                                //
-                                const bool bForEachAcct =
-                                    pSharesContract->VisitAccountRecords(
-                                        manager_.DataFolder(),
-                                        actionPayDividend,
-                                        reason_);  // <================
-                                                   // pay all the
-                                                   // dividends here.
-
-                                // TODO: Since the above line of code loops
-                                // through all the accounts and loads them
-                                // up, transforms them, and saves them again, we
-                                // cannot use our own loaded accounts below
-                                // this point. (They could overwrite
-                                // themselves.) theSourceAccount especially, was
-                                // passed in
-                                // from above -- so how can we possible warn the
-                                // caller than he cannot save this account
-                                // without
-                                // overwriting work we have done in this
-                                // function?
-                                //
-                                // Aside from any more elegant solution, the
-                                // only way to make it work in this case would
-                                // be to
-                                // make a map or list of all the accounts that
-                                // are already loaded in memory (such as
-                                // theSourceAccount)
-                                // and PASS THEM IN to the above
-                                // VisitAccountRecords call. This way it would
-                                // have the option to use
-                                // the "already loaded" versions, where
-                                // appropriate, instead of loading them twice.
-                                // (As it is,
-                                // theSourceAccount is not used below this
-                                // point, though we couldn't preven the caller
-                                // from using it.)
-                                //
-                                // Therefore we need to have some central system
-                                // where accounts can be loaded, locked, saved,
-                                // etc.
-                                // So we cannot ever overwrite ourselves BY
-                                // DESIGN. (And the same for other data types as
-                                // well, like Nyms.)
-                                // Todo.
-                                //
-                                if (!bForEachAcct)  // todo failsafe. Handle
-                                                    // this
-                                                    // better.
+                                if (false ==
+                                    voucherReserveAccount.get().Credit(
+                                        lTotalCostOfDividend))  // theVoucherRequest->GetAmount()))
                                 {
                                     LogOutput(OT_METHOD)(__FUNCTION__)(
-                                        ": ERROR: After moving funds for "
-                                        "dividend payment, there was some "
-                                        "error when sending out the vouchers "
-                                        "to the payout recipients.")
-                                        .Flush();
-                                }
-                                //
-                                // REFUND ANY LEFTOVERS
-                                //
-                                const std::int64_t lLeftovers =
-                                    lTotalCostOfDividend -
-                                    (actionPayDividend.GetAmountPaidOut() +
-                                     actionPayDividend.GetAmountReturned());
-                                if (lLeftovers > 0) {
-                                    // Of the total amount removed from the
-                                    // sender's account, and after paying all
-                                    // dividends,
-                                    // there was a leftover amount that wasn't
-                                    // paid to anybody. Therefore, we should pay
-                                    // it back
-                                    // to the sender himself, now.
-                                    //
-                                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                                        ": After dividend payout, with ")(
+                                        ": Failed crediting ")(
                                         lTotalCostOfDividend)(
-                                        " units removed initially, there "
-                                        "were ")(lLeftovers)(
-                                        " units remaining. (Returning them to "
-                                        "sender...)")
+                                        " units to voucher reserve account: ")(
+                                        strVoucherAcctID)
                                         .Flush();
-                                    auto theVoucher{manager_.Factory().Cheque(
+                                    // Since pVoucherReserveAcct->Credit failed,
+                                    // we have to return the funds from
+                                    // theSourceAccount.get().Debit (Credit them
+                                    // back.)
+                                    //
+                                    if (false == theSourceAccount.get().Credit(
+                                                     lTotalCostOfDividend))
+                                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                                            ": Failed crediting back the user "
+                                            "account, after taking his funds "
+                                            "and failing to credit them to the "
+                                            "voucher reserve account.")
+                                            .Flush();
+                                } else  // By this point, we have taken the full
+                                        // funds
+                                        // and moved them to the voucher
+                                {  // reserve account. So now, let's iterate all
+                                   // the
+                                    // accounts for that share type,
+                                    // and send a voucher to the owner of each
+                                    // one, to payout his dividend.
+
+                                    // todo: determine whether I need to attach
+                                    // anything here at all...
+                                    pResponseItem->SetStatus(
+                                        Item::acknowledgement);
+
+                                    bOutSuccess = true;  // The paying of the
+                                    // dividends was successful.
+                                    //
+                                    //
+                                    // SAVE THE ACCOUNTS WITH THE NEW BALANCES
+                                    // (FUNDS ARE MOVED)
+                                    //
+                                    // At this point, we save the accounts, so
+                                    // that the funds transfer is solid before
+                                    // we start mailing vouchers out to people.
+
+                                    // Release any signatures that were there
+                                    // before (They won't verify anymore anyway,
+                                    // since the content has changed.)
+                                    theSourceAccount.get().GetIdentifier(
+                                        accountHash);
+                                    theSourceAccount.Release();
+
+                                    // We also need to save the Voucher cash
+                                    // reserve account. (Any issued voucher
+                                    // cheque is automatically backed by this
+                                    // reserve account. If a cheque is
+                                    // deposited, the funds come back out of
+                                    // this account. If the cheque expires, then
+                                    // after the expiry period, if it remains in
+                                    // the account, it is now the property of
+                                    // the transaction server.)
+                                    voucherReserveAccount.Release();
+
+                                    //
+                                    // PAY THE SHAREHOLDERS
+                                    //
+                                    // Here's where we actually loop through the
+                                    // asset accounts for the share type,
+                                    // and send a voucher to the owner of each
+                                    // one.
+                                    PayDividendVisitor actionPayDividend(
+                                        server_,
                                         NOTARY_ID,
-                                        PAYOUT_INSTRUMENT_DEFINITION_ID)};
-                                    const auto VALID_FROM = Clock::now();
-                                    const auto VALID_TO =
-                                        VALID_FROM +
-                                        std::chrono::hours(24 * 30 * 6);
-                                    std::int64_t lNewTransactionNumber = 0;
-                                    const bool bGotNextTransNum =
-                                        server_.GetTransactor()
-                                            .issueNextTransactionNumberToNym(
-                                                context, lNewTransactionNumber);
-                                    // We save the
-                                    // transaction
-                                    // number on the server Nym (normally we'd
-                                    // discard it) because
-                                    // when the cheque is deposited, the server
-                                    // nym, as the owner of
-                                    // the voucher account, needs to verify the
-                                    // transaction # on the
-                                    // cheque (to prevent double-spending of
-                                    // cheques.)
-                                    if (bGotNextTransNum) {
-                                        const auto& NOTARY_NYM_ID =
-                                            server_.GetServerNym().ID();
-                                        const bool bIssueVoucher =
-                                            theVoucher->IssueCheque(
-                                                lLeftovers,  // The amount of
-                                                             // the cheque.
-                                                lNewTransactionNumber,  // Requiring
-                                                                        // a
-                                                                        // transaction
-                                                                        // number
-                                                                        // prevents
-                                                                        // double-spending
-                                                                        // of
-                                                                        // cheques.
-                                                VALID_FROM,  // The expiration
-                                                             // date (valid
-                                                             // from/to dates)
-                                                             // of the cheque
-                                                VALID_TO,    // Vouchers are
-                                                             // automatically
-                                                // starting today and
-                                                // lasting 6 months.
-                                                VOUCHER_ACCOUNT_ID,  // The
-                                                                     // asset
-                                                                     // account
-                                                                     // the
-                                                                     // cheque
-                                                                     // is drawn
-                                                                     // on.
-                                                NOTARY_NYM_ID,  // Nym ID of the
-                                                                // sender (in
-                                                                // this case the
-                                                                // server nym.)
-                                                strInReferenceTo,  // Optional
-                                                                   // memo
-                                                                   // field.
-                                                                   // Includes
-                                                                   // item note
-                                                                   // and
-                                                                   // request
-                                                                   // memo.
-                                                NYM_ID);
+                                        NYM_ID,
+                                        PAYOUT_INSTRUMENT_DEFINITION_ID,
+                                        VOUCHER_ACCOUNT_ID,
+                                        strInReferenceTo,  // Memo for each
+                                                           // voucher
+                                                           // (containing
+                                                           // original payout
+                                                           // request pItem)
+                                        lAmountPerShare);
 
-                                        // All account crediting / debiting
-                                        // happens in the caller, in Server.
-                                        //    (AND it happens only ONCE, to
-                                        // cover ALL vouchers.)
-                                        // Then in here, the voucher either gets
-                                        // send to the recipient, or if error,
-                                        // sent back home to
-                                        // the issuer Nym. (ALL the funds are
-                                        // removed, then the vouchers are sent
-                                        // one way or the other.)
-                                        // Any returned vouchers, obviously
-                                        // serve to notify the dividend payer of
-                                        // where the errors were
-                                        // (as well as give him the opportunity
-                                        // to get his money back.)
+                                    // Loops through all the accounts for a
+                                    // given instrument definition
+                                    // (PAYOUT_INSTRUMENT_DEFINITION_ID),
+                                    // and triggers
+                                    // actionPayDividend for each one. This
+                                    // sends the owner nym for each, a voucher
+                                    // drawn on VOUCHER_ACCOUNT_ID. (In the
+                                    // amount of lAmountPerShare * number of
+                                    // shares in account.)
+                                    //
+                                    const bool bForEachAcct =
+                                        pSharesContract->VisitAccountRecords(
+                                            manager_.DataFolder(),
+                                            actionPayDividend,
+                                            reason_);  // <================
+                                                       // pay all the
+                                                       // dividends here.
+
+                                    // TODO: Since the above line of code loops
+                                    // through all the accounts and loads them
+                                    // up, transforms them, and saves them
+                                    // again, we cannot use our own loaded
+                                    // accounts below this point. (They could
+                                    // overwrite themselves.) theSourceAccount
+                                    // especially, was passed in from above --
+                                    // so how can we possible warn the caller
+                                    // than he cannot save this account without
+                                    // overwriting work we have done in this
+                                    // function?
+                                    //
+                                    // Aside from any more elegant solution, the
+                                    // only way to make it work in this case
+                                    // would be to make a map or list of all the
+                                    // accounts that are already loaded in
+                                    // memory (such as theSourceAccount) and
+                                    // PASS THEM IN to the above
+                                    // VisitAccountRecords call. This way it
+                                    // would have the option to use the "already
+                                    // loaded" versions, where appropriate,
+                                    // instead of loading them twice. (As it is,
+                                    // theSourceAccount is not used below this
+                                    // point, though we couldn't preven the
+                                    // caller from using it.)
+                                    //
+                                    // Therefore we need to have some central
+                                    // system where accounts can be loaded,
+                                    // locked, saved, etc. So we cannot ever
+                                    // overwrite ourselves BY DESIGN. (And the
+                                    // same for other data types as well, like
+                                    // Nyms.) Todo.
+                                    //
+                                    if (!bForEachAcct)  // todo failsafe. Handle
+                                                        // this
+                                                        // better.
+                                    {
+                                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                                            ": ERROR: After moving funds for "
+                                            "dividend payment, there was some "
+                                            "error when sending out the "
+                                            "vouchers to the payout "
+                                            "recipients.")
+                                            .Flush();
+                                    }
+                                    //
+                                    // REFUND ANY LEFTOVERS
+                                    //
+                                    const std::int64_t lLeftovers =
+                                        lTotalCostOfDividend -
+                                        (actionPayDividend.GetAmountPaidOut() +
+                                         actionPayDividend.GetAmountReturned());
+                                    if (lLeftovers > 0) {
+                                        // Of the total amount removed from the
+                                        // sender's account, and after paying
+                                        // all dividends, there was a leftover
+                                        // amount that wasn't paid to anybody.
+                                        // Therefore, we should pay it back to
+                                        // the sender himself, now.
                                         //
-                                        bool bSent = false;
-                                        if (bIssueVoucher) {
-                                            theVoucher->SetAsVoucher(
-                                                NOTARY_NYM_ID,
-                                                VOUCHER_ACCOUNT_ID);  // All
-                                                                      // this
-                                                                      // does is
-                                                                      // set the
-                                            // voucher's
-                                            // internal
-                                            // contract
-                                            // string
-                                            theVoucher->SignContract(
-                                                server_.GetServerNym(),
-                                                reason_);  // to
-                                            // "VOUCHER"
-                                            // instead of
-                                            // "CHEQUE".
-                                            theVoucher->SaveContract();
+                                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                                            ": After dividend payout, with ")(
+                                            lTotalCostOfDividend)(
+                                            " units removed initially, there "
+                                            "were ")(lLeftovers)(
+                                            " units remaining. (Returning them "
+                                            "to sender...)")
+                                            .Flush();
+                                        auto theVoucher{manager_.Factory().Cheque(
+                                            NOTARY_ID,
+                                            PAYOUT_INSTRUMENT_DEFINITION_ID)};
+                                        const auto VALID_FROM = Clock::now();
+                                        const auto VALID_TO =
+                                            VALID_FROM +
+                                            std::chrono::hours(24 * 30 * 6);
+                                        std::int64_t lNewTransactionNumber = 0;
+                                        const bool bGotNextTransNum =
+                                            server_.GetTransactor()
+                                                .issueNextTransactionNumberToNym(
+                                                    context,
+                                                    lNewTransactionNumber);
+                                        // We save the
+                                        // transaction
+                                        // number on the server Nym (normally
+                                        // we'd discard it) because when the
+                                        // cheque is deposited, the server nym,
+                                        // as the owner of the voucher account,
+                                        // needs to verify the transaction # on
+                                        // the cheque (to prevent
+                                        // double-spending of cheques.)
+                                        if (bGotNextTransNum) {
+                                            const auto& NOTARY_NYM_ID =
+                                                server_.GetServerNym().ID();
+                                            const bool bIssueVoucher =
+                                                theVoucher->IssueCheque(
+                                                    lLeftovers,  // The amount
+                                                                 // of the
+                                                                 // cheque.
+                                                    lNewTransactionNumber,  // Requiring
+                                                                            // a
+                                                                            // transaction
+                                                                            // number
+                                                                            // prevents
+                                                                            // double-spending
+                                                                            // of
+                                                                            // cheques.
+                                                    VALID_FROM,  // The
+                                                                 // expiration
+                                                                 // date (valid
+                                                                 // from/to
+                                                                 // dates) of
+                                                                 // the cheque
+                                                    VALID_TO,    // Vouchers are
+                                                               // automatically
+                                                    // starting today and
+                                                    // lasting 6 months.
+                                                    VOUCHER_ACCOUNT_ID,  // The
+                                                                         // asset
+                                                                         // account
+                                                                         // the
+                                                                         // cheque
+                                                                         // is
+                                                                         // drawn
+                                                                         // on.
+                                                    NOTARY_NYM_ID,  // Nym ID of
+                                                                    // the
+                                                                    // sender
+                                                                    // (in this
+                                                                    // case the
+                                                                    // server
+                                                                    // nym.)
+                                                    strInReferenceTo,  // Optional
+                                                                       // memo
+                                                                       // field.
+                                                                       // Includes
+                                                                       // item
+                                                                       // note
+                                                                       // and
+                                                                       // request
+                                                                       // memo.
+                                                    NYM_ID);
 
-                                            // Send the voucher to the payments
-                                            // inbox of the recipient.
+                                            // All account crediting / debiting
+                                            // happens in the caller, in Server.
+                                            //    (AND it happens only ONCE, to
+                                            // cover ALL vouchers.)
+                                            // Then in here, the voucher either
+                                            // gets send to the recipient, or if
+                                            // error, sent back home to the
+                                            // issuer Nym. (ALL the funds are
+                                            // removed, then the vouchers are
+                                            // sent one way or the other.) Any
+                                            // returned vouchers, obviously
+                                            // serve to notify the dividend
+                                            // payer of where the errors were
+                                            // (as well as give him the
+                                            // opportunity to get his money
+                                            // back.)
                                             //
-                                            const auto strVoucher =
-                                                String::Factory(*theVoucher);
-                                            auto thePayment{
-                                                manager_.Factory().Payment(
-                                                    strVoucher)};
+                                            bool bSent = false;
+                                            if (bIssueVoucher) {
+                                                theVoucher->SetAsVoucher(
+                                                    NOTARY_NYM_ID,
+                                                    VOUCHER_ACCOUNT_ID);  // All
+                                                                          // this
+                                                                          // does
+                                                                          // is
+                                                                          // set
+                                                                          // the
+                                                // voucher's
+                                                // internal
+                                                // contract
+                                                // string
+                                                theVoucher->SignContract(
+                                                    server_.GetServerNym(),
+                                                    reason_);  // to
+                                                // "VOUCHER"
+                                                // instead of
+                                                // "CHEQUE".
+                                                theVoucher->SaveContract();
 
-                                            // calls DropMessageToNymbox
-                                            bSent = server_.SendInstrumentToNym(
-                                                NOTARY_ID,
-                                                NOTARY_NYM_ID,  // sender
-                                                                // nym
-                                                NYM_ID,         // recipient nym
-                                                                // (returning to
-                                                // original sender.)
-                                                *thePayment,
-                                                "payDividend");  // todo:
-                                            // hardcoding.
-                                        }
-                                        // If we didn't send it, then we need to
-                                        // return the funds to where they came
-                                        // from.
-                                        //
-                                        if (!bSent) {
+                                                // Send the voucher to the
+                                                // payments inbox of the
+                                                // recipient.
+                                                //
+                                                const auto strVoucher =
+                                                    String::Factory(
+                                                        *theVoucher);
+                                                auto thePayment{
+                                                    manager_.Factory().Payment(
+                                                        strVoucher)};
+
+                                                // calls DropMessageToNymbox
+                                                bSent =
+                                                    server_.SendInstrumentToNym(
+                                                        NOTARY_ID,
+                                                        NOTARY_NYM_ID,  // sender
+                                                                        // nym
+                                                        NYM_ID,  // recipient
+                                                                 // nym
+                                                                 // (returning
+                                                                 // to
+                                                        // original sender.)
+                                                        *thePayment,
+                                                        "payDividend");  // todo:
+                                                // hardcoding.
+                                            }
+                                            // If we didn't send it, then we
+                                            // need to return the funds to where
+                                            // they came from.
+                                            //
+                                            if (!bSent) {
+                                                const auto
+                                                    strPayoutInstrumentDefinitionID =
+                                                        String::Factory(
+                                                            PAYOUT_INSTRUMENT_DEFINITION_ID),
+                                                    strSenderNymID =
+                                                        String::Factory(NYM_ID);
+                                                LogOutput(OT_METHOD)(
+                                                    __FUNCTION__)(
+                                                    ": ERROR failed issuing "
+                                                    "voucher (to return "
+                                                    "leftovers back to the "
+                                                    "dividend payout "
+                                                    "initiator.) WAS TRYING TO "
+                                                    "PAY ")(lLeftovers)(
+                                                    " of instrument "
+                                                    "definition ")(
+                                                    strPayoutInstrumentDefinitionID)(
+                                                    " to Nym ")(strSenderNymID)
+                                                    .Flush();
+                                            }   // if !bSent
+                                        } else  // !bGotNextTransNum
+                                        {
                                             const auto
                                                 strPayoutInstrumentDefinitionID =
                                                     String::Factory(
                                                         PAYOUT_INSTRUMENT_DEFINITION_ID),
-                                                strSenderNymID =
+                                                strRecipientNymID =
                                                     String::Factory(NYM_ID);
                                             LogOutput(OT_METHOD)(__FUNCTION__)(
-                                                ": ERROR failed issuing "
-                                                "voucher (to return leftovers "
-                                                "back to the dividend payout "
-                                                "initiator.) WAS TRYING TO "
+                                                ": ERROR!! Failed issuing next "
+                                                "transaction number while "
+                                                "trying to send a voucher "
+                                                "(while returning leftover "
+                                                "funds, after paying "
+                                                "dividends.) WAS TRYING TO "
                                                 "PAY ")(lLeftovers)(
-                                                " of instrument definition ")(
+                                                " of asset type ")(
                                                 strPayoutInstrumentDefinitionID)(
-                                                " to Nym ")(strSenderNymID)
+                                                " to Nym ")(strRecipientNymID)
                                                 .Flush();
-                                        }   // if !bSent
-                                    } else  // !bGotNextTransNum
-                                    {
-                                        const auto
-                                            strPayoutInstrumentDefinitionID =
-                                                String::Factory(
-                                                    PAYOUT_INSTRUMENT_DEFINITION_ID),
-                                            strRecipientNymID =
-                                                String::Factory(NYM_ID);
-                                        LogOutput(OT_METHOD)(__FUNCTION__)(
-                                            ": ERROR!! Failed issuing next "
-                                            "transaction number while trying "
-                                            "to send a voucher (while "
-                                            "returning leftover funds, after "
-                                            "paying dividends.) WAS TRYING TO "
-                                            "PAY ")(lLeftovers)(
-                                            " of asset type ")(
-                                            strPayoutInstrumentDefinitionID)(
-                                            " to Nym ")(strRecipientNymID)
-                                            .Flush();
+                                        }
                                     }
-                                }
-                            }  // else
-                        }
-                        // else{} // TODO log that there was a problem with the
-                        // amount
+                                }  // else
+                            }
+                            // else{} // TODO log that there was a problem with
+                            // the amount
 
-                    }  // voucher request loaded successfully from string
-                }      // server_.GetTransactor().getVoucherAccount()
-                else {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": server_.GetTransactor().getVoucherAccount() failed. "
-                        "Asset Type: ")(strInstrumentDefinitionID)
-                        .Flush();
+                        }  // voucher request loaded successfully from string
+                    }      // server_.GetTransactor().getVoucherAccount()
+                    else {
+                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                            ": server_.GetTransactor().getVoucherAccount() "
+                            "failed. "
+                            "Asset Type: ")(strInstrumentDefinitionID)
+                            .Flush();
+                    }
                 }
+            } catch (...) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": ERROR unable to find shares contract based on "
+                    "instrument definition")
+                    .Flush();
             }
         }
     } else {
@@ -4360,7 +4386,6 @@ void Notary::NotarizeExchangeBasket(
             pResponseBalanceItem->SetStatus(
                 Item::acknowledgement);  // the balance agreement was
                                          // successful.
-
             // Set up some account pointer lists for later...
             listOfAccounts listUserAccounts, listServerAccounts;
             std::list<Ledger*> listInboxes;
@@ -4372,7 +4397,6 @@ void Notary::NotarizeExchangeBasket(
             OT_ASSERT(false != bool(theRequestBasket));
 
             pItem->GetAttachment(strBasket);
-
             std::int64_t lTransferAmount = 0;
 
             // Now we have the Contract ID from the basket account,
@@ -4386,8 +4410,8 @@ void Notary::NotarizeExchangeBasket(
 
             if (!bLookup) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Notary::NotarizeExchangeBasket: Asset type is "
-                    "not a basket currency.")
+                    ": Notary::NotarizeExchangeBasket: Asset type is not a "
+                    "basket currency.")
                     .Flush();
             } else if (
                 !strBasket->Exists() ||
@@ -4402,16 +4426,14 @@ void Notary::NotarizeExchangeBasket(
                 theRequestBasket->GetRequestAccountID() !=
                 theAccount.get().GetPurportedAccountID()) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": User's main "
-                    "account ID according to request basket doesn't "
-                    "match theAccount.get().")
+                    ": User's main account ID according to request basket "
+                    "doesn't match theAccount.get().")
                     .Flush();
             } else if (!context.VerifyIssuedNumber(
                            theRequestBasket->GetClosingNum())) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Closing number "
-                    "used for User's main account receipt was not "
-                    "available for use...")
+                    ": Closing number used for User's main account receipt was "
+                    "not available for use...")
                     .Flush();
             } else {  // Load the basket account and make sure it exists.
                 basketAccount = manager_.Wallet().mutable_Account(
@@ -4419,8 +4441,7 @@ void Notary::NotarizeExchangeBasket(
 
                 if (false == bool(basketAccount)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": ERROR loading the basket account in "
-                        "Notary::NotarizeExchangeBasket.")
+                        ": ERROR loading the basket account")
                         .Flush();
                 }
                 // Does it verify?
@@ -4429,743 +4450,747 @@ void Notary::NotarizeExchangeBasket(
                 else if (!basketAccount.get().VerifySignature(
                              server_.GetServerNym(), reason_)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": ERROR verifying signature on the basket "
-                        "account in "
-                        "Notary::NotarizeExchangeBasket.")
+                        ": ERROR verifying signature on the basket account")
                         .Flush();
                 } else {
-                    // Now we get a pointer to its asset contract...
-                    auto pContract = manager_.Wallet().UnitDefinition(
-                        BASKET_CONTRACT_ID, reason_);
+                    try {
+                        // Now we get a pointer to its asset contract...
+                        const auto basket = manager_.Wallet().BasketContract(
+                            BASKET_CONTRACT_ID, reason_);
+                        // Now let's load up the actual basket, from the actual
+                        // asset contract.
+                        std::int64_t currencies = basket->Currencies().size();
+                        std::int64_t weight = basket->Weight();
 
-                    const BasketContract* basket = nullptr;
+                        if (currencies == theRequestBasket->Count() &&
+                            weight == theRequestBasket->GetMinimumTransfer()) {
+                            // Let's make sure that the same asset account
+                            // doesn't appear twice on the request.
+                            //
+                            std::set<OTIdentifier> setOfAccounts;
+                            setOfAccounts.insert(
+                                theRequestBasket->GetRequestAccountID());
 
-                    if (pContract) {
-                        basket = dynamic_cast<const BasketContract*>(
-                            pContract.get());
-                    }
+                            bool bFoundSameAcctTwice = false;
 
-                    // Now let's load up the actual basket, from the actual
-                    // asset contract.
-                    std::int64_t currencies = basket->Currencies().size();
-                    std::int64_t weight = basket->Weight();
-                    if ((nullptr != basket) &&
-                        currencies == theRequestBasket->Count() &&
-                        weight == theRequestBasket->GetMinimumTransfer()) {
-                        // Let's make sure that the same asset account
-                        // doesn't appear twice on the request.
-                        //
-                        std::set<OTIdentifier> setOfAccounts;
-                        setOfAccounts.insert(
-                            theRequestBasket->GetRequestAccountID());
-
-                        bool bFoundSameAcctTwice = false;
-
-                        for (std::int32_t i = 0; i < theRequestBasket->Count();
-                             i++) {
-                            BasketItem* item = theRequestBasket->At(i);
-                            OT_ASSERT(nullptr != item);
-                            std::set<OTIdentifier>::iterator it_account =
-                                setOfAccounts.find(item->SUB_ACCOUNT_ID);
-
-                            if (setOfAccounts.end() !=
-                                it_account)  // The account appears twice!!
-                            {
-                                const auto strSubID =
-                                    String::Factory(item->SUB_ACCOUNT_ID);
-                                LogOutput(OT_METHOD)(__FUNCTION__)(
-                                    ": Failed: Sub-account ID found TWICE on "
-                                    "same basket exchange request: ")(strSubID)
-                                    .Flush();
-                                bFoundSameAcctTwice = true;
-                                break;
-                            }
-                            setOfAccounts.insert(item->SUB_ACCOUNT_ID);
-                        }
-                        if (!bFoundSameAcctTwice)  // Let's do it!
-                        {
-                            // Loop through the request AND the actual
-                            // basket TOGETHER...
                             for (std::int32_t i = 0;
                                  i < theRequestBasket->Count();
                                  i++) {
+                                BasketItem* item = theRequestBasket->At(i);
+                                OT_ASSERT(nullptr != item);
+                                std::set<OTIdentifier>::iterator it_account =
+                                    setOfAccounts.find(item->SUB_ACCOUNT_ID);
 
-                                BasketItem* pRequestItem =
-                                    theRequestBasket->At(i);
-                                const auto requestContractID = String::Factory(
-                                    pRequestItem->SUB_CONTRACT_ID);
-                                const auto requestAccountID = String::Factory(
-                                    pRequestItem->SUB_ACCOUNT_ID);
-
-                                if (basket->Currencies().find(
-                                        requestContractID->Get()) ==
-                                    basket->Currencies().end()) {
-                                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                                        "Error: expected instrument "
-                                        "definition "
-                                        "IDs to match in "
-                                        "Notary::"
-                                        "NotarizeExchangeBasket.")
-                                        .Flush();
-                                    bSuccess = false;
-                                    break;
-                                }
-
-                                const auto serverAccountID = String::Factory(
-                                    basket->Currencies()
-                                        .at(requestContractID->Get())
-                                        .first);
-
-                                const auto subWeight =
-                                    basket->Currencies()
-                                        .at(requestContractID->Get())
-                                        .second;
-
-                                if (serverAccountID->Compare(
-                                        requestAccountID)) {
-                                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                                        "Error: VERY strange to have "
-                                        "these account ID's match. "
-                                        "Notary::"
-                                        "NotarizeExchangeBasket.")
-                                        .Flush();
-                                    bSuccess = false;
-                                    break;
-                                } else if (!context.VerifyIssuedNumber(
-                                               pRequestItem
-                                                   ->lClosingTransactionNo)) {
-                                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                                        "Error: Basket sub-currency "
-                                        "closing "
-                                        "number didn't verify . "
-                                        "Notary::"
-                                        "NotarizeExchangeBasket.")
-                                        .Flush();
-                                    bSuccess = false;
-                                    break;
-                                } else  // if equal
+                                if (setOfAccounts.end() !=
+                                    it_account)  // The account appears twice!!
                                 {
-                                    bSuccess = true;
-
-                                    // Load up the two accounts and perform
-                                    // the exchange...
-                                    auto tempUserAccount =
-                                        manager_.Wallet().mutable_Account(
-                                            pRequestItem->SUB_ACCOUNT_ID,
-                                            reason_);
-
-                                    if (false == bool(tempUserAccount)) {
-                                        LogOutput(OT_METHOD)(__FUNCTION__)(
-                                            ": ERROR loading a user's "
-                                            "asset account in "
-                                            "Notary::"
-                                            "NotarizeExchangeBasket.")
-                                            .Flush();
-                                        bSuccess = false;
-                                        tempUserAccount.Abort();
-                                        break;
-                                    }
-
-                                    auto tempServerAccount =
-                                        manager_.Wallet().mutable_Account(
-
-                                            server_.API().Factory().Identifier(
-                                                serverAccountID),
-                                            reason_);
-
-                                    if (false == bool(tempServerAccount)) {
-                                        LogOutput(OT_METHOD)(__FUNCTION__)(
-                                            ": ERROR loading a basket "
-                                            "sub-account in "
-                                            "Notary::"
-                                            "NotarizeExchangeBasket.")
-                                            .Flush();
-                                        bSuccess = false;
-                                        tempUserAccount.Abort();
-                                        tempServerAccount.Abort();
-                                        break;
-                                    }
-                                    // Load up the inbox for the user's sub
-                                    // account, so we can drop the receipt.
-                                    //
-                                    auto pSubInbox =
-                                        tempUserAccount.get().LoadInbox(
-                                            server_.GetServerNym(), reason_);
-
-                                    if (false == bool(pSubInbox)) {
-                                        LogOutput(OT_METHOD)(__FUNCTION__)(
-                                            ": Error loading or "
-                                            "verifying sub-inbox in "
-                                            "Notary::"
-                                            "NotarizeExchangeBasket.")
-                                            .Flush();
-                                        bSuccess = false;
-                                        tempUserAccount.Abort();
-                                        tempServerAccount.Abort();
-                                        break;
-                                    }
-
-                                    // I'm preserving these points, to be
-                                    // deleted at the end.
-                                    // They won't be saved until after ALL
-                                    // debits/credits were successful.
-                                    // Once ALL exchanges are done, THEN it
-                                    // loops through and saves / deletes
-                                    // all the accounts.
-                                    listUserAccounts.emplace_back(
-                                        std::move(tempUserAccount));
-                                    auto& userAccount =
-                                        *listUserAccounts.rbegin();
-
-                                    listServerAccounts.emplace_back(
-                                        std::move(tempServerAccount));
-                                    auto& serverAccount =
-                                        *listServerAccounts.rbegin();
-                                    listInboxes.push_back(pSubInbox.get());
-
-                                    // Do they verify?
-                                    // I call VerifySignature here since
-                                    // VerifyContractID was already called
-                                    // in LoadExistingAccount().
-                                    if (userAccount.get()
-                                            .GetInstrumentDefinitionID() !=
-                                        server_.API().Factory().UnitID(
-                                            requestContractID)) {
-                                        LogOutput(OT_METHOD)(__FUNCTION__)(
-                                            ": ERROR verifying instrument "
-                                            "definition on a "
-                                            "user's account in "
-                                            "Notary::"
-                                            "NotarizeExchangeBasket.")
-                                            .Flush();
-                                        bSuccess = false;
-                                        break;
-                                    } else {
-                                        // the amount being transferred
-                                        // between these two accounts is the
-                                        // minimum transfer amount for the
-                                        // sub-account on the basket,
-                                        // multiplied by
-                                        lTransferAmount =
-                                            (subWeight *
-                                             theRequestBasket
-                                                 ->GetTransferMultiple());
-
-                                        // user is performing exchange IN
-                                        if (theRequestBasket
-                                                ->GetExchangingIn()) {
-                                            if (userAccount.get().Debit(
-                                                    lTransferAmount)) {
-                                                if (serverAccount.get().Credit(
-                                                        lTransferAmount))
-                                                    bSuccess = true;
-                                                else {  // the server credit
-                                                        // failed.
-                                                    LogOutput(OT_METHOD)(
-                                                        __FUNCTION__)(
-                                                        ": Failure crediting "
-                                                        "server acct.")
-                                                        .Flush();
-
-                                                    // Since we debited the
-                                                    // user's acct already,
-                                                    // let's put that back.
-                                                    if (false ==
-                                                        userAccount.get().Credit(
-                                                            lTransferAmount))
-                                                        LogOutput(OT_METHOD)(
-                                                            __FUNCTION__)(
-                                                            ": Failure "
-                                                            "crediting "
-                                                            "back "
-                                                            "user "
-                                                            "account.")
-                                                            .Flush();
-                                                    bSuccess = false;
-                                                    break;
-                                                }
-                                            } else {
-                                                LogNormal(OT_METHOD)(
-                                                    __FUNCTION__)(
-                                                    ": Unable to Debit user "
-                                                    "account.")
-                                                    .Flush();
-                                                bSuccess = false;
-                                                break;
-                                            }
-                                        } else  // user is peforming
-                                                // exchange OUT
-                                        {
-                                            if (serverAccount.get().Debit(
-                                                    lTransferAmount)) {
-                                                if (userAccount.get().Credit(
-                                                        lTransferAmount))
-                                                    bSuccess = true;
-                                                else {  // the user credit
-                                                        // failed.
-                                                    LogOutput(OT_METHOD)(
-                                                        __FUNCTION__)(
-                                                        ": Failure crediting "
-                                                        "user account.")
-                                                        .Flush();
-
-                                                    // Since we debited the
-                                                    // server's acct
-                                                    // already, let's put
-                                                    // that back.
-                                                    if (false ==
-                                                        serverAccount.get()
-                                                            .Credit(
-                                                                lTransferAmount))
-                                                        LogOutput(OT_METHOD)(
-                                                            __FUNCTION__)(
-                                                            ": Failure "
-                                                            "crediting "
-                                                            "back "
-                                                            "server "
-                                                            "account.")
-                                                            .Flush();
-                                                    bSuccess = false;
-                                                    break;
-                                                }
-                                            } else {
-                                                LogNormal(OT_METHOD)(
-                                                    __FUNCTION__)(
-                                                    ": Unable to Debit server "
-                                                    "account.")
-                                                    .Flush();
-                                                bSuccess = false;
-                                                break;
-                                            }
-                                        }
-                                        // Drop the receipt -- accounts were
-                                        // debited and credited properly.
-                                        //
-                                        if (bSuccess) {  // need to be able
-                                                         // to "roll back"
-                                                         // if anything
-                                                         // inside this
-                                                         // block fails.
-                                            // update: actually does pretty
-                                            // good roll-back as it is. The
-                                            // debits and credits don't save
-                                            // unless everything is a
-                                            // success.
-
-                                            // Generate new transaction
-                                            // number (for putting the
-                                            // basketReceipt in the
-                                            // exchanger's inbox.) todo
-                                            // check this generation for
-                                            // failure (can it fail?)
-                                            std::int64_t lNewTransactionNumber =
-                                                0;
-
-                                            server_.GetTransactor()
-                                                .issueNextTransactionNumber(
-                                                    lNewTransactionNumber);
-
-                                            auto pInboxTransaction{
-                                                manager_.Factory().Transaction(
-                                                    *pSubInbox,
-                                                    transactionType::
-                                                        basketReceipt,
-                                                    originType::not_applicable,
-                                                    lNewTransactionNumber)};
-
-                                            OT_ASSERT(
-                                                false !=
-                                                bool(pInboxTransaction));
-
-                                            auto pItemInbox =
-                                                manager_.Factory().Item(
-                                                    *pInboxTransaction,
-                                                    itemType::basketReceipt,
-                                                    server_.API()
-                                                        .Factory()
-                                                        .Identifier());
-
-                                            // these may be unnecessary,
-                                            // I'll have to check
-                                            // CreateItemFromTransaction.
-                                            // I'll leave em.
-                                            OT_ASSERT(
-                                                false != bool(pItemInbox));
-
-                                            pItemInbox->SetStatus(
-                                                Item::acknowledgement);
-                                            pItemInbox->SetAmount(
-                                                theRequestBasket
-                                                        ->GetExchangingIn()
-                                                    ? lTransferAmount * (-1)
-                                                    : lTransferAmount);
-
-                                            pItemInbox->SignContract(
-                                                server_.GetServerNym(),
-                                                reason_);
-                                            pItemInbox->SaveContract();
-
-                                            std::shared_ptr<Item> itemInbox{
-                                                pItemInbox.release()};
-                                            pInboxTransaction->AddItem(
-                                                itemInbox);  // Add the
-                                                             // inbox item
-                                                             // to the inbox
-                                            // transaction, so
-                                            // we can add to
-                                            // the inbox
-                                            // ledger.
-
-                                            pInboxTransaction
-                                                ->SetNumberOfOrigin(
-                                                    *pItem, reason_);
-
-                                            // The "exchangeBasket request"
-                                            // Item is saved as the "In
-                                            // Reference To" field
-                                            // on the inbox basketReceipt
-                                            // transaction.
-                                            // todo put these two together
-                                            // in a method.
-                                            pInboxTransaction
-                                                ->SetReferenceString(
-                                                    strInReferenceTo);
-                                            pInboxTransaction
-                                                ->SetReferenceToNum(
-                                                    pItem->GetTransactionNum());
-                                            // Here is the number the user
-                                            // wishes
-                                            // to sign-off by accepting this
-                                            // receipt.
-                                            pInboxTransaction->SetClosingNum(
-                                                pRequestItem
-                                                    ->lClosingTransactionNo);
-
-                                            // Now we have created a new
-                                            // transaction from the server
-                                            // to the sender's inbox (for a
-                                            // receipt).
-                                            // Let's sign and save it...
-                                            pInboxTransaction->SignContract(
-                                                server_.GetServerNym(),
-                                                reason_);
-                                            pInboxTransaction->SaveContract();
-
-                                            // Here the transaction we just
-                                            // created is actually added to
-                                            // the exchanger's inbox.
-                                            std::shared_ptr<OTTransaction>
-                                                inboxTransaction{
-                                                    pInboxTransaction
-                                                        .release()};
-                                            pSubInbox->AddTransaction(
-                                                inboxTransaction);
-                                            inboxTransaction->SaveBoxReceipt(
-                                                *pSubInbox);
-                                        }
-                                    }  // User and Server sub-accounts are
-                                       // good.
-                                }      // pBasketItem and pRequestItem are good.
-                            }          // for (loop through basketitems)
-                            // Load up the two main accounts and perform the
-                            // exchange...
-                            // (Above we did the sub-accounts for server and
-                            // user. Now we do the main accounts for server
-                            // and user.)
-                            //
-
-                            // At this point, if we have successfully
-                            // debited / credited the sub-accounts. then we
-                            // need to debit and credit the user's main
-                            // basket account and the server's basket issuer
-                            // account.
-                            if (bSuccess && basketAccount) {
-                                lTransferAmount =
-                                    (theRequestBasket->GetMinimumTransfer() *
-                                     theRequestBasket->GetTransferMultiple());
-
-                                // Load up the two accounts and perform the
-                                // exchange...
-                                // user is performing exchange IN
-                                if (theRequestBasket->GetExchangingIn()) {
-                                    if (basketAccount.get().Debit(
-                                            lTransferAmount)) {
-                                        if (theAccount.get().Credit(
-                                                lTransferAmount))
-                                            bSuccess = true;
-                                        else {
-                                            LogOutput(OT_METHOD)(__FUNCTION__)(
-                                                ": Failed crediting user "
-                                                "basket account.")
-                                                .Flush();
-
-                                            if (false ==
-                                                basketAccount.get().Credit(
-                                                    lTransferAmount))
-                                                LogOutput(OT_METHOD)(
-                                                    __FUNCTION__)(
-                                                    ": Failed crediting back "
-                                                    "basket issuer account.")
-                                                    .Flush();
-
-                                            bSuccess = false;
-                                        }
-                                    } else {
-                                        bSuccess = false;
-                                        LogNormal(OT_METHOD)(__FUNCTION__)(
-                                            ": Unable to Debit basket issuer "
-                                            "account")
-                                            .Flush();
-                                    }
-                                } else  // user is peforming exchange OUT
-                                {
-                                    if (theAccount.get().Debit(
-                                            lTransferAmount)) {
-                                        if (basketAccount.get().Credit(
-                                                lTransferAmount))
-                                            bSuccess = true;
-                                        else {
-                                            LogOutput(OT_METHOD)(__FUNCTION__)(
-                                                ": Failed crediting basket "
-                                                "issuer account.")
-                                                .Flush();
-
-                                            if (false ==
-                                                theAccount.get().Credit(
-                                                    lTransferAmount))
-                                                LogOutput(OT_METHOD)(
-                                                    __FUNCTION__)(
-                                                    ": Failed crediting back "
-                                                    "user basket account.")
-                                                    .Flush();
-
-                                            bSuccess = false;
-                                        }
-                                    } else {
-                                        bSuccess = false;
-                                        LogNormal(OT_METHOD)(__FUNCTION__)(
-                                            ": Unable to Debit user basket "
-                                            "account")
-                                            .Flush();
-                                    }
+                                    const auto strSubID =
+                                        String::Factory(item->SUB_ACCOUNT_ID);
+                                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                                        ": Failed: Sub-account ID found TWICE "
+                                        "on same basket exchange request: ")(
+                                        strSubID)
+                                        .Flush();
+                                    bFoundSameAcctTwice = true;
+                                    break;
                                 }
-
-                                // Drop the receipt -- accounts were debited
-                                // and credited properly.
-                                //
-                                if (bSuccess) {  // need to be able to "roll
-                                    // back" if anything inside this
-                                    // block fails.
-                                    // update: actually does pretty good
-                                    // roll-back as it is. The debits and
-                                    // credits
-                                    // don't save unless everything is a
-                                    // success.
-
-                                    // Generate new transaction number (for
-                                    // putting the basketReceipt in the
-                                    // exchanger's inbox.)
-                                    // todo check this generation for
-                                    // failure (can it fail?)
-                                    std::int64_t lNewTransactionNumber = 0;
-
-                                    server_.GetTransactor()
-                                        .issueNextTransactionNumber(
-                                            lNewTransactionNumber);
-
-                                    auto pInboxTransaction{
-                                        manager_.Factory().Transaction(
-                                            inbox,
-                                            transactionType::basketReceipt,
-                                            originType::not_applicable,
-                                            lNewTransactionNumber)};
-
-                                    OT_ASSERT(false != bool(pInboxTransaction));
-
-                                    auto pItemInbox = manager_.Factory().Item(
-                                        *pInboxTransaction,
-                                        itemType::basketReceipt,
-                                        server_.API().Factory().Identifier());
-
-                                    // these may be unnecessary, I'll have
-                                    // to check CreateItemFromTransaction.
-                                    // I'll leave em.
-                                    OT_ASSERT(false != bool(pItemInbox));
-
-                                    pItemInbox->SetStatus(
-                                        Item::acknowledgement);  // the
-                                                                 // default.
-                                    pItemInbox->SetAmount(
-                                        theRequestBasket->GetExchangingIn()
-                                            ? lTransferAmount
-                                            : lTransferAmount * (-1));
-
-                                    pItemInbox->SignContract(
-                                        server_.GetServerNym(), reason_);
-                                    pItemInbox->SaveContract();
-
-                                    std::shared_ptr<Item> itemInbox{
-                                        pItemInbox.release()};
-                                    pInboxTransaction->AddItem(
-                                        itemInbox);  // Add the inbox item
-                                                     // to the inbox
-                                                     // transaction, so we
-                                                     // can add to the inbox
-                                                     // ledger.
-
-                                    pInboxTransaction->SetNumberOfOrigin(
-                                        *pItem, reason_);
-
-                                    // The exchangeBasket request Item is
-                                    // saved as a "in reference to" field,
-                                    // on the inbox basketReceipt
-                                    // transaction. todo put these two
-                                    // together in a method.
-                                    pInboxTransaction->SetReferenceString(
-                                        strInReferenceTo);
-                                    pInboxTransaction->SetReferenceToNum(
-                                        pItem->GetTransactionNum());
-                                    pInboxTransaction->SetClosingNum(
-                                        theRequestBasket
-                                            ->GetClosingNum());  // So the
-                                                                 // exchanger
-                                                                 // can
-                                                                 // sign-off
-                                                                 // on this
-                                                                 // closing
-                                                                 // num by
-                                                                 // accepting
-                                                                 // the
-                                    // basket receipt
-                                    // on his main
-                                    // basket
-                                    // account.
-
-                                    // Now we have created a new transaction
-                                    // from the server to the sender's inbox
-                                    // Let's sign and save it...
-                                    pInboxTransaction->SignContract(
-                                        server_.GetServerNym(), reason_);
-                                    pInboxTransaction->SaveContract();
-
-                                    // Here the transaction we just created
-                                    // is actually added to the source
-                                    // acct's inbox.
-                                    std::shared_ptr<OTTransaction>
-                                        inboxTransaction{
-                                            pInboxTransaction.release()};
-                                    inbox.AddTransaction(inboxTransaction);
-                                    inboxTransaction->SaveBoxReceipt(inbox);
-                                }
-                            } else {
-                                LogOutput(OT_METHOD)(__FUNCTION__)(
-                                    ": Error loading or verifying "
-                                    "user's main basket account in "
-                                    "Notary::"
-                                    "NotarizeExchangeBasket.")
-                                    .Flush();
-                                bSuccess = false;
+                                setOfAccounts.insert(item->SUB_ACCOUNT_ID);
                             }
-
-                            // At this point, we have hopefully
-                            // credited/debited ALL the relevant accounts So
-                            // now, let's Save them ALL to disk..
-
-                            for (auto& account : listUserAccounts) {
-                                OT_ASSERT(account)
-
-                                if (bSuccess) {
-                                    account.Release();
-                                } else {
-                                    account.Abort();
-                                }
-                            }
-
-                            for (auto& account : listServerAccounts) {
-                                OT_ASSERT(account)
-
-                                if (bSuccess) {
-                                    account.Release();
-                                } else {
-                                    account.Abort();
-                                }
-                            }
-
-                            // empty the list of inboxes (and save to disk,
-                            // if everything was successful.)
-                            while (!listInboxes.empty()) {
-                                Ledger* pTempInbox = listInboxes.front();
-                                if (nullptr == pTempInbox) OT_FAIL;
-                                listInboxes.pop_front();
-
-                                if (true == bSuccess) {
-                                    pTempInbox->ReleaseSignatures();
-                                    pTempInbox->SignContract(
-                                        server_.GetServerNym(), reason_);
-                                    pTempInbox->SaveContract();
-                                    pTempInbox->SaveInbox(
-                                        server_.API().Factory().Identifier());
-                                }
-
-                                delete pTempInbox;
-                                pTempInbox = nullptr;
-                            }
-                            if (true == bSuccess) {
-                                inbox.ReleaseSignatures();
-                                inbox.SignContract(
-                                    server_.GetServerNym(), reason_);
-                                inbox.SaveContract();
-                                theAccount.get().SaveInbox(
-                                    inbox,
-                                    server_.API().Factory().Identifier());
-                                theAccount.get().GetIdentifier(accountHash);
-                                theAccount.Release();
-                                basketAccount.Release();
-
-                                // Remove my ability to use the "closing"
-                                // numbers in the future.
-                                // (Since I'm using them to do this
-                                // exchange...)
-                                //
+                            if (!bFoundSameAcctTwice)  // Let's do it!
+                            {
+                                // Loop through the request AND the actual
+                                // basket TOGETHER...
                                 for (std::int32_t i = 0;
                                      i < theRequestBasket->Count();
                                      i++) {
+
                                     BasketItem* pRequestItem =
                                         theRequestBasket->At(i);
+                                    const auto requestContractID =
+                                        String::Factory(
+                                            pRequestItem->SUB_CONTRACT_ID);
+                                    const auto requestAccountID =
+                                        String::Factory(
+                                            pRequestItem->SUB_ACCOUNT_ID);
 
-                                    OT_ASSERT(nullptr != pRequestItem);
+                                    if (basket->Currencies().find(
+                                            requestContractID->Get()) ==
+                                        basket->Currencies().end()) {
+                                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                                            "Error: expected instrument "
+                                            "definition IDs to match")
+                                            .Flush();
+                                        bSuccess = false;
+                                        break;
+                                    }
 
-                                    // This just removes the number so I
-                                    // can't USE it. I'm still RESPONSIBLE
-                                    // for the number until
-                                    // RemoveIssuedNumber() is called.
-                                    context.ConsumeAvailable(
-                                        pRequestItem->lClosingTransactionNo);
+                                    const auto serverAccountID =
+                                        String::Factory(
+                                            basket->Currencies()
+                                                .at(requestContractID->Get())
+                                                .first);
+                                    const auto subWeight =
+                                        basket->Currencies()
+                                            .at(requestContractID->Get())
+                                            .second;
+
+                                    if (serverAccountID->Compare(
+                                            requestAccountID)) {
+                                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                                            "Error: VERY strange to have these "
+                                            "account ID's match")
+                                            .Flush();
+                                        bSuccess = false;
+                                        break;
+                                    } else if (
+                                        !context.VerifyIssuedNumber(
+                                            pRequestItem
+                                                ->lClosingTransactionNo)) {
+                                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                                            "Error: Basket sub-currency "
+                                            "closing number didn't verify")
+                                            .Flush();
+                                        bSuccess = false;
+                                        break;
+                                    } else  // if equal
+                                    {
+                                        bSuccess = true;
+
+                                        // Load up the two accounts and perform
+                                        // the exchange...
+                                        auto tempUserAccount =
+                                            manager_.Wallet().mutable_Account(
+                                                pRequestItem->SUB_ACCOUNT_ID,
+                                                reason_);
+
+                                        if (false == bool(tempUserAccount)) {
+                                            LogOutput(OT_METHOD)(__FUNCTION__)(
+                                                ": ERROR loading a user's "
+                                                "asset account")
+                                                .Flush();
+                                            bSuccess = false;
+                                            tempUserAccount.Abort();
+                                            break;
+                                        }
+
+                                        auto tempServerAccount =
+                                            manager_.Wallet().mutable_Account(
+                                                server_.API()
+                                                    .Factory()
+                                                    .Identifier(
+                                                        serverAccountID),
+                                                reason_);
+
+                                        if (false == bool(tempServerAccount)) {
+                                            LogOutput(OT_METHOD)(__FUNCTION__)(
+                                                ": ERROR loading a basket "
+                                                "sub-account")
+                                                .Flush();
+                                            bSuccess = false;
+                                            tempUserAccount.Abort();
+                                            tempServerAccount.Abort();
+                                            break;
+                                        }
+                                        // Load up the inbox for the user's sub
+                                        // account, so we can drop the receipt.
+                                        //
+                                        auto pSubInbox =
+                                            tempUserAccount.get().LoadInbox(
+                                                server_.GetServerNym(),
+                                                reason_);
+
+                                        if (false == bool(pSubInbox)) {
+                                            LogOutput(OT_METHOD)(__FUNCTION__)(
+                                                ": Error loading or verifying "
+                                                "sub-inbox.")
+                                                .Flush();
+                                            bSuccess = false;
+                                            tempUserAccount.Abort();
+                                            tempServerAccount.Abort();
+                                            break;
+                                        }
+
+                                        // I'm preserving these points, to be
+                                        // deleted at the end.
+                                        // They won't be saved until after ALL
+                                        // debits/credits were successful.
+                                        // Once ALL exchanges are done, THEN it
+                                        // loops through and saves / deletes
+                                        // all the accounts.
+                                        listUserAccounts.emplace_back(
+                                            std::move(tempUserAccount));
+                                        auto& userAccount =
+                                            *listUserAccounts.rbegin();
+
+                                        listServerAccounts.emplace_back(
+                                            std::move(tempServerAccount));
+                                        auto& serverAccount =
+                                            *listServerAccounts.rbegin();
+                                        listInboxes.push_back(pSubInbox.get());
+
+                                        // Do they verify?
+                                        // I call VerifySignature here since
+                                        // VerifyContractID was already called
+                                        // in LoadExistingAccount().
+                                        if (userAccount.get()
+                                                .GetInstrumentDefinitionID() !=
+                                            server_.API().Factory().UnitID(
+                                                requestContractID)) {
+                                            LogOutput(OT_METHOD)(__FUNCTION__)(
+                                                ": ERROR verifying instrument "
+                                                "definition on a user's "
+                                                "account.")
+                                                .Flush();
+                                            bSuccess = false;
+                                            break;
+                                        } else {
+                                            // the amount being transferred
+                                            // between these two accounts is the
+                                            // minimum transfer amount for the
+                                            // sub-account on the basket,
+                                            // multiplied by
+                                            lTransferAmount =
+                                                (subWeight *
+                                                 theRequestBasket
+                                                     ->GetTransferMultiple());
+
+                                            // user is performing exchange IN
+                                            if (theRequestBasket
+                                                    ->GetExchangingIn()) {
+                                                if (userAccount.get().Debit(
+                                                        lTransferAmount)) {
+                                                    if (serverAccount.get()
+                                                            .Credit(
+                                                                lTransferAmount))
+                                                        bSuccess = true;
+                                                    else {  // the server credit
+                                                            // failed.
+                                                        LogOutput(OT_METHOD)(
+                                                            __FUNCTION__)(
+                                                            ": Failure "
+                                                            "crediting server "
+                                                            "acct.")
+                                                            .Flush();
+
+                                                        // Since we debited the
+                                                        // user's acct already,
+                                                        // let's put that back.
+                                                        if (false ==
+                                                            userAccount.get().Credit(
+                                                                lTransferAmount))
+                                                            LogOutput(
+                                                                OT_METHOD)(
+                                                                __FUNCTION__)(
+                                                                ": Failure "
+                                                                "crediting "
+                                                                "back user "
+                                                                "account.")
+                                                                .Flush();
+                                                        bSuccess = false;
+                                                        break;
+                                                    }
+                                                } else {
+                                                    LogNormal(OT_METHOD)(
+                                                        __FUNCTION__)(
+                                                        ": Unable to Debit "
+                                                        "user account.")
+                                                        .Flush();
+                                                    bSuccess = false;
+                                                    break;
+                                                }
+                                            } else  // user is peforming
+                                                    // exchange OUT
+                                            {
+                                                if (serverAccount.get().Debit(
+                                                        lTransferAmount)) {
+                                                    if (userAccount.get().Credit(
+                                                            lTransferAmount))
+                                                        bSuccess = true;
+                                                    else {  // the user credit
+                                                            // failed.
+                                                        LogOutput(OT_METHOD)(
+                                                            __FUNCTION__)(
+                                                            ": Failure "
+                                                            "crediting user "
+                                                            "account.")
+                                                            .Flush();
+
+                                                        // Since we debited the
+                                                        // server's acct
+                                                        // already, let's put
+                                                        // that back.
+                                                        if (false ==
+                                                            serverAccount.get()
+                                                                .Credit(
+                                                                    lTransferAmount))
+                                                            LogOutput(
+                                                                OT_METHOD)(
+                                                                __FUNCTION__)(
+                                                                ": Failure "
+                                                                "crediting "
+                                                                "back server "
+                                                                "account.")
+                                                                .Flush();
+                                                        bSuccess = false;
+                                                        break;
+                                                    }
+                                                } else {
+                                                    LogNormal(OT_METHOD)(
+                                                        __FUNCTION__)(
+                                                        ": Unable to Debit "
+                                                        "server account.")
+                                                        .Flush();
+                                                    bSuccess = false;
+                                                    break;
+                                                }
+                                            }
+                                            // Drop the receipt -- accounts were
+                                            // debited and credited properly.
+                                            //
+                                            if (bSuccess) {  // need to be able
+                                                             // to "roll back"
+                                                             // if anything
+                                                             // inside this
+                                                             // block fails.
+                                                // update: actually does pretty
+                                                // good roll-back as it is. The
+                                                // debits and credits don't save
+                                                // unless everything is a
+                                                // success.
+
+                                                // Generate new transaction
+                                                // number (for putting the
+                                                // basketReceipt in the
+                                                // exchanger's inbox.) todo
+                                                // check this generation for
+                                                // failure (can it fail?)
+                                                std::int64_t
+                                                    lNewTransactionNumber = 0;
+
+                                                server_.GetTransactor()
+                                                    .issueNextTransactionNumber(
+                                                        lNewTransactionNumber);
+
+                                                auto pInboxTransaction{
+                                                    manager_.Factory().Transaction(
+                                                        *pSubInbox,
+                                                        transactionType::
+                                                            basketReceipt,
+                                                        originType::
+                                                            not_applicable,
+                                                        lNewTransactionNumber)};
+
+                                                OT_ASSERT(
+                                                    false !=
+                                                    bool(pInboxTransaction));
+
+                                                auto pItemInbox =
+                                                    manager_.Factory().Item(
+                                                        *pInboxTransaction,
+                                                        itemType::basketReceipt,
+                                                        server_.API()
+                                                            .Factory()
+                                                            .Identifier());
+
+                                                // these may be unnecessary,
+                                                // I'll have to check
+                                                // CreateItemFromTransaction.
+                                                // I'll leave em.
+                                                OT_ASSERT(
+                                                    false != bool(pItemInbox));
+
+                                                pItemInbox->SetStatus(
+                                                    Item::acknowledgement);
+                                                pItemInbox->SetAmount(
+                                                    theRequestBasket
+                                                            ->GetExchangingIn()
+                                                        ? lTransferAmount * (-1)
+                                                        : lTransferAmount);
+
+                                                pItemInbox->SignContract(
+                                                    server_.GetServerNym(),
+                                                    reason_);
+                                                pItemInbox->SaveContract();
+
+                                                std::shared_ptr<Item> itemInbox{
+                                                    pItemInbox.release()};
+                                                pInboxTransaction->AddItem(
+                                                    itemInbox);  // Add the
+                                                                 // inbox item
+                                                                 // to the inbox
+                                                // transaction, so
+                                                // we can add to
+                                                // the inbox
+                                                // ledger.
+
+                                                pInboxTransaction
+                                                    ->SetNumberOfOrigin(
+                                                        *pItem, reason_);
+
+                                                // The "exchangeBasket request"
+                                                // Item is saved as the "In
+                                                // Reference To" field
+                                                // on the inbox basketReceipt
+                                                // transaction.
+                                                // todo put these two together
+                                                // in a method.
+                                                pInboxTransaction
+                                                    ->SetReferenceString(
+                                                        strInReferenceTo);
+                                                pInboxTransaction
+                                                    ->SetReferenceToNum(
+                                                        pItem
+                                                            ->GetTransactionNum());
+                                                // Here is the number the user
+                                                // wishes
+                                                // to sign-off by accepting this
+                                                // receipt.
+                                                pInboxTransaction->SetClosingNum(
+                                                    pRequestItem
+                                                        ->lClosingTransactionNo);
+
+                                                // Now we have created a new
+                                                // transaction from the server
+                                                // to the sender's inbox (for a
+                                                // receipt).
+                                                // Let's sign and save it...
+                                                pInboxTransaction->SignContract(
+                                                    server_.GetServerNym(),
+                                                    reason_);
+                                                pInboxTransaction
+                                                    ->SaveContract();
+
+                                                // Here the transaction we just
+                                                // created is actually added to
+                                                // the exchanger's inbox.
+                                                std::shared_ptr<OTTransaction>
+                                                    inboxTransaction{
+                                                        pInboxTransaction
+                                                            .release()};
+                                                pSubInbox->AddTransaction(
+                                                    inboxTransaction);
+                                                inboxTransaction
+                                                    ->SaveBoxReceipt(
+                                                        *pSubInbox);
+                                            }
+                                        }  // User and Server sub-accounts are
+                                        // good.
+                                    }  // pBasketItem and pRequestItem are good.
+                                }      // for (loop through basketitems)
+                                // Load up the two main accounts and perform the
+                                // exchange...
+                                // (Above we did the sub-accounts for server and
+                                // user. Now we do the main accounts for server
+                                // and user.)
+                                //
+
+                                // At this point, if we have successfully
+                                // debited / credited the sub-accounts. then we
+                                // need to debit and credit the user's main
+                                // basket account and the server's basket issuer
+                                // account.
+                                if (bSuccess && basketAccount) {
+                                    lTransferAmount =
+                                        (theRequestBasket
+                                             ->GetMinimumTransfer() *
+                                         theRequestBasket
+                                             ->GetTransferMultiple());
+
+                                    // Load up the two accounts and perform the
+                                    // exchange...
+                                    // user is performing exchange IN
+                                    if (theRequestBasket->GetExchangingIn()) {
+                                        if (basketAccount.get().Debit(
+                                                lTransferAmount)) {
+                                            if (theAccount.get().Credit(
+                                                    lTransferAmount))
+                                                bSuccess = true;
+                                            else {
+                                                LogOutput(OT_METHOD)(
+                                                    __FUNCTION__)(
+                                                    ": Failed crediting user "
+                                                    "basket account.")
+                                                    .Flush();
+
+                                                if (false ==
+                                                    basketAccount.get().Credit(
+                                                        lTransferAmount))
+                                                    LogOutput(OT_METHOD)(
+                                                        __FUNCTION__)(
+                                                        ": Failed crediting "
+                                                        "back basket issuer "
+                                                        "account.")
+                                                        .Flush();
+
+                                                bSuccess = false;
+                                            }
+                                        } else {
+                                            bSuccess = false;
+                                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                                ": Unable to Debit basket "
+                                                "issuer account")
+                                                .Flush();
+                                        }
+                                    } else  // user is peforming exchange OUT
+                                    {
+                                        if (theAccount.get().Debit(
+                                                lTransferAmount)) {
+                                            if (basketAccount.get().Credit(
+                                                    lTransferAmount))
+                                                bSuccess = true;
+                                            else {
+                                                LogOutput(OT_METHOD)(
+                                                    __FUNCTION__)(
+                                                    ": Failed crediting basket "
+                                                    "issuer account.")
+                                                    .Flush();
+
+                                                if (false ==
+                                                    theAccount.get().Credit(
+                                                        lTransferAmount))
+                                                    LogOutput(OT_METHOD)(
+                                                        __FUNCTION__)(
+                                                        ": Failed crediting "
+                                                        "back user basket "
+                                                        "account.")
+                                                        .Flush();
+
+                                                bSuccess = false;
+                                            }
+                                        } else {
+                                            bSuccess = false;
+                                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                                ": Unable to Debit user basket "
+                                                "account")
+                                                .Flush();
+                                        }
+                                    }
+
+                                    // Drop the receipt -- accounts were debited
+                                    // and credited properly.
+                                    //
+                                    if (bSuccess) {  // need to be able to "roll
+                                        // back" if anything inside this
+                                        // block fails.
+                                        // update: actually does pretty good
+                                        // roll-back as it is. The debits and
+                                        // credits
+                                        // don't save unless everything is a
+                                        // success.
+
+                                        // Generate new transaction number (for
+                                        // putting the basketReceipt in the
+                                        // exchanger's inbox.)
+                                        // todo check this generation for
+                                        // failure (can it fail?)
+                                        std::int64_t lNewTransactionNumber = 0;
+
+                                        server_.GetTransactor()
+                                            .issueNextTransactionNumber(
+                                                lNewTransactionNumber);
+
+                                        auto pInboxTransaction{
+                                            manager_.Factory().Transaction(
+                                                inbox,
+                                                transactionType::basketReceipt,
+                                                originType::not_applicable,
+                                                lNewTransactionNumber)};
+
+                                        OT_ASSERT(
+                                            false != bool(pInboxTransaction));
+
+                                        auto pItemInbox =
+                                            manager_.Factory().Item(
+                                                *pInboxTransaction,
+                                                itemType::basketReceipt,
+                                                server_.API()
+                                                    .Factory()
+                                                    .Identifier());
+
+                                        // these may be unnecessary, I'll have
+                                        // to check CreateItemFromTransaction.
+                                        // I'll leave em.
+                                        OT_ASSERT(false != bool(pItemInbox));
+
+                                        pItemInbox->SetStatus(
+                                            Item::acknowledgement);  // the
+                                                                     // default.
+                                        pItemInbox->SetAmount(
+                                            theRequestBasket->GetExchangingIn()
+                                                ? lTransferAmount
+                                                : lTransferAmount * (-1));
+
+                                        pItemInbox->SignContract(
+                                            server_.GetServerNym(), reason_);
+                                        pItemInbox->SaveContract();
+
+                                        std::shared_ptr<Item> itemInbox{
+                                            pItemInbox.release()};
+                                        pInboxTransaction->AddItem(
+                                            itemInbox);  // Add the inbox item
+                                                         // to the inbox
+                                                         // transaction, so we
+                                                         // can add to the inbox
+                                                         // ledger.
+
+                                        pInboxTransaction->SetNumberOfOrigin(
+                                            *pItem, reason_);
+
+                                        // The exchangeBasket request Item is
+                                        // saved as a "in reference to" field,
+                                        // on the inbox basketReceipt
+                                        // transaction. todo put these two
+                                        // together in a method.
+                                        pInboxTransaction->SetReferenceString(
+                                            strInReferenceTo);
+                                        pInboxTransaction->SetReferenceToNum(
+                                            pItem->GetTransactionNum());
+                                        pInboxTransaction->SetClosingNum(
+                                            theRequestBasket
+                                                ->GetClosingNum());  // So the
+                                                                     // exchanger
+                                                                     // can
+                                                                     // sign-off
+                                                                     // on this
+                                                                     // closing
+                                                                     // num by
+                                                                     // accepting
+                                                                     // the
+                                        // basket receipt
+                                        // on his main
+                                        // basket
+                                        // account.
+
+                                        // Now we have created a new transaction
+                                        // from the server to the sender's inbox
+                                        // Let's sign and save it...
+                                        pInboxTransaction->SignContract(
+                                            server_.GetServerNym(), reason_);
+                                        pInboxTransaction->SaveContract();
+
+                                        // Here the transaction we just created
+                                        // is actually added to the source
+                                        // acct's inbox.
+                                        std::shared_ptr<OTTransaction>
+                                            inboxTransaction{
+                                                pInboxTransaction.release()};
+                                        inbox.AddTransaction(inboxTransaction);
+                                        inboxTransaction->SaveBoxReceipt(inbox);
+                                    }
+                                } else {
+                                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                                        ": Error loading or verifying user's "
+                                        "main basket account")
+                                        .Flush();
+                                    bSuccess = false;
                                 }
 
-                                context.ConsumeAvailable(
-                                    theRequestBasket->GetClosingNum());
-                                pResponseItem->SetStatus(
-                                    Item::acknowledgement);  // the
-                                                             // exchangeBasket
-                                                             // was
-                                                             // successful.
+                                // At this point, we have hopefully
+                                // credited/debited ALL the relevant accounts So
+                                // now, let's Save them ALL to disk..
 
-                                bOutSuccess = true;  // The exchangeBasket
-                                                     // was successful.
-                            } else {
-                                theAccount.get().GetIdentifier(accountHash);
-                                theAccount.Abort();
-                                basketAccount.Abort();
-                            }
-                        }  // Let's do it!
-                    } else {
-                        LogOutput(OT_METHOD)(__FUNCTION__)(
-                            ": Error finding asset contract for basket, or "
-                            "loading the basket from it, or verifying "
-                            "the signature on that basket, or the request "
-                            "basket didn't match actual basket.")
-                            .Flush();
+                                for (auto& account : listUserAccounts) {
+                                    OT_ASSERT(account)
+
+                                    if (bSuccess) {
+                                        account.Release();
+                                    } else {
+                                        account.Abort();
+                                    }
+                                }
+
+                                for (auto& account : listServerAccounts) {
+                                    OT_ASSERT(account)
+
+                                    if (bSuccess) {
+                                        account.Release();
+                                    } else {
+                                        account.Abort();
+                                    }
+                                }
+
+                                // empty the list of inboxes (and save to disk,
+                                // if everything was successful.)
+                                while (!listInboxes.empty()) {
+                                    Ledger* pTempInbox = listInboxes.front();
+                                    if (nullptr == pTempInbox) OT_FAIL;
+                                    listInboxes.pop_front();
+
+                                    if (true == bSuccess) {
+                                        pTempInbox->ReleaseSignatures();
+                                        pTempInbox->SignContract(
+                                            server_.GetServerNym(), reason_);
+                                        pTempInbox->SaveContract();
+                                        pTempInbox->SaveInbox(
+                                            server_.API()
+                                                .Factory()
+                                                .Identifier());
+                                    }
+
+                                    delete pTempInbox;
+                                    pTempInbox = nullptr;
+                                }
+                                if (true == bSuccess) {
+                                    inbox.ReleaseSignatures();
+                                    inbox.SignContract(
+                                        server_.GetServerNym(), reason_);
+                                    inbox.SaveContract();
+                                    theAccount.get().SaveInbox(
+                                        inbox,
+                                        server_.API().Factory().Identifier());
+                                    theAccount.get().GetIdentifier(accountHash);
+                                    theAccount.Release();
+                                    basketAccount.Release();
+
+                                    // Remove my ability to use the "closing"
+                                    // numbers in the future.
+                                    // (Since I'm using them to do this
+                                    // exchange...)
+                                    //
+                                    for (std::int32_t i = 0;
+                                         i < theRequestBasket->Count();
+                                         i++) {
+                                        BasketItem* pRequestItem =
+                                            theRequestBasket->At(i);
+
+                                        OT_ASSERT(nullptr != pRequestItem);
+
+                                        // This just removes the number so I
+                                        // can't USE it. I'm still RESPONSIBLE
+                                        // for the number until
+                                        // RemoveIssuedNumber() is called.
+                                        context.ConsumeAvailable(
+                                            pRequestItem
+                                                ->lClosingTransactionNo);
+                                    }
+
+                                    context.ConsumeAvailable(
+                                        theRequestBasket->GetClosingNum());
+                                    pResponseItem->SetStatus(
+                                        Item::
+                                            acknowledgement);  // the
+                                                               // exchangeBasket
+                                                               // was
+                                                               // successful.
+
+                                    bOutSuccess = true;  // The exchangeBasket
+                                                         // was successful.
+                                } else {
+                                    theAccount.get().GetIdentifier(accountHash);
+                                    theAccount.Abort();
+                                    basketAccount.Abort();
+                                }
+                            }  // Let's do it!
+                        } else {
+                            LogOutput(OT_METHOD)(__FUNCTION__)(
+                                ": Error finding asset contract for basket, or "
+                                " loading the basket from it, or verifying  "
+                                "the signature on that basket, or the request  "
+                                "basket didn't match actual basket.")
+                                .Flush();
+                        }
+                    } catch (...) {
+                        // FIXME
                     }
                 }  // pBasket exists and signature verifies
             }      // theRequestBasket loaded properly.

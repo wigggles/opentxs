@@ -22,14 +22,14 @@ namespace zap
 class Handler : virtual public zeromq::socket::Reply
 {
 public:
-    EXPORT static OTZMQZAPHandler Factory(
+    OPENTXS_EXPORT static OTZMQZAPHandler Factory(
         const zeromq::Context& context,
         const Callback& callback);
 
-    EXPORT ~Handler() override = default;
+    OPENTXS_EXPORT ~Handler() override = default;
 
 protected:
-    EXPORT Handler() = default;
+    OPENTXS_EXPORT Handler() = default;
 
 private:
     friend OTZMQZAPHandler;

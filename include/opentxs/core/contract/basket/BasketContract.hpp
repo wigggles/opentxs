@@ -12,62 +12,49 @@
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace unit
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class BasketContract final : public UnitDefinition
+class Basket : virtual public contract::Unit
 {
-private:
-    typedef UnitDefinition ot_super;
-    // account number, weight
-    typedef std::pair<std::string, std::uint64_t> Subcontract;
-    // unit definition id, subcontract
-    typedef std::map<std::string, Subcontract> MapOfSubcontracts;
-    friend ot_super;
-    friend UserCommandProcessor;
-
-    MapOfSubcontracts subcontracts_;
-    std::uint64_t weight_;
-
-    EXPORT BasketContract(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::UnitDefinition serialized);
-    EXPORT BasketContract(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::string& shortname,
-        const std::string& name,
-        const std::string& symbol,
-        const std::string& terms,
-        const std::uint64_t weight,
-        const proto::ContactItemType unitOfAccount,
-        const VersionNumber version);
-
-    EXPORT proto::UnitDefinition BasketIDVersion(const Lock& lock) const;
-    EXPORT proto::UnitDefinition IDVersion(const Lock& lock) const final;
-
 public:
-    EXPORT static OTIdentifier CalculateBasketID(
+    // account number, weight
+    using Subcontract = std::pair<std::string, std::uint64_t>;
+    // unit definition id, subcontract
+    using Subcontracts = std::map<std::string, Subcontract>;
+
+    OPENTXS_EXPORT static OTIdentifier CalculateBasketID(
         const api::internal::Core& api,
         const proto::UnitDefinition& serialized);
-    EXPORT static bool FinalizeTemplate(
+    OPENTXS_EXPORT static bool FinalizeTemplate(
         const api::internal::Core& api,
         const Nym_p& nym,
         proto::UnitDefinition& serialized,
         const PasswordPrompt& reason);
 
-    EXPORT OTIdentifier BasketID() const;
-    EXPORT const MapOfSubcontracts& Currencies() const { return subcontracts_; }
-    EXPORT proto::UnitType Type() const final { return proto::UNITTYPE_BASKET; }
-    EXPORT std::uint64_t Weight() const { return weight_; }
+    OPENTXS_EXPORT virtual OTIdentifier BasketID() const = 0;
+    OPENTXS_EXPORT virtual const Subcontracts& Currencies() const = 0;
+    OPENTXS_EXPORT virtual std::uint64_t Weight() const = 0;
 
-    ~BasketContract() final = default;
+    OPENTXS_EXPORT ~Basket() override = default;
+
+protected:
+    Basket() noexcept = default;
+
+private:
+    friend OTBasketContract;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Basket* clone() const noexcept override = 0;
+#endif
+
+    Basket(const Basket&) = delete;
+    Basket(Basket&&) = delete;
+    Basket& operator=(const Basket&) = delete;
+    Basket& operator=(Basket&&) = delete;
 };
+}  // namespace unit
+}  // namespace contract
 }  // namespace opentxs
 #endif

@@ -25,25 +25,25 @@ namespace blockchain
 class Work
 {
 public:
-    EXPORT virtual bool operator==(const blockchain::Work& rhs) const
+    OPENTXS_EXPORT virtual bool operator==(const blockchain::Work& rhs) const
         noexcept = 0;
-    EXPORT virtual bool operator!=(const blockchain::Work& rhs) const
+    OPENTXS_EXPORT virtual bool operator!=(const blockchain::Work& rhs) const
         noexcept = 0;
-    EXPORT virtual bool operator<(const blockchain::Work& rhs) const
+    OPENTXS_EXPORT virtual bool operator<(const blockchain::Work& rhs) const
         noexcept = 0;
-    EXPORT virtual bool operator<=(const blockchain::Work& rhs) const
+    OPENTXS_EXPORT virtual bool operator<=(const blockchain::Work& rhs) const
         noexcept = 0;
-    EXPORT virtual bool operator>(const blockchain::Work& rhs) const
+    OPENTXS_EXPORT virtual bool operator>(const blockchain::Work& rhs) const
         noexcept = 0;
-    EXPORT virtual bool operator>=(const blockchain::Work& rhs) const
+    OPENTXS_EXPORT virtual bool operator>=(const blockchain::Work& rhs) const
         noexcept = 0;
-    EXPORT virtual OTWork operator+(const blockchain::Work& rhs) const
+    OPENTXS_EXPORT virtual OTWork operator+(const blockchain::Work& rhs) const
         noexcept = 0;
 
-    EXPORT virtual std::string asHex() const noexcept = 0;
-    EXPORT virtual std::string Decimal() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string asHex() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Decimal() const noexcept = 0;
 
-    EXPORT virtual ~Work() = default;
+    OPENTXS_EXPORT virtual ~Work() = default;
 
 protected:
     Work() noexcept = default;

@@ -141,6 +141,43 @@ class ServerAction;
 class Wallet;
 }  // namespace client
 
+namespace contract
+{
+namespace peer
+{
+namespace reply
+{
+class Acknowledgement;
+class Bailment;
+class Connection;
+class Outbailment;
+}  // namespace reply
+
+namespace request
+{
+class Bailment;
+class BailmentNotice;
+class Connection;
+class Outbailment;
+class StoreSecret;
+}  // namespace request
+
+class Reply;
+class Request;
+}  // namespace peer
+
+namespace unit
+{
+class Basket;
+class Currency;
+class Security;
+}  // namespace unit
+
+class Server;
+class Signable;
+class Unit;
+}  // namespace contract
+
 namespace crypto
 {
 namespace key
@@ -330,7 +367,6 @@ class AccountList;
 class AccountVisitor;
 class Armored;
 class Basket;
-class BasketContract;
 class BasketItem;
 class Cheque;
 class ClientContext;
@@ -341,7 +377,6 @@ class ContactItem;
 class ContactSection;
 class Context;
 class Contract;
-class CurrencyContract;
 class Data;
 class Factory;
 class Flag;
@@ -397,11 +432,8 @@ class PayDividendVisitor;
 class PaymentCode;
 #endif
 class PeerObject;
-class PeerRequest;
-class PeerReply;
 class PIDFile;
 class ServerContext;
-class ServerContract;
 class Signals;
 class StorageDriver;
 class StoragePlugin;
@@ -409,11 +441,17 @@ class String;
 class StringXML;
 class Tag;
 class TransactionStatement;
-class UnitDefinition;
 class UserCommandProcessor;
 
 using OTArmored = Pimpl<Armored>;
 using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
+using OTBailmentNotice = SharedPimpl<contract::peer::request::BailmentNotice>;
+using OTBailmentReply = SharedPimpl<contract::peer::reply::Bailment>;
+using OTBailmentRequest = SharedPimpl<contract::peer::request::Bailment>;
+using OTBasketContract = SharedPimpl<contract::unit::Basket>;
+using OTConnectionReply = SharedPimpl<contract::peer::reply::Connection>;
+using OTConnectionRequest = SharedPimpl<contract::peer::request::Connection>;
+using OTCurrencyContract = SharedPimpl<contract::unit::Currency>;
 using OTData = Pimpl<Data>;
 using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
@@ -421,20 +459,27 @@ using OTHDKey = Pimpl<crypto::key::HD>;
 using OTIdentifier = Pimpl<Identifier>;
 using OTManagedNumber = Pimpl<ManagedNumber>;
 using OTNymID = Pimpl<identifier::Nym>;
+using OTOutbailmentReply = SharedPimpl<contract::peer::reply::Outbailment>;
+using OTOutbailmentRequest = SharedPimpl<contract::peer::request::Outbailment>;
 using OTPasswordPrompt = Pimpl<PasswordPrompt>;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 using OTPaymentCode = Pimpl<PaymentCode>;
 #endif
 using OTPeerObject = Pimpl<PeerObject>;
-#if OT_CASH
-using OTPurse = Pimpl<blind::Purse>;
-#endif
+using OTPeerReply = SharedPimpl<contract::peer::Reply>;
+using OTPeerRequest = SharedPimpl<contract::peer::Request>;
+using OTReplyAcknowledgement =
+    SharedPimpl<contract::peer::reply::Acknowledgement>;
+using OTSecurityContract = SharedPimpl<contract::unit::Security>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTServerContract = SharedPimpl<contract::Server>;
 using OTServerID = Pimpl<identifier::Server>;
 using OTSignature = Pimpl<Signature>;
+using OTStoreSecret = SharedPimpl<contract::peer::request::StoreSecret>;
 using OTString = Pimpl<String>;
 using OTStringXML = Pimpl<StringXML>;
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
+using OTUnitDefinition = SharedPimpl<contract::Unit>;
 using OTUnitID = Pimpl<identifier::UnitDefinition>;
 using OTXReply = Pimpl<otx::Reply>;
 using OTXRequest = Pimpl<otx::Request>;
@@ -455,9 +500,6 @@ using OTZMQReplySocket = Pimpl<network::zeromq::socket::Reply>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::socket::Request>;
 using OTZMQRouterSocket = Pimpl<network::zeromq::socket::Router>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::socket::Subscribe>;
-#if OT_CASH
-using OTToken = Pimpl<blind::Token>;
-#endif
 using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
 using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
 using OTZMQZAPReply = Pimpl<network::zeromq::zap::Reply>;
@@ -469,6 +511,11 @@ using OTBloomFilter = Pimpl<blockchain::BloomFilter>;
 using OTNumericHash = Pimpl<blockchain::NumericHash>;
 using OTWork = Pimpl<blockchain::Work>;
 #endif  // OT_BLOCKCHAIN
+
+#if OT_CASH
+using OTPurse = Pimpl<blind::Purse>;
+using OTToken = Pimpl<blind::Token>;
+#endif
 
 using ExclusiveAccount = Exclusive<Account>;
 
@@ -494,12 +541,13 @@ namespace std
 {
 template <>
 struct less<opentxs::OTData> {
-    bool operator()(const opentxs::OTData& lhs, const opentxs::OTData& rhs)
-        const;
+    OPENTXS_EXPORT bool operator()(
+        const opentxs::OTData& lhs,
+        const opentxs::OTData& rhs) const;
 };
 template <>
 struct less<opentxs::OTIdentifier> {
-    bool operator()(
+    OPENTXS_EXPORT bool operator()(
         const opentxs::OTIdentifier& lhs,
         const opentxs::OTIdentifier& rhs) const;
 };

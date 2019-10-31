@@ -36,15 +36,15 @@ namespace ui
 class ActivitySummaryItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string DisplayName() const noexcept = 0;
-    EXPORT virtual std::string ImageURI() const noexcept = 0;
-    EXPORT virtual std::string Text() const noexcept = 0;
-    EXPORT virtual std::string ThreadID() const noexcept = 0;
-    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const
-        noexcept = 0;
-    EXPORT virtual StorageBox Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayName() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string ImageURI() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Text() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string ThreadID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::chrono::system_clock::time_point Timestamp()
+        const noexcept = 0;
+    OPENTXS_EXPORT virtual StorageBox Type() const noexcept = 0;
 
-    EXPORT ~ActivitySummaryItem() override = default;
+    OPENTXS_EXPORT ~ActivitySummaryItem() override = default;
 
 protected:
     ActivitySummaryItem() noexcept = default;

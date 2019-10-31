@@ -9,6 +9,7 @@
 
 #include "opentxs/core/identifier/Server.hpp"
 
+#include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/consensus/Consensus.hpp"
 
@@ -17,7 +18,8 @@
 
 namespace opentxs::implementation
 {
-class Context : virtual public internal::Context
+class Context : virtual public internal::Context,
+                public opentxs::contract::implementation::Signable
 {
 public:
     std::set<RequestNumber> AcknowledgedNumbers() const final;
@@ -61,7 +63,6 @@ public:
     ~Context() override = default;
 
 protected:
-    const api::internal::Core& api_;
     const OTServerID server_id_;
     Nym_p remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
@@ -123,6 +124,7 @@ private:
     const VersionNumber target_version_{0};
 
     virtual const identifier::Nym& client_nym_id(const Lock& lock) const = 0;
+    Context* clone() const noexcept final { return nullptr; }
     proto::Context IDVersion(const Lock& lock) const;
     virtual const identifier::Nym& server_nym_id(const Lock& lock) const = 0;
     proto::Context SigVersion(const Lock& lock) const;

@@ -71,7 +71,7 @@ private:
     EVP_PKEY* InstantiatePrivateKey(const PasswordPrompt& reason);
     // HIGH LEVEL (internal) METHODS
     //
-    EXPORT const EVP_PKEY* GetKey(const PasswordPrompt& reason);
+    const EVP_PKEY* GetKey(const PasswordPrompt& reason);
 
     void SetKeyAsCopyOf(
         EVP_PKEY& theKey,

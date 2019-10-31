@@ -15,12 +15,13 @@
 
 namespace opentxs
 {
-EXPORT const char* GetTransactionTypeString(
+OPENTXS_EXPORT const char* GetTransactionTypeString(
     int transactionTypeIndex);  // enum transactionType
-EXPORT const char* GetOriginTypeToString(int originTypeIndex);  // enum
-                                                                // originType
+OPENTXS_EXPORT const char* GetOriginTypeToString(
+    int originTypeIndex);  // enum
+                           // originType
 
-EXPORT std::int32_t LoadAbbreviatedRecord(
+OPENTXS_EXPORT std::int32_t LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml,
     std::int64_t& lNumberOfOrigin,
     originType& theOriginType,
@@ -37,7 +38,7 @@ EXPORT std::int32_t LoadAbbreviatedRecord(
     bool& bReplyTransSuccess,
     NumList* pNumList = nullptr);
 
-EXPORT bool VerifyBoxReceiptExists(
+OPENTXS_EXPORT bool VerifyBoxReceiptExists(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const identifier::Server& NOTARY_ID,
@@ -47,19 +48,19 @@ EXPORT bool VerifyBoxReceiptExists(
     std::int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
     const std::int64_t& lTransactionNum);
 
-EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
+OPENTXS_EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
     Ledger& theLedger,
     const PasswordPrompt& reason);
 
-EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
+OPENTXS_EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
     std::int64_t lLedgerType,
     const PasswordPrompt& reason);
 
-EXPORT bool SetupBoxReceiptFilename(
+OPENTXS_EXPORT bool SetupBoxReceiptFilename(
     const api::internal::Core& api,
     std::int64_t lLedgerType,
     OTTransaction& theTransaction,
@@ -69,7 +70,7 @@ EXPORT bool SetupBoxReceiptFilename(
     String& strFolder3name,
     String& strFilename);
 
-EXPORT bool SetupBoxReceiptFilename(
+OPENTXS_EXPORT bool SetupBoxReceiptFilename(
     const api::internal::Core& api,
     Ledger& theLedger,
     OTTransaction& theTransaction,
@@ -79,7 +80,7 @@ EXPORT bool SetupBoxReceiptFilename(
     String& strFolder3name,
     String& strFilename);
 
-EXPORT bool SetupBoxReceiptFilename(
+OPENTXS_EXPORT bool SetupBoxReceiptFilename(
     const api::internal::Core& api,
     std::int64_t lLedgerType,
     const String& strUserOrAcctID,

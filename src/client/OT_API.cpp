@@ -399,28 +399,6 @@ bool OT_API::LoadConfigFile()
     return true;
 }
 
-// Wallet owns this pointer. Do not delete
-const BasketContract* OT_API::GetBasketContract(
-    const identifier::UnitDefinition& THE_ID,
-    const char* szFunc) const
-{
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto contract = api_.Wallet().UnitDefinition(THE_ID, reason);
-    if (!contract) {
-        if (nullptr != szFunc) {  // We only log if the caller asked us to.
-            const auto strID = String::Factory(THE_ID);
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": No asset contract found in wallet for Unit Type ID: ")(strID)
-                .Flush();
-        }
-    } else {
-        auto currency = dynamic_cast<const BasketContract*>(contract.get());
-        if (nullptr != currency) { return currency; }
-    }
-
-    return nullptr;
-}
-
 bool OT_API::IsNym_RegisteredAtServer(
     const identifier::Nym& NYM_ID,
     const identifier::Server& NOTARY_ID) const
@@ -2610,80 +2588,86 @@ Basket* OT_API::GenerateBasketExchange(
     auto context =
         api_.Wallet().mutable_ServerContext(NYM_ID, NOTARY_ID, reason);
     auto nym = context.get().Nym();
-    auto contract =
-        GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
 
-    if (nullptr == contract) return nullptr;
-    // By this point, contract is a good pointer, and is on the wallet. (No
-    // need to cleanup.)
-    auto account = api_.Wallet().Account(accountID, reason);
+    try {
+        auto contract = api_.Wallet().BasketContract(
+            BASKET_INSTRUMENT_DEFINITION_ID, reason);
+        // By this point, contract is a good pointer, and is on the wallet. (No
+        // need to cleanup.)
+        auto account = api_.Wallet().Account(accountID, reason);
 
-    if (false == bool(account)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
+        if (false == bool(account)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.")
+                .Flush();
+
+            return nullptr;
+        }
+
+        // By this point, account is a good pointer, and is on the wallet. (No
+        // need to cleanup.)
+        if (BASKET_INSTRUMENT_DEFINITION_ID !=
+            account.get().GetInstrumentDefinitionID()) {
+            const auto strAcctID = String::Factory(accountID),
+                       strAcctTypeID =
+                           String::Factory(BASKET_INSTRUMENT_DEFINITION_ID);
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong instrument "
+                                               "definition ID "
+                                               "on account ")(strAcctID)(
+                " (expected type to be ")(strAcctTypeID)(").")
+                .Flush();
+            return nullptr;
+        }
+        // By this point, I know that everything checks out. Signature and
+        // Account ID. account is good, and no need to clean it up.
+        auto strNotaryID = String::Factory(NOTARY_ID);
+
+        std::int32_t nTransferMultiple = 1;
+
+        if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
+
+        // Next load the Basket object out of that contract.
+        std::unique_ptr<Basket> pRequestBasket = nullptr;
+
+        // We need a transaction number just to send this thing. Plus, we need a
+        // number for each sub-account to the basket, as well as the basket's
+        // main account. That is: 1 + theBasket.Count() + 1
+        const std::size_t currencies = contract->Currencies().size();
+
+        if (context.get().AvailableNumbers() < (2 + currencies)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": You don't have "
+                "enough transaction numbers to perform the "
+                "exchange.")
+                .Flush();
+        } else {
+            pRequestBasket.reset(api_.Factory()
+                                     .Basket(currencies, contract->Weight())
+                                     .release());
+            OT_ASSERT_MSG(
+                false != bool(pRequestBasket),
+                "OT_API::GenerateBasketExchange: Error allocating "
+                "memory in the OT API");
+
+            pRequestBasket->SetTransferMultiple(
+                nTransferMultiple);  // This stays in this function.
+
+            // Make sure the server knows where to put my new basket currency
+            // funds,
+            // once the exchange is done.
+            pRequestBasket->SetRequestAccountID(accountID);  // This stays too
+
+            // Export the Basket object into a string, add it as
+            // a payload on my request, and send to server.
+            pRequestBasket->SignContract(*nym, reason);
+            pRequestBasket->SaveContract();
+        }  // *nymfile apparently has enough transaction numbers to exchange the
+        // basket.
+
+        return pRequestBasket.release();
+    } catch (...) {
 
         return nullptr;
     }
-
-    // By this point, account is a good pointer, and is on the wallet. (No
-    // need to cleanup.)
-    if (BASKET_INSTRUMENT_DEFINITION_ID !=
-        account.get().GetInstrumentDefinitionID()) {
-        const auto strAcctID = String::Factory(accountID),
-                   strAcctTypeID =
-                       String::Factory(BASKET_INSTRUMENT_DEFINITION_ID);
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong instrument "
-                                           "definition ID "
-                                           "on account ")(strAcctID)(
-            " (expected type to be ")(strAcctTypeID)(").")
-            .Flush();
-        return nullptr;
-    }
-    // By this point, I know that everything checks out. Signature and
-    // Account ID. account is good, and no need to clean it up.
-    auto strNotaryID = String::Factory(NOTARY_ID);
-
-    std::int32_t nTransferMultiple = 1;
-
-    if (TRANSFER_MULTIPLE > 0) nTransferMultiple = TRANSFER_MULTIPLE;
-
-    // Next load the Basket object out of that contract.
-    std::unique_ptr<Basket> pRequestBasket = nullptr;
-
-    // We need a transaction number just to send this thing. Plus, we need a
-    // number for each sub-account to the basket, as well as the basket's
-    // main account. That is: 1 + theBasket.Count() + 1
-    const std::size_t currencies = contract->Currencies().size();
-
-    if (context.get().AvailableNumbers() < (2 + currencies)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": You don't have "
-            "enough transaction numbers to perform the "
-            "exchange.")
-            .Flush();
-    } else {
-        pRequestBasket.reset(
-            api_.Factory().Basket(currencies, contract->Weight()).release());
-        OT_ASSERT_MSG(
-            false != bool(pRequestBasket),
-            "OT_API::GenerateBasketExchange: Error allocating "
-            "memory in the OT API");
-
-        pRequestBasket->SetTransferMultiple(
-            nTransferMultiple);  // This stays in this function.
-
-        // Make sure the server knows where to put my new basket currency
-        // funds,
-        // once the exchange is done.
-        pRequestBasket->SetRequestAccountID(accountID);  // This stays too
-
-        // Export the Basket object into a string, add it as
-        // a payload on my request, and send to server.
-        pRequestBasket->SignContract(*nym, reason);
-        pRequestBasket->SaveContract();
-    }  // *nymfile apparently has enough transaction numbers to exchange the
-    // basket.
-
-    return pRequestBasket.release();
 }
 
 // ADD BASKET EXCHANGE ITEM
@@ -2700,10 +2684,11 @@ bool OT_API::AddBasketExchangeItem(
         api_.Wallet().mutable_ServerContext(NYM_ID, NOTARY_ID, reason);
     auto nym = context.get().Nym();
 
-    auto contract =
+    try {
         api_.Wallet().UnitDefinition(INSTRUMENT_DEFINITION_ID, reason);
-
-    if (!contract) { return false; }
+    } catch (...) {
+        return false;
+    }
 
     auto account = api_.Wallet().Account(ASSET_ACCOUNT_ID, reason);
 
@@ -2896,10 +2881,13 @@ CommandResult OT_API::exchangeBasket(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto contract =
-        GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
 
-    if (nullptr == contract) { return output; }
+    try {
+        api_.Wallet().BasketContract(BASKET_INSTRUMENT_DEFINITION_ID, reason);
+    } catch (...) {
+
+        return output;
+    }
 
     auto basket{api_.Factory().Basket()};
 
@@ -3128,10 +3116,12 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    auto contract =
+    try {
         api_.Wallet().UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID, reason);
+    } catch (...) {
 
-    if (false == bool(contract)) { return output; }
+        return output;
+    }
 
     // issuerAccount is not owned by this function
     auto issuerAccount =
@@ -3148,8 +3138,8 @@ CommandResult OT_API::payDividend(
 
     if (false == dividendAccount.get().VerifyOwner(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure: Nym doesn't verify as owner of the source "
-            "account for the dividend payout.")
+            ": Failure: Nym doesn't verify as owner of the source account for "
+            "the dividend payout.")
             .Flush();
 
         return output;
@@ -3157,10 +3147,8 @@ CommandResult OT_API::payDividend(
 
     if (false == issuerAccount.get().VerifyOwner(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure: Nym doesn't verify as owner of issuer "
-            "account for the shares (the shares we're paying the "
-            "dividend "
-            "on...).")
+            ": Failure: Nym doesn't verify as owner of issuer account for the "
+            "shares (the shares we're paying the dividend on...).")
             .Flush();
 
         return output;
@@ -3170,8 +3158,8 @@ CommandResult OT_API::payDividend(
 
     if (0 == issuerAccount.get().GetBalance()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure: There are no shares "
-            "issued for that instrument definition.")
+            ": Failure: There are no shares issued for that instrument "
+            "definition.")
             .Flush();
         requestNum = 0;
         status = SendResult::UNNECESSARY;
@@ -3199,8 +3187,8 @@ CommandResult OT_API::payDividend(
     if (dividendAccount.get().GetBalance() < totalCost) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failure: There's not enough (")(
             dividendAccount.get().GetBalance())(
-            ") in the source account, to "
-            "cover the total cost of the dividend (")(totalCost)(").")
+            ") in the source account, to cover the total cost of the dividend "
+            "(")(totalCost)(").")
             .Flush();
 
         return output;
@@ -3213,8 +3201,8 @@ CommandResult OT_API::payDividend(
 
     if (false == managedNumber->Valid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": No transaction numbers were available. "
-            "Try requesting the server for a new one.")
+            ": No transaction numbers were available. Try requesting the "
+            "server for a new one.")
             .Flush();
         status = SendResult::TRANSACTION_NUMBERS;
 

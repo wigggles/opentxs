@@ -115,7 +115,7 @@ Header::Header(
           blockchain::Type::Bitcoin,
           hash,
           previous,
-          make_blank<block::Height>::value(),
+          make_blank<block::Height>::value(api),
           calculate_work(nbits))
     , subversion_(subversion)
     , block_version_(version)
@@ -141,8 +141,8 @@ Header::Header(
           minimum_work())
     , subversion_(subversion_default_)
     , block_version_(0)
-    , merkle_root_(make_blank<block::pHash>::value())
-    , timestamp_(make_blank<Time>::value())
+    , merkle_root_(make_blank<block::pHash>::value(api))
+    , timestamp_(make_blank<Time>::value(api))
     , nbits_(NumericHash::MaxTarget)
     , nonce_(0)
 {

@@ -27,20 +27,21 @@ public:
     enum class Type : bool { Confirm = true, Refute = false };
     enum class Validity : bool { Active = false, Retracted = true };
 
-    EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
 
-    EXPORT virtual operator SerializedType() const noexcept = 0;
+    OPENTXS_EXPORT virtual operator SerializedType() const noexcept = 0;
 
-    EXPORT virtual Time Begin() const noexcept = 0;
-    EXPORT virtual const Identifier& ClaimID() const noexcept = 0;
-    EXPORT virtual Time End() const noexcept = 0;
-    EXPORT virtual const Identifier& ID() const noexcept = 0;
-    EXPORT virtual const proto::Signature& Signature() const noexcept = 0;
-    EXPORT virtual Validity Valid() const noexcept = 0;
-    EXPORT virtual Type Value() const noexcept = 0;
-    EXPORT virtual VersionNumber Version() const noexcept = 0;
+    OPENTXS_EXPORT virtual Time Begin() const noexcept = 0;
+    OPENTXS_EXPORT virtual const Identifier& ClaimID() const noexcept = 0;
+    OPENTXS_EXPORT virtual Time End() const noexcept = 0;
+    OPENTXS_EXPORT virtual const Identifier& ID() const noexcept = 0;
+    OPENTXS_EXPORT virtual const proto::Signature& Signature() const
+        noexcept = 0;
+    OPENTXS_EXPORT virtual Validity Valid() const noexcept = 0;
+    OPENTXS_EXPORT virtual Type Value() const noexcept = 0;
+    OPENTXS_EXPORT virtual VersionNumber Version() const noexcept = 0;
 
-    EXPORT virtual ~Item() = default;
+    OPENTXS_EXPORT virtual ~Item() = default;
 
 protected:
     Item() = default;

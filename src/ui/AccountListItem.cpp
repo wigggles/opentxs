@@ -47,7 +47,7 @@ template class opentxs::SharedPimpl<opentxs::ui::AccountListItem>;
 
 namespace opentxs
 {
-ui::implementation::AccountListRowInternal* Factory::AccountListItem(
+auto Factory::AccountListItem(
     const opentxs::PasswordPrompt& reason,
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
@@ -55,6 +55,7 @@ ui::implementation::AccountListRowInternal* Factory::AccountListItem(
     const ui::implementation::AccountListRowID& rowID,
     const ui::implementation::AccountListSortKey& sortKey,
     const ui::implementation::CustomData& custom)
+    -> ui::implementation::AccountListRowInternal*
 {
     return new ui::implementation::AccountListItem(
         reason, parent, api, publisher, rowID, sortKey, custom);
@@ -75,20 +76,13 @@ AccountListItem::AccountListItem(
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)
     , balance_(extract_custom<Amount>(custom, 0))
-    , contract_(api_.Wallet().UnitDefinition(
-
-          extract_custom<OTUnitID>(custom, 1),
-          reason))
-    , notary_(api_.Wallet().Server(
-          identifier::Server::Factory(sortKey.second),
-          reason))
+    , contract_(load_unit(api_, extract_custom<OTUnitID>(custom, 1), reason))
+    , notary_(load_server(api_, api.Factory().ServerID(sortKey.second), reason))
     , name_(extract_custom<std::string>(custom, 2))
 {
-    OT_ASSERT(contract_);
-    OT_ASSERT(notary_);
 }
 
-std::string AccountListItem::DisplayBalance() const noexcept
+auto AccountListItem::DisplayBalance() const noexcept -> std::string
 {
     std::string output{};
     const auto formatted =
@@ -99,8 +93,37 @@ std::string AccountListItem::DisplayBalance() const noexcept
     return std::to_string(balance_);
 }
 
+auto AccountListItem::load_server(
+    const api::Core& api,
+    const identifier::Server& id,
+    const PasswordPrompt& reason) -> OTServerContract
+{
+    try {
+
+        return api.Wallet().Server(id, reason);
+    } catch (...) {
+
+        return api.Factory().ServerContract();
+    }
+}
+
+auto AccountListItem::load_unit(
+    const api::Core& api,
+    const identifier::UnitDefinition& id,
+    const PasswordPrompt& reason) -> OTUnitDefinition
+{
+    try {
+
+        return api.Wallet().UnitDefinition(id, reason);
+    } catch (...) {
+
+        return api.Factory().UnitDefinition();
+    }
+}
+
 #if OT_QT
-QVariant AccountListItem::qt_data(const int column, int role) const noexcept
+auto AccountListItem::qt_data(const int column, int role) const noexcept
+    -> QVariant
 {
     if (Qt::DisplayRole == role) {
         switch (column) {

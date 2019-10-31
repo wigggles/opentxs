@@ -128,9 +128,10 @@ private:
             std::unique_ptr<const blockchain::internal::GCS> filter) const
             noexcept;
 
-        Filters() noexcept;
+        Filters(const api::Core& api) noexcept;
 
     private:
+        const api::Core& api_;
         mutable std::mutex lock_;
         mutable std::map<filter::Type, block::Position> tip_;
         mutable std::map<

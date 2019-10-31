@@ -5,10 +5,11 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/core/contract/Signable.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Log.hpp"
 #include "opentxs/identity/Nym.hpp"
 
 #include <cstdint>
@@ -16,13 +17,144 @@
 #include <string>
 #include <utility>
 
+#include "core/contract/UnitDefinition.hpp"
+
+#include "BasketContract.hpp"
+
+using ReturnType = opentxs::contract::unit::implementation::Basket;
+
 namespace opentxs
 {
-BasketContract::BasketContract(
+// Unlike the other factory functions, this one does not produce a complete,
+// valid contract. This is used on the client side to produce a template for
+// the server, which then finalizes the contract.
+auto Factory::BasketContract(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::uint64_t weight,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version) noexcept
+    -> std::shared_ptr<contract::unit::Basket>
+{
+    return std::make_shared<ReturnType>(
+        api,
+        nym,
+        shortname,
+        name,
+        symbol,
+        terms,
+        weight,
+        unitOfAccount,
+        version);
+}
+
+auto Factory::BasketContract(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const proto::UnitDefinition serialized,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::unit::Basket>
+{
+    if (false == proto::Validate<ReturnType::SerializedType>(
+                     serialized, VERBOSE, true)) {
+
+        return {};
+    }
+
+    auto output = std::make_shared<ReturnType>(api, nym, serialized);
+
+    if (false == bool(output)) { return {}; }
+
+    auto& contract = *output;
+    Lock lock(contract.lock_);
+
+    if (!contract.validate(lock, reason)) { return {}; }
+
+    return std::move(output);
+}
+}  // namespace opentxs
+
+namespace opentxs::contract::unit
+{
+auto Basket::CalculateBasketID(
+    const api::internal::Core& api,
+    const proto::UnitDefinition& serialized) -> OTIdentifier
+{
+    auto contract(serialized);
+    contract.clear_id();
+    contract.clear_nymid();
+    contract.clear_publicnym();
+
+    for (auto& item : *contract.mutable_basket()->mutable_item()) {
+        item.clear_account();
+    }
+
+    return contract::implementation::Unit::GetID(api, contract);
+}
+
+auto Basket::FinalizeTemplate(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    proto::UnitDefinition& serialized,
+    const PasswordPrompt& reason) -> bool
+{
+    auto contract = std::make_unique<ReturnType>(api, nym, serialized);
+
+    if (!contract) { return false; }
+
+    Lock lock(contract->lock_);
+
+    try {
+        contract->first_time_init(lock);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::contract::unit::Basket::")(__FUNCTION__)(": ")(
+            e.what())
+            .Flush();
+    }
+
+    if (contract->nym_) {
+        proto::UnitDefinition basket = contract->SigVersion(lock);
+        std::shared_ptr<proto::Signature> sig =
+            std::make_shared<proto::Signature>();
+        if (contract->update_signature(lock, reason)) {
+            lock.unlock();
+            serialized = contract->PublicContract();
+
+            return proto::Validate(serialized, VERBOSE, false);
+        }
+    }
+
+    return false;
+}
+}  // namespace opentxs::contract::unit
+
+namespace opentxs::contract::unit::implementation
+{
+Basket::Basket(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::uint64_t weight,
+    const proto::ContactItemType unitOfAccount,
+    const VersionNumber version)
+    : Unit(api, nym, shortname, name, symbol, terms, unitOfAccount, version)
+    , subcontracts_()
+    , weight_(weight)
+{
+}
+
+Basket::Basket(
     const api::internal::Core& api,
     const Nym_p& nym,
     const proto::UnitDefinition serialized)
-    : ot_super(api, nym, serialized)
+    : Unit(api, nym, serialized)
     , subcontracts_()
     , weight_(0)
 {
@@ -39,74 +171,24 @@ BasketContract::BasketContract(
     }
 }
 
-BasketContract::BasketContract(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const std::string& shortname,
-    const std::string& name,
-    const std::string& symbol,
-    const std::string& terms,
-    const std::uint64_t weight,
-    const proto::ContactItemType unitOfAccount,
-    const VersionNumber version)
-    : ot_super(api, nym, shortname, name, symbol, terms, unitOfAccount, version)
-    , subcontracts_()
-    , weight_(weight)
+Basket::Basket(const Basket& rhs)
+    : Unit(rhs)
+    , subcontracts_(rhs.subcontracts_)
+    , weight_(rhs.weight_)
 {
 }
 
-OTIdentifier BasketContract::CalculateBasketID(
-    const api::internal::Core& api,
-    const proto::UnitDefinition& serialized)
+OTIdentifier Basket::BasketID() const
 {
-    auto contract(serialized);
-    contract.clear_id();
-    contract.clear_nymid();
-    contract.clear_publicnym();
+    Lock lock(lock_);
 
-    for (auto& item : *contract.mutable_basket()->mutable_item()) {
-        item.clear_account();
-    }
-
-    return GetID(api, contract);
+    return GetID(api_, BasketIDVersion(lock));
 }
 
-bool BasketContract::FinalizeTemplate(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    proto::UnitDefinition& serialized,
-    const PasswordPrompt& reason)
+auto Basket::IDVersion(const Lock& lock) const -> SerializedType
 {
-    std::unique_ptr<BasketContract> contract(
-        new BasketContract(api, nym, serialized));
-
-    if (!contract) { return false; }
-
-    Lock lock(contract->lock_);
-
-    if (!contract->CalculateID(lock)) { return false; }
-
-    if (contract->nym_) {
-        proto::UnitDefinition basket = contract->SigVersion(lock);
-        std::shared_ptr<proto::Signature> sig =
-            std::make_shared<proto::Signature>();
-        if (contract->update_signature(lock, reason)) {
-            lock.unlock();
-            serialized = contract->PublicContract();
-
-            return proto::Validate(serialized, VERBOSE, false);
-        }
-    }
-
-    return false;
-}
-
-proto::UnitDefinition BasketContract::IDVersion(const Lock& lock) const
-{
-    proto::UnitDefinition contract = ot_super::IDVersion(lock);
-
+    auto contract = Unit::IDVersion(lock);
     contract.set_type(proto::UNITTYPE_BASKET);
-
     auto basket = contract.mutable_basket();
     basket->set_version(1);
     basket->set_weight(weight_);
@@ -123,9 +205,9 @@ proto::UnitDefinition BasketContract::IDVersion(const Lock& lock) const
     return contract;
 }
 
-proto::UnitDefinition BasketContract::BasketIDVersion(const Lock& lock) const
+auto Basket::BasketIDVersion(const Lock& lock) const -> SerializedType
 {
-    auto contract = ot_super::SigVersion(lock);
+    auto contract = Unit::SigVersion(lock);
 
     for (auto& item : *(contract.mutable_basket()->mutable_item())) {
         item.clear_account();
@@ -133,4 +215,4 @@ proto::UnitDefinition BasketContract::BasketIDVersion(const Lock& lock) const
 
     return contract;
 }
-}  // namespace opentxs
+}  // namespace opentxs::contract::unit::implementation

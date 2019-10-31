@@ -417,8 +417,9 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
         server_.GetServerID(),
         proto::SERVERREPLY_PUSH,
         true,
-        reason_);
-    message->SetPush(proto::Factory<proto::OTXPush>(payload), reason_);
+        0,
+        reason_,
+        proto::DynamicFactory<proto::OTXPush>(payload));
 
     OT_ASSERT(message->Validate(reason_));
 

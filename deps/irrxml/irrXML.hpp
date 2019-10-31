@@ -450,7 +450,8 @@ public:
          a pointer to the created xml parser. This pointer should be deleted
          using 'delete' after no longer needed. Returns 0 if an error occured
          and the file could not be opened. */
-        EXPORT IrrXMLReader* createIrrXMLReader(IFileReadCallBack* callback);
+        OPENTXS_EXPORT IrrXMLReader* createIrrXMLReader(
+            IFileReadCallBack* callback);
 
         //! Creates an instance of an UFT-16 xml parser.
         /** This means that

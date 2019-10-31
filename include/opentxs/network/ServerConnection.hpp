@@ -33,21 +33,22 @@ public:
         Disable = false,
     };
 
-    EXPORT static OTServerConnection Factory(
+    OPENTXS_EXPORT static OTServerConnection Factory(
         const api::internal::Core& api,
         const api::network::ZMQ& zmq,
         const zeromq::socket::Publish& updates,
-        const std::shared_ptr<const ServerContract>& contract);
+        const OTServerContract& contract);
 
-    EXPORT virtual bool ChangeAddressType(const proto::AddressType type) = 0;
-    EXPORT virtual bool ClearProxy() = 0;
-    EXPORT virtual bool EnableProxy() = 0;
-    EXPORT virtual NetworkReplyMessage Send(
+    OPENTXS_EXPORT virtual bool ChangeAddressType(
+        const proto::AddressType type) = 0;
+    OPENTXS_EXPORT virtual bool ClearProxy() = 0;
+    OPENTXS_EXPORT virtual bool EnableProxy() = 0;
+    OPENTXS_EXPORT virtual NetworkReplyMessage Send(
         const ServerContext& context,
         const Message& message,
         const PasswordPrompt& reason,
         const Push push = Push::Enable) = 0;
-    EXPORT virtual bool Status() const = 0;
+    OPENTXS_EXPORT virtual bool Status() const = 0;
 
     virtual ~ServerConnection() = default;
 

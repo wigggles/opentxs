@@ -242,7 +242,7 @@ public:
 
     // %ignore spam(uint16_t); API users don't need this function, it's for
     // internal purposes.
-    EXPORT static Storable* Create(
+    OPENTXS_EXPORT static Storable* Create(
         StoredObjectType eType,
         PackType thePackType);
 
@@ -299,7 +299,7 @@ public:
     PackType GetType() const;
 
     PackedBuffer* Pack(Storable& inObj);
-    EXPORT bool Unpack(PackedBuffer& inBuf, Storable& outObj);
+    OPENTXS_EXPORT bool Unpack(PackedBuffer& inBuf, Storable& outObj);
 
     PackedBuffer* Pack(const std::string& inObj);
     bool Unpack(PackedBuffer& inBuf, std::string& outObj);
@@ -437,7 +437,8 @@ public:
     // PackedBuffers, and knowing that the right types will be instantiated
     // automatically, with the buffer being the appropriate subclass for the
     // packer.
-    EXPORT OTPacker* GetPacker(PackType ePackType = OTDB_DEFAULT_PACKER);
+    OPENTXS_EXPORT OTPacker* GetPacker(
+        PackType ePackType = OTDB_DEFAULT_PACKER);
 
     // See if the file is there.
     virtual bool Exists(
@@ -465,7 +466,7 @@ public:
 
     // Store/Retrieve a string.
 
-    EXPORT bool StoreString(
+    OPENTXS_EXPORT bool StoreString(
         const api::internal::Core& api,
         const std::string& strContents,
         const std::string& dataFolder,
@@ -474,7 +475,7 @@ public:
         const std::string& twoStr,
         const std::string& threeStr);
 
-    EXPORT std::string QueryString(
+    OPENTXS_EXPORT std::string QueryString(
         const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -482,7 +483,7 @@ public:
         const std::string& twoStr,
         const std::string& threeStr);
 
-    EXPORT bool StorePlainString(
+    OPENTXS_EXPORT bool StorePlainString(
         const api::internal::Core& api,
         const std::string& strContents,
         const std::string& dataFolder,
@@ -491,7 +492,7 @@ public:
         const std::string& twoStr,
         const std::string& threeStr);
 
-    EXPORT std::string QueryPlainString(
+    OPENTXS_EXPORT std::string QueryPlainString(
         const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -501,7 +502,7 @@ public:
 
     // Store/Retrieve an object. (Storable.)
 
-    EXPORT bool StoreObject(
+    OPENTXS_EXPORT bool StoreObject(
         const api::internal::Core& api,
         Storable& theContents,
         const std::string& dataFolder,
@@ -511,7 +512,7 @@ public:
         const std::string& threeStr);
 
     // Use %newobject OTDB::Storage::QueryObject();
-    EXPORT Storable* QueryObject(
+    OPENTXS_EXPORT Storable* QueryObject(
         const api::internal::Core& api,
         const StoredObjectType& theObjectType,
         const std::string& dataFolder,
@@ -521,18 +522,18 @@ public:
         const std::string& threeStr);
     // Store/Retrieve a Storable object inside an Armored object.
 
-    EXPORT std::string EncodeObject(
+    OPENTXS_EXPORT std::string EncodeObject(
         const api::internal::Core& api,
         Storable& theContents);
 
     // Use %newobject OTDB::Storage::DecodeObject();
-    EXPORT Storable* DecodeObject(
+    OPENTXS_EXPORT Storable* DecodeObject(
         const StoredObjectType& theObjectType,
         const std::string& strInput);
 
     // Erase any value based on its location.
 
-    EXPORT bool EraseValueByKey(
+    OPENTXS_EXPORT bool EraseValueByKey(
         const api::internal::Core& api,
         const std::string& dataFolder,
         const std::string& strFolder,
@@ -547,42 +548,42 @@ public:
     // (Instead of leaking because it thinks C++ will clean it up.)
     //
     // Factory for Storable objects.   %newobject Factory::createObj();
-    EXPORT Storable* CreateObject(const StoredObjectType& eType);
+    OPENTXS_EXPORT Storable* CreateObject(const StoredObjectType& eType);
 
     // Factory for Storage itself.  %ignore this in OTAPI.i  (It's accessed
     // through
     // a namespace-level function, whereas this is for internal purposes.)
     //
-    EXPORT static Storage* Create(
+    OPENTXS_EXPORT static Storage* Create(
         const StorageType& eStorageType,
         const PackType& ePackType);  // FACTORY
 
-    EXPORT StorageType GetType() const;
+    OPENTXS_EXPORT StorageType GetType() const;
 };
 
 //
 // OTDB Namespace PUBLIC INTERFACE
 //
 
-EXPORT bool InitDefaultStorage(
+OPENTXS_EXPORT bool InitDefaultStorage(
     const StorageType eStoreType,
     const PackType ePackType);
 
 // Default Storage instance:
-EXPORT Storage* GetDefaultStorage();
+OPENTXS_EXPORT Storage* GetDefaultStorage();
 
 // %newobject Factory::createObj();
-EXPORT Storage* CreateStorageContext(
+OPENTXS_EXPORT Storage* CreateStorageContext(
     const StorageType eStoreType,
     const PackType ePackType = OTDB_DEFAULT_PACKER);
 
-EXPORT Storable* CreateObject(const StoredObjectType eType);
+OPENTXS_EXPORT Storable* CreateObject(const StoredObjectType eType);
 
 // BELOW FUNCTIONS use the DEFAULT Storage context for the OTDB Namespace
 
 // Check if the values are good.
 //
-EXPORT bool CheckStringsExistInOrder(
+OPENTXS_EXPORT bool CheckStringsExistInOrder(
     const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
@@ -592,7 +593,7 @@ EXPORT bool CheckStringsExistInOrder(
 
 // See if the file is there.
 //
-EXPORT bool Exists(
+OPENTXS_EXPORT bool Exists(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string strFolder,
@@ -600,7 +601,7 @@ EXPORT bool Exists(
     const std::string twoStr,
     const std::string threeStr);
 
-EXPORT std::int64_t FormPathString(
+OPENTXS_EXPORT std::int64_t FormPathString(
     const api::internal::Core& api,
     std::string& strOutput,
     const std::string& dataFolder,
@@ -610,7 +611,7 @@ EXPORT std::int64_t FormPathString(
     const std::string& threeStr);
 // Store/Retrieve a string.
 //
-EXPORT bool StoreString(
+OPENTXS_EXPORT bool StoreString(
     const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
@@ -619,7 +620,7 @@ EXPORT bool StoreString(
     const std::string& twoStr,
     const std::string& threeStr);
 
-EXPORT std::string QueryString(
+OPENTXS_EXPORT std::string QueryString(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -627,7 +628,7 @@ EXPORT std::string QueryString(
     const std::string& twoStr,
     const std::string& threeStr);
 
-EXPORT bool StorePlainString(
+OPENTXS_EXPORT bool StorePlainString(
     const api::internal::Core& api,
     const std::string& strContents,
     const std::string& dataFolder,
@@ -636,7 +637,7 @@ EXPORT bool StorePlainString(
     const std::string& twoStr,
     const std::string& threeStr);
 
-EXPORT std::string QueryPlainString(
+OPENTXS_EXPORT std::string QueryPlainString(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -646,7 +647,7 @@ EXPORT std::string QueryPlainString(
 
 // Store/Retrieve an object. (Storable.)
 //
-EXPORT bool StoreObject(
+OPENTXS_EXPORT bool StoreObject(
     const api::internal::Core& api,
     Storable& theContents,
     const std::string& dataFolder,
@@ -656,7 +657,7 @@ EXPORT bool StoreObject(
     const std::string& threeStr);
 
 // Use %newobject OTDB::Storage::Query();
-EXPORT Storable* QueryObject(
+OPENTXS_EXPORT Storable* QueryObject(
     const api::internal::Core& api,
     const StoredObjectType theObjectType,
     const std::string& dataFolder,
@@ -666,18 +667,18 @@ EXPORT Storable* QueryObject(
     const std::string& threeStr);
 
 // Store/Retrieve a Storable object inside an Armored object.
-EXPORT std::string EncodeObject(
+OPENTXS_EXPORT std::string EncodeObject(
     const api::internal::Core& api,
     Storable& theContents);
 
 // Use %newobject OTDB::Storage::DecodeObject();
-EXPORT Storable* DecodeObject(
+OPENTXS_EXPORT Storable* DecodeObject(
     const StoredObjectType theObjectType,
     const std::string& strInput);
 
 // Erase any value based on its location.
 
-EXPORT bool EraseValueByKey(
+OPENTXS_EXPORT bool EraseValueByKey(
     const api::internal::Core& api,
     const std::string& dataFolder,
     const std::string& strFolder,
@@ -691,10 +692,10 @@ protected:                                                                     \
     std::deque<std::shared_ptr<name>> list_##name##s;                          \
                                                                                \
 public:                                                                        \
-    EXPORT size_t Get##name##Count();                                          \
-    EXPORT name* Get##name(size_t nIndex);                                     \
-    EXPORT bool Remove##name(size_t nIndex##name);                             \
-    EXPORT bool Add##name(name& disownObject)
+    OPENTXS_EXPORT size_t Get##name##Count();                                  \
+    OPENTXS_EXPORT name* Get##name(size_t nIndex);                             \
+    OPENTXS_EXPORT bool Remove##name(size_t nIndex##name);                     \
+    OPENTXS_EXPORT bool Add##name(name& disownObject)
 
 // Serialized types...
 //

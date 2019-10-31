@@ -225,6 +225,8 @@ endif()
 # Source Definitions
 
 set_common_defines()
+hide_symbols("OPENTXS_EXPORT")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/src")
 
 if(APPLE)
   add_definitions(-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED)

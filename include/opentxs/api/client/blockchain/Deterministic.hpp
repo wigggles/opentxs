@@ -26,25 +26,26 @@ namespace blockchain
 class Deterministic : virtual public BalanceNode
 {
 public:
-    EXPORT virtual std::optional<Bip32Index> GenerateNext(
+    OPENTXS_EXPORT virtual std::optional<Bip32Index> GenerateNext(
         const Subchain type,
         const PasswordPrompt& reason) const noexcept = 0;
-    EXPORT virtual ECKey Key(const Subchain type, const Bip32Index index) const
-        noexcept = 0;
-    EXPORT virtual std::optional<Bip32Index> LastGenerated(
+    OPENTXS_EXPORT virtual ECKey Key(
+        const Subchain type,
+        const Bip32Index index) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::optional<Bip32Index> LastGenerated(
         const Subchain type) const noexcept = 0;
-    EXPORT virtual std::optional<Bip32Index> LastUsed(const Subchain type) const
+    OPENTXS_EXPORT virtual std::optional<Bip32Index> LastUsed(
+        const Subchain type) const noexcept = 0;
+    OPENTXS_EXPORT virtual proto::HDPath Path() const noexcept = 0;
+    OPENTXS_EXPORT virtual HDKey RootNode(const PasswordPrompt& reason) const
         noexcept = 0;
-    EXPORT virtual proto::HDPath Path() const noexcept = 0;
-    EXPORT virtual HDKey RootNode(const PasswordPrompt& reason) const
-        noexcept = 0;
-    EXPORT virtual std::optional<Bip32Index> UseNext(
+    OPENTXS_EXPORT virtual std::optional<Bip32Index> UseNext(
         const Subchain type,
         const PasswordPrompt& reason,
         const Identifier& contact = Identifier::Factory(),
         const std::string& label = {}) const noexcept = 0;
 
-    EXPORT ~Deterministic() override = default;
+    OPENTXS_EXPORT ~Deterministic() override = default;
 
 protected:
     Deterministic() noexcept = default;

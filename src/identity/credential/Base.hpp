@@ -7,11 +7,13 @@
 
 #include "Internal.hpp"
 
+#include "core/contract/Signable.hpp"
 #include "internal/identity/credential/Credential.hpp"
 
 namespace opentxs::identity::credential::implementation
 {
-class Base : virtual public credential::internal::Base
+class Base : virtual public credential::internal::Base,
+             public opentxs::contract::implementation::Signable
 {
 public:
     using SerializedType = proto::Credential;
@@ -32,18 +34,18 @@ public:
     {
         return false;
     }
-    SerializedSignature MasterSignature() const final;
+    Signature MasterSignature() const final;
     proto::KeyMode Mode() const final { return mode_; }
     proto::CredentialRole Role() const final { return role_; }
     bool Private() const final { return (proto::KEYMODE_PRIVATE == mode_); }
     bool Save() const final;
-    SerializedSignature SelfSignature(
+    Signature SelfSignature(
         CredentialModeFlag version = PUBLIC_VERSION) const final;
     OTData Serialize() const final;
     std::shared_ptr<SerializedType> Serialized(
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const final;
-    SerializedSignature SourceSignature() const final;
+    Signature SourceSignature() const final;
     bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
@@ -73,7 +75,6 @@ public:
     ~Base() override = default;
 
 protected:
-    const api::internal::Core& api_;
     const identity::internal::Authority& parent_;
     const identity::Source& source_;
     const std::string nym_id_;
@@ -120,6 +121,9 @@ protected:
         const std::string& masterID) noexcept(false);
 
 private:
+    static Signatures extract_signatures(const SerializedType& serialized);
+
+    Base* clone() const noexcept final { return nullptr; }
     OTIdentifier GetID(const Lock& lock) const final;
     // Syntax (non cryptographic) validation
     bool isValid(const Lock& lock) const;

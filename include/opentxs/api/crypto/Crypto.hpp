@@ -15,36 +15,40 @@ namespace api
 class Crypto
 {
 public:
-    EXPORT virtual const crypto::Config& Config() const = 0;
+    OPENTXS_EXPORT virtual const crypto::Config& Config() const = 0;
 
     // Encoding function interface
-    EXPORT virtual const crypto::Encode& Encode() const = 0;
+    OPENTXS_EXPORT virtual const crypto::Encode& Encode() const = 0;
 
     // Hash function interface
-    EXPORT virtual const crypto::Hash& Hash() const = 0;
+    OPENTXS_EXPORT virtual const crypto::Hash& Hash() const = 0;
 
     // Utility class for misc OpenSSL-provided functions
-    EXPORT virtual const crypto::Util& Util() const = 0;
+    OPENTXS_EXPORT virtual const crypto::Util& Util() const = 0;
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    EXPORT virtual const opentxs::crypto::EcdsaProvider& ED25519() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::crypto::EcdsaProvider& ED25519()
+        const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    EXPORT virtual const opentxs::crypto::AsymmetricProvider& RSA() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::crypto::AsymmetricProvider& RSA()
+        const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT virtual const opentxs::crypto::EcdsaProvider& SECP256K1() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::crypto::EcdsaProvider& SECP256K1()
+        const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
-    EXPORT virtual const opentxs::crypto::SymmetricProvider& Sodium() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::crypto::SymmetricProvider& Sodium()
+        const = 0;
 #if OT_CRYPTO_WITH_BIP32
-    EXPORT virtual const opentxs::crypto::Bip32& BIP32() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::crypto::Bip32& BIP32() const = 0;
 #endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_WITH_BIP39
-    EXPORT virtual const opentxs::crypto::Bip39& BIP39() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::crypto::Bip39& BIP39() const = 0;
 #endif  // OT_CRYPTO_WITH_BIP39
 
-    EXPORT virtual ~Crypto() = default;
+    OPENTXS_EXPORT virtual ~Crypto() = default;
 
 protected:
     Crypto() = default;

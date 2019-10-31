@@ -13,15 +13,19 @@ namespace opentxs
 class OTCaller
 {
 public:
-    EXPORT bool HaveCallback() const;
+    OPENTXS_EXPORT bool HaveCallback() const;
 
-    EXPORT void AskOnce(const PasswordPrompt& prompt, OTPassword& output);
-    EXPORT void AskTwice(const PasswordPrompt& prompt, OTPassword& output);
-    EXPORT void SetCallback(OTCallback* callback);
+    OPENTXS_EXPORT void AskOnce(
+        const PasswordPrompt& prompt,
+        OTPassword& output);
+    OPENTXS_EXPORT void AskTwice(
+        const PasswordPrompt& prompt,
+        OTPassword& output);
+    OPENTXS_EXPORT void SetCallback(OTCallback* callback);
 
-    EXPORT OTCaller();
+    OPENTXS_EXPORT OTCaller();
 
-    EXPORT ~OTCaller();
+    OPENTXS_EXPORT ~OTCaller();
 
 private:
     OTCallback* callback_{nullptr};

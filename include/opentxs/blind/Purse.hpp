@@ -38,46 +38,47 @@ public:
     using const_iterator =
         opentxs::iterator::Bidirectional<const Purse, const Token>;
 
-    EXPORT virtual const Token& at(const std::size_t position) const = 0;
-    EXPORT virtual const_iterator begin() const noexcept = 0;
-    EXPORT virtual const_iterator cbegin() const noexcept = 0;
-    EXPORT virtual const_iterator cend() const noexcept = 0;
-    EXPORT virtual Time EarliestValidTo() const = 0;
-    EXPORT virtual const_iterator end() const noexcept = 0;
-    EXPORT virtual bool IsUnlocked() const = 0;
-    EXPORT virtual Time LatestValidFrom() const = 0;
-    EXPORT virtual const identifier::Server& Notary() const = 0;
-    EXPORT virtual proto::Purse Serialize() const = 0;
-    EXPORT virtual std::size_t size() const noexcept = 0;
-    EXPORT virtual proto::PurseType State() const = 0;
-    EXPORT virtual proto::CashType Type() const = 0;
-    EXPORT virtual const identifier::UnitDefinition& Unit() const = 0;
-    EXPORT virtual bool Unlock(
+    OPENTXS_EXPORT virtual const Token& at(
+        const std::size_t position) const = 0;
+    OPENTXS_EXPORT virtual const_iterator begin() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator cbegin() const noexcept = 0;
+    OPENTXS_EXPORT virtual const_iterator cend() const noexcept = 0;
+    OPENTXS_EXPORT virtual Time EarliestValidTo() const = 0;
+    OPENTXS_EXPORT virtual const_iterator end() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsUnlocked() const = 0;
+    OPENTXS_EXPORT virtual Time LatestValidFrom() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& Notary() const = 0;
+    OPENTXS_EXPORT virtual proto::Purse Serialize() const = 0;
+    OPENTXS_EXPORT virtual std::size_t size() const noexcept = 0;
+    OPENTXS_EXPORT virtual proto::PurseType State() const = 0;
+    OPENTXS_EXPORT virtual proto::CashType Type() const = 0;
+    OPENTXS_EXPORT virtual const identifier::UnitDefinition& Unit() const = 0;
+    OPENTXS_EXPORT virtual bool Unlock(
         const identity::Nym& nym,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual bool Verify(
         const api::server::internal::Manager& server) const = 0;
-    EXPORT virtual Amount Value() const = 0;
+    OPENTXS_EXPORT virtual Amount Value() const = 0;
 
-    EXPORT virtual bool AddNym(
+    OPENTXS_EXPORT virtual bool AddNym(
         const identity::Nym& nym,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual Token& at(const std::size_t position) = 0;
-    EXPORT virtual iterator begin() noexcept = 0;
-    EXPORT virtual iterator end() noexcept = 0;
-    EXPORT virtual crypto::key::Symmetric& PrimaryKey() = 0;
-    EXPORT virtual std::shared_ptr<Token> Pop() = 0;
-    EXPORT virtual bool Process(
+    OPENTXS_EXPORT virtual Token& at(const std::size_t position) = 0;
+    OPENTXS_EXPORT virtual iterator begin() noexcept = 0;
+    OPENTXS_EXPORT virtual iterator end() noexcept = 0;
+    OPENTXS_EXPORT virtual crypto::key::Symmetric& PrimaryKey() = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<Token> Pop() = 0;
+    OPENTXS_EXPORT virtual bool Process(
         const identity::Nym& owner,
         const Mint& mint,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool Push(
+    OPENTXS_EXPORT virtual bool Push(
         std::shared_ptr<Token> token,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual crypto::key::Symmetric& SecondaryKey(
+    OPENTXS_EXPORT virtual crypto::key::Symmetric& SecondaryKey(
         const identity::Nym& owner) = 0;
 
-    EXPORT virtual ~Purse() = default;
+    OPENTXS_EXPORT virtual ~Purse() = default;
 
 protected:
     Purse() noexcept = default;
@@ -85,7 +86,7 @@ protected:
 private:
     friend OTPurse;
 
-    EXPORT virtual Purse* clone() const noexcept = 0;
+    OPENTXS_EXPORT virtual Purse* clone() const noexcept = 0;
 
     Purse(const Purse&) = delete;
     Purse(Purse&&) = delete;

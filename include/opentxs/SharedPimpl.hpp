@@ -6,7 +6,8 @@
 #ifndef OPENTXS_SHAREDPIMPL_HPP
 #define OPENTXS_SHAREDPIMPL_HPP
 
-#include <cassert>
+#include <cstdlib>
+#include <iostream>
 #include <memory>
 
 #ifdef SWIG
@@ -23,37 +24,57 @@ template <class C>
 class SharedPimpl
 {
 public:
-    explicit SharedPimpl(const std::shared_ptr<const C>& in) noexcept
+    OPENTXS_EXPORT explicit SharedPimpl(
+        const std::shared_ptr<const C>& in) noexcept
         : pimpl_(in)
     {
-        assert(pimpl_);
+        if (false == bool(pimpl_)) {
+            std::cout << stack_trace() << '\n';
+            abort();
+        }
     }
-    SharedPimpl(const SharedPimpl& rhs) noexcept = default;
-    SharedPimpl(SharedPimpl&& rhs) noexcept = default;
-    SharedPimpl& operator=(const SharedPimpl& rhs) noexcept = default;
-    SharedPimpl& operator=(SharedPimpl&& rhs) noexcept = default;
+    OPENTXS_EXPORT SharedPimpl(const SharedPimpl& rhs) noexcept = default;
+    OPENTXS_EXPORT SharedPimpl(SharedPimpl&& rhs) noexcept = default;
+    OPENTXS_EXPORT SharedPimpl& operator=(const SharedPimpl& rhs) noexcept =
+        default;
+    OPENTXS_EXPORT SharedPimpl& operator=(SharedPimpl&& rhs) noexcept = default;
 
 #ifndef SWIG
-    operator const C&() const noexcept { return *pimpl_; }
+    OPENTXS_EXPORT operator const C&() const noexcept { return *pimpl_; }
 #endif
 
-    const C* operator->() const { return pimpl_.get(); }
+    OPENTXS_EXPORT const C* operator->() const { return pimpl_.get(); }
 
-    const C& get() const noexcept { return *pimpl_; }
+    template <typename Type>
+    OPENTXS_EXPORT SharedPimpl<Type> as() noexcept
+    {
+        return SharedPimpl<Type>{std::static_pointer_cast<const Type>(pimpl_)};
+    }
+    template <typename Type>
+    OPENTXS_EXPORT SharedPimpl<Type> dynamic() noexcept(false)
+    {
+        auto pointer = std::dynamic_pointer_cast<const Type>(pimpl_);
 
-    ~SharedPimpl() = default;
+        if (pointer) {
+            return SharedPimpl<Type>{std::move(pointer)};
+        } else {
+            throw std::runtime_error("Invalid dynamic cast");
+        }
+    }
+    OPENTXS_EXPORT const C& get() const noexcept { return *pimpl_; }
+
+    OPENTXS_EXPORT ~SharedPimpl() = default;
 
 #ifdef SWIG_VERSION
-    SharedPimpl() = default;
+    OPENTXS_EXPORT SharedPimpl() = default;
 #endif
 
 private:
     std::shared_ptr<const C> pimpl_{nullptr};
 
 #ifndef SWIG_VERSION
-    SharedPimpl() = delete;
+    OPENTXS_EXPORT SharedPimpl() = delete;
 #endif
 };  // class SharedPimpl
 }  // namespace opentxs
-
 #endif

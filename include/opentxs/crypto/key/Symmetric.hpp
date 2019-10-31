@@ -31,30 +31,30 @@ class Symmetric
 {
 public:
     /** Generate a blank, invalid key */
-    EXPORT static OTSymmetricKey Factory();
+    OPENTXS_EXPORT static OTSymmetricKey Factory();
 
-    EXPORT virtual operator bool() const = 0;
+    OPENTXS_EXPORT virtual operator bool() const = 0;
 
-    EXPORT virtual const api::Core& api() const = 0;
+    OPENTXS_EXPORT virtual const api::Core& api() const = 0;
 
     /** Decrypt ciphertext using the symmetric key
      *
      *  \param[in] ciphertext The data to be decrypted
      *  \param[out] plaintext The encrypted output
      */
-    EXPORT virtual bool Decrypt(
+    OPENTXS_EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const PasswordPrompt& reason,
         std::string& plaintext) const = 0;
-    EXPORT virtual bool Decrypt(
+    OPENTXS_EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const PasswordPrompt& reason,
         String& plaintext) const = 0;
-    EXPORT virtual bool Decrypt(
+    OPENTXS_EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const PasswordPrompt& reason,
         Data& plaintext) const = 0;
-    EXPORT virtual bool Decrypt(
+    OPENTXS_EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const PasswordPrompt& reason,
         OTPassword& plaintext) const = 0;
@@ -67,45 +67,48 @@ public:
      *                       embedded in the ciphertext
      *  \param[in] mode The symmetric algorithm to use for encryption
      */
-    EXPORT virtual bool Encrypt(
+    OPENTXS_EXPORT virtual bool Encrypt(
         const std::string& plaintext,
         const Data& iv,
         const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
         const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
-    EXPORT virtual bool Encrypt(
+    OPENTXS_EXPORT virtual bool Encrypt(
         const String& plaintext,
         const Data& iv,
         const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
         const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
-    EXPORT virtual bool Encrypt(
+    OPENTXS_EXPORT virtual bool Encrypt(
         const OTPassword& plaintext,
         const Data& iv,
         const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
         const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
-    EXPORT virtual bool Encrypt(
+    OPENTXS_EXPORT virtual bool Encrypt(
         const Data& plaintext,
         const Data& iv,
         const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
         const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
-    EXPORT virtual OTIdentifier ID(const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool RawKey(const PasswordPrompt& reason, OTPassword& output)
-        const = 0;
-    EXPORT virtual bool Serialize(proto::SymmetricKey& output) const = 0;
-    EXPORT virtual bool Unlock(const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual OTIdentifier ID(
+        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual bool RawKey(
+        const PasswordPrompt& reason,
+        OTPassword& output) const = 0;
+    OPENTXS_EXPORT virtual bool Serialize(
+        proto::SymmetricKey& output) const = 0;
+    OPENTXS_EXPORT virtual bool Unlock(const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual bool ChangePassword(
+    OPENTXS_EXPORT virtual bool ChangePassword(
         const PasswordPrompt& reason,
         const OTPassword& newPassword) = 0;
 
-    EXPORT virtual ~Symmetric() = default;
+    OPENTXS_EXPORT virtual ~Symmetric() = default;
 
 protected:
     Symmetric() = default;

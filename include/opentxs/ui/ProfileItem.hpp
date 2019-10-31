@@ -28,16 +28,19 @@ namespace ui
 class ProfileItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string ClaimID() const noexcept = 0;
-    EXPORT virtual bool Delete() const noexcept = 0;
-    EXPORT virtual bool IsActive() const noexcept = 0;
-    EXPORT virtual bool IsPrimary() const noexcept = 0;
-    EXPORT virtual bool SetActive(const bool& active) const noexcept = 0;
-    EXPORT virtual bool SetPrimary(const bool& primary) const noexcept = 0;
-    EXPORT virtual bool SetValue(const std::string& value) const noexcept = 0;
-    EXPORT virtual std::string Value() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string ClaimID() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Delete() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsActive() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsPrimary() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetActive(const bool& active) const
+        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetPrimary(const bool& primary) const
+        noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetValue(const std::string& value) const
+        noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Value() const noexcept = 0;
 
-    EXPORT ~ProfileItem() override = default;
+    OPENTXS_EXPORT ~ProfileItem() override = default;
 
 protected:
     ProfileItem() noexcept = default;
