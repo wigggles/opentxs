@@ -102,8 +102,16 @@ AccountList::AccountList(
 #if OT_QT
           ,
           qt,
-          Roles{},
-          10
+          Roles{
+              {AccountListQt::NotaryIDRole, "notary"},
+              {AccountListQt::UnitRole, "unit"},
+              {AccountListQt::AccountIDRole, "account"},
+              {AccountListQt::BalanceRole, "balance"},
+              {AccountListQt::PolarityRole, "polarity"},
+              {AccountListQt::AccountTypeRole, "accounttype"},
+              {AccountListQt::ContractIdRole, "contractid"},
+          },
+          4
 #endif
           )
     , listeners_{

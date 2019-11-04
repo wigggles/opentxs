@@ -124,34 +124,33 @@ auto AccountSummaryItem::Name() const noexcept -> std::string
 auto AccountSummaryItem::qt_data(const int column, int role) const noexcept
     -> QVariant
 {
-    switch (column) {
-        case AccountSummaryQt::AccountNameColumn: {
-            switch (role) {
-                case Qt::DisplayRole: {
-                    return Name().c_str();
-                }
-                case AccountSummaryQt::NotaryIDRole: {
-                    // TODO
-                    return {};
-                }
-                case AccountSummaryQt::AccountIDRole: {
-                    return AccountID().c_str();
-                }
-                case AccountSummaryQt::BalanceRole: {
-                    return static_cast<unsigned long long>(Balance());
-                }
-                default: {
-                }
-            }
-        } break;
-        case AccountSummaryQt::BalanceColumn: {
-            if (Qt::DisplayRole == role) { return DisplayBalance().c_str(); }
-        } break;
-        default: {
+    switch (role) {
+        case AccountSummaryQt::NotaryIDRole: {
+            // TODO
             return {};
         }
+        case AccountSummaryQt::AccountIDRole: {
+            return AccountID().c_str();
+        }
+        case AccountSummaryQt::BalanceRole: {
+            return static_cast<unsigned long long>(Balance());
+        }
+        case Qt::DisplayRole: {
+            switch (column) {
+                case AccountSummaryQt::AccountNameColumn: {
+                    return Name().c_str();
+                }
+                case AccountSummaryQt::BalanceColumn: {
+                    return DisplayBalance().c_str();
+                }
+                default: {
+                    [[fallthrough]];
+                }
+            }
+        }
+        default: {
+        }
     }
-
     return {};
 }
 #endif

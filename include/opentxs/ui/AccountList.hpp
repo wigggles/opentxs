@@ -59,6 +59,22 @@ signals:
     void updated() const;
 
 public:
+    enum Columns {
+        NotaryNameColumn = 0,
+        DisplayUnitColumn = 1,
+        AccountNameColumn = 2,
+        DisplayBalanceColumn = 3,
+    };
+    enum Roles {
+        NotaryIDRole = Qt::UserRole + 0,
+        UnitRole = Qt::UserRole + 1,
+        AccountIDRole = Qt::UserRole + 2,
+        BalanceRole = Qt::UserRole + 3,
+        PolarityRole = Qt::UserRole + 4,
+        AccountTypeRole = Qt::UserRole + 5,
+        ContractIdRole = Qt::UserRole + 6,
+    };
+
     ~AccountListQt() final = default;
 
 private:
