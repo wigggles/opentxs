@@ -42,12 +42,12 @@ private:
     const Flag& running_;
     const OTNymID nym_id_;
     ActivitySummarySortKey key_;
-    std::shared_ptr<proto::StorageThread> thread_{nullptr};
+    std::shared_ptr<proto::StorageThread> thread_;
     std::string& display_name_;
     std::string text_{""};
     StorageBox type_{StorageBox::UNKNOWN};
     std::chrono::system_clock::time_point time_;
-    std::unique_ptr<std::thread> newest_item_thread_{nullptr};
+    std::unique_ptr<std::thread> newest_item_thread_;
     UniqueQueue<ItemLocator> newest_item_;
     std::atomic<int> next_task_id_;
     std::atomic<bool> break_;

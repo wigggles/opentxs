@@ -92,7 +92,7 @@ std::int32_t OTClient::ProcessUserCommand(
     const PasswordPrompt& reason,
     const Amount lTransactionAmount,
     const Account* pAccount,
-    const UnitDefinition* pMyUnitDefinition
+    const contract::Unit* pMyUnitDefinition
 
 )
 {

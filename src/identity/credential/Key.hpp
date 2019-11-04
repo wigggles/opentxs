@@ -25,7 +25,7 @@ public:
         const proto::KeyRole role) const override;
     std::int32_t GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
-        const Signature& theSignature,
+        const opentxs::Signature& theSignature,
         char cKeyType = '0') const override;
     bool hasCapability(const NymCapability& capability) const override;
     using Base::Verify;

@@ -30,22 +30,22 @@ namespace blockchain
 class NumericHash
 {
 public:
-    EXPORT static const std::int32_t MaxTarget;
+    OPENTXS_EXPORT static const std::int32_t MaxTarget;
 
-    EXPORT virtual bool operator==(const blockchain::NumericHash& rhs) const
-        noexcept = 0;
-    EXPORT virtual bool operator!=(const blockchain::NumericHash& rhs) const
-        noexcept = 0;
-    EXPORT virtual bool operator<(const blockchain::NumericHash& rhs) const
-        noexcept = 0;
-    EXPORT virtual bool operator<=(const blockchain::NumericHash& rhs) const
-        noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const blockchain::NumericHash& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator!=(
+        const blockchain::NumericHash& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator<(
+        const blockchain::NumericHash& rhs) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool operator<=(
+        const blockchain::NumericHash& rhs) const noexcept = 0;
 
-    EXPORT virtual std::string asHex(const std::size_t minimumBytes = 32) const
-        noexcept = 0;
-    EXPORT virtual std::string Decimal() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string asHex(
+        const std::size_t minimumBytes = 32) const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Decimal() const noexcept = 0;
 
-    EXPORT virtual ~NumericHash() = default;
+    OPENTXS_EXPORT virtual ~NumericHash() = default;
 
 protected:
     NumericHash() noexcept = default;

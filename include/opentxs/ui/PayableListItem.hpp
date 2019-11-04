@@ -26,9 +26,9 @@ namespace ui
 class PayableListItem : virtual public ContactListItem
 {
 public:
-    EXPORT virtual std::string PaymentCode() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string PaymentCode() const noexcept = 0;
 
-    EXPORT ~PayableListItem() override = default;
+    OPENTXS_EXPORT ~PayableListItem() override = default;
 
 protected:
     PayableListItem() noexcept = default;

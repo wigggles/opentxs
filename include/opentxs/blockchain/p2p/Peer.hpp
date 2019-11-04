@@ -22,10 +22,10 @@ public:
     using ConnectionStatus = std::shared_future<bool>;
     using Handshake = std::shared_future<void>;
 
-    EXPORT virtual ConnectionStatus Connected() const noexcept = 0;
-    EXPORT virtual Handshake HandshakeComplete() const noexcept = 0;
+    OPENTXS_EXPORT virtual ConnectionStatus Connected() const noexcept = 0;
+    OPENTXS_EXPORT virtual Handshake HandshakeComplete() const noexcept = 0;
 
-    EXPORT virtual ~Peer() = default;
+    OPENTXS_EXPORT virtual ~Peer() = default;
 
 protected:
     Peer() noexcept = default;

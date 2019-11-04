@@ -26,12 +26,12 @@ namespace crypto
 class AsymmetricProvider
 {
 public:
-    EXPORT static proto::AsymmetricKeyType CurveToKeyType(
+    OPENTXS_EXPORT static proto::AsymmetricKeyType CurveToKeyType(
         const EcdsaCurve& curve);
-    EXPORT static EcdsaCurve KeyTypeToCurve(
+    OPENTXS_EXPORT static EcdsaCurve KeyTypeToCurve(
         const proto::AsymmetricKeyType& type);
 
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual bool Sign(
         const api::internal::Core& api,
         const Data& plaintext,
         const key::Asymmetric& theKey,
@@ -39,27 +39,27 @@ public:
         Data& signature,  // output
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const = 0;
-    EXPORT virtual bool SignContract(
+    OPENTXS_EXPORT virtual bool SignContract(
         const api::internal::Core& api,
         const String& strContractUnsigned,
         const key::Asymmetric& theKey,
         Signature& theSignature,  // output
         const proto::HashType hashType,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool VerifyContractSignature(
+    OPENTXS_EXPORT virtual bool VerifyContractSignature(
         const String& strContractToVerify,
         const key::Asymmetric& theKey,
         const Signature& theSignature,
         const proto::HashType hashType,
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual ~AsymmetricProvider() = default;
+    OPENTXS_EXPORT virtual ~AsymmetricProvider() = default;
 
 protected:
     AsymmetricProvider() = default;

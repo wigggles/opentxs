@@ -31,20 +31,22 @@ namespace curve
 class Client : virtual public socket::Socket
 {
 public:
-    EXPORT static std::pair<std::string, std::string> RandomKeypair() noexcept;
+    OPENTXS_EXPORT static std::pair<std::string, std::string>
+    RandomKeypair() noexcept;
 
-    EXPORT virtual bool SetKeysZ85(
+    OPENTXS_EXPORT virtual bool SetKeysZ85(
         const std::string& serverPublic,
         const std::string& clientPrivate,
         const std::string& clientPublic) const noexcept = 0;
-    EXPORT virtual bool SetServerPubkey(const ServerContract& contract) const
+    OPENTXS_EXPORT virtual bool SetServerPubkey(
+        const contract::Server& contract) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SetServerPubkey(const Data& key) const
         noexcept = 0;
-    EXPORT virtual bool SetServerPubkey(const Data& key) const noexcept = 0;
 
-    EXPORT ~Client() override = default;
+    OPENTXS_EXPORT ~Client() override = default;
 
 protected:
-    EXPORT Client() noexcept = default;
+    OPENTXS_EXPORT Client() noexcept = default;
 
 private:
     Client(const Client&) = delete;

@@ -37,19 +37,19 @@ namespace ui
 class ActivityThreadItem : virtual public ListRow
 {
 public:
-    EXPORT virtual opentxs::Amount Amount() const noexcept = 0;
-    EXPORT virtual bool Deposit() const noexcept = 0;
-    EXPORT virtual std::string DisplayAmount() const noexcept = 0;
-    EXPORT virtual bool Loading() const noexcept = 0;
-    EXPORT virtual bool MarkRead() const noexcept = 0;
-    EXPORT virtual std::string Memo() const noexcept = 0;
-    EXPORT virtual bool Pending() const noexcept = 0;
-    EXPORT virtual std::string Text() const noexcept = 0;
-    EXPORT virtual std::chrono::system_clock::time_point Timestamp() const
-        noexcept = 0;
-    EXPORT virtual StorageBox Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::Amount Amount() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Deposit() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayAmount() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Loading() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool MarkRead() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Memo() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Pending() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Text() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::chrono::system_clock::time_point Timestamp()
+        const noexcept = 0;
+    OPENTXS_EXPORT virtual StorageBox Type() const noexcept = 0;
 
-    EXPORT ~ActivityThreadItem() override = default;
+    OPENTXS_EXPORT ~ActivityThreadItem() override = default;
 
 protected:
     ActivityThreadItem() noexcept = default;

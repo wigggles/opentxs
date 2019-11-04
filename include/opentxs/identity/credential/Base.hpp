@@ -22,42 +22,42 @@ namespace identity
 {
 namespace credential
 {
-class Base : virtual public Signable
+class Base : virtual public opentxs::contract::Signable
 {
 public:
     using SerializedType = proto::Credential;
 
-    EXPORT virtual std::string asString(const bool asPrivate = false) const = 0;
-    EXPORT virtual const Identifier& CredentialID() const = 0;
-    EXPORT virtual bool GetContactData(
+    OPENTXS_EXPORT virtual std::string asString(
+        const bool asPrivate = false) const = 0;
+    OPENTXS_EXPORT virtual const Identifier& CredentialID() const = 0;
+    OPENTXS_EXPORT virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const = 0;
-    EXPORT virtual bool GetVerificationSet(
+    OPENTXS_EXPORT virtual bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const = 0;
-    EXPORT virtual bool hasCapability(
+    OPENTXS_EXPORT virtual bool hasCapability(
         const NymCapability& capability) const = 0;
-    EXPORT virtual SerializedSignature MasterSignature() const = 0;
-    EXPORT virtual proto::KeyMode Mode() const = 0;
-    EXPORT virtual proto::CredentialRole Role() const = 0;
-    EXPORT virtual bool Private() const = 0;
-    EXPORT virtual bool Save() const = 0;
-    EXPORT virtual SerializedSignature SelfSignature(
+    OPENTXS_EXPORT virtual Signature MasterSignature() const = 0;
+    OPENTXS_EXPORT virtual proto::KeyMode Mode() const = 0;
+    OPENTXS_EXPORT virtual proto::CredentialRole Role() const = 0;
+    OPENTXS_EXPORT virtual bool Private() const = 0;
+    OPENTXS_EXPORT virtual bool Save() const = 0;
+    OPENTXS_EXPORT virtual Signature SelfSignature(
         CredentialModeFlag version = PUBLIC_VERSION) const = 0;
-    EXPORT virtual std::shared_ptr<SerializedType> Serialized(
+    OPENTXS_EXPORT virtual std::shared_ptr<SerializedType> Serialized(
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const = 0;
-    EXPORT virtual SerializedSignature SourceSignature() const = 0;
-    EXPORT virtual bool TransportKey(
+    OPENTXS_EXPORT virtual Signature SourceSignature() const = 0;
+    OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual proto::CredentialType Type() const = 0;
-    EXPORT virtual bool Validate(const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual proto::CredentialType Type() const = 0;
+    OPENTXS_EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
         const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual bool Verify(
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,

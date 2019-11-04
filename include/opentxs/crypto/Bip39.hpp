@@ -22,14 +22,15 @@ namespace crypto
 class Bip39
 {
 public:
-    EXPORT virtual bool SeedToWords(const OTPassword& seed, OTPassword& words)
-        const = 0;
-    EXPORT virtual void WordsToSeed(
+    OPENTXS_EXPORT virtual bool SeedToWords(
+        const OTPassword& seed,
+        OTPassword& words) const = 0;
+    OPENTXS_EXPORT virtual void WordsToSeed(
         const OTPassword& words,
         OTPassword& seed,
         const OTPassword& passphrase) const = 0;
 
-    EXPORT virtual ~Bip39() = default;
+    OPENTXS_EXPORT virtual ~Bip39() = default;
 
 protected:
     Bip39() = default;

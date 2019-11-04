@@ -25,7 +25,7 @@ namespace ui
 class List : virtual public Widget
 {
 public:
-    EXPORT ~List() override = default;
+    OPENTXS_EXPORT ~List() override = default;
 
 protected:
     List() noexcept = default;

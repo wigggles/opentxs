@@ -43,12 +43,12 @@ public:
 
 protected:
     const OTNymID nym_id_;
-    const std::string workflow_{""};
-    const StorageBox type_{StorageBox::UNKNOWN};
-    std::string text_{""};
+    const std::string workflow_;
+    const StorageBox type_;
+    std::string text_;
     std::chrono::system_clock::time_point time_;
-    mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
-    std::unique_ptr<std::thread> startup_{nullptr};
+    mutable OTUnitDefinition contract_;
+    std::unique_ptr<std::thread> startup_;
 
     static StorageBox extract_type(
         const proto::PaymentWorkflow& workflow) noexcept;

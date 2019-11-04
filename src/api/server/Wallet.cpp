@@ -120,9 +120,6 @@ bool Wallet::load_legacy_account(
     OT_ASSERT(false == unitID.empty())
 
     const auto contract = UnitDefinition(unitID, reason);
-
-    OT_ASSERT(contract)
-
     const auto& serverID = pAccount->GetPurportedNotaryID();
 
     OT_ASSERT(server_.ID() == serverID)

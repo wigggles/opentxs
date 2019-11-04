@@ -33,21 +33,27 @@ public:
     typedef std::function<void(const std::string)> NotifyCB;
     typedef std::map<Callback, NotifyCB> CallbackMap;
 
-    EXPORT virtual void GetPublicNym(const std::string& key) const = 0;
-    EXPORT virtual void GetServerContract(const std::string& key) const = 0;
-    EXPORT virtual void GetUnitDefinition(const std::string& key) const = 0;
-    EXPORT virtual void Insert(const std::string& key, const std::string& value)
-        const = 0;
-    EXPORT virtual void Insert(const identity::Nym::Serialized& nym) const = 0;
-    EXPORT virtual void Insert(const proto::ServerContract& contract) const = 0;
-    EXPORT virtual void Insert(const proto::UnitDefinition& contract) const = 0;
+    OPENTXS_EXPORT virtual void GetPublicNym(const std::string& key) const = 0;
+    OPENTXS_EXPORT virtual void GetServerContract(
+        const std::string& key) const = 0;
+    OPENTXS_EXPORT virtual void GetUnitDefinition(
+        const std::string& key) const = 0;
+    OPENTXS_EXPORT virtual void Insert(
+        const std::string& key,
+        const std::string& value) const = 0;
+    OPENTXS_EXPORT virtual void Insert(
+        const identity::Nym::Serialized& nym) const = 0;
+    OPENTXS_EXPORT virtual void Insert(
+        const proto::ServerContract& contract) const = 0;
+    OPENTXS_EXPORT virtual void Insert(
+        const proto::UnitDefinition& contract) const = 0;
 #if OT_DHT
-    EXPORT virtual const opentxs::network::OpenDHT& OpenDHT() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::network::OpenDHT& OpenDHT() const = 0;
 #endif
-    EXPORT virtual void RegisterCallbacks(
+    OPENTXS_EXPORT virtual void RegisterCallbacks(
         const CallbackMap& callbacks) const = 0;
 
-    EXPORT virtual ~Dht() = default;
+    OPENTXS_EXPORT virtual ~Dht() = default;
 
 protected:
     Dht() = default;

@@ -19,22 +19,22 @@ namespace identity
 class Source
 {
 public:
-    EXPORT virtual OTString asString() const noexcept = 0;
-    EXPORT virtual OTString Description() const noexcept = 0;
-    EXPORT virtual proto::SourceType Type() const noexcept = 0;
-    EXPORT virtual OTNymID NymID() const noexcept = 0;
-    EXPORT virtual std::shared_ptr<proto::NymIDSource> Serialize() const
+    OPENTXS_EXPORT virtual OTString asString() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTString Description() const noexcept = 0;
+    OPENTXS_EXPORT virtual proto::SourceType Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTNymID NymID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<proto::NymIDSource> Serialize() const
         noexcept = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual bool Verify(
         const proto::Credential& master,
         const proto::Signature& sourceSignature,
         const PasswordPrompt& reason) const noexcept = 0;
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual bool Sign(
         const identity::credential::Primary& credential,
         proto::Signature& sig,
         const PasswordPrompt& reason) const noexcept = 0;
 
-    EXPORT virtual ~Source() = default;
+    OPENTXS_EXPORT virtual ~Source() = default;
 
 protected:
     Source() = default;

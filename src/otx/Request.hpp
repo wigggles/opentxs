@@ -9,7 +9,8 @@
 
 namespace opentxs::otx::implementation
 {
-class Request final : otx::Request
+class Request final : public otx::Request,
+                      public opentxs::contract::implementation::Signable
 {
 public:
     proto::ServerRequest Contract() const final;
@@ -19,19 +20,16 @@ public:
     proto::ServerRequestType Type() const final { return type_; }
 
     bool SetIncludeNym(const bool include, const PasswordPrompt& reason) final;
-    bool SetNumber(const RequestNumber number, const PasswordPrompt& reason)
-        final;
 
     ~Request() final = default;
 
 private:
     friend otx::Request;
 
-    const api::internal::Core& api_;
     const OTNymID initiator_;
     const OTServerID server_;
-    const proto::ServerRequestType type_{proto::SERVERREQUEST_ERROR};
-    RequestNumber number_{0};
+    const proto::ServerRequestType type_;
+    const RequestNumber number_;
     OTFlag include_nym_;
 
     static Nym_p extract_nym(
@@ -39,7 +37,7 @@ private:
         const proto::ServerRequest serialized,
         const PasswordPrompt& reason);
 
-    Request* clone() const final { return new Request(*this); }
+    Request* clone() const noexcept final { return new Request(*this); }
     OTIdentifier GetID(const Lock& lock) const final;
     proto::ServerRequest full_version(const Lock& lock) const;
     proto::ServerRequest id_version(const Lock& lock) const;
@@ -58,7 +56,8 @@ private:
         const Nym_p signer,
         const identifier::Nym& initiator,
         const identifier::Server& server,
-        const proto::ServerRequestType type);
+        const proto::ServerRequestType type,
+        const RequestNumber number);
     Request(
         const api::internal::Core& api,
         const proto::ServerRequest serialized,

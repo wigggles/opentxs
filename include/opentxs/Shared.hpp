@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <shared_mutex>
+#include <stdexcept>
 
 #ifdef SWIG
 %ignore opentxs::Shared::Shared(Shared&&);
@@ -24,23 +25,75 @@ template <class C>
 class Shared
 {
 public:
-    operator bool() const;
+    OPENTXS_EXPORT operator bool() const { return nullptr != p_; }
 #ifndef SWIG
-    operator const C&() const;
+    OPENTXS_EXPORT operator const C&() const { return get(); }
 #endif
 
-    const C& get() const;
+    OPENTXS_EXPORT const C& get() const
+    {
+        if (nullptr == p_) { throw std::runtime_error("Invalid pointer"); }
 
-    bool Release();
+        return *p_;
+    }
 
-    Shared(const C* in, std::shared_mutex& lock) noexcept;
-    Shared() noexcept;
-    Shared(const Shared&) noexcept;
-    Shared(Shared&&) noexcept;
-    Shared& operator=(const Shared&) noexcept;
-    Shared& operator=(Shared&&) noexcept;
+    OPENTXS_EXPORT bool Release() noexcept
+    {
+        if (nullptr == p_) { return false; }
 
-    ~Shared();
+        p_ = nullptr;
+        lock_.reset(nullptr);
+
+        return true;
+    }
+
+    OPENTXS_EXPORT Shared(const C* in, std::shared_mutex& lock) noexcept
+        : p_(in)
+        , lock_(new sLock(lock))
+    {
+        assert(lock_);
+    }
+    OPENTXS_EXPORT Shared() noexcept
+        : p_(nullptr)
+        , lock_(nullptr)
+    {
+    }
+
+    OPENTXS_EXPORT Shared(const Shared& rhs) noexcept
+        : p_(rhs.p_)
+        , lock_(
+              (nullptr != rhs.lock_->mutex()) ? new sLock(*rhs.lock_->mutex())
+                                              : nullptr)
+    {
+    }
+    OPENTXS_EXPORT Shared(Shared&& rhs) noexcept
+        : p_(rhs.p_)
+        , lock_(rhs.lock_.release())
+    {
+        rhs.p_ = nullptr;
+    }
+    OPENTXS_EXPORT Shared& operator=(const Shared& rhs) noexcept
+    {
+        p_ = rhs.p_;
+
+        if (nullptr != rhs.lock_->mutex()) {
+            lock_.reset(new sLock(*rhs.lock_->mutex()));
+        } else {
+            lock_.reset(nullptr);
+        }
+
+        return *this;
+    }
+    OPENTXS_EXPORT Shared& operator=(Shared&& rhs) noexcept
+    {
+        p_ = rhs.p_;
+        rhs.p_ = nullptr;
+        lock_.reset(rhs.lock_.release());
+
+        return *this;
+    }
+
+    OPENTXS_EXPORT ~Shared() { Release(); }
 
 private:
     const C* p_{nullptr};

@@ -29,12 +29,12 @@ class MessagableList;
 class MessagableList : virtual public List
 {
 public:
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> First()
-        const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem>
+    Next() const noexcept = 0;
 
-    EXPORT ~MessagableList() override = default;
+    OPENTXS_EXPORT ~MessagableList() override = default;
 
 protected:
     MessagableList() noexcept = default;

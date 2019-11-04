@@ -34,7 +34,7 @@ private:
     const zeromq::socket::Publish& updates_;
     const std::string server_id_{};
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
-    std::shared_ptr<const ServerContract> remote_contract_{nullptr};
+    OTServerContract remote_contract_;
     std::thread thread_;
     OTZMQListenCallback callback_;
     OTZMQDealerSocket registration_socket_;
@@ -84,7 +84,7 @@ private:
         const api::internal::Core& api,
         const api::network::ZMQ& zmq,
         const zeromq::socket::Publish& updates,
-        const std::shared_ptr<const ServerContract>& contract);
+        const OTServerContract& contract);
     ServerConnection() = delete;
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;

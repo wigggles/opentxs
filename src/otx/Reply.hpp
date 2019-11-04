@@ -9,41 +9,39 @@
 
 namespace opentxs::otx::implementation
 {
-class Reply final : otx::Reply
+class Reply final : public otx::Reply,
+                    public opentxs::contract::implementation::Signable
 {
 public:
     proto::ServerReply Contract() const final;
-    RequestNumber Number() const final;
-    std::shared_ptr<proto::OTXPush> Push() const final;
+    RequestNumber Number() const final { return number_; }
+    std::shared_ptr<const proto::OTXPush> Push() const final
+    {
+        return payload_;
+    }
     const identifier::Nym& Recipient() const final { return recipient_; }
     const identifier::Server& Server() const final { return server_; }
     bool Success() const final { return success_; }
     proto::ServerReplyType Type() const final { return type_; }
-
-    bool SetNumber(const RequestNumber number, const PasswordPrompt& reason)
-        final;
-    bool SetPush(const proto::OTXPush& push, const PasswordPrompt& reason)
-        final;
 
     ~Reply() final = default;
 
 private:
     friend otx::Reply;
 
-    const api::internal::Core& api_;
     const OTNymID recipient_;
     const OTServerID server_;
-    const proto::ServerReplyType type_{proto::SERVERREPLY_ERROR};
-    const bool success_{false};
-    RequestNumber number_{0};
-    std::shared_ptr<proto::OTXPush> payload_{nullptr};
+    const proto::ServerReplyType type_;
+    const bool success_;
+    const RequestNumber number_;
+    const std::shared_ptr<const proto::OTXPush> payload_;
 
     static Nym_p extract_nym(
         const api::internal::Core& api,
         const proto::ServerReply serialized,
         const PasswordPrompt& reason);
 
-    Reply* clone() const final { return new Reply(*this); }
+    Reply* clone() const noexcept final { return new Reply(*this); }
     OTIdentifier GetID(const Lock& lock) const final;
     proto::ServerReply full_version(const Lock& lock) const;
     proto::ServerReply id_version(const Lock& lock) const;
@@ -63,7 +61,9 @@ private:
         const identifier::Nym& recipient,
         const identifier::Server& server,
         const proto::ServerReplyType type,
-        const bool success);
+        const RequestNumber number,
+        const bool success,
+        std::shared_ptr<const proto::OTXPush>&& push);
     Reply(
         const api::internal::Core& api,
         const proto::ServerReply serialized,

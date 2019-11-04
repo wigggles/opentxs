@@ -28,7 +28,7 @@ private:
 
     using ot_super = ContactListItem;
 
-    std::string payment_code_{""};
+    std::string payment_code_;
     const proto::ContactItemType currency_;
 
     void reindex(

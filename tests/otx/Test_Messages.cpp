@@ -17,13 +17,13 @@ public:
     static const std::string SeedA_;
     static const std::string Alice_;
     static const OTNymID alice_nym_id_;
-    static const std::shared_ptr<const ServerContract> server_contract_;
 
     const opentxs::api::client::internal::Manager& client_;
     const opentxs::api::server::internal::Manager& server_;
     opentxs::OTPasswordPrompt reason_c_;
     opentxs::OTPasswordPrompt reason_s_;
     const identifier::Server& server_id_;
+    const OTServerContract server_contract_;
 
     Test_Messages()
         : client_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
@@ -33,20 +33,18 @@ public:
         , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
         , server_id_(server_.ID())
+        , server_contract_(server_.Wallet().Server(server_id_, reason_s_))
     {
         if (false == init_) { init(); }
     }
 
     void import_server_contract(
-        const ServerContract& contract,
+        const contract::Server& contract,
         const opentxs::api::client::Manager& client)
     {
         auto clientVersion = client.Wallet().Server(
             server_contract_->PublicContract(), reason_c_);
-
-        OT_ASSERT(clientVersion)
-
-        client.OTX().SetIntroductionServer(*clientVersion);
+        client.OTX().SetIntroductionServer(clientVersion);
     }
 
     void init()
@@ -58,13 +56,10 @@ public:
         const_cast<OTNymID&>(alice_nym_id_) =
             client_.Wallet().Nym(reason_c_, "Alice", {SeedA_, 0})->ID();
         const_cast<std::string&>(Alice_) = alice_nym_id_->str();
-        const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
-            server_.Wallet().Server(server_id_, reason_s_);
 
-        OT_ASSERT(server_contract_);
         OT_ASSERT(false == server_id_.empty());
 
-        import_server_contract(*server_contract_, client_);
+        import_server_contract(server_contract_, client_);
 
         init_ = true;
     }
@@ -73,8 +68,6 @@ public:
 const std::string Test_Messages::SeedA_{""};
 const std::string Test_Messages::Alice_{""};
 const OTNymID Test_Messages::alice_nym_id_{identifier::Nym::Factory()};
-const std::shared_ptr<const ServerContract> Test_Messages::server_contract_{
-    nullptr};
 
 TEST_F(Test_Messages, activateRequest)
 {
@@ -85,14 +78,14 @@ TEST_F(Test_Messages, activateRequest)
     ASSERT_TRUE(alice);
 
     auto request = opentxs::otx::Request::Factory(
-        client_, alice, server_id_, type, reason_c_);
+        client_, alice, server_id_, type, 1, reason_c_);
 
     ASSERT_TRUE(request->Nym());
     EXPECT_EQ(alice_nym_id_.get(), request->Nym()->ID());
     EXPECT_EQ(alice_nym_id_.get(), request->Initiator());
     EXPECT_EQ(server_id_, request->Server());
     EXPECT_EQ(type, request->Type());
-    EXPECT_EQ(0, request->Number());
+    EXPECT_EQ(1, request->Number());
 
     requestID = request->ID();
 
@@ -106,19 +99,10 @@ TEST_F(Test_Messages, activateRequest)
     EXPECT_EQ(type, serialized.type());
     EXPECT_EQ(Alice_, serialized.nym());
     EXPECT_EQ(server_id_.str(), serialized.server());
-    EXPECT_EQ(0, serialized.request());
+    EXPECT_EQ(1, serialized.request());
     EXPECT_FALSE(serialized.has_credentials());
     EXPECT_TRUE(serialized.has_signature());
     EXPECT_EQ(proto::SIGROLE_SERVERREQUEST, serialized.signature().role());
-
-    request->SetNumber(1, reason_c_);
-
-    EXPECT_TRUE(request->Validate(reason_c_));
-    EXPECT_EQ(1, request->Number());
-
-    serialized = request->Contract();
-
-    EXPECT_EQ(1, serialized.request());
 
     request->SetIncludeNym(true, reason_c_);
 
@@ -149,22 +133,30 @@ TEST_F(Test_Messages, pushReply)
 
     ASSERT_TRUE(server);
 
+    auto pPush = std::make_shared<proto::OTXPush>();
+    auto& push = *pPush;
+    push.set_version(1);
+    push.set_type(proto::OTXPUSH_NYMBOX);
+    push.set_item(payload);
     auto reply = opentxs::otx::Reply::Factory(
-        server_, server, alice_nym_id_, server_id_, type, true, reason_s_);
+        server_,
+        server,
+        alice_nym_id_,
+        server_id_,
+        type,
+        true,
+        1,
+        reason_s_,
+        std::move(pPush));
 
     ASSERT_TRUE(reply->Nym());
     EXPECT_EQ(server_.NymID(), reply->Nym()->ID());
     EXPECT_EQ(alice_nym_id_.get(), reply->Recipient());
     EXPECT_EQ(server_id_, reply->Server());
     EXPECT_EQ(type, reply->Type());
-    EXPECT_EQ(0, reply->Number());
-    EXPECT_FALSE(reply->Push());
+    EXPECT_EQ(1, reply->Number());
+    EXPECT_TRUE(reply->Push());
 
-    proto::OTXPush push;
-    push.set_version(1);
-    push.set_type(proto::OTXPUSH_NYMBOX);
-    push.set_item(payload);
-    reply->SetPush(push, reason_s_);
     replyID = reply->ID();
 
     EXPECT_FALSE(replyID->empty());
@@ -177,19 +169,11 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(type, serialized.type());
     EXPECT_EQ(Alice_, serialized.nym());
     EXPECT_EQ(server_id_.str(), serialized.server());
-    EXPECT_EQ(0, serialized.request());
+    EXPECT_EQ(1, serialized.request());
     EXPECT_TRUE(serialized.success());
     EXPECT_TRUE(serialized.has_signature());
     EXPECT_EQ(proto::SIGROLE_SERVERREPLY, serialized.signature().role());
 
-    reply->SetNumber(1, reason_s_);
-
-    EXPECT_TRUE(reply->Validate(reason_s_));
-    EXPECT_EQ(1, reply->Number());
-
-    serialized = reply->Contract();
-
-    EXPECT_EQ(1, serialized.request());
     ASSERT_TRUE(reply->Push());
     EXPECT_EQ(payload, reply->Push()->item());
     EXPECT_TRUE(reply->Validate(reason_s_));

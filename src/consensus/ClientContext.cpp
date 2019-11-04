@@ -51,9 +51,12 @@ ClientContext::ClientContext(
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
-    : Signable(local, CURRENT_VERSION)
-    , implementation::Context(api, CURRENT_VERSION, local, remote, server)
+    : implementation::Context(api, CURRENT_VERSION, local, remote, server)
 {
+    {
+        Lock lock(lock_);
+        first_time_init(lock);
+    }
 }
 
 ClientContext::ClientContext(
@@ -62,8 +65,7 @@ ClientContext::ClientContext(
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
-    : Signable(local, CURRENT_VERSION)
-    , implementation::Context(
+    : implementation::Context(
           api,
           CURRENT_VERSION,
           serialized,
@@ -75,6 +77,11 @@ ClientContext::ClientContext(
         for (const auto& it : serialized.clientcontext().opencronitems()) {
             open_cron_items_.insert(it);
         }
+    }
+
+    {
+        Lock lock(lock_);
+        init_serialized(lock);
     }
 }
 

@@ -139,60 +139,6 @@ blockchain::p2p::bitcoin::message::Getblocks* Factory::BitcoinP2PGetblocks(
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-
-OTData Getblocks::payload() const noexcept
-{
-    try {
-        Raw raw_data(version_, header_hashes_, stop_hash_);
-
-        auto output =
-            Data::Factory(&raw_data.version_, sizeof(raw_data.version_));
-
-        const auto size = CompactSize(header_hashes_.size()).Encode();
-        output->Concatenate(size.data(), size.size());
-
-        for (const auto& raw_hash : raw_data.header_hashes_) {
-            output->Concatenate(raw_hash.data(), sizeof(raw_hash));
-        }
-
-        output->Concatenate(
-            raw_data.stop_hash_.data(), sizeof(raw_data.stop_hash_));
-
-        return output;
-    } catch (...) {
-        return Data::Factory();
-    }
-}
-
-Getblocks::Raw::Raw(
-    ProtocolVersionUnsigned version,
-    const std::vector<OTData>& header_hashes,
-    const Data& stop_hash) noexcept
-    : version_(version)
-    , header_hashes_()
-    , stop_hash_()
-{
-    OTPassword::safe_memcpy(
-        stop_hash_.data(),
-        sizeof(stop_hash_),
-        stop_hash.data(),
-        stop_hash.size());
-
-    for (const auto& hash : header_hashes) {
-        BlockHeaderHashField tempHash;
-        OTPassword::safe_memcpy(
-            tempHash.data(), sizeof(tempHash), hash->data(), hash->size());
-        header_hashes_.push_back(tempHash);
-    }
-}
-
-Getblocks::Raw::Raw() noexcept
-    : version_(2)  // todo
-    , header_hashes_()
-    , stop_hash_()
-{
-}
-
 // We have all the data members to create the message from scratch (for sending)
 Getblocks::Getblocks(
     const api::internal::Core& api,
@@ -223,5 +169,4 @@ Getblocks::Getblocks(
 {
     verify_checksum();
 }
-
 }  // namespace  opentxs::blockchain::p2p::bitcoin::message

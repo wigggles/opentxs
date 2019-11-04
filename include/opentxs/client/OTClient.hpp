@@ -38,7 +38,7 @@ public:
         const PasswordPrompt& reason,
         const Amount lTransactionAmount = 0,
         const Account* pAccount = nullptr,
-        const UnitDefinition* pMyUnitDefinition = nullptr);
+        const contract::Unit* pMyUnitDefinition = nullptr);
 
     explicit OTClient(const api::internal::Core& api);
 

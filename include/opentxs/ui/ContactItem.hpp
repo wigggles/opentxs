@@ -28,12 +28,12 @@ namespace ui
 class ContactItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string ClaimID() const noexcept = 0;
-    EXPORT virtual bool IsActive() const noexcept = 0;
-    EXPORT virtual bool IsPrimary() const noexcept = 0;
-    EXPORT virtual std::string Value() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string ClaimID() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsActive() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsPrimary() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Value() const noexcept = 0;
 
-    EXPORT ~ContactItem() override = default;
+    OPENTXS_EXPORT ~ContactItem() override = default;
 
 protected:
     ContactItem() noexcept = default;

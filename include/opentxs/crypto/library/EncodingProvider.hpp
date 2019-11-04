@@ -19,14 +19,14 @@ namespace crypto
 class EncodingProvider
 {
 public:
-    EXPORT virtual std::string Base58CheckEncode(
+    OPENTXS_EXPORT virtual std::string Base58CheckEncode(
         const std::uint8_t* inputStart,
         const std::size_t& inputSize) const = 0;
-    EXPORT virtual bool Base58CheckDecode(
+    OPENTXS_EXPORT virtual bool Base58CheckDecode(
         const std::string&& input,
         RawData& output) const = 0;
 
-    EXPORT virtual ~EncodingProvider() = default;
+    OPENTXS_EXPORT virtual ~EncodingProvider() = default;
 
 protected:
     EncodingProvider() = default;

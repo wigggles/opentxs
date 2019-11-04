@@ -29,7 +29,7 @@ class Ed25519 :
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 {
 public:
-    EXPORT ~Ed25519() override = default;
+    OPENTXS_EXPORT ~Ed25519() override = default;
 
 protected:
     Ed25519() = default;

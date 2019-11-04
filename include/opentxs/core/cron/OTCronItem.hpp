@@ -81,22 +81,22 @@ public:
     inline void FlagForRemoval() { m_bRemovalFlag = true; }
     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
-    EXPORT static std::unique_ptr<OTCronItem> LoadCronReceipt(
+    OPENTXS_EXPORT static std::unique_ptr<OTCronItem> LoadCronReceipt(
         const api::internal::Core& api,
         const TransactionNumber& lTransactionNum,
         const PasswordPrompt& reason);  // Server-side only.
-    EXPORT static std::unique_ptr<OTCronItem> LoadActiveCronReceipt(
+    OPENTXS_EXPORT static std::unique_ptr<OTCronItem> LoadActiveCronReceipt(
         const api::internal::Core& api,
         const TransactionNumber& lTransactionNum,
         const identifier::Server& notaryID,
         const PasswordPrompt& reason);  // Client-side only.
-    EXPORT static bool EraseActiveCronReceipt(
+    OPENTXS_EXPORT static bool EraseActiveCronReceipt(
         const api::internal::Core& api,
         const std::string& dataFolder,
         const TransactionNumber& lTransactionNum,
         const identifier::Nym& nymID,
         const identifier::Server& notaryID);  // Client-side only.
-    EXPORT static bool GetActiveCronTransNums(
+    OPENTXS_EXPORT static bool GetActiveCronTransNums(
         const api::internal::Core& api,
         NumList& output,  // Client-side
                           // only.
@@ -109,7 +109,7 @@ public:
     }
     inline const Time GetCreationDate() const { return m_CREATION_DATE; }
 
-    EXPORT bool SetDateRange(
+    OPENTXS_EXPORT bool SetDateRange(
         const Time VALID_FROM = Time{},
         const Time VALID_TO = Time{});
     inline void SetLastProcessDate(const Time THE_DATE)
@@ -133,8 +133,8 @@ public:
     void setNotaryID(const identifier::Server& notaryID);
     // When first adding anything to Cron, a copy needs to be saved in a
     // folder somewhere.
-    EXPORT bool SaveCronReceipt();  // server side only
-    EXPORT bool SaveActiveCronReceipt(
+    OPENTXS_EXPORT bool SaveCronReceipt();  // server side only
+    OPENTXS_EXPORT bool SaveActiveCronReceipt(
         const identifier::Nym& theNymID);  // client
                                            // side
                                            // only
@@ -153,26 +153,27 @@ public:
 
     void Release() override;
     void Release_CronItem();
-    EXPORT bool GetCancelerID(identifier::Nym& theOutput) const;
-    EXPORT bool IsCanceled() const { return m_bCanceled; }
+    OPENTXS_EXPORT bool GetCancelerID(identifier::Nym& theOutput) const;
+    OPENTXS_EXPORT bool IsCanceled() const { return m_bCanceled; }
 
     // When canceling a cron item before it
     // has been activated, use this.
-    EXPORT bool CancelBeforeActivation(
+    OPENTXS_EXPORT bool CancelBeforeActivation(
         const identity::Nym& theCancelerNym,
         const PasswordPrompt& reason);
 
     // These are for     std::deque<std::int64_t> m_dequeClosingNumbers;
     // They are numbers used for CLOSING a transaction. (finalReceipt.)
-    EXPORT std::int64_t GetClosingTransactionNoAt(std::uint32_t nIndex) const;
-    EXPORT std::int32_t GetCountClosingNumbers() const;
+    OPENTXS_EXPORT std::int64_t GetClosingTransactionNoAt(
+        std::uint32_t nIndex) const;
+    OPENTXS_EXPORT std::int32_t GetCountClosingNumbers() const;
 
-    EXPORT void AddClosingTransactionNo(
+    OPENTXS_EXPORT void AddClosingTransactionNo(
         const std::int64_t& lClosingTransactionNo);
 
     // HIGHER LEVEL ABSTRACTIONS:
-    EXPORT std::int64_t GetOpeningNum() const;
-    EXPORT std::int64_t GetClosingNum() const;
+    OPENTXS_EXPORT std::int64_t GetOpeningNum() const;
+    OPENTXS_EXPORT std::int64_t GetClosingNum() const;
     virtual bool IsValidOpeningNumber(const std::int64_t& lOpeningNum) const;
 
     virtual std::int64_t GetOpeningNumber(

@@ -69,11 +69,11 @@ public:
         const std::int64_t& lTransactionNum,
         const PasswordPrompt& reason);
     // returns general information about offers on the market
-    EXPORT bool GetOfferList(
+    OPENTXS_EXPORT bool GetOfferList(
         Armored& ascOutput,
         std::int64_t lDepth,
         std::int32_t& nOfferCount);
-    EXPORT bool GetRecentTradeList(
+    OPENTXS_EXPORT bool GetRecentTradeList(
         Armored& ascOutput,
         std::int32_t& nTradeCount);
 

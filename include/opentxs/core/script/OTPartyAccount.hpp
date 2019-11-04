@@ -54,7 +54,7 @@ namespace opentxs
 class OTPartyAccount
 {
 public:
-    EXPORT void RegisterForExecution(OTScript& theScript);
+    OPENTXS_EXPORT void RegisterForExecution(OTScript& theScript);
 
     OTParty* GetParty() const { return m_pForParty; }
     void SetParty(OTParty& theOwnerParty);  // This happens when the
@@ -62,7 +62,7 @@ public:
                                             // is added to the party. (so I have
                                             // a ptr back)
 
-    EXPORT const String& GetName() const
+    OPENTXS_EXPORT const String& GetName() const
     {
         return m_strName;
     }  // account's name as used in a script.
@@ -84,7 +84,7 @@ public:
         m_strAgentName = strAgentName;
     }
     void SetAcctID(const String& strAccountID) { m_strAcctID = strAccountID; }
-    EXPORT OTAgent* GetAuthorizedAgent();
+    OPENTXS_EXPORT OTAgent* GetAuthorizedAgent();
     SharedAccount LoadAccount(const PasswordPrompt& reason);
     bool IsAccount(const Account& theAccount);
     bool IsAccountByID(const Identifier& theAcctID) const;

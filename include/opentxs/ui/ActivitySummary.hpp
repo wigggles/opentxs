@@ -30,12 +30,14 @@ class ActivitySummary;
 class ActivitySummary : virtual public List
 {
 public:
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<
+        opentxs::ui::ActivitySummaryItem>
     First() const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem> Next()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<
+        opentxs::ui::ActivitySummaryItem>
+    Next() const noexcept = 0;
 
-    EXPORT ~ActivitySummary() override = default;
+    OPENTXS_EXPORT ~ActivitySummary() override = default;
 
 protected:
     ActivitySummary() = default;

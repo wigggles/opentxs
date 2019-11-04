@@ -448,16 +448,17 @@ bool MainFile::LoadServerUserAndContract()
             "server?).")
             .Flush();
     }
+
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading the server contract...")
         .Flush();
-    auto pContract = server_.API().Wallet().Server(NOTARY_ID, reason_);
 
-    if (pContract) {
+    try {
+        server_.API().Wallet().Server(NOTARY_ID, reason_);
+        bSuccess = true;
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": ** Main Server Contract Verified **")
             .Flush();
-        bSuccess = true;
-    } else {
+    } catch (...) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed reading Main Server Contract: ")
             .Flush();

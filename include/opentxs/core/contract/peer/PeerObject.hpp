@@ -19,26 +19,29 @@ namespace opentxs
 class PeerObject
 {
 public:
-    EXPORT virtual const std::unique_ptr<std::string>& Message() const = 0;
-    EXPORT virtual const Nym_p& Nym() const = 0;
-    EXPORT virtual const std::unique_ptr<std::string>& Payment() const = 0;
+    OPENTXS_EXPORT virtual const std::unique_ptr<std::string>& Message()
+        const = 0;
+    OPENTXS_EXPORT virtual const Nym_p& Nym() const = 0;
+    OPENTXS_EXPORT virtual const std::unique_ptr<std::string>& Payment()
+        const = 0;
 #if OT_CASH
-    EXPORT virtual std::shared_ptr<blind::Purse> Purse() const = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<blind::Purse> Purse() const = 0;
 #endif
-    EXPORT virtual const std::shared_ptr<const PeerRequest> Request() const = 0;
-    EXPORT virtual const std::shared_ptr<const PeerReply> Reply() const = 0;
-    EXPORT virtual proto::PeerObject Serialize(
+    OPENTXS_EXPORT virtual const OTPeerRequest Request() const = 0;
+    OPENTXS_EXPORT virtual const OTPeerReply Reply() const = 0;
+    OPENTXS_EXPORT virtual proto::PeerObject Serialize(
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual proto::PeerObjectType Type() const = 0;
-    EXPORT virtual bool Validate(const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual proto::PeerObjectType Type() const = 0;
+    OPENTXS_EXPORT virtual bool Validate(
+        const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual std::unique_ptr<std::string>& Message() = 0;
-    EXPORT virtual std::unique_ptr<std::string>& Payment() = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<std::string>& Message() = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<std::string>& Payment() = 0;
 #if OT_CASH
-    EXPORT virtual std::shared_ptr<blind::Purse>& Purse() = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<blind::Purse>& Purse() = 0;
 #endif
 
-    EXPORT virtual ~PeerObject() = default;
+    OPENTXS_EXPORT virtual ~PeerObject() = default;
 
 protected:
     PeerObject() = default;

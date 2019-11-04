@@ -24,8 +24,17 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/BailmentRequest.hpp"
+#include "opentxs/core/contract/peer/ConnectionReply.hpp"
+#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
+#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
+#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/contract/peer/StoreSecret.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
@@ -287,24 +296,7 @@ OTX::BackgroundTask OTX::AcknowledgeBailment(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_,
-        nym,
-        proto::PEERREQUEST_BAILMENT,
-        requestID,
-        serverID,
-        instructions,
-        reason_)};
-
-    if (false == bool(peerreply)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create reply.").Flush();
-
-        return error_task();
-    }
-
-    if (setID) { setID(peerreply->ID()); }
-
-    std::time_t time{0};
+    auto time = std::time_t{0};
     auto serializedRequest = client_.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, time);
 
@@ -315,22 +307,28 @@ OTX::BackgroundTask OTX::AcknowledgeBailment(
     }
 
     auto recipientNym = client_.Wallet().Nym(targetNymID, reason_);
-    std::shared_ptr<const PeerRequest> instantiatedRequest{PeerRequest::Factory(
-        client_, recipientNym, *serializedRequest, reason_)};
-
-    if (false == bool(instantiatedRequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate request.")
-            .Flush();
-
-        return error_task();
-    }
 
     try {
+        auto instantiatedRequest = client_.Factory().BailmentRequest(
+            recipientNym, *serializedRequest, reason_);
+        auto peerreply = client_.Factory().BailmentReply(
+            nym,
+            instantiatedRequest->Initiator(),
+            requestID,
+            serverID,
+            instructions,
+            reason_);
+
+        if (setID) { setID(peerreply->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerReplyTask>(
-            {targetNymID, peerreply, instantiatedRequest});
-    } catch (...) {
+            {targetNymID,
+             peerreply.as<contract::peer::Reply>(),
+             instantiatedRequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -376,27 +374,7 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
         }
     }
 
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_,
-        nym,
-        requestID,
-        serverID,
-        ack,
-        url,
-        login,
-        password,
-        key,
-        reason_)};
-
-    if (false == bool(peerreply)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create reply.").Flush();
-
-        return error_task();
-    }
-
-    if (setID) { setID(peerreply->ID()); }
-
-    std::time_t time{0};
+    auto time = std::time_t{0};
     auto serializedRequest = client_.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, time);
 
@@ -407,22 +385,32 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
     }
 
     auto recipientNym = client_.Wallet().Nym(recipientID, reason_);
-    std::shared_ptr<const PeerRequest> instantiatedRequest{PeerRequest::Factory(
-        client_, recipientNym, *serializedRequest, reason_)};
-
-    if (false == bool(instantiatedRequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate request.")
-            .Flush();
-
-        return error_task();
-    }
 
     try {
+        auto instantiatedRequest = client_.Factory().BailmentRequest(
+            recipientNym, *serializedRequest, reason_);
+        auto peerreply = client_.Factory().ConnectionReply(
+            nym,
+            instantiatedRequest->Initiator(),
+            requestID,
+            serverID,
+            ack,
+            url,
+            login,
+            password,
+            key,
+            reason_);
+
+        if (setID) { setID(peerreply->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerReplyTask>(
-            {recipientID, peerreply, instantiatedRequest});
-    } catch (...) {
+            {recipientID,
+             peerreply.as<contract::peer::Reply>(),
+             instantiatedRequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -441,17 +429,6 @@ OTX::BackgroundTask OTX::AcknowledgeNotice(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerReply> peerreply{
-        PeerReply::Create(client_, nym, requestID, serverID, ack, reason_)};
-
-    if (false == bool(peerreply)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create reply.").Flush();
-
-        return error_task();
-    }
-
-    if (setID) { setID(peerreply->ID()); }
-
     std::time_t time{0};
     auto serializedRequest = client_.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, time);
@@ -463,22 +440,29 @@ OTX::BackgroundTask OTX::AcknowledgeNotice(
     }
 
     auto recipientNym = client_.Wallet().Nym(recipientID, reason_);
-    std::shared_ptr<const PeerRequest> instantiatedRequest{PeerRequest::Factory(
-        client_, recipientNym, *serializedRequest, reason_)};
-
-    if (false == bool(instantiatedRequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate request.")
-            .Flush();
-
-        return error_task();
-    }
 
     try {
+        auto instantiatedRequest = client_.Factory().BailmentRequest(
+            recipientNym, *serializedRequest, reason_);
+        auto peerreply = client_.Factory().ReplyAcknowledgement(
+            nym,
+            instantiatedRequest->Initiator(),
+            requestID,
+            serverID,
+            instantiatedRequest->Type(),
+            ack,
+            reason_);
+
+        if (setID) { setID(peerreply->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerReplyTask>(
-            {recipientID, peerreply, instantiatedRequest});
-    } catch (...) {
+            {recipientID,
+             peerreply.as<contract::peer::Reply>(),
+             instantiatedRequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -497,23 +481,6 @@ OTX::BackgroundTask OTX::AcknowledgeOutbailment(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerReply> peerreply{PeerReply::Create(
-        client_,
-        nym,
-        proto::PEERREQUEST_OUTBAILMENT,
-        requestID,
-        serverID,
-        details,
-        reason_)};
-
-    if (false == bool(peerreply)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create reply.").Flush();
-
-        return error_task();
-    }
-
-    if (setID) { setID(peerreply->ID()); }
-
     std::time_t time{0};
     auto serializedRequest = client_.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, time);
@@ -525,22 +492,28 @@ OTX::BackgroundTask OTX::AcknowledgeOutbailment(
     }
 
     auto recipientNym = client_.Wallet().Nym(recipientID, reason_);
-    std::shared_ptr<const PeerRequest> instantiatedRequest{PeerRequest::Factory(
-        client_, recipientNym, *serializedRequest, reason_)};
-
-    if (false == bool(instantiatedRequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate request.")
-            .Flush();
-
-        return error_task();
-    }
 
     try {
+        auto instantiatedRequest = client_.Factory().BailmentRequest(
+            recipientNym, *serializedRequest, reason_);
+        auto peerreply = client_.Factory().OutbailmentReply(
+            nym,
+            instantiatedRequest->Initiator(),
+            requestID,
+            serverID,
+            details,
+            reason_);
+
+        if (setID) { setID(peerreply->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerReplyTask>(
-            {recipientID, peerreply, instantiatedRequest});
-    } catch (...) {
+            {recipientID,
+             peerreply.as<contract::peer::Reply>(),
+             instantiatedRequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -1120,13 +1093,13 @@ void OTX::find_server(const opentxs::network::zeromq::Message& message) const
         return;
     }
 
-    const auto server = client_.Wallet().Server(id, reason_);
-
-    if (server) { return; }
-
-    const auto taskID{next_task_id()};
-    missing_servers_.Push(taskID, id);
-    trigger_all();
+    try {
+        client_.Wallet().Server(id, reason_);
+    } catch (...) {
+        const auto taskID{next_task_id()};
+        missing_servers_.Push(taskID, id);
+        trigger_all();
+    }
 }
 
 void OTX::find_unit(const opentxs::network::zeromq::Message& message) const
@@ -1148,13 +1121,15 @@ void OTX::find_unit(const opentxs::network::zeromq::Message& message) const
         return;
     }
 
-    const auto unit = client_.Wallet().UnitDefinition(id, reason_);
+    try {
+        client_.Wallet().UnitDefinition(id, reason_);
 
-    if (unit) { return; }
-
-    const auto taskID{next_task_id()};
-    missing_unit_definitions_.Push(taskID, id);
-    trigger_all();
+        return;
+    } catch (...) {
+        const auto taskID{next_task_id()};
+        missing_unit_definitions_.Push(taskID, id);
+        trigger_all();
+    }
 }
 
 OTX::BackgroundTask OTX::FindNym(const identifier::Nym& nymID) const
@@ -1287,11 +1262,9 @@ OTServerID OTX::import_default_introduction_server(const Lock& lock) const
 
     const auto serialized = proto::StringToProto<proto::ServerContract>(
         String::Factory(DEFAULT_INTRODUCTION_SERVER.c_str()));
-    const auto instantiated = client_.Wallet().Server(serialized, reason_);
 
-    OT_ASSERT(instantiated)
-
-    return set_introduction_server(lock, *instantiated);
+    return set_introduction_server(
+        lock, client_.Wallet().Server(serialized, reason_));
 }
 
 OTX::BackgroundTask OTX::InitiateBailment(
@@ -1306,28 +1279,19 @@ OTX::BackgroundTask OTX::InitiateBailment(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerRequest> peerrequest{PeerRequest::Create(
-        client_,
-        nym,
-        proto::PEERREQUEST_BAILMENT,
-        instrumentDefinitionID,
-        serverID,
-        reason_)};
-
-    if (false == bool(peerrequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create request.")
-            .Flush();
-        return error_task();
-    }
-
-    if (setID) { setID(peerrequest->ID()); }
 
     try {
+        auto peerrequest = client_.Factory().BailmentRequest(
+            nym, targetNymID, instrumentDefinitionID, serverID, reason_);
+
+        if (setID) { setID(peerrequest->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerRequestTask>(
-            {targetNymID, peerrequest});
-    } catch (...) {
+            {targetNymID, peerrequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -1347,30 +1311,25 @@ OTX::BackgroundTask OTX::InitiateOutbailment(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerRequest> peerrequest{PeerRequest::Create(
-        client_,
-        nym,
-        proto::PEERREQUEST_OUTBAILMENT,
-        instrumentDefinitionID,
-        serverID,
-        amount,
-        message,
-        reason_)};
-
-    if (false == bool(peerrequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create request.")
-            .Flush();
-        return error_task();
-    }
-
-    if (setID) { setID(peerrequest->ID()); }
 
     try {
+        auto peerrequest = client_.Factory().OutbailmentRequest(
+            nym,
+            targetNymID,
+            instrumentDefinitionID,
+            serverID,
+            amount,
+            message,
+            reason_);
+
+        if (setID) { setID(peerrequest->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerRequestTask>(
-            {targetNymID, peerrequest});
-    } catch (...) {
+            {targetNymID, peerrequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -1388,29 +1347,19 @@ OTX::BackgroundTask OTX::InitiateRequestConnection(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerRequest> peerrequest{PeerRequest::Create(
-        client_,
-        nym,
-        proto::PEERREQUEST_CONNECTIONINFO,
-        type,
-        targetNymID,
-        serverID,
-        reason_)};
-
-    if (false == bool(peerrequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create request.")
-            .Flush();
-        return error_task();
-    }
-
-    if (setID) { setID(peerrequest->ID()); }
 
     try {
+        auto peerrequest = client_.Factory().ConnectionRequest(
+            nym, targetNymID, type, serverID, reason_);
+
+        if (setID) { setID(peerrequest->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerRequestTask>(
-            {targetNymID, peerrequest});
-    } catch (...) {
+            {targetNymID, peerrequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -1440,31 +1389,18 @@ OTX::BackgroundTask OTX::InitiateStoreSecret(
             .Flush();
     }
 
-    std::shared_ptr<const PeerRequest> peerrequest{PeerRequest::Create(
-        client_,
-        nym,
-        proto::PEERREQUEST_STORESECRET,
-        type,
-        targetNymID,
-        primary,
-        secondary,
-        serverID,
-        reason_)};
-
-    if (false == bool(peerrequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create request.")
-            .Flush();
-        return error_task();
-    }
-
-    if (setID) { setID(peerrequest->ID()); }
-
     try {
+        auto peerrequest = client_.Factory().StoreSecret(
+            nym, targetNymID, type, primary, secondary, serverID, reason_);
+
+        if (setID) { setID(peerrequest->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerRequestTask>(
-            {targetNymID, peerrequest});
-    } catch (...) {
+            {targetNymID, peerrequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -1578,32 +1514,26 @@ OTX::BackgroundTask OTX::NotifyBailment(
 
     start_introduction_server(localNymID);
     const auto nym = client_.Wallet().Nym(localNymID, reason_);
-    std::shared_ptr<const PeerRequest> peerrequest{PeerRequest::Create(
-        client_,
-        nym,
-        proto::PEERREQUEST_PENDINGBAILMENT,
-        instrumentDefinitionID,
-        serverID,
-        targetNymID,
-        requestID,
-        txid,
-        amount,
-        reason_)};
-
-    if (false == bool(peerrequest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create request.")
-            .Flush();
-        return error_task();
-    }
-
-    if (setID) { setID(peerrequest->ID()); }
 
     try {
+        auto peerrequest = client_.Factory().BailmentNotice(
+            nym,
+            targetNymID,
+            instrumentDefinitionID,
+            serverID,
+            requestID,
+            txid,
+            amount,
+            reason_);
+
+        if (setID) { setID(peerrequest->ID()); }
+
         auto& queue = get_operations({localNymID, serverID});
 
         return queue.StartTask<otx::client::PeerRequestTask>(
-            {targetNymID, peerrequest});
-    } catch (...) {
+            {targetNymID, peerrequest.as<contract::peer::Request>()});
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return error_task();
     }
@@ -2006,7 +1936,7 @@ OTX::BackgroundTask OTX::RegisterNymPublic(
     return RegisterNym(nymID, serverID, resync);
 }
 
-OTServerID OTX::SetIntroductionServer(const ServerContract& contract) const
+OTServerID OTX::SetIntroductionServer(const contract::Server& contract) const
 {
     Lock lock(introduction_server_lock_);
 
@@ -2203,33 +2133,34 @@ void OTX::set_contact(
 
 OTServerID OTX::set_introduction_server(
     const Lock& lock,
-    const ServerContract& contract) const
+    const contract::Server& contract) const
 {
     OT_ASSERT(CheckLock(lock, introduction_server_lock_));
 
-    auto instantiated =
-        client_.Wallet().Server(contract.PublicContract(), reason_);
+    try {
+        const auto instantiated =
+            client_.Wallet().Server(contract.PublicContract(), reason_);
+        const auto id = identifier::Server::Factory(
+            instantiated->ID()->str());  // TODO conversion
+        introduction_server_id_.reset(new OTServerID(id));
 
-    if (false == bool(instantiated)) { return identifier::Server::Factory(); }
+        OT_ASSERT(introduction_server_id_)
 
-    const auto id = identifier::Server::Factory(
-        instantiated->ID()->str());  // TODO conversion
-    introduction_server_id_.reset(new OTServerID(id));
+        bool dontCare = false;
+        const bool set = client_.Config().Set_str(
+            String::Factory(MASTER_SECTION),
+            String::Factory(INTRODUCTION_SERVER_KEY),
+            String::Factory(id),
+            dontCare);
 
-    OT_ASSERT(introduction_server_id_)
+        OT_ASSERT(set)
 
-    bool dontCare = false;
-    const bool set = client_.Config().Set_str(
-        String::Factory(MASTER_SECTION),
-        String::Factory(INTRODUCTION_SERVER_KEY),
-        String::Factory(id),
-        dontCare);
+        client_.Config().Save();
 
-    OT_ASSERT(set)
-
-    client_.Config().Save();
-
-    return id;
+        return id;
+    } catch (...) {
+        return client_.Factory().ServerID();
+    }
 }
 
 void OTX::start_introduction_server(const identifier::Nym& nymID) const

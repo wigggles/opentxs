@@ -33,10 +33,10 @@ namespace socket
 class Dealer : virtual public curve::Client, virtual public Sender
 {
 public:
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
+    OPENTXS_EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
         noexcept = 0;
 
-    EXPORT ~Dealer() override = default;
+    OPENTXS_EXPORT ~Dealer() override = default;
 
 protected:
     Dealer() noexcept = default;

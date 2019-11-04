@@ -105,7 +105,7 @@ struct BalanceNode : virtual public blockchain::BalanceNode {
 
 struct BalanceTree : virtual public blockchain::BalanceTree {
     virtual const api::internal::Core& API() const noexcept = 0;
-    EXPORT virtual bool AssociateTransaction(
+    virtual bool AssociateTransaction(
         const std::vector<Activity>& unspent,
         const std::vector<Activity>& spent,
         std::set<OTIdentifier>& contacts,

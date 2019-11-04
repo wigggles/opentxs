@@ -33,7 +33,7 @@ namespace socket
 class Publish : virtual public curve::Server, virtual public Sender
 {
 public:
-    EXPORT ~Publish() override = default;
+    OPENTXS_EXPORT ~Publish() override = default;
 
 protected:
     Publish() noexcept = default;

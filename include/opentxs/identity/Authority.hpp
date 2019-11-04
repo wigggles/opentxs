@@ -24,87 +24,88 @@ class Authority
 public:
     using Serialized = proto::Authority;
 
-    EXPORT virtual VersionNumber ContactCredentialVersion() const = 0;
-    EXPORT virtual bool GetContactData(
+    OPENTXS_EXPORT virtual VersionNumber ContactCredentialVersion() const = 0;
+    OPENTXS_EXPORT virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const = 0;
-    EXPORT virtual OTIdentifier GetMasterCredID() const = 0;
-    EXPORT virtual const crypto::key::Asymmetric& GetPublicAuthKey(
+    OPENTXS_EXPORT virtual OTIdentifier GetMasterCredID() const = 0;
+    OPENTXS_EXPORT virtual const crypto::key::Asymmetric& GetPublicAuthKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual const crypto::key::Asymmetric& GetPublicEncrKey(
+    OPENTXS_EXPORT virtual const crypto::key::Asymmetric& GetPublicEncrKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual std::int32_t GetPublicKeysBySignature(
+    OPENTXS_EXPORT virtual std::int32_t GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
         const Signature& theSignature,
         char cKeyType = '0') const = 0;
-    EXPORT virtual const crypto::key::Asymmetric& GetPublicSignKey(
+    OPENTXS_EXPORT virtual const crypto::key::Asymmetric& GetPublicSignKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual const crypto::key::Asymmetric& GetPrivateSignKey(
+    OPENTXS_EXPORT virtual const crypto::key::Asymmetric& GetPrivateSignKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual const crypto::key::Asymmetric& GetPrivateEncrKey(
+    OPENTXS_EXPORT virtual const crypto::key::Asymmetric& GetPrivateEncrKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual const crypto::key::Asymmetric& GetPrivateAuthKey(
+    OPENTXS_EXPORT virtual const crypto::key::Asymmetric& GetPrivateAuthKey(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual const crypto::key::Keypair& GetAuthKeypair(
+    OPENTXS_EXPORT virtual const crypto::key::Keypair& GetAuthKeypair(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual const crypto::key::Keypair& GetEncrKeypair(
+    OPENTXS_EXPORT virtual const crypto::key::Keypair& GetEncrKeypair(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual const crypto::key::Keypair& GetSignKeypair(
+    OPENTXS_EXPORT virtual const crypto::key::Keypair& GetSignKeypair(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
-    EXPORT virtual bool GetVerificationSet(
+    OPENTXS_EXPORT virtual bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const = 0;
-    EXPORT virtual bool hasCapability(
+    OPENTXS_EXPORT virtual bool hasCapability(
         const NymCapability& capability) const = 0;
-    EXPORT virtual bool Path(proto::HDPath& output) const = 0;
-    EXPORT virtual std::shared_ptr<Serialized> Serialize(
+    OPENTXS_EXPORT virtual bool Path(proto::HDPath& output) const = 0;
+    OPENTXS_EXPORT virtual std::shared_ptr<Serialized> Serialize(
         const CredentialIndexModeFlag mode) const = 0;
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
         const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
-    EXPORT virtual const identity::Source& Source() const = 0;
-    EXPORT virtual bool TransportKey(
+    OPENTXS_EXPORT virtual const identity::Source& Source() const = 0;
+    OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual VersionNumber VerificationCredentialVersion() const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual VersionNumber VerificationCredentialVersion()
+        const = 0;
+    OPENTXS_EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
         const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual bool Verify(
         const proto::Verification& item,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool VerifyInternally(
+    OPENTXS_EXPORT virtual bool VerifyInternally(
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual std::string AddChildKeyCredential(
+    OPENTXS_EXPORT virtual std::string AddChildKeyCredential(
         const NymParameters& nymParameters,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool AddVerificationCredential(
+    OPENTXS_EXPORT virtual bool AddVerificationCredential(
         const proto::VerificationSet& verificationSet,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool AddContactCredential(
+    OPENTXS_EXPORT virtual bool AddContactCredential(
         const proto::ContactData& contactData,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual void RevokeContactCredentials(
+    OPENTXS_EXPORT virtual void RevokeContactCredentials(
         std::list<std::string>& contactCredentialIDs) = 0;
-    EXPORT virtual void RevokeVerificationCredentials(
+    OPENTXS_EXPORT virtual void RevokeVerificationCredentials(
         std::list<std::string>& verificationCredentialIDs) = 0;
 
-    EXPORT virtual ~Authority() = default;
+    OPENTXS_EXPORT virtual ~Authority() = default;
 
 protected:
     Authority() noexcept = default;

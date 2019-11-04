@@ -299,15 +299,15 @@ bool StateMachine::check_server_contract(
 {
     OT_ASSERT(false == serverID.empty())
 
-    const auto serverContract = client_.Wallet().Server(serverID, reason_);
-
-    if (serverContract) {
+    try {
+        client_.Wallet().Server(serverID, reason_);
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Server contract ")(serverID)(
             " exists.")
             .Flush();
         state_ = State::needRegistration;
 
         return false;
+    } catch (...) {
     }
 
     LogDetail(OT_METHOD)(__FUNCTION__)(": Server contract for ")(serverID)(
@@ -322,28 +322,30 @@ bool StateMachine::check_server_contract(
 
 bool StateMachine::check_server_name(const ServerContext& context) const
 {
-    const auto server = client_.Wallet().Server(op_.ServerID(), reason_);
+    try {
+        const auto server = client_.Wallet().Server(op_.ServerID(), reason_);
+        const auto myName = server->Alias();
+        const auto hisName = server->EffectiveName(reason_);
 
-    OT_ASSERT(server)
+        if (myName == hisName) { return true; }
 
-    const auto myName = server->Alias();
-    const auto hisName = server->EffectiveName(reason_);
+        DO_OPERATION(
+            AddClaim,
+            proto::CONTACTSECTION_SCOPE,
+            proto::CITEMTYPE_SERVER,
+            String::Factory(myName),
+            true);
 
-    if (myName == hisName) { return true; }
+        if (success) {
+            bump_task(get_task<CheckNymTask>().Push(
+                next_task_id(), context.RemoteNym().ID()));
+        }
 
-    DO_OPERATION(
-        AddClaim,
-        proto::CONTACTSECTION_SCOPE,
-        proto::CITEMTYPE_SERVER,
-        String::Factory(myName),
-        true);
+        return success;
+    } catch (...) {
 
-    if (success) {
-        bump_task(get_task<CheckNymTask>().Push(
-            next_task_id(), context.RemoteNym().ID()));
+        return false;
     }
-
-    return success;
 }
 
 // Periodically download server nym in case it has been renamed
@@ -517,9 +519,7 @@ bool StateMachine::find_contract(
     U& unknown,
     const bool skipExisting) const
 {
-    auto contract = load_contract<T, C>(targetID.get());
-
-    if (contract) {
+    if (load_contract<T>(targetID.get())) {
         if (skipExisting) {
             LogVerbose(OT_METHOD)(__FUNCTION__)(": Contract ")(targetID)(
                 " exists in the wallet.")
@@ -616,37 +616,36 @@ bool StateMachine::issue_unit_definition(
     const TaskID taskID,
     const IssueUnitDefinitionTask& task) const
 {
-    const auto& [unitID, label, advertise] = task;
-    auto unitDefinition = client_.Wallet().UnitDefinition(unitID, reason_);
+    try {
+        const auto& [unitID, label, advertise] = task;
+        auto unitDefinition = client_.Wallet().UnitDefinition(unitID, reason_);
+        auto serialized = std::make_shared<proto::UnitDefinition>();
 
-    if (false == bool(unitDefinition)) {
+        OT_ASSERT(serialized);
+
+        *serialized = unitDefinition->PublicContract();
+        ServerContext::ExtraArgs args{label, false};
+
+        DO_OPERATION(IssueUnitDefinition, serialized, args);
+
+        if (success && (proto::CITEMTYPE_ERROR != advertise)) {
+            OT_ASSERT(result.second);
+
+            const auto& reply = *result.second;
+            const auto accountID = Identifier::Factory(reply.m_strAcctID);
+            {
+                auto nym = client_.Wallet().mutable_Nym(op_.NymID(), reason_);
+                nym.AddContract(unitID->str(), advertise, true, true, reason_);
+            }
+        }
+
+        return finish_task(taskID, success, std::move(result));
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unit definition not found.")
             .Flush();
 
-        return false;
+        return finish_task(taskID, false, error_result());
     }
-
-    auto serialized = std::make_shared<proto::UnitDefinition>();
-
-    OT_ASSERT(serialized);
-
-    *serialized = unitDefinition->PublicContract();
-    ServerContext::ExtraArgs args{label, false};
-
-    DO_OPERATION(IssueUnitDefinition, serialized, args);
-
-    if (success && (proto::CITEMTYPE_ERROR != advertise)) {
-        OT_ASSERT(result.second);
-
-        const auto& reply = *result.second;
-        const auto accountID = Identifier::Factory(reply.m_strAcctID);
-        {
-            auto nym = client_.Wallet().mutable_Nym(op_.NymID(), reason_);
-            nym.AddContract(unitID->str(), advertise, true, true, reason_);
-        }
-    }
-
-    return finish_task(taskID, success, std::move(result));
 }
 
 bool StateMachine::issue_unit_definition_wrapper(
@@ -821,9 +820,9 @@ bool StateMachine::queue_contracts(const ServerContext& context, int& next)
         missing_nyms_, unknown_nyms_);
     check_missing_contract<CheckNymTask, identity::Nym>(
         outdated_nyms_, unknown_nyms_, false);
-    check_missing_contract<DownloadContractTask, opentxs::ServerContract>(
+    check_missing_contract<DownloadContractTask, contract::Server>(
         missing_servers_, unknown_servers_);
-    check_missing_contract<DownloadUnitDefinitionTask, opentxs::UnitDefinition>(
+    check_missing_contract<DownloadUnitDefinitionTask, contract::Unit>(
         missing_unit_definitions_, unknown_units_);
     queue_nyms();
 
@@ -866,9 +865,9 @@ bool StateMachine::register_account(
 
     OT_ASSERT(false == unitID->empty())
 
-    auto contract = client_.Wallet().UnitDefinition(unitID, reason_);
-
-    if (false == bool(contract)) {
+    try {
+        client_.Wallet().UnitDefinition(unitID, reason_);
+    } catch (...) {
         DO_OPERATION(DownloadContract, unitID, ContractType::unit);
 
         if (false == success) {
@@ -979,7 +978,7 @@ bool StateMachine::run_task(
         [this, func, &retry](const TaskID task, const T& param) -> bool {
             return (this->*func)(task, param, retry);
         });
-    auto param = make_blank<T>::value();
+    auto param = make_blank<T>::value(client_);
 
     while (retry.Pop(task_id_, param)) {
         bump_task(get_task<T>().Push(task_id_, param));
@@ -992,7 +991,7 @@ template <typename T>
 bool StateMachine::run_task(std::function<bool(const TaskID, const T&)> func)
 {
     auto& param = get_param<T>();
-    new (&param) T(make_blank<T>::value());
+    new (&param) T(make_blank<T>::value(client_));
 
     while (get_task<T>().Pop(task_id_, param)) {
         LogInsane(OT_METHOD)(__FUNCTION__)(": ")(--task_count_).Flush();

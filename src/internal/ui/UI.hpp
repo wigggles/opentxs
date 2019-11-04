@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
@@ -34,25 +36,25 @@ namespace opentxs
 {
 template <>
 struct make_blank<ui::implementation::AccountActivityRowID> {
-    static ui::implementation::AccountActivityRowID value()
+    static ui::implementation::AccountActivityRowID value(const api::Core& api)
     {
-        return {Identifier::Factory(), proto::PAYMENTEVENTTYPE_ERROR};
+        return {api.Factory().Identifier(), proto::PAYMENTEVENTTYPE_ERROR};
     }
 };
 
 template <>
 struct make_blank<ui::implementation::IssuerItemRowID> {
-    static ui::implementation::IssuerItemRowID value()
+    static ui::implementation::IssuerItemRowID value(const api::Core& api)
     {
-        return {Identifier::Factory(), proto::CITEMTYPE_ERROR};
+        return {api.Factory().Identifier(), proto::CITEMTYPE_ERROR};
     }
 };
 
 template <>
 struct make_blank<ui::implementation::ActivityThreadRowID> {
-    static ui::implementation::ActivityThreadRowID value()
+    static ui::implementation::ActivityThreadRowID value(const api::Core& api)
     {
-        return {Identifier::Factory(), {}, Identifier::Factory()};
+        return {api.Factory().Identifier(), {}, api.Factory().Identifier()};
     }
 };
 }  // namespace opentxs

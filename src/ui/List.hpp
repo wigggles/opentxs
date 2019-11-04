@@ -11,6 +11,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
 
+#include "internal/api/client/Client.hpp"
 #include "internal/core/Core.hpp"
 #include "internal/ui/UI.hpp"
 #include "Widget.hpp"
@@ -384,7 +385,7 @@ protected:
         , outer_(items_.begin())
         , inner_(items_.begin()->second.begin())
         , names_()
-        , last_id_(make_blank<RowID>::value())
+        , last_id_(make_blank<RowID>::value(api))
         , have_items_(Flag::Factory(false))
         , start_(Flag::Factory(true))
         , startup_(nullptr)
@@ -556,7 +557,7 @@ private:
 
             return next(lock);
         } else {
-            last_id_ = make_blank<RowID>::value();
+            last_id_ = make_blank<RowID>::value(api_);
 
             return blank_p_;
         }

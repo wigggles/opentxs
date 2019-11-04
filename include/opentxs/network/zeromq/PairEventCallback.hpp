@@ -36,12 +36,14 @@ public:
     using ReceiveCallback = std::function<void(const proto::PairEvent&)>;
 
 #ifndef SWIG
-    EXPORT static OTZMQPairEventCallback Factory(ReceiveCallback callback);
+    OPENTXS_EXPORT static OTZMQPairEventCallback Factory(
+        ReceiveCallback callback);
 #endif
-    EXPORT static opentxs::Pimpl<opentxs::network::zeromq::PairEventCallback>
+    OPENTXS_EXPORT static opentxs::Pimpl<
+        opentxs::network::zeromq::PairEventCallback>
     Factory(PairEventCallbackSwig* callback);
 
-    EXPORT ~PairEventCallback() override = default;
+    OPENTXS_EXPORT ~PairEventCallback() override = default;
 
 protected:
     PairEventCallback() = default;

@@ -9,150 +9,44 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/identifier/Nym.hpp"
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <string>
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class PeerRequest : public Signable
+class Request : virtual public opentxs::contract::Signable
 {
-private:
-    typedef Signable ot_super;
+public:
+    using SerializedType = proto::PeerRequest;
 
-    OTNymID initiator_;
-    OTNymID recipient_;
-    OTIdentifier server_;
-    OTIdentifier cookie_;
-    proto::PeerRequestType type_{proto::PEERREQUEST_ERROR};
+    OPENTXS_EXPORT virtual SerializedType Contract() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& Initiator() const = 0;
+    OPENTXS_EXPORT virtual const identifier::Nym& Recipient() const = 0;
+    OPENTXS_EXPORT virtual proto::PeerRequestType Type() const = 0;
 
-    static std::unique_ptr<PeerRequest> Finish(
-        std::unique_ptr<PeerRequest>& contract,
-        const PasswordPrompt& reason);
-    static OTIdentifier GetID(
-        const api::internal::Core& api,
-        const proto::PeerRequest& contract);
-    static bool FinalizeContract(
-        PeerRequest& contract,
-        const PasswordPrompt& reason);
-
-    proto::PeerRequest contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const override;
-    proto::PeerRequest SigVersion(const Lock& lock) const;
-
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
-        override;
-
-    PeerRequest() = delete;
+    OPENTXS_EXPORT ~Request() override = default;
 
 protected:
-    const api::internal::Core& api_;
+    Request() noexcept = default;
 
-    virtual proto::PeerRequest IDVersion(const Lock& lock) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const override;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const override;
+private:
+    friend OTPeerRequest;
 
-    PeerRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequest& serialized);
-    PeerRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const std::string& conditions);
-    PeerRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        VersionNumber version,
-        const identifier::Nym& recipient,
-        const identifier::Server& serverID,
-        const proto::PeerRequestType& type);
-    PeerRequest(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        VersionNumber version,
-        const identifier::Nym& recipient,
-        const identifier::Server& serverID,
-        const std::string& conditions,
-        const proto::PeerRequestType& type);
+#ifndef _WIN32
+    OPENTXS_EXPORT Request* clone() const noexcept override = 0;
+#endif
 
-public:
-    static std::unique_ptr<PeerRequest> Create(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequestType& type,
-        const identifier::UnitDefinition& unitID,
-        const identifier::Server& serverID,
-        const PasswordPrompt& reason);
-    static std::unique_ptr<PeerRequest> Create(
-        const api::internal::Core& api,
-        const Nym_p& sender,
-        const proto::PeerRequestType& type,
-        const identifier::UnitDefinition& unitID,
-        const identifier::Server& serverID,
-        const identifier::Nym& recipient,
-        const Identifier& requestID,
-        const std::string& txid,
-        const Amount& amount,
-        const PasswordPrompt& reason);
-    static std::unique_ptr<PeerRequest> Create(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequestType& type,
-        const identifier::UnitDefinition& unitID,
-        const identifier::Server& serverID,
-        const std::uint64_t& amount,
-        const std::string& terms,
-        const PasswordPrompt& reason);
-    static std::unique_ptr<PeerRequest> Create(
-        const api::internal::Core& api,
-        const Nym_p& sender,
-        const proto::PeerRequestType& type,
-        const proto::ConnectionInfoType connectionType,
-        const identifier::Nym& recipient,
-        const identifier::Server& serverID,
-        const PasswordPrompt& reason);
-    static std::unique_ptr<PeerRequest> Create(
-        const api::internal::Core& api,
-        const Nym_p& sender,
-        const proto::PeerRequestType& type,
-        const proto::SecretType secretType,
-        const identifier::Nym& recipient,
-        const std::string& primary,
-        const std::string& secondary,
-        const identifier::Server& serverID,
-        const PasswordPrompt& reason);
-    static std::unique_ptr<PeerRequest> Factory(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const PasswordPrompt& reason);
-
-    std::string Alias() const override { return Name(); }
-    proto::PeerRequest Contract() const;
-    const identifier::Nym& Initiator() const { return initiator_; }
-    std::string Name() const override;
-    const identifier::Nym& Recipient() const { return recipient_; }
-    OTData Serialize() const override;
-    const proto::PeerRequestType& Type() const { return type_; }
-    void SetAlias(const std::string&) override {}
-
-    ~PeerRequest() override = default;
+    Request(const Request&) = delete;
+    Request(Request&&) = delete;
+    Request& operator=(const Request&) = delete;
+    Request& operator=(Request&&) = delete;
 };
+}  // namespace peer
+}  // namespace contract
 }  // namespace opentxs
 #endif

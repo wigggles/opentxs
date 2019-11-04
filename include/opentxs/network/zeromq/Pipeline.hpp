@@ -29,15 +29,15 @@ namespace zeromq
 class Pipeline
 {
 public:
-    EXPORT virtual bool Close() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Close() const noexcept = 0;
     template <typename Input>
-    EXPORT bool Push(const Input& data) const noexcept
+    OPENTXS_EXPORT bool Push(const Input& data) const noexcept
     {
         return push(Context().Message(data));
     }
-    EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
+    OPENTXS_EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
 
-    EXPORT virtual ~Pipeline() = default;
+    OPENTXS_EXPORT virtual ~Pipeline() = default;
 
 protected:
     Pipeline() noexcept = default;

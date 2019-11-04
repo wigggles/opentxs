@@ -637,7 +637,7 @@ HDIndex(const Bip43Purpose, const Bip32Child)->HDIndex<Bip43Purpose>;
 
 template <typename T>
 struct make_blank {
-    static T value() { return T{}; }
+    static T value(const api::Core&) { return T{}; }
 };
 
 template <typename I>

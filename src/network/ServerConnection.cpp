@@ -58,10 +58,8 @@ OTServerConnection ServerConnection::Factory(
     const api::internal::Core& api,
     const api::network::ZMQ& zmq,
     const zeromq::socket::Publish& updates,
-    const std::shared_ptr<const ServerContract>& contract)
+    const OTServerContract& contract)
 {
-    OT_ASSERT(contract)
-
     return OTServerConnection(
         new implementation::ServerConnection(api, zmq, updates, contract));
 }
@@ -73,7 +71,7 @@ ServerConnection::ServerConnection(
     const api::internal::Core& api,
     const api::network::ZMQ& zmq,
     const zeromq::socket::Publish& updates,
-    const std::shared_ptr<const ServerContract>& contract)
+    const OTServerContract& contract)
     : zmq_(zmq)
     , api_(api)
     , updates_(updates)
@@ -100,8 +98,6 @@ ServerConnection::ServerConnection(
     , registration_lock_()
     , registered_for_push_()
 {
-    OT_ASSERT(remote_contract_)
-
     thread_ = std::thread(&ServerConnection::activity_timer, this);
     const auto started = notification_socket_->Start(
         api_.Endpoints().InternalProcessPushNotification());
@@ -353,6 +349,7 @@ void ServerConnection::register_for_push(
         context.Nym(),
         context.Server(),
         proto::SERVERREQUEST_ACTIVATE,
+        0,
         reason);
     request->SetIncludeNym(true, reason);
     auto message = zmq::Message::Factory();
@@ -512,7 +509,7 @@ void ServerConnection::set_curve(
 {
     OT_ASSERT(verify_lock(lock));
 
-    const auto set = socket.SetServerPubkey(*remote_contract_);
+    const auto set = socket.SetServerPubkey(remote_contract_);
 
     OT_ASSERT(set);
 }

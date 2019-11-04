@@ -30,12 +30,12 @@ class AccountList;
 class AccountList : virtual public List
 {
 public:
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::AccountListItem> First()
-        const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::AccountListItem> Next()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::AccountListItem>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::AccountListItem>
+    Next() const noexcept = 0;
 
-    EXPORT ~AccountList() override = default;
+    OPENTXS_EXPORT ~AccountList() override = default;
 
 protected:
     AccountList() noexcept = default;

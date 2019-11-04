@@ -98,7 +98,7 @@ public:
     time64_t tPlanLength=0, std::int32_t nMaxPayments=0);
     ----------------------------------------------------------------------------------------
     */
-    EXPORT std::string ProposePaymentPlan(
+    OPENTXS_EXPORT std::string ProposePaymentPlan(
         const std::string& NOTARY_ID,
         const Time& VALID_FROM,  // Default (0 or nullptr) == current time
                                  // measured in seconds since Jan 1970.
@@ -151,7 +151,7 @@ public:
     // three at a time into
     // a single parameter, as a comma-separated list in string form.
     //
-    EXPORT std::string EasyProposePlan(
+    OPENTXS_EXPORT std::string EasyProposePlan(
         const std::string& NOTARY_ID,
         const std::string& DATE_RANGE,  // "from,to"  Default 'from' (0 or "")
                                         // ==
@@ -180,7 +180,7 @@ public:
 
     // Called by Customer. Pass in the plan obtained in the above call.
     //
-    EXPORT std::string ConfirmPaymentPlan(
+    OPENTXS_EXPORT std::string ConfirmPaymentPlan(
         const std::string& NOTARY_ID,
         const std::string& SENDER_NYM_ID,
         const std::string& SENDER_ACCT_ID,
@@ -191,7 +191,7 @@ public:
 
     // RETURNS: the Smart Contract itself. (Or nullptr.)
     //
-    EXPORT std::string Create_SmartContract(
+    OPENTXS_EXPORT std::string Create_SmartContract(
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
                                            // signing at this point is only to
                                            // cause a save.)
@@ -203,7 +203,7 @@ public:
         bool SPECIFY_PARTIES  // Nym IDs must be provided for every party.
     ) const;
 
-    EXPORT std::string SmartContract_SetDates(
+    OPENTXS_EXPORT std::string SmartContract_SetDates(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // dates changed on it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -215,9 +215,9 @@ public:
                               // anytime
     ) const;
 
-    EXPORT bool Smart_ArePartiesSpecified(
+    OPENTXS_EXPORT bool Smart_ArePartiesSpecified(
         const std::string& THE_CONTRACT) const;
-    EXPORT bool Smart_AreAssetTypesSpecified(
+    OPENTXS_EXPORT bool Smart_AreAssetTypesSpecified(
         const std::string& THE_CONTRACT) const;
 
     //
@@ -227,7 +227,7 @@ public:
     // anyway.)
     //
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_AddBylaw(
+    OPENTXS_EXPORT std::string SmartContract_AddBylaw(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // bylaw added to it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -238,7 +238,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_RemoveBylaw(
+    OPENTXS_EXPORT std::string SmartContract_RemoveBylaw(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // bylaw removed from it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -249,7 +249,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_AddClause(
+    OPENTXS_EXPORT std::string SmartContract_AddClause(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // clause added to it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -265,7 +265,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_UpdateClause(
+    OPENTXS_EXPORT std::string SmartContract_UpdateClause(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // clause updated on it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -281,7 +281,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_RemoveClause(
+    OPENTXS_EXPORT std::string SmartContract_RemoveClause(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // clause removed from it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -295,7 +295,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_AddVariable(
+    OPENTXS_EXPORT std::string SmartContract_AddVariable(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // variable added to it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -318,7 +318,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_RemoveVariable(
+    OPENTXS_EXPORT std::string SmartContract_RemoveVariable(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // variable removed from it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -331,7 +331,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_AddCallback(
+    OPENTXS_EXPORT std::string SmartContract_AddCallback(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // callback added to it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -348,7 +348,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_RemoveCallback(
+    OPENTXS_EXPORT std::string SmartContract_RemoveCallback(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // callback removed from it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -362,7 +362,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_AddHook(
+    OPENTXS_EXPORT std::string SmartContract_AddHook(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // hook
                                            // added to it.
@@ -380,7 +380,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_RemoveHook(
+    OPENTXS_EXPORT std::string SmartContract_RemoveHook(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // hook
                                            // removed from it.
@@ -398,7 +398,7 @@ public:
     ) const;
 
     // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
-    EXPORT std::string SmartContract_AddParty(
+    OPENTXS_EXPORT std::string SmartContract_AddParty(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // party added to it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -414,7 +414,7 @@ public:
     ) const;
 
     // RETURNS: Updated version of THE_CONTRACT. (Or nullptr.)
-    EXPORT std::string SmartContract_RemoveParty(
+    OPENTXS_EXPORT std::string SmartContract_RemoveParty(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // party removed from it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -433,7 +433,7 @@ public:
     // and over again with different parties.)
     //
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_AddAccount(
+    OPENTXS_EXPORT std::string SmartContract_AddAccount(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // account added to it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -450,7 +450,7 @@ public:
     ) const;
 
     // returns: the updated smart contract (or nullptr)
-    EXPORT std::string SmartContract_RemoveAccount(
+    OPENTXS_EXPORT std::string SmartContract_RemoveAccount(
         const std::string& THE_CONTRACT,   // The contract, about to have the
                                            // account removed from it.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -470,7 +470,7 @@ public:
     which agent is the
     // authorized agent.)
     */
-    EXPORT std::int32_t SmartContract_CountNumsNeeded(
+    OPENTXS_EXPORT std::int32_t SmartContract_CountNumsNeeded(
         const std::string& THE_CONTRACT,  // The smart contract, about to be
                                           // queried by this function.
         const std::string& AGENT_NAME) const;
@@ -481,7 +481,7 @@ public:
     specified by party name and acct name.
     // Returns the updated smart contract (or nullptr.)
     */
-    EXPORT std::string SmartContract_ConfirmAccount(
+    OPENTXS_EXPORT std::string SmartContract_ConfirmAccount(
         const std::string& THE_CONTRACT,   // The smart contract, about to be
                                            // changed by this function.
         const std::string& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -503,7 +503,7 @@ public:
     // Call SmartContract_ConfirmAccount() first, as much as you need to.
     // Returns the updated smart contract (or nullptr.)
     */
-    EXPORT std::string SmartContract_ConfirmParty(
+    OPENTXS_EXPORT std::string SmartContract_ConfirmParty(
         const std::string& THE_CONTRACT,  // The smart contract, about to be
                                           // changed by this function.
         const std::string& PARTY_NAME,    // Should already be on the contract.
@@ -516,107 +516,107 @@ public:
     Various informational functions for the Smart Contracts.
     */
 
-    EXPORT bool Smart_AreAllPartiesConfirmed(
+    OPENTXS_EXPORT bool Smart_AreAllPartiesConfirmed(
         const std::string& THE_CONTRACT) const;  // true or false?
-    EXPORT std::int32_t Smart_GetBylawCount(
+    OPENTXS_EXPORT std::int32_t Smart_GetBylawCount(
         const std::string& THE_CONTRACT) const;
-    EXPORT std::string Smart_GetBylawByIndex(
+    OPENTXS_EXPORT std::string Smart_GetBylawByIndex(
         const std::string& THE_CONTRACT,
         const std::int32_t& nIndex) const;  // returns the name of the bylaw.
-    EXPORT std::string Bylaw_GetLanguage(
+    OPENTXS_EXPORT std::string Bylaw_GetLanguage(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME) const;
-    EXPORT std::int32_t Bylaw_GetClauseCount(
+    OPENTXS_EXPORT std::int32_t Bylaw_GetClauseCount(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME) const;
-    EXPORT std::string Clause_GetNameByIndex(
+    OPENTXS_EXPORT std::string Clause_GetNameByIndex(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::int32_t& nIndex) const;  // returns the name of the clause.
-    EXPORT std::string Clause_GetContents(
+    OPENTXS_EXPORT std::string Clause_GetContents(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::string& CLAUSE_NAME) const;  // returns the contents of the
                                                 // clause.
-    EXPORT std::int32_t Bylaw_GetVariableCount(
+    OPENTXS_EXPORT std::int32_t Bylaw_GetVariableCount(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME) const;
-    EXPORT std::string Variable_GetNameByIndex(
+    OPENTXS_EXPORT std::string Variable_GetNameByIndex(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::int32_t& nIndex) const;  // returns the name of the variable.
-    EXPORT std::string Variable_GetType(
+    OPENTXS_EXPORT std::string Variable_GetType(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::string& VARIABLE_NAME) const;  // returns the type of the
                                                   // variable.
-    EXPORT std::string Variable_GetAccess(
+    OPENTXS_EXPORT std::string Variable_GetAccess(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::string& VARIABLE_NAME) const;  // returns the access level of
                                                   // the
                                                   // variable.
-    EXPORT std::string Variable_GetContents(
+    OPENTXS_EXPORT std::string Variable_GetContents(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::string& VARIABLE_NAME) const;  // returns the contents of the
                                                   // variable.
-    EXPORT std::int32_t Bylaw_GetHookCount(
+    OPENTXS_EXPORT std::int32_t Bylaw_GetHookCount(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME) const;
-    EXPORT std::string Hook_GetNameByIndex(
+    OPENTXS_EXPORT std::string Hook_GetNameByIndex(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::int32_t& nIndex) const;  // returns the name of the hook.
-    EXPORT std::int32_t Hook_GetClauseCount(
+    OPENTXS_EXPORT std::int32_t Hook_GetClauseCount(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::string& HOOK_NAME) const;  // for iterating clauses on a
                                               // hook.
-    EXPORT std::string Hook_GetClauseAtIndex(
+    OPENTXS_EXPORT std::string Hook_GetClauseAtIndex(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::string& HOOK_NAME,
         const std::int32_t& nIndex) const;
-    EXPORT std::int32_t Bylaw_GetCallbackCount(
+    OPENTXS_EXPORT std::int32_t Bylaw_GetCallbackCount(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME) const;
-    EXPORT std::string Callback_GetNameByIndex(
+    OPENTXS_EXPORT std::string Callback_GetNameByIndex(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::int32_t& nIndex) const;  // returns the name of the callback.
-    EXPORT std::string Callback_GetClause(
+    OPENTXS_EXPORT std::string Callback_GetClause(
         const std::string& THE_CONTRACT,
         const std::string& BYLAW_NAME,
         const std::string& CALLBACK_NAME) const;  // returns name of clause
                                                   // attached to
                                                   // callback.
-    EXPORT std::int32_t Smart_GetPartyCount(
+    OPENTXS_EXPORT std::int32_t Smart_GetPartyCount(
         const std::string& THE_CONTRACT) const;
-    EXPORT std::string Smart_GetPartyByIndex(
+    OPENTXS_EXPORT std::string Smart_GetPartyByIndex(
         const std::string& THE_CONTRACT,
         const std::int32_t& nIndex) const;  // returns the name of the party.
-    EXPORT bool Smart_IsPartyConfirmed(
+    OPENTXS_EXPORT bool Smart_IsPartyConfirmed(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME) const;  // true or false?
-    EXPORT std::string Party_GetID(
+    OPENTXS_EXPORT std::string Party_GetID(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME) const;  // returns either NymID or Entity
                                                // ID.
-    EXPORT std::int32_t Party_GetAcctCount(
+    OPENTXS_EXPORT std::int32_t Party_GetAcctCount(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME) const;
-    EXPORT std::string Party_GetAcctNameByIndex(
+    OPENTXS_EXPORT std::string Party_GetAcctNameByIndex(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME,
         const std::int32_t& nIndex) const;  // returns the name of the clause.
-    EXPORT std::string Party_GetAcctID(
+    OPENTXS_EXPORT std::string Party_GetAcctID(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME,
         const std::string& ACCT_NAME) const;  // returns account ID for a given
                                               // acct
                                               // name.
-    EXPORT std::string Party_GetAcctInstrumentDefinitionID(
+    OPENTXS_EXPORT std::string Party_GetAcctInstrumentDefinitionID(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME,
         const std::string& ACCT_NAME) const;  // returns instrument definition
@@ -624,21 +624,21 @@ public:
                                               // for a
                                               // given acct
                                               // name.
-    EXPORT std::string Party_GetAcctAgentName(
+    OPENTXS_EXPORT std::string Party_GetAcctAgentName(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME,
         const std::string& ACCT_NAME) const;  // returns agent name authorized
                                               // to
     // administer a given named acct. (If
     // it's set...)
-    EXPORT std::int32_t Party_GetAgentCount(
+    OPENTXS_EXPORT std::int32_t Party_GetAgentCount(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME) const;
-    EXPORT std::string Party_GetAgentNameByIndex(
+    OPENTXS_EXPORT std::string Party_GetAgentNameByIndex(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME,
         const std::int32_t& nIndex) const;  // returns the name of the agent.
-    EXPORT std::string Party_GetAgentID(
+    OPENTXS_EXPORT std::string Party_GetAgentID(
         const std::string& THE_CONTRACT,
         const std::string& PARTY_NAME,
         const std::string& AGENT_NAME) const;  // returns ID of the agent. (If
@@ -652,9 +652,11 @@ public:
     basket
     currency.
     */
-    EXPORT bool IsBasketCurrency(const std::string& INSTRUMENT_DEFINITION_ID)
-        const;  // returns OT_BOOL (OT_TRUE or
-                // OT_FALSE aka 1 or 0.)
+    OPENTXS_EXPORT bool IsBasketCurrency(
+        const std::string& INSTRUMENT_DEFINITION_ID) const;  // returns OT_BOOL
+                                                             // (OT_TRUE or
+                                                             // OT_FALSE aka 1
+                                                             // or 0.)
 
     /** --------------------------------------------------------------------
     // Get Basket Count (of backing instrument definitions.)
@@ -662,7 +664,7 @@ public:
     // Returns the number of instrument definitions that make up this basket.
     // (Or zero.)
     */
-    EXPORT std::int32_t Basket_GetMemberCount(
+    OPENTXS_EXPORT std::int32_t Basket_GetMemberCount(
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
     /** --------------------------------------------------------------------
@@ -670,7 +672,7 @@ public:
     //
     // (Returns a string containing Instrument Definition ID, or nullptr).
     */
-    EXPORT std::string Basket_GetMemberType(
+    OPENTXS_EXPORT std::string Basket_GetMemberType(
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
         const std::int32_t& nIndex) const;
 
@@ -685,7 +687,7 @@ public:
     // then the minimum transfer amount for the basket is 10. This function
     // would return a string containing "10", in that example.
     */
-    EXPORT std::int64_t Basket_GetMinimumTransferAmount(
+    OPENTXS_EXPORT std::int64_t Basket_GetMinimumTransferAmount(
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
     /** ----------------------------------------------------
@@ -701,7 +703,7 @@ public:
     // index 1 is 5, and the minimum transfer amount for the member
     // currency at index 2 is 8.
     */
-    EXPORT std::int64_t Basket_GetMemberMinimumTransferAmount(
+    OPENTXS_EXPORT std::int64_t Basket_GetMemberMinimumTransferAmount(
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
         const std::int32_t& nIndex) const;
 
@@ -714,14 +716,14 @@ public:
     // the various currencies to the basket, and then call
     // issueBasket to send the request to the server.
     */
-    EXPORT std::string GenerateBasketCreation(
+    OPENTXS_EXPORT std::string GenerateBasketCreation(
         const std::string& nymID,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
         const std::string& terms,
         const std::uint64_t weight,
-        const VersionNumber version = UnitDefinition::DefaultVersion) const;
+        const VersionNumber version = contract::Unit::DefaultVersion) const;
 
     /** ----------------------------------------------------
     // ADD BASKET CREATION ITEM
@@ -733,7 +735,7 @@ public:
     // currencies to the basket, and then call issueBasket
     // to send the request to the server.
     */
-    EXPORT std::string AddBasketCreationItem(
+    OPENTXS_EXPORT std::string AddBasketCreationItem(
         const std::string& basketTemplate,
         const std::string& currencyID,
         const std::uint64_t& weight) const;
@@ -747,7 +749,7 @@ public:
     // multiple times, and then finally call exchangeBasket to
     // send the request to the server.
     */
-    EXPORT std::string GenerateBasketExchange(
+    OPENTXS_EXPORT std::string GenerateBasketExchange(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
@@ -767,7 +769,7 @@ public:
     // times, and then finally call exchangeBasket to send
     // the request to the server.
     */
-    EXPORT std::string AddBasketExchangeItem(
+    OPENTXS_EXPORT std::string AddBasketExchangeItem(
         const std::string& NOTARY_ID,
         const std::string& NYM_ID,
         const std::string& THE_BASKET,
@@ -779,11 +781,11 @@ public:
      *  The imported seed will be set to the default seed if a default does not
      *  already exist.
      */
-    EXPORT std::string Wallet_ImportSeed(
+    OPENTXS_EXPORT std::string Wallet_ImportSeed(
         const std::string& words,
         const std::string& passphrase) const;
 
-    EXPORT ~OTAPI_Exec() = default;
+    OPENTXS_EXPORT ~OTAPI_Exec() = default;
 
 private:
     friend class api::client::implementation::Manager;

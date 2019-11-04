@@ -223,7 +223,7 @@ auto Group::UpgradeNymVersion(const VersionNumber nymVersion) noexcept -> bool
     try {
         while (true) {
             const auto [min, max] =
-                proto::VerificationGroupAllowedIdentity.at(groupVersion);
+                proto::VerificationGroupAllowedIdentity().at(groupVersion);
 
             if (nymVersion < min) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Version ")(nymVersion)(

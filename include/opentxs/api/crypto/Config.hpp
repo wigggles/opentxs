@@ -19,14 +19,14 @@ namespace crypto
 class Config
 {
 public:
-    EXPORT virtual std::uint32_t IterationCount() const = 0;
-    EXPORT virtual std::uint32_t SymmetricSaltSize() const = 0;
-    EXPORT virtual std::uint32_t SymmetricKeySize() const = 0;
-    EXPORT virtual std::uint32_t SymmetricKeySizeMax() const = 0;
-    EXPORT virtual std::uint32_t SymmetricIvSize() const = 0;
-    EXPORT virtual std::uint32_t SymmetricBufferSize() const = 0;
-    EXPORT virtual std::uint32_t PublicKeysize() const = 0;
-    EXPORT virtual std::uint32_t PublicKeysizeMax() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t IterationCount() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t SymmetricSaltSize() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t SymmetricKeySize() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t SymmetricKeySizeMax() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t SymmetricIvSize() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t SymmetricBufferSize() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t PublicKeysize() const = 0;
+    OPENTXS_EXPORT virtual std::uint32_t PublicKeysizeMax() const = 0;
 
     virtual ~Config() = default;
 

@@ -2,10 +2,9 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -14,6 +13,7 @@
 #include "opentxs/core/contract/peer/ConnectionReply.hpp"
 #include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
 #include "opentxs/core/contract/peer/OutBailmentReply.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Data.hpp"
@@ -23,50 +23,79 @@
 #include "opentxs/Proto.tpp"
 
 #include "internal/api/Api.hpp"
+#include "internal/core/contract/Contract.hpp"
 
-#define OT_METHOD "opentxs::PeerReply::"
+#include "PeerReply.hpp"
+
+#define OT_METHOD "opentxs::contract::peer::implementation::Reply::"
 
 namespace opentxs
 {
-PeerReply::PeerReply(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const proto::PeerReply& serialized)
-    : ot_super(nym)
-    , initiator_(identifier::Nym::Factory(serialized.initiator()))
-    , recipient_(identifier::Nym::Factory(serialized.recipient()))
-    , server_(identifier::Server::Factory(serialized.server()))
-    , cookie_(Identifier::Factory(serialized.cookie()))
-    , type_(serialized.type())
-    , api_{api}
+auto Factory::PeerReply(const api::Core& api) noexcept
+    -> std::shared_ptr<contract::peer::Reply>
 {
-    id_ = Identifier::Factory(serialized.id());
-    signatures_.push_front(SerializedSignature(
-        std::make_shared<proto::Signature>(serialized.signature())));
-    version_ = serialized.version();
+    return std::make_shared<contract::peer::blank::Reply>(api);
 }
+}  // namespace opentxs
 
-PeerReply::PeerReply(
+namespace opentxs::contract::peer::implementation
+{
+Reply::Reply(
     const api::internal::Core& api,
     const Nym_p& nym,
     const VersionNumber version,
     const identifier::Nym& initiator,
     const identifier::Server& server,
     const proto::PeerRequestType& type,
-    const Identifier& request)
-    : ot_super(nym, version)
+    const Identifier& request,
+    const std::string& conditions)
+    : Signable(api, nym, version, conditions, "")
     , initiator_(initiator)
     , recipient_(nym->ID())
     , server_(server)
     , cookie_(Identifier::Factory(request))
     , type_(type)
-    , api_{api}
 {
 }
 
-proto::PeerReply PeerReply::contract(const Lock& lock) const
+Reply::Reply(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const SerializedType& serialized,
+    const std::string& conditions)
+    : Signable(
+          api,
+          nym,
+          serialized.version(),
+          conditions,
+          "",
+          api.Factory().Identifier(serialized.id()),
+          serialized.has_signature()
+              ? Signatures{std::make_shared<proto::Signature>(
+                    serialized.signature())}
+              : Signatures{})
+    , initiator_(identifier::Nym::Factory(serialized.initiator()))
+    , recipient_(identifier::Nym::Factory(serialized.recipient()))
+    , server_(identifier::Server::Factory(serialized.server()))
+    , cookie_(Identifier::Factory(serialized.cookie()))
+    , type_(serialized.type())
+{
+}
+
+Reply::Reply(const Reply& rhs) noexcept
+    : Signable(rhs)
+    , initiator_(rhs.initiator_)
+    , recipient_(rhs.recipient_)
+    , server_(rhs.server_)
+    , cookie_(rhs.cookie_)
+    , type_(rhs.type_)
+{
+}
+
+auto Reply::contract(const Lock& lock) const -> SerializedType
 {
     auto contract = SigVersion(lock);
+
     if (0 < signatures_.size()) {
         *(contract.mutable_signature()) = *(signatures_.front());
     }
@@ -74,255 +103,44 @@ proto::PeerReply PeerReply::contract(const Lock& lock) const
     return contract;
 }
 
-proto::PeerReply PeerReply::Contract() const
+auto Reply::Contract() const -> SerializedType
 {
     Lock lock(lock_);
 
     return contract(lock);
 }
 
-std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const proto::PeerRequestType& type,
-    const Identifier& requestID,
-    const identifier::Server& server,
-    const std::string& terms,
-    const PasswordPrompt& reason)
-{
-    auto peerRequest = LoadRequest(api, nym, requestID);
-
-    if (!peerRequest) { return nullptr; }
-
-    std::unique_ptr<PeerReply> contract;
-
-    switch (type) {
-        case (proto::PEERREQUEST_BAILMENT): {
-            contract.reset(new BailmentReply(
-                api,
-                nym,
-                identifier::Nym::Factory(peerRequest->initiator()),
-                requestID,
-                server,
-                terms));
-        } break;
-        case (proto::PEERREQUEST_OUTBAILMENT): {
-            contract.reset(new OutBailmentReply(
-                api,
-                nym,
-                identifier::Nym::Factory(peerRequest->initiator()),
-                requestID,
-                server,
-                terms));
-        } break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request type.")
-                .Flush();
-
-            return nullptr;
-        }
-    }
-
-    return Finish(contract, reason);
-}
-
-std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const Identifier& requestID,
-    const identifier::Server& server,
-    const bool& ack,
-    const PasswordPrompt& reason)
-{
-    auto peerRequest = LoadRequest(api, nym, requestID);
-
-    if (!peerRequest) { return nullptr; }
-
-    std::unique_ptr<PeerReply> contract;
-    const auto& type = peerRequest->type();
-
-    switch (type) {
-        case (proto::PEERREQUEST_PENDINGBAILMENT):
-        case (proto::PEERREQUEST_STORESECRET): {
-            contract.reset(new NoticeAcknowledgement(
-                api,
-                nym,
-                identifier::Nym::Factory(peerRequest->initiator()),
-                requestID,
-                server,
-                type,
-                ack));
-        } break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request type.")
-                .Flush();
-
-            return nullptr;
-        }
-    }
-
-    return Finish(contract, reason);
-}
-
-std::unique_ptr<PeerReply> PeerReply::Create(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const Identifier& request,
-    const identifier::Server& server,
-    const bool& ack,
-    const std::string& url,
-    const std::string& login,
-    const std::string& password,
-    const std::string& key,
-    const PasswordPrompt& reason)
-{
-    auto peerRequest = LoadRequest(api, nym, request);
-
-    if (!peerRequest) { return nullptr; }
-
-    std::unique_ptr<PeerReply> contract;
-    const auto& type = peerRequest->type();
-
-    switch (type) {
-        case (proto::PEERREQUEST_CONNECTIONINFO): {
-            contract.reset(new ConnectionReply(
-                api,
-                nym,
-                identifier::Nym::Factory(peerRequest->initiator()),
-                request,
-                server,
-                ack,
-                url,
-                login,
-                password,
-                key));
-        } break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request type.")
-                .Flush();
-
-            return nullptr;
-        }
-    }
-
-    return Finish(contract, reason);
-}
-
-std::unique_ptr<PeerReply> PeerReply::Factory(
-    const api::internal::Core& api,
-    const Nym_p& nym,
-    const proto::PeerReply& serialized,
-    const PasswordPrompt& reason)
-{
-    if (!proto::Validate(serialized, VERBOSE)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid serialized reply.")
-            .Flush();
-
-        return nullptr;
-    }
-
-    std::unique_ptr<PeerReply> contract;
-
-    switch (serialized.type()) {
-        case (proto::PEERREQUEST_BAILMENT): {
-            contract.reset(new BailmentReply(api, nym, serialized));
-        } break;
-        case (proto::PEERREQUEST_OUTBAILMENT): {
-            contract.reset(new OutBailmentReply(api, nym, serialized));
-        } break;
-        case (proto::PEERREQUEST_PENDINGBAILMENT):
-        case (proto::PEERREQUEST_STORESECRET): {
-            contract.reset(new NoticeAcknowledgement(api, nym, serialized));
-        } break;
-        case (proto::PEERREQUEST_CONNECTIONINFO): {
-            contract.reset(new ConnectionReply(api, nym, serialized));
-        } break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid reply type.").Flush();
-
-            return nullptr;
-        }
-    }
-
-    if (!contract) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate reply.")
-            .Flush();
-
-        return nullptr;
-    }
-
-    Lock lock(contract->lock_);
-
-    if (!contract->validate(lock, reason)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid reply.").Flush();
-
-        return nullptr;
-    }
-
-    const auto purportedID = Identifier::Factory(serialized.id());
-
-    if (!contract->CalculateID(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate ID.").Flush();
-
-        return nullptr;
-    }
-
-    const auto& actualID = contract->id_;
-
-    if (purportedID != actualID) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid ID.").Flush();
-
-        return nullptr;
-    }
-
-    return contract;
-}
-
-bool PeerReply::FinalizeContract(
-    PeerReply& contract,
-    const PasswordPrompt& reason)
+auto Reply::FinalizeContract(Reply& contract, const PasswordPrompt& reason)
+    -> bool
 {
     Lock lock(contract.lock_);
-
-    if (!contract.CalculateID(lock)) { return false; }
 
     if (!contract.update_signature(lock, reason)) { return false; }
 
     return contract.validate(lock, reason);
 }
 
-std::unique_ptr<PeerReply> PeerReply::Finish(
-    std::unique_ptr<PeerReply>& contract,
-    const PasswordPrompt& reason)
+auto Reply::Finish(Reply& contract, const PasswordPrompt& reason) -> bool
 {
-    std::unique_ptr<PeerReply> output(contract.release());
+    if (FinalizeContract(contract, reason)) {
 
-    if (!output) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate reply.")
-            .Flush();
-
-        return nullptr;
-    }
-
-    if (FinalizeContract(*output, reason)) {
-
-        return output;
+        return true;
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to finalize contract.")
             .Flush();
 
-        return nullptr;
+        return false;
     }
 }
 
-OTIdentifier PeerReply::GetID(const Lock& lock) const
+auto Reply::GetID(const Lock& lock) const -> OTIdentifier
 {
     return GetID(api_, IDVersion(lock));
 }
 
-OTIdentifier PeerReply::GetID(
+auto Reply::GetID(
     const api::internal::Core& api,
-    const proto::PeerReply& contract)
+    const SerializedType& contract) -> OTIdentifier
 {
     auto id = Identifier::Factory();
     id->CalculateDigest(api.Factory().Data(contract));
@@ -330,11 +148,11 @@ OTIdentifier PeerReply::GetID(
     return id;
 }
 
-proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
+auto Reply::IDVersion(const Lock& lock) const -> SerializedType
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    proto::PeerReply contract;
+    SerializedType contract;
 
     if (version_ < 2) {
         contract.set_version(2);
@@ -353,10 +171,10 @@ proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
     return contract;
 }
 
-std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
+auto Reply::LoadRequest(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const Identifier& requestID)
+    const Identifier& requestID) -> std::shared_ptr<proto::PeerRequest>
 {
     std::shared_ptr<proto::PeerRequest> output;
     std::time_t notUsed = 0;
@@ -381,16 +199,14 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
     return output;
 }
 
-std::string PeerReply::Name() const { return String::Factory(id_)->Get(); }
-
-OTData PeerReply::Serialize() const
+auto Reply::Serialize() const -> OTData
 {
     Lock lock(lock_);
 
     return api_.Factory().Data(contract(lock));
 }
 
-proto::PeerReply PeerReply::SigVersion(const Lock& lock) const
+auto Reply::SigVersion(const Lock& lock) const -> SerializedType
 {
     auto contract = IDVersion(lock);
     contract.set_id(String::Factory(id(lock))->Get());
@@ -398,9 +214,10 @@ proto::PeerReply PeerReply::SigVersion(const Lock& lock) const
     return contract;
 }
 
-bool PeerReply::update_signature(const Lock& lock, const PasswordPrompt& reason)
+auto Reply::update_signature(const Lock& lock, const PasswordPrompt& reason)
+    -> bool
 {
-    if (!ot_super::update_signature(lock, reason)) { return false; }
+    if (!Signable::update_signature(lock, reason)) { return false; }
 
     bool success = false;
     signatures_.clear();
@@ -419,7 +236,8 @@ bool PeerReply::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-bool PeerReply::validate(const Lock& lock, const PasswordPrompt& reason) const
+auto Reply::validate(const Lock& lock, const PasswordPrompt& reason) const
+    -> bool
 {
     bool validNym = false;
 
@@ -463,18 +281,17 @@ bool PeerReply::validate(const Lock& lock, const PasswordPrompt& reason) const
     return (validNym && validSyntax && validSig);
 }
 
-bool PeerReply::verify_signature(
+auto Reply::verify_signature(
     const Lock& lock,
     const proto::Signature& signature,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
-    if (!ot_super::verify_signature(lock, signature, reason)) { return false; }
+    if (!Signable::verify_signature(lock, signature, reason)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
     return nym_->Verify(serialized, sigProto, reason);
-    ;
 }
-}  // namespace opentxs
+}  // namespace opentxs::contract::peer::implementation

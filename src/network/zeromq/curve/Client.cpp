@@ -75,7 +75,7 @@ bool Client::SetKeysZ85(
     return set_local_keys(clientPrivate, clientPublic);
 }
 
-bool Client::SetServerPubkey(const ServerContract& contract) const noexcept
+bool Client::SetServerPubkey(const contract::Server& contract) const noexcept
 {
     return set_public_key(contract);
 }
@@ -85,7 +85,7 @@ bool Client::SetServerPubkey(const Data& key) const noexcept
     return set_public_key(key);
 }
 
-bool Client::set_public_key(const ServerContract& contract) const noexcept
+bool Client::set_public_key(const contract::Server& contract) const noexcept
 {
     const auto& key = contract.TransportKey();
 

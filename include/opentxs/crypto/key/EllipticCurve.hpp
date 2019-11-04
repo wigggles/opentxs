@@ -22,21 +22,24 @@ namespace key
 class EllipticCurve : virtual public Asymmetric
 {
 public:
-    EXPORT static const VersionNumber DefaultVersion;
-    EXPORT static const VersionNumber MaxVersion;
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber MaxVersion;
 
-    EXPORT virtual std::unique_ptr<EllipticCurve> asPublic(
+    OPENTXS_EXPORT virtual std::unique_ptr<EllipticCurve> asPublic(
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual const crypto::EcdsaProvider& ECDSA() const = 0;
-    EXPORT virtual bool GetKey(Data& key) const = 0;
-    EXPORT virtual bool GetKey(proto::Ciphertext& key) const = 0;
-    EXPORT virtual OTData PrivateKey(const PasswordPrompt& reason) const = 0;
-    EXPORT virtual OTData PublicKey(const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual const crypto::EcdsaProvider& ECDSA() const = 0;
+    OPENTXS_EXPORT virtual bool GetKey(Data& key) const = 0;
+    OPENTXS_EXPORT virtual bool GetKey(proto::Ciphertext& key) const = 0;
+    OPENTXS_EXPORT virtual OTData PrivateKey(
+        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual OTData PublicKey(
+        const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual bool SetKey(const Data& key) = 0;
-    EXPORT virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) = 0;
+    OPENTXS_EXPORT virtual bool SetKey(const Data& key) = 0;
+    OPENTXS_EXPORT virtual bool SetKey(
+        std::unique_ptr<proto::Ciphertext>& key) = 0;
 
-    EXPORT ~EllipticCurve() override = default;
+    OPENTXS_EXPORT ~EllipticCurve() override = default;
 
 protected:
     EllipticCurve() = default;

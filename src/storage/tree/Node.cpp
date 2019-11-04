@@ -163,7 +163,7 @@ std::string Node::normalize_hash(const std::string& hash)
 {
     if (hash.empty()) { return BLANK_HASH; }
 
-    if (proto::MIN_PLAUSIBLE_IDENTIFIER > hash.size()) {
+    if (20 > hash.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Blanked out short hash ")(hash)(
             ".")
             .Flush();
@@ -171,7 +171,7 @@ std::string Node::normalize_hash(const std::string& hash)
         return BLANK_HASH;
     }
 
-    if (proto::MAX_PLAUSIBLE_IDENTIFIER < hash.size()) {
+    if (116 < hash.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Blanked out long hash ")(hash)(
             ".")
             .Flush();

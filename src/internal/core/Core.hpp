@@ -15,11 +15,14 @@ namespace opentxs
 {
 template <>
 struct make_blank<OTData> {
-    static OTData value() { return Data::Factory(); }
+    static OTData value(const api::Core&) { return Data::Factory(); }
 };
 template <>
 struct make_blank<OTIdentifier> {
-    static OTIdentifier value() { return Identifier::Factory(); }
+    static OTIdentifier value(const api::Core&)
+    {
+        return Identifier::Factory();
+    }
 };
 }  // namespace opentxs
 

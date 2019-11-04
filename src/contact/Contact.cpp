@@ -233,7 +233,7 @@ bool Contact::add_claim(
     const proto::ContactItem serialized(*item);
 
     if (false == proto::Validate<proto::ContactItem>(
-                     serialized, VERBOSE, true, version)) {
+                     serialized, VERBOSE, proto::ClaimType::Indexed, version)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid claim.").Flush();
 
         return false;

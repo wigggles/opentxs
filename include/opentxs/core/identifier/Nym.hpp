@@ -32,22 +32,22 @@
 namespace opentxs
 {
 #ifndef SWIG
-bool operator==(
+OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
     const opentxs::Identifier& rhs);
-bool operator!=(
+OPENTXS_EXPORT bool operator!=(
     const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<(
+OPENTXS_EXPORT bool operator<(
     const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>(
+OPENTXS_EXPORT bool operator>(
     const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
     const opentxs::Identifier& rhs);
-bool operator<=(
+OPENTXS_EXPORT bool operator<=(
     const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
     const opentxs::Identifier& rhs);
-bool operator>=(
+OPENTXS_EXPORT bool operator>=(
     const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
     const opentxs::Identifier& rhs);
 #endif
@@ -58,13 +58,13 @@ class Nym : virtual public opentxs::Identifier
 {
 public:
 #ifndef SWIG
-    EXPORT static OTNymID Factory();
-    EXPORT static OTNymID Factory(const std::string& rhs);
-    EXPORT static OTNymID Factory(const String& rhs);
-    EXPORT static OTNymID Factory(const identity::Nym& nym);
+    OPENTXS_EXPORT static OTNymID Factory();
+    OPENTXS_EXPORT static OTNymID Factory(const std::string& rhs);
+    OPENTXS_EXPORT static OTNymID Factory(const String& rhs);
+    OPENTXS_EXPORT static OTNymID Factory(const identity::Nym& nym);
 #endif
 
-    EXPORT ~Nym() override = default;
+    OPENTXS_EXPORT ~Nym() override = default;
 
 protected:
     Nym() = default;

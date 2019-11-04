@@ -56,12 +56,12 @@ extern const char* OT_BEGIN_SIGNED_escaped;
 class Armored : virtual public String
 {
 public:
-    [[deprecated("Use api::Factory::Armored")]] EXPORT static opentxs::Pimpl<
-        opentxs::Armored>
-    Factory();
-    [[deprecated("Use api::Factory::Armored")]] EXPORT static opentxs::Pimpl<
-        opentxs::Armored>
-    Factory(const String& in);
+    [[deprecated("Use api::Factory::Armored")]] OPENTXS_EXPORT static opentxs::
+        Pimpl<opentxs::Armored>
+        Factory();
+    [[deprecated("Use api::Factory::Armored")]] OPENTXS_EXPORT static opentxs::
+        Pimpl<opentxs::Armored>
+        Factory(const String& in);
 
     /** Let's say you don't know if the input string is raw base64, or if it has
      * bookends on it like -----BEGIN BLAH BLAH ... And if it DOES have
@@ -73,26 +73,28 @@ public:
      * str_bookend is a default. You could make it more specific like,
      * -----BEGIN ENCRYPTED KEY (or whatever.)
      */
-    EXPORT static bool LoadFromString(
+    OPENTXS_EXPORT static bool LoadFromString(
         Armored& ascArmor,
         const String& strInput,
         std::string str_bookend = "-----BEGIN");
 
-    EXPORT virtual bool GetData(Data& theData, bool bLineBreaks = true)
+    OPENTXS_EXPORT virtual bool GetData(Data& theData, bool bLineBreaks = true)
         const = 0;
-    EXPORT virtual bool GetString(String& theData, bool bLineBreaks = true)
-        const = 0;
+    OPENTXS_EXPORT virtual bool GetString(
+        String& theData,
+        bool bLineBreaks = true) const = 0;
     // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER" There's
     // no default, to force you to enter the right string.
     // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER" There's
     // no default, to force you to enter the right string.
-    EXPORT virtual bool WriteArmoredString(
+    OPENTXS_EXPORT virtual bool WriteArmoredString(
         String& strOutput,
         const std::string str_type,
         bool bEscaped = false) const = 0;
 
-    EXPORT virtual bool LoadFrom_ifstream(std::ifstream& fin) = 0;
-    EXPORT virtual bool LoadFromExactPath(const std::string& filename) = 0;
+    OPENTXS_EXPORT virtual bool LoadFrom_ifstream(std::ifstream& fin) = 0;
+    OPENTXS_EXPORT virtual bool LoadFromExactPath(
+        const std::string& filename) = 0;
     // This code reads up the string, discards the bookends, and saves only the
     // gibberish itself. the bEscaped option allows you to load a normal
     // ASCII-Armored file if off, and allows you to load an escaped
@@ -101,20 +103,21 @@ public:
     //
     // str_override determines where the content starts, when loading.
     // "-----BEGIN" is the default "content start" substr.
-    EXPORT virtual bool LoadFromString(
+    OPENTXS_EXPORT virtual bool LoadFromString(
         String& theStr,
         bool bEscaped = false,
         const std::string str_override = "-----BEGIN") = 0;
-    EXPORT virtual bool SaveTo_ofstream(std::ofstream& fout) = 0;
-    EXPORT virtual bool SaveToExactPath(const std::string& filename) = 0;
-    EXPORT virtual bool SetData(
+    OPENTXS_EXPORT virtual bool SaveTo_ofstream(std::ofstream& fout) = 0;
+    OPENTXS_EXPORT virtual bool SaveToExactPath(
+        const std::string& filename) = 0;
+    OPENTXS_EXPORT virtual bool SetData(
         const Data& theData,
         bool bLineBreaks = true) = 0;
-    EXPORT virtual bool SetString(
+    OPENTXS_EXPORT virtual bool SetString(
         const String& theData,
         bool bLineBreaks = true) = 0;
 
-    EXPORT ~Armored() override = default;
+    OPENTXS_EXPORT ~Armored() override = default;
 
 protected:
     friend OTArmored;

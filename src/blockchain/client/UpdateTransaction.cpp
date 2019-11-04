@@ -18,24 +18,26 @@
 
 namespace opentxs
 {
-blockchain::client::internal::UpdateTransaction* Factory::UpdateTransaction()
+blockchain::client::internal::UpdateTransaction* Factory::UpdateTransaction(
+    const api::Core& api)
 {
     using ReturnType = blockchain::client::implementation::UpdateTransaction;
 
-    return new ReturnType;
+    return new ReturnType(api);
 }
 }  // namespace opentxs
 
 namespace opentxs::blockchain::client::implementation
 {
-UpdateTransaction::UpdateTransaction()
+UpdateTransaction::UpdateTransaction(const api::Core& api)
     : internal::UpdateTransaction()
+    , api_(api)
     , is_best_(false)
     , have_reorg_(false)
     , have_checkpoint_(false)
-    , tip_(make_blank<block::Position>::value())
-    , reorg_from_(make_blank<block::Position>::value())
-    , checkpoint_(make_blank<block::Position>::value())
+    , tip_(make_blank<block::Position>::value(api))
+    , reorg_from_(make_blank<block::Position>::value(api))
+    , checkpoint_(make_blank<block::Position>::value(api))
     , headers_()
     , reorg_()
     , add_sib_()
@@ -67,7 +69,7 @@ void UpdateTransaction::AddSibling(const block::Position& position)
 void UpdateTransaction::ClearCheckpoint()
 {
     have_checkpoint_ = true;
-    checkpoint_ = make_blank<block::Position>::value();
+    checkpoint_ = make_blank<block::Position>::value(api_);
 }
 
 void UpdateTransaction::ConnectBlock(ChainSegment&& segment)

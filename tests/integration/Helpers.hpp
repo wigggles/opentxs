@@ -44,8 +44,12 @@ struct Server {
     const ot::api::server::Manager* api_{nullptr};
     bool init_{false};
     const ot::OTServerID id_{ot::identifier::Server::Factory()};
-    const std::shared_ptr<const ot::ServerContract> contract_{nullptr};
     const std::string password_;
+
+    ot::OTServerContract Contract() const
+    {
+        return api_->Wallet().Server(id_, Reason());
+    }
 
     ot::OTPasswordPrompt Reason() const
     {
@@ -63,8 +67,6 @@ struct Server {
 #endif
         api_ = &api;
         const_cast<ot::OTServerID&>(id_) = api.ID();
-        const_cast<std::shared_ptr<const ot::ServerContract>&>(contract_) =
-            api.Wallet().Server(id_, Reason());
 
         {
             const auto section = ot::String::Factory("permissions");
@@ -78,7 +80,6 @@ struct Server {
             const_cast<std::string&>(password_) = value->Get();
         }
 
-        OT_ASSERT(contract_);
         OT_ASSERT(false == id_->empty());
         OT_ASSERT(false == password_.empty());
 
@@ -165,14 +166,9 @@ struct User {
         const ot::api::client::Manager& api,
         const Server& server)
     {
-        OT_ASSERT(server.contract_);
-
         auto clientVersion =
-            api.Wallet().Server(server.contract_->PublicContract(), Reason());
-
-        OT_ASSERT(clientVersion)
-
-        api.OTX().SetIntroductionServer(*clientVersion);
+            api.Wallet().Server(server.Contract()->PublicContract(), Reason());
+        api.OTX().SetIntroductionServer(clientVersion);
     }
 
     void init(

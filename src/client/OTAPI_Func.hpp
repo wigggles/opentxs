@@ -196,11 +196,6 @@ public:
 
     SendResult LastSendResult() const final { return {}; }
     const std::shared_ptr<Message> Reply() const final { return {}; }
-    const std::shared_ptr<PeerReply> SentPeerReply() const final { return {}; }
-    const std::shared_ptr<PeerRequest> SentPeerRequest() const final
-    {
-        return {};
-    }
 
     std::string Run(const std::size_t totalRetries = 2) final;
 
@@ -252,8 +247,6 @@ private:
     ServerContext& context_;
     CommandResult last_attempt_;
     const bool is_transaction_{false};
-    std::shared_ptr<PeerReply> peer_reply_;
-    std::shared_ptr<PeerRequest> peer_request_;
     Amount activationPrice_{0};
     Amount adjustment_{0};
     Amount amount_{0};

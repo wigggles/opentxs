@@ -9,9 +9,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/Contract.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/identity/Nym.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -19,186 +16,89 @@
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+class Unit : virtual public opentxs::contract::Signable
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class UnitDefinition : public Signable
-{
-private:
-    typedef Signable ot_super;
-
-    const std::string primary_unit_name_;
-    const std::string short_name_;
-
-    proto::UnitDefinition contract(const Lock& lock) const;
-    OTIdentifier GetID(const Lock& lock) const override;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const override;
-
-    static const std::map<VersionNumber, VersionNumber>
-        unit_of_account_version_map_;
-
-protected:
-    const api::internal::Core& api_;
-    const std::string primary_unit_symbol_;
-    const proto::ContactItemType unit_of_account_;
-
-    static OTIdentifier GetID(
-        const api::internal::Core& api,
-        const proto::UnitDefinition& contract);
-
-    virtual proto::UnitDefinition IDVersion(const Lock& lock) const;
-    virtual proto::UnitDefinition SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const override;
-
-    bool update_signature(const Lock& lock, const PasswordPrompt& reason)
-        override;
-
-    UnitDefinition(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::UnitDefinition serialized);
-    UnitDefinition(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::string& shortname,
-        const std::string& name,
-        const std::string& symbol,
-        const std::string& terms,
-        const proto::ContactItemType unitOfAccount,
-        const VersionNumber version);
-
 public:
-    EXPORT static const VersionNumber DefaultVersion;
-    EXPORT static const VersionNumber MaxVersion;
+    using SerializedType = proto::UnitDefinition;
 
-    EXPORT static UnitDefinition* Create(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::string& shortname,
-        const std::string& name,
-        const std::string& symbol,
-        const std::string& terms,
-        const std::string& tla,
-        const std::uint32_t power,
-        const std::string& fraction,
-        const proto::ContactItemType unitOfAccount,
-        const PasswordPrompt& reason,
-        const VersionNumber version);
-    EXPORT static UnitDefinition* Create(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::string& shortname,
-        const std::string& name,
-        const std::string& symbol,
-        const std::string& terms,
-        const std::uint64_t weight,
-        const proto::ContactItemType unitOfAccount,
-        const VersionNumber version);
-    EXPORT static UnitDefinition* Create(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const std::string& shortname,
-        const std::string& name,
-        const std::string& symbol,
-        const std::string& terms,
-        const proto::ContactItemType unitOfAccount,
-        const PasswordPrompt& reason,
-        const VersionNumber version);
-    EXPORT static UnitDefinition* Factory(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::UnitDefinition& serialized,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber MaxVersion;
 
-    EXPORT static std::set<proto::ContactItemType> ValidUnits(
-        const VersionNumber version = DefaultVersion) noexcept;
-
-    // Some instrument definitions keep a list of "user" accounts (the
-    // complete set of that type.)
-    // This is called when the user creates a new asset account, in order to add
-    // it to that list.
-    // (Currently only operational for "shares", not "currencies", since it's
-    // used exclusively for the payment of dividends.)
-
-    // adds the account to the list. (When account is created.)
-    EXPORT bool AddAccountRecord(
-        const std::string& dataFolder,
-        const Account& theAccount) const;
-
-    // removes the account from the list. (When account is deleted.)
-    EXPORT bool EraseAccountRecord(
-        const std::string& dataFolder,
-        const Identifier& theAcctID) const;
-
-    EXPORT bool VisitAccountRecords(
-        const std::string& dataFolder,
-        AccountVisitor& visitor,
-        const PasswordPrompt& reason) const;
-
-    EXPORT static std::string formatLongAmount(
-        std::int64_t lValue,
-        std::int32_t nFactor = 100,
-        std::int32_t nPower = 2,
+    OPENTXS_EXPORT static std::string formatLongAmount(
+        const Amount lValue,
+        const std::int32_t nFactor = 100,
+        const std::int32_t nPower = 2,
         const char* szCurrencySymbol = "",
         const char* szThousandSeparator = ",",
         const char* szDecimalPoint = ".");
-    EXPORT static bool ParseFormatted(
-        std::int64_t& lResult,
+    OPENTXS_EXPORT static bool ParseFormatted(
+        Amount& lResult,
         const std::string& str_input,
-        std::int32_t nFactor = 100,
-        std::int32_t nPower = 2,
+        const std::int32_t nFactor = 100,
+        const std::int32_t nPower = 2,
         const char* szThousandSeparator = ",",
         const char* szDecimalPoint = ".");
-    EXPORT const std::string& GetCurrencyName() const
-    {
-        return primary_unit_name_;
-    }
-    EXPORT const std::string& GetCurrencySymbol() const
-    {
-        return primary_unit_symbol_;
-    }
+    OPENTXS_EXPORT static std::set<proto::ContactItemType> ValidUnits(
+        const VersionNumber version = DefaultVersion) noexcept;
 
-    EXPORT virtual bool DisplayStatistics(String& strContents) const;
-    EXPORT proto::UnitDefinition Contract() const;
-    EXPORT bool FormatAmountLocale(
-        std::int64_t amount,
+    OPENTXS_EXPORT virtual bool AddAccountRecord(
+        const std::string& dataFolder,
+        const Account& theAccount) const = 0;
+    OPENTXS_EXPORT virtual SerializedType Contract() const = 0;
+    OPENTXS_EXPORT virtual std::int32_t DecimalPower() const = 0;
+    OPENTXS_EXPORT virtual bool DisplayStatistics(
+        String& strContents) const = 0;
+    OPENTXS_EXPORT virtual bool EraseAccountRecord(
+        const std::string& dataFolder,
+        const Identifier& theAcctID) const = 0;
+    OPENTXS_EXPORT virtual bool FormatAmountLocale(
+        Amount amount,
         std::string& str_output,
         const std::string& str_thousand,
-        const std::string& str_decimal) const;
-    EXPORT bool FormatAmountWithoutSymbolLocale(
-        std::int64_t amount,
+        const std::string& str_decimal) const = 0;
+    OPENTXS_EXPORT virtual bool FormatAmountWithoutSymbolLocale(
+        Amount amount,
         std::string& str_output,
         const std::string& str_thousand,
-        const std::string& str_decimal) const;
-    EXPORT bool StringToAmountLocale(
-        std::int64_t& amount,
+        const std::string& str_decimal) const = 0;
+    OPENTXS_EXPORT virtual std::string FractionalUnitName() const = 0;
+    OPENTXS_EXPORT virtual const std::string& GetCurrencyName() const = 0;
+    OPENTXS_EXPORT virtual const std::string& GetCurrencySymbol() const = 0;
+    OPENTXS_EXPORT virtual SerializedType PublicContract() const = 0;
+    OPENTXS_EXPORT virtual bool StringToAmountLocale(
+        Amount& amount,
         const std::string& str_input,
         const std::string& str_thousand,
-        const std::string& str_decimal) const;
-    EXPORT OTData Serialize() const override;
-    EXPORT std::string Name() const override { return short_name_; }
-    EXPORT proto::UnitDefinition PublicContract() const;
-    EXPORT virtual std::int32_t DecimalPower() const { return 0; }
-    EXPORT virtual std::string FractionalUnitName() const { return ""; }
-    EXPORT virtual std::string TLA() const { return short_name_; }
+        const std::string& str_decimal) const = 0;
+    OPENTXS_EXPORT virtual std::string TLA() const = 0;
+    OPENTXS_EXPORT virtual proto::UnitType Type() const = 0;
+    OPENTXS_EXPORT virtual proto::ContactItemType UnitOfAccount() const = 0;
+    OPENTXS_EXPORT virtual bool VisitAccountRecords(
+        const std::string& dataFolder,
+        AccountVisitor& visitor,
+        const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual proto::UnitType Type() const = 0;
-    EXPORT proto::ContactItemType UnitOfAccount() const
-    {
-        return unit_of_account_;
-    }
-    EXPORT void SetAlias(const std::string& alias) override;
+    OPENTXS_EXPORT virtual void InitAlias(const std::string& alias) = 0;
 
-    EXPORT ~UnitDefinition() override = default;
+    OPENTXS_EXPORT ~Unit() override = default;
+
+protected:
+    Unit() noexcept = default;
+
+private:
+    friend OTUnitDefinition;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Unit* clone() const noexcept override = 0;
+#endif
+
+    Unit(const Unit&) = delete;
+    Unit(Unit&&) = delete;
+    Unit& operator=(const Unit&) = delete;
+    Unit& operator=(Unit&&) = delete;
 };
+}  // namespace contract
 }  // namespace opentxs
 #endif

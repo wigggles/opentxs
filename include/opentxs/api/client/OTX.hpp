@@ -38,28 +38,28 @@ public:
     using BackgroundTask = std::pair<TaskID, Future>;
     using Finished = std::shared_future<void>;
 
-    EXPORT virtual BackgroundTask AcknowledgeBailment(
+    OPENTXS_EXPORT virtual BackgroundTask AcknowledgeBailment(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
         const Identifier& requestID,
         const std::string& instructions,
         const SetID setID = {}) const = 0;
-    EXPORT virtual BackgroundTask AcknowledgeNotice(
+    OPENTXS_EXPORT virtual BackgroundTask AcknowledgeNotice(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& recipientID,
         const Identifier& requestID,
         const bool ack,
         const SetID setID = {}) const = 0;
-    EXPORT virtual BackgroundTask AcknowledgeOutbailment(
+    OPENTXS_EXPORT virtual BackgroundTask AcknowledgeOutbailment(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& recipientID,
         const Identifier& requestID,
         const std::string& details,
         const SetID setID = {}) const = 0;
-    EXPORT virtual BackgroundTask AcknowledgeConnection(
+    OPENTXS_EXPORT virtual BackgroundTask AcknowledgeConnection(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& recipientID,
@@ -70,30 +70,30 @@ public:
         const std::string& password,
         const std::string& key,
         const SetID setID = {}) const = 0;
-    EXPORT virtual bool AutoProcessInboxEnabled() const = 0;
-    EXPORT virtual Depositability CanDeposit(
+    OPENTXS_EXPORT virtual bool AutoProcessInboxEnabled() const = 0;
+    OPENTXS_EXPORT virtual Depositability CanDeposit(
         const identifier::Nym& recipientNymID,
         const OTPayment& payment) const = 0;
-    EXPORT virtual Depositability CanDeposit(
+    OPENTXS_EXPORT virtual Depositability CanDeposit(
         const identifier::Nym& recipientNymID,
         const Identifier& accountID,
         const OTPayment& payment) const = 0;
-    EXPORT virtual Messagability CanMessage(
+    OPENTXS_EXPORT virtual Messagability CanMessage(
         const identifier::Nym& senderNymID,
         const Identifier& recipientContactID,
         const bool startIntroductionServer = true) const = 0;
-    EXPORT virtual bool CheckTransactionNumbers(
+    OPENTXS_EXPORT virtual bool CheckTransactionNumbers(
         const identifier::Nym& nym,
         const identifier::Server& serverID,
         const std::size_t quantity) const = 0;
-    EXPORT virtual Finished ContextIdle(
+    OPENTXS_EXPORT virtual Finished ContextIdle(
         const identifier::Nym& nym,
         const identifier::Server& server) const = 0;
     /** Deposit all available cheques for specified nym
      *
      *  \returns the number of cheques queued for deposit
      */
-    EXPORT virtual std::size_t DepositCheques(
+    OPENTXS_EXPORT virtual std::size_t DepositCheques(
         const identifier::Nym& nymID) const = 0;
     /** Deposit the specified list of cheques for specified nym
      *
@@ -101,55 +101,55 @@ public:
      *
      *  \returns the number of cheques queued for deposit
      */
-    EXPORT virtual std::size_t DepositCheques(
+    OPENTXS_EXPORT virtual std::size_t DepositCheques(
         const identifier::Nym& nymID,
         const std::set<OTIdentifier>& chequeIDs) const = 0;
-    EXPORT virtual BackgroundTask DepositPayment(
+    OPENTXS_EXPORT virtual BackgroundTask DepositPayment(
         const identifier::Nym& recipientNymID,
         const std::shared_ptr<const OTPayment>& payment) const = 0;
-    EXPORT virtual BackgroundTask DepositPayment(
+    OPENTXS_EXPORT virtual BackgroundTask DepositPayment(
         const identifier::Nym& recipientNymID,
         const Identifier& accountID,
         const std::shared_ptr<const OTPayment>& payment) const = 0;
     /** Used by unit tests */
-    EXPORT virtual void DisableAutoaccept() const = 0;
+    OPENTXS_EXPORT virtual void DisableAutoaccept() const = 0;
 #if OT_CASH
-    EXPORT virtual BackgroundTask DownloadMint(
+    OPENTXS_EXPORT virtual BackgroundTask DownloadMint(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit) const = 0;
 #endif
-    EXPORT virtual BackgroundTask DownloadNym(
+    OPENTXS_EXPORT virtual BackgroundTask DownloadNym(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID) const = 0;
-    EXPORT virtual BackgroundTask DownloadNymbox(
+    OPENTXS_EXPORT virtual BackgroundTask DownloadNymbox(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const = 0;
-    EXPORT virtual BackgroundTask DownloadServerContract(
+    OPENTXS_EXPORT virtual BackgroundTask DownloadServerContract(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Server& contractID) const = 0;
-    EXPORT virtual BackgroundTask DownloadUnitDefinition(
+    OPENTXS_EXPORT virtual BackgroundTask DownloadUnitDefinition(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& contractID) const = 0;
-    EXPORT virtual BackgroundTask FindNym(
+    OPENTXS_EXPORT virtual BackgroundTask FindNym(
         const identifier::Nym& nymID) const = 0;
-    EXPORT virtual BackgroundTask FindNym(
+    OPENTXS_EXPORT virtual BackgroundTask FindNym(
         const identifier::Nym& nymID,
         const identifier::Server& serverIDHint) const = 0;
-    EXPORT virtual BackgroundTask FindServer(
+    OPENTXS_EXPORT virtual BackgroundTask FindServer(
         const identifier::Server& serverID) const = 0;
-    EXPORT virtual BackgroundTask FindUnitDefinition(
+    OPENTXS_EXPORT virtual BackgroundTask FindUnitDefinition(
         const identifier::UnitDefinition& unit) const = 0;
-    EXPORT virtual BackgroundTask InitiateBailment(
+    OPENTXS_EXPORT virtual BackgroundTask InitiateBailment(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
         const identifier::UnitDefinition& instrumentDefinitionID,
         const SetID setID = {}) const = 0;
-    EXPORT virtual BackgroundTask InitiateOutbailment(
+    OPENTXS_EXPORT virtual BackgroundTask InitiateOutbailment(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
@@ -157,13 +157,13 @@ public:
         const Amount amount,
         const std::string& message,
         const SetID setID = {}) const = 0;
-    EXPORT virtual BackgroundTask InitiateRequestConnection(
+    OPENTXS_EXPORT virtual BackgroundTask InitiateRequestConnection(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
         const proto::ConnectionInfoType& type,
         const SetID setID = {}) const = 0;
-    EXPORT virtual BackgroundTask InitiateStoreSecret(
+    OPENTXS_EXPORT virtual BackgroundTask InitiateStoreSecret(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
@@ -171,21 +171,22 @@ public:
         const std::string& primary,
         const std::string& secondary,
         const SetID setID = {}) const = 0;
-    EXPORT virtual const identifier::Server& IntroductionServer() const = 0;
-    EXPORT virtual BackgroundTask IssueUnitDefinition(
+    OPENTXS_EXPORT virtual const identifier::Server& IntroductionServer()
+        const = 0;
+    OPENTXS_EXPORT virtual BackgroundTask IssueUnitDefinition(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& unitID,
         const proto::ContactItemType advertise = proto::CITEMTYPE_ERROR,
         const std::string& label = "") const = 0;
-    EXPORT virtual BackgroundTask MessageContact(
+    OPENTXS_EXPORT virtual BackgroundTask MessageContact(
         const identifier::Nym& senderNymID,
         const Identifier& contactID,
         const std::string& message,
         const SetID setID = {}) const = 0;
-    EXPORT virtual std::pair<ThreadStatus, MessageID> MessageStatus(
+    OPENTXS_EXPORT virtual std::pair<ThreadStatus, MessageID> MessageStatus(
         const TaskID taskID) const = 0;
-    EXPORT virtual BackgroundTask NotifyBailment(
+    OPENTXS_EXPORT virtual BackgroundTask NotifyBailment(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::Nym& targetNymID,
@@ -194,44 +195,44 @@ public:
         const std::string& txid,
         const Amount amount,
         const SetID setID = {}) const = 0;
-    EXPORT virtual BackgroundTask PayContact(
+    OPENTXS_EXPORT virtual BackgroundTask PayContact(
         const identifier::Nym& senderNymID,
         const Identifier& contactID,
         std::shared_ptr<const OTPayment> payment) const = 0;
 #if OT_CASH
-    EXPORT virtual BackgroundTask PayContactCash(
+    OPENTXS_EXPORT virtual BackgroundTask PayContactCash(
         const identifier::Nym& senderNymID,
         const Identifier& contactID,
         const Identifier& workflowID) const = 0;
 #endif  // OT_CASH
-    EXPORT virtual BackgroundTask ProcessInbox(
+    OPENTXS_EXPORT virtual BackgroundTask ProcessInbox(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& accountID) const = 0;
-    EXPORT virtual BackgroundTask PublishServerContract(
+    OPENTXS_EXPORT virtual BackgroundTask PublishServerContract(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& contractID) const = 0;
-    EXPORT virtual void Refresh() const = 0;
-    EXPORT virtual std::uint64_t RefreshCount() const = 0;
-    EXPORT virtual BackgroundTask RegisterAccount(
+    OPENTXS_EXPORT virtual void Refresh() const = 0;
+    OPENTXS_EXPORT virtual std::uint64_t RefreshCount() const = 0;
+    OPENTXS_EXPORT virtual BackgroundTask RegisterAccount(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const identifier::UnitDefinition& unitID,
         const std::string& label = "") const = 0;
-    EXPORT virtual BackgroundTask RegisterNym(
+    OPENTXS_EXPORT virtual BackgroundTask RegisterNym(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const bool resync = false) const = 0;
-    EXPORT virtual BackgroundTask RegisterNymPublic(
+    OPENTXS_EXPORT virtual BackgroundTask RegisterNymPublic(
         const identifier::Nym& nymID,
         const identifier::Server& server,
         const bool setContactData,
         const bool forcePrimary = false,
         const bool resync = false) const = 0;
-    EXPORT virtual OTServerID SetIntroductionServer(
-        const ServerContract& contract) const = 0;
-    EXPORT virtual BackgroundTask SendCheque(
+    OPENTXS_EXPORT virtual OTServerID SetIntroductionServer(
+        const contract::Server& contract) const = 0;
+    OPENTXS_EXPORT virtual BackgroundTask SendCheque(
         const identifier::Nym& localNymID,
         const Identifier& sourceAccountID,
         const Identifier& recipientContactID,
@@ -240,32 +241,32 @@ public:
         const Time validFrom = Clock::now(),
         const Time validTo =
             (Clock::now() + std::chrono::hours(OT_CHEQUE_HOURS))) const = 0;
-    EXPORT virtual BackgroundTask SendExternalTransfer(
+    OPENTXS_EXPORT virtual BackgroundTask SendExternalTransfer(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& sourceAccountID,
         const Identifier& targetAccountID,
         const Amount value,
         const std::string& memo) const = 0;
-    EXPORT virtual BackgroundTask SendTransfer(
+    OPENTXS_EXPORT virtual BackgroundTask SendTransfer(
         const identifier::Nym& localNymID,
         const identifier::Server& serverID,
         const Identifier& sourceAccountID,
         const Identifier& targetAccountID,
         const Amount value,
         const std::string& memo) const = 0;
-    EXPORT virtual void StartIntroductionServer(
+    OPENTXS_EXPORT virtual void StartIntroductionServer(
         const identifier::Nym& localNymID) const = 0;
-    EXPORT virtual ThreadStatus Status(const TaskID taskID) const = 0;
+    OPENTXS_EXPORT virtual ThreadStatus Status(const TaskID taskID) const = 0;
 #if OT_CASH
-    EXPORT virtual BackgroundTask WithdrawCash(
+    OPENTXS_EXPORT virtual BackgroundTask WithdrawCash(
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
         const Identifier& account,
         const Amount value) const = 0;
 #endif
 
-    EXPORT virtual ~OTX() = default;
+    OPENTXS_EXPORT virtual ~OTX() = default;
 
 protected:
     OTX() = default;

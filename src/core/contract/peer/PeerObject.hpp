@@ -26,14 +26,8 @@ public:
 #if OT_CASH
     std::shared_ptr<blind::Purse> Purse() const override { return purse_; }
 #endif
-    const std::shared_ptr<const PeerRequest> Request() const override
-    {
-        return request_;
-    }
-    const std::shared_ptr<const PeerReply> Reply() const override
-    {
-        return reply_;
-    }
+    const OTPeerRequest Request() const override { return request_; }
+    const OTPeerReply Reply() const override { return reply_; }
     proto::PeerObject Serialize(const PasswordPrompt& reason) const override;
     proto::PeerObjectType Type() const override { return type_; }
     bool Validate(const PasswordPrompt& reason) const override;
@@ -53,8 +47,8 @@ private:
     Nym_p nym_{nullptr};
     std::unique_ptr<std::string> message_{nullptr};
     std::unique_ptr<std::string> payment_{nullptr};
-    std::shared_ptr<const PeerReply> reply_{nullptr};
-    std::shared_ptr<const PeerRequest> request_{nullptr};
+    OTPeerReply reply_{nullptr};
+    OTPeerRequest request_{nullptr};
 #if OT_CASH
     std::shared_ptr<blind::Purse> purse_{nullptr};
 #endif
@@ -86,13 +80,13 @@ private:
         const PasswordPrompt& reason);
     Object(
         const api::internal::Core& api,
-        const std::shared_ptr<const PeerRequest> request,
-        const std::shared_ptr<const PeerReply> reply,
+        const OTPeerRequest request,
+        const OTPeerReply reply,
         const VersionNumber version,
         const PasswordPrompt& reason);
     Object(
         const api::internal::Core& api,
-        const std::shared_ptr<const PeerRequest> request,
+        const OTPeerRequest request,
         const VersionNumber version,
         const PasswordPrompt& reason);
     Object(
@@ -100,8 +94,8 @@ private:
         const Nym_p& nym,
         const std::string& message,
         const std::string& payment,
-        const std::shared_ptr<const PeerReply> reply,
-        const std::shared_ptr<const PeerRequest> request,
+        const OTPeerReply reply,
+        const OTPeerRequest request,
 #if OT_CASH
         const std::shared_ptr<blind::Purse> purse,
 #endif

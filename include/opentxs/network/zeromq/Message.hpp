@@ -33,23 +33,25 @@ namespace zeromq
 class Message
 {
 public:
-    EXPORT static Pimpl<Message> Factory();
+    OPENTXS_EXPORT static Pimpl<Message> Factory();
 
-    EXPORT virtual const Frame& at(const std::size_t index) const = 0;
-    EXPORT virtual FrameIterator begin() const = 0;
-    EXPORT virtual const FrameSection Body() const = 0;
-    EXPORT virtual const Frame& Body_at(const std::size_t index) const = 0;
-    EXPORT virtual FrameIterator Body_begin() const = 0;
-    EXPORT virtual FrameIterator Body_end() const = 0;
-    EXPORT virtual FrameIterator end() const = 0;
-    EXPORT virtual const FrameSection Header() const = 0;
-    EXPORT virtual const Frame& Header_at(const std::size_t index) const = 0;
-    EXPORT virtual FrameIterator Header_begin() const = 0;
-    EXPORT virtual FrameIterator Header_end() const = 0;
-    EXPORT virtual std::size_t size() const = 0;
+    OPENTXS_EXPORT virtual const Frame& at(const std::size_t index) const = 0;
+    OPENTXS_EXPORT virtual FrameIterator begin() const = 0;
+    OPENTXS_EXPORT virtual const FrameSection Body() const = 0;
+    OPENTXS_EXPORT virtual const Frame& Body_at(
+        const std::size_t index) const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Body_begin() const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Body_end() const = 0;
+    OPENTXS_EXPORT virtual FrameIterator end() const = 0;
+    OPENTXS_EXPORT virtual const FrameSection Header() const = 0;
+    OPENTXS_EXPORT virtual const Frame& Header_at(
+        const std::size_t index) const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Header_begin() const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Header_end() const = 0;
+    OPENTXS_EXPORT virtual std::size_t size() const = 0;
 
-    EXPORT virtual Frame& AddFrame() = 0;
-    EXPORT virtual Frame& AddFrame(const ProtobufType& input) = 0;
+    OPENTXS_EXPORT virtual Frame& AddFrame() = 0;
+    OPENTXS_EXPORT virtual Frame& AddFrame(const ProtobufType& input) = 0;
 #ifndef SWIG
     template <
         typename Input,
@@ -59,32 +61,32 @@ public:
         std::enable_if_t<
             std::is_integral<decltype(std::declval<Input&>().size())>::value,
             int> = 0>
-    EXPORT Frame& AddFrame(const Input& input)
+    OPENTXS_EXPORT Frame& AddFrame(const Input& input)
     {
         return AddFrame(input.data(), input.size());
     }
     template <
         typename Input,
         std::enable_if_t<std::is_trivially_copyable<Input>::value, int> = 0>
-    EXPORT Frame& AddFrame(const Input& input)
+    OPENTXS_EXPORT Frame& AddFrame(const Input& input)
     {
         return AddFrame(&input, sizeof(input));
     }
     template <typename Input>
-    EXPORT Frame& AddFrame(const Pimpl<Input>& input)
+    OPENTXS_EXPORT Frame& AddFrame(const Pimpl<Input>& input)
     {
         return AddFrame(input.get());
     }
 #endif
-    EXPORT virtual Frame& AddFrame(
+    OPENTXS_EXPORT virtual Frame& AddFrame(
         const void* input,
         const std::size_t size) = 0;
-    EXPORT virtual Frame& at(const std::size_t index) = 0;
+    OPENTXS_EXPORT virtual Frame& at(const std::size_t index) = 0;
 
-    EXPORT virtual void EnsureDelimiter() = 0;
-    EXPORT virtual void PrependEmptyFrame() = 0;
+    OPENTXS_EXPORT virtual void EnsureDelimiter() = 0;
+    OPENTXS_EXPORT virtual void PrependEmptyFrame() = 0;
 
-    EXPORT virtual ~Message() = default;
+    OPENTXS_EXPORT virtual ~Message() = default;
 
 protected:
     Message() = default;
@@ -95,7 +97,7 @@ private:
 #ifdef _WIN32
 public:
 #endif
-    EXPORT virtual Message* clone() const = 0;
+    OPENTXS_EXPORT virtual Message* clone() const = 0;
 #ifdef _WIN32
 private:
 #endif

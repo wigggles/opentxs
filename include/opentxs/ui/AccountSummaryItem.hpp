@@ -26,12 +26,12 @@ namespace ui
 class AccountSummaryItem : virtual public ListRow
 {
 public:
-    EXPORT virtual std::string AccountID() const noexcept = 0;
-    EXPORT virtual Amount Balance() const noexcept = 0;
-    EXPORT virtual std::string DisplayBalance() const noexcept = 0;
-    EXPORT virtual std::string Name() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string AccountID() const noexcept = 0;
+    OPENTXS_EXPORT virtual Amount Balance() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayBalance() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Name() const noexcept = 0;
 
-    EXPORT ~AccountSummaryItem() override = default;
+    OPENTXS_EXPORT ~AccountSummaryItem() override = default;
 
 protected:
     AccountSummaryItem() noexcept = default;

@@ -25,28 +25,29 @@ public:
     using Denomination = std::uint64_t;
     using MintSeries = std::uint64_t;
 
-    EXPORT virtual std::string ID(const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool IsSpent(const PasswordPrompt& reason) const = 0;
-    EXPORT virtual const identifier::Server& Notary() const = 0;
-    EXPORT virtual proto::Token Serialize() const = 0;
-    EXPORT virtual MintSeries Series() const = 0;
-    EXPORT virtual proto::TokenState State() const = 0;
-    EXPORT virtual proto::CashType Type() const = 0;
-    EXPORT virtual const identifier::UnitDefinition& Unit() const = 0;
-    EXPORT virtual Time ValidFrom() const = 0;
-    EXPORT virtual Time ValidTo() const = 0;
-    EXPORT virtual Denomination Value() const = 0;
+    OPENTXS_EXPORT virtual std::string ID(
+        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual bool IsSpent(const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual const identifier::Server& Notary() const = 0;
+    OPENTXS_EXPORT virtual proto::Token Serialize() const = 0;
+    OPENTXS_EXPORT virtual MintSeries Series() const = 0;
+    OPENTXS_EXPORT virtual proto::TokenState State() const = 0;
+    OPENTXS_EXPORT virtual proto::CashType Type() const = 0;
+    OPENTXS_EXPORT virtual const identifier::UnitDefinition& Unit() const = 0;
+    OPENTXS_EXPORT virtual Time ValidFrom() const = 0;
+    OPENTXS_EXPORT virtual Time ValidTo() const = 0;
+    OPENTXS_EXPORT virtual Denomination Value() const = 0;
 
-    EXPORT virtual bool ChangeOwner(
+    OPENTXS_EXPORT virtual bool ChangeOwner(
         crypto::key::Symmetric& key,
         const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool MarkSpent(const PasswordPrompt& reason) = 0;
-    EXPORT virtual bool Process(
+    OPENTXS_EXPORT virtual bool MarkSpent(const PasswordPrompt& reason) = 0;
+    OPENTXS_EXPORT virtual bool Process(
         const identity::Nym& owner,
         const Mint& mint,
         const PasswordPrompt& reason) = 0;
 
-    EXPORT virtual ~Token() = default;
+    OPENTXS_EXPORT virtual ~Token() = default;
 
 protected:
     Token() = default;
@@ -54,7 +55,7 @@ protected:
 private:
     friend OTToken;
 
-    EXPORT virtual Token* clone() const noexcept = 0;
+    OPENTXS_EXPORT virtual Token* clone() const noexcept = 0;
 
     Token(const Token&) = delete;
     Token(Token&&) = delete;

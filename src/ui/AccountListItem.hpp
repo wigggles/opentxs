@@ -51,9 +51,18 @@ private:
     const AccountType type_;
     const proto::ContactItemType unit_;
     const Amount balance_;
-    const std::shared_ptr<const UnitDefinition> contract_;
-    const std::shared_ptr<const ServerContract> notary_;
+    const OTUnitDefinition contract_;
+    const OTServerContract notary_;
     const std::string name_;
+
+    static OTServerContract load_server(
+        const api::Core& api,
+        const identifier::Server& id,
+        const PasswordPrompt& reason);
+    static OTUnitDefinition load_unit(
+        const api::Core& api,
+        const identifier::UnitDefinition& id,
+        const PasswordPrompt& reason);
 
     AccountListItem(
         const PasswordPrompt& reason,

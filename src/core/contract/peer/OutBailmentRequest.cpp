@@ -5,30 +5,100 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/core/String.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/Log.hpp"
 
+#include "core/contract/peer/PeerRequest.hpp"
 #include "internal/api/Api.hpp"
+
+#include "OutBailmentRequest.hpp"
 
 #define CURRENT_VERSION 4
 
 namespace opentxs
 {
-OutBailmentRequest::OutBailmentRequest(
+using ParentType = contract::peer::implementation::Request;
+using ReturnType = contract::peer::request::implementation::Outbailment;
+
+auto Factory::OutbailmentRequest(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::PeerRequest& serialized)
-    : ot_super(api, nym, serialized, serialized.outbailment().instructions())
-    , unit_(api_.Factory().UnitID(serialized.outbailment().unitid()))
-    , server_(api_.Factory().ServerID(serialized.outbailment().serverid()))
-    , amount_(serialized.outbailment().amount())
+    const identifier::Nym& recipientID,
+    const identifier::UnitDefinition& unitID,
+    const identifier::Server& serverID,
+    const std::uint64_t& amount,
+    const std::string& terms,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::peer::request::Outbailment>
 {
+    try {
+        api.Wallet().UnitDefinition(unitID, reason);
+        auto output = std::make_shared<ReturnType>(
+            api, nym, recipientID, unitID, serverID, amount, terms);
+
+        OT_ASSERT(output);
+
+        auto& reply = *output;
+
+        if (false == ParentType::Finish(reply, reason)) { return {}; }
+
+        return std::move(output);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
 }
 
-OutBailmentRequest::OutBailmentRequest(
+auto Factory::OutbailmentRequest(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const proto::PeerRequest& serialized,
+    const opentxs::PasswordPrompt& reason) noexcept
+    -> std::shared_ptr<contract::peer::request::Outbailment>
+{
+    if (false == proto::Validate(serialized, VERBOSE)) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Invalid serialized request.")
+            .Flush();
+
+        return {};
+    }
+
+    try {
+        auto output = std::make_shared<ReturnType>(api, nym, serialized);
+
+        OT_ASSERT(output);
+
+        auto& contract = *output;
+        Lock lock(contract.lock_);
+
+        if (false == contract.validate(lock, reason)) {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid request.")
+                .Flush();
+
+            return {};
+        }
+
+        return std::move(output);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
+}
+}  // namespace opentxs
+
+namespace opentxs::contract::peer::request::implementation
+{
+Outbailment::Outbailment(
     const api::internal::Core& api,
     const Nym_p& nym,
     const identifier::Nym& recipientID,
@@ -36,23 +106,46 @@ OutBailmentRequest::OutBailmentRequest(
     const identifier::Server& serverID,
     const std::uint64_t& amount,
     const std::string& terms)
-    : ot_super(
+    : Request(
           api,
           nym,
           CURRENT_VERSION,
           recipientID,
           serverID,
-          terms,
-          proto::PEERREQUEST_OUTBAILMENT)
+          proto::PEERREQUEST_OUTBAILMENT,
+          terms)
     , unit_(unitID)
     , server_(serverID)
     , amount_(amount)
 {
+    Lock lock(lock_);
+    first_time_init(lock);
 }
 
-proto::PeerRequest OutBailmentRequest::IDVersion(const Lock& lock) const
+Outbailment::Outbailment(
+    const api::internal::Core& api,
+    const Nym_p& nym,
+    const SerializedType& serialized)
+    : Request(api, nym, serialized, serialized.outbailment().instructions())
+    , unit_(api_.Factory().UnitID(serialized.outbailment().unitid()))
+    , server_(api_.Factory().ServerID(serialized.outbailment().serverid()))
+    , amount_(serialized.outbailment().amount())
 {
-    auto contract = ot_super::IDVersion(lock);
+    Lock lock(lock_);
+    init_serialized(lock);
+}
+
+Outbailment::Outbailment(const Outbailment& rhs)
+    : Request(rhs)
+    , unit_(rhs.unit_)
+    , server_(rhs.server_)
+    , amount_(rhs.amount_)
+{
+}
+
+auto Outbailment::IDVersion(const Lock& lock) const -> SerializedType
+{
+    auto contract = Request::IDVersion(lock);
     auto& outbailment = *contract.mutable_outbailment();
     outbailment.set_version(version_);
     outbailment.set_unitid(String::Factory(unit_)->Get());
@@ -62,4 +155,4 @@ proto::PeerRequest OutBailmentRequest::IDVersion(const Lock& lock) const
 
     return contract;
 }
-}  // namespace opentxs
+}  // namespace opentxs::contract::peer::request::implementation

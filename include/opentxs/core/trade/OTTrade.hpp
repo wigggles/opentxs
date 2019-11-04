@@ -71,8 +71,8 @@ public:
         return originType::origin_market_offer;
     }
 
-    EXPORT bool VerifyOffer(OTOffer& offer) const;
-    EXPORT bool IssueTrade(
+    OPENTXS_EXPORT bool VerifyOffer(OTOffer& offer) const;
+    OPENTXS_EXPORT bool IssueTrade(
         OTOffer& offer,
         char stopSign = 0,
         std::int64_t stopPrice = 0);
@@ -140,8 +140,8 @@ public:
 
     inline std::int32_t GetCompletedCount() { return tradesAlreadyDone_; }
 
-    EXPORT std::int64_t GetAssetAcctClosingNum() const;
-    EXPORT std::int64_t GetCurrencyAcctClosingNum() const;
+    OPENTXS_EXPORT std::int64_t GetAssetAcctClosingNum() const;
+    OPENTXS_EXPORT std::int64_t GetCurrencyAcctClosingNum() const;
 
     // Return True if should stay on OTCron's list for more processing.
     // Return False if expired or otherwise should be removed.
@@ -183,7 +183,7 @@ public:
                    // serialization, this is where the
                    // ledger saves its contents
 
-    EXPORT ~OTTrade() override;
+    OPENTXS_EXPORT ~OTTrade() override;
 
 protected:
     void onFinalReceipt(

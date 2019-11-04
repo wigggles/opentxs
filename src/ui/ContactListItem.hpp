@@ -31,7 +31,7 @@ public:
     ~ContactListItem() override = default;
 
 protected:
-    ContactListSortKey key_{""};
+    ContactListSortKey key_;
 
     ContactListItem(
         const ContactListInternalInterface& parent,

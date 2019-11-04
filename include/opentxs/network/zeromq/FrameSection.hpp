@@ -31,18 +31,18 @@ public:
     using reference = Frame&;
     using iterator_category = std::forward_iterator_tag;
 
-    EXPORT const Frame& at(const std::size_t index) const;
-    EXPORT FrameIterator begin() const;
-    EXPORT FrameIterator end() const;
-    EXPORT std::size_t size() const;
+    OPENTXS_EXPORT const Frame& at(const std::size_t index) const;
+    OPENTXS_EXPORT FrameIterator begin() const;
+    OPENTXS_EXPORT FrameIterator end() const;
+    OPENTXS_EXPORT std::size_t size() const;
 
-    EXPORT FrameSection(
+    OPENTXS_EXPORT FrameSection(
         const Message* parent,
         std::size_t position,
         std::size_t size);
-    EXPORT FrameSection(const FrameSection&);
+    OPENTXS_EXPORT FrameSection(const FrameSection&);
 
-    EXPORT virtual ~FrameSection() = default;
+    OPENTXS_EXPORT virtual ~FrameSection() = default;
 
 protected:
     FrameSection() = default;

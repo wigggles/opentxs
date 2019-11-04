@@ -20,36 +20,40 @@ class ContactGroup
 public:
     typedef std::map<OTIdentifier, std::shared_ptr<ContactItem>> ItemMap;
 
-    ContactGroup(
+    OPENTXS_EXPORT ContactGroup(
         const std::string& nym,
         const proto::ContactSectionName section,
         const proto::ContactItemType type,
         const ItemMap& items);
-    ContactGroup(
+    OPENTXS_EXPORT ContactGroup(
         const std::string& nym,
         const proto::ContactSectionName section,
         const std::shared_ptr<ContactItem>& item);
-    ContactGroup(const ContactGroup&) = default;
-    ContactGroup(ContactGroup&&) = default;
+    OPENTXS_EXPORT ContactGroup(const ContactGroup&) = default;
+    OPENTXS_EXPORT ContactGroup(ContactGroup&&) = default;
 
-    ContactGroup operator+(const ContactGroup& rhs) const;
+    OPENTXS_EXPORT ContactGroup operator+(const ContactGroup& rhs) const;
 
-    ItemMap::const_iterator begin() const;
-    std::shared_ptr<ContactItem> Best() const;
-    std::shared_ptr<ContactItem> Claim(const Identifier& item) const;
-    bool HaveClaim(const Identifier& item) const;
-    ContactGroup AddItem(const std::shared_ptr<ContactItem>& item) const;
-    ContactGroup AddPrimary(const std::shared_ptr<ContactItem>& item) const;
-    ContactGroup Delete(const Identifier& id) const;
-    ItemMap::const_iterator end() const;
-    const Identifier& Primary() const;
-    std::shared_ptr<ContactItem> PrimaryClaim() const;
-    bool SerializeTo(proto::ContactSection& section, const bool withIDs = false)
-        const;
-    std::size_t Size() const;
-    const proto::ContactItemType& Type() const;
+    OPENTXS_EXPORT ItemMap::const_iterator begin() const;
+    OPENTXS_EXPORT std::shared_ptr<ContactItem> Best() const;
+    OPENTXS_EXPORT std::shared_ptr<ContactItem> Claim(
+        const Identifier& item) const;
+    OPENTXS_EXPORT bool HaveClaim(const Identifier& item) const;
+    OPENTXS_EXPORT ContactGroup
+    AddItem(const std::shared_ptr<ContactItem>& item) const;
+    OPENTXS_EXPORT ContactGroup
+    AddPrimary(const std::shared_ptr<ContactItem>& item) const;
+    OPENTXS_EXPORT ContactGroup Delete(const Identifier& id) const;
+    OPENTXS_EXPORT ItemMap::const_iterator end() const;
+    OPENTXS_EXPORT const Identifier& Primary() const;
+    OPENTXS_EXPORT std::shared_ptr<ContactItem> PrimaryClaim() const;
+    OPENTXS_EXPORT bool SerializeTo(
+        proto::ContactSection& section,
+        const bool withIDs = false) const;
+    OPENTXS_EXPORT std::size_t Size() const;
+    OPENTXS_EXPORT const proto::ContactItemType& Type() const;
 
-    ~ContactGroup() = default;
+    OPENTXS_EXPORT ~ContactGroup() = default;
 
 private:
     const std::string nym_{};

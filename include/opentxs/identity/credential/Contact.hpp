@@ -32,12 +32,12 @@ namespace credential
 class Contact : virtual public Base
 {
 public:
-    EXPORT static std::string ClaimID(
+    OPENTXS_EXPORT static std::string ClaimID(
         const api::internal::Core& api,
         const std::string& nymid,
         const std::uint32_t section,
         const proto::ContactItem& item);
-    EXPORT static std::string ClaimID(
+    OPENTXS_EXPORT static std::string ClaimID(
         const api::internal::Core& api,
         const std::string& nymid,
         const proto::ContactSectionName section,
@@ -46,16 +46,16 @@ public:
         const std::int64_t end,
         const std::string& value,
         const std::string& subtype);
-    EXPORT static OTIdentifier ClaimID(
+    OPENTXS_EXPORT static OTIdentifier ClaimID(
         const api::internal::Core& api,
         const proto::Claim& preimage);
-    EXPORT static Claim asClaim(
+    OPENTXS_EXPORT static Claim asClaim(
         const api::internal::Core& api,
         const String& nymid,
         const std::uint32_t section,
         const proto::ContactItem& item);
 
-    EXPORT ~Contact() override = default;
+    OPENTXS_EXPORT ~Contact() override = default;
 
 protected:
     Contact() noexcept {}  // TODO Signable

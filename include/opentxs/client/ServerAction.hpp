@@ -20,15 +20,13 @@ namespace client
 class [[deprecated]] ServerAction
 {
 public:
-    EXPORT virtual SendResult LastSendResult() const = 0;
-    EXPORT virtual const std::shared_ptr<PeerRequest> SentPeerRequest()
-        const = 0;
-    EXPORT virtual const std::shared_ptr<PeerReply> SentPeerReply() const = 0;
-    EXPORT virtual const std::shared_ptr<Message> Reply() const = 0;
+    OPENTXS_EXPORT virtual SendResult LastSendResult() const = 0;
+    OPENTXS_EXPORT virtual const std::shared_ptr<Message> Reply() const = 0;
 
-    EXPORT virtual std::string Run(const std::size_t totalRetries = 2) = 0;
+    OPENTXS_EXPORT virtual std::string Run(
+        const std::size_t totalRetries = 2) = 0;
 
-    EXPORT virtual ~ServerAction() = default;
+    OPENTXS_EXPORT virtual ~ServerAction() = default;
 
 protected:
     ServerAction() = default;

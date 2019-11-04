@@ -109,99 +109,112 @@ public:
     };  // If you add any types to this list, update the list of strings at the
     // top of the .CPP file.
 
-    EXPORT static const char* _GetTypeString(paymentType theType);
+    OPENTXS_EXPORT static const char* _GetTypeString(paymentType theType);
 
-    EXPORT static paymentType GetTypeFromString(const String& strType);
+    OPENTXS_EXPORT static paymentType GetTypeFromString(const String& strType);
 
-    EXPORT bool GetAllTransactionNumbers(
+    OPENTXS_EXPORT bool GetAllTransactionNumbers(
         NumList& numlistOutput,
         const PasswordPrompt& reason) const;
     // Once you "Instantiate" the first time, then these values are set, if
     // available, and can be queried thereafter from *this. Otherwise, these
     // functions will return false.
-    EXPORT bool GetAmount(Amount& lOutput) const;
+    OPENTXS_EXPORT bool GetAmount(Amount& lOutput) const;
     // Only works for payment plans and smart contracts. Gets the opening
     // transaction number for a given Nym, if applicable. (Or closing number for
     // a given asset account.)
-    EXPORT bool GetClosingNum(
+    OPENTXS_EXPORT bool GetClosingNum(
         TransactionNumber& lOutput,
         const Identifier& theAcctID,
         const PasswordPrompt& reason) const;
-    EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;
-    EXPORT bool GetMemo(String& strOutput) const;
-    EXPORT bool GetNotaryID(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool GetInstrumentDefinitionID(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool GetMemo(String& strOutput) const;
+    OPENTXS_EXPORT bool GetNotaryID(Identifier& theOutput) const;
     // Only works for payment plans and smart contracts. Gets the opening
     // transaction number for a given Nym, if applicable. (Or closing number for
     // a given asset account.)
-    EXPORT bool GetOpeningNum(
+    OPENTXS_EXPORT bool GetOpeningNum(
         TransactionNumber& lOutput,
         const identifier::Nym& theNymID,
         const PasswordPrompt& reason) const;
-    EXPORT bool GetPaymentContents(String& strOutput) const
+    OPENTXS_EXPORT bool GetPaymentContents(String& strOutput) const
     {
         strOutput.Set(m_strPayment->Get());
         return true;
     }
-    EXPORT bool GetRecipientAcctID(Identifier& theOutput) const;
-    EXPORT bool GetRecipientNymID(identifier::Nym& theOutput) const;
-    EXPORT bool GetRemitterAcctID(Identifier& theOutput) const;
-    EXPORT bool GetRemitterNymID(identifier::Nym& theOutput) const;
-    EXPORT bool GetSenderAcctID(Identifier& theOutput) const;
-    EXPORT bool GetSenderAcctIDForDisplay(Identifier& theOutput) const;
-    EXPORT bool GetSenderNymID(identifier::Nym& theOutput) const;
-    EXPORT bool GetSenderNymIDForDisplay(identifier::Nym& theOutput) const;
-    EXPORT bool GetTransactionNum(TransactionNumber& lOutput) const;
-    EXPORT bool GetTransNumDisplay(TransactionNumber& lOutput) const;
-    EXPORT paymentType GetType() const { return m_Type; }
-    EXPORT const char* GetTypeString() const { return _GetTypeString(m_Type); }
-    EXPORT bool GetValidFrom(Time& tOutput) const;
-    EXPORT bool GetValidTo(Time& tOutput) const;
-    EXPORT bool HasTransactionNum(
+    OPENTXS_EXPORT bool GetRecipientAcctID(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool GetRecipientNymID(identifier::Nym& theOutput) const;
+    OPENTXS_EXPORT bool GetRemitterAcctID(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool GetRemitterNymID(identifier::Nym& theOutput) const;
+    OPENTXS_EXPORT bool GetSenderAcctID(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool GetSenderAcctIDForDisplay(Identifier& theOutput) const;
+    OPENTXS_EXPORT bool GetSenderNymID(identifier::Nym& theOutput) const;
+    OPENTXS_EXPORT bool GetSenderNymIDForDisplay(
+        identifier::Nym& theOutput) const;
+    OPENTXS_EXPORT bool GetTransactionNum(TransactionNumber& lOutput) const;
+    OPENTXS_EXPORT bool GetTransNumDisplay(TransactionNumber& lOutput) const;
+    OPENTXS_EXPORT paymentType GetType() const { return m_Type; }
+    OPENTXS_EXPORT const char* GetTypeString() const
+    {
+        return _GetTypeString(m_Type);
+    }
+    OPENTXS_EXPORT bool GetValidFrom(Time& tOutput) const;
+    OPENTXS_EXPORT bool GetValidTo(Time& tOutput) const;
+    OPENTXS_EXPORT bool HasTransactionNum(
         const TransactionNumber& lInput,
         const PasswordPrompt& reason) const;
-    EXPORT OTTrackable* Instantiate(const PasswordPrompt& reason) const;
-    EXPORT OTTrackable* Instantiate(
+    OPENTXS_EXPORT OTTrackable* Instantiate(const PasswordPrompt& reason) const;
+    OPENTXS_EXPORT OTTrackable* Instantiate(
         const String& strPayment,
         const PasswordPrompt& reason);
-    EXPORT OTTransaction* InstantiateNotice(const PasswordPrompt& reason) const;
-    EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
-    EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
-    EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
-    EXPORT bool IsPaymentPlan() const { return (PAYMENT_PLAN == m_Type); }
-    EXPORT bool IsSmartContract() const { return (SMART_CONTRACT == m_Type); }
-    EXPORT bool IsNotice() const { return (NOTICE == m_Type); }
-    EXPORT bool IsValid() const { return (ERROR_STATE != m_Type); }
-    EXPORT const String& Payment() const { return m_strPayment; }
+    OPENTXS_EXPORT OTTransaction* InstantiateNotice(
+        const PasswordPrompt& reason) const;
+    OPENTXS_EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
+    OPENTXS_EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
+    OPENTXS_EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
+    OPENTXS_EXPORT bool IsPaymentPlan() const
+    {
+        return (PAYMENT_PLAN == m_Type);
+    }
+    OPENTXS_EXPORT bool IsSmartContract() const
+    {
+        return (SMART_CONTRACT == m_Type);
+    }
+    OPENTXS_EXPORT bool IsNotice() const { return (NOTICE == m_Type); }
+    OPENTXS_EXPORT bool IsValid() const { return (ERROR_STATE != m_Type); }
+    OPENTXS_EXPORT const String& Payment() const { return m_strPayment; }
 
-    EXPORT bool IsCancelledCheque(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool IsCancelledCheque(const PasswordPrompt& reason);
     // Verify whether the CURRENT date is AFTER the the "VALID TO" date.
-    EXPORT bool IsExpired(bool& bExpired);
-    EXPORT void InitPayment();
-    EXPORT OTTransaction* InstantiateNotice(
+    OPENTXS_EXPORT bool IsExpired(bool& bExpired);
+    OPENTXS_EXPORT void InitPayment();
+    OPENTXS_EXPORT OTTransaction* InstantiateNotice(
         const String& strNotice,
         const PasswordPrompt& reason);
-    EXPORT std::int32_t ProcessXMLNode(
+    OPENTXS_EXPORT std::int32_t ProcessXMLNode(
         irr::io::IrrXMLReader*& xml,
         const PasswordPrompt& reason) override;
-    EXPORT void Release() override;
-    EXPORT void Release_Payment();
-    EXPORT bool SetPayment(const String& strPayment);
-    EXPORT bool SetTempRecipientNymID(const identifier::Nym& id);
+    OPENTXS_EXPORT void Release() override;
+    OPENTXS_EXPORT void Release_Payment();
+    OPENTXS_EXPORT bool SetPayment(const String& strPayment);
+    OPENTXS_EXPORT bool SetTempRecipientNymID(const identifier::Nym& id);
     // Since the temp values are not available until at least ONE instantiating
     // has occured, this function forces that very scenario (cleanly) so you
     // don't have to instantiate-and-then-delete a payment instrument. Instead,
     // just call this, and then the temp values will be available thereafter.
-    EXPORT bool SetTempValues(const PasswordPrompt& reason);
-    EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
-    EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
-    EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
-    EXPORT bool SetTempValuesFromNotice(
+    OPENTXS_EXPORT bool SetTempValues(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
+    OPENTXS_EXPORT bool SetTempValuesFromPaymentPlan(
+        const OTPaymentPlan& theInput);
+    OPENTXS_EXPORT bool SetTempValuesFromSmartContract(
+        const OTSmartContract& theInput);
+    OPENTXS_EXPORT bool SetTempValuesFromNotice(
         const OTTransaction& theInput,
         const PasswordPrompt& reason);
     // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
-    EXPORT bool VerifyCurrentDate(bool& bVerified);
+    OPENTXS_EXPORT bool VerifyCurrentDate(bool& bVerified);
 
-    EXPORT ~OTPayment() override;
+    OPENTXS_EXPORT ~OTPayment() override;
 
 protected:
     // Contains the cheque / payment plan / etc in string form.
@@ -261,8 +274,10 @@ private:
 
     using ot_super = Contract;
 
-    EXPORT OTPayment(const api::internal::Core& api);
-    EXPORT OTPayment(const api::internal::Core& api, const String& strPayment);
+    OPENTXS_EXPORT OTPayment(const api::internal::Core& api);
+    OPENTXS_EXPORT OTPayment(
+        const api::internal::Core& api,
+        const String& strPayment);
 
     OTPayment() = delete;
 };

@@ -38,7 +38,7 @@ namespace zeromq
 class Frame
 {
 public:
-    EXPORT virtual operator std::string() const = 0;
+    OPENTXS_EXPORT virtual operator std::string() const = 0;
 
 #ifndef SWIG
     template <
@@ -57,12 +57,12 @@ public:
     }
 #endif
 
-    EXPORT virtual const void* data() const = 0;
-    EXPORT virtual std::size_t size() const = 0;
+    OPENTXS_EXPORT virtual const void* data() const = 0;
+    OPENTXS_EXPORT virtual std::size_t size() const = 0;
 
-    EXPORT virtual operator zmq_msg_t*() = 0;
+    OPENTXS_EXPORT virtual operator zmq_msg_t*() = 0;
 
-    EXPORT virtual ~Frame() = default;
+    OPENTXS_EXPORT virtual ~Frame() = default;
 
 protected:
     Frame() = default;
@@ -70,7 +70,7 @@ protected:
 private:
     friend OTZMQFrame;
 
-    EXPORT virtual Frame* clone() const = 0;
+    OPENTXS_EXPORT virtual Frame* clone() const = 0;
 
     Frame(const Frame&) = delete;
     Frame(Frame&&) = delete;

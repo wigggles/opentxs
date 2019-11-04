@@ -45,6 +45,7 @@ public:
 private:
     friend opentxs::Factory;
 
+    const api::Core& api_;
     bool is_best_;
     bool have_reorg_;
     bool have_checkpoint_;
@@ -58,6 +59,6 @@ private:
     Segments connect_;
     Segments disconnected_;
 
-    UpdateTransaction();
+    UpdateTransaction(const api::Core& api);
 };
 }  // namespace opentxs::blockchain::client::implementation

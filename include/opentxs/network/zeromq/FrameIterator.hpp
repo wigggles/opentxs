@@ -38,21 +38,23 @@ public:
     using reference = Frame&;
     using iterator_category = std::forward_iterator_tag;
 
-    EXPORT FrameIterator();
-    EXPORT FrameIterator(const FrameIterator&);
-    EXPORT FrameIterator(FrameIterator&&);
-    EXPORT FrameIterator(const Message* parent, std::size_t position = 0);
-    EXPORT FrameIterator& operator=(const FrameIterator&);
+    OPENTXS_EXPORT FrameIterator();
+    OPENTXS_EXPORT FrameIterator(const FrameIterator&);
+    OPENTXS_EXPORT FrameIterator(FrameIterator&&);
+    OPENTXS_EXPORT FrameIterator(
+        const Message* parent,
+        std::size_t position = 0);
+    OPENTXS_EXPORT FrameIterator& operator=(const FrameIterator&);
 
-    EXPORT const opentxs::network::zeromq::Frame& operator*() const;
-    EXPORT bool operator==(const FrameIterator&) const;
-    EXPORT bool operator!=(const FrameIterator&) const;
+    OPENTXS_EXPORT const opentxs::network::zeromq::Frame& operator*() const;
+    OPENTXS_EXPORT bool operator==(const FrameIterator&) const;
+    OPENTXS_EXPORT bool operator!=(const FrameIterator&) const;
 
-    EXPORT opentxs::network::zeromq::Frame& operator*();
-    EXPORT FrameIterator& operator++();
-    EXPORT FrameIterator operator++(int);
+    OPENTXS_EXPORT opentxs::network::zeromq::Frame& operator*();
+    OPENTXS_EXPORT FrameIterator& operator++();
+    OPENTXS_EXPORT FrameIterator operator++(int);
 
-    EXPORT ~FrameIterator() = default;
+    OPENTXS_EXPORT ~FrameIterator() = default;
 
 private:
     std::atomic<std::size_t> position_{0};

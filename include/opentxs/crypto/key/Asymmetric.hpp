@@ -30,50 +30,51 @@ typedef std::list<Asymmetric*> listOfAsymmetricKeys;
 class Asymmetric
 {
 public:
-    EXPORT static const VersionNumber DefaultVersion;
-    EXPORT static const VersionNumber MaxVersion;
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber MaxVersion;
 
-    EXPORT static OTAsymmetricKey Factory();
+    OPENTXS_EXPORT static OTAsymmetricKey Factory();
 
-    EXPORT virtual OTData CalculateHash(
+    OPENTXS_EXPORT virtual OTData CalculateHash(
         const proto::HashType hashType,
         const PasswordPrompt& reason) const = 0;
     /** Only works for public keys. */
-    EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
-    EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
+    OPENTXS_EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
+    OPENTXS_EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
         const = 0;
-    EXPORT virtual const OTSignatureMetadata* GetMetadata() const = 0;
-    EXPORT virtual bool hasCapability(
+    OPENTXS_EXPORT virtual const OTSignatureMetadata* GetMetadata() const = 0;
+    OPENTXS_EXPORT virtual bool hasCapability(
         const NymCapability& capability) const = 0;
-    EXPORT virtual bool HasPrivate() const = 0;
-    EXPORT virtual bool HasPublic() const = 0;
-    EXPORT virtual proto::AsymmetricKeyType keyType() const = 0;
-    EXPORT virtual bool Open(
+    OPENTXS_EXPORT virtual bool HasPrivate() const = 0;
+    OPENTXS_EXPORT virtual bool HasPublic() const = 0;
+    OPENTXS_EXPORT virtual proto::AsymmetricKeyType keyType() const = 0;
+    OPENTXS_EXPORT virtual bool Open(
         crypto::key::Asymmetric& dhPublic,
         crypto::key::Symmetric& sessionKey,
         PasswordPrompt& sessionKeyPassword,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual const std::string Path() const = 0;
-    EXPORT virtual bool Path(proto::HDPath& output) const = 0;
-    EXPORT virtual const proto::KeyRole& Role() const = 0;
-    EXPORT virtual bool Seal(
+    OPENTXS_EXPORT virtual const std::string Path() const = 0;
+    OPENTXS_EXPORT virtual bool Path(proto::HDPath& output) const = 0;
+    OPENTXS_EXPORT virtual const proto::KeyRole& Role() const = 0;
+    OPENTXS_EXPORT virtual bool Seal(
         const opentxs::api::Core& api,
         OTAsymmetricKey& dhPublic,
         crypto::key::Symmetric& key,
         const PasswordPrompt& reason,
         PasswordPrompt& sessionPassword) const = 0;
-    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize() const = 0;
-    EXPORT virtual OTData SerializeKeyToData(
+    OPENTXS_EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize()
+        const = 0;
+    OPENTXS_EXPORT virtual OTData SerializeKeyToData(
         const proto::AsymmetricKey& rhs) const = 0;
-    EXPORT virtual proto::HashType SigHashType() const = 0;
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual proto::HashType SigHashType() const = 0;
+    OPENTXS_EXPORT virtual bool Sign(
         const Data& plaintext,
         proto::Signature& sig,
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
         const String& credID = String::Factory(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const = 0;
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
@@ -81,28 +82,29 @@ public:
         const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
-    EXPORT virtual bool TransportKey(
+    OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual VersionNumber Version() const = 0;
+    OPENTXS_EXPORT virtual VersionNumber Version() const = 0;
 
     // Only used for RSA keys
-    [[deprecated]] EXPORT virtual void Release() = 0;
-    [[deprecated]] EXPORT virtual void ReleaseKey() = 0;
+    [[deprecated]] OPENTXS_EXPORT virtual void Release() = 0;
+    [[deprecated]] OPENTXS_EXPORT virtual void ReleaseKey() = 0;
     /** Don't use this, normally it's not necessary. */
-    EXPORT virtual void SetAsPublic() = 0;
+    OPENTXS_EXPORT virtual void SetAsPublic() = 0;
     /** (Only if you really know what you are doing.) */
-    EXPORT virtual void SetAsPrivate() = 0;
+    OPENTXS_EXPORT virtual void SetAsPrivate() = 0;
 
-    EXPORT virtual operator bool() const = 0;
-    EXPORT virtual bool operator==(const proto::AsymmetricKey&) const = 0;
+    OPENTXS_EXPORT virtual operator bool() const = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const proto::AsymmetricKey&) const = 0;
 
-    EXPORT virtual ~Asymmetric() = default;
+    OPENTXS_EXPORT virtual ~Asymmetric() = default;
 
 protected:
     Asymmetric() = default;

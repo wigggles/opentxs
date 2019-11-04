@@ -33,12 +33,12 @@ class ReplyCallback
 public:
     using ReceiveCallback = std::function<OTZMQMessage(const Message&)>;
 
-    EXPORT static OTZMQReplyCallback Factory(ReceiveCallback callback);
+    OPENTXS_EXPORT static OTZMQReplyCallback Factory(ReceiveCallback callback);
 
-    EXPORT virtual Pimpl<opentxs::network::zeromq::Message> Process(
+    OPENTXS_EXPORT virtual Pimpl<opentxs::network::zeromq::Message> Process(
         const Message& message) const = 0;
 
-    EXPORT virtual ~ReplyCallback() = default;
+    OPENTXS_EXPORT virtual ~ReplyCallback() = default;
 
 protected:
     ReplyCallback() = default;

@@ -29,16 +29,16 @@ class ContactList;
 class ContactList : virtual public List
 {
 public:
-    EXPORT virtual std::string AddContact(
+    OPENTXS_EXPORT virtual std::string AddContact(
         const std::string& label,
         const std::string& paymentCode = "",
         const std::string& nymID = "") const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> First()
-        const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem> Next()
-        const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactListItem>
+    Next() const noexcept = 0;
 
-    EXPORT ~ContactList() override = default;
+    OPENTXS_EXPORT ~ContactList() override = default;
 
 protected:
     ContactList() noexcept = default;

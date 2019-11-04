@@ -20,25 +20,26 @@ namespace api
 class Core : virtual public Periodic
 {
 public:
-    EXPORT virtual const crypto::Asymmetric& Asymmetric() const = 0;
-    EXPORT virtual const api::Settings& Config() const = 0;
-    EXPORT virtual const api::Crypto& Crypto() const = 0;
-    EXPORT virtual const std::string& DataFolder() const = 0;
-    EXPORT virtual const api::Endpoints& Endpoints() const = 0;
-    EXPORT virtual const network::Dht& DHT() const = 0;
-    EXPORT virtual const api::Factory& Factory() const = 0;
-    EXPORT virtual int Instance() const = 0;
+    OPENTXS_EXPORT virtual const crypto::Asymmetric& Asymmetric() const = 0;
+    OPENTXS_EXPORT virtual const api::Settings& Config() const = 0;
+    OPENTXS_EXPORT virtual const api::Crypto& Crypto() const = 0;
+    OPENTXS_EXPORT virtual const std::string& DataFolder() const = 0;
+    OPENTXS_EXPORT virtual const api::Endpoints& Endpoints() const = 0;
+    OPENTXS_EXPORT virtual const network::Dht& DHT() const = 0;
+    OPENTXS_EXPORT virtual const api::Factory& Factory() const = 0;
+    OPENTXS_EXPORT virtual int Instance() const = 0;
 #if OT_CRYPTO_WITH_BIP39
-    EXPORT virtual const api::HDSeed& Seeds() const = 0;
+    OPENTXS_EXPORT virtual const api::HDSeed& Seeds() const = 0;
 #endif
-    EXPORT virtual void SetMasterKeyTimeout(
+    OPENTXS_EXPORT virtual void SetMasterKeyTimeout(
         const std::chrono::seconds& timeout) const = 0;
-    EXPORT virtual const storage::Storage& Storage() const = 0;
-    EXPORT virtual const crypto::Symmetric& Symmetric() const = 0;
-    EXPORT virtual const api::Wallet& Wallet() const = 0;
-    EXPORT virtual const opentxs::network::zeromq::Context& ZeroMQ() const = 0;
+    OPENTXS_EXPORT virtual const storage::Storage& Storage() const = 0;
+    OPENTXS_EXPORT virtual const crypto::Symmetric& Symmetric() const = 0;
+    OPENTXS_EXPORT virtual const api::Wallet& Wallet() const = 0;
+    OPENTXS_EXPORT virtual const opentxs::network::zeromq::Context& ZeroMQ()
+        const = 0;
 
-    EXPORT ~Core() override = default;
+    OPENTXS_EXPORT ~Core() override = default;
 
 protected:
     Core() = default;

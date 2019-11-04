@@ -22,35 +22,36 @@ using SerializedPaymentCode = std::shared_ptr<proto::PaymentCode>;
 class PaymentCode
 {
 public:
-    EXPORT static const VersionNumber DefaultVersion;
+    OPENTXS_EXPORT static const VersionNumber DefaultVersion;
 
-    EXPORT virtual bool operator==(const proto::PaymentCode& rhs) const = 0;
-    EXPORT virtual operator const crypto::key::Asymmetric&() const = 0;
+    OPENTXS_EXPORT virtual bool operator==(
+        const proto::PaymentCode& rhs) const = 0;
+    OPENTXS_EXPORT virtual operator const crypto::key::Asymmetric&() const = 0;
 
-    EXPORT virtual const OTNymID ID() const = 0;
-    EXPORT virtual const std::string asBase58() const = 0;
-    EXPORT virtual SerializedPaymentCode Serialize() const = 0;
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual const OTNymID ID() const = 0;
+    OPENTXS_EXPORT virtual const std::string asBase58() const = 0;
+    OPENTXS_EXPORT virtual SerializedPaymentCode Serialize() const = 0;
+    OPENTXS_EXPORT virtual bool Sign(
         const identity::credential::Base& credential,
         proto::Signature& sig,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool Sign(
+    OPENTXS_EXPORT virtual bool Sign(
         const Data& data,
         Data& output,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool VerifyInternally() const = 0;
-    EXPORT virtual bool Verify(
+    OPENTXS_EXPORT virtual bool VerifyInternally() const = 0;
+    OPENTXS_EXPORT virtual bool Verify(
         const proto::Credential& master,
         const proto::Signature& sourceSignature,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual VersionNumber Version() const = 0;
+    OPENTXS_EXPORT virtual VersionNumber Version() const = 0;
 
-    EXPORT virtual bool AddPrivateKeys(
+    OPENTXS_EXPORT virtual bool AddPrivateKeys(
         const std::string& seed,
         const Bip32Index index,
         const PasswordPrompt& reason) = 0;
 
-    EXPORT virtual ~PaymentCode() = default;
+    OPENTXS_EXPORT virtual ~PaymentCode() = default;
 
 protected:
     PaymentCode() = default;

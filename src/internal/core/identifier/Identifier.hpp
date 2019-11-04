@@ -15,16 +15,25 @@ namespace opentxs
 {
 template <>
 struct make_blank<OTNymID> {
-    static OTNymID value() { return identifier::Nym::Factory(); }
+    static OTNymID value(const api::Core&)
+    {
+        return identifier::Nym::Factory();
+    }
 };
 
 template <>
 struct make_blank<OTServerID> {
-    static OTServerID value() { return identifier::Server::Factory(); }
+    static OTServerID value(const api::Core&)
+    {
+        return identifier::Server::Factory();
+    }
 };
 
 template <>
 struct make_blank<OTUnitID> {
-    static OTUnitID value() { return identifier::UnitDefinition::Factory(); }
+    static OTUnitID value(const api::Core&)
+    {
+        return identifier::UnitDefinition::Factory();
+    }
 };
 }  // namespace opentxs

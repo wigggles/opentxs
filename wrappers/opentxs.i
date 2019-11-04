@@ -26,8 +26,8 @@
 %}
 
 /* Parse the header file to generate wrappers */
-#ifndef EXPORT
-#define EXPORT
+#ifndef OPENTXS_EXPORT
+#define OPENTXS_EXPORT
 #endif
 
 namespace std {

@@ -17,9 +17,9 @@ namespace opentxs::crypto
 class Secp256k1 : virtual public EcdsaProvider
 {
 public:
-    EXPORT virtual void Init() = 0;
+    OPENTXS_EXPORT virtual void Init() = 0;
 
-    EXPORT ~Secp256k1() override = default;
+    OPENTXS_EXPORT ~Secp256k1() override = default;
 
 protected:
     Secp256k1() = default;

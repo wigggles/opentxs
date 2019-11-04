@@ -19,28 +19,30 @@ public:
 
     // Returns the number of bytes SUBSEQUENT to first_byte
     // Possible output values are: 0, 2, 4, 8
-    static std::uint64_t CalculateSize(const std::byte first) noexcept;
+    OPENTXS_EXPORT static std::uint64_t CalculateSize(
+        const std::byte first) noexcept;
 
-    Bytes Encode() const noexcept;
-    std::uint64_t Value() const noexcept;
+    OPENTXS_EXPORT Bytes Encode() const noexcept;
+    OPENTXS_EXPORT std::uint64_t Value() const noexcept;
 
     // Initial marker byte should be omitted
     // Valid inputs are 0, 2, 4, or 8 bytes
-    bool Decode(const Bytes& bytes) noexcept;
+    OPENTXS_EXPORT bool Decode(const Bytes& bytes) noexcept;
 
-    CompactSize() noexcept = default;
-    explicit CompactSize(std::uint64_t value) noexcept;
+    OPENTXS_EXPORT CompactSize() noexcept = default;
+    OPENTXS_EXPORT explicit CompactSize(std::uint64_t value) noexcept;
     // Initial marker byte should be omitted
     // Valid inputs are 1, 2, 4, or 8 bytes
     // Throws std::invalid_argument for invalid input
-    CompactSize(const Bytes& bytes) noexcept(false);
-    CompactSize(const CompactSize&) noexcept = default;
-    CompactSize(CompactSize&&) noexcept = default;
-    CompactSize& operator=(const CompactSize&) noexcept = default;
-    CompactSize& operator=(CompactSize&&) noexcept = default;
-    CompactSize& operator=(const std::uint64_t rhs) noexcept;
+    OPENTXS_EXPORT CompactSize(const Bytes& bytes) noexcept(false);
+    OPENTXS_EXPORT CompactSize(const CompactSize&) noexcept = default;
+    OPENTXS_EXPORT CompactSize(CompactSize&&) noexcept = default;
+    OPENTXS_EXPORT CompactSize& operator=(const CompactSize&) noexcept =
+        default;
+    OPENTXS_EXPORT CompactSize& operator=(CompactSize&&) noexcept = default;
+    OPENTXS_EXPORT CompactSize& operator=(const std::uint64_t rhs) noexcept;
 
-    ~CompactSize() = default;
+    OPENTXS_EXPORT ~CompactSize() = default;
 
 private:
     std::uint64_t data_;

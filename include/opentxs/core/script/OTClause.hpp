@@ -32,13 +32,13 @@ class OTClause
 public:
     void SetBylaw(OTBylaw& theBylaw) { m_pBylaw = &theBylaw; }
 
-    EXPORT const String& GetName() const { return m_strName; }
+    OPENTXS_EXPORT const String& GetName() const { return m_strName; }
 
     OTBylaw* GetBylaw() const { return m_pBylaw; }
 
-    EXPORT const char* GetCode() const;
+    OPENTXS_EXPORT const char* GetCode() const;
 
-    EXPORT void SetCode(const std::string& str_code);
+    OPENTXS_EXPORT void SetCode(const std::string& str_code);
 
     bool Compare(const OTClause& rhs) const;
 

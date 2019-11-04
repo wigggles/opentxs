@@ -26,12 +26,12 @@ public:
         const opentxs::PasswordPrompt& reason) const final;
 #endif
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const std::shared_ptr<const PeerRequest> request,
-        const std::shared_ptr<const PeerReply> reply,
+        const OTPeerRequest request,
+        const OTPeerReply reply,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
-        const std::shared_ptr<const PeerRequest> request,
+        const OTPeerRequest request,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(

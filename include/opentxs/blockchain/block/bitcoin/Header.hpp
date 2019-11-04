@@ -22,13 +22,13 @@ namespace bitcoin
 class Header : virtual public block::Header
 {
 public:
-    EXPORT virtual OTData Encode() const noexcept = 0;
-    EXPORT virtual const block::Hash& MerkleRoot() const noexcept = 0;
-    EXPORT virtual std::uint32_t Nonce() const noexcept = 0;
-    EXPORT virtual Time Timestamp() const noexcept = 0;
-    EXPORT virtual std::uint32_t Version() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTData Encode() const noexcept = 0;
+    OPENTXS_EXPORT virtual const block::Hash& MerkleRoot() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::uint32_t Nonce() const noexcept = 0;
+    OPENTXS_EXPORT virtual Time Timestamp() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::uint32_t Version() const noexcept = 0;
 
-    EXPORT ~Header() override = default;
+    OPENTXS_EXPORT ~Header() override = default;
 
 protected:
     Header() noexcept = default;

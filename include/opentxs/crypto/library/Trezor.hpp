@@ -39,13 +39,13 @@ class Trezor : virtual public EncodingProvider,
 {
 public:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT virtual bool ECDH(
+    OPENTXS_EXPORT virtual bool ECDH(
         const Data& publicKey,
         const OTPassword& privateKey,
         OTPassword& secret) const = 0;
 #endif
 
-    EXPORT ~Trezor() override = default;
+    OPENTXS_EXPORT ~Trezor() override = default;
 
 protected:
     Trezor() = default;

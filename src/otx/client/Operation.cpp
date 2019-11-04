@@ -362,8 +362,8 @@ Operation::Operation(
     , redownload_accounts_()
     , numbers_()
     , error_count_(0)
-    , peer_reply_()
-    , peer_request_()
+    , peer_reply_(api_.Factory().PeerReply())
+    , peer_request_(api_.Factory().PeerRequest())
     , set_id_()
 {
 }
@@ -774,9 +774,9 @@ std::shared_ptr<Message> Operation::construct_download_contract()
 #if OT_CASH
 std::shared_ptr<Message> Operation::construct_download_mint()
 {
-    auto contract = api_.Wallet().UnitDefinition(target_unit_id_, reason_);
-
-    if (false == bool(contract)) {
+    try {
+        api_.Wallet().UnitDefinition(target_unit_id_, reason_);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid unit definition id");
 
         return {};
@@ -815,22 +815,24 @@ std::shared_ptr<Message> Operation::construct_issue_unit_definition()
         return {};
     }
 
-    auto contract = api_.Wallet().UnitDefinition(*unit_definition_, reason_);
+    try {
+        auto contract =
+            api_.Wallet().UnitDefinition(*unit_definition_, reason_);
 
-    if (false == bool(contract)) {
+        PREPARE_CONTEXT();
+        CREATE_MESSAGE(registerInstrumentDefinition, -1, true, true);
+
+        auto id = contract->ID();
+        id->GetString(message.m_strInstrumentDefinitionID);
+        message.m_ascPayload =
+            api_.Factory().Armored(contract->PublicContract());
+
+        FINISH_MESSAGE(__FUNCTION__, registerInstrumentDefinition);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid unit definition").Flush();
 
         return {};
     }
-
-    PREPARE_CONTEXT();
-    CREATE_MESSAGE(registerInstrumentDefinition, -1, true, true);
-
-    auto id = contract->ID();
-    id->GetString(message.m_strInstrumentDefinitionID);
-    message.m_ascPayload = api_.Factory().Armored(contract->PublicContract());
-
-    FINISH_MESSAGE(__FUNCTION__, registerInstrumentDefinition);
 }
 
 std::shared_ptr<Message> Operation::construct_publish_nym()
@@ -855,45 +857,46 @@ std::shared_ptr<Message> Operation::construct_publish_nym()
 
 std::shared_ptr<Message> Operation::construct_publish_server()
 {
-    const auto contract = api_.Wallet().Server(target_server_id_, reason_);
+    try {
+        const auto contract = api_.Wallet().Server(target_server_id_, reason_);
 
-    if (false == bool(contract)) {
+        PREPARE_CONTEXT();
+        CREATE_MESSAGE(registerContract, -1, true, true);
+
+        message.enum_ = static_cast<std::uint8_t>(ContractType::server);
+        message.m_ascPayload =
+            api_.Factory().Armored(contract->PublicContract());
+
+        FINISH_MESSAGE(__FUNCTION__, registerContract);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Server not found: ")(
             target_server_id_)
             .Flush();
 
         return {};
     }
-
-    PREPARE_CONTEXT();
-    CREATE_MESSAGE(registerContract, -1, true, true);
-
-    message.enum_ = static_cast<std::uint8_t>(ContractType::server);
-    message.m_ascPayload = api_.Factory().Armored(contract->PublicContract());
-
-    FINISH_MESSAGE(__FUNCTION__, registerContract);
 }
 
 std::shared_ptr<Message> Operation::construct_publish_unit()
 {
-    const auto contract =
-        api_.Wallet().UnitDefinition(target_unit_id_, reason_);
+    try {
+        const auto contract =
+            api_.Wallet().UnitDefinition(target_unit_id_, reason_);
 
-    if (false == bool(contract)) {
+        PREPARE_CONTEXT();
+        CREATE_MESSAGE(registerContract, -1, true, true);
+
+        message.enum_ = static_cast<std::uint8_t>(ContractType::unit);
+        message.m_ascPayload = api_.Factory().Armored(contract->Contract());
+
+        FINISH_MESSAGE(__FUNCTION__, registerContract);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unit definition not found: ")(
             target_unit_id_)
             .Flush();
 
         return {};
     }
-
-    PREPARE_CONTEXT();
-    CREATE_MESSAGE(registerContract, -1, true, true);
-
-    message.enum_ = static_cast<std::uint8_t>(ContractType::unit);
-    message.m_ascPayload = api_.Factory().Armored(contract->Contract());
-
-    FINISH_MESSAGE(__FUNCTION__, registerContract);
 }
 
 std::shared_ptr<Message> Operation::construct_process_inbox(
@@ -911,20 +914,20 @@ std::shared_ptr<Message> Operation::construct_process_inbox(
 
 std::shared_ptr<Message> Operation::construct_register_account()
 {
-    auto contract = api_.Wallet().UnitDefinition(target_unit_id_, reason_);
+    try {
+        api_.Wallet().UnitDefinition(target_unit_id_, reason_);
 
-    if (false == bool(contract)) {
+        PREPARE_CONTEXT();
+        CREATE_MESSAGE(registerAccount, -1, true, true);
+
+        message.m_strInstrumentDefinitionID = String::Factory(target_unit_id_);
+
+        FINISH_MESSAGE(__FUNCTION__, registerAccount);
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid unit definition id");
 
         return {};
     }
-
-    PREPARE_CONTEXT();
-    CREATE_MESSAGE(registerAccount, -1, true, true);
-
-    message.m_strInstrumentDefinitionID = String::Factory(target_unit_id_);
-
-    FINISH_MESSAGE(__FUNCTION__, registerAccount);
 }
 
 std::shared_ptr<Message> Operation::construct_register_nym()
@@ -1109,13 +1112,13 @@ std::shared_ptr<Message> Operation::construct_send_peer_reply()
         return {};
     }
 
-    if (false == bool(peer_reply_)) {
+    if (0 == peer_reply_->Version()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid reply.").Flush();
 
         return {};
     }
 
-    if (false == bool(peer_request_)) {
+    if (0 == peer_request_->Version()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request.").Flush();
 
         return {};
@@ -1169,7 +1172,7 @@ std::shared_ptr<Message> Operation::construct_send_peer_request()
         return {};
     }
 
-    if (false == bool(peer_request_)) {
+    if (0 == peer_request_->Version()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request.").Flush();
 
         return {};
@@ -2295,8 +2298,8 @@ void Operation::reset()
     redownload_accounts_.clear();
     numbers_.clear();
     error_count_ = 0;
-    peer_reply_.reset();
-    peer_request_.reset();
+    peer_reply_ = api_.Factory().PeerReply();
+    peer_request_ = api_.Factory().PeerRequest();
     set_id_ = {};
 }
 
@@ -2391,8 +2394,8 @@ bool Operation::SendMessage(
 
 bool Operation::SendPeerReply(
     const identifier::Nym& targetNymID,
-    const std::shared_ptr<const PeerReply> peerreply,
-    const std::shared_ptr<const PeerRequest> peerrequest)
+    const OTPeerReply peerreply,
+    const OTPeerRequest peerrequest)
 {
     START()
 
@@ -2405,7 +2408,7 @@ bool Operation::SendPeerReply(
 
 bool Operation::SendPeerRequest(
     const identifier::Nym& targetNymID,
-    const std::shared_ptr<const PeerRequest> peerrequest)
+    const OTPeerRequest peerrequest)
 {
     START()
 
@@ -2574,6 +2577,7 @@ bool Operation::state_machine()
     if (error_count_ > MAX_ERROR_COUNT) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error count exceeded").Flush();
         set_result({proto::LASTREPLYSTATUS_UNKNOWN, nullptr});
+        state_.store(State::Idle);
 
         return false;
     }

@@ -34,7 +34,7 @@ namespace socket
 class Request : virtual public curve::Client
 {
 public:
-    EXPORT std::pair<
+    OPENTXS_EXPORT std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
     Send(opentxs::Pimpl<opentxs::network::zeromq::Message>& message) const
@@ -42,7 +42,7 @@ public:
     {
         return send_request(message.get());
     }
-    EXPORT std::pair<
+    OPENTXS_EXPORT std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
     Send(Message& message) const noexcept
@@ -50,17 +50,17 @@ public:
         return send_request(message);
     }
     template <typename Input>
-    EXPORT std::pair<
+    OPENTXS_EXPORT std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
     Send(const Input& data) const noexcept
     {
         return send_request(Context().Message(data));
     }
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
+    OPENTXS_EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
         noexcept = 0;
 
-    EXPORT ~Request() override = default;
+    OPENTXS_EXPORT ~Request() override = default;
 
 protected:
     Request() noexcept = default;

@@ -15,12 +15,12 @@ namespace blockchain
 class BloomFilter
 {
 public:
-    EXPORT virtual OTData Serialize() const noexcept = 0;
-    EXPORT virtual bool Test(const Data& element) const noexcept = 0;
+    OPENTXS_EXPORT virtual OTData Serialize() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Test(const Data& element) const noexcept = 0;
 
-    EXPORT virtual void AddElement(const Data& element) noexcept = 0;
+    OPENTXS_EXPORT virtual void AddElement(const Data& element) noexcept = 0;
 
-    EXPORT virtual ~BloomFilter() = default;
+    OPENTXS_EXPORT virtual ~BloomFilter() = default;
 
 protected:
     BloomFilter() noexcept = default;

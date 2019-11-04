@@ -24,25 +24,28 @@ namespace network
 class ZMQ
 {
 public:
-    EXPORT virtual const opentxs::network::zeromq::Context& Context() const = 0;
-    EXPORT virtual proto::AddressType DefaultAddressType() const = 0;
-    EXPORT virtual std::chrono::seconds KeepAlive() const = 0;
-    EXPORT virtual void KeepAlive(
+    OPENTXS_EXPORT virtual const opentxs::network::zeromq::Context& Context()
+        const = 0;
+    OPENTXS_EXPORT virtual proto::AddressType DefaultAddressType() const = 0;
+    OPENTXS_EXPORT virtual std::chrono::seconds KeepAlive() const = 0;
+    OPENTXS_EXPORT virtual void KeepAlive(
         const std::chrono::seconds duration) const = 0;
-    EXPORT virtual std::chrono::seconds Linger() const = 0;
-    EXPORT virtual std::chrono::seconds ReceiveTimeout() const = 0;
-    EXPORT virtual const Flag& Running() const = 0;
-    EXPORT virtual void RefreshConfig() const = 0;
-    EXPORT virtual std::chrono::seconds SendTimeout() const = 0;
-    EXPORT virtual opentxs::network::ServerConnection& Server(
+    OPENTXS_EXPORT virtual std::chrono::seconds Linger() const = 0;
+    OPENTXS_EXPORT virtual std::chrono::seconds ReceiveTimeout() const = 0;
+    OPENTXS_EXPORT virtual const Flag& Running() const = 0;
+    OPENTXS_EXPORT virtual void RefreshConfig() const = 0;
+    OPENTXS_EXPORT virtual std::chrono::seconds SendTimeout() const = 0;
+    OPENTXS_EXPORT virtual opentxs::network::ServerConnection& Server(
         const std::string& id,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
-    EXPORT virtual std::string SocksProxy() const = 0;
-    EXPORT virtual bool SocksProxy(std::string& proxy) const = 0;
-    EXPORT virtual ConnectionState Status(const std::string& server) const = 0;
+    OPENTXS_EXPORT virtual bool SetSocksProxy(
+        const std::string& proxy) const = 0;
+    OPENTXS_EXPORT virtual std::string SocksProxy() const = 0;
+    OPENTXS_EXPORT virtual bool SocksProxy(std::string& proxy) const = 0;
+    OPENTXS_EXPORT virtual ConnectionState Status(
+        const std::string& server) const = 0;
 
-    EXPORT virtual ~ZMQ() = default;
+    OPENTXS_EXPORT virtual ~ZMQ() = default;
 
 protected:
     ZMQ() = default;

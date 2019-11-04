@@ -25,7 +25,7 @@ class Pimpl
 public:
     using interface_type = C;
 
-    explicit Pimpl(C* in) noexcept
+    OPENTXS_EXPORT explicit Pimpl(C* in) noexcept
         : pimpl_(in)
     {
         assert(pimpl_);
@@ -33,7 +33,7 @@ public:
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
-    Pimpl(const Pimpl& rhs) noexcept
+    OPENTXS_EXPORT Pimpl(const Pimpl& rhs) noexcept
         : pimpl_(
 #ifndef _WIN32
               rhs.pimpl_->clone()
@@ -46,7 +46,7 @@ public:
     }
 #pragma GCC diagnostic pop
 
-    Pimpl(const C& rhs) noexcept
+    OPENTXS_EXPORT Pimpl(const C& rhs) noexcept
         : pimpl_(
 #ifndef _WIN32
               rhs.clone()
@@ -58,7 +58,7 @@ public:
         assert(pimpl_);
     }
 
-    Pimpl(Pimpl&& rhs) noexcept
+    OPENTXS_EXPORT Pimpl(Pimpl&& rhs) noexcept
         : pimpl_(std::move(rhs.pimpl_))
     {
         assert(pimpl_);
@@ -66,7 +66,7 @@ public:
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
-    Pimpl& operator=(const Pimpl& rhs) noexcept
+    OPENTXS_EXPORT Pimpl& operator=(const Pimpl& rhs) noexcept
     {
         pimpl_.reset(
 #ifndef _WIN32
@@ -81,7 +81,7 @@ public:
     }
 #pragma GCC diagnostic pop
 
-    Pimpl& operator=(Pimpl&& rhs) noexcept
+    OPENTXS_EXPORT Pimpl& operator=(Pimpl&& rhs) noexcept
     {
         pimpl_ = std::move(rhs.pimpl_);
         assert(pimpl_);
@@ -89,7 +89,7 @@ public:
         return *this;
     }
 
-    Pimpl& operator=(const C& rhs) noexcept
+    OPENTXS_EXPORT Pimpl& operator=(const C& rhs) noexcept
     {
         pimpl_.reset(
 #ifndef _WIN32
@@ -103,19 +103,19 @@ public:
         return *this;
     }
 
-    operator C&() noexcept { return *pimpl_; }
-    operator const C&() const noexcept { return *pimpl_; }
+    OPENTXS_EXPORT operator C&() noexcept { return *pimpl_; }
+    OPENTXS_EXPORT operator const C&() const noexcept { return *pimpl_; }
 
-    C* operator->() { return pimpl_.get(); }
-    const C* operator->() const { return pimpl_.get(); }
+    OPENTXS_EXPORT C* operator->() { return pimpl_.get(); }
+    OPENTXS_EXPORT const C* operator->() const { return pimpl_.get(); }
 
-    C& get() noexcept { return *pimpl_; }
-    const C& get() const noexcept { return *pimpl_; }
+    OPENTXS_EXPORT C& get() noexcept { return *pimpl_; }
+    OPENTXS_EXPORT const C& get() const noexcept { return *pimpl_; }
 
-    ~Pimpl() = default;
+    OPENTXS_EXPORT ~Pimpl() = default;
 
 #ifdef SWIG_VERSION
-    Pimpl() = default;
+    OPENTXS_EXPORT Pimpl() = default;
 #endif
 
 private:

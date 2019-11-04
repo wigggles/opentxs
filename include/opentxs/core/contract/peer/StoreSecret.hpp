@@ -12,43 +12,34 @@
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class StoreSecret final : public PeerRequest
+namespace request
 {
-private:
-    typedef PeerRequest ot_super;
-    friend class PeerRequest;
-
-    proto::SecretType secret_type_;
-    std::string primary_;
-    std::string secondary_;
-
-    proto::PeerRequest IDVersion(const Lock& lock) const final;
-
-    StoreSecret(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequest& serialized);
-    StoreSecret(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const identifier::Nym& recipientID,
-        const proto::SecretType type,
-        const std::string& primary,
-        const std::string& secondary,
-        const identifier::Server& serverID);
-    StoreSecret() = delete;
-
+class StoreSecret : virtual public peer::Request
+{
 public:
-    ~StoreSecret() final = default;
-};
-}  // namespace opentxs
+    OPENTXS_EXPORT ~StoreSecret() override = default;
 
+protected:
+    StoreSecret() noexcept = default;
+
+private:
+    friend OTStoreSecret;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT StoreSecret* clone() const noexcept override = 0;
+#endif
+
+    StoreSecret(const StoreSecret&) = delete;
+    StoreSecret(StoreSecret&&) = delete;
+    StoreSecret& operator=(const StoreSecret&) = delete;
+    StoreSecret& operator=(StoreSecret&&) = delete;
+};
+}  // namespace request
+}  // namespace peer
+}  // namespace contract
+}  // namespace opentxs
 #endif

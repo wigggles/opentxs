@@ -474,7 +474,7 @@ TEST_F(Test_NymData, SocialMediaProfiles)
 TEST_F(Test_NymData, SocialMediaProfileTypes)
 {
     std::set<opentxs::proto::ContactItemType> profileTypes =
-        opentxs::proto::AllowedItemTypes.at(
+        opentxs::proto::AllowedItemTypes().at(
             opentxs::proto::ContactSectionVersion(
                 CONTACT_CONTACT_DATA_VERSION,
                 opentxs::proto::CONTACTSECTION_PROFILE));

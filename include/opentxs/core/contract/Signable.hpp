@@ -11,73 +11,48 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
-#include <cstdint>
-#include <list>
-#include <memory>
-#include <mutex>
 #include <string>
 
 namespace opentxs
 {
-using SerializedSignature = std::shared_ptr<proto::Signature>;
-
+namespace contract
+{
 class Signable
 {
 public:
-    virtual std::string Alias() const;
-    OTIdentifier ID() const;
-    virtual std::string Name() const = 0;
-    Nym_p Nym() const;
-    virtual const std::string& Terms() const;
-    virtual OTData Serialize() const = 0;
-    bool Validate(const PasswordPrompt& reason) const;
-    VersionNumber Version() const;
+    using Signature = std::shared_ptr<proto::Signature>;
 
-    virtual void SetAlias(const std::string& alias);
+    OPENTXS_EXPORT virtual std::string Alias() const = 0;
+    OPENTXS_EXPORT virtual OTIdentifier ID() const = 0;
+    OPENTXS_EXPORT virtual std::string Name() const = 0;
+    OPENTXS_EXPORT virtual Nym_p Nym() const = 0;
+    OPENTXS_EXPORT virtual const std::string& Terms() const = 0;
+    OPENTXS_EXPORT virtual OTData Serialize() const = 0;
+    OPENTXS_EXPORT virtual bool Validate(
+        const opentxs::PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual VersionNumber Version() const = 0;
 
-    virtual ~Signable() = default;
+    OPENTXS_EXPORT virtual void SetAlias(const std::string& alias) = 0;
+
+    OPENTXS_EXPORT virtual ~Signable() = default;
 
 protected:
-    using Signatures = std::list<SerializedSignature>;
+    Signable() noexcept = default;
 
-    std::string alias_;
-    OTIdentifier id_;
-    const Nym_p nym_;
-    Signatures signatures_;
-    VersionNumber version_ = 0;
-    std::string conditions_;  // Human-readable portion
-    mutable std::mutex lock_;
+private:
+#ifdef _WIN32
+public:
+#endif
+    OPENTXS_EXPORT virtual Signable* clone() const noexcept = 0;
+#ifdef _WIN32
+private:
+#endif
 
-    /** Calculate the ID and verify that it matches the existing id_ value */
-    bool CheckID(const Lock& lock) const;
-    virtual OTIdentifier id(const Lock& lock) const;
-    virtual bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const = 0;
-    virtual bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const;
-    bool verify_write_lock(const Lock& lock) const;
-
-    /** Calculate and unconditionally set id_ */
-    bool CalculateID(const Lock& lock);
-    virtual bool update_signature(
-        const Lock& lock,
-        const PasswordPrompt& reason);
-
-    /** Calculate identifier */
-    virtual OTIdentifier GetID(const Lock& lock) const = 0;
-
-    explicit Signable(const Nym_p& nym) noexcept;
-    Signable(const Nym_p& nym, const VersionNumber version) noexcept;
-    Signable(
-        const Nym_p& nym,
-        const VersionNumber version,
-        const std::string& conditions) noexcept;
     Signable(const Signable&) = delete;
     Signable(Signable&&) = delete;
     Signable& operator=(const Signable&) = delete;
     Signable& operator=(Signable&&) = delete;
 };
+}  // namespace contract
 }  // namespace opentxs
 #endif

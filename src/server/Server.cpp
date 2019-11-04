@@ -321,103 +321,98 @@ void Server::CreateMainFile(bool& mainFileExists)
         String::Factory(SERVER_CONFIG_NOTIFY_KEY),
         String::Factory(std::to_string(listenNotification)),
         notUsed);
-    std::list<ServerContract::Endpoint> endpoints;
+    auto endpoints = std::list<contract::Server::Endpoint>{};
     const bool useInproc = false == manager_.GetInproc().empty();
 
     if (useInproc) {
         LogNormal("Creating inproc contract for instance ")(
             manager_.GetInproc())
             .Flush();
-        ServerContract::Endpoint inproc{proto::ADDRESSTYPE_INPROC,
-                                        proto::PROTOCOLVERSION_LEGACY,
-                                        manager_.GetInproc(),
-                                        commandPort,
-                                        2};
+        contract::Server::Endpoint inproc{proto::ADDRESSTYPE_INPROC,
+                                          proto::PROTOCOLVERSION_LEGACY,
+                                          manager_.GetInproc(),
+                                          commandPort,
+                                          2};
         endpoints.push_back(inproc);
     } else {
         LogNormal("Creating standard contract.").Flush();
-        ServerContract::Endpoint ipv4{proto::ADDRESSTYPE_IPV4,
-                                      proto::PROTOCOLVERSION_LEGACY,
-                                      hostname,
-                                      commandPort,
-                                      1};
+        contract::Server::Endpoint ipv4{proto::ADDRESSTYPE_IPV4,
+                                        proto::PROTOCOLVERSION_LEGACY,
+                                        hostname,
+                                        commandPort,
+                                        1};
         endpoints.push_back(ipv4);
         const std::string& onion = manager_.GetOnion();
 
         if (0 < onion.size()) {
-            ServerContract::Endpoint tor{proto::ADDRESSTYPE_ONION,
-                                         proto::PROTOCOLVERSION_LEGACY,
-                                         onion,
-                                         commandPort,
-                                         1};
+            contract::Server::Endpoint tor{proto::ADDRESSTYPE_ONION,
+                                           proto::PROTOCOLVERSION_LEGACY,
+                                           onion,
+                                           commandPort,
+                                           1};
             endpoints.push_back(tor);
         }
 
         const std::string& eep = manager_.GetEEP();
 
         if (0 < eep.size()) {
-            ServerContract::Endpoint i2p{proto::ADDRESSTYPE_EEP,
-                                         proto::PROTOCOLVERSION_LEGACY,
-                                         eep,
-                                         commandPort,
-                                         1};
+            contract::Server::Endpoint i2p{proto::ADDRESSTYPE_EEP,
+                                           proto::PROTOCOLVERSION_LEGACY,
+                                           eep,
+                                           commandPort,
+                                           1};
             endpoints.push_back(i2p);
         }
     }
 
-    std::shared_ptr<const ServerContract> pContract{};
     auto& wallet = manager_.Wallet();
     const auto existing = String::Factory(
         OTDB::QueryPlainString(
             manager_, manager_.DataFolder(), SERVER_CONTRACT_FILE, "", "", "")
             .data());
 
-    if (existing->empty()) {
-        pContract = wallet.Server(
-            nymID.str(),
-            name,
-            terms,
-            endpoints,
-            reason_,
-            (useInproc) ? std::max(2u, ServerContract::DefaultVersion)
-                        : ServerContract::DefaultVersion);
-    } else {
+    if (false == existing->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Existing contract found. Restoring.")
             .Flush();
-        const auto serialized =
-            proto::StringToProto<proto::ServerContract>(existing);
-        pContract = wallet.Server(serialized, reason_);
     }
 
-    std::string strNotaryID;
+    const auto serialized =
+        existing->empty()
+            ? proto::ServerContract{}
+            : proto::StringToProto<proto::ServerContract>(existing);
+    const auto contract =
+        existing->empty()
+            ? wallet.Server(
+                  nymID.str(),
+                  name,
+                  terms,
+                  endpoints,
+                  reason_,
+                  (useInproc) ? std::max(2u, contract::Server::DefaultVersion)
+                              : contract::Server::DefaultVersion)
+            : wallet.Server(serialized, reason_);
+    std::string strNotaryID{};
+    std::string strHostname{};
+    std::uint32_t nPort{0};
+    proto::AddressType type{};
 
-    if (pContract) {
-        std::string strHostname{};
-        std::uint32_t nPort{0};
-        proto::AddressType type{};
+    if (!contract->ConnectInfo(strHostname, nPort, type, type)) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(__FUNCTION__)(
+            ": Unable to retrieve connection info from this contract.")
+            .Flush();
 
-        if (!pContract->ConnectInfo(strHostname, nPort, type, type)) {
-            LogNormal(OT_METHOD)(__FUNCTION__)(__FUNCTION__)(
-                ": Unable to retrieve connection info from "
-                "this contract. Please fix that first; see "
-                "the sample data. (Failure).")
-                .Flush();
-
-            OT_FAIL;
-        }
-
-        strNotaryID = String::Factory(pContract->ID())->Get();
-    } else {
         OT_FAIL;
     }
+
+    strNotaryID = String::Factory(contract->ID())->Get();
 
     OT_ASSERT(m_nymServer)
 
     {
         auto nymData = manager_.Wallet().mutable_Nym(nymID, reason_);
 
-        if (false == nymData.SetCommonName(pContract->ID()->str(), reason_)) {
+        if (false == nymData.SetCommonName(contract->ID()->str(), reason_)) {
             OT_FAIL
         }
     }
@@ -427,7 +422,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     OT_ASSERT(m_nymServer)
 
     const auto signedContract =
-        manager_.Factory().Data(pContract->PublicContract());
+        manager_.Factory().Data(contract->PublicContract());
     auto ascContract = manager_.Factory().Armored(signedContract);
     auto strBookended = String::Factory();
     ascContract->WriteArmoredString(strBookended, "SERVER CONTRACT");
@@ -901,12 +896,8 @@ bool Server::GetConnectInfo(
     std::uint32_t& nPort) const
 {
     auto contract = manager_.Wallet().Server(m_notaryID, reason_);
-
-    OT_ASSERT(contract);
-
     std::string contractHostname{};
     std::uint32_t contractPort{};
-
     const auto haveEndpoints =
         contract->ConnectInfo(contractHostname, contractPort, type, type);
 
@@ -914,26 +905,21 @@ bool Server::GetConnectInfo(
 
     bool notUsed = false;
     std::int64_t port = 0;
-
     const bool haveIP = manager_.Config().CheckSet_str(
         String::Factory(SERVER_CONFIG_LISTEN_SECTION),
         String::Factory("bindip"),
         String::Factory(DEFAULT_BIND_IP),
         strHostname,
         notUsed);
-
     const bool havePort = manager_.Config().CheckSet_long(
         String::Factory(SERVER_CONFIG_LISTEN_SECTION),
         String::Factory(SERVER_CONFIG_COMMAND_KEY),
         DEFAULT_COMMAND_PORT,
         port,
         notUsed);
-
     port = (MAX_TCP_PORT < port) ? DEFAULT_COMMAND_PORT : port;
     port = (MIN_TCP_PORT > port) ? DEFAULT_COMMAND_PORT : port;
-
     nPort = port;
-
     manager_.Config().Save();
 
     return (haveIP && havePort);
@@ -956,11 +942,9 @@ OTZMQMessage Server::nymbox_push(
 
 std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
 {
-    auto contract = manager_.Wallet().Server(m_notaryID, reason_);
-
-    OT_ASSERT(contract);
-
-    return contract->TransportKey(pubkey, reason_);
+    return manager_.Wallet()
+        .Server(m_notaryID, reason_)
+        ->TransportKey(pubkey, reason_);
 }
 
 Server::~Server() = default;

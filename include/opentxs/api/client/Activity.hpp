@@ -25,31 +25,29 @@ namespace client
 class Activity
 {
 public:
-    using ChequeData = std::pair<
-        std::unique_ptr<const class Cheque>,
-        std::shared_ptr<const UnitDefinition>>;
-    using TransferData = std::pair<
-        std::unique_ptr<const opentxs::Item>,
-        std::shared_ptr<const UnitDefinition>>;
+    using ChequeData =
+        std::pair<std::unique_ptr<const opentxs::Cheque>, OTUnitDefinition>;
+    using TransferData =
+        std::pair<std::unique_ptr<const opentxs::Item>, OTUnitDefinition>;
 
-    EXPORT virtual bool AddBlockchainTransaction(
+    OPENTXS_EXPORT virtual bool AddBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const std::string& txid,
         const Time time) const = 0;
-    EXPORT virtual bool AddPaymentEvent(
+    OPENTXS_EXPORT virtual bool AddPaymentEvent(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const StorageBox type,
         const Identifier& itemID,
         const Identifier& workflowID,
         std::chrono::time_point<std::chrono::system_clock> time) const = 0;
-    EXPORT virtual bool MoveIncomingBlockchainTransaction(
+    OPENTXS_EXPORT virtual bool MoveIncomingBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& fromThreadID,
         const Identifier& toThreadID,
         const std::string& txid) const = 0;
-    EXPORT virtual bool UnassignBlockchainTransaction(
+    OPENTXS_EXPORT virtual bool UnassignBlockchainTransaction(
         const identifier::Nym& nymID,
         const Identifier& fromThreadID,
         const std::string& txid) const = 0;
@@ -61,7 +59,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::unique_ptr<Message> Mail(
+    OPENTXS_EXPORT virtual std::unique_ptr<Message> Mail(
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox& box,
@@ -74,7 +72,7 @@ public:
      *    \returns The id of the stored message. The string will be empty if
      *             the mail object can not be stored.
      */
-    EXPORT virtual std::string Mail(
+    OPENTXS_EXPORT virtual std::string Mail(
         const identifier::Nym& nym,
         const Message& mail,
         const StorageBox box,
@@ -84,7 +82,7 @@ public:
      *    \param[in] nym the identifier of the nym who owns the mail box
      *    \param[in] box the box to be listed
      */
-    EXPORT virtual ObjectList Mail(
+    OPENTXS_EXPORT virtual ObjectList Mail(
         const identifier::Nym& nym,
         const StorageBox box) const = 0;
     /**   Delete a mail object
@@ -95,7 +93,7 @@ public:
      *    \returns The id of the stored message. The string will be empty if
      *             the mail object can not be stored.
      */
-    EXPORT virtual bool MailRemove(
+    OPENTXS_EXPORT virtual bool MailRemove(
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox box) const = 0;
@@ -107,7 +105,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<const std::string> MailText(
+    OPENTXS_EXPORT virtual std::shared_ptr<const std::string> MailText(
         const identifier::Nym& nym,
         const Identifier& id,
         const StorageBox& box,
@@ -119,7 +117,7 @@ public:
      *    \param[in] itemId the identifier of the item to be marked read
      *    \returns False if the nym, thread, or item does not exist
      */
-    EXPORT virtual bool MarkRead(
+    OPENTXS_EXPORT virtual bool MarkRead(
         const identifier::Nym& nymId,
         const Identifier& threadId,
         const Identifier& itemId) const = 0;
@@ -130,18 +128,18 @@ public:
      *    \param[in] itemId the identifier of the item to be marked unread
      *    \returns False if the nym, thread, or item does not exist
      */
-    EXPORT virtual bool MarkUnread(
+    OPENTXS_EXPORT virtual bool MarkUnread(
         const identifier::Nym& nymId,
         const Identifier& threadId,
         const Identifier& itemId) const = 0;
 
-    EXPORT virtual ChequeData Cheque(
+    OPENTXS_EXPORT virtual ChequeData Cheque(
         const identifier::Nym& nym,
         const std::string& id,
         const std::string& workflow,
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual TransferData Transfer(
+    OPENTXS_EXPORT virtual TransferData Transfer(
         const identifier::Nym& nym,
         const std::string& id,
         const std::string& workflow,
@@ -155,7 +153,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<const std::string> PaymentText(
+    OPENTXS_EXPORT virtual std::shared_ptr<const std::string> PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
         const std::string& workflow,
@@ -166,7 +164,7 @@ public:
      *    \param[in] nymID the identifier of the nym who owns the thread
      *    \param[in] count the number of items to preload in each thread
      */
-    EXPORT virtual void PreloadActivity(
+    OPENTXS_EXPORT virtual void PreloadActivity(
         const identifier::Nym& nymID,
         const std::size_t count,
         const PasswordPrompt& reason) const = 0;
@@ -177,13 +175,13 @@ public:
      *    \param[in] start the first item to be cached
      *    \param[in] count the number of items to cache
      */
-    EXPORT virtual void PreloadThread(
+    OPENTXS_EXPORT virtual void PreloadThread(
         const identifier::Nym& nymID,
         const Identifier& threadID,
         const std::size_t start,
         const std::size_t count,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual std::shared_ptr<proto::StorageThread> Thread(
+    OPENTXS_EXPORT virtual std::shared_ptr<proto::StorageThread> Thread(
         const identifier::Nym& nymID,
         const Identifier& threadID) const = 0;
     /**   Obtain a list of thread ids for the specified nym
@@ -191,7 +189,7 @@ public:
      *    \param[in] nym the identifier of the nym
      *    \param[in] unreadOnly if true, only return threads with unread items
      */
-    EXPORT virtual ObjectList Threads(
+    OPENTXS_EXPORT virtual ObjectList Threads(
         const identifier::Nym& nym,
         const PasswordPrompt& reason,
         const bool unreadOnly = false) const = 0;
@@ -199,10 +197,10 @@ public:
      *
      *    \param[in] nymId
      */
-    EXPORT virtual std::size_t UnreadCount(
+    OPENTXS_EXPORT virtual std::size_t UnreadCount(
         const identifier::Nym& nym) const = 0;
 
-    EXPORT virtual std::string ThreadPublisher(
+    OPENTXS_EXPORT virtual std::string ThreadPublisher(
         const identifier::Nym& nym) const = 0;
 
     virtual ~Activity() = default;

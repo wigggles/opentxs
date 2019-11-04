@@ -132,7 +132,7 @@ AccountActivity::AccountActivity(
       })
     , balance_(0)
     , account_id_(accountID)
-    , contract_(nullptr)
+    , contract_(api.Factory().UnitDefinition())
 {
     init();
     setup_listeners(listeners_);
@@ -166,7 +166,7 @@ std::string AccountActivity::DisplayBalance() const noexcept
 {
     sLock lock(shared_lock_);
 
-    if (contract_) {
+    if (0 < contract_->Version()) {
         const auto amount = balance_.load();
         std::string output{};
         const auto formatted =

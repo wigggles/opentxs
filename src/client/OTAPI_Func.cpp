@@ -128,8 +128,6 @@ OTAPI_Func::OTAPI_Func(
     , context_(context_editor_.get())
     , last_attempt_()
     , is_transaction_(type_type_.at(type))
-    , peer_reply_(nullptr)
-    , peer_request_(nullptr)
     , activationPrice_(0)
     , adjustment_(0)
     , amount_(0)

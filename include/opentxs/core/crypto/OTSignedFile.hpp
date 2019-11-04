@@ -31,18 +31,18 @@ struct Core;
 class OTSignedFile : public Contract
 {
 public:
-    EXPORT bool LoadFile(const PasswordPrompt& reason);
-    EXPORT bool SaveFile();
+    OPENTXS_EXPORT bool LoadFile(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool SaveFile();
     bool VerifyFile();  // Returns true or false, whether actual subdir/file
                         // matches purported subdir/file.
     // (You should still verify the signature on it as well, if you are doing
     // this.)
     void SetFilename(const String& LOCAL_SUBDIR, const String& FILE_NAME);
-    EXPORT String& GetFilePayload();
-    EXPORT void SetFilePayload(const String& strArg);
-    EXPORT String& GetSignerNymID();
-    EXPORT void SetSignerNymID(const String& strArg);
-    EXPORT ~OTSignedFile() override;
+    OPENTXS_EXPORT String& GetFilePayload();
+    OPENTXS_EXPORT void SetFilePayload(const String& strArg);
+    OPENTXS_EXPORT String& GetSignerNymID();
+    OPENTXS_EXPORT void SetSignerNymID(const String& strArg);
+    OPENTXS_EXPORT ~OTSignedFile() override;
     void Release() override;
     void Release_SignedFile();
     void UpdateContents(const PasswordPrompt& reason) override;

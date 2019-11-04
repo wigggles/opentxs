@@ -9,52 +9,37 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/identifier/Server.hpp"
-#include "opentxs/core/identifier/UnitDefinition.hpp"
-
-#include <string>
 
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class BailmentNotice final : public PeerRequest
+namespace request
+{
+class BailmentNotice : virtual public peer::Request
 {
 public:
-    ~BailmentNotice() final = default;
+    OPENTXS_EXPORT ~BailmentNotice() override = default;
+
+protected:
+    BailmentNotice() noexcept = default;
 
 private:
-    typedef PeerRequest ot_super;
-    friend class PeerRequest;
+    friend OTBailmentNotice;
 
-    OTUnitID unit_;
-    OTServerID server_;
-    OTIdentifier requestID_;
-    std::string txid_;
-    Amount amount_;
+#ifndef _WIN32
+    OPENTXS_EXPORT BailmentNotice* clone() const noexcept override = 0;
+#endif
 
-    proto::PeerRequest IDVersion(const Lock& lock) const final;
-
-    BailmentNotice(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerRequest& serialized);
-    BailmentNotice(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const identifier::Nym& recipientID,
-        const identifier::UnitDefinition& unitID,
-        const identifier::Server& serverID,
-        const Identifier& requestID,
-        const std::string& txid,
-        const Amount& amount);
-    BailmentNotice() = delete;
+    BailmentNotice(const BailmentNotice&) = delete;
+    BailmentNotice(BailmentNotice&&) = delete;
+    BailmentNotice& operator=(const BailmentNotice&) = delete;
+    BailmentNotice& operator=(BailmentNotice&&) = delete;
 };
+}  // namespace request
+}  // namespace peer
+}  // namespace contract
 }  // namespace opentxs
 #endif

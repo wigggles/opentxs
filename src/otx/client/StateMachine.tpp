@@ -224,21 +224,36 @@ const UniqueQueue<WithdrawCashTask>& StateMachine::get_task() const
 #endif
 
 template <>
-Nym_p StateMachine::load_contract<CheckNymTask>(const identifier::Nym& id) const
+bool StateMachine::load_contract<CheckNymTask>(const identifier::Nym& id) const
 {
-    return client_.Wallet().Nym(id, reason_);
+    return bool(client_.Wallet().Nym(id, reason_));
 }
 template <>
-std::shared_ptr<const opentxs::ServerContract> StateMachine::load_contract<
-    DownloadContractTask>(const identifier::Server& id) const
+bool StateMachine::load_contract<DownloadContractTask>(
+    const identifier::Server& id) const
 {
-    return client_.Wallet().Server(id, reason_);
+    try {
+        client_.Wallet().Server(id, reason_);
+
+        return true;
+    } catch (...) {
+
+        return false;
+    }
 }
+
 template <>
-std::shared_ptr<const opentxs::UnitDefinition> StateMachine::load_contract<
-    DownloadUnitDefinitionTask>(const identifier::UnitDefinition& id) const
+bool StateMachine::load_contract<DownloadUnitDefinitionTask>(
+    const identifier::UnitDefinition& id) const
 {
-    return client_.Wallet().UnitDefinition(id, reason_);
+    try {
+        client_.Wallet().UnitDefinition(id, reason_);
+
+        return true;
+    } catch (...) {
+
+        return false;
+    }
 }
 
 template StateMachine::BackgroundTask StateMachine::StartTask(

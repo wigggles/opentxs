@@ -28,14 +28,14 @@ struct Core;
 class Instrument : public OTScriptable
 {
 public:
-    EXPORT void Release() override;
+    OPENTXS_EXPORT void Release() override;
 
     void Release_Instrument();
-    EXPORT bool VerifyCurrentDate();  // Verify whether the CURRENT date is
-                                      // WITHIN the VALID FROM / TO dates.
-    EXPORT bool IsExpired();  // Verify whether the CURRENT date is AFTER the
-                              // the
-                              // "VALID TO" date.
+    OPENTXS_EXPORT bool VerifyCurrentDate();  // Verify whether the CURRENT date
+                                              // is WITHIN the VALID FROM / TO
+                                              // dates.
+    OPENTXS_EXPORT bool IsExpired();  // Verify whether the CURRENT date is
+                                      // AFTER the the "VALID TO" date.
     inline Time GetValidFrom() const { return m_VALID_FROM; }
     inline Time GetValidTo() const { return m_VALID_TO; }
 
@@ -46,7 +46,7 @@ public:
     inline const identifier::Server& GetNotaryID() const { return m_NotaryID; }
     void InitInstrument();
 
-    EXPORT ~Instrument() override;
+    OPENTXS_EXPORT ~Instrument() override;
 
 protected:
     OTUnitID m_InstrumentDefinitionID;

@@ -70,17 +70,19 @@ private:
     OTVariable& operator=(OTVariable&&) = delete;
 
 public:
-    EXPORT void RegisterForExecution(OTScript& theScript);  // We keep an
-                                                            // internal script
-                                                            // pointer here, so
+    OPENTXS_EXPORT void RegisterForExecution(
+        OTScript& theScript);  // We keep an
+                               // internal script
+                               // pointer here, so
     // if we destruct, we
     // can remove
     // ourselves from the
     // script.
-    EXPORT void UnregisterScript();  // If the script destructs before the
-                                     // variable does, it unregisters itself
-                                     // here, so the variable isn't stuck with a
-                                     // bad pointer.
+    OPENTXS_EXPORT void UnregisterScript();  // If the script destructs before
+                                             // the variable does, it
+                                             // unregisters itself here, so the
+                                             // variable isn't stuck with a bad
+                                             // pointer.
     bool IsDirty() const;  // So you can tell if the variable has CHANGED since
                            // it was last set clean.
     void SetAsClean();  // Sets the variable as clean, so you can check it later
@@ -96,7 +98,7 @@ public:
     bool SetValue(bool bValue);
     bool SetValue(const std::string& str_Value);
 
-    EXPORT const String& GetName() const
+    OPENTXS_EXPORT const String& GetName() const
     {
         return m_strName;
     }  // variable's name as used in a script.
@@ -117,20 +119,20 @@ public:
 
     bool Compare(OTVariable& rhs);
 
-    EXPORT OTVariable();
-    EXPORT OTVariable(
+    OPENTXS_EXPORT OTVariable();
+    OPENTXS_EXPORT OTVariable(
         const std::string& str_Name,
         const std::int32_t nValue,
         const OTVariable_Access theAccess = Var_Persistent);
-    EXPORT OTVariable(
+    OPENTXS_EXPORT OTVariable(
         const std::string& str_Name,
         const bool bValue,
         const OTVariable_Access theAccess = Var_Persistent);
-    EXPORT OTVariable(
+    OPENTXS_EXPORT OTVariable(
         const std::string& str_Name,
         const std::string& str_Value,
         const OTVariable_Access theAccess = Var_Persistent);
-    EXPORT virtual ~OTVariable();
+    OPENTXS_EXPORT virtual ~OTVariable();
 
     void Serialize(Tag& parent, bool bCalculatingID = false) const;
 };

@@ -25,6 +25,7 @@
 
 #include <chrono>
 #include <future>
+#include <sstream>
 
 #define LOG_SINK "inproc://opentxs/logsink/1"
 
@@ -32,6 +33,14 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
 {
+std::string stack_trace() noexcept
+{
+    auto output = std::stringstream{};
+    output << boost::stacktrace::stacktrace();
+
+    return output.str();
+}
+
 std::atomic<int> LogSource::verbosity_{0};
 std::atomic<bool> LogSource::running_{true};
 std::mutex LogSource::buffer_lock_{};
@@ -252,7 +261,7 @@ void LogSource::Trace(
 
         if (nullptr != message) { buffer << ": " << message; }
 
-        buffer << "\n" << boost::stacktrace::stacktrace();
+        buffer << "\n" << stack_trace();
     }
 
     send(false);

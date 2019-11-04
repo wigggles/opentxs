@@ -102,11 +102,4 @@ StateMachine::WaitFuture StateMachine::Wait() const noexcept
 
     return waiting_future_;
 }
-
-StateMachine::~StateMachine()
-{
-    if (false == clean_.load()) { Stop(); }
-
-    if (handle_.joinable()) { handle_.join(); }
-}
 }  // namespace opentxs::internal

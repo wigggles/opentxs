@@ -33,15 +33,15 @@ class Contact;
 class Contact : virtual public List
 {
 public:
-    EXPORT virtual std::string ContactID() const noexcept = 0;
-    EXPORT virtual std::string DisplayName() const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSection> First()
-        const noexcept = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSection> Next()
-        const noexcept = 0;
-    EXPORT virtual std::string PaymentCode() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string ContactID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string DisplayName() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSection>
+    First() const noexcept = 0;
+    OPENTXS_EXPORT virtual opentxs::SharedPimpl<opentxs::ui::ContactSection>
+    Next() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string PaymentCode() const noexcept = 0;
 
-    EXPORT ~Contact() override = default;
+    OPENTXS_EXPORT ~Contact() override = default;
 
 protected:
     Contact() noexcept = default;

@@ -15,6 +15,7 @@
 #include "opentxs/otx/Reply.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "core/contract/Signable.hpp"
 #include "internal/api/Api.hpp"
 
 #include "Reply.hpp"
@@ -34,18 +35,26 @@ OTXReply Reply::Factory(
     const identifier::Nym& recipient,
     const identifier::Server& server,
     const proto::ServerReplyType type,
+    const RequestNumber number,
     const bool success,
-    const PasswordPrompt& reason)
+    const PasswordPrompt& reason,
+    std::shared_ptr<const proto::OTXPush>&& push)
 {
     OT_ASSERT(signer);
 
     std::unique_ptr<implementation::Reply> output{new implementation::Reply(
-        api, signer, recipient, server, type, success)};
+        api,
+        signer,
+        recipient,
+        server,
+        type,
+        number,
+        success,
+        std::move(push))};
 
     OT_ASSERT(output);
 
     Lock lock(output->lock_);
-    output->CalculateID(lock);
     output->update_signature(lock, reason);
 
     OT_ASSERT(false == output->id(lock)->empty());
@@ -70,42 +79,52 @@ Reply::Reply(
     const identifier::Nym& recipient,
     const identifier::Server& server,
     const proto::ServerReplyType type,
-    const bool success)
-    : Signable(signer, DefaultVersion, "")
-    , otx::Reply()
-    , api_(api)
+    const RequestNumber number,
+    const bool success,
+    std::shared_ptr<const proto::OTXPush>&& push)
+    : Signable(api, signer, DefaultVersion, "", "")
     , recipient_(recipient)
     , server_(server)
     , type_(type)
     , success_(success)
-    , number_(0)
-    , payload_()
+    , number_(number)
+    , payload_(std::move(push))
 {
+    Lock lock(lock_);
+    first_time_init(lock);
 }
 
 Reply::Reply(
     const api::internal::Core& api,
     const proto::ServerReply serialized,
     const PasswordPrompt& reason)
-    : Signable(extract_nym(api, serialized, reason), serialized.version(), "")
-    , otx::Reply()
-    , api_(api)
+    : Signable(
+          api,
+          extract_nym(api, serialized, reason),
+          serialized.version(),
+          "",
+          "",
+          api.Factory().Identifier(serialized.id()),
+          serialized.has_signature()
+              ? Signatures{std::make_shared<proto::Signature>(
+                    serialized.signature())}
+              : Signatures{})
     , recipient_(identifier::Nym::Factory(serialized.nym()))
     , server_(identifier::Server::Factory(serialized.server()))
     , type_(serialized.type())
     , success_(serialized.success())
     , number_(serialized.request())
-    , payload_(std::make_shared<proto::OTXPush>(serialized.push()))
+    , payload_(
+          serialized.has_push()
+              ? std::make_shared<proto::OTXPush>(serialized.push())
+              : std::shared_ptr<proto::OTXPush>{})
 {
-    id_ = Identifier::Factory(serialized.id());
-    signatures_.push_front(SerializedSignature(
-        std::make_shared<proto::Signature>(serialized.signature())));
+    Lock lock(lock_);
+    init_serialized(lock);
 }
 
 Reply::Reply(const Reply& rhs)
-    : Signable(rhs.nym_, rhs.version_, rhs.conditions_)
-    , otx::Reply()
-    , api_(rhs.api_)
+    : Signable(rhs)
     , recipient_(rhs.recipient_)
     , server_(rhs.server_)
     , type_(rhs.type_)
@@ -129,15 +148,14 @@ Nym_p Reply::extract_nym(
     const PasswordPrompt& reason)
 {
     const auto serverID = identifier::Server::Factory(serialized.server());
-    const auto server = api.Wallet().Server(serverID, reason);
 
-    if (false == bool(server)) {
+    try {
+        return api.Wallet().Server(serverID, reason)->Nym();
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server id.").Flush();
 
         return nullptr;
     }
-
-    return server->Nym();
 }
 
 proto::ServerReply Reply::full_version(const Lock& lock) const
@@ -178,41 +196,11 @@ proto::ServerReply Reply::id_version(const Lock& lock) const
     return output;
 }
 
-RequestNumber Reply::Number() const
-{
-    Lock lock(lock_);
-
-    return number_;
-}
-
-std::shared_ptr<proto::OTXPush> Reply::Push() const
-{
-    Lock lock(lock_);
-
-    return payload_;
-}
-
 OTData Reply::Serialize() const
 {
     Lock lock(lock_);
 
     return api_.Factory().Data(full_version(lock));
-}
-
-bool Reply::SetNumber(const RequestNumber number, const PasswordPrompt& reason)
-{
-    Lock lock(lock_);
-    number_ = number;
-
-    return update_signature(lock, reason);
-}
-
-bool Reply::SetPush(const proto::OTXPush& push, const PasswordPrompt& reason)
-{
-    Lock lock(lock_);
-    payload_ = std::make_shared<proto::OTXPush>(push);
-
-    return update_signature(lock, reason);
 }
 
 proto::ServerReply Reply::signature_version(const Lock& lock) const

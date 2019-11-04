@@ -25,20 +25,20 @@ namespace opentxs
 class StringXML : virtual public String
 {
 public:
-    EXPORT static OTStringXML Factory();
-    EXPORT static OTStringXML Factory(const String& value);
+    OPENTXS_EXPORT static OTStringXML Factory();
+    OPENTXS_EXPORT static OTStringXML Factory(const String& value);
 
-    EXPORT virtual operator irr::io::IFileReadCallBack*() = 0;
+    OPENTXS_EXPORT virtual operator irr::io::IFileReadCallBack*() = 0;
 
-    EXPORT virtual std::int32_t read(
+    OPENTXS_EXPORT virtual std::int32_t read(
         void* buffer,
         std::uint32_t sizeToRead) = 0;
-    EXPORT virtual std::int32_t getSize() = 0;
+    OPENTXS_EXPORT virtual std::int32_t getSize() = 0;
 
-    EXPORT virtual StringXML& operator=(const String& rhs) = 0;
-    EXPORT virtual StringXML& operator=(const StringXML& rhs) = 0;
+    OPENTXS_EXPORT virtual StringXML& operator=(const String& rhs) = 0;
+    OPENTXS_EXPORT virtual StringXML& operator=(const StringXML& rhs) = 0;
 
-    EXPORT ~StringXML() override = default;
+    OPENTXS_EXPORT ~StringXML() override = default;
 
 protected:
     StringXML() = default;

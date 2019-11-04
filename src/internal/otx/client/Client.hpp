@@ -7,7 +7,11 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/client/OTX.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -70,12 +74,9 @@ using PayCashTask = std::pair<OTNymID, OTIdentifier>;
 /** PaymentTask: recipientID, payment */
 using PaymentTask = std::pair<OTNymID, std::shared_ptr<const OTPayment>>;
 /** PeerReplyTask: targetNymID, peer reply, peer request */
-using PeerReplyTask = std::tuple<
-    OTNymID,
-    std::shared_ptr<const PeerReply>,
-    std::shared_ptr<const PeerRequest>>;
+using PeerReplyTask = std::tuple<OTNymID, OTPeerReply, OTPeerRequest>;
 /** PeerRequestTask: targetNymID, peer request */
-using PeerRequestTask = std::pair<OTNymID, std::shared_ptr<const PeerRequest>>;
+using PeerRequestTask = std::pair<OTNymID, OTPeerRequest>;
 using ProcessInboxTask = OTIdentifier;
 using PublishServerContractTask = std::pair<OTServerID, bool>;
 /** RegisterAccountTask: account label, unit definition id */
@@ -100,87 +101,89 @@ namespace opentxs
 {
 template <>
 struct make_blank<otx::client::DepositPaymentTask> {
-    static otx::client::DepositPaymentTask value()
+    static otx::client::DepositPaymentTask value(const api::Core& api)
     {
-        return {make_blank<OTUnitID>::value(),
-                make_blank<OTIdentifier>::value(),
+        return {make_blank<OTUnitID>::value(api),
+                make_blank<OTIdentifier>::value(api),
                 nullptr};
     }
 };
 #if OT_CASH
 template <>
 struct make_blank<otx::client::DownloadMintTask> {
-    static otx::client::DownloadMintTask value()
+    static otx::client::DownloadMintTask value(const api::Core& api)
     {
-        return {make_blank<OTUnitID>::value(), 0};
+        return {make_blank<OTUnitID>::value(api), 0};
     }
 };
 #endif  // OT_CASH
 template <>
 struct make_blank<otx::client::IssueUnitDefinitionTask> {
-    static otx::client::IssueUnitDefinitionTask value()
+    static otx::client::IssueUnitDefinitionTask value(const api::Core& api)
     {
-        return {make_blank<OTUnitID>::value(), "", proto::CITEMTYPE_ERROR};
+        return {make_blank<OTUnitID>::value(api), "", proto::CITEMTYPE_ERROR};
     }
 };
 template <>
 struct make_blank<otx::client::MessageTask> {
-    static otx::client::MessageTask value()
+    static otx::client::MessageTask value(const api::Core& api)
     {
-        return {make_blank<OTNymID>::value(), "", nullptr};
+        return {make_blank<OTNymID>::value(api), "", nullptr};
     }
 };
 #if OT_CASH
 template <>
 struct make_blank<otx::client::PayCashTask> {
-    static otx::client::PayCashTask value()
+    static otx::client::PayCashTask value(const api::Core& api)
     {
-        return {make_blank<OTNymID>::value(),
-                make_blank<OTIdentifier>::value()};
+        return {make_blank<OTNymID>::value(api),
+                make_blank<OTIdentifier>::value(api)};
     }
 };
 #endif  // OT_CASH
 template <>
 struct make_blank<otx::client::PaymentTask> {
-    static otx::client::PaymentTask value()
+    static otx::client::PaymentTask value(const api::Core& api)
     {
-        return {make_blank<OTNymID>::value(), nullptr};
+        return {make_blank<OTNymID>::value(api), nullptr};
     }
 };
 template <>
 struct make_blank<otx::client::PeerReplyTask> {
-    static otx::client::PeerReplyTask value()
+    static otx::client::PeerReplyTask value(const api::Core& api)
     {
-        return {make_blank<OTNymID>::value(), nullptr, nullptr};
+        return {make_blank<OTNymID>::value(api),
+                api.Factory().PeerReply(),
+                api.Factory().PeerRequest()};
     }
 };
 template <>
 struct make_blank<otx::client::PeerRequestTask> {
-    static otx::client::PeerRequestTask value()
+    static otx::client::PeerRequestTask value(const api::Core& api)
     {
-        return {make_blank<OTNymID>::value(), nullptr};
+        return {make_blank<OTNymID>::value(api), api.Factory().PeerRequest()};
     }
 };
 template <>
 struct make_blank<otx::client::PublishServerContractTask> {
-    static otx::client::PublishServerContractTask value()
+    static otx::client::PublishServerContractTask value(const api::Core& api)
     {
-        return {make_blank<OTServerID>::value(), false};
+        return {make_blank<OTServerID>::value(api), false};
     }
 };
 template <>
 struct make_blank<otx::client::RegisterAccountTask> {
-    static otx::client::RegisterAccountTask value()
+    static otx::client::RegisterAccountTask value(const api::Core& api)
     {
-        return {"", make_blank<OTUnitID>::value()};
+        return {"", make_blank<OTUnitID>::value(api)};
     }
 };
 template <>
 struct make_blank<otx::client::SendChequeTask> {
-    static otx::client::SendChequeTask value()
+    static otx::client::SendChequeTask value(const api::Core& api)
     {
-        return {make_blank<OTIdentifier>::value(),
-                make_blank<OTNymID>::value(),
+        return {make_blank<OTIdentifier>::value(api),
+                make_blank<OTNymID>::value(api),
                 0,
                 "",
                 Clock::now(),
@@ -189,10 +192,10 @@ struct make_blank<otx::client::SendChequeTask> {
 };
 template <>
 struct make_blank<otx::client::SendTransferTask> {
-    static otx::client::SendTransferTask value()
+    static otx::client::SendTransferTask value(const api::Core& api)
     {
-        return {make_blank<OTIdentifier>::value(),
-                make_blank<OTIdentifier>::value(),
+        return {make_blank<OTIdentifier>::value(api),
+                make_blank<OTIdentifier>::value(api),
                 0,
                 ""};
     }
@@ -200,9 +203,9 @@ struct make_blank<otx::client::SendTransferTask> {
 #if OT_CASH
 template <>
 struct make_blank<otx::client::WithdrawCashTask> {
-    static otx::client::WithdrawCashTask value()
+    static otx::client::WithdrawCashTask value(const api::Core& api)
     {
-        return {make_blank<OTIdentifier>::value(), 0};
+        return {make_blank<OTIdentifier>::value(api), 0};
     }
 };
 #endif  // OT_CASH
@@ -282,11 +285,11 @@ struct Operation {
         const SetID setID = {}) = 0;
     virtual bool SendPeerReply(
         const identifier::Nym& targetNymID,
-        const std::shared_ptr<const PeerReply> peerreply,
-        const std::shared_ptr<const PeerRequest> peerrequest) = 0;
+        const OTPeerReply peerreply,
+        const OTPeerRequest peerrequest) = 0;
     virtual bool SendPeerRequest(
         const identifier::Nym& targetNymID,
-        const std::shared_ptr<const PeerRequest> peerrequest) = 0;
+        const OTPeerRequest peerrequest) = 0;
     virtual bool SendTransfer(
         const Identifier& sourceAccountID,
         const Identifier& destinationAccountID,

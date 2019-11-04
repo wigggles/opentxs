@@ -22,11 +22,11 @@ namespace blockchain
 class PaymentCode : virtual public Deterministic
 {
 public:
-    EXPORT virtual bool IsNotified() const noexcept = 0;
-    EXPORT virtual OTPaymentCode LocalPaymentCode() const noexcept = 0;
-    EXPORT virtual OTPaymentCode RemotePaymentCode() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsNotified() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTPaymentCode LocalPaymentCode() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTPaymentCode RemotePaymentCode() const noexcept = 0;
 
-    EXPORT ~PaymentCode() override = default;
+    OPENTXS_EXPORT ~PaymentCode() override = default;
 
 protected:
     PaymentCode() noexcept = default;

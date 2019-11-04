@@ -164,8 +164,7 @@ Contact::Contact(
     const NymParameters& params,
     const VersionNumber version,
     const PasswordPrompt& reason) noexcept(false)
-    : Signable({}, version)  // TODO Signable
-    , credential::implementation::Base(
+    : credential::implementation::Base(
           api,
           parent,
           source,
@@ -176,6 +175,11 @@ Contact::Contact(
           get_master_id(master))
     , data_(params.ContactData() ? *params.ContactData() : proto::ContactData{})
 {
+    {
+        Lock lock(lock_);
+        first_time_init(lock);
+    }
+
     init(master, reason);
 }
 
@@ -185,8 +189,7 @@ Contact::Contact(
     const identity::Source& source,
     const internal::Primary& master,
     const proto::Credential& serialized) noexcept(false)
-    : Signable({}, serialized.version())  // TODO Signable
-    , credential::implementation::Base(
+    : credential::implementation::Base(
           api,
           parent,
           source,
@@ -194,6 +197,8 @@ Contact::Contact(
           get_master_id(serialized, master))
     , data_(serialized.contactdata())
 {
+    Lock lock(lock_);
+    init_serialized(lock);
 }
 
 bool Contact::GetContactData(
@@ -214,7 +219,7 @@ std::shared_ptr<Base::SerializedType> Contact::serialize(
     serializedCredential->clear_signature();  // this fixes a bug, but shouldn't
 
     if (asSigned) {
-        SerializedSignature masterSignature = MasterSignature();
+        auto masterSignature = MasterSignature();
 
         if (masterSignature) {
             // We do not own this pointer.

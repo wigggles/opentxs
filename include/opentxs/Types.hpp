@@ -684,6 +684,12 @@ enum class ConnectionState : std::uint8_t {
     STALLED = 2
 };
 
+using Endpoint = std::tuple<
+    int,            // address type
+    int,            // protocol version
+    std::string,    // hostname / address
+    std::uint32_t,  // port
+    VersionNumber>;
 typedef std::pair<SendResult, std::shared_ptr<std::string>> NetworkReplyRaw;
 typedef std::pair<SendResult, std::shared_ptr<String>> NetworkReplyString;
 typedef std::pair<SendResult, std::shared_ptr<Message>> NetworkReplyMessage;

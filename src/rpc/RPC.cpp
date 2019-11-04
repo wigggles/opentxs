@@ -483,12 +483,20 @@ proto::RPCResponse RPC::create_issuer_account(
     std::string label{};
     auto notaryID = identifier::Server::Factory(command.notary());
     auto unitID = identifier::UnitDefinition::Factory(command.unit());
-    const auto unitdefinition = client.Wallet().UnitDefinition(unitID, reason);
 
     if (0 < command.identifier_size()) { label = command.identifier(0); }
 
-    if (false == bool(unitdefinition) ||
-        ownerID != unitdefinition->Nym()->ID()) {
+    try {
+        const auto unitdefinition =
+            client.Wallet().UnitDefinition(unitID, reason);
+
+        if (ownerID != unitdefinition->Nym()->ID()) {
+            add_output_status(
+                output, proto::RPCRESPONSE_UNITDEFINITION_NOT_FOUND);
+
+            return output;
+        }
+    } catch (...) {
         add_output_status(output, proto::RPCRESPONSE_UNITDEFINITION_NOT_FOUND);
 
         return output;
@@ -583,22 +591,23 @@ proto::RPCResponse RPC::create_unit_definition(
     CHECK_OWNER();
 
     const auto& createunit = command.createunit();
-    auto unitdefinition = session.Wallet().UnitDefinition(
-        command.owner(),
-        createunit.primaryunitname(),
-        createunit.name(),
-        createunit.symbol(),
-        createunit.terms(),
-        createunit.tla(),
-        createunit.power(),
-        createunit.fractionalunitname(),
-        createunit.unitofaccount(),
-        reason);
 
-    if (unitdefinition) {
+    try {
+        const auto unitdefinition = session.Wallet().UnitDefinition(
+            command.owner(),
+            createunit.primaryunitname(),
+            createunit.name(),
+            createunit.symbol(),
+            createunit.terms(),
+            createunit.tla(),
+            createunit.power(),
+            createunit.fractionalunitname(),
+            createunit.unitofaccount(),
+            reason);
+
         output.add_identifier(unitdefinition->ID()->str());
         add_output_status(output, proto::RPCRESPONSE_SUCCESS);
-    } else {
+    } catch (...) {
         add_output_status(
             output, proto::RPCRESPONSE_CREATE_UNITDEFINITION_FAILED);
     }
@@ -1104,14 +1113,12 @@ proto::RPCResponse RPC::get_server_contracts(
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
     for (const auto& id : command.identifier()) {
-        const auto pContract =
-            session.Wallet().Server(identifier::Server::Factory(id), reason);
-
-        if (pContract) {
-            const auto& contract = *pContract;
-            *output.add_notary() = contract.PublicContract();
+        try {
+            const auto contract = session.Wallet().Server(
+                identifier::Server::Factory(id), reason);
+            *output.add_notary() = contract->PublicContract();
             add_output_status(output, proto::RPCRESPONSE_SUCCESS);
-        } else {
+        } catch (...) {
             add_output_status(output, proto::RPCRESPONSE_NONE);
         }
     }
@@ -1165,10 +1172,10 @@ proto::RPCResponse RPC::get_unit_definitions(
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
     for (const auto& id : command.identifier()) {
-        const auto contract = session.Wallet().UnitDefinition(
-            identifier::UnitDefinition::Factory(id), reason);
+        try {
+            const auto contract = session.Wallet().UnitDefinition(
+                identifier::UnitDefinition::Factory(id), reason);
 
-        if (contract) {
             if (contract->Version() > 1 && command.version() < 3) {
                 add_output_status(output, proto::RPCRESPONSE_INVALID);
 
@@ -1176,7 +1183,7 @@ proto::RPCResponse RPC::get_unit_definitions(
                 *output.add_unit() = contract->PublicContract();
                 add_output_status(output, proto::RPCRESPONSE_SUCCESS);
             }
-        } else {
+        } catch (...) {
             add_output_status(output, proto::RPCRESPONSE_NONE);
         }
     }
@@ -1215,9 +1222,15 @@ bool RPC::immediate_create_account(
 {
     const auto registered =
         client.OTAPI().IsNym_RegisteredAtServer(owner, notary);
-    const auto unitdefinition = client.Wallet().UnitDefinition(unit, reason);
 
-    return registered && bool(unitdefinition);
+    try {
+        client.Wallet().UnitDefinition(unit, reason);
+    } catch (...) {
+
+        return false;
+    }
+
+    return registered;
 }
 
 bool RPC::immediate_register_issuer_account(
@@ -1233,7 +1246,14 @@ bool RPC::immediate_register_nym(
     const identifier::Server& notary,
     const PasswordPrompt& reason) const
 {
-    return bool(client.Wallet().Server(notary, reason));
+    try {
+        client.Wallet().Server(notary, reason);
+
+        return true;
+    } catch (...) {
+
+        return false;
+    }
 }
 
 proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
@@ -1267,12 +1287,11 @@ proto::RPCResponse RPC::import_server_contract(
     CHECK_INPUT(server, proto::RPCRESPONSE_INVALID);
 
     for (const auto& servercontract : command.server()) {
-        auto server = session.Wallet().Server(servercontract, reason);
-
-        if (false == bool(server)) {
-            add_output_status(output, proto::RPCRESPONSE_NONE);
-        } else {
+        try {
+            session.Wallet().Server(servercontract, reason);
             add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+        } catch (...) {
+            add_output_status(output, proto::RPCRESPONSE_NONE);
         }
     }
 

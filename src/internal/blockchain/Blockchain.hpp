@@ -28,11 +28,11 @@ namespace opentxs::blockchain::internal
 class BitReader
 {
 public:
-    bool eof();
-    std::uint64_t read(std::size_t nbits);
+    OPENTXS_EXPORT bool eof();
+    OPENTXS_EXPORT std::uint64_t read(std::size_t nbits);
 
-    BitReader(const Data& input_data);
-    BitReader(std::uint8_t* data, int len);
+    OPENTXS_EXPORT BitReader(const Data& input_data);
+    OPENTXS_EXPORT BitReader(std::uint8_t* data, int len);
 
 private:
     OTData raw_data_;
@@ -55,10 +55,10 @@ private:
 class BitWriter
 {
 public:
-    void flush();
-    void write(std::size_t nbits, std::uint64_t value);
+    OPENTXS_EXPORT void flush();
+    OPENTXS_EXPORT void write(std::size_t nbits, std::uint64_t value);
 
-    BitWriter(Data& output);
+    OPENTXS_EXPORT BitWriter(Data& output);
 
 private:
     enum { ACCUM_BITS = sizeof(std::uint64_t) * 8 };

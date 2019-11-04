@@ -114,7 +114,7 @@ BalanceItem::BalanceItem(
     , type_(extract_type(recover_workflow(custom)))
     , text_("")
     , time_(sortKey)
-    , contract_(nullptr)
+    , contract_(api.Factory().UnitDefinition())
     , startup_(nullptr)
     , account_id_(Identifier::Factory(accountID))
     , contacts_(extract_contacts(api_, recover_workflow(custom)))

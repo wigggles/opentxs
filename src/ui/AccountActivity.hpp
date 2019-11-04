@@ -56,9 +56,9 @@ private:
     using RowKey = std::pair<proto::PaymentEventType, EventRow>;
 
     const ListenerDefinitions listeners_;
-    mutable std::atomic<Amount> balance_{0};
+    mutable std::atomic<Amount> balance_;
     const OTIdentifier account_id_;
-    std::shared_ptr<const UnitDefinition> contract_{nullptr};
+    OTUnitDefinition contract_;
 
     static EventRow extract_event(
         const proto::PaymentEventType event,

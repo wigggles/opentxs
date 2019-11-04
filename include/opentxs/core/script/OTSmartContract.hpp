@@ -139,9 +139,9 @@ public:
         ServerContext& context,
         const PasswordPrompt& reason) override;  // Takes ownership.
     // Returns true if it was empty (and thus successfully set).
-    EXPORT bool SetNotaryIDIfEmpty(const identifier::Server& theID);
+    OPENTXS_EXPORT bool SetNotaryIDIfEmpty(const identifier::Server& theID);
 
-    EXPORT bool VerifySmartContract(
+    OPENTXS_EXPORT bool VerifySmartContract(
         const identity::Nym& theNym,
         const Account& theAcct,
         const identity::Nym& theServerNym,
@@ -186,7 +186,7 @@ public:
     // contract
     // will interoperate with the old Cron Item system of doing things.
     //
-    EXPORT void PrepareToActivate(
+    OPENTXS_EXPORT void PrepareToActivate(
         const std::int64_t& lOpeningTransNo,
         const std::int64_t& lClosingTransNo,
         const identifier::Nym& theNymID,
@@ -275,7 +275,7 @@ public:
     OTStash* GetStash(std::string str_stash_name);
 
     // Low-level.
-    EXPORT void ExecuteClauses(
+    OPENTXS_EXPORT void ExecuteClauses(
         mapOfClauses& theClauses,
         const PasswordPrompt& reason,
         OTString pParam = String::Factory());
@@ -289,7 +289,7 @@ public:
     // especially from
     // a script, is to call StashAcctFunds() or UnstashAcctFunds() (BELOW)
     //
-    EXPORT bool StashFunds(
+    OPENTXS_EXPORT bool StashFunds(
         const std::int64_t& lAmount,  // negative amount here means UNstash.
                                       // Positive
                                       // means STASH.
@@ -319,7 +319,7 @@ public:
                    // serialization, this is where the
                    // ledger saves its contents
 
-    EXPORT ~OTSmartContract() override;
+    OPENTXS_EXPORT ~OTSmartContract() override;
 
 protected:
     void onActivate(const PasswordPrompt& reason)
@@ -411,8 +411,8 @@ private:
         const identifier::Nym& RECIPIENT_NYM_ID,
         const PasswordPrompt& reason);
 
-    EXPORT OTSmartContract(const api::internal::Core& api);
-    EXPORT OTSmartContract(
+    OPENTXS_EXPORT OTSmartContract(const api::internal::Core& api);
+    OPENTXS_EXPORT OTSmartContract(
         const api::internal::Core& api,
         const identifier::Server& NOTARY_ID);
 

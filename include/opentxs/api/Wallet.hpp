@@ -28,8 +28,6 @@ namespace opentxs
 {
 /** AccountInfo: accountID, nymID, serverID, unitID*/
 using AccountInfo = std::tuple<OTIdentifier, OTNymID, OTServerID, OTUnitID>;
-typedef std::shared_ptr<const class ServerContract> ConstServerContract;
-typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 
 namespace api
 {
@@ -48,12 +46,12 @@ class Wallet
 public:
     using AccountCallback = std::function<void(const Account&)>;
 
-    EXPORT virtual SharedAccount Account(
+    OPENTXS_EXPORT virtual SharedAccount Account(
         const Identifier& accountID,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual OTIdentifier AccountPartialMatch(
+    OPENTXS_EXPORT virtual OTIdentifier AccountPartialMatch(
         const std::string& hint) const = 0;
-    EXPORT virtual ExclusiveAccount CreateAccount(
+    OPENTXS_EXPORT virtual ExclusiveAccount CreateAccount(
         const identifier::Nym& ownerNymID,
         const identifier::Server& notaryID,
         const identifier::UnitDefinition& instrumentDefinitionID,
@@ -61,22 +59,22 @@ public:
         Account::AccountType type,
         TransactionNumber stash,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool DeleteAccount(
+    OPENTXS_EXPORT virtual bool DeleteAccount(
         const Identifier& accountID,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual SharedAccount IssuerAccount(
+    OPENTXS_EXPORT virtual SharedAccount IssuerAccount(
         const identifier::UnitDefinition& unitID,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual ExclusiveAccount mutable_Account(
+    OPENTXS_EXPORT virtual ExclusiveAccount mutable_Account(
         const Identifier& accountID,
         const PasswordPrompt& reason,
         const AccountCallback callback = nullptr) const = 0;
-    EXPORT virtual bool UpdateAccount(
+    OPENTXS_EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
         const PasswordPrompt& reason) const = 0;
-    EXPORT virtual bool UpdateAccount(
+    OPENTXS_EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized,
@@ -97,7 +95,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<const opentxs::Context> Context(
+    OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
         const PasswordPrompt& reason) const = 0;
@@ -109,7 +107,8 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<const opentxs::ClientContext> ClientContext(
+    OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::ClientContext>
+    ClientContext(
         const identifier::Nym& remoteNymID,
         const PasswordPrompt& reason) const = 0;
 
@@ -121,7 +120,8 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<const opentxs::ServerContext> ServerContext(
+    OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::ServerContext>
+    ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
         const PasswordPrompt& reason) const = 0;
@@ -139,7 +139,7 @@ public:
      *    \param[in] clientNymID context identifier (usually the other party's
      *                           nym id)
      */
-    EXPORT virtual Editor<opentxs::Context> mutable_Context(
+    OPENTXS_EXPORT virtual Editor<opentxs::Context> mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
         const PasswordPrompt& reason) const = 0;
@@ -149,7 +149,7 @@ public:
      *    \param[in] remoteNymID context identifier (usually the other party's
      *                           nym id)
      */
-    EXPORT virtual Editor<opentxs::ClientContext> mutable_ClientContext(
+    OPENTXS_EXPORT virtual Editor<opentxs::ClientContext> mutable_ClientContext(
         const identifier::Nym& remoteNymID,
         const PasswordPrompt& reason) const = 0;
 
@@ -159,13 +159,13 @@ public:
      *    \param[in] remoteID context identifier (usually the other party's nym
      *                        id)
      */
-    EXPORT virtual Editor<opentxs::ServerContext> mutable_ServerContext(
+    OPENTXS_EXPORT virtual Editor<opentxs::ServerContext> mutable_ServerContext(
         const identifier::Nym& localNymID,
         const Identifier& remoteID,
         const PasswordPrompt& reason) const = 0;
 
     /**   Returns a list of all issuers associated with a local nym */
-    EXPORT virtual std::set<OTNymID> IssuerList(
+    OPENTXS_EXPORT virtual std::set<OTNymID> IssuerList(
         const identifier::Nym& nymID) const = 0;
 
     /**   Load a read-only copy of an Issuer object
@@ -175,7 +175,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<const client::Issuer> Issuer(
+    OPENTXS_EXPORT virtual std::shared_ptr<const client::Issuer> Issuer(
         const identifier::Nym& nymID,
         const identifier::Nym& issuerID) const = 0;
 
@@ -184,15 +184,15 @@ public:
      *    \param[in] nymID the identifier of the local nym
      *    \param[in] issuerID the identifier of the issuer nym
      */
-    EXPORT virtual Editor<client::Issuer> mutable_Issuer(
+    OPENTXS_EXPORT virtual Editor<client::Issuer> mutable_Issuer(
         const identifier::Nym& nymID,
         const identifier::Nym& issuerID) const = 0;
 
-    EXPORT virtual bool IsLocalNym(const std::string& id) const = 0;
+    OPENTXS_EXPORT virtual bool IsLocalNym(const std::string& id) const = 0;
 
-    EXPORT virtual std::size_t LocalNymCount() const = 0;
+    OPENTXS_EXPORT virtual std::size_t LocalNymCount() const = 0;
 
-    EXPORT virtual std::set<OTNymID> LocalNyms() const = 0;
+    OPENTXS_EXPORT virtual std::set<OTNymID> LocalNyms() const = 0;
 
     /**   Obtain a smart pointer to an instantiated nym.
      *
@@ -213,7 +213,7 @@ public:
      *                       willing to wait for a network lookup. The default
      *                       value of 0 will return immediately.
      */
-    EXPORT virtual Nym_p Nym(
+    OPENTXS_EXPORT virtual Nym_p Nym(
         const identifier::Nym& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
@@ -226,39 +226,40 @@ public:
      *
      *    \param[in] nym the serialized version of the contract
      */
-    EXPORT virtual Nym_p Nym(
+    OPENTXS_EXPORT virtual Nym_p Nym(
         const identity::Nym::Serialized& nym,
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual Nym_p Nym(
+    OPENTXS_EXPORT virtual Nym_p Nym(
         const PasswordPrompt& reason,
         const std::string name = "",
         const NymParameters& parameters = {},
         const proto::ContactItemType type =
             proto::CITEMTYPE_INDIVIDUAL) const = 0;
 
-    EXPORT virtual NymData mutable_Nym(
+    OPENTXS_EXPORT virtual NymData mutable_Nym(
         const identifier::Nym& id,
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
+    OPENTXS_EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
         const identifier::Nym& id,
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
+    OPENTXS_EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
         const identifier::Nym& id,
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual Nym_p NymByIDPartialMatch(
+    OPENTXS_EXPORT virtual Nym_p NymByIDPartialMatch(
         const std::string& partialId,
         const PasswordPrompt& reason) const = 0;
 
     /**   Returns a list of all known nyms and their aliases
      */
-    EXPORT virtual ObjectList NymList() const = 0;
+    OPENTXS_EXPORT virtual ObjectList NymList() const = 0;
 
-    EXPORT virtual bool NymNameByIndex(const std::size_t index, String& name)
-        const = 0;
+    OPENTXS_EXPORT virtual bool NymNameByIndex(
+        const std::size_t index,
+        String& name) const = 0;
 
     /**   Load a peer reply object
      *
@@ -268,7 +269,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<proto::PeerReply> PeerReply(
+    OPENTXS_EXPORT virtual std::shared_ptr<proto::PeerReply> PeerReply(
         const identifier::Nym& nym,
         const Identifier& reply,
         const StorageBox& box) const = 0;
@@ -283,7 +284,7 @@ public:
      *               the id of its corresponding request
      *    \returns true if the request is successfully stored
      */
-    EXPORT virtual bool PeerReplyComplete(
+    OPENTXS_EXPORT virtual bool PeerReplyComplete(
         const identifier::Nym& nym,
         const Identifier& replyOrRequest) const = 0;
 
@@ -300,7 +301,7 @@ public:
      *    \param[in] reply the serialized peer reply object
      *    \returns true if the request is successfully stored
      */
-    EXPORT virtual bool PeerReplyCreate(
+    OPENTXS_EXPORT virtual bool PeerReplyCreate(
         const identifier::Nym& nym,
         const proto::PeerRequest& request,
         const proto::PeerReply& reply) const = 0;
@@ -314,7 +315,7 @@ public:
      *    \param[in] reply the identifier of the peer reply object
      *    \returns true if the rollback is successful
      */
-    EXPORT virtual bool PeerReplyCreateRollback(
+    OPENTXS_EXPORT virtual bool PeerReplyCreateRollback(
         const identifier::Nym& nym,
         const Identifier& request,
         const Identifier& reply) const = 0;
@@ -323,28 +324,28 @@ public:
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerReplySent(
+    OPENTXS_EXPORT virtual ObjectList PeerReplySent(
         const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of incoming peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerReplyIncoming(
+    OPENTXS_EXPORT virtual ObjectList PeerReplyIncoming(
         const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of finished peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerReplyFinished(
+    OPENTXS_EXPORT virtual ObjectList PeerReplyFinished(
         const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of processed peer replies
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerReplyProcessed(
+    OPENTXS_EXPORT virtual ObjectList PeerReplyProcessed(
         const identifier::Nym& nym) const = 0;
 
     /**   Store the senders's copy of a peer reply
@@ -360,7 +361,7 @@ public:
      *    \param[in] reply the serialized peer reply object
      *    \returns true if the request is successfully stored
      */
-    EXPORT virtual bool PeerReplyReceive(
+    OPENTXS_EXPORT virtual bool PeerReplyReceive(
         const identifier::Nym& nym,
         const PeerObject& reply) const = 0;
 
@@ -372,7 +373,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    EXPORT virtual std::shared_ptr<proto::PeerRequest> PeerRequest(
+    OPENTXS_EXPORT virtual std::shared_ptr<proto::PeerRequest> PeerRequest(
         const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box,
@@ -387,7 +388,7 @@ public:
      *    \param[in] reply the identifier of the peer reply object
      *    \returns true if the request is successfully moved
      */
-    EXPORT virtual bool PeerRequestComplete(
+    OPENTXS_EXPORT virtual bool PeerRequestComplete(
         const identifier::Nym& nym,
         const Identifier& reply) const = 0;
 
@@ -400,7 +401,7 @@ public:
      *    \param[in] request the serialized peer request object
      *    \returns true if the request is successfully stored
      */
-    EXPORT virtual bool PeerRequestCreate(
+    OPENTXS_EXPORT virtual bool PeerRequestCreate(
         const identifier::Nym& nym,
         const proto::PeerRequest& request) const = 0;
 
@@ -412,7 +413,7 @@ public:
      *    \param[in] request the identifier of the peer request
      *    \returns true if the rollback is successful
      */
-    EXPORT virtual bool PeerRequestCreateRollback(
+    OPENTXS_EXPORT virtual bool PeerRequestCreateRollback(
         const identifier::Nym& nym,
         const Identifier& request) const = 0;
 
@@ -422,7 +423,7 @@ public:
      *    \param[in] request the identifier of the peer reply object
      *    \param[in] box the box from which the peer object will be deleted
      */
-    EXPORT virtual bool PeerRequestDelete(
+    OPENTXS_EXPORT virtual bool PeerRequestDelete(
         const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box) const = 0;
@@ -431,28 +432,28 @@ public:
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerRequestSent(
+    OPENTXS_EXPORT virtual ObjectList PeerRequestSent(
         const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of incoming peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerRequestIncoming(
+    OPENTXS_EXPORT virtual ObjectList PeerRequestIncoming(
         const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of finished peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerRequestFinished(
+    OPENTXS_EXPORT virtual ObjectList PeerRequestFinished(
         const identifier::Nym& nym) const = 0;
 
     /**   Obtain a list of processed peer requests
      *
      *    \param[in] nym the identifier of the nym whose box is returned
      */
-    EXPORT virtual ObjectList PeerRequestProcessed(
+    OPENTXS_EXPORT virtual ObjectList PeerRequestProcessed(
         const identifier::Nym& nym) const = 0;
 
     /**   Store the recipient's copy of a peer request
@@ -464,7 +465,7 @@ public:
      *    \param[in] request the serialized peer request object
      *    \returns true if the request is successfully stored
      */
-    EXPORT virtual bool PeerRequestReceive(
+    OPENTXS_EXPORT virtual bool PeerRequestReceive(
         const identifier::Nym& nym,
         const PeerObject& request) const = 0;
 
@@ -474,18 +475,18 @@ public:
      *    \param[in] request the identifier of the peer request object
      *    \param[in] box the box from which the peer object will be deleted
      */
-    EXPORT virtual bool PeerRequestUpdate(
+    OPENTXS_EXPORT virtual bool PeerRequestUpdate(
         const identifier::Nym& nym,
         const Identifier& request,
         const StorageBox& box) const = 0;
 
 #if OT_CASH
-    EXPORT virtual std::unique_ptr<const blind::Purse> Purse(
+    OPENTXS_EXPORT virtual std::unique_ptr<const blind::Purse> Purse(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
         const bool checking = false) const = 0;
-    EXPORT virtual Editor<blind::Purse> mutable_Purse(
+    OPENTXS_EXPORT virtual Editor<blind::Purse> mutable_Purse(
         const identifier::Nym& nym,
         const identifier::Server& server,
         const identifier::UnitDefinition& unit,
@@ -501,7 +502,8 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    EXPORT virtual bool RemoveServer(const identifier::Server& id) const = 0;
+    OPENTXS_EXPORT virtual bool RemoveServer(
+        const identifier::Server& id) const = 0;
 
     /**   Unload and delete a unit definition contract
      *
@@ -511,13 +513,10 @@ public:
      *    \returns true if successful, false if the contract did not exist
      *
      */
-    EXPORT virtual bool RemoveUnitDefinition(
+    OPENTXS_EXPORT virtual bool RemoveUnitDefinition(
         const identifier::UnitDefinition& id) const = 0;
 
-    /**   Obtain a smart pointer to an instantiated server contract.
-     *
-     *    The smart pointer will not be initialized if the object does not
-     *    exist or is invalid.
+    /**   Obtain an instantiated server contract.
      *
      *    If the caller is willing to accept a network lookup delay, it can
      *    specify a timeout to be used in the event that the contract can not
@@ -532,46 +531,44 @@ public:
      *    \param[in] timeout The caller can set a non-zero value here if it's
      *                       willing to wait for a network lookup. The default
      *                       value of 0 will return immediately.
+     *    \throw std::runtime_error the specified contract does not exist in the
+     *                              wallet
      */
-    EXPORT virtual ConstServerContract Server(
+    OPENTXS_EXPORT virtual OTServerContract Server(
         const identifier::Server& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const = 0;
+            std::chrono::milliseconds(0)) const noexcept(false) = 0;
 
     /**   Instantiate a server contract from serialized form
      *
-     *    The smart pointer will not be initialized if the provided serialized
-     *    contract is invalid.
-     *
      *    \param[in] contract the serialized version of the contract
+     *    \throw std::runtime_error the provided contract is not valid
      */
-    EXPORT virtual ConstServerContract Server(
+    OPENTXS_EXPORT virtual OTServerContract Server(
         const proto::ServerContract& contract,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept(false) = 0;
 
     /**   Create a new server contract
-     *
-     *    The smart pointer will not be initialized if the provided parameters
-     *    can not form a valid contract
      *
      *    \param[in] nymid the identifier of nym which will create the contract
      *    \param[in] name the official name of the server
      *    \param[in] terms human-readable server description & terms of use
      *    \param[in] url externally-reachable IP address or hostname
      *    \param[in] port externally-reachable listen port
+     *    \throw std::runtime_error the contract can not be created
      */
-    EXPORT virtual ConstServerContract Server(
+    OPENTXS_EXPORT virtual OTServerContract Server(
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
-        const std::list<ServerContract::Endpoint>& endpoints,
+        const std::list<contract::Server::Endpoint>& endpoints,
         const PasswordPrompt& reason,
-        const VersionNumber version) const = 0;
+        const VersionNumber version) const noexcept(false) = 0;
 
     /**   Returns a list of all available server contracts and their aliases
      */
-    EXPORT virtual ObjectList ServerList() const = 0;
+    OPENTXS_EXPORT virtual ObjectList ServerList() const = 0;
 
     /**   Updates the alias for the specified nym.
      *
@@ -582,7 +579,7 @@ public:
      *    \param[in] alias the alias to set or update for the specified nym
      *    \returns true if successful, false if the nym can not be located
      */
-    EXPORT virtual bool SetNymAlias(
+    OPENTXS_EXPORT virtual bool SetNymAlias(
         const identifier::Nym& id,
         const std::string& alias) const = 0;
 
@@ -595,7 +592,7 @@ public:
      *    \param[in] alias the alias to set or update for the specified contract
      *    \returns true if successful, false if the contract can not be located
      */
-    EXPORT virtual bool SetServerAlias(
+    OPENTXS_EXPORT virtual bool SetServerAlias(
         const identifier::Server& id,
         const std::string& alias) const = 0;
 
@@ -608,19 +605,16 @@ public:
      *    \param[in] alias the alias to set or update for the specified contract
      *    \returns true if successful, false if the contract can not be located
      */
-    EXPORT virtual bool SetUnitDefinitionAlias(
+    OPENTXS_EXPORT virtual bool SetUnitDefinitionAlias(
         const identifier::UnitDefinition& id,
         const std::string& alias) const = 0;
 
     /**   Obtain a list of all available unit definition contracts and their
      *    aliases
      */
-    EXPORT virtual ObjectList UnitDefinitionList() const = 0;
+    OPENTXS_EXPORT virtual ObjectList UnitDefinitionList() const = 0;
 
-    /**   Obtain a smart pointer to an instantiated unit definition contract.
-     *
-     *    The smart pointer will not be initialized if the object does not
-     *    exist or is invalid.
+    /**   Obtain an instantiated unit definition contract.
      *
      *    If the caller is willing to accept a network lookup delay, it can
      *    specify a timeout to be used in the event that the contract can not
@@ -635,28 +629,30 @@ public:
      *    \param[in] timeout The caller can set a non-zero value here if it's
      *                     willing to wait for a network lookup. The default
      *                     value of 0 will return immediately.
+     *    \throw std::runtime_error the specified contract does not exist in the
+     *                              wallet
      */
-    EXPORT virtual const ConstUnitDefinition UnitDefinition(
+    OPENTXS_EXPORT virtual OTUnitDefinition UnitDefinition(
         const identifier::UnitDefinition& id,
         const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
-            std::chrono::milliseconds(0)) const = 0;
+            std::chrono::milliseconds(0)) const noexcept(false) = 0;
+    OPENTXS_EXPORT virtual OTBasketContract BasketContract(
+        const identifier::UnitDefinition& id,
+        const PasswordPrompt& reason,
+        const std::chrono::milliseconds& timeout =
+            std::chrono::milliseconds(0)) const noexcept(false) = 0;
 
     /**   Instantiate a unit definition contract from serialized form
      *
-     *    The smart pointer will not be initialized if the provided serialized
-     *    contract is invalid.
-     *
      *    \param[in] contract the serialized version of the contract
+     *    \throw std::runtime_error the provided contract is invalid
      */
-    EXPORT virtual ConstUnitDefinition UnitDefinition(
+    OPENTXS_EXPORT virtual OTUnitDefinition UnitDefinition(
         const proto::UnitDefinition& contract,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept(false) = 0;
 
     /**   Create a new currency contract
-     *
-     *    The smart pointer will not be initialized if the provided parameters
-     *    can not form a valid contract
      *
      *    \param[in] nymid the identifier of nym which will create the contract
      *    \param[in] shortname a short human-readable identifier for the
@@ -669,8 +665,9 @@ public:
      *    \param[in] power the number of decimal places to shift to display
      *                     fractional units
      *    \param[in] fraction the name of the fractional unit
+     *    \throw std::runtime_error the contract can not be created
      */
-    EXPORT virtual ConstUnitDefinition UnitDefinition(
+    OPENTXS_EXPORT virtual OTUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
@@ -681,12 +678,10 @@ public:
         const std::string& fraction,
         const proto::ContactItemType unitOfAccount,
         const PasswordPrompt& reason,
-        const VersionNumber version = UnitDefinition::DefaultVersion) const = 0;
+        const VersionNumber version = contract::Unit::DefaultVersion) const
+        noexcept(false) = 0;
 
     /**   Create a new security contract
-     *
-     *    The smart pointer will not be initialized if the provided parameters
-     *    can not form a valid contract
      *
      *    \param[in] nymid the identifier of nym which will create the contract
      *    \param[in] shortname a short human-readable identifier for the
@@ -694,8 +689,9 @@ public:
      *    \param[in] name the official name of the unit of account
      *    \param[in] symbol symbol for the unit of account
      *    \param[in] terms human-readable terms and conditions
+     *    \throw std::runtime_error the contract can not be created
      */
-    EXPORT virtual ConstUnitDefinition UnitDefinition(
+    OPENTXS_EXPORT virtual OTUnitDefinition UnitDefinition(
         const std::string& nymid,
         const std::string& shortname,
         const std::string& name,
@@ -703,19 +699,20 @@ public:
         const std::string& terms,
         const proto::ContactItemType unitOfAccount,
         const PasswordPrompt& reason,
-        const VersionNumber version = UnitDefinition::DefaultVersion) const = 0;
+        const VersionNumber version = contract::Unit::DefaultVersion) const
+        noexcept(false) = 0;
 
-    EXPORT virtual proto::ContactItemType CurrencyTypeBasedOnUnitType(
+    OPENTXS_EXPORT virtual proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const identifier::UnitDefinition& contractID,
         const PasswordPrompt& reason) const = 0;
 
-    EXPORT virtual bool LoadCredential(
+    OPENTXS_EXPORT virtual bool LoadCredential(
         const std::string& id,
         std::shared_ptr<proto::Credential>& credential) const = 0;
-    EXPORT virtual bool SaveCredential(
+    OPENTXS_EXPORT virtual bool SaveCredential(
         const proto::Credential& credential) const = 0;
 
-    EXPORT virtual ~Wallet() = default;
+    OPENTXS_EXPORT virtual ~Wallet() = default;
 
 protected:
     Wallet() = default;

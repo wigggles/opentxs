@@ -10,45 +10,36 @@
 
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 
-#include <string>
-
 namespace opentxs
 {
-namespace api
+namespace contract
 {
-namespace internal
+namespace peer
 {
-struct Core;
-}  // namespace internal
-}  // namespace api
-
-class NoticeAcknowledgement final : public PeerReply
+namespace reply
 {
-private:
-    typedef PeerReply ot_super;
-    friend class PeerReply;
-
-    bool ack_{false};
-
-    proto::PeerReply IDVersion(const Lock& lock) const final;
-
-    NoticeAcknowledgement(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const proto::PeerReply& serialized);
-    NoticeAcknowledgement(
-        const api::internal::Core& api,
-        const Nym_p& nym,
-        const identifier::Nym& initiator,
-        const Identifier& request,
-        const identifier::Server& server,
-        const proto::PeerRequestType type,
-        const bool& ack);
-    NoticeAcknowledgement() = delete;
-
+class Acknowledgement : virtual public peer::Reply
+{
 public:
-    ~NoticeAcknowledgement() final = default;
-};
-}  // namespace opentxs
+    OPENTXS_EXPORT ~Acknowledgement() override = default;
 
+protected:
+    Acknowledgement() noexcept = default;
+
+private:
+    friend OTReplyAcknowledgement;
+
+#ifndef _WIN32
+    OPENTXS_EXPORT Acknowledgement* clone() const noexcept override = 0;
+#endif
+
+    Acknowledgement(const Acknowledgement&) = delete;
+    Acknowledgement(Acknowledgement&&) = delete;
+    Acknowledgement& operator=(const Acknowledgement&) = delete;
+    Acknowledgement& operator=(Acknowledgement&&) = delete;
+};
+}  // namespace reply
+}  // namespace peer
+}  // namespace contract
+}  // namespace opentxs
 #endif

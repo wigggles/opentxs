@@ -863,8 +863,8 @@ void Nym::init_claims(const eLock& lock) const
         credSet.GetContactData(serialized);
 
         if (serialized) {
-            OT_ASSERT(
-                proto::Validate(*serialized, VERBOSE, proto::CLAIMS_NORMAL));
+            OT_ASSERT(proto::Validate(
+                *serialized, VERBOSE, proto::ClaimType::Normal));
 
             opentxs::ContactData claimCred(
                 api_, nymID, dataVersion, *serialized);
@@ -1431,7 +1431,7 @@ bool Nym::set_contact_data(
         return false;
     }
 
-    if (false == proto::Validate(data, VERBOSE, false)) {
+    if (false == proto::Validate(data, VERBOSE, proto::ClaimType::Normal)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid contact data.").Flush();
 
         return false;

@@ -30,38 +30,38 @@ typedef std::set<const identity::Nym*> setOfNyms;
 class OTEnvelope
 {
 public:
-    EXPORT OTEnvelope(const api::internal::Core& api);
-    EXPORT explicit OTEnvelope(
+    OPENTXS_EXPORT OTEnvelope(const api::internal::Core& api);
+    OPENTXS_EXPORT explicit OTEnvelope(
         const api::internal::Core& api,
         const Armored& theArmoredText);
 
     /** Retrieve ciphertext in ascii armored form */
-    EXPORT bool GetCiphertext(Armored& theArmoredText) const;
+    OPENTXS_EXPORT bool GetCiphertext(Armored& theArmoredText) const;
     /** Load ascii armored ciphertext */
-    EXPORT bool SetCiphertext(const Armored& theArmoredText);
+    OPENTXS_EXPORT bool SetCiphertext(const Armored& theArmoredText);
 
-    EXPORT bool Seal(
+    OPENTXS_EXPORT bool Seal(
         const setOfNyms& recipients,
         const String& theInput,
         const PasswordPrompt& reason);
-    EXPORT bool Seal(
+    OPENTXS_EXPORT bool Seal(
         const identity::Nym& theRecipient,
         const String& theInput,
         const PasswordPrompt& reason);
-    EXPORT bool Seal(
+    OPENTXS_EXPORT bool Seal(
         const mapOfAsymmetricKeys& recipientKeys,
         const String& theInput,
         const PasswordPrompt& reason);
-    EXPORT bool Seal(
+    OPENTXS_EXPORT bool Seal(
         const crypto::key::Asymmetric& RecipPubKey,
         const String& theInput,
         const PasswordPrompt& reason);
-    EXPORT bool Open(
+    OPENTXS_EXPORT bool Open(
         const identity::Nym& theRecipient,
         String& theOutput,
         const PasswordPrompt& reason);
 
-    EXPORT ~OTEnvelope() = default;
+    OPENTXS_EXPORT ~OTEnvelope() = default;
 
 private:
     friend Letter;

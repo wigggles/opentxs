@@ -19,7 +19,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    std::unique_ptr<std::thread> load_{nullptr};
+    std::unique_ptr<std::thread> load_;
 
     void load() noexcept;
 

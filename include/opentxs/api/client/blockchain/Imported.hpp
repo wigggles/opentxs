@@ -21,9 +21,9 @@ namespace blockchain
 class Imported : virtual public BalanceNode
 {
 public:
-    EXPORT virtual ECKey Key() const = 0;
+    OPENTXS_EXPORT virtual ECKey Key() const = 0;
 
-    EXPORT ~Imported() override = default;
+    OPENTXS_EXPORT ~Imported() override = default;
 
 protected:
     Imported() noexcept = default;

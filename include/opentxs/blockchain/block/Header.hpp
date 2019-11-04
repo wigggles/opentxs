@@ -32,38 +32,38 @@ public:
         Checkpoint
     };
 
-    EXPORT virtual std::unique_ptr<Header> clone() const noexcept = 0;
-    EXPORT virtual OTWork Difficulty() const noexcept = 0;
-    EXPORT virtual Status EffectiveState() const noexcept = 0;
-    EXPORT virtual const block::Hash& Hash() const noexcept = 0;
-    EXPORT virtual block::Height Height() const noexcept = 0;
-    EXPORT virtual Status InheritedState() const noexcept = 0;
-    EXPORT virtual bool IsBlacklisted() const noexcept = 0;
-    EXPORT virtual bool IsDisconnected() const noexcept = 0;
-    EXPORT virtual Status LocalState() const noexcept = 0;
-    EXPORT virtual OTNumericHash NumericHash() const noexcept = 0;
-    EXPORT virtual const block::Hash& ParentHash() const noexcept = 0;
-    EXPORT virtual OTWork ParentWork() const noexcept = 0;
-    EXPORT virtual block::Position Position() const noexcept = 0;
-    EXPORT virtual SerializedType Serialize() const noexcept = 0;
-    EXPORT virtual OTNumericHash Target() const noexcept = 0;
-    EXPORT virtual blockchain::Type Type() const noexcept = 0;
-    EXPORT virtual bool Valid() const noexcept = 0;
-    EXPORT virtual OTWork Work() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::unique_ptr<Header> clone() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTWork Difficulty() const noexcept = 0;
+    OPENTXS_EXPORT virtual Status EffectiveState() const noexcept = 0;
+    OPENTXS_EXPORT virtual const block::Hash& Hash() const noexcept = 0;
+    OPENTXS_EXPORT virtual block::Height Height() const noexcept = 0;
+    OPENTXS_EXPORT virtual Status InheritedState() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsBlacklisted() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool IsDisconnected() const noexcept = 0;
+    OPENTXS_EXPORT virtual Status LocalState() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTNumericHash NumericHash() const noexcept = 0;
+    OPENTXS_EXPORT virtual const block::Hash& ParentHash() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTWork ParentWork() const noexcept = 0;
+    OPENTXS_EXPORT virtual block::Position Position() const noexcept = 0;
+    OPENTXS_EXPORT virtual SerializedType Serialize() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTNumericHash Target() const noexcept = 0;
+    OPENTXS_EXPORT virtual blockchain::Type Type() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Valid() const noexcept = 0;
+    OPENTXS_EXPORT virtual OTWork Work() const noexcept = 0;
 
-    EXPORT virtual void CompareToCheckpoint(
+    OPENTXS_EXPORT virtual void CompareToCheckpoint(
         const block::Position& checkpoint) noexcept = 0;
     /// Throws std::runtime_error if parent hash incorrect
-    EXPORT virtual void InheritHeight(const Header& parent) = 0;
+    OPENTXS_EXPORT virtual void InheritHeight(const Header& parent) = 0;
     /// Throws std::runtime_error if parent hash incorrect
-    EXPORT virtual void InheritState(const Header& parent) = 0;
-    EXPORT virtual void InheritWork(
+    OPENTXS_EXPORT virtual void InheritState(const Header& parent) = 0;
+    OPENTXS_EXPORT virtual void InheritWork(
         const blockchain::Work& parent) noexcept = 0;
-    EXPORT virtual void RemoveBlacklistState() noexcept = 0;
-    EXPORT virtual void RemoveCheckpointState() noexcept = 0;
-    EXPORT virtual void SetDisconnectedState() noexcept = 0;
+    OPENTXS_EXPORT virtual void RemoveBlacklistState() noexcept = 0;
+    OPENTXS_EXPORT virtual void RemoveCheckpointState() noexcept = 0;
+    OPENTXS_EXPORT virtual void SetDisconnectedState() noexcept = 0;
 
-    EXPORT virtual ~Header() = default;
+    OPENTXS_EXPORT virtual ~Header() = default;
 
 protected:
     Header() noexcept = default;

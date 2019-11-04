@@ -71,10 +71,10 @@ public:
 
     virtual ~OTScript();
 
-    EXPORT void SetScript(const String& strValue);
-    EXPORT void SetScript(const char* new_string);
-    EXPORT void SetScript(const char* new_string, size_t sizeLength);
-    EXPORT void SetScript(const std::string& new_string);
+    OPENTXS_EXPORT void SetScript(const String& strValue);
+    OPENTXS_EXPORT void SetScript(const char* new_string);
+    OPENTXS_EXPORT void SetScript(const char* new_string, size_t sizeLength);
+    OPENTXS_EXPORT void SetScript(const std::string& new_string);
 
     void SetDisplayFilename(std::string str_display_filename)
     {
@@ -96,9 +96,11 @@ public:
     //
     void AddParty(std::string str_party_name, OTParty& theParty);
     void AddAccount(std::string str_acct_name, OTPartyAccount& theAcct);
-    EXPORT void AddVariable(std::string str_var_name, OTVariable& theVar);
-    EXPORT OTVariable* FindVariable(std::string str_var_name);
-    EXPORT void RemoveVariable(OTVariable& theVar);
+    OPENTXS_EXPORT void AddVariable(
+        std::string str_var_name,
+        OTVariable& theVar);
+    OPENTXS_EXPORT OTVariable* FindVariable(std::string str_var_name);
+    OPENTXS_EXPORT void RemoveVariable(OTVariable& theVar);
 
     // Note: any relevant assets or asset accounts are listed by their owner /
     // contributor
@@ -110,9 +112,9 @@ public:
     virtual bool ExecuteScript(OTVariable* pReturnVar = nullptr);
 };
 
-EXPORT std::shared_ptr<OTScript> OTScriptFactory(
+OPENTXS_EXPORT std::shared_ptr<OTScript> OTScriptFactory(
     const std::string& script_type = "");
-EXPORT std::shared_ptr<OTScript> OTScriptFactory(
+OPENTXS_EXPORT std::shared_ptr<OTScript> OTScriptFactory(
     const std::string& script_type,
     const std::string& script_contents);
 
