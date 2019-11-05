@@ -3,10 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-function(add_opentx_test target_name file_name)
-  set(cxx-sources "${PROJECT_SOURCE_DIR}/tests/main.cpp" "${file_name}"
-                  "${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp")
-
+function(add_opentx_test_target target_name cxx-sources)
   include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tests
                       ${GTEST_INCLUDE_DIRS})
 
@@ -28,6 +25,20 @@ function(add_opentx_test target_name file_name)
            --gtest_output=xml:gtestresults.xml)
 endfunction()
 
+function(add_opentx_test target_name file_name)
+  set(cxx-sources "${PROJECT_SOURCE_DIR}/tests/main.cpp" "${file_name}"
+                  "${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp")
+
+  add_opentx_test_target("${target_name}" "${cxx-sources}")
+endfunction()
+
+function(add_opentx_low_level_test target_name file_name)
+  set(cxx-sources "${PROJECT_SOURCE_DIR}/tests/lowlevel.cpp" "${file_name}"
+                  "${PROJECT_SOURCE_DIR}/tests/OTLowLevelTestEnvironment.cpp")
+
+  add_opentx_test_target("${target_name}" "${cxx-sources}")
+endfunction()
+
 if(OT_CRYPTO_SUPPORTED_KEY_HD)
   add_subdirectory(blockchain)
 endif()
@@ -39,6 +50,7 @@ endif()
 add_subdirectory(client)
 add_subdirectory(core)
 add_subdirectory(contact)
+add_subdirectory(context)
 add_subdirectory(crypto)
 add_subdirectory(identity)
 add_subdirectory(integration)

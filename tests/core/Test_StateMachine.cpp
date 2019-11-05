@@ -10,7 +10,7 @@ using namespace opentxs;
 namespace
 {
 class Test_State_Machine : public ::testing::Test,
-                           public opentxs::internal::StateMachine
+                           public ot::internal::StateMachine
 {
 public:
     std::atomic<int> step_;
@@ -20,7 +20,7 @@ public:
     bool callback()
     {
         while (step_.load() <= counter_.load()) {
-            opentxs::Sleep(std::chrono::microseconds(10));
+            ot::Sleep(std::chrono::microseconds(10));
         }
 
         ++counter_;

@@ -12,7 +12,7 @@ namespace
 class Test_Signatures : public ::testing::Test
 {
 public:
-    const opentxs::api::client::internal::Manager& client_;
+    const ot::api::client::internal::Manager& client_;
     const std::string fingerprint_;
     const proto::HashType hash_sha256_{proto::HASHTYPE_SHA256};
     const proto::HashType hash_sha512_{proto::HASHTYPE_SHA512};
@@ -47,8 +47,8 @@ public:
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 
     Test_Signatures()
-        : client_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
-              opentxs::Context().StartClient({}, 0)))
+        : client_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              ot::Context().StartClient({}, 0)))
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
@@ -79,7 +79,7 @@ public:
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static OTAsymmetricKey get_hd_key(
-        const opentxs::api::client::Manager& api,
+        const ot::api::client::Manager& api,
         const std::string& fingerprint,
         const EcdsaCurve& curve)
     {
@@ -101,7 +101,7 @@ public:
     }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     static OTAsymmetricKey get_key(
-        const opentxs::api::client::Manager& api,
+        const ot::api::client::Manager& api,
         const EcdsaCurve& curve)
     {
         const auto reason = api.Factory().PasswordPrompt(__FUNCTION__);

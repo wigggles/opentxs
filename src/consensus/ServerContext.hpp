@@ -14,88 +14,88 @@ class ServerContext final : virtual public internal::ServerContext,
                             public opentxs::internal::StateMachine
 {
 public:
-    std::vector<OTIdentifier> Accounts() const override;
-    const std::string& AdminPassword() const override;
-    bool AdminAttempted() const override;
+    std::vector<OTIdentifier> Accounts() const final;
+    const std::string& AdminPassword() const final;
+    bool AdminAttempted() const final;
     bool FinalizeServerCommand(Message& command, const PasswordPrompt& reason)
-        const override;
-    proto::Context GetContract(const Lock& lock) const override
+        const final;
+    proto::Context GetContract(const Lock& lock) const final
     {
         return contract(lock);
     }
-    bool HaveAdminPassword() const override;
-    bool HaveSufficientNumbers(const MessageType reason) const override;
-    TransactionNumber Highest() const override;
-    bool isAdmin() const override;
+    bool HaveAdminPassword() const final;
+    bool HaveSufficientNumbers(const MessageType reason) const final;
+    TransactionNumber Highest() const final;
+    bool isAdmin() const final;
 #if OT_CASH
     std::shared_ptr<const blind::Purse> Purse(
-        const identifier::UnitDefinition& id) const override;
+        const identifier::UnitDefinition& id) const final;
 #endif
-    std::uint64_t Revision() const override;
+    std::uint64_t Revision() const final;
     bool ShouldRename(
         const PasswordPrompt& reason,
-        const std::string& defaultName = "") const override;
-    bool StaleNym() const override;
+        const std::string& defaultName = "") const final;
+    bool StaleNym() const final;
     std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
         const TransactionNumbers& adding,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
     std::unique_ptr<TransactionStatement> Statement(
         const TransactionNumbers& adding,
         const TransactionNumbers& without,
-        const PasswordPrompt& reason) const override;
-    proto::ConsensusType Type() const override;
+        const PasswordPrompt& reason) const final;
+    proto::ConsensusType Type() const final;
     bool ValidateContext(const Lock& lock, const PasswordPrompt& reason)
-        const override
+        const final
     {
         return validate(lock, reason);
     }
-    bool Verify(const TransactionStatement& statement) const override;
-    bool VerifyTentativeNumber(const TransactionNumber& number) const override;
+    bool Verify(const TransactionStatement& statement) const final;
+    bool VerifyTentativeNumber(const TransactionNumber& number) const final;
 
-    bool AcceptIssuedNumber(const TransactionNumber& number) override;
-    bool AcceptIssuedNumbers(const TransactionStatement& statement) override;
-    bool AddTentativeNumber(const TransactionNumber& number) override;
-    network::ServerConnection& Connection() override;
-    std::mutex& GetLock() override { return lock_; }
+    bool AcceptIssuedNumber(const TransactionNumber& number) final;
+    bool AcceptIssuedNumbers(const TransactionStatement& statement) final;
+    bool AddTentativeNumber(const TransactionNumber& number) final;
+    network::ServerConnection& Connection() final;
+    std::mutex& GetLock() final { return lock_; }
     std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
         const MessageType type,
         const Armored& payload,
         const Identifier& accountID,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = true) override;
+        const bool withNymboxHash = true) final;
     std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
         const MessageType type,
         const identifier::Nym& recipientNymID,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = false) override;
+        const bool withNymboxHash = false) final;
     std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
         const MessageType type,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = false) override;
-    void Join() const override;
+        const bool withNymboxHash = false) final;
+    void Join() const final;
 #if OT_CASH
     Editor<blind::Purse> mutable_Purse(
         const identifier::UnitDefinition& id,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
 #endif
-    OTManagedNumber NextTransactionNumber(const MessageType reason) override;
-    NetworkReplyMessage PingNotary(const PasswordPrompt& reason) override;
+    OTManagedNumber NextTransactionNumber(const MessageType reason) final;
+    NetworkReplyMessage PingNotary(const PasswordPrompt& reason) final;
     bool ProcessNotification(
         const api::client::internal::Manager& client,
         const otx::Reply& notification,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
     QueueResult Queue(
         const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
         const PasswordPrompt& reason,
-        const ExtraArgs& args) override;
+        const ExtraArgs& args) final;
     QueueResult Queue(
         const api::client::internal::Manager& client,
         std::shared_ptr<Message> message,
@@ -103,13 +103,13 @@ public:
         std::shared_ptr<Ledger> outbox,
         std::set<OTManagedNumber>* numbers,
         const PasswordPrompt& reason,
-        const ExtraArgs& args) override;
+        const ExtraArgs& args) final;
     QueueResult RefreshNymbox(
         const api::client::internal::Manager& client,
-        const PasswordPrompt& reason) override;
-    bool RemoveTentativeNumber(const TransactionNumber& number) override;
-    void ResetThread() override;
-    bool Resync(const proto::Context& serialized) override;
+        const PasswordPrompt& reason) final;
+    bool RemoveTentativeNumber(const TransactionNumber& number) final;
+    void ResetThread() final;
+    bool Resync(const proto::Context& serialized) final;
     NetworkReplyMessage SendMessage(
         const api::client::internal::Manager& client,
         const std::set<OTManagedNumber>& pending,
@@ -117,30 +117,29 @@ public:
         const Message& message,
         const PasswordPrompt& reason,
         const std::string& label,
-        const bool resync) override;
-    void SetAdminAttempted() override;
-    void SetAdminPassword(const std::string& password) override;
-    void SetAdminSuccess() override;
-    bool SetHighest(const TransactionNumber& highest) override;
-    void SetPush(const bool on) override { enable_otx_push_.store(on); }
-    void SetRevision(const std::uint64_t revision) override;
+        const bool resync) final;
+    void SetAdminAttempted() final;
+    void SetAdminPassword(const std::string& password) final;
+    void SetAdminSuccess() final;
+    bool SetHighest(const TransactionNumber& highest) final;
+    void SetPush(const bool on) final { enable_otx_push_.store(on); }
+    void SetRevision(const std::uint64_t revision) final;
     TransactionNumber UpdateHighest(
         const TransactionNumbers& numbers,
         TransactionNumbers& good,
-        TransactionNumbers& bad) override;
-    RequestNumber UpdateRequestNumber(const PasswordPrompt& reason) override;
+        TransactionNumbers& bad) final;
+    RequestNumber UpdateRequestNumber(const PasswordPrompt& reason) final;
     RequestNumber UpdateRequestNumber(
         bool& sendStatus,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
     bool UpdateRequestNumber(Message& command, const PasswordPrompt& reason)
-        override;
-    bool UpdateSignature(const Lock& lock, const PasswordPrompt& reason)
-        override
+        final;
+    bool UpdateSignature(const Lock& lock, const PasswordPrompt& reason) final
     {
         return update_signature(lock, reason);
     }
 
-    ~ServerContext() override;
+    ~ServerContext() final;
 
 private:
     friend opentxs::Factory;
@@ -226,7 +225,7 @@ private:
         std::shared_ptr<OTTransaction> transaction,
         Ledger& ledger,
         const PasswordPrompt& reason) const;
-    const identifier::Nym& client_nym_id(const Lock& lock) const override;
+    const identifier::Nym& client_nym_id(const Lock& lock) const final;
     bool create_instrument_notice_from_peer_object(
         const Lock& lock,
         const api::client::internal::Manager& client,
@@ -330,7 +329,7 @@ private:
         const api::client::internal::Manager& client,
         const OTTransaction& receipt,
         const PasswordPrompt& reason) const;
-    std::string type() const override { return "server"; }
+    std::string type() const final { return "server"; }
     void verify_blank(
         const Lock& lock,
         OTTransaction& blank,
@@ -637,8 +636,8 @@ private:
         const proto::DeliveryState state = proto::DELIVERTYSTATE_ERROR);
     bool resync(const Lock& lock, const proto::Context& serialized);
     using implementation::Context::serialize;
-    proto::Context serialize(const Lock& lock) const override;
-    const identifier::Nym& server_nym_id(const Lock& lock) const override;
+    proto::Context serialize(const Lock& lock) const final;
+    const identifier::Nym& server_nym_id(const Lock& lock) const final;
     QueueResult start(
         const Lock& decisionLock,
         const PasswordPrompt& reason,

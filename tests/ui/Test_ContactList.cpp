@@ -16,11 +16,11 @@
     "PM8TJfV1DQD6VScd5AWsSax8RgK9cUREe939M1d85MwGCKJukyghX6B5E7kqcCyEYu6Tu1Zv" \
     "dG8aWh6w8KGhSfjgL8fBKuZS6aUjhV9xLV1R16CcgWhw"
 #define CHRIS_NYM_NAME "Chris"
-#define OT_METHOD "opentxs::Test_ContactList::"
+#define OT_METHOD "ot::Test_ContactList::"
 
 using namespace opentxs;
 
-template class opentxs::Pimpl<opentxs::PaymentCode>;
+template class ot::Pimpl<ot::PaymentCode>;
 
 namespace
 {
@@ -28,8 +28,8 @@ class Test_ContactList : public ::testing::Test
 {
 public:
     using WidgetUpdateCounter = std::map<std::string, int>;
-    const opentxs::api::client::Manager& client_;
-    opentxs::OTPasswordPrompt reason_;
+    const ot::api::client::Manager& client_;
+    ot::OTPasswordPrompt reason_;
 
     const std::string fingerprint_;
     const OTNymID nym_id_;
@@ -47,7 +47,7 @@ public:
     OTIdentifier chris_contact_id_;
 
     Test_ContactList()
-        : client_(opentxs::Context().StartClient({}, 0))
+        : client_(ot::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
@@ -78,7 +78,7 @@ public:
     }
 
     static OTZMQSubscribeSocket setup_listener(
-        const opentxs::api::client::Manager& api,
+        const ot::api::client::Manager& api,
         const network::zeromq::ListenCallback& callback)
     {
         auto output = api.ZMQ().Context().SubscribeSocket(callback);

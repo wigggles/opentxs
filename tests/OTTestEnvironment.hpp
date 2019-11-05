@@ -31,7 +31,7 @@ namespace ot = opentxs;
 class OTTestEnvironment : public testing::Environment
 {
 public:
-    static const opentxs::ArgList test_args_;
+    static const ot::ArgList test_args_;
 
     virtual void SetUp();
     virtual void TearDown();

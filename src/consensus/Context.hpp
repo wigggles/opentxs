@@ -123,6 +123,11 @@ private:
 
     const VersionNumber target_version_{0};
 
+    static auto calculate_id(
+        const api::Core& api,
+        const Nym_p& client,
+        const Nym_p& server) noexcept(false) -> OTIdentifier;
+
     virtual const identifier::Nym& client_nym_id(const Lock& lock) const = 0;
     Context* clone() const noexcept final { return nullptr; }
     proto::Context IDVersion(const Lock& lock) const;

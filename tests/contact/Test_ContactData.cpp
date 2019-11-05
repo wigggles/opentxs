@@ -12,71 +12,71 @@ class Test_ContactData : public ::testing::Test
 {
 public:
     Test_ContactData()
-        : api_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
-              opentxs::Context().StartClient({}, 0)))
+        : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
+              ot::Context().StartClient({}, 0)))
         , contactData_(
               api_,
               std::string("contactDataNym"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
               {})
-        , activeContactItem_(new opentxs::ContactItem(
+        , activeContactItem_(new ot::ContactItem(
               api_,
               std::string("activeContactItem"),
               CONTACT_CONTACT_DATA_VERSION,
               CONTACT_CONTACT_DATA_VERSION,
-              opentxs::proto::CONTACTSECTION_IDENTIFIER,
-              opentxs::proto::CITEMTYPE_EMPLOYEE,
+              ot::proto::CONTACTSECTION_IDENTIFIER,
+              ot::proto::CITEMTYPE_EMPLOYEE,
               std::string("activeContactItemValue"),
-              {opentxs::proto::CITEMATTR_ACTIVE},
+              {ot::proto::CITEMATTR_ACTIVE},
               NULL_START,
               NULL_END,
               ""))
     {
     }
 
-    const opentxs::api::client::internal::Manager& api_;
-    const opentxs::ContactData contactData_;
-    const std::shared_ptr<opentxs::ContactItem> activeContactItem_;
+    const ot::api::client::internal::Manager& api_;
+    const ot::ContactData contactData_;
+    const std::shared_ptr<ot::ContactItem> activeContactItem_;
 
-    using CallbackType1 = opentxs::ContactData (*)(
-        const opentxs::ContactData&,
+    using CallbackType1 = ot::ContactData (*)(
+        const ot::ContactData&,
         const std::string&,
-        const opentxs::proto::ContactItemType,
+        const ot::proto::ContactItemType,
         const bool,
         const bool);
-    using CallbackType2 = opentxs::ContactData (*)(
-        const opentxs::ContactData&,
+    using CallbackType2 = ot::ContactData (*)(
+        const ot::ContactData&,
         const std::string&,
         const bool,
         const bool);
 
     void testAddItemMethod(
         const CallbackType1 contactDataMethod,
-        opentxs::proto::ContactSectionName sectionName,
+        ot::proto::ContactSectionName sectionName,
         std::uint32_t version = CONTACT_CONTACT_DATA_VERSION,
         std::uint32_t targetVersion = 0);
 
     void testAddItemMethod2(
         const CallbackType2 contactDataMethod,
-        opentxs::proto::ContactSectionName sectionName,
-        opentxs::proto::ContactItemType itemType,
+        ot::proto::ContactSectionName sectionName,
+        ot::proto::ContactItemType itemType,
         std::uint32_t version = CONTACT_CONTACT_DATA_VERSION,
         std::uint32_t targetVersion = 0);
 };
 
-opentxs::ContactData add_contract(
-    const opentxs::ContactData& data,
+ot::ContactData add_contract(
+    const ot::ContactData& data,
     const std::string& id,
-    const opentxs::proto::ContactItemType type,
+    const ot::proto::ContactItemType type,
     const bool active,
     const bool primary)
 {
     return data.AddContract(id, type, active, primary);
 }
 
-opentxs::ContactData add_email(
-    const opentxs::ContactData& data,
+ot::ContactData add_email(
+    const ot::ContactData& data,
     const std::string& id,
     const bool active,
     const bool primary)
@@ -84,18 +84,18 @@ opentxs::ContactData add_email(
     return data.AddEmail(id, active, primary);
 }
 
-opentxs::ContactData add_payment_code(
-    const opentxs::ContactData& data,
+ot::ContactData add_payment_code(
+    const ot::ContactData& data,
     const std::string& id,
-    const opentxs::proto::ContactItemType type,
+    const ot::proto::ContactItemType type,
     const bool active,
     const bool primary)
 {
     return data.AddPaymentCode(id, type, active, primary);
 }
 
-opentxs::ContactData add_phone_number(
-    const opentxs::ContactData& data,
+ot::ContactData add_phone_number(
+    const ot::ContactData& data,
     const std::string& id,
     const bool active,
     const bool primary)
@@ -105,36 +105,34 @@ opentxs::ContactData add_phone_number(
 
 void Test_ContactData::testAddItemMethod(
     const CallbackType1 contactDataMethod,
-    opentxs::proto::ContactSectionName sectionName,
+    ot::proto::ContactSectionName sectionName,
     std::uint32_t version,
     std::uint32_t targetVersion)
 {
     // Add a contact to a group with no primary.
-    const auto& group1 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup1", sectionName, opentxs::proto::CITEMTYPE_BCH, {}));
+    const auto& group1 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup1", sectionName, ot::proto::CITEMTYPE_BCH, {}));
 
     const auto& section1 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym1",
             version,
             version,
             sectionName,
-            opentxs::ContactSection::GroupMap{
-                {opentxs::proto::CITEMTYPE_BCH, group1}}));
+            ot::ContactSection::GroupMap{{ot::proto::CITEMTYPE_BCH, group1}}));
 
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("contactDataNym1"),
         version,
         version,
-        opentxs::ContactData::SectionMap{{sectionName, section1}});
+        ot::ContactData::SectionMap{{sectionName, section1}});
 
     const auto& data2 = contactDataMethod(
         data1,
         "instrumentDefinitionID1",
-        opentxs::proto::CITEMTYPE_BCH,
+        ot::proto::CITEMTYPE_BCH,
         false,
         false);
 
@@ -144,12 +142,12 @@ void Test_ContactData::testAddItemMethod(
     }
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier1(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
             sectionName,
-            opentxs::proto::CITEMTYPE_BCH,
+            ot::proto::CITEMTYPE_BCH,
             NULL_START,
             NULL_END,
             "instrumentDefinitionID1",
@@ -162,17 +160,17 @@ void Test_ContactData::testAddItemMethod(
     const auto& data3 = contactDataMethod(
         data2,
         "instrumentDefinitionID2",
-        opentxs::proto::CITEMTYPE_BCH,
+        ot::proto::CITEMTYPE_BCH,
         false,
         false);
 
     // Verify that the item wasn't made primary.
-    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
             sectionName,
-            opentxs::proto::CITEMTYPE_BCH,
+            ot::proto::CITEMTYPE_BCH,
             NULL_START,
             NULL_END,
             "instrumentDefinitionID2",
@@ -185,19 +183,19 @@ void Test_ContactData::testAddItemMethod(
     const auto& data4 = contactDataMethod(
         data3,
         "instrumentDefinitionID3",
-        opentxs::proto::CITEMTYPE_EUR,
+        ot::proto::CITEMTYPE_EUR,
         false,
         false);
 
     // Verify the group was created.
-    ASSERT_NE(nullptr, data4.Group(sectionName, opentxs::proto::CITEMTYPE_EUR));
+    ASSERT_NE(nullptr, data4.Group(sectionName, ot::proto::CITEMTYPE_EUR));
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier3(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
             sectionName,
-            opentxs::proto::CITEMTYPE_EUR,
+            ot::proto::CITEMTYPE_EUR,
             NULL_START,
             NULL_END,
             "instrumentDefinitionID3",
@@ -210,19 +208,19 @@ void Test_ContactData::testAddItemMethod(
     const auto& data5 = contactDataMethod(
         data4,
         "instrumentDefinitionID4",
-        opentxs::proto::CITEMTYPE_USD,
+        ot::proto::CITEMTYPE_USD,
         false,
         true);
 
     // Verify the group was created.
-    ASSERT_NE(nullptr, data5.Group(sectionName, opentxs::proto::CITEMTYPE_USD));
+    ASSERT_NE(nullptr, data5.Group(sectionName, ot::proto::CITEMTYPE_USD));
     // Verify that the item was made active.
-    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier4(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
             sectionName,
-            opentxs::proto::CITEMTYPE_USD,
+            ot::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
             "instrumentDefinitionID4",
@@ -235,17 +233,17 @@ void Test_ContactData::testAddItemMethod(
     const auto& data6 = contactDataMethod(
         data5,
         "instrumentDefinitionID5",
-        opentxs::proto::CITEMTYPE_USD,
+        ot::proto::CITEMTYPE_USD,
         true,
         false);
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier5(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier5(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
             sectionName,
-            opentxs::proto::CITEMTYPE_USD,
+            ot::proto::CITEMTYPE_USD,
             NULL_START,
             NULL_END,
             "instrumentDefinitionID5",
@@ -257,30 +255,30 @@ void Test_ContactData::testAddItemMethod(
 
 void Test_ContactData::testAddItemMethod2(
     const CallbackType2 contactDataMethod,
-    opentxs::proto::ContactSectionName sectionName,
-    opentxs::proto::ContactItemType itemType,
+    ot::proto::ContactSectionName sectionName,
+    ot::proto::ContactItemType itemType,
     std::uint32_t version,
     std::uint32_t targetVersion)
 {
     // Add a contact to a group with no primary.
-    const auto& group1 = std::shared_ptr<opentxs::ContactGroup>(
-        new opentxs::ContactGroup("contactGroup1", sectionName, itemType, {}));
+    const auto& group1 = std::shared_ptr<ot::ContactGroup>(
+        new ot::ContactGroup("contactGroup1", sectionName, itemType, {}));
 
     const auto& section1 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym1",
             version,
             version,
             sectionName,
-            opentxs::ContactSection::GroupMap{{itemType, group1}}));
+            ot::ContactSection::GroupMap{{itemType, group1}}));
 
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("contactDataNym1"),
         version,
         version,
-        opentxs::ContactData::SectionMap{{sectionName, section1}});
+        ot::ContactData::SectionMap{{sectionName, section1}});
 
     const auto& data2 = contactDataMethod(data1, "contactValue1", false, false);
 
@@ -290,8 +288,8 @@ void Test_ContactData::testAddItemMethod2(
     }
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier1(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
             sectionName,
@@ -308,8 +306,8 @@ void Test_ContactData::testAddItemMethod2(
     const auto& data3 = contactDataMethod(data2, "contactValue2", false, false);
 
     // Verify that the item wasn't made primary.
-    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
             sectionName,
@@ -324,28 +322,28 @@ void Test_ContactData::testAddItemMethod2(
 
     // Add a contact for a type with no group.
     const auto& section2 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym2",
             version,
             version,
             sectionName,
-            opentxs::ContactSection::GroupMap{}));
+            ot::ContactSection::GroupMap{}));
 
-    const opentxs::ContactData data4(
+    const ot::ContactData data4(
         api_,
         std::string("contactDataNym4"),
         version,
         version,
-        opentxs::ContactData::SectionMap{{sectionName, section2}});
+        ot::ContactData::SectionMap{{sectionName, section2}});
 
     const auto& data5 = contactDataMethod(data4, "contactValue3", false, false);
 
     // Verify the group was created.
     ASSERT_NE(nullptr, data5.Group(sectionName, itemType));
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier3(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym4",
             sectionName,
@@ -362,8 +360,8 @@ void Test_ContactData::testAddItemMethod2(
     const auto& data6 = contactDataMethod(data5, "contactValue4", false, true);
 
     // Verify that the item was made active.
-    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier4(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym4",
             sectionName,
@@ -392,24 +390,23 @@ TEST_F(Test_ContactData, PrintContactData)
 {
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     const auto& dataString =
-        opentxs::ContactData::PrintContactData(data1.Serialize());
+        ot::ContactData::PrintContactData(data1.Serialize());
     ASSERT_STREQ(expectedStringOutput.c_str(), dataString.c_str());
 }
 
 TEST_F(Test_ContactData, first_constructor)
 {
-    const std::shared_ptr<opentxs::ContactSection> section1(
-        new opentxs::ContactSection(
-            api_,
-            "testContactSectionNym1",
-            CONTACT_CONTACT_DATA_VERSION,
-            CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            activeContactItem_));
+    const std::shared_ptr<ot::ContactSection> section1(new ot::ContactSection(
+        api_,
+        "testContactSectionNym1",
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        activeContactItem_));
 
-    const opentxs::ContactData::SectionMap map{{section1->Type(), section1}};
+    const ot::ContactData::SectionMap map{{section1->Type(), section1}};
 
-    const opentxs::ContactData contactData(
+    const ot::ContactData contactData(
         api_,
         std::string("contactDataNym"),
         CONTACT_CONTACT_DATA_VERSION,
@@ -417,22 +414,21 @@ TEST_F(Test_ContactData, first_constructor)
         map);
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactData.Version());
     ASSERT_NE(
-        nullptr,
-        contactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+        nullptr, contactData.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
     ASSERT_NE(
         nullptr,
         contactData.Group(
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE));
     ASSERT_TRUE(contactData.HaveClaim(
-        opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_EMPLOYEE,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        ot::proto::CITEMTYPE_EMPLOYEE,
         activeContactItem_->Value()));
 }
 
 TEST_F(Test_ContactData, first_constructor_no_sections)
 {
-    const opentxs::ContactData contactData(
+    const ot::ContactData contactData(
         api_,
         std::string("contactDataNym"),
         CONTACT_CONTACT_DATA_VERSION,
@@ -443,7 +439,7 @@ TEST_F(Test_ContactData, first_constructor_no_sections)
 
 TEST_F(Test_ContactData, first_constructor_different_versions)
 {
-    const opentxs::ContactData contactData(
+    const ot::ContactData contactData(
         api_,
         std::string("contactDataNym"),
         CONTACT_CONTACT_DATA_VERSION - 1,  // previous version
@@ -454,21 +450,20 @@ TEST_F(Test_ContactData, first_constructor_different_versions)
 
 TEST_F(Test_ContactData, second_constructor)
 {
-    const std::shared_ptr<opentxs::ContactSection> section1(
-        new opentxs::ContactSection(
-            api_,
-            "testContactSectionNym1",
-            CONTACT_CONTACT_DATA_VERSION,
-            CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            activeContactItem_));
+    const std::shared_ptr<ot::ContactSection> section1(new ot::ContactSection(
+        api_,
+        "testContactSectionNym1",
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        activeContactItem_));
 
-    opentxs::proto::ContactData data;
+    ot::proto::ContactData data;
     data.set_version(CONTACT_CONTACT_DATA_VERSION);
 
     section1->SerializeTo(data, false);
 
-    const opentxs::ContactData contactData(
+    const ot::ContactData contactData(
         api_,
         std::string("contactDataNym"),
         CONTACT_CONTACT_DATA_VERSION,
@@ -476,25 +471,24 @@ TEST_F(Test_ContactData, second_constructor)
 
     ASSERT_EQ(data.version(), contactData.Version());
     ASSERT_NE(
-        nullptr,
-        contactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+        nullptr, contactData.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
     ASSERT_NE(
         nullptr,
         contactData.Group(
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE));
     ASSERT_TRUE(contactData.HaveClaim(
-        opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_EMPLOYEE,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        ot::proto::CITEMTYPE_EMPLOYEE,
         activeContactItem_->Value()));
 }
 
 TEST_F(Test_ContactData, second_constructor_no_sections)
 {
-    opentxs::proto::ContactData data;
+    ot::proto::ContactData data;
     data.set_version(CONTACT_CONTACT_DATA_VERSION);
 
-    const opentxs::ContactData contactData(
+    const ot::ContactData contactData(
         api_,
         std::string("contactDataNym"),
         CONTACT_CONTACT_DATA_VERSION,
@@ -504,38 +498,37 @@ TEST_F(Test_ContactData, second_constructor_no_sections)
 
 TEST_F(Test_ContactData, copy_constructor)
 {
-    const std::shared_ptr<opentxs::ContactSection> section1(
-        new opentxs::ContactSection(
-            api_,
-            "testContactSectionNym1",
-            CONTACT_CONTACT_DATA_VERSION,
-            CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            activeContactItem_));
+    const std::shared_ptr<ot::ContactSection> section1(new ot::ContactSection(
+        api_,
+        "testContactSectionNym1",
+        CONTACT_CONTACT_DATA_VERSION,
+        CONTACT_CONTACT_DATA_VERSION,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        activeContactItem_));
 
-    const opentxs::ContactData::SectionMap map{{section1->Type(), section1}};
+    const ot::ContactData::SectionMap map{{section1->Type(), section1}};
 
-    const opentxs::ContactData contactData(
+    const ot::ContactData contactData(
         api_,
         std::string("contactDataNym"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         map);
 
-    const opentxs::ContactData copiedContactData(contactData);
+    const ot::ContactData copiedContactData(contactData);
 
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, copiedContactData.Version());
     ASSERT_NE(
         nullptr,
-        copiedContactData.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+        copiedContactData.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
     ASSERT_NE(
         nullptr,
         copiedContactData.Group(
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE));
     ASSERT_TRUE(copiedContactData.HaveClaim(
-        opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_EMPLOYEE,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        ot::proto::CITEMTYPE_EMPLOYEE,
         activeContactItem_->Value()));
 }
 
@@ -545,148 +538,137 @@ TEST_F(Test_ContactData, operator_plus)
 
     // Add a ContactData object with a section of the same type.
     const auto& contactItem2 =
-        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
+        std::shared_ptr<ot::ContactItem>(new ot::ContactItem(
             api_,
             std::string("contactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE,
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE,
             std::string("contactItemValue2"),
-            {opentxs::proto::CITEMATTR_ACTIVE},
+            {ot::proto::CITEMATTR_ACTIVE},
             NULL_START,
             NULL_END,
             ""));
 
-    const auto& group2 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup2",
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            contactItem2));
+    const auto& group2 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup2", ot::proto::CONTACTSECTION_IDENTIFIER, contactItem2));
 
     const auto& section2 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym2",
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::ContactSection::GroupMap{{contactItem2->Type(), group2}}));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::ContactSection::GroupMap{{contactItem2->Type(), group2}}));
 
-    const opentxs::ContactData data2(
+    const ot::ContactData data2(
         api_,
         std::string("contactDataNym2"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
-        opentxs::ContactData::SectionMap{
-            {opentxs::proto::CONTACTSECTION_IDENTIFIER, section2}});
+        ot::ContactData::SectionMap{
+            {ot::proto::CONTACTSECTION_IDENTIFIER, section2}});
 
     const auto& data3 = data1 + data2;
     // Verify the section exists.
-    ASSERT_NE(
-        nullptr, data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+    ASSERT_NE(nullptr, data3.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
     // Verify it has one group.
-    ASSERT_EQ(
-        1, data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
+    ASSERT_EQ(1, data3.Section(ot::proto::CONTACTSECTION_IDENTIFIER)->Size());
     // Verify the group exists.
     ASSERT_NE(
         nullptr,
         data3.Group(
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE));
     // Verify it has two items.
     ASSERT_EQ(
         2,
         data3
             .Group(
-                opentxs::proto::CONTACTSECTION_IDENTIFIER,
-                opentxs::proto::CITEMTYPE_EMPLOYEE)
+                ot::proto::CONTACTSECTION_IDENTIFIER,
+                ot::proto::CITEMTYPE_EMPLOYEE)
             ->Size());
 
     // Add a ContactData object with a section of a different type.
     const auto& contactItem4 =
-        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
+        std::shared_ptr<ot::ContactItem>(new ot::ContactItem(
             api_,
             std::string("contactItem4"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_ADDRESS,
-            opentxs::proto::CITEMTYPE_PHYSICAL,
+            ot::proto::CONTACTSECTION_ADDRESS,
+            ot::proto::CITEMTYPE_PHYSICAL,
             std::string("contactItemValue4"),
-            {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
+            {ot::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
             NULL_END,
             ""));
 
-    const auto& group4 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup4",
-            opentxs::proto::CONTACTSECTION_ADDRESS,
-            contactItem4));
+    const auto& group4 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup4", ot::proto::CONTACTSECTION_ADDRESS, contactItem4));
 
     const auto& section4 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym4",
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_ADDRESS,
-            opentxs::ContactSection::GroupMap{{contactItem4->Type(), group4}}));
+            ot::proto::CONTACTSECTION_ADDRESS,
+            ot::ContactSection::GroupMap{{contactItem4->Type(), group4}}));
 
-    const opentxs::ContactData data4(
+    const ot::ContactData data4(
         api_,
         std::string("contactDataNym4"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
-        opentxs::ContactData::SectionMap{
-            {opentxs::proto::CONTACTSECTION_ADDRESS, section4}});
+        ot::ContactData::SectionMap{
+            {ot::proto::CONTACTSECTION_ADDRESS, section4}});
 
     const auto& data5 = data3 + data4;
     // Verify the first section exists.
-    ASSERT_NE(
-        nullptr, data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+    ASSERT_NE(nullptr, data5.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
     // Verify it has one group.
-    ASSERT_EQ(
-        1, data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
+    ASSERT_EQ(1, data5.Section(ot::proto::CONTACTSECTION_IDENTIFIER)->Size());
     // Verify the group exists.
     ASSERT_NE(
         nullptr,
         data5.Group(
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE));
     // Verify it has two items.
     ASSERT_EQ(
         2,
         data5
             .Group(
-                opentxs::proto::CONTACTSECTION_IDENTIFIER,
-                opentxs::proto::CITEMTYPE_EMPLOYEE)
+                ot::proto::CONTACTSECTION_IDENTIFIER,
+                ot::proto::CITEMTYPE_EMPLOYEE)
             ->Size());
 
     // Verify the second section exists.
-    ASSERT_NE(nullptr, data5.Section(opentxs::proto::CONTACTSECTION_ADDRESS));
+    ASSERT_NE(nullptr, data5.Section(ot::proto::CONTACTSECTION_ADDRESS));
     // Verify it has one group.
-    ASSERT_EQ(1, data5.Section(opentxs::proto::CONTACTSECTION_ADDRESS)->Size());
+    ASSERT_EQ(1, data5.Section(ot::proto::CONTACTSECTION_ADDRESS)->Size());
     // Verify the group exists.
     ASSERT_NE(
         nullptr,
         data5.Group(
-            opentxs::proto::CONTACTSECTION_ADDRESS,
-            opentxs::proto::CITEMTYPE_PHYSICAL));
+            ot::proto::CONTACTSECTION_ADDRESS, ot::proto::CITEMTYPE_PHYSICAL));
     // Verify it has one item.
     ASSERT_EQ(
         1,
         data5
             .Group(
-                opentxs::proto::CONTACTSECTION_ADDRESS,
-                opentxs::proto::CITEMTYPE_PHYSICAL)
+                ot::proto::CONTACTSECTION_ADDRESS,
+                ot::proto::CITEMTYPE_PHYSICAL)
             ->Size());
 }
 
 TEST_F(Test_ContactData, operator_plus_different_version)
 {
     // rhs version less than lhs
-    const opentxs::ContactData contactData2(
+    const ot::ContactData contactData2(
         api_,
         std::string("contactDataNym"),
         CONTACT_CONTACT_DATA_VERSION - 1,
@@ -715,16 +697,16 @@ TEST_F(Test_ContactData, Serialize)
     const auto& data1 = contactData_.AddItem(activeContactItem_);
 
     // Serialize without ids.
-    opentxs::proto::ContactData protoData = data1.Serialize(false);
+    ot::proto::ContactData protoData = data1.Serialize(false);
 
     ASSERT_EQ(data1.Version(), protoData.version());
     ASSERT_EQ(1, protoData.section_size());
-    opentxs::proto::ContactSection protoSection = protoData.section(0);
-    ASSERT_EQ(opentxs::proto::CONTACTSECTION_IDENTIFIER, protoSection.name());
+    ot::proto::ContactSection protoSection = protoData.section(0);
+    ASSERT_EQ(ot::proto::CONTACTSECTION_IDENTIFIER, protoSection.name());
     ASSERT_EQ(
-        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(),
+        data1.Section(ot::proto::CONTACTSECTION_IDENTIFIER)->Size(),
         protoSection.item_size());
-    opentxs::proto::ContactItem protoItem = protoSection.item(0);
+    ot::proto::ContactItem protoItem = protoSection.item(0);
     ASSERT_EQ(activeContactItem_->Value(), protoItem.value());
     ASSERT_EQ(activeContactItem_->Version(), protoItem.version());
     ASSERT_EQ(activeContactItem_->Type(), protoItem.type());
@@ -737,9 +719,9 @@ TEST_F(Test_ContactData, Serialize)
     ASSERT_EQ(data1.Version(), protoData.version());
     ASSERT_EQ(1, protoData.section_size());
     protoSection = protoData.section(0);
-    ASSERT_EQ(opentxs::proto::CONTACTSECTION_IDENTIFIER, protoSection.name());
+    ASSERT_EQ(ot::proto::CONTACTSECTION_IDENTIFIER, protoSection.name());
     ASSERT_EQ(
-        data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size(),
+        data1.Section(ot::proto::CONTACTSECTION_IDENTIFIER)->Size(),
         protoSection.item_size());
     protoItem = protoSection.item(0);
 
@@ -753,14 +735,14 @@ TEST_F(Test_ContactData, Serialize)
 
 TEST_F(Test_ContactData, AddContract)
 {
-    testAddItemMethod(add_contract, opentxs::proto::CONTACTSECTION_CONTRACT);
+    testAddItemMethod(add_contract, ot::proto::CONTACTSECTION_CONTRACT);
 }
 
 TEST_F(Test_ContactData, AddContract_different_versions)
 {
     testAddItemMethod(
         add_contract,
-        opentxs::proto::CONTACTSECTION_CONTRACT,
+        ot::proto::CONTACTSECTION_CONTRACT,
         3,  // version of CONTACTSECTION_CONTRACT section before CITEMTYPE_BCH
             // was added
         4);
@@ -770,8 +752,8 @@ TEST_F(Test_ContactData, AddEmail)
 {
     testAddItemMethod2(
         add_email,
-        opentxs::proto::CONTACTSECTION_COMMUNICATION,
-        opentxs::proto::CITEMTYPE_EMAIL);
+        ot::proto::CONTACTSECTION_COMMUNICATION,
+        ot::proto::CITEMTYPE_EMAIL);
 }
 
 // Nothing to test for required version of contact section for email
@@ -781,11 +763,11 @@ TEST_F(Test_ContactData, AddEmail)
 // TEST_F(Test_ContactData, AddEmail_different_versions)
 //{
 //    testAddItemMethod2(
-//        std::mem_fn<opentxs::ContactData(
+//        std::mem_fn<ot::ContactData(
 //            const std::string&, const bool, const bool) const>(
-//            &opentxs::ContactData::AddEmail),
-//        opentxs::proto::CONTACTSECTION_COMMUNICATION,
-//        opentxs::proto::CITEMTYPE_EMAIL,
+//            &ot::ContactData::AddEmail),
+//        ot::proto::CONTACTSECTION_COMMUNICATION,
+//        ot::proto::CITEMTYPE_EMAIL,
 //        5,   // Change this to the old version of the section when a new
 //             // version is added with new item types.
 //        5);  // Change this to the version of the section with the new
@@ -794,66 +776,63 @@ TEST_F(Test_ContactData, AddEmail)
 
 TEST_F(Test_ContactData, AddItem_claim)
 {
-    opentxs::Claim claim = std::make_tuple(
+    ot::Claim claim = std::make_tuple(
         std::string(""),
-        opentxs::proto::CONTACTSECTION_CONTRACT,
-        opentxs::proto::CITEMTYPE_USD,
+        ot::proto::CONTACTSECTION_CONTRACT,
+        ot::proto::CITEMTYPE_USD,
         std::string("contactItemValue"),
         NULL_START,
         NULL_END,
-        std::set<std::uint32_t>{opentxs::proto::CITEMATTR_ACTIVE});
+        std::set<std::uint32_t>{ot::proto::CITEMATTR_ACTIVE});
     const auto& data1 = contactData_.AddItem(claim);
     // Verify the section was added.
-    ASSERT_NE(nullptr, data1.Section(opentxs::proto::CONTACTSECTION_CONTRACT));
+    ASSERT_NE(nullptr, data1.Section(ot::proto::CONTACTSECTION_CONTRACT));
     // Verify the group was added.
     ASSERT_NE(
         nullptr,
         data1.Group(
-            opentxs::proto::CONTACTSECTION_CONTRACT,
-            opentxs::proto::CITEMTYPE_USD));
+            ot::proto::CONTACTSECTION_CONTRACT, ot::proto::CITEMTYPE_USD));
     ASSERT_TRUE(data1.HaveClaim(
-        opentxs::proto::CONTACTSECTION_CONTRACT,
-        opentxs::proto::CITEMTYPE_USD,
+        ot::proto::CONTACTSECTION_CONTRACT,
+        ot::proto::CITEMTYPE_USD,
         "contactItemValue"));
 }
 
 TEST_F(Test_ContactData, AddItem_claim_different_versions)
 {
-    const auto& group1 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup1",
-            opentxs::proto::CONTACTSECTION_CONTRACT,
-            opentxs::proto::CITEMTYPE_BCH,
-            {}));
+    const auto& group1 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup1",
+        ot::proto::CONTACTSECTION_CONTRACT,
+        ot::proto::CITEMTYPE_BCH,
+        {}));
 
     const auto& section1 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym1",
             3,  // version of CONTACTSECTION_CONTRACT section before
                 // CITEMTYPE_BCH was added
             3,
-            opentxs::proto::CONTACTSECTION_CONTRACT,
-            opentxs::ContactSection::GroupMap{
-                {opentxs::proto::CITEMTYPE_BCH, group1}}));
+            ot::proto::CONTACTSECTION_CONTRACT,
+            ot::ContactSection::GroupMap{{ot::proto::CITEMTYPE_BCH, group1}}));
 
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("contactDataNym1"),
         3,  // version of CONTACTSECTION_CONTRACT section before CITEMTYPE_BCH
             // was added
         3,
-        opentxs::ContactData::SectionMap{
-            {opentxs::proto::CONTACTSECTION_CONTRACT, section1}});
+        ot::ContactData::SectionMap{
+            {ot::proto::CONTACTSECTION_CONTRACT, section1}});
 
-    opentxs::Claim claim = std::make_tuple(
+    ot::Claim claim = std::make_tuple(
         std::string(""),
-        opentxs::proto::CONTACTSECTION_CONTRACT,
-        opentxs::proto::CITEMTYPE_BCH,
+        ot::proto::CONTACTSECTION_CONTRACT,
+        ot::proto::CITEMTYPE_BCH,
         std::string("contactItemValue"),
         NULL_START,
         NULL_END,
-        std::set<std::uint32_t>{opentxs::proto::CITEMATTR_ACTIVE});
+        std::set<std::uint32_t>{ot::proto::CITEMATTR_ACTIVE});
 
     const auto& data2 = data1.AddItem(claim);
 
@@ -865,14 +844,13 @@ TEST_F(Test_ContactData, AddItem_item)
     // Add an item to a ContactData with no section.
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     // Verify the section was added.
-    ASSERT_NE(
-        nullptr, data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+    ASSERT_NE(nullptr, data1.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
     // Verify the group was added.
     ASSERT_NE(
         nullptr,
         data1.Group(
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE));
     // Verify the item was added.
     ASSERT_TRUE(data1.HaveClaim(
         activeContactItem_->Section(),
@@ -881,15 +859,15 @@ TEST_F(Test_ContactData, AddItem_item)
 
     // Add an item to a ContactData with a section.
     const auto& contactItem2 =
-        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
+        std::shared_ptr<ot::ContactItem>(new ot::ContactItem(
             api_,
             std::string("contactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE,
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE,
             std::string("contactItemValue2"),
-            {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
+            {ot::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
             NULL_END,
             ""));
@@ -902,50 +880,48 @@ TEST_F(Test_ContactData, AddItem_item)
         2,
         data2
             .Group(
-                opentxs::proto::CONTACTSECTION_IDENTIFIER,
-                opentxs::proto::CITEMTYPE_EMPLOYEE)
+                ot::proto::CONTACTSECTION_IDENTIFIER,
+                ot::proto::CITEMTYPE_EMPLOYEE)
             ->Size());
 }
 
 TEST_F(Test_ContactData, AddItem_item_different_versions)
 {
-    const auto& group1 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup1",
-            opentxs::proto::CONTACTSECTION_CONTRACT,
-            opentxs::proto::CITEMTYPE_BCH,
-            {}));
+    const auto& group1 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup1",
+        ot::proto::CONTACTSECTION_CONTRACT,
+        ot::proto::CITEMTYPE_BCH,
+        {}));
 
     const auto& section1 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym1",
             3,  // version of CONTACTSECTION_CONTRACT section before
                 // CITEMTYPE_BCH was added
             3,
-            opentxs::proto::CONTACTSECTION_CONTRACT,
-            opentxs::ContactSection::GroupMap{
-                {opentxs::proto::CITEMTYPE_BCH, group1}}));
+            ot::proto::CONTACTSECTION_CONTRACT,
+            ot::ContactSection::GroupMap{{ot::proto::CITEMTYPE_BCH, group1}}));
 
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("contactDataNym1"),
         3,  // version of CONTACTSECTION_CONTRACT section before CITEMTYPE_BCH
             // was added
         3,
-        opentxs::ContactData::SectionMap{
-            {opentxs::proto::CONTACTSECTION_CONTRACT, section1}});
+        ot::ContactData::SectionMap{
+            {ot::proto::CONTACTSECTION_CONTRACT, section1}});
 
     const auto& contactItem1 =
-        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
+        std::shared_ptr<ot::ContactItem>(new ot::ContactItem(
             api_,
             std::string("contactItem1"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_CONTRACT,
-            opentxs::proto::CITEMTYPE_BCH,
+            ot::proto::CONTACTSECTION_CONTRACT,
+            ot::proto::CITEMTYPE_BCH,
             std::string("contactItemValue1"),
-            {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
+            {ot::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
             NULL_END,
             ""));
@@ -957,15 +933,14 @@ TEST_F(Test_ContactData, AddItem_item_different_versions)
 
 TEST_F(Test_ContactData, AddPaymentCode)
 {
-    testAddItemMethod(
-        add_payment_code, opentxs::proto::CONTACTSECTION_PROCEDURE);
+    testAddItemMethod(add_payment_code, ot::proto::CONTACTSECTION_PROCEDURE);
 }
 
 TEST_F(Test_ContactData, AddPaymentCode_different_versions)
 {
     testAddItemMethod(
         add_contract,
-        opentxs::proto::CONTACTSECTION_PROCEDURE,
+        ot::proto::CONTACTSECTION_PROCEDURE,
         3,  // version of CONTACTSECTION_PROCEDURE section before CITEMTYPE_BCH
             // was added
         4);
@@ -975,8 +950,8 @@ TEST_F(Test_ContactData, AddPhoneNumber)
 {
     testAddItemMethod2(
         add_phone_number,
-        opentxs::proto::CONTACTSECTION_COMMUNICATION,
-        opentxs::proto::CITEMTYPE_PHONE);
+        ot::proto::CONTACTSECTION_COMMUNICATION,
+        ot::proto::CITEMTYPE_PHONE);
 }
 
 // Nothing to test for required version of contact section for phone number
@@ -986,11 +961,11 @@ TEST_F(Test_ContactData, AddPhoneNumber)
 // TEST_F(Test_ContactData, AddPhoneNumber_different_versions)
 //{
 //    testAddItemMethod2(
-//        std::mem_fn<opentxs::ContactData(
+//        std::mem_fn<ot::ContactData(
 //            const std::string&, const bool, const bool) const>(
-//            &opentxs::ContactData::AddPhoneNumber),
-//        opentxs::proto::CONTACTSECTION_COMMUNICATION,
-//        opentxs::proto::CITEMTYPE_PHONE,
+//            &ot::ContactData::AddPhoneNumber),
+//        ot::proto::CONTACTSECTION_COMMUNICATION,
+//        ot::proto::CITEMTYPE_PHONE,
 //        5,   // Change this to the old version of the section when a new
 //             // version is added with new item types.
 //        5);  // Change this to the version of the section with the new
@@ -1000,37 +975,36 @@ TEST_F(Test_ContactData, AddPhoneNumber)
 TEST_F(Test_ContactData, AddPreferredOTServer)
 {
     // Add a server to a group with no primary.
-    const auto& group1 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup1",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
-            {}));
+    const auto& group1 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup1",
+        ot::proto::CONTACTSECTION_COMMUNICATION,
+        ot::proto::CITEMTYPE_OPENTXS,
+        {}));
 
     const auto& section1 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym1",
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::ContactSection::GroupMap{
-                {opentxs::proto::CITEMTYPE_OPENTXS, group1}}));
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::ContactSection::GroupMap{
+                {ot::proto::CITEMTYPE_OPENTXS, group1}}));
 
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("contactDataNym1"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
-        opentxs::ContactData::SectionMap{
-            {opentxs::proto::CONTACTSECTION_COMMUNICATION, section1}});
+        ot::ContactData::SectionMap{
+            {ot::proto::CONTACTSECTION_COMMUNICATION, section1}});
 
-    const opentxs::OTIdentifier serverIdentifier1(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier serverIdentifier1(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
             std::string("serverID1"),
@@ -1038,27 +1012,27 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     const auto& data2 = data1.AddPreferredOTServer(serverIdentifier1, false);
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier1(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier1)->Get(),
+            ot::String::Factory(serverIdentifier1)->Get(),
             "")));
     const auto& contactItem1 = data2.Claim(identifier1);
     ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
 
     // Add a server to a group with a primary.
-    const opentxs::OTIdentifier serverIdentifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier serverIdentifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
             std::string("serverID2"),
@@ -1066,27 +1040,27 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     const auto& data3 = data2.AddPreferredOTServer(serverIdentifier2, false);
 
     // Verify that the item wasn't made primary.
-    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym1",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier2)->Get(),
+            ot::String::Factory(serverIdentifier2)->Get(),
             "")));
     const auto& contactItem2 = data3.Claim(identifier2);
     ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
 
     // Add a server to a ContactData with no group.
-    const opentxs::OTIdentifier serverIdentifier3(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier serverIdentifier3(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
             std::string("serverID3"),
@@ -1098,30 +1072,30 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     ASSERT_NE(
         nullptr,
         data4.Group(
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS));
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS));
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier3(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier3)->Get(),
+            ot::String::Factory(serverIdentifier3)->Get(),
             "")));
     const auto& contactItem3 = data4.Claim(identifier3);
     ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
 
     // Add a primary server.
-    const opentxs::OTIdentifier serverIdentifier4(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier serverIdentifier4(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
             std::string("serverID4"),
@@ -1129,15 +1103,15 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
     const auto& data5 = data4.AddPreferredOTServer(serverIdentifier4, true);
 
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier4(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String::Factory(serverIdentifier4)->Get(),
+            ot::String::Factory(serverIdentifier4)->Get(),
             "")));
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
@@ -1162,14 +1136,14 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
 
     // Add a profile to a contact with no primary profile.
     const auto& data2 = contactData_.AddSocialMediaProfile(
-        "profileValue1", opentxs::proto::CITEMTYPE_ABOUTME, false, false);
+        "profileValue1", ot::proto::CITEMTYPE_ABOUTME, false, false);
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier1(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_PROFILE,
-            opentxs::proto::CITEMTYPE_ABOUTME,
+            ot::proto::CONTACTSECTION_PROFILE,
+            ot::proto::CITEMTYPE_ABOUTME,
             NULL_START,
             NULL_END,
             "profileValue1",
@@ -1180,14 +1154,14 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
 
     // Add a primary profile.
     const auto& data3 = data2.AddSocialMediaProfile(
-        "profileValue2", opentxs::proto::CITEMTYPE_ABOUTME, true, false);
+        "profileValue2", ot::proto::CITEMTYPE_ABOUTME, true, false);
     // Verify that the item was made primary.
-    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_PROFILE,
-            opentxs::proto::CITEMTYPE_ABOUTME,
+            ot::proto::CONTACTSECTION_PROFILE,
+            ot::proto::CITEMTYPE_ABOUTME,
             NULL_START,
             NULL_END,
             "profileValue2",
@@ -1198,14 +1172,14 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
 
     // Add an active profile.
     const auto& data4 = data3.AddSocialMediaProfile(
-        "profileValue3", opentxs::proto::CITEMTYPE_ABOUTME, false, true);
+        "profileValue3", ot::proto::CITEMTYPE_ABOUTME, false, true);
     // Verify that the item was made active.
-    const opentxs::OTIdentifier identifier3(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier3(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_PROFILE,
-            opentxs::proto::CITEMTYPE_ABOUTME,
+            ot::proto::CONTACTSECTION_PROFILE,
+            ot::proto::CITEMTYPE_ABOUTME,
             NULL_START,
             NULL_END,
             "profileValue3",
@@ -1217,14 +1191,14 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     // Add a profile that resides in the profile and communication sections.
 
     const auto& data5 = contactData_.AddSocialMediaProfile(
-        "profileValue4", opentxs::proto::CITEMTYPE_LINKEDIN, false, false);
+        "profileValue4", ot::proto::CITEMTYPE_LINKEDIN, false, false);
     // Verify that it was added to the profile section.
-    const opentxs::OTIdentifier identifier4(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier4(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_PROFILE,
-            opentxs::proto::CITEMTYPE_LINKEDIN,
+            ot::proto::CONTACTSECTION_PROFILE,
+            ot::proto::CITEMTYPE_LINKEDIN,
             NULL_START,
             NULL_END,
             "profileValue4",
@@ -1232,12 +1206,12 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
     // Verify that it was added to the communication section.
-    const opentxs::OTIdentifier identifier5(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier5(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_LINKEDIN,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_LINKEDIN,
             NULL_START,
             NULL_END,
             "profileValue4",
@@ -1248,14 +1222,14 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     // Add a profile that resides in the profile and identifier sections.
 
     const auto& data6 = data5.AddSocialMediaProfile(
-        "profileValue5", opentxs::proto::CITEMTYPE_YAHOO, false, false);
+        "profileValue5", ot::proto::CITEMTYPE_YAHOO, false, false);
     // Verify that it was added to the profile section.
-    const opentxs::OTIdentifier identifier6(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier6(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_PROFILE,
-            opentxs::proto::CITEMTYPE_YAHOO,
+            ot::proto::CONTACTSECTION_PROFILE,
+            ot::proto::CITEMTYPE_YAHOO,
             NULL_START,
             NULL_END,
             "profileValue5",
@@ -1263,12 +1237,12 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem6 = data6.Claim(identifier6);
     ASSERT_NE(nullptr, contactItem6);
     // Verify that it was added to the identifier section.
-    const opentxs::OTIdentifier identifier7(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier7(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_YAHOO,
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_YAHOO,
             NULL_START,
             NULL_END,
             "profileValue5",
@@ -1279,14 +1253,14 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     // Add a profile that resides in all three sections.
 
     const auto& data7 = data6.AddSocialMediaProfile(
-        "profileValue6", opentxs::proto::CITEMTYPE_TWITTER, false, false);
+        "profileValue6", ot::proto::CITEMTYPE_TWITTER, false, false);
     // Verify that it was added to the profile section.
-    const opentxs::OTIdentifier identifier8(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier8(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_PROFILE,
-            opentxs::proto::CITEMTYPE_TWITTER,
+            ot::proto::CONTACTSECTION_PROFILE,
+            ot::proto::CITEMTYPE_TWITTER,
             NULL_START,
             NULL_END,
             "profileValue6",
@@ -1294,12 +1268,12 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem8 = data7.Claim(identifier8);
     ASSERT_NE(nullptr, contactItem8);
     // Verify that it was added to the communication section.
-    const opentxs::OTIdentifier identifier9(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier9(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_TWITTER,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_TWITTER,
             NULL_START,
             NULL_END,
             "profileValue6",
@@ -1307,12 +1281,12 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
     const auto& contactItem9 = data7.Claim(identifier9);
     ASSERT_NE(nullptr, contactItem9);
     // Verify that it was added to the identifier section.
-    const opentxs::OTIdentifier identifier10(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier10(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_TWITTER,
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_TWITTER,
             NULL_START,
             NULL_END,
             "profileValue6",
@@ -1330,14 +1304,14 @@ TEST_F(Test_ContactData, AddSocialMediaProfile)
 //{
 //    // Add a profile to the CONTACTSECTION_PROFILE section.
 //    testAddItemMethod3(
-//        std::mem_fn<opentxs::ContactData(
+//        std::mem_fn<ot::ContactData(
 //            const std::string&,
-//            const opentxs::proto::ContactSectionName,
-//            const opentxs::proto::ContactItemType,
+//            const ot::proto::ContactSectionName,
+//            const ot::proto::ContactItemType,
 //            const bool,
-//            const bool) const>(&opentxs::ContactData::AddSocialMediaProfile),
-//        opentxs::proto::CONTACTSECTION_PROFILE,
-//        opentxs::proto::CITEMTYPE_TWITTER,
+//            const bool) const>(&ot::ContactData::AddSocialMediaProfile),
+//        ot::proto::CONTACTSECTION_PROFILE,
+//        ot::proto::CITEMTYPE_TWITTER,
 //        5,   // Change this to the old version of the section when a new
 //             // version is added with new item types.
 //        5);  // Change this to the version of the section with the new
@@ -1399,39 +1373,35 @@ TEST_F(Test_ContactData, BestSocialMediaProfile)
 {
     // Add a non-active, non-primary profile.
     const auto& data1 = contactData_.AddSocialMediaProfile(
-        "profileValue", opentxs::proto::CITEMTYPE_FACEBOOK, false, false);
+        "profileValue", ot::proto::CITEMTYPE_FACEBOOK, false, false);
     // Verify it is the best profile.
     ASSERT_STREQ(
         "profileValue",
-        data1.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
-            .c_str());
+        data1.BestSocialMediaProfile(ot::proto::CITEMTYPE_FACEBOOK).c_str());
 
     // Add an active, non-primary profile.
     const auto& data2 = contactData_.AddSocialMediaProfile(
-        "activeProfileValue", opentxs::proto::CITEMTYPE_FACEBOOK, false, true);
+        "activeProfileValue", ot::proto::CITEMTYPE_FACEBOOK, false, true);
     // Verify it is the best profile.
     ASSERT_STREQ(
         "activeProfileValue",
-        data2.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
-            .c_str());
+        data2.BestSocialMediaProfile(ot::proto::CITEMTYPE_FACEBOOK).c_str());
 
     // Add an active profile to a contact data with a primary profile (data1).
     const auto& data3 = data1.AddSocialMediaProfile(
-        "activeProfileValue", opentxs::proto::CITEMTYPE_FACEBOOK, false, true);
+        "activeProfileValue", ot::proto::CITEMTYPE_FACEBOOK, false, true);
     // Verify the primary profile is the best.
     ASSERT_STREQ(
         "profileValue",
-        data3.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
-            .c_str());
+        data3.BestSocialMediaProfile(ot::proto::CITEMTYPE_FACEBOOK).c_str());
 
     // Add a new primary profile.
     const auto& data4 = data3.AddSocialMediaProfile(
-        "primaryProfileValue", opentxs::proto::CITEMTYPE_FACEBOOK, true, false);
+        "primaryProfileValue", ot::proto::CITEMTYPE_FACEBOOK, true, false);
     // Verify it is the best profile.
     ASSERT_STREQ(
         "primaryProfileValue",
-        data4.BestSocialMediaProfile(opentxs::proto::CITEMTYPE_FACEBOOK)
-            .c_str());
+        data4.BestSocialMediaProfile(ot::proto::CITEMTYPE_FACEBOOK).c_str());
 }
 
 TEST_F(Test_ContactData, Claim_found)
@@ -1448,20 +1418,18 @@ TEST_F(Test_ContactData, Claim_not_found)
 TEST_F(Test_ContactData, Contracts)
 {
     const auto& data1 = contactData_.AddContract(
-        "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, false);
-    const auto& contracts =
-        data1.Contracts(opentxs::proto::CITEMTYPE_USD, false);
+        "instrumentDefinitionID1", ot::proto::CITEMTYPE_USD, false, false);
+    const auto& contracts = data1.Contracts(ot::proto::CITEMTYPE_USD, false);
     ASSERT_EQ(1, contracts.size());
 }
 
 TEST_F(Test_ContactData, Contracts_onlyactive)
 {
     const auto& data1 = contactData_.AddContract(
-        "instrumentDefinitionID1", opentxs::proto::CITEMTYPE_USD, false, true);
+        "instrumentDefinitionID1", ot::proto::CITEMTYPE_USD, false, true);
     const auto& data2 = data1.AddContract(
-        "instrumentDefinitionID2", opentxs::proto::CITEMTYPE_USD, false, false);
-    const auto& contracts =
-        data2.Contracts(opentxs::proto::CITEMTYPE_USD, true);
+        "instrumentDefinitionID2", ot::proto::CITEMTYPE_USD, false, false);
+    const auto& contracts = data2.Contracts(ot::proto::CITEMTYPE_USD, true);
     ASSERT_EQ(1, contracts.size());
 }
 
@@ -1469,15 +1437,15 @@ TEST_F(Test_ContactData, Delete)
 {
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     const auto& contactItem2 =
-        std::shared_ptr<opentxs::ContactItem>(new opentxs::ContactItem(
+        std::shared_ptr<ot::ContactItem>(new ot::ContactItem(
             api_,
             std::string("contactItem2"),
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE,
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE,
             std::string("contactItemValue2"),
-            {opentxs::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
+            {ot::proto::ContactItemAttribute::CITEMATTR_ACTIVE},
             NULL_START,
             NULL_END,
             ""));
@@ -1485,18 +1453,16 @@ TEST_F(Test_ContactData, Delete)
 
     const auto& data3 = data2.Delete(activeContactItem_->ID());
     // Verify the item was deleted.
-    ASSERT_EQ(
-        1, data3.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
+    ASSERT_EQ(1, data3.Section(ot::proto::CONTACTSECTION_IDENTIFIER)->Size());
     ASSERT_FALSE(data3.Claim(activeContactItem_->ID()));
 
     const auto& data4 = data3.Delete(activeContactItem_->ID());
     // Verify trying to delete the item again didn't change anything.
-    ASSERT_EQ(
-        1, data4.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER)->Size());
+    ASSERT_EQ(1, data4.Section(ot::proto::CONTACTSECTION_IDENTIFIER)->Size());
 
     const auto& data5 = data4.Delete(contactItem2->ID());
     // Verify the section was removed.
-    ASSERT_FALSE(data5.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+    ASSERT_FALSE(data5.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
 }
 
 TEST_F(Test_ContactData, EmailAddresses)
@@ -1524,15 +1490,14 @@ TEST_F(Test_ContactData, Group_found)
     ASSERT_NE(
         nullptr,
         data1.Group(
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_EMPLOYEE));
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_EMPLOYEE));
 }
 
 TEST_F(Test_ContactData, Group_notfound)
 {
     ASSERT_FALSE(contactData_.Group(
-        opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_EMPLOYEE));
+        ot::proto::CONTACTSECTION_IDENTIFIER, ot::proto::CITEMTYPE_EMPLOYEE));
 }
 
 TEST_F(Test_ContactData, HaveClaim_1)
@@ -1547,21 +1512,21 @@ TEST_F(Test_ContactData, HaveClaim_2)
 {
     // Test for an item in group that doesn't exist.
     ASSERT_FALSE(contactData_.HaveClaim(
-        opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_EMPLOYEE,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        ot::proto::CITEMTYPE_EMPLOYEE,
         "activeContactItemValue"));
 
     // Test for an item that does exist.
     const auto& data1 = contactData_.AddItem(activeContactItem_);
     ASSERT_TRUE(data1.HaveClaim(
-        opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_EMPLOYEE,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        ot::proto::CITEMTYPE_EMPLOYEE,
         "activeContactItemValue"));
 
     // Test for an item that doesn't exist in a group that does.
     ASSERT_FALSE(data1.HaveClaim(
-        opentxs::proto::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::CITEMTYPE_EMPLOYEE,
+        ot::proto::CONTACTSECTION_IDENTIFIER,
+        ot::proto::CITEMTYPE_EMPLOYEE,
         "dummyContactItemValue"));
 }
 
@@ -1571,36 +1536,35 @@ TEST_F(Test_ContactData, Name)
     ASSERT_STREQ("", contactData_.Name().c_str());
 
     // Test when the scope group is emtpy.
-    const auto& group1 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup1",
-            opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
-            {}));
+    const auto& group1 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup1",
+        ot::proto::CONTACTSECTION_SCOPE,
+        ot::proto::CITEMTYPE_INDIVIDUAL,
+        {}));
 
     const auto& section1 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym1",
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::ContactSection::GroupMap{
-                {opentxs::proto::CITEMTYPE_INDIVIDUAL, group1}}));
+            ot::proto::CONTACTSECTION_SCOPE,
+            ot::ContactSection::GroupMap{
+                {ot::proto::CITEMTYPE_INDIVIDUAL, group1}}));
 
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("contactDataNym1"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
-        opentxs::ContactData::SectionMap{
-            {opentxs::proto::CONTACTSECTION_SCOPE, section1}});
+        ot::ContactData::SectionMap{
+            {ot::proto::CONTACTSECTION_SCOPE, section1}});
     // Verify that Name returns an empty string.
     ASSERT_STREQ("", data1.Name().c_str());
 
     // Test when the scope is set.
     const auto& data2 = contactData_.SetScope(
-        opentxs::proto::CITEMTYPE_INDIVIDUAL, "activeContactItemValue");
+        ot::proto::CITEMTYPE_INDIVIDUAL, "activeContactItemValue");
     ASSERT_STREQ("activeContactItemValue", data2.Name().c_str());
 }
 
@@ -1631,41 +1595,40 @@ TEST_F(Test_ContactData, PreferredOTServer)
     ASSERT_TRUE(identifier->empty());
 
     // Test getting the preferred server with an empty group.
-    const auto& group1 =
-        std::shared_ptr<opentxs::ContactGroup>(new opentxs::ContactGroup(
-            "contactGroup1",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
-            {}));
+    const auto& group1 = std::shared_ptr<ot::ContactGroup>(new ot::ContactGroup(
+        "contactGroup1",
+        ot::proto::CONTACTSECTION_COMMUNICATION,
+        ot::proto::CITEMTYPE_OPENTXS,
+        {}));
 
     const auto& section1 =
-        std::shared_ptr<opentxs::ContactSection>(new opentxs::ContactSection(
+        std::shared_ptr<ot::ContactSection>(new ot::ContactSection(
             api_,
             "contactSectionNym1",
             CONTACT_CONTACT_DATA_VERSION,
             CONTACT_CONTACT_DATA_VERSION,
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::ContactSection::GroupMap{
-                {opentxs::proto::CITEMTYPE_OPENTXS, group1}}));
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::ContactSection::GroupMap{
+                {ot::proto::CITEMTYPE_OPENTXS, group1}}));
 
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("contactDataNym1"),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
-        opentxs::ContactData::SectionMap{
-            {opentxs::proto::CONTACTSECTION_COMMUNICATION, section1}});
+        ot::ContactData::SectionMap{
+            {ot::proto::CONTACTSECTION_COMMUNICATION, section1}});
 
     const auto& identifier2 = data1.PreferredOTServer();
     ASSERT_TRUE(identifier2->empty());
 
     // Test getting the preferred server.
-    const opentxs::OTIdentifier serverIdentifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier serverIdentifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_COMMUNICATION,
-            opentxs::proto::CITEMTYPE_OPENTXS,
+            ot::proto::CONTACTSECTION_COMMUNICATION,
+            ot::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
             std::string("serverID2"),
@@ -1679,23 +1642,21 @@ TEST_F(Test_ContactData, PreferredOTServer)
 
 TEST_F(Test_ContactData, Section)
 {
-    ASSERT_FALSE(
-        contactData_.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+    ASSERT_FALSE(contactData_.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
 
     const auto& data1 = contactData_.AddItem(activeContactItem_);
-    ASSERT_NE(
-        nullptr, data1.Section(opentxs::proto::CONTACTSECTION_IDENTIFIER));
+    ASSERT_NE(nullptr, data1.Section(ot::proto::CONTACTSECTION_IDENTIFIER));
 }
 
 TEST_F(Test_ContactData, SetCommonName)
 {
     const auto& data1 = contactData_.SetCommonName("commonName");
-    const opentxs::OTIdentifier identifier(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_IDENTIFIER,
-            opentxs::proto::CITEMTYPE_COMMONNAME,
+            ot::proto::CONTACTSECTION_IDENTIFIER,
+            ot::proto::CITEMTYPE_COMMONNAME,
             NULL_START,
             NULL_END,
             std::string("commonName"),
@@ -1708,18 +1669,18 @@ TEST_F(Test_ContactData, SetCommonName)
 
 TEST_F(Test_ContactData, SetName)
 {
-    const auto& data1 = contactData_.SetScope(
-        opentxs::proto::CITEMTYPE_INDIVIDUAL, "firstName");
+    const auto& data1 =
+        contactData_.SetScope(ot::proto::CITEMTYPE_INDIVIDUAL, "firstName");
 
     // Test that SetName creates a scope item.
     const auto& data2 = data1.SetName("secondName");
     // Verify the item was created in the scope section and made primary.
-    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier1(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
+            ot::proto::CONTACTSECTION_SCOPE,
+            ot::proto::CITEMTYPE_INDIVIDUAL,
             NULL_START,
             NULL_END,
             std::string("secondName"),
@@ -1732,12 +1693,12 @@ TEST_F(Test_ContactData, SetName)
     // Test that SetName creates an item in the scope section without making it
     // primary.
     const auto& data3 = data2.SetName("thirdName", false);
-    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::proto::CITEMTYPE_INDIVIDUAL,
+            ot::proto::CONTACTSECTION_SCOPE,
+            ot::proto::CITEMTYPE_INDIVIDUAL,
             NULL_START,
             NULL_END,
             std::string("thirdName"),
@@ -1751,14 +1712,14 @@ TEST_F(Test_ContactData, SetName)
 TEST_F(Test_ContactData, SetScope)
 {
     const auto& data1 = contactData_.SetScope(
-        opentxs::proto::CITEMTYPE_ORGANIZATION, "organizationScope");
+        ot::proto::CITEMTYPE_ORGANIZATION, "organizationScope");
     // Verify the scope item was created.
-    const opentxs::OTIdentifier identifier1(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier1(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::proto::CITEMTYPE_ORGANIZATION,
+            ot::proto::CONTACTSECTION_SCOPE,
+            ot::proto::CITEMTYPE_ORGANIZATION,
             NULL_START,
             NULL_END,
             std::string("organizationScope"),
@@ -1770,14 +1731,14 @@ TEST_F(Test_ContactData, SetScope)
 
     // Test when there is an existing scope.
     const auto& data2 =
-        data1.SetScope(opentxs::proto::CITEMTYPE_ORGANIZATION, "businessScope");
+        data1.SetScope(ot::proto::CITEMTYPE_ORGANIZATION, "businessScope");
     // Verify the item wasn't added.
-    const opentxs::OTIdentifier identifier2(opentxs::Identifier::Factory(
-        opentxs::identity::credential::Contact::ClaimID(
+    const ot::OTIdentifier identifier2(
+        ot::Identifier::Factory(ot::identity::credential::Contact::ClaimID(
             api_,
             "contactDataNym",
-            opentxs::proto::CONTACTSECTION_SCOPE,
-            opentxs::proto::CITEMTYPE_BUSINESS,
+            ot::proto::CONTACTSECTION_SCOPE,
+            ot::proto::CITEMTYPE_BUSINESS,
             NULL_START,
             NULL_END,
             std::string("businessScope"),
@@ -1792,7 +1753,7 @@ TEST_F(Test_ContactData, SetScope)
 
 TEST_F(Test_ContactData, SetScope_different_versions)
 {
-    const opentxs::ContactData data1(
+    const ot::ContactData data1(
         api_,
         std::string("dataNym1"),
         3,  // version of CONTACTSECTION_SCOPE section before CITEMTYPE_BOT
@@ -1800,8 +1761,7 @@ TEST_F(Test_ContactData, SetScope_different_versions)
         3,
         {});
 
-    const auto& data2 =
-        data1.SetScope(opentxs::proto::CITEMTYPE_BOT, "botScope");
+    const auto& data2 = data1.SetScope(ot::proto::CITEMTYPE_BOT, "botScope");
 
     ASSERT_EQ(4, data2.Version());
 }
@@ -1809,23 +1769,22 @@ TEST_F(Test_ContactData, SetScope_different_versions)
 TEST_F(Test_ContactData, SocialMediaProfiles)
 {
     const auto& data2 = contactData_.AddSocialMediaProfile(
-        "facebook1", opentxs::proto::CITEMTYPE_FACEBOOK, true, false);
+        "facebook1", ot::proto::CITEMTYPE_FACEBOOK, true, false);
     const auto& data3 = data2.AddSocialMediaProfile(
-        "linkedin1", opentxs::proto::CITEMTYPE_LINKEDIN, false, true);
+        "linkedin1", ot::proto::CITEMTYPE_LINKEDIN, false, true);
     const auto& data4 = data3.AddSocialMediaProfile(
-        "facebook2", opentxs::proto::CITEMTYPE_FACEBOOK, false, false);
+        "facebook2", ot::proto::CITEMTYPE_FACEBOOK, false, false);
 
     auto profiles =
-        data4.SocialMediaProfiles(opentxs::proto::CITEMTYPE_FACEBOOK, false);
+        data4.SocialMediaProfiles(ot::proto::CITEMTYPE_FACEBOOK, false);
     ASSERT_TRUE(
         profiles.find("facebook1") != std::string::npos &&
         profiles.find("facebook2") != std::string::npos);
 
-    profiles =
-        data4.SocialMediaProfiles(opentxs::proto::CITEMTYPE_LINKEDIN, false);
+    profiles = data4.SocialMediaProfiles(ot::proto::CITEMTYPE_LINKEDIN, false);
     ASSERT_STREQ("linkedin1", profiles.c_str());
 
-    profiles = data4.SocialMediaProfiles(opentxs::proto::CITEMTYPE_FACEBOOK);
+    profiles = data4.SocialMediaProfiles(ot::proto::CITEMTYPE_FACEBOOK);
     ASSERT_STREQ("facebook1", profiles.c_str());
     ASSERT_TRUE(profiles.find("facebook2") == std::string::npos);
     ASSERT_TRUE(profiles.find("linkedin1") == std::string::npos);
@@ -1833,11 +1792,11 @@ TEST_F(Test_ContactData, SocialMediaProfiles)
 
 TEST_F(Test_ContactData, Type)
 {
-    ASSERT_EQ(opentxs::proto::CITEMTYPE_UNKNOWN, contactData_.Type());
+    ASSERT_EQ(ot::proto::CITEMTYPE_UNKNOWN, contactData_.Type());
 
-    const auto& data1 = contactData_.SetScope(
-        opentxs::proto::CITEMTYPE_INDIVIDUAL, "scopeName");
-    ASSERT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, data1.Type());
+    const auto& data1 =
+        contactData_.SetScope(ot::proto::CITEMTYPE_INDIVIDUAL, "scopeName");
+    ASSERT_EQ(ot::proto::CITEMTYPE_INDIVIDUAL, data1.Type());
 }
 
 TEST_F(Test_ContactData, Version)

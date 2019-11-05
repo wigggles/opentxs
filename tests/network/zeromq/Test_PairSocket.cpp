@@ -9,7 +9,7 @@ using namespace opentxs;
 
 #define TEST_ENDPOINT "inproc://opentxs/pairsocket_endpoint"
 
-namespace zmq = opentxs::network::zeromq;
+namespace zmq = ot::network::zeromq;
 
 namespace
 {

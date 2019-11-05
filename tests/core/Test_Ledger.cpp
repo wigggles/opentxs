@@ -11,10 +11,10 @@ ot::OTServerID server_id_{ot::identifier::Server::Factory()};
 namespace
 {
 struct Ledger : public ::testing::Test {
-    const opentxs::api::client::Manager& client_;
-    const opentxs::api::server::Manager& server_;
-    opentxs::OTPasswordPrompt reason_c_;
-    opentxs::OTPasswordPrompt reason_s_;
+    const ot::api::client::Manager& client_;
+    const ot::api::server::Manager& server_;
+    ot::OTPasswordPrompt reason_c_;
+    ot::OTPasswordPrompt reason_s_;
 
     Ledger()
         : client_(ot::Context().StartClient(OTTestEnvironment::test_args_, 0))

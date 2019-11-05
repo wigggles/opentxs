@@ -23,10 +23,10 @@ namespace
 class Test_Rpc_Async : public ::testing::Test
 {
 public:
-    using PushChecker = std::function<bool(const opentxs::proto::RPCPush&)>;
+    using PushChecker = std::function<bool(const ot::proto::RPCPush&)>;
 
     Test_Rpc_Async()
-        : ot_{opentxs::Context()}
+        : ot_{ot::Context()}
     {
         if (false == bool(notification_callback_)) {
             notification_callback_.reset(new OTZMQListenCallback(
@@ -42,7 +42,7 @@ public:
     }
 
 protected:
-    const opentxs::api::Context& ot_;
+    const ot::api::Context& ot_;
 
     static int sender_session_;
     static int receiver_session_;
@@ -55,8 +55,8 @@ protected:
     static int server_;
     static OTUnitID unit_definition_id_;
     static OTIdentifier workflow_id_;
-    static opentxs::OTServerID intro_server_id_;
-    static opentxs::OTServerID server_id_;
+    static ot::OTServerID intro_server_id_;
+    static ot::OTServerID server_id_;
 
     static bool check_push_results(const std::vector<bool>& results)
     {
@@ -68,12 +68,12 @@ protected:
     static std::size_t get_index(const std::int32_t instance);
     static const api::Core& get_session(const std::int32_t instance);
     static void process_notification(const network::zeromq::Message& incoming);
-    static bool default_push_callback(const opentxs::proto::RPCPush& push);
+    static bool default_push_callback(const ot::proto::RPCPush& push);
     static void setup();
 
     proto::RPCCommand init(proto::RPCCommandType commandtype)
     {
-        auto cookie = opentxs::Identifier::Random()->str();
+        auto cookie = ot::Identifier::Random()->str();
 
         proto::RPCCommand command;
         command.set_version(COMMAND_VERSION);
@@ -140,9 +140,9 @@ const api::Core& Test_Rpc_Async::get_session(const std::int32_t instance)
     auto is_server = instance % 2;
 
     if (is_server) {
-        return opentxs::Context().Server(get_index(instance));
+        return ot::Context().Server(get_index(instance));
     } else {
-        return opentxs::Context().Client(get_index(instance));
+        return ot::Context().Client(get_index(instance));
     }
 }
 
@@ -174,7 +174,7 @@ void Test_Rpc_Async::process_notification(
     }
 }
 
-bool Test_Rpc_Async::default_push_callback(const opentxs::proto::RPCPush& push)
+bool Test_Rpc_Async::default_push_callback(const ot::proto::RPCPush& push)
 {
     if (false == proto::Validate(push, VERBOSE)) { return false; }
 
@@ -191,7 +191,7 @@ bool Test_Rpc_Async::default_push_callback(const opentxs::proto::RPCPush& push)
 
 void Test_Rpc_Async::setup()
 {
-    const api::Context& ot = opentxs::Context();
+    const api::Context& ot = ot::Context();
 
     auto& intro_server = ot.StartServer(ArgList(), ot.Servers(), true);
     auto& server = ot.StartServer(ArgList(), ot.Servers(), true);
@@ -208,7 +208,7 @@ void Test_Rpc_Async::setup()
         intro_server.Wallet().Server(intro_server.ID(), reasonServer);
     intro_server_id_ =
         identifier::Server::Factory(intro_server_contract->ID()->str());
-    auto cookie = opentxs::Identifier::Random()->str();
+    auto cookie = ot::Identifier::Random()->str();
     proto::RPCCommand command;
     command.set_version(COMMAND_VERSION);
     command.set_cookie(cookie);
@@ -223,7 +223,7 @@ void Test_Rpc_Async::setup()
     auto& senderClient = ot.Client(get_index(response.session()));
     auto reasonS = senderClient.Factory().PasswordPrompt(__FUNCTION__);
 
-    cookie = opentxs::Identifier::Random()->str();
+    cookie = ot::Identifier::Random()->str();
     command.set_cookie(cookie);
     command.set_type(proto::RPCCOMMAND_ADDCLIENTSESSION);
     command.set_session(-1);
@@ -262,7 +262,7 @@ void Test_Rpc_Async::setup()
         "GTD",
         2,
         "gcent",
-        opentxs::proto::CITEMTYPE_USD,
+        ot::proto::CITEMTYPE_USD,
         reasonS);
     unit_definition_id_ =
         identifier::UnitDefinition::Factory(unit_definition->ID()->str());
@@ -275,7 +275,7 @@ void Test_Rpc_Async::setup()
 TEST_F(Test_Rpc_Async, Setup)
 {
     setup();
-    opentxs::Context();
+    ot::Context();
     auto& senderClient = get_session(sender_session_);
     auto& receiverClient = get_session(receiver_session_);
     auto reasonS = senderClient.Factory().PasswordPrompt(__FUNCTION__);
@@ -523,7 +523,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque)
 
         if (responseCode == proto::RPCRESPONSE_RETRY) {
             client_a.OTX().ContextIdle(sender_nym_id_, server_id_).get();
-            command.set_cookie(opentxs::Identifier::Random()->str());
+            command.set_cookie(ot::Identifier::Random()->str());
         }
     } while (proto::RPCRESPONSE_RETRY == response.status(0).code());
 
@@ -755,7 +755,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
         if (response.accountevent_size() < 1) {
             client_a.OTX().Refresh();
             client_a.OTX().ContextIdle(sender_nym_id_, server_id_).get();
-            command.set_cookie(opentxs::Identifier::Random()->str());
+            command.set_cookie(ot::Identifier::Random()->str());
         }
     } while (proto::RPCRESPONSE_NONE == response.status(0).code() ||
              response.accountevent_size() < 1);
@@ -816,7 +816,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
             client_b.OTX().Refresh();
             client_b.OTX().ContextIdle(receiver_nym_id_, server_id_).get();
 
-            command.set_cookie(opentxs::Identifier::Random()->str());
+            command.set_cookie(ot::Identifier::Random()->str());
         }
 
     } while (proto::RPCRESPONSE_NONE == response.status(0).code() ||
@@ -899,7 +899,7 @@ TEST_F(Test_Rpc_Async, Accept_2_Pending_Payments)
         ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
         ASSERT_EQ(command.type(), response.type());
 
-        command.set_cookie(opentxs::Identifier::Random()->str());
+        command.set_cookie(ot::Identifier::Random()->str());
     } while (proto::RPCRESPONSE_RETRY == response.status(0).code());
 
     ASSERT_EQ(1, response.status_size());
@@ -937,7 +937,7 @@ TEST_F(Test_Rpc_Async, Accept_2_Pending_Payments)
         ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
         ASSERT_EQ(command.type(), response.type());
 
-        command.set_cookie(opentxs::Identifier::Random()->str());
+        command.set_cookie(ot::Identifier::Random()->str());
     } while (proto::RPCRESPONSE_RETRY == response.status(0).code());
 
     ASSERT_EQ(1, response.status_size());

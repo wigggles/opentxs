@@ -14,17 +14,17 @@ namespace
 class Test_PaymentCode : public ::testing::Test
 {
 public:
-    const opentxs::api::client::Manager& client_;
+    const ot::api::client::Manager& client_;
     OTPasswordPrompt reason_;
     std::string seed, fingerprint, nymID_0, paycode_0, nymID_1, paycode_1,
         nymID_2, paycode_2, nymID_3, paycode_3;
-    opentxs::NymData nymData_0, nymData_1, nymData_2, nymData_3;
-    proto::ContactItemType currency = opentxs::proto::CITEMTYPE_BCH;
-    proto::ContactItemType currency_2 = opentxs::proto::CITEMTYPE_BTC;
+    ot::NymData nymData_0, nymData_1, nymData_2, nymData_3;
+    proto::ContactItemType currency = ot::proto::CITEMTYPE_BCH;
+    proto::ContactItemType currency_2 = ot::proto::CITEMTYPE_BTC;
 
     /* Is evaluated every test, therefore indexes are fixed to 0,1,2,3 */
     Test_PaymentCode()
-        : client_(opentxs::Context().StartClient({}, 0))
+        : client_(ot::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , seed("trim thunder unveil reduce crop cradle zone inquiry anchor "
                "skate property fringe obey butter text tank drama palm guilt "
