@@ -32,6 +32,8 @@
 
 namespace opentxs
 {
+using OTUIActivityThreadItem = SharedPimpl<ui::ActivityThreadItem>;
+
 namespace ui
 {
 class ActivityThreadItem : virtual public ListRow

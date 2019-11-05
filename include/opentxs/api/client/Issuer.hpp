@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <set>

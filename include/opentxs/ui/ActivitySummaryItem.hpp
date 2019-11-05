@@ -31,6 +31,8 @@
 
 namespace opentxs
 {
+using OTUIActivitySummaryItem = SharedPimpl<ui::ActivitySummaryItem>;
+
 namespace ui
 {
 class ActivitySummaryItem : virtual public ListRow

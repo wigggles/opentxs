@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTOutbailmentRequest = SharedPimpl<contract::peer::request::Outbailment>;
+
 namespace contract
 {
 namespace peer

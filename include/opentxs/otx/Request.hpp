@@ -16,6 +16,8 @@
 
 namespace opentxs
 {
+using OTXRequest = Pimpl<otx::Request>;
+
 namespace api
 {
 namespace internal

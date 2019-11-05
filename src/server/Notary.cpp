@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "Notary.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
@@ -42,6 +42,7 @@
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Proto.tpp"
@@ -62,6 +63,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "Notary.hpp"
 
 #define OTX_PUSH_VERSION 1
 

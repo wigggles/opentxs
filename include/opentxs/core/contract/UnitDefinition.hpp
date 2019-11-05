@@ -16,6 +16,8 @@
 
 namespace opentxs
 {
+using OTUnitDefinition = SharedPimpl<contract::Unit>;
+
 namespace contract
 {
 class Unit : virtual public opentxs::contract::Signable

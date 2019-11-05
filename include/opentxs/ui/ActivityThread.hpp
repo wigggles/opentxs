@@ -107,17 +107,19 @@ public:
         PendingColumn = 5,
     };
 
-    QString displayName() const noexcept;
-    QString getDraft() const noexcept;
-    QString participants() const noexcept;
-    QString threadID() const noexcept;
-    Q_INVOKABLE bool pay(
+    OPENTXS_EXPORT QString displayName() const noexcept;
+    OPENTXS_EXPORT QString getDraft() const noexcept;
+    OPENTXS_EXPORT QString participants() const noexcept;
+    OPENTXS_EXPORT QString threadID() const noexcept;
+    OPENTXS_EXPORT Q_INVOKABLE bool pay(
         const QString& amount,
         const QString& sourceAccount,
         const QString& memo = "") const noexcept;
-    Q_INVOKABLE QString paymentCode(const int currency) const noexcept;
-    Q_INVOKABLE bool sendDraft() const noexcept;
-    Q_INVOKABLE bool setDraft(const QString& draft) const noexcept;
+    OPENTXS_EXPORT Q_INVOKABLE QString paymentCode(const int currency) const
+        noexcept;
+    OPENTXS_EXPORT Q_INVOKABLE bool sendDraft() const noexcept;
+    OPENTXS_EXPORT Q_INVOKABLE bool setDraft(const QString& draft) const
+        noexcept;
 
     ~ActivityThreadQt() final = default;
 

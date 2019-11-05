@@ -22,6 +22,8 @@ class IFileReadCallBack;
 
 namespace opentxs
 {
+using OTStringXML = Pimpl<StringXML>;
+
 class StringXML : virtual public String
 {
 public:

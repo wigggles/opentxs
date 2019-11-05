@@ -7,8 +7,6 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/network/zeromq/Context.hpp"
-
 namespace opentxs::network::zeromq::implementation
 {
 class Context final : virtual public zeromq::Context

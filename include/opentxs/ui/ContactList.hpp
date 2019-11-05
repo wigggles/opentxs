@@ -68,7 +68,7 @@ public:
         SectionRole = Qt::UserRole + 1,
     };
 
-    Q_INVOKABLE QString addContact(
+    OPENTXS_EXPORT Q_INVOKABLE QString addContact(
         const QString& label,
         const QString& paymentCode = "",
         const QString& nymID = "") const noexcept;

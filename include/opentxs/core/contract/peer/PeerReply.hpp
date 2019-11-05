@@ -15,6 +15,8 @@
 
 namespace opentxs
 {
+using OTPeerReply = SharedPimpl<contract::peer::Reply>;
+
 namespace contract
 {
 namespace peer

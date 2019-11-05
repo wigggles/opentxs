@@ -20,6 +20,8 @@
 
 namespace opentxs
 {
+using OTPasswordPrompt = Pimpl<PasswordPrompt>;
+
 namespace api
 {
 namespace implementation

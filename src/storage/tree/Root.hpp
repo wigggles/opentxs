@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/Types.hpp"
 
 #include "Node.hpp"
@@ -20,19 +21,6 @@
 
 namespace opentxs
 {
-class StorageMultiplex;
-
-namespace api
-{
-namespace storage
-{
-namespace implementation
-{
-class Storage;
-}  // namespace implementation
-}  // namespace storage
-}  // namespace api
-
 namespace storage
 {
 class Root final : public Node

@@ -7,6 +7,7 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/socket/Pair.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"

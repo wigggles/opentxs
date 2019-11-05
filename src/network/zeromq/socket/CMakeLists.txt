@@ -28,8 +28,10 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Push.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Reply.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Request.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Request.tpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Router.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Sender.hpp"
+  "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Sender.tpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Socket.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/network/zeromq/socket/Subscribe.hpp"
 )

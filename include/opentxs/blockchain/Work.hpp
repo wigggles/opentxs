@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTWork = Pimpl<blockchain::Work>;
+
 bool operator==(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
 bool operator!=(const OTWork& lhs, const blockchain::Work& rhs) noexcept;
 bool operator<(const OTWork& lhs, const blockchain::Work& rhs) noexcept;

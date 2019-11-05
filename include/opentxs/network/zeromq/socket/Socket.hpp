@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>

@@ -14,7 +14,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
-#include "opentxs/network/zeromq/socket/Request.hpp"
+#include "opentxs/network/zeromq/socket/Request.tpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 
 #include "internal/consensus/Consensus.hpp"
 #include "internal/identity/Identity.hpp"

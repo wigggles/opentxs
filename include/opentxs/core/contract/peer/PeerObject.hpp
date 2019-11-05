@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -16,6 +18,8 @@
 
 namespace opentxs
 {
+using OTPeerObject = Pimpl<PeerObject>;
+
 class PeerObject
 {
 public:

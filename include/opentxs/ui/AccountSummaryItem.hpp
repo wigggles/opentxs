@@ -21,6 +21,8 @@
 
 namespace opentxs
 {
+using OTUIAccountSummaryItem = SharedPimpl<ui::AccountSummaryItem>;
+
 namespace ui
 {
 class AccountSummaryItem : virtual public ListRow

@@ -26,6 +26,8 @@
 
 namespace opentxs
 {
+using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
+
 namespace network
 {
 namespace zeromq

@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTCurrencyContract = SharedPimpl<contract::unit::Currency>;
+
 namespace contract
 {
 namespace unit

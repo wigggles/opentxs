@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"

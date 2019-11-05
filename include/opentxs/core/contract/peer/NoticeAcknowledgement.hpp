@@ -12,6 +12,9 @@
 
 namespace opentxs
 {
+using OTReplyAcknowledgement =
+    SharedPimpl<contract::peer::reply::Acknowledgement>;
+
 namespace contract
 {
 namespace peer

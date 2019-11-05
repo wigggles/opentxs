@@ -193,7 +193,7 @@ if(OT_BLOCKCHAIN_EXPORT)
 endif()
 
 if(OT_USE_VCPKG_TARGETS)
-  target_link_libraries(opentxs PRIVATE unofficial-sodium:sodium)
+  target_link_libraries(opentxs PRIVATE unofficial-sodium::sodium)
   target_link_libraries(opentxs PRIVATE libzmq libzmq-static)
 else()
   target_link_libraries(opentxs PRIVATE sodium)

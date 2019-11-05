@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Identifier.hpp"
+
 #include <string>
 
 #ifdef SWIG

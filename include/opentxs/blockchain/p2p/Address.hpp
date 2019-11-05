@@ -14,6 +14,8 @@
 
 namespace opentxs
 {
+using OTBlockchainAddress = Pimpl<blockchain::p2p::Address>;
+
 namespace blockchain
 {
 namespace p2p

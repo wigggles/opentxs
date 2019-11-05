@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/consensus/Context.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
 
 #include <future>
 #include <tuple>

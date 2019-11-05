@@ -16,6 +16,8 @@
 
 namespace opentxs
 {
+using OTZMQZAPRequest = Pimpl<network::zeromq::zap::Request>;
+
 namespace network
 {
 namespace zeromq

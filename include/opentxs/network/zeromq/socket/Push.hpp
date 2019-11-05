@@ -25,6 +25,8 @@
 
 namespace opentxs
 {
+using OTZMQPushSocket = Pimpl<network::zeromq::socket::Push>;
+
 namespace network
 {
 namespace zeromq

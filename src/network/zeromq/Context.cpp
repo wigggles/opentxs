@@ -5,8 +5,6 @@
 
 #include "stdafx.hpp"
 
-#include "Context.hpp"
-
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
@@ -19,6 +17,7 @@
 #include "opentxs/network/zeromq/socket/Request.hpp"
 #include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -31,6 +30,8 @@
 #include <zmq.h>
 
 #include <vector>
+
+#include "Context.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 

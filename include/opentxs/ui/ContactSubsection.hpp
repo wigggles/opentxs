@@ -31,6 +31,8 @@
 
 namespace opentxs
 {
+using OTUIContactSubsection = SharedPimpl<ui::ContactSubsection>;
+
 namespace ui
 {
 class ContactSubsection : virtual public List, virtual public ListRow

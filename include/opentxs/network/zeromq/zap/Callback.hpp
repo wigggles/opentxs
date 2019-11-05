@@ -8,10 +8,14 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/network/zeromq/zap/Reply.hpp"
+
 #include <functional>
 
 namespace opentxs
 {
+using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
+
 namespace network
 {
 namespace zeromq

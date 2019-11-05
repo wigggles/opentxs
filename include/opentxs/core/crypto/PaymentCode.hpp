@@ -17,6 +17,7 @@
 
 namespace opentxs
 {
+using OTPaymentCode = Pimpl<PaymentCode>;
 using SerializedPaymentCode = std::shared_ptr<proto::PaymentCode>;
 
 class PaymentCode

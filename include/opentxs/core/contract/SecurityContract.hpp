@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTSecurityContract = SharedPimpl<contract::unit::Security>;
+
 namespace contract
 {
 namespace unit

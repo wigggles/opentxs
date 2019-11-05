@@ -23,6 +23,8 @@
 
 namespace opentxs
 {
+using OTZMQSubscribeSocket = Pimpl<network::zeromq::socket::Subscribe>;
+
 namespace network
 {
 namespace zeromq

@@ -35,6 +35,8 @@
 
 namespace opentxs
 {
+using OTUIBalanceItem = SharedPimpl<ui::BalanceItem>;
+
 namespace ui
 {
 class BalanceItem : virtual public ListRow

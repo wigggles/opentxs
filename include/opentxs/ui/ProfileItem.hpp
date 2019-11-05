@@ -23,6 +23,8 @@
 
 namespace opentxs
 {
+using OTUIProfileItem = SharedPimpl<ui::ProfileItem>;
+
 namespace ui
 {
 class ProfileItem : virtual public ListRow

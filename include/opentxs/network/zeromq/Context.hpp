@@ -8,7 +8,16 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
+#include "opentxs/network/zeromq/socket/Pair.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Pull.hpp"
+#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Reply.hpp"
+#include "opentxs/network/zeromq/socket/Request.hpp"
+#include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/socket/Socket.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -31,6 +40,8 @@
 
 namespace opentxs
 {
+using OTZMQContext = Pimpl<network::zeromq::Context>;
+
 namespace api
 {
 namespace internal

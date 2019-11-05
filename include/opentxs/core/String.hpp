@@ -32,6 +32,8 @@
 
 namespace opentxs
 {
+using OTString = Pimpl<String>;
+
 class String
 {
 public:

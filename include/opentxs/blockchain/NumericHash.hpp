@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTNumericHash = Pimpl<blockchain::NumericHash>;
+
 bool operator==(
     const OTNumericHash& lhs,
     const blockchain::NumericHash& rhs) noexcept;

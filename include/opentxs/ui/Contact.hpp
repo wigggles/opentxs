@@ -69,10 +69,9 @@ signals:
 
 public:
     // Tree layout
-
-    QString displayName() const noexcept;
-    QString contactID() const noexcept;
-    QString paymentCode() const noexcept;
+    OPENTXS_EXPORT QString displayName() const noexcept;
+    OPENTXS_EXPORT QString contactID() const noexcept;
+    OPENTXS_EXPORT QString paymentCode() const noexcept;
 
     ~ContactQt() final = default;
 

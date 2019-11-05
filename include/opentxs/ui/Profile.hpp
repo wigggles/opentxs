@@ -161,10 +161,9 @@ signals:
 
 public:
     // Tree layout
-
-    QString displayName() const noexcept;
-    QString nymID() const noexcept;
-    QString paymentCode() const noexcept;
+    OPENTXS_EXPORT QString displayName() const noexcept;
+    OPENTXS_EXPORT QString nymID() const noexcept;
+    OPENTXS_EXPORT QString paymentCode() const noexcept;
 
     ~ProfileQt() final = default;
 

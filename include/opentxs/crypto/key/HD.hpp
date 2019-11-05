@@ -16,6 +16,8 @@
 
 namespace opentxs
 {
+using OTHDKey = Pimpl<crypto::key::HD>;
+
 namespace crypto
 {
 namespace key

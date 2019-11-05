@@ -9,6 +9,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/blockchain/NumericHash.hpp"
+#include "opentxs/blockchain/Work.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>

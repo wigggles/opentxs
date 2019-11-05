@@ -18,6 +18,9 @@
 
 namespace opentxs
 {
+using ExclusiveAccount = Exclusive<Account>;
+using SharedAccount = Shared<Account>;
+
 namespace api
 {
 namespace implementation

@@ -21,6 +21,8 @@
 
 namespace opentxs
 {
+using OTUIPayableListItem = SharedPimpl<ui::PayableListItem>;
+
 namespace ui
 {
 class PayableListItem : virtual public ContactListItem

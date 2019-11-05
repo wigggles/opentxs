@@ -21,6 +21,8 @@
 
 namespace opentxs
 {
+using OTUIContactListItem = SharedPimpl<ui::ContactListItem>;
+
 namespace ui
 {
 class ContactListItem : virtual public ListRow

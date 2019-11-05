@@ -13,6 +13,8 @@
 
 namespace opentxs
 {
+using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
+
 namespace network
 {
 namespace zeromq

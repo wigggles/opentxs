@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTBasketContract = SharedPimpl<contract::unit::Basket>;
+
 namespace contract
 {
 namespace unit

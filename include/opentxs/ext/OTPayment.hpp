@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"

@@ -26,6 +26,8 @@
 
 namespace opentxs
 {
+using OTZMQMessage = Pimpl<network::zeromq::Message>;
+
 namespace network
 {
 namespace zeromq

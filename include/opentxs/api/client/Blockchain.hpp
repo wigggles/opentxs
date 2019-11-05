@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"

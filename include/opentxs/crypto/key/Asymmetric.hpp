@@ -21,12 +21,12 @@
 
 namespace opentxs
 {
+using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
+
 namespace crypto
 {
 namespace key
 {
-typedef std::list<Asymmetric*> listOfAsymmetricKeys;
-
 class Asymmetric
 {
 public:

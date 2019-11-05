@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTStoreSecret = SharedPimpl<contract::peer::request::StoreSecret>;
+
 namespace contract
 {
 namespace peer

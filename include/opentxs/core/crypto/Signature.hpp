@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTSignature = Pimpl<Signature>;
+
 namespace api
 {
 namespace internal
