@@ -31,6 +31,8 @@
 
 namespace opentxs
 {
+using OTNymID = Pimpl<identifier::Nym>;
+
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,

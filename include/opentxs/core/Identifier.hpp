@@ -32,6 +32,8 @@
 
 namespace opentxs
 {
+using OTIdentifier = Pimpl<Identifier>;
+
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
@@ -133,4 +135,14 @@ private:
     Identifier& operator=(Identifier&&) = delete;
 };
 }  // namespace opentxs
+
+namespace std
+{
+template <>
+struct less<opentxs::OTIdentifier> {
+    OPENTXS_EXPORT bool operator()(
+        const opentxs::OTIdentifier& lhs,
+        const opentxs::OTIdentifier& rhs) const;
+};
+}  // namespace std
 #endif

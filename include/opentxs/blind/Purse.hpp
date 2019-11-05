@@ -16,6 +16,8 @@
 
 namespace opentxs
 {
+using OTPurse = Pimpl<blind::Purse>;
+
 namespace api
 {
 namespace server

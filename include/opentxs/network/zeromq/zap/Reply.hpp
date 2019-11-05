@@ -14,6 +14,8 @@
 
 namespace opentxs
 {
+using OTZMQZAPReply = Pimpl<network::zeromq::zap::Reply>;
+
 namespace network
 {
 namespace zeromq

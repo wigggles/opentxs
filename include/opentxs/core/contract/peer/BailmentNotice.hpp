@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTBailmentNotice = SharedPimpl<contract::peer::request::BailmentNotice>;
+
 namespace contract
 {
 namespace peer

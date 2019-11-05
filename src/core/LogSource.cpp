@@ -17,6 +17,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/OT.hpp"

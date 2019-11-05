@@ -6,12 +6,14 @@
 #pragma once
 
 #include "opentxs/Forward.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/Blockchain.hpp"
 #endif  // OT_BLOCKCHAIN
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #define PAYMENT_CODE_VERSION 1
 #define PEER_MESSAGE_VERSION 2
@@ -124,6 +126,11 @@ struct Manager;
 
 namespace storage
 {
+namespace implementation
+{
+class Storage;
+}  // namespace implementation
+
 class Driver;
 class Multiplex;
 class Plugin;

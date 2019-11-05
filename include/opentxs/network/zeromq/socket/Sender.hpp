@@ -9,7 +9,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/socket/Socket.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #ifdef SWIG
@@ -40,10 +39,7 @@ public:
         return send(message);
     }
     template <typename Input>
-    OPENTXS_EXPORT bool Send(const Input& data) const noexcept
-    {
-        return send(Context().Message(data));
-    }
+    OPENTXS_EXPORT bool Send(const Input& data) const noexcept;
 
     OPENTXS_EXPORT ~Sender() override = default;
 

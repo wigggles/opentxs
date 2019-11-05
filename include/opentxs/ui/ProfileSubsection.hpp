@@ -31,6 +31,8 @@
 
 namespace opentxs
 {
+using OTUIProfileSubsection = SharedPimpl<ui::ProfileSubsection>;
+
 namespace ui
 {
 class ProfileSubsection : virtual public List, virtual public ListRow

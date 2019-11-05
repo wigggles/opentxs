@@ -36,6 +36,7 @@
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Proto.tpp"

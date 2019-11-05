@@ -49,22 +49,27 @@ struct BlankModel final : public QAbstractItemModel {
     Q_OBJECT
 
 public:
-    int columnCount(const QModelIndex& = QModelIndex()) const noexcept final
+    OPENTXS_EXPORT int columnCount(const QModelIndex& = QModelIndex()) const
+        noexcept final
     {
         return columns_;
     }
-    QVariant data(const QModelIndex&, int = Qt::DisplayRole) const
-        noexcept final
+    OPENTXS_EXPORT QVariant
+    data(const QModelIndex&, int = Qt::DisplayRole) const noexcept final
     {
         return {};
     }
-    QModelIndex index(int, int, const QModelIndex& = QModelIndex()) const
-        noexcept final
+    OPENTXS_EXPORT QModelIndex
+    index(int, int, const QModelIndex& = QModelIndex()) const noexcept final
     {
         return {};
     }
-    QModelIndex parent(const QModelIndex&) const noexcept final { return {}; }
-    int rowCount(const QModelIndex& = QModelIndex()) const noexcept final
+    OPENTXS_EXPORT QModelIndex parent(const QModelIndex&) const noexcept final
+    {
+        return {};
+    }
+    OPENTXS_EXPORT int rowCount(const QModelIndex& = QModelIndex()) const
+        noexcept final
     {
         return 0;
     }

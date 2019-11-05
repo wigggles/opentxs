@@ -18,6 +18,8 @@
 
 namespace opentxs
 {
+using OTServerContract = SharedPimpl<contract::Server>;
+
 namespace contract
 {
 class Server : virtual public opentxs::contract::Signable

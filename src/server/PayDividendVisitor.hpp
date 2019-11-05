@@ -7,7 +7,9 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/AccountVisitor.hpp"
+#include "opentxs/core/String.hpp"
 
 #include <cstdint>
 

@@ -15,6 +15,8 @@
 
 namespace opentxs
 {
+using OTServerConnection = Pimpl<network::ServerConnection>;
+
 namespace api
 {
 namespace internal

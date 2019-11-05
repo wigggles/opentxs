@@ -15,6 +15,8 @@
 
 namespace opentxs
 {
+using OTToken = Pimpl<blind::Token>;
+
 namespace blind
 {
 class Token

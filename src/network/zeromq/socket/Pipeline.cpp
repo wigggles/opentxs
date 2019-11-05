@@ -13,6 +13,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 

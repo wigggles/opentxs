@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs
 {
 namespace server

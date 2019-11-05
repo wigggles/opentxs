@@ -17,6 +17,8 @@
 
 namespace opentxs
 {
+using OTArmored = Pimpl<Armored>;
+
 extern const char* OT_BEGIN_ARMORED;
 extern const char* OT_END_ARMORED;
 

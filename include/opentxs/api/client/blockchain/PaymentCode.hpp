@@ -9,6 +9,8 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/crypto/PaymentCode.hpp"
+
 #include "Deterministic.hpp"
 
 namespace opentxs

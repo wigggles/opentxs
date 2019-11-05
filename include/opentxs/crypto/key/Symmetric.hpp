@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -15,13 +16,7 @@
 
 namespace opentxs
 {
-namespace api
-{
-namespace internal
-{
-struct Core;
-}  // namespace internal
-}  // namespace api
+using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
 
 namespace crypto
 {

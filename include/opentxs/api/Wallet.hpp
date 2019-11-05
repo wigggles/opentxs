@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"

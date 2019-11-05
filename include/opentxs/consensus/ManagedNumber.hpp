@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTManagedNumber = Pimpl<ManagedNumber>;
+
 bool operator<(const OTManagedNumber& lhs, const OTManagedNumber& rhs);
 
 class ManagedNumber

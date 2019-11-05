@@ -31,6 +31,8 @@
 
 namespace opentxs
 {
+using OTServerID = Pimpl<identifier::Server>;
+
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::identifier::Server>& lhs,

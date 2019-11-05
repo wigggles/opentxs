@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 namespace opentxs::network::implementation
 {
 class ServerConnection final

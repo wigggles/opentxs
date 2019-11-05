@@ -42,6 +42,8 @@
 
 namespace opentxs
 {
+using OTData = Pimpl<Data>;
+
 OPENTXS_EXPORT bool operator==(const OTData& lhs, const Data& rhs);
 OPENTXS_EXPORT bool operator!=(const OTData& lhs, const Data& rhs);
 OPENTXS_EXPORT bool operator<(const OTData& lhs, const Data& rhs);
@@ -186,4 +188,15 @@ private:
     Data& operator=(Data&& rhs) = delete;
 };
 }  // namespace opentxs
+
+namespace std
+{
+template <>
+struct less<opentxs::OTData> {
+    OPENTXS_EXPORT bool operator()(
+        const opentxs::OTData& lhs,
+        const opentxs::OTData& rhs) const;
+};
+}  // namespace std
+
 #endif

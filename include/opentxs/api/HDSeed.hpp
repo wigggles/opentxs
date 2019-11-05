@@ -10,6 +10,7 @@
 
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 

@@ -31,6 +31,8 @@ struct zmq_msg_t;
 
 namespace opentxs
 {
+using OTZMQFrame = Pimpl<network::zeromq::Frame>;
+
 namespace network
 {
 namespace zeromq

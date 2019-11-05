@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+
 namespace opentxs
 {
 class Factory

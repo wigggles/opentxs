@@ -24,6 +24,8 @@
 
 namespace opentxs
 {
+using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
+
 namespace network
 {
 namespace zeromq

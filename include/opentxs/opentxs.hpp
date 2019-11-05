@@ -180,9 +180,9 @@
 #include <opentxs/network/zeromq/socket/Pull.hpp>
 #include <opentxs/network/zeromq/socket/Push.hpp>
 #include <opentxs/network/zeromq/socket/Reply.hpp>
-#include <opentxs/network/zeromq/socket/Request.hpp>
+#include <opentxs/network/zeromq/socket/Request.tpp>
 #include <opentxs/network/zeromq/socket/Router.hpp>
-#include <opentxs/network/zeromq/socket/Sender.hpp>
+#include <opentxs/network/zeromq/socket/Sender.tpp>
 #include <opentxs/network/zeromq/socket/Socket.hpp>
 #include <opentxs/network/zeromq/socket/Subscribe.hpp>
 #include <opentxs/network/zeromq/zap/Callback.hpp>

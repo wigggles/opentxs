@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/blockchain/BloomFilter.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
 
 #include "blockchain/p2p/bitcoin/Message.hpp"

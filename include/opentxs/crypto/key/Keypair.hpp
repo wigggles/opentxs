@@ -17,6 +17,8 @@
 
 namespace opentxs
 {
+using OTKeypair = Pimpl<crypto::key::Keypair>;
+
 namespace crypto
 {
 namespace key

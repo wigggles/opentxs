@@ -31,6 +31,8 @@
 
 namespace opentxs
 {
+using OTUnitID = Pimpl<identifier::UnitDefinition>;
+
 #ifndef SWIG
 OPENTXS_EXPORT bool operator==(
     const opentxs::Pimpl<opentxs::identifier::UnitDefinition>& lhs,

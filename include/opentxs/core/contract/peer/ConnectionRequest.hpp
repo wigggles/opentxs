@@ -12,6 +12,8 @@
 
 namespace opentxs
 {
+using OTConnectionRequest = SharedPimpl<contract::peer::request::Connection>;
+
 namespace contract
 {
 namespace peer

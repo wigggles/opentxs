@@ -9,9 +9,41 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_BLOCKCHAIN
+#include "opentxs/blockchain/p2p/Address.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #endif  // OT_BLOCKCHAIN
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/contract/peer/BailmentNotice.hpp"
+#include "opentxs/core/contract/peer/BailmentReply.hpp"
+#include "opentxs/core/contract/peer/BailmentRequest.hpp"
+#include "opentxs/core/contract/peer/ConnectionReply.hpp"
+#include "opentxs/core/contract/peer/ConnectionRequest.hpp"
+#include "opentxs/core/contract/peer/NoticeAcknowledgement.hpp"
+#include "opentxs/core/contract/peer/OutBailmentReply.hpp"
+#include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/contract/peer/StoreSecret.hpp"
+#include "opentxs/core/contract/CurrencyContract.hpp"
+#include "opentxs/core/contract/SecurityContract.hpp"
+#include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+#include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/core/PasswordPrompt.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>

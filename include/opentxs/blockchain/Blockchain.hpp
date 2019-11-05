@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Data.hpp"
+
 namespace opentxs
 {
 namespace blockchain

@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Data.hpp"
+
 #include <map>
 #include <memory>
 #include <set>

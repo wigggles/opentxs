@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/crypto/Signature.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/identity/Nym.hpp"

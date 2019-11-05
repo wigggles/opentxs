@@ -79,8 +79,8 @@ public:
         UUIDColumn = 4,
     };
 
-    int balancePolarity() const noexcept;
-    QString displayBalance() const noexcept;
+    OPENTXS_EXPORT int balancePolarity() const noexcept;
+    OPENTXS_EXPORT QString displayBalance() const noexcept;
 
     ~AccountActivityQt() final = default;
 

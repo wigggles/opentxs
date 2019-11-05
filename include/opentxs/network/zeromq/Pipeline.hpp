@@ -22,6 +22,8 @@
 
 namespace opentxs
 {
+using OTZMQPipeline = Pimpl<network::zeromq::Pipeline>;
+
 namespace network
 {
 namespace zeromq

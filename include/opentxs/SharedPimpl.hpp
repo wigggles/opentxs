@@ -73,7 +73,7 @@ private:
     std::shared_ptr<const C> pimpl_{nullptr};
 
 #ifndef SWIG_VERSION
-    OPENTXS_EXPORT SharedPimpl() = delete;
+    SharedPimpl() = delete;
 #endif
 };  // class SharedPimpl
 }  // namespace opentxs

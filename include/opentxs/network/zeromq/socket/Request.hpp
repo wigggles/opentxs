@@ -9,7 +9,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/curve/Client.hpp"
-#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #ifdef SWIG
@@ -25,6 +24,8 @@
 
 namespace opentxs
 {
+using OTZMQRequestSocket = Pimpl<network::zeromq::socket::Request>;
+
 namespace network
 {
 namespace zeromq
@@ -53,10 +54,7 @@ public:
     OPENTXS_EXPORT std::pair<
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
-    Send(const Input& data) const noexcept
-    {
-        return send_request(Context().Message(data));
-    }
+    Send(const Input& data) const noexcept;
     OPENTXS_EXPORT virtual bool SetSocksProxy(const std::string& proxy) const
         noexcept = 0;
 

@@ -16,6 +16,8 @@
 
 namespace opentxs
 {
+using OTXReply = Pimpl<otx::Reply>;
+
 namespace api
 {
 namespace internal

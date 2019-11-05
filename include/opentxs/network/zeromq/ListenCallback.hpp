@@ -23,6 +23,8 @@
 
 namespace opentxs
 {
+using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
+
 namespace network
 {
 namespace zeromq

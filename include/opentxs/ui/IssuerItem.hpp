@@ -22,6 +22,8 @@
 
 namespace opentxs
 {
+using OTUIIssuerItem = SharedPimpl<ui::IssuerItem>;
+
 namespace ui
 {
 class IssuerItem : virtual public List, virtual public ListRow

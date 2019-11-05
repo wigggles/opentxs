@@ -10,6 +10,8 @@
 
 namespace opentxs
 {
+using OTFlag = Pimpl<Flag>;
+
 /** Wrapper for a std::atomic<bool> */
 class Flag
 {

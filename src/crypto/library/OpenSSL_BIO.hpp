@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/String.hpp"
+
 extern "C" {
 #include <openssl/bio.h>
 }

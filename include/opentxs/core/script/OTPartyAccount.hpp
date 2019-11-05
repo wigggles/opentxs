@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 

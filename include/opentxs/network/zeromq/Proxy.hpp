@@ -22,6 +22,8 @@
 
 namespace opentxs
 {
+using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
+
 namespace network
 {
 namespace zeromq

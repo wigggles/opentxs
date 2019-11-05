@@ -10,6 +10,8 @@
 
 namespace opentxs
 {
+using OTBloomFilter = Pimpl<blockchain::BloomFilter>;
+
 namespace blockchain
 {
 class BloomFilter
