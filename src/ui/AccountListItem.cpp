@@ -125,45 +125,51 @@ auto AccountListItem::load_unit(
 auto AccountListItem::qt_data(const int column, int role) const noexcept
     -> QVariant
 {
-    if (Qt::DisplayRole == role) {
-        switch (column) {
-            case 0: {
-                return AccountID().c_str();
-            }
-            case 1: {
-                return polarity(Balance());
-            }
-            case 2: {
-                return ContractID().c_str();
-            }
-            case 3: {
-                return DisplayBalance().c_str();
-            }
-            case 4: {
-                return DisplayUnit().c_str();
-            }
-            case 5: {
-                return Name().c_str();
-            }
-            case 6: {
-                return NotaryID().c_str();
-            }
-            case 7: {
-                return NotaryName().c_str();
-            }
-            case 8: {
-                return static_cast<int>(Type());
-            }
-            case 9: {
-                return static_cast<int>(Unit());
-            }
-            default: {
-                return {};
+    switch (role) {
+        case AccountListQt::NotaryIDRole: {
+            return NotaryID().c_str();
+        }
+        case AccountListQt::UnitRole: {
+            return static_cast<int>(Unit());
+        }
+        case AccountListQt::AccountIDRole: {
+            return AccountID().c_str();
+        }
+        case AccountListQt::BalanceRole: {
+            return static_cast<unsigned long long>(Balance());
+        }
+        case AccountListQt::PolarityRole: {
+            return polarity(Balance());
+        }
+        case AccountListQt::AccountTypeRole: {
+            return static_cast<int>(Type());
+        }
+        case AccountListQt::ContractIdRole: {
+            return ContractID().c_str();
+        }
+        case Qt::DisplayRole: {
+            switch (column) {
+                case AccountListQt::NotaryNameColumn: {
+                    return NotaryName().c_str();
+                }
+                case AccountListQt::DisplayUnitColumn: {
+                    return DisplayUnit().c_str();
+                }
+                case AccountListQt::AccountNameColumn: {
+                    return Name().c_str();
+                }
+                case AccountListQt::DisplayBalanceColumn: {
+                    return DisplayBalance().c_str();
+                }
+                default: {
+                    [[fallthrough]];
+                }
             }
         }
-    } else {
-        return {};
+        default: {
+        }
     }
+    return {};
 }
 #endif
 }  // namespace opentxs::ui::implementation

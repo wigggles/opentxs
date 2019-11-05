@@ -112,7 +112,7 @@ AccountSummary::AccountSummary(
           Roles{{AccountSummaryQt::NotaryIDRole, "notary"},
                 {AccountSummaryQt::AccountIDRole, "account"},
                 {AccountSummaryQt::BalanceRole, "balance"}},
-          3
+          5
 #endif
           )
     , listeners_({

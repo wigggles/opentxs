@@ -96,7 +96,7 @@ IssuerItem::IssuerItem(
           ,
           qt,
           Roles{},
-          2
+          3
 #endif
           )
     , listeners_({
