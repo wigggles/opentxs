@@ -7,7 +7,7 @@
 
 using namespace opentxs;
 
-namespace zmq = opentxs::network::zeromq;
+namespace zmq = ot::network::zeromq;
 
 namespace
 {

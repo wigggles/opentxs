@@ -40,12 +40,12 @@ class Test_Rpc : public ::testing::Test
 {
 public:
     Test_Rpc()
-        : ot_{opentxs::Context()}
+        : ot_{ot::Context()}
     {
     }
 
 protected:
-    const opentxs::api::Context& ot_;
+    const ot::api::Context& ot_;
 
     static OTUnitID unit_definition_id_;
     static std::string issuer_account_id_;
@@ -72,7 +72,7 @@ protected:
 
     proto::RPCCommand init(proto::RPCCommandType commandtype)
     {
-        auto cookie = opentxs::Identifier::Random()->str();
+        auto cookie = ot::Identifier::Random()->str();
 
         proto::RPCCommand command;
         command.set_version(COMMAND_VERSION);
@@ -159,7 +159,7 @@ protected:
     }
 
     void wait_for_state_machine(
-        const opentxs::api::client::Manager& api,
+        const ot::api::client::Manager& api,
         const identifier::Nym& nymID,
         const identifier::Server& serverID)
     {
@@ -180,7 +180,7 @@ protected:
     }
 
     void receive_payment(
-        const opentxs::api::client::Manager& api,
+        const ot::api::client::Manager& api,
         const identifier::Nym& nymID,
         const identifier::Server& serverID,
         const Identifier& accountID)
@@ -232,9 +232,9 @@ const api::Core& Test_Rpc::get_session(const std::int32_t instance)
     auto is_server = instance % 2;
 
     if (is_server) {
-        return opentxs::Context().Server(get_index(instance));
+        return ot::Context().Server(get_index(instance));
     } else {
-        return opentxs::Context().Client(get_index(instance));
+        return ot::Context().Client(get_index(instance));
     }
 }
 
@@ -862,8 +862,8 @@ TEST_F(Test_Rpc, Delete_Claim_No_Nym)
 
     auto& client = ot_.Client(0);
     auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = client.Wallet().Nym(
-        opentxs::identifier::Nym::Factory(nym1_id_), reason);
+    auto nym =
+        client.Wallet().Nym(ot::identifier::Nym::Factory(nym1_id_), reason);
     auto& claims = nym->Claims();
     auto group = claims.Group(
         proto::CONTACTSECTION_RELATIONSHIP, proto::CITEMTYPE_ALIAS);

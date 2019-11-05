@@ -13,24 +13,24 @@ namespace
 bool init_{false};
 
 struct Test_Symmetric : public ::testing::Test {
-    static const opentxs::proto::SymmetricMode mode_;
-    static opentxs::OTNymID alice_nym_id_;
-    static opentxs::OTNymID bob_nym_id_;
-    static opentxs::OTSymmetricKey key_;
-    static opentxs::OTSymmetricKey second_key_;
-    static opentxs::OTPassword key_password_;
-    static opentxs::proto::Ciphertext ciphertext_;
-    static opentxs::proto::Ciphertext second_ciphertext_;
-    static opentxs::proto::Ciphertext encrypted_password_;
-    static opentxs::proto::SessionKey session_key_;
+    static const ot::proto::SymmetricMode mode_;
+    static ot::OTNymID alice_nym_id_;
+    static ot::OTNymID bob_nym_id_;
+    static ot::OTSymmetricKey key_;
+    static ot::OTSymmetricKey second_key_;
+    static ot::OTPassword key_password_;
+    static ot::proto::Ciphertext ciphertext_;
+    static ot::proto::Ciphertext second_ciphertext_;
+    static ot::proto::Ciphertext encrypted_password_;
+    static ot::proto::SessionKey session_key_;
 
-    const opentxs::api::client::Manager& api_;
-    opentxs::OTPasswordPrompt reason_;
-    opentxs::Nym_p alice_;
-    opentxs::Nym_p bob_;
+    const ot::api::client::Manager& api_;
+    ot::OTPasswordPrompt reason_;
+    ot::Nym_p alice_;
+    ot::Nym_p bob_;
 
     Test_Symmetric()
-        : api_(opentxs::Context().StartClient(OTTestEnvironment::test_args_, 0))
+        : api_(ot::Context().StartClient(OTTestEnvironment::test_args_, 0))
         , reason_(api_.Factory().PasswordPrompt(__FUNCTION__))
         , alice_()
         , bob_()
@@ -59,21 +59,18 @@ struct Test_Symmetric : public ::testing::Test {
     }
 };
 
-const opentxs::proto::SymmetricMode Test_Symmetric::mode_{
-    opentxs::proto::SMODE_CHACHA20POLY1305};
-opentxs::OTNymID Test_Symmetric::alice_nym_id_{
-    opentxs::identifier::Nym::Factory()};
-opentxs::OTNymID Test_Symmetric::bob_nym_id_{
-    opentxs::identifier::Nym::Factory()};
-opentxs::OTSymmetricKey Test_Symmetric::key_{
-    opentxs::crypto::key::Symmetric::Factory()};
-opentxs::OTSymmetricKey Test_Symmetric::second_key_{
-    opentxs::crypto::key::Symmetric::Factory()};
-opentxs::OTPassword Test_Symmetric::key_password_{};
-opentxs::proto::Ciphertext Test_Symmetric::ciphertext_{};
-opentxs::proto::Ciphertext Test_Symmetric::second_ciphertext_{};
-opentxs::proto::Ciphertext Test_Symmetric::encrypted_password_{};
-opentxs::proto::SessionKey Test_Symmetric::session_key_{};
+const ot::proto::SymmetricMode Test_Symmetric::mode_{
+    ot::proto::SMODE_CHACHA20POLY1305};
+ot::OTNymID Test_Symmetric::alice_nym_id_{ot::identifier::Nym::Factory()};
+ot::OTNymID Test_Symmetric::bob_nym_id_{ot::identifier::Nym::Factory()};
+ot::OTSymmetricKey Test_Symmetric::key_{ot::crypto::key::Symmetric::Factory()};
+ot::OTSymmetricKey Test_Symmetric::second_key_{
+    ot::crypto::key::Symmetric::Factory()};
+ot::OTPassword Test_Symmetric::key_password_{};
+ot::proto::Ciphertext Test_Symmetric::ciphertext_{};
+ot::proto::Ciphertext Test_Symmetric::second_ciphertext_{};
+ot::proto::Ciphertext Test_Symmetric::encrypted_password_{};
+ot::proto::SessionKey Test_Symmetric::session_key_{};
 }  // namespace
 
 TEST_F(Test_Symmetric, create_key)
@@ -98,7 +95,7 @@ TEST_F(Test_Symmetric, key_functionality)
 
     const auto encrypted = key_->Encrypt(
         TEST_PLAINTEXT,
-        opentxs::Data::Factory(),
+        ot::Data::Factory(),
         password,
         ciphertext_,
         true,
@@ -116,7 +113,7 @@ TEST_F(Test_Symmetric, key_functionality)
     ASSERT_TRUE(decrypted);
     EXPECT_STREQ(TEST_PLAINTEXT, plaintext.c_str());
 
-    opentxs::OTPassword wrongPassword{};
+    ot::OTPassword wrongPassword{};
     wrongPassword.setPassword("not the password");
 
     ASSERT_TRUE(password->SetPassword(wrongPassword));
@@ -144,7 +141,7 @@ TEST_F(Test_Symmetric, unlock)
     ASSERT_TRUE(alice_);
 
     auto password = api_.Factory().PasswordPrompt("");
-    opentxs::OTPassword decryptedPassword{};
+    ot::OTPassword decryptedPassword{};
     auto recoveredKey = api_.Symmetric().Key(ciphertext_.key(), mode_);
 
     ASSERT_TRUE(recoveredKey.get());
@@ -167,7 +164,7 @@ TEST_F(Test_Symmetric, wrongNym)
 {
     ASSERT_TRUE(bob_);
 
-    opentxs::OTPassword decryptedPassword{};
+    ot::OTPassword decryptedPassword{};
     auto recoveredKey = api_.Symmetric().Key(ciphertext_.key(), mode_);
 
     ASSERT_TRUE(recoveredKey.get());
@@ -193,7 +190,7 @@ TEST_F(Test_Symmetric, create_second_key)
 
     const auto encrypted = second_key_->Encrypt(
         TEST_PLAINTEXT,
-        opentxs::Data::Factory(),
+        ot::Data::Factory(),
         password,
         second_ciphertext_,
         true,
@@ -217,7 +214,7 @@ TEST_F(Test_Symmetric, open)
     ASSERT_TRUE(bob_);
 
     auto password = api_.Factory().PasswordPrompt("");
-    opentxs::OTPassword decryptedPassword{};
+    ot::OTPassword decryptedPassword{};
     auto recoveredKey = api_.Symmetric().Key(second_ciphertext_.key(), mode_);
 
     ASSERT_TRUE(recoveredKey.get());

@@ -18,17 +18,17 @@ public:
     static const std::string Alice_;
     static const OTNymID alice_nym_id_;
 
-    const opentxs::api::client::internal::Manager& client_;
-    const opentxs::api::server::internal::Manager& server_;
-    opentxs::OTPasswordPrompt reason_c_;
-    opentxs::OTPasswordPrompt reason_s_;
+    const ot::api::client::internal::Manager& client_;
+    const ot::api::server::internal::Manager& server_;
+    ot::OTPasswordPrompt reason_c_;
+    ot::OTPasswordPrompt reason_s_;
     const identifier::Server& server_id_;
     const OTServerContract server_contract_;
 
     Test_Messages()
-        : client_(dynamic_cast<const opentxs::api::client::internal::Manager&>(
+        : client_(dynamic_cast<const ot::api::client::internal::Manager&>(
               Context().StartClient(OTTestEnvironment::test_args_, 0)))
-        , server_(dynamic_cast<const opentxs::api::server::internal::Manager&>(
+        , server_(dynamic_cast<const ot::api::server::internal::Manager&>(
               Context().StartServer(OTTestEnvironment::test_args_, 0, true)))
         , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
@@ -40,7 +40,7 @@ public:
 
     void import_server_contract(
         const contract::Server& contract,
-        const opentxs::api::client::Manager& client)
+        const ot::api::client::Manager& client)
     {
         auto clientVersion = client.Wallet().Server(
             server_contract_->PublicContract(), reason_c_);
@@ -77,7 +77,7 @@ TEST_F(Test_Messages, activateRequest)
 
     ASSERT_TRUE(alice);
 
-    auto request = opentxs::otx::Request::Factory(
+    auto request = ot::otx::Request::Factory(
         client_, alice, server_id_, type, 1, reason_c_);
 
     ASSERT_TRUE(request->Nym());
@@ -94,7 +94,7 @@ TEST_F(Test_Messages, activateRequest)
 
     auto serialized = request->Contract();
 
-    EXPECT_EQ(opentxs::otx::Request::DefaultVersion, serialized.version());
+    EXPECT_EQ(ot::otx::Request::DefaultVersion, serialized.version());
     EXPECT_EQ(requestID->str(), serialized.id());
     EXPECT_EQ(type, serialized.type());
     EXPECT_EQ(Alice_, serialized.nym());
@@ -112,7 +112,7 @@ TEST_F(Test_Messages, activateRequest)
     EXPECT_TRUE(serialized.has_credentials());
 
     const auto serverCopy =
-        opentxs::otx::Request::Factory(server_, serialized, reason_s_);
+        ot::otx::Request::Factory(server_, serialized, reason_s_);
 
     ASSERT_TRUE(serverCopy->Nym());
     EXPECT_EQ(alice_nym_id_.get(), serverCopy->Nym()->ID());
@@ -138,7 +138,7 @@ TEST_F(Test_Messages, pushReply)
     push.set_version(1);
     push.set_type(proto::OTXPUSH_NYMBOX);
     push.set_item(payload);
-    auto reply = opentxs::otx::Reply::Factory(
+    auto reply = ot::otx::Reply::Factory(
         server_,
         server,
         alice_nym_id_,
@@ -164,7 +164,7 @@ TEST_F(Test_Messages, pushReply)
 
     auto serialized = reply->Contract();
 
-    EXPECT_EQ(opentxs::otx::Reply::DefaultVersion, serialized.version());
+    EXPECT_EQ(ot::otx::Reply::DefaultVersion, serialized.version());
     EXPECT_EQ(replyID->str(), serialized.id());
     EXPECT_EQ(type, serialized.type());
     EXPECT_EQ(Alice_, serialized.nym());
@@ -183,7 +183,7 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(payload, serialized.push().item());
 
     const auto aliceCopy =
-        opentxs::otx::Reply::Factory(client_, serialized, reason_c_);
+        ot::otx::Reply::Factory(client_, serialized, reason_c_);
 
     ASSERT_TRUE(aliceCopy->Nym());
     EXPECT_EQ(server_.NymID(), aliceCopy->Nym()->ID());

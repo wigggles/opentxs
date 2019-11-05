@@ -3,18 +3,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "OTTestEnvironment.hpp"
+#include "OTLowLevelTestEnvironment.hpp"
 
 #include <boost/filesystem.hpp>
 
-const ot::ArgList OTTestEnvironment::test_args_{
-    {OPENTXS_ARG_HOME, {OTTestEnvironment::random_path()}},
-    {OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}},
+const ot::ArgList OTLowLevelTestEnvironment::test_args_{
+    {OPENTXS_ARG_HOME, {OTLowLevelTestEnvironment::random_path()}},
 };
 
 namespace fs = boost::filesystem;
 
-std::string OTTestEnvironment::random_path()
+std::string OTLowLevelTestEnvironment::random_path()
 {
     const auto path = fs::temp_directory_path() /
                       fs::unique_path("opentxs-test-%%%%-%%%%-%%%%-%%%%");
@@ -24,8 +23,8 @@ std::string OTTestEnvironment::random_path()
     return path.string();
 }
 
-void OTTestEnvironment::SetUp() { ot::InitContext(test_args_); }
+void OTLowLevelTestEnvironment::SetUp() {}
 
-void OTTestEnvironment::TearDown() { ot::Cleanup(); }
+void OTLowLevelTestEnvironment::TearDown() { ot::Cleanup(); }
 
-OTTestEnvironment::~OTTestEnvironment() = default;
+OTLowLevelTestEnvironment::~OTLowLevelTestEnvironment() = default;

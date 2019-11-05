@@ -18,7 +18,7 @@ using namespace opentxs;
 #define UNIT_DEFINITION_TLA "USD"
 #define UNIT_DEFINITION_POWER 2
 #define UNIT_DEFINITION_FRACTIONAL_UNIT_NAME "cents"
-#define UNIT_DEFINITION_UNIT_OF_ACCOUNT opentxs::proto::CITEMTYPE_USD
+#define UNIT_DEFINITION_UNIT_OF_ACCOUNT ot::proto::CITEMTYPE_USD
 #define CHEQUE_AMOUNT_1 2000
 #define CHEQUE_MEMO_1 "memo"
 
@@ -44,8 +44,8 @@ public:
     static OTIdentifier contact_id_issuer_alice_;
     static OTIdentifier contact_id_issuer_bob_;
 
-    static const opentxs::api::client::Manager* alice_;
-    static const opentxs::api::client::Manager* bob_;
+    static const ot::api::client::Manager* alice_;
+    static const ot::api::client::Manager* bob_;
 
     static std::string alice_payment_code_;
     static std::string bob_payment_code_;
@@ -55,10 +55,10 @@ public:
     static OTIdentifier alice_account_id_;
     static OTIdentifier issuer_account_id_;
 
-    const opentxs::api::client::Manager& alice_client_;
-    const opentxs::api::client::Manager& bob_client_;
-    const opentxs::api::server::Manager& server_1_;
-    const opentxs::api::client::Manager& issuer_client_;
+    const ot::api::client::Manager& alice_client_;
+    const ot::api::client::Manager& bob_client_;
+    const ot::api::server::Manager& server_1_;
+    const ot::api::client::Manager& issuer_client_;
     const OTServerContract server_contract_;
 
     Test_DepositCheques()
@@ -81,7 +81,7 @@ public:
 
     void import_server_contract(
         const contract::Server& contract,
-        const opentxs::api::client::Manager& client)
+        const ot::api::client::Manager& client)
     {
         auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
         auto clientVersion =
@@ -141,8 +141,8 @@ OTIdentifier Test_DepositCheques::contact_id_bob_issuer_{Identifier::Factory()};
 OTIdentifier Test_DepositCheques::contact_id_issuer_alice_{
     Identifier::Factory()};
 OTIdentifier Test_DepositCheques::contact_id_issuer_bob_{Identifier::Factory()};
-const opentxs::api::client::Manager* Test_DepositCheques::alice_{nullptr};
-const opentxs::api::client::Manager* Test_DepositCheques::bob_{nullptr};
+const ot::api::client::Manager* Test_DepositCheques::alice_{nullptr};
+const ot::api::client::Manager* Test_DepositCheques::bob_{nullptr};
 std::string Test_DepositCheques::alice_payment_code_;
 std::string Test_DepositCheques::bob_payment_code_;
 std::string Test_DepositCheques::issuer_payment_code_;
@@ -159,12 +159,12 @@ TEST_F(Test_DepositCheques, payment_codes)
     auto bob = bob_client_.Wallet().mutable_Nym(bob_nym_id_, reasonB);
     auto issuer = issuer_client_.Wallet().mutable_Nym(issuer_nym_id_, reasonI);
 
-    EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, alice.Type());
-    EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, bob.Type());
-    EXPECT_EQ(opentxs::proto::CITEMTYPE_INDIVIDUAL, issuer.Type());
+    EXPECT_EQ(ot::proto::CITEMTYPE_INDIVIDUAL, alice.Type());
+    EXPECT_EQ(ot::proto::CITEMTYPE_INDIVIDUAL, bob.Type());
+    EXPECT_EQ(ot::proto::CITEMTYPE_INDIVIDUAL, issuer.Type());
 
-    auto aliceScopeSet = alice.SetScope(
-        opentxs::proto::CITEMTYPE_INDIVIDUAL, ALEX, true, reasonA);
+    auto aliceScopeSet =
+        alice.SetScope(ot::proto::CITEMTYPE_INDIVIDUAL, ALEX, true, reasonA);
     auto bobScopeSet =
         bob.SetScope(proto::CITEMTYPE_INDIVIDUAL, BOB, true, reasonB);
     auto issuerScopeSet =
@@ -187,33 +187,17 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_FALSE(issuer_payment_code_.empty());
 
     alice.AddPaymentCode(
-        alice_payment_code_,
-        opentxs::proto::CITEMTYPE_BTC,
-        true,
-        true,
-        reasonA);
+        alice_payment_code_, ot::proto::CITEMTYPE_BTC, true, true, reasonA);
     bob.AddPaymentCode(
-        bob_payment_code_, opentxs::proto::CITEMTYPE_BTC, true, true, reasonB);
+        bob_payment_code_, ot::proto::CITEMTYPE_BTC, true, true, reasonB);
     issuer.AddPaymentCode(
-        issuer_payment_code_,
-        opentxs::proto::CITEMTYPE_BTC,
-        true,
-        true,
-        reasonI);
+        issuer_payment_code_, ot::proto::CITEMTYPE_BTC, true, true, reasonI);
     alice.AddPaymentCode(
-        alice_payment_code_,
-        opentxs::proto::CITEMTYPE_BCH,
-        true,
-        true,
-        reasonA);
+        alice_payment_code_, ot::proto::CITEMTYPE_BCH, true, true, reasonA);
     bob.AddPaymentCode(
-        bob_payment_code_, opentxs::proto::CITEMTYPE_BCH, true, true, reasonB);
+        bob_payment_code_, ot::proto::CITEMTYPE_BCH, true, true, reasonB);
     issuer.AddPaymentCode(
-        issuer_payment_code_,
-        opentxs::proto::CITEMTYPE_BCH,
-        true,
-        true,
-        reasonI);
+        issuer_payment_code_, ot::proto::CITEMTYPE_BCH, true, true, reasonI);
 
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BTC).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BTC).empty());

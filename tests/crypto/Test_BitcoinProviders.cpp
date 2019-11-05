@@ -11,7 +11,7 @@ class Test_Bitcoin_Providers : public ::testing::Test
 {
 public:
     const ot::api::client::Manager& client_;
-    opentxs::OTPasswordPrompt reason_;
+    ot::OTPasswordPrompt reason_;
     const ot::api::Crypto& crypto_;
 #if OT_CRYPTO_USING_TREZOR
     const std::unique_ptr<ot::crypto::Trezor> trezor_{

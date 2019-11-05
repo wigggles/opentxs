@@ -27,7 +27,7 @@ namespace b = ot::blockchain;
 namespace bb = b::bitcoin;
 namespace bc = b::client;
 namespace bp = b::p2p::bitcoin;
-namespace zmq = opentxs::network::zeromq;
+namespace zmq = ot::network::zeromq;
 
 using boost::asio::ip::tcp;
 
@@ -87,20 +87,20 @@ TEST_F(Test_Message, service_bits)
 
 TEST_F(Test_Message, getblocks)
 {
-    namespace bitcoin = opentxs::blockchain::p2p::bitcoin;
+    namespace bitcoin = ot::blockchain::p2p::bitcoin;
 
     bitcoin::ProtocolVersionUnsigned version{2};
-    std::vector<opentxs::OTData> header_hashes;
+    std::vector<ot::OTData> header_hashes;
     for (int ii = 0; ii < 10; ii++) {
-        opentxs::OTData header_hash = opentxs::Data::Factory();
+        ot::OTData header_hash = ot::Data::Factory();
         header_hash->Randomize(32);
         header_hashes.push_back(header_hash);
     }
-    opentxs::OTData stop_hash = opentxs::Data::Factory();
+    ot::OTData stop_hash = ot::Data::Factory();
     stop_hash->Randomize(32);
 
     std::unique_ptr<bitcoin::message::Getblocks> pMessage{
-        opentxs::Factory::BitcoinP2PGetblocks(
+        ot::Factory::BitcoinP2PGetblocks(
             api_,
             ot::blockchain::Type::BitcoinCash,
             version,
@@ -114,11 +114,11 @@ TEST_F(Test_Message, getblocks)
     auto frame = api_.ZeroMQ().Message(serialized_header);
 
     std::unique_ptr<bitcoin::Header> pHeader{
-        opentxs::Factory::BitcoinP2PHeader(api_, frame->at(0))};
+        ot::Factory::BitcoinP2PHeader(api_, frame->at(0))};
 
     if (payload->size() > 0) {
         std::unique_ptr<bitcoin::Message> pLoadedMsg{
-            opentxs::Factory::BitcoinP2PMessage(
+            ot::Factory::BitcoinP2PMessage(
                 api_,
                 std::move(pHeader),
                 70015,
@@ -127,8 +127,7 @@ TEST_F(Test_Message, getblocks)
         ASSERT_TRUE(pMessage->payload() == pLoadedMsg->payload());
     } else {
         std::unique_ptr<bitcoin::Message> pLoadedMsg{
-            opentxs::Factory::BitcoinP2PMessage(
-                api_, std::move(pHeader), 70015)};
+            ot::Factory::BitcoinP2PMessage(api_, std::move(pHeader), 70015)};
         ASSERT_TRUE(pMessage->payload() == pLoadedMsg->payload());
     }
 }

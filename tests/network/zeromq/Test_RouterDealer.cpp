@@ -6,9 +6,9 @@
 #include "OTTestEnvironment.hpp"
 
 using namespace opentxs;
-using namespace opentxs::network;
+using namespace ot::network;
 
-namespace zmq = opentxs::network::zeromq;
+namespace zmq = ot::network::zeromq;
 
 namespace
 {

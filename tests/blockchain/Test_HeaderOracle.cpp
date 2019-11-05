@@ -176,7 +176,7 @@ public:
         : api_(dynamic_cast<const ot::api::client::internal::Manager&>(
               ot::Context().StartClient({}, 0)))
         , type_(b::Type::Bitcoin)
-        , network_(opentxs::Factory::BlockchainNetworkBitcoin(api_, type_, ""))
+        , network_(ot::Factory::BlockchainNetworkBitcoin(api_, type_, ""))
         , header_oracle_(network_->HeaderOracle())
     {
     }

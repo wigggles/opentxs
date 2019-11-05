@@ -47,7 +47,7 @@ TEST_F(Test_Filters, bitstreams)
 {
     namespace be = boost::endian;
 
-    auto data = opentxs::Data::Factory();
+    auto data = ot::Data::Factory();
 
     const std::uint64_t v1{19};
     const std::uint64_t v2{3491};
@@ -55,7 +55,7 @@ TEST_F(Test_Filters, bitstreams)
     const std::uint64_t v4{1073027};
     const std::uint64_t v5{28998};
 
-    opentxs::blockchain::internal::BitWriter stream(data);
+    ot::blockchain::internal::BitWriter stream(data);
 
     stream.write(19, v1);
     stream.write(31, v2);
@@ -64,7 +64,7 @@ TEST_F(Test_Filters, bitstreams)
     stream.write(19, v5);
     stream.flush();
 
-    opentxs::blockchain::internal::BitReader reader(data);
+    ot::blockchain::internal::BitReader reader(data);
 
     const std::uint64_t o1 = reader.read(19);
     const std::uint64_t o2 = reader.read(31);

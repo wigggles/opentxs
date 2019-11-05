@@ -37,7 +37,14 @@ Context::Context(
     const Nym_p& local,
     const Nym_p& remote,
     const identifier::Server& server)
-    : Signable(api, local, targetVersion, {}, {})
+    : Signable(
+          api,
+          local,
+          targetVersion,
+          {},
+          {},
+          calculate_id(api, local, remote),
+          {})
     , server_id_(server)
     , remote_nym_(remote)
     , available_transaction_numbers_()
@@ -63,7 +70,7 @@ Context::Context(
           targetVersion,
           {},
           {},
-          api.Factory().Identifier(),
+          calculate_id(api, local, remote),
           serialized.has_signature()
               ? Signatures{std::make_shared<proto::Signature>(
                     serialized.signature())}
@@ -122,6 +129,24 @@ bool Context::AddAcknowledgedNumber(const RequestNumber req)
 std::size_t Context::AvailableNumbers() const
 {
     return available_transaction_numbers_.size();
+}
+
+auto Context::calculate_id(
+    const api::Core& api,
+    const Nym_p& client,
+    const Nym_p& server) noexcept(false) -> OTIdentifier
+{
+    if (false == (client && server)) {
+        throw std::runtime_error("Invalid nym");
+    }
+
+    auto preimage = api.Factory().Data();
+    preimage->Assign(client->ID());
+    preimage.get() += server->ID();
+    auto output = api.Factory().Identifier();
+    output->CalculateDigest(preimage);
+
+    return output;
 }
 
 bool Context::consume_available(
@@ -205,11 +230,11 @@ OTIdentifier Context::GetID(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    auto contract = IDVersion(lock);
-    auto id = Identifier::Factory();
-    id->CalculateDigest(api_.Factory().Data(contract));
-
-    return id;
+    try {
+        return calculate_id(api_, nym_, remote_nym_);
+    } catch (...) {
+        return api_.Factory().Identifier();
+    }
 }
 
 bool Context::HaveLocalNymboxHash() const
@@ -226,7 +251,7 @@ proto::Context Context::IDVersion(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    proto::Context output;
+    auto output = proto::Context{};
     output.set_version(version_);
 
     switch (Type()) {
@@ -552,7 +577,6 @@ void Context::set_local_nymbox_hash(const Lock& lock, const Identifier& hash)
     LogVerbose(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
         "Set local nymbox hash to: ")(local_nymbox_hash_->asHex())
         .Flush();
-    Signable::first_time_init(lock);
 }
 
 void Context::set_remote_nymbox_hash(const Lock& lock, const Identifier& hash)
@@ -563,7 +587,6 @@ void Context::set_remote_nymbox_hash(const Lock& lock, const Identifier& hash)
     LogVerbose(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
         "Set remote nymbox hash to: ")(remote_nymbox_hash_->asHex())
         .Flush();
-    Signable::first_time_init(lock);
 }
 
 void Context::SetLocalNymboxHash(const Identifier& hash)

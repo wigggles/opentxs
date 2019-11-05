@@ -13,8 +13,8 @@ namespace
 class Test_CreateNymHD : public ::testing::Test
 {
 public:
-    const opentxs::api::client::Manager& client_;
-    opentxs::OTPasswordPrompt reason_;
+    const ot::api::client::Manager& client_;
+    ot::OTPasswordPrompt reason_;
     std::string SeedA_;
     std::string SeedB_;
     std::string SeedC_;
@@ -23,7 +23,7 @@ public:
     std::string Alice, Bob;
 
     Test_CreateNymHD()
-        : client_(opentxs::Context().StartClient({}, 0))
+        : client_(ot::Context().StartClient({}, 0))
         , reason_(client_.Factory().PasswordPrompt(__FUNCTION__))
         // these fingerprints are deterministic so we can share them among tests
         , SeedA_(client_.Exec().Wallet_ImportSeed(
