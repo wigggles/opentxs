@@ -122,7 +122,7 @@ private:
 
     std::string comma(const std::set<std::string>& list) const noexcept;
     void can_message() const noexcept;
-    void construct_row(
+    void* construct_row(
         const ActivityThreadRowID& id,
         const ActivityThreadSortKey& index,
         const CustomData& custom) const noexcept final;

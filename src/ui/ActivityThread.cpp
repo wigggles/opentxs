@@ -206,7 +206,7 @@ std::string ActivityThread::comma(const std::set<std::string>& list) const
     return output;
 }
 
-void ActivityThread::construct_row(
+void* ActivityThread::construct_row(
     const ActivityThreadRowID& id,
     const ActivityThreadSortKey& index,
     const CustomData& custom) const noexcept
@@ -217,13 +217,15 @@ void ActivityThread::construct_row(
     switch (box) {
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
-            items_[index].emplace(
+            const auto [it, added] = items_[index].emplace(
                 id,
                 Factory::MailItem(
                     *this, api_, publisher_, primary_id_, id, index, custom));
-        } break;
+
+            return it->second.get();
+        }
         case StorageBox::DRAFT: {
-            items_[index].emplace(
+            const auto [it, added] = items_[index].emplace(
                 id,
                 Factory::MailItem(
                     *this,
@@ -235,20 +237,26 @@ void ActivityThread::construct_row(
                     custom,
                     false,
                     true));
-        } break;
+
+            return it->second.get();
+        }
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
-            items_[index].emplace(
+            const auto [it, added] = items_[index].emplace(
                 id,
                 Factory::PaymentItem(
                     *this, api_, publisher_, primary_id_, id, index, custom));
-        } break;
+
+            return it->second.get();
+        }
         case StorageBox::PENDING_SEND: {
-            items_[index].emplace(
+            const auto [it, added] = items_[index].emplace(
                 id,
                 Factory::PendingSend(
                     *this, api_, publisher_, primary_id_, id, index, custom));
-        } break;
+
+            return it->second.get();
+        }
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
         case StorageBox::SENTPEERREPLY:

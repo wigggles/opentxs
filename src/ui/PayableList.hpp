@@ -38,7 +38,7 @@ private:
     const OTIdentifier owner_contact_id_;
     const proto::ContactItemType currency_;
 
-    void construct_row(
+    void* construct_row(
         const PayableListRowID& id,
         const PayableListSortKey& index,
         const CustomData& custom) const noexcept final;

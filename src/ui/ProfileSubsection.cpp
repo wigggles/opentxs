@@ -108,7 +108,7 @@ bool ProfileSubsection::AddItem(
     return parent_.AddClaim(row_id_.second, value, primary, active);
 }
 
-void ProfileSubsection::construct_row(
+void* ProfileSubsection::construct_row(
     const ProfileSubsectionRowID& id,
     const ProfileSubsectionSortKey& index,
     const CustomData& custom) const noexcept
@@ -116,9 +116,11 @@ void ProfileSubsection::construct_row(
     OT_ASSERT(1 == custom.size())
 
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::ProfileItemWidget(*this, api_, publisher_, id, index, custom));
+
+    return it->second.get();
 }
 
 bool ProfileSubsection::Delete(const std::string& claimID) const noexcept

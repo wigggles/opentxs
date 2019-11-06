@@ -99,7 +99,7 @@ ContactSubsection::ContactSubsection(
     OT_ASSERT(startup_)
 }
 
-void ContactSubsection::construct_row(
+void* ContactSubsection::construct_row(
     const ContactSubsectionRowID& id,
     const ContactSubsectionSortKey& index,
     const CustomData& custom) const noexcept
@@ -107,9 +107,11 @@ void ContactSubsection::construct_row(
     OT_ASSERT(1 == custom.size())
 
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::ContactItemWidget(*this, api_, publisher_, id, index, custom));
+
+    return it->second.get();
 }
 
 std::string ContactSubsection::Name(const std::string& lang) const noexcept

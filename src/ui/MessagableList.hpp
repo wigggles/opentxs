@@ -37,7 +37,7 @@ private:
     const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
 
-    void construct_row(
+    void* construct_row(
         const MessagableListRowID& id,
         const MessagableListSortKey& index,
         const CustomData& custom) const noexcept final;

@@ -140,12 +140,13 @@ AccountSummary::AccountSummary(
     OT_ASSERT(startup_)
 }
 
-void AccountSummary::construct_row(
+void* AccountSummary::construct_row(
     const AccountSummaryRowID& id,
     const AccountSummarySortKey& index,
     const CustomData& custom) const noexcept
 {
-    items_[index].emplace(
+    names_.emplace(id, index);
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::IssuerItem(
             *this,
@@ -160,7 +161,8 @@ void AccountSummary::construct_row(
             enable_qt_
 #endif
             ));
-    names_.emplace(id, index);
+
+    return it->second.get();
 }
 
 AccountSummarySortKey AccountSummary::extract_key(

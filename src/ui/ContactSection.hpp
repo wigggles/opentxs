@@ -58,7 +58,7 @@ private:
     static int sort_key(const ContactSectionRowID type) noexcept;
     static bool check_type(const ContactSectionRowID type) noexcept;
 
-    void construct_row(
+    void* construct_row(
         const ContactSectionRowID& id,
         const ContactSectionSortKey& index,
         const CustomData& custom) const noexcept final;

@@ -124,17 +124,19 @@ std::string IssuerItem::Debug() const noexcept
     return issuer_->toString(reason);
 }
 
-void IssuerItem::construct_row(
+void* IssuerItem::construct_row(
     const IssuerItemRowID& id,
     const IssuerItemSortKey& index,
     const CustomData& custom) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    items_[index].emplace(
+    names_.emplace(id, index);
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::AccountSummaryItem(
             reason, *this, api_, publisher_, id, index, custom));
-    names_.emplace(id, index);
+
+    return it->second.get();
 }
 
 std::string IssuerItem::Name() const noexcept

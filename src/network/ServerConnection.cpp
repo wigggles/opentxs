@@ -270,16 +270,21 @@ void ServerConnection::process_incoming(
     const proto::ServerReply& in,
     const PasswordPrompt& reason)
 {
-    auto message = otx::Reply::Factory(api_, in, reason);
+    try {
+        auto message = otx::Reply::Factory(api_, in, reason);
 
-    if (false == message->Validate(reason)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid push notification.")
+        if (false == message->Validate(reason)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid push notification.")
+                .Flush();
+
+            return;
+        }
+
+        notification_socket_->Send(api_.Factory().Data(message->Contract()));
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate reply")
             .Flush();
-
-        return;
     }
-
-    notification_socket_->Send(api_.Factory().Data(message->Contract()));
 }
 
 void ServerConnection::process_incoming(

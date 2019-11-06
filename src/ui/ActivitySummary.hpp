@@ -41,7 +41,7 @@ private:
         const proto::StorageThread& thread,
         CustomData& custom) noexcept;
 
-    void construct_row(
+    void* construct_row(
         const ActivitySummaryRowID& id,
         const ActivitySummarySortKey& index,
         const CustomData& custom) const noexcept final;

@@ -51,7 +51,7 @@ private:
     const std::shared_ptr<const api::client::Issuer> issuer_;
     const proto::ContactItemType currency_;
 
-    void construct_row(
+    void* construct_row(
         const IssuerItemRowID& id,
         const IssuerItemSortKey& index,
         const CustomData& custom) const noexcept final;

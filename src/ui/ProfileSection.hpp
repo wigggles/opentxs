@@ -68,7 +68,7 @@ private:
     static int sort_key(const ProfileSectionRowID type) noexcept;
     static bool check_type(const ProfileSectionRowID type) noexcept;
 
-    void construct_row(
+    void* construct_row(
         const ProfileSectionRowID& id,
         const ProfileSectionSortKey& index,
         const CustomData& custom) const noexcept final;

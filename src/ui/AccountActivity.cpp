@@ -141,14 +141,15 @@ AccountActivity::AccountActivity(
     OT_ASSERT(startup_)
 }
 
-void AccountActivity::construct_row(
+void* AccountActivity::construct_row(
     const AccountActivityRowID& id,
     const AccountActivitySortKey& index,
     const CustomData& custom) const noexcept
 {
     OT_ASSERT(2 == custom.size())
 
-    items_[index].emplace(
+    names_.emplace(id, index);
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::BalanceItem(
             *this,
@@ -159,7 +160,8 @@ void AccountActivity::construct_row(
             custom,
             primary_id_,
             account_id_));
-    names_.emplace(id, index);
+
+    return it->second.get();
 }
 
 std::string AccountActivity::DisplayBalance() const noexcept

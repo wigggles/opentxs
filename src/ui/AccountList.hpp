@@ -34,7 +34,7 @@ private:
 
     const ListenerDefinitions listeners_;
 
-    void construct_row(
+    void* construct_row(
         const AccountListRowID& id,
         const AccountListSortKey& index,
         const CustomData& custom) const noexcept final;

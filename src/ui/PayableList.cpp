@@ -125,7 +125,7 @@ PayableList::PayableList(
     OT_ASSERT(startup_)
 }
 
-void PayableList::construct_row(
+void* PayableList::construct_row(
     const PayableListRowID& id,
     const PayableListSortKey& index,
     const CustomData& custom) const noexcept
@@ -139,10 +139,12 @@ void PayableList::construct_row(
     OT_ASSERT(false == paymentCode->empty());
 
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::PayableListItem(
             *this, api_, publisher_, id, index, *paymentCode, currency_));
+
+    return it->second.get();
 }
 
 const Identifier& PayableList::ID() const { return owner_contact_id_; }

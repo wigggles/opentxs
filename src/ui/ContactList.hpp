@@ -73,7 +73,7 @@ private:
     const OTIdentifier owner_contact_id_;
     std::shared_ptr<ContactListRowInternal> owner_;
 
-    void construct_row(
+    void* construct_row(
         const ContactListRowID& id,
         const ContactListSortKey& index,
         const CustomData& custom) const noexcept final;
