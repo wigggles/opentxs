@@ -43,7 +43,7 @@ private:
     std::map<OTServerID, OTNymID> server_issuer_map_;
     std::map<OTNymID, OTServerID> nym_server_map_;
 
-    void construct_row(
+    void* construct_row(
         const AccountSummaryRowID& id,
         const AccountSummarySortKey& index,
         const CustomData& custom) const noexcept final;

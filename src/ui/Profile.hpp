@@ -80,7 +80,7 @@ private:
         const api::Wallet& wallet,
         const identifier::Nym& nymID) noexcept;
 
-    void construct_row(
+    void* construct_row(
         const ProfileRowID& id,
         const ProfileSortKey& index,
         const CustomData& custom) const noexcept final;

@@ -69,7 +69,7 @@ class List : virtual public ExternalInterface,
 #if OT_QT
     ,
              public QAbstractItemModel
-#endif
+#endif  // OT_QT
 {
 #if OT_QT
 public:
@@ -77,13 +77,10 @@ public:
 
     int columnCount(const QModelIndex& parent) const noexcept override
     {
-        const auto* pointer = get_pointer(parent);
-
-        if (nullptr == pointer) {
-
+        if (nullptr == get_pointer(parent)) {
             return column_count_;
         } else {
-            return pointer->qt_column_count();
+            return valid_pointers_.columnCount(parent);
         }
     }
     QVariant data(const QModelIndex& index, int role) const noexcept final
@@ -92,29 +89,23 @@ public:
 
         if (false == valid) { return {}; }
 
-        const auto& row = *pRow;
-
-        return row.qt_data(index.column(), role);
+        return valid_pointers_.data(index, role);
     }
     QModelIndex index(int row, int column, const QModelIndex& parent) const
         noexcept override
     {
-        const auto* pointer = get_pointer(parent);
-
-        if (nullptr == pointer) {
+        if (nullptr == get_pointer(parent)) {
             return get_index(row, column);
         } else {
-            return pointer->qt_index(row, column);
+            return valid_pointers_.index(row, column, parent);
         }
     }
     QModelIndex parent(const QModelIndex& index) const noexcept override
     {
-        const auto* pointer = get_pointer(index);
-
-        if (nullptr == pointer) {
+        if (nullptr == get_pointer(index)) {
             return {};
         } else {
-            return pointer->qt_parent();
+            return valid_pointers_.parent(index);
         }
     }
     QHash<int, QByteArray> roleNames() const noexcept override
@@ -123,16 +114,22 @@ public:
     }
     int rowCount(const QModelIndex& parent) const noexcept override
     {
-        const auto* pointer = get_pointer(parent);
-
-        if (nullptr == pointer) {
+        if (nullptr == get_pointer(parent)) {
 
             return row_count_.load();
         } else {
-            return pointer->qt_row_count();
+            return valid_pointers_.rowCount(parent);
         }
     }
-#endif
+    void register_child(const void* child) const noexcept override
+    {
+        valid_pointers_.add(child);
+    }
+    void unregister_child(const void* child) const noexcept override
+    {
+        valid_pointers_.remove(child);
+    }
+#endif  // OT_QT
 
 public:
     using ListPrimaryID = PrimaryID;
@@ -142,7 +139,7 @@ public:
     using OuterIterator = typename Sort::iterator;
 #if OT_QT
     using Roles = QHash<int, QByteArray>;
-#endif
+#endif  // OT_QT
 
     SharedPimpl<RowInterface> First() const noexcept override
     {
@@ -175,6 +172,93 @@ public:
     }
 
 protected:
+#if OT_QT
+    struct MyPointers {
+        auto columnCount(const QModelIndex& parent) const noexcept -> int
+        {
+            Lock lock(lock_);
+            const auto* pointer = get_pointer(parent);
+
+            if ((nullptr != pointer) && exists(lock, pointer)) {
+
+                return pointer->qt_column_count();
+            }
+
+            return {};
+        }
+
+        auto data(const QModelIndex& index, int role) const noexcept -> QVariant
+        {
+            Lock lock(lock_);
+            const auto* pointer = get_pointer(index);
+
+            if ((nullptr != pointer) && exists(lock, pointer)) {
+
+                return pointer->qt_data(index.column(), role);
+            }
+
+            return {};
+        }
+        auto index(int row, int column, const QModelIndex& parent) const
+            noexcept -> QModelIndex
+        {
+            Lock lock(lock_);
+            const auto* pointer = get_pointer(parent);
+
+            if ((nullptr != pointer) && exists(lock, pointer)) {
+
+                return pointer->qt_index(row, column);
+            }
+
+            return {};
+        }
+        auto parent(const QModelIndex& index) const noexcept -> QModelIndex
+        {
+            Lock lock(lock_);
+            const auto* pointer = get_pointer(index);
+
+            if ((nullptr != pointer) && exists(lock, pointer)) {
+
+                return pointer->qt_parent();
+            }
+
+            return {};
+        }
+        auto rowCount(const QModelIndex& parent) const noexcept -> int
+        {
+            Lock lock(lock_);
+            const auto* pointer = get_pointer(parent);
+
+            if ((nullptr != pointer) && exists(lock, pointer)) {
+
+                return pointer->qt_row_count();
+            }
+
+            return {};
+        }
+
+        auto add(const void* child) const noexcept -> void
+        {
+            Lock lock(lock_);
+            valid_.insert(reinterpret_cast<std::uintptr_t>(child));
+        }
+        auto remove(const void* child) const noexcept -> void
+        {
+            Lock lock(lock_);
+            valid_.erase(reinterpret_cast<std::uintptr_t>(child));
+        }
+
+    private:
+        mutable std::mutex lock_{};
+        mutable std::set<std::uintptr_t> valid_{};
+
+        auto exists(const Lock& lock, const void* p) const noexcept -> bool
+        {
+            return 0 < valid_.count(reinterpret_cast<std::uintptr_t>(p));
+        }
+    };
+#endif  // OT_QT
+
     using ReverseType = std::map<RowID, SortKey>;
 
 #if OT_QT
@@ -183,7 +267,8 @@ protected:
     const int column_count_;
     const int start_row_;
     mutable std::atomic<int> row_count_;
-#endif
+    MyPointers valid_pointers_;
+#endif  // OT_QT
     const PrimaryID primary_id_;
     mutable Outer items_;
     mutable OuterIterator outer_;
@@ -221,7 +306,7 @@ protected:
 
         return output;
     }
-#endif
+#endif  // OT_QT
     void delete_inactive(const std::set<RowID>& active) const noexcept
     {
         Lock lock(lock_);
@@ -248,7 +333,6 @@ protected:
 
         auto& key = names_.at(id);
         auto& inner = items_.at(key);
-
         auto item = inner.find(id);
 
         // I'm about to delete this row. Make sure iterators are not
@@ -256,6 +340,10 @@ protected:
         if (init_.load() && inner_ == item) { increment_inner(lock); }
 
         start_remove_row(lock, id);
+        [[maybe_unused]] const auto* row = item->second.get();
+#if OT_QT
+        unregister_child(row);
+#endif  // OT_QT
         const auto itemDeleted = inner.erase(id);
 
         OT_ASSERT(1 == itemDeleted)
@@ -293,7 +381,27 @@ protected:
     int find_row(const RowID& id, const SortKey& index) const noexcept
     {
         Lock lock(lock_);
-        // FIXME
+        auto output{start_row_};
+
+        for (const auto& [sortKey, map] : items_) {
+            if (sortKey < index) {
+                output += map.size();
+            } else if (sortKey == index) {
+                for (const auto& [rowID, pRow] : map) {
+                    if (rowID == id) {
+
+                        return output;
+                    } else if (id < rowID) {
+
+                        return -1;
+                    } else {
+                        ++output;
+                    }
+                }
+            } else {
+                return -1;
+            }
+        }
 
         return -1;
     }
@@ -341,7 +449,7 @@ protected:
 
         return get_index(lock, row, column);
     }
-#endif
+#endif  // OT_QT
     void wait_for_startup() const noexcept { startup_future_.get(); }
 
     virtual void add_item(
@@ -370,7 +478,7 @@ protected:
         const Roles& roles = {},
         const int columns = 0,
         const int startRow = 0,
-#endif
+#endif  // OT_QT
         const bool subnode = true) noexcept
         : Widget(api, publisher, widgetID)
 #if OT_QT
@@ -379,7 +487,8 @@ protected:
         , column_count_(columns)
         , start_row_(startRow)
         , row_count_(startRow)
-#endif
+        , valid_pointers_()
+#endif  // OT_QT
         , primary_id_(primaryID)
         , items_()
         , outer_(items_.begin())
@@ -408,7 +517,7 @@ protected:
         const Roles& roles = {},
         const int columns = 0,
         const int startRow = 0
-#endif
+#endif  // OT_QT
         ) noexcept
         : List(
               api,
@@ -420,7 +529,7 @@ protected:
               roles,
               columns,
               startRow,
-#endif
+#endif  // OT_QT
               false)
     {
     }
@@ -431,7 +540,7 @@ private:
     std::promise<void> startup_promise_;
     std::shared_future<void> startup_future_;
 
-    virtual void construct_row(
+    virtual void* construct_row(
         const RowID& id,
         const SortKey& index,
         const CustomData& custom) const noexcept = 0;
@@ -525,14 +634,14 @@ private:
 
         return output;
     }
-#endif
+#endif  // OT_QT
     void finish_insert_row() const noexcept
     {
 #if OT_QT
         ++row_count_;
 
         if (enable_qt_) { emit_end_insert_rows(); }
-#endif
+#endif  // OT_QT
     }
     void finish_remove_row() const noexcept
     {
@@ -540,7 +649,7 @@ private:
         --row_count_;
 
         if (enable_qt_) { emit_end_remove_rows(); }
-#endif
+#endif  // OT_QT
     }
     /** Returns first contact, or blank if none exists. Sets up iterators for
      *  next row
@@ -587,7 +696,7 @@ private:
 
         return createIndex(row, column, item);
     }
-#endif
+#endif  // OT_QT
     /** Increment iterators to the next valid item, or loop back to start */
     void increment_inner(const Lock& lock) const noexcept
     {
@@ -644,7 +753,7 @@ private:
     }
 #if OT_QT
     QModelIndex me() const noexcept override { return {}; }
-#endif
+#endif  // OT_QT
     /** Returns the next item and increments iterators */
     const std::shared_ptr<const RowInternal> next(const Lock& lock) const
         noexcept
@@ -708,7 +817,7 @@ private:
             const auto row = find_insert_point(lock, id, index);
             emit_begin_insert_rows(me(), row, row);
         }
-#endif
+#endif  // OT_QT
     }
     void start_remove_row(
         [[maybe_unused]] const Lock& lock,
@@ -719,7 +828,7 @@ private:
             const auto row = find_delete_point(lock, id);
             emit_begin_remove_rows(me(), row, row);
         }
-#endif
+#endif  // OT_QT
     }
     void valid_iterators() const noexcept
     {
@@ -741,7 +850,10 @@ private:
 
         if (0 == names_.count(id)) {
             start_insert_row(lock, id, index);
-            construct_row(id, index, custom);
+            [[maybe_unused]] const auto* row = construct_row(id, index, custom);
+#if OT_QT
+            register_child(row);
+#endif  // OT_QT
             finish_insert_row();
 
             OT_ASSERT(1 == items_.count(index))

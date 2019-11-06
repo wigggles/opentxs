@@ -216,13 +216,13 @@ bool ProfileSection::check_type(const ProfileSectionRowID type) noexcept
     return false;
 }
 
-void ProfileSection::construct_row(
+void* ProfileSection::construct_row(
     const ProfileSectionRowID& id,
     const ProfileSectionSortKey& index,
     const CustomData& custom) const noexcept
 {
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::ProfileSubsectionWidget(
             *this,
@@ -236,6 +236,8 @@ void ProfileSection::construct_row(
             enable_qt_
 #endif
             ));
+
+    return it->second.get();
 }
 
 bool ProfileSection::Delete(const int type, const std::string& claimID) const

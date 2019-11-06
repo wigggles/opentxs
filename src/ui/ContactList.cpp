@@ -128,6 +128,9 @@ ContactList::ContactList(
 
     OT_ASSERT(owner_)
 
+#if OT_QT
+    register_child(owner_.get());
+#endif  // OT_QT
     last_id_ = owner_contact_id_;
 
     OT_ASSERT(false == owner_contact_id_->empty())
@@ -252,14 +255,16 @@ void ContactList::add_item(
     ContactListList::add_item(id, index, custom);
 }
 
-void ContactList::construct_row(
+void* ContactList::construct_row(
     const ContactListRowID& id,
     const ContactListSortKey& index,
     const CustomData&) const noexcept
 {
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id, Factory::ContactListItem(*this, api_, publisher_, id, index));
+
+    return it->second.get();
 }
 
 /** Returns owner contact. Sets up iterators for next row */

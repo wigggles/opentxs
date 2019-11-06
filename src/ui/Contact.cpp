@@ -143,13 +143,13 @@ bool Contact::check_type(const proto::ContactSectionName type) noexcept
     return 1 == allowed_types_.count(type);
 }
 
-void Contact::construct_row(
+void* Contact::construct_row(
     const ContactRowID& id,
     const ContactSortKey& index,
     const CustomData& custom) const noexcept
 {
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::ContactSectionWidget(
             *this,
@@ -163,6 +163,8 @@ void Contact::construct_row(
             enable_qt_
 #endif
             ));
+
+    return it->second.get();
 }
 
 std::string Contact::ContactID() const noexcept { return primary_id_->str(); }

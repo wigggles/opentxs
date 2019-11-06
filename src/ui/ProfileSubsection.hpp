@@ -62,7 +62,7 @@ private:
 
     static bool check_type(const ProfileSubsectionRowID type);
 
-    void construct_row(
+    void* construct_row(
         const ProfileSubsectionRowID& id,
         const ProfileSubsectionSortKey& index,
         const CustomData& custom) const noexcept final;

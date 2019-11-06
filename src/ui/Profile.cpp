@@ -231,13 +231,13 @@ bool Profile::check_type(const proto::ContactSectionName type) noexcept
     return 1 == allowed_types_.count(type);
 }
 
-void Profile::construct_row(
+void* Profile::construct_row(
     const ProfileRowID& id,
     const ContactSortKey& index,
     const CustomData& custom) const noexcept
 {
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::ProfileSectionWidget(
             *this,
@@ -251,6 +251,8 @@ void Profile::construct_row(
             enable_qt_
 #endif
             ));
+
+    return it->second.get();
 }
 
 bool Profile::Delete(

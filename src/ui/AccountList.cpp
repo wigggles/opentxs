@@ -125,17 +125,19 @@ AccountList::AccountList(
     OT_ASSERT(startup_)
 }
 
-void AccountList::construct_row(
+void* AccountList::construct_row(
     const AccountListRowID& id,
     const AccountListSortKey& index,
     const CustomData& custom) const noexcept
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    items_[index].emplace(
+    names_.emplace(id, index);
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::AccountListItem(
             reason, *this, api_, publisher_, id, index, custom));
-    names_.emplace(id, index);
+
+    return it->second.get();
 }
 
 void AccountList::process_account(const Identifier& id) noexcept

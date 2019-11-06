@@ -66,7 +66,7 @@ private:
     static std::vector<RowKey> extract_rows(
         const proto::PaymentWorkflow& workflow) noexcept;
 
-    void construct_row(
+    void* construct_row(
         const AccountActivityRowID& id,
         const AccountActivitySortKey& index,
         const CustomData& custom) const noexcept final;

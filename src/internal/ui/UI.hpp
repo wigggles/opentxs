@@ -74,6 +74,8 @@ struct List : virtual public ui::List {
     virtual void emit_end_insert_rows() const noexcept = 0;
     virtual void emit_end_remove_rows() const noexcept = 0;
     virtual QModelIndex me() const noexcept = 0;
+    virtual void register_child(const void* child) const noexcept = 0;
+    virtual void unregister_child(const void* child) const noexcept = 0;
 #endif
 
     ~List() override = default;
@@ -371,6 +373,8 @@ struct List : virtual public ListType, public Row {
     void emit_end_insert_rows() const noexcept {}
     void emit_end_remove_rows() const noexcept {}
     QModelIndex me() const noexcept final { return {}; }
+    void register_child(const void* child) const noexcept final {}
+    void unregister_child(const void* child) const noexcept final {}
 #endif
     RowType Next() const noexcept final { return RowType{nullptr}; }
     OTIdentifier WidgetID() const noexcept final

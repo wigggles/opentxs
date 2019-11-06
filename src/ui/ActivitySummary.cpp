@@ -115,16 +115,18 @@ ActivitySummary::ActivitySummary(
     OT_ASSERT(startup_)
 }
 
-void ActivitySummary::construct_row(
+void* ActivitySummary::construct_row(
     const ActivitySummaryRowID& id,
     const ActivitySummarySortKey& index,
     const CustomData& custom) const noexcept
 {
-    items_[index].emplace(
+    names_.emplace(id, index);
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::ActivitySummaryItem(
             *this, api_, publisher_, primary_id_, id, index, custom, running_));
-    names_.emplace(id, index);
+
+    return it->second.get();
 }
 
 std::string ActivitySummary::display_name(

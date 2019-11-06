@@ -186,7 +186,7 @@ bool ContactSection::check_type(const ContactSectionRowID type) noexcept
     return false;
 }
 
-void ContactSection::construct_row(
+void* ContactSection::construct_row(
     const ContactSectionRowID& id,
     const ContactSectionSortKey& index,
     const CustomData& custom) const noexcept
@@ -194,7 +194,7 @@ void ContactSection::construct_row(
     OT_ASSERT(1 == custom.size())
 
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id,
         Factory::ContactSubsectionWidget(
             *this,
@@ -208,6 +208,8 @@ void ContactSection::construct_row(
             enable_qt_
 #endif
             ));
+
+    return it->second.get();
 }
 
 std::set<ContactSectionRowID> ContactSection::process_section(

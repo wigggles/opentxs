@@ -48,7 +48,7 @@ private:
     static int sort_key(const proto::ContactSectionName type) noexcept;
     static bool check_type(const proto::ContactSectionName type) noexcept;
 
-    void construct_row(
+    void* construct_row(
         const ContactRowID& id,
         const ContactSortKey& index,
         const CustomData& custom) const noexcept final;

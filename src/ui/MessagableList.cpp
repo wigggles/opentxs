@@ -118,14 +118,16 @@ MessagableList::MessagableList(
     OT_ASSERT(startup_)
 }
 
-void MessagableList::construct_row(
+void* MessagableList::construct_row(
     const MessagableListRowID& id,
     const MessagableListSortKey& index,
     const CustomData&) const noexcept
 {
     names_.emplace(id, index);
-    items_[index].emplace(
+    const auto [it, added] = items_[index].emplace(
         id, Factory::ContactListItem(*this, api_, publisher_, id, index));
+
+    return it->second.get();
 }
 
 const Identifier& MessagableList::ID() const noexcept
