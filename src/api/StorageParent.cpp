@@ -8,7 +8,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #endif
@@ -62,7 +62,7 @@ StorageParent::StorageParent(
           gc_interval_,
           encrypted_directory_,
           storage_config_))
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     , storage_encryption_key_(opentxs::crypto::key::Symmetric::Factory())
 #endif
 {
@@ -72,15 +72,15 @@ StorageParent::StorageParent(
 
 void StorageParent::init(
     [[maybe_unused]] const api::Factory& factory
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     ,
     const api::HDSeed& seeds
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 )
 {
     if (encrypted_directory_->empty()) { return; }
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     auto seed = seeds.DefaultSeed();
 
     if (seed.empty()) {
@@ -192,7 +192,7 @@ void StorageParent::start()
 
     storage_->InitBackup();
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     if (storage_encryption_key_.get()) {
         storage_->InitEncryptedBackup(storage_encryption_key_);
     }

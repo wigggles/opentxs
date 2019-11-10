@@ -652,7 +652,7 @@ void Pair::check_store_secret(
     Issuer& issuer,
     const identifier::Server& serverID) const noexcept
 {
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     if (false == issuer.Paired()) { return; }
 
     const auto needStoreSecret = (false == issuer.StoreSecretComplete()) &&
@@ -669,7 +669,7 @@ void Pair::check_store_secret(
             issuer.AddRequest(proto::PEERREQUEST_STORESECRET, requestID);
         }
     }
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 }
 
 bool Pair::CheckIssuer(
@@ -1344,7 +1344,7 @@ void Pair::state_machine(const IssuerID& id) const
     }
 }
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 std::pair<bool, OTIdentifier> Pair::store_secret(
     const identifier::Nym& localNymID,
     const identifier::Nym& issuerNymID,
@@ -1372,5 +1372,5 @@ std::pair<bool, OTIdentifier> Pair::store_secret(
 
     return output;
 }
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 }  // namespace opentxs::api::client::implementation

@@ -23,13 +23,13 @@ public:
     const api::client::internal::Manager& StartClient(
         const ArgList& args,
         const int instance) const final;
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     const api::client::internal::Manager& StartClient(
         const ArgList& args,
         const int instance,
         const std::string& recoverWords,
         const std::string& recoverPassphrase) const final;
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
     const api::server::Manager& StartServer(
         const ArgList& args,
         const int instance,

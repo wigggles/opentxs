@@ -15,7 +15,7 @@
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/network/ZAP.hpp"
 #include "opentxs/api/Context.hpp"
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Legacy.hpp"
@@ -418,7 +418,7 @@ const api::client::internal::Manager& Context::StartClient(
     return *output;
 }
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 const api::client::internal::Manager& Context::StartClient(
     const ArgList& args,
     const int instance,
@@ -438,7 +438,7 @@ const api::client::internal::Manager& Context::StartClient(
 
     return client;
 }
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 
 void Context::start_server(const Lock& lock, const ArgList& args) const
 {

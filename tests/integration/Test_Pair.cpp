@@ -447,11 +447,11 @@ TEST_F(Test_Pair, pair_trusted)
         EXPECT_EQ(issuer.PairingCode(), server_1_.password_);
         EXPECT_EQ(server_1_.id_, issuer.PrimaryServer(chris_.Reason()));
         EXPECT_FALSE(issuer.StoreSecretComplete());
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
         EXPECT_TRUE(issuer.StoreSecretInitiated());
 #else
         EXPECT_FALSE(issuer.StoreSecretInitiated());
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
     }
 }
 

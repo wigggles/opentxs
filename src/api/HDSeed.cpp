@@ -7,7 +7,7 @@
 
 #include "Internal.hpp"
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -75,6 +75,7 @@ HDSeed::HDSeed(
     OT_ASSERT(text_secret_.isPassword());
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::unique_ptr<opentxs::crypto::key::HD> HDSeed::AccountChildKey(
     const proto::HDPath& rootPath,
     const BIP44Chain internal,
@@ -92,6 +93,7 @@ std::unique_ptr<opentxs::crypto::key::HD> HDSeed::AccountChildKey(
 
     return GetHDKey(fingerprint, EcdsaCurve::secp256k1, path, reason);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 std::string HDSeed::Bip32Root(
     const PasswordPrompt& reason,
@@ -176,6 +178,7 @@ bool HDSeed::decrypt_seed(
 
 std::string HDSeed::DefaultSeed() const { return storage_.DefaultSeed(); }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::unique_ptr<opentxs::crypto::key::HD> HDSeed::GetHDKey(
     std::string& fingerprint,
     const EcdsaCurve& curve,
@@ -192,7 +195,9 @@ std::unique_ptr<opentxs::crypto::key::HD> HDSeed::GetHDKey(
     return asymmetric_.NewHDKey(
         fingerprint, *seed, curve, path, reason, role, version);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
     std::string& fingerprint,
     const Bip32Index nym,
@@ -210,6 +215,7 @@ std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
 
     return {};
 }
+#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 OTSymmetricKey HDSeed::GetStorageKey(
     std::string& fingerprint,
@@ -543,4 +549,4 @@ std::string HDSeed::Words(
     return words.getPassword();
 }
 }  // namespace opentxs::api::implementation
-#endif
+#endif  // OT_CRYPTO_WITH_BIP32

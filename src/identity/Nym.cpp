@@ -13,7 +13,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Wallet.hpp"

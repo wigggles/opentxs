@@ -48,13 +48,13 @@ public:
     OPENTXS_EXPORT virtual const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance) const = 0;
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance,
         const std::string& recoverWords,
         const std::string& recoverPassphrase) const = 0;
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
     /** Start up a new server
      *
      *  If the specified instance exists, it will be returned.

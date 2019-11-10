@@ -203,6 +203,8 @@ public:
         const opentxs::PasswordPrompt& reason) noexcept
         -> std::shared_ptr<contract::unit::Basket>;
     static crypto::Bitcoin* Bitcoin(const api::Crypto& crypto);
+    static auto Bip39(const api::Crypto& api) noexcept
+        -> std::unique_ptr<crypto::Bip39>;
 #if OT_BLOCKCHAIN
     static blockchain::block::bitcoin::internal::Header* BitcoinBlockHeader(
         const api::internal::Core& api,
@@ -928,7 +930,7 @@ public:
         const crypto::Pbkdf2& pbkdf2,
         const crypto::Ripemd160& ripe) noexcept
         -> std::unique_ptr<api::crypto::Hash>;
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     static api::HDSeed* HDSeed(
         const api::Factory& factory,
         const api::crypto::Asymmetric& asymmetric,

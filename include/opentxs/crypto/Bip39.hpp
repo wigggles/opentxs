@@ -8,13 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/Proto.hpp"
-
-#include <cstdint>
-#include <memory>
-#include <string>
-
 namespace opentxs
 {
 namespace crypto
@@ -24,11 +17,11 @@ class Bip39
 public:
     OPENTXS_EXPORT virtual bool SeedToWords(
         const OTPassword& seed,
-        OTPassword& words) const = 0;
+        OTPassword& words) const noexcept = 0;
     OPENTXS_EXPORT virtual void WordsToSeed(
         const OTPassword& words,
         OTPassword& seed,
-        const OTPassword& passphrase) const = 0;
+        const OTPassword& passphrase) const noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Bip39() = default;
 
@@ -43,5 +36,4 @@ private:
 };
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OT_CRYPTO_WITH_BIP39
 #endif
