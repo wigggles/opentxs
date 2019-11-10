@@ -38,6 +38,15 @@ public:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const final;
+    bool PKCS5_PBKDF2_HMAC(
+        const void* input,
+        const std::size_t inputSize,
+        const void* salt,
+        const std::size_t saltSize,
+        const std::size_t iterations,
+        const proto::HashType hashType,
+        const std::size_t bytes,
+        void* output) const noexcept final;
     bool RIPEMD160(
         const std::uint8_t* input,
         const std::size_t inputSize,

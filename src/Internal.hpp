@@ -260,6 +260,7 @@ struct Peer;
 
 namespace crypto
 {
+class Pbkdf2;
 class Ripemd160;
 
 namespace implementation

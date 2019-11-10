@@ -60,6 +60,27 @@ public:
         const std::uint32_t& key,
         const Data& data,
         std::uint32_t& output) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool PKCS5_PBKDF2_HMAC(
+        const Data& input,
+        const Data& salt,
+        const std::size_t iterations,
+        const proto::HashType hashType,
+        const std::size_t bytes,
+        Data& output) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool PKCS5_PBKDF2_HMAC(
+        const OTPassword& input,
+        const Data& salt,
+        const std::size_t iterations,
+        const proto::HashType hashType,
+        const std::size_t bytes,
+        Data& output) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool PKCS5_PBKDF2_HMAC(
+        const std::string& input,
+        const Data& salt,
+        const std::size_t iterations,
+        const proto::HashType hashType,
+        const std::size_t bytes,
+        Data& output) const noexcept = 0;
     OPENTXS_EXPORT virtual bool SipHash(
         const OTPassword& key,
         const Data& data,
