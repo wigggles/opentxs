@@ -15,6 +15,7 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/crypto/library/Pbkdf2.hpp"
 #include "opentxs/crypto/library/Ripemd160.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 
@@ -27,13 +28,17 @@
 
 namespace opentxs
 {
-api::crypto::Hash* Factory::Hash(
+using ReturnType = api::crypto::implementation::Hash;
+
+auto Factory::Hash(
     const api::crypto::Encode& encode,
     const crypto::HashingProvider& ssl,
     const crypto::HashingProvider& sodium,
-    const crypto::Ripemd160& ripe)
+    const crypto::Pbkdf2& pbkdf2,
+    const crypto::Ripemd160& ripe) noexcept
+    -> std::unique_ptr<api::crypto::Hash>
 {
-    return new api::crypto::implementation::Hash(encode, ssl, sodium, ripe);
+    return std::make_unique<ReturnType>(encode, ssl, sodium, pbkdf2, ripe);
 }
 }  // namespace opentxs
 
@@ -43,10 +48,12 @@ Hash::Hash(
     const api::crypto::Encode& encode,
     const opentxs::crypto::HashingProvider& ssl,
     const opentxs::crypto::HashingProvider& sodium,
+    const opentxs::crypto::Pbkdf2& pbkdf2,
     const opentxs::crypto::Ripemd160& ripe) noexcept
     : encode_(encode)
     , ssl_(ssl)
     , sodium_(sodium)
+    , pbkdf2_(pbkdf2)
     , ripe_(ripe)
 {
 }
@@ -301,6 +308,69 @@ void Hash::MurmurHash3_32(
     std::uint32_t& output) const noexcept
 {
     MurmurHash3_x86_32(data.data(), data.size(), key, &output);
+}
+
+bool Hash::PKCS5_PBKDF2_HMAC(
+    const Data& input,
+    const Data& salt,
+    const std::size_t iterations,
+    const proto::HashType hashType,
+    const std::size_t bytes,
+    Data& output) const noexcept
+{
+    output.SetSize(bytes);
+
+    return pbkdf2_.PKCS5_PBKDF2_HMAC(
+        input.data(),
+        input.size(),
+        salt.data(),
+        salt.size(),
+        iterations,
+        hashType,
+        bytes,
+        output.data());
+}
+
+bool Hash::PKCS5_PBKDF2_HMAC(
+    const OTPassword& input,
+    const Data& salt,
+    const std::size_t iterations,
+    const proto::HashType hashType,
+    const std::size_t bytes,
+    Data& output) const noexcept
+{
+    output.SetSize(bytes);
+
+    return pbkdf2_.PKCS5_PBKDF2_HMAC(
+        input.isPassword() ? input.getPassword() : input.getMemory(),
+        input.isPassword() ? input.getPasswordSize() : input.getMemorySize(),
+        salt.data(),
+        salt.size(),
+        iterations,
+        hashType,
+        bytes,
+        output.data());
+}
+
+bool Hash::PKCS5_PBKDF2_HMAC(
+    const std::string& input,
+    const Data& salt,
+    const std::size_t iterations,
+    const proto::HashType hashType,
+    const std::size_t bytes,
+    Data& output) const noexcept
+{
+    output.SetSize(bytes);
+
+    return pbkdf2_.PKCS5_PBKDF2_HMAC(
+        input.data(),
+        input.size(),
+        salt.data(),
+        salt.size(),
+        iterations,
+        hashType,
+        bytes,
+        output.data());
 }
 
 bool Hash::SipHash(

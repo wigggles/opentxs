@@ -289,64 +289,32 @@ void ot_openssl_locking_callback(
 }
 }  // extern "C"
 
-/*
- openssl dgst -sha1 \
- -sign clientkey.pem \
- -out cheesy2.sig \
- cheesy2.xml
-
- openssl dgst -sha1 \
- -verify clientcert.pem \
- -signature cheesy2.sig \
- cheesy2.xml
-
-
-openssl x509 -in clientcert.pem -pubkey -noout > clientpub.pem
-
- Then verification using the public key works as expected:
-
-openssl dgst -sha1 -verify clientpub.pem -signature cheesy2.sig  cheesy2.xml
-
- Verified OK
-
-
- openssl enc -base64 -out cheesy2.b64 cheesy2.sig
-
- */
-
 const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
     const proto::HashType hashType)
 {
-    const EVP_MD* OpenSSLType;
+    const EVP_MD* OpenSSLType{nullptr};
 
     switch (hashType) {
         case proto::HASHTYPE_RIMEMD160: {
-            OpenSSLType = EVP_ripemd160();
+            OpenSSLType = ::EVP_ripemd160();
         } break;
         case proto::HASHTYPE_SHA256: {
-            OpenSSLType = EVP_sha256();
+            OpenSSLType = ::EVP_sha256();
         } break;
         case proto::HASHTYPE_SHA512: {
-            OpenSSLType = EVP_sha512();
+            OpenSSLType = ::EVP_sha512();
+        } break;
+        case proto::HASHTYPE_SHA1: {
+            OpenSSLType = ::EVP_sha1();
         } break;
         default: {
-            OpenSSLType = nullptr;
         }
     }
+
     return OpenSSLType;
 }
 
-/*
- SHA256_CTX context;
- std::uint8_t md[SHA256_DIGEST_LENGTH];
-
- SHA256_Init(&context);
- SHA256_Update(&context, (std::uint8_t*)input, length);
- SHA256_Final(md, &context);
- */
-
 // (To instantiate a text secret, just do this:  OTPassword thePassword;)
-
 // Caller MUST delete!
 // todo return a smartpointer here.
 OTPassword* OpenSSL::InstantiateBinarySecret() const
@@ -855,7 +823,7 @@ bool OpenSSL::Digest(
         (proto::HASHTYPE_BLAKE2B256 == hashType) ||
         (proto::HASHTYPE_BLAKE2B512 == hashType)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: invalid hash type: ")(
-            HashingProvider::HashTypeToString(hashType))(".")
+            HashingProvider::HashTypeToString(hashType))
             .Flush();
 
         return false;
@@ -922,6 +890,63 @@ bool OpenSSL::HMAC(
 
         return false;
     }
+}
+
+bool OpenSSL::PKCS5_PBKDF2_HMAC(
+    const void* input,
+    const std::size_t inputSize,
+    const void* salt,
+    const std::size_t saltSize,
+    const std::size_t iterations,
+    const proto::HashType hashType,
+    const std::size_t bytes,
+    void* output) const noexcept
+{
+    if (inputSize > std::numeric_limits<int>::max()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input size").Flush();
+
+        return false;
+    }
+
+    if (saltSize > std::numeric_limits<int>::max()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid salt size").Flush();
+
+        return false;
+    }
+
+    if (iterations > std::numeric_limits<int>::max()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid iteration count").Flush();
+
+        return false;
+    }
+
+    if (bytes > std::numeric_limits<int>::max()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output size").Flush();
+
+        return false;
+    }
+
+    Lock lock(lock_);
+    const auto* algorithm = dp_->HashTypeToOpenSSLType(hashType);
+    lock.unlock();
+
+    if (nullptr == algorithm) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error: invalid hash type: ")(
+            HashingProvider::HashTypeToString(hashType))
+            .Flush();
+
+        return false;
+    }
+
+    return 1 == ::PKCS5_PBKDF2_HMAC(
+                    static_cast<const char*>(input),
+                    static_cast<int>(inputSize),
+                    static_cast<const unsigned char*>(salt),
+                    static_cast<int>(saltSize),
+                    static_cast<int>(iterations),
+                    algorithm,
+                    static_cast<int>(bytes),
+                    static_cast<unsigned char*>(output));
 }
 
 bool OpenSSL::RIPEMD160(

@@ -14,11 +14,13 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #endif
 #include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/crypto/library/Pbkdf2.hpp"
 #include "opentxs/crypto/library/Ripemd160.hpp"
 
 namespace opentxs::crypto
 {
 class OpenSSL : virtual public HashingProvider,
+                virtual public Pbkdf2,
                 virtual public Ripemd160
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     ,

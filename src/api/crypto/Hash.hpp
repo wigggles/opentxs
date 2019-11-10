@@ -46,12 +46,40 @@ public:
         const std::uint32_t& key,
         const Data& data,
         std::uint32_t& output) const noexcept final;
+    bool PKCS5_PBKDF2_HMAC(
+        const Data& input,
+        const Data& salt,
+        const std::size_t iterations,
+        const proto::HashType hashType,
+        const std::size_t bytes,
+        Data& output) const noexcept final;
+    bool PKCS5_PBKDF2_HMAC(
+        const OTPassword& input,
+        const Data& salt,
+        const std::size_t iterations,
+        const proto::HashType hashType,
+        const std::size_t bytes,
+        Data& output) const noexcept final;
+    bool PKCS5_PBKDF2_HMAC(
+        const std::string& input,
+        const Data& salt,
+        const std::size_t iterations,
+        const proto::HashType hashType,
+        const std::size_t bytes,
+        Data& output) const noexcept final;
     bool SipHash(
         const OTPassword& key,
         const Data& data,
         std::uint64_t& output,
         const int c,
         const int d) const noexcept final;
+
+    Hash(
+        const api::crypto::Encode& encode,
+        const opentxs::crypto::HashingProvider& ssl,
+        const opentxs::crypto::HashingProvider& sodium,
+        const opentxs::crypto::Pbkdf2& pbkdf2,
+        const opentxs::crypto::Ripemd160& ripe) noexcept;
 
     ~Hash() = default;
 
@@ -61,6 +89,7 @@ private:
     const api::crypto::Encode& encode_;
     const opentxs::crypto::HashingProvider& ssl_;
     const opentxs::crypto::HashingProvider& sodium_;
+    const opentxs::crypto::Pbkdf2& pbkdf2_;
     const opentxs::crypto::Ripemd160& ripe_;
 
     static bool Allocate(
@@ -73,11 +102,6 @@ private:
         const std::uint8_t* input,
         const size_t size,
         std::uint8_t* output) const noexcept;
-    Hash(
-        const api::crypto::Encode& encode,
-        const opentxs::crypto::HashingProvider& ssl,
-        const opentxs::crypto::HashingProvider& sodium,
-        const opentxs::crypto::Ripemd160& ripe) noexcept;
     bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
@@ -87,7 +111,7 @@ private:
         std::uint8_t* output) const noexcept;
     const opentxs::crypto::HashingProvider& SHA2() const noexcept
     {
-        return sodium_;
+        return ssl_;
     }
     const opentxs::crypto::HashingProvider& Sodium() const noexcept
     {

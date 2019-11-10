@@ -921,11 +921,13 @@ public:
         const api::internal::Core& api,
         const blockchain::Type type) -> blockchain::block::Header*;
 #endif  // OT_BLOCKCHAIN
-    static api::crypto::Hash* Hash(
+    static auto Hash(
         const api::crypto::Encode& encode,
         const crypto::HashingProvider& ssl,
         const crypto::HashingProvider& sodium,
-        const crypto::Ripemd160& ripe);
+        const crypto::Pbkdf2& pbkdf2,
+        const crypto::Ripemd160& ripe) noexcept
+        -> std::unique_ptr<api::crypto::Hash>;
 #if OT_CRYPTO_WITH_BIP39
     static api::HDSeed* HDSeed(
         const api::Factory& factory,

@@ -88,7 +88,8 @@ Crypto::Crypto(const api::Settings& settings)
     , secp256k1_provider_(*trezor_)
 #endif
     , encode_(opentxs::Factory::Encode(*this))
-    , hash_(opentxs::Factory::Hash(*encode_, *ssl_, *sodium_, ripemd160_))
+    , hash_(
+          opentxs::Factory::Hash(*encode_, *ssl_, *sodium_, *ssl_, ripemd160_))
 {
 #if OT_CRYPTO_USING_TREZOR
     OT_ASSERT(trezor_)
