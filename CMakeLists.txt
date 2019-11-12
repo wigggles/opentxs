@@ -354,10 +354,8 @@ endif()
 
 if(OT_CRYPTO_SUPPORTED_KEY_HD)
   set(BIP32_EXPORT 1)
-  set(BIP39_EXPORT 1)
 else()
   set(BIP32_EXPORT 0)
-  set(BIP39_EXPORT 0)
 endif()
 
 if(OT_WITH_BLOCKCHAIN)

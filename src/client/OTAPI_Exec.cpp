@@ -2863,7 +2863,7 @@ std::string OTAPI_Exec::Wallet_ImportSeed(
     secureWords.setPassword(words);
     securePassphrase.setPassword(passphrase);
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     return api_.Seeds().ImportSeed(secureWords, securePassphrase, reason);
 #else
     return "";

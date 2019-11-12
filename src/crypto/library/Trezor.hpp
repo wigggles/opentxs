@@ -12,10 +12,6 @@ namespace opentxs::crypto::implementation
 {
 class Trezor final : virtual public crypto::Trezor,
                      virtual public EncodingProvider
-#if OT_CRYPTO_WITH_BIP39
-    ,
-                     virtual public crypto::Bip39
-#endif
 #if OT_CRYPTO_WITH_BIP32
     ,
                      public Bip32
@@ -46,14 +42,6 @@ public:
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const final;
-#endif
-
-#if OT_CRYPTO_WITH_BIP39
-    bool SeedToWords(const OTPassword& seed, OTPassword& words) const final;
-    void WordsToSeed(
-        const OTPassword& words,
-        OTPassword& seed,
-        const OTPassword& passphrase) const final;
 #endif
 
 #if OPENTXS_TREZOR_PROVIDES_ECDSA

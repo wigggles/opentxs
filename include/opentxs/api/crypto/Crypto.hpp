@@ -44,9 +44,7 @@ public:
 #if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual const opentxs::crypto::Bip32& BIP32() const = 0;
 #endif  // OT_CRYPTO_WITH_BIP32
-#if OT_CRYPTO_WITH_BIP39
     OPENTXS_EXPORT virtual const opentxs::crypto::Bip39& BIP39() const = 0;
-#endif  // OT_CRYPTO_WITH_BIP39
 
     OPENTXS_EXPORT virtual ~Crypto() = default;
 

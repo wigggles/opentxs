@@ -62,9 +62,9 @@
 #define ACCOUNTEVENT_VERSION 2
 #define ACCOUNTDATA_VERSION 2
 #define RPCTASK_VERSION 1
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #define SEED_VERSION 1
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 #define SESSION_DATA_VERSION 1
 #define RPCPUSH_VERSION 3
 #define TASKCOMPLETE_VERSION 2
@@ -1046,7 +1046,7 @@ proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
     INIT_SESSION();
     CHECK_INPUT(identifier, proto::RPCRESPONSE_INVALID);
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     const auto& hdseeds = session.Seeds();
 
     for (const auto& id : command.identifier()) {
@@ -1064,7 +1064,7 @@ proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
             add_output_status(output, proto::RPCRESPONSE_NONE);
         }
     }
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 
     return output;
 }
@@ -1261,7 +1261,7 @@ proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
 {
     INIT_SESSION();
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     auto& seed = command.hdseed();
     OTPassword words;
     words.setPassword(seed.words());
@@ -1276,7 +1276,7 @@ proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
         output.add_identifier(identifier);
         add_output_status(output, proto::RPCRESPONSE_SUCCESS);
     }
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 
     return output;
 }

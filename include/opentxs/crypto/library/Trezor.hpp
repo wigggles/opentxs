@@ -16,18 +16,11 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 
 namespace opentxs::crypto
 {
 class Trezor : virtual public EncodingProvider,
                virtual public Ripemd160
-#if OT_CRYPTO_WITH_BIP39
-    ,
-               virtual public Bip39
-#endif
 #if OT_CRYPTO_WITH_BIP32
     ,
                virtual public Bip32

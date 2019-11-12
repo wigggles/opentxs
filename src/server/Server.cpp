@@ -14,7 +14,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Factory.hpp"
@@ -166,7 +166,7 @@ std::pair<std::string, std::string> Server::parse_seed_backup(
 
 void Server::CreateMainFile(bool& mainFileExists)
 {
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     const auto backup = OTDB::QueryPlainString(
         manager_, manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
     std::string seed{};

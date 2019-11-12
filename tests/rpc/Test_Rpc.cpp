@@ -5,11 +5,11 @@
 
 #include "OTTestEnvironment.hpp"
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 #define TEST_SEED                                                              \
     "one two three four five six seven eight nine ten eleven twelve"
 #define TEST_SEED_PASSPHRASE "seed passphrase"
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 #define ISSUER_ACCOUNT_LABEL "issuer account"
 #define USER_ACCOUNT_LABEL "user account"
 #define RENAMED_ACCOUNT_LABEL "renamed"
@@ -1661,7 +1661,7 @@ TEST_F(Test_Rpc, Get_Nyms)
     EXPECT_EQ(0, credentialindex.revokedcredentials_size());
 }
 
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
 TEST_F(Test_Rpc, Import_Seed_Invalid)
 {
     auto command = init(proto::RPCCOMMAND_IMPORTHDSEED);
@@ -1793,5 +1793,5 @@ TEST_F(Test_Rpc, Get_Transaction_Data)
     EXPECT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_UNIMPLEMENTED, response.status(0).code());
 }
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
 }  // namespace

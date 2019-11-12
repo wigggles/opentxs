@@ -299,32 +299,6 @@ std::string Trezor::SeedToFingerprint(
 }
 #endif  // OT_CRYPTO_WITH_BIP32
 
-#if OT_CRYPTO_WITH_BIP39
-bool Trezor::SeedToWords(const OTPassword& seed, OTPassword& words) const
-{
-    return words.setPassword(std::string(::mnemonic_from_data(
-        static_cast<const std::uint8_t*>(seed.getMemory()),
-        seed.getMemorySize())));
-}
-
-void Trezor::WordsToSeed(
-    const OTPassword& words,
-    OTPassword& seed,
-    const OTPassword& passphrase) const
-{
-    OT_ASSERT(words.isPassword());
-    OT_ASSERT(passphrase.isPassword());
-
-    seed.SetSize(512 / 8);
-
-    ::mnemonic_to_seed(
-        words.getPassword(),
-        passphrase.getPassword(),
-        static_cast<std::uint8_t*>(seed.getMemoryWritable()),
-        nullptr);
-}
-#endif  // OT_CRYPTO_WITH_BIP39
-
 #if OPENTXS_TREZOR_PROVIDES_ECDSA
 bool Trezor::ECDH(
     const Data& publicKey,

@@ -29,9 +29,7 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
-#if OT_CRYPTO_WITH_BIP39
 #include "opentxs/crypto/Bip39.hpp"
-#endif
 
 #include "internal/api/crypto/Crypto.hpp"
 
@@ -70,22 +68,23 @@ Crypto::Crypto(const api::Settings& settings)
     , ssl_(opentxs::Factory::OpenSSL(*this))
 #endif
     , util_(*sodium_)
+#if OT_CRYPTO_USING_LIBSECP256K1
+    , secp256k1_p_(opentxs::Factory::Secp256k1(*this, util_))
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
+    , bip39_p_(opentxs::Factory::Bip39(*this))
 #if OT_CRYPTO_USING_TREZOR
     , ripemd160_(*trezor_)
 #if OT_CRYPTO_WITH_BIP32
     , bip32_(*trezor_)
 #endif  // OT_CRYPTO_WITH_BIP32
-#if OT_CRYPTO_WITH_BIP39
-    , bip39_(*trezor_)
-#endif  // OT_CRYPTO_WITH_BIP39
 #else
     , ripemd160_(*ssl_)
 #endif  // OT_CRYPTO_USING_TREZOR
+    , bip39_(*bip39_p_)
 #if OT_CRYPTO_USING_LIBSECP256K1
-    , secp256k1_(opentxs::Factory::Secp256k1(*this, util_))
-    , secp256k1_provider_(*secp256k1_)
+    , secp256k1_(*secp256k1_p_)
 #elif OT_CRYPTO_USING_TREZOR
-    , secp256k1_provider_(*trezor_)
+    , secp256k1_(*trezor_)
 #endif
     , encode_(opentxs::Factory::Encode(*this))
     , hash_(
@@ -98,8 +97,11 @@ Crypto::Crypto(const api::Settings& settings)
 #if OT_CRYPTO_USING_OPENSSL
     OT_ASSERT(ssl_)
 #endif
+#if OT_CRYPTO_USING_OPENSSL
+    OT_ASSERT(ssl_)
+#endif
 #if OT_CRYPTO_USING_LIBSECP256K1
-    OT_ASSERT(secp256k1_)
+    OT_ASSERT(secp256k1_p_)
 #endif
 
     Init();
@@ -109,16 +111,14 @@ Crypto::Crypto(const api::Settings& settings)
 const opentxs::crypto::Bip32& Crypto::BIP32() const { return bip32_; }
 #endif
 
-#if OT_CRYPTO_WITH_BIP39
 const opentxs::crypto::Bip39& Crypto::BIP39() const { return bip39_; }
-#endif
 
 void Crypto::Cleanup()
 {
     hash_.reset();
     encode_.reset();
 #if OT_CRYPTO_USING_LIBSECP256K1
-    secp256k1_.reset();
+    secp256k1_p_.reset();
 #endif
 #if OT_CRYPTO_USING_OPENSSL
     ssl_->Cleanup();
@@ -185,7 +185,7 @@ void Crypto::Init()
 #if OT_CRYPTO_USING_LIBSECP256K1
     // WARNING: The below call to secp256k1_->Init() DEPENDS on the fact
     // that the above call to ssl_->Init() happened FIRST.
-    secp256k1_->Init();
+    secp256k1_p_->Init();
 #endif
 }
 
@@ -201,7 +201,7 @@ const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 const opentxs::crypto::EcdsaProvider& Crypto::SECP256K1() const
 {
-    return secp256k1_provider_;
+    return secp256k1_;
 }
 #endif
 

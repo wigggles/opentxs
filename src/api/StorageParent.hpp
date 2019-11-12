@@ -34,15 +34,15 @@ protected:
     OTString archive_directory_;
     OTString encrypted_directory_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
     OTSymmetricKey storage_encryption_key_;
 #endif
     void init(
         const api::Factory& factory
-#if OT_CRYPTO_WITH_BIP39
+#if OT_CRYPTO_WITH_BIP32
         ,
         const api::HDSeed& seeds
-#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OT_CRYPTO_WITH_BIP32
     );
     void start();
 
