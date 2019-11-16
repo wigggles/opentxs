@@ -68,8 +68,8 @@ TEST_F(Test_ContactItem, first_constructor)
     ASSERT_EQ(
         ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE, contactItem1.Type());
     ASSERT_EQ("testValue", contactItem1.Value());
-    ASSERT_EQ(NULL_START, contactItem1.Start());
-    ASSERT_EQ(NULL_END, contactItem1.End());
+    ASSERT_EQ(contactItem1.Start(), NULL_START);
+    ASSERT_EQ(contactItem1.End(), NULL_END);
 
     ASSERT_TRUE(contactItem1.isActive());
     ASSERT_FALSE(contactItem1.isLocal());
@@ -127,8 +127,8 @@ TEST_F(Test_ContactItem, second_constructor)
     ASSERT_EQ(
         ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE, contactItem1.Type());
     ASSERT_EQ("testValue", contactItem1.Value());
-    ASSERT_EQ(NULL_START, contactItem1.Start());
-    ASSERT_EQ(NULL_END, contactItem1.End());
+    ASSERT_EQ(contactItem1.Start(), NULL_START);
+    ASSERT_EQ(contactItem1.End(), NULL_END);
 
     ASSERT_TRUE(contactItem1.isActive());
     ASSERT_FALSE(contactItem1.isLocal());
@@ -170,8 +170,8 @@ TEST_F(Test_ContactItem, third_constructor)
     ASSERT_EQ(
         ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE, contactItem1.Type());
     ASSERT_EQ("testValue", contactItem1.Value());
-    ASSERT_EQ(NULL_START, contactItem1.Start());
-    ASSERT_EQ(NULL_END, contactItem1.End());
+    ASSERT_EQ(contactItem1.Start(), NULL_START);
+    ASSERT_EQ(contactItem1.End(), NULL_END);
 
     ASSERT_TRUE(contactItem1.isActive());
     ASSERT_FALSE(contactItem1.isLocal());
@@ -259,8 +259,8 @@ TEST_F(Test_ContactItem, public_accessors)
     ASSERT_EQ(
         ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE, contactItem_.Type());
     ASSERT_EQ("testValue", contactItem_.Value());
-    ASSERT_EQ(NULL_START, contactItem_.Start());
-    ASSERT_EQ(NULL_END, contactItem_.End());
+    ASSERT_EQ(contactItem_.Start(), NULL_START);
+    ASSERT_EQ(contactItem_.End(), NULL_END);
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem_.Version());
 
     ASSERT_TRUE(contactItem_.isActive());
@@ -279,7 +279,7 @@ TEST_F(Test_ContactItem, public_setters)
     const auto& startItem = contactItem_.SetStart(now);
     ASSERT_FALSE(startItem == contactItem_);
     ASSERT_EQ(now, startItem.Start());
-    ASSERT_NE(NULL_START, startItem.Start());
+    ASSERT_NE(startItem.Start(), NULL_START);
 
     const auto& endItem = contactItem_.SetEnd(now);
     ASSERT_FALSE(endItem == contactItem_);

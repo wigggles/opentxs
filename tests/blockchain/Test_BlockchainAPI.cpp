@@ -310,7 +310,7 @@ public:
 
         const auto& thread = *pThread;
 
-        EXPECT_EQ(0, thread.item().size());
+        EXPECT_EQ(thread.item().size(), 0);
 
         return true;
     }
@@ -643,8 +643,8 @@ TEST_F(Test_BlockchainAPI, invalid_nym)
 
     auto list = api_.Blockchain().AccountList(invalid_nym_, btc_chain_);
 
-    EXPECT_EQ(0, list.size());
-    EXPECT_EQ(0, list.count(accountID));
+    EXPECT_EQ(list.size(), 0);
+    EXPECT_EQ(list.count(accountID), 0);
 
     loaded = false;
 
@@ -666,8 +666,8 @@ TEST_F(Test_BlockchainAPI, invalid_nym)
 
     list = api_.Blockchain().AccountList(nym_not_in_wallet_, btc_chain_);
 
-    EXPECT_EQ(0, list.size());
-    EXPECT_EQ(0, list.count(accountID));
+    EXPECT_EQ(list.size(), 0);
+    EXPECT_EQ(list.count(accountID), 0);
 }
 
 // Test: when you create a nym with seed A, then the root of every HDPath for a
@@ -684,13 +684,13 @@ TEST_F(Test_BlockchainAPI, TestSeedRoot)
 
     auto list = api_.Blockchain().AccountList(alex_, btc_chain_);
 
-    EXPECT_EQ(1, list.size());
-    EXPECT_EQ(1, list.count(account_1_id_));
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list.count(account_1_id_), 1);
 
     list = api_.Blockchain().AccountList(daniel_, btc_chain_);
 
-    EXPECT_EQ(1, list.size());
-    EXPECT_EQ(1, list.count(account_2_id_));
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list.count(account_2_id_), 1);
 
     // Test difference in index on BIP32 implies a different account
     EXPECT_NE(account_1_id_, account_2_id_);
@@ -739,9 +739,9 @@ TEST_F(Test_BlockchainAPI, TestNym_AccountIdempotence)
 
     auto list = api_.Blockchain().AccountList(chris_, btc_chain_);
 
-    EXPECT_EQ(2, list.size());
-    EXPECT_EQ(1, list.count(account_3_id_));
-    EXPECT_EQ(1, list.count(account_4_id_));
+    EXPECT_EQ(list.size(), 2);
+    EXPECT_EQ(list.count(account_3_id_), 1);
+    EXPECT_EQ(list.count(account_4_id_), 1);
 }
 
 // Test that the same nym creates different accounts for two chains
@@ -754,8 +754,8 @@ TEST_F(Test_BlockchainAPI, TestChainDiff)
 
     auto list = api_.Blockchain().AccountList(chris_, bch_chain_);
 
-    EXPECT_EQ(1, list.size());
-    EXPECT_EQ(1, list.count(account_5_id_));
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list.count(account_5_id_), 1);
 }
 
 // https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#test-vector-1
@@ -927,8 +927,8 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedB)
 
     auto list = api_.Blockchain().AccountList(bob_, btc_chain_);
 
-    EXPECT_EQ(1, list.size());
-    EXPECT_EQ(1, list.count(account_6_id_));
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list.count(account_6_id_), 1);
 
     const auto& account =
         api_.Blockchain().Account(bob_, btc_chain_).GetHD().at(0);
@@ -1119,8 +1119,8 @@ TEST_F(Test_BlockchainAPI, testBip44_ltc)
 
     auto list = api_.Blockchain().AccountList(chris_, ltc_chain_);
 
-    EXPECT_EQ(1, list.size());
-    EXPECT_EQ(1, list.count(account_7_id_));
+    EXPECT_EQ(list.size(), 1);
+    EXPECT_EQ(list.count(account_7_id_), 1);
 
     const auto& account =
         api_.Blockchain().Account(chris_, ltc_chain_).GetHD().at(account_7_id_);
@@ -1192,27 +1192,27 @@ TEST_F(Test_BlockchainAPI, AccountList)
 {
     auto list = api_.Blockchain().AccountList(alex_, bch_chain_);
 
-    EXPECT_EQ(0, list.size());
+    EXPECT_EQ(list.size(), 0);
 
     list = api_.Blockchain().AccountList(alex_, ltc_chain_);
 
-    EXPECT_EQ(0, list.size());
+    EXPECT_EQ(list.size(), 0);
 
     list = api_.Blockchain().AccountList(bob_, bch_chain_);
 
-    EXPECT_EQ(0, list.size());
+    EXPECT_EQ(list.size(), 0);
 
     list = api_.Blockchain().AccountList(bob_, ltc_chain_);
 
-    EXPECT_EQ(0, list.size());
+    EXPECT_EQ(list.size(), 0);
 
     list = api_.Blockchain().AccountList(daniel_, bch_chain_);
 
-    EXPECT_EQ(0, list.size());
+    EXPECT_EQ(list.size(), 0);
 
     list = api_.Blockchain().AccountList(daniel_, ltc_chain_);
 
-    EXPECT_EQ(0, list.size());
+    EXPECT_EQ(list.size(), 0);
 }
 
 TEST_F(Test_BlockchainAPI, AssignContact_no_change)

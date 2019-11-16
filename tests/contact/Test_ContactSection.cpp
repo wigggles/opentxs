@@ -67,7 +67,7 @@ TEST_F(Test_ContactSection, first_constructor)
         ot::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         section1.Type());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, section1.Version());
-    ASSERT_EQ(1, section1.Size());
+    ASSERT_EQ(section1.Size(), 1);
     ASSERT_EQ(
         group1->Size(),
         section1.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
@@ -100,13 +100,13 @@ TEST_F(Test_ContactSection, second_constructor)
         ot::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         section1.Type());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, section1.Version());
-    ASSERT_EQ(1, section1.Size());
+    ASSERT_EQ(section1.Size(), 1);
     ASSERT_NE(
         nullptr,
         section1.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE));
     ASSERT_EQ(
-        1,
-        section1.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section1.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        1);
     ASSERT_NE(section1.end(), section1.begin());
 }
 
@@ -136,16 +136,16 @@ TEST_F(Test_ContactSection, copy_constructor)
     ot::ContactSection copiedContactSection(section1);
     ASSERT_EQ(section1.Type(), copiedContactSection.Type());
     ASSERT_EQ(section1.Version(), copiedContactSection.Version());
-    ASSERT_EQ(1, copiedContactSection.Size());
+    ASSERT_EQ(copiedContactSection.Size(), 1);
     ASSERT_NE(
         nullptr,
         copiedContactSection.Group(
             ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE));
     ASSERT_EQ(
-        1,
         copiedContactSection
             .Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)
-            ->Size());
+            ->Size(),
+        1);
     ASSERT_NE(copiedContactSection.end(), copiedContactSection.begin());
 }
 
@@ -176,11 +176,11 @@ TEST_F(Test_ContactSection, operator_plus)
 
     const auto& section3 = section1 + section2;
     // Verify the section has one group.
-    ASSERT_EQ(1, section3.Size());
+    ASSERT_EQ(section3.Size(), 1);
     // Verify the group has two items.
     ASSERT_EQ(
-        2,
-        section3.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section3.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        2);
 
     // Add a section that has one group with one item of the same type, and
     // another group with one item of a different type.
@@ -219,14 +219,14 @@ TEST_F(Test_ContactSection, operator_plus)
 
     const auto& section6 = section3 + section5;
     // Verify the section has two groups.
-    ASSERT_EQ(2, section6.Size());
+    ASSERT_EQ(section6.Size(), 2);
     // Verify the first group has three items.
     ASSERT_EQ(
-        3,
-        section6.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section6.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        3);
     // Verify the second group has one item.
     ASSERT_EQ(
-        1, section6.Group(ot::proto::ContactItemType::CITEMTYPE_SSL)->Size());
+        section6.Group(ot::proto::ContactItemType::CITEMTYPE_SSL)->Size(), 1);
 }
 
 TEST_F(Test_ContactSection, operator_plus_different_versions)
@@ -273,20 +273,20 @@ TEST_F(Test_ContactSection, AddItem)
         ot::proto::ContactSectionName::CONTACTSECTION_SCOPE,
         ot::ContactSection::GroupMap{});
     const auto& section2 = section1.AddItem(scopeContactItem);
-    ASSERT_EQ(1, section2.Size());
+    ASSERT_EQ(section2.Size(), 1);
     ASSERT_EQ(
-        1,
         section2.Group(ot::proto::ContactItemType::CITEMTYPE_INDIVIDUAL)
-            ->Size());
+            ->Size(),
+        1);
     ASSERT_TRUE(section2.Claim(scopeContactItem->ID())->isPrimary());
     ASSERT_TRUE(section2.Claim(scopeContactItem->ID())->isActive());
 
     // Add an item to a non-scope section.
     const auto& section4 = contactSection_.AddItem(activeContactItem_);
-    ASSERT_EQ(1, section4.Size());
+    ASSERT_EQ(section4.Size(), 1);
     ASSERT_EQ(
-        1,
-        section4.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section4.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        1);
     // Add a second item of the same type.
     const std::shared_ptr<ot::ContactItem> contactItem2(new ot::ContactItem(
         api_,
@@ -302,10 +302,10 @@ TEST_F(Test_ContactSection, AddItem)
         ""));
     const auto& section5 = section4.AddItem(contactItem2);
     // Verify there are two items.
-    ASSERT_EQ(1, section5.Size());
+    ASSERT_EQ(section5.Size(), 1);
     ASSERT_EQ(
-        2,
-        section5.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section5.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        2);
 
     // Add an item of a different type.
     const std::shared_ptr<ot::ContactItem> contactItem3(new ot::ContactItem(
@@ -322,10 +322,10 @@ TEST_F(Test_ContactSection, AddItem)
         ""));
     const auto& section6 = section5.AddItem(contactItem3);
     // Verify there are two groups.
-    ASSERT_EQ(2, section6.Size());
+    ASSERT_EQ(section6.Size(), 2);
     // Verify there is one in the second group.
     ASSERT_EQ(
-        1, section6.Group(ot::proto::ContactItemType::CITEMTYPE_SSL)->Size());
+        section6.Group(ot::proto::ContactItemType::CITEMTYPE_SSL)->Size(), 1);
 }
 
 TEST_F(Test_ContactSection, AddItem_different_versions)
@@ -352,14 +352,14 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
         ot::proto::ContactSectionName::CONTACTSECTION_SCOPE,
         ot::ContactSection::GroupMap{});
     const auto& section2 = section1.AddItem(scopeContactItem);
-    ASSERT_EQ(1, section2.Size());
+    ASSERT_EQ(section2.Size(), 1);
     ASSERT_EQ(
-        1, section2.Group(ot::proto::ContactItemType::CITEMTYPE_BOT)->Size());
+        section2.Group(ot::proto::ContactItemType::CITEMTYPE_BOT)->Size(), 1);
     ASSERT_TRUE(section2.Claim(scopeContactItem->ID())->isPrimary());
     ASSERT_TRUE(section2.Claim(scopeContactItem->ID())->isActive());
     // Verify the section version has been updated to the minimum version to
     // support CITEMTYPE_BOT.
-    ASSERT_EQ(4, section2.Version());
+    ASSERT_EQ(section2.Version(), 4);
 
     // Add an item with a newer version to a non-scope section.
     const std::shared_ptr<ot::ContactItem> contactItem2(new ot::ContactItem(
@@ -383,9 +383,9 @@ TEST_F(Test_ContactSection, AddItem_different_versions)
         ot::proto::ContactSectionName::CONTACTSECTION_RELATIONSHIP,
         ot::ContactSection::GroupMap{});
     const auto& section4 = section3.AddItem(contactItem2);
-    ASSERT_EQ(1, section4.Size());
+    ASSERT_EQ(section4.Size(), 1);
     ASSERT_EQ(
-        1, section4.Group(ot::proto::ContactItemType::CITEMTYPE_OWNER)->Size());
+        section4.Group(ot::proto::ContactItemType::CITEMTYPE_OWNER)->Size(), 1);
     // Verify the section version has been updated to the minimum version to
     // support CITEMTYPE_OWNER.
     ASSERT_EQ(4, section4.Version());
@@ -395,16 +395,16 @@ TEST_F(Test_ContactSection, begin)
 {
     ot::ContactSection::GroupMap::const_iterator it = contactSection_.begin();
     ASSERT_EQ(contactSection_.end(), it);
-    ASSERT_EQ(0, std::distance(it, contactSection_.end()));
+    ASSERT_EQ(std::distance(it, contactSection_.end()), 0);
 
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
     it = section1.begin();
     ASSERT_NE(section1.end(), it);
-    ASSERT_EQ(1, std::distance(it, section1.end()));
+    ASSERT_EQ(std::distance(it, section1.end()), 1);
 
     std::advance(it, 1);
     ASSERT_EQ(section1.end(), it);
-    ASSERT_EQ(0, std::distance(it, section1.end()));
+    ASSERT_EQ(std::distance(it, section1.end()), 0);
 }
 
 TEST_F(Test_ContactSection, Claim_found)
@@ -447,16 +447,16 @@ TEST_F(Test_ContactSection, end)
 {
     ot::ContactSection::GroupMap::const_iterator it = contactSection_.end();
     ASSERT_EQ(contactSection_.begin(), it);
-    ASSERT_EQ(0, std::distance(contactSection_.begin(), it));
+    ASSERT_EQ(std::distance(contactSection_.begin(), it), 0);
 
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
     it = section1.end();
     ASSERT_NE(section1.begin(), it);
-    ASSERT_EQ(1, std::distance(section1.begin(), it));
+    ASSERT_EQ(std::distance(section1.begin(), it), 1);
 
     std::advance(it, -1);
     ASSERT_EQ(section1.begin(), it);
-    ASSERT_EQ(0, std::distance(section1.begin(), it));
+    ASSERT_EQ(std::distance(section1.begin(), it), 0);
 }
 
 TEST_F(Test_ContactSection, Group_found)
@@ -521,21 +521,21 @@ TEST_F(Test_ContactSection, Delete)
         ""));
     const auto& section2 = section1.AddItem(contactItem2);
     ASSERT_EQ(
-        2,
-        section2.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section2.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        2);
 
     const auto& section3 = section2.Delete(activeContactItem_->ID());
     // Verify the item was deleted.
     ASSERT_FALSE(section3.HaveClaim(activeContactItem_->ID()));
     ASSERT_EQ(
-        1,
-        section3.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section3.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        1);
 
     const auto& section4 = section3.Delete(activeContactItem_->ID());
     // Verify trying to delete the item again didn't change anything.
     ASSERT_EQ(
-        1,
-        section4.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size());
+        section4.Group(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE)->Size(),
+        1);
 
     // Add an item of a different type.
     const std::shared_ptr<ot::ContactItem> contactItem3(new ot::ContactItem(
@@ -552,14 +552,14 @@ TEST_F(Test_ContactSection, Delete)
         ""));
     const auto& section5 = section4.AddItem(contactItem3);
     // Verify the section has two groups.
-    ASSERT_EQ(2, section5.Size());
+    ASSERT_EQ(section5.Size(), 2);
     ASSERT_EQ(
-        1, section5.Group(ot::proto::ContactItemType::CITEMTYPE_SSL)->Size());
+        section5.Group(ot::proto::ContactItemType::CITEMTYPE_SSL)->Size(), 1);
     ASSERT_TRUE(section5.HaveClaim(contactItem3->ID()));
 
     const auto& section6 = section5.Delete(contactItem3->ID());
     // Verify the item was deleted and the group was removed.
-    ASSERT_EQ(1, section6.Size());
+    ASSERT_EQ(section6.Size(), 1);
     ASSERT_FALSE(section6.HaveClaim(contactItem3->ID()));
     ASSERT_FALSE(section6.Group(ot::proto::ContactItemType::CITEMTYPE_SSL));
 }
@@ -608,9 +608,9 @@ TEST_F(Test_ContactSection, SerializeTo)
 
 TEST_F(Test_ContactSection, Size)
 {
-    ASSERT_EQ(0, contactSection_.Size());
+    ASSERT_EQ(contactSection_.Size(), 0);
     const auto& section1 = contactSection_.AddItem(activeContactItem_);
-    ASSERT_EQ(1, section1.Size());
+    ASSERT_EQ(section1.Size(), 1);
 
     // Add a second item of the same type.
     const std::shared_ptr<ot::ContactItem> contactItem2(new ot::ContactItem(
@@ -627,7 +627,7 @@ TEST_F(Test_ContactSection, Size)
         ""));
     const auto& section2 = section1.AddItem(contactItem2);
     // Verify the size is the same.
-    ASSERT_EQ(1, section2.Size());
+    ASSERT_EQ(section2.Size(), 1);
 
     // Add an item of a different type.
     const std::shared_ptr<ot::ContactItem> contactItem3(new ot::ContactItem(
@@ -644,17 +644,17 @@ TEST_F(Test_ContactSection, Size)
         ""));
     const auto& section3 = section2.AddItem(contactItem3);
     // Verify the size is now two.
-    ASSERT_EQ(2, section3.Size());
+    ASSERT_EQ(section3.Size(), 2);
 
     // Delete an item from the first group.
     const auto& section4 = section3.Delete(contactItem2->ID());
     // Verify the size is still two.
-    ASSERT_EQ(2, section4.Size());
+    ASSERT_EQ(section4.Size(), 2);
 
     // Delete the item from the second group.
     const auto& section5 = section4.Delete(contactItem3->ID());
     // Verify that the size is now one.
-    ASSERT_EQ(1, section5.Size());
+    ASSERT_EQ(section5.Size(), 1);
 }
 
 TEST_F(Test_ContactSection, Type)

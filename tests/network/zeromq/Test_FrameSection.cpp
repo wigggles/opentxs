@@ -12,31 +12,31 @@ TEST(FrameSection, constructors)
     auto multipartMessage = network::zeromq::Message::Factory();
 
     network::zeromq::FrameSection frameSection(multipartMessage->Header());
-    ASSERT_EQ(0, frameSection.size());
+    ASSERT_EQ(frameSection.size(), 0);
 
     network::zeromq::FrameSection frameSection2(&multipartMessage.get(), 0, 0);
-    ASSERT_EQ(0, frameSection2.size());
+    ASSERT_EQ(frameSection2.size(), 0);
 
     multipartMessage->AddFrame(std::string("msg1"));
     multipartMessage->AddFrame(std::string{"msg2"});
 
     network::zeromq::FrameSection frameSection3(multipartMessage->Body());
-    ASSERT_EQ(2, frameSection3.size());
+    ASSERT_EQ(frameSection3.size(), 2);
 
     network::zeromq::FrameSection frameSection4(&multipartMessage.get(), 0, 2);
-    ASSERT_EQ(2, frameSection4.size());
+    ASSERT_EQ(frameSection4.size(), 2);
 
     multipartMessage->AddFrame();
     multipartMessage->AddFrame(std::string{"msg3"});
 
     network::zeromq::FrameSection frameSection5(multipartMessage->Header());
-    ASSERT_EQ(2, frameSection5.size());
+    ASSERT_EQ(frameSection5.size(), 2);
 
     network::zeromq::FrameSection frameSection6(multipartMessage->Body());
-    ASSERT_EQ(1, frameSection6.size());
+    ASSERT_EQ(frameSection6.size(), 2);
 
     network::zeromq::FrameSection frameSection7(&multipartMessage.get(), 3, 1);
-    ASSERT_EQ(1, frameSection7.size());
+    ASSERT_EQ(frameSection7.size(), 1);
 }
 
 TEST(FrameSection, at)
@@ -77,7 +77,9 @@ TEST(FrameSection, begin)
     auto headerSection = multipartMessage->Header();
     network::zeromq::FrameIterator headerIterator = headerSection.begin();
     ASSERT_EQ(headerSection.end(), headerIterator);
-    ASSERT_EQ(0, std::distance(headerIterator, headerSection.end()));
+    ASSERT_EQ(
+
+        std::distance(headerIterator, headerSection.end()), 0);
 
     multipartMessage->AddFrame(std::string{"msg1"});
     multipartMessage->AddFrame(std::string{"msg2"});
@@ -86,16 +88,22 @@ TEST(FrameSection, begin)
     auto headerSection2 = multipartMessage->Header();
     network::zeromq::FrameIterator headerIterator2 = headerSection.begin();
     ASSERT_NE(headerSection2.end(), headerIterator2);
-    ASSERT_EQ(2, std::distance(headerIterator2, headerSection2.end()));
+    ASSERT_EQ(
+
+        std::distance(headerIterator2, headerSection2.end()), 2);
 
     std::advance(headerIterator2, 2);
     ASSERT_EQ(headerSection2.end(), headerIterator2);
-    ASSERT_EQ(0, std::distance(headerIterator2, headerSection2.end()));
+    ASSERT_EQ(
+
+        std::distance(headerIterator2, headerSection2.end()), 0);
 
     auto bodySection = multipartMessage->Body();
     network::zeromq::FrameIterator bodyIterator = bodySection.begin();
     ASSERT_EQ(bodySection.end(), bodyIterator);
-    ASSERT_EQ(0, std::distance(bodyIterator, bodySection.end()));
+    ASSERT_EQ(
+
+        std::distance(bodyIterator, bodySection.end()), 0);
 
     multipartMessage->AddFrame(std::string{"msg3"});
     multipartMessage->AddFrame(std::string{"msg4"});
@@ -103,11 +111,15 @@ TEST(FrameSection, begin)
     auto bodySection2 = multipartMessage->Header();
     network::zeromq::FrameIterator bodyIterator2 = headerSection.begin();
     ASSERT_NE(bodySection2.end(), bodyIterator2);
-    ASSERT_EQ(2, std::distance(bodyIterator2, bodySection2.end()));
+    ASSERT_EQ(
+
+        std::distance(bodyIterator2, bodySection2.end()), 2);
 
     std::advance(bodyIterator2, 2);
     ASSERT_EQ(bodySection2.end(), bodyIterator2);
-    ASSERT_EQ(0, std::distance(bodyIterator2, bodySection2.end()));
+    ASSERT_EQ(
+
+        std::distance(bodyIterator2, bodySection2.end()), 0);
 }
 
 TEST(FrameSection, end)
@@ -117,12 +129,16 @@ TEST(FrameSection, end)
     auto headerSection = multipartMessage->Header();
     network::zeromq::FrameIterator headerIterator = headerSection.end();
     ASSERT_EQ(headerSection.begin(), headerIterator);
-    ASSERT_EQ(0, std::distance(headerSection.begin(), headerIterator));
+    ASSERT_EQ(
+
+        std::distance(headerSection.begin(), headerIterator), 0);
 
     auto bodySection = multipartMessage->Body();
     network::zeromq::FrameIterator bodyIterator = bodySection.end();
     ASSERT_EQ(bodySection.begin(), bodyIterator);
-    ASSERT_EQ(0, std::distance(bodySection.begin(), bodyIterator));
+    ASSERT_EQ(
+
+        std::distance(bodySection.begin(), bodyIterator), 0);
 
     multipartMessage->AddFrame(std::string{"msg1"});
     multipartMessage->AddFrame(std::string{"msg2"});
@@ -131,12 +147,16 @@ TEST(FrameSection, end)
     auto headerSection2 = multipartMessage->Header();
     network::zeromq::FrameIterator headerIterator2 = headerSection2.end();
     ASSERT_NE(headerSection2.begin(), headerIterator2);
-    ASSERT_EQ(2, std::distance(headerSection2.begin(), headerIterator2));
+    ASSERT_EQ(
+
+        std::distance(headerSection2.begin(), headerIterator2), 2);
 
     auto bodySection2 = multipartMessage->Body();
     network::zeromq::FrameIterator bodyIterator2 = bodySection2.end();
     ASSERT_EQ(bodySection2.begin(), bodyIterator2);
-    ASSERT_EQ(0, std::distance(bodySection2.begin(), bodyIterator2));
+    ASSERT_EQ(
+
+        std::distance(bodySection2.begin(), bodyIterator2), 0);
 
     multipartMessage->AddFrame(std::string{"msg3"});
     multipartMessage->AddFrame(std::string{"msg4"});
@@ -144,7 +164,9 @@ TEST(FrameSection, end)
     auto bodySection3 = multipartMessage->Body();
     network::zeromq::FrameIterator bodyIterator3 = bodySection3.end();
     ASSERT_NE(bodySection3.begin(), bodyIterator3);
-    ASSERT_EQ(2, std::distance(bodySection3.begin(), bodyIterator3));
+    ASSERT_EQ(
+
+        std::distance(bodySection3.begin(), bodyIterator3), 2);
 }
 
 TEST(FrameSection, size)
@@ -153,11 +175,11 @@ TEST(FrameSection, size)
 
     auto headerSection = multipartMessage->Header();
     std::size_t size = headerSection.size();
-    ASSERT_EQ(0, size);
+    ASSERT_EQ(size, 0);
 
     auto bodySection = multipartMessage->Body();
     size = bodySection.size();
-    ASSERT_EQ(0, size);
+    ASSERT_EQ(size, 0);
 
     multipartMessage->AddFrame(std::string{"msg1"});
     multipartMessage->AddFrame(std::string{"msg2"});
@@ -165,16 +187,16 @@ TEST(FrameSection, size)
 
     auto headerSection2 = multipartMessage->Header();
     size = headerSection2.size();
-    ASSERT_EQ(2, size);
+    ASSERT_EQ(size, 2);
 
     auto bodySection2 = multipartMessage->Body();
     size = bodySection2.size();
-    ASSERT_EQ(0, size);
+    ASSERT_EQ(size, 0);
 
     multipartMessage->AddFrame(std::string{"msg3"});
     multipartMessage->AddFrame(std::string{"msg4"});
 
     auto bodySection3 = multipartMessage->Body();
     size = bodySection3.size();
-    ASSERT_EQ(2, size);
+    ASSERT_EQ(size, 2);
 }

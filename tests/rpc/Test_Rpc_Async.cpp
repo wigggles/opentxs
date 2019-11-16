@@ -621,13 +621,13 @@ TEST_F(Test_Rpc_Async, Get_Compatible_Account_Bad_Workflow)
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
     EXPECT_EQ(RESPONSE_VERSION, response.version());
 
-    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(response.status_size(), 1);
     EXPECT_EQ(proto::RPCRESPONSE_WORKFLOW_NOT_FOUND, response.status(0).code());
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
-    EXPECT_EQ(0, response.identifier_size());
+    EXPECT_EQ(response.identifier_size(), 0);
 }
 
 TEST_F(Test_Rpc_Async, Get_Compatible_Account)

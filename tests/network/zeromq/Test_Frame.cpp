@@ -53,10 +53,10 @@ TEST(Frame, size)
     OTZMQFrame message{Factory::ZMQFrame()};
 
     std::size_t size = message->size();
-    ASSERT_EQ(0, size);
+    ASSERT_EQ(size, 0);
 
     zmq_msg_t* zmq_msg = message.get();
-    ASSERT_EQ(0, zmq_msg_size(zmq_msg));
+    ASSERT_EQ(zmq_msg_size(zmq_msg), 0);
 
     const auto test = Data::Factory("testString", 10);
     message = OTZMQFrame{Factory::ZMQFrame(test->data(), test->size())};

@@ -78,7 +78,7 @@ TEST(Test_CompactSize, decode_one_byte)
         auto raw = decode_hex(hex);
         const auto first = raw.at(0);
 
-        EXPECT_EQ(0, bb::CompactSize::CalculateSize(first));
+        EXPECT_EQ(bb::CompactSize::CalculateSize(first), 0);
 
         bb::CompactSize decoded;
 
