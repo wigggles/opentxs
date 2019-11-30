@@ -17,6 +17,8 @@ namespace api
 class Legacy
 {
 public:
+    static std::string SuggestFolder(const std::string& app) noexcept;
+
     OPENTXS_EXPORT virtual const char* Account() const noexcept = 0;
     OPENTXS_EXPORT virtual bool AppendFile(
         String& out,
@@ -63,7 +65,7 @@ public:
     OPENTXS_EXPORT virtual std::string ServerDataFolder(
         const int instance) const noexcept = 0;
 
-    OPENTXS_EXPORT virtual ~Legacy() = default;
+    virtual ~Legacy() = default;
 
 protected:
     Legacy() noexcept = default;

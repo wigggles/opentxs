@@ -84,6 +84,14 @@ api::internal::Context* Factory::Context(
 }
 }  // namespace opentxs
 
+namespace opentxs::api
+{
+std::string Context::SuggestFolder(const std::string& app) noexcept
+{
+    return Legacy::SuggestFolder(app);
+}
+}  // namespace opentxs::api
+
 namespace opentxs::api::implementation
 {
 Context::Context(

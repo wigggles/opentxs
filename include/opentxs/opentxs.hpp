@@ -6,10 +6,6 @@
 #ifndef OPENTXS_OPENTXS_HPP
 #define OPENTXS_OPENTXS_HPP
 
-#ifndef EXPORT
-#define EXPORT
-#endif
-
 #include <opentxs/Forward.hpp>
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD

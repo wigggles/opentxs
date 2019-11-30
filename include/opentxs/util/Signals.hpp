@@ -21,7 +21,7 @@ namespace opentxs
 class Signals
 {
 public:
-    static void Block();
+    OPENTXS_EXPORT static void Block();
 
     Signals(const Flag& running);
 
