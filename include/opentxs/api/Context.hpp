@@ -25,6 +25,9 @@ class Context : virtual public Periodic
 public:
     using ShutdownCallback = std::function<void()>;
 
+    OPENTXS_EXPORT static std::string SuggestFolder(
+        const std::string& app) noexcept;
+
     OPENTXS_EXPORT virtual const api::client::Manager& Client(
         const int instance) const = 0;
     OPENTXS_EXPORT virtual std::size_t Clients() const = 0;

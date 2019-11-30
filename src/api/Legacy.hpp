@@ -11,9 +11,12 @@ namespace fs = boost::filesystem;
 
 namespace opentxs::api::implementation
 {
-class Legacy final : virtual public api::Legacy
+class Legacy final : public api::Legacy
 {
 public:
+    static fs::path get_home_directory() noexcept;
+    static fs::path get_suffix(const char* application) noexcept;
+
     const char* Account() const noexcept final { return account_; }
     bool AppendFile(String& out, const String& base, const String& file) const
         noexcept final;
@@ -76,7 +79,6 @@ private:
     const std::string pid_file_;
 
     static fs::path get_app_data_folder(const std::string& home) noexcept;
-    static fs::path get_home_directory() noexcept;
     static fs::path get_suffix() noexcept;
 
     std::string get_path(const std::string& fragment, const int instance = 0)

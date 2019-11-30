@@ -35,10 +35,23 @@ extern "C" {
 
 namespace opentxs
 {
+using ReturnType = api::implementation::Legacy;
+
 api::Legacy* Factory::Legacy(const std::string& home)
 {
-    return new api::implementation::Legacy(home);
+    return new ReturnType{home};
 }
+
+namespace api
+{
+std::string Legacy::SuggestFolder(const std::string& app) noexcept
+{
+    const auto path =
+        ReturnType::get_home_directory() / ReturnType::get_suffix(app.c_str());
+
+    return path.string();
+}
+}  // namespace api
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
@@ -211,23 +224,39 @@ fs::path Legacy::get_home_directory() noexcept
     OT_FAIL;
 }
 
-fs::path Legacy::get_suffix() noexcept
+fs::path Legacy::get_suffix(const char* application) noexcept
 {
-    return
-#if defined(_WIN32)
-        "OpenTransactions/"
-#elif defined(TARGET_OS_MAC)
+    auto output = std::string
+    {
+#if defined(TARGET_OS_MAC)
 #if TARGET_OS_IPHONE  // iOS
         "Documents/"
-#else                 // OSX
-        "Library/Application Support/OpenTransactions/"
+#else  // OSX
+        "Library/Application Support/"
 #endif
+#endif
+    };
+#if defined(_WIN32)
+#elif defined(TARGET_OS_MAC)
 #elif defined(ANDROID)
-        "ot/"
 #else  // unix
-        ".ot/"
+    output += '.';
 #endif
-        ;
+    output += application;
+    output += '/';
+
+    return output;
+}
+
+fs::path Legacy::get_suffix() noexcept
+{
+#if defined(_WIN32)
+    return get_suffix("OpenTransactions");
+#elif defined(TARGET_OS_MAC)
+    return get_suffix("OpenTransactions");
+#else  // unix
+    return get_suffix("ot");
+#endif
 }
 
 std::string Legacy::get_file(const std::string& fragment, const int instance)
