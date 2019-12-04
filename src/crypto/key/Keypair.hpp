@@ -42,7 +42,9 @@ private:
 
     Keypair* clone() const final { return new Keypair(*this); }
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     bool make_new_keypair(const NymParameters& nymParameters);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     Keypair(
         const api::internal::Core& api,

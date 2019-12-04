@@ -192,7 +192,8 @@ bool Asymmetric::hasCapability(const NymCapability& capability) const
     switch (capability) {
         case (NymCapability::SIGN_CHILDCRED):
         case (NymCapability::SIGN_MESSAGE):
-        case (NymCapability::ENCRYPT_MESSAGE): {
+        case (NymCapability::ENCRYPT_MESSAGE):
+        case (NymCapability::AUTHENTICATE_CONNECTION): {
 
             return true;
         }

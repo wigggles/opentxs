@@ -81,11 +81,11 @@ Crypto::Crypto(const api::Settings& settings)
     , ripemd160_(*ssl_)
 #endif  // OT_CRYPTO_USING_TREZOR
     , bip39_(*bip39_p_)
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_USING_LIBSECP256K1
     , secp256k1_(*secp256k1_p_)
-#elif OT_CRYPTO_USING_TREZOR
-    , secp256k1_(*trezor_)
-#endif
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     , encode_(opentxs::Factory::Encode(*this))
     , hash_(
           opentxs::Factory::Hash(*encode_, *ssl_, *sodium_, *ssl_, ripemd160_))

@@ -17,13 +17,12 @@ class Ed25519 final : virtual public key::Ed25519,
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 {
 public:
-    NymParameterType CreateType() const override
+    NymParameterType CreateType() const final
     {
         return NymParameterType::ed25519;
     }
-    bool hasCapability(const NymCapability& capability) const override;
 
-    ~Ed25519() override = default;
+    ~Ed25519() final = default;
 
 private:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -35,9 +34,9 @@ private:
     friend opentxs::Factory;
     friend LowLevelKeyGenerator;
 
-    Ed25519* clone() const override final { return new Ed25519(*this); }
-    Ed25519* clone_ec() const override final { return clone(); }
-    std::shared_ptr<proto::AsymmetricKey> get_public() const override
+    Ed25519* clone() const final { return new Ed25519(*this); }
+    Ed25519* clone_ec() const final { return clone(); }
+    std::shared_ptr<proto::AsymmetricKey> get_public() const final
     {
         return serialize_public(clone());
     }

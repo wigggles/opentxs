@@ -136,7 +136,7 @@ void BitWriter::flush()
         // the number of bits stored in accum_.
         OT_ASSERT(n_ < 8);
 
-        std::uint8_t result = accum_ & BITMASK(n_);
+        auto result{static_cast<std::uint8_t>(accum_ & BITMASK(n_))};
         result <<= (8 - n_);
 
         output_.Concatenate(&result, sizeof(result));

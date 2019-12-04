@@ -319,8 +319,8 @@ else()
 endif()
 
 if(OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-  if(NOT (OT_CRYPTO_USING_LIBSECP256K1 OR OT_CRYPTO_USING_TREZOR))
-    message(FATAL_ERROR "no provider for secp256k1 support configured")
+  if(NOT OT_CRYPTO_USING_LIBSECP256K1)
+    message(FATAL_ERROR "secp256k1 key support requires libsecp256k1")
   endif()
   set(SECP256K1_EXPORT 1)
 else()
@@ -451,6 +451,7 @@ if(OT_SWIG)
 endif()
 
 if(OPENTXS_BUILD_TESTS)
+  include(CTest)
   add_subdirectory(tests)
 endif()
 

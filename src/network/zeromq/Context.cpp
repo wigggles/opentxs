@@ -51,6 +51,7 @@ network::zeromq::Context* Factory::ZMQContext()
 
 namespace opentxs::network::zeromq
 {
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
 std::string Context::EncodePrivateZ85(
     const opentxs::crypto::key::Ed25519& key) noexcept
 {
@@ -61,6 +62,7 @@ std::string Context::EncodePrivateZ85(
 
     return RawToZ85(data->data(), data->size());
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
 std::string Context::RawToZ85(
     const void* input,

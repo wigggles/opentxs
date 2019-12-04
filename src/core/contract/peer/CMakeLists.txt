@@ -33,7 +33,9 @@ set(
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/peer/PeerRequest.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/contract/peer/StoreSecret.hpp"
 )
-set(cxx-headers ${cxx-install-headers}
+set(
+  cxx-headers
+  ${cxx-install-headers}
   BailmentNotice.cpp
   BailmentReply.cpp
   BailmentRequest.cpp

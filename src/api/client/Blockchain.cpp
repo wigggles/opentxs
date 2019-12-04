@@ -28,7 +28,9 @@
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/api/client/Client.hpp"
+#if OT_BLOCKCHAIN
 #include "internal/blockchain/Blockchain.hpp"
+#endif  // OT_BLOCKCHAIN
 
 #include <map>
 #include <mutex>
@@ -94,7 +96,9 @@ Blockchain::Blockchain(
     , nym_lock_()
     , balance_lists_(*this)
     , txo_db_(*this)
+#if OT_BLOCKCHAIN
     , networks_()
+#endif  // OT_BLOCKCHAIN
 {
     // WARNING: do not access api_.Wallet() during construction
 }

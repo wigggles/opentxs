@@ -28,11 +28,11 @@ NymParameters::NymParameters()
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     , nymType_(NymParameterType::ed25519)
 #elif OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    , nymType_(NymParameterType::SECP256K1)
+    , nymType_(NymParameterType::secp256k1)
 #elif OT_CRYPTO_SUPPORTED_KEY_RSA
-    , nymType_(NymParameterType::RSA)
+    , nymType_(NymParameterType::rsa)
 #else
-    , nymType_(NymParameterType::ERROR)
+    , nymType_(NymParameterType::error)
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     , credentialType_(proto::CREDTYPE_HD)
@@ -43,12 +43,12 @@ NymParameters::NymParameters()
     , cred_index_(0)
     , default_(true)
     , use_auto_index_(true)
-#else
+#else  // OT_CRYPTO_SUPPORTED_KEY_HD
     , credentialType_(proto::CREDTYPE_LEGACY)
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     , nBits_(1024)
-#endif
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 {
 }
 

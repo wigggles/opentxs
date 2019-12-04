@@ -57,7 +57,10 @@ bool OpenDHT::Init() const
 
     if (!loaded_.get()) {
         try {
-            node_->run(listenPort, dht::crypto::generateIdentity(), true);
+            node_->run(
+                static_cast<unsigned short>(listenPort),
+                dht::crypto::generateIdentity(),
+                true);
         } catch (dht::DhtException& e) {
             std::cout << e.what() << std::endl;
 

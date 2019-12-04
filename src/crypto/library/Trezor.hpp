@@ -5,8 +5,7 @@
 
 #pragma once
 
-#define OPENTXS_TREZOR_PROVIDES_ECDSA                                          \
-    OT_CRYPTO_SUPPORTED_KEY_SECP256K1 || OT_CRYPTO_SUPPORTED_KEY_ED25519
+#define OPENTXS_TREZOR_PROVIDES_ECDSA OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
 namespace opentxs::crypto::implementation
 {
@@ -15,11 +14,6 @@ class Trezor final : virtual public crypto::Trezor,
 #if OT_CRYPTO_WITH_BIP32
     ,
                      public Bip32
-#endif
-#if OPENTXS_TREZOR_PROVIDES_ECDSA
-    ,
-                     public AsymmetricProvider,
-                     public EcdsaProvider
 #endif
 {
 public:
@@ -44,30 +38,6 @@ public:
         const OTPassword& seed) const final;
 #endif
 
-#if OPENTXS_TREZOR_PROVIDES_ECDSA
-    bool ECDH(
-        const Data& publicKey,
-        const OTPassword& privateKey,
-        OTPassword& secret) const final;
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
-    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
-        const final;
-    bool Sign(
-        const api::internal::Core& api,
-        const Data& plaintext,
-        const key::Asymmetric& theKey,
-        const proto::HashType hashType,
-        Data& signature,  // output
-        const PasswordPrompt& reason,
-        const OTPassword* exportPassword = nullptr) const final;
-    bool Verify(
-        const Data& plaintext,
-        const key::Asymmetric& theKey,
-        const Data& signature,
-        const proto::HashType hashType,
-        const PasswordPrompt& reason) const final;
-#endif  // OPENTXS_TREZOR_PROVIDES_ECDSA
-
     ~Trezor() final = default;
 
 private:
@@ -83,15 +53,6 @@ private:
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F};
 
     static std::string curve_name(const EcdsaCurve& curve);
-
-#if OPENTXS_TREZOR_PROVIDES_ECDSA
-    const curve_info* secp256k1_{nullptr};
-    const curve_info* ed25519_{nullptr};
-
-    const curve_info* get_curve(const EcdsaCurve& curve) const;
-    const curve_info* get_curve(const proto::AsymmetricKeyType& curve) const;
-    bool is_valid(const OTPassword& key) const;
-#endif
 
 #if OT_CRYPTO_WITH_BIP32
     static std::unique_ptr<HDNode> derive_child(

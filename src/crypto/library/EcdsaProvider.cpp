@@ -20,6 +20,13 @@
 #include "opentxs/crypto/library/HashingProvider.hpp"
 
 #include "internal/api/Api.hpp"
+#include "util/Sodium.hpp"
+
+extern "C" {
+#include <sodium.h>
+}
+
+#include <array>
 
 #include "EcdsaProvider.hpp"
 
@@ -30,6 +37,7 @@ namespace opentxs::crypto::implementation
 EcdsaProvider::EcdsaProvider(const api::Crypto& crypto)
     : crypto_(crypto)
 {
+    if (0 > ::sodium_init()) { OT_FAIL; }
 }
 
 bool EcdsaProvider::AsymmetricKeyToECPrivatekey(
@@ -340,14 +348,50 @@ bool EcdsaProvider::PrivateToPublic(
 }
 
 bool EcdsaProvider::SeedToCurveKey(
-    [[maybe_unused]] const OTPassword& seed,
-    [[maybe_unused]] OTPassword& privateKey,
-    [[maybe_unused]] Data& publicKey) const
+    const OTPassword& seed,
+    OTPassword& privateKey,
+    Data& publicKey) const
 {
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": This provider does not support curve25519.")
-        .Flush();
+    auto intermediatePublic = Data::Factory();
+    OTPassword intermediatePrivate;
 
-    return false;
+    if (!sodium::ExpandSeed(seed, intermediatePrivate, intermediatePublic)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to expand seed.").Flush();
+
+        return false;
+    }
+
+    std::array<unsigned char, crypto_scalarmult_curve25519_BYTES> blank{};
+    privateKey.setMemory(blank.data(), blank.size());
+    const bool havePrivate = crypto_sign_ed25519_sk_to_curve25519(
+        static_cast<unsigned char*>(privateKey.getMemoryWritable()),
+        static_cast<const unsigned char*>(intermediatePrivate.getMemory()));
+
+    if (0 != havePrivate) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to convert private key from ed25519 to curve25519.")
+            .Flush();
+
+        return false;
+    }
+
+    const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
+        blank.data(),
+        static_cast<const unsigned char*>(intermediatePublic->data()));
+
+    if (0 != havePublic) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to convert public key from ed25519 to curve25519.")
+            .Flush();
+
+        return false;
+    }
+
+    publicKey.Assign(blank.data(), blank.size());
+
+    OT_ASSERT(crypto_scalarmult_BYTES == publicKey.size());
+    OT_ASSERT(crypto_scalarmult_SCALARBYTES == privateKey.getMemorySize());
+
+    return true;
 }
 }  // namespace opentxs::crypto::implementation

@@ -40,10 +40,6 @@ public:
         Data& signature,  // output
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr) const final;
-    bool SeedToCurveKey(
-        const OTPassword& seed,
-        OTPassword& privateKey,
-        Data& publicKey) const final;
     bool Verify(
         const Data& plaintext,
         const key::Asymmetric& theKey,
@@ -86,12 +82,6 @@ private:
         const std::uint8_t* key,
         const std::size_t keySize,
         proto::Ciphertext& ciphertext) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    bool ExpandSeed(
-        const OTPassword& seed,
-        OTPassword& privateKey,
-        Data& publicKey) const;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     std::size_t IvSize(const proto::SymmetricMode mode) const final;
     std::size_t KeySize(const proto::SymmetricMode mode) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519

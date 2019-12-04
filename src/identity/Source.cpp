@@ -48,10 +48,12 @@ identity::Source* Factory::NymIDSource(
     switch (params.SourceType()) {
         case proto::SOURCETYPE_BIP47: {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            OT_ASSERT(PaymentCode::DefaultVersion <= 256);
+
             const auto paymentCode = api.Factory().PaymentCode(
                 params.Seed(),
                 params.Nym(),
-                PaymentCode::DefaultVersion,
+                static_cast<std::uint8_t>(PaymentCode::DefaultVersion),
                 reason);
 
             return new ReturnType{api.Factory(), paymentCode};

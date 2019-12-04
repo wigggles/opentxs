@@ -73,7 +73,7 @@ public:
     bool SeedToCurveKey(
         const OTPassword& seed,
         OTPassword& privateKey,
-        Data& publicKey) const override;
+        Data& publicKey) const final;
 
     ~EcdsaProvider() override = default;
 
