@@ -101,7 +101,7 @@ TEST_F(Test_ContactGroup, first_constructor_no_items)
         ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
         {});
     // Verify the private static methods didn't blow up.
-    ASSERT_EQ(0, group1.Size());
+    ASSERT_EQ(group1.Size(), 0);
     ASSERT_EQ(ot::proto::ContactItemType::CITEMTYPE_EMPLOYEE, group1.Type());
 }
 
@@ -238,7 +238,7 @@ TEST_F(Test_ContactGroup, begin)
 {
     ot::ContactGroup::ItemMap::const_iterator it = contactGroup_.begin();
     ASSERT_EQ(contactGroup_.end(), it);
-    ASSERT_EQ(0, std::distance(it, contactGroup_.end()));
+    ASSERT_EQ(std::distance(it, contactGroup_.end()), 0);
 
     const auto& group1 = contactGroup_.AddItem(active_);
     it = group1.begin();
@@ -247,7 +247,7 @@ TEST_F(Test_ContactGroup, begin)
 
     std::advance(it, 1);
     ASSERT_EQ(group1.end(), it);
-    ASSERT_EQ(0, std::distance(it, group1.end()));
+    ASSERT_EQ(std::distance(it, group1.end()), 0);
 }
 
 TEST_F(Test_ContactGroup, Best_none) { ASSERT_FALSE(contactGroup_.Best()); }
@@ -312,7 +312,7 @@ TEST_F(Test_ContactGroup, end)
 {
     ot::ContactGroup::ItemMap::const_iterator it = contactGroup_.end();
     ASSERT_EQ(contactGroup_.begin(), it);
-    ASSERT_EQ(0, std::distance(contactGroup_.begin(), it));
+    ASSERT_EQ(std::distance(contactGroup_.begin(), it), 0);
 
     const auto& group1 = contactGroup_.AddItem(active_);
     it = group1.end();
@@ -321,7 +321,7 @@ TEST_F(Test_ContactGroup, end)
 
     std::advance(it, -1);
     ASSERT_EQ(group1.begin(), it);
-    ASSERT_EQ(0, std::distance(group1.begin(), it));
+    ASSERT_EQ(std::distance(group1.begin(), it), 0);
 }
 
 TEST_F(Test_ContactGroup, HaveClaim_true)
@@ -433,7 +433,7 @@ TEST_F(Test_ContactGroup, SerializeTo)
 
 TEST_F(Test_ContactGroup, Size)
 {
-    ASSERT_EQ(0, contactGroup_.Size());
+    ASSERT_EQ(contactGroup_.Size(), 0);
     const auto& group1 = contactGroup_.AddItem(primary_);
     ASSERT_EQ(1, group1.Size());
     const auto& group2 = group1.AddItem(active_);

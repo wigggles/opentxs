@@ -21,7 +21,7 @@ TEST(Message, AddFrame)
     auto& message = multipartMessage->AddFrame();
     ASSERT_EQ(1, multipartMessage->size());
     ASSERT_NE(nullptr, message.data());
-    ASSERT_EQ(0, message.size());
+    ASSERT_EQ(message.size(), 0);
 }
 
 TEST(Message, AddFrame_Data)
@@ -29,9 +29,9 @@ TEST(Message, AddFrame_Data)
     auto multipartMessage = network::zeromq::Message::Factory();
 
     auto& message = multipartMessage->AddFrame(Data::Factory("testString", 10));
-    ASSERT_EQ(1, multipartMessage->size());
+    ASSERT_EQ(multipartMessage->size(), 1);
     ASSERT_NE(nullptr, message.data());
-    ASSERT_EQ(10, message.size());
+    ASSERT_EQ(message.size(), 10);
 
     std::string messageString = message;
     ASSERT_STREQ("testString", messageString.c_str());
@@ -42,9 +42,9 @@ TEST(Message, AddFrame_string)
     auto multipartMessage = network::zeromq::Message::Factory();
 
     auto& message = multipartMessage->AddFrame(std::string{"testString"});
-    ASSERT_EQ(1, multipartMessage->size());
+    ASSERT_EQ(multipartMessage->size(), 1);
     ASSERT_NE(nullptr, message.data());
-    ASSERT_EQ(10, message.size());
+    ASSERT_EQ(message.size(), 10);
 
     std::string messageString = message;
     ASSERT_STREQ("testString", messageString.c_str());
@@ -98,18 +98,18 @@ TEST(Message, begin)
 
     network::zeromq::FrameIterator it = multipartMessage->begin();
     ASSERT_EQ(multipartMessage->end(), it);
-    ASSERT_EQ(0, std::distance(it, multipartMessage->end()));
+    ASSERT_EQ(std::distance(it, multipartMessage->end()), 0);
 
     multipartMessage->AddFrame(std::string{"msg1"});
     multipartMessage->AddFrame(std::string{"msg2"});
     multipartMessage->AddFrame(std::string{"msg3"});
 
     ASSERT_NE(multipartMessage->end(), it);
-    ASSERT_EQ(3, std::distance(it, multipartMessage->end()));
+    ASSERT_EQ(std::distance(it, multipartMessage->end()), 3);
 
     std::advance(it, 3);
     ASSERT_EQ(multipartMessage->end(), it);
-    ASSERT_EQ(0, std::distance(it, multipartMessage->end()));
+    ASSERT_EQ(std::distance(it, multipartMessage->end()), 0);
 }
 
 TEST(Message, Body)
@@ -123,7 +123,7 @@ TEST(Message, Body)
     multipartMessage->AddFrame(std::string{"msg4"});
 
     const network::zeromq::FrameSection bodySection = multipartMessage->Body();
-    ASSERT_EQ(2, bodySection.size());
+    ASSERT_EQ(bodySection.size(), 2);
 
     const auto& message = bodySection.at(1);
     std::string msgString = message;
@@ -181,7 +181,9 @@ TEST(Message, end)
 
     network::zeromq::FrameIterator it = multipartMessage->end();
     ASSERT_EQ(multipartMessage->begin(), it);
-    ASSERT_EQ(0, std::distance(multipartMessage->begin(), it));
+    ASSERT_EQ(
+
+        std::distance(multipartMessage->begin(), it), 0);
 
     multipartMessage->AddFrame(std::string{"msg1"});
     multipartMessage->AddFrame(std::string{"msg2"});
@@ -189,7 +191,9 @@ TEST(Message, end)
 
     network::zeromq::FrameIterator it2 = multipartMessage->end();
     ASSERT_NE(multipartMessage->begin(), it2);
-    ASSERT_EQ(3, std::distance(multipartMessage->begin(), it2));
+    ASSERT_EQ(
+
+        std::distance(multipartMessage->begin(), it2), 3);
 }
 
 TEST(Message, EnsureDelimiter)
@@ -197,65 +201,65 @@ TEST(Message, EnsureDelimiter)
     // Empty message.
     auto message = network::zeromq::Message::Factory();
 
-    ASSERT_EQ(0, message->size());
+    ASSERT_EQ(message->size(), 0);
 
     message->EnsureDelimiter();  // Adds delimiter.
 
-    ASSERT_EQ(1, message->size());
+    ASSERT_EQ(message->size(), 1);
 
     message->AddFrame();
 
-    ASSERT_EQ(2, message->size());
+    ASSERT_EQ(message->size(), 2);
 
     message->EnsureDelimiter();  // Doesn't add delimiter
 
-    ASSERT_EQ(2, message->size());
+    ASSERT_EQ(message->size(), 2);
 
     // Message body only.
     auto message2 = Context().ZMQ().Message(std::string{"msg"});
 
-    ASSERT_EQ(1, message2->size());
+    ASSERT_EQ(static_cast<std::size_t>(1), message2->size());
 
     message2->EnsureDelimiter();  // Inserts delimiter.
 
-    ASSERT_EQ(2, message2->size());
-    ASSERT_EQ(0, message2->Header().size());
-    ASSERT_EQ(1, message2->Body().size());
+    ASSERT_EQ(message2->size(), 2);
+    ASSERT_EQ(message2->Header().size(), 0);
+    ASSERT_EQ(message2->Body().size(), 1);
 
     message2->EnsureDelimiter();  // Doesn't add delimiter.
 
-    ASSERT_EQ(2, message2->size());
-    ASSERT_EQ(0, message2->Header().size());
-    ASSERT_EQ(1, message2->Body().size());
+    ASSERT_EQ(message2->size(), 2);
+    ASSERT_EQ(message2->Header().size(), 0);
+    ASSERT_EQ(message2->Body().size(), 1);
 
     // Header and message body.
     auto message3 = Context().ZMQ().Message(std::string{"header"});
     message3->AddFrame();
     message3->AddFrame(std::string{"body"});
 
-    ASSERT_EQ(3, message3->size());
-    ASSERT_EQ(1, message3->Header().size());
-    ASSERT_EQ(1, message3->Body().size());
+    ASSERT_EQ(message3->size(), 3);
+    ASSERT_EQ(message3->Header().size(), 1);
+    ASSERT_EQ(message3->Body().size(), 1);
 
     message3->EnsureDelimiter();  // Doesn't add delimiter.
 
-    ASSERT_EQ(3, message3->size());
-    ASSERT_EQ(1, message3->Header().size());
-    ASSERT_EQ(1, message3->Body().size());
+    ASSERT_EQ(message3->size(), 3);
+    ASSERT_EQ(message3->Header().size(), 1);
+    ASSERT_EQ(message3->Body().size(), 1);
 
     // Message body with 2 frames.
     auto message4 = Context().ZMQ().Message(std::string{"frame1"});
     message4->AddFrame(std::string{"frame2"});
 
-    ASSERT_EQ(2, message4->size());
-    ASSERT_EQ(0, message4->Header().size());
-    ASSERT_EQ(2, message4->Body().size());
+    ASSERT_EQ(message4->size(), 2);
+    ASSERT_EQ(message4->Header().size(), 0);
+    ASSERT_EQ(message4->Body().size(), 2);
 
     message4->EnsureDelimiter();
 
-    ASSERT_EQ(3, message4->size());
-    ASSERT_EQ(1, message4->Header().size());
-    ASSERT_EQ(1, message4->Body().size());
+    ASSERT_EQ(message4->size(), 3);
+    ASSERT_EQ(message4->Header().size(), 1);
+    ASSERT_EQ(message4->Body().size(), 1);
 }
 
 TEST(Message, Header)
@@ -269,7 +273,7 @@ TEST(Message, Header)
     multipartMessage->AddFrame(std::string{"msg4"});
 
     network::zeromq::FrameSection headerSection = multipartMessage->Header();
-    ASSERT_EQ(2, headerSection.size());
+    ASSERT_EQ(headerSection.size(), 2);
 
     const auto& message = headerSection.at(1);
     std::string msgString = message;
@@ -326,13 +330,13 @@ TEST(Message, PrependEmptyFrame)
 {
     auto message = Context().ZMQ().Message(std::string("msg body"));
 
-    ASSERT_EQ(1, message->size());
+    ASSERT_EQ(message->size(), 1);
 
     message->PrependEmptyFrame();
 
-    ASSERT_EQ(2, message->size());
-    ASSERT_EQ(0, message->Header().size());
-    ASSERT_EQ(1, message->Body().size());
+    ASSERT_EQ(message->size(), 2);
+    ASSERT_EQ(message->Header().size(), 0);
+    ASSERT_EQ(message->Body().size(), 1);
 
     auto message2 = network::zeromq::Message::Factory();
 
@@ -340,15 +344,15 @@ TEST(Message, PrependEmptyFrame)
     message2->AddFrame();
     message2->AddFrame(std::string{"msg body"});
 
-    ASSERT_EQ(3, message2->size());
-    ASSERT_EQ(1, message2->Header().size());
-    ASSERT_EQ(1, message2->Body().size());
+    ASSERT_EQ(message2->size(), 3);
+    ASSERT_EQ(message2->Header().size(), 1);
+    ASSERT_EQ(message2->Body().size(), 1);
 
     message2->PrependEmptyFrame();
 
-    ASSERT_EQ(4, message2->size());
-    ASSERT_EQ(0, message2->Header().size());
-    ASSERT_EQ(3, message2->Body().size());
+    ASSERT_EQ(message2->size(), 4);
+    ASSERT_EQ(message2->Header().size(), 0);
+    ASSERT_EQ(message2->Body().size(), 3);
 }
 
 TEST(Message, size)
@@ -356,12 +360,12 @@ TEST(Message, size)
     auto multipartMessage = network::zeromq::Message::Factory();
 
     std::size_t size = multipartMessage->size();
-    ASSERT_EQ(0, size);
+    ASSERT_EQ(size, 0);
 
     multipartMessage->AddFrame(std::string{"msg1"});
     multipartMessage->AddFrame(std::string{"msg2"});
     multipartMessage->AddFrame(std::string{"msg3"});
 
     size = multipartMessage->size();
-    ASSERT_EQ(3, size);
+    ASSERT_EQ(size, 3);
 }

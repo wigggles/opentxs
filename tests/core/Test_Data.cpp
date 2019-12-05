@@ -203,21 +203,21 @@ TEST(Data, map_1)
 
     std::map<OTData, std::string> map{};
 
-    EXPECT_EQ(0, map.size());
-    EXPECT_EQ(0, map.count(one));
-    EXPECT_EQ(0, map.count(two));
+    EXPECT_EQ(map.size(), 0);
+    EXPECT_EQ(map.count(one), 0);
+    EXPECT_EQ(map.count(two), 0);
 
     map.emplace(one, "foo");
 
-    EXPECT_EQ(1, map.size());
-    EXPECT_EQ(1, map.count(one));
-    EXPECT_EQ(0, map.count(two));
+    EXPECT_EQ(map.size(), 1);
+    EXPECT_EQ(map.count(one), 1);
+    EXPECT_EQ(map.count(two), 0);
 
     map.emplace(two, "bar");
 
-    EXPECT_EQ(2, map.size());
-    EXPECT_EQ(1, map.count(one));
-    EXPECT_EQ(1, map.count(two));
+    EXPECT_EQ(map.size(), 2);
+    EXPECT_EQ(map.count(one), 1);
+    EXPECT_EQ(map.count(two), 1);
 }
 
 TEST(Data, map_2)
@@ -245,15 +245,15 @@ TEST(Data, map_2)
 
     std::map<OTData, std::string> map{};
 
-    EXPECT_EQ(0, map.size());
-    EXPECT_EQ(0, map.count(one));
-    EXPECT_EQ(0, map.count(two));
+    EXPECT_EQ(map.size(), 0);
+    EXPECT_EQ(map.count(one), 0);
+    EXPECT_EQ(map.count(two), 0);
 
     map.emplace(one, "foo");
 
     EXPECT_EQ(1, map.size());
     EXPECT_EQ(1, map.count(one));
-    EXPECT_EQ(0, map.count(two));
+    EXPECT_EQ(map.count(two), 0);
 
     map.emplace(two, "bar");
 

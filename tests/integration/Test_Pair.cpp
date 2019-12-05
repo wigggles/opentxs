@@ -351,20 +351,22 @@ TEST_F(Test_Pair, pair_untrusted)
         EXPECT_FALSE(issuer.BailmentInitiated(unit_id_));
         EXPECT_EQ(3, issuer.BailmentInstructions(unit_id_).size());
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITCOIN).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITCOIN).size(), 0);
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BTCRPC).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BTCRPC).size(), 0);
         EXPECT_EQ(
-            0,
-            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGE).size());
+
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGE).size(),
+            0);
         EXPECT_EQ(
-            0,
+
             issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGERPC)
-                .size());
+                .size(),
+            0);
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_SSH).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_SSH).size(), 0);
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_CJDNS).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_CJDNS).size(), 0);
         EXPECT_FALSE(
             issuer.ConnectionInfoInitiated(ot::proto::CONNECTIONINFO_BITCOIN));
         EXPECT_FALSE(
@@ -415,20 +417,22 @@ TEST_F(Test_Pair, pair_trusted)
         EXPECT_FALSE(issuer.BailmentInitiated(unit_id_));
         EXPECT_EQ(3, issuer.BailmentInstructions(unit_id_).size());
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITCOIN).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITCOIN).size(), 0);
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BTCRPC).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BTCRPC).size(), 0);
         EXPECT_EQ(
-            0,
-            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGE).size());
+
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGE).size(),
+            0);
         EXPECT_EQ(
-            0,
+
             issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_BITMESSAGERPC)
-                .size());
+                .size(),
+            0);
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_SSH).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_SSH).size(), 0);
         EXPECT_EQ(
-            0, issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_CJDNS).size());
+            issuer.ConnectionInfo(ot::proto::CONNECTIONINFO_CJDNS).size(), 0);
         EXPECT_FALSE(
             issuer.ConnectionInfoInitiated(ot::proto::CONNECTIONINFO_BITCOIN));
         EXPECT_TRUE(

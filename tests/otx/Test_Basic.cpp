@@ -835,7 +835,7 @@ TEST_F(Test_Basic, getRequestNumber_not_registered)
 
     const auto number = serverContext.get().UpdateRequestNumber(reason_c1_);
 
-    EXPECT_EQ(0, number);
+    EXPECT_EQ(number, 0);
     EXPECT_EQ(serverContext.get().Request(), 0);
 
     clientContext = server_1_.Wallet().ClientContext(alice_nym_id_, reason_s1_);
@@ -2149,7 +2149,7 @@ TEST_F(Test_Basic, sendTransfer)
 
     ASSERT_TRUE(workflow);
 
-    EXPECT_EQ(0, workflow->party_size());
+    EXPECT_EQ(workflow->party_size(), 0);
 }
 
 TEST_F(Test_Basic, getAccountData_after_incomingTransfer)

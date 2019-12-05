@@ -78,7 +78,7 @@ TEST_F(Test_DealerReply, Dealer_Reply)
     auto replyCallback = zmq::ReplyCallback::Factory(
         [this, &replyReturned](const zmq::Message& input) -> OTZMQMessage {
             EXPECT_EQ(1, input.size());
-            EXPECT_EQ(0, input.Header().size());
+            EXPECT_EQ(input.Header().size(), 0);
             EXPECT_EQ(1, input.Body().size());
 
             const std::string inputString{*input.Body().begin()};
@@ -87,14 +87,14 @@ TEST_F(Test_DealerReply, Dealer_Reply)
 
             auto reply = context_.ReplyMessage(input);
 
-            EXPECT_EQ(0, reply->size());
-            EXPECT_EQ(0, reply->Header().size());
-            EXPECT_EQ(0, reply->Body().size());
+            EXPECT_EQ(reply->size(), 0);
+            EXPECT_EQ(reply->Header().size(), 0);
+            EXPECT_EQ(reply->Body().size(), 0);
 
             reply->AddFrame(inputString);
 
             EXPECT_EQ(1, reply->size());
-            EXPECT_EQ(0, reply->Header().size());
+            EXPECT_EQ(reply->Header().size(), 0);
             EXPECT_EQ(1, reply->Body().size());
             EXPECT_EQ(inputString, std::string(reply->Body_at(0)));
 
@@ -122,7 +122,7 @@ TEST_F(Test_DealerReply, Dealer_Reply)
     auto dealerCallback = zmq::ListenCallback::Factory(
         [this, &replyProcessed](zmq::Message& input) -> void {
             EXPECT_EQ(2, input.size());
-            EXPECT_EQ(0, input.Header().size());
+            EXPECT_EQ(input.Header().size(), 0);
             EXPECT_EQ(1, input.Body().size());
 
             const std::string& inputString = *input.Body().begin();
@@ -263,7 +263,7 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
             // ReplySocket puts the delimiter frame back when it sends the
             // reply.
             ASSERT_EQ(5, input.size());
-            ASSERT_EQ(0, input.Header().size());
+            ASSERT_EQ(input.Header().size(), 0);
             ASSERT_EQ(4, input.Body().size());
 
             const std::string& header = input.at(1);

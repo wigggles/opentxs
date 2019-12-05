@@ -42,9 +42,9 @@ TEST_F(Test_State_Machine, stop_constructed)
 {
     Stop().get();
 
-    EXPECT_EQ(0, step_.load());
-    EXPECT_EQ(0, target_.load());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(step_.load(), 0);
+    EXPECT_EQ(target_.load(), 0);
+    EXPECT_EQ(counter_.load(), 0);
 }
 
 TEST_F(Test_State_Machine, stop_running)
@@ -54,7 +54,7 @@ TEST_F(Test_State_Machine, stop_running)
     target_.store(1);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto future = Stop();
 
@@ -68,9 +68,9 @@ TEST_F(Test_State_Machine, wait_constructed)
 {
     Wait().get();
 
-    EXPECT_EQ(0, step_.load());
-    EXPECT_EQ(0, target_.load());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(step_.load(), 0);
+    EXPECT_EQ(target_.load(), 0);
+    EXPECT_EQ(counter_.load(), 0);
 }
 
 TEST_F(Test_State_Machine, wait_running)
@@ -80,7 +80,7 @@ TEST_F(Test_State_Machine, wait_running)
     target_.store(1);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto future = Wait();
 
@@ -97,7 +97,7 @@ TEST_F(Test_State_Machine, stop_idle)
     target_.store(1);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto future = Wait();
 
@@ -108,9 +108,9 @@ TEST_F(Test_State_Machine, stop_idle)
 
     Stop().get();
 
-    EXPECT_EQ(1, step_.load());
-    EXPECT_EQ(1, target_.load());
-    EXPECT_EQ(1, counter_.load());
+    EXPECT_EQ(step_.load(), 1);
+    EXPECT_EQ(target_.load(), 1);
+    EXPECT_EQ(counter_.load(), 1);
 }
 
 TEST_F(Test_State_Machine, stop_stopped)
@@ -118,9 +118,9 @@ TEST_F(Test_State_Machine, stop_stopped)
     Stop().get();
     Stop().get();
 
-    EXPECT_EQ(0, step_.load());
-    EXPECT_EQ(0, target_.load());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(step_.load(), 0);
+    EXPECT_EQ(target_.load(), 0);
+    EXPECT_EQ(counter_.load(), 0);
 }
 
 TEST_F(Test_State_Machine, wait_idle)
@@ -130,7 +130,7 @@ TEST_F(Test_State_Machine, wait_idle)
     target_.store(1);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto future = Wait();
 
@@ -141,9 +141,9 @@ TEST_F(Test_State_Machine, wait_idle)
 
     Wait().get();
 
-    EXPECT_EQ(1, step_.load());
-    EXPECT_EQ(1, target_.load());
-    EXPECT_EQ(1, counter_.load());
+    EXPECT_EQ(step_.load(), 1);
+    EXPECT_EQ(target_.load(), 1);
+    EXPECT_EQ(counter_.load(), 1);
 }
 
 TEST_F(Test_State_Machine, wait_stopped)
@@ -151,9 +151,9 @@ TEST_F(Test_State_Machine, wait_stopped)
     Stop().get();
     Wait().get();
 
-    EXPECT_EQ(0, step_.load());
-    EXPECT_EQ(0, target_.load());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(step_.load(), 0);
+    EXPECT_EQ(target_.load(), 0);
+    EXPECT_EQ(counter_.load(), 0);
 }
 
 TEST_F(Test_State_Machine, trigger_idle)
@@ -163,7 +163,7 @@ TEST_F(Test_State_Machine, trigger_idle)
     target_.store(1);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto wait = Wait();
     ++step_;
@@ -176,7 +176,7 @@ TEST_F(Test_State_Machine, trigger_idle)
     target_.store(3);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     ++step_;
     auto stop = Stop();
@@ -193,7 +193,7 @@ TEST_F(Test_State_Machine, trigger_running)
     target_.store(1);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto future = Wait();
 
@@ -219,7 +219,7 @@ TEST_F(Test_State_Machine, multiple_wait)
     target_.store(5);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto wait1 = Wait();
     ++step_;
@@ -244,7 +244,7 @@ TEST_F(Test_State_Machine, multiple_stop)
     target_.store(5);
 
     EXPECT_TRUE(Trigger());
-    EXPECT_EQ(0, counter_.load());
+    EXPECT_EQ(counter_.load(), 0);
 
     auto stop1 = Stop();
     auto stop2 = Stop();

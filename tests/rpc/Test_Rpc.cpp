@@ -264,7 +264,7 @@ TEST_F(Test_Rpc, Add_Client_Session)
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
-    EXPECT_EQ(0, response.session());
+    EXPECT_EQ(response.session(), 0);
 }
 
 TEST_F(Test_Rpc, List_Server_Contracts_None)
@@ -337,7 +337,7 @@ TEST_F(Test_Rpc, Get_Server_Password)
     const auto& status = response.status(0);
 
     EXPECT_EQ(STATUS_VERSION, status.version());
-    EXPECT_EQ(0, status.index());
+    EXPECT_EQ(status.index(), 0);
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, status.code());
     EXPECT_EQ(1, response.identifier_size());
 
@@ -361,9 +361,9 @@ TEST_F(Test_Rpc, Get_Admin_Nym_None)
     const auto& status = response.status(0);
 
     EXPECT_EQ(STATUS_VERSION, status.version());
-    EXPECT_EQ(0, status.index());
+    EXPECT_EQ(status.index(), 0);
     EXPECT_EQ(proto::RPCRESPONSE_NONE, status.code());
-    EXPECT_EQ(0, response.identifier_size());
+    EXPECT_EQ(response.identifier_size(), 0);
 }
 
 TEST_F(Test_Rpc, List_Client_Sessions)
@@ -1070,7 +1070,7 @@ TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
     EXPECT_EQ(issuerid->str(), accountdata.issuer());
     EXPECT_EQ(account.get().GetBalance(), accountdata.balance());
     EXPECT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
-    EXPECT_EQ(0, accountdata.balance());
+    EXPECT_EQ(accountdata.balance(), 0);
     EXPECT_EQ(proto::ACCOUNTTYPE_ISSUER, accountdata.type());
 }
 
@@ -1095,7 +1095,7 @@ TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
-    EXPECT_EQ(0, response.identifier_size());
+    EXPECT_EQ(response.identifier_size(), 0);
 }
 
 TEST_F(Test_Rpc, Create_Account)
@@ -1365,7 +1365,7 @@ TEST_F(Test_Rpc, Get_Compatible_Account_No_Cheque)
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
-    EXPECT_EQ(0, response.identifier_size());
+    EXPECT_EQ(response.identifier_size(), 0);
 }
 
 TEST_F(Test_Rpc, Get_Account_Activity)
@@ -1383,7 +1383,7 @@ TEST_F(Test_Rpc, Get_Account_Activity)
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
-    EXPECT_EQ(0, response.accountevent_size());
+    EXPECT_EQ(response.accountevent_size(), 0);
 
     Sleep(std::chrono::seconds(1));
 
@@ -1621,7 +1621,7 @@ TEST_F(Test_Rpc, Get_Nym)
     EXPECT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
     EXPECT_EQ(4, credentialindex.revision());
     EXPECT_EQ(1, credentialindex.activecredentials_size());
-    EXPECT_EQ(0, credentialindex.revokedcredentials_size());
+    EXPECT_EQ(credentialindex.revokedcredentials_size(), 0);
 }
 
 TEST_F(Test_Rpc, Get_Nyms)
@@ -1658,7 +1658,7 @@ TEST_F(Test_Rpc, Get_Nyms)
     EXPECT_EQ(proto::NYM_PUBLIC, credentialindex.mode());
     EXPECT_EQ(4, credentialindex.revision());
     EXPECT_EQ(1, credentialindex.activecredentials_size());
-    EXPECT_EQ(0, credentialindex.revokedcredentials_size());
+    EXPECT_EQ(credentialindex.revokedcredentials_size(), 0);
 }
 
 #if OT_CRYPTO_WITH_BIP32
@@ -1681,7 +1681,7 @@ TEST_F(Test_Rpc, Import_Seed_Invalid)
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
-    EXPECT_EQ(0, response.identifier_size());
+    EXPECT_EQ(response.identifier_size(), 0);
 }
 
 TEST_F(Test_Rpc, Import_Seed)
