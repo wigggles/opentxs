@@ -33,7 +33,7 @@ TEST(FrameSection, constructors)
     ASSERT_EQ(frameSection5.size(), 2);
 
     network::zeromq::FrameSection frameSection6(multipartMessage->Body());
-    ASSERT_EQ(frameSection6.size(), 2);
+    ASSERT_EQ(frameSection6.size(), 1);
 
     network::zeromq::FrameSection frameSection7(&multipartMessage.get(), 3, 1);
     ASSERT_EQ(frameSection7.size(), 1);
