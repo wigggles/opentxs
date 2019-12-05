@@ -902,25 +902,27 @@ bool OpenSSL::PKCS5_PBKDF2_HMAC(
     const std::size_t bytes,
     void* output) const noexcept
 {
-    if (inputSize > std::numeric_limits<int>::max()) {
+    const auto max = static_cast<std::size_t>(std::numeric_limits<int>::max());
+
+    if (inputSize > max) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input size").Flush();
 
         return false;
     }
 
-    if (saltSize > std::numeric_limits<int>::max()) {
+    if (saltSize > max) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid salt size").Flush();
 
         return false;
     }
 
-    if (iterations > std::numeric_limits<int>::max()) {
+    if (iterations > max) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid iteration count").Flush();
 
         return false;
     }
 
-    if (bytes > std::numeric_limits<int>::max()) {
+    if (bytes > max) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output size").Flush();
 
         return false;

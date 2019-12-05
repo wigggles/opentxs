@@ -11,7 +11,6 @@
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EncodingProvider.hpp"
-#include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/library/Ripemd160.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
@@ -25,19 +24,8 @@ class Trezor : virtual public EncodingProvider,
     ,
                virtual public Bip32
 #endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    ,
-               virtual public EcdsaProvider
-#endif
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    OPENTXS_EXPORT virtual bool ECDH(
-        const Data& publicKey,
-        const OTPassword& privateKey,
-        OTPassword& secret) const = 0;
-#endif
-
     OPENTXS_EXPORT ~Trezor() override = default;
 
 protected:

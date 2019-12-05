@@ -870,6 +870,7 @@ public:
         std::int64_t& serverRefreshInterval,
         std::int64_t& unitPublishInterval,
         std::int64_t& unitRefreshInterval);
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     static crypto::key::Ed25519* Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -894,6 +895,7 @@ public:
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     static api::crypto::Encode* Encode(const api::Crypto& crypto);
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
@@ -1397,9 +1399,12 @@ public:
         const identity::credential::internal::Primary& master,
         const proto::Credential& credential,
         const opentxs::PasswordPrompt& reason);
+#if OT_CRYPTO_USING_LIBSECP256K1
     static crypto::Secp256k1* Secp256k1(
         const api::Crypto& crypto,
         const api::crypto::Util& util);
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     static crypto::key::Secp256k1* Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -1424,6 +1429,7 @@ public:
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     static auto SecurityContract(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -1605,8 +1611,10 @@ public:
         const OTPassword& primaryPassword,
         const OTPassword& secondaryPassword);
 #endif
+#if OT_CRYPTO_USING_TREZOR
     OPENTXS_EXPORT static auto Trezor(const api::Crypto& crypto)
         -> crypto::Trezor*;
+#endif  // OT_CRYPTO_USING_TREZOR
     static api::client::UI* UI(
         const api::client::internal::Manager& api,
         const Flag& running

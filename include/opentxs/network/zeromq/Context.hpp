@@ -57,8 +57,10 @@ namespace zeromq
 class Context
 {
 public:
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     OPENTXS_EXPORT static std::string EncodePrivateZ85(
         const opentxs::crypto::key::Ed25519& key) noexcept;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     OPENTXS_EXPORT static std::string RawToZ85(
         const void* input,
         const std::size_t size) noexcept;

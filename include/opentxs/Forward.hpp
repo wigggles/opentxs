@@ -183,12 +183,20 @@ namespace crypto
 namespace key
 {
 class Asymmetric;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
 class Ed25519;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 class EllipticCurve;
 class Keypair;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 class HD;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 class RSA;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 class Secp256k1;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 class Symmetric;
 }  // namespace key
 
@@ -199,11 +207,17 @@ class Bitcoin;
 class EcdsaProvider;
 class EncodingProvider;
 class HashingProvider;
+#if OT_CRYPTO_USING_OPENSSL
 class OpenSSL;
+#endif  // OT_CRYPTO_USING_OPENSSL
+#if OT_CRYPTO_USING_LIBSECP256K1
 class Secp256k1;
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
 class Sodium;
 class SymmetricProvider;
+#if OT_CRYPTO_USING_TREZOR
 class Trezor;
+#endif  // OT_CRYPTO_USING_TREZOR
 }  // namespace crypto
 
 namespace identifier

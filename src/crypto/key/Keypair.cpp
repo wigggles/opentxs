@@ -29,7 +29,9 @@
 
 #include "Keypair.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #define OT_METHOD "opentxs::crypto::key::implementation::Keypair::"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
 template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
 
@@ -85,6 +87,7 @@ Keypair::Keypair(
     , role_(role)
 {
     // TODO refactor RSA keys to make them behave like ECDSA keys
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     if (proto::AKEYTYPE_LEGACY == params.AsymmetricKeyType()) {
         m_pkeyPublic =
             api.Factory().AsymmetricKey(params, reason, role, version);
@@ -92,13 +95,16 @@ Keypair::Keypair(
 
         OT_ASSERT(haveKeys);
     } else {
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         auto derived =
             dynamic_cast<EllipticCurve&>(m_pkeyPrivate.get()).asPublic(reason);
 
         OT_ASSERT(derived)
 
         m_pkeyPublic = OTAsymmetricKey{derived.release()};
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     OT_ASSERT(m_pkeyPublic.get());
     OT_ASSERT(m_pkeyPrivate.get());
@@ -233,9 +239,10 @@ bool Keypair::GetTransportKey(
     return m_pkeyPrivate->TransportKey(publicKey, privateKey, reason);
 }
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 bool Keypair::make_new_keypair(const NymParameters& nymParameters)
 {
-    LowLevelKeyGenerator lowLevelKeys(api_, nymParameters);
+    LowLevelKeyGenerator lowLevelKeys(nymParameters);
 
     if (!lowLevelKeys.MakeNewKeypair()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -249,4 +256,5 @@ bool Keypair::make_new_keypair(const NymParameters& nymParameters)
 
     return lowLevelKeys.SetOntoKeypair(*this, reason);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 }  // namespace opentxs::crypto::key::implementation

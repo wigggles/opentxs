@@ -143,18 +143,5 @@ Ed25519::Ed25519(const Ed25519& rhs) noexcept
     , ot_super(rhs)
 {
 }
-
-bool Ed25519::hasCapability(const NymCapability& capability) const
-{
-    switch (capability) {
-        case (NymCapability::AUTHENTICATE_CONNECTION): {
-
-            return true;
-        }
-        default: {
-            return ot_super::hasCapability(capability);
-        }
-    }
-}
 }  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519

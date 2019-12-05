@@ -5,33 +5,19 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/mkcert.hpp"
-#endif
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/core/Data.hpp"
-#endif
 #include "opentxs/core/Log.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/crypto/key/Ed25519.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/key/Keypair.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/crypto/key/RSA.hpp"
-#endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/crypto/key/Secp256k1.hpp"
-#endif
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/crypto/library/Secp256k1.hpp"
-#endif
-#include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/Types.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -59,18 +45,6 @@ public:
     virtual ~LowLevelKeyGeneratordp() = default;
 };
 
-class LowLevelKeyGenerator::LowLevelKeyGeneratorECdp
-    : public LowLevelKeyGeneratordp
-{
-public:
-    OTPassword privateKey_;
-    OTData publicKey_;
-
-    LowLevelKeyGeneratorECdp();
-    virtual void Cleanup();
-};
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
 class LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp
     : public LowLevelKeyGeneratordp
 {
@@ -83,7 +57,6 @@ public:
      */
     EVP_PKEY* m_pKey = nullptr;
 };
-#endif
 
 LowLevelKeyGenerator::~LowLevelKeyGenerator()
 {
@@ -92,11 +65,8 @@ LowLevelKeyGenerator::~LowLevelKeyGenerator()
     if (pkeyData_) { pkeyData_.release(); }
 }
 
-LowLevelKeyGenerator::LowLevelKeyGenerator(
-    const api::internal::Core& api,
-    const NymParameters& pkeyData)
-    : api_(api)
-    , dp()
+LowLevelKeyGenerator::LowLevelKeyGenerator(const NymParameters& pkeyData)
+    : dp()
     , pkeyData_()
     , m_bCleanup(true)
 {
@@ -105,22 +75,11 @@ LowLevelKeyGenerator::LowLevelKeyGenerator(
     OT_ASSERT(pkeyData_);
 
     switch (pkeyData_->nymParameterType()) {
-#if OT_CRYPTO_USING_LIBSECP256K1
-        case (NymParameterType::secp256k1):
-#endif
-        case (NymParameterType::ed25519): {
-            dp.reset(new LowLevelKeyGeneratorECdp);
-
-            break;
-        }
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (NymParameterType::rsa): {
             dp.reset(new LowLevelKeyGeneratorOpenSSLdp);
-
-            break;
-        }
-#endif
+        } break;
         default: {
+            OT_FAIL;
         }
     }
 }
@@ -134,7 +93,6 @@ void LowLevelKeyGenerator::Cleanup()
     if (dp) { dp->Cleanup(); }
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
 void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
 {
     if (nullptr != m_pKey) {
@@ -146,47 +104,12 @@ void LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp::Cleanup()
         m_pX509 = nullptr;
     }
 }
-#endif
-
-LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::LowLevelKeyGeneratorECdp()
-    : privateKey_()
-    , publicKey_(Data::Factory())
-{
-}
-
-void LowLevelKeyGenerator::LowLevelKeyGeneratorECdp::Cleanup()
-{
-    privateKey_.zeroMemory();
-}
 
 bool LowLevelKeyGenerator::MakeNewKeypair()
 {
     if (!pkeyData_) { return false; }
 
     switch (pkeyData_->nymParameterType()) {
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (NymParameterType::ed25519): {
-            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                api_.Crypto().ED25519());
-            LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
-                static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
-                    *dp);
-
-            return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (NymParameterType::secp256k1): {
-            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                api_.Crypto().SECP256K1());
-            LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
-                static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
-                    *dp);
-
-            return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (NymParameterType::rsa): {
 #if OT_CRYPTO_USING_OPENSSL
             //  OpenSSL_BIO bio_err = nullptr;
@@ -246,7 +169,6 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
             return true;
 #endif
         }
-#endif
         default: {
 
             return false;  // unsupported keyType
@@ -268,93 +190,6 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
     auto& keypair = dynamic_cast<crypto::key::implementation::Keypair&>(input);
 
     switch (pkeyData_->nymParameterType()) {
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (NymParameterType::ed25519): {
-            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                api_.Crypto().ED25519());
-            LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
-                static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
-                    *dp);
-
-            // Since we are in ed25519-specific code, we have to make sure these
-            // are ed25519-specific keys.
-            auto* pPublicKey = dynamic_cast<crypto::key::Ed25519*>(
-                &keypair.m_pkeyPublic.get());
-            auto* pPrivateKey = dynamic_cast<crypto::key::Ed25519*>(
-                &keypair.m_pkeyPrivate.get());
-
-            if (nullptr == pPublicKey) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": dynamic_cast of public key to crypto::key::Ed25519 "
-                    "failed.")
-                    .Flush();
-
-                return false;
-            }
-
-            if (nullptr == pPrivateKey) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": dynamic_cast of private key to crypto::key::Ed25519 "
-                    "failed.")
-                    .Flush();
-
-                return false;
-            }
-
-            pPublicKey->SetAsPublic();
-            pPrivateKey->SetAsPrivate();
-            const bool pubkeySet =
-                engine.ECPubkeyToAsymmetricKey(ldp.publicKey_, *pPublicKey);
-            const bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
-                api_, ldp.privateKey_, reason, *pPrivateKey);
-
-            return (pubkeySet && privkeySet);
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (NymParameterType::secp256k1): {
-            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
-                api_.Crypto().SECP256K1());
-            LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
-                static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
-                    *dp);
-
-            // Since we are in secp256k1-specific code, we have to make sure
-            // these are secp256k1-specific keys.
-            auto* pPublicKey = dynamic_cast<crypto::key::Secp256k1*>(
-                &keypair.m_pkeyPublic.get());
-            auto* pPrivateKey = dynamic_cast<crypto::key::Secp256k1*>(
-                &keypair.m_pkeyPrivate.get());
-
-            if (nullptr == pPublicKey) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": dynamic_cast of public key to "
-                    "crypto::key::AsymmetricSecp256k1 failed.")
-                    .Flush();
-
-                return false;
-            }
-
-            if (nullptr == pPrivateKey) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": dynamic_cast of private key to "
-                    "crypto::key::AsymmetricSecp256k1 failed.")
-                    .Flush();
-
-                return false;
-            }
-
-            pPublicKey->SetAsPublic();
-            pPrivateKey->SetAsPrivate();
-            const bool pubkeySet =
-                engine.ECPubkeyToAsymmetricKey(ldp.publicKey_, *pPublicKey);
-            const bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
-                api_, ldp.privateKey_, reason, *pPrivateKey);
-
-            return (pubkeySet && privkeySet);
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (NymParameterType::rsa): {
 #if OT_CRYPTO_USING_OPENSSL
             LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp& ldp =
@@ -401,7 +236,6 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
             break;
 #endif  // OT_CRYPTO_USING_OPENSSL
         }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unknown key type").Flush();
 
@@ -410,3 +244,4 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
     }
 }
 }  // namespace opentxs
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

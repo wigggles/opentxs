@@ -15,6 +15,7 @@
 #include "opentxs/crypto/library/Sodium.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "util/Sodium.hpp"
 #include "AsymmetricProvider.hpp"
 #include "EcdsaProvider.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -276,29 +277,6 @@ bool Sodium::Encrypt(
     return result;
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-bool Sodium::ExpandSeed(
-    const OTPassword& seed,
-    OTPassword& privateKey,
-    Data& publicKey) const
-{
-    if (!seed.isMemory()) { return false; }
-
-    if (crypto_sign_SEEDBYTES != seed.getMemorySize()) { return false; }
-
-    std::array<unsigned char, crypto_sign_SECRETKEYBYTES> secretKeyBlank{};
-    privateKey.setMemory(secretKeyBlank.data(), secretKeyBlank.size());
-    std::array<unsigned char, crypto_sign_PUBLICKEYBYTES> publicKeyBlank{};
-    const auto output = ::crypto_sign_seed_keypair(
-        publicKeyBlank.data(),
-        static_cast<unsigned char*>(privateKey.getMemoryWritable()),
-        static_cast<const unsigned char*>(seed.getMemory()));
-    publicKey.Assign(publicKeyBlank.data(), publicKeyBlank.size());
-
-    return (0 == output);
-}
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-
 bool Sodium::HMAC(
     const proto::HashType hashType,
     const std::uint8_t* input,
@@ -385,7 +363,7 @@ bool Sodium::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
     OTPassword notUsed;
     privateKey.randomizeMemory(crypto_sign_SEEDBYTES);
 
-    return ExpandSeed(privateKey, notUsed, publicKey);
+    return sodium::ExpandSeed(privateKey, notUsed, publicKey);
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
@@ -418,56 +396,7 @@ bool Sodium::ScalarBaseMultiply(const OTPassword& seed, Data& publicKey) const
 {
     OTPassword notUsed;
 
-    return ExpandSeed(seed, notUsed, publicKey);
-}
-
-bool Sodium::SeedToCurveKey(
-    const OTPassword& seed,
-    OTPassword& privateKey,
-    Data& publicKey) const
-{
-    auto intermediatePublic = Data::Factory();
-    ;
-    OTPassword intermediatePrivate;
-
-    if (!ExpandSeed(seed, intermediatePrivate, intermediatePublic)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to expand seed.").Flush();
-
-        return false;
-    }
-
-    std::array<unsigned char, crypto_scalarmult_curve25519_BYTES> blank{};
-    privateKey.setMemory(blank.data(), blank.size());
-    const bool havePrivate = crypto_sign_ed25519_sk_to_curve25519(
-        static_cast<unsigned char*>(privateKey.getMemoryWritable()),
-        static_cast<const unsigned char*>(intermediatePrivate.getMemory()));
-
-    if (0 != havePrivate) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to convert private key from ed25519 to curve25519.")
-            .Flush();
-
-        return false;
-    }
-
-    const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
-        blank.data(),
-        static_cast<const unsigned char*>(intermediatePublic->data()));
-
-    if (0 != havePublic) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to convert public key from ed25519 to curve25519.")
-            .Flush();
-
-        return false;
-    }
-
-    publicKey.Assign(blank.data(), blank.size());
-
-    OT_ASSERT(crypto_scalarmult_BYTES == publicKey.size());
-    OT_ASSERT(crypto_scalarmult_SCALARBYTES == privateKey.getMemorySize());
-
-    return true;
+    return sodium::ExpandSeed(seed, notUsed, publicKey);
 }
 
 bool Sodium::Sign(
@@ -514,7 +443,7 @@ bool Sodium::Sign(
 
     auto notUsed = Data::Factory();
     OTPassword privKey;
-    const bool keyExpanded = ExpandSeed(seed, privKey, notUsed);
+    const bool keyExpanded = sodium::ExpandSeed(seed, privKey, notUsed);
 
     if (!keyExpanded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

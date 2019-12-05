@@ -40,13 +40,8 @@ public:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     const crypto::AsymmetricProvider& secp256k1_;
 #endif
-#if OT_CRYPTO_USING_LIBSECP256K1
-#if OT_CRYPTO_USING_TREZOR
-    const crypto::AsymmetricProvider& trezor_;
-#endif  // OT_CRYPTO_USING_TREZOR
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
 
-    Test_Signatures()
+    [[maybe_unused]] Test_Signatures()
         : client_(dynamic_cast<const ot::api::client::internal::Manager&>(
               ot::Context().StartClient({}, 0)))
         , fingerprint_(client_.Exec().Wallet_ImportSeed(
@@ -68,12 +63,6 @@ public:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
         , secp256k1_(client_.Crypto().SECP256K1())
 #endif
-#if OT_CRYPTO_USING_LIBSECP256K1
-#if OT_CRYPTO_USING_TREZOR
-        , trezor_(dynamic_cast<const crypto::AsymmetricProvider&>(
-              client_.Crypto().BIP32()))
-#endif  // OT_CRYPTO_USING_TREZOR
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
     {
     }
 
@@ -100,7 +89,7 @@ public:
                 .release()};
     }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    static OTAsymmetricKey get_key(
+    [[maybe_unused]] static OTAsymmetricKey get_key(
         const ot::api::client::Manager& api,
         const EcdsaCurve& curve)
     {
@@ -118,7 +107,7 @@ public:
         return api.Factory().AsymmetricKey(params, reason);
     }
 
-    bool test_signature(
+    [[maybe_unused]] bool test_signature(
         const Data& plaintext,
         const crypto::AsymmetricProvider& lib,
         const crypto::key::Asymmetric& key,
@@ -133,7 +122,7 @@ public:
         return haveSig || verified;
     }
 
-    bool bad_signature(
+    [[maybe_unused]] bool bad_signature(
         const crypto::AsymmetricProvider& lib,
         const crypto::key::Asymmetric& key,
         const proto::HashType hash)
@@ -303,145 +292,4 @@ TEST_F(Test_Signatures, Secp256k1_HD_Signatures)
         true, bad_signature(secp256k1_, secp256k1_legacy_, hash_blake512_));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-
-#if OT_CRYPTO_USING_LIBSECP256K1
-#if OT_CRYPTO_USING_TREZOR
-TEST_F(Test_Signatures, Crosscheck_Trezor_Secp256k1)
-{
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, secp256k1_, trezor_, secp256k1_hd_, hash_sha256_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, secp256k1_, trezor_, secp256k1_legacy_, hash_sha256_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, secp256k1_, trezor_, secp256k1_hd_, hash_sha512_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, secp256k1_, trezor_, secp256k1_legacy_, hash_sha512_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, secp256k1_, trezor_, secp256k1_hd_, hash_blake160_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1,
-            secp256k1_,
-            trezor_,
-            secp256k1_legacy_,
-            hash_blake160_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, secp256k1_, trezor_, secp256k1_hd_, hash_blake256_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1,
-            secp256k1_,
-            trezor_,
-            secp256k1_legacy_,
-            hash_blake256_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, secp256k1_, trezor_, secp256k1_hd_, hash_blake512_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1,
-            secp256k1_,
-            trezor_,
-            secp256k1_legacy_,
-            hash_blake512_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, trezor_, secp256k1_, secp256k1_hd_, hash_sha256_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, trezor_, secp256k1_, secp256k1_legacy_, hash_sha256_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, trezor_, secp256k1_, secp256k1_hd_, hash_sha512_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, trezor_, secp256k1_, secp256k1_legacy_, hash_sha512_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, trezor_, secp256k1_, secp256k1_hd_, hash_blake160_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1,
-            trezor_,
-            secp256k1_,
-            secp256k1_legacy_,
-            hash_blake160_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, trezor_, secp256k1_, secp256k1_hd_, hash_blake256_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1,
-            trezor_,
-            secp256k1_,
-            secp256k1_legacy_,
-            hash_blake256_));
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1, trezor_, secp256k1_, secp256k1_hd_, hash_blake512_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_EQ(
-        true,
-        crosscheck_signature(
-            plaintext_1,
-            trezor_,
-            secp256k1_,
-            secp256k1_legacy_,
-            hash_blake512_));
-}
-#endif  // OT_CRYPTO_USING_TREZOR
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
 }  // namespace

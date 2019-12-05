@@ -7,9 +7,11 @@
 
 #include "Internal.hpp"
 
+#if OT_BLOCKCHAIN
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/Network.hpp"
+#endif  // OT_BLOCKCHAIN
 
 #include "internal/core/Core.hpp"
 
@@ -19,6 +21,7 @@
 #include <tuple>
 #include <vector>
 
+#if OT_BLOCKCHAIN
 namespace opentxs
 {
 template <>
@@ -46,9 +49,11 @@ using Segments = std::set<ChainSegment>;
 // parent block hash, disconnected block hash
 using DisconnectedList = std::multimap<block::pHash, block::pHash>;
 }  // namespace opentxs::blockchain::client
+#endif  // OT_BLOCKCHAIN
 
 namespace opentxs::blockchain::client::internal
 {
+#if OT_BLOCKCHAIN
 struct FilterDatabase {
     virtual block::Position CurrentTip(const filter::Type type) const
         noexcept = 0;
@@ -208,6 +213,7 @@ struct UpdateTransaction {
 
     virtual ~UpdateTransaction() = default;
 };
+#endif  // OT_BLOCKCHAIN
 
 struct Wallet {
     virtual ~Wallet() = default;

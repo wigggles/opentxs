@@ -159,7 +159,7 @@ void CompactSize::convert_to_raw(std::vector<std::byte>& output) const noexcept
 {
     OT_ASSERT(std::numeric_limits<SizeType>::max() >= data_);
 
-    SizeType value(data_);
+    auto value{static_cast<SizeType>(data_)};
     be::native_to_little_inplace(value);
     const auto bytes = Data::Factory(&value, sizeof(value));
 
