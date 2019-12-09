@@ -39,12 +39,12 @@ public:
     OTZMQListenCallback callback_;
     OTZMQSubscribeSocket subscriber_;
     const ui::ContactList& contact_list_;
-    std::thread loop_;
     std::atomic<bool> shutdown_;
     const OTPaymentCode bob_payment_code_;
     OTIdentifier bob_contact_id_;
     const OTPaymentCode chris_payment_code_;
     OTIdentifier chris_contact_id_;
+    std::thread loop_;
 
     Test_ContactList()
         : client_(ot::Context().StartClient({}, 0))
@@ -66,7 +66,6 @@ public:
               }))
         , subscriber_(setup_listener(client_, callback_))
         , contact_list_(client_.UI().ContactList(nym_id_))
-        , loop_(&Test_ContactList::loop, this)
         , shutdown_(false)
         , bob_payment_code_(
               client_.Factory().PaymentCode(BOB_PAYMENT_CODE, reason_))
@@ -74,6 +73,7 @@ public:
         , chris_payment_code_(
               client_.Factory().PaymentCode(CHRIS_PAYMENT_CODE, reason_))
         , chris_contact_id_(Identifier::Factory())
+        , loop_(&Test_ContactList::loop, this)
     {
     }
 

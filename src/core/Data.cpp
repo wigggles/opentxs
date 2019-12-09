@@ -534,7 +534,7 @@ void Data::Release()
     Initialize();
 }
 
-void Data::SetSize(const std::size_t& size)
+void Data::SetSize(const std::size_t size)
 {
     Release();
 
