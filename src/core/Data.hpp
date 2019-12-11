@@ -70,7 +70,8 @@ public:
     bool Randomize(const std::size_t& size) final;
     void Release() final;
     void reset() final { position_ = 0; }
-    void SetSize(const std::size_t& size) final;
+    void resize(const std::size_t size) final { data_.resize(size); }
+    void SetSize(const std::size_t size) final;
     std::string str() const override;
     void swap(opentxs::Data&& rhs) final;
     void zeroMemory() final;

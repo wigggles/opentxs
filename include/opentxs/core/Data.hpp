@@ -161,7 +161,8 @@ public:
     OPENTXS_EXPORT virtual bool Randomize(const std::size_t& size) = 0;
     OPENTXS_EXPORT virtual void Release() = 0;
     OPENTXS_EXPORT virtual void reset() = 0;
-    OPENTXS_EXPORT virtual void SetSize(const std::size_t& size) = 0;
+    OPENTXS_EXPORT virtual void resize(const std::size_t size) = 0;
+    OPENTXS_EXPORT virtual void SetSize(const std::size_t size) = 0;
     OPENTXS_EXPORT virtual std::string str() const = 0;
     OPENTXS_EXPORT virtual void swap(Data&& rhs) = 0;
     OPENTXS_EXPORT virtual void zeroMemory() = 0;

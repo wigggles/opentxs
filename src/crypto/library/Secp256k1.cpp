@@ -109,7 +109,16 @@ bool Secp256k1::Sign(
         return false;
     }
 
+    if (0 == hash->size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid hash").Flush();
+
+        return false;
+    }
+
+    hash->resize(32);
+
     OT_ASSERT(nullptr != hash->data());
+    OT_ASSERT(32 == hash->size());
 
     OTPassword privKey;
     bool havePrivateKey{false};
@@ -126,6 +135,7 @@ bool Secp256k1::Sign(
 
     if (havePrivateKey) {
         OT_ASSERT(nullptr != privKey.getMemory());
+        OT_ASSERT(32 == privKey.getMemorySize());
 
         secp256k1_ecdsa_signature ecdsaSignature{};
         bool signatureCreated = secp256k1_ecdsa_sign(
@@ -150,8 +160,7 @@ bool Secp256k1::Sign(
         }
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Can not extract ecdsa private key from "
-            "Asymmetric.")
+            ": Can not extract ecdsa private key from Asymmetric.")
             .Flush();
 
         return false;
