@@ -86,8 +86,12 @@ Manager::Manager(
     , contacts_(opentxs::Factory::ContactAPI(*this))
     , activity_(opentxs::Factory::Activity(*this, *contacts_))
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    , blockchain_(
-          opentxs::Factory::BlockchainAPI(*this, *activity_, *contacts_))
+    , blockchain_(opentxs::Factory::BlockchainAPI(
+          *this,
+          *activity_,
+          *contacts_,
+          parent_.Legacy(),
+          dataFolder))
 #endif
     , workflow_(opentxs::Factory::Workflow(*this, *activity_, *contacts_))
     , ot_api_(new OT_API(

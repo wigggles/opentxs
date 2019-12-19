@@ -12,6 +12,12 @@ namespace opentxs::implementation
 class Data : virtual public opentxs::Data
 {
 public:
+    operator std::string_view() const noexcept final
+    {
+        return std::string_view{reinterpret_cast<const char*>(data_.data()),
+                                data_.size()};
+    }
+
     bool operator==(const opentxs::Data& rhs) const final;
     bool operator!=(const opentxs::Data& rhs) const final;
     bool operator<(const opentxs::Data& rhs) const final;

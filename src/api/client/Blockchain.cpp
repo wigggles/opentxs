@@ -26,6 +26,9 @@
 #endif
 #include "opentxs/crypto/Bip32.hpp"
 
+#if OT_BLOCKCHAIN
+#include "api/client/blockchain/database/Database.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/api/client/Client.hpp"
 #if OT_BLOCKCHAIN
@@ -52,11 +55,14 @@
 namespace opentxs
 {
 api::client::Blockchain* Factory::BlockchainAPI(
-    const api::internal::Core& api,
+    const api::client::internal::Manager& api,
     const api::client::Activity& activity,
-    const api::client::Contacts& contacts)
+    const api::client::Contacts& contacts,
+    const api::Legacy& legacy,
+    const std::string& dataFolder)
 {
-    return new api::client::implementation::Blockchain(api, activity, contacts);
+    return new api::client::implementation::Blockchain(
+        api, activity, contacts, legacy, dataFolder);
 }
 }  // namespace opentxs
 
@@ -86,9 +92,11 @@ const Blockchain::StyleReverseMap Blockchain::address_style_reverse_map_{
     reverse_map(address_style_map_)};
 
 Blockchain::Blockchain(
-    const api::internal::Core& api,
+    const api::client::internal::Manager& api,
     const api::client::Activity& activity,
-    const api::client::Contacts& contacts) noexcept
+    const api::client::Contacts& contacts,
+    [[maybe_unused]] const api::Legacy& legacy,
+    [[maybe_unused]] const std::string& dataFolder) noexcept
     : api_(api)
     , activity_(activity)
     , contacts_(contacts)
@@ -97,6 +105,7 @@ Blockchain::Blockchain(
     , balance_lists_(*this)
     , txo_db_(*this)
 #if OT_BLOCKCHAIN
+    , db_(api, legacy, dataFolder)
     , networks_()
 #endif  // OT_BLOCKCHAIN
 {
@@ -935,7 +944,7 @@ bool Blockchain::Start(const Chain type, const std::string& seednode) const
             auto [it, added] = networks_.emplace(
                 type,
                 opentxs::Factory::BlockchainNetworkBitcoin(
-                    api_, type, seednode));
+                    api_, *this, type, seednode));
 
             return it->second->Connect();
         }
@@ -944,6 +953,22 @@ bool Blockchain::Start(const Chain type, const std::string& seednode) const
     }
 
     return false;
+}
+
+auto Blockchain::Stop(const Chain type) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto it = networks_.find(type);
+
+    if (networks_.end() == it) { return false; }
+
+    OT_ASSERT(it->second);
+
+    it->second->Shutdown();
+
+    networks_.erase(it);
+
+    return true;
 }
 #endif  // OT_BLOCKCHAIN
 

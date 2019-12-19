@@ -28,35 +28,26 @@ public:
 
 private:
     using ot_super = Plugin;
-    using Databases = std::vector<MDB_dbi>;
 
     friend Factory;
 
-    enum class Table : std::size_t {
+    enum Table {
         Control = 0,
         A = 1,
         B = 2,
     };
 
-    mutable MDB_env* environment_;
-    mutable Databases databases_;
+    const lmdb::TableNames table_names_;
+    lmdb::LMDB lmdb_;
 
-    Table get_folder(const bool bucket) const;
-    MDB_dbi& get_database(const Table table) const;
-    std::string get_key(const std::string& key, const Table table) const;
+    Table get_table(const bool bucket) const;
     void store(
         const bool isTransaction,
         const std::string& key,
         const std::string& value,
         const bool bucket,
         std::promise<bool>* promise) const final;
-    bool store_key(
-        const std::string& key,
-        const Table table,
-        const std::string& value) const;
 
-    MDB_dbi init_db(const std::string& table);
-    void init_environment(const std::string& folder);
     void Init_StorageLMDB();
 
     StorageLMDB(

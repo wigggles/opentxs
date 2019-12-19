@@ -30,6 +30,13 @@ public:
         const blockchain::Subchain subchain,
         const Bip32Index index,
         const std::string& label) const noexcept final;
+#if OT_BLOCKCHAIN
+    const blockchain::database::implementation::Database& BlockchainDB() const
+        noexcept final
+    {
+        return db_;
+    }
+#endif  // OT_BLOCKCHAIN
     std::string CalculateAddress(
         const Chain chain,
         const blockchain::AddressStyle format,
@@ -57,6 +64,7 @@ public:
 #if OT_BLOCKCHAIN
     bool Start(const Chain type, const std::string& seednode) const
         noexcept final;
+    bool Stop(const Chain type) const noexcept final;
 #endif  // OT_BLOCKCHAIN
     bool StoreTransaction(
         const identifier::Nym& nymID,
@@ -147,6 +155,7 @@ private:
     mutable BalanceLists balance_lists_;
     mutable Txo txo_db_;
 #if OT_BLOCKCHAIN
+    blockchain::database::implementation::Database db_;
     mutable std::map<
         Chain,
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>
@@ -189,9 +198,11 @@ private:
     bool validate_nym(const identifier::Nym& nymID) const noexcept;
 
     Blockchain(
-        const api::internal::Core& api,
+        const api::client::internal::Manager& api,
         const api::client::Activity& activity,
-        const api::client::Contacts& contacts) noexcept;
+        const api::client::Contacts& contacts,
+        const api::Legacy& legacy,
+        const std::string& dataFolder) noexcept;
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;

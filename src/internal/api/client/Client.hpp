@@ -59,6 +59,10 @@ struct Blockchain : virtual public api::client::Blockchain {
     };
 
     virtual const api::internal::Core& API() const noexcept = 0;
+#if OT_BLOCKCHAIN
+    virtual const blockchain::database::implementation::Database& BlockchainDB()
+        const noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     virtual std::string CalculateAddress(
         const opentxs::blockchain::Type chain,
         const blockchain::AddressStyle format,

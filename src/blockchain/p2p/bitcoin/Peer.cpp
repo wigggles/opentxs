@@ -243,6 +243,8 @@ void Peer::process_addr(
     download_peers_.Bump();
 
     for (const auto& address : message) {
+        if (false == running_.get()) { return; }
+
         auto pAddress = address.clone_internal();
 
         OT_ASSERT(pAddress);
@@ -663,13 +665,26 @@ void Peer::process_headers(
         return;
     }
 
+    using Promise = std::promise<void>;
+    auto* promise = new Promise{};
+
+    OT_ASSERT(nullptr != promise);
+
+    auto future = promise->get_future();
+    auto pointer = reinterpret_cast<std::uintptr_t>(promise);
     const auto& message = *pMessage;
+    auto zmq = api_.ZeroMQ().Message();
+    zmq->AddFrame(pointer);
+    zmq->AddFrame();
 
-    for (const auto& header : message) {
-        network_.HeaderPipeline().Push(header.Serialize());
+    for (const auto& header : message) { zmq->AddFrame(header.Serialize()); }
+
+    network_.HeaderPipeline().Push(zmq);
+
+    if (std::future_status::ready ==
+        future.wait_for(std::chrono::seconds(30))) {
+        if (false == network_.IsSynchronized()) { request_headers(); }
     }
-
-    if (false == network_.IsSynchronized()) { request_headers(); }
 }
 
 void Peer::process_inv(
@@ -694,6 +709,8 @@ void Peer::process_inv(
     const auto& message = *pMessage;
 
     for (const auto& inv : message) {
+        if (false == running_.get()) { return; }
+
         LogVerbose("Received ")(blockchain::internal::DisplayString(chain_))(
             " ")(inv.DisplayType())(" (")(inv.hash_->asHex())(")")
             .Flush();
@@ -751,13 +768,14 @@ void Peer::process_merkleblock(
 
 void Peer::process_message(const zmq::Message& message) noexcept
 {
+    if (false == running_.get()) { return; }
+
     const auto& body = message.Body();
 
     if (2 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
 
         OT_FAIL;
-        ;
     }
 
     const auto& headerBytes = body.at(0);
@@ -1017,6 +1035,11 @@ void Peer::process_version(
         return;
     }
 
+    if ((1 == services.count(p2p::Service::Network)) ||
+        (1 == services.count(p2p::Service::Limited))) {
+        header_worker_.Start(manager_.Endpoint(Task::Getheaders));
+    }
+
     if (1 == services.count(p2p::Service::CompactFilters)) {
         cfilter_worker_.Start(manager_.Endpoint(Task::Getcfilters));
     }
@@ -1053,6 +1076,8 @@ void Peer::request_addresses() noexcept
 
 void Peer::request_cfilter(zmq::Message& in) noexcept
 {
+    if (false == running_.get()) { return; }
+
     const auto& body = in.Body();
 
     if (3 > body.size()) {

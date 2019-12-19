@@ -21,7 +21,7 @@ public:
     {
         return database_;
     }
-    bool Connect() noexcept { return Trigger(); }
+    bool Connect() noexcept;
     void Disconnect(const int id) const noexcept final;
     std::string Endpoint(const Task type) const noexcept final
     {
@@ -33,6 +33,7 @@ public:
         const filter::Type type,
         const block::Height start,
         const block::Hash& stop) const noexcept final;
+    void RequestHeaders() const noexcept final;
     void Shutdown() noexcept final;
 
     void init() noexcept final;
@@ -67,6 +68,7 @@ private:
         using EndpointMap = std::map<Task, std::string>;
         using SocketMap = std::map<Task, zmq::socket::Push*>;
 
+        OTZMQPushSocket getheaders_;
         OTZMQPushSocket getcfilters_;
         const EndpointMap endpoint_map_;
         const SocketMap socket_map_;
@@ -128,7 +130,6 @@ private:
 
     const api::internal::Core& api_;
     const internal::PeerDatabase& database_;
-    mutable std::mutex shutdown_;
     OTFlag running_;
     mutable IO io_context_;
     mutable Peers peers_;

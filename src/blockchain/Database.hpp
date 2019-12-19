@@ -14,18 +14,10 @@ public:
     {
         return peers_.Insert(std::move(address));
     }
-    bool ApplyUpdate(
-        std::unique_ptr<block::Header> header,
-        std::unique_ptr<client::internal::UpdateTransaction> update) const
+    bool ApplyUpdate(const client::UpdateTransaction& update) const
         noexcept final
     {
-        return headers_.ApplyUpdate(std::move(header), std::move(update));
-    }
-    bool ApplyUpdate(
-        std::unique_ptr<client::internal::UpdateTransaction> update) const
-        noexcept final
-    {
-        return headers_.ApplyUpdate({}, std::move(update));
+        return headers_.ApplyUpdate(update);
     }
     // Throws std::out_of_range if no block at that position
     block::pHash BestBlock(const block::Height position) const
@@ -114,6 +106,8 @@ public:
     ~Database() = default;
 
 private:
+    using Common = api::client::blockchain::database::implementation::Database;
+
     friend opentxs::Factory;
 
     struct Filters {
@@ -143,56 +137,59 @@ private:
     };
 
     struct Headers {
-        using HeaderMap =
-            std::map<block::pHash, std::unique_ptr<block::Header>>;
-
-        const api::internal::Core& api_;
-        const client::internal::Network& network_;
-        mutable std::mutex lock_;
-        HeaderMap block_headers_;
-        std::map<block::Height, block::pHash> best_chain_;
-        // parent block hash, disconnected block hash
-        std::multimap<block::pHash, block::pHash> disconnected_;
-        block::Position checkpoint_;
-        std::set<block::pHash> sibling_chains_;
-
-        static HeaderMap init_genesis(
-            const api::internal::Core& api,
-            const blockchain::Type type) noexcept;
-
         block::pHash BestBlock(const block::Height position) const
             noexcept(false);
-        std::unique_ptr<block::Header> CurrentBest() const noexcept;
+        std::unique_ptr<block::Header> CurrentBest() const noexcept
+        {
+            return load_header(best().second);
+        }
         block::Position CurrentCheckpoint() const noexcept;
         client::DisconnectedList DisconnectedHashes() const noexcept;
         bool HasDisconnectedChildren(const block::Hash& hash) const noexcept;
         bool HaveCheckpoint() const noexcept;
         bool HeaderExists(const block::Hash& hash) const noexcept;
+        void import_genesis(const blockchain::Type type) const noexcept;
         bool IsSibling(const block::Hash& hash) const noexcept;
         // Throws std::out_of_range if the header does not exist
-        std::unique_ptr<block::Header> LoadHeader(
-            const block::Hash& hash) const;
+        std::unique_ptr<block::Header> LoadHeader(const block::Hash& hash) const
+        {
+            return load_header(hash);
+        }
         std::vector<block::pHash> RecentHashes() const noexcept;
         client::Hashes SiblingHashes() const noexcept;
         // Returns null pointer if the header does not exist
         std::unique_ptr<block::Header> TryLoadHeader(
             const block::Hash& hash) const noexcept;
 
-        bool ApplyUpdate(
-            std::unique_ptr<block::Header> header,
-            std::unique_ptr<client::internal::UpdateTransaction>
-                update) noexcept;
+        bool ApplyUpdate(const client::UpdateTransaction& update) noexcept;
 
         Headers(
             const api::internal::Core& api,
             const client::internal::Network& network,
+            const Common& common,
+            const opentxs::storage::lmdb::LMDB& lmdb,
             const blockchain::Type type) noexcept;
 
     private:
+        const api::internal::Core& api_;
+        const client::internal::Network& network_;
+        const Common& common_;
+        const opentxs::storage::lmdb::LMDB& lmdb_;
+        mutable std::mutex lock_;
+
+        block::Position best() const noexcept;
+        block::Position best(const Lock& lock) const noexcept;
+        block::Position checkpoint(const Lock& lock) const noexcept;
+        bool header_exists(const Lock& lock, const block::Hash& hash) const
+            noexcept;
         // Throws std::out_of_range if the header does not exist
         std::unique_ptr<block::Header> load_header(
-            const Lock& lock,
             const block::Hash& hash) const noexcept(false);
+        bool pop_best(const std::size_t i, MDB_txn* parent) const noexcept;
+        bool push_best(
+            const block::Position next,
+            const bool setTip,
+            MDB_txn* parent) const noexcept;
         std::vector<block::pHash> recent_hashes(const Lock& lock) const
             noexcept;
     };
@@ -202,12 +199,14 @@ private:
         using ProtocolIndexMap = std::map<Protocol, std::set<OTIdentifier>>;
         using ServiceIndexMap = std::map<Service, std::set<OTIdentifier>>;
         using TypeIndexMap = std::map<Type, std::set<OTIdentifier>>;
+        using LastIndexMap = std::map<Time, std::set<OTIdentifier>>;
 
         mutable std::mutex lock_;
         AddressMap addresses_;
         ProtocolIndexMap protocols_;
         ServiceIndexMap services_;
         TypeIndexMap networks_;
+        LastIndexMap last_connected_;
 
         Address Find(
             const Protocol protocol,
@@ -219,13 +218,37 @@ private:
         Peers() noexcept;
     };
 
+    enum Table {
+        Config = 0,
+        BlockHeaderMetadata = 1,
+        BlockHeaderBest = 2,
+        ChainData = 3,
+        BlockHeaderSiblings = 4,
+        BlockHeaderDisconnected = 5,
+    };
+
+    enum class Key : std::size_t {
+        Version = 0,
+        TipHeight = 1,
+        CheckpointHeight = 2,
+        CheckpointHash = 3,
+    };
+
+    static const std::size_t db_version_;
+    static const opentxs::storage::lmdb::TableNames table_names_;
+
+    const Common& common_;
+    opentxs::storage::lmdb::LMDB lmdb_;
     mutable Filters filters_;
     mutable Headers headers_;
     mutable Peers peers_;
 
+    void init_db() noexcept;
+
     Database(
         const api::internal::Core& api,
         const client::internal::Network& network,
+        const Common& common,
         const blockchain::Type type) noexcept;
     Database() = delete;
     Database(const Database&) = delete;

@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #ifdef SWIG
@@ -85,6 +86,8 @@ public:
     OPENTXS_EXPORT static OTData Factory(const std::uint64_t in);
     OPENTXS_EXPORT static OTData Factory(const std::string in, const Mode mode);
 #endif
+
+    OPENTXS_EXPORT virtual operator std::string_view() const noexcept = 0;
 
     OPENTXS_EXPORT virtual bool operator==(const Data& rhs) const = 0;
     OPENTXS_EXPORT virtual bool operator!=(const Data& rhs) const = 0;

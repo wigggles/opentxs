@@ -13,10 +13,15 @@
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/Proto.tpp"
 
+#include "api/client/blockchain/database/Database.hpp"
+#include "blockchain/client/UpdateTransaction.hpp"
 #include "internal/api/Api.hpp"
+#include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 #include "internal/blockchain/Blockchain.hpp"
+#include "util/LMDB.hpp"
 
 #include <algorithm>
 #include <map>
@@ -27,32 +32,62 @@
 
 #include "Database.hpp"
 
-// #define OT_METHOD "opentxs::blockchain::implementation::Database::"
+#define OT_METHOD "opentxs::blockchain::implementation::Database::"
 
 namespace opentxs
 {
 blockchain::internal::Database* Factory::BlockchainDatabase(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
+    const api::client::blockchain::database::implementation::Database& common,
     const blockchain::Type type)
 {
     using ReturnType = blockchain::implementation::Database;
 
-    return new ReturnType(api, network, type);
+    return new ReturnType(api, network, common, type);
 }
 }  // namespace opentxs
 
 namespace opentxs::blockchain::implementation
 {
+template <typename Input>
+std::string_view tsv(const Input& in) noexcept
+{
+    return {reinterpret_cast<const char*>(&in), sizeof(in)};
+}
+
+const std::size_t Database::db_version_{1};
+const opentxs::storage::lmdb::TableNames Database::table_names_{
+    {Config, "config"},
+    {BlockHeaderMetadata, "block_header_metadata"},
+    {BlockHeaderBest, "best_header_chain"},
+    {ChainData, "block_header_data"},
+    {BlockHeaderSiblings, "block_siblings"},
+    {BlockHeaderDisconnected, "disconnected_block_headers"},
+};
+
 Database::Database(
     const api::internal::Core& api,
     const client::internal::Network& network,
+    const Common& common,
     const blockchain::Type type) noexcept
-    : internal::Database()
+    : common_(common)
+    , lmdb_(
+          table_names_,
+          common.AllocateStorageFolder(
+              std::to_string(static_cast<std::uint32_t>(type))),
+          {{Config, MDB_INTEGERKEY},
+           {BlockHeaderMetadata, 0},
+           {BlockHeaderBest, MDB_INTEGERKEY},
+           {ChainData, MDB_INTEGERKEY},
+           {BlockHeaderSiblings, 0},
+           {BlockHeaderDisconnected, MDB_DUPSORT}},
+          0)
     , filters_(api)
-    , headers_(api, network, type)
+    , headers_(api, network, common_, lmdb_, type)
     , peers_()
 {
+    init_db();
 }
 
 Database::Filters::Filters(const api::Core& api) noexcept
@@ -66,19 +101,18 @@ Database::Filters::Filters(const api::Core& api) noexcept
 Database::Headers::Headers(
     const api::internal::Core& api,
     const client::internal::Network& network,
+    const Common& common,
+    const opentxs::storage::lmdb::LMDB& lmdb,
     const blockchain::Type type) noexcept
     : api_(api)
     , network_(network)
+    , common_(common)
+    , lmdb_(lmdb)
     , lock_()
-    , block_headers_(init_genesis(api, type))
-    , best_chain_({{0, client::HeaderOracle::GenesisBlockHash(type)}})
-    , disconnected_()
-    , checkpoint_(make_blank<block::Position>::value(api_))
-    , sibling_chains_()
 {
-    OT_ASSERT(1 == block_headers_.size());
-    OT_ASSERT(1 == best_chain_.size());
-    OT_ASSERT(1 == block_headers_.count(best_chain_.crbegin()->second));
+    import_genesis(type);
+
+    OT_ASSERT(HeaderExists(best().second));
 }
 
 Database::Peers::Peers() noexcept
@@ -87,11 +121,12 @@ Database::Peers::Peers() noexcept
     , protocols_()
     , services_()
     , networks_()
+    , last_connected_()
 {
 }
 
-block::Position Database::Filters::CurrentTip(const filter::Type type) const
-    noexcept
+auto Database::Filters::CurrentTip(const filter::Type type) const noexcept
+    -> block::Position
 {
     Lock lock(lock_);
 
@@ -104,9 +139,9 @@ block::Position Database::Filters::CurrentTip(const filter::Type type) const
     }
 }
 
-bool Database::Filters::HaveFilter(
+auto Database::Filters::HaveFilter(
     const filter::Type type,
-    const block::Hash& block) const noexcept
+    const block::Hash& block) const noexcept -> bool
 {
     Lock lock(lock_);
 
@@ -119,9 +154,9 @@ bool Database::Filters::HaveFilter(
     }
 }
 
-bool Database::Filters::SetTip(
+auto Database::Filters::SetTip(
     const filter::Type type,
-    const block::Position position) const noexcept
+    const block::Position position) const noexcept -> bool
 {
     Lock lock(lock_);
     auto it = tip_.find(type);
@@ -135,10 +170,11 @@ bool Database::Filters::SetTip(
     return true;
 }
 
-bool Database::Filters::StoreFilter(
+auto Database::Filters::StoreFilter(
     const filter::Type type,
     const block::Hash& block,
     std::unique_ptr<const blockchain::internal::GCS> filter) const noexcept
+    -> bool
 {
     Lock lock(lock_);
     auto& map = filters_[type];
@@ -147,70 +183,147 @@ bool Database::Filters::StoreFilter(
     return 0 < map.count(block);
 }
 
-bool Database::Headers::ApplyUpdate(
-    std::unique_ptr<block::Header> newHeader,
-    std::unique_ptr<client::internal::UpdateTransaction> pUpdate) noexcept
+auto Database::Headers::ApplyUpdate(
+    const client::UpdateTransaction& update) noexcept -> bool
 {
-    Lock lock(lock_);
+    if (false == common_.StoreBlockHeaders(update.UpdatedHeaders())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save block headers")
+            .Flush();
 
-    if (false == bool(pUpdate)) { return false; }
-
-    auto& update = *pUpdate;
-
-    // TODO start atomic database transaction
-
-    if (newHeader) {
-        block_headers_.emplace(newHeader->Hash(), std::move(newHeader));
+        return false;
     }
 
-    if (update.HaveCheckpoint()) { checkpoint_ = update.Checkpoint(); }
+    Lock lock(lock_);
+    const auto initialHeight = best(lock).first;
+    auto parentTxn = lmdb_.TransactionRW();
 
-    for (const auto& it : update.Disconnected()) { disconnected_.emplace(it); }
+    if (update.HaveCheckpoint()) {
+        if (false ==
+            lmdb_
+                .Store(
+                    ChainData,
+                    tsv(static_cast<std::size_t>(Key::CheckpointHeight)),
+                    tsv(static_cast<std::size_t>(update.Checkpoint().first)),
+                    parentTxn)
+                .first) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to save checkpoint height")
+                .Flush();
+
+            return false;
+        }
+
+        if (false == lmdb_
+                         .Store(
+                             ChainData,
+                             tsv(static_cast<std::size_t>(Key::CheckpointHash)),
+                             update.Checkpoint().second.get(),
+                             parentTxn)
+                         .first) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to save checkpoint hash")
+                .Flush();
+
+            return false;
+        }
+    }
+
+    for (const auto& [parent, child] : update.Disconnected()) {
+        if (false == lmdb_
+                         .Store(
+                             BlockHeaderDisconnected,
+                             parent.get(),
+                             child.get(),
+                             parentTxn)
+                         .first) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to save disconnected hash")
+                .Flush();
+
+            return false;
+        }
+    }
 
     for (const auto& [parent, child] : update.Connected()) {
-        const auto [first, last] = disconnected_.equal_range(parent);
+        if (false == lmdb_.Delete(
+                         BlockHeaderDisconnected,
+                         parent.get(),
+                         child.get(),
+                         parentTxn)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to delete disconnected hash")
+                .Flush();
 
-        for (auto i = first; i != last;) {
-            if (child == i->second) {
-                i = disconnected_.erase(i);
-            } else {
-                ++i;
-            }
+            return false;
         }
     }
 
     for (const auto& hash : update.SiblingsToAdd()) {
-        sibling_chains_.emplace(hash);
+        if (false ==
+            lmdb_.Store(BlockHeaderSiblings, hash.get(), hash.get(), parentTxn)
+                .first) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save sibling hash")
+                .Flush();
+
+            return false;
+        }
     }
 
     for (const auto& hash : update.SiblingsToDelete()) {
-        sibling_chains_.erase(hash);
+        lmdb_.Delete(BlockHeaderSiblings, hash.get(), parentTxn);
     }
 
-    for (auto& [hash, header] : update.UpdatedHeaders()) {
-        block_headers_.at(hash).reset(header.release());
+    for (const auto& [hash, pair] : update.UpdatedHeaders()) {
+        const auto& [header, newBlock] = pair;
+        const auto result = lmdb_.Store(
+            BlockHeaderMetadata,
+            hash.get(),
+            proto::ToString(header->Serialize().local()),
+            parentTxn);
+
+        if (false == result.first) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to save block metadata")
+                .Flush();
+
+            return false;
+        }
     }
 
     if (update.HaveReorg()) {
-        while (static_cast<std::size_t>(update.ReorgParent().first) + 1 <
-               best_chain_.size()) {
-            best_chain_.erase(best_chain_.rbegin()->first);
+        for (auto i = initialHeight; i > update.ReorgParent().first; --i) {
+            if (false == pop_best(i, parentTxn)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to delete best hash")
+                    .Flush();
+
+                return false;
+            }
         }
     }
 
-    for (const auto& [height, hash] : update.BestChain()) {
-        OT_ASSERT(1 == block_headers_.count(hash));
+    for (const auto& position : update.BestChain()) {
+        push_best(position, false, parentTxn);
+    }
 
-        auto it = best_chain_.find(height);
+    if (0 < update.BestChain().size()) {
+        const auto& tip = *update.BestChain().crbegin();
 
-        if (best_chain_.end() == it) {
-            best_chain_.emplace(height, hash);
-        } else {
-            it->second = hash;
+        if (false == lmdb_
+                         .Store(
+                             ChainData,
+                             tsv(static_cast<std::size_t>(Key::TipHeight)),
+                             tsv(static_cast<std::size_t>(tip.first)),
+                             parentTxn)
+                         .first) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to store best hash")
+                .Flush();
+
+            return false;
         }
     }
 
-    // TODO commit database transaction
+    parentTxn.Finalize(true);
 
     if (update.HaveReorg()) {
         LogVerbose("Blockchain reorg detected. Last common ancestor is ")(
@@ -221,130 +334,304 @@ bool Database::Headers::ApplyUpdate(
         // TODO broadcast reorg signal
     }
 
-    network_.UpdateLocalHeight(*best_chain_.crbegin());
+    network_.UpdateLocalHeight(best(lock));
 
     return true;
 }
 
-block::pHash Database::Headers::BestBlock(const block::Height position) const
-    noexcept(false)
+auto Database::Headers::BestBlock(const block::Height position) const
+    noexcept(false) -> block::pHash
 {
-    Lock lock(lock_);
+    auto output = Data::Factory();
 
-    return best_chain_.at(position);
-}
+    if (0 > position) { return output; }
 
-Database::Headers::HeaderMap Database::Headers::init_genesis(
-    const api::internal::Core& api,
-    const blockchain::Type type) noexcept
-{
-    std::map<block::pHash, std::unique_ptr<block::Header>> output{};
-    output.emplace(
-        client::HeaderOracle::GenesisBlockHash(type),
-        opentxs::Factory::GenesisBlockHeader(api, type));
+    lmdb_.Load(
+        BlockHeaderBest,
+        tsv(static_cast<std::size_t>(position)),
+        [&](const auto in) -> void { output->Assign(in.data(), in.size()); });
 
     return output;
 }
 
-std::unique_ptr<block::Header> Database::Headers::CurrentBest() const noexcept
+auto Database::Headers::best() const noexcept -> block::Position
 {
     Lock lock(lock_);
 
-    return load_header(lock, best_chain_.crbegin()->second);
+    return best(lock);
 }
 
-block::Position Database::Headers::CurrentCheckpoint() const noexcept
+auto Database::Headers::best(const Lock& lock) const noexcept -> block::Position
+{
+    auto output = make_blank<block::Position>::value(api_);
+    auto height = std::size_t{0};
+
+    if (false ==
+        lmdb_.Load(
+            ChainData,
+            tsv(static_cast<std::size_t>(Key::TipHeight)),
+            [&](const auto in) -> void {
+                std::memcpy(
+                    &height, in.data(), std::min(in.size(), sizeof(height)));
+            })) {
+
+        return make_blank<block::Position>::value(api_);
+    }
+
+    if (false ==
+        lmdb_.Load(BlockHeaderBest, tsv(height), [&](const auto in) -> void {
+            output.second->Assign(in.data(), in.size());
+        })) {
+
+        return make_blank<block::Position>::value(api_);
+    }
+
+    output.first = height;
+
+    return output;
+}
+
+auto Database::Headers::checkpoint(const Lock& lock) const noexcept
+    -> block::Position
+{
+    auto output = make_blank<block::Position>::value(api_);
+    auto height = std::size_t{0};
+
+    if (false ==
+        lmdb_.Load(
+            ChainData,
+            tsv(static_cast<std::size_t>(Key::CheckpointHeight)),
+            [&](const auto in) -> void {
+                std::memcpy(
+                    &height, in.data(), std::min(in.size(), sizeof(height)));
+            })) {
+        return make_blank<block::Position>::value(api_);
+    }
+
+    if (false == lmdb_.Load(
+                     ChainData,
+                     tsv(static_cast<std::size_t>(Key::CheckpointHash)),
+                     [&](const auto in) -> void {
+                         output.second->Assign(in.data(), in.size());
+                     })) {
+
+        return make_blank<block::Position>::value(api_);
+    }
+
+    output.first = height;
+
+    return output;
+}
+
+auto Database::Headers::CurrentCheckpoint() const noexcept -> block::Position
 {
     Lock lock(lock_);
 
-    return checkpoint_;
+    return checkpoint(lock);
 }
 
-client::DisconnectedList Database::Headers::DisconnectedHashes() const noexcept
+auto Database::Headers::DisconnectedHashes() const noexcept
+    -> client::DisconnectedList
+{
+    Lock lock(lock_);
+    auto output = client::DisconnectedList{};
+    lmdb_.Read(
+        BlockHeaderDisconnected,
+        [&](const auto key, const auto value) -> bool {
+            output.emplace(
+                Data::Factory(key.data(), key.size()),
+                Data::Factory(value.data(), value.size()));
+
+            return true;
+        },
+        opentxs::storage::lmdb::LMDB::Dir::Forward);
+
+    return output;
+}
+
+auto Database::Headers::HasDisconnectedChildren(const block::Hash& hash) const
+    noexcept -> bool
 {
     Lock lock(lock_);
 
-    return disconnected_;
+    return lmdb_.Exists(BlockHeaderDisconnected, hash);
 }
 
-bool Database::Headers::HasDisconnectedChildren(const block::Hash& hash) const
-    noexcept
+auto Database::Headers::HaveCheckpoint() const noexcept -> bool
 {
     Lock lock(lock_);
 
-    return 0 < disconnected_.count(hash);
+    return 0 < checkpoint(lock).first;
 }
 
-bool Database::Headers::HaveCheckpoint() const noexcept
+auto Database::Headers::header_exists(const Lock& lock, const block::Hash& hash)
+    const noexcept -> bool
+{
+    return common_.BlockHeaderExists(hash) &&
+           lmdb_.Exists(BlockHeaderMetadata, hash);
+}
+
+auto Database::Headers::HeaderExists(const block::Hash& hash) const noexcept
+    -> bool
 {
     Lock lock(lock_);
 
-    return make_blank<block::Position>::value(api_) != checkpoint_;
+    return header_exists(lock, hash);
 }
 
-bool Database::Headers::HeaderExists(const block::Hash& hash) const noexcept
+auto Database::Headers::import_genesis(const blockchain::Type type) const
+    noexcept -> void
+{
+    auto success{false};
+    const auto& hash = client::HeaderOracle::GenesisBlockHash(type);
+
+    try {
+        const auto serialized = common_.LoadBlockHeader(hash);
+
+        if (false == lmdb_.Exists(BlockHeaderMetadata, hash)) {
+            auto genesis = api_.Factory().BlockHeader(serialized);
+
+            OT_ASSERT(genesis);
+
+            const auto result = lmdb_.Store(
+                BlockHeaderMetadata,
+                hash,
+                proto::ToString(genesis->Serialize().local()));
+
+            OT_ASSERT(result.first);
+        }
+    } catch (...) {
+        auto genesis = std::unique_ptr<blockchain::block::Header>{
+            opentxs::Factory::GenesisBlockHeader(api_, type)};
+
+        OT_ASSERT(genesis);
+
+        success = common_.StoreBlockHeader(*genesis);
+
+        OT_ASSERT(success);
+
+        success = lmdb_
+                      .Store(
+                          BlockHeaderMetadata,
+                          hash,
+                          proto::ToString(genesis->Serialize().local()))
+                      .first;
+
+        OT_ASSERT(success);
+    }
+
+    if (0 > best().first) {
+        auto transaction = lmdb_.TransactionRW();
+        success = push_best({0, hash}, true, transaction);
+
+        OT_ASSERT(success);
+
+        success = transaction.Finalize(true);
+
+        OT_ASSERT(success);
+    }
+}
+
+auto Database::Headers::IsSibling(const block::Hash& hash) const noexcept
+    -> bool
 {
     Lock lock(lock_);
 
-    return 0 < block_headers_.count(hash);
+    return lmdb_.Exists(BlockHeaderSiblings, hash);
 }
 
-bool Database::Headers::IsSibling(const block::Hash& hash) const noexcept
+auto Database::Headers::load_header(const block::Hash& hash) const
+    -> std::unique_ptr<block::Header>
 {
-    Lock lock(lock_);
+    auto proto = common_.LoadBlockHeader(hash);
+    const auto haveMeta =
+        lmdb_.Load(BlockHeaderMetadata, hash, [&](const auto data) {
+            proto.mutable_local()->ParseFromArray(data.data(), data.size());
+        });
 
-    return 0 < sibling_chains_.count(hash);
-}
+    if (false == haveMeta) {
+        throw std::out_of_range("Block header metadata not found");
+    }
 
-std::unique_ptr<block::Header> Database::Headers::LoadHeader(
-    const block::Hash& hash) const
-{
-    Lock lock(lock_);
-
-    return load_header(lock, hash);
-}
-
-std::unique_ptr<block::Header> Database::Headers::load_header(
-    const Lock& lock,
-    const block::Hash& hash) const
-{
-    const auto& output = block_headers_.at(hash);
+    auto output = api_.Factory().BlockHeader(proto);
 
     OT_ASSERT(output);
 
-    return output->clone();
+    return output;
 }
 
-std::vector<block::pHash> Database::Headers::RecentHashes() const noexcept
+auto Database::Headers::pop_best(const std::size_t i, MDB_txn* parent) const
+    noexcept -> bool
+{
+    return lmdb_.Delete(BlockHeaderBest, tsv(i), parent);
+}
+
+auto Database::Headers::push_best(
+    const block::Position next,
+    const bool setTip,
+    MDB_txn* parent) const noexcept -> bool
+{
+    OT_ASSERT(nullptr != parent);
+
+    auto output = lmdb_.Store(
+        BlockHeaderBest,
+        tsv(static_cast<std::size_t>(next.first)),
+        next.second.get(),
+        parent);
+
+    if (output.first && setTip) {
+        output = lmdb_.Store(
+            ChainData,
+            tsv(static_cast<std::size_t>(Key::TipHeight)),
+            tsv(static_cast<std::size_t>(next.first)),
+            parent);
+    }
+
+    return output.first;
+}
+
+auto Database::Headers::RecentHashes() const noexcept
+    -> std::vector<block::pHash>
 {
     Lock lock(lock_);
 
     return recent_hashes(lock);
 }
 
-std::vector<block::pHash> Database::Headers::recent_hashes(
-    const Lock& lock) const noexcept
+auto Database::Headers::recent_hashes(const Lock& lock) const noexcept
+    -> std::vector<block::pHash>
 {
-    std::vector<block::pHash> output{};
+    auto output = std::vector<block::pHash>{};
+    lmdb_.Read(
+        BlockHeaderBest,
+        [&](const auto, const auto value) -> bool {
+            output.emplace_back(Data::Factory(value.data(), value.size()));
 
-    for (auto i = best_chain_.crbegin(); i != best_chain_.crend(); ++i) {
-        output.emplace_back(i->second);
-
-        if (100 <= output.size()) { break; }
-    }
+            return 100 > output.size();
+        },
+        opentxs::storage::lmdb::LMDB::Dir::Backward);
 
     return output;
 }
 
-client::Hashes Database::Headers::SiblingHashes() const noexcept
+auto Database::Headers::SiblingHashes() const noexcept -> client::Hashes
 {
     Lock lock(lock_);
+    auto output = client::Hashes{};
+    lmdb_.Read(
+        BlockHeaderSiblings,
+        [&](const auto, const auto value) -> bool {
+            output.emplace(Data::Factory(value.data(), value.size()));
 
-    return sibling_chains_;
+            return true;
+        },
+        opentxs::storage::lmdb::LMDB::Dir::Forward);
+
+    return output;
 }
 
-std::unique_ptr<block::Header> Database::Headers::TryLoadHeader(
-    const block::Hash& hash) const noexcept
+auto Database::Headers::TryLoadHeader(const block::Hash& hash) const noexcept
+    -> std::unique_ptr<block::Header>
 {
     try {
         return LoadHeader(hash);
@@ -353,10 +640,10 @@ std::unique_ptr<block::Header> Database::Headers::TryLoadHeader(
     }
 }
 
-Database::Address Database::Peers::Find(
+auto Database::Peers::Find(
     const Protocol protocol,
     const std::set<Type> onNetworks,
-    const std::set<Service> withServices) const noexcept
+    const std::set<Service> withServices) const noexcept -> Database::Address
 {
     Lock lock(lock_);
 
@@ -420,7 +707,7 @@ Database::Address Database::Peers::Find(
     }
 }
 
-bool Database::Peers::Insert(Address pAddress) noexcept
+auto Database::Peers::Insert(Address pAddress) noexcept -> bool
 {
     if (false == bool(pAddress)) { return false; }
 
@@ -448,6 +735,7 @@ bool Database::Peers::Insert(Address pAddress) noexcept
     if (newAddress) {
         protocols_[address.Style()].emplace(id);
         networks_[address.Type()].emplace(id);
+        last_connected_[address.LastConnected()].emplace(id);
 
         for (const auto& service : newServices) {
             services_[service].emplace(id);
@@ -458,8 +746,24 @@ bool Database::Peers::Insert(Address pAddress) noexcept
                 services_[service].erase(id);
             }
         }
+
+        if (auto it = last_connected_.find(address.PreviousLastConnected());
+            last_connected_.end() != it) {
+            it->second.erase(address.ID());
+            last_connected_[address.LastConnected()].emplace(id);
+        }
     }
 
     return true;
+}
+
+auto Database::init_db() noexcept -> void
+{
+    if (false == lmdb_.Exists(Config, tsv(Key::Version))) {
+        const auto stored =
+            lmdb_.Store(Config, tsv(Key::Version), tsv(db_version_));
+
+        OT_ASSERT(stored.first);
+    }
 }
 }  // namespace opentxs::blockchain::implementation

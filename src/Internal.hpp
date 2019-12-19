@@ -50,6 +50,16 @@ namespace client
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace blockchain
 {
+#if OT_BLOCKCHAIN
+namespace database
+{
+namespace implementation
+{
+class Database;
+}  // namespace implementation
+}  // namespace database
+#endif  // OT_BLOCKCHAIN
+
 namespace internal
 {
 struct BalanceList;
@@ -185,9 +195,10 @@ struct HeaderOracle;
 struct Network;
 struct PeerDatabase;
 struct PeerManager;
-struct UpdateTransaction;
 struct Wallet;
 }  // namespace internal
+
+class UpdateTransaction;
 }  // namespace client
 
 namespace internal

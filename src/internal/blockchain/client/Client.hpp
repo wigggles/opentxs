@@ -42,7 +42,8 @@ namespace opentxs::blockchain::client
 {
 // parent hash, child hash
 using ChainSegment = std::pair<block::pHash, block::pHash>;
-using UpdatedHeader = std::map<block::pHash, std::unique_ptr<block::Header>>;
+using UpdatedHeader =
+    std::map<block::pHash, std::pair<std::unique_ptr<block::Header>, bool>>;
 using BestHashes = std::map<block::Height, block::pHash>;
 using Hashes = std::set<block::pHash>;
 using Segments = std::set<ChainSegment>;
@@ -88,16 +89,13 @@ struct HeaderOracle : virtual public opentxs::blockchain::client::HeaderOracle {
 };
 
 struct HeaderDatabase {
-    virtual bool ApplyUpdate(
-        std::unique_ptr<block::Header> header,
-        std::unique_ptr<UpdateTransaction> update) const noexcept = 0;
-    virtual bool ApplyUpdate(std::unique_ptr<UpdateTransaction> update) const
+    virtual bool ApplyUpdate(const client::UpdateTransaction& update) const
         noexcept = 0;
     // Throws std::out_of_range if no block at that position
     virtual block::pHash BestBlock(const block::Height position) const
         noexcept(false) = 0;
-    virtual block::Position CurrentCheckpoint() const noexcept = 0;
     virtual std::unique_ptr<block::Header> CurrentBest() const noexcept = 0;
+    virtual block::Position CurrentCheckpoint() const noexcept = 0;
     virtual DisconnectedList DisconnectedHashes() const noexcept = 0;
     virtual bool HasDisconnectedChildren(const block::Hash& hash) const
         noexcept = 0;
@@ -133,6 +131,7 @@ struct Network : virtual public opentxs::blockchain::Network {
         noexcept = 0;
 
     virtual client::HeaderOracle& HeaderOracle() noexcept = 0;
+    virtual bool Shutdown() noexcept = 0;
 
     virtual ~Network() = default;
 };
@@ -154,6 +153,7 @@ struct PeerDatabase {
 
 struct PeerManager {
     enum class Task {
+        Getheaders,
         Getcfilters,
     };
 
@@ -167,51 +167,12 @@ struct PeerManager {
         const filter::Type type,
         const block::Height start,
         const block::Hash& stop) const noexcept = 0;
+    virtual void RequestHeaders() const noexcept = 0;
 
     virtual void init() noexcept = 0;
     virtual void Shutdown() noexcept = 0;
 
     virtual ~PeerManager() = default;
-};
-
-struct UpdateTransaction {
-    virtual const BestHashes& BestChain() const = 0;
-    virtual const block::Position& Checkpoint() const = 0;
-    virtual const Segments& Connected() const = 0;
-    virtual const Segments& Disconnected() const = 0;
-    virtual bool HaveCheckpoint() const = 0;
-    virtual bool HaveReorg() const = 0;
-    // throws std::out_of_range if header does not exist
-    virtual const block::Header& Header(const block::Hash& hash) const = 0;
-    virtual bool IsInBestChain(const block::Position& position) const = 0;
-    virtual bool IsInBestChain(
-        const block::Height height,
-        const block::Hash& hash) const = 0;
-    virtual const block::Position& ReorgParent() const = 0;
-    virtual const Hashes& SiblingsToAdd() const = 0;
-    virtual const Hashes& SiblingsToDelete() const = 0;
-    virtual const block::Position& Tip() const = 0;
-    virtual bool TipIsBest() const = 0;
-
-    virtual void AddSibling(const block::Position& position) = 0;
-    virtual void AddToBestChain(const block::Position& position) = 0;
-    virtual void AddToBestChain(
-        const block::Height height,
-        const block::Hash& hash) = 0;
-    virtual void ClearCheckpoint() = 0;
-    virtual void ConnectBlock(ChainSegment&& segment) = 0;
-    virtual void DisconnectBlock(const block::Header& header) = 0;
-    virtual block::Header& ModifyExistingBlock(
-        std::unique_ptr<block::Header> header) = 0;
-    virtual void RemoveSibling(const block::Hash& hash) = 0;
-    virtual void SetCheckpoint(block::Position&& checkpoint) = 0;
-    virtual void SetReorg(const bool value) = 0;
-    virtual void SetReorgParent(const block::Position& pos) = 0;
-    virtual void SetTip(const block::Position& position) = 0;
-    virtual void SetTipBest(const bool isBest) = 0;
-    virtual UpdatedHeader& UpdatedHeaders() = 0;
-
-    virtual ~UpdateTransaction() = default;
 };
 #endif  // OT_BLOCKCHAIN
 

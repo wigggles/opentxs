@@ -55,6 +55,8 @@ public:
         const block::Hash& requiredHash) noexcept = 0;
     OPENTXS_EXPORT virtual bool AddHeader(
         std::unique_ptr<block::Header>) noexcept = 0;
+    OPENTXS_EXPORT virtual bool AddHeaders(
+        std::vector<std::unique_ptr<block::Header>>&) noexcept = 0;
     OPENTXS_EXPORT virtual bool DeleteCheckpoint() noexcept = 0;
 
     OPENTXS_EXPORT virtual ~HeaderOracle() = default;

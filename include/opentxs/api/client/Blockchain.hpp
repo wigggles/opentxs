@@ -72,6 +72,7 @@ public:
     OPENTXS_EXPORT virtual bool Start(
         const Chain type,
         const std::string& seednode = "") const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Stop(const Chain type) const noexcept = 0;
 #endif  // OT_BLOCKCHAIN
     OPENTXS_EXPORT virtual bool StoreTransaction(
         const identifier::Nym& nymID,
