@@ -316,7 +316,7 @@ bool Context::InitializeNymbox(const PasswordPrompt& reason)
     }
 
     const auto generated = nymbox->GenerateLedger(
-        ownerNymID, server_id_, ledgerType::nymbox, reason, true);
+        ownerNymID, server_id_, ledgerType::nymbox, true);
 
     if (false == generated) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
@@ -522,7 +522,7 @@ bool Context::save(const Lock& lock, const PasswordPrompt& reason)
     OT_ASSERT(verify_write_lock(lock));
 
     if (false == UpdateSignature(lock, reason)) { return false; }
-    if (false == ValidateContext(lock, reason)) { return false; }
+    if (false == ValidateContext(lock)) { return false; }
 
     return api_.Storage().Store(GetContract(lock));
 }
@@ -641,7 +641,7 @@ bool Context::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-bool Context::validate(const Lock& lock, const PasswordPrompt& reason) const
+bool Context::validate(const Lock& lock) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
@@ -653,7 +653,7 @@ bool Context::validate(const Lock& lock, const PasswordPrompt& reason) const
         return false;
     }
 
-    return verify_signature(lock, *signatures_.front(), reason);
+    return verify_signature(lock, *signatures_.front());
 }
 
 bool Context::verify_acknowledged_number(
@@ -685,12 +685,11 @@ bool Context::verify_issued_number(
 
 bool Context::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature,
-    const PasswordPrompt& reason) const
+    const proto::Signature& signature) const
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (!Signable::verify_signature(lock, signature, reason)) {
+    if (!Signable::verify_signature(lock, signature)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": (")(type())(") ")(
             "Error: invalid signature.")
             .Flush();
@@ -702,7 +701,7 @@ bool Context::verify_signature(
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->Verify(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto);
 }
 
 bool Context::VerifyAcknowledgedNumber(const RequestNumber& req) const

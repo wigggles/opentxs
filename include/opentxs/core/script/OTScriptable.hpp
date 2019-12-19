@@ -113,8 +113,7 @@ public:
     //
     OPENTXS_EXPORT virtual bool VerifyNymAsAgent(
         const identity::Nym& theNym,
-        const identity::Nym& theSignerNym,
-        const PasswordPrompt& reason) const;
+        const identity::Nym& theSignerNym) const;
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -155,8 +154,7 @@ public:
     // AND it wants to burn it, so it can't be used again!  This
     // bool allows you to tell the function whether or not to do
     // that.
-    OPENTXS_EXPORT bool VerifyThisAgainstAllPartiesSignedCopies(
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool VerifyThisAgainstAllPartiesSignedCopies();
     OPENTXS_EXPORT bool AllPartiesHaveSupposedlyConfirmed();
 
     void ClearTemporaryPointers();
@@ -350,9 +348,7 @@ protected:
     bool m_bSpecifyParties{false};  // Serialized. See above note.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     OTString m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
                           // us to use it in the OTScriptable methods where any

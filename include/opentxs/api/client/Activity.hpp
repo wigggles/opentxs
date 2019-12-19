@@ -63,8 +63,7 @@ public:
     OPENTXS_EXPORT virtual std::unique_ptr<Message> Mail(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box,
-        const PasswordPrompt& reason) const = 0;
+        const StorageBox& box) const = 0;
     /**   Store a mail object
      *
      *    \param[in] nym the identifier of the nym who owns the mail box
@@ -137,14 +136,12 @@ public:
     OPENTXS_EXPORT virtual ChequeData Cheque(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow,
-        const PasswordPrompt& reason) const = 0;
+        const std::string& workflow) const = 0;
 
     OPENTXS_EXPORT virtual TransferData Transfer(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow,
-        const PasswordPrompt& reason) const = 0;
+        const std::string& workflow) const = 0;
 
     /**   Summarize a payment workflow event in human-friendly test form
      *
@@ -157,8 +154,7 @@ public:
     OPENTXS_EXPORT virtual std::shared_ptr<const std::string> PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow,
-        const PasswordPrompt& reason) const = 0;
+        const std::string& workflow) const = 0;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
@@ -192,7 +188,6 @@ public:
      */
     OPENTXS_EXPORT virtual ObjectList Threads(
         const identifier::Nym& nym,
-        const PasswordPrompt& reason,
         const bool unreadOnly = false) const = 0;
     /**   Return the total number of unread thread items for a nym
      *

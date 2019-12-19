@@ -101,7 +101,6 @@ protected:
         if (proto::RPCCOMMAND_ADDSERVERSESSION == commandtype) {
             if (server2_id_.empty()) {
                 auto& manager = Test_Rpc::get_session(response.session());
-                auto reason = manager.Factory().PasswordPrompt(__FUNCTION__);
                 auto& servermanager =
                     dynamic_cast<const api::server::Manager&>(manager);
 #if OT_CASH
@@ -109,17 +108,16 @@ protected:
 #endif
                 server2_id_ = servermanager.ID().str();
                 auto servercontract =
-                    servermanager.Wallet().Server(servermanager.ID(), reason);
+                    servermanager.Wallet().Server(servermanager.ID());
 
                 // Import the server contract
                 auto& client = get_session(0);
                 auto& clientmanager =
                     dynamic_cast<const api::client::Manager&>(client);
                 auto clientservercontract = clientmanager.Wallet().Server(
-                    servercontract->PublicContract(), reason);
+                    servercontract->PublicContract());
             } else if (server3_id_.empty()) {
                 auto& manager = Test_Rpc::get_session(response.session());
-                auto reason = manager.Factory().PasswordPrompt(__FUNCTION__);
                 auto& servermanager =
                     dynamic_cast<const api::server::Manager&>(manager);
 #if OT_CASH
@@ -127,14 +125,14 @@ protected:
 #endif
                 server3_id_ = servermanager.ID().str();
                 auto servercontract =
-                    servermanager.Wallet().Server(servermanager.ID(), reason);
+                    servermanager.Wallet().Server(servermanager.ID());
 
                 // Import the server contract
                 auto& client = get_session(0);
                 auto& clientmanager =
                     dynamic_cast<const api::client::Manager&>(client);
                 auto clientservercontract = clientmanager.Wallet().Server(
-                    servercontract->PublicContract(), reason);
+                    servercontract->PublicContract());
             }
         }
 
@@ -310,13 +308,12 @@ TEST_F(Test_Rpc, Add_Server_Session)
     servermanager.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
 #endif
     server_id_ = servermanager.ID().str();
-    auto servercontract =
-        servermanager.Wallet().Server(servermanager.ID(), reason);
+    auto servercontract = servermanager.Wallet().Server(servermanager.ID());
 
     auto& client = get_session(0);
     auto& clientmanager = dynamic_cast<const api::client::Manager&>(client);
     auto clientservercontract =
-        clientmanager.Wallet().Server(servercontract->PublicContract(), reason);
+        clientmanager.Wallet().Server(servercontract->PublicContract());
 
     // Make the server the introduction server.
     clientmanager.OTX().SetIntroductionServer(clientservercontract);
@@ -682,7 +679,6 @@ TEST_F(Test_Rpc, Add_Contact)
 
     // Add a contact using a nym id.
     auto& client = ot_.Client(0);
-    auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
     EXPECT_EQ(4, client.Contacts().ContactList().size());
 
     ot_.Client(2);
@@ -716,9 +712,7 @@ TEST_F(Test_Rpc, Add_Contact)
     auto& addcontact3 = *command.add_addcontact();
     addcontact3.set_version(ADDCONTACT_VERSION);
     addcontact3.set_paymentcode(
-        client.Wallet()
-            .Nym(identifier::Nym::Factory(nym3_id_), reason)
-            ->PaymentCode(reason));
+        client.Wallet().Nym(identifier::Nym::Factory(nym3_id_))->PaymentCode());
 
     response = ot_.RPC(command);
 
@@ -861,9 +855,7 @@ TEST_F(Test_Rpc, Delete_Claim_No_Nym)
     command.set_owner(unit_definition_id_->str());
 
     auto& client = ot_.Client(0);
-    auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym =
-        client.Wallet().Nym(ot::identifier::Nym::Factory(nym1_id_), reason);
+    auto nym = client.Wallet().Nym(ot::identifier::Nym::Factory(nym1_id_));
     auto& claims = nym->Claims();
     auto group = claims.Group(
         proto::CONTACTSECTION_RELATIONSHIP, proto::CITEMTYPE_ALIAS);
@@ -1035,7 +1027,6 @@ TEST_F(Test_Rpc, Get_Unit_Definition)
 TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
 {
     auto& manager = ot_.Client(0);
-    auto reason = manager.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_GETACCOUNTBALANCE);
     command.set_session(0);
     command.add_identifier(issuer_account_id_);
@@ -1055,8 +1046,8 @@ TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
     EXPECT_EQ(issuer_account_id_, accountdata.id());
     EXPECT_STREQ(accountdata.label().c_str(), ISSUER_ACCOUNT_LABEL);
 
-    const auto account = manager.Wallet().Account(
-        Identifier::Factory(issuer_account_id_), reason);
+    const auto account =
+        manager.Wallet().Account(Identifier::Factory(issuer_account_id_));
 
     EXPECT_TRUE(bool(account));
     EXPECT_EQ(
@@ -1187,7 +1178,6 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(0);
     auto& client = ot_.Client(0);
-    auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
     auto nym1id = identifier::Nym::Factory(nym1_id_);
     auto nym3id = identifier::Nym::Factory(nym3_id_);
     auto sendpayment = command.mutable_sendpayment();
@@ -1217,8 +1207,8 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
         client, nym1id, identifier::Server::Factory(server_id_));
 
     {
-        const auto account = client.Wallet().Account(
-            Identifier::Factory(issuer_account_id_), reason);
+        const auto account =
+            client.Wallet().Account(Identifier::Factory(issuer_account_id_));
 
         EXPECT_TRUE(account);
 
@@ -1232,8 +1222,8 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
         Identifier::Factory(nym3_account1_id_));
 
     {
-        const auto account = client.Wallet().Account(
-            Identifier::Factory(nym3_account1_id_), reason);
+        const auto account =
+            client.Wallet().Account(Identifier::Factory(nym3_account1_id_));
 
         EXPECT_TRUE(account);
 
@@ -1248,7 +1238,6 @@ TEST_F(Test_Rpc, Move_Funds)
     auto command = init(proto::RPCCOMMAND_MOVEFUNDS);
     command.set_session(0);
     auto& manager = ot_.Client(0);
-    auto reason = manager.Factory().PasswordPrompt(__FUNCTION__);
     auto nym3id = identifier::Nym::Factory(nym3_id_);
     auto movefunds = command.mutable_movefunds();
 
@@ -1273,8 +1262,8 @@ TEST_F(Test_Rpc, Move_Funds)
         manager, nym3id, identifier::Server::Factory(server_id_));
 
     {
-        const auto account = manager.Wallet().Account(
-            Identifier::Factory(nym3_account1_id_), reason);
+        const auto account =
+            manager.Wallet().Account(Identifier::Factory(nym3_account1_id_));
 
         EXPECT_TRUE(account);
         EXPECT_EQ(50, account.get().GetBalance());
@@ -1287,8 +1276,8 @@ TEST_F(Test_Rpc, Move_Funds)
         Identifier::Factory(nym3_account2_id_));
 
     {
-        const auto account = manager.Wallet().Account(
-            Identifier::Factory(nym3_account2_id_), reason);
+        const auto account =
+            manager.Wallet().Account(Identifier::Factory(nym3_account2_id_));
 
         EXPECT_TRUE(account);
         EXPECT_EQ(25, account.get().GetBalance());
@@ -1432,12 +1421,8 @@ TEST_F(Test_Rpc, Get_Account_Balance)
 {
     auto command = init(proto::RPCCOMMAND_GETACCOUNTBALANCE);
     command.set_session(0);
-
     auto& manager = ot_.Client(0);
-    auto reason = manager.Factory().PasswordPrompt(__FUNCTION__);
-
     command.add_identifier(nym3_account2_id_);
-
     auto response = ot_.RPC(command);
 
     EXPECT_TRUE(proto::Validate(response, VERBOSE));
@@ -1456,8 +1441,8 @@ TEST_F(Test_Rpc, Get_Account_Balance)
 
     EXPECT_STREQ(accountdata.label().c_str(), USER_ACCOUNT_LABEL);
 
-    const auto account = manager.Wallet().Account(
-        Identifier::Factory(nym3_account2_id_), reason);
+    const auto account =
+        manager.Wallet().Account(Identifier::Factory(nym3_account2_id_));
     EXPECT_TRUE(bool(account));
 
     EXPECT_EQ(

@@ -14,6 +14,30 @@ namespace opentxs::crypto::implementation
 class AsymmetricProviderNull final : virtual public crypto::AsymmetricProvider
 {
 public:
+    bool RandomKeypair(
+        const AllocateOutput,
+        const AllocateOutput,
+        const proto::KeyRole,
+        const NymParameters&,
+        const AllocateOutput) const noexcept final
+    {
+        return false;
+    }
+    bool SeedToCurveKey(
+        const ReadView,
+        const AllocateOutput,
+        const AllocateOutput) const noexcept final
+    {
+        return false;
+    }
+    bool SharedSecret(
+        const key::Asymmetric&,
+        const key::Asymmetric&,
+        const PasswordPrompt&,
+        OTPassword&) const noexcept final
+    {
+        return false;
+    }
     bool Sign(
         const api::internal::Core&,
         const Data&,
@@ -39,8 +63,7 @@ public:
         const Data&,
         const key::Asymmetric&,
         const Data&,
-        const proto::HashType,
-        const PasswordPrompt&) const final
+        const proto::HashType) const final
     {
         return false;
     }
@@ -48,8 +71,7 @@ public:
         const String&,
         const key::Asymmetric&,
         const Signature&,
-        const proto::HashType,
-        const PasswordPrompt&) const final
+        const proto::HashType) const final
     {
         return false;
     }

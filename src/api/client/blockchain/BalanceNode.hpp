@@ -44,9 +44,7 @@ public:
 
 protected:
     struct Element final : virtual public internal::BalanceElement {
-        std::string Address(
-            const AddressStyle format,
-            const PasswordPrompt& reason) const noexcept final;
+        std::string Address(const AddressStyle format) const noexcept final;
         OTIdentifier Contact() const noexcept final;
         std::set<OTData> Elements() const noexcept final;
         const Identifier& ID() const noexcept final { return parent_.ID(); }
@@ -57,7 +55,7 @@ protected:
         {
             return parent_.Parent().NymID();
         }
-        OTData PubkeyHash(const PasswordPrompt& reason) const noexcept final;
+        OTData PubkeyHash() const noexcept final;
         SerializedType Serialize() const noexcept final;
 
         void SetContact(const Identifier& id) noexcept final;
@@ -72,15 +70,13 @@ protected:
             const opentxs::blockchain::Type chain,
             const Subchain subchain,
             const Bip32Index index,
-            std::unique_ptr<opentxs::crypto::key::HD> key,
-            const opentxs::PasswordPrompt& reason) noexcept(false);
+            std::unique_ptr<opentxs::crypto::key::HD> key) noexcept(false);
         Element(
             const internal::BalanceNode& parent,
             const client::internal::Blockchain& api,
             const opentxs::blockchain::Type chain,
             const Subchain subchain,
-            const SerializedType& address,
-            const opentxs::PasswordPrompt& reason) noexcept(false);
+            const SerializedType& address) noexcept(false);
         ~Element() final = default;
 
     private:
@@ -100,8 +96,7 @@ protected:
 
         static std::unique_ptr<opentxs::crypto::key::EllipticCurve> instantiate(
             const api::internal::Core& api,
-            const proto::AsymmetricKey& serialized,
-            const opentxs::PasswordPrompt& reason) noexcept(false);
+            const proto::AsymmetricKey& serialized) noexcept(false);
 
         Element(
             const internal::BalanceNode& parent,
@@ -112,8 +107,8 @@ protected:
             const Bip32Index index,
             const std::string label,
             const OTIdentifier contact,
-            std::unique_ptr<opentxs::crypto::key::EllipticCurve> key,
-            const opentxs::PasswordPrompt& reason) noexcept(false);
+            std::unique_ptr<opentxs::crypto::key::EllipticCurve>
+                key) noexcept(false);
         Element() = delete;
     };
 

@@ -178,9 +178,7 @@ protected:
     // For the main (basket) account, in a request basket (for exchanges.)
     TransactionNumber m_lClosingTransactionNo{0};
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) final;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) final;
 
 private:
     friend api::implementation::Factory;

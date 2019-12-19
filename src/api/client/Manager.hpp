@@ -31,8 +31,8 @@ public:
     const client::Workflow& Workflow() const final;
     const api::network::ZMQ& ZMQ() const final;
 
-    void StartActivity(const PasswordPrompt& reason) final;
-    void StartContacts(const PasswordPrompt& reason) final;
+    void StartActivity() final;
+    void StartContacts() final;
 
     ~Manager() final;
 
@@ -58,7 +58,7 @@ private:
     std::recursive_mutex& get_lock(const ContextID context) const;
 
     void Cleanup();
-    void Init(const PasswordPrompt& reason);
+    void Init();
 
     Manager(
         const api::internal::Context& parent,

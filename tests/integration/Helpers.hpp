@@ -46,10 +46,7 @@ struct Server {
     const ot::OTServerID id_{ot::identifier::Server::Factory()};
     const std::string password_;
 
-    ot::OTServerContract Contract() const
-    {
-        return api_->Wallet().Server(id_, Reason());
-    }
+    ot::OTServerContract Contract() const { return api_->Wallet().Server(id_); }
 
     ot::OTPasswordPrompt Reason() const
     {
@@ -167,7 +164,7 @@ struct User {
         const Server& server)
     {
         auto clientVersion =
-            api.Wallet().Server(server.Contract()->PublicContract(), Reason());
+            api.Wallet().Server(server.Contract()->PublicContract());
         api.OTX().SetIntroductionServer(clientVersion);
     }
 

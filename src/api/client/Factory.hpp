@@ -12,32 +12,26 @@ class Factory final : public opentxs::api::implementation::Factory
 public:
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::string& message,
-        const opentxs::PasswordPrompt& reason) const final;
+        const std::string& message) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment,
-        const opentxs::PasswordPrompt& reason) const final;
+        const bool isPayment) const final;
 #if OT_CASH
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse,
-        const opentxs::PasswordPrompt& reason) const final;
+        const std::shared_ptr<blind::Purse> purse) const final;
 #endif
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const OTPeerRequest request,
         const OTPeerReply reply,
-        const VersionNumber version,
-        const opentxs::PasswordPrompt& reason) const final;
+        const VersionNumber version) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const OTPeerRequest request,
-        const VersionNumber version,
-        const opentxs::PasswordPrompt& reason) const final;
+        const VersionNumber version) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& signerNym,
-        const proto::PeerObject& serialized,
-        const opentxs::PasswordPrompt& reason) const final;
+        const proto::PeerObject& serialized) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& recipientNym,
         const opentxs::Armored& encrypted,

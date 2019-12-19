@@ -9,11 +9,10 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/iterator/Bidirectional.hpp"
+#include "opentxs/Bytes.hpp"
 
-#include <cstddef>
 #include <cstdint>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #ifdef SWIG
@@ -87,8 +86,6 @@ public:
     OPENTXS_EXPORT static OTData Factory(const std::string in, const Mode mode);
 #endif
 
-    OPENTXS_EXPORT virtual operator std::string_view() const noexcept = 0;
-
     OPENTXS_EXPORT virtual bool operator==(const Data& rhs) const = 0;
     OPENTXS_EXPORT virtual bool operator!=(const Data& rhs) const = 0;
     OPENTXS_EXPORT virtual bool operator<(const Data& rhs) const = 0;
@@ -99,6 +96,7 @@ public:
     OPENTXS_EXPORT virtual const std::byte& at(
         const std::size_t position) const = 0;
     OPENTXS_EXPORT virtual const_iterator begin() const = 0;
+    OPENTXS_EXPORT virtual ReadView Bytes() const noexcept = 0;
     OPENTXS_EXPORT virtual const_iterator cbegin() const = 0;
     OPENTXS_EXPORT virtual const_iterator cend() const = 0;
     OPENTXS_EXPORT virtual const void* data() const = 0;
@@ -131,6 +129,7 @@ public:
 #endif
     OPENTXS_EXPORT virtual bool IsNull() const = 0;
     OPENTXS_EXPORT virtual std::size_t size() const = 0;
+    OPENTXS_EXPORT virtual std::string str() const = 0;
 
     OPENTXS_EXPORT virtual Data& operator+=(const Data& rhs) = 0;
     OPENTXS_EXPORT virtual Data& operator+=(const std::uint8_t rhs) = 0;
@@ -141,6 +140,7 @@ public:
     /// Bytes will be stored in big endian order
     OPENTXS_EXPORT virtual Data& operator+=(const std::uint64_t rhs) = 0;
     OPENTXS_EXPORT virtual void Assign(const Data& source) = 0;
+    OPENTXS_EXPORT virtual void Assign(const ReadView source) = 0;
 #ifndef SWIG
     OPENTXS_EXPORT virtual void Assign(
         const void* data,
@@ -166,8 +166,8 @@ public:
     OPENTXS_EXPORT virtual void reset() = 0;
     OPENTXS_EXPORT virtual void resize(const std::size_t size) = 0;
     OPENTXS_EXPORT virtual void SetSize(const std::size_t size) = 0;
-    OPENTXS_EXPORT virtual std::string str() const = 0;
     OPENTXS_EXPORT virtual void swap(Data&& rhs) = 0;
+    OPENTXS_EXPORT virtual AllocateOutput WriteInto() noexcept = 0;
     OPENTXS_EXPORT virtual void zeroMemory() = 0;
 
     OPENTXS_EXPORT virtual ~Data() = default;

@@ -86,20 +86,20 @@ public:
     }
     void SetAcctID(const String& strAccountID) { m_strAcctID = strAccountID; }
     OPENTXS_EXPORT OTAgent* GetAuthorizedAgent();
-    SharedAccount LoadAccount(const PasswordPrompt& reason);
+    SharedAccount LoadAccount();
     bool IsAccount(const Account& theAccount);
     bool IsAccountByID(const Identifier& theAcctID) const;
-    bool VerifyOwnership(const PasswordPrompt& reason) const;  // I have a ptr
-                                                               // to my
+    bool VerifyOwnership() const;  // I have a ptr
+                                   // to my
     // owner (party), as well as to the actual account. I will ask him to
     // verify whether he actually owns it.
-    bool VerifyAgency(const PasswordPrompt& reason);  // I can get a ptr to my
-                                                      // agent, and I have one
-                                                      // to the actual account.
-                                                      // I will ask him to
-                                                      // verify whether he
-                                                      // actually has agency
-                                                      // over it.
+    bool VerifyAgency();  // I can get a ptr to my
+                          // agent, and I have one
+                          // to the actual account.
+                          // I will ask him to
+                          // verify whether he
+                          // actually has agency
+                          // over it.
     std::int64_t GetClosingTransNo() const { return m_lClosingTransNo; }
     void SetClosingTransNo(std::int64_t lTransNo)
     {
@@ -176,7 +176,7 @@ private:
     // m_pOwnerParty->GetPartyID().
     //
 
-    SharedAccount get_account(const PasswordPrompt& reason) const;
+    SharedAccount get_account() const;
 
     OTPartyAccount() = delete;
     OTPartyAccount(const OTPartyAccount&) = delete;

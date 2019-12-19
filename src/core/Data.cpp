@@ -555,6 +555,16 @@ void Data::swap(opentxs::Data&& rhs)
     std::swap(position_, in.position_);
 }
 
+auto Data::WriteInto() noexcept -> AllocateOutput
+{
+    return [this](const auto size) {
+        data_.clear();
+        data_.assign(size, 51);
+
+        return WritableView{data_.data(), data_.size()};
+    };
+}
+
 void Data::zeroMemory()
 {
     if (0 < data_.size()) { data_.assign(data_.size(), 0); }

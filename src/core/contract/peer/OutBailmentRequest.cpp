@@ -39,7 +39,7 @@ auto Factory::OutbailmentRequest(
     -> std::shared_ptr<contract::peer::request::Outbailment>
 {
     try {
-        api.Wallet().UnitDefinition(unitID, reason);
+        api.Wallet().UnitDefinition(unitID);
         auto output = std::make_shared<ReturnType>(
             api, nym, recipientID, unitID, serverID, amount, terms);
 
@@ -60,8 +60,7 @@ auto Factory::OutbailmentRequest(
 auto Factory::OutbailmentRequest(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::PeerRequest& serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::PeerRequest& serialized) noexcept
     -> std::shared_ptr<contract::peer::request::Outbailment>
 {
     if (false == proto::Validate(serialized, VERBOSE)) {
@@ -80,7 +79,7 @@ auto Factory::OutbailmentRequest(
         auto& contract = *output;
         Lock lock(contract.lock_);
 
-        if (false == contract.validate(lock, reason)) {
+        if (false == contract.validate(lock)) {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid request.")
                 .Flush();
 

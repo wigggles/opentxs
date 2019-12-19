@@ -5,15 +5,36 @@
 
 #pragma once
 
+#include "Internal.hpp"
+
 #if OT_CRYPTO_USING_OPENSSL
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-extern "C" {
-EVP_CIPHER_CTX* EVP_CIPHER_CTX_new();
-EVP_MD_CTX* EVP_MD_CTX_new();
-void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX* context);
-void EVP_MD_CTX_free(EVP_MD_CTX* context);
-}
+#include "opentxs/crypto/library/OpenSSL.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "AsymmetricProvider.hpp"
 #endif
+
+extern "C" {
+#include <openssl/bio.h>
+#include <openssl/bn.h>
+#include <openssl/dh.h>
+#include <openssl/evp.h>
+#include <openssl/rsa.h>
+}
+
+namespace opentxs::crypto
+{
+using OpenSSL_BIO = std::unique_ptr<::BIO, decltype(&::BIO_free)>;
+using OpenSSL_BN = std::unique_ptr<::BIGNUM, decltype(&::BN_free)>;
+using OpenSSL_DH = std::unique_ptr<::DH, decltype(&::DH_free)>;
+using OpenSSL_EVP_PKEY =
+    std::unique_ptr<::EVP_PKEY, decltype(&::EVP_PKEY_free)>;
+using OpenSSL_EVP_PKEY_CTX =
+    std::unique_ptr<::EVP_PKEY_CTX, decltype(&::EVP_PKEY_CTX_free)>;
+using OpenSSL_EVP_MD_CTX =
+    std::unique_ptr<::EVP_MD_CTX, decltype(&::EVP_MD_CTX_free)>;
+using OpenSSL_RSA = std::unique_ptr<::RSA, decltype(&::RSA_free)>;
+}  // namespace opentxs::crypto
 
 namespace opentxs::crypto::implementation
 {
@@ -24,8 +45,6 @@ class OpenSSL final : virtual public crypto::OpenSSL
 #endif
 {
 public:
-    static std::mutex* s_arrayMutex;
-
     bool Digest(
         const proto::HashType hashType,
         const std::uint8_t* input,
@@ -52,9 +71,18 @@ public:
         const std::size_t inputSize,
         std::uint8_t* output) const final;
 
-    OTPassword* InstantiateBinarySecret() const;
-
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+    bool RandomKeypair(
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey,
+        const proto::KeyRole role,
+        const NymParameters& options,
+        const AllocateOutput params) const noexcept final;
+    bool SharedSecret(
+        const key::Asymmetric& publicKey,
+        const key::Asymmetric& privateKey,
+        const PasswordPrompt& reason,
+        OTPassword& secret) const noexcept final;
     bool Sign(
         const api::internal::Core& api,
         const Data& plaintext,
@@ -67,70 +95,126 @@ public:
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
-        const proto::HashType hashType,
-        const PasswordPrompt& reason) const final;
-
-    bool EncryptSessionKey(
-        const mapOfAsymmetricKeys& RecipPubKeys,
-        Data& plaintext,
-        Data& dataOutput,
-        const PasswordPrompt& reason) const final;
-    bool DecryptSessionKey(
-        Data& dataInput,
-        const identity::Nym& theRecipient,
-        Data& plaintext,
-        const PasswordPrompt& reason) const final;
+        const proto::HashType hashType) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-
-    void Cleanup() final;
-    void Init() final;
 
     ~OpenSSL() final = default;
 
 private:
     friend opentxs::Factory;
-    class OpenSSLdp;
 
-    class CipherContext
-    {
-    public:
-        operator EVP_CIPHER_CTX*();
+    struct BIO {
+        using Buffer = ::BIO*;
 
-        CipherContext();
-        ~CipherContext();
+        operator Buffer() noexcept { return bio_.get(); }
 
-    private:
-        EVP_CIPHER_CTX* context_{nullptr};
+        auto Export(const AllocateOutput output) noexcept -> bool;
+        auto Import(const ReadView input) noexcept -> bool;
 
-        CipherContext(const CipherContext&) = delete;
-        CipherContext(CipherContext&&) = delete;
-        CipherContext& operator=(const CipherContext&) = delete;
-        CipherContext& operator=(CipherContext&&) = delete;
-    };
-
-    class DigestContext
-    {
-    public:
-        operator EVP_MD_CTX*();
-
-        DigestContext();
-        ~DigestContext();
+        BIO(const BIO_METHOD* type = ::BIO_s_mem()) noexcept;
 
     private:
-        EVP_MD_CTX* context_{nullptr};
-
-        DigestContext(const DigestContext&) = delete;
-        DigestContext(DigestContext&&) = delete;
-        DigestContext& operator=(const DigestContext&) = delete;
-        DigestContext& operator=(DigestContext&&) = delete;
+        OpenSSL_BIO bio_;
     };
+
+    struct DH {
+        using Context = ::EVP_PKEY_CTX*;
+        using Hash = const ::EVP_MD*;
+        using Key = ::EVP_PKEY*;
+
+        OpenSSL_EVP_PKEY_CTX dh_;
+        OpenSSL_EVP_PKEY local_;
+        OpenSSL_EVP_PKEY remote_;
+
+        operator Context() noexcept { return dh_.get(); }
+
+        auto Local() noexcept { return local_.get(); }
+        auto Remote() noexcept { return remote_.get(); }
+
+        auto init_keys(
+            const key::Asymmetric& local,
+            const key::Asymmetric& remote,
+            const PasswordPrompt& reason) noexcept -> bool;
+
+        DH() noexcept;
+
+    private:
+        DH(const DH&) = delete;
+        DH(DH&&) = delete;
+        DH& operator=(const DH&) = delete;
+        DH& operator=(DH&&) = delete;
+    };
+
+    struct MD {
+        using Context = ::EVP_MD_CTX*;
+        using Hash = const ::EVP_MD*;
+        using Key = ::EVP_PKEY*;
+
+        OpenSSL_EVP_MD_CTX md_;
+        Hash hash_;
+        OpenSSL_EVP_PKEY key_;
+
+        operator Context() noexcept { return md_.get(); }
+        operator Hash() noexcept { return hash_; }
+        operator Key() noexcept { return key_.get(); }
+
+        auto init_digest(const proto::HashType hash) noexcept -> bool;
+        auto init_sign(
+            const proto::HashType hash,
+            const key::Asymmetric& key,
+            const PasswordPrompt& reason) noexcept -> bool;
+        auto init_verify(
+            const proto::HashType hash,
+            const key::Asymmetric& key) noexcept -> bool;
+
+        MD() noexcept;
+
+    private:
+        MD(const MD&) = delete;
+        MD(MD&&) = delete;
+        MD& operator=(const MD&) = delete;
+        MD& operator=(MD&&) = delete;
+    };
+
+    using Instantiate = std::function<::EVP_PKEY*(::BIO*)>;
 
     const api::Crypto& crypto_;
-    std::unique_ptr<OpenSSLdp> dp_;
-    mutable std::mutex lock_;
 
-    void thread_setup() const;
-    void thread_cleanup() const;
+    static auto init_key(
+        const ReadView bytes,
+        const Instantiate function,
+        OpenSSL_EVP_PKEY& output) noexcept -> bool;
+    static auto HashTypeToOpenSSLType(const proto::HashType hashType) noexcept
+        -> const ::EVP_MD*;
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    static auto primes(const int bits) -> int;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    auto generate_dh(const NymParameters& options, ::EVP_PKEY* output) const
+        noexcept -> bool;
+    auto get_params(
+        const AllocateOutput params,
+        const NymParameters& options,
+        ::EVP_PKEY* output) const noexcept -> bool;
+    auto import_dh(const ReadView existing, ::EVP_PKEY* output) const noexcept
+        -> bool;
+    auto make_dh_key(
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey,
+        const AllocateOutput params,
+        const NymParameters& options) const noexcept -> bool;
+    auto make_signing_key(
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey,
+        const NymParameters& options) const noexcept -> bool;
+    auto write_dh(const AllocateOutput params, ::EVP_PKEY* dh) const noexcept
+        -> bool;
+    auto write_keypair(
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey,
+        ::EVP_PKEY* evp) const noexcept -> bool;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
     OpenSSL(const api::Crypto& crypto);
     OpenSSL() = delete;

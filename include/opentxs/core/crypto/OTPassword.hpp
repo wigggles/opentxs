@@ -8,7 +8,9 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <cstddef>
+#include "opentxs/Bytes.hpp"
+
+#include <optional>
 #include <string>
 
 #ifdef SWIG
@@ -54,8 +56,8 @@ namespace opentxs
 */
 
 #define OT_PW_DISPLAY "Enter master passphrase for wallet."
-#define OT_DEFAULT_BLOCKSIZE 256
-#define OT_DEFAULT_MEMSIZE 257
+#define OT_DEFAULT_BLOCKSIZE 8191
+#define OT_DEFAULT_MEMSIZE 8192
 
 // Originally written for the safe storage of passwords.
 // Now used for symmetric keys as well.
@@ -81,6 +83,8 @@ namespace opentxs
 class OTPassword
 {
 public:
+    enum class Mode : bool { Mem = true, Text = false };
+
     OPENTXS_EXPORT explicit OTPassword();
     OPENTXS_EXPORT explicit OTPassword(const OTPassword& rhs);
 #ifndef SWIG
@@ -89,9 +93,12 @@ public:
         const std::uint8_t* input,
         std::size_t size);
     OPENTXS_EXPORT explicit OTPassword(const void* input, std::size_t size);
+    OPENTXS_EXPORT explicit OTPassword(const Mode mode, const ReadView rhs);
 #endif
     OPENTXS_EXPORT ~OTPassword();
     OPENTXS_EXPORT OTPassword& operator=(const OTPassword& rhs);
+
+    OPENTXS_EXPORT ReadView Bytes() const noexcept;
 
     OPENTXS_EXPORT bool isPassword() const;
     OPENTXS_EXPORT const std::uint8_t* getPassword_uint8() const;
@@ -185,6 +192,8 @@ public:
     // normally NEVER
     // need to use this function, so just pretend it doesn't exist.
     OPENTXS_EXPORT bool SetSize(std::uint32_t size);
+    OPENTXS_EXPORT AllocateOutput
+    WriteInto(const std::optional<Mode> = {}) noexcept;
 
 private:
     std::size_t size_{0};

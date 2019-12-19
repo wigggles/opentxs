@@ -756,7 +756,6 @@ const StateMap Integration::state_{
                }},
               {1,
                []() -> bool {
-                   auto reason = alex_.Reason();
                    const auto& widget =
                        alex_.api_->UI().AccountList(alex_.nym_id_);
                    auto row = widget.First();
@@ -773,7 +772,7 @@ const StateMap Integration::state_{
                    EXPECT_STREQ("", row->Name().c_str());
                    EXPECT_EQ(server_1_.id_->str(), row->NotaryID());
                    EXPECT_EQ(
-                       server_1_.Contract()->EffectiveName(reason),
+                       server_1_.Contract()->EffectiveName(),
                        row->NotaryName());
                    EXPECT_EQ(ot::AccountType::Custodial, row->Type());
                    EXPECT_EQ(ot::proto::CITEMTYPE_USD, row->Unit());
@@ -1507,8 +1506,8 @@ TEST_F(Integration, introduction_server)
 TEST_F(Integration, add_contact_preconditions)
 {
     // Neither alex nor bob should know about each other yet
-    auto alex = api_bob_.Wallet().Nym(alex_.nym_id_, bob_.Reason());
-    auto bob = api_alex_.Wallet().Nym(bob_.nym_id_, alex_.Reason());
+    auto alex = api_bob_.Wallet().Nym(alex_.nym_id_);
+    auto bob = api_alex_.Wallet().Nym(bob_.nym_id_);
 
     EXPECT_FALSE(alex);
     EXPECT_FALSE(bob);
@@ -1735,8 +1734,7 @@ TEST_F(Integration, issue_dollars)
     api_issuer_.OTX().ContextIdle(issuer_.nym_id_, server_1_.id_).get();
 
     {
-        const auto pNym =
-            api_issuer_.Wallet().Nym(issuer_.nym_id_, issuer_.Reason());
+        const auto pNym = api_issuer_.Wallet().Nym(issuer_.nym_id_);
 
         ASSERT_TRUE(pNym);
 
@@ -1767,8 +1765,7 @@ TEST_F(Integration, issue_dollars)
 TEST_F(Integration, add_alex_contact_to_issuer)
 {
     EXPECT_TRUE(issuer_.SetContact(
-        alex_.name_,
-        api_issuer_.Contacts().NymToContact(alex_.nym_id_, issuer_.Reason())));
+        alex_.name_, api_issuer_.Contacts().NymToContact(alex_.nym_id_)));
     EXPECT_FALSE(issuer_.Contact(alex_.name_).empty());
 
     api_issuer_.OTX().Refresh();
@@ -1779,7 +1776,7 @@ TEST_F(Integration, pay_alex)
 {
     auto contactListDone = cb_alex_.SetCallback(
         Widget::ContactList,
-        6,
+        8,
         state_.at(alex_.name_).at(Widget::ContactList).at(2));
     auto messagableListDone = cb_alex_.SetCallback(
         Widget::MessagableList,
@@ -1820,7 +1817,7 @@ TEST_F(Integration, pay_alex)
 
 TEST_F(Integration, issuer_claims)
 {
-    const auto pNym = api_alex_.Wallet().Nym(issuer_.nym_id_, alex_.Reason());
+    const auto pNym = api_alex_.Wallet().Nym(issuer_.nym_id_);
 
     ASSERT_TRUE(pNym);
 
@@ -1934,8 +1931,8 @@ TEST_F(Integration, process_inbox_issuer)
     EXPECT_EQ(ot::proto::LASTREPLYSTATUS_MESSAGESUCCESS, status);
     ASSERT_TRUE(message);
 
-    const auto account = api_issuer_.Wallet().Account(
-        issuer_.Account(UNIT_DEFINITION_TLA), issuer_.Reason());
+    const auto account =
+        api_issuer_.Wallet().Account(issuer_.Account(UNIT_DEFINITION_TLA));
 
     EXPECT_EQ(-1 * CHEQUE_AMOUNT_1, account.get().GetBalance());
 }

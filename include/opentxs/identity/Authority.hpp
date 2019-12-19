@@ -9,8 +9,9 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/identity/Nym.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -22,9 +23,11 @@ namespace identity
 class Authority
 {
 public:
+    using AuthorityKeys = Nym::AuthorityKeys;
     using Serialized = proto::Authority;
 
     OPENTXS_EXPORT virtual VersionNumber ContactCredentialVersion() const = 0;
+    OPENTXS_EXPORT virtual AuthorityKeys EncryptionTargets() const noexcept = 0;
     OPENTXS_EXPORT virtual bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const = 0;
     OPENTXS_EXPORT virtual OTIdentifier GetMasterCredID() const = 0;
@@ -59,10 +62,14 @@ public:
     OPENTXS_EXPORT virtual const crypto::key::Keypair& GetSignKeypair(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const = 0;
+    OPENTXS_EXPORT virtual const credential::Key& GetTagCredential(
+        proto::AsymmetricKeyType keytype) const noexcept(false) = 0;
     OPENTXS_EXPORT virtual bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const = 0;
     OPENTXS_EXPORT virtual bool hasCapability(
         const NymCapability& capability) const = 0;
+    OPENTXS_EXPORT virtual ReadView Params(
+        const proto::AsymmetricKeyType type) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Path(proto::HDPath& output) const = 0;
     OPENTXS_EXPORT virtual std::shared_ptr<Serialized> Serialize(
         const CredentialIndexModeFlag mode) const = 0;
@@ -72,24 +79,27 @@ public:
         proto::Signature& signature,
         const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
+        const proto::HashType hash = proto::HASHTYPE_ERROR) const = 0;
     OPENTXS_EXPORT virtual const identity::Source& Source() const = 0;
     OPENTXS_EXPORT virtual bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
         const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual bool Unlock(
+        const crypto::key::Asymmetric& dhKey,
+        const std::uint32_t tag,
+        const proto::AsymmetricKeyType type,
+        const crypto::key::Symmetric& key,
+        PasswordPrompt& reason) const noexcept = 0;
     OPENTXS_EXPORT virtual VersionNumber VerificationCredentialVersion()
         const = 0;
     OPENTXS_EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const = 0;
     OPENTXS_EXPORT virtual bool Verify(
-        const proto::Verification& item,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual bool VerifyInternally(
-        const PasswordPrompt& reason) const = 0;
+        const proto::Verification& item) const = 0;
+    OPENTXS_EXPORT virtual bool VerifyInternally() const = 0;
 
     OPENTXS_EXPORT virtual std::string AddChildKeyCredential(
         const NymParameters& nymParameters,

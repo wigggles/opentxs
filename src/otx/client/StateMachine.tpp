@@ -226,14 +226,14 @@ const UniqueQueue<WithdrawCashTask>& StateMachine::get_task() const
 template <>
 bool StateMachine::load_contract<CheckNymTask>(const identifier::Nym& id) const
 {
-    return bool(client_.Wallet().Nym(id, reason_));
+    return bool(client_.Wallet().Nym(id));
 }
 template <>
 bool StateMachine::load_contract<DownloadContractTask>(
     const identifier::Server& id) const
 {
     try {
-        client_.Wallet().Server(id, reason_);
+        client_.Wallet().Server(id);
 
         return true;
     } catch (...) {
@@ -247,7 +247,7 @@ bool StateMachine::load_contract<DownloadUnitDefinitionTask>(
     const identifier::UnitDefinition& id) const
 {
     try {
-        client_.Wallet().UnitDefinition(id, reason_);
+        client_.Wallet().UnitDefinition(id);
 
         return true;
     } catch (...) {

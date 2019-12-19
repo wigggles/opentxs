@@ -31,7 +31,6 @@
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -51,6 +50,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/socket/Publish.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
@@ -268,7 +268,7 @@ bool ServerContext::accept_entire_nymbox(
         return false;
     }
 
-    if (false == nymbox.VerifyAccount(nym, reason)) {
+    if (false == nymbox.VerifyAccount(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nymbox").Flush();
 
         return false;
@@ -285,8 +285,7 @@ bool ServerContext::accept_entire_nymbox(
 
     OT_ASSERT(processLedger);
 
-    processLedger->GenerateLedger(
-        nymID, server_id_, ledgerType::message, reason);
+    processLedger->GenerateLedger(nymID, server_id_, ledgerType::message);
     std::shared_ptr<OTTransaction> acceptTransaction{api_.Factory().Transaction(
         nymID,
         nymID,
@@ -650,7 +649,7 @@ bool ServerContext::add_item_to_workflow(
     OT_ASSERT(message);
 
     const auto loaded =
-        message->LoadContractFromString(String::Factory(item.c_str()), reason);
+        message->LoadContractFromString(String::Factory(item.c_str()));
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate message.")
@@ -659,12 +658,21 @@ bool ServerContext::add_item_to_workflow(
         return false;
     }
 
-    OTEnvelope envelope(api_, message->m_ascPayload);
     auto plaintext = String::Factory();
-    const auto decrypted = envelope.Open(nym, plaintext, reason);
 
-    if (false == decrypted) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt message.")
+    try {
+        auto envelope = api_.Factory().Envelope(message->m_ascPayload);
+        const auto decrypted =
+            envelope->Open(nym, plaintext->WriteInto(), reason);
+
+        if (false == decrypted) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt message.")
+                .Flush();
+
+            return false;
+        }
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode message.")
             .Flush();
 
         return false;
@@ -687,7 +695,7 @@ bool ServerContext::add_item_to_workflow(
     OT_ASSERT(pCheque);
 
     auto& cheque = *pCheque;
-    cheque.LoadContractFromString(payment->Payment(), reason);
+    cheque.LoadContractFromString(payment->Payment());
     // The sender nym and notary of the cheque may not match the sender nym and
     // notary of the message which conveyed the cheque.
     find_nym_->Send(cheque.GetSenderNymID().str());
@@ -696,9 +704,9 @@ bool ServerContext::add_item_to_workflow(
 
     // We already made sure a contact exists for the sender of the message, but
     // it's possible the sender of the cheque is a different nym
-    client.Contacts().NymToContact(cheque.GetSenderNymID(), reason);
-    const auto workflow = client.Workflow().ReceiveCheque(
-        nym.ID(), cheque, transportItem, reason);
+    client.Contacts().NymToContact(cheque.GetSenderNymID());
+    const auto workflow =
+        client.Workflow().ReceiveCheque(nym.ID(), cheque, transportItem);
 
     if (workflow->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create workflow.")
@@ -950,7 +958,7 @@ bool ServerContext::create_instrument_notice_from_peer_object(
 {
     OT_ASSERT(proto::PEEROBJECT_PAYMENT == peerObject.Type());
 
-    if (false == peerObject.Validate(reason)) {
+    if (false == peerObject.Validate()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid peer object.").Flush();
 
         return false;
@@ -982,8 +990,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
     const String& serialized,
     const identity::Nym& signer,
     const identifier::Nym& owner,
-    const TransactionNumber target,
-    const PasswordPrompt& reason)
+    const TransactionNumber target)
 {
     if (false == serialized.Exists()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input").Flush();
@@ -992,7 +999,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
     }
 
     std::shared_ptr<OTTransactionType> transaction{
-        api_.Factory().Transaction(serialized, reason)};
+        api_.Factory().Transaction(serialized)};
 
     if (false == bool(transaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1011,7 +1018,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
         return {};
     }
 
-    if (false == receipt->VerifyAccount(signer, reason)) {
+    if (false == receipt->VerifyAccount(signer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid receipt").Flush();
 
         return {};
@@ -1036,8 +1043,7 @@ std::shared_ptr<OTTransaction> ServerContext::extract_box_receipt(
 std::unique_ptr<Ledger> ServerContext::extract_ledger(
     const Armored& armored,
     const Identifier& accountID,
-    const identity::Nym& signer,
-    const PasswordPrompt& reason) const
+    const identity::Nym& signer) const
 {
     OT_ASSERT(nym_);
 
@@ -1056,7 +1062,7 @@ std::unique_ptr<Ledger> ServerContext::extract_ledger(
     auto serialized = String::Factory();
     armored.GetString(serialized);
 
-    if (false == output->LoadLedgerFromString(serialized, reason)) {
+    if (false == output->LoadLedgerFromString(serialized)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Error: Failed to instantiate ledger")
             .Flush();
@@ -1064,7 +1070,7 @@ std::unique_ptr<Ledger> ServerContext::extract_ledger(
         return {};
     }
 
-    if (false == output->VerifySignature(signer, reason)) {
+    if (false == output->VerifySignature(signer)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Invalid signature")
             .Flush();
 
@@ -1076,8 +1082,7 @@ std::unique_ptr<Ledger> ServerContext::extract_ledger(
 
 std::unique_ptr<Message> ServerContext::extract_message(
     const Armored& armored,
-    const identity::Nym& signer,
-    const PasswordPrompt& reason) const
+    const identity::Nym& signer) const
 {
     auto output = api_.Factory().Message();
 
@@ -1092,7 +1097,7 @@ std::unique_ptr<Message> ServerContext::extract_message(
     auto serialized = String::Factory();
     armored.GetString(serialized);
 
-    if (false == output->LoadContractFromString(serialized, reason)) {
+    if (false == output->LoadContractFromString(serialized)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Error: Failed to instantiate message")
             .Flush();
@@ -1100,7 +1105,7 @@ std::unique_ptr<Message> ServerContext::extract_message(
         return {};
     }
 
-    if (false == output->VerifySignature(signer, reason)) {
+    if (false == output->VerifySignature(signer)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Invalid signature")
             .Flush();
 
@@ -1122,8 +1127,7 @@ ServerContext::TransactionNumbers ServerContext::extract_numbers(
 }
 
 std::unique_ptr<Item> ServerContext::extract_original_item(
-    const Item& response,
-    const PasswordPrompt& reason) const
+    const Item& response) const
 {
     auto serialized = String::Factory();
     response.GetReferenceString(serialized);
@@ -1136,7 +1140,7 @@ std::unique_ptr<Item> ServerContext::extract_original_item(
         return {};
     }
 
-    auto transaction = api_.Factory().Transaction(serialized, reason);
+    auto transaction = api_.Factory().Transaction(serialized);
 
     if (false == bool(transaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1196,7 +1200,7 @@ std::shared_ptr<OTPayment> ServerContext::
                 .Flush();
             OT_FAIL;
         }
-        if (!pMsg->LoadContractFromString(strMsg, reason)) {
+        if (!pMsg->LoadContractFromString(strMsg)) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Failed trying to load OTMessage from string: ")(strMsg)(".")
                 .Flush();
@@ -1215,41 +1219,44 @@ std::shared_ptr<OTPayment> ServerContext::
         // RECIPIENT:  pMsg->m_strNymID2
         // INSTRUMENT: pMsg->m_ascPayload (in an OTEnvelope)
         //
-        OTEnvelope theEnvelope(api_);
-        auto strEnvelopeContents = String::Factory();
+        try {
+            auto theEnvelope = api_.Factory().Envelope(pMsg->m_ascPayload);
+            auto strEnvelopeContents = String::Factory();
 
-        // Decrypt the Envelope.
-        if (!theEnvelope.SetCiphertext(pMsg->m_ascPayload))
+            // Decrypt the Envelope.
+            if (!theEnvelope->Open(
+                    *nym_, strEnvelopeContents->WriteInto(), reason))
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failed trying to decrypt the financial instrument "
+                    "that was supposedly attached as a payload to this "
+                    "payment message: ")(strMsg)(".")
+                    .Flush();
+            else if (!strEnvelopeContents->Exists())
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failed: after decryption, cleartext is empty. From: ")(
+                    strMsg)(".")
+                    .Flush();
+            else {
+                // strEnvelopeContents contains a PURSE or CHEQUE
+                // (etc) and not specifically a generic "PAYMENT".
+                //
+                auto pPayment{api.Factory().Payment(strEnvelopeContents)};
+                if (false == bool(pPayment) || !pPayment->IsValid())
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Failed: after decryption, payment is invalid. "
+                        "Contents: ")(strEnvelopeContents)(".")
+                        .Flush();
+                else  // success.
+                {
+                    std::shared_ptr<OTPayment> payment{pPayment.release()};
+                    return payment;
+                }
+            }
+        } catch (...) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Failed trying to set ASCII-armored data for envelope: ")(
                 strMsg)(".")
                 .Flush();
-        else if (!theEnvelope.Open(*nym_, strEnvelopeContents, reason))
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Failed trying to decrypt the financial instrument "
-                "that was supposedly attached as a payload to this "
-                "payment message: ")(strMsg)(".")
-                .Flush();
-        else if (!strEnvelopeContents->Exists())
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Failed: after decryption, cleartext is empty. From: ")(
-                strMsg)(".")
-                .Flush();
-        else {
-            // strEnvelopeContents contains a PURSE or CHEQUE
-            // (etc) and not specifically a generic "PAYMENT".
-            //
-            auto pPayment{api.Factory().Payment(strEnvelopeContents)};
-            if (false == bool(pPayment) || !pPayment->IsValid())
-                LogNormal(OT_METHOD)(__FUNCTION__)(
-                    ": Failed: after decryption, payment is invalid. "
-                    "Contents: ")(strEnvelopeContents)(".")
-                    .Flush();
-            else  // success.
-            {
-                std::shared_ptr<OTPayment> payment{pPayment.release()};
-                return payment;
-            }
         }
     } else if (transactionType::notice == pTransaction->GetType()) {
         auto strNotice = String::Factory(*pTransaction);
@@ -1270,15 +1277,14 @@ std::shared_ptr<OTPayment> ServerContext::
 }
 
 std::unique_ptr<Item> ServerContext::extract_transfer(
-    const OTTransaction& receipt,
-    const PasswordPrompt& reason) const
+    const OTTransaction& receipt) const
 {
     if (transactionType::transferReceipt == receipt.GetType()) {
 
-        return extract_transfer_receipt(receipt, reason);
+        return extract_transfer_receipt(receipt);
     } else if (transactionType::pending == receipt.GetType()) {
 
-        return extract_transfer_pending(receipt, reason);
+        return extract_transfer_pending(receipt);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect receipt type: ")(
             receipt.GetTypeString())
@@ -1289,8 +1295,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer(
 }
 
 std::unique_ptr<Item> ServerContext::extract_transfer_pending(
-    const OTTransaction& receipt,
-    const PasswordPrompt& reason) const
+    const OTTransaction& receipt) const
 {
     if (transactionType::pending != receipt.GetType()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect receipt type: ")(
@@ -1310,7 +1315,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer_pending(
         return nullptr;
     }
 
-    auto transfer = api_.Factory().Item(serializedTransfer, reason);
+    auto transfer = api_.Factory().Item(serializedTransfer);
 
     if (false == bool(transfer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1331,8 +1336,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer_pending(
 }
 
 std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
-    const OTTransaction& receipt,
-    const PasswordPrompt& reason) const
+    const OTTransaction& receipt) const
 {
     auto serializedAcceptPending = String::Factory();
     receipt.GetReferenceString(serializedAcceptPending);
@@ -1345,8 +1349,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
         return nullptr;
     }
 
-    const auto acceptPending =
-        api_.Factory().Item(serializedAcceptPending, reason);
+    const auto acceptPending = api_.Factory().Item(serializedAcceptPending);
 
     if (false == bool(acceptPending)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1388,8 +1391,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
         return nullptr;
     }
 
-    const bool loaded =
-        pending->LoadContractFromString(serializedPending, reason);
+    const bool loaded = pending->LoadContractFromString(serializedPending);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1417,7 +1419,7 @@ std::unique_ptr<Item> ServerContext::extract_transfer_receipt(
         return nullptr;
     }
 
-    auto transfer = api_.Factory().Item(serializedTransfer, reason);
+    auto transfer = api_.Factory().Item(serializedTransfer);
 
     if (false == bool(transfer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1522,11 +1524,10 @@ std::shared_ptr<OTPayment> ServerContext::get_instrument(
     // programmatic user of this API will be able to load it up.
     //
     if (pTransaction->IsAbbreviated()) {
-        ledger.LoadBoxReceipt(
-            static_cast<std::int64_t>(lTransactionNum),
-            reason);  // I don't check return val here because I still
-                      // want it to send the abbreviated form, if this
-                      // fails.
+        ledger.LoadBoxReceipt(static_cast<std::int64_t>(
+            lTransactionNum));  // I don't check return val here because I still
+                                // want it to send the abbreviated form, if this
+                                // fails.
         pTransaction =
             ledger.GetTransaction(static_cast<std::int64_t>(lTransactionNum));
 
@@ -1667,8 +1668,7 @@ ServerContext::BoxType ServerContext::get_type(const std::int64_t depth)
 
 bool ServerContext::harvest_unused(
     const Lock& lock,
-    const api::client::internal::Manager& client,
-    const PasswordPrompt& reason)
+    const api::client::internal::Manager& client)
 {
     OT_ASSERT(verify_write_lock(lock));
     OT_ASSERT(nym_);
@@ -1732,8 +1732,7 @@ bool ServerContext::harvest_unused(
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE: {
                 [[maybe_unused]] auto [state, cheque] =
-                    api::client::Workflow::InstantiateCheque(
-                        api_, *workflow, reason);
+                    api::client::Workflow::InstantiateCheque(api_, *workflow);
 
                 if (false == bool(cheque)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1749,8 +1748,7 @@ bool ServerContext::harvest_unused(
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
             case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
                 [[maybe_unused]] auto [state, pTransfer] =
-                    api::client::Workflow::InstantiateTransfer(
-                        api_, *workflow, reason);
+                    api::client::Workflow::InstantiateTransfer(api_, *workflow);
 
                 if (false == bool(pTransfer)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1832,7 +1830,7 @@ bool ServerContext::init_new_account(
 
     auto inboxHash = api_.Factory().Identifier();
     auto outboxHash = api_.Factory().Identifier();
-    auto haveHash = account.get().GetInboxHash(inboxHash, reason);
+    auto haveHash = account.get().GetInboxHash(inboxHash);
 
     if (false == haveHash) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to get inbox hash.")
@@ -1841,7 +1839,7 @@ bool ServerContext::init_new_account(
         return false;
     }
 
-    haveHash = account.get().GetOutboxHash(outboxHash, reason);
+    haveHash = account.get().GetOutboxHash(outboxHash);
 
     if (false == haveHash) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to get outbox hash.")
@@ -2043,8 +2041,6 @@ std::unique_ptr<opentxs::Message> ServerContext::instantiate_message(
     const api::internal::Core& api,
     const std::string& serialized)
 {
-    auto reason = api.Factory().PasswordPrompt("Loading server context");
-
     if (serialized.empty()) { return {}; }
 
     auto output = api.Factory().Message();
@@ -2052,7 +2048,7 @@ std::unique_ptr<opentxs::Message> ServerContext::instantiate_message(
     OT_ASSERT(output);
 
     const auto loaded =
-        output->LoadContractFromString(String::Factory(serialized), reason);
+        output->LoadContractFromString(String::Factory(serialized));
 
     if (false == loaded) { return {}; }
 
@@ -2112,8 +2108,7 @@ const Item& ServerContext::make_accept_item(
 }
 
 std::unique_ptr<Ledger> ServerContext::load_account_inbox(
-    const Identifier& accountID,
-    const PasswordPrompt& reason) const
+    const Identifier& accountID) const
 {
     OT_ASSERT(nym_);
 
@@ -2131,8 +2126,8 @@ std::unique_ptr<Ledger> ServerContext::load_account_inbox(
         accountID.str().c_str(),
         "");
 
-    if (output && inbox->LoadInbox(reason)) {
-        output = inbox->VerifyAccount(nym, reason);
+    if (output && inbox->LoadInbox()) {
+        output = inbox->VerifyAccount(nym);
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load inbox").Flush();
     }
@@ -2167,14 +2162,14 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
     if (false == output) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Creating recordbox").Flush();
         output = recordBox->GenerateLedger(
-            accountID, server_id_, ledgerType::recordBox, reason, true);
+            accountID, server_id_, ledgerType::recordBox, true);
         recordBox->ReleaseSignatures();
         output &= recordBox->SignContract(nym, reason);
         output &= recordBox->SaveContract();
         output &= recordBox->SaveRecordBox();
     }
 
-    if (output && recordBox->LoadRecordBox(reason)) {
+    if (output && recordBox->LoadRecordBox()) {
         output &= recordBox->VerifyContractID();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load recordbox")
@@ -2183,7 +2178,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_account_recordbox(
         return {};
     }
 
-    if (output && recordBox->VerifySignature(nym, reason)) {
+    if (output && recordBox->VerifySignature(nym)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Recordbox verified").Flush();
 
         return recordBox;
@@ -2216,14 +2211,14 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox(
     if (false == output) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Creating payment inbox").Flush();
         output = paymentInbox->GenerateLedger(
-            nymID, server_id_, ledgerType::paymentInbox, reason, true);
+            nymID, server_id_, ledgerType::paymentInbox, true);
         paymentInbox->ReleaseSignatures();
         output &= paymentInbox->SignContract(nym, reason);
         output &= paymentInbox->SaveContract();
         output &= paymentInbox->SavePaymentInbox();
     }
 
-    if (output && paymentInbox->LoadPaymentInbox(reason)) {
+    if (output && paymentInbox->LoadPaymentInbox()) {
         output &= paymentInbox->VerifyContractID();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load payment inbox")
@@ -2232,7 +2227,7 @@ std::unique_ptr<Ledger> ServerContext::load_or_create_payment_inbox(
         return {};
     }
 
-    if (output && paymentInbox->VerifySignature(nym, reason)) {
+    if (output && paymentInbox->VerifySignature(nym)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Payment inbox verified").Flush();
 
         return paymentInbox;
@@ -2265,7 +2260,7 @@ void ServerContext::need_box_items(
 
     OT_ASSERT(nymbox);
 
-    const auto loaded = nymbox->LoadNymbox(reason);
+    const auto loaded = nymbox->LoadNymbox();
 
     if (false == loaded) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load nymbox").Flush();
@@ -2273,7 +2268,7 @@ void ServerContext::need_box_items(
         return;
     }
 
-    const auto verified = nymbox->VerifyAccount(*nym_, reason);
+    const auto verified = nymbox->VerifyAccount(*nym_);
 
     if (false == verified) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to verify nymbox").Flush();
@@ -2428,7 +2423,7 @@ void ServerContext::need_process_nymbox(
 
     OT_ASSERT(nymbox);
 
-    const auto loaded = nymbox->LoadNymbox(reason);
+    const auto loaded = nymbox->LoadNymbox();
 
     if (false == loaded) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load nymbox").Flush();
@@ -2436,7 +2431,7 @@ void ServerContext::need_process_nymbox(
         return;
     }
 
-    const auto verified = nymbox->VerifyAccount(*nym_, reason);
+    const auto verified = nymbox->VerifyAccount(*nym_);
 
     if (false == verified) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to verify nymbox").Flush();
@@ -2797,8 +2792,7 @@ void ServerContext::process_accept_basket_receipt_reply(
 void ServerContext::process_accept_cron_receipt_reply(
     const Lock& lock,
     const Identifier& accountID,
-    OTTransaction& inboxTransaction,
-    const PasswordPrompt& reason)
+    OTTransaction& inboxTransaction)
 {
     auto pServerItem = inboxTransaction.GetItem(itemType::marketReceipt);
 
@@ -2822,15 +2816,14 @@ void ServerContext::process_accept_cron_receipt_reply(
     OT_ASSERT((theTrade));
 
     api_.Factory().Trade();
-    bool bLoadOfferFromString =
-        theOffer->LoadContractFromString(strOffer, reason);
-    bool bLoadTradeFromString =
-        theTrade->LoadContractFromString(strTrade, reason);
+    bool bLoadOfferFromString = theOffer->LoadContractFromString(strOffer);
+    bool bLoadTradeFromString = theTrade->LoadContractFromString(strTrade);
 
     if (bLoadOfferFromString && bLoadTradeFromString) {
         std::unique_ptr<OTDB::TradeDataNym> pData(
             dynamic_cast<OTDB::TradeDataNym*>(
                 OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_DATA_NYM)));
+
         OT_ASSERT((pData));
 
         std::int64_t lScale = theOffer->GetScale();
@@ -2842,7 +2835,7 @@ void ServerContext::process_accept_cron_receipt_reply(
         // (Asset/Currency.)
         pData->updated_id = std::to_string(pServerItem->GetTransactionNum());
         pData->completed_count = std::to_string(theTrade->GetCompletedCount());
-        auto account = api_.Wallet().Account(accountID, reason);
+        auto account = api_.Wallet().Account(accountID);
 
         OT_ASSERT(account)
 
@@ -3037,8 +3030,7 @@ void ServerContext::process_accept_item_receipt_reply(
     const api::client::internal::Manager& client,
     const Identifier& accountID,
     const Message& reply,
-    const OTTransaction& inboxTransaction,
-    const PasswordPrompt& reason)
+    const OTTransaction& inboxTransaction)
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -3047,10 +3039,7 @@ void ServerContext::process_accept_item_receipt_reply(
     auto serializedOriginal = String::Factory();
     inboxTransaction.GetReferenceString(serializedOriginal);
     auto pOriginalItem = api_.Factory().Item(
-        serializedOriginal,
-        server_id_,
-        inboxTransaction.GetReferenceToNum(),
-        reason);
+        serializedOriginal, server_id_, inboxTransaction.GetReferenceToNum());
 
     if (false == bool(pOriginalItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3073,7 +3062,7 @@ void ServerContext::process_accept_item_receipt_reply(
 
             OT_ASSERT(cheque);
 
-            if (false == cheque->LoadContractFromString(serialized, reason)) {
+            if (false == cheque->LoadContractFromString(serialized)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed to deserialize cheque")
                     .Flush();
@@ -3085,7 +3074,7 @@ void ServerContext::process_accept_item_receipt_reply(
             consume_issued(lock, number);
         } break;
         case itemType::acceptPending: {
-            consume_issued(lock, originalItem.GetNumberOfOrigin(reason));
+            consume_issued(lock, originalItem.GetNumberOfOrigin());
 
             auto serialized = String::Factory();
             originalItem.GetAttachment(serialized);
@@ -3103,7 +3092,7 @@ void ServerContext::process_accept_item_receipt_reply(
             OT_ASSERT(transferReceipt);
 
             const auto loaded =
-                transferReceipt->LoadContractFromString(serialized, reason);
+                transferReceipt->LoadContractFromString(serialized);
 
             if (false == loaded) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3113,7 +3102,7 @@ void ServerContext::process_accept_item_receipt_reply(
                 break;
             }
 
-            const auto pTransfer = extract_transfer(*transferReceipt, reason);
+            const auto pTransfer = extract_transfer(*transferReceipt);
 
             if (pTransfer) {
                 const auto& transfer = *pTransfer;
@@ -3129,7 +3118,7 @@ void ServerContext::process_accept_item_receipt_reply(
                 }
 
                 client.Workflow().CompleteTransfer(
-                    nymID, server_id_, *transferReceipt, reply, reason);
+                    nymID, server_id_, *transferReceipt, reply);
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer")
                     .Flush();
@@ -3148,8 +3137,7 @@ void ServerContext::process_accept_pending_reply(
     const api::client::internal::Manager& client,
     const Identifier& accountID,
     const Item& acceptItemReceipt,
-    const Message& reply,
-    const PasswordPrompt& reason) const
+    const Message& reply) const
 {
     OT_ASSERT(nym_);
     OT_ASSERT(remote_nym_);
@@ -3178,7 +3166,7 @@ void ServerContext::process_accept_pending_reply(
 
     OT_ASSERT(pending);
 
-    const auto loaded = pending->LoadContractFromString(attachment, reason);
+    const auto loaded = pending->LoadContractFromString(attachment);
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate").Flush();
@@ -3192,7 +3180,7 @@ void ServerContext::process_accept_pending_reply(
         return;
     }
 
-    const auto pTransfer = extract_transfer(*pending, reason);
+    const auto pTransfer = extract_transfer(*pending);
 
     if (pTransfer) {
         const auto& transfer = *pTransfer;
@@ -3201,7 +3189,7 @@ void ServerContext::process_accept_pending_reply(
             LogDetail(OT_METHOD)(__FUNCTION__)(": Accepting incoming transfer")
                 .Flush();
             client.Workflow().AcceptTransfer(
-                nym_->ID(), server_id_, *pending, reply, reason);
+                nym_->ID(), server_id_, *pending, reply);
         }
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer").Flush();
@@ -3244,14 +3232,14 @@ bool ServerContext::process_account_data(
     OT_ASSERT(inbox_);
     OT_ASSERT(ledgerType::inbox == inbox_->GetType());
 
-    if (false == inbox_->LoadInboxFromString(inbox, reason)) {
+    if (false == inbox_->LoadInboxFromString(inbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialize inbox")
             .Flush();
 
         return false;
     }
 
-    if (false == inbox_->VerifySignature(*remote_nym_, reason)) {
+    if (false == inbox_->VerifySignature(*remote_nym_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid inbox signature").Flush();
 
         return false;
@@ -3329,14 +3317,14 @@ bool ServerContext::process_account_data(
     OT_ASSERT(outbox_);
     OT_ASSERT(ledgerType::outbox == outbox_->GetType());
 
-    if (false == outbox_->LoadOutboxFromString(outbox, reason)) {
+    if (false == outbox_->LoadOutboxFromString(outbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialize outbox")
             .Flush();
 
         return false;
     }
 
-    if (false == outbox_->VerifySignature(*remote_nym_, reason)) {
+    if (false == outbox_->VerifySignature(*remote_nym_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid outbox signature")
             .Flush();
 
@@ -3434,7 +3422,7 @@ bool ServerContext::process_box_item(
     }
 
     std::shared_ptr<OTTransactionType> base{
-        api_.Factory().Transaction(String::Factory(payload), reason)};
+        api_.Factory().Transaction(String::Factory(payload))};
 
     if (false == bool(base)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payload").Flush();
@@ -3457,7 +3445,7 @@ bool ServerContext::process_box_item(
         return false;
     }
 
-    if (false == receipt->VerifyAccount(remoteNym, reason)) {
+    if (false == receipt->VerifyAccount(remoteNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to verify box receipt")
             .Flush();
 
@@ -3491,7 +3479,7 @@ bool ServerContext::process_get_nymbox_response(
 
     OT_ASSERT(nymbox);
 
-    if (false == nymbox->LoadNymboxFromString(serialized, reason)) {
+    if (false == nymbox->LoadNymboxFromString(serialized)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading or verifying nymbox")
             .Flush();
@@ -3511,7 +3499,6 @@ bool ServerContext::process_get_nymbox_response(
 
 bool ServerContext::process_check_nym_response(
     const Lock& lock,
-    const PasswordPrompt& reason,
     const api::client::internal::Manager& client,
     const Message& reply)
 {
@@ -3528,10 +3515,10 @@ bool ServerContext::process_check_nym_response(
     auto serialized =
         proto::Factory<proto::Nym>(Data::Factory(reply.m_ascPayload));
 
-    auto nym = client.Wallet().Nym(serialized, reason);
+    auto nym = client.Wallet().Nym(serialized);
 
     if (nym) {
-        client.Contacts().Update(serialized, reason);
+        client.Contacts().Update(serialized);
 
         return true;
     } else {
@@ -3611,7 +3598,7 @@ bool ServerContext::process_get_box_receipt_response(
 
     auto serialized = String::Factory(reply.m_ascPayload);
     auto boxReceipt = extract_box_receipt(
-        serialized, serverNym, nymID, reply.m_lTransactionNum, reason);
+        serialized, serverNym, nymID, reply.m_lTransactionNum);
 
     if (false == bool(boxReceipt)) { return false; }
 
@@ -3652,7 +3639,7 @@ bool ServerContext::process_get_box_receipt_response(
         } break;
         case transactionType::transferReceipt: {
             processInbox = true;
-            const auto pTransfer = extract_transfer(*receipt, reason);
+            const auto pTransfer = extract_transfer(*receipt);
 
             if (pTransfer) {
                 const auto& transfer = *pTransfer;
@@ -3667,8 +3654,7 @@ bool ServerContext::process_get_box_receipt_response(
                         .Flush();
                 }
 
-                client.Workflow().ClearTransfer(
-                    nymID, server_id_, *receipt, reason);
+                client.Workflow().ClearTransfer(nymID, server_id_, *receipt);
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer")
                     .Flush();
@@ -3676,7 +3662,7 @@ bool ServerContext::process_get_box_receipt_response(
         } break;
         case transactionType::pending: {
             processInbox = true;
-            const auto pTransfer = extract_transfer(*receipt, reason);
+            const auto pTransfer = extract_transfer(*receipt);
 
             if (pTransfer) {
                 const auto& transfer = *pTransfer;
@@ -3686,14 +3672,14 @@ bool ServerContext::process_get_box_receipt_response(
                         ": Conveying internal transfer")
                         .Flush();
                     client.Workflow().ConveyTransfer(
-                        nymID, server_id_, *receipt, reason);
+                        nymID, server_id_, *receipt);
                 } else if (transfer.GetNymID() != nymID) {
 
                     LogDetail(OT_METHOD)(__FUNCTION__)(
                         ": Conveying incoming transfer")
                         .Flush();
                     client.Workflow().ConveyTransfer(
-                        nymID, server_id_, *receipt, reason);
+                        nymID, server_id_, *receipt);
                 }
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transfer")
@@ -4024,8 +4010,7 @@ bool ServerContext::process_get_market_recent_trades_response(
 #if OT_CASH
 bool ServerContext::process_get_mint_response(
     const Lock& lock,
-    const Message& reply,
-    const PasswordPrompt& reason)
+    const Message& reply)
 {
     auto serialized = String::Factory(reply.m_ascPayload);
 
@@ -4035,7 +4020,7 @@ bool ServerContext::process_get_mint_response(
     OT_ASSERT(mint);
 
     // TODO check the server signature on the mint here...
-    if (false == mint->LoadContractFromString(serialized, reason)) {
+    if (false == mint->LoadContractFromString(serialized)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading mint from message payload.")
             .Flush();
@@ -4166,7 +4151,7 @@ void ServerContext::process_incoming_message(
 
     OT_ASSERT(message);
 
-    if (false == message->LoadContractFromString(serialized, reason)) {
+    if (false == message->LoadContractFromString(serialized)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to decode peer object: failed to deserialize message.")
             .Flush();
@@ -4180,7 +4165,7 @@ void ServerContext::process_incoming_message(
     if (senderNymID->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing sender nym ID").Flush();
     } else {
-        client.Contacts().NymToContact(senderNymID, reason);
+        client.Contacts().NymToContact(senderNymID);
     }
 
     if (recipientNymId == nymID) {
@@ -4208,8 +4193,7 @@ void ServerContext::process_incoming_message(
                     client,
                     receipt.GetTransactionNum(),
                     peerObject,
-                    *message,
-                    reason);
+                    *message);
             } break;
 #endif
             case (proto::PEEROBJECT_PAYMENT): {
@@ -4246,7 +4230,6 @@ void ServerContext::process_incoming_message(
 
 bool ServerContext::process_get_unit_definition_response(
     const Lock& lock,
-    const PasswordPrompt& reason,
     const Message& reply)
 {
     update_nymbox_hash(lock, reply);
@@ -4266,7 +4249,7 @@ bool ServerContext::process_get_unit_definition_response(
     switch (static_cast<ContractType>(reply.enum_)) {
         case ContractType::nym: {
             auto serialized = proto::Factory<proto::Nym>(raw);
-            auto contract = api_.Wallet().Nym(serialized, reason);
+            auto contract = api_.Wallet().Nym(serialized);
 
             if (contract) { return (unitID->str() == serialized.nymid()); }
         } break;
@@ -4274,7 +4257,7 @@ bool ServerContext::process_get_unit_definition_response(
             try {
                 const auto serialized =
                     proto::Factory<proto::ServerContract>(raw);
-                api_.Wallet().Server(serialized, reason);
+                api_.Wallet().Server(serialized);
 
                 return (unitID->str() == serialized.id());
             } catch (...) {
@@ -4284,7 +4267,7 @@ bool ServerContext::process_get_unit_definition_response(
             auto serialized = proto::Factory<proto::UnitDefinition>(raw);
 
             try {
-                api_.Wallet().UnitDefinition(serialized, reason);
+                api_.Wallet().UnitDefinition(serialized);
 
                 return (unitID->str() == serialized.id());
             } catch (...) {
@@ -4295,7 +4278,7 @@ bool ServerContext::process_get_unit_definition_response(
             auto serialized = proto::Factory<proto::UnitDefinition>(raw);
 
             try {
-                api_.Wallet().UnitDefinition(serialized, reason);
+                api_.Wallet().UnitDefinition(serialized);
 
                 return (unitID->str() == serialized.id());
             } catch (...) {
@@ -4305,7 +4288,7 @@ bool ServerContext::process_get_unit_definition_response(
 
                 try {
                     auto serverContract =
-                        api_.Wallet().Server(serializedServerContract, reason);
+                        api_.Wallet().Server(serializedServerContract);
 
                     return (unitID->str() == serializedServerContract.id());
                 } catch (...) {
@@ -4368,9 +4351,9 @@ bool ServerContext::process_notarize_transaction_response(
     OT_ASSERT(responseLedger);
 
     bool loaded = responseLedger->LoadLedgerFromString(
-        String::Factory(reply.m_ascPayload), reason);
+        String::Factory(reply.m_ascPayload));
 
-    if (loaded) { loaded &= responseLedger->VerifyAccount(serverNym, reason); }
+    if (loaded) { loaded &= responseLedger->VerifyAccount(serverNym); }
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4406,7 +4389,7 @@ bool ServerContext::process_notarize_transaction_response(
             continue;
         }
 
-        if (false == transaction.VerifyAccount(serverNym, reason)) {
+        if (false == transaction.VerifyAccount(serverNym)) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Unable to verify transaction ")(transactionNumber)
                 .Flush();
@@ -4432,20 +4415,19 @@ bool ServerContext::process_process_box_response(
     OT_ASSERT(remote_nym_);
 
     update_nymbox_hash(lock, reply);
-    auto originalMessage =
-        extract_message(reply.m_ascInReferenceTo, *nym_, reason);
+    auto originalMessage = extract_message(reply.m_ascInReferenceTo, *nym_);
 
     if (false == bool(originalMessage)) { return false; }
 
     OT_ASSERT(originalMessage);
 
     auto ledger =
-        extract_ledger(originalMessage->m_ascPayload, accountID, *nym_, reason);
+        extract_ledger(originalMessage->m_ascPayload, accountID, *nym_);
 
     if (false == bool(ledger)) { return false; }
 
     auto responseLedger =
-        extract_ledger(reply.m_ascPayload, accountID, *remote_nym_, reason);
+        extract_ledger(reply.m_ascPayload, accountID, *remote_nym_);
 
     if (false == bool(responseLedger)) { return false; }
 
@@ -4572,7 +4554,7 @@ bool ServerContext::process_process_inbox_response(
     }
 
     consume_issued(lock, transaction->GetTransactionNum());
-    auto inbox = load_account_inbox(accountID, reason);
+    auto inbox = load_account_inbox(accountID);
 
     OT_ASSERT(inbox);
 
@@ -4645,10 +4627,7 @@ bool ServerContext::process_process_inbox_response(
         auto serializedOriginalItem = String::Factory();
         replyItem.GetReferenceString(serializedOriginalItem);
         auto pReferenceItem = api_.Factory().Item(
-            serializedOriginalItem,
-            server_id_,
-            replyItem.GetReferenceToNum(),
-            reason);
+            serializedOriginalItem, server_id_, replyItem.GetReferenceToNum());
         auto pItem = (pReferenceItem) ? transaction->GetItemInRefTo(
                                             pReferenceItem->GetReferenceToNum())
                                       : nullptr;
@@ -4700,15 +4679,15 @@ bool ServerContext::process_process_inbox_response(
         switch (replyItem.GetType()) {
             case itemType::atAcceptPending: {
                 process_accept_pending_reply(
-                    lock, client, accountID, referenceItem, reply, reason);
+                    lock, client, accountID, referenceItem, reply);
             } break;
             case itemType::atAcceptItemReceipt: {
                 process_accept_item_receipt_reply(
-                    lock, client, accountID, reply, inboxTransaction, reason);
+                    lock, client, accountID, reply, inboxTransaction);
             } break;
             case itemType::atAcceptCronReceipt: {
                 process_accept_cron_receipt_reply(
-                    lock, accountID, inboxTransaction, reason);
+                    lock, accountID, inboxTransaction);
             } break;
             case itemType::atAcceptFinalReceipt: {
                 process_accept_final_receipt_reply(lock, inboxTransaction);
@@ -4776,8 +4755,8 @@ bool ServerContext::process_process_nymbox_response(
     OT_ASSERT((nymbox));
 
     bool loadedNymbox{true};
-    loadedNymbox &= nymbox->LoadNymbox(reason);
-    loadedNymbox &= nymbox->VerifyAccount(nym, reason);
+    loadedNymbox &= nymbox->LoadNymbox();
+    loadedNymbox &= nymbox->VerifyAccount(nym);
 
     OT_ASSERT(loadedNymbox);
 
@@ -4854,8 +4833,7 @@ bool ServerContext::process_request_admin_response(
 bool ServerContext::process_register_nym_response(
     const Lock& lock,
     const api::client::internal::Manager& client,
-    const Message& reply,
-    const PasswordPrompt& reason)
+    const Message& reply)
 {
     auto serialized =
         proto::Factory<proto::Context>(Data::Factory(reply.m_ascPayload));
@@ -4868,7 +4846,7 @@ bool ServerContext::process_register_nym_response(
     }
 
     auto output = resync(lock, serialized);
-    output &= harvest_unused(lock, client, reason);
+    output &= harvest_unused(lock, client);
 
     return output;
 }
@@ -4891,7 +4869,7 @@ bool ServerContext::process_reply(
         reply.m_bSuccess ? "success" : "failure")(")")
         .Flush();
 
-    if (false == reply.VerifySignature(serverNym, reason)) {
+    if (false == reply.VerifySignature(serverNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error: Server reply signature failed to verify.")
             .Flush();
@@ -4919,7 +4897,7 @@ bool ServerContext::process_reply(
 
     switch (Message::Type(reply.m_strCommand->Get())) {
         case MessageType::checkNymResponse: {
-            return process_check_nym_response(lock, reason, client, reply);
+            return process_check_nym_response(lock, client, reply);
         }
         case MessageType::getAccountDataResponse: {
             return process_get_account_data(lock, reply, reason);
@@ -4929,7 +4907,7 @@ bool ServerContext::process_reply(
                 lock, client, reply, reason);
         }
         case MessageType::getInstrumentDefinitionResponse: {
-            return process_get_unit_definition_response(lock, reason, reply);
+            return process_get_unit_definition_response(lock, reply);
         }
         case MessageType::getMarketListResponse: {
             return process_get_market_list_response(lock, reply);
@@ -4942,7 +4920,7 @@ bool ServerContext::process_reply(
         }
 #if OT_CASH
         case MessageType::getMintResponse: {
-            return process_get_mint_response(lock, reply, reason);
+            return process_get_mint_response(lock, reply);
         }
 #endif
         case MessageType::getNymboxResponse: {
@@ -4983,8 +4961,7 @@ bool ServerContext::process_reply(
             const auto& resync = std::get<1>(pending_args_);
 
             if (resync) {
-                return process_register_nym_response(
-                    lock, client, reply, reason);
+                return process_register_nym_response(lock, client, reply);
             }
 
             return true;
@@ -5032,11 +5009,10 @@ void ServerContext::process_response_transaction(
         } break;
         case transactionType::atExchangeBasket: {
             process_response_transaction_exchange_basket(
-                lock, reply, type, response, reason);
+                lock, reply, type, response);
         } break;
         case transactionType::atCancelCronItem: {
-            process_response_transaction_cancel(
-                lock, reply, type, response, reason);
+            process_response_transaction_cancel(lock, reply, type, response);
         } break;
         case transactionType::atWithdrawal: {
 #if OT_CASH
@@ -5046,7 +5022,7 @@ void ServerContext::process_response_transaction(
         } break;
         case transactionType::atTransfer: {
             process_response_transaction_transfer(
-                lock, client, reply, type, response, reason);
+                lock, client, reply, type, response);
         } break;
         case transactionType::atMarketOffer:
         case transactionType::atPaymentPlan:
@@ -5128,14 +5104,13 @@ void ServerContext::process_response_transaction_cancel(
     const Lock& lock,
     const Message& reply,
     const itemType type,
-    OTTransaction& response,
-    const PasswordPrompt& reason)
+    OTTransaction& response)
 {
     consume_issued(lock, response.GetTransactionNum());
     auto item = response.GetItem(type);
 
     if (item && Item::acknowledgement == item->GetStatus()) {
-        auto originalItem = extract_original_item(*item, reason);
+        auto originalItem = extract_original_item(*item);
 
         if (originalItem) {
             const auto originalNumber = originalItem->GetReferenceToNum();
@@ -5169,7 +5144,7 @@ void ServerContext::process_response_transaction_cash_deposit(
         return;
     }
 
-    auto pItem = api_.Factory().Item(serializedRequest, reason);
+    auto pItem = api_.Factory().Item(serializedRequest);
 
     if (false == bool(pItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate request")
@@ -5268,8 +5243,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
     auto serializedOriginal = String::Factory();
     Item* pOriginal{nullptr};
     replyItem.GetReferenceString(serializedOriginal);
-    auto instantiatedOriginal =
-        api_.Factory().Transaction(serializedOriginal, reason);
+    auto instantiatedOriginal = api_.Factory().Transaction(serializedOriginal);
 
     if (false == bool(instantiatedOriginal)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5298,7 +5272,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
     auto serializedCheque = String::Factory();
     originalItem.GetAttachment(serializedCheque);
 
-    if (false == cheque.LoadContractFromString(serializedCheque, reason)) {
+    if (false == cheque.LoadContractFromString(serializedCheque)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR loading cheque from string: ")(serializedCheque)(".")
             .Flush();
@@ -5309,7 +5283,7 @@ void ServerContext::process_response_transaction_cheque_deposit(
     if (0 < cheque.GetAmount()) {
         // Cheque or voucher
         const auto workflowUpdated = client.Workflow().DepositCheque(
-            nymID, accountID, cheque, request, reply, reason);
+            nymID, accountID, cheque, request, reply);
 
         if (workflowUpdated) {
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -5406,7 +5380,7 @@ void ServerContext::process_response_transaction_cron(
     }
 
     auto& replyItem = *pReplyItem;
-    auto pOriginalItem = extract_original_item(replyItem, reason);
+    auto pOriginalItem = extract_original_item(replyItem);
 
     if (false == bool(pOriginalItem)) { return; }
 
@@ -5422,7 +5396,7 @@ void ServerContext::process_response_transaction_cron(
         return;
     }
 
-    auto pCronItem = api_.Factory().CronItem(serialized, reason);
+    auto pCronItem = api_.Factory().CronItem(serialized);
 
     if (false == bool(pCronItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5540,15 +5514,13 @@ void ServerContext::process_response_transaction_cron(
 
         OT_ASSERT((theRecordBox));
 
-        bool bSuccessLoading1 =
-            (bExists1 && thePmntInbox->LoadPaymentInbox(reason));
-        bool bSuccessLoading2 =
-            (bExists2 && theRecordBox->LoadRecordBox(reason));
+        bool bSuccessLoading1 = (bExists1 && thePmntInbox->LoadPaymentInbox());
+        bool bSuccessLoading2 = (bExists2 && theRecordBox->LoadRecordBox());
 
         if (bExists1 && bSuccessLoading1)
             bSuccessLoading1 =
                 (thePmntInbox->VerifyContractID() &&
-                 thePmntInbox->VerifySignature(nym, reason));
+                 thePmntInbox->VerifySignature(nym));
         // (thePmntInbox->VerifyAccount(*pNym));
         // (No need to load all the Box
         // Receipts using VerifyAccount)
@@ -5557,12 +5529,12 @@ void ServerContext::process_response_transaction_cron(
                 nymID,
                 server_id_,
                 ledgerType::paymentInbox,
-                reason,
+
                 true);  // bGenerateFile=true
         if (bExists2 && bSuccessLoading2)
             bSuccessLoading2 =
                 (theRecordBox->VerifyContractID() &&
-                 theRecordBox->VerifySignature(nym, reason));
+                 theRecordBox->VerifySignature(nym));
         // (theRecordBox->VerifyAccount(*pNym));
         // (No need to load all the Box
         // Receipts using VerifyAccount)
@@ -5571,7 +5543,7 @@ void ServerContext::process_response_transaction_cron(
                 nymID,
                 server_id_,
                 ledgerType::recordBox,
-                reason,
+
                 true);  // bGenerateFile=true
         // By this point, the boxes DEFINITELY exist -- or not. (generation
         // might have failed, or verification.)
@@ -5941,14 +5913,13 @@ void ServerContext::process_response_transaction_exchange_basket(
     const Lock& lock,
     const Message& reply,
     const itemType type,
-    OTTransaction& response,
-    const PasswordPrompt& reason)
+    OTTransaction& response)
 {
     consume_issued(lock, response.GetTransactionNum());
     auto item = response.GetItem(type);
 
     if (item && Item::rejection == item->GetStatus()) {
-        auto originalItem = extract_original_item(*item, reason);
+        auto originalItem = extract_original_item(*item);
 
         if (originalItem) {
             auto serialized = String::Factory();
@@ -5968,7 +5939,7 @@ void ServerContext::process_response_transaction_exchange_basket(
 
             auto& basket = *pBasket;
 
-            if (false == basket.LoadContractFromString(serialized, reason)) {
+            if (false == basket.LoadContractFromString(serialized)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed to instantiate basket")
                     .Flush();
@@ -6036,8 +6007,7 @@ void ServerContext::process_response_transaction_transfer(
     const api::client::internal::Manager& client,
     const Message& reply,
     const itemType type,
-    OTTransaction& response,
-    const PasswordPrompt& reason)
+    OTTransaction& response)
 {
     OT_ASSERT(nym_);
 
@@ -6074,8 +6044,7 @@ void ServerContext::process_response_transaction_transfer(
     auto pTransfer = api_.Factory().Item(
         serialized,
         responseItem.GetRealNotaryID(),
-        responseItem.GetReferenceToNum(),
-        reason);
+        responseItem.GetReferenceToNum());
 
     if (false == bool(pTransfer)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -6136,7 +6105,7 @@ void ServerContext::process_response_transaction_withdrawal(
 
             pItem->GetAttachment(strVoucher);
 
-            if (theVoucher->LoadContractFromString(strVoucher, reason)) {
+            if (theVoucher->LoadContractFromString(strVoucher)) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(
                     " Received voucher from server:  ")
                     .Flush();
@@ -6163,13 +6132,12 @@ bool ServerContext::process_incoming_cash(
     const api::client::internal::Manager& client,
     const TransactionNumber number,
     const PeerObject& incoming,
-    const Message& message,
-    const PasswordPrompt& reason) const
+    const Message& message) const
 {
     OT_ASSERT(nym_);
     OT_ASSERT(proto::PEEROBJECT_CASH == incoming.Type());
 
-    if (false == incoming.Validate(reason)) {
+    if (false == incoming.Validate()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid peer object.").Flush();
 
         return false;
@@ -6262,8 +6230,7 @@ void ServerContext::process_incoming_cash_withdrawal(
     }
 
     auto& mint = *pMint;
-    const bool validMint =
-        mint.LoadMint(reason) && mint.VerifyMint(serverNym, reason);
+    const bool validMint = mint.LoadMint() && mint.VerifyMint(serverNym);
 
     if (validMint) {
         LogInsane(OT_METHOD)(__FUNCTION__)(": Mint is valid").Flush();
@@ -6311,8 +6278,8 @@ bool ServerContext::process_unregister_account_response(
     OT_ASSERT((originalMessage));
 
     if (serialized->Exists() &&
-        originalMessage->LoadContractFromString(serialized, reason) &&
-        originalMessage->VerifySignature(*Nym(), reason) &&
+        originalMessage->LoadContractFromString(serialized) &&
+        originalMessage->VerifySignature(*Nym()) &&
         originalMessage->m_strNymID->Compare(reply.m_strNymID) &&
         originalMessage->m_strAcctID->Compare(reply.m_strAcctID) &&
         originalMessage->m_strCommand->Compare("unregisterAccount")) {
@@ -6322,7 +6289,7 @@ bool ServerContext::process_unregister_account_response(
 
         if (account) {
             account.Release();
-            api_.Wallet().DeleteAccount(theAccountID, reason);
+            api_.Wallet().DeleteAccount(theAccountID);
         }
 
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -6355,8 +6322,8 @@ bool ServerContext::process_unregister_nym_response(
     }
 
     if (serialized->Exists() &&
-        originalMessage->LoadContractFromString(serialized, reason) &&
-        originalMessage->VerifySignature(*Nym(), reason) &&
+        originalMessage->LoadContractFromString(serialized) &&
+        originalMessage->VerifySignature(*Nym()) &&
         originalMessage->m_strNymID->Compare(reply.m_strNymID) &&
         originalMessage->m_strCommand->Compare("unregisterNym")) {
         Reset();
@@ -6405,7 +6372,7 @@ void ServerContext::process_unseen_reply(
 
     OT_ASSERT(message);
 
-    if (false == message->LoadContractFromString(serializedReply, reason)) {
+    if (false == message->LoadContractFromString(serializedReply)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed loading original server "
             "reply message from replyNotice: ")(serializedReply)
@@ -6569,8 +6536,7 @@ bool ServerContext::remove_nymbox_item(
         .Flush();
     auto serialized = String::Factory();
     replyItem.GetReferenceString(serialized);
-    auto processNymboxItem =
-        api_.Factory().Item(serialized, server_id_, 0, reason);
+    auto processNymboxItem = api_.Factory().Item(serialized, server_id_, 0);
 
     if (false == bool(processNymboxItem)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -6649,11 +6615,11 @@ bool ServerContext::remove_nymbox_item(
 
             auto pOriginalCronItem =
                 (strOriginalCronItem->Exists()
-                     ? api_.Factory().CronItem(strOriginalCronItem, reason)
+                     ? api_.Factory().CronItem(strOriginalCronItem)
                      : nullptr);
             auto pUpdatedCronItem =
                 (strUpdatedCronItem->Exists()
-                     ? api_.Factory().CronItem(strUpdatedCronItem, reason)
+                     ? api_.Factory().CronItem(strUpdatedCronItem)
                      : nullptr);
             std::unique_ptr<OTCronItem>& pCronItem =
                 ((pUpdatedCronItem) ? pUpdatedCronItem : pOriginalCronItem);
@@ -6751,30 +6717,29 @@ bool ServerContext::remove_nymbox_item(
 
                 OT_ASSERT((recordBox));
 
-                bool loaded1 =
-                    (exists1 && paymentInbox->LoadPaymentInbox(reason));
-                bool loaded2 = (exists2 && recordBox->LoadRecordBox(reason));
+                bool loaded1 = (exists1 && paymentInbox->LoadPaymentInbox());
+                bool loaded2 = (exists2 && recordBox->LoadRecordBox());
 
                 if (exists1 && loaded1) {
                     loaded1 =
                         (paymentInbox->VerifyContractID() &&
-                         paymentInbox->VerifySignature(nym, reason));
+                         paymentInbox->VerifySignature(nym));
                 } else if (!exists1) {
                     loaded1 = paymentInbox->GenerateLedger(
                         nymID,
                         server_id_,
                         ledgerType::paymentInbox,
-                        reason,
+
                         true);
                 }
 
                 if (exists2 && loaded2) {
                     loaded2 =
                         (recordBox->VerifyContractID() &&
-                         recordBox->VerifySignature(nym, reason));
+                         recordBox->VerifySignature(nym));
                 } else if (!exists2) {
                     loaded2 = recordBox->GenerateLedger(
-                        nymID, server_id_, ledgerType::recordBox, reason, true);
+                        nymID, server_id_, ledgerType::recordBox, true);
                 }
 
                 if (!loaded1 || !loaded2) {
@@ -7357,18 +7322,14 @@ std::unique_ptr<TransactionStatement> ServerContext::Statement(
     return generate_statement(lock, adding, without);
 }
 
-bool ServerContext::ShouldRename(
-    const PasswordPrompt& reason,
-    const std::string& defaultName) const
+bool ServerContext::ShouldRename(const std::string& defaultName) const
 {
     try {
-        const auto contract = api_.Wallet().Server(server_id_, reason);
+        const auto contract = api_.Wallet().Server(server_id_);
 
-        if (contract->Alias() != contract->EffectiveName(reason)) {
-            return true;
-        }
+        if (contract->Alias() != contract->EffectiveName()) { return true; }
 
-        return defaultName == contract->EffectiveName(reason);
+        return defaultName == contract->EffectiveName();
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing server contract.")
             .Flush();

@@ -40,8 +40,7 @@ public:
         proto::AddressType& actual,
         const proto::AddressType& preferred) const = 0;
     OPENTXS_EXPORT virtual proto::ServerContract Contract() const = 0;
-    OPENTXS_EXPORT virtual std::string EffectiveName(
-        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual std::string EffectiveName() const = 0;
     OPENTXS_EXPORT virtual proto::ServerContract PublicContract() const = 0;
     OPENTXS_EXPORT virtual bool Statistics(String& strContents) const = 0;
     OPENTXS_EXPORT virtual const Data& TransportKey() const = 0;

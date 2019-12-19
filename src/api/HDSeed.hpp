@@ -30,16 +30,16 @@ public:
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    std::unique_ptr<opentxs::crypto::key::Secp256k1> GetPaymentCode(
         std::string& fingerprint,
         const Bip32Index nym,
         const PasswordPrompt& reason) const final;
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OTSymmetricKey GetStorageKey(
         std::string& seed,
         const PasswordPrompt& reason) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     std::string ImportRaw(
         const OTPassword& entropy,
         const PasswordPrompt& reason) const final;

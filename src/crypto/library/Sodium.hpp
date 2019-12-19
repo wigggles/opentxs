@@ -27,11 +27,19 @@ public:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool RandomizeMemory(void* destination, const std::size_t size) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    bool RandomKeypair(
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey,
+        const proto::KeyRole role,
+        const NymParameters& options,
+        const AllocateOutput params) const noexcept final;
+    bool SharedSecret(
+        const key::Asymmetric& publicKey,
+        const key::Asymmetric& privateKey,
+        const PasswordPrompt& reason,
+        OTPassword& secret) const noexcept final;
     bool Sign(
         const api::internal::Core& api,
         const Data& plaintext,
@@ -44,8 +52,7 @@ public:
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
-        const proto::HashType hashType,
-        const PasswordPrompt& reason) const final;
+        const proto::HashType hashType) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
     ~Sodium() final = default;
@@ -72,10 +79,6 @@ private:
         const proto::SymmetricKeyType type,
         std::uint8_t* output,
         std::size_t outputSize) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    bool ECDH(const Data& publicKey, const OTPassword& seed, OTPassword& secret)
-        const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool Encrypt(
         const std::uint8_t* input,
         const std::size_t inputSize,
@@ -84,10 +87,6 @@ private:
         proto::Ciphertext& ciphertext) const final;
     std::size_t IvSize(const proto::SymmetricMode mode) const final;
     std::size_t KeySize(const proto::SymmetricMode mode) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    bool ScalarBaseMultiply(const OTPassword& seed, Data& publicKey)
-        const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     std::size_t SaltSize(const proto::SymmetricKeyType type) const final;
     std::size_t TagSize(const proto::SymmetricMode mode) const final;
 

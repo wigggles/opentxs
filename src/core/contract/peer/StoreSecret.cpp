@@ -56,8 +56,7 @@ auto Factory::StoreSecret(
 auto Factory::StoreSecret(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::PeerRequest& serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::PeerRequest& serialized) noexcept
     -> std::shared_ptr<contract::peer::request::StoreSecret>
 {
     if (false == proto::Validate(serialized, VERBOSE)) {
@@ -76,7 +75,7 @@ auto Factory::StoreSecret(
         auto& contract = *output;
         Lock lock(contract.lock_);
 
-        if (false == contract.validate(lock, reason)) {
+        if (false == contract.validate(lock)) {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid request.")
                 .Flush();
 

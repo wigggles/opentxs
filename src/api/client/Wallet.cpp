@@ -14,9 +14,7 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -57,16 +55,14 @@ Wallet::Wallet(const api::client::internal::Manager& client)
 
 std::shared_ptr<const opentxs::Context> Wallet::Context(
     const identifier::Server& notaryID,
-    const identifier::Nym& clientNymID,
-    const PasswordPrompt& reason) const
+    const identifier::Nym& clientNymID) const
 {
     auto serverID = Identifier::Factory(notaryID);
 
-    return context(clientNymID, server_to_nym(reason, serverID), reason);
+    return context(clientNymID, server_to_nym(serverID));
 }
 
 void Wallet::instantiate_server_context(
-    const PasswordPrompt& reason,
     const proto::Context& serialized,
     const Nym_p& localNym,
     const Nym_p& remoteNym,
@@ -74,7 +70,7 @@ void Wallet::instantiate_server_context(
 {
     auto& zmq = client_.ZMQ();
     const auto& server = serialized.servercontext().serverid();
-    auto& connection = zmq.Server(server, reason);
+    auto& connection = zmq.Server(server);
     output.reset(opentxs::Factory::ServerContext(
         client_,
         request_sent_,
@@ -91,7 +87,7 @@ Editor<opentxs::Context> Wallet::mutable_Context(
     const PasswordPrompt& reason) const
 {
     auto serverID = Identifier::Factory(notaryID);
-    auto base = context(clientNymID, server_to_nym(reason, serverID), reason);
+    auto base = context(clientNymID, server_to_nym(serverID));
     std::function<void(opentxs::Context*)> callback =
         [&](opentxs::Context* in) -> void {
         this->save(reason, dynamic_cast<opentxs::internal::Context*>(in));
@@ -110,9 +106,9 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
     Lock lock(context_map_lock_);
 
     auto serverID = Identifier::Factory(remoteID.str());
-    const auto remoteNymID = server_to_nym(reason, serverID);
+    const auto remoteNymID = server_to_nym(serverID);
 
-    auto base = context(localNymID, remoteNymID, reason);
+    auto base = context(localNymID, remoteNymID);
 
     std::function<void(opentxs::Context*)> callback =
         [&](opentxs::Context* in) -> void {
@@ -123,11 +119,11 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
         OT_ASSERT(proto::CONSENSUSTYPE_SERVER == base->Type());
     } else {
         // Obtain nyms.
-        const auto localNym = Nym(localNymID, reason);
+        const auto localNym = Nym(localNymID);
 
         OT_ASSERT_MSG(localNym, "Local nym does not exist in the wallet.");
 
-        const auto remoteNym = Nym(remoteNymID, reason);
+        const auto remoteNym = Nym(remoteNymID);
 
         OT_ASSERT_MSG(remoteNym, "Remote nym does not exist in the wallet.");
 
@@ -135,7 +131,7 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
         const ContextID contextID = {localNymID.str(), remoteNymID->str()};
         auto& entry = context_map_[contextID];
         auto& zmq = client_.ZMQ();
-        auto& connection = zmq.Server(serverID->str(), reason);
+        auto& connection = zmq.Server(serverID->str());
         entry.reset(opentxs::Factory::ServerContext(
             client_,
             request_sent_,
@@ -156,44 +152,25 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
     return Editor<opentxs::ServerContext>(child, callback);
 }
 
-void Wallet::nym_to_contact(
-    const identity::Nym& nym,
-    const std::string& name,
-    const PasswordPrompt& reason) const noexcept
+void Wallet::nym_to_contact(const identity::Nym& nym, const std::string& name)
+    const noexcept
 {
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = api_.Factory().PaymentCode(nym.PaymentCode(reason), reason);
-#endif
-    client_.Contacts().NewContact(
-        name,
-        nym.ID()
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-            ,
-        code
-#endif
-        ,
-        reason);
+    auto code = api_.Factory().PaymentCode(nym.PaymentCode());
+    client_.Contacts().NewContact(name, nym.ID(), code);
 }
 
 std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
     const identifier::Nym& localNymID,
-    const Identifier& remoteID,
-    const PasswordPrompt& reason) const
+    const Identifier& remoteID) const
 {
     auto serverID = Identifier::Factory(remoteID);
-    auto remoteNymID = server_to_nym(reason, serverID);
-    auto base = context(localNymID, remoteNymID, reason);
+    auto remoteNymID = server_to_nym(serverID);
+    auto base = context(localNymID, remoteNymID);
 
     auto output = std::dynamic_pointer_cast<const opentxs::ServerContext>(base);
 
     return output;
 }
 
-Nym_p Wallet::signer_nym(
-    const identifier::Nym& id,
-    const PasswordPrompt& reason) const
-{
-
-    return Nym(id, reason);
-}
+Nym_p Wallet::signer_nym(const identifier::Nym& id) const { return Nym(id); }
 }  // namespace opentxs::api::client::implementation

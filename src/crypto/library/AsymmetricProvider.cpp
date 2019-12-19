@@ -5,10 +5,17 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+
+#include "util/Sodium.hpp"
+
+extern "C" {
+#include <sodium.h>
+}
 
 #include "AsymmetricProvider.hpp"
 
@@ -65,13 +72,46 @@ EcdsaCurve AsymmetricProvider::KeyTypeToCurve(
 
 namespace opentxs::crypto::implementation
 {
-bool AsymmetricProvider::SignContract(
+AsymmetricProvider::AsymmetricProvider() noexcept
+{
+    if (0 > ::sodium_init()) { OT_FAIL; }
+}
+
+auto AsymmetricProvider::SeedToCurveKey(
+    const ReadView seed,
+    const AllocateOutput privateKey,
+    const AllocateOutput publicKey) const noexcept -> bool
+{
+    auto edPublic = Data::Factory();
+    auto edPrivate = OTPassword{};
+
+    if (false == sodium::ExpandSeed(
+                     seed,
+                     edPrivate.WriteInto(OTPassword::Mode::Mem),
+                     edPublic->WriteInto())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to expand seed.").Flush();
+
+        return false;
+    }
+
+    if (false == bool(privateKey) || false == bool(publicKey)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    return sodium::ToCurveKeypair(
+        edPrivate.Bytes(), edPublic->Bytes(), privateKey, publicKey);
+}
+
+auto AsymmetricProvider::SignContract(
     const api::internal::Core& api,
     const String& strContractUnsigned,
     const key::Asymmetric& theKey,
     Signature& theSignature,  // output
     const proto::HashType hashType,
-    const PasswordPrompt& reason) const
+    const PasswordPrompt& reason) const -> bool
 {
     auto plaintext = Data::Factory(
         strContractUnsigned.Get(),
@@ -89,12 +129,11 @@ bool AsymmetricProvider::SignContract(
     return success;
 }
 
-bool AsymmetricProvider::VerifyContractSignature(
+auto AsymmetricProvider::VerifyContractSignature(
     const String& strContractToVerify,
     const key::Asymmetric& theKey,
     const Signature& theSignature,
-    const proto::HashType hashType,
-    const PasswordPrompt& reason) const
+    const proto::HashType hashType) const -> bool
 {
     auto plaintext = Data::Factory(
         strContractToVerify.Get(),
@@ -102,6 +141,6 @@ bool AsymmetricProvider::VerifyContractSignature(
     auto signature = Data::Factory();
     theSignature.GetData(signature);
 
-    return Verify(plaintext, theKey, signature, hashType, reason);
+    return Verify(plaintext, theKey, signature, hashType);
 }
 }  // namespace opentxs::crypto::implementation

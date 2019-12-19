@@ -217,7 +217,7 @@ void Contract::GetIdentifier(String& theIdentifier) const
 // Make sure this contract checks out. Very high level.
 // Verifies ID, existence of public key, and signature.
 //
-bool Contract::VerifyContract(const PasswordPrompt& reason) const
+bool Contract::VerifyContract() const
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -238,7 +238,7 @@ bool Contract::VerifyContract(const PasswordPrompt& reason) const
         return false;
     }
 
-    if (!VerifySignature(*pNym, reason)) {
+    if (!VerifySignature(*pNym)) {
         const auto& theNymID = pNym->ID();
         const auto strNymID = String::Factory(theNymID);
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -540,9 +540,7 @@ bool Contract::SignContract(
     return true;
 }
 
-bool Contract::VerifySigAuthent(
-    const identity::Nym& theNym,
-    const PasswordPrompt& reason) const
+bool Contract::VerifySigAuthent(const identity::Nym& theNym) const
 {
     auto strNymID = String::Factory();
     theNym.GetIdentifier(strNymID);
@@ -560,15 +558,13 @@ bool Contract::VerifySigAuthent(
             if (sig->getMetaData().FirstCharNymID() != cNymID) { continue; }
         }
 
-        if (VerifySigAuthent(theNym, sig, reason)) { return true; }
+        if (VerifySigAuthent(theNym, sig)) { return true; }
     }
 
     return false;
 }
 
-bool Contract::VerifySignature(
-    const identity::Nym& theNym,
-    const PasswordPrompt& reason) const
+bool Contract::VerifySignature(const identity::Nym& theNym) const
 {
     auto strNymID = String::Factory(theNym.ID());
     char cNymID = '0';
@@ -585,15 +581,13 @@ bool Contract::VerifySignature(
             if (sig->getMetaData().FirstCharNymID() != cNymID) { continue; }
         }
 
-        if (VerifySignature(theNym, sig, reason)) { return true; }
+        if (VerifySignature(theNym, sig)) { return true; }
     }
 
     return false;
 }
 
-bool Contract::VerifyWithKey(
-    const crypto::key::Asymmetric& theKey,
-    const PasswordPrompt& reason) const
+bool Contract::VerifyWithKey(const crypto::key::Asymmetric& theKey) const
 {
     for (const auto& sig : m_listSignatures) {
         const auto* metadata = theKey.GetMetadata();
@@ -606,9 +600,7 @@ bool Contract::VerifyWithKey(
             if (sig->getMetaData() != *(metadata)) continue;
         }
 
-        if (VerifySignature(theKey, sig, m_strSigHashType, reason)) {
-            return true;
-        }
+        if (VerifySignature(theKey, sig, m_strSigHashType)) { return true; }
     }
 
     return false;
@@ -620,8 +612,7 @@ bool Contract::VerifyWithKey(
 // secure signature.)
 bool Contract::VerifySigAuthent(
     const identity::Nym& theNym,
-    const Signature& theSignature,
-    const PasswordPrompt& reason) const
+    const Signature& theSignature) const
 {
     crypto::key::Keypair::Keys listOutput;
 
@@ -634,7 +625,7 @@ bool Contract::VerifySigAuthent(
             auto pKey = it;
             OT_ASSERT(nullptr != pKey);
 
-            if (VerifySignature(*pKey, theSignature, m_strSigHashType, reason))
+            if (VerifySignature(*pKey, theSignature, m_strSigHashType))
                 return true;
         }
     } else {
@@ -650,7 +641,7 @@ bool Contract::VerifySigAuthent(
     // else found no keys.
 
     return VerifySignature(
-        theNym.GetPublicAuthKey(), theSignature, m_strSigHashType, reason);
+        theNym.GetPublicAuthKey(), theSignature, m_strSigHashType);
 }
 
 // The only different between calling this with a Nym and calling it with an
@@ -661,8 +652,7 @@ bool Contract::VerifySigAuthent(
 //
 bool Contract::VerifySignature(
     const identity::Nym& theNym,
-    const Signature& theSignature,
-    const PasswordPrompt& reason) const
+    const Signature& theSignature) const
 {
     crypto::key::Keypair::Keys listOutput;
 
@@ -675,8 +665,7 @@ bool Contract::VerifySignature(
             auto pKey = it;
             OT_ASSERT(nullptr != pKey);
 
-            if (VerifySignature(
-                    *pKey, theSignature, m_strSigHashType, reason)) {
+            if (VerifySignature(*pKey, theSignature, m_strSigHashType)) {
                 return true;
             }
         }
@@ -693,14 +682,13 @@ bool Contract::VerifySignature(
     // else found no keys.
 
     return VerifySignature(
-        theNym.GetPublicSignKey(), theSignature, m_strSigHashType, reason);
+        theNym.GetPublicSignKey(), theSignature, m_strSigHashType);
 }
 
 bool Contract::VerifySignature(
     const crypto::key::Asymmetric& theKey,
     const Signature& theSignature,
-    const proto::HashType hashType,
-    const PasswordPrompt& reason) const
+    const proto::HashType hashType) const
 {
     const auto* metadata = theKey.GetMetadata();
 
@@ -713,9 +701,8 @@ bool Contract::VerifySignature(
 
     const auto& engine = theKey.engine();
 
-    if (false ==
-        engine.VerifyContractSignature(
-            trim(m_xmlUnsigned), theKey, theSignature, hashType, reason)) {
+    if (false == engine.VerifyContractSignature(
+                     trim(m_xmlUnsigned), theKey, theSignature, hashType)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(
             ": engine.VerifyContractSignature returned false.")
             .Flush();
@@ -1012,13 +999,13 @@ bool Contract::WriteContract(
 // assumes m_strFilename is already set.
 // Then it reads that file into a string.
 // Then it parses that string into the object.
-bool Contract::LoadContract(const PasswordPrompt& reason)
+bool Contract::LoadContract()
 {
     Release();
     LoadContractRawFile();  // opens m_strFilename and reads into m_strRawFile
 
-    return ParseRawFile(reason);  // Parses m_strRawFile into the various member
-                                  // variables.
+    return ParseRawFile();  // Parses m_strRawFile into the various member
+                            // variables.
 }
 
 // The entire Raw File, signatures and all, is used to calculate the hash
@@ -1075,10 +1062,7 @@ bool Contract::LoadContractRawFile()
     return m_strRawFile->Exists();
 }
 
-bool Contract::LoadContract(
-    const char* szFoldername,
-    const char* szFilename,
-    const PasswordPrompt& reason)
+bool Contract::LoadContract(const char* szFoldername, const char* szFilename)
 {
     Release();
 
@@ -1087,8 +1071,8 @@ bool Contract::LoadContract(
 
     // opens m_strFilename and reads into m_strRawFile
     if (LoadContractRawFile())
-        return ParseRawFile(reason);  // Parses m_strRawFile into the various
-                                      // member variables.
+        return ParseRawFile();  // Parses m_strRawFile into the various
+                                // member variables.
     else {
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Failed loading raw contract file: ")(m_strFoldername)(
@@ -1100,9 +1084,7 @@ bool Contract::LoadContract(
 
 // Just like it says. If you have a contract in string form, pass it in
 // here to import it.
-bool Contract::LoadContractFromString(
-    const String& theStr,
-    const PasswordPrompt& reason)
+bool Contract::LoadContractFromString(const String& theStr)
 {
     Release();
 
@@ -1129,8 +1111,8 @@ bool Contract::LoadContractFromString(
 
     // This populates m_xmlUnsigned with the contents of m_strRawFile (minus
     // bookends, signatures, etc. JUST the XML.)
-    bool bSuccess = ParseRawFile(reason);  // It also parses into the various
-                                           // member variables.
+    bool bSuccess = ParseRawFile();  // It also parses into the various
+                                     // member variables.
 
     // Removed:
     // This was the bug where the version changed from 75 to 75c, and suddenly
@@ -1151,7 +1133,7 @@ bool Contract::LoadContractFromString(
     return bSuccess;
 }
 
-bool Contract::ParseRawFile(const PasswordPrompt& reason)
+bool Contract::ParseRawFile()
 {
     char buffer1[2100];  // a bit bigger than 2048, just for safety reasons.
     Signature* pSig{nullptr};
@@ -1423,7 +1405,7 @@ bool Contract::ParseRawFile(const PasswordPrompt& reason)
             "signature.")
             .Flush();
         return false;
-    } else if (!LoadContractXML(reason)) {
+    } else if (!LoadContractXML()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error in Contract::ParseRawFile: Unable to load XML "
             "portion of contract into memory.")
@@ -1442,7 +1424,7 @@ bool Contract::ParseRawFile(const PasswordPrompt& reason)
 
 // This function assumes that m_xmlUnsigned is ready to be processed.
 // This function only processes that portion of the contract.
-bool Contract::LoadContractXML(const PasswordPrompt& reason)
+bool Contract::LoadContractXML()
 {
     std::int32_t retProcess = 0;
 
@@ -1494,7 +1476,7 @@ bool Contract::LoadContractXML(const PasswordPrompt& reason)
                 // xml->getNodeData());
             } break;
             case EXN_ELEMENT: {
-                retProcess = ProcessXMLNode(xml, reason);
+                retProcess = ProcessXMLNode(xml);
 
                 // an error was returned. file format or whatever.
                 if ((-1) == retProcess) {
@@ -1927,7 +1909,7 @@ bool Contract::CreateContract(
     // This function assumes that m_xmlUnsigned is ready to be processed.
     // This function only processes that portion of the contract.
     //
-    bool bLoaded = LoadContractXML(reason);
+    bool bLoaded = LoadContractXML();
 
     if (bLoaded) {
 
@@ -1945,7 +1927,7 @@ bool Contract::CreateContract(
             } else  // theSigner has Credentials, so we'll add him to the
                     // contract.
             {
-                auto pNym = api_.Wallet().Nym(theSigner.ID(), reason);
+                auto pNym = api_.Wallet().Nym(theSigner.ID());
                 if (nullptr == pNym) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Failed to load signing nym.")
@@ -1974,9 +1956,9 @@ bool Contract::CreateContract(
         auto strTemp = String::Factory();
         SaveContractRaw(strTemp);
 
-        if (LoadContractFromString(strTemp, reason))  // The ultimate test is,
-                                                      // once
-        {  // we've created the serialized
+        if (LoadContractFromString(strTemp))  // The ultimate test is,
+                                              // once
+        {                                     // we've created the serialized
             auto NEW_ID =
                 api_.Factory().Identifier();  // string for this contract, is
             CalculateContractID(NEW_ID);      // to then load it up from that
@@ -2055,9 +2037,7 @@ void Contract::CreateContents()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Contract::ProcessXMLNode(
-    IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -2134,7 +2114,7 @@ std::int32_t Contract::ProcessXMLNode(
         }
 
         const auto nymId = api_.Factory().NymID(strSignerNymID);
-        const auto pNym = api_.Wallet().Nym(nymId, reason);
+        const auto pNym = api_.Wallet().Nym(nymId);
 
         if (nullptr == pNym) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failure loading signing nym.")

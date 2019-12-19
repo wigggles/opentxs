@@ -10,26 +10,22 @@ namespace opentxs::crypto::key::implementation
 class HD : virtual public key::HD, public EllipticCurve
 {
 public:
-    OTData Chaincode(const PasswordPrompt& reason) const override;
-    int Depth() const override;
-    Bip32Fingerprint Fingerprint(const PasswordPrompt& reason) const override;
-    const std::string Path() const override;
-    bool Path(proto::HDPath& output) const override;
-    std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
-    std::string Xprv(const PasswordPrompt& reason) const override;
-    std::string Xpub(const PasswordPrompt& reason) const override;
+    ReadView Chaincode(const PasswordPrompt& reason) const noexcept final;
+    int Depth() const noexcept final;
+    Bip32Fingerprint Fingerprint() const noexcept final;
+    const std::string Path() const noexcept final;
+    bool Path(proto::HDPath& output) const noexcept final;
+    std::shared_ptr<proto::AsymmetricKey> Serialize() const noexcept final;
+    std::string Xprv(const PasswordPrompt& reason) const noexcept final;
+    std::string Xpub(const PasswordPrompt& reason) const noexcept final;
 
 protected:
-    std::shared_ptr<proto::HDPath> path_{nullptr};
-    std::unique_ptr<proto::Ciphertext> chain_code_{nullptr};
-
-    void erase_private_data() override;
+    void erase_private_data() final;
 
     HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,
-       const proto::AsymmetricKey& serializedKey,
-       const PasswordPrompt& reason)
-    noexcept;
+       const proto::AsymmetricKey& serializedKey)
+    noexcept(false);
     HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,
        const proto::AsymmetricKeyType keyType,
@@ -50,14 +46,18 @@ protected:
        const VersionNumber version,
        key::Symmetric& sessionKey,
        const PasswordPrompt& reason)
-    noexcept;
+    noexcept(false);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     HD(const HD&) noexcept;
 
 private:
-    Bip32Fingerprint parent_;
+    const std::shared_ptr<const proto::HDPath> path_;
+    const std::unique_ptr<const proto::Ciphertext> chain_code_;
+    mutable OTPassword plaintext_chain_code_;
+    const Bip32Fingerprint parent_;
 
-    std::tuple<bool, Bip32Depth, Bip32Index> get_params() const;
+    auto get_params() const noexcept
+        -> std::tuple<bool, Bip32Depth, Bip32Index>;
 
     HD() = delete;
     HD(HD&&) = delete;

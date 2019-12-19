@@ -136,9 +136,7 @@ OTPaymentPlan::OTPaymentPlan(
     InitPaymentPlan();
 }
 
-std::int32_t OTPaymentPlan::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;
 
@@ -150,8 +148,7 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
-    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml, reason)))
-        return nReturnVal;
+    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml))) return nReturnVal;
 
     // Note: the closing transaction numbers are read in
     // OTCronItem::ProcessXMLNode,
@@ -411,14 +408,12 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 }
 
 bool OTPaymentPlan::VerifyMerchantSignature(
-    const identity::Nym& RECIPIENT_NYM,
-    const PasswordPrompt& reason) const
+    const identity::Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy{api_};
     if (!m_strMerchantSignedCopy->Exists() ||
-        !theMerchantCopy.LoadContractFromString(
-            m_strMerchantSignedCopy, reason)) {
+        !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Expected Merchant's signed copy to be inside the "
             "payment plan, but unable to load.")
@@ -437,7 +432,7 @@ bool OTPaymentPlan::VerifyMerchantSignature(
 
     // Verify recipient's signature on merchant's copy.
     //
-    if (!theMerchantCopy.VerifySignature(RECIPIENT_NYM, reason)) {
+    if (!theMerchantCopy.VerifySignature(RECIPIENT_NYM)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Merchant's signature failed to verify on "
             "internal merchant copy of agreement.")
@@ -449,10 +444,9 @@ bool OTPaymentPlan::VerifyMerchantSignature(
 }
 
 bool OTPaymentPlan::VerifyCustomerSignature(
-    const identity::Nym& SENDER_NYM,
-    const PasswordPrompt& reason) const
+    const identity::Nym& SENDER_NYM) const
 {
-    if (!VerifySignature(SENDER_NYM, reason)) {
+    if (!VerifySignature(SENDER_NYM)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Customer's signature failed to verify.")
             .Flush();
@@ -467,10 +461,9 @@ bool OTPaymentPlan::VerifyCustomerSignature(
 // function tries to verify they are the same, and properly signed.
 bool OTPaymentPlan::VerifyAgreement(
     const ClientContext& recipient,
-    const ClientContext& sender,
-    const PasswordPrompt& reason) const
+    const ClientContext& sender) const
 {
-    if (!VerifyMerchantSignature(recipient.RemoteNym(), reason)) {
+    if (!VerifyMerchantSignature(recipient.RemoteNym())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Merchant's signature failed to verify.")
             .Flush();
@@ -478,7 +471,7 @@ bool OTPaymentPlan::VerifyAgreement(
         return false;
     }
 
-    if (!VerifyCustomerSignature(sender.RemoteNym(), reason)) {
+    if (!VerifyCustomerSignature(sender.RemoteNym())) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Customer's signature failed to verify.")
             .Flush();
@@ -674,7 +667,7 @@ bool OTPaymentPlan::ProcessPayment(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem{
-        OTCronItem::LoadCronReceipt(api_, GetTransactionNum(), reason)};
+        OTCronItem::LoadCronReceipt(api_, GetTransactionNum())};
 
     OT_ASSERT(false != bool(pOrigCronItem));  // How am I processing it now if
                                               // the receipt wasn't saved in the
@@ -717,7 +710,7 @@ bool OTPaymentPlan::ProcessPayment(
         pSenderNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID, reason);
+        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failure loading Sender Nym in: ")(SENDER_NYM_ID)(".")
@@ -737,7 +730,7 @@ bool OTPaymentPlan::ProcessPayment(
         pRecipientNym = pSenderNym;  // theSenderNym is pSenderNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID, reason);
+        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failure loading Recipient Nym in: ")(RECIPIENT_NYM_ID)(".")
@@ -754,9 +747,8 @@ bool OTPaymentPlan::ProcessPayment(
 
     OTPaymentPlan* pPlan = dynamic_cast<OTPaymentPlan*>(pOrigCronItem.get());
 
-    if ((nullptr == pPlan) ||
-        !pPlan->VerifyMerchantSignature(*pRecipientNym, reason) ||
-        !pPlan->VerifyCustomerSignature(*pSenderNym, reason)) {
+    if ((nullptr == pPlan) || !pPlan->VerifyMerchantSignature(*pRecipientNym) ||
+        !pPlan->VerifyCustomerSignature(*pSenderNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying original signatures on Payment plan (while "
             "attempting to process...) "
@@ -829,7 +821,7 @@ bool OTPaymentPlan::ProcessPayment(
     // LoadExistingAccount().
     else if (
         !sourceAccount.get().VerifyOwner(*pSenderNym) ||
-        !sourceAccount.get().VerifySignature(*pServerNym, reason)) {
+        !sourceAccount.get().VerifySignature(*pServerNym)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on source account.")
             .Flush();
@@ -838,7 +830,7 @@ bool OTPaymentPlan::ProcessPayment(
         return false;
     } else if (
         !recipientAccount.get().VerifyOwner(*pRecipientNym) ||
-        !recipientAccount.get().VerifySignature(*pServerNym, reason)) {
+        !recipientAccount.get().VerifySignature(*pServerNym)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on "
             "recipient account.")
@@ -867,32 +859,29 @@ bool OTPaymentPlan::ProcessPayment(
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox(reason);
-        bool bSuccessLoadingRecipientInbox =
-            theRecipientInbox->LoadInbox(reason);
+        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox();
+        bool bSuccessLoadingRecipientInbox = theRecipientInbox->LoadInbox();
 
         // ...or generate them otherwise...
         //
         if (true == bSuccessLoadingSenderInbox)
             bSuccessLoadingSenderInbox =
-                theSenderInbox->VerifyAccount(*pServerNym, reason);
+                theSenderInbox->VerifyAccount(*pServerNym);
         else
             bSuccessLoadingSenderInbox = theSenderInbox->GenerateLedger(
                 SOURCE_ACCT_ID,
                 NOTARY_ID,
                 ledgerType::inbox,
-                reason,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
             bSuccessLoadingRecipientInbox =
-                theRecipientInbox->VerifyAccount(*pServerNym, reason);
+                theRecipientInbox->VerifyAccount(*pServerNym);
         else
             bSuccessLoadingRecipientInbox = theRecipientInbox->GenerateLedger(
                 RECIPIENT_ACCT_ID,
                 NOTARY_ID,
                 ledgerType::inbox,
-                reason,
                 true);  // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||

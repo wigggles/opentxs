@@ -352,19 +352,17 @@ bool VerifyBoxReceiptExists(
 std::unique_ptr<OTTransaction> LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
-    Ledger& theLedger,
-    const PasswordPrompt& reason)
+    Ledger& theLedger)
 {
     const std::int64_t lLedgerType =
         static_cast<std::int64_t>(theLedger.GetType());
-    return LoadBoxReceipt(api, theAbbrev, lLedgerType, reason);
+    return LoadBoxReceipt(api, theAbbrev, lLedgerType);
 }
 
 std::unique_ptr<OTTransaction> LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
-    std::int64_t lLedgerType,
-    const PasswordPrompt& reason)
+    std::int64_t lLedgerType)
 {
     // See if the appropriate file exists, and load it up from
     // local storage, into a string.
@@ -447,7 +445,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // Finally, try to load the transaction from that string and see if
     // successful.
     //
-    auto pTransType = api.Factory().Transaction(strRawFile, reason);
+    auto pTransType = api.Factory().Transaction(strRawFile);
 
     if (false == bool(pTransType)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error instantiating transaction "
@@ -477,7 +475,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // abbreviated version.
     // It MUST either be returned or deleted.
 
-    bool bSuccess = theAbbrev.VerifyBoxReceipt(*pBoxReceipt, reason);
+    bool bSuccess = theAbbrev.VerifyBoxReceipt(*pBoxReceipt);
 
     if (!bSuccess) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed verifying Box Receipt: ")(

@@ -207,8 +207,14 @@ private:
     std::shared_ptr<Message> construct_request_admin();
     std::shared_ptr<Message> construct_send_nym_object(
         const PeerObject& object,
-        const identity::Nym& recipient,
+        const Nym_p recipient,
         ServerContext& context,
+        const RequestNumber number = -1);
+    std::shared_ptr<Message> construct_send_nym_object(
+        const PeerObject& object,
+        const Nym_p recipient,
+        ServerContext& context,
+        Armored& envelope,
         const RequestNumber number = -1);
     std::shared_ptr<Message> construct_send_peer_reply();
     std::shared_ptr<Message> construct_send_peer_request();

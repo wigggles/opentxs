@@ -12,6 +12,7 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 
 #if OT_CASH_USING_LUCRE
+#include "internal/api/Api.hpp"
 #include "token/Lucre.hpp"
 #endif
 
@@ -21,54 +22,56 @@
 
 namespace opentxs
 {
-blind::Token* Factory::Token(
-    const api::internal::Core& api,
-    blind::Purse& purse,
-    const proto::Token& serialized)
+using ReturnType = blind::token::implementation::Lucre;
+
+auto Factory::Token(const blind::Token& token, blind::Purse& purse) noexcept
+    -> std::unique_ptr<blind::Token>
 {
-    switch (serialized.type()) {
+    switch (token.Type()) {
         case proto::CASHTYPE_LUCRE: {
 
-            return new blind::token::implementation::Lucre(
-                api, purse, serialized);
+            return std::make_unique<ReturnType>(
+                dynamic_cast<const ReturnType&>(token), purse);
         }
         default: {
-            LogOutput("opentxs::Factory::")(__FUNCTION__)(
-                ": Unknown token type: ")(std::to_string(serialized.type()))
-                .Flush();
-
-            return nullptr;
+            OT_FAIL;
         }
     }
 }
 
-blind::Token* Factory::Token(
+auto Factory::Token(
+    const api::internal::Core& api,
+    blind::Purse& purse,
+    const proto::Token& serialized) noexcept(false)
+    -> std::unique_ptr<blind::Token>
+{
+    switch (serialized.type()) {
+        case proto::CASHTYPE_LUCRE: {
+
+            return std::make_unique<ReturnType>(api, purse, serialized);
+        }
+        default: {
+            throw std::runtime_error("Unknown token type");
+        }
+    }
+}
+
+auto Factory::Token(
     const api::internal::Core& api,
     const identity::Nym& owner,
     const blind::Mint& mint,
     const blind::Token::Denomination value,
     blind::Purse& purse,
-    const OTPassword& primaryPassword,
-    const OTPassword& secondaryPassword)
+    const opentxs::PasswordPrompt& reason) -> std::unique_ptr<blind::Token>
 {
     switch (purse.Type()) {
         case proto::CASHTYPE_LUCRE: {
 
-            return new blind::token::implementation::Lucre(
-                api,
-                owner,
-                mint,
-                value,
-                purse,
-                primaryPassword,
-                secondaryPassword);
+            return std::make_unique<ReturnType>(
+                api, owner, mint, value, purse, reason);
         }
         default: {
-            LogOutput("opentxs::Factory::")(__FUNCTION__)(
-                ": Unknown token type: ")(std::to_string(purse.Type()))
-                .Flush();
-
-            return nullptr;
+            throw std::runtime_error("Unknown token type");
         }
     }
 }
@@ -164,12 +167,15 @@ Token::Token(
 }
 
 bool Token::reencrypt(
-    crypto::key::Symmetric& key,
-    proto::Ciphertext& ciphertext,
-    const PasswordPrompt& reason)
+    const crypto::key::Symmetric& oldKey,
+    const PasswordPrompt& oldPassword,
+    const crypto::key::Symmetric& newKey,
+    const PasswordPrompt& newPassword,
+    proto::Ciphertext& ciphertext)
 {
     auto plaintext = Data::Factory();
-    auto output = purse_.PrimaryKey().Decrypt(ciphertext, reason, plaintext);
+    auto output =
+        oldKey.Decrypt(ciphertext, oldPassword, plaintext->WriteInto());
 
     if (false == output) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt ciphertext.")
@@ -178,10 +184,9 @@ bool Token::reencrypt(
         return false;
     }
 
-    output = key.Encrypt(
-        plaintext,
-        Data::Factory(),
-        reason,
+    output = newKey.Encrypt(
+        plaintext->Bytes(),
+        newPassword,
         ciphertext,
         false,
         proto::SMODE_CHACHA20POLY1305);

@@ -123,20 +123,11 @@ std::string Encode::IdentifierEncode(const Data& input) const
     if (input.empty()) { return {}; }
 
     auto preimage = OTData{input};
-    auto hash1 = Data::Factory();
-    auto hash2 = Data::Factory();
     auto checksum = Data::Factory();
-    auto hash = crypto_.Hash().Digest(proto::HASHTYPE_SHA256, input, hash1);
+    auto hash = crypto_.Hash().Digest(
+        proto::HASHTYPE_SHA256DC, input.Bytes(), checksum->WriteInto());
 
-    OT_ASSERT(32 == hash1->size())
-
-    hash &= crypto_.Hash().Digest(proto::HASHTYPE_SHA256, hash1, hash2);
-
-    OT_ASSERT(32 == hash2->size())
-    OT_ASSERT(hash)
-
-    hash &= hash2->Extract(4, checksum, 0);
-
+    OT_ASSERT(4 == checksum->size())
     OT_ASSERT(hash)
 
     preimage += checksum;
@@ -174,21 +165,12 @@ std::string Encode::IdentifierDecode(const std::string& input) const
 
     const auto output = std::string{
         reinterpret_cast<const char*>(vector.data()), vector.size() - 4};
-    auto hash1 = Data::Factory();
-    auto hash2 = Data::Factory();
     auto checksum = Data::Factory();
     const auto incoming = Data::Factory(vector.data() + (vector.size() - 4), 4);
-    auto hash = crypto_.Hash().Digest(proto::HASHTYPE_SHA256, output, hash1);
+    auto hash = crypto_.Hash().Digest(
+        proto::HASHTYPE_SHA256DC, output, checksum->WriteInto());
 
-    OT_ASSERT(32 == hash1->size())
-
-    hash &= crypto_.Hash().Digest(proto::HASHTYPE_SHA256, hash1, hash2);
-
-    OT_ASSERT(32 == hash2->size())
-    OT_ASSERT(hash)
-
-    hash &= hash2->Extract(4, checksum, 0);
-
+    OT_ASSERT(4 == checksum->size())
     OT_ASSERT(hash)
 
     if (incoming != checksum) {
@@ -237,29 +219,49 @@ std::string Encode::SanatizeBase64(const std::string& input) const
     return std::regex_replace(input, std::regex("[^0-9A-Za-z+/=]"), "");
 }
 
+using zmq = opentxs::network::zeromq::Context;
+
 std::string Encode::Z85Encode(const Data& input) const
 {
-    return opentxs::network::zeromq::Context::RawToZ85(
-        input.data(), input.size());
+    auto output = std::string{};
+
+    if (zmq::Context::RawToZ85(input.Bytes(), writer(output))) {
+        return output;
+    } else {
+        return {};
+    }
 }
 
 std::string Encode::Z85Encode(const std::string& input) const
 {
-    return opentxs::network::zeromq::Context::RawToZ85(
-        input.data(), input.size());
+    auto output = std::string{};
+
+    if (zmq::Context::RawToZ85(input, writer(output))) {
+        return output;
+    } else {
+        return {};
+    }
 }
 
 OTData Encode::Z85Decode(const Data& input) const
 {
-    return opentxs::network::zeromq::Context::Z85ToRaw(
-        input.data(), input.size());
+    auto output = Data::Factory();
+
+    if (zmq::Context::Z85ToRaw(input.Bytes(), output->WriteInto())) {
+        return output;
+    } else {
+        return Data::Factory();
+    }
 }
 
 std::string Encode::Z85Decode(const std::string& input) const
 {
-    const auto output =
-        opentxs::network::zeromq::Context::Z85ToRaw(input.data(), input.size());
+    auto output = std::string{};
 
-    return {static_cast<const char*>(output->data()), output->size()};
+    if (zmq::Context::Z85ToRaw(input, writer(output))) {
+        return output;
+    } else {
+        return {};
+    }
 }
 }  // namespace opentxs::api::crypto::implementation

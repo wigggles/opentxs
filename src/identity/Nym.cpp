@@ -23,9 +23,7 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -128,12 +126,10 @@ identity::internal::Nym* Factory::Nym(
 identity::internal::Nym* Factory::Nym(
     const api::internal::Core& api,
     const proto::Nym& serialized,
-    const std::string& alias,
-    const opentxs::PasswordPrompt& reason)
+    const std::string& alias)
 {
     try {
-        return new identity::implementation::Nym(
-            api, serialized, alias, reason);
+        return new identity::implementation::Nym(api, serialized, alias);
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(
             ": Failed to instantiate nym: ")(e.what())
@@ -187,11 +183,9 @@ Nym::Nym(
     , alias_()
     , revision_(0)
     , contact_data_(nullptr)
-    , m_mapCredentialSets(
-          create_authority(api_, *this, source_, version_, params, reason))
+    , active_(create_authority(api_, *this, source_, version_, params, reason))
     , m_mapRevokedSets()
-    , m_listRevokedIDs(
-          load_revoked(api_, *this, source_, {}, reason, m_mapRevokedSets))
+    , m_listRevokedIDs()
 {
     if (false == bool(source_p_)) {
         throw std::runtime_error("Invalid nym id source");
@@ -201,10 +195,9 @@ Nym::Nym(
 Nym::Nym(
     const api::internal::Core& api,
     const proto::Nym& serialized,
-    const std::string& alias,
-    const opentxs::PasswordPrompt& reason) noexcept(false)
+    const std::string& alias) noexcept(false)
     : api_(api)
-    , source_p_(opentxs::Factory::NymIDSource(api, serialized.source(), reason))
+    , source_p_(opentxs::Factory::NymIDSource(api, serialized.source()))
     , source_(*source_p_)
     , id_(source_.NymID())
     , mode_(serialized.mode())
@@ -213,16 +206,10 @@ Nym::Nym(
     , alias_(alias)
     , revision_(serialized.revision())
     , contact_data_(nullptr)
-    , m_mapCredentialSets(
-          load_authorities(api_, *this, source_, serialized, reason))
+    , active_(load_authorities(api_, *this, source_, serialized))
     , m_mapRevokedSets()
-    , m_listRevokedIDs(load_revoked(
-          api_,
-          *this,
-          source_,
-          serialized,
-          reason,
-          m_mapRevokedSets))
+    , m_listRevokedIDs(
+          load_revoked(api_, *this, source_, serialized, m_mapRevokedSets))
 {
     if (false == bool(source_p_)) {
         throw std::runtime_error("Invalid nym id source");
@@ -238,7 +225,7 @@ bool Nym::add_contact_credential(
 
     bool added = false;
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (nullptr != it.second) {
             if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
                 added = it.second->AddContactCredential(data, reason);
@@ -260,7 +247,7 @@ bool Nym::add_verification_credential(
 
     bool added = false;
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (nullptr != it.second) {
             if (it.second->hasCapability(NymCapability::SIGN_CHILDCRED)) {
                 added = it.second->AddVerificationCredential(data, reason);
@@ -281,8 +268,8 @@ std::string Nym::AddChildKeyCredential(
     eLock lock(shared_lock_);
 
     std::string output;
-    auto it = m_mapCredentialSets.find(masterID);
-    const bool noMaster = (it == m_mapCredentialSets.end());
+    auto it = active_.find(masterID);
+    const bool noMaster = (it == active_.end());
 
     if (noMaster) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Master ID not found.").Flush();
@@ -353,7 +340,6 @@ bool Nym::AddEmail(
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool Nym::AddPaymentCode(
     const opentxs::PaymentCode& code,
     const proto::ContactItemType currency,
@@ -376,7 +362,6 @@ bool Nym::AddPaymentCode(
 
     return set_contact_data(lock, contact_data_->Serialize(), reason);
 }
-#endif
 
 bool Nym::AddPhoneNumber(
     const std::string& value,
@@ -445,6 +430,18 @@ const Nym::Serialized Nym::asPublicNym() const
     return SerializeCredentialIndex(Mode::Full);
 }
 
+const Nym::value_type& Nym::at(const std::size_t& index) const noexcept(false)
+{
+    for (auto i{active_.cbegin()}; i != active_.cend(); ++i) {
+        if (static_cast<std::size_t>(std::distance(active_.cbegin(), i)) ==
+            index) {
+            return *i->second;
+        }
+    }
+
+    throw std::out_of_range("Invalid authority index");
+}
+
 std::string Nym::BestEmail() const
 {
     eLock lock(shared_lock_);
@@ -506,9 +503,9 @@ bool Nym::CompareID(const identifier::Nym& rhs) const
 VersionNumber Nym::ContactCredentialVersion() const
 {
     // TODO support multiple authorities
-    OT_ASSERT(0 < m_mapCredentialSets.size())
+    OT_ASSERT(0 < active_.size())
 
-    return m_mapCredentialSets.cbegin()->second->ContactCredentialVersion();
+    return active_.cbegin()->second->ContactCredentialVersion();
 }
 
 std::set<OTIdentifier> Nym::Contracts(
@@ -574,6 +571,22 @@ std::string Nym::EmailAddresses(bool active) const
     return contact_data_->EmailAddresses(active);
 }
 
+auto Nym::EncryptionTargets() const noexcept -> NymKeys
+{
+    sLock lock(shared_lock_);
+    auto output = NymKeys{id_, {}};
+
+    for (const auto& [id, pAuthority] : active_) {
+        const auto& authority = *pAuthority;
+
+        if (authority.hasCapability(NymCapability::ENCRYPT_MESSAGE)) {
+            output.second.emplace_back(authority.EncryptionTargets());
+        }
+    }
+
+    return output;
+}
+
 void Nym::GetIdentifier(identifier::Nym& theIdentifier) const
 {
     sLock lock(shared_lock_);
@@ -594,12 +607,12 @@ const crypto::key::Asymmetric& Nym::get_private_auth_key(
     const T& lock,
     proto::AsymmetricKeyType keytype) const
 {
-    OT_ASSERT(!m_mapCredentialSets.empty());
+    OT_ASSERT(!active_.empty());
 
     OT_ASSERT(verify_lock(lock));
     const identity::Authority* pCredential{nullptr};
 
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         // Todo: If we have some criteria, such as which master or
         // child credential
         // is currently being employed by the user, we'll use that here to
@@ -630,11 +643,11 @@ const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
 {
     sLock lock(shared_lock_);
 
-    OT_ASSERT(!m_mapCredentialSets.empty());
+    OT_ASSERT(!active_.empty());
 
     const identity::Authority* pCredential{nullptr};
 
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         // Todo: If we have some criteria, such as which master or
         // child credential
         // is currently being employed by the user, we'll use that here to
@@ -666,13 +679,13 @@ const crypto::key::Asymmetric& Nym::get_private_sign_key(
     const T& lock,
     proto::AsymmetricKeyType keytype) const
 {
-    OT_ASSERT(!m_mapCredentialSets.empty());
+    OT_ASSERT(!active_.empty());
 
     OT_ASSERT(verify_lock(lock));
 
     const identity::Authority* pCredential{nullptr};
 
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         // Todo: If we have some criteria, such as which master or
         // child credential
         // is currently being employed by the user, we'll use that here to
@@ -696,13 +709,13 @@ const crypto::key::Asymmetric& Nym::get_public_sign_key(
     const T& lock,
     proto::AsymmetricKeyType keytype) const
 {
-    OT_ASSERT(!m_mapCredentialSets.empty());
+    OT_ASSERT(!active_.empty());
 
     OT_ASSERT(verify_lock(lock));
 
     const identity::Authority* pCredential{nullptr};
 
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         // Todo: If we have some criteria, such as which master or
         // child credential
         // is currently being employed by the user, we'll use that here to
@@ -726,11 +739,11 @@ const crypto::key::Asymmetric& Nym::GetPublicAuthKey(
 {
     sLock lock(shared_lock_);
 
-    OT_ASSERT(!m_mapCredentialSets.empty());
+    OT_ASSERT(!active_.empty());
 
     const identity::Authority* pCredential{nullptr};
 
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         // Todo: If we have some criteria, such as which master or
         // child credential
         // is currently being employed by the user, we'll use that here to
@@ -754,10 +767,10 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
 {
     sLock lock(shared_lock_);
 
-    OT_ASSERT(!m_mapCredentialSets.empty());
+    OT_ASSERT(!active_.empty());
 
     const identity::Authority* pCredential{nullptr};
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         // Todo: If we have some criteria, such as which master or
         // child credential
         // is currently being employed by the user, we'll use that here to
@@ -798,7 +811,7 @@ std::int32_t Nym::GetPublicKeysBySignature(
 
     sLock lock(shared_lock_);
 
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         const identity::Authority* pCredential = it.second.get();
         OT_ASSERT(nullptr != pCredential);
 
@@ -823,7 +836,7 @@ bool Nym::has_capability(const eLock& lock, const NymCapability& capability)
 {
     OT_ASSERT(verify_lock(lock));
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         OT_ASSERT(nullptr != it.second);
 
         if (nullptr != it.second) {
@@ -856,7 +869,7 @@ void Nym::init_claims(const eLock& lock) const
 
     std::unique_ptr<proto::ContactData> serialized{nullptr};
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         OT_ASSERT(nullptr != it.second);
 
         const auto& credSet = *it.second;
@@ -881,8 +894,7 @@ auto Nym::load_authorities(
     const api::internal::Core& api,
     const identity::Nym& parent,
     const identity::Source& source,
-    const Serialized& serialized,
-    const PasswordPrompt& reason) noexcept(false) -> CredentialMap
+    const Serialized& serialized) noexcept(false) -> CredentialMap
 {
     auto output = CredentialMap{};
 
@@ -896,7 +908,7 @@ auto Nym::load_authorities(
 
     for (auto& it : serialized.activecredentials()) {
         auto pCandidate = std::unique_ptr<identity::internal::Authority>{
-            opentxs::Factory::Authority(api, parent, source, mode, it, reason)};
+            opentxs::Factory::Authority(api, parent, source, mode, it)};
 
         if (false == bool(pCandidate)) {
             throw std::runtime_error("Failed to instantiate authority");
@@ -915,7 +927,6 @@ String::List Nym::load_revoked(
     const identity::Nym& parent,
     const identity::Source& source,
     const Serialized& serialized,
-    const PasswordPrompt& reason,
     CredentialMap& revoked) noexcept(false)
 {
     auto output = String::List{};
@@ -927,8 +938,7 @@ String::List Nym::load_revoked(
 
         for (auto& it : serialized.revokedcredentials()) {
             auto pCandidate = std::unique_ptr<identity::internal::Authority>{
-                opentxs::Factory::Authority(
-                    api, parent, source, mode, it, reason)};
+                opentxs::Factory::Authority(api, parent, source, mode, it)};
 
             if (false == bool(pCandidate)) {
                 throw std::runtime_error("Failed to instantiate authority");
@@ -942,73 +952,6 @@ String::List Nym::load_revoked(
     }
 
     return output;
-}
-
-bool Nym::Lock(
-    const OTPassword& password,
-    crypto::key::Symmetric& key,
-    proto::Ciphertext& output) const
-{
-    static const proto::HashType hashType{proto::HASHTYPE_BLAKE2B256};
-    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
-
-    if (false == HasCapability(NymCapability::ENCRYPT_MESSAGE)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key available")
-            .Flush();
-
-        return false;
-    }
-
-    auto keyPassword = api_.Factory().PasswordPrompt("");
-    keyPassword->SetPassword(password);
-
-    if (false == key.Unlock(keyPassword)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Supplied password does not unlock the supplied key")
-            .Flush();
-
-        return false;
-    }
-
-    OTPassword iv;
-    const auto ivSize = api_.Symmetric().IvSize(mode);
-
-    if (0 == ivSize) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mode").Flush();
-
-        return false;
-    }
-
-    if (static_cast<std::int32_t>(ivSize) != iv.randomizeMemory(ivSize)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate iv").Flush();
-
-        return false;
-    }
-
-    const auto ivData = Data::Factory(iv.getMemory(), iv.getMemorySize());
-    auto sessionkeyPassword = api_.Factory().PasswordPrompt("");
-    const auto haveSessionPassword = session_key_from_iv(
-        api_, GetPrivateEncrKey(), ivData, hashType, sessionkeyPassword);
-
-    if (false == haveSessionPassword) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to calculate session key password")
-            .Flush();
-
-        return false;
-    }
-
-    auto sessionKey = api_.Symmetric().Key(sessionkeyPassword, mode);
-
-    if (false == bool(sessionKey.get())) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to generate session key")
-            .Flush();
-
-        return false;
-    }
-
-    return sessionKey->Encrypt(
-        password, ivData, sessionkeyPassword, output, true, mode);
 }
 
 std::string Nym::Name() const
@@ -1066,74 +1009,11 @@ NymParameters Nym::normalize(
     return output;
 }
 
-bool Nym::Open(
-    const proto::SessionKey& input,
-    crypto::key::Symmetric& key,
-    OTPassword& password,
-    const opentxs::PasswordPrompt& reason) const
-{
-    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
-    const auto& serializedDHPublic = input.dh();
-    const auto& ciphertext = input.key();
-
-    if (false == HasCapability(NymCapability::ENCRYPT_MESSAGE)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key available")
-            .Flush();
-
-        return false;
-    }
-
-    auto sessionKey = api_.Symmetric().Key(ciphertext.key(), mode);
-
-    if (false == bool(sessionKey.get())) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to instantiate session key")
-            .Flush();
-
-        return false;
-    }
-
-    auto sessionkeyPassword = api_.Factory().PasswordPrompt("");
-    auto dhPublic = api_.Factory().AsymmetricKey(serializedDHPublic, reason);
-    const auto& encryptKey = GetPrivateEncrKey();
-    const auto opened =
-        encryptKey.Open(dhPublic, sessionKey, sessionkeyPassword, reason);
-
-    if (false == opened) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
-            .Flush();
-
-        return false;
-    }
-    const auto output =
-        sessionKey->Decrypt(ciphertext, sessionkeyPassword, password);
-
-    if (false == output) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt key password")
-            .Flush();
-
-        return false;
-    }
-
-    auto keyPassword = api_.Factory().PasswordPrompt("");
-    keyPassword->SetPassword(password);
-
-    if (false == key.Unlock(keyPassword)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Decrypted password does not unlock the supplied key")
-            .Flush();
-
-        return false;
-    }
-
-    return true;
-}
-
 bool Nym::Path(proto::HDPath& output) const
 {
     sLock lock(shared_lock_);
 
-    for (const auto& it : m_mapCredentialSets) {
+    for (const auto& it : active_) {
         OT_ASSERT(nullptr != it.second);
         const auto& set = *it.second;
 
@@ -1149,23 +1029,17 @@ bool Nym::Path(proto::HDPath& output) const
     return false;
 }
 
-std::string Nym::PaymentCode(const opentxs::PasswordPrompt& reason) const
+std::string Nym::PaymentCode() const
 {
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     if (proto::SOURCETYPE_BIP47 != source_.Type()) { return ""; }
 
     auto serialized = source_.Serialize();
 
     if (!serialized) { return ""; }
 
-    auto paymentCode =
-        api_.Factory().PaymentCode(serialized->paymentcode(), reason);
+    auto paymentCode = api_.Factory().PaymentCode(serialized->paymentcode());
 
     return paymentCode->asBase58();
-
-#else
-    return "";
-#endif
 }
 
 std::string Nym::PhoneNumbers(bool active) const
@@ -1187,7 +1061,7 @@ void Nym::revoke_contact_credentials(const eLock& lock)
 
     std::list<std::string> revokedIDs;
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (nullptr != it.second) {
             it.second->RevokeContactCredentials(revokedIDs);
         }
@@ -1202,87 +1076,13 @@ void Nym::revoke_verification_credentials(const eLock& lock)
 
     std::list<std::string> revokedIDs;
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (nullptr != it.second) {
             it.second->RevokeVerificationCredentials(revokedIDs);
         }
     }
 
     for (auto& it : revokedIDs) { m_listRevokedIDs.push_back(it); }
-}
-
-bool Nym::Seal(
-    const OTPassword& password,
-    crypto::key::Symmetric& key,
-    proto::SessionKey& output,
-    const PasswordPrompt& reason) const
-{
-    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
-    auto keyPassword = api_.Factory().PasswordPrompt("");
-    keyPassword->SetPassword(password);
-
-    if (false == key.Unlock(keyPassword)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Supplied password does not unlock the supplied key")
-            .Flush();
-
-        return false;
-    }
-
-    OTPassword randomPassword{};
-
-    if (32 != randomPassword.randomizeMemory(32)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed generate random password")
-            .Flush();
-
-        return false;
-    }
-
-    auto sessionKeyPassword = api_.Factory().PasswordPrompt("");
-    sessionKeyPassword->SetPassword(randomPassword);
-    auto sessionKey = api_.Symmetric().Key(sessionKeyPassword, mode);
-
-    if (false == bool(sessionKey.get())) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to generate session key")
-            .Flush();
-
-        return false;
-    }
-
-    auto dhPublic = crypto::key::Asymmetric::Factory();
-    const auto& encryptKey = GetPublicEncrKey();
-    const auto sealed =
-        encryptKey.Seal(api_, dhPublic, sessionKey, reason, sessionKeyPassword);
-
-    if (false == sealed) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to set session key password")
-            .Flush();
-
-        return false;
-    }
-
-    const auto serializedDH = dhPublic->Serialize();
-
-    if (false == bool(serializedDH)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to serialized DH public key")
-            .Flush();
-
-        return false;
-    }
-
-    auto& dh = *output.mutable_dh();
-    dh = *serializedDH;
-    output.set_version(akey_to_session_key_version_.at(dh.version()));
-
-    return sessionKey->Encrypt(
-        password,
-        Data::Factory(),
-        sessionKeyPassword,
-        *output.mutable_key(),
-        true,
-        mode);
 }
 
 Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
@@ -1304,7 +1104,7 @@ Nym::Serialized Nym::SerializeCredentialIndex(const Mode mode) const
     index.set_revision(revision_.load());
     *(index.mutable_source()) = *(source_.Serialize());
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (nullptr != it.second) {
             auto credset = it.second->Serialize(static_cast<bool>(mode));
             auto pCredSet = index.add_activecredentials();
@@ -1341,70 +1141,6 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     }
 
     parent.add_tag(pTag);
-}
-
-bool session_key_from_iv(
-    const api::internal::Core& api,
-    const crypto::key::Asymmetric& signingKey,
-    const Data& iv,
-    const proto::HashType hashType,
-    opentxs::PasswordPrompt& reason)
-{
-    const auto& engine = signingKey.engine();
-    const auto hash = signingKey.CalculateHash(hashType, reason);
-
-    if (hash->empty()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash private key")
-            .Flush();
-
-        return false;
-    }
-
-    OTPassword salt{hash->data(), hash->size()};
-    OTPassword hmac{};
-    const auto salted = api.Crypto().Hash().HMAC(hashType, salt, iv, hmac);
-
-    if (false == salted) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hmac")
-            .Flush();
-
-        return false;
-    }
-
-    auto signature = Data::Factory();
-    const auto haveSig = engine.Sign(
-        api,
-        Data::Factory(hmac.getMemory(), hmac.getMemorySize()),
-        signingKey,
-        hashType,
-        signature,
-        reason);
-
-    if (false == haveSig) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign IV").Flush();
-
-        return false;
-    }
-
-    OTPassword sessionPassword{};
-    const auto hashed =
-        api.Crypto().Hash().HMAC(hashType, salt, signature, sessionPassword);
-
-    if (false == hashed) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash signature")
-            .Flush();
-
-        return false;
-    }
-
-    if (false == reason.SetPassword(sessionPassword)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed set session password")
-            .Flush();
-
-        return false;
-    }
-
-    return true;
 }
 
 bool Nym::set_contact_data(
@@ -1519,7 +1255,7 @@ bool Nym::Sign(
         return proto::ToString(input);
     };
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (nullptr != it.second) {
             bool success = it.second->Sign(
                 preimage, role, signature, reason, proto::KEYROLE_SIGN, hash);
@@ -1573,7 +1309,7 @@ std::unique_ptr<OTPassword> Nym::TransportKey(
 
     sLock lock(shared_lock_);
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         OT_ASSERT(nullptr != it.second);
 
         if (nullptr != it.second) {
@@ -1589,66 +1325,22 @@ std::unique_ptr<OTPassword> Nym::TransportKey(
     return privateKey;
 }
 
-bool Nym::Unlock(
-    const proto::Ciphertext& input,
-    crypto::key::Symmetric& key,
-    OTPassword& password) const
+auto Nym::Unlock(
+    const crypto::key::Asymmetric& dhKey,
+    const std::uint32_t tag,
+    const proto::AsymmetricKeyType type,
+    const crypto::key::Symmetric& key,
+    PasswordPrompt& reason) const noexcept -> bool
 {
-    static const proto::HashType hashType{proto::HASHTYPE_BLAKE2B256};
-    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
-
-    if (false == HasCapability(NymCapability::ENCRYPT_MESSAGE)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key available")
-            .Flush();
-
-        return false;
+    for (const auto& [id, authority] : active_) {
+        if (authority->Unlock(dhKey, tag, type, key, reason)) { return true; }
     }
 
-    const auto iv = Data::Factory(input.iv().data(), input.iv().size());
-    auto sessionkeyPassword = api_.Factory().PasswordPrompt("");
-    const auto haveSessionPassword = session_key_from_iv(
-        api_, GetPrivateEncrKey(), iv, hashType, sessionkeyPassword);
-
-    if (false == haveSessionPassword) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to calculate session key password")
-            .Flush();
-
-        return false;
+    for (const auto& [id, authority] : m_mapRevokedSets) {
+        if (authority->Unlock(dhKey, tag, type, key, reason)) { return true; }
     }
 
-    auto sessionKey = api_.Symmetric().Key(input.key(), mode);
-
-    if (false == bool(sessionKey.get())) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to instantiate session key")
-            .Flush();
-
-        return false;
-    }
-
-    const auto output =
-        sessionKey->Decrypt(input, sessionkeyPassword, password);
-
-    if (false == output) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt key password")
-            .Flush();
-
-        return false;
-    }
-
-    auto keyPassword = api_.Factory().PasswordPrompt("");
-    keyPassword->SetPassword(password);
-
-    if (false == key.Unlock(keyPassword)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Decrypted password does not unlock the supplied key")
-            .Flush();
-
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 bool Nym::update_nym(
@@ -1658,7 +1350,7 @@ bool Nym::update_nym(
 {
     OT_ASSERT(verify_lock(lock));
 
-    if (verify_pseudonym(lock, reason)) {
+    if (verify_pseudonym(lock)) {
         // Upgrade version
         if (version > version_) { version_ = version; }
 
@@ -1670,38 +1362,33 @@ bool Nym::update_nym(
     return false;
 }
 
-bool Nym::Verify(
-    const ProtobufType& input,
-    proto::Signature& signature,
-    const PasswordPrompt& reason) const
+bool Nym::Verify(const ProtobufType& input, proto::Signature& signature) const
 {
     const auto copy{signature};
     signature.clear_signature();
     const auto plaintext = api_.Factory().Data(input);
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (nullptr != it.second) {
-            if (it.second->Verify(plaintext, copy, reason)) { return true; }
+            if (it.second->Verify(plaintext, copy)) { return true; }
         }
     }
 
     return false;
 }
 
-bool Nym::verify_pseudonym(
-    const eLock& lock,
-    const opentxs::PasswordPrompt& reason) const
+bool Nym::verify_pseudonym(const eLock& lock) const
 {
     // If there are credentials, then we verify the Nym via his credentials.
-    if (!m_mapCredentialSets.empty()) {
+    if (!active_.empty()) {
         // Verify Nym by his own credentials.
-        for (const auto& it : m_mapCredentialSets) {
+        for (const auto& it : active_) {
             const identity::Authority* pCredential = it.second.get();
             OT_ASSERT(nullptr != pCredential);
 
             // Verify all Credentials in the Authority, including source
             // verification for the master credential.
-            if (!pCredential->VerifyInternally(reason)) {
+            if (!pCredential->VerifyInternally()) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Credential (")(
                     pCredential->GetMasterCredID())(
                     ") failed its own internal verification.")
@@ -1715,18 +1402,18 @@ bool Nym::verify_pseudonym(
     return false;
 }
 
-bool Nym::VerifyPseudonym(const opentxs::PasswordPrompt& reason) const
+bool Nym::VerifyPseudonym() const
 {
     eLock lock(shared_lock_);
 
-    return verify_pseudonym(lock, reason);
+    return verify_pseudonym(lock);
 }
 
 bool Nym::WriteCredentials() const
 {
     sLock lock(shared_lock_);
 
-    for (auto& it : m_mapCredentialSets) {
+    for (auto& it : active_) {
         if (!it.second->WriteCredentials()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save credentials.")
                 .Flush();

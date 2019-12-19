@@ -77,13 +77,11 @@ private:
     void evaluate_deposit_payment(
         const api::client::internal::Manager& client,
         const api::client::OTX::Result& result,
-        proto::TaskComplete& output,
-        const PasswordPrompt& reason) const;
+        proto::TaskComplete& output) const;
     void evaluate_move_funds(
         const api::client::internal::Manager& client,
         const api::client::OTX::Result& result,
-        proto::RPCResponse& output,
-        const PasswordPrompt& reason) const;
+        proto::RPCResponse& output) const;
     template <typename T>
     void evaluate_register_account(
         const api::client::OTX::Result& result,
@@ -98,14 +96,12 @@ private:
     void evaluate_send_payment_transfer(
         const api::client::internal::Manager& client,
         const api::client::OTX::Result& result,
-        proto::RPCResponse& output,
-        const PasswordPrompt& reason) const;
+        proto::RPCResponse& output) const;
     template <typename T>
     void evaluate_transaction_reply(
         const api::client::internal::Manager& client,
         const Message& reply,
         T& output,
-        const PasswordPrompt& reason,
         const proto::RPCResponseCode code =
             proto::RPCRESPONSE_TRANSACTION_FAILED) const;
     const api::client::internal::Manager* get_client(
@@ -137,16 +133,14 @@ private:
         const api::client::internal::Manager& client,
         const identifier::Nym& owner,
         const identifier::Server& notary,
-        const identifier::UnitDefinition& unit,
-        const PasswordPrompt& reason) const;
+        const identifier::UnitDefinition& unit) const;
     bool immediate_register_issuer_account(
         const api::client::internal::Manager& client,
         const identifier::Nym& owner,
         const identifier::Server& notary) const;
     bool immediate_register_nym(
         const api::client::internal::Manager& client,
-        const identifier::Server& notary,
-        const PasswordPrompt& reason) const;
+        const identifier::Server& notary) const;
     proto::RPCResponse import_seed(const proto::RPCCommand& command) const;
     proto::RPCResponse import_server_contract(
         const proto::RPCCommand& command) const;

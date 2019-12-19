@@ -30,13 +30,12 @@
 
 namespace opentxs::crypto::key
 {
-Bip32Fingerprint HD::CalculateFingerprint(
+auto HD::CalculateFingerprint(
     const api::crypto::Hash& hash,
-    const Data& key)
+    const Data& key) noexcept -> Bip32Fingerprint
 {
-    Bip32Fingerprint output{0};
-    auto sha = Data::Factory();
-    auto ripe = Data::Factory();
+    auto output = Bip32Fingerprint{0};
+    auto digest = Data::Factory();
 
     if (33 != key.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid public key").Flush();
@@ -44,30 +43,21 @@ Bip32Fingerprint HD::CalculateFingerprint(
         return output;
     }
 
-    const bool haveSha = hash.Digest(proto::HASHTYPE_SHA256, key, sha);
+    const auto hashed =
+        hash.Digest(proto::HASHTYPE_BITCOIN, key.Bytes(), digest->WriteInto());
 
-    if (false == haveSha) {
+    if (false == hashed) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to calculate public key hash (sha256)")
+            ": Failed to calculate public key hash")
             .Flush();
 
         return output;
     }
 
-    const bool haveRipe = hash.Digest(proto::HASHTYPE_RIMEMD160, sha, ripe);
-
-    if (false == haveRipe) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to calculate public key hash (ripemd160)")
-            .Flush();
-
-        return output;
-    }
-
-    if (false == ripe->Extract(output)) {
+    if (false == digest->Extract(output)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set output").Flush();
 
-        OT_FAIL;
+        return {};
     }
 
     return output;
@@ -79,20 +69,19 @@ namespace opentxs::crypto::key::implementation
 HD::HD(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& serializedKey,
-    const PasswordPrompt& reason) noexcept
-    : EllipticCurve(api, ecdsa, serializedKey, reason)
-    , path_(nullptr)
-    , chain_code_(nullptr)
+    const proto::AsymmetricKey& serializedKey) noexcept(false)
+    : EllipticCurve(api, ecdsa, serializedKey)
+    , path_(
+          serializedKey.has_path()
+              ? std::make_shared<proto::HDPath>(serializedKey.path())
+              : nullptr)
+    , chain_code_(
+          serializedKey.has_chaincode()
+              ? std::make_unique<proto::Ciphertext>(serializedKey.chaincode())
+              : nullptr)
+    , plaintext_chain_code_()
     , parent_(serializedKey.bip32_parent())
 {
-    if (serializedKey.has_path()) {
-        path_ = std::make_shared<proto::HDPath>(serializedKey.path());
-    }
-
-    if (serializedKey.has_chaincode()) {
-        chain_code_.reset(new proto::Ciphertext(serializedKey.chaincode()));
-    }
 }
 
 HD::HD(
@@ -105,6 +94,7 @@ HD::HD(
     : EllipticCurve(api, ecdsa, keyType, role, version, reason)
     , path_(nullptr)
     , chain_code_(nullptr)
+    , plaintext_chain_code_()
     , parent_(0)
 {
 }
@@ -122,7 +112,7 @@ HD::HD(
     const proto::KeyRole role,
     const VersionNumber version,
     key::Symmetric& sessionKey,
-    const PasswordPrompt& reason) noexcept
+    const PasswordPrompt& reason) noexcept(false)
     : EllipticCurve(
           api,
           ecdsa,
@@ -134,7 +124,8 @@ HD::HD(
           sessionKey,
           reason)
     , path_(std::make_shared<proto::HDPath>(path))
-    , chain_code_(encrypt_key(sessionKey, reason, false, chainCode))
+    , chain_code_(encrypt_key(sessionKey, reason, false, chainCode.Bytes()))
+    , plaintext_chain_code_(chainCode)
     , parent_(parent)
 {
     OT_ASSERT(path_);
@@ -148,16 +139,19 @@ HD::HD(const HD& rhs) noexcept
     , chain_code_(
           bool(rhs.chain_code_) ? new proto::Ciphertext(*rhs.chain_code_)
                                 : nullptr)
+    , plaintext_chain_code_(rhs.plaintext_chain_code_)
     , parent_(rhs.parent_)
 {
 }
 
-OTData HD::Chaincode(const PasswordPrompt& reason) const
+auto HD::Chaincode(const PasswordPrompt& reason) const noexcept -> ReadView
 {
-    auto output = Data::Factory();
+    auto existing = plaintext_chain_code_.Bytes();
 
-    if (false == bool(encrypted_key_)) { return output; }
-    if (false == bool(chain_code_)) { return output; }
+    if (nullptr != existing.data() && 0 < existing.size()) { return existing; }
+
+    if (false == bool(encrypted_key_)) { return {}; }
+    if (false == bool(chain_code_)) { return {}; }
 
     const auto& chaincode = *chain_code_;
     const auto& privateKey = *encrypted_key_;
@@ -170,39 +164,42 @@ OTData HD::Chaincode(const PasswordPrompt& reason) const
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract session key.")
             .Flush();
 
-        return output;
+        return {};
     }
 
-    if (false == sessionKey->Decrypt(chaincode, reason, output)) {
+    auto allocator = plaintext_chain_code_.WriteInto(OTPassword::Mode::Mem);
+
+    if (false == sessionKey->Decrypt(chaincode, reason, allocator)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt chain code")
             .Flush();
 
-        return Data::Factory();
+        return {};
     }
 
-    return output;
+    return plaintext_chain_code_.Bytes();
 }
 
-int HD::Depth() const
+auto HD::Depth() const noexcept -> int
 {
     if (false == bool(path_)) { return -1; }
 
     return path_->child_size();
 }
 
-void HD::erase_private_data()
+auto HD::erase_private_data() -> void
 {
     EllipticCurve::erase_private_data();
-    path_.reset();
-    chain_code_.reset();
+    const_cast<std::shared_ptr<const proto::HDPath>&>(path_).reset();
+    const_cast<std::unique_ptr<const proto::Ciphertext>&>(chain_code_).reset();
 }
 
-Bip32Fingerprint HD::Fingerprint(const PasswordPrompt& reason) const
+auto HD::Fingerprint() const noexcept -> Bip32Fingerprint
 {
-    return CalculateFingerprint(api_.Crypto().Hash(), PublicKey(reason));
+    return CalculateFingerprint(
+        api_.Crypto().Hash(), api_.Factory().Data(PublicKey()));
 }
 
-std::tuple<bool, Bip32Depth, Bip32Index> HD::get_params() const
+auto HD::get_params() const noexcept -> std::tuple<bool, Bip32Depth, Bip32Index>
 {
     std::tuple<bool, Bip32Depth, Bip32Index> output{false, 0x0, 0x0};
     auto& [success, depth, child] = output;
@@ -245,7 +242,7 @@ std::tuple<bool, Bip32Depth, Bip32Index> HD::get_params() const
     return output;
 }
 
-const std::string HD::Path() const
+auto HD::Path() const noexcept -> const std::string
 {
     auto path = String::Factory();
 
@@ -271,7 +268,7 @@ const std::string HD::Path() const
     return path->Get();
 }
 
-bool HD::Path(proto::HDPath& output) const
+auto HD::Path(proto::HDPath& output) const noexcept -> bool
 {
     if (path_) {
         output = *path_;
@@ -284,7 +281,7 @@ bool HD::Path(proto::HDPath& output) const
     return false;
 }
 
-std::shared_ptr<proto::AsymmetricKey> HD::Serialize() const
+auto HD::Serialize() const noexcept -> std::shared_ptr<proto::AsymmetricKey>
 {
     auto output = EllipticCurve::Serialize();
 
@@ -301,33 +298,40 @@ std::shared_ptr<proto::AsymmetricKey> HD::Serialize() const
     return output;
 }
 
-std::string HD::Xprv(const PasswordPrompt& reason) const
+auto HD::Xprv(const PasswordPrompt& reason) const noexcept -> std::string
 {
     const auto [ready, depth, child] = get_params();
 
     if (false == ready) { return {}; }
 
-    const auto priv = PrivateKey(reason);
-    OTPassword privateKey{};
-    privateKey.setMemory(priv->data(), priv->size());
+    OTPassword privateKey{OTPassword::Mode::Mem, PrivateKey(reason)};
+
+    // FIXME Bip32::SerializePrivate should accept ReadView
 
     return api_.Crypto().BIP32().SerializePrivate(
-        0x0488ADE4, depth, parent_, child, Chaincode(reason), privateKey);
+        0x0488ADE4,
+        depth,
+        parent_,
+        child,
+        api_.Factory().Data(Chaincode(reason)),
+        privateKey);
 }
 
-std::string HD::Xpub(const PasswordPrompt& reason) const
+auto HD::Xpub(const PasswordPrompt& reason) const noexcept -> std::string
 {
     const auto [ready, depth, child] = get_params();
 
     if (false == ready) { return {}; }
+
+    // FIXME Bip32::SerializePublic should accept ReadView
 
     return api_.Crypto().BIP32().SerializePublic(
         0x0488B21E,
         depth,
         parent_,
         child,
-        Chaincode(reason),
-        PublicKey(reason));
+        api_.Factory().Data(Chaincode(reason)),
+        api_.Factory().Data(PublicKey()));
 }
 }  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD

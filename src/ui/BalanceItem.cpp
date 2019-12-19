@@ -124,9 +124,8 @@ BalanceItem::BalanceItem(
 std::string BalanceItem::DisplayAmount() const noexcept
 {
     sLock lock(shared_lock_);
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    if (get_contract(reason)) {
+    if (get_contract()) {
         const auto amount = effective_amount();
         std::string output{};
         const auto formatted =
@@ -144,12 +143,11 @@ std::vector<std::string> BalanceItem::extract_contacts(
     const api::client::internal::Manager& api,
     const proto::PaymentWorkflow& workflow) noexcept
 {
-    auto reason = api.Factory().PasswordPrompt(__FUNCTION__);
     std::vector<std::string> output{};
 
     for (const auto& party : workflow.party()) {
-        const auto contactID = api.Contacts().NymToContact(
-            identifier::Nym::Factory(party), reason);
+        const auto contactID =
+            api.Contacts().NymToContact(identifier::Nym::Factory(party));
         output.emplace_back(contactID->str());
     }
 

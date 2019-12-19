@@ -51,11 +51,10 @@ public:
         OTPassword& privateKey,
         const PasswordPrompt& reason) const override;
     proto::CredentialType Type() const final { return type_; }
-    bool Validate(const PasswordPrompt& reason) const final;
+    bool Validate() const final;
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const override
     {
         return false;
@@ -64,8 +63,7 @@ public:
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig,
-        const PasswordPrompt& reason) const override
+        const proto::Signature& masterSig) const override
     {
         return false;
     }
@@ -92,10 +90,8 @@ protected:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
-    virtual bool verify_internally(
-        const Lock& lock,
-        const PasswordPrompt& reason) const;
+    bool validate(const Lock& lock) const final;
+    virtual bool verify_internally(const Lock& lock) const;
 
     void init(
         const identity::credential::internal::Primary& master,
@@ -131,8 +127,7 @@ private:
     bool isValid(const Lock& lock, std::shared_ptr<SerializedType>& credential)
         const;
     std::string Name() const final { return id_->str(); }
-    bool verify_master_signature(const Lock& lock, const PasswordPrompt& reason)
-        const;
+    bool verify_master_signature(const Lock& lock) const;
 
     void add_master_signature(
         const Lock& lock,

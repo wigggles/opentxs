@@ -169,16 +169,8 @@ bool VerifyChecksum(
             if (0 == payload.size()) {
                 checksum = Data::Factory("0x5df6e0e2", Data::Mode::Hex);
             } else {
-                auto intermediate = Data::Factory();
                 api.Crypto().Hash().Digest(
-                    proto::HASHTYPE_SHA256,
-                    payload.data(),
-                    payload.size(),
-                    intermediate);
-                auto hash = Data::Factory();
-                api.Crypto().Hash().Digest(
-                    proto::HASHTYPE_SHA256, intermediate, hash);
-                hash->Extract(4, checksum);
+                    proto::HASHTYPE_SHA256DC, payload, checksum->WriteInto());
             }
         } break;
         default: {

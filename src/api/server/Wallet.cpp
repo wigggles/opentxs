@@ -41,11 +41,10 @@ Wallet::Wallet(const api::server::internal::Manager& server)
 }
 
 std::shared_ptr<const opentxs::ClientContext> Wallet::ClientContext(
-    const identifier::Nym& remoteNymID,
-    const PasswordPrompt& reason) const
+    const identifier::Nym& remoteNymID) const
 {
     const auto& serverNymID = server_.NymID();
-    auto base = context(serverNymID, remoteNymID, reason);
+    auto base = context(serverNymID, remoteNymID);
     auto output = std::dynamic_pointer_cast<const opentxs::ClientContext>(base);
 
     return output;
@@ -53,10 +52,9 @@ std::shared_ptr<const opentxs::ClientContext> Wallet::ClientContext(
 
 std::shared_ptr<const opentxs::Context> Wallet::Context(
     [[maybe_unused]] const identifier::Server& notaryID,
-    const identifier::Nym& clientNymID,
-    const PasswordPrompt& reason) const
+    const identifier::Nym& clientNymID) const
 {
-    return context(server_.NymID(), clientNymID, reason);
+    return context(server_.NymID(), clientNymID);
 }
 
 void Wallet::instantiate_client_context(
@@ -70,7 +68,6 @@ void Wallet::instantiate_client_context(
 }
 
 bool Wallet::load_legacy_account(
-    const PasswordPrompt& reason,
     const Identifier& accountID,
     const eLock& lock,
     Wallet::AccountLock& row) const
@@ -82,12 +79,11 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(CheckLock(lock, rowMutex))
 
-    pAccount.reset(
-        Account::LoadExistingAccount(api_, accountID, server_.ID(), reason));
+    pAccount.reset(Account::LoadExistingAccount(api_, accountID, server_.ID()));
 
     if (false == bool(pAccount)) { return false; }
 
-    const auto signerNym = Nym(server_.NymID(), reason);
+    const auto signerNym = Nym(server_.NymID());
 
     if (false == bool(signerNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load signer nym.")
@@ -96,7 +92,7 @@ bool Wallet::load_legacy_account(
         return false;
     }
 
-    if (false == pAccount->VerifySignature(*signerNym, reason)) {
+    if (false == pAccount->VerifySignature(*signerNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
 
         return false;
@@ -119,7 +115,7 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(false == unitID.empty())
 
-    const auto contract = UnitDefinition(unitID, reason);
+    const auto contract = UnitDefinition(unitID);
     const auto& serverID = pAccount->GetPurportedNotaryID();
 
     OT_ASSERT(server_.ID() == serverID)
@@ -133,7 +129,7 @@ bool Wallet::load_legacy_account(
         contract->Nym()->ID(),
         serverID,
         unitID,
-        extract_unit(reason, unitID));
+        extract_unit(unitID));
 
     OT_ASSERT(saved)
 
@@ -147,7 +143,7 @@ Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
     const auto& serverID = server_.ID();
     const auto& serverNymID = server_.NymID();
     Lock lock(context_map_lock_);
-    auto base = context(serverNymID, remoteNymID, reason);
+    auto base = context(serverNymID, remoteNymID);
     std::function<void(opentxs::Context*)> callback =
         [&](opentxs::Context* in) -> void {
         this->save(reason, dynamic_cast<opentxs::internal::Context*>(in));
@@ -157,11 +153,11 @@ Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
         OT_ASSERT(proto::CONSENSUSTYPE_CLIENT == base->Type());
     } else {
         // Obtain nyms.
-        const auto local = Nym(serverNymID, reason);
+        const auto local = Nym(serverNymID);
 
         OT_ASSERT_MSG(local, "Local nym does not exist in the wallet.");
 
-        const auto remote = Nym(remoteNymID, reason);
+        const auto remote = Nym(remoteNymID);
 
         OT_ASSERT_MSG(remote, "Remote nym does not exist in the wallet.");
 
@@ -187,7 +183,7 @@ Editor<opentxs::Context> Wallet::mutable_Context(
     const identifier::Nym& clientNymID,
     const PasswordPrompt& reason) const
 {
-    auto base = context(server_.NymID(), clientNymID, reason);
+    auto base = context(server_.NymID(), clientNymID);
     std::function<void(opentxs::Context*)> callback =
         [&](opentxs::Context* in) -> void {
         this->save(reason, dynamic_cast<opentxs::internal::Context*>(in));
@@ -198,9 +194,8 @@ Editor<opentxs::Context> Wallet::mutable_Context(
     return Editor<opentxs::Context>(base.get(), callback);
 }
 
-Nym_p Wallet::signer_nym(const identifier::Nym&, const PasswordPrompt& reason)
-    const
+Nym_p Wallet::signer_nym(const identifier::Nym&) const
 {
-    return Nym(server_.NymID(), reason);
+    return Nym(server_.NymID());
 }
 }  // namespace opentxs::api::server::implementation

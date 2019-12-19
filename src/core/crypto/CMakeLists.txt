@@ -5,29 +5,21 @@
 
 set(
   cxx-sources
-  Letter.cpp
-  LowLevelKeyGenerator.cpp
   NullCallback.cpp
   NymParameters.cpp
   OTCallback.cpp
   OTCaller.cpp
-  OTEnvelope.cpp
   OTPassword.cpp
   OTSignatureMetadata.cpp
   OTSignedFile.cpp
   PaymentCode.cpp
   Signature.cpp
-  mkcert.cpp
 )
 set(
   cxx-install-headers
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/Letter.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/LowLevelKeyGenerator.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/mkcert.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/NymParameters.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTCallback.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTCaller.hpp"
-  "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTEnvelope.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTPassword.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTSignatureMetadata.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/core/crypto/OTSignedFile.hpp"
@@ -47,6 +39,7 @@ target_include_directories(
   opentxs-core-crypto SYSTEM
   PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+
 set_property(TARGET opentxs-core-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

@@ -238,7 +238,7 @@ bool MessageProcessor::process_command(
     identifier::Nym& nymID)
 {
     const auto allegedNymID = identifier::Nym::Factory(serialized.nym());
-    const auto nym = server_.API().Wallet().Nym(allegedNymID, reason_);
+    const auto nym = server_.API().Wallet().Nym(allegedNymID);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym is not yet registered.")
@@ -247,9 +247,9 @@ bool MessageProcessor::process_command(
         return true;
     }
 
-    auto request = otx::Request::Factory(server_.API(), serialized, reason_);
+    auto request = otx::Request::Factory(server_.API(), serialized);
 
-    if (request->Validate(reason_)) {
+    if (request->Validate()) {
         nymID.Assign(request->Initiator());
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid request.").Flush();
@@ -338,7 +338,7 @@ bool MessageProcessor::process_message(
         return true;
     }
 
-    if (false == request->LoadContractFromString(serialized, reason_)) {
+    if (false == request->LoadContractFromString(serialized)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialized request.")
             .Flush();
 
@@ -404,8 +404,7 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
         return;
     }
 
-    const auto nym =
-        server_.API().Wallet().Nym(server_.GetServerNym().ID(), reason_);
+    const auto nym = server_.API().Wallet().Nym(server_.GetServerNym().ID());
 
     OT_ASSERT(nym);
 
@@ -421,7 +420,7 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
         reason_,
         proto::DynamicFactory<proto::OTXPush>(payload));
 
-    OT_ASSERT(message->Validate(reason_));
+    OT_ASSERT(message->Validate());
 
     const auto reply = server_.API().Factory().Data(message->Contract());
     auto pushNotification = zmq::Message::Factory();

@@ -33,11 +33,9 @@ public:
 #endif
     OPENTXS_EXPORT virtual const OTPeerRequest Request() const = 0;
     OPENTXS_EXPORT virtual const OTPeerReply Reply() const = 0;
-    OPENTXS_EXPORT virtual proto::PeerObject Serialize(
-        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual proto::PeerObject Serialize() const = 0;
     OPENTXS_EXPORT virtual proto::PeerObjectType Type() const = 0;
-    OPENTXS_EXPORT virtual bool Validate(
-        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual bool Validate() const = 0;
 
     OPENTXS_EXPORT virtual std::unique_ptr<std::string>& Message() = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<std::string>& Payment() = 0;

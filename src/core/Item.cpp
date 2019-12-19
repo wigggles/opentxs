@@ -817,7 +817,7 @@ bool Item::AddBlankNumbersToItem(const NumList& theAddition)
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-std::int64_t Item::GetNumberOfOrigin(const PasswordPrompt& reason)
+std::int64_t Item::GetNumberOfOrigin()
 {
 
     if (0 == m_lNumberOfOrigin) {
@@ -869,14 +869,14 @@ std::int64_t Item::GetNumberOfOrigin(const PasswordPrompt& reason)
             }
         }
 
-        CalculateNumberOfOrigin(reason);
+        CalculateNumberOfOrigin();
     }
 
     return m_lNumberOfOrigin;
 }
 
 // virtual
-void Item::CalculateNumberOfOrigin(const PasswordPrompt& reason)
+void Item::CalculateNumberOfOrigin()
 {
     switch (GetType()) {
         case itemType::acceptTransaction:  // this item is a client-side
@@ -976,7 +976,7 @@ void Item::CalculateNumberOfOrigin(const PasswordPrompt& reason)
             auto strAttachment = String::Factory();
             GetAttachment(strAttachment);
 
-            if (!theCheque->LoadContractFromString(strAttachment, reason))
+            if (!theCheque->LoadContractFromString(strAttachment))
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR loading cheque from string: ")(strAttachment)(".")
                     .Flush();
@@ -1012,10 +1012,7 @@ void Item::CalculateNumberOfOrigin(const PasswordPrompt& reason)
             // of origin as its transaction number.
             //
             const auto pOriginalItem{api_.Factory().Item(
-                strReference,
-                GetPurportedNotaryID(),
-                GetReferenceToNum(),
-                reason)};
+                strReference, GetPurportedNotaryID(), GetReferenceToNum())};
 
             OT_ASSERT(false != bool(pOriginalItem));
 
@@ -1053,7 +1050,7 @@ void Item::CalculateNumberOfOrigin(const PasswordPrompt& reason)
             }
 
             // Else:
-            SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin(reason));
+            SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin());
         } break;
 
         // FEEs
@@ -1374,9 +1371,7 @@ itemType Item::GetItemTypeFromString(const String& strType)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Item::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     if (!strcmp("item", xml->getNodeName())) {
         auto strType = String::Factory(), strStatus = String::Factory();

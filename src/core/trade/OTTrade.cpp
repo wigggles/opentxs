@@ -92,12 +92,10 @@ OTTrade::OTTrade(
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(
-    const identity::Nym& nym,
-    const identity::Nym&,
-    const PasswordPrompt& reason) const
+bool OTTrade::VerifyNymAsAgent(const identity::Nym& nym, const identity::Nym&)
+    const
 {
-    return VerifySignature(nym, reason);
+    return VerifySignature(nym);
 }
 
 // This is an override. See note above.
@@ -110,9 +108,7 @@ bool OTTrade::VerifyNymAsAgentForAccount(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTTrade::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t returnVal = 0;
 
@@ -125,9 +121,7 @@ std::int32_t OTTrade::ProcessXMLNode(
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
     //
-    if (0 != (returnVal = ot_super::ProcessXMLNode(xml, reason))) {
-        return returnVal;
-    }
+    if (0 != (returnVal = ot_super::ProcessXMLNode(xml))) { return returnVal; }
 
     if (!strcmp("trade", xml->getNodeName())) {
         m_strVersion = String::Factory(xml->getAttributeValue("version"));
@@ -434,7 +428,7 @@ OTOffer* OTTrade::GetOffer(
     // Trying to load the offer from the trader's original signed request
     // (So I can use it to lookup the Market ID, so I can see the offer is
     // already there on the market.)
-    if (!offer->LoadContractFromString(marketOffer_, reason)) {
+    if (!offer->LoadContractFromString(marketOffer_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading offer from string.")
             .Flush();
         return nullptr;
@@ -694,7 +688,7 @@ void OTTrade::onRemovalFromCron(const PasswordPrompt& reason)
         // (So I can use it to lookup the Market ID, so I can see if the offer
         // is
         // already there on the market.)
-        if (!offer->LoadContractFromString(marketOffer_, reason)) {
+        if (!offer->LoadContractFromString(marketOffer_)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error loading offer from string.")
                 .Flush();

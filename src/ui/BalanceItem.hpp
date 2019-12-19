@@ -74,7 +74,7 @@ private:
         const proto::PaymentWorkflow& workflow) noexcept;
 
     virtual opentxs::Amount effective_amount() const noexcept = 0;
-    virtual bool get_contract(const PasswordPrompt& reason) const noexcept = 0;
+    virtual bool get_contract() const noexcept = 0;
 
     BalanceItem(const BalanceItem&) = delete;
     BalanceItem(BalanceItem&&) = delete;

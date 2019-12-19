@@ -28,39 +28,24 @@ public:
         OTPassword& privateKey,
         const PasswordPrompt& reason) const noexcept final;
 
+    Keypair(
+        const api::internal::Core& api,
+        const proto::KeyRole role,
+        std::unique_ptr<crypto::key::Asymmetric> publicKey,
+        std::unique_ptr<crypto::key::Asymmetric> privateKey) noexcept;
+
     ~Keypair() final = default;
 
 private:
-    friend opentxs::LowLevelKeyGenerator;
     friend key::Keypair;
-    friend opentxs::Factory;
 
     const api::internal::Core& api_;
     OTAsymmetricKey m_pkeyPrivate;
     OTAsymmetricKey m_pkeyPublic;
-    const proto::KeyRole role_{proto::KEYROLE_ERROR};
+    const proto::KeyRole role_;
 
     Keypair* clone() const final { return new Keypair(*this); }
 
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    bool make_new_keypair(const NymParameters& nymParameters);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-
-    Keypair(
-        const api::internal::Core& api,
-        const proto::AsymmetricKey& serializedPubkey,
-        const PasswordPrompt& reason) noexcept;
-    Keypair(
-        const api::internal::Core& api,
-        const NymParameters& nymParameters,
-        const VersionNumber version,
-        const proto::KeyRole role,
-        const PasswordPrompt& reason) noexcept;
-    Keypair(
-        const api::internal::Core& api,
-        const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey,
-        const PasswordPrompt& reason) noexcept;
     Keypair() = delete;
     Keypair(const Keypair&) noexcept;
     Keypair(Keypair&&) = delete;

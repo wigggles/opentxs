@@ -77,13 +77,12 @@ bool OTCron::LoadCron()
 {
     const char* szFoldername = api_.Legacy().Cron();
     const char* szFilename = "OT-CRON.crn";  // todo stop hardcoding filenames.
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
     OT_ASSERT(nullptr != GetServerNym());
 
-    bool bSuccess = LoadContract(szFoldername, szFilename, reason);
+    bool bSuccess = LoadContract(szFoldername, szFilename);
 
-    if (bSuccess) bSuccess = VerifySignature(*(GetServerNym()), reason);
+    if (bSuccess) bSuccess = VerifySignature(*(GetServerNym()));
 
     return bSuccess;
 }
@@ -350,9 +349,7 @@ std::int64_t OTCron::GetNextTransactionNumber()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTCron::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     OT_ASSERT(nullptr != GetServerNym());
 
@@ -412,7 +409,7 @@ std::int32_t OTCron::ProcessXMLNode(
                 .Flush();
             return (-1);  // error condition
         } else {
-            auto pItem{api_.Factory().CronItem(strData, reason)};
+            auto pItem{api_.Factory().CronItem(strData)};
 
             if (false == bool(pItem)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -427,7 +424,7 @@ std::int32_t OTCron::ProcessXMLNode(
             // ITERATION of ProcessCron().
             //
             std::shared_ptr<OTCronItem> item{pItem.release()};
-            if (!item->VerifySignature(*m_pServerNym, reason)) {
+            if (!item->VerifySignature(*m_pServerNym)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR SECURITY: Server "
                     "signature failed to "
@@ -498,8 +495,8 @@ std::int32_t OTCron::ProcessXMLNode(
         // AddMarket normally saves to file, but we don't want that when
         // we're LOADING from file, now do we?
         std::shared_ptr<OTMarket> market{pMarket.release()};
-        if (!market->LoadMarket(reason) ||
-            !market->VerifySignature(*GetServerNym(), reason) ||
+        if (!market->LoadMarket() ||
+            !market->VerifySignature(*GetServerNym()) ||
             !AddMarket(market, false))  // bSaveFile=false: don't save this
                                         // file WHILE loading it!!!
         {

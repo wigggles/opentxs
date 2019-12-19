@@ -33,11 +33,9 @@ public:
 
 protected:
     virtual SerializedType IDVersion(const Lock& lock) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const final;
+    bool validate(const Lock& lock) const final;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const final;
 
     Request(
         const api::internal::Core& api,

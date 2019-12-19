@@ -48,8 +48,7 @@ public:
     using AccountCallback = std::function<void(const Account&)>;
 
     OPENTXS_EXPORT virtual SharedAccount Account(
-        const Identifier& accountID,
-        const PasswordPrompt& reason) const = 0;
+        const Identifier& accountID) const = 0;
     OPENTXS_EXPORT virtual OTIdentifier AccountPartialMatch(
         const std::string& hint) const = 0;
     OPENTXS_EXPORT virtual ExclusiveAccount CreateAccount(
@@ -61,11 +60,9 @@ public:
         TransactionNumber stash,
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual bool DeleteAccount(
-        const Identifier& accountID,
-        const PasswordPrompt& reason) const = 0;
+        const Identifier& accountID) const = 0;
     OPENTXS_EXPORT virtual SharedAccount IssuerAccount(
-        const identifier::UnitDefinition& unitID,
-        const PasswordPrompt& reason) const = 0;
+        const identifier::UnitDefinition& unitID) const = 0;
     OPENTXS_EXPORT virtual ExclusiveAccount mutable_Account(
         const Identifier& accountID,
         const PasswordPrompt& reason,
@@ -82,8 +79,7 @@ public:
         const std::string& label,
         const PasswordPrompt& reason) const = 0;
     [[deprecated]] virtual bool ImportAccount(
-        std::unique_ptr<opentxs::Account>& imported,
-        const PasswordPrompt& reason) const = 0;
+        std::unique_ptr<opentxs::Account>& imported) const = 0;
 
     /**   Load a read-only copy of a Context object
      *
@@ -98,8 +94,7 @@ public:
      */
     OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const = 0;
+        const identifier::Nym& clientNymID) const = 0;
 
     /**   Load a read-only copy of a ClientContext object
      *
@@ -109,9 +104,7 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::ClientContext>
-    ClientContext(
-        const identifier::Nym& remoteNymID,
-        const PasswordPrompt& reason) const = 0;
+    ClientContext(const identifier::Nym& remoteNymID) const = 0;
 
     /**   Load a read-only copy of a ServerContext object
      *
@@ -122,10 +115,8 @@ public:
      *             instantiated if the object does not exist or is invalid.
      */
     OPENTXS_EXPORT virtual std::shared_ptr<const opentxs::ServerContext>
-    ServerContext(
-        const identifier::Nym& localNymID,
-        const Identifier& remoteID,
-        const PasswordPrompt& reason) const = 0;
+    ServerContext(const identifier::Nym& localNymID, const Identifier& remoteID)
+        const = 0;
 
     /**   Load an existing Context object
      *
@@ -216,7 +207,6 @@ public:
      */
     OPENTXS_EXPORT virtual Nym_p Nym(
         const identifier::Nym& id,
-        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const = 0;
 
@@ -228,8 +218,7 @@ public:
      *    \param[in] nym the serialized version of the contract
      */
     OPENTXS_EXPORT virtual Nym_p Nym(
-        const identity::Nym::Serialized& nym,
-        const PasswordPrompt& reason) const = 0;
+        const identity::Nym::Serialized& nym) const = 0;
 
     OPENTXS_EXPORT virtual Nym_p Nym(
         const PasswordPrompt& reason,
@@ -251,8 +240,7 @@ public:
         const PasswordPrompt& reason) const = 0;
 
     OPENTXS_EXPORT virtual Nym_p NymByIDPartialMatch(
-        const std::string& partialId,
-        const PasswordPrompt& reason) const = 0;
+        const std::string& partialId) const = 0;
 
     /**   Returns a list of all known nyms and their aliases
      */
@@ -537,7 +525,6 @@ public:
      */
     OPENTXS_EXPORT virtual OTServerContract Server(
         const identifier::Server& id,
-        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const noexcept(false) = 0;
 
@@ -547,8 +534,7 @@ public:
      *    \throw std::runtime_error the provided contract is not valid
      */
     OPENTXS_EXPORT virtual OTServerContract Server(
-        const proto::ServerContract& contract,
-        const PasswordPrompt& reason) const noexcept(false) = 0;
+        const proto::ServerContract& contract) const noexcept(false) = 0;
 
     /**   Create a new server contract
      *
@@ -635,12 +621,10 @@ public:
      */
     OPENTXS_EXPORT virtual OTUnitDefinition UnitDefinition(
         const identifier::UnitDefinition& id,
-        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const noexcept(false) = 0;
     OPENTXS_EXPORT virtual OTBasketContract BasketContract(
         const identifier::UnitDefinition& id,
-        const PasswordPrompt& reason,
         const std::chrono::milliseconds& timeout =
             std::chrono::milliseconds(0)) const noexcept(false) = 0;
 
@@ -650,8 +634,7 @@ public:
      *    \throw std::runtime_error the provided contract is invalid
      */
     OPENTXS_EXPORT virtual OTUnitDefinition UnitDefinition(
-        const proto::UnitDefinition& contract,
-        const PasswordPrompt& reason) const noexcept(false) = 0;
+        const proto::UnitDefinition& contract) const noexcept(false) = 0;
 
     /**   Create a new currency contract
      *
@@ -704,8 +687,7 @@ public:
         noexcept(false) = 0;
 
     OPENTXS_EXPORT virtual proto::ContactItemType CurrencyTypeBasedOnUnitType(
-        const identifier::UnitDefinition& contractID,
-        const PasswordPrompt& reason) const = 0;
+        const identifier::UnitDefinition& contractID) const = 0;
 
     OPENTXS_EXPORT virtual bool LoadCredential(
         const std::string& id,

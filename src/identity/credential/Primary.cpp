@@ -10,9 +10,7 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -63,12 +61,11 @@ identity::credential::internal::Primary* Factory::PrimaryCredential(
     const api::internal::Core& api,
     identity::internal::Authority& parent,
     const identity::Source& source,
-    const proto::Credential& serialized,
-    const opentxs::PasswordPrompt& reason)
+    const proto::Credential& serialized)
 {
     try {
 
-        return new ReturnType(api, reason, parent, source, serialized);
+        return new ReturnType(api, parent, source, serialized);
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(
             ": Failed to deserialize credential: ")(e.what())
@@ -119,17 +116,10 @@ Primary::Primary(
 
 Primary::Primary(
     const api::internal::Core& api,
-    const opentxs::PasswordPrompt& reason,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const proto::Credential& serialized) noexcept(false)
-    : credential::implementation::Key(
-          api,
-          reason,
-          parent,
-          source,
-          serialized,
-          "")
+    : credential::implementation::Key(api, parent, source, serialized, "")
     , source_proof_(serialized.masterdata().sourceproof())
 {
     Lock lock(lock_);
@@ -220,8 +210,7 @@ bool Primary::Verify(
     const proto::Credential& credential,
     const proto::CredentialRole& role,
     const Identifier& masterID,
-    const proto::Signature& masterSig,
-    const opentxs::PasswordPrompt& reason) const
+    const proto::Signature& masterSig) const
 {
     if (!proto::Validate<proto::Credential>(
             credential, VERBOSE, proto::KEYMODE_PUBLIC, role, false)) {
@@ -247,12 +236,10 @@ bool Primary::Verify(
     signature.CopyFrom(masterSig);
     signature.clear_signature();
 
-    return Verify(api_.Factory().Data(copy), masterSig, reason);
+    return Verify(api_.Factory().Data(copy), masterSig);
 }
 
-bool Primary::verify_against_source(
-    const Lock& lock,
-    const opentxs::PasswordPrompt& reason) const
+bool Primary::verify_against_source(const Lock& lock) const
 {
     auto pSerialized = std::shared_ptr<proto::Credential>{};
     auto hasSourceSignature{true};
@@ -290,21 +277,16 @@ bool Primary::verify_against_source(
 
     const auto& sig = *pSig;
 
-    return source_.Verify(serialized, sig, reason);
+    return source_.Verify(serialized, sig);
 }
 
-/** Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
- * verify that *this == parent_.GetMasterCredential() (the master
- * credential.) Verify the (self-signed) signature on *this. */
-bool Primary::verify_internally(
-    const Lock& lock,
-    const opentxs::PasswordPrompt& reason) const
+bool Primary::verify_internally(const Lock& lock) const
 {
     // Perform common Key Credential verifications
-    if (!Key::verify_internally(lock, reason)) { return false; }
+    if (!Key::verify_internally(lock)) { return false; }
 
     // Check that the source validates this credential
-    if (!verify_against_source(lock, reason)) {
+    if (!verify_against_source(lock)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying master credential against "
             "nym id source.")

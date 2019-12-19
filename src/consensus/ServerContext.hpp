@@ -32,9 +32,7 @@ public:
         const identifier::UnitDefinition& id) const final;
 #endif
     std::uint64_t Revision() const final;
-    bool ShouldRename(
-        const PasswordPrompt& reason,
-        const std::string& defaultName = "") const final;
+    bool ShouldRename(const std::string& defaultName = "") const final;
     bool StaleNym() const final;
     std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
@@ -48,10 +46,9 @@ public:
         const TransactionNumbers& without,
         const PasswordPrompt& reason) const final;
     proto::ConsensusType Type() const final;
-    bool ValidateContext(const Lock& lock, const PasswordPrompt& reason)
-        const final
+    bool ValidateContext(const Lock& lock) const final
     {
-        return validate(lock, reason);
+        return validate(lock);
     }
     bool Verify(const TransactionStatement& statement) const final;
     bool VerifyTentativeNumber(const TransactionNumber& number) const final;
@@ -237,37 +234,28 @@ private:
         const String& serialized,
         const identity::Nym& signer,
         const identifier::Nym& owner,
-        const TransactionNumber target,
-        const PasswordPrompt& reason);
+        const TransactionNumber target);
     std::unique_ptr<Ledger> extract_ledger(
         const Armored& armored,
         const Identifier& accountID,
-        const identity::Nym& signer,
-        const PasswordPrompt& reason) const;
+        const identity::Nym& signer) const;
     std::unique_ptr<Message> extract_message(
         const Armored& armored,
-        const identity::Nym& signer,
-        const PasswordPrompt& reason) const;
+        const identity::Nym& signer) const;
     std::unique_ptr<Item> extract_original_item(
         const itemType type,
         OTTransaction& response) const;
-    std::unique_ptr<Item> extract_original_item(
-        const Item& response,
-        const PasswordPrompt& reason) const;
+    std::unique_ptr<Item> extract_original_item(const Item& response) const;
     std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
         const api::internal::Core& api,
         const identity::Nym& theNym,
         std::shared_ptr<OTTransaction> pTransaction,
         const PasswordPrompt& reason);
-    std::unique_ptr<Item> extract_transfer(
-        const OTTransaction& receipt,
-        const PasswordPrompt& reason) const;
+    std::unique_ptr<Item> extract_transfer(const OTTransaction& receipt) const;
     std::unique_ptr<Item> extract_transfer_pending(
-        const OTTransaction& receipt,
-        const PasswordPrompt& reason) const;
+        const OTTransaction& receipt) const;
     std::unique_ptr<Item> extract_transfer_receipt(
-        const OTTransaction& receipt,
-        const PasswordPrompt& reason) const;
+        const OTTransaction& receipt) const;
     bool finalize_server_command(Message& command, const PasswordPrompt& reason)
         const;
     std::unique_ptr<TransactionStatement> generate_statement(
@@ -295,8 +283,7 @@ private:
         const;
     bool is_internal_transfer(const Item& item) const;
     std::unique_ptr<Ledger> load_account_inbox(
-        const Identifier& accountID,
-        const PasswordPrompt& reason) const;
+        const Identifier& accountID) const;
     std::unique_ptr<Ledger> load_or_create_account_recordbox(
         const Identifier& accountID,
         const PasswordPrompt& reason) const;
@@ -307,16 +294,14 @@ private:
         const api::client::internal::Manager& client,
         const Identifier& accountID,
         const Item& acceptItemReceipt,
-        const Message& reply,
-        const PasswordPrompt& reason) const;
+        const Message& reply) const;
 #if OT_CASH
     bool process_incoming_cash(
         const Lock& lock,
         const api::client::internal::Manager& client,
         const TransactionNumber number,
         const PeerObject& incoming,
-        const Message& message,
-        const PasswordPrompt& reason) const;
+        const Message& message) const;
     void process_incoming_cash_withdrawal(
         const Item& item,
         const PasswordPrompt& reason) const;
@@ -368,8 +353,7 @@ private:
         const PasswordPrompt& reason);
     bool harvest_unused(
         const Lock& lock,
-        const api::client::internal::Manager& client,
-        const PasswordPrompt& reason);
+        const api::client::internal::Manager& client);
     void init_sockets();
     RequestNumber initialize_server_command(
         const Lock& lock,
@@ -412,8 +396,7 @@ private:
     void process_accept_cron_receipt_reply(
         const Lock& lock,
         const Identifier& accountID,
-        OTTransaction& inboxTransaction,
-        const PasswordPrompt& reason);
+        OTTransaction& inboxTransaction);
     void process_accept_final_receipt_reply(
         const Lock& lock,
         const OTTransaction& inboxTransaction);
@@ -422,8 +405,7 @@ private:
         const api::client::internal::Manager& client,
         const Identifier& accountID,
         const Message& reply,
-        const OTTransaction& inboxTransaction,
-        const PasswordPrompt& reason);
+        const OTTransaction& inboxTransaction);
     bool process_account_data(
         const Lock& lock,
         const Identifier& accountID,
@@ -446,7 +428,6 @@ private:
         const PasswordPrompt& reason);
     bool process_check_nym_response(
         const Lock& lock,
-        const PasswordPrompt& reason,
         const api::client::internal::Manager& client,
         const Message& reply);
     bool process_get_account_data(
@@ -476,17 +457,13 @@ private:
         const Lock& lock,
         const Message& reply);
 #if OT_CASH
-    bool process_get_mint_response(
-        const Lock& lock,
-        const Message& reply,
-        const PasswordPrompt& reason);
+    bool process_get_mint_response(const Lock& lock, const Message& reply);
 #endif
     bool process_get_nym_market_offers_response(
         const Lock& lock,
         const Message& reply);
     bool process_get_unit_definition_response(
         const Lock& lock,
-        const PasswordPrompt& reason,
         const Message& reply);
     bool process_issue_unit_definition_response(
         const Lock& lock,
@@ -533,8 +510,7 @@ private:
     bool process_register_nym_response(
         const Lock& lock,
         const api::client::internal::Manager& client,
-        const Message& reply,
-        const PasswordPrompt& reason);
+        const Message& reply);
     bool process_reply(
         const Lock& lock,
         const api::client::internal::Manager& client,
@@ -551,8 +527,7 @@ private:
         const Lock& lock,
         const Message& reply,
         const itemType type,
-        OTTransaction& response,
-        const PasswordPrompt& reason);
+        OTTransaction& response);
 #if OT_CASH
     void process_response_transaction_cash_deposit(
         Item& replyItem,
@@ -581,8 +556,7 @@ private:
         const Lock& lock,
         const Message& reply,
         const itemType type,
-        OTTransaction& response,
-        const PasswordPrompt& reason);
+        OTTransaction& response);
     void process_response_transaction_pay_dividend(
         const Lock& lock,
         const Message& reply,
@@ -593,8 +567,7 @@ private:
         const api::client::internal::Manager& client,
         const Message& reply,
         const itemType type,
-        OTTransaction& response,
-        const PasswordPrompt& reason);
+        OTTransaction& response);
 #if OT_CASH
     void process_response_transaction_withdrawal(
         const Lock& lock,

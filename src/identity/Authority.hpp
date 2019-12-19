@@ -16,6 +16,7 @@ public:
     {
         return authority_to_contact_.at(version_);
     }
+    AuthorityKeys EncryptionTargets() const noexcept final;
     bool GetContactData(
         std::unique_ptr<proto::ContactData>& contactData) const final;
     const credential::Primary& GetMasterCredential() const final
@@ -54,9 +55,12 @@ public:
     const crypto::key::Keypair& GetSignKeypair(
         proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const final;
+    const credential::Key& GetTagCredential(
+        proto::AsymmetricKeyType keytype) const noexcept(false) final;
     bool GetVerificationSet(
         std::unique_ptr<proto::VerificationSet>& verificationSet) const final;
     bool hasCapability(const NymCapability& capability) const final;
+    ReadView Params(const proto::AsymmetricKeyType type) const noexcept final;
     bool Path(proto::HDPath& output) const final;
     std::shared_ptr<Serialized> Serialize(
         const CredentialIndexModeFlag mode) const final;
@@ -65,13 +69,19 @@ public:
         const proto::SignatureRole role,
         proto::Signature& signature,
         const PasswordPrompt& reason,
-        proto::KeyRole key = proto::KEYROLE_SIGN,
-        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const final;
+        proto::KeyRole key,
+        const proto::HashType hash) const final;
     const identity::Source& Source() const final { return parent_.Source(); }
     bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
         const PasswordPrompt& reason) const final;
+    bool Unlock(
+        const crypto::key::Asymmetric& dhKey,
+        const std::uint32_t tag,
+        const proto::AsymmetricKeyType type,
+        const crypto::key::Symmetric& key,
+        PasswordPrompt& reason) const noexcept final;
     VersionNumber VerificationCredentialVersion() const final
     {
         return authority_to_verification_.at(version_);
@@ -79,11 +89,9 @@ public:
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const PasswordPrompt& reason,
-        const proto::KeyRole key = proto::KEYROLE_SIGN) const final;
-    bool Verify(const proto::Verification& item, const PasswordPrompt& reason)
-        const final;
-    bool VerifyInternally(const PasswordPrompt& reason) const final;
+        const proto::KeyRole key) const final;
+    bool Verify(const proto::Verification& item) const final;
+    bool VerifyInternally() const final;
 
     std::string AddChildKeyCredential(
         const NymParameters& parameters,
@@ -180,15 +188,13 @@ private:
         const credential::Base::SerializedType& serialized,
         const proto::KeyMode mode,
         const proto::CredentialRole role,
-        const opentxs::PasswordPrompt& reason,
         std::map<OTIdentifier, std::unique_ptr<Type>>& map) noexcept(false);
     static std::unique_ptr<credential::internal::Primary> load_master(
         const api::internal::Core& api,
         identity::internal::Authority& owner,
         const identity::Source& source,
         const proto::KeyMode mode,
-        const Serialized& serialized,
-        const PasswordPrompt& reason) noexcept(false);
+        const Serialized& serialized) noexcept(false);
     template <typename Type>
     static std::map<OTIdentifier, std::unique_ptr<Type>> load_child(
         const api::internal::Core& api,
@@ -197,8 +203,7 @@ private:
         const credential::internal::Primary& master,
         const Serialized& serialized,
         const proto::KeyMode mode,
-        const proto::CredentialRole role,
-        const opentxs::PasswordPrompt& reason) noexcept(false);
+        const proto::CredentialRole role) noexcept(false);
 
     const crypto::key::Keypair& get_keypair(
         const proto::AsymmetricKeyType type,
@@ -209,23 +214,17 @@ private:
         const String::List* plistRevokedIDs = nullptr) const;
 
     template <typename Item>
-    bool validate_credential(const Item& item, const PasswordPrompt& reason)
-        const;
+    bool validate_credential(const Item& item) const;
 
-    bool LoadChildKeyCredential(
-        const String& strSubID,
-        const PasswordPrompt& reason);
-    bool LoadChildKeyCredential(
-        const proto::Credential& serializedCred,
-        const PasswordPrompt& reason);
+    bool LoadChildKeyCredential(const String& strSubID);
+    bool LoadChildKeyCredential(const proto::Credential& serializedCred);
 
     Authority(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const proto::KeyMode mode,
-        const Serialized& serialized,
-        const PasswordPrompt& reason) noexcept(false);
+        const Serialized& serialized) noexcept(false);
     Authority(
         const api::internal::Core& api,
         const identity::Nym& parent,

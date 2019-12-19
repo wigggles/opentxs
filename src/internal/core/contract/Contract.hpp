@@ -29,7 +29,7 @@ struct Signable : virtual public opentxs::contract::Signable {
     Nym_p Nym() const final { return {}; }
     const std::string& Terms() const final { return terms_; }
     OTData Serialize() const final { return OTData{id_}; }
-    bool Validate(const PasswordPrompt&) const final { return {}; }
+    bool Validate() const final { return {}; }
     VersionNumber Version() const final { return 0; }
 
     void SetAlias(const std::string&) final {}
@@ -133,7 +133,7 @@ struct Server final : virtual public opentxs::contract::Server,
         return {};
     }
     proto::ServerContract Contract() const final { return {}; }
-    std::string EffectiveName(const PasswordPrompt&) const final { return {}; }
+    std::string EffectiveName() const final { return {}; }
     proto::ServerContract PublicContract() const final { return {}; }
     bool Statistics(String&) const final { return {}; }
     const Data& TransportKey() const final { return id_; }

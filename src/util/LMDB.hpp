@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/Bytes.hpp"
+
 #if OT_STORAGE_LMDB
 #include "lmdb.h"
 
@@ -14,7 +16,6 @@
 #include <map>
 #include <mutex>
 #include <optional>
-#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -26,10 +27,10 @@
 
 namespace opentxs::storage::lmdb
 {
-using Callback = std::function<void(const std::string_view data)>;
+using Callback = std::function<void(const ReadView data)>;
 using Flags = unsigned int;
-using ReadCallback = std::function<
-    bool(const std::string_view key, const std::string_view value)>;
+using ReadCallback =
+    std::function<bool(const ReadView key, const ReadView value)>;
 using Databases = std::vector<MDB_dbi>;
 using Result = std::pair<bool, int>;
 using Table = int;
@@ -65,17 +66,17 @@ public:
     bool Delete(const Table table, MDB_txn* parent = nullptr) const noexcept;
     bool Delete(
         const Table table,
-        const std::string_view key,
+        const ReadView key,
         MDB_txn* parent = nullptr) const noexcept;
     bool Delete(
         const Table table,
-        const std::string_view key,
-        const std::string_view value,
+        const ReadView key,
+        const ReadView value,
         MDB_txn* parent = nullptr) const noexcept;
-    bool Exists(const Table table, const std::string_view key) const noexcept;
+    bool Exists(const Table table, const ReadView key) const noexcept;
     bool Load(
         const Table table,
-        const std::string_view key,
+        const ReadView key,
         const Callback cb,
         const Mode mode = Mode::One) const noexcept;
     bool Load(
@@ -85,21 +86,21 @@ public:
         const Mode mode = Mode::One) const noexcept;
     bool Queue(
         const Table table,
-        const std::string_view key,
-        const std::string_view value,
+        const ReadView key,
+        const ReadView value,
         const Mode mode = Mode::One) const noexcept;
     bool Read(const Table table, const ReadCallback cb, const Dir dir) const
         noexcept;
     Result Store(
         const Table table,
-        const std::string_view key,
-        const std::string_view value,
+        const ReadView key,
+        const ReadView value,
         MDB_txn* parent = nullptr,
         const Flags flags = 0) const noexcept;
     Result Store(
         const Table table,
         const std::size_t key,
-        const std::string_view value,
+        const ReadView value,
         MDB_txn* parent = nullptr,
         const Flags flags = 0) const noexcept;
     Transaction TransactionRO() const noexcept(false);

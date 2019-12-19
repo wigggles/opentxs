@@ -31,9 +31,7 @@ class Deterministic;
 class Ethereum;
 class HD;
 class Imported;
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 class PaymentCode;
-#endif
 }  // namespace blockchain
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
@@ -206,6 +204,7 @@ class Bip39;
 class Bitcoin;
 class EcdsaProvider;
 class EncodingProvider;
+class Envelope;
 class HashingProvider;
 #if OT_CRYPTO_USING_OPENSSL
 class OpenSSL;
@@ -417,7 +416,6 @@ class OTClient;
 class OTCron;
 class OTCronItem;
 class OTDataFolder;
-class OTEnvelope;
 class OTMarket;
 class OTNym_or_SymmetricKey;
 class OTOffer;
@@ -442,9 +440,7 @@ class OTWallet;
 class PairEventCallbackSwig;
 class PasswordPrompt;
 class PayDividendVisitor;
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 class PaymentCode;
-#endif
 class PeerObject;
 class PIDFile;
 class ServerContext;

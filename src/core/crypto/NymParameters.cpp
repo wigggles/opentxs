@@ -8,34 +8,46 @@
 #include "Internal.hpp"
 
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <cstdint>
 #include <memory>
 
 namespace opentxs
 {
-NymParameters::NymParameters()
-    : source_keypair_(Factory::Keypair())
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    , sourceType_(proto::SOURCETYPE_BIP47)
-    , sourceProofType_(proto::SOURCEPROOFTYPE_SIGNATURE)
-#else
-    , sourceType_(proto::SOURCETYPE_PUBKEY)
-    , sourceProofType_(proto::SOURCEPROOFTYPE_SELF_SIGNATURE)
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+const std::map<proto::AsymmetricKeyType, NymParameterType> key_to_nym_
+{
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    {proto::AKEYTYPE_LEGACY, NymParameterType::rsa},
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        {proto::AKEYTYPE_SECP256K1, NymParameterType::secp256k1},
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        {proto::AKEYTYPE_ED25519, NymParameterType::ed25519},
+#endif
+};
+const auto nym_to_key_{reverse_map(key_to_nym_)};
+
+NymParameters::NymParameters(
+    const NymParameterType type,
+    const proto::CredentialType credential,
+    const proto::SourceType source) noexcept
+    : source_keypair_(Factory::Keypair().release())
+    , nymType_(type)
+    , credentialType_(
+          (NymParameterType::rsa == nymType_) ? proto::CREDTYPE_LEGACY
+                                              : credential)
+    , sourceType_(
+          (NymParameterType::rsa == nymType_) ? proto::SOURCETYPE_PUBKEY
+                                              : source)
+    , sourceProofType_(
+          (proto::SOURCETYPE_BIP47 == sourceType_)
+              ? proto::SOURCEPROOFTYPE_SIGNATURE
+              : proto::SOURCEPROOFTYPE_SELF_SIGNATURE)
     , contact_data_(nullptr)
     , verification_set_(nullptr)
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    , nymType_(NymParameterType::ed25519)
-#elif OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    , nymType_(NymParameterType::secp256k1)
-#elif OT_CRYPTO_SUPPORTED_KEY_RSA
-    , nymType_(NymParameterType::rsa)
-#else
-    , nymType_(NymParameterType::error)
-#endif
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    , credentialType_(proto::CREDTYPE_HD)
     , entropy_(nullptr)
     , seed_("")
     , nym_(0)
@@ -44,33 +56,33 @@ NymParameters::NymParameters()
     , default_(true)
     , use_auto_index_(true)
 #else  // OT_CRYPTO_SUPPORTED_KEY_HD
-    , credentialType_(proto::CREDTYPE_LEGACY)
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     , nBits_(1024)
+    , params_()
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 {
 }
 
-NymParameters::NymParameters(proto::CredentialType theCredentialtype)
-    : NymParameters()
+NymParameters::NymParameters(
+    proto::AsymmetricKeyType key,
+    proto::CredentialType credential,
+    const proto::SourceType source) noexcept
+    : NymParameters(key_to_nym_.at(key), credential, source)
 {
-    setCredentialType(theCredentialtype);
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-NymParameters::NymParameters(const std::int32_t keySize)
-    : NymParameters()
+NymParameters::NymParameters(const std::int32_t keySize) noexcept
+    : NymParameters(NymParameterType::rsa, proto::CREDTYPE_LEGACY)
 {
-    nymType_ = NymParameterType::rsa;
-    credentialType_ = proto::CREDTYPE_LEGACY;
     nBits_ = keySize;
 }
 #endif
 
 NymParameters::NymParameters(
     [[maybe_unused]] const std::string& seedID,
-    [[maybe_unused]] const int index)
+    [[maybe_unused]] const int index) noexcept
     : NymParameters()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -80,15 +92,11 @@ NymParameters::NymParameters(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }
 
-NymParameters::NymParameters(const NymParameters& rhs)
-    : NymParameters()
+NymParameters::NymParameters(const NymParameters& rhs) noexcept
+    : NymParameters(rhs.nymType_, rhs.credentialType_, rhs.sourceType_)
 {
-    sourceType_ = rhs.sourceType_;
-    sourceProofType_ = rhs.sourceProofType_;
     contact_data_ = rhs.contact_data_;
     verification_set_ = rhs.verification_set_;
-    nymType_ = rhs.nymType_;
-    credentialType_ = rhs.credentialType_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 
     if (rhs.entropy_) { entropy_.reset(new OTPassword(*rhs.entropy_)); }
@@ -102,105 +110,157 @@ NymParameters::NymParameters(const NymParameters& rhs)
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     nBits_ = rhs.nBits_;
+    params_ = rhs.params_;
 #endif
 }
 
-proto::AsymmetricKeyType NymParameters::AsymmetricKeyType() const
+auto NymParameters::AsymmetricKeyType() const -> proto::AsymmetricKeyType
 {
-    proto::AsymmetricKeyType newKeyType;
+    try {
+        return nym_to_key_.at(nymType_);
+    } catch (...) {
+        return proto::AKEYTYPE_ERROR;
+    }
+}
 
-    switch (nymType_) {
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case NymParameterType::rsa: {
-            newKeyType = proto::AKEYTYPE_LEGACY;
-        } break;
-#endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case NymParameterType::secp256k1: {
-            newKeyType = proto::AKEYTYPE_SECP256K1;
-        } break;
-#endif
-        case NymParameterType::ed25519: {
-            newKeyType = proto::AKEYTYPE_ED25519;
-        } break;
-        default: {
-            newKeyType = proto::AKEYTYPE_ERROR;
-        }
+auto NymParameters::ChangeType(const NymParameterType type) const
+    -> NymParameters
+{
+    auto output{*this};
+    const_cast<NymParameterType&>(output.nymType_) = type;
+
+    if (NymParameterType::rsa == output.nymType_) {
+        const_cast<proto::CredentialType&>(output.credentialType_) =
+            proto::CREDTYPE_LEGACY;
+        const_cast<proto::SourceType&>(output.sourceType_) =
+            proto::SOURCETYPE_PUBKEY;
+        const_cast<proto::SourceProofType&>(output.sourceProofType_) =
+            proto::SOURCEPROOFTYPE_SELF_SIGNATURE;
     }
 
-    return newKeyType;
+    return output;
 }
 
-void NymParameters::SetContactData(const proto::ContactData& contactData)
+auto NymParameters::ContactData() const -> std::shared_ptr<proto::ContactData>
+{
+    return contact_data_;
+}
+
+auto NymParameters::credentialType() const -> proto::CredentialType
+{
+    return credentialType_;
+}
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::CredIndex() const -> Bip32Index { return cred_index_; }
+auto NymParameters::Credset() const -> Bip32Index { return credset_; }
+auto NymParameters::Default() const -> bool { return default_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+auto NymParameters::DHParams() const -> ReadView { return reader(params_); }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::Entropy() const -> const std::unique_ptr<OTPassword>&
+{
+    return entropy_;
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+auto NymParameters::keySize() const -> std::int32_t { return nBits_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::Nym() const -> Bip32Index { return nym_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+auto NymParameters::nymParameterType() const -> NymParameterType
+{
+    return nymType_;
+}
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::Seed() const -> std::string { return seed_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::SourceProofType() const -> proto::SourceProofType
+{
+    return sourceProofType_;
+}
+auto NymParameters::SourceType() const -> proto::SourceType
+{
+    return sourceType_;
+}
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::UseAutoIndex() const -> bool { return use_auto_index_; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::VerificationSet() const
+    -> std::shared_ptr<proto::VerificationSet>
+{
+    return verification_set_;
+}
+
+auto NymParameters::SetContactData(const proto::ContactData& contactData)
+    -> void
 {
     contact_data_.reset(new proto::ContactData(contactData));
 }
 
-void NymParameters::setCredentialType(proto::CredentialType theCredentialtype)
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::SetCredIndex(const Bip32Index path) -> void
 {
-    credentialType_ = theCredentialtype;
-
-    switch (theCredentialtype) {
-        case (proto::CREDTYPE_LEGACY): {
-            SetSourceType(proto::SOURCETYPE_PUBKEY);
-        } break;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-        case (proto::CREDTYPE_HD): {
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-            SetSourceType(proto::SOURCETYPE_BIP47);
-#else
-            SetSourceType(proto::SOURCETYPE_PUBKEY);
-#endif
-
-        } break;
-#endif
-        default: {
-        }
-    }
+    cred_index_ = path;
 }
+auto NymParameters::SetCredset(const Bip32Index path) -> void
+{
+    credset_ = path;
+}
+auto NymParameters::SetDefault(const bool in) -> void { default_ = in; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+auto NymParameters::SetDHParams(const ReadView bytes) -> void
+{
+    auto start = reinterpret_cast<const std::byte*>(bytes.data());
+    auto end = start + bytes.size();
+
+    params_.assign(start, end);
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-void NymParameters::SetEntropy(const OTPassword& entropy)
+auto NymParameters::SetEntropy(const OTPassword& entropy) -> void
 {
     entropy_.reset(new OTPassword(entropy));
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
-void NymParameters::SetNym(const Bip32Index path)
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+auto NymParameters::setKeySize(std::int32_t keySize) -> void
+{
+    nBits_ = keySize;
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::SetNym(const Bip32Index path) -> void
 {
     nym_ = path;
     use_auto_index_ = false;
 }
 #endif
 
-void NymParameters::setNymParameterType(NymParameterType theKeytype)
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::SetSeed(const std::string& seed) -> void { seed_ = seed; }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+auto NymParameters::SetUseAutoIndex(const bool use) -> void
 {
-    nymType_ = theKeytype;
-
-    if (theKeytype == NymParameterType::rsa) {
-        SetSourceType(proto::SOURCETYPE_PUBKEY);
-    }
+    use_auto_index_ = use;
 }
+#endif
 
-void NymParameters::SetSourceType(proto::SourceType type)
-{
-    sourceType_ = type;
-
-    switch (type) {
-        case proto::SOURCETYPE_PUBKEY: {
-            sourceProofType_ = proto::SOURCEPROOFTYPE_SELF_SIGNATURE;
-        } break;
-        case proto::SOURCETYPE_BIP47: {
-            sourceProofType_ = proto::SOURCEPROOFTYPE_SIGNATURE;
-        } break;
-        case proto::SOURCETYPE_ERROR:
-        default: {
-            sourceProofType_ = proto::SOURCEPROOFTYPE_ERROR;
-        }
-    }
-}
-
-void NymParameters::SetVerificationSet(
-    const proto::VerificationSet& verificationSet)
+auto NymParameters::SetVerificationSet(
+    const proto::VerificationSet& verificationSet) -> void
 {
     verification_set_.reset(new proto::VerificationSet(verificationSet));
 }

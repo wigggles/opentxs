@@ -10,6 +10,9 @@
 
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/Bip32.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
@@ -32,14 +35,15 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     using HDKey = std::unique_ptr<opentxs::crypto::key::HD>;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    using Secp256k1Key = std::unique_ptr<opentxs::crypto::key::Secp256k1>;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
     OPENTXS_EXPORT virtual ECKey InstantiateECKey(
-        const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const = 0;
+        const proto::AsymmetricKey& serialized) const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT virtual HDKey InstantiateHDKey(
-        const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const = 0;
+        const proto::AsymmetricKey& serialized) const = 0;
     OPENTXS_EXPORT virtual HDKey InstantiateKey(
         const proto::AsymmetricKeyType type,
         const std::string& seedID,
@@ -50,8 +54,7 @@ public:
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT virtual Key InstantiateKey(
-        const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const = 0;
+        const proto::AsymmetricKey& serialized) const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT virtual HDKey NewHDKey(
         const std::string& seedID,
@@ -62,6 +65,16 @@ public:
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    OPENTXS_EXPORT virtual Secp256k1Key NewSecp256k1Key(
+        const std::string& seedID,
+        const OTPassword& seed,
+        const opentxs::crypto::Bip32::Path& path,
+        const PasswordPrompt& reason,
+        const proto::KeyRole role = proto::KEYROLE_SIGN,
+        const VersionNumber version =
+            opentxs::crypto::key::Secp256k1::DefaultVersion) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT virtual Key NewKey(
         const NymParameters& params,

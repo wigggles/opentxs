@@ -27,8 +27,7 @@ private:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const final;
-    bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
-        const final;
+    bool verify_internally(const Lock& lock) const final;
 
     Verification(
         const api::internal::Core& api,

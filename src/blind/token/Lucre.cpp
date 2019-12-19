@@ -87,6 +87,23 @@ Lucre::Lucre(const Lucre& rhs)
 {
 }
 
+Lucre::Lucre(const Lucre& rhs, blind::Purse& newOwner)
+    : Lucre(
+          rhs.api_,
+          newOwner,
+          rhs.lucre_version_,
+          rhs.state_,
+          rhs.series_,
+          rhs.denomination_,
+          rhs.valid_from_,
+          rhs.valid_to_,
+          rhs.signature_,
+          rhs.private_,
+          rhs.public_,
+          rhs.spend_)
+{
+}
+
 Lucre::Lucre(
     const api::internal::Core& api,
     Purse& purse,
@@ -158,8 +175,7 @@ Lucre::Lucre(
     const Mint& mint,
     const Denomination value,
     Purse& purse,
-    const OTPassword& primaryPassword,
-    const OTPassword& secondaryPassword)
+    const PasswordPrompt& reason)
     : Lucre(
           api,
           purse,
@@ -174,8 +190,7 @@ Lucre::Lucre(
           nullptr,
           nullptr)
 {
-    const bool generated =
-        GenerateTokenRequest(owner, primaryPassword, secondaryPassword, mint);
+    const bool generated = GenerateTokenRequest(owner, mint, reason);
 
     if (false == generated) {
         throw std::runtime_error("Failed to generate prototoken");
@@ -197,13 +212,19 @@ bool Lucre::AddSignature(const String& signature)
 }
 
 bool Lucre::ChangeOwner(
-    crypto::key::Symmetric& key,
+    Purse& oldOwner,
+    Purse& newOwner,
     const PasswordPrompt& reason)
 {
     // NOTE: private_ is never re-encrypted
 
+    auto oldPass = api_.Factory().PasswordPrompt(reason);
+    auto newPass = api_.Factory().PasswordPrompt(reason);
+    auto& oldKey = oldOwner.PrimaryKey(oldPass);
+    auto& newKey = newOwner.PrimaryKey(newPass);
+
     if (public_) {
-        if (false == reencrypt(key, *public_, reason)) {
+        if (false == reencrypt(oldKey, oldPass, newKey, newPass, *public_)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to re-encrypt public prototoken")
                 .Flush();
@@ -213,7 +234,7 @@ bool Lucre::ChangeOwner(
     }
 
     if (spend_) {
-        if (false == reencrypt(key, *spend_, reason)) {
+        if (false == reencrypt(oldKey, oldPass, newKey, newPass, *spend_)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to re-encrypt spendable token")
                 .Flush();
@@ -227,9 +248,8 @@ bool Lucre::ChangeOwner(
 
 bool Lucre::GenerateTokenRequest(
     const identity::Nym& owner,
-    const OTPassword& primaryPassword,
-    const OTPassword& secondaryPassword,
-    const Mint& mint)
+    const Mint& mint,
+    const PasswordPrompt& reason)
 {
 #if OT_LUCRE_DEBUG
     LucreDumper setDumper;
@@ -283,10 +303,6 @@ bool Lucre::GenerateTokenRequest(
 
     private_ = std::make_shared<proto::Ciphertext>();
     public_ = std::make_shared<proto::Ciphertext>();
-    auto primaryKeyPassword = api_.Factory().PasswordPrompt("");
-    auto secondaryKeyPassword = api_.Factory().PasswordPrompt("");
-    primaryKeyPassword->SetPassword(primaryPassword);
-    secondaryKeyPassword->SetPassword(secondaryPassword);
 
     if (false == bool(private_)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -304,36 +320,34 @@ bool Lucre::GenerateTokenRequest(
         return false;
     }
 
-    const auto encryptedPrivate = purse_.SecondaryKey(owner).Encrypt(
-        strPrivateCoin,
-        Data::Factory(),
-        secondaryKeyPassword,
-        *private_,
-        false,
-        mode_);
+    {
+        auto password = api_.Factory().PasswordPrompt(reason);
+        const auto encryptedPrivate =
+            purse_.SecondaryKey(owner, password)
+                .Encrypt(
+                    strPrivateCoin->Bytes(), password, *private_, false, mode_);
 
-    if (false == bool(encryptedPrivate)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to encrypt private prototoken")
-            .Flush();
+        if (false == bool(encryptedPrivate)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to encrypt private prototoken")
+                .Flush();
 
-        return false;
+            return false;
+        }
     }
 
-    const auto encryptedPublic = purse_.PrimaryKey().Encrypt(
-        strPublicCoin,
-        Data::Factory(),
-        primaryKeyPassword,
-        *public_,
-        false,
-        mode_);
+    {
+        auto password = api_.Factory().PasswordPrompt(reason);
+        const auto encryptedPublic = purse_.PrimaryKey(password).Encrypt(
+            strPublicCoin->Bytes(), password, *public_, false, mode_);
 
-    if (false == bool(encryptedPublic)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to encrypt public prototoken")
-            .Flush();
+        if (false == bool(encryptedPublic)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to encrypt public prototoken")
+                .Flush();
 
-        return false;
+            return false;
+        }
     }
 
     return true;
@@ -352,7 +366,9 @@ bool Lucre::GetPublicPrototoken(String& output, const PasswordPrompt& reason)
     bool decrypted{false};
 
     try {
-        decrypted = purse_.PrimaryKey().Decrypt(ciphertext, reason, output);
+        auto password = api_.Factory().PasswordPrompt(reason);
+        decrypted = purse_.PrimaryKey(password).Decrypt(
+            ciphertext, password, output.WriteInto());
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing primary key").Flush();
 
@@ -379,7 +395,9 @@ bool Lucre::GetSpendable(String& output, const PasswordPrompt& reason) const
     bool decrypted{false};
 
     try {
-        decrypted = purse_.PrimaryKey().Decrypt(ciphertext, reason, output);
+        auto password = api_.Factory().PasswordPrompt(reason);
+        decrypted = purse_.PrimaryKey(password).Decrypt(
+            ciphertext, password, output.WriteInto());
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing primary key").Flush();
 
@@ -535,8 +553,10 @@ bool Lucre::Process(
     auto prototoken = String::Factory();
 
     try {
-        auto& key = purse_.SecondaryKey(owner);
-        const auto decrypted = key.Decrypt(*private_, reason, prototoken);
+        auto password = api_.Factory().PasswordPrompt(reason);
+        auto& key = purse_.SecondaryKey(owner, password);
+        const auto decrypted =
+            key.Decrypt(*private_, password, prototoken->WriteInto());
 
         if (false == decrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt prototoken")
@@ -593,9 +613,10 @@ bool Lucre::Process(
     }
 
     try {
-        auto& key = purse_.PrimaryKey();
+        auto password = api_.Factory().PasswordPrompt(reason);
+        auto& key = purse_.PrimaryKey(password);
         const auto encrypted =
-            key.Encrypt(spend, Data::Factory(), reason, *spend_, false, mode_);
+            key.Encrypt(spend->Bytes(), password, *spend_, false, mode_);
 
         if (false == encrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(

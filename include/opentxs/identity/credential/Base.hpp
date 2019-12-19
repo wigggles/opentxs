@@ -55,14 +55,12 @@ public:
     OPENTXS_EXPORT virtual bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const PasswordPrompt& reason,
         const proto::KeyRole key = proto::KEYROLE_SIGN) const = 0;
     OPENTXS_EXPORT virtual bool Verify(
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig,
-        const PasswordPrompt& reason) const = 0;
+        const proto::Signature& masterSig) const = 0;
 
     ~Base() override = default;
 

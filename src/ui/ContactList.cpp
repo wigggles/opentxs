@@ -144,14 +144,10 @@ ContactList::ContactList(
 
 ContactList::ParsedArgs::ParsedArgs(
     const api::internal::Core& api,
-    const PasswordPrompt& reason,
     const std::string& purportedID,
     const std::string& purportedPaymentCode) noexcept
     : nym_id_(extract_nymid(api, purportedID, purportedPaymentCode))
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    , payment_code_(
-          extract_paymentcode(api, reason, purportedID, purportedPaymentCode))
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    , payment_code_(extract_paymentcode(api, purportedID, purportedPaymentCode))
 {
 }
 
@@ -191,47 +187,38 @@ OTNymID ContactList::ParsedArgs::extract_nymid(
     return output;
 }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 OTPaymentCode ContactList::ParsedArgs::extract_paymentcode(
     const api::internal::Core& api,
-    const PasswordPrompt& reason,
     const std::string& purportedID,
     const std::string& purportedPaymentCode) noexcept
 {
     if (false == purportedPaymentCode.empty()) {
         // Case 1: purportedPaymentCode is a payment code
-        auto output = api.Factory().PaymentCode(purportedPaymentCode, reason);
+        auto output = api.Factory().PaymentCode(purportedPaymentCode);
 
-        if (output->VerifyInternally()) { return output; }
+        if (output->Valid()) { return output; }
     }
 
     if (false == purportedID.empty()) {
         // Case 2: purportedID is a payment code
-        auto output = api.Factory().PaymentCode(purportedID, reason);
+        auto output = api.Factory().PaymentCode(purportedID);
 
-        if (output->VerifyInternally()) { return output; }
+        if (output->Valid()) { return output; }
     }
 
     // Case 3: not possible to extract a payment code
 
-    return api.Factory().PaymentCode("", reason);
+    return api.Factory().PaymentCode("");
 }
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 std::string ContactList::AddContact(
     const std::string& label,
     const std::string& paymentCode,
     const std::string& nymID) const noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt("Adding a new contact");
-    auto args = ParsedArgs{api_, reason, nymID, paymentCode};
-    const auto contact = api_.Contacts().NewContact(
-        label,
-        args.nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        args.payment_code_,
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reason);
+    auto args = ParsedArgs{api_, nymID, paymentCode};
+    const auto contact =
+        api_.Contacts().NewContact(label, args.nym_id_, args.payment_code_);
     const auto& id = contact->ID();
     api_.OTX().CanMessage(primary_id_, id, true);
 

@@ -203,7 +203,6 @@ private:
         const identifier::Server& serverID,
         const identifier::UnitDefinition& unitID) const;
     bool need_registration(
-        const PasswordPrompt& reason,
         const identifier::Nym& localNymID,
         const identifier::Server& serverID) const;
     void state_machine(const IssuerID& id) const;

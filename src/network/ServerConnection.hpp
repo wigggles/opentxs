@@ -66,12 +66,8 @@ private:
     void disable_push(const identifier::Nym& nymID);
     zeromq::socket::Dealer& get_async(const Lock& lock);
     zeromq::socket::Request& get_sync(const Lock& lock);
-    void process_incoming(
-        const zeromq::Message& in,
-        const PasswordPrompt& reason);
-    void process_incoming(
-        const proto::ServerReply& in,
-        const PasswordPrompt& reason);
+    void process_incoming(const zeromq::Message& in);
+    void process_incoming(const proto::ServerReply& in);
     void register_for_push(
         const ServerContext& context,
         const PasswordPrompt& reason);

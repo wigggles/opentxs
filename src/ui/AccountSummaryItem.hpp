@@ -41,11 +41,9 @@ private:
 
     static OTUnitDefinition load_unit(
         const api::Core& api,
-        const Identifier& id,
-        const PasswordPrompt& reason);
+        const Identifier& id);
 
     AccountSummaryItem(
-        const PasswordPrompt& reason,
         const IssuerItemInternalInterface& parent,
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,

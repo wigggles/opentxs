@@ -5,82 +5,140 @@
 
 #pragma once
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+
 namespace opentxs::implementation
 {
 class PaymentCode final : virtual public opentxs::PaymentCode
 {
 public:
-    bool operator==(const proto::PaymentCode& rhs) const final;
-    operator const opentxs::crypto::key::Asymmetric&() const final;
+    struct SerializedForBase58 {
+        std::uint8_t prefix_;
+        std::uint8_t version_;
+        std::uint8_t features_;
+        std::array<char, 33> key_;
+        std::array<char, 32> code_;
+        std::uint8_t bm_version_;
+        std::uint8_t bm_stream_;
+        std::array<std::byte, 11> blank_;
 
-    const OTNymID ID() const final;
-    const std::string asBase58() const final;
-    SerializedPaymentCode Serialize() const final;
+        operator ReadView() const noexcept
+        {
+            return {reinterpret_cast<const char*>(this), sizeof(*this)};
+        }
+
+        auto haveBitmessage() const noexcept
+        {
+            return 0 != (features_ & std::uint8_t{0x80});
+        }
+
+        SerializedForBase58() noexcept
+            : prefix_(0)
+            , version_(0)
+            , features_(0)
+            , key_()
+            , code_()
+            , bm_version_(0)
+            , bm_stream_(0)
+            , blank_()
+        {
+            static_assert(81 == sizeof(SerializedForBase58));
+        }
+
+        SerializedForBase58(
+            const VersionNumber version,
+            const bool bitmessage,
+            const std::uint8_t bmVersion,
+            const std::uint8_t bmStream) noexcept
+            : prefix_(0x47)
+            , version_(static_cast<std::uint8_t>(version))
+            , features_(bitmessage ? 0x80 : 0x00)
+            , key_()
+            , code_()
+            , bm_version_(bmVersion)
+            , bm_stream_(bmStream)
+            , blank_()
+        {
+            static_assert(81 == sizeof(SerializedForBase58));
+        }
+    };
+
+    static const std::size_t pubkey_size_;
+    static const std::size_t chain_code_size_;
+
+    operator const opentxs::crypto::key::Asymmetric&() const noexcept final;
+
+    bool operator==(const proto::PaymentCode& rhs) const noexcept final;
+
+    const identifier::Nym& ID() const noexcept final { return id_; }
+    std::string asBase58() const noexcept final;
+    Serialized Serialize() const noexcept final;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     bool Sign(
         const identity::credential::Base& credential,
         proto::Signature& sig,
-        const PasswordPrompt& reason) const final;
+        const PasswordPrompt& reason) const noexcept final;
     bool Sign(const Data& data, Data& output, const PasswordPrompt& reason)
-        const final;
-    bool VerifyInternally() const final;
+        const noexcept final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    bool Valid() const noexcept final;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     bool Verify(
         const proto::Credential& master,
-        const proto::Signature& sourceSignature,
-        const PasswordPrompt& reason) const final;
-    VersionNumber Version() const final { return version_; }
+        const proto::Signature& sourceSignature) const noexcept final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    VersionNumber Version() const noexcept final { return version_; }
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     bool AddPrivateKeys(
-        const std::string& seed,
+        std::string& seed,
         const Bip32Index index,
-        const PasswordPrompt& reason) final;
+        const PasswordPrompt& reason) noexcept final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+
+    PaymentCode(
+        const api::internal::Core& api,
+        const std::uint8_t version,
+        const bool hasBitmessage,
+        const ReadView pubkey,
+        const ReadView chaincode,
+        const std::uint8_t bitmessageVersion,
+        const std::uint8_t bitmessageStream
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        ,
+        std::unique_ptr<crypto::key::Secp256k1> key
+#endif
+        ) noexcept;
 
     ~PaymentCode() final = default;
 
 private:
     friend opentxs::Factory;
 
-    const std::uint8_t BIP47_VERSION_BYTE{0x47};
-
     const api::internal::Core& api_;
-    std::uint8_t version_{1};
-    std::string seed_{""};
-    std::int32_t index_{-1};
-    OTAsymmetricKey asymmetric_key_;
-    const crypto::key::Secp256k1* pubkey_{nullptr};
-    std::unique_ptr<OTPassword> chain_code_{nullptr};
-    bool hasBitmessage_{false};
-    std::uint8_t bitmessage_version_{0};
-    std::uint8_t bitmessage_stream_{0};
+    const std::uint8_t version_;
+    const bool hasBitmessage_;
+    const OTData pubkey_;
+    const OTPassword chain_code_;
+    const std::uint8_t bitmessage_version_;
+    const std::uint8_t bitmessage_stream_;
+    const OTNymID id_;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    std::shared_ptr<crypto::key::Secp256k1> key_;
+#else
+    OTAsymmetricKey key_;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
-    static std::tuple<bool, std::unique_ptr<OTPassword>, OTData> make_key(
+    static auto calculate_id(
         const api::internal::Core& api,
-        const std::string& seed,
-        const Bip32Index index,
-        const PasswordPrompt& reason);
+        const ReadView pubkey,
+        const ReadView chaincode) noexcept -> OTNymID;
 
-    PaymentCode* clone() const final;
-    const OTData Pubkey() const;
-    void ConstructKey(const Data& pubkey, const PasswordPrompt& reason);
-    OTAsymmetricKey signing_key(const PasswordPrompt& reason) const;
+    PaymentCode* clone() const noexcept final { return new PaymentCode(*this); }
 
-    PaymentCode(
-        const api::internal::Core& api,
-        const PasswordPrompt& reason,
-        const std::string& base58);
-    PaymentCode(
-        const api::internal::Core& api,
-        const PasswordPrompt& reason,
-        const proto::PaymentCode& paycode);
-    PaymentCode(
-        const api::internal::Core& api,
-        const PasswordPrompt& reason,
-        const std::string& seed,
-        const Bip32Index nym,
-        const std::uint8_t version,
-        const bool bitmessage,
-        const std::uint8_t bitmessageVersion,
-        const std::uint8_t bitmessageStream);
     PaymentCode() = delete;
     PaymentCode(const PaymentCode&);
     PaymentCode(PaymentCode&&) = delete;
@@ -88,4 +146,3 @@ private:
     PaymentCode& operator=(PaymentCode&&);
 };
 }  // namespace opentxs::implementation
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47

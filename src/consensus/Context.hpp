@@ -78,7 +78,7 @@ protected:
         const;
     virtual proto::Context serialize(const Lock& lock) const = 0;
     virtual std::string type() const = 0;
-    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
+    bool validate(const Lock& lock) const final;
 
     bool add_acknowledged_number(const Lock& lock, const RequestNumber req);
     bool consume_available(const Lock& lock, const TransactionNumber& number);
@@ -133,10 +133,8 @@ private:
     proto::Context IDVersion(const Lock& lock) const;
     virtual const identifier::Nym& server_nym_id(const Lock& lock) const = 0;
     proto::Context SigVersion(const Lock& lock) const;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const final;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const final;
 
     // Transition method used for converting from Nym class
     bool insert_available_number(const TransactionNumber& number);

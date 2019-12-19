@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -40,19 +41,7 @@ public:
     OPENTXS_EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const PasswordPrompt& reason,
-        std::string& plaintext) const = 0;
-    OPENTXS_EXPORT virtual bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const PasswordPrompt& reason,
-        String& plaintext) const = 0;
-    OPENTXS_EXPORT virtual bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const PasswordPrompt& reason,
-        Data& plaintext) const = 0;
-    OPENTXS_EXPORT virtual bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const PasswordPrompt& reason,
-        OTPassword& plaintext) const = 0;
+        const AllocateOutput plaintext) const = 0;
     /** Encrypt plaintext using the symmetric key
      *
      *  \param[in] plaintext The data to be encrypted
@@ -63,33 +52,12 @@ public:
      *  \param[in] mode The symmetric algorithm to use for encryption
      */
     OPENTXS_EXPORT virtual bool Encrypt(
-        const std::string& plaintext,
-        const Data& iv,
+        const ReadView plaintext,
         const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
-    OPENTXS_EXPORT virtual bool Encrypt(
-        const String& plaintext,
-        const Data& iv,
-        const PasswordPrompt& reason,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
-    OPENTXS_EXPORT virtual bool Encrypt(
-        const OTPassword& plaintext,
-        const Data& iv,
-        const PasswordPrompt& reason,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
-    OPENTXS_EXPORT virtual bool Encrypt(
-        const Data& plaintext,
-        const Data& iv,
-        const PasswordPrompt& reason,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const = 0;
+        const proto::SymmetricMode mode = proto::SMODE_ERROR,
+        const ReadView iv = {}) const = 0;
     OPENTXS_EXPORT virtual OTIdentifier ID(
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual bool RawKey(

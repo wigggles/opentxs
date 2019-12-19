@@ -118,7 +118,7 @@ auto Request::FinalizeContract(Request& contract, const PasswordPrompt& reason)
 
     if (!contract.update_signature(lock, reason)) { return false; }
 
-    return contract.validate(lock, reason);
+    return contract.validate(lock);
 }
 
 auto Request::Finish(Request& contract, const PasswordPrompt& reason) -> bool
@@ -208,13 +208,12 @@ auto Request::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-auto Request::validate(const Lock& lock, const PasswordPrompt& reason) const
-    -> bool
+auto Request::validate(const Lock& lock) const -> bool
 {
     bool validNym = false;
 
     if (nym_) {
-        validNym = nym_->VerifyPseudonym(reason);
+        validNym = nym_->VerifyPseudonym();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym.").Flush();
     }
@@ -234,7 +233,7 @@ auto Request::validate(const Lock& lock, const PasswordPrompt& reason) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature, reason); }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (!validSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
@@ -245,15 +244,14 @@ auto Request::validate(const Lock& lock, const PasswordPrompt& reason) const
 
 auto Request::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature,
-    const PasswordPrompt& reason) const -> bool
+    const proto::Signature& signature) const -> bool
 {
-    if (!Signable::verify_signature(lock, signature, reason)) { return false; }
+    if (!Signable::verify_signature(lock, signature)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->Verify(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto);
 }
 }  // namespace opentxs::contract::peer::implementation

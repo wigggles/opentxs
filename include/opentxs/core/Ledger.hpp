@@ -101,11 +101,9 @@ public:
     OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetFinalReceipt(
         std::int64_t lReferenceNum);
     OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetTransferReceipt(
-        std::int64_t lNumberOfOrigin,
-        const PasswordPrompt& reason);
+        std::int64_t lNumberOfOrigin);
     OPENTXS_EXPORT std::shared_ptr<OTTransaction> GetChequeReceipt(
-        std::int64_t lChequeNum,
-        const PasswordPrompt& reason);
+        std::int64_t lChequeNum);
     OPENTXS_EXPORT std::int32_t GetTransactionIndex(
         const TransactionNumber number);  // if not
                                           // found,
@@ -123,12 +121,9 @@ public:
     // expects/uses a pubkey from inside the contract in order to verify
     // it.
     //
-    OPENTXS_EXPORT bool VerifyAccount(
-        const identity::Nym& theNym,
-        const PasswordPrompt& reason) override;
+    OPENTXS_EXPORT bool VerifyAccount(const identity::Nym& theNym) override;
     // For ALL abbreviated transactions, load the actual box receipt for each.
     OPENTXS_EXPORT bool LoadBoxReceipts(
-        const PasswordPrompt& reason,
         std::set<std::int64_t>* psetUnloaded = nullptr);  // if psetUnloaded
                                                           // passed
                                                           // in, then use it to
@@ -140,17 +135,15 @@ public:
     // Verifies the abbreviated form exists first, and then loads the
     // full version and compares the two. Returns success / fail.
     //
-    OPENTXS_EXPORT bool LoadBoxReceipt(
-        const std::int64_t& lTransactionNum,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadBoxReceipt(const std::int64_t& lTransactionNum);
     // Saves the Box Receipt separately.
     OPENTXS_EXPORT bool SaveBoxReceipt(const std::int64_t& lTransactionNum);
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
     OPENTXS_EXPORT bool DeleteBoxReceipt(const std::int64_t& lTransactionNum);
 
-    OPENTXS_EXPORT bool LoadInbox(const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool LoadNymbox(const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool LoadOutbox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadInbox();
+    OPENTXS_EXPORT bool LoadNymbox();
+    OPENTXS_EXPORT bool LoadOutbox();
 
     // If you pass the identifier in, the hash is recorded there
     OPENTXS_EXPORT bool SaveInbox();
@@ -165,36 +158,23 @@ public:
     OPENTXS_EXPORT bool CalculateOutboxHash(Identifier& theOutput) const;
     OPENTXS_EXPORT bool CalculateNymboxHash(Identifier& theOutput) const;
     OPENTXS_EXPORT bool SavePaymentInbox();
-    OPENTXS_EXPORT bool LoadPaymentInbox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadPaymentInbox();
 
     OPENTXS_EXPORT bool SaveRecordBox();
-    OPENTXS_EXPORT bool LoadRecordBox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadRecordBox();
 
     OPENTXS_EXPORT bool SaveExpiredBox();
-    OPENTXS_EXPORT bool LoadExpiredBox(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadExpiredBox();
     OPENTXS_EXPORT bool LoadLedgerFromString(
-        const String& theStr,
-        const PasswordPrompt& reason);  // Auto-detects
-                                        // ledger type.
-    // (message/nymbox/inbox/outbox)
-    OPENTXS_EXPORT bool LoadInboxFromString(
-        const String& strBox,
-        const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool LoadOutboxFromString(
-        const String& strBox,
-        const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool LoadNymboxFromString(
-        const String& strBox,
-        const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool LoadPaymentInboxFromString(
-        const String& strBox,
-        const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool LoadRecordBoxFromString(
-        const String& strBox,
-        const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool LoadExpiredBoxFromString(
-        const String& strBox,
-        const PasswordPrompt& reason);
+        const String& theStr);  // Auto-detects
+                                // ledger
+                                // type.
+    OPENTXS_EXPORT bool LoadInboxFromString(const String& strBox);
+    OPENTXS_EXPORT bool LoadOutboxFromString(const String& strBox);
+    OPENTXS_EXPORT bool LoadNymboxFromString(const String& strBox);
+    OPENTXS_EXPORT bool LoadPaymentInboxFromString(const String& strBox);
+    OPENTXS_EXPORT bool LoadRecordBoxFromString(const String& strBox);
+    OPENTXS_EXPORT bool LoadExpiredBoxFromString(const String& strBox);
     // inline for the top one only.
     inline std::int32_t GetTransactionCount() const
     {
@@ -227,7 +207,6 @@ public:
         const Identifier& theAcctID,
         const identifier::Server& theNotaryID,
         ledgerType theType,
-        const PasswordPrompt& reason,
         bool bCreateFile = false);
     OPENTXS_EXPORT bool CreateLedger(
         const identifier::Nym& theNymID,
@@ -247,12 +226,9 @@ public:
 protected:
     bool LoadGeneric(
         ledgerType theType,
-        const PasswordPrompt& reason,
         const String& pString = String::Factory());
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     bool SaveGeneric(ledgerType theType);
     void UpdateContents(const PasswordPrompt& reason)
         override;  // Before transmission or

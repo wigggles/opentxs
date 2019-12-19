@@ -122,7 +122,7 @@ ServerAction::Action ServerAction::CreateMarketOffer(
 {
     auto notaryID = identifier::Server::Factory();
     auto nymID = identifier::Nym::Factory();
-    const auto assetAccount = api_.Wallet().Account(assetAccountID, reason);
+    const auto assetAccount = api_.Wallet().Account(assetAccountID);
 
     if (assetAccount) {
         nymID = assetAccount.get().GetNymID();

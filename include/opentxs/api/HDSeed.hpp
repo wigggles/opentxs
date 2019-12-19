@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
@@ -49,16 +50,17 @@ public:
         const proto::KeyRole role = proto::KEYROLE_SIGN,
         const VersionNumber version =
             opentxs::crypto::key::EllipticCurve::DefaultVersion) const = 0;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    OPENTXS_EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    OPENTXS_EXPORT virtual std::unique_ptr<opentxs::crypto::key::Secp256k1>
+    GetPaymentCode(
         std::string& fingerprint,
         const Bip32Index nym,
         const PasswordPrompt& reason) const = 0;
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OPENTXS_EXPORT virtual OTSymmetricKey GetStorageKey(
         std::string& seed,
         const PasswordPrompt& reason) const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT virtual std::string ImportRaw(
         const OTPassword& entropy,
         const PasswordPrompt& reason) const = 0;

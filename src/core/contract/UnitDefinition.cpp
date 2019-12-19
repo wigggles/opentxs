@@ -60,22 +60,21 @@ auto Factory::UnitDefinition(const api::Core& api) noexcept
 auto Factory::UnitDefinition(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::UnitDefinition serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::UnitDefinition serialized) noexcept
     -> std::shared_ptr<contract::Unit>
 {
     switch (serialized.type()) {
         case proto::UNITTYPE_CURRENCY: {
 
-            return CurrencyContract(api, nym, serialized, reason);
+            return CurrencyContract(api, nym, serialized);
         }
         case proto::UNITTYPE_SECURITY: {
 
-            return SecurityContract(api, nym, serialized, reason);
+            return SecurityContract(api, nym, serialized);
         }
         case proto::UNITTYPE_BASKET: {
 
-            return BasketContract(api, nym, serialized, reason);
+            return BasketContract(api, nym, serialized);
         }
         case proto::UNITTYPE_ERROR:
         default: {
@@ -825,12 +824,11 @@ auto Unit::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-auto Unit::validate(const Lock& lock, const PasswordPrompt& reason) const
-    -> bool
+auto Unit::validate(const Lock& lock) const -> bool
 {
     bool validNym = false;
 
-    if (nym_) { validNym = nym_->VerifyPseudonym(reason); }
+    if (nym_) { validNym = nym_->VerifyPseudonym(); }
 
     const bool validSyntax = proto::Validate(contract(lock), VERBOSE, true);
 
@@ -843,23 +841,21 @@ auto Unit::validate(const Lock& lock, const PasswordPrompt& reason) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature, reason); }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     return (validNym && validSyntax && validSig);
 }
 
-auto Unit::verify_signature(
-    const Lock& lock,
-    const proto::Signature& signature,
-    const PasswordPrompt& reason) const -> bool
+auto Unit::verify_signature(const Lock& lock, const proto::Signature& signature)
+    const -> bool
 {
-    if (!Signable::verify_signature(lock, signature, reason)) { return false; }
+    if (!Signable::verify_signature(lock, signature)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->Verify(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto);
 }
 
 // currently only "user" accounts (normal user asset accounts) are added to
@@ -920,7 +916,7 @@ auto Unit::VisitAccountRecords(
             } else {
                 const auto& wallet = api_.Wallet();
                 const auto accountID = Identifier::Factory(str_acct_id);
-                auto account = wallet.Account(accountID, reason);
+                auto account = wallet.Account(accountID);
 
                 if (false == bool(account)) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(

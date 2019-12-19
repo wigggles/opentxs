@@ -166,17 +166,12 @@ void Mint::InitMint()
     m_EXPIRATION = Time::min();
 }
 
-bool Mint::LoadContract(const PasswordPrompt& reason)
-{
-    return LoadMint(reason);
-}
+bool Mint::LoadContract() { return LoadMint(); }
 
-bool Mint::LoadMint(
-    const PasswordPrompt& reason,
-    const char* szAppend)  // todo: server should
-                           // always pass something
-                           // here. client never
-                           // should. Enforcement?
+bool Mint::LoadMint(const char* szAppend)  // todo: server should
+                                           // always pass something
+                                           // here. client never
+                                           // should. Enforcement?
 {
     if (!m_strFoldername->Exists()) m_strFoldername->Set(api_.Legacy().Mint());
 
@@ -256,7 +251,7 @@ bool Mint::LoadMint(
     auto strRawFile = String::Factory(strFileContents.c_str());
 
     bool bSuccess = LoadContractFromString(
-        strRawFile, reason);  // Note: This handles OT ARMORED file format.
+        strRawFile);  // Note: This handles OT ARMORED file format.
 
     return bSuccess;
 }
@@ -346,9 +341,7 @@ bool Mint::SaveMint(const char* szAppend)
 
 // Make sure this contract checks out. Very high level.
 // Verifies ID and signature.
-bool Mint::VerifyMint(
-    const identity::Nym& theOperator,
-    const PasswordPrompt& reason)
+bool Mint::VerifyMint(const identity::Nym& theOperator)
 {
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
@@ -357,7 +350,7 @@ bool Mint::VerifyMint(
             ": Error comparing Mint ID to Asset Contract ID.")
             .Flush();
         return false;
-    } else if (!VerifySignature(theOperator, reason)) {
+    } else if (!VerifySignature(theOperator)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error verifying signature on mint.")
             .Flush();
@@ -527,9 +520,7 @@ void Mint::UpdateContents(const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Mint::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;
 

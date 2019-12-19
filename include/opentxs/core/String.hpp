@@ -8,7 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
-#include <cstddef>
+#include "opentxs/Bytes.hpp"
+
 #include <cstdarg>
 #include <cstdint>
 #include <iosfwd>
@@ -87,6 +88,7 @@ public:
     OPENTXS_EXPORT virtual bool operator==(const String& rhs) const = 0;
 
     OPENTXS_EXPORT virtual bool At(std::uint32_t index, char& c) const = 0;
+    OPENTXS_EXPORT virtual ReadView Bytes() const noexcept = 0;
     OPENTXS_EXPORT virtual bool Compare(const char* compare) const = 0;
     OPENTXS_EXPORT virtual bool Compare(const String& compare) const = 0;
     OPENTXS_EXPORT virtual bool Contains(const char* compare) const = 0;
@@ -129,6 +131,7 @@ public:
     OPENTXS_EXPORT virtual char sgetc() = 0;
     OPENTXS_EXPORT virtual void swap(String& rhs) = 0;
     OPENTXS_EXPORT virtual void reset() = 0;
+    OPENTXS_EXPORT virtual AllocateOutput WriteInto() noexcept = 0;
 
     OPENTXS_EXPORT virtual ~String() = default;
 

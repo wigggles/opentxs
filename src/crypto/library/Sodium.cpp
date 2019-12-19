@@ -28,7 +28,7 @@ extern "C" {
 
 #include "Sodium.hpp"
 
-#define OT_METHOD "opentxs::Sodium::"
+#define OT_METHOD "opentxs::crypto::implementation::Sodium::"
 
 namespace opentxs
 {
@@ -169,46 +169,6 @@ bool Sodium::Digest(
 
     return false;
 }
-
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-bool Sodium::ECDH(
-    const Data& publicKey,
-    const OTPassword& seed,
-    OTPassword& secret) const
-{
-    auto notUsed = Data::Factory();
-    OTPassword curvePrivate;
-
-    if (!SeedToCurveKey(seed, curvePrivate, notUsed)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to expand private key.")
-            .Flush();
-
-        return false;
-    }
-
-    std::array<unsigned char, crypto_scalarmult_curve25519_BYTES> blank{};
-    auto curvePublic = Data::Factory(blank.data(), blank.size());
-    secret.setMemory(blank.data(), blank.size());
-    const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
-        static_cast<unsigned char*>(const_cast<void*>(curvePublic->data())),
-        static_cast<const unsigned char*>(publicKey.data()));
-
-    if (0 != havePublic) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to convert public key from ed25519 to curve25519.")
-            .Flush();
-
-        return false;
-    }
-
-    const auto output = ::crypto_scalarmult(
-        static_cast<unsigned char*>(secret.getMemoryWritable()),
-        static_cast<const unsigned char*>(curvePrivate.getMemory()),
-        static_cast<const unsigned char*>(curvePublic->data()));
-
-    return (0 == output);
-}
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
 bool Sodium::Encrypt(
     const std::uint8_t* input,
@@ -358,12 +318,17 @@ std::size_t Sodium::KeySize(const proto::SymmetricMode mode) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-bool Sodium::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
+bool Sodium::RandomKeypair(
+    const AllocateOutput privateKey,
+    const AllocateOutput publicKey,
+    const proto::KeyRole,
+    const NymParameters&,
+    const AllocateOutput) const noexcept
 {
-    OTPassword notUsed;
-    privateKey.randomizeMemory(crypto_sign_SEEDBYTES);
+    auto seed = OTPassword{};
+    seed.randomizeMemory(crypto_sign_SEEDBYTES);
 
-    return sodium::ExpandSeed(privateKey, notUsed, publicKey);
+    return sodium::ExpandSeed(seed.Bytes(), privateKey, publicKey);
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
@@ -392,84 +357,171 @@ std::size_t Sodium::SaltSize(const proto::SymmetricKeyType type) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-bool Sodium::ScalarBaseMultiply(const OTPassword& seed, Data& publicKey) const
+auto Sodium::SharedSecret(
+    const key::Asymmetric& publicKey,
+    const key::Asymmetric& privateKey,
+    const PasswordPrompt& reason,
+    OTPassword& secret) const noexcept -> bool
 {
-    OTPassword notUsed;
+    if (publicKey.keyType() != proto::AKEYTYPE_ED25519) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Public key is wrong type")
+            .Flush();
 
-    return sodium::ExpandSeed(seed, notUsed, publicKey);
+        return false;
+    }
+
+    if (privateKey.keyType() != proto::AKEYTYPE_ED25519) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Private key is wrong type")
+            .Flush();
+
+        return false;
+    }
+
+    const auto pub = publicKey.PublicKey();
+    const auto prv = privateKey.PrivateKey(reason);
+
+    if (crypto_sign_PUBLICKEYBYTES != pub.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid public key ").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Expected: ")(
+            crypto_sign_PUBLICKEYBYTES)
+            .Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Actual:   ")(pub.size()).Flush();
+
+        return false;
+    }
+
+    if (crypto_sign_SECRETKEYBYTES != prv.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Expected: ")(
+            crypto_sign_SECRETKEYBYTES)
+            .Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Actual:   ")(prv.size()).Flush();
+
+        return false;
+    }
+
+    static const auto blank =
+        std::array<unsigned char, crypto_scalarmult_curve25519_BYTES>{};
+    auto privateEd = OTPassword{};
+    privateEd.setMemory(blank.data(), blank.size());
+    secret.setMemory(blank.data(), blank.size());
+    auto publicEd{blank};
+
+    OT_ASSERT(crypto_scalarmult_curve25519_BYTES == privateEd.getMemorySize());
+
+    if (0 != ::crypto_sign_ed25519_pk_to_curve25519(
+                 publicEd.data(),
+                 reinterpret_cast<const unsigned char*>(pub.data()))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": crypto_sign_ed25519_pk_to_curve25519 error")
+            .Flush();
+
+        return false;
+    }
+
+    if (0 !=
+        ::crypto_sign_ed25519_sk_to_curve25519(
+            reinterpret_cast<unsigned char*>(privateEd.getMemoryWritable()),
+            reinterpret_cast<const unsigned char*>(prv.data()))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": crypto_sign_ed25519_sk_to_curve25519 error")
+            .Flush();
+
+        return false;
+    }
+
+    OT_ASSERT(crypto_scalarmult_SCALARBYTES == privateEd.getMemorySize());
+    OT_ASSERT(crypto_scalarmult_BYTES == publicEd.size());
+    OT_ASSERT(crypto_scalarmult_BYTES == secret.getMemorySize());
+
+    return 0 == ::crypto_scalarmult(
+                    static_cast<unsigned char*>(secret.getMemoryWritable()),
+                    static_cast<const unsigned char*>(privateEd.getMemory()),
+                    publicEd.data());
 }
 
 bool Sodium::Sign(
     const api::internal::Core& api,
     const Data& plaintext,
-    const key::Asymmetric& theKey,
-    const proto::HashType hashType,
+    const key::Asymmetric& key,
+    const proto::HashType type,
     Data& signature,
     const PasswordPrompt& reason,
     const OTPassword* exportPassword) const
 {
-    if (proto::HASHTYPE_BLAKE2B256 != hashType) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid hash function: ")(
-            hashType)(".")
-            .Flush();
+    if (proto::AKEYTYPE_ED25519 != key.keyType()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
 
         return false;
     }
 
-    OTPassword seed;
-    bool havePrivateKey = false;
-
-    // TODO
-    OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
-
-    const crypto::key::EllipticCurve* key =
-        dynamic_cast<const key::Ed25519*>(&theKey);
-
-    if (nullptr == key) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key type.").Flush();
-
-        return false;
-    }
-
-    havePrivateKey = AsymmetricKeyToECPrivatekey(api, *key, reason, seed);
-
-    if (!havePrivateKey) {
+    if (false == key.HasPrivate()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Can not extract ed25519 private key seed from Asymmetric.")
+            ": A private key required when generating signatures")
             .Flush();
 
         return false;
     }
 
-    auto notUsed = Data::Factory();
-    OTPassword privKey;
-    const bool keyExpanded = sodium::ExpandSeed(seed, privKey, notUsed);
+    if (proto::HASHTYPE_BLAKE2B256 != type) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Unsupported hash function: ")(
+            type)
+            .Flush();
 
-    if (!keyExpanded) {
+        return false;
+    }
+
+    const auto priv = key.PrivateKey(reason);
+
+    if (nullptr == priv.data() || 0 == priv.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing private key").Flush();
+
+        return false;
+    }
+
+    if (crypto_sign_SECRETKEYBYTES != priv.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Expected: ")(
+            crypto_sign_SECRETKEYBYTES)
+            .Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Actual:   ")(priv.size()).Flush();
+
+        return false;
+    }
+
+    auto allocate = signature.WriteInto();
+
+    if (false == bool(allocate)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    auto output = allocate(crypto_sign_BYTES);
+
+    if (false == output.valid(crypto_sign_BYTES)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Can not expand ed25519 private key from seed.")
+            ": Failed to allocate space for signature")
             .Flush();
 
         return false;
     }
 
-    std::array<unsigned char, crypto_sign_BYTES> sig{};
-    const auto output = ::crypto_sign_detached(
-        sig.data(),
-        nullptr,
-        static_cast<const unsigned char*>(plaintext.data()),
-        plaintext.size(),
-        static_cast<const unsigned char*>(privKey.getMemory()));
+    const auto success =
+        0 == ::crypto_sign_detached(
+                 output.as<unsigned char>(),
+                 nullptr,
+                 static_cast<const unsigned char*>(plaintext.data()),
+                 plaintext.size(),
+                 reinterpret_cast<const unsigned char*>(priv.data()));
 
-    if (0 == output) {
-        signature.Assign(sig.data(), sig.size());
-
-        return true;
+    if (false == success) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign plaintext.")
+            .Flush();
     }
 
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign plaintext.").Flush();
-
-    return false;
+    return success;
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
@@ -491,54 +543,61 @@ std::size_t Sodium::TagSize(const proto::SymmetricMode mode) const
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 bool Sodium::Verify(
     const Data& plaintext,
-    const key::Asymmetric& theKey,
+    const key::Asymmetric& key,
     const Data& signature,
-    const proto::HashType hashType,
-    [[maybe_unused]] const PasswordPrompt& reason) const
+    const proto::HashType type) const
 {
-    if (proto::HASHTYPE_BLAKE2B256 != hashType) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid hash function: ")(
-            hashType)(".")
+    if (proto::AKEYTYPE_ED25519 != key.keyType()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
+
+        return false;
+    }
+
+    if (proto::HASHTYPE_BLAKE2B256 != type) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Unsupported hash function: ")(
+            type)
             .Flush();
 
         return false;
     }
 
-    const crypto::key::EllipticCurve* key =
-        dynamic_cast<const key::Ed25519*>(&theKey);
-
-    if (nullptr == key) { return false; }
-
-    auto pubkey = Data::Factory();
-    ;
-    const bool havePublicKey = AsymmetricKeyToECPubkey(*key, pubkey);
-
-    if (!havePublicKey) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Can not extract ed25519 public key from "
-            "Asymmetric.")
-            .Flush();
+    if (crypto_sign_BYTES != signature.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature").Flush();
 
         return false;
     }
 
-    const auto output = ::crypto_sign_verify_detached(
-        static_cast<const unsigned char*>(signature.data()),
-        static_cast<const unsigned char*>(plaintext.data()),
-        plaintext.size(),
-        static_cast<const unsigned char*>(pubkey->data()));
+    const auto pub = key.PublicKey();
 
-    if (0 == output) { return true; }
+    if (nullptr == pub.data() || 0 == pub.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public key").Flush();
 
-    // I made this "info" since it's not necessarily an
-    // error. Perhaps someone tried to verify 3 signatures
-    // so he could find the right one. Metadata can be used
-    // to avoid these extra, unnecessary sig verifications.
-    //
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Failed to verify signature.")
-        .Flush();
+        return false;
+    }
 
-    return false;
+    if (crypto_sign_PUBLICKEYBYTES != pub.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid public key").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Expected: ")(
+            crypto_sign_PUBLICKEYBYTES)
+            .Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Actual:   ")(pub.size()).Flush();
+
+        return false;
+    }
+
+    const auto success =
+        0 == ::crypto_sign_verify_detached(
+                 static_cast<const unsigned char*>(signature.data()),
+                 static_cast<const unsigned char*>(plaintext.data()),
+                 plaintext.size(),
+                 reinterpret_cast<const unsigned char*>(pub.data()));
+
+    if (false == success) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Failed to verify signature")
+            .Flush();
+    }
+
+    return success;
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 }  // namespace opentxs::crypto::implementation

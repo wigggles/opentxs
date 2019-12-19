@@ -36,7 +36,6 @@ template class opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem>;
 namespace opentxs
 {
 auto Factory::AccountSummaryItem(
-    const opentxs::PasswordPrompt& reason,
     const ui::implementation::IssuerItemInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -46,14 +45,13 @@ auto Factory::AccountSummaryItem(
     -> ui::implementation::IssuerItemRowInternal*
 {
     return new ui::implementation::AccountSummaryItem(
-        reason, parent, api, publisher, rowID, sortKey, custom);
+        parent, api, publisher, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 AccountSummaryItem::AccountSummaryItem(
-    const opentxs::PasswordPrompt& reason,
     const IssuerItemInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -65,20 +63,18 @@ AccountSummaryItem::AccountSummaryItem(
     , currency_(std::get<1>(row_id_))
     , balance_(extract_custom<Amount>(custom))
     , name_(sortKey)
-    , contract_(load_unit(api_, account_id_, reason))
+    , contract_(load_unit(api_, account_id_))
 {
 }
 
 auto AccountSummaryItem::DisplayBalance() const noexcept -> std::string
 {
-    auto reason = api_.Factory().PasswordPrompt("Loading account balance");
-
     if (0 == contract_->Version()) {
         eLock lock(shared_lock_);
 
         try {
             contract_ = api_.Wallet().UnitDefinition(
-                api_.Storage().AccountContract(account_id_), reason);
+                api_.Storage().AccountContract(account_id_));
         } catch (...) {
         }
     }
@@ -99,14 +95,11 @@ auto AccountSummaryItem::DisplayBalance() const noexcept -> std::string
     return {};
 }
 
-auto AccountSummaryItem::load_unit(
-    const api::Core& api,
-    const Identifier& id,
-    const PasswordPrompt& reason) -> OTUnitDefinition
+auto AccountSummaryItem::load_unit(const api::Core& api, const Identifier& id)
+    -> OTUnitDefinition
 {
     try {
-        return api.Wallet().UnitDefinition(
-            api.Storage().AccountContract(id), reason);
+        return api.Wallet().UnitDefinition(api.Storage().AccountContract(id));
     } catch (...) {
 
         return api.Factory().UnitDefinition();

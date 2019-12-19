@@ -60,8 +60,7 @@ identity::credential::internal::Contact* Factory::ContactCredential(
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
-    const proto::Credential& serialized,
-    [[maybe_unused]] const opentxs::PasswordPrompt& reason)
+    const proto::Credential& serialized)
 {
     try {
 

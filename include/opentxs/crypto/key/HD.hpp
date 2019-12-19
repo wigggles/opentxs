@@ -10,7 +10,7 @@
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/EllipticCurve.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/Bytes.hpp"
 
 #include <string>
 
@@ -27,17 +27,16 @@ class HD : virtual public EllipticCurve
 public:
     OPENTXS_EXPORT static Bip32Fingerprint CalculateFingerprint(
         const api::crypto::Hash& hash,
-        const Data& pubkey);
+        const Data& pubkey) noexcept;
 
-    OPENTXS_EXPORT virtual OTData Chaincode(
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual int Depth() const = 0;
-    OPENTXS_EXPORT virtual Bip32Fingerprint Fingerprint(
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual std::string Xprv(
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual std::string Xpub(
-        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual ReadView Chaincode(
+        const PasswordPrompt& reason) const noexcept = 0;
+    OPENTXS_EXPORT virtual int Depth() const noexcept = 0;
+    OPENTXS_EXPORT virtual Bip32Fingerprint Fingerprint() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Xprv(const PasswordPrompt& reason) const
+        noexcept = 0;
+    OPENTXS_EXPORT virtual std::string Xpub(const PasswordPrompt& reason) const
+        noexcept = 0;
 
     OPENTXS_EXPORT ~HD() override = default;
 

@@ -51,14 +51,12 @@ OPENTXS_EXPORT bool VerifyBoxReceiptExists(
 OPENTXS_EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
-    Ledger& theLedger,
-    const PasswordPrompt& reason);
+    Ledger& theLedger);
 
 OPENTXS_EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
     const api::internal::Core& api,
     OTTransaction& theAbbrev,
-    std::int64_t lLedgerType,
-    const PasswordPrompt& reason);
+    std::int64_t lLedgerType);
 
 OPENTXS_EXPORT bool SetupBoxReceiptFilename(
     const api::internal::Core& api,

@@ -130,20 +130,17 @@ void* AccountList::construct_row(
     const AccountListSortKey& index,
     const CustomData& custom) const noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
-        Factory::AccountListItem(
-            reason, *this, api_, publisher_, id, index, custom));
+        Factory::AccountListItem(*this, api_, publisher_, id, index, custom));
 
     return it->second.get();
 }
 
 void AccountList::process_account(const Identifier& id) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto account = api_.Wallet().Account(id, reason);
+    auto account = api_.Wallet().Account(id);
     process_account(id, account.get().GetBalance(), account.get().Alias());
 }
 
@@ -151,8 +148,7 @@ void AccountList::process_account(
     const Identifier& id,
     const Amount balance) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto account = api_.Wallet().Account(id, reason);
+    auto account = api_.Wallet().Account(id);
     process_account(id, balance, account.get().Alias());
 }
 

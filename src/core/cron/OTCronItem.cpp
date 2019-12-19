@@ -116,8 +116,7 @@ OTCronItem::OTCronItem(
 
 std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
     const api::internal::Core& core,
-    const TransactionNumber& lTransactionNum,
-    const PasswordPrompt& reason)
+    const TransactionNumber& lTransactionNum)
 {
     auto strFilename = String::Factory();
     strFilename->Format("%" PRId64 ".crn", lTransactionNum);
@@ -152,15 +151,14 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return core.Factory().CronItem(strFileContents, reason);
+        return core.Factory().CronItem(strFileContents);
 }
 
 // static
 std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
     const api::internal::Core& core,
     const TransactionNumber& lTransactionNum,
-    const identifier::Server& notaryID,
-    const PasswordPrompt& reason)  // Client-side only.
+    const identifier::Server& notaryID)  // Client-side only.
 {
     auto strFilename = String::Factory(),
          strNotaryID = String::Factory(notaryID);
@@ -205,7 +203,7 @@ std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return core.Factory().CronItem(strFileContents, reason);
+        return core.Factory().CronItem(strFileContents);
 }
 
 // static
@@ -854,7 +852,7 @@ void OTCronItem::HookRemovalFromCron(
         // To" information, containing the ORIGINAL SIGNED REQUEST.
         //
         std::unique_ptr<OTCronItem> pOrigCronItem =
-            OTCronItem::LoadCronReceipt(api_, GetTransactionNum(), reason);
+            OTCronItem::LoadCronReceipt(api_, GetTransactionNum());
         // OTCronItem::LoadCronReceipt loads the original version with the
         // user's signature.
         // (Updated versions, as processing occurs, are signed by the
@@ -867,8 +865,7 @@ void OTCronItem::HookRemovalFromCron(
         // signatures on it.)
         //
         {
-            bool bValidSignture =
-                pOrigCronItem->VerifySignature(*pServerNym, reason);
+            bool bValidSignture = pOrigCronItem->VerifySignature(*pServerNym);
             if (!bValidSignture) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failure verifying signature of "
@@ -924,7 +921,7 @@ void OTCronItem::HookRemovalFromCron(
             // the nymID on the original version. Sue me.
             //
             const OTNymID NYM_ID = pOrigCronItem->GetSenderNymID();
-            pOriginator = api_.Wallet().Nym(NYM_ID, reason);
+            pOriginator = api_.Wallet().Nym(NYM_ID);
         }
 
         // pOriginator should NEVER be nullptr by this point, unless there
@@ -1100,12 +1097,12 @@ bool OTCronItem::DropFinalReceiptToInbox(
     OT_ASSERT(false != bool(theInbox));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theInbox->LoadInbox(reason);
+    bool bSuccessLoading = theInbox->LoadInbox();
 
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theInbox->VerifyAccount(pServerNym, reason);
+        bSuccessLoading = theInbox->VerifyAccount(pServerNym);
     else
         LogOutput(OT_METHOD)(__FUNCTION__)(": ERROR loading inbox ledger.")
             .Flush();
@@ -1278,12 +1275,12 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     OT_ASSERT(false != bool(theLedger));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theLedger->LoadNymbox(reason);
+    bool bSuccessLoading = theLedger->LoadNymbox();
 
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theLedger->VerifyAccount(*pServerNym, reason);
+        bSuccessLoading = theLedger->VerifyAccount(*pServerNym);
     else
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load Nymbox.").Flush();
     //    else
@@ -1572,9 +1569,7 @@ void OTCronItem::Release()
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTCronItem::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTCronItem::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;
 
@@ -1587,7 +1582,7 @@ std::int32_t OTCronItem::ProcessXMLNode(
     // you don't want to use any of those xml tags.
     //
 
-    nReturnVal = ot_super::ProcessXMLNode(xml, reason);
+    nReturnVal = ot_super::ProcessXMLNode(xml);
 
     if (nReturnVal != 0)    // -1 is error, and 1 is "found it". Either way,
                             // return.

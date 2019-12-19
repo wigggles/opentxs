@@ -68,7 +68,8 @@ public:
     OPENTXS_EXPORT virtual Token& at(const std::size_t position) = 0;
     OPENTXS_EXPORT virtual iterator begin() noexcept = 0;
     OPENTXS_EXPORT virtual iterator end() noexcept = 0;
-    OPENTXS_EXPORT virtual crypto::key::Symmetric& PrimaryKey() = 0;
+    OPENTXS_EXPORT virtual crypto::key::Symmetric& PrimaryKey(
+        PasswordPrompt& password) noexcept(false) = 0;
     OPENTXS_EXPORT virtual std::shared_ptr<Token> Pop() = 0;
     OPENTXS_EXPORT virtual bool Process(
         const identity::Nym& owner,
@@ -77,8 +78,9 @@ public:
     OPENTXS_EXPORT virtual bool Push(
         std::shared_ptr<Token> token,
         const PasswordPrompt& reason) = 0;
-    OPENTXS_EXPORT virtual crypto::key::Symmetric& SecondaryKey(
-        const identity::Nym& owner) = 0;
+    OPENTXS_EXPORT virtual const crypto::key::Symmetric& SecondaryKey(
+        const identity::Nym& owner,
+        PasswordPrompt& password) = 0;
 
     OPENTXS_EXPORT virtual ~Purse() = default;
 

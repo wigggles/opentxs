@@ -88,10 +88,8 @@ void PayableListItem::reindex(
     const ContactListSortKey& key,
     const CustomData& custom) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-
     ot_super::reindex(key, custom);
-    const auto contact = api_.Contacts().Contact(row_id_, reason);
+    const auto contact = api_.Contacts().Contact(row_id_);
 
     OT_ASSERT(contact);
 

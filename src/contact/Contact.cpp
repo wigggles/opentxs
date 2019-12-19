@@ -20,9 +20,7 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -79,7 +77,6 @@ std::string translate_style(const AddressStyle& in) noexcept
 namespace opentxs
 {
 Contact::Contact(
-    const PasswordPrompt& reason,
     const api::client::internal::Manager& api,
     const proto::Contact& serialized)
     : api_(api)
@@ -114,7 +111,7 @@ Contact::Contact(
         merged_children_.emplace(api_.Factory().Identifier(child));
     }
 
-    init_nyms(reason);
+    init_nyms();
 }
 
 Contact::Contact(
@@ -408,7 +405,6 @@ bool Contact::AddNym(const identifier::Nym& nymID, const bool primary)
     return true;
 }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool Contact::AddPaymentCode(
     const class PaymentCode& code,
     const bool primary,
@@ -444,7 +440,6 @@ bool Contact::AddPaymentCode(
 
     return true;
 }
-#endif
 
 bool Contact::AddPhoneNumber(
     const std::string& value,
@@ -633,7 +628,7 @@ proto::ContactItemType Contact::ExtractType(const identity::Nym& nym)
 
 const Identifier& Contact::ID() const { return id_; }
 
-void Contact::init_nyms(const PasswordPrompt& reason)
+void Contact::init_nyms()
 {
     OT_ASSERT(contact_data_);
 
@@ -652,7 +647,7 @@ void Contact::init_nyms(const PasswordPrompt& reason)
 
         const auto nymID = api_.Factory().NymID(item->Value());
         auto& nym = nyms_[nymID];
-        nym = api_.Wallet().Nym(nymID, reason);
+        nym = api_.Wallet().Nym(nymID);
 
         if (false == bool(nym)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load nym ")(nymID)(
@@ -967,9 +962,9 @@ proto::ContactItemType Contact::Type() const
     return type(lock);
 }
 
-void Contact::Update(const proto::Nym& serialized, const PasswordPrompt& reason)
+void Contact::Update(const proto::Nym& serialized)
 {
-    auto nym = api_.Wallet().Nym(serialized, reason);
+    auto nym = api_.Wallet().Nym(serialized);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid serialized nym.").Flush();

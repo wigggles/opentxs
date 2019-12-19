@@ -18,11 +18,11 @@
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/Proto.tpp"
 
 #include "internal/api/Api.hpp"
@@ -36,18 +36,17 @@ namespace opentxs
 opentxs::PeerObject* Factory::PeerObject(
     const api::internal::Core& api,
     const Nym_p& senderNym,
-    const std::string& message,
-    const opentxs::PasswordPrompt& reason)
+    const std::string& message)
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
-            new peer::implementation::Object(api, senderNym, message, reason));
+            new peer::implementation::Object(api, senderNym, message));
 
-        if (!output->Validate(reason)) { output.reset(); }
+        if (!output->Validate()) { output.reset(); }
 
         return output.release();
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(e.what()).Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
@@ -57,22 +56,19 @@ opentxs::PeerObject* Factory::PeerObject(
     const api::internal::Core& api,
     const Nym_p& senderNym,
     const std::string& payment,
-    const bool isPayment,
-    const opentxs::PasswordPrompt& reason)
+    const bool isPayment)
 {
     try {
-        if (!isPayment) {
-            return Factory::PeerObject(api, senderNym, payment, reason);
-        }
+        if (!isPayment) { return Factory::PeerObject(api, senderNym, payment); }
 
         std::unique_ptr<opentxs::PeerObject> output(
-            new peer::implementation::Object(api, payment, senderNym, reason));
+            new peer::implementation::Object(api, payment, senderNym));
 
-        if (!output->Validate(reason)) { output.reset(); }
+        if (!output->Validate()) { output.reset(); }
 
         return output.release();
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(e.what()).Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
@@ -82,18 +78,17 @@ opentxs::PeerObject* Factory::PeerObject(
 opentxs::PeerObject* Factory::PeerObject(
     const api::internal::Core& api,
     const Nym_p& senderNym,
-    const std::shared_ptr<blind::Purse> purse,
-    const opentxs::PasswordPrompt& reason)
+    const std::shared_ptr<blind::Purse> purse)
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
-            new peer::implementation::Object(api, senderNym, purse, reason));
+            new peer::implementation::Object(api, senderNym, purse));
 
-        if (!output->Validate(reason)) { output.reset(); }
+        if (!output->Validate()) { output.reset(); }
 
         return output.release();
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(e.what()).Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
@@ -104,19 +99,17 @@ opentxs::PeerObject* Factory::PeerObject(
     const api::internal::Core& api,
     const OTPeerRequest request,
     const OTPeerReply reply,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const VersionNumber version)
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
-            new peer::implementation::Object(
-                api, request, reply, version, reason));
+            new peer::implementation::Object(api, request, reply, version));
 
-        if (!output->Validate(reason)) { output.reset(); }
+        if (!output->Validate()) { output.reset(); }
 
         return output.release();
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(e.what()).Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
@@ -125,18 +118,17 @@ opentxs::PeerObject* Factory::PeerObject(
 opentxs::PeerObject* Factory::PeerObject(
     const api::internal::Core& api,
     const OTPeerRequest request,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const VersionNumber version)
 {
     try {
         std::unique_ptr<opentxs::PeerObject> output(
-            new peer::implementation::Object(api, request, version, reason));
+            new peer::implementation::Object(api, request, version));
 
-        if (!output->Validate(reason)) { output.reset(); }
+        if (!output->Validate()) { output.reset(); }
 
         return output.release();
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(e.what()).Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
@@ -146,8 +138,7 @@ opentxs::PeerObject* Factory::PeerObject(
     const api::client::Contacts& contacts,
     const api::internal::Core& api,
     const Nym_p& signerNym,
-    const proto::PeerObject& serialized,
-    const opentxs::PasswordPrompt& reason)
+    const proto::PeerObject& serialized)
 {
     try {
         const bool valid = proto::Validate(serialized, VERBOSE);
@@ -155,17 +146,17 @@ opentxs::PeerObject* Factory::PeerObject(
 
         if (valid) {
             output.reset(new peer::implementation::Object(
-                contacts, api, signerNym, serialized, reason));
+                contacts, api, signerNym, serialized));
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid peer object.")
                 .Flush();
         }
 
-        if (!output->Validate(reason)) { output.reset(); }
+        if (!output->Validate()) { output.reset(); }
 
         return output.release();
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(e.what()).Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
@@ -179,23 +170,25 @@ opentxs::PeerObject* Factory::PeerObject(
     const opentxs::PasswordPrompt& reason)
 {
     try {
-        Nym_p notUsed{nullptr};
-        std::unique_ptr<opentxs::PeerObject> output;
-        OTEnvelope input(api);
-
-        if (!input.SetCiphertext(encrypted)) { return output.release(); }
-
+        auto notUsed = Nym_p{};
+        auto output = std::unique_ptr<opentxs::PeerObject>{};
+        auto input = api.Factory().Envelope(encrypted);
         auto contents = String::Factory();
 
-        if (!input.Open(*recipientNym, contents, reason)) {
-            return output.release();
+        if (false ==
+            input->Open(*recipientNym, contents->WriteInto(), reason)) {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(
+                ": Unable to decrypt message")
+                .Flush();
+
+            return {};
         }
 
         auto serialized = proto::StringToProto<proto::PeerObject>(contents);
 
-        return Factory::PeerObject(contacts, api, notUsed, serialized, reason);
+        return Factory::PeerObject(contacts, api, notUsed, serialized);
     } catch (const std::exception& e) {
-        LogOutput("opentxs::Factory::")(e.what()).Flush();
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
         return {};
     }
@@ -215,8 +208,7 @@ Object::Object(
     const std::shared_ptr<blind::Purse> purse,
 #endif
     const proto::PeerObjectType type,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const VersionNumber version)
     : api_(api)
     , nym_(nym)
     , message_(message.empty() ? nullptr : new std::string(message))
@@ -235,8 +227,7 @@ Object::Object(
     const api::client::Contacts& contacts,
     const api::internal::Core& api,
     const Nym_p& signerNym,
-    const proto::PeerObject serialized,
-    const opentxs::PasswordPrompt& reason)
+    const proto::PeerObject serialized)
     : Object(
           api,
           {},
@@ -248,14 +239,13 @@ Object::Object(
           {},
 #endif
           serialized.type(),
-          serialized.version(),
-          reason)
+          serialized.version())
 {
     Nym_p objectNym{nullptr};
 
     if (serialized.has_nym()) {
-        objectNym = api_.Wallet().Nym(serialized.nym(), reason);
-        contacts.Update(serialized.nym(), reason);
+        objectNym = api_.Wallet().Nym(serialized.nym());
+        contacts.Update(serialized.nym());
     }
 
     if (signerNym) {
@@ -269,23 +259,19 @@ Object::Object(
             message_.reset(new std::string(serialized.otmessage()));
         } break;
         case (proto::PEEROBJECT_REQUEST): {
-            request_ = api_.Factory().PeerRequest(
-                nym_, serialized.otrequest(), reason);
+            request_ = api_.Factory().PeerRequest(nym_, serialized.otrequest());
         } break;
         case (proto::PEEROBJECT_RESPONSE): {
             if (false == bool(nym_)) {
                 nym_ = api_.Wallet().Nym(
-                    api_.Factory().NymID(serialized.otrequest().recipient()),
-                    reason);
+                    api_.Factory().NymID(serialized.otrequest().recipient()));
             }
 
             auto senderNym = api_.Wallet().Nym(
-                api_.Factory().NymID(serialized.otrequest().initiator()),
-                reason);
-            request_ = api_.Factory().PeerRequest(
-                senderNym, serialized.otrequest(), reason);
-            reply_ =
-                api_.Factory().PeerReply(nym_, serialized.otreply(), reason);
+                api_.Factory().NymID(serialized.otrequest().initiator()));
+            request_ =
+                api_.Factory().PeerRequest(senderNym, serialized.otrequest());
+            reply_ = api_.Factory().PeerReply(nym_, serialized.otreply());
         } break;
         case (proto::PEEROBJECT_PAYMENT): {
             payment_.reset(new std::string(serialized.otpayment()));
@@ -304,8 +290,7 @@ Object::Object(
 Object::Object(
     const api::internal::Core& api,
     const Nym_p& senderNym,
-    const std::string& message,
-    const opentxs::PasswordPrompt& reason)
+    const std::string& message)
     : Object(
           api,
           senderNym,
@@ -317,8 +302,7 @@ Object::Object(
           {},
 #endif
           proto::PEEROBJECT_MESSAGE,
-          PEER_MESSAGE_VERSION,
-          reason)
+          PEER_MESSAGE_VERSION)
 {
 }
 
@@ -326,8 +310,7 @@ Object::Object(
 Object::Object(
     const api::internal::Core& api,
     const Nym_p& senderNym,
-    const std::shared_ptr<blind::Purse> purse,
-    const opentxs::PasswordPrompt& reason)
+    const std::shared_ptr<blind::Purse> purse)
     : Object(
           api,
           senderNym,
@@ -337,8 +320,7 @@ Object::Object(
           api.Factory().PeerRequest(),
           purse,
           proto::PEEROBJECT_CASH,
-          PEER_CASH_VERSION,
-          reason)
+          PEER_CASH_VERSION)
 {
 }
 #endif
@@ -346,8 +328,7 @@ Object::Object(
 Object::Object(
     const api::internal::Core& api,
     const std::string& payment,
-    const Nym_p& senderNym,
-    const opentxs::PasswordPrompt& reason)
+    const Nym_p& senderNym)
     : Object(
           api,
           senderNym,
@@ -359,8 +340,7 @@ Object::Object(
           {},
 #endif
           proto::PEEROBJECT_PAYMENT,
-          PEER_PAYMENT_VERSION,
-          reason)
+          PEER_PAYMENT_VERSION)
 {
 }
 
@@ -368,8 +348,7 @@ Object::Object(
     const api::internal::Core& api,
     const OTPeerRequest request,
     const OTPeerReply reply,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const VersionNumber version)
     : Object(
           api,
           {},
@@ -381,16 +360,14 @@ Object::Object(
           {},
 #endif
           proto::PEEROBJECT_RESPONSE,
-          version,
-          reason)
+          version)
 {
 }
 
 Object::Object(
     const api::internal::Core& api,
     const OTPeerRequest request,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason)
+    const VersionNumber version)
     : Object(
           api,
           {},
@@ -402,12 +379,11 @@ Object::Object(
           {},
 #endif
           proto::PEEROBJECT_REQUEST,
-          version,
-          reason)
+          version)
 {
 }
 
-proto::PeerObject Object::Serialize(const PasswordPrompt& reason) const
+proto::PeerObject Object::Serialize() const
 {
     proto::PeerObject output;
 
@@ -443,7 +419,7 @@ proto::PeerObject Object::Serialize(const PasswordPrompt& reason) const
 
             if (0 < request_->Version()) {
                 *(output.mutable_otrequest()) = request_->Contract();
-                auto nym = api_.Wallet().Nym(request_->Initiator(), reason);
+                auto nym = api_.Wallet().Nym(request_->Initiator());
 
                 if (nym) { *output.mutable_nym() = nym->asPublicNym(); }
             }
@@ -480,7 +456,7 @@ proto::PeerObject Object::Serialize(const PasswordPrompt& reason) const
     return output;
 }
 
-bool Object::Validate(const opentxs::PasswordPrompt& reason) const
+bool Object::Validate() const
 {
     bool validChildren = false;
 
@@ -490,7 +466,7 @@ bool Object::Validate(const opentxs::PasswordPrompt& reason) const
         } break;
         case (proto::PEEROBJECT_REQUEST): {
             if (0 < request_->Version()) {
-                validChildren = request_->Validate(reason);
+                validChildren = request_->Validate();
             }
         } break;
         case (proto::PEEROBJECT_RESPONSE): {
@@ -498,8 +474,7 @@ bool Object::Validate(const opentxs::PasswordPrompt& reason) const
                 break;
             }
 
-            validChildren =
-                reply_->Validate(reason) && request_->Validate(reason);
+            validChildren = reply_->Validate() && request_->Validate();
         } break;
         case (proto::PEEROBJECT_PAYMENT): {
             validChildren = bool(payment_);
@@ -514,7 +489,7 @@ bool Object::Validate(const opentxs::PasswordPrompt& reason) const
         }
     }
 
-    const bool validProto = proto::Validate(Serialize(reason), VERBOSE);
+    const bool validProto = proto::Validate(Serialize(), VERBOSE);
 
     return (validChildren && validProto);
 }

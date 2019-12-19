@@ -124,8 +124,7 @@ std::string ActivitySummaryItem::find_text(
         } break;
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
-            auto text =
-                api_.Activity().PaymentText(nym_id_, itemID, accountID, reason);
+            auto text = api_.Activity().PaymentText(nym_id_, itemID, accountID);
 
             if (text) {
 

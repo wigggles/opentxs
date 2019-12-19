@@ -21,31 +21,11 @@ public:
     {
         return NymParameterType::ed25519;
     }
+    bool TransportKey(
+        Data& publicKey,
+        OTPassword& privateKey,
+        const PasswordPrompt& reason) const noexcept final;
 
-    ~Ed25519() final = default;
-
-private:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    using ot_super = HD;
-#else
-    using ot_super = EllipticCurve;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-
-    friend opentxs::Factory;
-    friend LowLevelKeyGenerator;
-
-    Ed25519* clone() const final { return new Ed25519(*this); }
-    Ed25519* clone_ec() const final { return clone(); }
-    std::shared_ptr<proto::AsymmetricKey> get_public() const final
-    {
-        return serialize_public(clone());
-    }
-
-    Ed25519(
-        const api::internal::Core& api,
-        const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey,
-        const PasswordPrompt& reason) noexcept;
     Ed25519(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -64,8 +44,29 @@ private:
         const proto::KeyRole role,
         const VersionNumber version,
         key::Symmetric& sessionKey,
-        const PasswordPrompt& reason) noexcept;
+        const PasswordPrompt& reason) noexcept(false);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    Ed25519(
+        const api::internal::Core& api,
+        const crypto::EcdsaProvider& ecdsa,
+        const proto::AsymmetricKey& serializedKey) noexcept(false);
+
+    ~Ed25519() final = default;
+
+private:
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    using ot_super = HD;
+#else
+    using ot_super = EllipticCurve;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+    Ed25519* clone() const noexcept final { return new Ed25519(*this); }
+    Ed25519* clone_ec() const noexcept final { return clone(); }
+    std::shared_ptr<proto::AsymmetricKey> get_public() const final
+    {
+        return serialize_public(clone());
+    }
+
     Ed25519() = delete;
     Ed25519(const Ed25519&) noexcept;
     Ed25519(Ed25519&&) = delete;

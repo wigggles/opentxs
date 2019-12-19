@@ -226,12 +226,9 @@ OTData Message::Encode() const
 
 OTData Message::calculate_checksum(const Data& payload) const noexcept
 {
-    auto intermediate = Data::Factory();
-    api_.Crypto().Hash().Digest(proto::HASHTYPE_SHA256, payload, intermediate);
-    auto hash = Data::Factory();
-    api_.Crypto().Hash().Digest(proto::HASHTYPE_SHA256, intermediate, hash);
     auto output = Data::Factory();
-    hash->Extract(4, output);
+    api_.Crypto().Hash().Digest(
+        proto::HASHTYPE_SHA256DC, payload.Bytes(), output->WriteInto());
 
     return output;
 }

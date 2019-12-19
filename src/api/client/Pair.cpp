@@ -625,7 +625,7 @@ void Pair::check_rename(
         context.SetAdminPassword(issuer.PairingCode());
     }
 
-    needRename = context.ShouldRename(reason);
+    needRename = context.ShouldRename();
 
     if (needRename) {
         proto::PairEvent event;
@@ -676,11 +676,8 @@ bool Pair::CheckIssuer(
     const identifier::Nym& localNymID,
     const identifier::UnitDefinition& unitDefinitionID) const noexcept
 {
-    auto reason = client_.Factory().PasswordPrompt("Looking up an issuer");
-
     try {
-        const auto contract =
-            client_.Wallet().UnitDefinition(unitDefinitionID, reason);
+        const auto contract = client_.Wallet().UnitDefinition(unitDefinitionID);
 
         return AddIssuer(localNymID, contract->Nym()->ID(), "");
     } catch (...) {
@@ -751,12 +748,11 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
     const identifier::Nym& issuerID,
     const identifier::UnitDefinition& unitID) const
 {
-    auto reason = client_.Factory().PasswordPrompt("Initiating bailment");
     auto output = std::pair<bool, OTIdentifier>{false, Identifier::Factory()};
     auto& success = std::get<0>(output);
 
     try {
-        client_.Wallet().UnitDefinition(unitID, reason);
+        client_.Wallet().UnitDefinition(unitID);
     } catch (...) {
         queue_unit_definition(nymID, serverID, unitID);
 
@@ -779,21 +775,18 @@ std::string Pair::IssuerDetails(
     const identifier::Nym& localNymID,
     const identifier::Nym& issuerNymID) const noexcept
 {
-    auto reason = client_.Factory().PasswordPrompt("Getting issuer details");
-
     auto issuer = client_.Wallet().Issuer(localNymID, issuerNymID);
 
     if (false == bool(issuer)) { return {}; }
 
-    return issuer->toString(reason);
+    return issuer->toString();
 }
 
 bool Pair::need_registration(
-    const PasswordPrompt& reason,
     const identifier::Nym& localNymID,
     const identifier::Server& serverID) const
 {
-    auto context = client_.Wallet().ServerContext(localNymID, serverID, reason);
+    auto context = client_.Wallet().ServerContext(localNymID, serverID);
 
     if (context) { return (0 == context->Request()); }
 
@@ -1149,13 +1142,11 @@ std::pair<bool, OTIdentifier> Pair::register_account(
     const identifier::Server& serverID,
     const identifier::UnitDefinition& unitID) const
 {
-    auto reason = client_.Factory().PasswordPrompt("Registering account");
-
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, accountID] = output;
 
     try {
-        client_.Wallet().UnitDefinition(unitID, reason);
+        client_.Wallet().UnitDefinition(unitID);
     } catch (...) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Waiting for unit definition ")(
             unitID)
@@ -1224,7 +1215,7 @@ void Pair::state_machine(const IssuerID& id) const
     if (0 < pending.size()) { return; }
 
     Lock lock(*mutex);
-    const auto issuerNym = client_.Wallet().Nym(issuerNymID, reason);
+    const auto issuerNym = client_.Wallet().Nym(issuerNymID);
 
     if (false == bool(issuerNym)) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Issuer nym not yet downloaded.")
@@ -1269,14 +1260,13 @@ void Pair::state_machine(const IssuerID& id) const
             [[fallthrough]];
         }
         case Status::Started: {
-            if (need_registration(reason, localNymID, serverID)) {
+            if (need_registration(localNymID, serverID)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Local nym not registered on issuer's notary.")
                     .Flush();
 
                 try {
-                    const auto contract =
-                        client_.Wallet().Server(serverID, reason);
+                    const auto contract = client_.Wallet().Server(serverID);
 
                     SHUTDOWN()
 
@@ -1309,7 +1299,7 @@ void Pair::state_machine(const IssuerID& id) const
             if (serverNymID->empty()) {
                 try {
                     serverNymID =
-                        client_.Wallet().Server(serverID, reason)->Nym()->ID();
+                        client_.Wallet().Server(serverID)->Nym()->ID();
                 } catch (...) {
 
                     return;

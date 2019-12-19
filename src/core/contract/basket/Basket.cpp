@@ -209,9 +209,7 @@ std::int32_t Basket::Count() const
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Basket::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 

@@ -33,7 +33,6 @@ private:
         const PasswordPrompt& reason) noexcept(false);
     Secondary(
         const api::internal::Core& api,
-        const PasswordPrompt& reason,
         const identity::internal::Authority& other,
         const identity::Source& source,
         const internal::Primary& master,

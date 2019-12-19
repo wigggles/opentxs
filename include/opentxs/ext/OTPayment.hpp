@@ -164,12 +164,9 @@ public:
     OPENTXS_EXPORT bool HasTransactionNum(
         const TransactionNumber& lInput,
         const PasswordPrompt& reason) const;
-    OPENTXS_EXPORT OTTrackable* Instantiate(const PasswordPrompt& reason) const;
-    OPENTXS_EXPORT OTTrackable* Instantiate(
-        const String& strPayment,
-        const PasswordPrompt& reason);
-    OPENTXS_EXPORT OTTransaction* InstantiateNotice(
-        const PasswordPrompt& reason) const;
+    OPENTXS_EXPORT OTTrackable* Instantiate() const;
+    OPENTXS_EXPORT OTTrackable* Instantiate(const String& strPayment);
+    OPENTXS_EXPORT OTTransaction* InstantiateNotice() const;
     OPENTXS_EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
     OPENTXS_EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
     OPENTXS_EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
@@ -189,12 +186,9 @@ public:
     // Verify whether the CURRENT date is AFTER the the "VALID TO" date.
     OPENTXS_EXPORT bool IsExpired(bool& bExpired);
     OPENTXS_EXPORT void InitPayment();
-    OPENTXS_EXPORT OTTransaction* InstantiateNotice(
-        const String& strNotice,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
     OPENTXS_EXPORT std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+        irr::io::IrrXMLReader*& xml) override;
     OPENTXS_EXPORT void Release() override;
     OPENTXS_EXPORT void Release_Payment();
     OPENTXS_EXPORT bool SetPayment(const String& strPayment);

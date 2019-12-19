@@ -18,63 +18,20 @@ public:
     {
         return false;
     }
-    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, std::string&)
-        const final
-    {
-        return false;
-    }
-    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, String&)
-        const final
-    {
-        return false;
-    }
-    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, Data&)
-        const final
-    {
-        return false;
-    }
-    bool Decrypt(const proto::Ciphertext&, const PasswordPrompt&, OTPassword&)
-        const final
+    bool Decrypt(
+        const proto::Ciphertext&,
+        const PasswordPrompt&,
+        const AllocateOutput) const final
     {
         return false;
     }
     bool Encrypt(
-        const std::string&,
-        const Data&,
+        const ReadView,
         const PasswordPrompt&,
         proto::Ciphertext&,
-        const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) const final
-    {
-        return false;
-    }
-    bool Encrypt(
-        const String&,
-        const Data&,
-        const PasswordPrompt&,
-        proto::Ciphertext&,
-        const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) const final
-    {
-        return false;
-    }
-    bool Encrypt(
-        const OTPassword&,
-        const Data&,
-        const PasswordPrompt&,
-        proto::Ciphertext&,
-        const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) const final
-    {
-        return false;
-    }
-    bool Encrypt(
-        const Data&,
-        const Data&,
-        const PasswordPrompt&,
-        proto::Ciphertext&,
-        const bool = true,
-        const proto::SymmetricMode = proto::SMODE_ERROR) const final
+        const bool,
+        const proto::SymmetricMode,
+        const ReadView) const final
     {
         return false;
     }

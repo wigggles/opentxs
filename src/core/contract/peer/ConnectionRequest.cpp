@@ -54,8 +54,7 @@ auto Factory::ConnectionRequest(
 auto Factory::ConnectionRequest(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::PeerRequest& serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::PeerRequest& serialized) noexcept
     -> std::shared_ptr<contract::peer::request::Connection>
 {
     if (false == proto::Validate(serialized, VERBOSE)) {
@@ -74,7 +73,7 @@ auto Factory::ConnectionRequest(
         auto& contract = *output;
         Lock lock(contract.lock_);
 
-        if (false == contract.validate(lock, reason)) {
+        if (false == contract.validate(lock)) {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid request.")
                 .Flush();
 

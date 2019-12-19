@@ -18,24 +18,25 @@ class Lucre final : public Token
 {
 public:
     bool GetSpendable(String& output, const PasswordPrompt& reason) const;
-    std::string ID(const PasswordPrompt& reason) const override;
-    bool IsSpent(const PasswordPrompt& reason) const override;
-    proto::Token Serialize() const override;
+    std::string ID(const PasswordPrompt& reason) const final;
+    bool IsSpent(const PasswordPrompt& reason) const final;
+    proto::Token Serialize() const final;
 
     bool AddSignature(const String& signature);
-    bool ChangeOwner(crypto::key::Symmetric& key, const PasswordPrompt& reason)
-        override;
+    bool ChangeOwner(
+        Purse& oldOwner,
+        Purse& newOwner,
+        const PasswordPrompt& reason) final;
     bool GenerateTokenRequest(
         const identity::Nym& owner,
-        const OTPassword& primaryPassword,
-        const OTPassword& secondaryPassword,
-        const Mint& mint) override;
+        const Mint& mint,
+        const PasswordPrompt& reason) final;
     bool GetPublicPrototoken(String& output, const PasswordPrompt& reason);
-    bool MarkSpent(const PasswordPrompt& reason) override;
+    bool MarkSpent(const PasswordPrompt& reason) final;
     bool Process(
         const identity::Nym& owner,
         const Mint& mint,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
 
     Lucre(
         const api::internal::Core& api,
@@ -47,10 +48,10 @@ public:
         const Mint& mint,
         const Denomination value,
         Purse& purse,
-        const OTPassword& primaryPassword,
-        const OTPassword& secondaryPassword);
+        const PasswordPrompt& reason);
+    Lucre(const Lucre& rhs, blind::Purse& newOwner);
 
-    ~Lucre() override = default;
+    ~Lucre() final = default;
 
 private:
     friend opentxs::Factory;
@@ -66,7 +67,7 @@ private:
     void serialize_signature(proto::LucreTokenData& lucre) const;
     void serialize_spendable(proto::LucreTokenData& lucre) const;
 
-    Lucre* clone() const noexcept override { return new Lucre(*this); }
+    Lucre* clone() const noexcept final { return new Lucre(*this); }
 
     Lucre(
         const api::internal::Core& api,

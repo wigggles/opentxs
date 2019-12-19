@@ -114,8 +114,7 @@ opentxs::Amount TransferBalanceItem::effective_amount() const noexcept
     return amount * sign;
 }
 
-bool TransferBalanceItem::get_contract(const PasswordPrompt& reason) const
-    noexcept
+bool TransferBalanceItem::get_contract() const noexcept
 {
     if (0 < contract_->Version()) { return true; }
 
@@ -132,7 +131,7 @@ bool TransferBalanceItem::get_contract(const PasswordPrompt& reason) const
 
     try {
         eLock lock(shared_lock_);
-        contract_ = api_.Wallet().UnitDefinition(contractID, reason);
+        contract_ = api_.Wallet().UnitDefinition(contractID);
 
         return true;
     } catch (...) {
@@ -168,19 +167,17 @@ void TransferBalanceItem::reindex(
 void TransferBalanceItem::startup(const CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
     const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
     transfer_ =
-        api::client::Workflow::InstantiateTransfer(api_, workflow, reason)
-            .second;
+        api::client::Workflow::InstantiateTransfer(api_, workflow).second;
 
     OT_ASSERT(transfer_)
 
     lock.unlock();
-    get_contract(reason);
+    get_contract();
     std::string text{""};
     const auto number = std::to_string(transfer_->GetTransactionNum());
 

@@ -81,7 +81,7 @@ private:
     void attach_request();
     void clear_request();
     bool init();
-    bool init_nym(const PasswordPrompt& reason);
+    bool init_nym();
 
     ReplyMessage() = delete;
     ReplyMessage(const ReplyMessage&) = delete;

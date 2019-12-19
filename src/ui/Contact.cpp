@@ -212,7 +212,6 @@ void Contact::process_contact(const opentxs::Contact& contact) noexcept
 
 void Contact::process_contact(const network::zeromq::Message& message) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     wait_for_startup();
 
     OT_ASSERT(1 == message.Body().size());
@@ -224,7 +223,7 @@ void Contact::process_contact(const network::zeromq::Message& message) noexcept
 
     if (contactID != primary_id_) { return; }
 
-    const auto contact = api_.Contacts().Contact(contactID, reason);
+    const auto contact = api_.Contacts().Contact(contactID);
 
     OT_ASSERT(contact)
 
@@ -240,8 +239,7 @@ void Contact::startup() noexcept
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading contact ")(primary_id_)
         .Flush();
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    const auto contact = api_.Contacts().Contact(primary_id_, reason);
+    const auto contact = api_.Contacts().Contact(primary_id_);
 
     OT_ASSERT(contact)
 

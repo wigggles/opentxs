@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -18,39 +17,47 @@
 namespace opentxs
 {
 using OTPaymentCode = Pimpl<PaymentCode>;
-using SerializedPaymentCode = std::shared_ptr<proto::PaymentCode>;
 
 class PaymentCode
 {
 public:
+    using Serialized = proto::PaymentCode;
+
     OPENTXS_EXPORT static const VersionNumber DefaultVersion;
 
-    OPENTXS_EXPORT virtual bool operator==(
-        const proto::PaymentCode& rhs) const = 0;
-    OPENTXS_EXPORT virtual operator const crypto::key::Asymmetric&() const = 0;
+    OPENTXS_EXPORT virtual operator const crypto::key::Asymmetric&() const
+        noexcept = 0;
 
-    OPENTXS_EXPORT virtual const OTNymID ID() const = 0;
-    OPENTXS_EXPORT virtual const std::string asBase58() const = 0;
-    OPENTXS_EXPORT virtual SerializedPaymentCode Serialize() const = 0;
+    OPENTXS_EXPORT virtual bool operator==(const proto::PaymentCode& rhs) const
+        noexcept = 0;
+
+    OPENTXS_EXPORT virtual const identifier::Nym& ID() const noexcept = 0;
+    OPENTXS_EXPORT virtual std::string asBase58() const noexcept = 0;
+    OPENTXS_EXPORT virtual Serialized Serialize() const noexcept = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OPENTXS_EXPORT virtual bool Sign(
         const identity::credential::Base& credential,
         proto::Signature& sig,
-        const PasswordPrompt& reason) const = 0;
+        const PasswordPrompt& reason) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Sign(
         const Data& data,
         Data& output,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual bool VerifyInternally() const = 0;
+        const PasswordPrompt& reason) const noexcept = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    OPENTXS_EXPORT virtual bool Valid() const noexcept = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OPENTXS_EXPORT virtual bool Verify(
         const proto::Credential& master,
-        const proto::Signature& sourceSignature,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual VersionNumber Version() const = 0;
+        const proto::Signature& sourceSignature) const noexcept = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    OPENTXS_EXPORT virtual VersionNumber Version() const noexcept = 0;
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OPENTXS_EXPORT virtual bool AddPrivateKeys(
-        const std::string& seed,
+        std::string& seed,
         const Bip32Index index,
-        const PasswordPrompt& reason) = 0;
+        const PasswordPrompt& reason) noexcept = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
     OPENTXS_EXPORT virtual ~PaymentCode() = default;
 
@@ -68,5 +75,4 @@ private:
     PaymentCode& operator=(PaymentCode&&);
 };
 }  // namespace opentxs
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #endif

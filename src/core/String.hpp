@@ -21,6 +21,10 @@ public:
     bool operator==(const opentxs::String& rhs) const override;
 
     bool At(std::uint32_t index, char& c) const override;
+    ReadView Bytes() const noexcept final
+    {
+        return ReadView{Get(), internal_.size()};
+    }
     bool Compare(const char* compare) const override;
     bool Compare(const opentxs::String& compare) const override;
     bool Contains(const char* compare) const override;
@@ -58,6 +62,7 @@ public:
     char sgetc() override;
     void swap(opentxs::String& rhs) override;
     void reset() override;
+    AllocateOutput WriteInto() noexcept final;
 
     ~String() override;
 

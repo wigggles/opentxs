@@ -296,8 +296,7 @@ TEST_F(Test_Pair, issue_dollars)
     api_issuer_.OTX().ContextIdle(issuer_.nym_id_, server_1_.id_).get();
 
     {
-        const auto pNym =
-            api_issuer_.Wallet().Nym(issuer_.nym_id_, issuer_.Reason());
+        const auto pNym = api_issuer_.Wallet().Nym(issuer_.nym_id_);
 
         ASSERT_TRUE(pNym);
 
@@ -383,7 +382,7 @@ TEST_F(Test_Pair, pair_untrusted)
         EXPECT_EQ(chris_.nym_id_, issuer.LocalNymID());
         EXPECT_FALSE(issuer.Paired());
         EXPECT_TRUE(issuer.PairingCode().empty());
-        EXPECT_EQ(server_1_.id_, issuer.PrimaryServer(chris_.Reason()));
+        EXPECT_EQ(server_1_.id_, issuer.PrimaryServer());
         EXPECT_FALSE(issuer.StoreSecretComplete());
         EXPECT_FALSE(issuer.StoreSecretInitiated());
     }
@@ -449,7 +448,7 @@ TEST_F(Test_Pair, pair_trusted)
         EXPECT_EQ(chris_.nym_id_, issuer.LocalNymID());
         EXPECT_TRUE(issuer.Paired());
         EXPECT_EQ(issuer.PairingCode(), server_1_.password_);
-        EXPECT_EQ(server_1_.id_, issuer.PrimaryServer(chris_.Reason()));
+        EXPECT_EQ(server_1_.id_, issuer.PrimaryServer());
         EXPECT_FALSE(issuer.StoreSecretComplete());
 #if OT_CRYPTO_WITH_BIP32
         EXPECT_TRUE(issuer.StoreSecretInitiated());

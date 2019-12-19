@@ -48,8 +48,7 @@ public:
     std::unique_ptr<Message> Mail(
         const identifier::Nym& nym,
         const Identifier& id,
-        const StorageBox& box,
-        const PasswordPrompt& reason) const final;
+        const StorageBox& box) const final;
 
     /**   Store a mail object
      *
@@ -127,14 +126,12 @@ public:
     ChequeData Cheque(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow,
-        const PasswordPrompt& reason) const final;
+        const std::string& workflow) const final;
 
     TransferData Transfer(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow,
-        const PasswordPrompt& reason) const final;
+        const std::string& workflow) const final;
 
     /**   Summarize a payment workflow event in human-friendly test form
      *
@@ -147,8 +144,7 @@ public:
     std::shared_ptr<const std::string> PaymentText(
         const identifier::Nym& nym,
         const std::string& id,
-        const std::string& workflow,
-        const PasswordPrompt& reason) const final;
+        const std::string& workflow) const final;
 
     /**   Asynchronously cache the most recent items in each of a nym's threads
      *
@@ -185,7 +181,6 @@ public:
      */
     ObjectList Threads(
         const identifier::Nym& nym,
-        const PasswordPrompt& reason,
         const bool unreadOnly = false) const final;
 
     /**   Return the total number of unread thread items for a nym
@@ -215,7 +210,7 @@ private:
      *
      *    This method should only be called by the Contacts on startup
      */
-    void MigrateLegacyThreads(const PasswordPrompt& reason) const final;
+    void MigrateLegacyThreads() const final;
     void activity_preload_thread(
         OTPasswordPrompt reason,
         const OTIdentifier nymID,
@@ -233,7 +228,6 @@ private:
         const std::size_t count) const;
 
     std::shared_ptr<const Contact> nym_to_contact(
-        const PasswordPrompt& reason,
         const std::string& nymID) const;
     const opentxs::network::zeromq::socket::Publish& get_publisher(
         const identifier::Nym& nymID) const;

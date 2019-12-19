@@ -23,10 +23,9 @@ public:
         const std::set<TransactionNumber>& exclude) const final;
     std::size_t OpenCronItems() const final;
     proto::ConsensusType Type() const final;
-    bool ValidateContext(const Lock& lock, const PasswordPrompt& reason)
-        const final
+    bool ValidateContext(const Lock& lock) const final
     {
-        return validate(lock, reason);
+        return validate(lock);
     }
     bool Verify(
         const TransactionStatement& statement,

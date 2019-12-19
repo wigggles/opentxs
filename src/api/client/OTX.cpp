@@ -296,7 +296,7 @@ OTX::BackgroundTask OTX::AcknowledgeBailment(
     CHECK_NYM(requestID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
     auto time = std::time_t{0};
     auto serializedRequest = client_.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, time);
@@ -307,11 +307,11 @@ OTX::BackgroundTask OTX::AcknowledgeBailment(
         return error_task();
     }
 
-    auto recipientNym = client_.Wallet().Nym(targetNymID, reason_);
+    auto recipientNym = client_.Wallet().Nym(targetNymID);
 
     try {
-        auto instantiatedRequest = client_.Factory().BailmentRequest(
-            recipientNym, *serializedRequest, reason_);
+        auto instantiatedRequest =
+            client_.Factory().BailmentRequest(recipientNym, *serializedRequest);
         auto peerreply = client_.Factory().BailmentReply(
             nym,
             instantiatedRequest->Initiator(),
@@ -351,7 +351,7 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
     CHECK_NYM(requestID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
 
     if (ack) {
         if (url.empty()) {
@@ -385,11 +385,11 @@ OTX::BackgroundTask OTX::AcknowledgeConnection(
         return error_task();
     }
 
-    auto recipientNym = client_.Wallet().Nym(recipientID, reason_);
+    auto recipientNym = client_.Wallet().Nym(recipientID);
 
     try {
-        auto instantiatedRequest = client_.Factory().BailmentRequest(
-            recipientNym, *serializedRequest, reason_);
+        auto instantiatedRequest =
+            client_.Factory().BailmentRequest(recipientNym, *serializedRequest);
         auto peerreply = client_.Factory().ConnectionReply(
             nym,
             instantiatedRequest->Initiator(),
@@ -429,7 +429,7 @@ OTX::BackgroundTask OTX::AcknowledgeNotice(
     CHECK_NYM(requestID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
     std::time_t time{0};
     auto serializedRequest = client_.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, time);
@@ -440,11 +440,11 @@ OTX::BackgroundTask OTX::AcknowledgeNotice(
         return error_task();
     }
 
-    auto recipientNym = client_.Wallet().Nym(recipientID, reason_);
+    auto recipientNym = client_.Wallet().Nym(recipientID);
 
     try {
-        auto instantiatedRequest = client_.Factory().BailmentRequest(
-            recipientNym, *serializedRequest, reason_);
+        auto instantiatedRequest =
+            client_.Factory().BailmentRequest(recipientNym, *serializedRequest);
         auto peerreply = client_.Factory().ReplyAcknowledgement(
             nym,
             instantiatedRequest->Initiator(),
@@ -481,7 +481,7 @@ OTX::BackgroundTask OTX::AcknowledgeOutbailment(
     CHECK_NYM(requestID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
     std::time_t time{0};
     auto serializedRequest = client_.Wallet().PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, time);
@@ -492,11 +492,11 @@ OTX::BackgroundTask OTX::AcknowledgeOutbailment(
         return error_task();
     }
 
-    auto recipientNym = client_.Wallet().Nym(recipientID, reason_);
+    auto recipientNym = client_.Wallet().Nym(recipientID);
 
     try {
-        auto instantiatedRequest = client_.Factory().BailmentRequest(
-            recipientNym, *serializedRequest, reason_);
+        auto instantiatedRequest =
+            client_.Factory().BailmentRequest(recipientNym, *serializedRequest);
         auto peerreply = client_.Factory().OutbailmentReply(
             nym,
             instantiatedRequest->Initiator(),
@@ -622,7 +622,7 @@ Messagability OTX::can_message(
     identifier::Nym& recipientNymID,
     identifier::Server& serverID) const
 {
-    auto senderNym = client_.Wallet().Nym(senderNymID, reason_);
+    auto senderNym = client_.Wallet().Nym(senderNymID);
 
     if (false == bool(senderNym)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Unable to load sender nym ")(
@@ -642,8 +642,7 @@ Messagability OTX::can_message(
         return Messagability::INVALID_SENDER;
     }
 
-    const auto contact =
-        client_.Contacts().Contact(recipientContactID, reason_);
+    const auto contact = client_.Contacts().Contact(recipientContactID);
 
     if (false == bool(contact)) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Recipient contact ")(
@@ -666,7 +665,7 @@ Messagability OTX::can_message(
     Nym_p recipientNym{nullptr};
 
     for (const auto& it : nyms) {
-        recipientNym = client_.Wallet().Nym(it, reason_);
+        recipientNym = client_.Wallet().Nym(it);
 
         if (recipientNym) {
             recipientNymID.Assign(it);
@@ -769,7 +768,7 @@ bool OTX::CheckTransactionNumbers(
     const identifier::Server& serverID,
     const std::size_t quantity) const
 {
-    auto context = client_.Wallet().ServerContext(nym, serverID, reason_);
+    auto context = client_.Wallet().ServerContext(nym, serverID);
 
     if (false == bool(context)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym is not registered").Flush();
@@ -835,7 +834,7 @@ std::size_t OTX::DepositCheques(const identifier::Nym& nymID) const
 
     for (const auto& id : workflows) {
         const auto chequeState =
-            client_.Workflow().LoadChequeByWorkflow(nymID, id, reason_);
+            client_.Workflow().LoadChequeByWorkflow(nymID, id);
         const auto& [state, cheque] = chequeState;
 
         if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) { continue; }
@@ -857,8 +856,7 @@ std::size_t OTX::DepositCheques(
     if (chequeIDs.empty()) { return DepositCheques(nymID); }
 
     for (const auto& id : chequeIDs) {
-        const auto chequeState =
-            client_.Workflow().LoadCheque(nymID, id, reason_);
+        const auto chequeState = client_.Workflow().LoadCheque(nymID, id);
         const auto& [state, cheque] = chequeState;
 
         if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) { continue; }
@@ -1095,7 +1093,7 @@ void OTX::find_server(const opentxs::network::zeromq::Message& message) const
     }
 
     try {
-        client_.Wallet().Server(id, reason_);
+        client_.Wallet().Server(id);
     } catch (...) {
         const auto taskID{next_task_id()};
         missing_servers_.Push(taskID, id);
@@ -1123,7 +1121,7 @@ void OTX::find_unit(const opentxs::network::zeromq::Message& message) const
     }
 
     try {
-        client_.Wallet().UnitDefinition(id, reason_);
+        client_.Wallet().UnitDefinition(id);
 
         return;
     } catch (...) {
@@ -1264,8 +1262,7 @@ OTServerID OTX::import_default_introduction_server(const Lock& lock) const
     const auto serialized = proto::StringToProto<proto::ServerContract>(
         String::Factory(DEFAULT_INTRODUCTION_SERVER.c_str()));
 
-    return set_introduction_server(
-        lock, client_.Wallet().Server(serialized, reason_));
+    return set_introduction_server(lock, client_.Wallet().Server(serialized));
 }
 
 OTX::BackgroundTask OTX::InitiateBailment(
@@ -1279,7 +1276,7 @@ OTX::BackgroundTask OTX::InitiateBailment(
     CHECK_NYM(targetNymID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
 
     try {
         auto peerrequest = client_.Factory().BailmentRequest(
@@ -1311,7 +1308,7 @@ OTX::BackgroundTask OTX::InitiateOutbailment(
     CHECK_NYM(targetNymID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
 
     try {
         auto peerrequest = client_.Factory().OutbailmentRequest(
@@ -1347,7 +1344,7 @@ OTX::BackgroundTask OTX::InitiateRequestConnection(
     CHECK_NYM(targetNymID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
 
     try {
         auto peerrequest = client_.Factory().ConnectionRequest(
@@ -1378,7 +1375,7 @@ OTX::BackgroundTask OTX::InitiateStoreSecret(
     CHECK_ARGS(localNymID, serverID, targetNymID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
 
     if (primary.empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Warning: primary is empty.")
@@ -1514,7 +1511,7 @@ OTX::BackgroundTask OTX::NotifyBailment(
     CHECK_NYM(requestID)
 
     start_introduction_server(localNymID);
-    const auto nym = client_.Wallet().Nym(localNymID, reason_);
+    const auto nym = client_.Wallet().Nym(localNymID);
 
     try {
         auto peerrequest = client_.Factory().BailmentNotice(
@@ -1636,8 +1633,8 @@ void OTX::process_notification(const zmq::Message& message) const
     OT_ASSERT(0 < message.Body().size())
 
     const auto& frame = message.Body().at(0);
-    const auto notification = otx::Reply::Factory(
-        client_, proto::Factory<proto::ServerReply>(frame), reason_);
+    const auto notification =
+        otx::Reply::Factory(client_, proto::Factory<proto::ServerReply>(frame));
     const auto& nymID = notification->Recipient();
     const auto& serverID = notification->Server();
 
@@ -1805,7 +1802,7 @@ bool OTX::refresh_contacts() const
             contactID)
             .Flush();
         const auto contact =
-            client_.Contacts().Contact(Identifier::Factory(contactID), reason_);
+            client_.Contacts().Contact(Identifier::Factory(contactID));
 
         OT_ASSERT(contact);
 
@@ -1825,12 +1822,12 @@ bool OTX::refresh_contacts() const
         for (const auto& nymID : nymList) {
             SHUTDOWN()
 
-            const auto nym = client_.Wallet().Nym(nymID, reason_);
+            const auto nym = client_.Wallet().Nym(nymID);
             LogVerbose(OT_METHOD)(__FUNCTION__)(": Considering nym: ")(nymID)
                 .Flush();
 
             if (nym) {
-                client_.Contacts().Update(nym->asPublicNym(), reason_);
+                client_.Contacts().Update(nym->asPublicNym());
             } else {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(
                     ": We don't have credentials for this nym. "
@@ -2013,7 +2010,7 @@ OTX::BackgroundTask OTX::SendCheque(
         return error_task();
     }
 
-    auto account = client_.Wallet().Account(sourceAccountID, reason_);
+    auto account = client_.Wallet().Account(sourceAccountID);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid account.").Flush();
@@ -2043,7 +2040,7 @@ OTX::BackgroundTask OTX::SendExternalTransfer(
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
 
-    auto sourceAccount = client_.Wallet().Account(sourceAccountID, reason_);
+    auto sourceAccount = client_.Wallet().Account(sourceAccountID);
 
     if (false == bool(sourceAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid source account.").Flush();
@@ -2087,7 +2084,7 @@ OTX::BackgroundTask OTX::SendTransfer(
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
 
-    auto sourceAccount = client_.Wallet().Account(sourceAccountID, reason_);
+    auto sourceAccount = client_.Wallet().Account(sourceAccountID);
 
     if (false == bool(sourceAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid source account.").Flush();
@@ -2140,7 +2137,7 @@ OTServerID OTX::set_introduction_server(
 
     try {
         const auto instantiated =
-            client_.Wallet().Server(contract.PublicContract(), reason_);
+            client_.Wallet().Server(contract.PublicContract());
         const auto id = identifier::Server::Factory(
             instantiated->ID()->str());  // TODO conversion
         introduction_server_id_.reset(new OTServerID(id));
@@ -2362,8 +2359,7 @@ bool OTX::valid_context(
         return false;
     }
 
-    const auto context =
-        client_.Wallet().ServerContext(nymID, serverID, reason_);
+    const auto context = client_.Wallet().ServerContext(nymID, serverID);
 
     if (false == bool(context)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Context does not exist.").Flush();

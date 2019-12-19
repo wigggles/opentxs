@@ -22,30 +22,10 @@ public:
         return NymParameterType::secp256k1;
     }
 
-    ~Secp256k1() final = default;
-
-private:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    using ot_super = HD;
-#else
-    using ot_super = EllipticCurve;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-
-    friend key::Asymmetric;
-    friend opentxs::Factory;
-
-    Secp256k1* clone() const final { return new Secp256k1(*this); }
-    Secp256k1* clone_ec() const final { return clone(); }
-    std::shared_ptr<proto::AsymmetricKey> get_public() const final
-    {
-        return serialize_public(clone());
-    }
-
     Secp256k1(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey,
-        const PasswordPrompt& reason) noexcept;
+        const proto::AsymmetricKey& serializedKey) noexcept(false);
     Secp256k1(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -64,8 +44,25 @@ private:
         const proto::KeyRole role,
         const VersionNumber version,
         key::Symmetric& sessionKey,
-        const PasswordPrompt& reason) noexcept;
+        const PasswordPrompt& reason) noexcept(false);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+    ~Secp256k1() final = default;
+
+private:
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    using ot_super = HD;
+#else
+    using ot_super = EllipticCurve;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+    Secp256k1* clone() const noexcept final { return new Secp256k1(*this); }
+    Secp256k1* clone_ec() const noexcept final { return clone(); }
+    std::shared_ptr<proto::AsymmetricKey> get_public() const final
+    {
+        return serialize_public(clone());
+    }
+
     Secp256k1() = delete;
     Secp256k1(const Secp256k1&) noexcept;
     Secp256k1(Secp256k1&&) = delete;

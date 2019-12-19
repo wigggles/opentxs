@@ -57,12 +57,11 @@ identity::credential::internal::Secondary* Factory::SecondaryCredential(
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
-    const proto::Credential& serialized,
-    const opentxs::PasswordPrompt& reason)
+    const proto::Credential& serialized)
 {
     try {
 
-        return new ReturnType(api, reason, parent, source, master, serialized);
+        return new ReturnType(api, parent, source, master, serialized);
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(
             ": Failed to deserialize credential: ")(e.what())
@@ -103,14 +102,12 @@ Secondary::Secondary(
 
 Secondary::Secondary(
     const api::internal::Core& api,
-    const opentxs::PasswordPrompt& reason,
     const identity::internal::Authority& owner,
     const identity::Source& source,
     const internal::Primary& master,
     const proto::Credential& serialized) noexcept(false)
     : credential::implementation::Key(
           api,
-          reason,
           owner,
           source,
           serialized,

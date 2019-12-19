@@ -17,6 +17,7 @@ class Token : virtual public blind::Token
 {
 public:
     const identifier::Server& Notary() const override { return notary_; }
+    Purse& Owner() const noexcept final { return purse_; }
     MintSeries Series() const override { return series_; }
     proto::TokenState State() const override { return state_; }
     proto::CashType Type() const override { return type_; }
@@ -27,9 +28,8 @@ public:
 
     virtual bool GenerateTokenRequest(
         const identity::Nym& owner,
-        const OTPassword& primaryPassword,
-        const OTPassword& secondaryPassword,
-        const Mint& mint) = 0;
+        const Mint& mint,
+        const PasswordPrompt& reason) = 0;
 
     ~Token() override = default;
 
@@ -47,9 +47,11 @@ protected:
     const Time valid_to_;
 
     bool reencrypt(
-        crypto::key::Symmetric& key,
-        proto::Ciphertext& ciphertext,
-        const PasswordPrompt& reason);
+        const crypto::key::Symmetric& oldKey,
+        const PasswordPrompt& oldPassword,
+        const crypto::key::Symmetric& newKey,
+        const PasswordPrompt& newPassword,
+        proto::Ciphertext& ciphertext);
 
     proto::Token Serialize() const override;
 

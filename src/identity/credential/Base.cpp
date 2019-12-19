@@ -388,26 +388,25 @@ bool Base::TransportKey(Data&, OTPassword&, const PasswordPrompt&) const
     return false;
 }
 
-bool Base::validate(const Lock& lock, const PasswordPrompt& reason) const
+bool Base::validate(const Lock& lock) const
 {
     // Check syntax
     if (!isValid(lock)) { return false; }
 
     // Check cryptographic requirements
-    return verify_internally(lock, reason);
+    return verify_internally(lock);
 }
 
-bool Base::Validate(const PasswordPrompt& reason) const
+bool Base::Validate() const
 {
     Lock lock(lock_);
 
-    return validate(lock, reason);
+    return validate(lock);
 }
 
 /** Verifies the cryptographic integrity of a credential. Assumes the
  * Authority specified by parent_ is valid. */
-bool Base::verify_internally(const Lock& lock, const PasswordPrompt& reason)
-    const
+bool Base::verify_internally(const Lock& lock) const
 {
     if (!CheckID(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -423,7 +422,7 @@ bool Base::verify_internally(const Lock& lock, const PasswordPrompt& reason)
     if (proto::CREDROLE_MASTERKEY == role_) {
         GoodMasterSignature = true;  // Covered by VerifySignedBySelf()
     } else {
-        GoodMasterSignature = verify_master_signature(lock, reason);
+        GoodMasterSignature = verify_master_signature(lock);
     }
 
     if (!GoodMasterSignature) {
@@ -437,9 +436,7 @@ bool Base::verify_internally(const Lock& lock, const PasswordPrompt& reason)
     return true;
 }
 
-bool Base::verify_master_signature(
-    const Lock& lock,
-    const PasswordPrompt& reason) const
+bool Base::verify_master_signature(const Lock& lock) const
 {
     auto serialized = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
     auto masterSig = MasterSignature();
@@ -452,6 +449,6 @@ bool Base::verify_master_signature(
     }
 
     return (parent_.GetMasterCredential().Verify(
-        *serialized, role_, parent_.GetMasterCredID(), *masterSig, reason));
+        *serialized, role_, parent_.GetMasterCredID(), *masterSig));
 }
 }  // namespace opentxs::identity::credential::implementation

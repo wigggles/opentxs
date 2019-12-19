@@ -14,10 +14,24 @@ class Nym final : virtual public identity::internal::Nym, Lockable
 public:
     std::string Alias() const final;
     const Serialized asPublicNym() const final;
+    const value_type& at(const key_type& id) const noexcept(false) final
+    {
+        return *active_.at(id);
+    }
+    const value_type& at(const std::size_t& index) const noexcept(false) final;
+    const_iterator begin() const noexcept final { return cbegin(); }
     std::string BestEmail() const final;
     std::string BestPhoneNumber() const final;
     std::string BestSocialMediaProfile(
         const proto::ContactItemType type) const final;
+    const_iterator cbegin() const noexcept final
+    {
+        return const_iterator(this, 0);
+    }
+    const_iterator cend() const noexcept final
+    {
+        return const_iterator(this, size());
+    }
     const opentxs::ContactData& Claims() const final;
     bool CompareID(const identity::Nym& RHS) const final;
     bool CompareID(const identifier::Nym& rhs) const final;
@@ -31,6 +45,8 @@ public:
         const proto::ContactItemType currency,
         const bool onlyActive) const final;
     std::string EmailAddresses(bool active) const final;
+    NymKeys EncryptionTargets() const noexcept final;
+    const_iterator end() const noexcept final { return cend(); }
     void GetIdentifier(identifier::Nym& theIdentifier) const final;
     void GetIdentifier(String& theIdentifier) const final;
     const crypto::key::Asymmetric& GetPrivateAuthKey(
@@ -51,27 +67,14 @@ public:
         proto::AsymmetricKeyType keytype) const final;
     bool HasCapability(const NymCapability& capability) const final;
     const identifier::Nym& ID() const final { return id_; }
-    bool Lock(
-        const OTPassword& password,
-        crypto::key::Symmetric& key,
-        proto::Ciphertext& output) const final;
     std::string Name() const final;
-    bool Open(
-        const proto::SessionKey& input,
-        crypto::key::Symmetric& key,
-        OTPassword& password,
-        const PasswordPrompt& reason) const final;
     bool Path(proto::HDPath& output) const final;
-    std::string PaymentCode(const PasswordPrompt& reason) const final;
+    std::string PaymentCode() const final;
     std::string PhoneNumbers(bool active) const final;
     std::uint64_t Revision() const final;
-    bool Seal(
-        const OTPassword& password,
-        crypto::key::Symmetric& key,
-        proto::SessionKey& output,
-        const PasswordPrompt& reason) const final;
     Serialized SerializeCredentialIndex(const Mode mode) const final;
     void SerializeNymIDSource(Tag& parent) const final;
+    std::size_t size() const noexcept final { return active_.size(); }
     std::string SocialMediaProfiles(
         const proto::ContactItemType type,
         bool active) const final;
@@ -82,10 +85,12 @@ public:
         Data& pubkey,
         const PasswordPrompt& reason) const final;
     bool Unlock(
-        const proto::Ciphertext& input,
-        crypto::key::Symmetric& key,
-        OTPassword& password) const final;
-    bool VerifyPseudonym(const PasswordPrompt& reason) const final;
+        const crypto::key::Asymmetric& dhKey,
+        const std::uint32_t tag,
+        const proto::AsymmetricKeyType type,
+        const crypto::key::Symmetric& key,
+        PasswordPrompt& reason) const noexcept final;
+    bool VerifyPseudonym() const final;
     bool WriteCredentials() const final;
 
     std::string AddChildKeyCredential(
@@ -104,14 +109,12 @@ public:
         const PasswordPrompt& reason,
         const bool primary,
         const bool active) final;
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddPaymentCode(
-        const class PaymentCode& code,
+        const opentxs::PaymentCode& code,
         const proto::ContactItemType currency,
         const PasswordPrompt& reason,
         const bool primary,
         const bool active) final;
-#endif
     bool AddPreferredOTServer(
         const Identifier& id,
         const PasswordPrompt& reason,
@@ -146,10 +149,8 @@ public:
         proto::Signature& signature,
         const PasswordPrompt& reason,
         const proto::HashType hash) const final;
-    bool Verify(
-        const ProtobufType& input,
-        proto::Signature& signature,
-        const PasswordPrompt& reason) const final;
+    bool Verify(const ProtobufType& input, proto::Signature& signature)
+        const final;
 
     ~Nym() final = default;
 
@@ -174,7 +175,7 @@ private:
     std::string alias_;
     std::atomic<std::uint64_t> revision_;
     mutable std::unique_ptr<opentxs::ContactData> contact_data_;
-    CredentialMap m_mapCredentialSets;
+    CredentialMap active_;
     CredentialMap m_mapRevokedSets;
     // Revoked child credential IDs
     String::List m_listRevokedIDs;
@@ -190,14 +191,12 @@ private:
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
-        const Serialized& serialized,
-        const PasswordPrompt& reason) noexcept(false);
+        const Serialized& serialized) noexcept(false);
     static String::List load_revoked(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const Serialized& serialized,
-        const PasswordPrompt& reason,
         CredentialMap& revoked) noexcept(false);
     static NymParameters normalize(
         const api::internal::Core& api,
@@ -223,8 +222,7 @@ private:
         const eLock& lock,
         const proto::ContactData& data,
         const PasswordPrompt& reason);
-    bool verify_pseudonym(const eLock& lock, const PasswordPrompt& reason)
-        const;
+    bool verify_pseudonym(const eLock& lock) const;
 
     bool add_contact_credential(
         const eLock& lock,
@@ -247,8 +245,7 @@ private:
         const PasswordPrompt& reason) noexcept(false);
     Nym(const api::internal::Core& api,
         const proto::Nym& serialized,
-        const std::string& alias,
-        const opentxs::PasswordPrompt& reason) noexcept(false);
+        const std::string& alias) noexcept(false);
     Nym() = delete;
     Nym(const Nym&) = delete;
     Nym(Nym&&) = delete;

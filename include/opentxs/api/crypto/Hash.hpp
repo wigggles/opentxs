@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -24,33 +25,16 @@ class Hash
 public:
     OPENTXS_EXPORT virtual bool Digest(
         const proto::HashType hashType,
-        const OTPassword& data,
-        OTPassword& digest) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool Digest(
-        const proto::HashType hashType,
-        const Data& data,
-        Data& digest) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool Digest(
-        const proto::HashType hashType,
-        const String& data,
-        Data& digest) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool Digest(
-        const proto::HashType hashType,
-        const std::string& data,
-        Data& digest) const noexcept = 0;
+        const ReadView data,
+        const AllocateOutput destination) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Digest(
         const proto::HashType hashType,
         const opentxs::network::zeromq::Frame& data,
-        Data& digest) const noexcept = 0;
-    OPENTXS_EXPORT virtual bool Digest(
-        const proto::HashType hashType,
-        const void* data,
-        const std::size_t size,
-        Data& digest) const noexcept = 0;
+        const AllocateOutput destination) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Digest(
         const std::uint32_t type,
-        const std::string& data,
-        std::string& encodedDigest) const noexcept = 0;
+        const ReadView data,
+        const AllocateOutput encodedDestination) const noexcept = 0;
     OPENTXS_EXPORT virtual bool HMAC(
         const proto::HashType hashType,
         const OTPassword& key,

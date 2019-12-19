@@ -101,8 +101,7 @@ opentxs::Amount ChequeBalanceItem::effective_amount() const noexcept
     return amount * sign;
 }
 
-bool ChequeBalanceItem::get_contract(const PasswordPrompt& reason) const
-    noexcept
+bool ChequeBalanceItem::get_contract() const noexcept
 {
     if (0 < contract_->Version()) { return true; }
 
@@ -110,7 +109,7 @@ bool ChequeBalanceItem::get_contract(const PasswordPrompt& reason) const
     const auto& contractID = cheque_->GetInstrumentDefinitionID();
 
     try {
-        contract_ = api_.Wallet().UnitDefinition(contractID, reason);
+        contract_ = api_.Wallet().UnitDefinition(contractID);
 
         return true;
     } catch (...) {
@@ -143,17 +142,15 @@ void ChequeBalanceItem::startup(const CustomData& custom) noexcept
 {
     OT_ASSERT(2 == custom.size())
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
-    cheque_ =
-        api::client::Workflow::InstantiateCheque(api_, workflow, reason).second;
+    cheque_ = api::client::Workflow::InstantiateCheque(api_, workflow).second;
 
     OT_ASSERT(cheque_)
 
     lock.unlock();
-    get_contract(reason);
+    get_contract();
     std::string name{""};
     std::string text{""};
     auto number = std::to_string(cheque_->GetTransactionNum());

@@ -24,6 +24,65 @@ public:
 #endif  // OT_STORAGE_LMDB
     const ot::OTPasswordPrompt reason_;
 
+    bool test_nym(
+        const ot::NymParameterType type,
+        const ot::proto::CredentialType cred,
+        const ot::proto::SourceType source,
+        const std::string& name = "Nym")
+    {
+        const auto params = ot::NymParameters{type, cred, source};
+        const auto pNym = client_.Wallet().Nym(reason_, name, params);
+
+        if (false == bool(pNym)) { return false; }
+
+        const auto& nym = *pNym;
+
+        {
+            EXPECT_EQ(name, nym.Alias());
+            EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_MESSAGE));
+            EXPECT_TRUE(nym.HasCapability(ot::NymCapability::ENCRYPT_MESSAGE));
+            EXPECT_TRUE(
+                nym.HasCapability(ot::NymCapability::AUTHENTICATE_CONNECTION));
+            EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_CHILDCRED));
+            EXPECT_EQ(1, nym.Revision());
+            EXPECT_EQ(name, nym.Name());
+            EXPECT_EQ(source, nym.Source().Type());
+        }
+
+        {
+            const auto& claims = nym.Claims();
+            const auto pSection =
+                claims.Section(ot::proto::CONTACTSECTION_SCOPE);
+
+            EXPECT_TRUE(pSection);
+
+            if (false == bool(pSection)) { return false; }
+
+            const auto& section = *pSection;
+
+            EXPECT_EQ(1, section.Size());
+
+            const auto pGroup = section.Group(ot::proto::CITEMTYPE_INDIVIDUAL);
+
+            EXPECT_TRUE(pGroup);
+
+            if (false == bool(pGroup)) { return false; }
+
+            const auto& group = *pGroup;
+            const auto pItem = group.PrimaryClaim();
+
+            EXPECT_TRUE(pItem);
+
+            if (false == bool(pItem)) { return false; }
+
+            const auto& item = *pItem;
+
+            EXPECT_EQ(name, item.Value());
+        }
+
+        return true;
+    }
+
     bool test_storage(const ot::api::client::internal::Manager& api)
     {
         const auto reason = api.Factory().PasswordPrompt(__FUNCTION__);
@@ -39,7 +98,7 @@ public:
         nym.SetAlias(alias);
         const auto id = ot::OTNymID{nym.ID()};
 
-        EXPECT_TRUE(nym.VerifyPseudonym(reason));
+        EXPECT_TRUE(nym.VerifyPseudonym());
 
         {
             const auto serialized = nym.SerializeCredentialIndex(
@@ -71,7 +130,7 @@ public:
             if (!pSerialized) { return false; }
 
             const auto& serialized = *pSerialized;
-            pNym.reset(ot::Factory::Nym(api, serialized, alias, reason));
+            pNym.reset(ot::Factory::Nym(api, serialized, alias));
 
             EXPECT_TRUE(pNym);
 
@@ -80,7 +139,7 @@ public:
             const auto& loadedNym = *pNym;
 
             EXPECT_TRUE(loadedNym.CompareID(id));
-            EXPECT_TRUE(loadedNym.VerifyPseudonym(reason));
+            EXPECT_TRUE(loadedNym.VerifyPseudonym());
         }
 
         return true;
@@ -153,155 +212,39 @@ TEST_F(Test_Nym, default_params)
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_Nym, secp256k1_hd_bip47)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::secp256k1);
-    params.setCredentialType(ot::proto::CREDTYPE_HD);
-    params.SetSourceType(ot::proto::SOURCETYPE_BIP47);
-
-    const auto pNym = client_.Wallet().Nym(reason_, "Nym", params);
-
-    ASSERT_TRUE(pNym);
-
-    const auto& nym = *pNym;
-    const auto& claims = nym.Claims();
-
-    EXPECT_EQ("Nym", nym.Alias());
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::ENCRYPT_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::AUTHENTICATE_CONNECTION));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_CHILDCRED));
-    EXPECT_EQ(1, nym.Revision());
-    EXPECT_EQ("Nym", nym.Name());
-    EXPECT_EQ(ot::proto::SOURCETYPE_BIP47, nym.Source().Type());
-
-    const auto pSection = claims.Section(ot::proto::CONTACTSECTION_SCOPE);
-
-    ASSERT_TRUE(pSection);
-
-    const auto& section = *pSection;
-
-    EXPECT_EQ(1, section.Size());
-
-    const auto pGroup = section.Group(ot::proto::CITEMTYPE_INDIVIDUAL);
-
-    ASSERT_TRUE(pGroup);
-
-    const auto& group = *pGroup;
-    const auto pItem = group.PrimaryClaim();
-
-    ASSERT_TRUE(pItem);
-
-    const auto& item = *pItem;
-
-    EXPECT_EQ("Nym", item.Value());
+    EXPECT_TRUE(test_nym(
+        ot::NymParameterType::secp256k1,
+        ot::proto::CREDTYPE_HD,
+        ot::proto::SOURCETYPE_BIP47));
 }
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 TEST_F(Test_Nym, secp256k1_hd_self_signed)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::secp256k1);
-    params.setCredentialType(ot::proto::CREDTYPE_HD);
-    params.SetSourceType(ot::proto::SOURCETYPE_PUBKEY);
-
-    const auto pNym = client_.Wallet().Nym(reason_, "Nym", params);
-
-    ASSERT_TRUE(pNym);
-
-    const auto& nym = *pNym;
-    const auto& claims = nym.Claims();
-
-    EXPECT_EQ("Nym", nym.Alias());
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::ENCRYPT_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::AUTHENTICATE_CONNECTION));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_CHILDCRED));
-    EXPECT_EQ(1, nym.Revision());
-    EXPECT_EQ("Nym", nym.Name());
-    EXPECT_EQ(ot::proto::SOURCETYPE_PUBKEY, nym.Source().Type());
-
-    const auto pSection = claims.Section(ot::proto::CONTACTSECTION_SCOPE);
-
-    ASSERT_TRUE(pSection);
-
-    const auto& section = *pSection;
-
-    EXPECT_EQ(1, section.Size());
-
-    const auto pGroup = section.Group(ot::proto::CITEMTYPE_INDIVIDUAL);
-
-    ASSERT_TRUE(pGroup);
-
-    const auto& group = *pGroup;
-    const auto pItem = group.PrimaryClaim();
-
-    ASSERT_TRUE(pItem);
-
-    const auto& item = *pItem;
-
-    EXPECT_EQ("Nym", item.Value());
+    EXPECT_TRUE(test_nym(
+        ot::NymParameterType::secp256k1,
+        ot::proto::CREDTYPE_HD,
+        ot::proto::SOURCETYPE_PUBKEY));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_Nym, secp256k1_legacy_bip47)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::secp256k1);
-    params.setCredentialType(ot::proto::CREDTYPE_LEGACY);
-    params.SetSourceType(ot::proto::SOURCETYPE_BIP47);
-
-    const auto pNym = client_.Wallet().Nym(reason_, "", params);
-
-    EXPECT_FALSE(pNym);
+    EXPECT_FALSE(test_nym(
+        ot::NymParameterType::secp256k1,
+        ot::proto::CREDTYPE_LEGACY,
+        ot::proto::SOURCETYPE_BIP47));
 }
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 TEST_F(Test_Nym, secp256k1_legacy_self_signed)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::secp256k1);
-    params.setCredentialType(ot::proto::CREDTYPE_LEGACY);
-    params.SetSourceType(ot::proto::SOURCETYPE_PUBKEY);
-
-    const auto pNym = client_.Wallet().Nym(
-        reason_, "Nym", params, ot::proto::CITEMTYPE_SERVER);
-
-    ASSERT_TRUE(pNym);
-
-    const auto& nym = *pNym;
-    const auto& claims = nym.Claims();
-
-    EXPECT_EQ("Nym", nym.Alias());
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::ENCRYPT_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::AUTHENTICATE_CONNECTION));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_CHILDCRED));
-    EXPECT_EQ(1, nym.Revision());
-    EXPECT_EQ("Nym", nym.Name());
-    EXPECT_EQ(ot::proto::SOURCETYPE_PUBKEY, nym.Source().Type());
-
-    const auto pSection = claims.Section(ot::proto::CONTACTSECTION_SCOPE);
-
-    ASSERT_TRUE(pSection);
-
-    const auto& section = *pSection;
-
-    EXPECT_EQ(1, section.Size());
-
-    const auto pGroup = section.Group(ot::proto::CITEMTYPE_SERVER);
-
-    ASSERT_TRUE(pGroup);
-
-    const auto& group = *pGroup;
-    const auto pItem = group.PrimaryClaim();
-
-    ASSERT_TRUE(pItem);
-
-    const auto& item = *pItem;
-
-    EXPECT_EQ("Nym", item.Value());
+    EXPECT_TRUE(test_nym(
+        ot::NymParameterType::secp256k1,
+        ot::proto::CREDTYPE_LEGACY,
+        ot::proto::SOURCETYPE_PUBKEY));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
@@ -309,155 +252,49 @@ TEST_F(Test_Nym, secp256k1_legacy_self_signed)
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_Nym, ed25519_hd_bip47)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::ed25519);
-    params.setCredentialType(ot::proto::CREDTYPE_HD);
-    params.SetSourceType(ot::proto::SOURCETYPE_BIP47);
-
-    const auto pNym = client_.Wallet().Nym(reason_, "Nym", params);
-
-    ASSERT_TRUE(pNym);
-
-    const auto& nym = *pNym;
-    const auto& claims = nym.Claims();
-
-    EXPECT_EQ("Nym", nym.Alias());
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::ENCRYPT_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::AUTHENTICATE_CONNECTION));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_CHILDCRED));
-    EXPECT_EQ(1, nym.Revision());
-    EXPECT_EQ("Nym", nym.Name());
-    EXPECT_EQ(ot::proto::SOURCETYPE_BIP47, nym.Source().Type());
-
-    const auto pSection = claims.Section(ot::proto::CONTACTSECTION_SCOPE);
-
-    ASSERT_TRUE(pSection);
-
-    const auto& section = *pSection;
-
-    EXPECT_EQ(1, section.Size());
-
-    const auto pGroup = section.Group(ot::proto::CITEMTYPE_INDIVIDUAL);
-
-    ASSERT_TRUE(pGroup);
-
-    const auto& group = *pGroup;
-    const auto pItem = group.PrimaryClaim();
-
-    ASSERT_TRUE(pItem);
-
-    const auto& item = *pItem;
-
-    EXPECT_EQ("Nym", item.Value());
+    EXPECT_TRUE(test_nym(
+        ot::NymParameterType::ed25519,
+        ot::proto::CREDTYPE_HD,
+        ot::proto::SOURCETYPE_BIP47));
 }
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 TEST_F(Test_Nym, ed25519_hd_self_signed)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::ed25519);
-    params.setCredentialType(ot::proto::CREDTYPE_HD);
-    params.SetSourceType(ot::proto::SOURCETYPE_PUBKEY);
-
-    const auto pNym = client_.Wallet().Nym(reason_, "Nym", params);
-
-    ASSERT_TRUE(pNym);
-
-    const auto& nym = *pNym;
-    const auto& claims = nym.Claims();
-
-    EXPECT_EQ("Nym", nym.Alias());
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::ENCRYPT_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::AUTHENTICATE_CONNECTION));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_CHILDCRED));
-    EXPECT_EQ(1, nym.Revision());
-    EXPECT_EQ("Nym", nym.Name());
-    EXPECT_EQ(ot::proto::SOURCETYPE_PUBKEY, nym.Source().Type());
-
-    const auto pSection = claims.Section(ot::proto::CONTACTSECTION_SCOPE);
-
-    ASSERT_TRUE(pSection);
-
-    const auto& section = *pSection;
-
-    EXPECT_EQ(1, section.Size());
-
-    const auto pGroup = section.Group(ot::proto::CITEMTYPE_INDIVIDUAL);
-
-    ASSERT_TRUE(pGroup);
-
-    const auto& group = *pGroup;
-    const auto pItem = group.PrimaryClaim();
-
-    ASSERT_TRUE(pItem);
-
-    const auto& item = *pItem;
-
-    EXPECT_EQ("Nym", item.Value());
+    EXPECT_TRUE(test_nym(
+        ot::NymParameterType::ed25519,
+        ot::proto::CREDTYPE_HD,
+        ot::proto::SOURCETYPE_PUBKEY));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_Nym, ed25519_legacy_bip47)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::ed25519);
-    params.setCredentialType(ot::proto::CREDTYPE_LEGACY);
-    params.SetSourceType(ot::proto::SOURCETYPE_BIP47);
-
-    const auto pNym = client_.Wallet().Nym(reason_, "", params);
-
-    EXPECT_FALSE(pNym);
+    EXPECT_FALSE(test_nym(
+        ot::NymParameterType::ed25519,
+        ot::proto::CREDTYPE_LEGACY,
+        ot::proto::SOURCETYPE_BIP47));
 }
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
 TEST_F(Test_Nym, ed25519_legacy_self_signed)
 {
-    auto params = ot::NymParameters{};
-    params.setNymParameterType(ot::NymParameterType::ed25519);
-    params.setCredentialType(ot::proto::CREDTYPE_LEGACY);
-    params.SetSourceType(ot::proto::SOURCETYPE_PUBKEY);
-
-    const auto pNym = client_.Wallet().Nym(
-        reason_, "Nym", params, ot::proto::CITEMTYPE_SERVER);
-
-    ASSERT_TRUE(pNym);
-
-    const auto& nym = *pNym;
-    const auto& claims = nym.Claims();
-
-    EXPECT_EQ("Nym", nym.Alias());
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::ENCRYPT_MESSAGE));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::AUTHENTICATE_CONNECTION));
-    EXPECT_TRUE(nym.HasCapability(ot::NymCapability::SIGN_CHILDCRED));
-    EXPECT_EQ(1, nym.Revision());
-    EXPECT_EQ("Nym", nym.Name());
-    EXPECT_EQ(ot::proto::SOURCETYPE_PUBKEY, nym.Source().Type());
-
-    const auto pSection = claims.Section(ot::proto::CONTACTSECTION_SCOPE);
-
-    ASSERT_TRUE(pSection);
-
-    const auto& section = *pSection;
-
-    EXPECT_EQ(1, section.Size());
-
-    const auto pGroup = section.Group(ot::proto::CITEMTYPE_SERVER);
-
-    ASSERT_TRUE(pGroup);
-
-    const auto& group = *pGroup;
-    const auto pItem = group.PrimaryClaim();
-
-    ASSERT_TRUE(pItem);
-
-    const auto& item = *pItem;
-
-    EXPECT_EQ("Nym", item.Value());
+    EXPECT_TRUE(test_nym(
+        ot::NymParameterType::ed25519,
+        ot::proto::CREDTYPE_LEGACY,
+        ot::proto::SOURCETYPE_PUBKEY));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+TEST_F(Test_Nym, rsa_legacy_self_signed)
+{
+    EXPECT_TRUE(test_nym(
+        ot::NymParameterType::rsa,
+        ot::proto::CREDTYPE_LEGACY,
+        ot::proto::SOURCETYPE_PUBKEY));
+}
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 }  // namespace

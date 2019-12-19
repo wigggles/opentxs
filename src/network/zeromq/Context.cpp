@@ -51,57 +51,67 @@ network::zeromq::Context* Factory::ZMQContext()
 
 namespace opentxs::network::zeromq
 {
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-std::string Context::EncodePrivateZ85(
-    const opentxs::crypto::key::Ed25519& key) noexcept
+auto Context::RawToZ85(
+    const ReadView input,
+    const AllocateOutput destination) noexcept -> bool
 {
-    auto data = opentxs::Data::Factory();
-    const auto retrieved = key.GetKey(data);
-
-    OT_ASSERT(retrieved);
-
-    return RawToZ85(data->data(), data->size());
-}
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-
-std::string Context::RawToZ85(
-    const void* input,
-    const std::size_t size) noexcept
-{
-    if (0 != size % 4) {
+    if (0 != input.size() % 4) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input size.").Flush();
 
-        return {};
+        return false;
     }
 
-    const std::size_t outputSize = size + size / 4 + 1;
-    std::vector<char> output{};
-    output.resize(outputSize);
-    auto encoded = ::zmq_z85_encode(
-        output.data(), static_cast<const unsigned char*>(input), size);
+    if (false == bool(destination)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator.")
+            .Flush();
 
-    OT_ASSERT(nullptr != encoded);
+        return false;
+    }
 
-    return {output.data(), output.size()};
+    const auto target = std::size_t{input.size() + input.size() / 4 + 1};
+    auto out = destination(target);
+
+    if (false == out.valid(target)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output")
+            .Flush();
+
+        return false;
+    }
+
+    return nullptr != ::zmq_z85_encode(
+                          out.as<char>(),
+                          reinterpret_cast<const std::uint8_t*>(input.data()),
+                          input.size());
 }
 
-OTData Context::Z85ToRaw(const void* input, const std::size_t size) noexcept
+auto Context::Z85ToRaw(
+    const ReadView input,
+    const AllocateOutput destination) noexcept -> bool
 {
-    if (0 != size % 5) {
+    if (0 != input.size() % 5) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input size.").Flush();
 
-        return Data::Factory();
+        return false;
     }
 
-    const std::size_t outputSize = size * 4 / 5;
-    std::vector<std::uint8_t> output{};
-    output.resize(outputSize);
-    auto decoded =
-        ::zmq_z85_decode(output.data(), static_cast<const char*>(input));
+    if (false == bool(destination)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator.")
+            .Flush();
 
-    OT_ASSERT(nullptr != decoded);
+        return false;
+    }
 
-    return Data::Factory(output.data(), output.size());
+    const auto target = std::size_t{input.size() * 4 / 5};
+    auto out = destination(target);
+
+    if (false == out.valid(target)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output")
+            .Flush();
+
+        return false;
+    }
+
+    return ::zmq_z85_decode(out.as<std::uint8_t>(), input.data());
 }
 }  // namespace opentxs::network::zeromq
 

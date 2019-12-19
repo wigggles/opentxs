@@ -46,8 +46,7 @@ public:
         std::shared_ptr<const proto::OTXPush>&& push = {});
     OPENTXS_EXPORT static Pimpl<opentxs::otx::Reply> Factory(
         const api::internal::Core& api,
-        const proto::ServerReply serialized,
-        const PasswordPrompt& reason);
+        const proto::ServerReply serialized);
 
     OPENTXS_EXPORT virtual proto::ServerReply Contract() const = 0;
     OPENTXS_EXPORT virtual RequestNumber Number() const = 0;

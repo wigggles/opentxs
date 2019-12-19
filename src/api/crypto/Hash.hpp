@@ -12,31 +12,16 @@ class Hash final : public api::crypto::Hash
 public:
     bool Digest(
         const proto::HashType hashType,
-        const OTPassword& data,
-        OTPassword& digest) const noexcept final;
-    bool Digest(const proto::HashType hashType, const Data& data, Data& digest)
-        const noexcept final;
-    bool Digest(
-        const proto::HashType hashType,
-        const String& data,
-        Data& digest) const noexcept final;
-    bool Digest(
-        const proto::HashType hashType,
-        const std::string& data,
-        Data& digest) const noexcept final;
+        const ReadView data,
+        const AllocateOutput destination) const noexcept final;
     bool Digest(
         const proto::HashType hashType,
         const opentxs::network::zeromq::Frame& data,
-        Data& digest) const noexcept final;
-    bool Digest(
-        const proto::HashType hashType,
-        const void* data,
-        const std::size_t size,
-        Data& digest) const noexcept final;
+        const AllocateOutput destination) const noexcept final;
     bool Digest(
         const std::uint32_t type,
-        const std::string& data,
-        std::string& encodedDigest) const noexcept final;
+        const ReadView data,
+        const AllocateOutput destination) const noexcept final;
     bool HMAC(
         const proto::HashType hashType,
         const OTPassword& key,
@@ -92,31 +77,32 @@ private:
     const opentxs::crypto::Pbkdf2& pbkdf2_;
     const opentxs::crypto::Ripemd160& ripe_;
 
-    static bool Allocate(
+    static auto allocate(
         const proto::HashType hashType,
-        OTPassword& input) noexcept;
-    static bool Allocate(const proto::HashType hashType, Data& input) noexcept;
+        const AllocateOutput destination) noexcept -> WritableView;
 
-    bool Digest(
+    auto bitcoin_hash_160(
+        const void* input,
+        const std::size_t size,
+        void* output) const noexcept -> bool;
+    bool digest(
         const proto::HashType hashType,
-        const std::uint8_t* input,
-        const size_t size,
-        std::uint8_t* output) const noexcept;
+        const void* input,
+        const std::size_t size,
+        void* output) const noexcept;
     bool HMAC(
         const proto::HashType hashType,
         const std::uint8_t* input,
-        const size_t inputSize,
+        const std::size_t inputSize,
         const std::uint8_t* key,
-        const size_t keySize,
+        const std::size_t keySize,
         std::uint8_t* output) const noexcept;
-    const opentxs::crypto::HashingProvider& SHA2() const noexcept
-    {
-        return ssl_;
-    }
-    const opentxs::crypto::HashingProvider& Sodium() const noexcept
-    {
-        return sodium_;
-    }
+    auto sha_256_double(const void* input, const std::size_t size, void* output)
+        const noexcept -> bool;
+    auto sha_256_double_checksum(
+        const void* input,
+        const std::size_t size,
+        void* output) const noexcept -> bool;
 
     Hash(const Hash&) = delete;
     Hash(Hash&&) = delete;

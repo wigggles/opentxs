@@ -11,9 +11,7 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Log.hpp"
@@ -100,17 +98,16 @@ bool NymData::AddEmail(
     return nym().AddEmail(value, reason, primary, active);
 }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool NymData::AddPaymentCode(
-    [[maybe_unused]] const std::string& code,
-    [[maybe_unused]] const proto::ContactItemType currency,
-    [[maybe_unused]] const bool primary,
-    [[maybe_unused]] const bool active,
-    [[maybe_unused]] const PasswordPrompt& reason)
+    const std::string& code,
+    const proto::ContactItemType currency,
+    const bool primary,
+    const bool active,
+    const PasswordPrompt& reason)
 {
-    auto paymentCode = factory_.PaymentCode(code, reason);
+    auto paymentCode = factory_.PaymentCode(code);
 
-    if (false == paymentCode->VerifyInternally()) {
+    if (false == paymentCode->Valid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payment code.").Flush();
 
         return false;
@@ -118,7 +115,6 @@ bool NymData::AddPaymentCode(
 
     return nym().AddPaymentCode(paymentCode, currency, reason, primary, active);
 }
-#endif
 
 bool NymData::AddPhoneNumber(
     const std::string& value,

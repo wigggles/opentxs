@@ -235,9 +235,7 @@ void OTTransactionType::SetReferenceString(const String& theStr)
 // wish to verify its signature on this account, even though
 // the server may not be the actual owner.
 // So if you wish to VerifyOwner(), then call it.
-bool OTTransactionType::VerifyAccount(
-    const identity::Nym& theNym,
-    const PasswordPrompt& reason)
+bool OTTransactionType::VerifyAccount(const identity::Nym& theNym)
 {
     // Make sure that the supposed AcctID matches the one read from the file.
     //
@@ -246,7 +244,7 @@ bool OTTransactionType::VerifyAccount(
             .Flush();
 
         return false;
-    } else if (!VerifySignature(theNym, reason)) {
+    } else if (!VerifySignature(theNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error verifying signature.")
             .Flush();
 
@@ -302,16 +300,16 @@ void OTTransactionType::SetTransactionNum(std::int64_t lTransactionNum)
 }
 
 // virtual
-void OTTransactionType::CalculateNumberOfOrigin(const PasswordPrompt& reason)
+void OTTransactionType::CalculateNumberOfOrigin()
 {
     m_lNumberOfOrigin = m_lTransactionNum;
 }
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-std::int64_t OTTransactionType::GetNumberOfOrigin(const PasswordPrompt& reason)
+std::int64_t OTTransactionType::GetNumberOfOrigin()
 {
-    if (0 == m_lNumberOfOrigin) CalculateNumberOfOrigin(reason);
+    if (0 == m_lNumberOfOrigin) CalculateNumberOfOrigin();
 
     return m_lNumberOfOrigin;
 }
@@ -327,11 +325,9 @@ void OTTransactionType::SetNumberOfOrigin(std::int64_t lTransactionNum)
     m_lNumberOfOrigin = lTransactionNum;
 }
 
-void OTTransactionType::SetNumberOfOrigin(
-    OTTransactionType& setFrom,
-    const PasswordPrompt& reason)
+void OTTransactionType::SetNumberOfOrigin(OTTransactionType& setFrom)
 {
-    m_lNumberOfOrigin = setFrom.GetNumberOfOrigin(reason);
+    m_lNumberOfOrigin = setFrom.GetNumberOfOrigin();
 }
 
 // Allows you to compare any OTTransaction or Item to any other OTTransaction
@@ -350,14 +346,12 @@ void OTTransactionType::SetNumberOfOrigin(
 // ALL OF THOSE transactions and receipts will have origin #100 attached to
 // them.
 //
-bool OTTransactionType::VerifyNumberOfOrigin(
-    OTTransactionType& compareTo,
-    const PasswordPrompt& reason)
+bool OTTransactionType::VerifyNumberOfOrigin(OTTransactionType& compareTo)
 {
     // Have to use the function here, NOT the internal variable.
     // (Because subclasses may override the function.)
     //
-    return (GetNumberOfOrigin(reason) == compareTo.GetNumberOfOrigin(reason));
+    return (GetNumberOfOrigin() == compareTo.GetNumberOfOrigin());
 }
 
 // Need to know the transaction number that this is in reference to? Call this.

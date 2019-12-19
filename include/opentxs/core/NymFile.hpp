@@ -30,8 +30,7 @@ public:
     OPENTXS_EXPORT virtual std::int32_t GetOutpaymentsCount() const = 0;
     OPENTXS_EXPORT virtual const std::int64_t& GetUsageCredits() const = 0;
     OPENTXS_EXPORT virtual const identifier::Nym& ID() const = 0;
-    OPENTXS_EXPORT virtual std::string PaymentCode(
-        const PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual std::string PaymentCode() const = 0;
     OPENTXS_EXPORT virtual bool SerializeNymFile(String& output) const = 0;
 
     // Whenever a Nym sends a payment, a copy is dropped std::into his

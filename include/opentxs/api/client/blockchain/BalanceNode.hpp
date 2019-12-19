@@ -26,13 +26,11 @@ class BalanceNode
 public:
     struct Element {
         OPENTXS_EXPORT virtual std::string Address(
-            const AddressStyle format,
-            const PasswordPrompt& reason) const noexcept = 0;
+            const AddressStyle format) const noexcept = 0;
         OPENTXS_EXPORT virtual OTIdentifier Contact() const noexcept = 0;
         OPENTXS_EXPORT virtual ECKey Key() const noexcept = 0;
         OPENTXS_EXPORT virtual std::string Label() const noexcept = 0;
-        OPENTXS_EXPORT virtual OTData PubkeyHash(
-            const PasswordPrompt& reason) const noexcept = 0;
+        OPENTXS_EXPORT virtual OTData PubkeyHash() const noexcept = 0;
 
         virtual ~Element() = default;
 

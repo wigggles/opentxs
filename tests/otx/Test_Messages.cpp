@@ -33,7 +33,7 @@ public:
         , reason_c_(client_.Factory().PasswordPrompt(__FUNCTION__))
         , reason_s_(server_.Factory().PasswordPrompt(__FUNCTION__))
         , server_id_(server_.ID())
-        , server_contract_(server_.Wallet().Server(server_id_, reason_s_))
+        , server_contract_(server_.Wallet().Server(server_id_))
     {
         if (false == init_) { init(); }
     }
@@ -42,8 +42,8 @@ public:
         const contract::Server& contract,
         const ot::api::client::Manager& client)
     {
-        auto clientVersion = client.Wallet().Server(
-            server_contract_->PublicContract(), reason_c_);
+        auto clientVersion =
+            client.Wallet().Server(server_contract_->PublicContract());
         client.OTX().SetIntroductionServer(clientVersion);
     }
 
@@ -73,7 +73,7 @@ TEST_F(Test_Messages, activateRequest)
 {
     const proto::ServerRequestType type{proto::SERVERREQUEST_ACTIVATE};
     auto requestID = Identifier::Factory();
-    const auto alice = client_.Wallet().Nym(alice_nym_id_, reason_c_);
+    const auto alice = client_.Wallet().Nym(alice_nym_id_);
 
     ASSERT_TRUE(alice);
 
@@ -90,7 +90,7 @@ TEST_F(Test_Messages, activateRequest)
     requestID = request->ID();
 
     EXPECT_FALSE(requestID->empty());
-    EXPECT_TRUE(request->Validate(reason_c_));
+    EXPECT_TRUE(request->Validate());
 
     auto serialized = request->Contract();
 
@@ -106,13 +106,12 @@ TEST_F(Test_Messages, activateRequest)
 
     request->SetIncludeNym(true, reason_c_);
 
-    EXPECT_TRUE(request->Validate(reason_c_));
+    EXPECT_TRUE(request->Validate());
 
     serialized = request->Contract();
     EXPECT_TRUE(serialized.has_credentials());
 
-    const auto serverCopy =
-        ot::otx::Request::Factory(server_, serialized, reason_s_);
+    const auto serverCopy = ot::otx::Request::Factory(server_, serialized);
 
     ASSERT_TRUE(serverCopy->Nym());
     EXPECT_EQ(alice_nym_id_.get(), serverCopy->Nym()->ID());
@@ -121,7 +120,7 @@ TEST_F(Test_Messages, activateRequest)
     EXPECT_EQ(type, serverCopy->Type());
     EXPECT_EQ(1, serverCopy->Number());
     EXPECT_EQ(requestID.get(), serverCopy->ID());
-    EXPECT_TRUE(serverCopy->Validate(reason_s_));
+    EXPECT_TRUE(serverCopy->Validate());
 }
 
 TEST_F(Test_Messages, pushReply)
@@ -129,7 +128,7 @@ TEST_F(Test_Messages, pushReply)
     const std::string payload{"TEST PAYLOAD"};
     const proto::ServerReplyType type{proto::SERVERREPLY_PUSH};
     auto replyID = Identifier::Factory();
-    const auto server = server_.Wallet().Nym(server_.NymID(), reason_s_);
+    const auto server = server_.Wallet().Nym(server_.NymID());
 
     ASSERT_TRUE(server);
 
@@ -160,7 +159,7 @@ TEST_F(Test_Messages, pushReply)
     replyID = reply->ID();
 
     EXPECT_FALSE(replyID->empty());
-    EXPECT_TRUE(reply->Validate(reason_s_));
+    EXPECT_TRUE(reply->Validate());
 
     auto serialized = reply->Contract();
 
@@ -176,14 +175,13 @@ TEST_F(Test_Messages, pushReply)
 
     ASSERT_TRUE(reply->Push());
     EXPECT_EQ(payload, reply->Push()->item());
-    EXPECT_TRUE(reply->Validate(reason_s_));
+    EXPECT_TRUE(reply->Validate());
 
     serialized = reply->Contract();
 
     EXPECT_EQ(payload, serialized.push().item());
 
-    const auto aliceCopy =
-        ot::otx::Reply::Factory(client_, serialized, reason_c_);
+    const auto aliceCopy = ot::otx::Reply::Factory(client_, serialized);
 
     ASSERT_TRUE(aliceCopy->Nym());
     EXPECT_EQ(server_.NymID(), aliceCopy->Nym()->ID());
@@ -194,6 +192,6 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(replyID.get(), aliceCopy->ID());
     ASSERT_TRUE(aliceCopy->Push());
     EXPECT_EQ(payload, aliceCopy->Push()->item());
-    EXPECT_TRUE(aliceCopy->Validate(reason_c_));
+    EXPECT_TRUE(aliceCopy->Validate());
 }
 }  // namespace

@@ -253,7 +253,7 @@ bool StateMachine::check_registration(
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
 
-    auto context = client_.Wallet().ServerContext(nymID, serverID, reason_);
+    auto context = client_.Wallet().ServerContext(nymID, serverID);
     RequestNumber request{0};
 
     if (context) {
@@ -282,7 +282,7 @@ bool StateMachine::check_registration(
             " is now registered on server ")(serverID)
             .Flush();
         state_ = State::ready;
-        context = client_.Wallet().ServerContext(nymID, serverID, reason_);
+        context = client_.Wallet().ServerContext(nymID, serverID);
 
         OT_ASSERT(context)
 
@@ -300,7 +300,7 @@ bool StateMachine::check_server_contract(
     OT_ASSERT(false == serverID.empty())
 
     try {
-        client_.Wallet().Server(serverID, reason_);
+        client_.Wallet().Server(serverID);
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Server contract ")(serverID)(
             " exists.")
             .Flush();
@@ -323,9 +323,9 @@ bool StateMachine::check_server_contract(
 bool StateMachine::check_server_name(const ServerContext& context) const
 {
     try {
-        const auto server = client_.Wallet().Server(op_.ServerID(), reason_);
+        const auto server = client_.Wallet().Server(op_.ServerID());
         const auto myName = server->Alias();
-        const auto hisName = server->EffectiveName(reason_);
+        const auto hisName = server->EffectiveName();
 
         if (myName == hisName) { return true; }
 
@@ -387,8 +387,7 @@ bool StateMachine::deposit_cheque(
 
     OT_ASSERT(cheque);
 
-    const auto loaded =
-        cheque->LoadContractFromString(payment->Payment(), reason_);
+    const auto loaded = cheque->LoadContractFromString(payment->Payment());
 
     if (false == loaded) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid cheque.").Flush();
@@ -618,7 +617,7 @@ bool StateMachine::issue_unit_definition(
 {
     try {
         const auto& [unitID, label, advertise] = task;
-        auto unitDefinition = client_.Wallet().UnitDefinition(unitID, reason_);
+        auto unitDefinition = client_.Wallet().UnitDefinition(unitID);
         auto serialized = std::make_shared<proto::UnitDefinition>();
 
         OT_ASSERT(serialized);
@@ -667,7 +666,7 @@ bool StateMachine::main_loop() noexcept
     UniqueQueue<DepositPaymentTask> retryDepositPayment{};
     UniqueQueue<RegisterNymTask> retryRegisterNym{};
     UniqueQueue<SendChequeTask> retrySendCheque{};
-    auto pContext = client_.Wallet().ServerContext(nymID, serverID, reason_);
+    auto pContext = client_.Wallet().ServerContext(nymID, serverID);
 
     OT_ASSERT(pContext)
 
@@ -866,7 +865,7 @@ bool StateMachine::register_account(
     OT_ASSERT(false == unitID->empty())
 
     try {
-        client_.Wallet().UnitDefinition(unitID, reason_);
+        client_.Wallet().UnitDefinition(unitID);
     } catch (...) {
         DO_OPERATION(DownloadContract, unitID, ContractType::unit);
 
@@ -1120,8 +1119,7 @@ StateMachine::TaskDone StateMachine::write_and_send_cheque(
         return task_done(finish_task(taskID, false, error_result()));
     }
 
-    auto context =
-        client_.Wallet().ServerContext(op_.NymID(), op_.ServerID(), reason_);
+    auto context = client_.Wallet().ServerContext(op_.NymID(), op_.ServerID());
 
     OT_ASSERT(context);
 

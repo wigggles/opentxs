@@ -1095,9 +1095,7 @@ void OTSmartContract::onActivate(const PasswordPrompt& reason)
     }
 }
 
-std::string OTSmartContract::GetAcctBalance(
-    std::string from_acct_name,
-    const PasswordPrompt& reason)
+std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1284,7 +1282,7 @@ std::string OTSmartContract::GetAcctBalance(
         api_.Factory().Identifier(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
-    auto account = api_.Wallet().Account(PARTY_ACCT_ID, reason);
+    auto account = api_.Wallet().Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": ERROR loading source account.")
@@ -1296,9 +1294,7 @@ std::string OTSmartContract::GetAcctBalance(
     return std::to_string(account.get().GetBalance());
 }
 
-std::string OTSmartContract::GetUnitTypeIDofAcct(
-    std::string from_acct_name,
-    const PasswordPrompt& reason)
+std::string OTSmartContract::GetUnitTypeIDofAcct(std::string from_acct_name)
 {
     OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -1496,7 +1492,7 @@ std::string OTSmartContract::GetUnitTypeIDofAcct(
         api_.Factory().Identifier(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the instrument definition.
-    auto account = api_.Wallet().Account(PARTY_ACCT_ID, reason);
+    auto account = api_.Wallet().Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": ERROR loading source account.")
@@ -2450,7 +2446,7 @@ bool OTSmartContract::StashFunds(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem(
-        OTCronItem::LoadCronReceipt(api_, GetTransactionNum(), reason));
+        OTCronItem::LoadCronReceipt(api_, GetTransactionNum()));
 
     OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
                                           // receipt wasn't saved in the first
@@ -2486,7 +2482,7 @@ bool OTSmartContract::StashFunds(
     } else if (nullptr == pPartyNym)  // Else load the First Nym from storage,
                                       // if still not found.
     {
-        pPartyNym = api_.Wallet().Nym(PARTY_NYM_ID, reason);
+        pPartyNym = api_.Wallet().Nym(PARTY_NYM_ID);
         if (nullptr == pPartyNym) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failure loading or "
@@ -2500,7 +2496,7 @@ bool OTSmartContract::StashFunds(
 
     // In this function, pStashNym and pServerNym are always the same.
 
-    if (!pOrigCronItem->VerifyNymAsAgent(*pPartyNym, *pServerNym, reason)) {
+    if (!pOrigCronItem->VerifyNymAsAgent(*pPartyNym, *pServerNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed authorization for party "
                                            "Nym: ")(strPartyNymID)(".")
             .Flush();
@@ -2535,13 +2531,13 @@ bool OTSmartContract::StashFunds(
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingPartyInbox = thePartyInbox->LoadInbox(reason);
+        bool bSuccessLoadingPartyInbox = thePartyInbox->LoadInbox();
 
         // ...or generate them otherwise...
 
         if (true == bSuccessLoadingPartyInbox)
             bSuccessLoadingPartyInbox =
-                thePartyInbox->VerifyAccount(*pServerNym, reason);
+                thePartyInbox->VerifyAccount(*pServerNym);
         else
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed trying to load "
                                                "party's inbox.")
@@ -3408,7 +3404,7 @@ void OTSmartContract::onFinalReceipt(
             // deal with that when I get to entities and roles.
             // TODO.
             //
-            pPartyNym = pParty->LoadAuthorizingAgentNym(*pServerNym, reason);
+            pPartyNym = pParty->LoadAuthorizingAgentNym(*pServerNym);
         }
 
         // Every party SHOULD have an authorizing agent (otherwise how did that
@@ -4617,8 +4613,8 @@ bool OTSmartContract::VerifySmartContract(
             map_Accts_Already_Loaded_AS_OF_NOW,  // Accts it won't bother
                                                  // loading 'cause they are
                                                  // loaded already.
-            map_Accts_NewlyLoaded,  // Accts it had to load itself, and thus
-            reason);                // that YOU must clean up afterwards.
+            map_Accts_NewlyLoaded);  // Accts it had to load itself, and thus
+                                     // that YOU must clean up afterwards.
 
         map_Accts_Loaded_In_This_Function.insert(
             map_Accts_NewlyLoaded.begin(), map_Accts_NewlyLoaded.end());
@@ -5324,9 +5320,7 @@ void OTSmartContract::PrepareToActivate(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTSmartContract::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -5342,7 +5336,7 @@ std::int32_t OTSmartContract::ProcessXMLNode(
     //
     // NO NEED to explicitly load OTScriptable stuff here!
     //
-    nReturnVal = ot_super::ProcessXMLNode(xml, reason);
+    nReturnVal = ot_super::ProcessXMLNode(xml);
 
     if (0 != (nReturnVal)) { return nReturnVal; }
 
@@ -5547,7 +5541,7 @@ bool OTSmartContract::MoveFunds(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem =
-        OTCronItem::LoadCronReceipt(api_, GetTransactionNum(), reason);
+        OTCronItem::LoadCronReceipt(api_, GetTransactionNum());
 
     OT_ASSERT(false != bool(pOrigCronItem));  // How am I processing it now if
                                               // the receipt wasn't saved in the
@@ -5598,7 +5592,7 @@ bool OTSmartContract::MoveFunds(
     } else if (nullptr == pSenderNym)  // Else load the First Nym from storage,
                                        // if still not found.
     {
-        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID, reason);
+        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             auto strNymID = String::Factory(SENDER_NYM_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5622,7 +5616,7 @@ bool OTSmartContract::MoveFunds(
                                           // Disk and point to that, if still
                                           // not found.
     {
-        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID, reason);
+        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             auto strNymID = String::Factory(RECIPIENT_NYM_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5703,7 +5697,7 @@ bool OTSmartContract::MoveFunds(
     // - that there is an authorizing agent for that party whose SIGNATURE
     // VERIFIES on the party's signed copy.
     //
-    if (!pOrigCronItem->VerifyNymAsAgent(*pSenderNym, *pServerNym, reason)) {
+    if (!pOrigCronItem->VerifyNymAsAgent(*pSenderNym, *pServerNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed authorization for sender Nym: ")(strSenderNymID)(".")
             .Flush();
@@ -5711,7 +5705,7 @@ bool OTSmartContract::MoveFunds(
         return false;
     }
 
-    if (!pOrigCronItem->VerifyNymAsAgent(*pRecipientNym, *pServerNym, reason)) {
+    if (!pOrigCronItem->VerifyNymAsAgent(*pRecipientNym, *pServerNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed authorization for recipient Nym: ")(strRecipientNymID)(
             ".")
@@ -5821,7 +5815,7 @@ bool OTSmartContract::MoveFunds(
     // already called in LoadExistingAccount().
     //
     else if (
-        !sourceAccount.get().VerifySignature(*pServerNym, reason) ||
+        !sourceAccount.get().VerifySignature(*pServerNym) ||
         !VerifyNymAsAgentForAccount(*pSenderNym, sourceAccount.get())) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": ERROR verifying signature or "
                                            "ownership on source account.")
@@ -5829,7 +5823,7 @@ bool OTSmartContract::MoveFunds(
         FlagForRemoval();  // Remove it from future Cron processing, please.
         return false;
     } else if (
-        !recipientAccount.get().VerifySignature(*pServerNym, reason) ||
+        !recipientAccount.get().VerifySignature(*pServerNym) ||
         !VerifyNymAsAgentForAccount(*pRecipientNym, recipientAccount.get())) {
         LogNormal(OT_METHOD)(__FUNCTION__)(": ERROR verifying signature or "
                                            "ownership on recipient account.")
@@ -5858,15 +5852,14 @@ bool OTSmartContract::MoveFunds(
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox(reason);
-        bool bSuccessLoadingRecipientInbox =
-            theRecipientInbox->LoadInbox(reason);
+        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox();
+        bool bSuccessLoadingRecipientInbox = theRecipientInbox->LoadInbox();
 
         // ...or generate them otherwise...
 
         if (true == bSuccessLoadingSenderInbox)
             bSuccessLoadingSenderInbox =
-                theSenderInbox->VerifyAccount(*pServerNym, reason);
+                theSenderInbox->VerifyAccount(*pServerNym);
         else
             LogOutput(OT_METHOD)(__FUNCTION__)(": ERROR loading sender inbox "
                                                "ledger.")
@@ -5874,7 +5867,7 @@ bool OTSmartContract::MoveFunds(
 
         if (true == bSuccessLoadingRecipientInbox) {
             bSuccessLoadingRecipientInbox =
-                theRecipientInbox->VerifyAccount(*pServerNym, reason);
+                theRecipientInbox->VerifyAccount(*pServerNym);
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": ERROR loading recipient inbox "

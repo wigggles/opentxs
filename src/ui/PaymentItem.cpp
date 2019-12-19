@@ -173,9 +173,9 @@ void PaymentItem::load() noexcept
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
             text = api_.Activity().PaymentText(
-                nym_id_, item_id_.str(), account_id_.str(), reason);
+                nym_id_, item_id_.str(), account_id_.str());
             const auto [cheque, contract] = api_.Activity().Cheque(
-                nym_id_, item_id_.str(), account_id_.str(), reason);
+                nym_id_, item_id_.str(), account_id_.str());
 
             if (cheque) {
                 memo = cheque->GetMemo().Get();

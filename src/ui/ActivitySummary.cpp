@@ -232,8 +232,7 @@ void ActivitySummary::process_thread(
 
 void ActivitySummary::startup() noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    const auto threads = api_.Activity().Threads(primary_id_, reason, false);
+    const auto threads = api_.Activity().Threads(primary_id_, false);
     LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(threads.size())(
         " threads.")
         .Flush();

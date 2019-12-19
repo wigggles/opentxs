@@ -32,11 +32,8 @@
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -153,7 +150,7 @@ bool VerifyBalanceReceipt(
 
     auto strTransaction = String::Factory(strFileContents.c_str());
 
-    if (!tranOut->LoadContractFromString(strTransaction, reason)) {
+    if (!tranOut->LoadContractFromString(strTransaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load balance "
                                            "statement: ")(szFolder1name)(
             PathSeparator())(szFolder2name)(PathSeparator())(szFilename)(".")
@@ -188,7 +185,7 @@ bool VerifyBalanceReceipt(
             return false;
         }
 
-        transaction = LoadBoxReceipt(api, *tranOut, lBoxType, reason);
+        transaction = LoadBoxReceipt(api, *tranOut, lBoxType);
         if (false == bool(transaction)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading from "
                                                "abbreviated transaction: "
@@ -199,7 +196,7 @@ bool VerifyBalanceReceipt(
     } else
         transaction.reset(tranOut.release());
 
-    if (!transaction->VerifySignature(SERVER_NYM, reason)) {
+    if (!transaction->VerifySignature(SERVER_NYM)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to verify "
             "SERVER_NYM signature on balance statement: ")(szFolder1name)(
@@ -273,7 +270,7 @@ void OT_API::AddHashesToTransaction(
     const Identifier& accountid,
     const PasswordPrompt& reason) const
 {
-    auto account = api_.Wallet().Account(accountid, reason);
+    auto account = api_.Wallet().Account(accountid);
     AddHashesToTransaction(transaction, context, account.get(), reason);
 }
 
@@ -408,8 +405,7 @@ bool OT_API::IsNym_RegisteredAtServer(
         OT_FAIL;
     }
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto context = api_.Wallet().ServerContext(NYM_ID, NOTARY_ID, reason);
+    auto context = api_.Wallet().ServerContext(NYM_ID, NOTARY_ID);
 
     if (context) { return (0 != context->Request()); }
 
@@ -438,7 +434,7 @@ bool OT_API::VerifyAccountReceipt(
     const Identifier& ACCOUNT_ID) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto context = api_.Wallet().ServerContext(NYM_ID, NOTARY_ID, reason);
+    auto context = api_.Wallet().ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(NYM_ID)(
@@ -464,7 +460,7 @@ bool OT_API::Create_SmartContract(
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
@@ -505,7 +501,7 @@ bool OT_API::SmartContract_SetDates(
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
@@ -513,7 +509,7 @@ bool OT_API::SmartContract_SetDates(
     // to
     // cleanup.)
 
-    auto contract{api_.Factory().CronItem(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().CronItem(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract: ")(
             THE_CONTRACT)(".")
@@ -550,14 +546,14 @@ bool OT_API::SmartContract_AddParty(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract(api_.Factory().Scriptable(THE_CONTRACT, reason));
+    auto contract(api_.Factory().Scriptable(THE_CONTRACT));
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract: ")(
             THE_CONTRACT)(".")
@@ -645,13 +641,13 @@ bool OT_API::SmartContract_RemoveParty(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) return false;
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract: ")(
             THE_CONTRACT)(".")
@@ -690,14 +686,14 @@ bool OT_API::SmartContract_AddAccount(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -800,14 +796,14 @@ bool OT_API::SmartContract_RemoveAccount(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -820,11 +816,11 @@ bool OT_API::SmartContract_RemoveAccount(
     OTParty* party = contract->GetParty(str_party_name);
 
     if (nullptr == party) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failure: Party "
-                                           "doesn't exist.")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failure: Party doesn't exist.")
             .Flush();
         return false;
     }
+
     const std::string str_name(ACCT_NAME.Get());
 
     if (party->RemoveAccount(str_name)) {
@@ -852,10 +848,10 @@ std::int32_t OT_API::SmartContract_CountNumsNeeded(
 
     std::int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
+
     if (false == bool(contract)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading "
-                                           "smart contract.")
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract.")
             .Flush();
         return nReturnValue;
     }
@@ -882,7 +878,7 @@ bool OT_API::SmartContract_ConfirmAccount(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
@@ -890,13 +886,13 @@ bool OT_API::SmartContract_ConfirmAccount(
     // to
     // cleanup.)
     const auto accountID = api_.Factory().Identifier(ACCT_ID);
-    auto account = api_.Wallet().Account(accountID, reason);
+    auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) return false;
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    auto pScriptable{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto pScriptable{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(pScriptable)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract: ")(
             THE_CONTRACT)(".")
@@ -1051,7 +1047,7 @@ bool OT_API::SmartContract_ConfirmAccount(
 bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract: ")(
             THE_CONTRACT)(".")
@@ -1065,7 +1061,7 @@ bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 bool OT_API::Smart_AreAssetTypesSpecified(const String& THE_CONTRACT) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract: ")(
             THE_CONTRACT)(".")
@@ -1098,7 +1094,7 @@ bool OT_API::SmartContract_ConfirmParty(
     // to
     // cleanup.)
 
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart contract: ")(
             THE_CONTRACT)(".")
@@ -1189,7 +1185,7 @@ bool OT_API::SmartContract_ConfirmParty(
     //  pMessage->m_strNotaryID        = strNotaryID;
     pMessage->m_ascPayload->SetString(strInstrument);
 
-    auto pNym = api_.Wallet().Nym(nymfile.get().ID(), reason);
+    auto pNym = api_.Wallet().Nym(nymfile.get().ID());
     OT_ASSERT(nullptr != pNym)
 
     pMessage->SignContract(*pNym, reason);
@@ -1214,12 +1210,12 @@ bool OT_API::SmartContract_AddBylaw(
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
     const char* BYLAW_LANGUAGE = "chai";  // todo hardcoding.
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
     if (false == bool(nym)) return false;
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart "
                                            "contract: ")(THE_CONTRACT)(".")
@@ -1272,14 +1268,14 @@ bool OT_API::SmartContract_RemoveBylaw(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart "
                                            "contract: ")(THE_CONTRACT)(".")
@@ -1320,14 +1316,14 @@ bool OT_API::SmartContract_AddHook(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart "
                                            "contract: ")(THE_CONTRACT)(".")
@@ -1382,14 +1378,14 @@ bool OT_API::SmartContract_RemoveHook(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading smart "
                                            "contract: ")(THE_CONTRACT)(".")
@@ -1440,14 +1436,14 @@ bool OT_API::SmartContract_AddCallback(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -1506,14 +1502,14 @@ bool OT_API::SmartContract_RemoveCallback(
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -1562,14 +1558,14 @@ bool OT_API::SmartContract_AddClause(
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -1631,14 +1627,14 @@ bool OT_API::SmartContract_UpdateClause(
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -1686,14 +1682,14 @@ bool OT_API::SmartContract_RemoveClause(
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -1749,14 +1745,14 @@ bool OT_API::SmartContract_AddVariable(
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -1859,14 +1855,14 @@ bool OT_API::SmartContract_RemoveVariable(
     String& strOutput) const
 {
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID, reason);
+    auto nym = api_.Wallet().Nym(SIGNER_NYM_ID);
 
     if (false == bool(nym)) { return false; }
 
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{api_.Factory().Scriptable(THE_CONTRACT, reason)};
+    auto contract{api_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error loading "
@@ -1920,7 +1916,7 @@ Cheque* OT_API::WriteCheque(
     auto context =
         api_.Wallet().mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID, reason);
     auto nym = context.get().Nym();
-    auto account = api_.Wallet().Account(SENDER_accountID, reason);
+    auto account = api_.Wallet().Account(SENDER_accountID);
 
     if (false == bool(account)) { return nullptr; }
 
@@ -1980,7 +1976,7 @@ Cheque* OT_API::WriteCheque(
 
     pCheque->SignContract(*nym, reason);
     pCheque->SaveContract();
-    auto workflow = workflow_.WriteCheque(*pCheque, reason);
+    auto workflow = workflow_.WriteCheque(*pCheque);
 
     if (workflow->empty()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create workflow.")
@@ -2064,7 +2060,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
         RECIPIENT_NYM_ID, NOTARY_ID, reason);
     auto nymfile = context.get().mutable_Nymfile(reason);
     auto nym = context.get().Nym();
-    auto account = api_.Wallet().Account(RECIPIENT_accountID, reason);
+    auto account = api_.Wallet().Account(RECIPIENT_accountID);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
@@ -2257,7 +2253,7 @@ bool OT_API::ConfirmPaymentPlan(
         api_.Wallet().mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID, reason);
     auto nymfile = context.get().mutable_Nymfile(reason);
     auto nym = context.get().Nym();
-    auto account = api_.Wallet().Account(SENDER_accountID, reason);
+    auto account = api_.Wallet().Account(SENDER_accountID);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
@@ -2267,7 +2263,7 @@ bool OT_API::ConfirmPaymentPlan(
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    auto pMerchantNym = api_.Wallet().Nym(RECIPIENT_NYM_ID, reason);
+    auto pMerchantNym = api_.Wallet().Nym(RECIPIENT_NYM_ID);
 
     if (!pMerchantNym)  // We don't have this Nym in our storage already.
     {
@@ -2283,11 +2279,7 @@ bool OT_API::ConfirmPaymentPlan(
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed = thePlan.Confirm(
-        context.get(),
-        account.get(),
-        RECIPIENT_NYM_ID,
-        reason,
-        pMerchantNym.get());
+        context.get(), account.get(), RECIPIENT_NYM_ID, pMerchantNym.get());
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from
     // nymfile!
@@ -2348,9 +2340,8 @@ std::unique_ptr<Ledger> OT_API::LoadNymbox(
     const identifier::Server& NOTARY_ID,
     const identifier::Nym& NYM_ID) const
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
-    auto context = api_.Wallet().ServerContext(NYM_ID, NOTARY_ID, reason);
+    auto context = api_.Wallet().ServerContext(NYM_ID, NOTARY_ID);
 
     if (false == bool(context)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(NYM_ID)(
@@ -2367,7 +2358,7 @@ std::unique_ptr<Ledger> OT_API::LoadNymbox(
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API.");
 
-    if (pLedger->LoadNymbox(reason) && pLedger->VerifyAccount(*nym, reason)) {
+    if (pLedger->LoadNymbox() && pLedger->VerifyAccount(*nym)) {
 
         return pLedger;
     }
@@ -2590,11 +2581,11 @@ Basket* OT_API::GenerateBasketExchange(
     auto nym = context.get().Nym();
 
     try {
-        auto contract = api_.Wallet().BasketContract(
-            BASKET_INSTRUMENT_DEFINITION_ID, reason);
+        auto contract =
+            api_.Wallet().BasketContract(BASKET_INSTRUMENT_DEFINITION_ID);
         // By this point, contract is a good pointer, and is on the wallet. (No
         // need to cleanup.)
-        auto account = api_.Wallet().Account(accountID, reason);
+        auto account = api_.Wallet().Account(accountID);
 
         if (false == bool(account)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.")
@@ -2685,12 +2676,12 @@ bool OT_API::AddBasketExchangeItem(
     auto nym = context.get().Nym();
 
     try {
-        api_.Wallet().UnitDefinition(INSTRUMENT_DEFINITION_ID, reason);
+        api_.Wallet().UnitDefinition(INSTRUMENT_DEFINITION_ID);
     } catch (...) {
         return false;
     }
 
-    auto account = api_.Wallet().Account(ASSET_ACCOUNT_ID, reason);
+    auto account = api_.Wallet().Account(ASSET_ACCOUNT_ID);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
@@ -2883,7 +2874,7 @@ CommandResult OT_API::exchangeBasket(
     const auto& serverID = context.Server();
 
     try {
-        api_.Wallet().BasketContract(BASKET_INSTRUMENT_DEFINITION_ID, reason);
+        api_.Wallet().BasketContract(BASKET_INSTRUMENT_DEFINITION_ID);
     } catch (...) {
 
         return output;
@@ -2894,12 +2885,12 @@ CommandResult OT_API::exchangeBasket(
     OT_ASSERT(false != bool(basket));
 
     bool validBasket = (0 < BASKET_INFO.GetLength());
-    validBasket &= basket->LoadContractFromString(BASKET_INFO, reason);
+    validBasket &= basket->LoadContractFromString(BASKET_INFO);
 
     if (false == validBasket) { return output; }
 
     const auto& accountID(basket->GetRequestAccountID());
-    auto account = api_.Wallet().Account(accountID, reason);
+    auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
@@ -2907,7 +2898,7 @@ CommandResult OT_API::exchangeBasket(
         return output;
     }
 
-    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym, reason));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
 
     if (false == bool(inbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading inbox for "
@@ -2917,7 +2908,7 @@ CommandResult OT_API::exchangeBasket(
         return output;
     }
 
-    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym, reason));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (false == bool(outbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading outbox for "
@@ -3016,7 +3007,7 @@ CommandResult OT_API::exchangeBasket(
     transaction->SignContract(nym, reason);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
-    ledger->GenerateLedger(accountID, serverID, ledgerType::message, reason);
+    ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
     ledger->SignContract(nym, reason);
@@ -3106,8 +3097,7 @@ CommandResult OT_API::payDividend(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto dividendAccount =
-        api_.Wallet().Account(DIVIDEND_FROM_accountID, reason);
+    auto dividendAccount = api_.Wallet().Account(DIVIDEND_FROM_accountID);
 
     if (false == bool(dividendAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load dividend account.")
@@ -3117,7 +3107,7 @@ CommandResult OT_API::payDividend(
     }
 
     try {
-        api_.Wallet().UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID, reason);
+        api_.Wallet().UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID);
     } catch (...) {
 
         return output;
@@ -3125,7 +3115,7 @@ CommandResult OT_API::payDividend(
 
     // issuerAccount is not owned by this function
     auto issuerAccount =
-        api_.Wallet().IssuerAccount(SHARES_INSTRUMENT_DEFINITION_ID, reason);
+        api_.Wallet().IssuerAccount(SHARES_INSTRUMENT_DEFINITION_ID);
 
     if (false == bool(issuerAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3254,7 +3244,7 @@ CommandResult OT_API::payDividend(
        transmitting it.)
         */
 
-    std::unique_ptr<Ledger> inbox(dividendAccount.get().LoadInbox(nym, reason));
+    std::unique_ptr<Ledger> inbox(dividendAccount.get().LoadInbox(nym));
 
     if (false == bool(inbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3265,8 +3255,7 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    std::unique_ptr<Ledger> outbox(
-        dividendAccount.get().LoadOutbox(nym, reason));
+    std::unique_ptr<Ledger> outbox(dividendAccount.get().LoadOutbox(nym));
 
     if (nullptr == outbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3340,7 +3329,7 @@ CommandResult OT_API::payDividend(
     auto ledger{
         api_.Factory().Ledger(nymID, DIVIDEND_FROM_accountID, serverID)};
     ledger->GenerateLedger(
-        DIVIDEND_FROM_accountID, serverID, ledgerType::message, reason);
+        DIVIDEND_FROM_accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
     ledger->SignContract(nym, reason);
@@ -3393,7 +3382,7 @@ CommandResult OT_API::withdrawVoucher(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = api_.Wallet().Account(accountID, reason);
+    auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
@@ -3450,8 +3439,8 @@ CommandResult OT_API::withdrawVoucher(
         strChequeMemo,
         (strRecipientNymID->GetLength() > 2) ? RECIPIENT_NYM_ID
                                              : api_.Factory().NymID().get());
-    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym, reason));
-    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym, reason));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (nullptr == inbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading inbox for acct ")(
@@ -3506,7 +3495,7 @@ CommandResult OT_API::withdrawVoucher(
     transaction->SignContract(nym, reason);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
-    ledger->GenerateLedger(accountID, serverID, ledgerType::message, reason);
+    ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
     ledger->SignContract(nym, reason);
@@ -3567,9 +3556,8 @@ CommandResult OT_API::depositPaymentPlan(
 
     OT_ASSERT(false != bool(plan));
 
-    const bool validPlan =
-        plan->LoadContractFromString(THE_PAYMENT_PLAN, reason) &&
-        plan->VerifySignature(nym, reason);
+    const bool validPlan = plan->LoadContractFromString(THE_PAYMENT_PLAN) &&
+                           plan->VerifySignature(nym);
 
     if (false == validPlan) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3613,7 +3601,7 @@ CommandResult OT_API::depositPaymentPlan(
     const auto& accountID =
         bCancelling ? plan->GetRecipientAcctID() : plan->GetSenderAcctID();
 
-    auto account = api_.Wallet().Account(accountID, reason);
+    auto account = api_.Wallet().Account(accountID);
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
 
@@ -3647,8 +3635,8 @@ CommandResult OT_API::depositPaymentPlan(
 
     std::shared_ptr<Item> pstatement{statement.release()};
     transaction->AddItem(pstatement);
-    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym, reason));
-    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym, reason));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
     AddHashesToTransaction(*transaction, context, account.get(), reason);
     transaction->SignContract(nym, reason);
     transaction->SaveContract();
@@ -3656,7 +3644,7 @@ CommandResult OT_API::depositPaymentPlan(
 
     OT_ASSERT(false != bool(ledger));
 
-    ledger->GenerateLedger(accountID, serverID, ledgerType::message, reason);
+    ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
     ledger->SignContract(nym, reason);
@@ -3757,7 +3745,7 @@ CommandResult OT_API::activateSmartContract(
     std::unique_ptr<OTSmartContract> contract =
         api_.Factory().SmartContract(serverID);
 
-    if (false == contract->LoadContractFromString(THE_SMART_CONTRACT, reason)) {
+    if (false == contract->LoadContractFromString(THE_SMART_CONTRACT)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load smart contract from string: ")(
             THE_SMART_CONTRACT)(".")
@@ -4028,7 +4016,7 @@ CommandResult OT_API::activateSmartContract(
     transaction->SignContract(nym, reason);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
-    ledger->GenerateLedger(accountID, serverID, ledgerType::message, reason);
+    ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
     ledger->SignContract(nym, reason);
@@ -4180,8 +4168,7 @@ CommandResult OT_API::cancelCronItem(
 
     // set up the ledger
     auto ledger{api_.Factory().Ledger(nymID, ASSET_ACCOUNT_ID, serverID)};
-    ledger->GenerateLedger(
-        ASSET_ACCOUNT_ID, serverID, ledgerType::message, reason);
+    ledger->GenerateLedger(ASSET_ACCOUNT_ID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
     ledger->SignContract(nym, reason);
@@ -4247,7 +4234,7 @@ CommandResult OT_API::issueMarketOffer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto assetAccount = api_.Wallet().Account(ASSET_ACCOUNT_ID, reason);
+    auto assetAccount = api_.Wallet().Account(ASSET_ACCOUNT_ID);
 
     if (false == bool(assetAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load asset account.")
@@ -4256,7 +4243,7 @@ CommandResult OT_API::issueMarketOffer(
         return output;
     }
 
-    auto currencyAccount = api_.Wallet().Account(CURRENCY_ACCOUNT_ID, reason);
+    auto currencyAccount = api_.Wallet().Account(CURRENCY_ACCOUNT_ID);
 
     if (false == bool(currencyAccount)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load currency account.")
@@ -4540,8 +4527,7 @@ CommandResult OT_API::issueMarketOffer(
 
     OT_ASSERT(false != bool(ledger));
 
-    ledger->GenerateLedger(
-        ASSET_ACCOUNT_ID, serverID, ledgerType::message, reason);
+    ledger->GenerateLedger(ASSET_ACCOUNT_ID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
     ledger->SignContract(nym, reason);
@@ -4806,7 +4792,7 @@ CommandResult OT_API::deleteAssetAccount(
     reply.reset();
 
     {
-        auto account = api_.Wallet().Account(ACCOUNT_ID, reason);
+        auto account = api_.Wallet().Account(ACCOUNT_ID);
 
         if (false == bool(account)) { return output; }
     }
@@ -4985,7 +4971,7 @@ bool OT_API::IncludeResponse(
 
     auto& nym = *context.Nym();
     auto& serverNym = context.RemoteNym();
-    const bool validSource = source.VerifyAccount(serverNym, reason);
+    const bool validSource = source.VerifyAccount(serverNym);
 
     if (!validSource) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5091,7 +5077,7 @@ bool OT_API::FinalizeProcessInbox(
     // Below this point, any failure will result in the transaction
     // number being recovered
     Cleanup cleanup(*processInbox, context);
-    auto account = api_.Wallet().Account(accountID, reason);
+    auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load account.").Flush();
@@ -5311,8 +5297,7 @@ bool OT_API::find_standard(
         case itemType::acceptItemReceipt: {
             auto reference = String::Factory();
             serverTransaction.GetReferenceString(reference);
-            auto original{
-                api_.Factory().Item(reference, notaryID, number, reason)};
+            auto original{api_.Factory().Item(reference, notaryID, number)};
 
             if (false == bool(original)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5343,8 +5328,7 @@ bool OT_API::find_standard(
                         return false;
                     }
 
-                    if (false ==
-                        cheque->LoadContractFromString(attachment, reason)) {
+                    if (false == cheque->LoadContractFromString(attachment)) {
                         LogOutput(OT_METHOD)(__FUNCTION__)(
                             ": Unable to instantiate cheque.")
                             .Flush();
@@ -5355,7 +5339,7 @@ bool OT_API::find_standard(
                     issuedNumber = cheque->GetTransactionNum();
                 } break;
                 case itemType::acceptPending: {
-                    issuedNumber = original->GetNumberOfOrigin(reason);
+                    issuedNumber = original->GetNumberOfOrigin();
                 } break;
                 default: {
                     auto typeName = String::Factory();
@@ -5539,7 +5523,6 @@ TransactionNumber OT_API::get_origin(
     const OTTransaction& source,
     String& note) const
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto sourceType = source.GetType();
     TransactionNumber originNumber{0};
 
@@ -5566,7 +5549,7 @@ TransactionNumber OT_API::get_origin(
             }
 
             auto original{api_.Factory().Item(
-                reference, notaryID, source.GetReferenceToNum(), reason)};
+                reference, notaryID, source.GetReferenceToNum())};
 
             if (false == bool(original)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5604,7 +5587,7 @@ TransactionNumber OT_API::get_origin(
                 }
             }
 
-            originNumber = original->GetNumberOfOrigin(reason);
+            originNumber = original->GetNumberOfOrigin();
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(

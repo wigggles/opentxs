@@ -13,7 +13,17 @@ class Secp256k1 final : virtual public crypto::Secp256k1,
                         public EcdsaProvider
 {
 public:
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const final;
+    bool RandomKeypair(
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey,
+        const proto::KeyRole role,
+        const NymParameters& options,
+        const AllocateOutput params) const noexcept final;
+    bool SharedSecret(
+        const key::Asymmetric& publicKey,
+        const key::Asymmetric& privateKey,
+        const PasswordPrompt& reason,
+        OTPassword& secret) const noexcept final;
     bool Sign(
         const api::internal::Core& api,
         const Data& plaintext,
@@ -26,8 +36,7 @@ public:
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
-        const proto::HashType hashType,
-        const PasswordPrompt& reason) const final;
+        const proto::HashType hashType) const final;
 
     void Init() final;
 
@@ -36,23 +45,19 @@ public:
 private:
     friend opentxs::Factory;
 
-    static const int PrivateKeySize = 32;
-    static const int PublicKeySize = 33;
+    static const std::size_t PrivateKeySize{32};
+    static const std::size_t PublicKeySize{33};
     static bool Initialized_;
 
     secp256k1_context* context_;
     const api::crypto::Util& ssl_;
 
-    bool ParsePublicKey(const Data& input, secp256k1_pubkey& output) const;
-    bool ECDH(
-        const Data& publicKey,
-        const OTPassword& privateKey,
-        OTPassword& secret) const final;
-    bool DataToECSignature(
-        const Data& inSignature,
-        secp256k1_ecdsa_signature& outSignature) const;
-    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
-        const final;
+    auto hash(const proto::HashType type, const Data& data) const
+        noexcept(false) -> OTData;
+    auto parsed_public_key(const ReadView bytes) const noexcept(false)
+        -> ::secp256k1_pubkey;
+    auto parsed_signature(const ReadView bytes) const noexcept(false)
+        -> ::secp256k1_ecdsa_signature;
 
     Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl);
     Secp256k1() = delete;

@@ -10,9 +10,8 @@
 
 #if OT_CRYPTO_USING_OPENSSL
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#endif
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/Pbkdf2.hpp"
 #include "opentxs/crypto/library/Ripemd160.hpp"
@@ -28,22 +27,6 @@ class OpenSSL : virtual public HashingProvider,
 #endif
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    virtual bool EncryptSessionKey(
-        const mapOfAsymmetricKeys& RecipPubKeys,
-        Data& plaintext,
-        Data& dataOutput,
-        const PasswordPrompt& reason) const = 0;
-    virtual bool DecryptSessionKey(
-        Data& dataInput,
-        const identity::Nym& theRecipient,
-        Data& plaintext,
-        const PasswordPrompt& reason) const = 0;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-
-    virtual void Cleanup() = 0;
-    virtual void Init() = 0;
-
     ~OpenSSL() override = default;
 
 protected:

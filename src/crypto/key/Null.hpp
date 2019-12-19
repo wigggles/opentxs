@@ -11,6 +11,9 @@
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/HD.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Keypair.hpp"
 
 #include "crypto/library/AsymmetricProviderNull.hpp"
@@ -60,50 +63,71 @@ public:
 class Null : virtual public key::Asymmetric
 {
 public:
-    OTData CalculateHash(const proto::HashType, const PasswordPrompt&)
-        const final
+    std::unique_ptr<Asymmetric> asPublic() const noexcept final { return {}; }
+    OTData CalculateHash(const proto::HashType, const PasswordPrompt&) const
+        noexcept final
     {
         return Data::Factory();
     }
-    bool CalculateID(Identifier&) const final { return false; }
-    const opentxs::crypto::AsymmetricProvider& engine() const final { throw; }
-    const OTSignatureMetadata* GetMetadata() const final { return nullptr; }
-    bool hasCapability(const NymCapability&) const final { return false; }
-    bool HasPrivate() const final { return false; }
-    bool HasPublic() const final { return false; }
-    proto::AsymmetricKeyType keyType() const final
-    {
-        return proto::AKEYTYPE_NULL;
-    }
-    bool Open(
-        crypto::key::Asymmetric&,
-        crypto::key::Symmetric&,
-        PasswordPrompt&,
-        const PasswordPrompt&) const final
+    bool CalculateID(Identifier&) const noexcept final { return false; }
+    bool CalculateTag(
+        const identity::Authority&,
+        const proto::AsymmetricKeyType,
+        const PasswordPrompt&,
+        std::uint32_t&,
+        OTPassword&) const noexcept final
     {
         return false;
     }
-    const std::string Path() const final { return {}; }
-    bool Path(proto::HDPath&) const final { return false; }
-    const proto::KeyRole& Role() const final { throw; }
-    std::shared_ptr<proto::AsymmetricKey> Serialize() const final
+    bool CalculateTag(
+        const Asymmetric&,
+        const Identifier&,
+        const PasswordPrompt&,
+        std::uint32_t&) const noexcept final
+    {
+        return false;
+    }
+    bool CalculateSessionPassword(
+        const Asymmetric&,
+        const PasswordPrompt&,
+        OTPassword&) const noexcept final
+    {
+        return false;
+    }
+    const opentxs::crypto::AsymmetricProvider& engine() const noexcept final
+    {
+        abort();
+    }
+    const OTSignatureMetadata* GetMetadata() const noexcept final
     {
         return nullptr;
     }
-    OTData SerializeKeyToData(const proto::AsymmetricKey&) const final
-    {
-        return Data::Factory();
-    }
-    proto::HashType SigHashType() const final { return proto::HASHTYPE_NONE; }
-    bool Sign(
-        const Data&,
-        proto::Signature&,
-        const PasswordPrompt&,
-        const OTPassword* = nullptr,
-        const String& = String::Factory(""),
-        const proto::SignatureRole = proto::SIGROLE_ERROR) const final
+    bool hasCapability(const NymCapability&) const noexcept final
     {
         return false;
+    }
+    bool HasPrivate() const noexcept final { return false; }
+    bool HasPublic() const noexcept final { return false; }
+    proto::AsymmetricKeyType keyType() const noexcept final
+    {
+        return proto::AKEYTYPE_NULL;
+    }
+    ReadView Params() const noexcept final { return {}; }
+    const std::string Path() const noexcept final { return {}; }
+    bool Path(proto::HDPath&) const noexcept final { return false; }
+    ReadView PrivateKey(const PasswordPrompt&) const noexcept final
+    {
+        return {};
+    }
+    ReadView PublicKey() const noexcept final { return {}; }
+    proto::KeyRole Role() const noexcept final { return {}; }
+    std::shared_ptr<proto::AsymmetricKey> Serialize() const noexcept final
+    {
+        return nullptr;
+    }
+    proto::HashType SigHashType() const noexcept final
+    {
+        return proto::HASHTYPE_NONE;
     }
     bool Sign(
         const GetPreimage,
@@ -112,43 +136,32 @@ public:
         const Identifier&,
         const PasswordPrompt&,
         proto::KeyRole,
-        const proto::HashType) const final
+        const proto::HashType) const noexcept final
     {
         return false;
     }
-    bool TransportKey(Data&, OTPassword&, const PasswordPrompt&) const final
+    bool TransportKey(Data&, OTPassword&, const PasswordPrompt&) const
+        noexcept final
     {
         return false;
     }
-    bool Verify(const Data&, const proto::Signature&, const PasswordPrompt&)
-        const final
+    bool Verify(const Data&, const proto::Signature&) const noexcept final
     {
         return false;
     }
-    VersionNumber Version() const final { return {}; }
+    VersionNumber Version() const noexcept final { return {}; }
 
-    void Release() final {}
-    void ReleaseKey() final {}
-    bool Seal(
-        const opentxs::api::Core&,
-        OTAsymmetricKey&,
-        crypto::key::Symmetric&,
-        const PasswordPrompt&,
-        PasswordPrompt&) const final
+    operator bool() const noexcept override { return false; }
+    bool operator==(const proto::AsymmetricKey&) const noexcept final
     {
         return false;
     }
-    void SetAsPublic() final {}
-    void SetAsPrivate() final {}
-
-    operator bool() const override { return false; }
-    bool operator==(const proto::AsymmetricKey&) const final { return false; }
 
     Null() = default;
     ~Null() override = default;
 
 private:
-    Null* clone() const override { return new Null; }
+    Null* clone() const noexcept override { return new Null; }
 };
 
 class NullEC : virtual public key::EllipticCurve, public Null
@@ -156,50 +169,50 @@ class NullEC : virtual public key::EllipticCurve, public Null
 public:
     operator bool() const noexcept final { return false; }
 
-    std::unique_ptr<EllipticCurve> asPublic(const PasswordPrompt&) const final
+    std::unique_ptr<EllipticCurve> asPublicEC() const noexcept final
     {
         return {};
     }
-    const crypto::EcdsaProvider& ECDSA() const final { throw; }
-    bool GetKey(Data&) const final { return {}; }
-    bool GetKey(proto::Ciphertext&) const final { return {}; }
-    OTData PrivateKey(const PasswordPrompt&) const final
-    {
-        return Data::Factory();
-    }
-    OTData PublicKey(const PasswordPrompt&) const final
-    {
-        return Data::Factory();
-    }
-
-    bool SetKey(const Data&) final { return {}; }
-    bool SetKey(std::unique_ptr<proto::Ciphertext>&) final { return {}; }
 
     NullEC() = default;
     ~NullEC() override = default;
 };
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-class NullHD final : virtual public key::HD, public NullEC
+class NullHD : virtual public key::HD, public NullEC
 {
 public:
-    OTData Chaincode(const PasswordPrompt&) const final
-    {
-        return Data::Factory();
-    }
-    int Depth() const final { return {}; }
-    Bip32Fingerprint Fingerprint(const PasswordPrompt&) const final
+    ReadView Chaincode(const PasswordPrompt&) const noexcept final
     {
         return {};
     }
-    std::string Xprv(const PasswordPrompt&) const final { return {}; }
-    std::string Xpub(const PasswordPrompt&) const final { return {}; }
+    int Depth() const noexcept final { return {}; }
+    Bip32Fingerprint Fingerprint() const noexcept final { return {}; }
+    std::string Xprv(const PasswordPrompt&) const noexcept final { return {}; }
+    std::string Xpub(const PasswordPrompt&) const noexcept final { return {}; }
 
     NullHD() = default;
-    ~NullHD() final = default;
+    ~NullHD() override = default;
 
 private:
-    NullHD* clone() const final { return new NullHD; }
+    NullHD* clone() const noexcept override { return new NullHD; }
 };
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+class NullSecp256k1 final : virtual public key::Secp256k1,
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+                            public NullHD
+#else
+                            public NullEC
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+{
+public:
+    NullSecp256k1() = default;
+    ~NullSecp256k1() final = default;
+
+private:
+    NullSecp256k1* clone() const noexcept final { return new NullSecp256k1; }
+};
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 }  // namespace opentxs::crypto::key::implementation

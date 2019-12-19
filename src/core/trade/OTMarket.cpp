@@ -107,9 +107,7 @@ OTMarket::OTMarket(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTMarket::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;
     // Here we call the parent class first.
@@ -175,7 +173,12 @@ std::int32_t OTMarket::ProcessXMLNode(
             OT_ASSERT(false != bool(pOffer));
 
             OTOffer* offer = pOffer.release();
-            if (pOffer->LoadContractFromString(strData, reason) &&
+            // TODO this isn't actually used. Refactor AddOffer into two
+            // functions so it's no longer required to pass a PasswordPrompt
+            // if the offer will not be saved
+            auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
+
+            if (pOffer->LoadContractFromString(strData) &&
                 AddOffer(nullptr, *offer, reason, false, lDateAdded))
             // bSaveMarket = false (Don't SAVE -- we're loading right now!)
             {
@@ -813,7 +816,7 @@ bool OTMarket::AddOffer(
     return false;
 }
 
-bool OTMarket::LoadMarket(const PasswordPrompt& reason)
+bool OTMarket::LoadMarket()
 {
     OT_ASSERT(nullptr != GetCron());
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
@@ -827,11 +830,9 @@ bool OTMarket::LoadMarket(const PasswordPrompt& reason)
     bool bSuccess =
         OTDB::Exists(api_, api_.DataFolder(), szFoldername, szFilename, "", "");
 
-    if (bSuccess)
-        bSuccess = LoadContract(szFoldername, szFilename, reason);  // todo ??
+    if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename);  // todo ??
 
-    if (bSuccess)
-        bSuccess = VerifySignature(*(GetCron()->GetServerNym()), reason);
+    if (bSuccess) bSuccess = VerifySignature(*(GetCron()->GetServerNym()));
 
     // Load the list of recent market trades (informational only.)
     //
@@ -1155,7 +1156,7 @@ void OTMarket::ProcessTrade(
         pFirstNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pFirstNym = api_.Wallet().Nym(FIRST_NYM_ID, reason);
+        pFirstNym = api_.Wallet().Nym(FIRST_NYM_ID);
         if (nullptr == pFirstNym) {
             auto strNymID = String::Factory(FIRST_NYM_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1178,7 +1179,7 @@ void OTMarket::ProcessTrade(
         pOtherNym = pFirstNym;  // theNym is pFirstNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pOtherNym = api_.Wallet().Nym(OTHER_NYM_ID, reason);
+        pOtherNym = api_.Wallet().Nym(OTHER_NYM_ID);
         if (nullptr == pOtherNym) {
             auto strNymID = String::Factory(OTHER_NYM_ID);
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1292,9 +1293,9 @@ void OTMarket::ProcessTrade(
     // LoadExistingAccount().
     else if (
         (!pFirstAssetAcct.get().VerifyOwner(*pFirstNym) ||
-         !pFirstAssetAcct.get().VerifySignature(*pServerNym, reason)) ||
+         !pFirstAssetAcct.get().VerifySignature(*pServerNym)) ||
         (!pFirstCurrencyAcct.get().VerifyOwner(*pFirstNym) ||
-         !pFirstCurrencyAcct.get().VerifySignature(*pServerNym, reason))) {
+         !pFirstCurrencyAcct.get().VerifySignature(*pServerNym))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on one of first "
             "trader's accounts.")
@@ -1303,9 +1304,9 @@ void OTMarket::ProcessTrade(
         return;
     } else if (
         (!pOtherAssetAcct.get().VerifyOwner(*pOtherNym) ||
-         !pOtherAssetAcct.get().VerifySignature(*pServerNym, reason)) ||
+         !pOtherAssetAcct.get().VerifySignature(*pServerNym)) ||
         (!pOtherCurrencyAcct.get().VerifyOwner(*pOtherNym) ||
-         !pOtherCurrencyAcct.get().VerifySignature(*pServerNym, reason))) {
+         !pOtherCurrencyAcct.get().VerifySignature(*pServerNym))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR verifying ownership or signature on one of other "
             "trader's accounts.")
@@ -1344,59 +1345,53 @@ void OTMarket::ProcessTrade(
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingFirstAsset = theFirstAssetInbox->LoadInbox(reason);
-        bool bSuccessLoadingFirstCurrency =
-            theFirstCurrencyInbox->LoadInbox(reason);
-        bool bSuccessLoadingOtherAsset = theOtherAssetInbox->LoadInbox(reason);
-        bool bSuccessLoadingOtherCurrency =
-            theOtherCurrencyInbox->LoadInbox(reason);
+        bool bSuccessLoadingFirstAsset = theFirstAssetInbox->LoadInbox();
+        bool bSuccessLoadingFirstCurrency = theFirstCurrencyInbox->LoadInbox();
+        bool bSuccessLoadingOtherAsset = theOtherAssetInbox->LoadInbox();
+        bool bSuccessLoadingOtherCurrency = theOtherCurrencyInbox->LoadInbox();
 
         // ...or generate them otherwise...
 
         if (true == bSuccessLoadingFirstAsset)
             bSuccessLoadingFirstAsset =
-                theFirstAssetInbox->VerifyAccount(*pServerNym, reason);
+                theFirstAssetInbox->VerifyAccount(*pServerNym);
         else
             bSuccessLoadingFirstAsset = theFirstAssetInbox->GenerateLedger(
                 theTrade.GetSenderAcctID(),
                 NOTARY_ID,
                 ledgerType::inbox,
-                reason,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingFirstCurrency)
             bSuccessLoadingFirstCurrency =
-                theFirstCurrencyInbox->VerifyAccount(*pServerNym, reason);
+                theFirstCurrencyInbox->VerifyAccount(*pServerNym);
         else
             bSuccessLoadingFirstCurrency =
                 theFirstCurrencyInbox->GenerateLedger(
                     theTrade.GetCurrencyAcctID(),
                     NOTARY_ID,
                     ledgerType::inbox,
-                    reason,
                     true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherAsset)
             bSuccessLoadingOtherAsset =
-                theOtherAssetInbox->VerifyAccount(*pServerNym, reason);
+                theOtherAssetInbox->VerifyAccount(*pServerNym);
         else
             bSuccessLoadingOtherAsset = theOtherAssetInbox->GenerateLedger(
                 pOtherTrade->GetSenderAcctID(),
                 NOTARY_ID,
                 ledgerType::inbox,
-                reason,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherCurrency)
             bSuccessLoadingOtherCurrency =
-                theOtherCurrencyInbox->VerifyAccount(*pServerNym, reason);
+                theOtherCurrencyInbox->VerifyAccount(*pServerNym);
         else
             bSuccessLoadingOtherCurrency =
                 theOtherCurrencyInbox->GenerateLedger(
                     pOtherTrade->GetCurrencyAcctID(),
                     NOTARY_ID,
                     ledgerType::inbox,
-                    reason,
                     true);  // bGenerateFile=true
 
         if ((false == bSuccessLoadingFirstAsset) ||
@@ -1993,20 +1988,20 @@ void OTMarket::ProcessTrade(
             // OTCronItem::LoadCronReceipt loads the original version
             // with the user's signature. (Updated versions, as
             // processing occurs, are signed by the server.)
-            auto pOrigTrade = OTCronItem::LoadCronReceipt(
-                api_, theTrade.GetTransactionNum(), reason);
+            auto pOrigTrade =
+                OTCronItem::LoadCronReceipt(api_, theTrade.GetTransactionNum());
             auto pOrigOtherTrade = OTCronItem::LoadCronReceipt(
-                api_, pOtherTrade->GetTransactionNum(), reason);
+                api_, pOtherTrade->GetTransactionNum());
 
             OT_ASSERT(false != bool(pOrigTrade));
             OT_ASSERT(false != bool(pOrigOtherTrade));
 
             OT_ASSERT_MSG(
-                pOrigTrade->VerifySignature(*pFirstNym, reason),
+                pOrigTrade->VerifySignature(*pFirstNym),
                 "Signature was already verified on Trade when first "
                 "added to market, but now it fails.\n");
             OT_ASSERT_MSG(
-                pOrigOtherTrade->VerifySignature(*pOtherNym, reason),
+                pOrigOtherTrade->VerifySignature(*pOtherNym),
                 "Signature was already verified on Trade when first "
                 "added to market, but now it fails.\n");
 

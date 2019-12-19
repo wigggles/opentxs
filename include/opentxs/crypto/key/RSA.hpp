@@ -20,29 +20,7 @@ namespace key
 class RSA : virtual public Asymmetric
 {
 public:
-    virtual bool GetPrivateKey(
-        String& strOutput,
-        const Asymmetric* pPubkey,
-        const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) const = 0;
-    /** Don't ever call this. It's only here because it's impossible to get rid
-     * of unless and until RSA key support is removed entirely. */
-    virtual bool SaveCertToString(
-        String& strOutput,
-        const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) const = 0;
-
-    virtual bool SetPrivateKey(
-        const String& strCert,
-        const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) = 0;
-    virtual bool SetPublicKey(const String& strKey) = 0;
-    virtual bool SetPublicKeyFromPrivateKey(
-        const String& strCert,
-        const PasswordPrompt& reason,
-        const OTPassword* pImportPassword = nullptr) = 0;
-
-    ~RSA() override = default;
+    OPENTXS_EXPORT ~RSA() override = default;
 
 protected:
     RSA() = default;

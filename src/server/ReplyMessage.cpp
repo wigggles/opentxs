@@ -199,17 +199,16 @@ bool ReplyMessage::init()
 
 const bool& ReplyMessage::Init() const { return init_; }
 
-bool ReplyMessage::init_nym(const PasswordPrompt& reason)
+bool ReplyMessage::init_nym()
 {
-    sender_nym_ =
-        wallet_.Nym(identifier::Nym::Factory(original_.m_strNymID), reason);
+    sender_nym_ = wallet_.Nym(identifier::Nym::Factory(original_.m_strNymID));
 
     return bool(sender_nym_);
 }
 
 bool ReplyMessage::LoadContext(const PasswordPrompt& reason)
 {
-    if (false == init_nym(reason)) {
+    if (false == init_nym()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym (")(original_.m_strNymID)(
             ") does not exist")
             .Flush();

@@ -996,8 +996,8 @@ bool OTScriptable::VerifyPartyAuthorization(
     //
     OTAgent* pAuthorizingAgent = nullptr;
     Nym_p pAuthAgentsNym = nullptr;
-    pAuthAgentsNym = theParty.LoadAuthorizingAgentNym(
-        theSignerNym, reason, &pAuthorizingAgent);
+    pAuthAgentsNym =
+        theParty.LoadAuthorizingAgentNym(theSignerNym, &pAuthorizingAgent);
 
     if (nullptr != pAuthAgentsNym)  // success
     {
@@ -1041,8 +1041,8 @@ bool OTScriptable::VerifyPartyAuthorization(
 
     if (lOpeningNo > 0)  // If one exists, then verify it.
     {
-        if (false == pAuthorizingAgent->VerifyIssuedNumber(
-                         lOpeningNo, strNotaryID, reason)) {
+        if (false ==
+            pAuthorizingAgent->VerifyIssuedNumber(lOpeningNo, strNotaryID)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Opening trans number ")(
                 lOpeningNo)(
                 " doesn't "
@@ -1057,7 +1057,7 @@ bool OTScriptable::VerifyPartyAuthorization(
         // yet -- AND the caller wants you to BURN IT HERE.
         else if (bBurnTransNo) {
             if (false == pAuthorizingAgent->VerifyTransactionNumber(
-                             lOpeningNo, strNotaryID, reason)) {
+                             lOpeningNo, strNotaryID)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Opening trans number ")(
                     lOpeningNo)(" doesn't "
                                 "verify as available for use, for the "
@@ -1113,7 +1113,7 @@ bool OTScriptable::VerifyPartyAuthorization(
     // entire contract falls apart.
 
     auto pPartySignedCopy{
-        api_.Factory().Scriptable(theParty.GetMySignedCopy(), reason)};
+        api_.Factory().Scriptable(theParty.GetMySignedCopy())};
 
     if (false == bool(pPartySignedCopy)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1124,7 +1124,7 @@ bool OTScriptable::VerifyPartyAuthorization(
     }
 
     const bool bSigVerified =
-        pAuthorizingAgent->VerifySignature(*pPartySignedCopy, reason);
+        pAuthorizingAgent->VerifySignature(*pPartySignedCopy);
     bool bContentsVerified = false;
 
     if (bSigVerified) {
@@ -1164,8 +1164,7 @@ bool OTScriptable::VerifyPartyAuthorization(
 //
 bool OTScriptable::VerifyNymAsAgent(
     const identity::Nym& theNym,
-    const identity::Nym& theSignerNym,
-    const PasswordPrompt& reason) const
+    const identity::Nym& theSignerNym) const
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:
@@ -1246,8 +1245,8 @@ bool OTScriptable::VerifyNymAsAgent(
         // we need to verify his
         // signature, we have to load him up.
         //
-        pAuthAgentsNym = pParty->LoadAuthorizingAgentNym(
-            theSignerNym, reason, &pAuthorizingAgent);
+        pAuthAgentsNym =
+            pParty->LoadAuthorizingAgentNym(theSignerNym, &pAuthorizingAgent);
 
         if (nullptr != pAuthAgentsNym)  // success
         {
@@ -1301,8 +1300,7 @@ bool OTScriptable::VerifyNymAsAgent(
     // the original signature, no matter WHO is authorized now. Otherwise your
     // entire contract falls apart.
 
-    auto pPartySignedCopy{
-        api_.Factory().Scriptable(pParty->GetMySignedCopy(), reason)};
+    auto pPartySignedCopy{api_.Factory().Scriptable(pParty->GetMySignedCopy())};
 
     if (false == bool(pPartySignedCopy)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading party's (")(
@@ -1314,7 +1312,7 @@ bool OTScriptable::VerifyNymAsAgent(
     }
 
     const bool bSigVerified =
-        pAuthorizingAgent->VerifySignature(*pPartySignedCopy, reason);
+        pAuthorizingAgent->VerifySignature(*pPartySignedCopy);
     bool bContentsVerified = false;
 
     if (bSigVerified) {
@@ -1413,7 +1411,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 
     // VERIFY ACCOUNT's OWNERSHIP BY PARTY
     //
-    if (!thePartyAcct.VerifyOwnership(reason))  // This uses pParty internally.
+    if (!thePartyAcct.VerifyOwnership())  // This uses pParty internally.
     {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to verify party's (")(
             pParty->GetPartyName())(") ownership of acct: ")(
@@ -1425,8 +1423,8 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
     // VERIFY ACCOUNT's AUTHORIZED AGENT (that he has rights to manipulate the
     // account itself)
     //
-    if (!thePartyAcct.VerifyAgency(reason))  // This will use pAuthorizedAgent
-                                             // internally.
+    if (!thePartyAcct.VerifyAgency())  // This will use pAuthorizedAgent
+                                       // internally.
     {
         LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to verify agent's (")(
             pAuthorizedAgent->GetName().Get())(") rights re: acct: ")(
@@ -1455,8 +1453,8 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
 
     if (lClosingNo > 0)  // If one exists, then verify it.
     {
-        if (false == pAuthorizedAgent->VerifyIssuedNumber(
-                         lClosingNo, strNotaryID, reason)) {
+        if (false ==
+            pAuthorizedAgent->VerifyIssuedNumber(lClosingNo, strNotaryID)) {
             LogNormal(OT_METHOD)(__FUNCTION__)(": Closing trans number ")(
                 lClosingNo)(
                 " doesn't "
@@ -1472,7 +1470,7 @@ bool OTScriptable::VerifyPartyAcctAuthorization(
         //
         else if (bBurnTransNo) {
             if (false == pAuthorizedAgent->VerifyTransactionNumber(
-                             lClosingNo, strNotaryID, reason)) {
+                             lClosingNo, strNotaryID)) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Closing trans number ")(
                     lClosingNo)(" doesn't "
                                 "verify as available for use, for the "
@@ -1859,8 +1857,7 @@ OTBylaw* OTScriptable::GetBylawByIndex(std::int32_t nIndex) const
 // Verify the contents of THIS contract against signed copies of it that are
 // stored in each Party.
 //
-bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies(
-    const PasswordPrompt& reason)
+bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 {
     bool bReturnVal = !m_mapParties.empty();
 
@@ -1877,7 +1874,7 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies(
 
         if (pParty->GetMySignedCopy().Exists()) {
             auto pPartySignedCopy{
-                api_.Factory().Scriptable(pParty->GetMySignedCopy(), reason)};
+                api_.Factory().Scriptable(pParty->GetMySignedCopy())};
 
             if (false == bool(pPartySignedCopy)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading party's (")(
@@ -1937,7 +1934,7 @@ bool OTScriptable::ConfirmParty(
     // This is in order to make sure that I am signing the same thing that
     // everyone else signed, before I actually sign it.
     //
-    if (!VerifyThisAgainstAllPartiesSignedCopies(reason))
+    if (!VerifyThisAgainstAllPartiesSignedCopies())
         return false;  // This already logs on failure.
 
     // BY THIS POINT, we know that, of all the parties who have already signed,
@@ -2330,9 +2327,7 @@ void OTScriptable::UpdateContents(
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTScriptable::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;  // Unless/until I want to add
                                   // Contract::Compare(), then people would be

@@ -116,12 +116,10 @@ public:
     //
     bool VerifyIssuedNumber(
         const TransactionNumber& lNumber,
-        const String& strNotaryID,
-        const PasswordPrompt& reason);
+        const String& strNotaryID);
     bool VerifyTransactionNumber(
         const TransactionNumber& lNumber,
-        const String& strNotaryID,
-        const PasswordPrompt& reason);
+        const String& strNotaryID);
     bool RemoveIssuedNumber(
         const TransactionNumber& lNumber,
         const String& strNotaryID,
@@ -149,13 +147,9 @@ public:
     // (According to the account.)
     //
     bool VerifyAgencyOfAccount(const Account& theAccount) const;
-    bool VerifySignature(
-        const Contract& theContract,
-        const PasswordPrompt& reason) const;  // Have the agent
-                                              // try
-                                              // to
-    // verify his own signature
-    // against any contract.
+    bool VerifySignature(const Contract& theContract)
+        const;  // Have the agent try to verify his own signature against any
+                // contract.
 
     void SetParty(OTParty& theOwnerParty);  // This happens when the agent is
                                             // added to the party.
@@ -305,7 +299,7 @@ public:
     // This also makes sure that Nyms and Entities don't ever share IDs, so the
     // IDs become more and more interchangeable.
 
-    Nym_p LoadNym(const PasswordPrompt& reason);
+    Nym_p LoadNym();
 
     bool DropFinalReceiptToNymbox(
         OTSmartContract& theSmartContract,

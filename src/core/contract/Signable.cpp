@@ -140,11 +140,11 @@ void Signable::update_version(const VersionNumber version) noexcept
     const_cast<VersionNumber&>(version_) = version;
 }
 
-bool Signable::Validate(const PasswordPrompt& reason) const
+bool Signable::Validate() const
 {
     Lock lock(lock_);
 
-    return validate(lock, reason);
+    return validate(lock);
 }
 
 bool Signable::verify_write_lock(const Lock& lock) const
@@ -164,10 +164,7 @@ bool Signable::verify_write_lock(const Lock& lock) const
     return true;
 }
 
-bool Signable::verify_signature(
-    const Lock& lock,
-    const proto::Signature&,
-    const PasswordPrompt&) const
+bool Signable::verify_signature(const Lock& lock, const proto::Signature&) const
 {
     OT_ASSERT(verify_write_lock(lock));
 

@@ -11,7 +11,6 @@ set(
   HD.cpp
   Keypair.cpp
   RSA.cpp
-  RSA_private.cpp
   Secp256k1.cpp
   Symmetric.cpp
 )
@@ -36,7 +35,6 @@ set(
   Keypair.hpp
   Null.hpp
   RSA.hpp
-  RSA_private.hpp
   Secp256k1.hpp
   Symmetric.hpp
   SymmetricNull.hpp
@@ -47,6 +45,14 @@ target_include_directories(
   opentxs-crypto-key SYSTEM
   PRIVATE "${sodium_INCLUDE_DIR}"
 )
+
+if(OPENSSL_EXPORT)
+  target_include_directories(
+    opentxs-crypto-key SYSTEM
+    PRIVATE "${OPENSSL_INCLUDE_DIR}"
+  )
+endif()
+
 set_property(TARGET opentxs-crypto-key PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

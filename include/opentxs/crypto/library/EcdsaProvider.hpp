@@ -9,88 +9,15 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/Proto.hpp"
 
 namespace opentxs
 {
-namespace api
-{
-namespace internal
-{
-struct Core;
-}  // namespace internal
-}  // namespace api
-
 namespace crypto
 {
 class EcdsaProvider : virtual public AsymmetricProvider
 {
 public:
-    OPENTXS_EXPORT virtual bool AsymmetricKeyToECPrivatekey(
-        const api::internal::Core& api,
-        const crypto::key::EllipticCurve& asymmetricKey,
-        const PasswordPrompt& reason,
-        OTPassword& privkey) const = 0;
-    OPENTXS_EXPORT virtual bool DecryptSessionKeyECDH(
-        const api::internal::Core& api,
-        const crypto::key::EllipticCurve& privateKey,
-        const crypto::key::EllipticCurve& publicKey,
-        crypto::key::Symmetric& sessionKey,
-        PasswordPrompt& sessionKeyPassword,
-        OTPassword& plaintextKey,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual bool DecryptSessionKeyECDH(
-        const api::internal::Core& api,
-        const crypto::key::EllipticCurve& privateKey,
-        const crypto::key::EllipticCurve& publicKey,
-        crypto::key::Symmetric& sessionKey,
-        PasswordPrompt& sessionKeyPassword,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual bool ECPrivatekeyToAsymmetricKey(
-        const api::internal::Core& api,
-        const OTPassword& privkey,
-        const PasswordPrompt& reason,
-        crypto::key::EllipticCurve& asymmetricKey) const = 0;
-    OPENTXS_EXPORT virtual bool ECPubkeyToAsymmetricKey(
-        const Data& pubkey,
-        crypto::key::EllipticCurve& asymmetricKey) const = 0;
-    OPENTXS_EXPORT virtual bool EncryptSessionKeyECDH(
-        const api::internal::Core& api,
-        const crypto::key::EllipticCurve& privateKey,
-        const crypto::key::EllipticCurve& publicKey,
-        crypto::key::Symmetric& sessionKey,
-        const PasswordPrompt& sessionKeyPassword,
-        OTPassword& newKeyPassword,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual bool ExportECPrivatekey(
-        const api::internal::Core& api,
-        const OTPassword& privkey,
-        const PasswordPrompt& reason,
-        crypto::key::EllipticCurve& asymmetricKey) const = 0;
-    OPENTXS_EXPORT virtual bool ImportECPrivatekey(
-        const api::internal::Core& api,
-        const proto::Ciphertext& asymmetricKey,
-        const PasswordPrompt& reason,
-        OTPassword& privkey) const = 0;
-    OPENTXS_EXPORT virtual bool PrivateToPublic(
-        const api::internal::Core& api,
-        const proto::AsymmetricKey& privateKey,
-        proto::AsymmetricKey& publicKey,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual bool PrivateToPublic(
-        const api::internal::Core& api,
-        const proto::Ciphertext& privateKey,
-        Data& publicKey,
-        const PasswordPrompt& reason) const = 0;
-    OPENTXS_EXPORT virtual bool RandomKeypair(
-        OTPassword& privateKey,
-        Data& publicKey) const = 0;
-    OPENTXS_EXPORT virtual bool SeedToCurveKey(
-        const OTPassword& seed,
-        OTPassword& privateKey,
-        Data& publicKey) const = 0;
-
-    OPENTXS_EXPORT ~EcdsaProvider() override = default;
+    ~EcdsaProvider() override = default;
 
 protected:
     EcdsaProvider() = default;

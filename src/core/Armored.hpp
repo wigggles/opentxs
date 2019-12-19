@@ -57,7 +57,7 @@ private:
 
     explicit Armored(const Data& theValue);
     explicit Armored(const opentxs::String& strValue);
-    explicit Armored(const OTEnvelope& theEnvelope);
+    explicit Armored(const crypto::Envelope& theEnvelope);
     Armored(const Armored& strValue);
 
     Armored& operator=(const char* szValue);

@@ -8,8 +8,9 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
 namespace opentxs
 {
@@ -31,6 +32,21 @@ public:
     OPENTXS_EXPORT static EcdsaCurve KeyTypeToCurve(
         const proto::AsymmetricKeyType& type);
 
+    OPENTXS_EXPORT virtual bool SeedToCurveKey(
+        const ReadView seed,
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool SharedSecret(
+        const key::Asymmetric& publicKey,
+        const key::Asymmetric& privateKey,
+        const PasswordPrompt& reason,
+        OTPassword& secret) const noexcept = 0;
+    OPENTXS_EXPORT virtual bool RandomKeypair(
+        const AllocateOutput privateKey,
+        const AllocateOutput publicKey,
+        const proto::KeyRole role = proto::KEYROLE_SIGN,
+        const NymParameters& options = {},
+        const AllocateOutput params = {}) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Sign(
         const api::internal::Core& api,
         const Data& plaintext,
@@ -50,16 +66,14 @@ public:
         const Data& plaintext,
         const key::Asymmetric& theKey,
         const Data& signature,
-        const proto::HashType hashType,
-        const PasswordPrompt& reason) const = 0;
+        const proto::HashType hashType) const = 0;
     OPENTXS_EXPORT virtual bool VerifyContractSignature(
         const String& strContractToVerify,
         const key::Asymmetric& theKey,
         const Signature& theSignature,
-        const proto::HashType hashType,
-        const PasswordPrompt& reason) const = 0;
+        const proto::HashType hashType) const = 0;
 
-    OPENTXS_EXPORT virtual ~AsymmetricProvider() = default;
+    virtual ~AsymmetricProvider() = default;
 
 protected:
     AsymmetricProvider() = default;

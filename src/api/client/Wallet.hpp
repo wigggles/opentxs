@@ -12,8 +12,7 @@ class Wallet final : public api::implementation::Wallet
 public:
     std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const final;
+        const identifier::Nym& clientNymID) const final;
     Editor<opentxs::Context> mutable_Context(
         const identifier::Server& notaryID,
         const identifier::Nym& clientNymID,
@@ -24,8 +23,7 @@ public:
         const PasswordPrompt& reason) const final;
     std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const identifier::Nym& localNymID,
-        const Identifier& remoteID,
-        const PasswordPrompt& reason) const final;
+        const Identifier& remoteID) const final;
 
     ~Wallet() = default;
 
@@ -39,17 +37,13 @@ private:
     OTZMQPublishSocket reply_received_;
 
     void instantiate_server_context(
-        const PasswordPrompt& reason,
         const proto::Context& serialized,
         const Nym_p& localNym,
         const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const final;
-    void nym_to_contact(
-        const identity::Nym& nym,
-        const std::string& name,
-        const PasswordPrompt& reason) const noexcept final;
-    Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
-        const final;
+    void nym_to_contact(const identity::Nym& nym, const std::string& name) const
+        noexcept final;
+    Nym_p signer_nym(const identifier::Nym& id) const final;
 
     Wallet(const api::client::internal::Manager& client);
     Wallet() = delete;

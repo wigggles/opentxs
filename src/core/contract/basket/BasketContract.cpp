@@ -55,8 +55,7 @@ auto Factory::BasketContract(
 auto Factory::BasketContract(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::UnitDefinition serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::UnitDefinition serialized) noexcept
     -> std::shared_ptr<contract::unit::Basket>
 {
     if (false == proto::Validate<ReturnType::SerializedType>(
@@ -72,7 +71,7 @@ auto Factory::BasketContract(
     auto& contract = *output;
     Lock lock(contract.lock_);
 
-    if (!contract.validate(lock, reason)) { return {}; }
+    if (!contract.validate(lock)) { return {}; }
 
     return std::move(output);
 }
