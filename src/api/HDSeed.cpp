@@ -140,7 +140,8 @@ bool HDSeed::decrypt_seed(
     OT_ASSERT(raw.isMemory());
 
     if (seed.has_words()) {
-        decrypted = key->Decrypt(cwords, reason, words);
+        decrypted = key->Decrypt(
+            cwords, reason, words.WriteInto(OTPassword::Mode::Text));
 
         if (false == decrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt words.")
@@ -151,7 +152,8 @@ bool HDSeed::decrypt_seed(
     }
 
     if (seed.has_passphrase()) {
-        decrypted = key->Decrypt(cphrase, reason, phrase);
+        decrypted = key->Decrypt(
+            cphrase, reason, phrase.WriteInto(OTPassword::Mode::Text));
 
         if (false == decrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -163,7 +165,8 @@ bool HDSeed::decrypt_seed(
     }
 
     if (seed.has_raw()) {
-        decrypted = key->Decrypt(craw, reason, raw);
+        decrypted =
+            key->Decrypt(craw, reason, raw.WriteInto(OTPassword::Mode::Mem));
 
         if (false == decrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt entropy.")
@@ -195,27 +198,28 @@ std::unique_ptr<opentxs::crypto::key::HD> HDSeed::GetHDKey(
     return asymmetric_.NewHDKey(
         fingerprint, *seed, curve, path, reason, role, version);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-std::shared_ptr<proto::AsymmetricKey> HDSeed::GetPaymentCode(
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+auto HDSeed::GetPaymentCode(
     std::string& fingerprint,
     const Bip32Index nym,
     const PasswordPrompt& reason) const
+    -> std::unique_ptr<opentxs::crypto::key::Secp256k1>
 {
-    auto key = GetHDKey(
+    Bip32Index notUsed{0};
+    auto seed = Seed(fingerprint, notUsed, reason);
+
+    if (false == bool(seed)) { return {}; }
+
+    return asymmetric_.NewSecp256k1Key(
         fingerprint,
-        EcdsaCurve::secp256k1,
+        *seed,
         {HDIndex{Bip43Purpose::PAYCODE, Bip32Child::HARDENED},
          HDIndex{Bip44Type::BITCOIN, Bip32Child::HARDENED},
          HDIndex{nym, Bip32Child::HARDENED}},
         reason);
-
-    if (key) { return key->Serialize(); }
-
-    return {};
 }
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
 OTSymmetricKey HDSeed::GetStorageKey(
     std::string& fingerprint,
@@ -236,12 +240,11 @@ OTSymmetricKey HDSeed::GetStorageKey(
     }
 
     const auto& key = *pKey;
-    const auto privateKey = key.PrivateKey(reason);
-    OTPassword keySource{};
-    keySource.setMemory(privateKey->data(), privateKey->size());
+    OTPassword keySource{OTPassword::Mode::Mem, key.PrivateKey(reason)};
 
     return symmetric_.Key(keySource);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 std::string HDSeed::ImportRaw(
     const OTPassword& entropy,
@@ -359,10 +362,9 @@ std::string HDSeed::save_seed(
     serialized.set_version(DefaultVersion);
     serialized.set_index(0);
     serialized.set_fingerprint(fingerprint);
-    auto empty = Data::Factory();
     bool encrypted{false};
     auto& encryptedRaw = *serialized.mutable_raw();
-    encrypted = key->Encrypt(seed, empty, reason, encryptedRaw);
+    encrypted = key->Encrypt(seed.Bytes(), reason, encryptedRaw);
 
     if (false == encrypted) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to encrypt entropy.")
@@ -373,7 +375,7 @@ std::string HDSeed::save_seed(
 
     if (haveWords) {
         auto& encryptedWords = *serialized.mutable_words();
-        encrypted = key->Encrypt(words, empty, reason, encryptedWords, false);
+        encrypted = key->Encrypt(words.Bytes(), reason, encryptedWords, false);
 
         if (false == encrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to encrypt seed.")
@@ -385,8 +387,8 @@ std::string HDSeed::save_seed(
 
     if (havePhrase) {
         auto& encryptedPassphrase = *serialized.mutable_passphrase();
-        encrypted =
-            key->Encrypt(passphrase, empty, reason, encryptedPassphrase, false);
+        encrypted = key->Encrypt(
+            passphrase.Bytes(), reason, encryptedPassphrase, false);
 
         if (false == encrypted) {
             LogOutput(OT_METHOD)(__FUNCTION__)(

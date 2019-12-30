@@ -57,7 +57,7 @@ auto Factory::CurrencyContract(
         if (!contract.update_signature(lock, reason)) { return {}; }
     }
 
-    if (!contract.validate(lock, reason)) { return {}; }
+    if (!contract.validate(lock)) { return {}; }
 
     return std::move(output);
 }
@@ -65,8 +65,7 @@ auto Factory::CurrencyContract(
 auto Factory::CurrencyContract(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::UnitDefinition serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::UnitDefinition serialized) noexcept
     -> std::shared_ptr<contract::unit::Currency>
 {
     if (false == proto::Validate<ReturnType::SerializedType>(
@@ -82,7 +81,7 @@ auto Factory::CurrencyContract(
     auto& contract = *output;
     Lock lock(contract.lock_);
 
-    if (!contract.validate(lock, reason)) { return {}; }
+    if (!contract.validate(lock)) { return {}; }
 
     return std::move(output);
 }

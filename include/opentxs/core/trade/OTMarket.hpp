@@ -155,7 +155,7 @@ public:
 
     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
     inline OTCron* GetCron() { return m_pCron; }
-    bool LoadMarket(const PasswordPrompt& reason);
+    bool LoadMarket();
     bool SaveMarket(const PasswordPrompt& reason);
 
     void InitMarket();
@@ -164,9 +164,7 @@ public:
     void Release_Market();
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents(const PasswordPrompt& reason)
         override;  // Before transmission or

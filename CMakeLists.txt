@@ -30,14 +30,12 @@ endif()
 
 if(WIN32)
   set(OT_USE_VCPKG_TARGETS_DEFAULT ON)
-  set(OT_CRYPTO_SUPPORTED_SOURCE_BIP47_DEFAULT OFF)
   set(OT_CRYPTO_SUPPORTED_KEY_HD_DEFAULT OFF)
   set(OT_CRYPTO_USING_TREZOR_DEFAULT OFF)
   set(OT_WITH_BLOCKCHAIN_DEFAULT OFF)
   set(OT_SCRIPT_USING_CHAI_DEFAULT OFF)
 else()
   set(OT_USE_VCPKG_TARGETS_DEFAULT OFF)
-  set(OT_CRYPTO_SUPPORTED_SOURCE_BIP47_DEFAULT ON)
   set(OT_CRYPTO_SUPPORTED_KEY_HD_DEFAULT ON)
   set(OT_CRYPTO_USING_TREZOR_DEFAULT ON)
   set(OT_WITH_BLOCKCHAIN_DEFAULT ON)
@@ -56,8 +54,6 @@ option(OT_DHT "Enable OpenDHT support" OFF)
 option(OT_STORAGE_FS "Enable filesystem backend for storage" OFF)
 option(OT_STORAGE_SQLITE "Enable sqlite backend for storage" OFF)
 option(OT_STORAGE_LMDB "Enable LMDB backend for storage" ON)
-option(OT_CRYPTO_SUPPORTED_SOURCE_BIP47 "Enable support for BIP-47 nyms"
-       ${OT_CRYPTO_SUPPORTED_SOURCE_BIP47_DEFAULT})
 option(OT_CRYPTO_SUPPORTED_KEY_HD "Enable HD key derivation support"
        ${OT_CRYPTO_SUPPORTED_KEY_HD_DEFAULT})
 option(OT_CRYPTO_SUPPORTED_KEY_ED25519 "Enable ed25519 key support" ON)
@@ -112,9 +108,6 @@ message(STATUS "Storage backends-----------------------------")
 message(STATUS "filesystem:             ${OT_STORAGE_FS}")
 message(STATUS "sqlite                  ${OT_STORAGE_SQLITE}")
 message(STATUS "LMDB                    ${OT_STORAGE_LMDB}")
-
-message(STATUS "Nym ID sources------------------------------")
-message(STATUS "BIP-47:                 ${OT_CRYPTO_SUPPORTED_SOURCE_BIP47}")
 
 message(STATUS "Key algorithms-------------------------------")
 message(STATUS "HD derivation:          ${OT_CRYPTO_SUPPORTED_KEY_HD}")
@@ -270,20 +263,6 @@ if((NOT OT_STORAGE_FS) AND (NOT OT_STORAGE_SQLITE) AND (NOT OT_STORAGE_LMDB))
   message(FATAL_ERROR "At least one storage backend must be defined.")
 endif()
 
-# Nym sources
-
-if(OT_CRYPTO_SUPPORTED_SOURCE_BIP47)
-  if(NOT OT_CRYPTO_SUPPORTED_KEY_HD)
-    message(FATAL_ERROR "BIP-47 support requires HD key support")
-  endif()
-  if(NOT OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-    message(FATAL_ERROR "BIP-47 support requires secp256k1 key support")
-  endif()
-  set(BIP47_EXPORT 1)
-else()
-  set(BIP47_EXPORT 0)
-endif()
-
 # Key types
 
 if(OT_CRYPTO_SUPPORTED_KEY_HD)
@@ -369,10 +348,6 @@ if(OT_WITH_BLOCKCHAIN)
 
   if(NOT OT_CRYPTO_SUPPORTED_KEY_HD)
     message(FATAL_ERROR "Blockchain support requires HD key support")
-  endif()
-
-  if(NOT OT_CRYPTO_SUPPORTED_SOURCE_BIP47)
-    message(FATAL_ERROR "Blockchain support requires bip47 support")
   endif()
 
   set(OT_BLOCKCHAIN_EXPORT 1)

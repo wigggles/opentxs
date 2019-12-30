@@ -159,7 +159,7 @@ std::string StorageFSArchive::prepare_read(const std::string& input) const
     auto reason =
         encryption_key_.api().Factory().PasswordPrompt("Storage read");
 
-    if (false == encryption_key_.Decrypt(ciphertext, reason, output)) {
+    if (false == encryption_key_.Decrypt(ciphertext, reason, writer(output))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt value.")
             .Flush();
     }
@@ -174,11 +174,10 @@ std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
     OT_ASSERT(encryption_key_);
 
     proto::Ciphertext ciphertext{};
-    auto iv = Data::Factory();
     auto reason =
         encryption_key_.api().Factory().PasswordPrompt("Storage write");
     const bool encrypted =
-        encryption_key_.Encrypt(plaintext, iv, reason, ciphertext, false);
+        encryption_key_.Encrypt(plaintext, reason, ciphertext, false);
 
     if (false == encrypted) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to encrypt value.")

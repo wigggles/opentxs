@@ -64,10 +64,9 @@ OTXReply Reply::Factory(
 
 OTXReply Reply::Factory(
     const api::internal::Core& api,
-    const proto::ServerReply serialized,
-    const PasswordPrompt& reason)
+    const proto::ServerReply serialized)
 {
-    return OTXReply{new implementation::Reply(api, serialized, reason)};
+    return OTXReply{new implementation::Reply(api, serialized)};
 }
 }  // namespace opentxs::otx
 
@@ -96,11 +95,10 @@ Reply::Reply(
 
 Reply::Reply(
     const api::internal::Core& api,
-    const proto::ServerReply serialized,
-    const PasswordPrompt& reason)
+    const proto::ServerReply serialized)
     : Signable(
           api,
-          extract_nym(api, serialized, reason),
+          extract_nym(api, serialized),
           serialized.version(),
           "",
           "",
@@ -144,13 +142,12 @@ proto::ServerReply Reply::Contract() const
 
 Nym_p Reply::extract_nym(
     const api::internal::Core& api,
-    const proto::ServerReply serialized,
-    const PasswordPrompt& reason)
+    const proto::ServerReply serialized)
 {
     const auto serverID = identifier::Server::Factory(serialized.server());
 
     try {
-        return api.Wallet().Server(serverID, reason)->Nym();
+        return api.Wallet().Server(serverID)->Nym();
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid server id.").Flush();
 
@@ -232,11 +229,11 @@ bool Reply::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-bool Reply::validate(const Lock& lock, const PasswordPrompt& reason) const
+bool Reply::validate(const Lock& lock) const
 {
     bool validNym{false};
 
-    if (nym_) { validNym = nym_->VerifyPseudonym(reason); }
+    if (nym_) { validNym = nym_->VerifyPseudonym(); }
 
     if (false == validNym) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym.").Flush();
@@ -262,7 +259,7 @@ bool Reply::validate(const Lock& lock, const PasswordPrompt& reason) const
     bool validSig{false};
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature, reason); }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (false == validSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
@@ -275,17 +272,14 @@ bool Reply::validate(const Lock& lock, const PasswordPrompt& reason) const
 
 bool Reply::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature,
-    const PasswordPrompt& reason) const
+    const proto::Signature& signature) const
 {
-    if (false == Signable::verify_signature(lock, signature, reason)) {
-        return false;
-    }
+    if (false == Signable::verify_signature(lock, signature)) { return false; }
 
     auto serialized = signature_version(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->Verify(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto);
 }
 }  // namespace opentxs::otx::implementation

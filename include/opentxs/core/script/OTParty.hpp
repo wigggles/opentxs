@@ -207,7 +207,6 @@ public:
     //
     Nym_p LoadAuthorizingAgentNym(
         const identity::Nym& theSignerNym,
-        const PasswordPrompt& reason,
         OTAgent** ppAgent = nullptr);
     bool AddAccount(OTPartyAccount& thePartyAcct);
     OPENTXS_EXPORT bool AddAccount(
@@ -260,8 +259,7 @@ public:
     bool LoadAndVerifyAssetAccounts(
         const String& strNotaryID,
         mapOfAccounts& map_Accts_Already_Loaded,
-        mapOfAccounts& map_NewlyLoaded,
-        const PasswordPrompt& reason);
+        mapOfAccounts& map_NewlyLoaded);
 
     // ------------- OPERATIONS -------------
 

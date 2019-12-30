@@ -1047,6 +1047,19 @@ std::uint64_t String::ToUlong() const
     return StringToUlong(str_number);
 }
 
+auto String::WriteInto() noexcept -> AllocateOutput
+{
+    return [this](const auto size) {
+        Release();
+        auto blank = std::vector<char>{};
+        blank.assign(size, 5);
+        blank.push_back('\0');
+        Set(blank.data());
+
+        return WritableView{internal_.data(), GetLength()};
+    };
+}
+
 void String::WriteToFile(std::ostream& ofs) const
 {
     if (internal_.empty()) { return; }

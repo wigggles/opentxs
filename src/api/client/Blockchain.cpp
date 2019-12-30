@@ -707,7 +707,7 @@ OTIdentifier Blockchain::NewHDSubaccount(
         return Identifier::Factory();
     }
 
-    auto nym = api_.Wallet().Nym(nymID, reason);
+    auto nym = api_.Wallet().Nym(nymID);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Nym does not exist.").Flush();
@@ -895,20 +895,15 @@ OTData Blockchain::PubkeyHash(
         throw std::runtime_error("Incorrect pubkey size");
     }
 
-    auto sha256 = Data::Factory();
-    auto ripemd160 = Data::Factory();
-    auto pubkeyHash = Data::Factory();
+    auto output = Data::Factory();
 
-    if (!api_.Crypto().Hash().Digest(proto::HASHTYPE_SHA256, pubkey, sha256)) {
-        throw std::runtime_error("Unable to calculate sha256.");
+    if (false ==
+        api_.Crypto().Hash().Digest(
+            proto::HASHTYPE_BITCOIN, pubkey.Bytes(), output->WriteInto())) {
+        throw std::runtime_error("Unable to calculate hash.");
     }
 
-    if (!api_.Crypto().Hash().Digest(
-            proto::HASHTYPE_RIMEMD160, sha256, pubkeyHash)) {
-        throw std::runtime_error("Unable to calculate rimemd160.");
-    }
-
-    return pubkeyHash;
+    return output;
 }
 
 #if OT_BLOCKCHAIN

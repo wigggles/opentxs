@@ -235,16 +235,12 @@ public:
         std::string to_acct_name,
         std::string from_stash_name,
         std::string str_Amount);  // calls StashFunds(lAmount * (-1) )
-    std::string GetAcctBalance(
-        std::string from_acct_name,
-        const PasswordPrompt& reason);
+    std::string GetAcctBalance(std::string from_acct_name);
     std::string GetStashBalance(
         std::string stash_name,
         std::string instrument_definition_id);
 
-    std::string GetUnitTypeIDofAcct(
-        std::string from_acct_name,
-        const PasswordPrompt& reason);
+    std::string GetUnitTypeIDofAcct(std::string from_acct_name);
 
     // Todo: someday add "rejection notice" here too.
     // (Might be a demand for smart contracts to send failure notices.)
@@ -310,9 +306,7 @@ public:
         const identifier::Nym& theNymID) const override;
     std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents(const PasswordPrompt& reason)
         override;  // Before transmission or

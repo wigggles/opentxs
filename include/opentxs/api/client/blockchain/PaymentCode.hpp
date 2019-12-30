@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 
 #include "Deterministic.hpp"
@@ -43,5 +42,4 @@ private:
 }  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #endif  // OPENTXS_API_CLIENT_BLOCKCHAIN_PAYMENTCODECHAIN_HPP

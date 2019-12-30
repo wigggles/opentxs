@@ -13,18 +13,20 @@ namespace opentxs::crypto
 {
 proto::HashType HashingProvider::StringToHashType(const String& inputString)
 {
-    if (inputString.Compare("NULL"))
+    if (inputString.Compare("NULL")) {
         return proto::HASHTYPE_NONE;
-    else if (inputString.Compare("SHA256"))
+    } else if (inputString.Compare("SHA256")) {
         return proto::HASHTYPE_SHA256;
-    else if (inputString.Compare("SHA512"))
+    } else if (inputString.Compare("SHA512")) {
         return proto::HASHTYPE_SHA512;
-    else if (inputString.Compare("BLAKE2B160"))
+    } else if (inputString.Compare("BLAKE2B160")) {
         return proto::HASHTYPE_BLAKE2B160;
-    else if (inputString.Compare("BLAKE2B256"))
+    } else if (inputString.Compare("BLAKE2B256")) {
         return proto::HASHTYPE_BLAKE2B256;
-    else if (inputString.Compare("BLAKE2B512"))
+    } else if (inputString.Compare("BLAKE2B512")) {
         return proto::HASHTYPE_BLAKE2B512;
+    }
+
     return proto::HASHTYPE_ERROR;
 }
 OTString HashingProvider::HashTypeToString(const proto::HashType hashType)
@@ -33,27 +35,29 @@ OTString HashingProvider::HashTypeToString(const proto::HashType hashType)
     auto hashTypeString = String::Factory();
 
     switch (hashType) {
-        case proto::HASHTYPE_NONE:
+        case proto::HASHTYPE_NONE: {
             hashTypeString = String::Factory("NULL");
-            break;
-        case proto::HASHTYPE_SHA256:
+        } break;
+        case proto::HASHTYPE_SHA256: {
             hashTypeString = String::Factory("SHA256");
-            break;
-        case proto::HASHTYPE_SHA512:
+        } break;
+        case proto::HASHTYPE_SHA512: {
             hashTypeString = String::Factory("SHA512");
-            break;
-        case proto::HASHTYPE_BLAKE2B160:
+        } break;
+        case proto::HASHTYPE_BLAKE2B160: {
             hashTypeString = String::Factory("BLAKE2B160");
-            break;
-        case proto::HASHTYPE_BLAKE2B256:
+        } break;
+        case proto::HASHTYPE_BLAKE2B256: {
             hashTypeString = String::Factory("BLAKE2B256");
-            break;
-        case proto::HASHTYPE_BLAKE2B512:
+        } break;
+        case proto::HASHTYPE_BLAKE2B512: {
             hashTypeString = String::Factory("BLAKE2B512");
-            break;
-        default:
+        } break;
+        default: {
             hashTypeString = String::Factory("ERROR");
+        }
     }
+
     return hashTypeString;
 }
 
@@ -75,7 +79,19 @@ std::size_t HashingProvider::HashSize(const proto::HashType hashType)
         case proto::HASHTYPE_BLAKE2B512: {
             return 64;
         }
-        case proto::HASHTYPE_RIMEMD160: {
+        case proto::HASHTYPE_RIPEMD160: {
+            return 20;
+        }
+        case proto::HASHTYPE_SHA1: {
+            return 20;
+        }
+        case proto::HASHTYPE_SHA256D: {
+            return 32;
+        }
+        case proto::HASHTYPE_SHA256DC: {
+            return 4;
+        }
+        case proto::HASHTYPE_BITCOIN: {
             return 20;
         }
         default: {

@@ -39,7 +39,7 @@ public:
         Unused = 3,
     };
 
-    virtual std::string toString(const PasswordPrompt&) const = 0;
+    virtual std::string toString() const = 0;
 
     virtual std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,
@@ -60,7 +60,7 @@ public:
     virtual const identifier::Nym& LocalNymID() const = 0;
     virtual bool Paired() const = 0;
     virtual const std::string& PairingCode() const = 0;
-    virtual OTServerID PrimaryServer(const PasswordPrompt& reason) const = 0;
+    virtual OTServerID PrimaryServer() const = 0;
     virtual std::set<proto::PeerRequestType> RequestTypes() const = 0;
     virtual proto::Issuer Serialize() const = 0;
     virtual bool StoreSecretComplete() const = 0;

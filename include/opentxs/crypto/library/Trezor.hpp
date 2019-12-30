@@ -9,24 +9,23 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_USING_TREZOR
-#include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/crypto/library/EncodingProvider.hpp"
-#include "opentxs/crypto/library/Ripemd160.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
 
 namespace opentxs::crypto
 {
-class Trezor : virtual public EncodingProvider,
-               virtual public Ripemd160
+class Trezor
 #if OT_CRYPTO_WITH_BIP32
-    ,
-               virtual public Bip32
+    : virtual public Bip32
 #endif
 {
 public:
-    OPENTXS_EXPORT ~Trezor() override = default;
+#if OT_CRYPTO_WITH_BIP32
+    ~Trezor() override = default;
+#else
+    virtual ~Trezor() = default;
+#endif  // OT_CRYPTO_WITH_BIP32
 
 protected:
     Trezor() = default;

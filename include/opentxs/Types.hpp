@@ -271,9 +271,6 @@ typedef std::vector<std::shared_ptr<std::string>> DhtResults;
 typedef std::function<void(bool)> DhtDoneCallback;
 typedef std::function<bool(const DhtResults&)> DhtResultsCallback;
 
-typedef std::function<
-    bool(const std::uint32_t, const std::string&, std::string&)>
-    Digest;
 typedef std::function<std::string()> Random;
 
 typedef std::function<void()> PeriodicTask;

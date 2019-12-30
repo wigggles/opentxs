@@ -5,4 +5,5 @@
 
 add_opentx_test(unittests-opentxs-crypto-asymmetric Test_AsymmetricProvider.cpp)
 add_opentx_test(unittests-opentxs-crypto-bitcoin Test_BitcoinProviders.cpp)
+add_opentx_test(unittests-opentxs-crypto-envelope Test_Envelope.cpp)
 add_opentx_test(unittests-opentxs-crypto-hash Test_Hash.cpp)

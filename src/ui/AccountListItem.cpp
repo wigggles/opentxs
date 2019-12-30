@@ -48,7 +48,6 @@ template class opentxs::SharedPimpl<opentxs::ui::AccountListItem>;
 namespace opentxs
 {
 auto Factory::AccountListItem(
-    const opentxs::PasswordPrompt& reason,
     const ui::implementation::AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -58,14 +57,13 @@ auto Factory::AccountListItem(
     -> ui::implementation::AccountListRowInternal*
 {
     return new ui::implementation::AccountListItem(
-        reason, parent, api, publisher, rowID, sortKey, custom);
+        parent, api, publisher, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 AccountListItem::AccountListItem(
-    const opentxs::PasswordPrompt& reason,
     const AccountListInternalInterface& parent,
     const api::client::internal::Manager& api,
     const network::zeromq::socket::Publish& publisher,
@@ -76,8 +74,8 @@ AccountListItem::AccountListItem(
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)
     , balance_(extract_custom<Amount>(custom, 0))
-    , contract_(load_unit(api_, extract_custom<OTUnitID>(custom, 1), reason))
-    , notary_(load_server(api_, api.Factory().ServerID(sortKey.second), reason))
+    , contract_(load_unit(api_, extract_custom<OTUnitID>(custom, 1)))
+    , notary_(load_server(api_, api.Factory().ServerID(sortKey.second)))
     , name_(extract_custom<std::string>(custom, 2))
 {
 }
@@ -95,12 +93,11 @@ auto AccountListItem::DisplayBalance() const noexcept -> std::string
 
 auto AccountListItem::load_server(
     const api::Core& api,
-    const identifier::Server& id,
-    const PasswordPrompt& reason) -> OTServerContract
+    const identifier::Server& id) -> OTServerContract
 {
     try {
 
-        return api.Wallet().Server(id, reason);
+        return api.Wallet().Server(id);
     } catch (...) {
 
         return api.Factory().ServerContract();
@@ -109,12 +106,11 @@ auto AccountListItem::load_server(
 
 auto AccountListItem::load_unit(
     const api::Core& api,
-    const identifier::UnitDefinition& id,
-    const PasswordPrompt& reason) -> OTUnitDefinition
+    const identifier::UnitDefinition& id) -> OTUnitDefinition
 {
     try {
 
-        return api.Wallet().UnitDefinition(id, reason);
+        return api.Wallet().UnitDefinition(id);
     } catch (...) {
 
         return api.Factory().UnitDefinition();

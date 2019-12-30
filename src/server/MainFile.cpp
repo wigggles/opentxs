@@ -45,7 +45,6 @@ namespace opentxs::server
 
 MainFile::MainFile(Server& server, const PasswordPrompt& reason)
     : server_(server)
-    , reason_(reason)
     , version_()
 {
 }
@@ -419,7 +418,7 @@ bool MainFile::LoadServerUserAndContract()
     OT_ASSERT(!server_.ServerNymID().empty());
 
     serverNym = server_.API().Wallet().Nym(
-        server_.API().Factory().NymID(server_.ServerNymID()), reason_);
+        server_.API().Factory().NymID(server_.ServerNymID()));
 
     if (serverNym->HasCapability(NymCapability::SIGN_MESSAGE)) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Server nym is viable.").Flush();
@@ -453,7 +452,7 @@ bool MainFile::LoadServerUserAndContract()
         .Flush();
 
     try {
-        server_.API().Wallet().Server(NOTARY_ID, reason_);
+        server_.API().Wallet().Server(NOTARY_ID);
         bSuccess = true;
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": ** Main Server Contract Verified **")

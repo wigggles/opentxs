@@ -20,7 +20,7 @@ public:
     OTIdentifier ID() const override;
     Nym_p Nym() const override;
     const std::string& Terms() const override;
-    bool Validate(const PasswordPrompt& reason) const override;
+    bool Validate() const override;
     VersionNumber Version() const override;
 
     void SetAlias(const std::string& alias) override;
@@ -41,12 +41,10 @@ protected:
 
     bool CheckID(const Lock& lock) const;
     virtual OTIdentifier id(const Lock& lock) const;
-    virtual bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const = 0;
+    virtual bool validate(const Lock& lock) const = 0;
     virtual bool verify_signature(
         const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const;
+        const proto::Signature& signature) const;
     bool verify_write_lock(const Lock& lock) const;
 
     virtual void first_time_init(const Lock& lock) noexcept(false);

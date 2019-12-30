@@ -11,34 +11,34 @@
 
 namespace opentxs::peer::implementation
 {
-class Object : virtual public opentxs::PeerObject
+class Object final : virtual public opentxs::PeerObject
 {
 public:
-    const std::unique_ptr<std::string>& Message() const override
+    const std::unique_ptr<std::string>& Message() const final
     {
         return message_;
     }
-    const Nym_p& Nym() const override { return nym_; }
-    const std::unique_ptr<std::string>& Payment() const override
+    const Nym_p& Nym() const final { return nym_; }
+    const std::unique_ptr<std::string>& Payment() const final
     {
         return payment_;
     }
 #if OT_CASH
-    std::shared_ptr<blind::Purse> Purse() const override { return purse_; }
+    std::shared_ptr<blind::Purse> Purse() const final { return purse_; }
 #endif
-    const OTPeerRequest Request() const override { return request_; }
-    const OTPeerReply Reply() const override { return reply_; }
-    proto::PeerObject Serialize(const PasswordPrompt& reason) const override;
-    proto::PeerObjectType Type() const override { return type_; }
-    bool Validate(const PasswordPrompt& reason) const override;
+    const OTPeerRequest Request() const final { return request_; }
+    const OTPeerReply Reply() const final { return reply_; }
+    proto::PeerObject Serialize() const final;
+    proto::PeerObjectType Type() const final { return type_; }
+    bool Validate() const final;
 
-    std::unique_ptr<std::string>& Message() override { return message_; }
-    std::unique_ptr<std::string>& Payment() override { return payment_; }
+    std::unique_ptr<std::string>& Message() final { return message_; }
+    std::unique_ptr<std::string>& Payment() final { return payment_; }
 #if OT_CASH
-    std::shared_ptr<blind::Purse>& Purse() override { return purse_; }
+    std::shared_ptr<blind::Purse>& Purse() final { return purse_; }
 #endif
 
-    ~Object() override = default;
+    ~Object() final = default;
 
 private:
     friend opentxs::Factory;
@@ -59,36 +59,30 @@ private:
         const api::client::Contacts& contacts,
         const api::internal::Core& api,
         const Nym_p& signerNym,
-        const proto::PeerObject serialized,
-        const PasswordPrompt& reason);
+        const proto::PeerObject serialized);
     Object(
         const api::internal::Core& api,
         const Nym_p& senderNym,
-        const std::string& message,
-        const PasswordPrompt& reason);
+        const std::string& message);
 #if OT_CASH
     Object(
         const api::internal::Core& api,
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse,
-        const PasswordPrompt& reason);
+        const std::shared_ptr<blind::Purse> purse);
 #endif
     Object(
         const api::internal::Core& api,
         const std::string& payment,
-        const Nym_p& senderNym,
-        const PasswordPrompt& reason);
+        const Nym_p& senderNym);
     Object(
         const api::internal::Core& api,
         const OTPeerRequest request,
         const OTPeerReply reply,
-        const VersionNumber version,
-        const PasswordPrompt& reason);
+        const VersionNumber version);
     Object(
         const api::internal::Core& api,
         const OTPeerRequest request,
-        const VersionNumber version,
-        const PasswordPrompt& reason);
+        const VersionNumber version);
     Object(
         const api::internal::Core& api,
         const Nym_p& nym,
@@ -100,8 +94,7 @@ private:
         const std::shared_ptr<blind::Purse> purse,
 #endif
         const proto::PeerObjectType type,
-        const VersionNumber version,
-        const PasswordPrompt& reason);
+        const VersionNumber version);
     Object() = delete;
 };
 }  // namespace opentxs::peer::implementation

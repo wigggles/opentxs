@@ -19,47 +19,14 @@ public:
     bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const PasswordPrompt& reason,
-        std::string& plaintext) const final;
-    bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const PasswordPrompt& reason,
-        String& plaintext) const final;
-    bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const PasswordPrompt& reason,
-        Data& plaintext) const final;
-    bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const PasswordPrompt& reason,
-        OTPassword& plaintext) const final;
+        const AllocateOutput plaintext) const final;
     bool Encrypt(
-        const std::string& plaintext,
-        const Data& iv,
+        const ReadView plaintext,
         const PasswordPrompt& reason,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const final;
-    bool Encrypt(
-        const String& plaintext,
-        const Data& iv,
-        const PasswordPrompt& reason,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const final;
-    bool Encrypt(
-        const OTPassword& plaintext,
-        const Data& iv,
-        const PasswordPrompt& reason,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const final;
-    bool Encrypt(
-        const Data& plaintext,
-        const Data& iv,
-        const PasswordPrompt& reason,
-        proto::Ciphertext& ciphertext,
-        const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR) const final;
+        const proto::SymmetricMode mode = proto::SMODE_ERROR,
+        const ReadView iv = {}) const final;
     OTIdentifier ID(const PasswordPrompt& reason) const final;
     bool RawKey(const PasswordPrompt& reason, OTPassword& output) const final;
     bool Serialize(proto::SymmetricKey& output) const final;
@@ -68,6 +35,10 @@ public:
     bool ChangePassword(
         const PasswordPrompt& reason,
         const OTPassword& newPassword) final;
+
+    Symmetric(
+        const api::internal::Core& api,
+        const crypto::SymmetricProvider& engine);
 
     ~Symmetric() = default;
 
@@ -136,9 +107,6 @@ private:
     bool serialize(const Lock& lock, proto::SymmetricKey& output) const;
     bool unlock(const Lock& lock, const PasswordPrompt& reason) const;
 
-    Symmetric(
-        const api::internal::Core& api,
-        const crypto::SymmetricProvider& engine);
     Symmetric(
         const api::internal::Core& api,
         const crypto::SymmetricProvider& engine,

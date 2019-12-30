@@ -51,7 +51,7 @@ blockchain::internal::Database* Factory::BlockchainDatabase(
 namespace opentxs::blockchain::implementation
 {
 template <typename Input>
-std::string_view tsv(const Input& in) noexcept
+ReadView tsv(const Input& in) noexcept
 {
     return {reinterpret_cast<const char*>(&in), sizeof(in)};
 }
@@ -217,7 +217,7 @@ auto Database::Headers::ApplyUpdate(
                          .Store(
                              ChainData,
                              tsv(static_cast<std::size_t>(Key::CheckpointHash)),
-                             update.Checkpoint().second.get(),
+                             update.Checkpoint().second->Bytes(),
                              parentTxn)
                          .first) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -232,8 +232,8 @@ auto Database::Headers::ApplyUpdate(
         if (false == lmdb_
                          .Store(
                              BlockHeaderDisconnected,
-                             parent.get(),
-                             child.get(),
+                             parent->Bytes(),
+                             child->Bytes(),
                              parentTxn)
                          .first) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -247,8 +247,8 @@ auto Database::Headers::ApplyUpdate(
     for (const auto& [parent, child] : update.Connected()) {
         if (false == lmdb_.Delete(
                          BlockHeaderDisconnected,
-                         parent.get(),
-                         child.get(),
+                         parent->Bytes(),
+                         child->Bytes(),
                          parentTxn)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to delete disconnected hash")
@@ -259,9 +259,13 @@ auto Database::Headers::ApplyUpdate(
     }
 
     for (const auto& hash : update.SiblingsToAdd()) {
-        if (false ==
-            lmdb_.Store(BlockHeaderSiblings, hash.get(), hash.get(), parentTxn)
-                .first) {
+        if (false == lmdb_
+                         .Store(
+                             BlockHeaderSiblings,
+                             hash->Bytes(),
+                             hash->Bytes(),
+                             parentTxn)
+                         .first) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save sibling hash")
                 .Flush();
 
@@ -270,14 +274,14 @@ auto Database::Headers::ApplyUpdate(
     }
 
     for (const auto& hash : update.SiblingsToDelete()) {
-        lmdb_.Delete(BlockHeaderSiblings, hash.get(), parentTxn);
+        lmdb_.Delete(BlockHeaderSiblings, hash->Bytes(), parentTxn);
     }
 
     for (const auto& [hash, pair] : update.UpdatedHeaders()) {
         const auto& [header, newBlock] = pair;
         const auto result = lmdb_.Store(
             BlockHeaderMetadata,
-            hash.get(),
+            hash->Bytes(),
             proto::ToString(header->Serialize().local()),
             parentTxn);
 
@@ -454,7 +458,7 @@ auto Database::Headers::HasDisconnectedChildren(const block::Hash& hash) const
 {
     Lock lock(lock_);
 
-    return lmdb_.Exists(BlockHeaderDisconnected, hash);
+    return lmdb_.Exists(BlockHeaderDisconnected, hash.Bytes());
 }
 
 auto Database::Headers::HaveCheckpoint() const noexcept -> bool
@@ -468,7 +472,7 @@ auto Database::Headers::header_exists(const Lock& lock, const block::Hash& hash)
     const noexcept -> bool
 {
     return common_.BlockHeaderExists(hash) &&
-           lmdb_.Exists(BlockHeaderMetadata, hash);
+           lmdb_.Exists(BlockHeaderMetadata, hash.Bytes());
 }
 
 auto Database::Headers::HeaderExists(const block::Hash& hash) const noexcept
@@ -488,14 +492,14 @@ auto Database::Headers::import_genesis(const blockchain::Type type) const
     try {
         const auto serialized = common_.LoadBlockHeader(hash);
 
-        if (false == lmdb_.Exists(BlockHeaderMetadata, hash)) {
+        if (false == lmdb_.Exists(BlockHeaderMetadata, hash.Bytes())) {
             auto genesis = api_.Factory().BlockHeader(serialized);
 
             OT_ASSERT(genesis);
 
             const auto result = lmdb_.Store(
                 BlockHeaderMetadata,
-                hash,
+                hash.Bytes(),
                 proto::ToString(genesis->Serialize().local()));
 
             OT_ASSERT(result.first);
@@ -513,7 +517,7 @@ auto Database::Headers::import_genesis(const blockchain::Type type) const
         success = lmdb_
                       .Store(
                           BlockHeaderMetadata,
-                          hash,
+                          hash.Bytes(),
                           proto::ToString(genesis->Serialize().local()))
                       .first;
 
@@ -537,7 +541,7 @@ auto Database::Headers::IsSibling(const block::Hash& hash) const noexcept
 {
     Lock lock(lock_);
 
-    return lmdb_.Exists(BlockHeaderSiblings, hash);
+    return lmdb_.Exists(BlockHeaderSiblings, hash.Bytes());
 }
 
 auto Database::Headers::load_header(const block::Hash& hash) const
@@ -545,7 +549,7 @@ auto Database::Headers::load_header(const block::Hash& hash) const
 {
     auto proto = common_.LoadBlockHeader(hash);
     const auto haveMeta =
-        lmdb_.Load(BlockHeaderMetadata, hash, [&](const auto data) {
+        lmdb_.Load(BlockHeaderMetadata, hash.Bytes(), [&](const auto data) {
             proto.mutable_local()->ParseFromArray(data.data(), data.size());
         });
 
@@ -576,7 +580,7 @@ auto Database::Headers::push_best(
     auto output = lmdb_.Store(
         BlockHeaderBest,
         tsv(static_cast<std::size_t>(next.first)),
-        next.second.get(),
+        next.second->Bytes(),
         parent);
 
     if (output.first && setTip) {

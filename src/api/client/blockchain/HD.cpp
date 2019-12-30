@@ -123,18 +123,10 @@ HD::HD(
            {Subchain::External, serialized.externalindex()}})
     , version_(serialized.version())
     , revision_(serialized.revision())
-    , internal_addresses_(extract_internal(
-          *this,
-          parent.Parent().Parent(),
-          chain_,
-          serialized,
-          reason))
-    , external_addresses_(extract_external(
-          *this,
-          parent.Parent().Parent(),
-          chain_,
-          serialized,
-          reason))
+    , internal_addresses_(
+          extract_internal(*this, parent.Parent().Parent(), chain_, serialized))
+    , external_addresses_(
+          extract_external(*this, parent.Parent().Parent(), chain_, serialized))
 {
     id.Assign(id_);
 
@@ -219,8 +211,7 @@ HD::AddressMap HD::extract_external(
     const internal::BalanceNode& parent,
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
-    const SerializedType& in,
-    const PasswordPrompt& reason) noexcept(false)
+    const SerializedType& in) noexcept(false)
 {
     AddressMap output{};
 
@@ -229,7 +220,7 @@ HD::AddressMap HD::extract_external(
             std::piecewise_construct,
             std::forward_as_tuple(address.index()),
             std::forward_as_tuple(
-                parent, api, chain, Subchain::External, address, reason));
+                parent, api, chain, Subchain::External, address));
     }
 
     return output;
@@ -250,8 +241,7 @@ HD::AddressMap HD::extract_internal(
     const internal::BalanceNode& parent,
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
-    const SerializedType& in,
-    const PasswordPrompt& reason) noexcept(false)
+    const SerializedType& in) noexcept(false)
 {
     AddressMap output{};
 
@@ -260,7 +250,7 @@ HD::AddressMap HD::extract_internal(
             std::piecewise_construct,
             std::forward_as_tuple(address.index()),
             std::forward_as_tuple(
-                parent, api, chain, Subchain::Internal, address, reason));
+                parent, api, chain, Subchain::Internal, address));
     }
 
     return output;
@@ -307,8 +297,7 @@ Bip32Index HD::generate_next(
             chain_,
             type,
             index,
-            std::move(pKey),
-            reason));
+            std::move(pKey)));
 
     if (false == added) { throw std::runtime_error("Failed to add key"); }
 

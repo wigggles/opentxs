@@ -169,8 +169,7 @@ public:
      * GetContractPublicNym, and uses it to verify the signature on the
      * contract. So the contract is self-verifying. Right now only public keys
      * are supported, but soon contracts will also support x509 certs. */
-    OPENTXS_EXPORT virtual bool VerifyContract(
-        const PasswordPrompt& reason) const;
+    OPENTXS_EXPORT virtual bool VerifyContract() const;
 
     /** Overriden for example in OTOffer, OTMarket. You can get it in string or
      * binary form. */
@@ -182,17 +181,14 @@ public:
 
     /** assumes m_strFilename is already set. Then it reads that file into a
      * string. Then it parses that string into the object. */
-    OPENTXS_EXPORT virtual bool LoadContract(const PasswordPrompt& reason);
+    OPENTXS_EXPORT virtual bool LoadContract();
     OPENTXS_EXPORT bool LoadContract(
         const char* szFoldername,
-        const char* szFilename,
-        const PasswordPrompt& reason);
+        const char* szFilename);
 
     /** Just like it says. If you have a contract in string form, pass it in
      * here to import it. */
-    OPENTXS_EXPORT virtual bool LoadContractFromString(
-        const String& theStr,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT virtual bool LoadContractFromString(const String& theStr);
 
     /** fopens m_strFilename and reads it off the disk into m_strRawFile */
     bool LoadContractRawFile();
@@ -294,29 +290,23 @@ public:
 
     /** So far not overridden anywhere (used to be OTTrade.) */
     OPENTXS_EXPORT virtual bool VerifySignature(
-        const identity::Nym& theNym,
-        const PasswordPrompt& reason) const;
+        const identity::Nym& theNym) const;
     OPENTXS_EXPORT virtual bool VerifySigAuthent(
-        const identity::Nym& theNym,
-        const PasswordPrompt& reason) const;
+        const identity::Nym& theNym) const;
     OPENTXS_EXPORT virtual bool VerifyWithKey(
-        const crypto::key::Asymmetric& theKey,
-        const PasswordPrompt& reason) const;
+        const crypto::key::Asymmetric& theKey) const;
     OPENTXS_EXPORT bool VerifySignature(
         const identity::Nym& theNym,
-        const Signature& theSignature,
-        const PasswordPrompt& reason) const;
+        const Signature& theSignature) const;
 
     /** Uses authentication key instead of signing key. */
     OPENTXS_EXPORT bool VerifySigAuthent(
         const identity::Nym& theNym,
-        const Signature& theSignature,
-        const PasswordPrompt& reason) const;
+        const Signature& theSignature) const;
     OPENTXS_EXPORT bool VerifySignature(
         const crypto::key::Asymmetric& theKey,
         const Signature& theSignature,
-        const proto::HashType hashType,
-        const PasswordPrompt& reason) const;
+        const proto::HashType hashType) const;
     OPENTXS_EXPORT Nym_p GetContractPublicNym() const;
 
 protected:
@@ -379,17 +369,15 @@ protected:
 
     /** The XML file is in m_xmlUnsigned-> Load it from there into members here.
      */
-    bool LoadContractXML(const PasswordPrompt& reason);
+    bool LoadContractXML();
 
     /** parses m_strRawFile into the various member variables. Separating these
      * into two steps allows us to load contracts from other sources besides
      * files. */
-    bool ParseRawFile(const PasswordPrompt& reason);
+    bool ParseRawFile();
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    virtual std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason);
+    virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
     explicit Contract(const api::internal::Core& core);
     explicit Contract(

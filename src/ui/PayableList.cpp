@@ -155,8 +155,7 @@ void PayableList::process_contact(
 {
     if (owner_contact_id_ == id) { return; }
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-    const auto contact = api_.Contacts().Contact(id, reason);
+    const auto contact = api_.Contacts().Contact(id);
 
     if (false == bool(contact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: Contact ")(id)(

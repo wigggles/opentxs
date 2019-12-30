@@ -21,35 +21,39 @@ class Key : virtual public credential::internal::Key,
 {
 public:
     const crypto::key::Keypair& GetKeypair(
+        const proto::KeyRole role) const final
+    {
+        return GetKeypair(proto::AKEYTYPE_NULL, role);
+    }
+    const crypto::key::Keypair& GetKeypair(
         const proto::AsymmetricKeyType type,
-        const proto::KeyRole role) const override;
+        const proto::KeyRole role) const final;
     std::int32_t GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
         const opentxs::Signature& theSignature,
-        char cKeyType = '0') const override;
+        char cKeyType = '0') const final;
     bool hasCapability(const NymCapability& capability) const override;
     using Base::Verify;
     bool Verify(
         const Data& plaintext,
         const proto::Signature& sig,
-        const PasswordPrompt& reason,
-        const proto::KeyRole key = proto::KEYROLE_SIGN) const override;
+        const proto::KeyRole key) const final;
     bool Sign(
         const GetPreimage input,
         const proto::SignatureRole role,
         proto::Signature& signature,
         const PasswordPrompt& reason,
-        proto::KeyRole key = proto::KEYROLE_SIGN,
-        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const override;
+        proto::KeyRole key,
+        const proto::HashType hash) const final;
     bool TransportKey(
         Data& publicKey,
         OTPassword& privateKey,
-        const PasswordPrompt& reason) const override;
+        const PasswordPrompt& reason) const final;
 
     bool SelfSign(
         const PasswordPrompt& reason,
         const OTPassword* exportPassword = nullptr,
-        const bool onlyPrivate = false) override;
+        const bool onlyPrivate = false) final;
 
     ~Key() override = default;
 
@@ -63,8 +67,7 @@ protected:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const override;
-    bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
-        const override;
+    bool verify_internally(const Lock& lock) const override;
 
     void sign(
         const identity::credential::internal::Primary& master,
@@ -80,7 +83,6 @@ protected:
         const std::string& masterID,
         const bool useProvidedSigningKey = false) noexcept(false);
     Key(const api::internal::Core& api,
-        const PasswordPrompt& reason,
         const identity::internal::Authority& owner,
         const identity::Source& source,
         const proto::Credential& serializedCred,
@@ -92,7 +94,6 @@ private:
 
     static OTKeypair deserialize_key(
         const api::internal::Core& api,
-        const PasswordPrompt& reason,
         const int index,
         const proto::Credential& credential);
     static OTKeypair new_key(
@@ -100,7 +101,8 @@ private:
         const proto::KeyRole role,
         const NymParameters& nymParameters,
         const VersionNumber version,
-        const PasswordPrompt& reason) noexcept(false);
+        const PasswordPrompt& reason,
+        const ReadView dh = {}) noexcept(false);
     static OTKeypair signing_key(
         const api::internal::Core& api,
         const NymParameters& params,
@@ -118,10 +120,8 @@ private:
     bool VerifySig(
         const Lock& lock,
         const proto::Signature& sig,
-        const PasswordPrompt& reason,
         const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
-    bool VerifySignedBySelf(const Lock& lock, const PasswordPrompt& reason)
-        const;
+    bool VerifySignedBySelf(const Lock& lock) const;
 
     Key() = delete;
     Key(const Key&) = delete;

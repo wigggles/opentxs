@@ -102,7 +102,7 @@ bool OTPassword::ot_lockPage(void* addr, std::size_t len)
     static bool bWarned = false;
     if (mlock(addr, len) && !bWarned) {
         bWarned = true;
-        LogOutput(OT_METHOD)(__FUNCTION__)(
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": WARNING: Unable to lock memory. "
             " (Passwords / secret keys may be swapped to disk)!")
             .Flush();
@@ -403,9 +403,33 @@ OTPassword::OTPassword(const void* vInput, std::size_t nInputSize)
     setMemory(vInput, nInputSize);
 }
 
+OTPassword::OTPassword(const Mode mode, ReadView rhs)
+    : size_(0)
+    , isText_(Mode::Text == mode)
+    , isBinary_(Mode::Mem == mode)
+    , isPageLocked_(false)
+{
+    if (Mode::Mem == mode) {
+        if (0 < rhs.size()) { setMemory(rhs.data(), rhs.size()); }
+    } else {
+        data_[0] = '\0';
+
+        if (0 < rhs.size()) { setPassword(rhs.data(), rhs.size()); }
+    }
+}
+
 OTPassword::~OTPassword()
 {
     if (size_ > 0) zeroMemory();
+}
+
+auto OTPassword::Bytes() const noexcept -> ReadView
+{
+    if (isBinary_) {
+        return ReadView{static_cast<const char*>(getMemory()), getMemorySize()};
+    } else {
+        return ReadView{getPassword(), getPasswordSize()};
+    }
 }
 
 bool OTPassword::isPassword() const { return isText_; }
@@ -967,4 +991,25 @@ std::uint32_t OTPassword::OTfread(std::uint8_t* data, uint32_t size)
     return sizeToRead;
 }
 
+auto OTPassword::WriteInto(const std::optional<Mode> mode) noexcept
+    -> AllocateOutput
+{
+    const auto binary{mode.has_value() ? (Mode::Mem == mode.value())
+                                       : isBinary_};
+
+    return [binary, this](const auto size) {
+        auto blank = std::vector<char>{};
+        blank.assign(size, 5);
+
+        if (binary) {
+            setMemory(blank.data(), blank.size());
+
+            return WritableView{getMemoryWritable(), getMemorySize()};
+        } else {
+            setPassword(blank.data(), blank.size());
+
+            return WritableView{getPasswordWritable(), getPasswordSize()};
+        }
+    };
+}
 }  // namespace opentxs

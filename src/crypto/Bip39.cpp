@@ -107,8 +107,8 @@ auto Bip39::entropy_to_words(const OTPassword& entropy, OTPassword& words) const
 
     if (false == crypto_.Hash().Digest(
                      opentxs::proto::HashType::HASHTYPE_SHA256,
-                     digestInput,
-                     digestOutput)) {
+                     digestInput->Bytes(),
+                     digestOutput->WriteInto())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Digest(opentxs::proto::HashType::HASHTYPE_SHA256...) failed.")
             .Flush();

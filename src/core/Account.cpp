@@ -186,7 +186,7 @@ bool Account::ConsensusHash(
     auto inboxhash{api_.Factory().Identifier()};
     auto loaded = nymfile->GetInboxHash(accountid->str(), inboxhash);
     if (false == loaded) {
-        const_cast<Account&>(*this).GetInboxHash(inboxhash, reason);
+        const_cast<Account&>(*this).GetInboxHash(inboxhash);
     }
     if (false == inboxhash->empty()) {
         preimage->Concatenate(inboxhash->data(), inboxhash->size());
@@ -197,7 +197,7 @@ bool Account::ConsensusHash(
     auto outboxhash{api_.Factory().Identifier()};
     loaded = nymfile->GetOutboxHash(accountid->str(), outboxhash);
     if (false == loaded) {
-        const_cast<Account&>(*this).GetOutboxHash(outboxhash, reason);
+        const_cast<Account&>(*this).GetOutboxHash(outboxhash);
     }
     if (false == outboxhash->empty()) {
         preimage->Concatenate(outboxhash->data(), outboxhash->size());
@@ -271,25 +271,19 @@ bool Account::create_box(
     return true;
 }
 
-bool Account::LoadContractFromString(
-    const String& theStr,
-    const PasswordPrompt& reason)
+bool Account::LoadContractFromString(const String& theStr)
 {
-    return OTTransactionType::LoadContractFromString(theStr, reason);
+    return OTTransactionType::LoadContractFromString(theStr);
 }
 
-std::unique_ptr<Ledger> Account::LoadInbox(
-    const identity::Nym& nym,
-    const PasswordPrompt& reason) const
+std::unique_ptr<Ledger> Account::LoadInbox(const identity::Nym& nym) const
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(false != bool(box));
 
-    if (box->LoadInbox(reason) && box->VerifyAccount(nym, reason)) {
-        return box;
-    }
+    if (box->LoadInbox() && box->VerifyAccount(nym)) { return box; }
 
     auto strNymID = String::Factory(GetNymID()),
          strAcctID = String::Factory(GetRealAccountID());
@@ -302,18 +296,14 @@ std::unique_ptr<Ledger> Account::LoadInbox(
     return nullptr;
 }
 
-std::unique_ptr<Ledger> Account::LoadOutbox(
-    const identity::Nym& nym,
-    const PasswordPrompt& reason) const
+std::unique_ptr<Ledger> Account::LoadOutbox(const identity::Nym& nym) const
 {
     auto box{api_.Factory().Ledger(
         GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(false != bool(box));
 
-    if (box->LoadOutbox(reason) && box->VerifyAccount(nym, reason)) {
-        return box;
-    }
+    if (box->LoadOutbox() && box->VerifyAccount(nym)) { return box; }
 
     auto strNymID = String::Factory(GetNymID()),
          strAcctID = String::Factory(GetRealAccountID());
@@ -376,7 +366,7 @@ bool Account::SaveOutbox(Ledger& box, Identifier& hash)
 
 void Account::SetInboxHash(const Identifier& input) { inboxHash_ = input; }
 
-bool Account::GetInboxHash(Identifier& output, const PasswordPrompt& reason)
+bool Account::GetInboxHash(Identifier& output)
 {
     output.Release();
 
@@ -391,7 +381,7 @@ bool Account::GetInboxHash(Identifier& output, const PasswordPrompt& reason)
 
         OT_ASSERT(false != bool(inbox));
 
-        if (inbox->LoadInbox(reason) && inbox->CalculateInboxHash(output)) {
+        if (inbox->LoadInbox() && inbox->CalculateInboxHash(output)) {
             SetInboxHash(output);
             return true;
         }
@@ -402,7 +392,7 @@ bool Account::GetInboxHash(Identifier& output, const PasswordPrompt& reason)
 
 void Account::SetOutboxHash(const Identifier& input) { outboxHash_ = input; }
 
-bool Account::GetOutboxHash(Identifier& output, const PasswordPrompt& reason)
+bool Account::GetOutboxHash(Identifier& output)
 {
     output.Release();
 
@@ -417,7 +407,7 @@ bool Account::GetOutboxHash(Identifier& output, const PasswordPrompt& reason)
 
         OT_ASSERT(false != bool(outbox));
 
-        if (outbox->LoadOutbox(reason) && outbox->CalculateOutboxHash(output)) {
+        if (outbox->LoadOutbox() && outbox->CalculateOutboxHash(output)) {
             SetOutboxHash(output);
             return true;
         }
@@ -431,8 +421,8 @@ bool Account::InitBoxes(
     const PasswordPrompt& reason)
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Generating inbox/outbox.").Flush();
-    std::unique_ptr<Ledger> inbox{LoadInbox(signer, reason)};
-    std::unique_ptr<Ledger> outbox{LoadInbox(signer, reason)};
+    std::unique_ptr<Ledger> inbox{LoadInbox(signer)};
+    std::unique_ptr<Ledger> outbox{LoadInbox(signer)};
 
     if (inbox) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Inbox already exists.").Flush();
@@ -486,12 +476,12 @@ bool Account::InitBoxes(
 // account.
 //
 // Overriding this so I can set the filename automatically inside based on ID.
-bool Account::LoadContract(const PasswordPrompt& reason)
+bool Account::LoadContract()
 {
     auto id = String::Factory();
     GetIdentifier(id);
 
-    return Contract::LoadContract(api_.Legacy().Account(), id->Get(), reason);
+    return Contract::LoadContract(api_.Legacy().Account(), id->Get());
 }
 
 bool Account::SaveAccount()
@@ -603,8 +593,7 @@ bool Account::VerifyOwnerByID(const identifier::Nym& nymId) const
 Account* Account::LoadExistingAccount(
     const api::internal::Core& core,
     const Identifier& accountId,
-    const identifier::Server& notaryID,
-    const PasswordPrompt& reason)
+    const identifier::Server& notaryID)
 {
     auto strDataFolder = String::Factory(core.DataFolder().c_str());
     auto strAccountPath = String::Factory("");
@@ -649,7 +638,7 @@ Account* Account::LoadExistingAccount(
         return nullptr;
     }
 
-    if (account->LoadContract(reason) && account->VerifyContractID()) {
+    if (account->LoadContract() && account->VerifyContractID()) {
 
         return account.release();
     }
@@ -956,9 +945,7 @@ void Account::UpdateContents(const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Account::ProcessXMLNode(
-    IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 {
     std::int32_t retval = 0;
 

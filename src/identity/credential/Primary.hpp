@@ -21,8 +21,7 @@ public:
         const proto::Credential& credential,
         const proto::CredentialRole& role,
         const Identifier& masterID,
-        const proto::Signature& masterSig,
-        const PasswordPrompt& reason) const final;
+        const proto::Signature& masterSig) const final;
 
     ~Primary() final = default;
 
@@ -39,10 +38,8 @@ private:
         const Lock& lock,
         const SerializationModeFlag asPrivate,
         const SerializationSignatureFlag asSigned) const final;
-    bool verify_against_source(const Lock& lock, const PasswordPrompt& reason)
-        const;
-    bool verify_internally(const Lock& lock, const PasswordPrompt& reason)
-        const final;
+    bool verify_against_source(const Lock& lock) const;
+    bool verify_internally(const Lock& lock) const final;
 
     void sign(
         const identity::credential::internal::Primary& master,
@@ -57,7 +54,6 @@ private:
         const PasswordPrompt& reason) noexcept(false);
     Primary(
         const api::internal::Core& api,
-        const PasswordPrompt& reason,
         const identity::internal::Authority& parent,
         const identity::Source& source,
         const proto::Credential& serializedCred) noexcept(false);

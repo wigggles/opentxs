@@ -138,16 +138,11 @@ public:
     //
     bool VerifyAgreement(
         const ClientContext& recipient,
-        const ClientContext& sender,
-        const PasswordPrompt& reason) const override;
+        const ClientContext& sender) const override;
     bool CompareAgreement(const OTAgreement& rh) const override;
 
-    bool VerifyMerchantSignature(
-        const identity::Nym& RECIPIENT_NYM,
-        const PasswordPrompt& reason) const;
-    bool VerifyCustomerSignature(
-        const identity::Nym& SENDER_NYM,
-        const PasswordPrompt& reason) const;
+    bool VerifyMerchantSignature(const identity::Nym& RECIPIENT_NYM) const;
+    bool VerifyCustomerSignature(const identity::Nym& SENDER_NYM) const;
 
     // ************ "INITIAL PAYMENT" public GET METHODS **************
     inline bool HasInitialPayment() const { return m_bInitialPayment; }
@@ -223,9 +218,7 @@ public:
     void Release() override;
     void Release_PaymentPlan();
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void UpdateContents(const PasswordPrompt& reason)
         override;  // Before transmission or serialization,
                    // this

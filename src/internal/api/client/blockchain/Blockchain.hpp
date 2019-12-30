@@ -138,9 +138,7 @@ struct Imported : virtual public blockchain::Imported,
                   virtual public BalanceNode {
 };
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 struct PaymentCode : virtual public blockchain::PaymentCode,
                      virtual public Deterministic {
 };
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 }  // namespace opentxs::api::client::blockchain::internal

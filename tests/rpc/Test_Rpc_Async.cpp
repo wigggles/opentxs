@@ -200,12 +200,11 @@ void Test_Rpc_Async::setup()
     intro_server.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
     server.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
 #endif
-    auto server_contract = server.Wallet().Server(server.ID(), reasonServer);
-    intro_server.Wallet().Server(
-        server_contract->PublicContract(), reasonServer);
+    auto server_contract = server.Wallet().Server(server.ID());
+    intro_server.Wallet().Server(server_contract->PublicContract());
     server_id_ = identifier::Server::Factory(server_contract->ID()->str());
     auto intro_server_contract =
-        intro_server.Wallet().Server(intro_server.ID(), reasonServer);
+        intro_server.Wallet().Server(intro_server.ID());
     intro_server_id_ =
         identifier::Server::Factory(intro_server_contract->ID()->str());
     auto cookie = ot::Identifier::Random()->str();
@@ -236,12 +235,12 @@ void Test_Rpc_Async::setup()
     auto& receiverClient = ot.Client(get_index(response.session()));
     auto reasonR = receiverClient.Factory().PasswordPrompt(__FUNCTION__);
 
-    auto client_a_server_contract = senderClient.Wallet().Server(
-        intro_server_contract->PublicContract(), reasonS);
+    auto client_a_server_contract =
+        senderClient.Wallet().Server(intro_server_contract->PublicContract());
     senderClient.OTX().SetIntroductionServer(client_a_server_contract);
 
-    auto client_b_server_contract = receiverClient.Wallet().Server(
-        intro_server_contract->PublicContract(), reasonR);
+    auto client_b_server_contract =
+        receiverClient.Wallet().Server(intro_server_contract->PublicContract());
     receiverClient.OTX().SetIntroductionServer(client_b_server_contract);
 
     auto started = notification_socket_->get().Start(
@@ -282,14 +281,14 @@ TEST_F(Test_Rpc_Async, Setup)
     auto reasonR = receiverClient.Factory().PasswordPrompt(__FUNCTION__);
 
     try {
-        senderClient.Wallet().Server(server_id_, reasonS);
+        senderClient.Wallet().Server(server_id_);
         EXPECT_FALSE(true);
     } catch (...) {
         EXPECT_FALSE(false);
     }
 
     try {
-        receiverClient.Wallet().Server(server_id_, reasonR);
+        receiverClient.Wallet().Server(server_id_);
         EXPECT_FALSE(true);
     } catch (...) {
         EXPECT_FALSE(false);
@@ -377,7 +376,6 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Contact)
 TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
 {
     auto& client_a = ot_.Client(get_index(sender_session_));
-    auto reason = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
 
@@ -391,10 +389,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
         identifier::Nym::Factory(),
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        client_a.Factory().PaymentCode("", reason),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reason);
+        client_a.Factory().PaymentCode(""));
 
     auto sendpayment = command.mutable_sendpayment();
 
@@ -421,7 +416,6 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
 TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
 {
     auto& client_a = ot_.Client(get_index(sender_session_));
-    auto reason = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
 
@@ -435,10 +429,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
         identifier::Nym::Factory(),
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        client_a.Factory().PaymentCode("", reason),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reason);
+        client_a.Factory().PaymentCode(""));
 
     auto sendpayment = command.mutable_sendpayment();
 
@@ -465,15 +456,13 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
 TEST_F(Test_Rpc_Async, Send_Payment_Cheque)
 {
     auto& client_a = ot_.Client(get_index(sender_session_));
-    auto reasonA = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
     auto& client_b = get_session(receiver_session_);
-    auto reasonB = client_b.Factory().PasswordPrompt(__FUNCTION__);
 
     ASSERT_FALSE(receiver_nym_id_->empty());
 
-    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_, reasonB);
+    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_);
 
     ASSERT_TRUE(bool(nym5));
 
@@ -481,10 +470,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque)
     const auto contact = contacts.NewContact(
         std::string(TEST_NYM_5),
         receiver_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        client_a.Factory().PaymentCode(nym5->PaymentCode(reasonA), reasonA),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonA);
+        client_a.Factory().PaymentCode(nym5->PaymentCode()));
 
     ASSERT_TRUE(contact);
 
@@ -843,15 +829,13 @@ TEST_F(Test_Rpc_Async, Accept_2_Pending_Payments)
     // Send 1 payment
 
     auto& client_a = ot_.Client(get_index(sender_session_));
-    auto reasonA = client_a.Factory().PasswordPrompt(__FUNCTION__);
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(sender_session_);
     auto& client_b = ot_.Client(get_index(receiver_session_));
-    auto reasonB = client_b.Factory().PasswordPrompt(__FUNCTION__);
 
     ASSERT_FALSE(receiver_nym_id_->empty());
 
-    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_, reasonB);
+    auto nym5 = client_b.Wallet().Nym(receiver_nym_id_);
 
     ASSERT_TRUE(bool(nym5));
 
@@ -859,10 +843,7 @@ TEST_F(Test_Rpc_Async, Accept_2_Pending_Payments)
     const auto contact = contacts.NewContact(
         std::string(TEST_NYM_5),
         receiver_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        client_a.Factory().PaymentCode(nym5->PaymentCode(reasonA), reasonA),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonA);
+        client_a.Factory().PaymentCode(nym5->PaymentCode()));
 
     ASSERT_TRUE(contact);
 

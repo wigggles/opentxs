@@ -31,7 +31,7 @@ struct Core;
 class OTSignedFile : public Contract
 {
 public:
-    OPENTXS_EXPORT bool LoadFile(const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool LoadFile();
     OPENTXS_EXPORT bool SaveFile();
     bool VerifyFile();  // Returns true or false, whether actual subdir/file
                         // matches purported subdir/file.
@@ -81,9 +81,7 @@ protected:
     // the attacker has write/erase access to the filesystem. I'd like to make
     // it impervious even to that.
 
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;

@@ -16,9 +16,7 @@
 #include <opentxs/api/client/blockchain/Ethereum.hpp>
 #include <opentxs/api/client/blockchain/HD.hpp>
 #include <opentxs/api/client/blockchain/Imported.hpp>
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include <opentxs/api/client/blockchain/PaymentCode.hpp>
-#endif
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Activity.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -100,12 +98,9 @@
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/crypto/OTCallback.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
-#include <opentxs/core/crypto/OTEnvelope.hpp>
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include <opentxs/core/crypto/PaymentCode.hpp>
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include <opentxs/core/identifier/Nym.hpp>
 #include <opentxs/core/identifier/Server.hpp>
 #include <opentxs/core/identifier/UnitDefinition.hpp>
@@ -150,6 +145,7 @@
 #include <opentxs/crypto/library/SymmetricProvider.hpp>
 #include <opentxs/crypto/Bip32.hpp>
 #include <opentxs/crypto/Bip39.hpp>
+#include <opentxs/crypto/Envelope.hpp>
 #include <opentxs/otx/Reply.hpp>
 #include <opentxs/otx/Request.hpp>
 #include <opentxs/ext/Helpers.hpp>
@@ -224,6 +220,7 @@
 #include <opentxs/ui/ProfileSubsection.hpp>
 #include <opentxs/ui/Widget.hpp>
 #include <opentxs/util/Signals.hpp>
+#include <opentxs/Bytes.hpp>
 #include <opentxs/OT.hpp>
 #include <opentxs/Proto.tpp>
 #include <opentxs/Qt.hpp>

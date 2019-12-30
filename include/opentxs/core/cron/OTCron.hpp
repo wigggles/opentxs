@@ -155,9 +155,7 @@ public:
     void Release() final;
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) final;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) final;
     /** Before transmission or serialization, this is where the ledger saves its
      * contents */
     void UpdateContents(const PasswordPrompt& reason) final;

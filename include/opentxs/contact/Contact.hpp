@@ -58,7 +58,6 @@ public:
         const proto::ContactItemType currency);
 
     OPENTXS_EXPORT Contact(
-        const PasswordPrompt& reason,
         const api::client::internal::Manager& api,
         const proto::Contact& serialized);
     OPENTXS_EXPORT Contact(
@@ -112,13 +111,11 @@ public:
     OPENTXS_EXPORT bool AddNym(
         const identifier::Nym& nymID,
         const bool primary);
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     OPENTXS_EXPORT bool AddPaymentCode(
-        const class PaymentCode& code,
+        const opentxs::PaymentCode& code,
         const bool primary,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC,
         const bool active = true);
-#endif
     OPENTXS_EXPORT bool AddPhoneNumber(
         const std::string& value,
         const bool primary,
@@ -130,9 +127,7 @@ public:
         const bool active);
     OPENTXS_EXPORT bool RemoveNym(const identifier::Nym& nymID);
     OPENTXS_EXPORT void SetLabel(const std::string& label);
-    OPENTXS_EXPORT void Update(
-        const identity::Nym::Serialized& nym,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT void Update(const identity::Nym::Serialized& nym);
 
     OPENTXS_EXPORT ~Contact() = default;
 
@@ -179,7 +174,7 @@ private:
     void add_verified_claim(
         const Lock& lock,
         const std::shared_ptr<ContactItem>& item);
-    void init_nyms(const PasswordPrompt& reason);
+    void init_nyms();
     void update_label(const Lock& lock, const identity::Nym& nym);
 
     Contact() = delete;

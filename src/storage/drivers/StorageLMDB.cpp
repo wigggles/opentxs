@@ -81,7 +81,7 @@ StorageLMDB::Table StorageLMDB::get_table(const bool bucket) const
 
 void StorageLMDB::Init_StorageLMDB()
 {
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Database initialized.").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Database initialized.").Flush();
 }
 
 bool StorageLMDB::LoadFromBucket(

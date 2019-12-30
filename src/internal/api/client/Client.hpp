@@ -31,7 +31,7 @@
 namespace opentxs::api::client::internal
 {
 struct Activity : virtual public api::client::Activity {
-    virtual void MigrateLegacyThreads(const PasswordPrompt& reason) const = 0;
+    virtual void MigrateLegacyThreads() const = 0;
 
     virtual ~Activity() = default;
 };
@@ -77,14 +77,14 @@ struct Blockchain : virtual public api::client::Blockchain {
 };
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 struct Contacts : virtual public api::client::Contacts {
-    virtual void start(const PasswordPrompt& reason) = 0;
+    virtual void start() = 0;
 
     virtual ~Contacts() = default;
 };
 struct Manager : virtual public api::client::Manager,
                  virtual public api::internal::Core {
-    virtual void StartActivity(const PasswordPrompt& reason) = 0;
-    virtual void StartContacts(const PasswordPrompt& reason) = 0;
+    virtual void StartActivity() = 0;
+    virtual void StartContacts() = 0;
 
     virtual ~Manager() = default;
 };

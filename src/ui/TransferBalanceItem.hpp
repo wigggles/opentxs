@@ -29,7 +29,7 @@ private:
     std::unique_ptr<const opentxs::Item> transfer_;
 
     opentxs::Amount effective_amount() const noexcept final;
-    bool get_contract(const PasswordPrompt& reason) const noexcept final;
+    bool get_contract() const noexcept final;
 
     void startup(const CustomData& custom) noexcept;
 

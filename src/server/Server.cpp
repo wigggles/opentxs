@@ -23,7 +23,6 @@
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -33,6 +32,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/identity/Nym.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
@@ -197,13 +197,11 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     if (1 > name.size()) { name = defaultName; }
 
+    auto nymParameters = NymParameters{};
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    NymParameters nymParameters(proto::CREDTYPE_HD);
     nymParameters.SetSeed(seed);
     nymParameters.SetNym(0);
     nymParameters.SetDefault(false);
-#else
-    NymParameters nymParameters(proto::CREDTYPE_LEGACY);
 #endif
     m_nymServer = manager_.Wallet().Nym(
         reason_, name, nymParameters, proto::CITEMTYPE_SERVER);
@@ -215,7 +213,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         OT_FAIL;
     }
 
-    if (!m_nymServer->VerifyPseudonym(reason_)) { OT_FAIL; }
+    if (!m_nymServer->VerifyPseudonym()) { OT_FAIL; }
 
     const auto& nymID = m_nymServer->ID();
     const std::string defaultTerms = "This is an example server contract.";
@@ -392,7 +390,7 @@ void Server::CreateMainFile(bool& mainFileExists)
                   reason_,
                   (useInproc) ? std::max(2u, contract::Server::DefaultVersion)
                               : contract::Server::DefaultVersion)
-            : wallet.Server(serialized, reason_);
+            : wallet.Server(serialized);
     std::string strNotaryID{};
     std::string strHostname{};
     std::uint32_t nPort{0};
@@ -418,7 +416,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         }
     }
 
-    m_nymServer = manager_.Wallet().Nym(nymID, reason_);
+    m_nymServer = manager_.Wallet().Nym(nymID);
 
     OT_ASSERT(m_nymServer)
 
@@ -540,7 +538,7 @@ void Server::Init(bool readOnly)
 
 bool Server::LoadServerNym(const identifier::Nym& nymID)
 {
-    auto nym = manager_.Wallet().Nym(nymID, reason_);
+    auto nym = manager_.Wallet().Nym(nymID);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Server nym does not exist.")
@@ -753,25 +751,23 @@ bool Server::DropMessageToNymbox(
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
-        auto nymRecipient = manager_.Wallet().Nym(RECIPIENT_NYM_ID, reason_);
+        auto nymRecipient = manager_.Wallet().Nym(RECIPIENT_NYM_ID);
 
-        const crypto::key::Asymmetric& thePubkey =
-            nymRecipient->GetPublicEncrKey();
         // Wrap the message up into an envelope and attach it to theMsgAngel.
-        //
-        OTEnvelope theEnvelope(manager_);
-
+        auto theEnvelope = manager_.Factory().Envelope();
         theMsgAngel->m_ascPayload->Release();
 
         if ((!pstrMessage.empty()) &&
-            theEnvelope.Seal(
-                thePubkey, pstrMessage, reason_) &&  // Seal pstrMessage
-                                                     // into theEnvelope,
+            theEnvelope->Seal(
+                *nymRecipient, pstrMessage.Bytes(), reason_) &&  // Seal
+                                                                 // pstrMessage
+                                                                 // into
+                                                                 // theEnvelope,
             // using nymRecipient's
             // public key.
-            theEnvelope.GetCiphertext(theMsgAngel->m_ascPayload))  // Grab the
-                                                                   // sealed
-                                                                   // version as
+            theEnvelope->Armored(theMsgAngel->m_ascPayload))  // Grab the
+                                                              // sealed
+                                                              // version as
         // base64-encoded string, into
         // theMsgAngel->m_ascPayload.
         {
@@ -807,14 +803,14 @@ bool Server::DropMessageToNymbox(
                                                           // recipient's
                                                           // Nymbox.
     // Drop in the Nymbox
-    if ((theLedger->LoadNymbox(reason_) &&  // I think this loads the box
-                                            // receipts too, since I didn't call
-                                            // "LoadNymboxNoVerify"
+    if ((theLedger->LoadNymbox() &&  // I think this loads the box
+                                     // receipts too, since I didn't call
+                                     // "LoadNymboxNoVerify"
          //          theLedger.VerifyAccount(m_nymServer)    &&    // This loads
          // all the Box Receipts, which is unnecessary.
          theLedger->VerifyContractID() &&  // Instead, we'll verify the IDs and
                                            // Signature only.
-         theLedger->VerifySignature(*m_nymServer, reason_))) {
+         theLedger->VerifySignature(*m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
         auto pTransaction{manager_.Factory().Transaction(
             *theLedger, theType, originType::not_applicable, lTransNum)};
@@ -896,7 +892,7 @@ bool Server::GetConnectInfo(
     std::string& strHostname,
     std::uint32_t& nPort) const
 {
-    auto contract = manager_.Wallet().Server(m_notaryID, reason_);
+    auto contract = manager_.Wallet().Server(m_notaryID);
     std::string contractHostname{};
     std::uint32_t contractPort{};
     const auto haveEndpoints =
@@ -943,9 +939,7 @@ OTZMQMessage Server::nymbox_push(
 
 std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
 {
-    return manager_.Wallet()
-        .Server(m_notaryID, reason_)
-        ->TransportKey(pubkey, reason_);
+    return manager_.Wallet().Server(m_notaryID)->TransportKey(pubkey, reason_);
 }
 
 Server::~Server() = default;

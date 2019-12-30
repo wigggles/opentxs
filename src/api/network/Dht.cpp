@@ -272,7 +272,6 @@ bool Dht::ProcessPublicNym(
     const DhtResults& values,
     NotifyCB notifyCB)
 {
-    auto reason = api.Factory().PasswordPrompt("DHT background task");
     std::string theresult;
     bool foundData = false;
     bool foundValid = false;
@@ -291,13 +290,13 @@ bool Dht::ProcessPublicNym(
 
         if (key != publicNym.nymid()) { continue; }
 
-        auto existing = api.Wallet().Nym(api.Factory().NymID(key), reason);
+        auto existing = api.Wallet().Nym(api.Factory().NymID(key));
 
         if (existing) {
             if (existing->Revision() >= publicNym.revision()) { continue; }
         }
 
-        auto saved = api.Wallet().Nym(publicNym, reason);
+        auto saved = api.Wallet().Nym(publicNym);
 
         if (!saved) { continue; }
 
@@ -327,7 +326,6 @@ bool Dht::ProcessServerContract(
     const DhtResults& values,
     NotifyCB notifyCB)
 {
-    auto reason = api.Factory().PasswordPrompt("DHT background task");
     std::string theresult;
     bool foundData = false;
     bool foundValid = false;
@@ -347,7 +345,7 @@ bool Dht::ProcessServerContract(
         if (key != contract.id()) { continue; }
 
         try {
-            auto saved = api.Wallet().Server(contract, reason);
+            auto saved = api.Wallet().Server(contract);
         } catch (...) {
             continue;
         }
@@ -379,7 +377,6 @@ bool Dht::ProcessUnitDefinition(
     const DhtResults& values,
     NotifyCB notifyCB)
 {
-    auto reason = api.Factory().PasswordPrompt("DHT background task");
     std::string theresult;
     bool foundData = false;
     bool foundValid = false;
@@ -399,7 +396,7 @@ bool Dht::ProcessUnitDefinition(
         if (key != contract.id()) { continue; }
 
         try {
-            api.Wallet().UnitDefinition(contract, reason);
+            api.Wallet().UnitDefinition(contract);
         } catch (...) {
 
             continue;

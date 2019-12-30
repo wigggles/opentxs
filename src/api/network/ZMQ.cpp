@@ -177,17 +177,15 @@ const Flag& ZMQ::Running() const { return running_; }
 
 std::chrono::seconds ZMQ::SendTimeout() const { return send_timeout_.load(); }
 
-opentxs::network::ServerConnection& ZMQ::Server(
-    const std::string& id,
-    const PasswordPrompt& reason) const noexcept(false)
+opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
+    noexcept(false)
 {
     Lock lock(lock_);
     auto existing = server_connections_.find(id);
 
     if (server_connections_.end() != existing) { return existing->second; }
 
-    auto contract =
-        api_.Wallet().Server(identifier::Server::Factory(id), reason);
+    auto contract = api_.Wallet().Server(identifier::Server::Factory(id));
     auto [it, created] = server_connections_.emplace(
         id,
         opentxs::network::ServerConnection::Factory(

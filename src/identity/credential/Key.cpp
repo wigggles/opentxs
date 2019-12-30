@@ -98,7 +98,6 @@ Key::Key(
 
 Key::Key(
     const api::internal::Core& api,
-    const PasswordPrompt& reason,
     const identity::internal::Authority& parent,
     const identity::Source& source,
     const proto::Credential& serialized,
@@ -110,12 +109,9 @@ Key::Key(
           serialized,
           masterID)
     , subversion_(credential_subversion_.at(version_))
-    , signing_key_(
-          deserialize_key(api, reason, proto::KEYROLE_SIGN, serialized))
-    , authentication_key_(
-          deserialize_key(api, reason, proto::KEYROLE_AUTH, serialized))
-    , encryption_key_(
-          deserialize_key(api, reason, proto::KEYROLE_ENCRYPT, serialized))
+    , signing_key_(deserialize_key(api, proto::KEYROLE_SIGN, serialized))
+    , authentication_key_(deserialize_key(api, proto::KEYROLE_AUTH, serialized))
+    , encryption_key_(deserialize_key(api, proto::KEYROLE_ENCRYPT, serialized))
 {
 }
 
@@ -201,7 +197,6 @@ bool Key::addKeytoSerializedKeyCredential(
 
 OTKeypair Key::deserialize_key(
     const api::internal::Core& api,
-    const PasswordPrompt& reason,
     const int index,
     const proto::Credential& credential)
 {
@@ -213,10 +208,10 @@ OTKeypair Key::deserialize_key(
     if (hasPrivate) {
         const auto privateKey = credential.privatecredential().key(index - 1);
 
-        return api.Factory().Keypair(publicKey, privateKey, reason);
+        return api.Factory().Keypair(publicKey, privateKey);
     }
 
-    return api.Factory().Keypair(publicKey, reason);
+    return api.Factory().Keypair(publicKey);
 }
 
 const crypto::key::Keypair& Key::GetKeypair(
@@ -363,12 +358,17 @@ OTKeypair Key::new_key(
     const proto::KeyRole role,
     const NymParameters& params,
     const VersionNumber version,
-    const PasswordPrompt& reason) noexcept(false)
+    const PasswordPrompt& reason,
+    const ReadView dh) noexcept(false)
 {
     switch (params.credentialType()) {
         case proto::CREDTYPE_LEGACY: {
+            auto revised{params};
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+            revised.SetDHParams(dh);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
-            return api.Factory().Keypair(params, version, role, reason);
+            return api.Factory().Keypair(revised, version, role, reason);
         }
         case proto::CREDTYPE_HD:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -416,7 +416,8 @@ bool Key::SelfSign(
             proto::SIGROLE_PUBCREDENTIAL,
             signature,
             reason,
-            proto::KEYROLE_SIGN);
+            proto::KEYROLE_SIGN,
+            proto::HASHTYPE_ERROR);
 
         OT_ASSERT(havePublicSig);
 
@@ -433,7 +434,8 @@ bool Key::SelfSign(
         proto::SIGROLE_PRIVCREDENTIAL,
         signature,
         reason,
-        proto::KEYROLE_SIGN);
+        proto::KEYROLE_SIGN,
+        proto::HASHTYPE_ERROR);
 
     OT_ASSERT(havePrivateSig);
 
@@ -533,7 +535,6 @@ bool Key::TransportKey(
 bool Key::Verify(
     const Data& plaintext,
     const proto::Signature& sig,
-    const PasswordPrompt& reason,
     const proto::KeyRole key) const
 {
     const crypto::key::Keypair* keyToUse = nullptr;
@@ -556,7 +557,7 @@ bool Key::Verify(
     OT_ASSERT(nullptr != keyToUse);
 
     try {
-        return keyToUse->GetPublicKey().Verify(plaintext, sig, reason);
+        return keyToUse->GetPublicKey().Verify(plaintext, sig);
     } catch (...) {
         return false;
     }
@@ -573,14 +574,13 @@ void Key::sign(
     }
 }
 
-bool Key::verify_internally(const Lock& lock, const PasswordPrompt& reason)
-    const
+bool Key::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!Base::verify_internally(lock, reason)) { return false; }
+    if (!Base::verify_internally(lock)) { return false; }
 
     // All KeyCredentials must sign themselves
-    if (!VerifySignedBySelf(lock, reason)) {
+    if (!VerifySignedBySelf(lock)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying key credential: it's not "
             "signed by itself (its own signing key).")
@@ -594,7 +594,6 @@ bool Key::verify_internally(const Lock& lock, const PasswordPrompt& reason)
 bool Key::VerifySig(
     const Lock& lock,
     const proto::Signature& sig,
-    const PasswordPrompt& reason,
     const CredentialModeFlag asPrivate) const
 {
     std::shared_ptr<Base::SerializedType> serialized;
@@ -617,11 +616,10 @@ bool Key::VerifySig(
     signature.clear_signature();
     auto plaintext = api_.Factory().Data(*serialized);
 
-    return Verify(plaintext, sig, reason);
+    return Verify(plaintext, sig, proto::KEYROLE_SIGN);
 }
 
-bool Key::VerifySignedBySelf(const Lock& lock, const PasswordPrompt& reason)
-    const
+bool Key::VerifySignedBySelf(const Lock& lock) const
 {
     auto publicSig = SelfSignature(PUBLIC_VERSION);
 
@@ -633,7 +631,7 @@ bool Key::VerifySignedBySelf(const Lock& lock, const PasswordPrompt& reason)
         return false;
     }
 
-    bool goodPublic = VerifySig(lock, *publicSig, reason, PUBLIC_VERSION);
+    bool goodPublic = VerifySig(lock, *publicSig, PUBLIC_VERSION);
 
     if (!goodPublic) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -654,8 +652,7 @@ bool Key::VerifySignedBySelf(const Lock& lock, const PasswordPrompt& reason)
             return false;
         }
 
-        bool goodPrivate =
-            VerifySig(lock, *privateSig, reason, PRIVATE_VERSION);
+        bool goodPrivate = VerifySig(lock, *privateSig, PRIVATE_VERSION);
 
         if (!goodPrivate) {
             LogOutput(OT_METHOD)(__FUNCTION__)(

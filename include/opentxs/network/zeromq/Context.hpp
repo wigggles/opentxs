@@ -19,6 +19,7 @@
 #include "opentxs/network/zeromq/socket/Socket.hpp"
 #include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <memory>
@@ -30,7 +31,6 @@
 %ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator opentxs::network::zeromq::Context&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator const opentxs::network::zeromq::Context &;
 %ignore opentxs::network::zeromq::Context::operator void*() const;
-%ignore opentxs::network::zeromq::Context::EncodePrivateZ85 const;
 %ignore opentxs::network::zeromq::Context::Pipeline const;
 %rename(assign) operator=(const opentxs::network::zeromq::Context&);
 %rename(ZMQContext) opentxs::network::zeromq::Context;
@@ -57,16 +57,12 @@ namespace zeromq
 class Context
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    OPENTXS_EXPORT static std::string EncodePrivateZ85(
-        const opentxs::crypto::key::Ed25519& key) noexcept;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-    OPENTXS_EXPORT static std::string RawToZ85(
-        const void* input,
-        const std::size_t size) noexcept;
-    OPENTXS_EXPORT static opentxs::Pimpl<opentxs::Data> Z85ToRaw(
-        const void* input,
-        const std::size_t size) noexcept;
+    OPENTXS_EXPORT static bool RawToZ85(
+        const ReadView input,
+        const AllocateOutput output) noexcept;
+    OPENTXS_EXPORT static bool Z85ToRaw(
+        const ReadView input,
+        const AllocateOutput output) noexcept;
 
     OPENTXS_EXPORT virtual operator void*() const noexcept = 0;
 

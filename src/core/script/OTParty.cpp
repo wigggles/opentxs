@@ -830,7 +830,6 @@ bool OTParty::HasAuthorizingAgentByNymID(
 // ppAgent lets you get the agent ptr if it was there.
 Nym_p OTParty::LoadAuthorizingAgentNym(
     const identity::Nym& theSignerNym,
-    const PasswordPrompt& reason,
     OTAgent** ppAgent)
 {
     if (OTScriptable::ValidateName(m_str_authorizing_agent)) {
@@ -848,7 +847,7 @@ Nym_p OTParty::LoadAuthorizingAgentNym(
                     ": This agent is not "
                     "an individual--there's no Nym to load.")
                     .Flush();
-            else if (nullptr == (pNym = pAgent->LoadNym(reason)))
+            else if (nullptr == (pNym = pAgent->LoadNym()))
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading "
                                                    "Nym.")
                     .Flush();
@@ -1067,8 +1066,7 @@ bool OTParty::SendNoticeToParty(
 bool OTParty::LoadAndVerifyAssetAccounts(
     const String& strNotaryID,
     mapOfAccounts& map_Accts_Already_Loaded,
-    mapOfAccounts& map_NewlyLoaded,
-    const PasswordPrompt& reason)
+    mapOfAccounts& map_NewlyLoaded)
 {
     std::set<std::string> theAcctIDSet;  // Make sure all the acct IDs are
                                          // unique.
@@ -1143,7 +1141,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         // Let's load it up...
         //
         if (bHadToLoadtheAcctMyself == true) {
-            if ((account = pPartyAcct->LoadAccount(reason))) {
+            if ((account = pPartyAcct->LoadAccount())) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Failed loading "
                                                    "Account with name: ")(
                     str_acct_name)(" and ID: ")(strAcctID)(".")

@@ -22,7 +22,6 @@ struct Test_Symmetric : public ::testing::Test {
     static ot::proto::Ciphertext ciphertext_;
     static ot::proto::Ciphertext second_ciphertext_;
     static ot::proto::Ciphertext encrypted_password_;
-    static ot::proto::SessionKey session_key_;
 
     const ot::api::client::Manager& api_;
     ot::OTPasswordPrompt reason_;
@@ -37,8 +36,8 @@ struct Test_Symmetric : public ::testing::Test {
     {
         if (false == init_) { init(); }
 
-        alice_ = api_.Wallet().Nym(alice_nym_id_, reason_);
-        bob_ = api_.Wallet().Nym(bob_nym_id_, reason_);
+        alice_ = api_.Wallet().Nym(alice_nym_id_);
+        bob_ = api_.Wallet().Nym(bob_nym_id_);
     }
 
     void init()
@@ -70,7 +69,6 @@ ot::OTPassword Test_Symmetric::key_password_{};
 ot::proto::Ciphertext Test_Symmetric::ciphertext_{};
 ot::proto::Ciphertext Test_Symmetric::second_ciphertext_{};
 ot::proto::Ciphertext Test_Symmetric::encrypted_password_{};
-ot::proto::SessionKey Test_Symmetric::session_key_{};
 }  // namespace
 
 TEST_F(Test_Symmetric, create_key)
@@ -93,13 +91,8 @@ TEST_F(Test_Symmetric, key_functionality)
 
     ASSERT_TRUE(password->SetPassword(key_password_));
 
-    const auto encrypted = key_->Encrypt(
-        TEST_PLAINTEXT,
-        ot::Data::Factory(),
-        password,
-        ciphertext_,
-        true,
-        mode_);
+    const auto encrypted =
+        key_->Encrypt(TEST_PLAINTEXT, password, ciphertext_, true, mode_);
 
     ASSERT_TRUE(encrypted);
 
@@ -108,7 +101,12 @@ TEST_F(Test_Symmetric, key_functionality)
     ASSERT_TRUE(recoveredKey.get());
 
     std::string plaintext{};
-    auto decrypted = recoveredKey->Decrypt(ciphertext_, password, plaintext);
+    auto decrypted =
+        recoveredKey->Decrypt(ciphertext_, password, [&](const auto size) {
+            plaintext.resize(size);
+
+            return ot::WritableView{plaintext.data(), plaintext.size()};
+        });
 
     ASSERT_TRUE(decrypted);
     EXPECT_STREQ(TEST_PLAINTEXT, plaintext.c_str());
@@ -122,57 +120,14 @@ TEST_F(Test_Symmetric, key_functionality)
 
     ASSERT_TRUE(recoveredKey.get());
 
-    decrypted = recoveredKey->Decrypt(ciphertext_, password, plaintext);
+    decrypted =
+        recoveredKey->Decrypt(ciphertext_, password, [&](const auto size) {
+            plaintext.resize(size);
+
+            return ot::WritableView{plaintext.data(), plaintext.size()};
+        });
 
     EXPECT_FALSE(decrypted);
-}
-
-TEST_F(Test_Symmetric, lock)
-{
-    ASSERT_TRUE(alice_);
-
-    const auto locked = alice_->Lock(key_password_, key_, encrypted_password_);
-
-    ASSERT_TRUE(locked);
-}
-
-TEST_F(Test_Symmetric, unlock)
-{
-    ASSERT_TRUE(alice_);
-
-    auto password = api_.Factory().PasswordPrompt("");
-    ot::OTPassword decryptedPassword{};
-    auto recoveredKey = api_.Symmetric().Key(ciphertext_.key(), mode_);
-
-    ASSERT_TRUE(recoveredKey.get());
-
-    const auto unlocked =
-        alice_->Unlock(encrypted_password_, recoveredKey, decryptedPassword);
-
-    ASSERT_TRUE(unlocked);
-    ASSERT_TRUE(password->SetPassword(decryptedPassword));
-
-    std::string plaintext{};
-    const auto decrypted =
-        recoveredKey->Decrypt(ciphertext_, password, plaintext);
-
-    ASSERT_TRUE(decrypted);
-    EXPECT_STREQ(TEST_PLAINTEXT, plaintext.c_str());
-}
-
-TEST_F(Test_Symmetric, wrongNym)
-{
-    ASSERT_TRUE(bob_);
-
-    ot::OTPassword decryptedPassword{};
-    auto recoveredKey = api_.Symmetric().Key(ciphertext_.key(), mode_);
-
-    ASSERT_TRUE(recoveredKey.get());
-
-    const auto unlocked =
-        bob_->Unlock(encrypted_password_, recoveredKey, decryptedPassword);
-
-    EXPECT_FALSE(unlocked);
 }
 
 TEST_F(Test_Symmetric, create_second_key)
@@ -189,46 +144,7 @@ TEST_F(Test_Symmetric, create_second_key)
     EXPECT_TRUE(second_key_.get());
 
     const auto encrypted = second_key_->Encrypt(
-        TEST_PLAINTEXT,
-        ot::Data::Factory(),
-        password,
-        second_ciphertext_,
-        true,
-        mode_);
+        TEST_PLAINTEXT, password, second_ciphertext_, true, mode_);
 
     ASSERT_TRUE(encrypted);
-}
-
-TEST_F(Test_Symmetric, seal)
-{
-    ASSERT_TRUE(bob_);
-
-    const auto sealed =
-        alice_->Seal(key_password_, second_key_, session_key_, reason_);
-
-    ASSERT_TRUE(sealed);
-}
-
-TEST_F(Test_Symmetric, open)
-{
-    ASSERT_TRUE(bob_);
-
-    auto password = api_.Factory().PasswordPrompt("");
-    ot::OTPassword decryptedPassword{};
-    auto recoveredKey = api_.Symmetric().Key(second_ciphertext_.key(), mode_);
-
-    ASSERT_TRUE(recoveredKey.get());
-
-    const auto unlocked =
-        alice_->Open(session_key_, recoveredKey, decryptedPassword, reason_);
-
-    ASSERT_TRUE(unlocked);
-    ASSERT_TRUE(password->SetPassword(decryptedPassword));
-
-    std::string plaintext{};
-    const auto decrypted =
-        recoveredKey->Decrypt(second_ciphertext_, password, plaintext);
-
-    ASSERT_TRUE(decrypted);
-    EXPECT_STREQ(TEST_PLAINTEXT, plaintext.c_str());
 }

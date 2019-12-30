@@ -12,13 +12,9 @@ namespace opentxs::api::crypto::implementation
 class Asymmetric final : virtual public api::crypto::internal::Asymmetric
 {
 public:
-    ECKey InstantiateECKey(
-        const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const final;
+    ECKey InstantiateECKey(const proto::AsymmetricKey& serialized) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    HDKey InstantiateHDKey(
-        const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const final;
+    HDKey InstantiateHDKey(const proto::AsymmetricKey& serialized) const final;
     HDKey InstantiateKey(
         const proto::AsymmetricKeyType type,
         const std::string& seedID,
@@ -27,9 +23,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-    Key InstantiateKey(
-        const proto::AsymmetricKey& serialized,
-        const PasswordPrompt& reason) const final;
+    Key InstantiateKey(const proto::AsymmetricKey& serialized) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     HDKey NewHDKey(
         const std::string& seedID,
@@ -39,6 +33,16 @@ public:
         const PasswordPrompt& reason,
         const proto::KeyRole role,
         const VersionNumber version) const final;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    Secp256k1Key NewSecp256k1Key(
+        const std::string& seedID,
+        const OTPassword& seed,
+        const opentxs::crypto::Bip32::Path& path,
+        const PasswordPrompt& reason,
+        const proto::KeyRole role = proto::KEYROLE_SIGN,
+        const VersionNumber version =
+            opentxs::crypto::key::Secp256k1::DefaultVersion) const final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     Key NewKey(
         const NymParameters& params,
@@ -63,6 +67,21 @@ private:
         const std::string& seedID,
         const opentxs::crypto::Bip32::Path& children);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    template <typename ReturnType, typename NullType>
+    auto instantiate_hd_key(
+        const proto::AsymmetricKeyType type,
+        const std::string& seedID,
+        const opentxs::crypto::Bip32::Key& serialized,
+        const PasswordPrompt& reason,
+        const proto::KeyRole role,
+        const VersionNumber version) const noexcept
+        -> std::unique_ptr<ReturnType>;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    template <typename ReturnType, typename NullType>
+    auto instantiate_serialized_key(const proto::AsymmetricKey& serialized)
+        const noexcept -> std::unique_ptr<ReturnType>;
 
     Asymmetric(const api::internal::Core& api);
     Asymmetric() = delete;

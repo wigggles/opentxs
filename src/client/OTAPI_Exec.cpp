@@ -26,11 +26,8 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/identifier/Nym.hpp"
 #include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/identifier/UnitDefinition.hpp"
@@ -383,7 +380,6 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
     OT_VERIFY_ID_STR(RECIPIENT_NYM_ID);
     OT_VERIFY_STD_STR(PAYMENT_PLAN);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto theNotaryID = api_.Factory().ServerID(NOTARY_ID);
     const auto theSenderNymID = api_.Factory().NymID(SENDER_NYM_ID);
     const auto theSenderAcctID = api_.Factory().Identifier(SENDER_ACCT_ID);
@@ -396,7 +392,7 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
     const auto strPlan = String::Factory(PAYMENT_PLAN);
 
     if (!strPlan->Exists() ||
-        (false == thePlan->LoadContractFromString(strPlan, reason))) {
+        (false == thePlan->LoadContractFromString(strPlan))) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failure loading payment plan from string.")
             .Flush();
@@ -1311,9 +1307,8 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1323,7 +1318,7 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
         const bool bConfirmed =
             pScriptable->AllPartiesHaveSupposedlyConfirmed();
         const bool bVerified =
-            pScriptable->VerifyThisAgainstAllPartiesSignedCopies(reason);
+            pScriptable->VerifyThisAgainstAllPartiesSignedCopies();
         if (!bConfirmed) {
             //          otOut << OT_METHOD << __FUNCTION__ << ": Smart contract
             //          loaded up,
@@ -1373,7 +1368,7 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
 
     auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1405,8 +1400,7 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
 
     // FYI, this block comes from
     // OTScriptable::VerifyThisAgainstAllPartiesSignedCopies.
-    auto pPartySignedCopy(
-        api_.Factory().Scriptable(pParty->GetMySignedCopy(), reason));
+    auto pPartySignedCopy(api_.Factory().Scriptable(pParty->GetMySignedCopy()));
 
     if (nullptr == pPartySignedCopy) {
         const std::string current_party_name(pParty->GetPartyName());
@@ -1449,9 +1443,8 @@ std::int32_t OTAPI_Exec::Smart_GetPartyCount(
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1468,9 +1461,8 @@ std::int32_t OTAPI_Exec::Smart_GetBylawCount(
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1489,9 +1481,8 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1521,9 +1512,8 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(
 {
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1554,9 +1544,8 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1585,9 +1574,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1615,9 +1603,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1645,9 +1632,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string : ")(
@@ -1675,9 +1661,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1706,9 +1691,8 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1751,9 +1735,8 @@ std::string OTAPI_Exec::Clause_GetContents(
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(CLAUSE_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1793,9 +1776,8 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1837,9 +1819,8 @@ std::string OTAPI_Exec::Variable_GetType(
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(VARIABLE_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1882,9 +1863,8 @@ std::string OTAPI_Exec::Variable_GetAccess(
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(VARIABLE_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1927,9 +1907,8 @@ std::string OTAPI_Exec::Variable_GetContents(
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(VARIABLE_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -1980,9 +1959,8 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2014,9 +1992,8 @@ std::int32_t OTAPI_Exec::Hook_GetClauseCount(
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(HOOK_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2056,9 +2033,8 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(HOOK_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2104,9 +2080,8 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2138,9 +2113,8 @@ std::string OTAPI_Exec::Callback_GetClause(
     OT_VERIFY_STD_STR(BYLAW_NAME);
     OT_VERIFY_STD_STR(CALLBACK_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2177,9 +2151,8 @@ std::int32_t OTAPI_Exec::Party_GetAcctCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
-    auto pScriptable(api_.Factory().Scriptable(strContract, reason));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (nullptr == pScriptable) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2207,10 +2180,9 @@ std::int32_t OTAPI_Exec::Party_GetAgentCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2241,10 +2213,9 @@ std::string OTAPI_Exec::Party_GetID(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2273,10 +2244,9 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2319,10 +2289,9 @@ std::string OTAPI_Exec::Party_GetAcctID(
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(ACCT_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2365,10 +2334,9 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(ACCT_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2413,10 +2381,9 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(ACCT_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2458,10 +2425,9 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
     OT_VERIFY_STD_STR(PARTY_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2505,10 +2471,9 @@ std::string OTAPI_Exec::Party_GetAgentID(
     OT_VERIFY_STD_STR(PARTY_NAME);
     OT_VERIFY_STD_STR(AGENT_NAME);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     const auto strContract = String::Factory(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        api_.Factory().Scriptable(strContract, reason));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Failed trying to load smart contract from string: ")(
@@ -2692,11 +2657,9 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     const std::uint64_t weight,
     const VersionNumber version) const
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-
     try {
         const auto serverContract =
-            api_.Wallet().Server(api_.Factory().ServerID(serverID), reason);
+            api_.Wallet().Server(api_.Factory().ServerID(serverID));
         const auto basketTemplate = api_.Factory().BasketContract(
             serverContract->Nym(),
             shortname,
@@ -2822,7 +2785,6 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
     OT_VERIFY_ID_STR(INSTRUMENT_DEFINITION_ID);
     OT_VERIFY_ID_STR(ASSET_ACCT_ID);
 
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     auto strBasket = String::Factory(THE_BASKET);
     const auto theNotaryID = api_.Factory().ServerID(NOTARY_ID);
     const auto theNymID = api_.Factory().NymID(NYM_ID);
@@ -2837,7 +2799,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
 
     // todo perhaps verify the basket here, even though I already verified
     // the asset contract itself... Can't never be too sure.
-    if (theBasket->LoadContractFromString(strBasket, reason)) {
+    if (theBasket->LoadContractFromString(strBasket)) {
         bAdded = ot_api_.AddBasketExchangeItem(
             theNotaryID,
             theNymID,

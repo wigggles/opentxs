@@ -882,7 +882,7 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedA)
         const auto& element = account.BalanceElement(Subchain::External, i);
         const auto& target = alex_external_.at(i);
 
-        EXPECT_EQ(element.Address(AddressStyle::P2PKH, reason_), target);
+        EXPECT_EQ(element.Address(AddressStyle::P2PKH), target);
 
         const auto [bytes, style, chain] =
             api_.Blockchain().DecodeAddress(target);
@@ -910,9 +910,7 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedA)
 
         const auto& element = account.BalanceElement(Subchain::Internal, i);
 
-        EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_),
-            alex_internal_.at(i));
+        EXPECT_EQ(element.Address(AddressStyle::P2PKH), alex_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -959,8 +957,7 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedB)
 
         const auto& element = account.BalanceElement(Subchain::External, i);
 
-        EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_), bob_external_.at(i));
+        EXPECT_EQ(element.Address(AddressStyle::P2PKH), bob_external_.at(i));
         EXPECT_EQ(element.Contact()->str(), contact_alex_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -981,8 +978,7 @@ TEST_F(Test_BlockchainAPI, testBip32_SeedB)
 
         const auto& element = account.BalanceElement(Subchain::Internal, i);
 
-        EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_), bob_internal_.at(i));
+        EXPECT_EQ(element.Address(AddressStyle::P2PKH), bob_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -1020,8 +1016,7 @@ TEST_F(Test_BlockchainAPI, testBip44_btc)
         const auto& element = account.BalanceElement(Subchain::External, i);
 
         EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_),
-            chris_btc_external_.at(i));
+            element.Address(AddressStyle::P2PKH), chris_btc_external_.at(i));
         EXPECT_EQ(element.Contact()->str(), contact_daniel_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -1043,8 +1038,7 @@ TEST_F(Test_BlockchainAPI, testBip44_btc)
         const auto& element = account.BalanceElement(Subchain::Internal, i);
 
         EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_),
-            chris_btc_internal_.at(i));
+            element.Address(AddressStyle::P2PKH), chris_btc_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -1081,8 +1075,7 @@ TEST_F(Test_BlockchainAPI, testBip44_bch)
         const auto& element = account.BalanceElement(Subchain::External, i);
 
         EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_),
-            chris_bch_external_.at(i));
+            element.Address(AddressStyle::P2PKH), chris_bch_external_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -1103,8 +1096,7 @@ TEST_F(Test_BlockchainAPI, testBip44_bch)
         const auto& element = account.BalanceElement(Subchain::Internal, i);
 
         EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_),
-            chris_bch_internal_.at(i));
+            element.Address(AddressStyle::P2PKH), chris_bch_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -1152,7 +1144,7 @@ TEST_F(Test_BlockchainAPI, testBip44_ltc)
         const auto& element = account.BalanceElement(Subchain::External, i);
         const auto& target = chris_ltc_external_.at(i);
 
-        EXPECT_EQ(element.Address(AddressStyle::P2PKH, reason_), target);
+        EXPECT_EQ(element.Address(AddressStyle::P2PKH), target);
 
         const auto [bytes, style, chain] =
             api_.Blockchain().DecodeAddress(target);
@@ -1181,8 +1173,7 @@ TEST_F(Test_BlockchainAPI, testBip44_ltc)
         const auto& element = account.BalanceElement(Subchain::Internal, i);
 
         EXPECT_EQ(
-            element.Address(AddressStyle::P2PKH, reason_),
-            chris_ltc_internal_.at(i));
+            element.Address(AddressStyle::P2PKH), chris_ltc_internal_.at(i));
         EXPECT_EQ(element.Contact()->str(), empty_id_.str());
         EXPECT_EQ(element.Label(), label);
     }
@@ -1662,15 +1653,14 @@ TEST_F(Test_BlockchainAPI, Send_transaction)
         const auto& account =
             api_.Blockchain().HDSubaccount(alex_, account_1_id_);
         const auto& element = account.BalanceElement(Subchain::External, 2);
-        address1 = element.PubkeyHash(reason_);
+        address1 = element.PubkeyHash();
 
-        auto contactE = api_.Contacts().mutable_Contact(contact_alex_, reason_);
+        auto contactE = api_.Contacts().mutable_Contact(contact_alex_);
 
         ASSERT_TRUE(contactE);
 
         const auto claimed = contactE->get().AddBlockchainAddress(
-            element.Address(AddressStyle::P2PKH, reason_),
-            ot::proto::CITEMTYPE_BTC);
+            element.Address(AddressStyle::P2PKH), ot::proto::CITEMTYPE_BTC);
 
         EXPECT_TRUE(claimed);
     }
@@ -1683,16 +1673,14 @@ TEST_F(Test_BlockchainAPI, Send_transaction)
         const auto& account =
             api_.Blockchain().HDSubaccount(daniel_, account_2_id_);
         const auto& element = account.BalanceElement(Subchain::External, 2);
-        address2 = element.PubkeyHash(reason_);
+        address2 = element.PubkeyHash();
 
-        auto contactE =
-            api_.Contacts().mutable_Contact(contact_daniel_, reason_);
+        auto contactE = api_.Contacts().mutable_Contact(contact_daniel_);
 
         ASSERT_TRUE(contactE);
 
         const auto claimed = contactE->get().AddBlockchainAddress(
-            element.Address(AddressStyle::P2PKH, reason_),
-            ot::proto::CITEMTYPE_BTC);
+            element.Address(AddressStyle::P2PKH), ot::proto::CITEMTYPE_BTC);
 
         EXPECT_TRUE(claimed);
     }
@@ -1705,7 +1693,7 @@ TEST_F(Test_BlockchainAPI, Send_transaction)
         const auto& account =
             api_.Blockchain().HDSubaccount(chris_, account_3_id_);
         const auto& element = account.BalanceElement(Subchain::External, 2);
-        address3 = element.PubkeyHash(reason_);
+        address3 = element.PubkeyHash();
     }
 
     auto tx = ot::proto::BlockchainTransaction{};
@@ -1789,14 +1777,12 @@ TEST_F(Test_BlockchainAPI, Assign_External_Address)
         const auto& account =
             api_.Blockchain().HDSubaccount(chris_, account_3_id_);
         const auto& element = account.BalanceElement(Subchain::External, 2);
-        auto contactE =
-            api_.Contacts().mutable_Contact(contact_chris_, reason_);
+        auto contactE = api_.Contacts().mutable_Contact(contact_chris_);
 
         ASSERT_TRUE(contactE);
 
         const auto claimed = contactE->get().AddBlockchainAddress(
-            element.Address(AddressStyle::P2PKH, reason_),
-            ot::proto::CITEMTYPE_BTC);
+            element.Address(AddressStyle::P2PKH), ot::proto::CITEMTYPE_BTC);
 
         EXPECT_TRUE(claimed);
     }

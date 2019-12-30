@@ -117,24 +117,18 @@ IssuerItem::IssuerItem(
     OT_ASSERT(startup_)
 }
 
-std::string IssuerItem::Debug() const noexcept
-{
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-
-    return issuer_->toString(reason);
-}
+std::string IssuerItem::Debug() const noexcept { return issuer_->toString(); }
 
 void* IssuerItem::construct_row(
     const IssuerItemRowID& id,
     const IssuerItemSortKey& index,
     const CustomData& custom) const noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     names_.emplace(id, index);
     const auto [it, added] = items_[index].emplace(
         id,
         Factory::AccountSummaryItem(
-            reason, *this, api_, publisher_, id, index, custom));
+            *this, api_, publisher_, id, index, custom));
 
     return it->second.get();
 }
@@ -148,9 +142,7 @@ std::string IssuerItem::Name() const noexcept
 
 void IssuerItem::process_account(const Identifier& accountID) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-
-    const auto account = api_.Wallet().Account(accountID, reason);
+    const auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) { return; }
 
@@ -182,12 +174,7 @@ void IssuerItem::process_account(
 
     const auto issuerID = api_.Storage().AccountIssuer(accountID);
 
-    if (issuerID == issuer_->IssuerID()) {
-        process_account(accountID);
-    } else {
-        // FIXME
-        OT_FAIL;
-    }
+    if (issuerID == issuer_->IssuerID()) { process_account(accountID); }
 }
 
 #if OT_QT

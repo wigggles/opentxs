@@ -118,9 +118,7 @@ void Cheque::UpdateContents([[maybe_unused]] const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Cheque::ProcessXMLNode(
-    IrrXMLReader*& xml,
-    [[maybe_unused]] const PasswordPrompt& reason)
+std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;
 

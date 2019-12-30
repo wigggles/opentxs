@@ -27,9 +27,7 @@ public:
     std::string NotaryID() const noexcept final { return notary_->ID()->str(); }
     std::string NotaryName() const noexcept final
     {
-        auto reason = api_.Factory().PasswordPrompt("Loading notary contract");
-
-        return notary_->EffectiveName(reason);
+        return notary_->EffectiveName();
     }
     void reindex(
         const AccountListSortKey& key,
@@ -57,15 +55,12 @@ private:
 
     static OTServerContract load_server(
         const api::Core& api,
-        const identifier::Server& id,
-        const PasswordPrompt& reason);
+        const identifier::Server& id);
     static OTUnitDefinition load_unit(
         const api::Core& api,
-        const identifier::UnitDefinition& id,
-        const PasswordPrompt& reason);
+        const identifier::UnitDefinition& id);
 
     AccountListItem(
-        const PasswordPrompt& reason,
         const AccountListInternalInterface& parent,
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,

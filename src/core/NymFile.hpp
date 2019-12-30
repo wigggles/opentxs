@@ -15,61 +15,58 @@ typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 class NymFile final : public opentxs::internal::NymFile, Lockable
 {
 public:
-    bool CompareID(const identifier::Nym& rhs) const override;
-    void DisplayStatistics(String& strOutput) const override;
+    bool CompareID(const identifier::Nym& rhs) const final;
+    void DisplayStatistics(String& strOutput) const final;
     bool GetInboxHash(
         const std::string& acct_id,
-        Identifier& theOutput) const override;  // client-side
+        Identifier& theOutput) const final;  // client-side
     bool GetOutboxHash(
         const std::string& acct_id,
-        Identifier& theOutput) const override;  // client-side
+        Identifier& theOutput) const final;  // client-side
     std::shared_ptr<Message> GetOutpaymentsByIndex(
-        const std::int32_t nIndex) const override;
+        const std::int32_t nIndex) const final;
     std::shared_ptr<Message> GetOutpaymentsByTransNum(
         const std::int64_t lTransNum,
         const PasswordPrompt& reason,
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
-        std::int32_t* pnReturnIndex = nullptr) const override;
-    std::int32_t GetOutpaymentsCount() const override;
-    const std::int64_t& GetUsageCredits() const override
+        std::int32_t* pnReturnIndex = nullptr) const final;
+    std::int32_t GetOutpaymentsCount() const final;
+    const std::int64_t& GetUsageCredits() const final
     {
         sLock lock(shared_lock_);
 
         return m_lUsageCredits;
     }
-    const identifier::Nym& ID() const override { return target_nym_->ID(); }
-    std::string PaymentCode(const PasswordPrompt& reason) const override
-    {
-        return target_nym_->PaymentCode(reason);
-    }
-    bool SerializeNymFile(String& output) const override;
+    const identifier::Nym& ID() const final { return target_nym_->ID(); }
+    std::string PaymentCode() const final { return target_nym_->PaymentCode(); }
+    bool SerializeNymFile(String& output) const final;
 
-    void AddOutpayments(std::shared_ptr<Message> theMessage) override;
-    std::set<std::string>& GetSetAssetAccounts() override
+    void AddOutpayments(std::shared_ptr<Message> theMessage) final;
+    std::set<std::string>& GetSetAssetAccounts() final
     {
         sLock lock(shared_lock_);
 
         return m_setAccounts;
     }
-    bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) override;
+    bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) final;
     bool RemoveOutpaymentsByTransNum(
         const std::int64_t lTransNum,
-        const PasswordPrompt& reason) override;
+        const PasswordPrompt& reason) final;
     bool SaveSignedNymFile(const identity::Nym& SIGNER_NYM);
     bool SetInboxHash(
         const std::string& acct_id,
-        const Identifier& theInput) override;  // client-side
+        const Identifier& theInput) final;  // client-side
     bool SetOutboxHash(
         const std::string& acct_id,
-        const Identifier& theInput) override;  // client-side
-    void SetUsageCredits(const std::int64_t& lUsage) override
+        const Identifier& theInput) final;  // client-side
+    void SetUsageCredits(const std::int64_t& lUsage) final
     {
         eLock lock(shared_lock_);
 
         m_lUsageCredits = lUsage;
     }
 
-    ~NymFile() override;
+    ~NymFile() final;
 
 private:
     friend opentxs::Factory;
@@ -108,7 +105,6 @@ private:
     bool DeserializeNymFile(
         const String& strNym,
         bool& converted,
-        const PasswordPrompt& reason,
         String::Map* pMapCredentials = nullptr,
         const OTPassword* pImportPassword = nullptr);
     template <typename T>
@@ -117,13 +113,12 @@ private:
         const String& strNym,
         bool& converted,
         String::Map* pMapCredentials,
-        const PasswordPrompt& reason,
         const OTPassword* pImportPassword = nullptr);
-    bool LoadSignedNymFile(const PasswordPrompt& reason) override;
+    bool LoadSignedNymFile(const PasswordPrompt& reason) final;
     template <typename T>
     bool load_signed_nymfile(const T& lock, const PasswordPrompt& reason);
     void RemoveAllNumbers(const String& pstrNotaryID = String::Factory());
-    bool SaveSignedNymFile(const PasswordPrompt& reason) override;
+    bool SaveSignedNymFile(const PasswordPrompt& reason) final;
     template <typename T>
     bool save_signed_nymfile(const T& lock, const PasswordPrompt& reason);
     template <typename T>

@@ -30,8 +30,7 @@ public:
     OPENTXS_EXPORT virtual Nym_p Nym() const = 0;
     OPENTXS_EXPORT virtual const std::string& Terms() const = 0;
     OPENTXS_EXPORT virtual OTData Serialize() const = 0;
-    OPENTXS_EXPORT virtual bool Validate(
-        const opentxs::PasswordPrompt& reason) const = 0;
+    OPENTXS_EXPORT virtual bool Validate() const = 0;
     OPENTXS_EXPORT virtual VersionNumber Version() const = 0;
 
     OPENTXS_EXPORT virtual void SetAlias(const std::string& alias) = 0;

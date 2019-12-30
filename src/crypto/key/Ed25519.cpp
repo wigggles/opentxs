@@ -22,6 +22,7 @@
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "crypto/key/HD.hpp"
 #endif
+#include "util/Sodium.hpp"
 
 #include "Ed25519.hpp"
 
@@ -30,10 +31,18 @@ namespace opentxs
 crypto::key::Ed25519* Factory::Ed25519Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& input,
-    const opentxs::PasswordPrompt& reason)
+    const proto::AsymmetricKey& input)
 {
-    return new crypto::key::implementation::Ed25519(api, ecdsa, input, reason);
+    try {
+
+        return new crypto::key::implementation::Ed25519(api, ecdsa, input);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to generate key: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 
 crypto::key::Ed25519* Factory::Ed25519Key(
@@ -92,9 +101,8 @@ namespace opentxs::crypto::key::implementation
 Ed25519::Ed25519(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& serializedKey,
-    const PasswordPrompt& reason) noexcept
-    : ot_super(api, ecdsa, serializedKey, reason)
+    const proto::AsymmetricKey& serializedKey) noexcept(false)
+    : ot_super(api, ecdsa, serializedKey)
 {
 }
 
@@ -120,7 +128,7 @@ Ed25519::Ed25519(
     const proto::KeyRole role,
     const VersionNumber version,
     key::Symmetric& sessionKey,
-    const PasswordPrompt& reason) noexcept
+    const PasswordPrompt& reason) noexcept(false)
     : ot_super(
           api,
           ecdsa,
@@ -142,6 +150,21 @@ Ed25519::Ed25519(const Ed25519& rhs) noexcept
     : key::Ed25519()
     , ot_super(rhs)
 {
+}
+
+auto Ed25519::TransportKey(
+    Data& publicKey,
+    OTPassword& privateKey,
+    const PasswordPrompt& reason) const noexcept -> bool
+{
+    if (false == HasPublic()) { return false; }
+    if (false == HasPrivate()) { return false; }
+
+    return sodium::ToCurveKeypair(
+        PrivateKey(reason),
+        PublicKey(),
+        privateKey.WriteInto(OTPassword::Mode::Mem),
+        publicKey.WriteInto());
 }
 }  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519

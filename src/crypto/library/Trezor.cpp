@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
@@ -17,15 +18,14 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Secp256k1.hpp"
+#endif  // OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/library/Trezor.hpp"
+#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
-#if OT_CRYPTO_WITH_BIP32
 #include "crypto/Bip32.hpp"
-#endif
-#include "AsymmetricProvider.hpp"
-#include "EcdsaProvider.hpp"
+#include "util/Sodium.hpp"
 
 extern "C" {
 #include <bip39.h>
@@ -41,10 +41,13 @@ extern "C" {
 #include <cstdint>
 #include <memory>
 #include <string>
+#endif  // OT_CRYPTO_WITH_BIP32
 
 #include "Trezor.hpp"
 
+#if OT_CRYPTO_WITH_BIP32
 #define OT_METHOD "opentxs::crypto::implementation::Trezor::"
+#endif  // OT_CRYPTO_WITH_BIP32
 
 namespace opentxs
 {
@@ -63,109 +66,18 @@ Trezor::Trezor(const api::Crypto& crypto)
 {
 }
 
-bool Trezor::Base58CheckDecode(const std::string&& input, RawData& output) const
-{
-    const std::size_t inputSize = input.size();
-
-    if (0 == inputSize) { return false; }
-
-    if (128 < inputSize) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Input too long.").Flush();
-
-        return false;
-    }
-
-    std::size_t outputSize = inputSize;
-    output.resize(outputSize, 0x0);
-    outputSize = ::base58_decode_check(
-        input.data(), HASHER_SHA2D, output.data(), output.size());
-
-    if (0 == outputSize) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Decoding failed.").Flush();
-
-        return false;
-    }
-
-    OT_ASSERT(outputSize <= output.size());
-
-    output.resize(outputSize);
-
-    return true;
-}
-
-std::string Trezor::Base58CheckEncode(
-    const std::uint8_t* inputStart,
-    const std::size_t& inputSize) const
-{
-    std::string output{};
-
-    if (0 == inputSize) { return output; }
-
-    if (128 < inputSize) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Input too long.").Flush();
-
-        return output;
-    }
-
-    const std::size_t bufferSize = inputSize + 32 + 4;
-    output.resize(bufferSize, 0x0);
-    const std::size_t outputSize = ::base58_encode_check(
-        inputStart,
-        inputSize,
-        HASHER_SHA2D,
-        const_cast<char*>(output.c_str()),
-        output.size());
-
-    OT_ASSERT(outputSize <= bufferSize);
-
-    output.resize(outputSize - 1);
-
-    return output;
-}
-
-std::string Trezor::curve_name(const EcdsaCurve& curve)
-{
-    switch (curve) {
-        case (EcdsaCurve::secp256k1): {
-            return ::SECP256K1_NAME;
-        }
-        case (EcdsaCurve::ed25519): {
-            return ::ED25519_NAME;
-        }
-        default: {
-        }
-    }
-
-    return "";
-}
-
-bool Trezor::RIPEMD160(
-    const std::uint8_t* input,
-    const size_t inputSize,
-    std::uint8_t* output) const
-{
-    ripemd160(input, inputSize, output);
-
-    return true;
-}
-
 #if OT_CRYPTO_WITH_BIP32
 std::unique_ptr<HDNode> Trezor::derive_child(
     const HDNode& parent,
-    const Bip32Index index,
-    const DerivationMode privateVersion)
+    const Bip32Index index)
 {
     auto output = std::make_unique<HDNode>(parent);
     int result{0};
 
-    if (!output) { OT_FAIL; }
+    OT_ASSERT(output);
 
-    if (privateVersion) {
-        result = hdnode_private_ckd(output.get(), index);
-        hdnode_fill_public_key(output.get());
-    } else {
-        result = hdnode_public_ckd(output.get(), index);
-    }
+    result = hdnode_private_ckd(output.get(), index);
+    hdnode_fill_public_key(output.get());
 
     if (1 != result) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to derive child").Flush();
@@ -196,7 +108,7 @@ std::unique_ptr<HDNode> Trezor::derive_child(
 
         if (parentNode) {
             const auto& childIndex = *path.crbegin();
-            output = derive_child(*parentNode, childIndex, DERIVE_PRIVATE);
+            output = derive_child(*parentNode, childIndex);
             const auto pubkey = Data::Factory(
                 parentNode->public_key, sizeof(parentNode->public_key));
             parentID = key::HD::CalculateFingerprint(hash, pubkey);
@@ -228,9 +140,25 @@ Trezor::Key Trezor::DeriveKey(
     }
 
     const auto& node = *pNode;
-    privateKey.setMemory(node.private_key, sizeof(node.private_key));
+
+    if (EcdsaCurve::secp256k1 == curve) {
+        privateKey.setMemory(node.private_key, sizeof(node.private_key));
+        publicKey->Assign(node.public_key, sizeof(node.public_key));
+    } else {
+        const auto expanded = sodium::ExpandSeed(
+            {reinterpret_cast<const char*>(node.private_key),
+             sizeof(node.private_key)},
+            privateKey.WriteInto(OTPassword::Mode::Mem),
+            publicKey->WriteInto());
+
+        if (false == expanded) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to expand seed")
+                .Flush();
+            return output;
+        }
+    }
+
     chainCode.setMemory(node.chain_code, sizeof(node.chain_code));
-    publicKey->Assign(node.public_key, sizeof(node.public_key));
     pathOut = path;
 
     return output;
@@ -245,14 +173,10 @@ std::unique_ptr<HDNode> Trezor::instantiate_node(
 
     OT_ASSERT_MSG(output, "Instantiation of HD node failed.");
 
-    auto curveName = curve_name(curve);
-
-    if (1 > curveName.size()) { return output; }
-
     int result = ::hdnode_from_seed(
         static_cast<const std::uint8_t*>(seed.getMemory()),
         seed.getMemorySize(),
-        curve_name(curve).c_str(),
+        ::SECP256K1_NAME,
         output.get());
 
     OT_ASSERT_MSG((1 == result), "Setup of HD node failed.");

@@ -180,12 +180,9 @@ bool Profile::AddClaim(
 
             return nym.AddContract(value, type, primary, active, reason);
         }
-        case proto::CONTACTSECTION_PROCEDURE:
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        {
+        case proto::CONTACTSECTION_PROCEDURE: {
             return nym.AddPaymentCode(value, type, primary, active, reason);
         }
-#endif
         default: {
         }
     }
@@ -295,11 +292,9 @@ std::string Profile::PaymentCode() const noexcept
 
 void Profile::process_nym(const identity::Nym& nym) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-
     Lock lock(lock_);
     name_ = nym.Alias();
-    payment_code_ = nym.PaymentCode(reason);
+    payment_code_ = nym.PaymentCode();
     lock.unlock();
     UpdateNotify();
     std::set<ProfileRowID> active{};
@@ -319,8 +314,6 @@ void Profile::process_nym(const identity::Nym& nym) noexcept
 
 void Profile::process_nym(const network::zeromq::Message& message) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-
     wait_for_startup();
 
     OT_ASSERT(1 == message.Body().size());
@@ -332,7 +325,7 @@ void Profile::process_nym(const network::zeromq::Message& message) noexcept
 
     if (nymID != primary_id_) { return; }
 
-    const auto nym = api_.Wallet().Nym(nymID, reason);
+    const auto nym = api_.Wallet().Nym(nymID);
 
     OT_ASSERT(nym)
 
@@ -388,10 +381,8 @@ int Profile::sort_key(const proto::ContactSectionName type) noexcept
 
 void Profile::startup() noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
-
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading nym ")(primary_id_).Flush();
-    const auto nym = api_.Wallet().Nym(primary_id_, reason);
+    const auto nym = api_.Wallet().Nym(primary_id_);
 
     OT_ASSERT(nym)
 

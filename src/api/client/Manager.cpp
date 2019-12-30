@@ -151,9 +151,7 @@ Manager::Manager(
         OT_ASSERT(nullptr != SwigWrap::client_)
     }
 
-    auto reason = factory_.PasswordPrompt(__FUNCTION__);
-
-    Init(reason);
+    Init();
 }
 
 const api::client::Activity& Manager::Activity() const
@@ -213,7 +211,7 @@ const OTAPI_Exec& Manager::Exec(const std::string&) const
     return *otapi_exec_;
 }
 
-void Manager::Init(const PasswordPrompt& reason)
+void Manager::Init()
 {
 #if OT_CRYPTO_WITH_BIP32
     OT_ASSERT(seeds_)
@@ -226,8 +224,8 @@ void Manager::Init(const PasswordPrompt& reason)
         *seeds_
 #endif  // OT_CRYPTO_WITH_BIP32
     );
-    StartContacts(reason);
-    StartActivity(reason);
+    StartContacts();
+    StartActivity();
     pair_->init();
 }
 
@@ -266,22 +264,22 @@ const api::client::ServerAction& Manager::ServerAction() const
     return *server_action_;
 }
 
-void Manager::StartActivity(const PasswordPrompt& reason)
+void Manager::StartActivity()
 {
     OT_ASSERT(activity_)
 
-    activity_->MigrateLegacyThreads(reason);
+    activity_->MigrateLegacyThreads();
 
     OT_ASSERT(dht_)
 
     Scheduler::Start(storage_.get(), dht_.get());
 }
 
-void Manager::StartContacts(const PasswordPrompt& reason)
+void Manager::StartContacts()
 {
     OT_ASSERT(contacts_);
 
-    contacts_->start(reason);
+    contacts_->start();
 }
 
 const api::client::UI& Manager::UI() const

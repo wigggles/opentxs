@@ -8,7 +8,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/crypto/Signature.hpp"
@@ -29,47 +28,36 @@
 
 #include "Keypair.hpp"
 
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-#define OT_METHOD "opentxs::crypto::key::implementation::Keypair::"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+// #define OT_METHOD "opentxs::crypto::key::implementation::Keypair::"
 
 template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
 
 namespace opentxs
 {
-crypto::key::Keypair* Factory::Keypair()
+using ReturnType = crypto::key::implementation::Keypair;
+
+auto Factory::Keypair() noexcept -> std::unique_ptr<crypto::key::Keypair>
 {
-    return new crypto::key::implementation::NullKeypair();
+    return std::make_unique<crypto::key::implementation::NullKeypair>();
 }
 
-crypto::key::Keypair* Factory::Keypair(
+auto Factory::Keypair(
     const api::internal::Core& api,
-    const NymParameters& nymParameters,
-    const VersionNumber version,
     const proto::KeyRole role,
-    const opentxs::PasswordPrompt& reason)
+    std::unique_ptr<crypto::key::Asymmetric> publicKey,
+    std::unique_ptr<crypto::key::Asymmetric> privateKey) noexcept(false)
+    -> std::unique_ptr<crypto::key::Keypair>
 {
-    return new crypto::key::implementation::Keypair(
-        api, nymParameters, version, role, reason);
-}
+    if (false == bool(publicKey)) {
+        throw std::runtime_error("Invalid public key");
+    }
 
-crypto::key::Keypair* Factory::Keypair(
-    const api::internal::Core& api,
-    const proto::AsymmetricKey& serializedPubkey,
-    const proto::AsymmetricKey& serializedPrivkey,
-    const opentxs::PasswordPrompt& reason)
-{
-    return new crypto::key::implementation::Keypair(
-        api, serializedPubkey, serializedPrivkey, reason);
-}
+    if (false == bool(privateKey)) {
+        throw std::runtime_error("Invalid private key");
+    }
 
-crypto::key::Keypair* Factory::Keypair(
-    const api::internal::Core& api,
-    const proto::AsymmetricKey& serializedPubkey,
-    const opentxs::PasswordPrompt& reason)
-{
-    return new crypto::key::implementation::Keypair(
-        api, serializedPubkey, reason);
+    return std::make_unique<ReturnType>(
+        api, role, std::move(publicKey), std::move(privateKey));
 }
 }  // namespace opentxs
 
@@ -77,69 +65,19 @@ namespace opentxs::crypto::key::implementation
 {
 Keypair::Keypair(
     const api::internal::Core& api,
-    const NymParameters& params,
-    const VersionNumber version,
     const proto::KeyRole role,
-    const PasswordPrompt& reason) noexcept
+    std::unique_ptr<crypto::key::Asymmetric> publicKey,
+    std::unique_ptr<crypto::key::Asymmetric> privateKey) noexcept
     : api_(api)
-    , m_pkeyPrivate(api.Factory().AsymmetricKey(params, reason, role, version))
-    , m_pkeyPublic(Asymmetric::Factory())
+    , m_pkeyPrivate(privateKey.release())
+    , m_pkeyPublic(publicKey.release())
     , role_(role)
 {
-    // TODO refactor RSA keys to make them behave like ECDSA keys
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    if (proto::AKEYTYPE_LEGACY == params.AsymmetricKeyType()) {
-        m_pkeyPublic =
-            api.Factory().AsymmetricKey(params, reason, role, version);
-        const bool haveKeys = make_new_keypair(params);
-
-        OT_ASSERT(haveKeys);
-    } else {
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-        auto derived =
-            dynamic_cast<EllipticCurve&>(m_pkeyPrivate.get()).asPublic(reason);
-
-        OT_ASSERT(derived)
-
-        m_pkeyPublic = OTAsymmetricKey{derived.release()};
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-
     OT_ASSERT(m_pkeyPublic.get());
-    OT_ASSERT(m_pkeyPrivate.get());
-}
-
-Keypair::Keypair(
-    const api::internal::Core& api,
-    const proto::AsymmetricKey& serializedPubkey,
-    const proto::AsymmetricKey& serializedPrivkey,
-    const PasswordPrompt& reason) noexcept
-    : api_(api)
-    , m_pkeyPrivate(api.Factory().AsymmetricKey(serializedPrivkey, reason))
-    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
-    , role_(m_pkeyPrivate->Role())
-{
-    OT_ASSERT(m_pkeyPublic.get());
-    OT_ASSERT(m_pkeyPrivate.get());
-}
-
-Keypair::Keypair(
-    const api::internal::Core& api,
-    const proto::AsymmetricKey& serializedPubkey,
-    const PasswordPrompt& reason) noexcept
-    : api_(api)
-    , m_pkeyPrivate(Asymmetric::Factory())
-    , m_pkeyPublic(api.Factory().AsymmetricKey(serializedPubkey, reason))
-    , role_(m_pkeyPublic->Role())
-{
-    OT_ASSERT(m_pkeyPublic.get());
-    OT_ASSERT(false == bool(m_pkeyPrivate.get()));
 }
 
 Keypair::Keypair(const Keypair& rhs) noexcept
-    : key::Keypair()
-    , api_(rhs.api_)
+    : api_(rhs.api_)
     , m_pkeyPrivate(rhs.m_pkeyPrivate)
     , m_pkeyPublic(rhs.m_pkeyPublic)
     , role_(rhs.role_)
@@ -238,23 +176,4 @@ bool Keypair::GetTransportKey(
 {
     return m_pkeyPrivate->TransportKey(publicKey, privateKey, reason);
 }
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-bool Keypair::make_new_keypair(const NymParameters& nymParameters)
-{
-    LowLevelKeyGenerator lowLevelKeys(nymParameters);
-
-    if (!lowLevelKeys.MakeNewKeypair()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed in a call to LowLevelKeyGenerator::MakeNewKeypair.")
-            .Flush();
-        return false;
-    }
-
-    auto reason = api_.Factory().PasswordPrompt(
-        "Enter or set the wallet master password.");
-
-    return lowLevelKeys.SetOntoKeypair(*this, reason);
-}
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 }  // namespace opentxs::crypto::key::implementation

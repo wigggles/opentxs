@@ -118,9 +118,7 @@ OTAgent::OTAgent(
     }
 }
 
-bool OTAgent::VerifySignature(
-    const Contract& theContract,
-    const PasswordPrompt& reason) const
+bool OTAgent::VerifySignature(const Contract& theContract) const
 {
     // Only individual agents can sign for things, not groups (groups vote, they
     // don't sign.)
@@ -174,7 +172,7 @@ bool OTAgent::VerifySignature(
         return false;
     }
 
-    return theContract.VerifySignature(*m_pNym, reason);
+    return theContract.VerifySignature(*m_pNym);
 }
 
 // Low-level.
@@ -186,13 +184,13 @@ bool OTAgent::VerifySignature(
 // This call may always fail for a specific agent, if the agent isn't a Nym
 // (the agent could be a voting group.)
 //
-Nym_p OTAgent::LoadNym(const PasswordPrompt& reason)
+Nym_p OTAgent::LoadNym()
 {
     auto theAgentNymID = identifier::Nym::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
-        m_pNym = wallet_.Nym(theAgentNymID, reason);
+        m_pNym = wallet_.Nym(theAgentNymID);
         OT_ASSERT(m_pNym);
 
         return m_pNym;
@@ -576,7 +574,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     if (bNymID) {
         // IsAnIndividual() is definitely true.
 
-        auto context = wallet_.ClientContext(theAgentNymID, reason);
+        auto context = wallet_.ClientContext(theAgentNymID);
 
         OT_ASSERT(context);
 
@@ -707,8 +705,7 @@ bool OTAgent::SignContract(Contract& theInput, const PasswordPrompt& reason)
 
 bool OTAgent::VerifyIssuedNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID,
-    const PasswordPrompt& reason)
+    const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -721,7 +718,7 @@ bool OTAgent::VerifyIssuedNumber(
 
     if (nullptr != m_pNym) {
         auto context = wallet_.Context(
-            identifier::Server::Factory(strNotaryID), m_pNym->ID(), reason);
+            identifier::Server::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -737,8 +734,7 @@ bool OTAgent::VerifyIssuedNumber(
 
 bool OTAgent::VerifyTransactionNumber(
     const TransactionNumber& lNumber,
-    const String& strNotaryID,
-    const PasswordPrompt& reason)
+    const String& strNotaryID)
 {
     // Todo: this function may change when entities / roles are added.
     if (!IsAnIndividual() || !DoesRepresentHimself()) {
@@ -751,7 +747,7 @@ bool OTAgent::VerifyTransactionNumber(
 
     if (nullptr != m_pNym) {
         auto context = wallet_.Context(
-            identifier::Server::Factory(strNotaryID), m_pNym->ID(), reason);
+            identifier::Server::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 

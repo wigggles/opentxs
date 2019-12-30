@@ -11,11 +11,11 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/blind/Mint.hpp"
 #include "opentxs/blind/Token.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/identity/Nym.hpp"
 
 #include "blind/token/Lucre.hpp"
@@ -39,7 +39,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#define OT_METHOD "opentxs::blind::mint::implementation::Lucre"
+#define OT_METHOD "opentxs::blind::mint::implementation::Lucre::"
 
 namespace opentxs
 {
@@ -182,10 +182,10 @@ bool Lucre::AddDenomination(
 
     // Seal the private bank info up into an encrypted Envelope
     // and set it onto pPrivate
-    OTEnvelope theEnvelope(api_);
-    theEnvelope.Seal(theNotary, strPrivateBank, reason);
+    auto envelope = api_.Factory().Envelope();
+    envelope->Seal(theNotary, strPrivateBank->Bytes(), reason);
     // TODO check the return values on these twofunctions
-    theEnvelope.GetCiphertext(pPrivate);
+    envelope->Armored(pPrivate);
 
     // Add the new key pair to the maps, using denomination as the key
     m_mapPublic.emplace(denomination, std::move(pPublic));
@@ -239,17 +239,26 @@ bool Lucre::SignToken(
         LogInsane(OT_METHOD)(__FUNCTION__)(": Loaded private mint key").Flush();
     }
 
-    OTEnvelope envelope(api_, armoredPrivate);
     auto privateKey = String::Factory();
 
-    if (false == envelope.Open(notary, privateKey, reason)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt private key")
+    try {
+        auto envelope = api_.Factory().Envelope(armoredPrivate);
+
+        if (false == envelope->Open(notary, privateKey->WriteInto(), reason)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to decrypt private key")
+                .Flush();
+
+            return false;
+        } else {
+            LogInsane(OT_METHOD)(__FUNCTION__)(": Decrypted private mint key")
+                .Flush();
+        }
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode ciphertext")
             .Flush();
 
         return false;
-    } else {
-        LogInsane(OT_METHOD)(__FUNCTION__)(": Decrypted private mint key")
-            .Flush();
     }
 
     BIO_puts(bioBank, privateKey->Get());
@@ -339,12 +348,21 @@ bool Lucre::VerifyToken(
     BIO_puts(bioCoin, spendable->Get());
     auto armoredPrivate = Armored::Factory();
     GetPrivate(armoredPrivate, token.Value());
-    OTEnvelope envelope(api_, armoredPrivate);
     auto privateKey = String::Factory();
 
-    if (false == envelope.Open(notary, privateKey, reason)) {
+    try {
+        auto envelope = api_.Factory().Envelope(armoredPrivate);
+
+        if (false == envelope->Open(notary, privateKey->WriteInto(), reason)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to decrypt private mint key")
+                .Flush();
+
+            return false;
+        }
+    } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to decrypt private mint key")
+            ": Failed to decode private mint key")
             .Flush();
 
         return false;

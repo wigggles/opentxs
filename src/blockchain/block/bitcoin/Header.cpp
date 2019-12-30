@@ -225,11 +225,9 @@ block::pHash Header::calculate_hash(
     const api::internal::Core& api,
     const opentxs::Data& serialized)
 {
-    auto intermediate = Data::Factory();
-    api.Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256, serialized, intermediate);
     auto output = Data::Factory();
-    api.Crypto().Hash().Digest(proto::HASHTYPE_SHA256, intermediate, output);
+    api.Crypto().Hash().Digest(
+        proto::HASHTYPE_SHA256D, serialized.Bytes(), output->WriteInto());
 
     return output;
 }

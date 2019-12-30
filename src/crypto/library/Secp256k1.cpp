@@ -11,7 +11,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
@@ -31,6 +30,7 @@ extern "C" {
 #include "secp256k1_ecdh.h"
 }
 
+#include <array>
 #include <cstdint>
 #include <ostream>
 
@@ -60,17 +60,31 @@ Secp256k1::Secp256k1(const api::Crypto& crypto, const api::crypto::Util& ssl)
 {
 }
 
-bool Secp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
+bool Secp256k1::RandomKeypair(
+    const AllocateOutput privateKey,
+    const AllocateOutput publicKey,
+    const proto::KeyRole,
+    const NymParameters&,
+    const AllocateOutput) const noexcept
 {
     if (nullptr == context_) { return false; }
 
-    bool validPrivkey = false;
-    std::uint8_t candidateKey[PrivateKeySize]{};
-    std::uint8_t nullKey[PrivateKeySize]{};
-    std::uint8_t counter = 0;
+    if (false == bool(privateKey) || false == bool(publicKey)) {
+        LogOutput(__FUNCTION__)(": Invalid output allocator").Flush();
 
-    while (!validPrivkey) {
-        privateKey.randomizeMemory_uint8(candidateKey, sizeof(candidateKey));
+        return false;
+    }
+
+    auto counter{0};
+    auto valid{false};
+    auto temp = OTPassword{};
+    const auto null = std::array<std::uint8_t, PrivateKeySize>{};
+
+    while (false == valid) {
+        temp.randomizeMemory(PrivateKeySize);
+
+        OT_ASSERT(temp.getMemorySize() == PrivateKeySize);
+
         // We add the random key to a zero value key because
         // secp256k1_privkey_tweak_add checks the result to make sure it's in
         // the correct range for secp256k1.
@@ -78,77 +92,154 @@ bool Secp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
         // This loop should almost always run exactly one time (about 1/(2^128)
         // chance of randomly generating an invalid key thus requiring a second
         // attempt)
-        validPrivkey =
-            secp256k1_ec_privkey_tweak_add(context_, candidateKey, nullKey);
+        valid = secp256k1_ec_privkey_tweak_add(
+            context_,
+            static_cast<unsigned char*>(temp.getMemoryWritable()),
+            null.data());
 
         OT_ASSERT(3 > ++counter);
     }
 
-    privateKey.setMemory(candidateKey, sizeof(candidateKey));
+    auto prv = privateKey(PrivateKeySize);
 
-    return ScalarBaseMultiply(privateKey, publicKey);
-}
-
-bool Secp256k1::Sign(
-    const api::internal::Core& api,
-    const Data& plaintext,
-    const key::Asymmetric& theKey,
-    const proto::HashType hashType,
-    Data& signature,  // output
-    const PasswordPrompt& reason,
-    const OTPassword* exportPassword) const
-{
-    auto hash = Data::Factory();
-    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
-
-    if (false == haveDigest) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to obtain the contract hash.")
+    if (false == prv.valid(PrivateKeySize)) {
+        LogOutput(__FUNCTION__)(": Failed to allocate space for private key")
             .Flush();
 
         return false;
     }
 
-    if (0 == hash->size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid hash").Flush();
+    std::memcpy(prv, temp.getMemory(), prv);
+
+    auto key = secp256k1_pubkey{};
+    const auto created =
+        1 == ::secp256k1_ec_pubkey_create(
+                 context_, &key, prv.as<const unsigned char>());
+
+    if (1 != created) { return false; }
+
+    auto pub = publicKey(PublicKeySize);
+
+    if (false == pub.valid(PublicKeySize)) {
+        LogOutput(__FUNCTION__)(": Failed to allocate space for public key")
+            .Flush();
 
         return false;
     }
 
-    hash->resize(32);
+    auto size{pub.size()};
 
-    OT_ASSERT(nullptr != hash->data());
-    OT_ASSERT(32 == hash->size());
+    return 1 == ::secp256k1_ec_pubkey_serialize(
+                    context_,
+                    pub.as<unsigned char>(),
+                    &size,
+                    &key,
+                    SECP256K1_EC_COMPRESSED);
+}
 
-    OTPassword privKey;
-    bool havePrivateKey{false};
+auto Secp256k1::SharedSecret(
+    const key::Asymmetric& publicKey,
+    const key::Asymmetric& privateKey,
+    const PasswordPrompt& reason,
+    OTPassword& secret) const noexcept -> bool
+{
+    if (publicKey.keyType() != proto::AKEYTYPE_SECP256K1) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Public key is wrong type")
+            .Flush();
 
-    // TODO
-    OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
+        return false;
+    }
 
-    const crypto::key::EllipticCurve* key =
-        dynamic_cast<const crypto::key::Secp256k1*>(&theKey);
+    if (privateKey.keyType() != proto::AKEYTYPE_SECP256K1) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Private key is wrong type")
+            .Flush();
 
-    if (nullptr == key) { return false; }
+        return false;
+    }
 
-    havePrivateKey = AsymmetricKeyToECPrivatekey(api, *key, reason, privKey);
+    const auto pub = publicKey.PublicKey();
+    const auto prv = privateKey.PrivateKey(reason);
+    static const auto blank = std::array<std::byte, 32>{};
 
-    if (havePrivateKey) {
-        OT_ASSERT(nullptr != privKey.getMemory());
-        OT_ASSERT(32 == privKey.getMemorySize());
+    if (32 != prv.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key").Flush();
 
-        secp256k1_ecdsa_signature ecdsaSignature{};
-        bool signatureCreated = secp256k1_ecdsa_sign(
+        return false;
+    }
+
+    auto key = ::secp256k1_pubkey{};
+
+    if (1 != ::secp256k1_ec_pubkey_parse(
+                 context_,
+                 &key,
+                 reinterpret_cast<const unsigned char*>(pub.data()),
+                 pub.size())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid public key").Flush();
+
+        return false;
+    }
+
+    secret.setMemory(blank.data(), blank.size());
+
+    OT_ASSERT(32 == secret.getMemorySize());
+
+    return 1 == ::secp256k1_ecdh(
+                    context_,
+                    static_cast<unsigned char*>(secret.getMemoryWritable()),
+                    &key,
+                    reinterpret_cast<const unsigned char*>(prv.data()));
+}
+
+bool Secp256k1::Sign(
+    const api::internal::Core& api,
+    const Data& plaintext,
+    const key::Asymmetric& key,
+    const proto::HashType type,
+    Data& signature,  // output
+    const PasswordPrompt& reason,
+    const OTPassword* exportPassword) const
+{
+    if (proto::AKEYTYPE_SECP256K1 != key.keyType()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
+
+        return false;
+    }
+
+    if (false == key.HasPrivate()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": A private key required when generating signatures")
+            .Flush();
+
+        return false;
+    }
+
+    try {
+        const auto digest = hash(type, plaintext);
+        const auto priv = key.PrivateKey(reason);
+
+        if (nullptr == priv.data() || 0 == priv.size()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Missing private key").Flush();
+
+            return false;
+        }
+
+        if (PrivateKeySize != priv.size()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key").Flush();
+
+            return false;
+        }
+
+        auto ecdsaSignature = ::secp256k1_ecdsa_signature{};
+        const bool signatureCreated = ::secp256k1_ecdsa_sign(
             context_,
             &ecdsaSignature,
-            reinterpret_cast<const unsigned char*>(hash->data()),
-            reinterpret_cast<const unsigned char*>(privKey.getMemory()),
+            reinterpret_cast<const unsigned char*>(digest->data()),
+            reinterpret_cast<const unsigned char*>(priv.data()),
             nullptr,
             nullptr);
 
         if (signatureCreated) {
-            signature.Assign(
-                ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature));
+            signature.Assign(ecdsaSignature.data, sizeof(ecdsaSignature));
 
             return true;
         } else {
@@ -158,10 +249,8 @@ bool Secp256k1::Sign(
 
             return false;
         }
-    } else {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Can not extract ecdsa private key from Asymmetric.")
-            .Flush();
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
         return false;
     }
@@ -169,170 +258,101 @@ bool Secp256k1::Sign(
 
 bool Secp256k1::Verify(
     const Data& plaintext,
-    const key::Asymmetric& theKey,
+    const key::Asymmetric& key,
     const Data& signature,
-    const proto::HashType hashType,
-    [[maybe_unused]] const PasswordPrompt& reason) const
+    const proto::HashType type) const
 {
-    auto hash = Data::Factory();
-    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
+    if (proto::AKEYTYPE_SECP256K1 != key.keyType()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key type").Flush();
 
-    if (false == haveDigest) { return false; }
+        return false;
+    }
 
-    OT_ASSERT(nullptr != hash->data());
+    try {
+        const auto digest = hash(type, plaintext);
+        const auto parsed = parsed_public_key(key.PublicKey());
+        const auto sig = parsed_signature(signature.Bytes());
 
-    const crypto::key::EllipticCurve* key =
-        dynamic_cast<const crypto::key::Secp256k1*>(&theKey);
+        return 1 == ::secp256k1_ecdsa_verify(
+                        context_,
+                        &sig,
+                        reinterpret_cast<const unsigned char*>(digest->data()),
+                        &parsed);
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
-    if (nullptr == key) { return false; }
-
-    auto ecdsaPubkey = Data::Factory();
-    const bool havePublicKey = AsymmetricKeyToECPubkey(*key, ecdsaPubkey);
-
-    if (!havePublicKey) { return false; }
-
-    OT_ASSERT(nullptr != ecdsaPubkey->data());
-
-    secp256k1_pubkey point{};
-    const bool pubkeyParsed = ParsePublicKey(ecdsaPubkey, point);
-
-    if (!pubkeyParsed) { return false; }
-
-    secp256k1_ecdsa_signature ecdsaSignature{};
-    const bool haveSignature = DataToECSignature(signature, ecdsaSignature);
-
-    if (!haveSignature) { return false; }
-
-    return secp256k1_ecdsa_verify(
-        context_,
-        &ecdsaSignature,
-        reinterpret_cast<const unsigned char*>(hash->data()),
-        &point);
+        return false;
+    }
 }
 
-bool Secp256k1::DataToECSignature(
-    const Data& inSignature,
-    secp256k1_ecdsa_signature& outSignature) const
+auto Secp256k1::hash(const proto::HashType type, const Data& data) const
+    noexcept(false) -> OTData
 {
-    const std::uint8_t* sigStart =
-        static_cast<const std::uint8_t*>(inSignature.data());
+    auto output = Data::Factory();
 
-    if (nullptr != sigStart) {
-
-        if (sizeof(secp256k1_ecdsa_signature) == inSignature.size()) {
-            secp256k1_ecdsa_signature ecdsaSignature;
-
-            for (std::uint32_t i = 0; i < inSignature.size(); i++) {
-                ecdsaSignature.data[i] = *(sigStart + i);
-            }
-
-            outSignature = ecdsaSignature;
-
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Secp256k1::ECDH(
-    const Data& publicKey,
-    const OTPassword& privateKey,
-    OTPassword& secret) const
-{
-    auto parsedPubkey = secp256k1_pubkey{};
-    auto success = ::secp256k1_ec_pubkey_parse(
-        context_,
-        &parsedPubkey,
-        static_cast<const unsigned char*>(publicKey.data()),
-        publicKey.size());
-
-    if (0 == success) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to parse public key")
-            .Flush();
-
-        return false;
+    if (false ==
+        crypto_.Hash().Digest(type, data.Bytes(), output->WriteInto())) {
+        throw std::runtime_error("Failed to obtain contract hash");
     }
 
-    if (false == privateKey.isMemory()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key format")
-            .Flush();
+    if (0 == output->size()) { throw std::runtime_error("Invalid hash"); }
 
-        return false;
-    }
+    output->resize(32);
 
-    if (32 != privateKey.getMemorySize()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid private key size (")(
-            privateKey.getMemorySize())(")")
-            .Flush();
+    OT_ASSERT(nullptr != output->data());
+    OT_ASSERT(32 == output->size());
 
-        return false;
-    }
-
-    secret.randomizeMemory(32);
-
-    OT_ASSERT(secret.isMemory());
-    OT_ASSERT(32 == secret.getMemorySize());
-
-    return 1 == ::secp256k1_ecdh(
-                    context_,
-                    static_cast<unsigned char*>(secret.getMemoryWritable()),
-                    &parsedPubkey,
-                    static_cast<const unsigned char*>(privateKey.getMemory()));
+    return output;
 }
 
 void Secp256k1::Init()
 {
     OT_ASSERT(false == Initialized_);
-    std::uint8_t randomSeed[32]{};
-    ssl_.RandomizeMemory(randomSeed, 32);
+
+    auto seed = std::array<std::uint8_t, 32>{};
+    ssl_.RandomizeMemory(seed.data(), seed.size());
 
     OT_ASSERT(nullptr != context_);
 
-    [[maybe_unused]] int randomize =
-        secp256k1_context_randomize(context_, randomSeed);
+    const auto randomize = secp256k1_context_randomize(context_, seed.data());
+
+    OT_ASSERT(1 == randomize);
+
     Initialized_ = true;
 }
 
-bool Secp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
-    const
+auto Secp256k1::parsed_public_key(const ReadView bytes) const noexcept(false)
+    -> ::secp256k1_pubkey
 {
-    if (nullptr == context_) { return false; }
+    if (nullptr == bytes.data() || 0 == bytes.size()) {
+        throw std::runtime_error("Missing public key");
+    }
 
-    return secp256k1_ec_pubkey_parse(
-        context_,
-        &output,
-        reinterpret_cast<const unsigned char*>(input.data()),
-        input.size());
+    auto output = ::secp256k1_pubkey{};
+
+    if (1 != ::secp256k1_ec_pubkey_parse(
+                 context_,
+                 &output,
+                 reinterpret_cast<const unsigned char*>(bytes.data()),
+                 bytes.size())) {
+        throw std::runtime_error("Invalid public key");
+    }
+
+    return output;
 }
 
-bool Secp256k1::ScalarBaseMultiply(
-    const OTPassword& privateKey,
-    Data& publicKey) const
+auto Secp256k1::parsed_signature(const ReadView bytes) const noexcept(false)
+    -> ::secp256k1_ecdsa_signature
 {
-    if (nullptr == context_) { return false; }
+    auto output = ::secp256k1_ecdsa_signature{};
 
-    if (!privateKey.isMemory()) { return false; }
+    if (sizeof(output.data) != bytes.size()) {
+        throw std::runtime_error("Invalid signature");
+    }
 
-    secp256k1_pubkey key{};
+    std::memcpy(&output.data, bytes.data(), sizeof(output.data));
 
-    const auto created = secp256k1_ec_pubkey_create(
-        context_,
-        &key,
-        static_cast<const unsigned char*>(privateKey.getMemory()));
-
-    if (1 != created) { return false; }
-
-    unsigned char output[PublicKeySize]{};
-    size_t outputSize = sizeof(output);
-
-    const auto serialized = secp256k1_ec_pubkey_serialize(
-        context_, output, &outputSize, &key, SECP256K1_EC_COMPRESSED);
-
-    if (1 != serialized) { return false; }
-
-    publicKey.Assign(output, outputSize);
-
-    return true;
+    return output;
 }
 
 Secp256k1::~Secp256k1()

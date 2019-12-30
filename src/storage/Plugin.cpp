@@ -141,7 +141,7 @@ bool Plugin::Store(
     const bool bucket{current_bucket_};
 
     if (digest_) {
-        digest_(storage_.HashType(), value, key);
+        digest_(storage_.HashType(), value, writer(key));
 
         return Store(isTransaction, key, value, bucket);
     }

@@ -31,6 +31,7 @@ public:
         const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual bool IsSpent(const PasswordPrompt& reason) const = 0;
     OPENTXS_EXPORT virtual const identifier::Server& Notary() const = 0;
+    OPENTXS_EXPORT virtual Purse& Owner() const noexcept = 0;
     OPENTXS_EXPORT virtual proto::Token Serialize() const = 0;
     OPENTXS_EXPORT virtual MintSeries Series() const = 0;
     OPENTXS_EXPORT virtual proto::TokenState State() const = 0;
@@ -41,7 +42,8 @@ public:
     OPENTXS_EXPORT virtual Denomination Value() const = 0;
 
     OPENTXS_EXPORT virtual bool ChangeOwner(
-        crypto::key::Symmetric& key,
+        Purse& oldOwner,
+        Purse& newOwner,
         const PasswordPrompt& reason) = 0;
     OPENTXS_EXPORT virtual bool MarkSpent(const PasswordPrompt& reason) = 0;
     OPENTXS_EXPORT virtual bool Process(

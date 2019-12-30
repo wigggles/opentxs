@@ -43,8 +43,7 @@ public:
         const PasswordPrompt& reason);
     OPENTXS_EXPORT static Pimpl<opentxs::otx::Request> Factory(
         const api::internal::Core& api,
-        const proto::ServerRequest serialized,
-        const PasswordPrompt& reason);
+        const proto::ServerRequest serialized);
 
     OPENTXS_EXPORT virtual proto::ServerRequest Contract() const = 0;
     OPENTXS_EXPORT virtual const identifier::Nym& Initiator() const = 0;

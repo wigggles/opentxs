@@ -176,16 +176,15 @@ bool OTAgreement::DropServerNoticeToNymbox(
     OT_ASSERT(false != bool(theLedger));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theLedger->LoadNymbox(reason);
+    bool bSuccessLoading = theLedger->LoadNymbox();
 
     if (true == bSuccessLoading) {
-        bSuccessLoading = theLedger->VerifyAccount(theServerNym, reason);
+        bSuccessLoading = theLedger->VerifyAccount(theServerNym);
     } else {
         bSuccessLoading = theLedger->GenerateLedger(
             NYM_ID,
             NOTARY_ID,
             ledgerType::nymbox,
-            reason,
             true);  // bGenerateFile=true
     }
 
@@ -351,10 +350,9 @@ void OTAgreement::GetAllTransactionNumbers(NumList& numlistOutput) const
 // parties and agents, etc.
 bool OTAgreement::VerifyNymAsAgent(
     const identity::Nym& theNym,
-    const identity::Nym&,
-    const PasswordPrompt& reason) const
+    const identity::Nym&) const
 {
-    return VerifySignature(theNym, reason);
+    return VerifySignature(theNym);
 }
 
 // This is an override. See note above.
@@ -975,7 +973,6 @@ bool OTAgreement::Confirm(
     ServerContext& context,
     const Account& PAYER_ACCT,
     const identifier::Nym& p_id_MERCHANT_NYM,
-    const PasswordPrompt& reason,
     const identity::Nym* pMERCHANT_NYM)
 {
     auto nym = context.Nym();
@@ -1044,7 +1041,7 @@ bool OTAgreement::Confirm(
     // Supposedly merchant has already signed.  Let's verify this!!
     //
     if ((nullptr != pMERCHANT_NYM) &&
-        (false == VerifySignature(*pMERCHANT_NYM, reason))) {
+        (false == VerifySignature(*pMERCHANT_NYM))) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Merchant's signature failed to verify.")
             .Flush();
@@ -1167,9 +1164,7 @@ void OTAgreement::UpdateContents(const PasswordPrompt& reason)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTAgreement::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;
 
@@ -1181,7 +1176,7 @@ std::int32_t OTAgreement::ProcessXMLNode(
     // -- Note you can choose not to call the parent if
     // you don't want to use any of those xml tags.
     // As I do below, in the case of OTAccount.
-    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml, reason))) {
+    if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml))) {
         return nReturnVal;
     }
 

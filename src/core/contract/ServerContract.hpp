@@ -17,7 +17,7 @@ public:
         proto::AddressType& actual,
         const proto::AddressType& preferred) const final;
     proto::ServerContract Contract() const final;
-    std::string EffectiveName(const PasswordPrompt& reason) const final;
+    std::string EffectiveName() const final;
     std::string Name() const final { return name_; }
     proto::ServerContract PublicContract() const final;
     bool Statistics(String& strContents) const final;
@@ -65,11 +65,9 @@ private:
     OTIdentifier GetID(const Lock& lock) const final;
     proto::ServerContract IDVersion(const Lock& lock) const;
     proto::ServerContract SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const final;
+    bool validate(const Lock& lock) const final;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const final;
 
     bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
 

@@ -72,13 +72,11 @@ Crypto::Crypto(const api::Settings& settings)
     , secp256k1_p_(opentxs::Factory::Secp256k1(*this, util_))
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
     , bip39_p_(opentxs::Factory::Bip39(*this))
+    , ripemd160_(*ssl_)
 #if OT_CRYPTO_USING_TREZOR
-    , ripemd160_(*trezor_)
 #if OT_CRYPTO_WITH_BIP32
     , bip32_(*trezor_)
 #endif  // OT_CRYPTO_WITH_BIP32
-#else
-    , ripemd160_(*ssl_)
 #endif  // OT_CRYPTO_USING_TREZOR
     , bip39_(*bip39_p_)
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -94,9 +92,6 @@ Crypto::Crypto(const api::Settings& settings)
     OT_ASSERT(trezor_)
 #endif
     OT_ASSERT(sodium_)
-#if OT_CRYPTO_USING_OPENSSL
-    OT_ASSERT(ssl_)
-#endif
 #if OT_CRYPTO_USING_OPENSSL
     OT_ASSERT(ssl_)
 #endif
@@ -119,9 +114,6 @@ void Crypto::Cleanup()
     encode_.reset();
 #if OT_CRYPTO_USING_LIBSECP256K1
     secp256k1_p_.reset();
-#endif
-#if OT_CRYPTO_USING_OPENSSL
-    ssl_->Cleanup();
 #endif
     sodium_.reset();
 #if OT_CRYPTO_USING_TREZOR
@@ -179,12 +171,7 @@ void Crypto::Init()
     }
 #endif
 
-#if OT_CRYPTO_USING_OPENSSL
-    ssl_->Init();
-#endif
 #if OT_CRYPTO_USING_LIBSECP256K1
-    // WARNING: The below call to secp256k1_->Init() DEPENDS on the fact
-    // that the above call to ssl_->Init() happened FIRST.
     secp256k1_p_->Init();
 #endif
 }

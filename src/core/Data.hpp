@@ -12,12 +12,6 @@ namespace opentxs::implementation
 class Data : virtual public opentxs::Data
 {
 public:
-    operator std::string_view() const noexcept final
-    {
-        return std::string_view{reinterpret_cast<const char*>(data_.data()),
-                                data_.size()};
-    }
-
     bool operator==(const opentxs::Data& rhs) const final;
     bool operator!=(const opentxs::Data& rhs) const final;
     bool operator<(const opentxs::Data& rhs) const final;
@@ -36,6 +30,11 @@ public:
         return reinterpret_cast<const std::byte&>(data_.at(position));
     }
     const_iterator begin() const final { return const_iterator(this, 0); }
+    ReadView Bytes() const noexcept final
+    {
+        return ReadView{reinterpret_cast<const char*>(data_.data()),
+                        data_.size()};
+    }
     const_iterator cbegin() const final { return const_iterator(this, 0); }
     const_iterator cend() const final
     {
@@ -62,6 +61,7 @@ public:
     std::size_t size() const final { return data_.size(); }
 
     void Assign(const opentxs::Data& source) final;
+    void Assign(ReadView source) final { Assign(source.data(), source.size()); }
     void Assign(const void* data, const std::size_t& size) final;
     std::byte& at(const std::size_t position) final
     {
@@ -80,6 +80,7 @@ public:
     void SetSize(const std::size_t size) final;
     std::string str() const override;
     void swap(opentxs::Data&& rhs) final;
+    AllocateOutput WriteInto() noexcept final;
     void zeroMemory() final;
 
     ~Data() override = default;

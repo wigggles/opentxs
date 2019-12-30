@@ -33,9 +33,8 @@ TEST_F(Ledger, init)
 
     ASSERT_FALSE(nym_id_->empty());
 
-    const auto serverContract =
-        server_.Wallet().Server(server_.ID(), reason_s_);
-    client_.Wallet().Server(serverContract->PublicContract(), reason_c_);
+    const auto serverContract = server_.Wallet().Server(server_.ID());
+    client_.Wallet().Server(serverContract->PublicContract());
     server_id_->SetString(serverContract->ID()->str());
 
     ASSERT_FALSE(server_id_->empty());
@@ -43,7 +42,7 @@ TEST_F(Ledger, init)
 
 TEST_F(Ledger, create_nymbox)
 {
-    const auto nym = client_.Wallet().Nym(nym_id_, reason_c_);
+    const auto nym = client_.Wallet().Nym(nym_id_);
 
     ASSERT_TRUE(nym);
 
@@ -65,5 +64,5 @@ TEST_F(Ledger, load_nymbox)
         nym_id_, nym_id_, server_id_, ot::ledgerType::nymbox, false);
 
     ASSERT_TRUE(nymbox);
-    EXPECT_TRUE(nymbox->LoadNymbox(reason_c_));
+    EXPECT_TRUE(nymbox->LoadNymbox());
 }

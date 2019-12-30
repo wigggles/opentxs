@@ -81,7 +81,7 @@ auto Factory::ServerContract(
             return nullptr;
         }
 
-        if (!contract.validate(lock, reason)) {
+        if (!contract.validate(lock)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid contract").Flush();
 
             return nullptr;
@@ -98,8 +98,7 @@ auto Factory::ServerContract(
 auto Factory::ServerContract(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::ServerContract& serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::ServerContract& serialized) noexcept
     -> std::unique_ptr<contract::Server>
 {
     if (false == proto::Validate<proto::ServerContract>(serialized, VERBOSE)) {
@@ -112,7 +111,7 @@ auto Factory::ServerContract(
 
     Lock lock(contract->lock_);
 
-    if (!contract->validate(lock, reason)) { return nullptr; }
+    if (!contract->validate(lock)) { return nullptr; }
 
     contract->alias_ = contract->name_;
 
@@ -182,14 +181,14 @@ Server::Server(const Server& rhs)
     , transport_key_(rhs.transport_key_)
 {
 }
-std::string Server::EffectiveName(const PasswordPrompt& reason) const
+std::string Server::EffectiveName() const
 {
     OT_ASSERT(nym_)
 
     // TODO The version stored in nym_ might be out of date so load it from the
     // wallet. This can be fixed correctly by implementing in-place updates of
     // Nym credentials
-    const auto nym = api_.Wallet().Nym(nym_->ID(), reason);
+    const auto nym = api_.Wallet().Nym(nym_->ID());
     const auto output = nym->Name();
 
     if (output.empty()) { return name_; }
@@ -396,11 +395,11 @@ bool Server::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-bool Server::validate(const Lock& lock, const PasswordPrompt& reason) const
+bool Server::validate(const Lock& lock) const
 {
     bool validNym = false;
 
-    if (nym_) { validNym = nym_->VerifyPseudonym(reason); }
+    if (nym_) { validNym = nym_->VerifyPseudonym(); }
 
     if (!validNym) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym.").Flush();
@@ -425,7 +424,7 @@ bool Server::validate(const Lock& lock, const PasswordPrompt& reason) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature, reason); }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (!validSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
@@ -438,15 +437,14 @@ bool Server::validate(const Lock& lock, const PasswordPrompt& reason) const
 
 bool Server::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature,
-    const PasswordPrompt& reason) const
+    const proto::Signature& signature) const
 {
-    if (!Signable::verify_signature(lock, signature, reason)) { return false; }
+    if (!Signable::verify_signature(lock, signature)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->Verify(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto);
 }
 }  // namespace opentxs::contract::implementation

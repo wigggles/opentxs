@@ -11,12 +11,10 @@ class Wallet final : public api::implementation::Wallet
 {
 public:
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
-        const identifier::Nym& remoteNymID,
-        const PasswordPrompt& reason) const final;
+        const identifier::Nym& remoteNymID) const final;
     std::shared_ptr<const opentxs::Context> Context(
         const identifier::Server& notaryID,
-        const identifier::Nym& clientNymID,
-        const PasswordPrompt& reason) const final;
+        const identifier::Nym& clientNymID) const final;
     Editor<opentxs::ClientContext> mutable_ClientContext(
         const identifier::Nym& remoteNymID,
         const PasswordPrompt& reason) const final;
@@ -40,12 +38,10 @@ private:
         const Nym_p& remoteNym,
         std::shared_ptr<opentxs::internal::Context>& output) const final;
     bool load_legacy_account(
-        const PasswordPrompt& reason,
         const Identifier& accountID,
         const eLock& lock,
         AccountLock& row) const final;
-    Nym_p signer_nym(const identifier::Nym& id, const PasswordPrompt& reason)
-        const final;
+    Nym_p signer_nym(const identifier::Nym& id) const final;
 
     Wallet(const api::server::internal::Manager& server);
     Wallet() = delete;

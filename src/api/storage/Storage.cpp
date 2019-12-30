@@ -84,7 +84,7 @@ api::storage::StorageInternal* Factory::Storage(
 {
     Digest hash = std::bind(
         static_cast<bool (api::crypto::Hash::*)(
-            const std::uint32_t, const std::string&, std::string&) const>(
+            const std::uint32_t, const ReadView, const AllocateOutput) const>(
             &api::crypto::Hash::Digest),
         &(crypto.Hash()),
         std::placeholders::_1,

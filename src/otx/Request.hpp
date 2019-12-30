@@ -34,8 +34,7 @@ private:
 
     static Nym_p extract_nym(
         const api::internal::Core& api,
-        const proto::ServerRequest serialized,
-        const PasswordPrompt& reason);
+        const proto::ServerRequest serialized);
 
     Request* clone() const noexcept final { return new Request(*this); }
     OTIdentifier GetID(const Lock& lock) const final;
@@ -45,11 +44,9 @@ private:
     OTData Serialize() const final;
     proto::ServerRequest signature_version(const Lock& lock) const;
     bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
-    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const final;
+    bool validate(const Lock& lock) const final;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const final;
 
     Request(
         const api::internal::Core& api,
@@ -60,8 +57,7 @@ private:
         const RequestNumber number);
     Request(
         const api::internal::Core& api,
-        const proto::ServerRequest serialized,
-        const PasswordPrompt& reason);
+        const proto::ServerRequest serialized);
     Request() = delete;
     Request(const Request& rhs);
     Request(Request&& rhs) = delete;

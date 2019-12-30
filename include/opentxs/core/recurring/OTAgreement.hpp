@@ -124,7 +124,6 @@ public:
         ServerContext& context,
         const Account& PAYER_ACCT,
         const identifier::Nym& p_id_MERCHANT_NYM,
-        const PasswordPrompt& reason,
         const identity::Nym* pMERCHANT_NYM = nullptr);
 
     // What should be the process here?
@@ -242,8 +241,7 @@ public:
     //
     virtual bool VerifyAgreement(
         const ClientContext& recipient,
-        const ClientContext& sender,
-        const PasswordPrompt& reason) const = 0;
+        const ClientContext& sender) const = 0;
 
     virtual bool CompareAgreement(const OTAgreement& rhs) const;
 
@@ -372,8 +370,7 @@ public:
     //
     bool VerifyNymAsAgent(
         const identity::Nym& theNym,
-        const identity::Nym& theSignerNym,
-        const PasswordPrompt& reason) const override;
+        const identity::Nym& theSignerNym) const override;
 
     bool VerifyNymAsAgentForAccount(
         const identity::Nym& theNym,
@@ -426,9 +423,7 @@ public:
         const identifier::Nym& theNymID) const override;
     std::int64_t GetClosingNumber(const Identifier& theAcctID) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void UpdateContents(const PasswordPrompt& reason)
         override;  // Before transmission or serialization,
                    // this

@@ -212,7 +212,6 @@ bool Core::GetSecret(
 
     OT_ASSERT(master_secret_);
 
-    master_secret_->randomizeMemory(1);
     auto& callback = *external_password_callback_;
     OTPassword masterPassword{};
     OTPasswordPrompt prompt{reason};
@@ -232,8 +231,10 @@ bool Core::GetSecret(
         return false;
     }
 
-    const auto decrypted =
-        master_key_->Decrypt(encrypted_secret_, prompt, *master_secret_);
+    const auto decrypted = master_key_->Decrypt(
+        encrypted_secret_,
+        prompt,
+        master_secret_->WriteInto(OTPassword::Mode::Mem));
 
     if (false == decrypted) {
         opentxs::LogOutput(__FUNCTION__)(": Failed to decrypt master secret")
@@ -281,10 +282,8 @@ OTSymmetricKey Core::make_master_key(
     caller.AskTwice(reason, masterPassword);
     reason->SetPassword(masterPassword);
     auto output = symmetric.Key(reason, proto::SMODE_CHACHA20POLY1305);
-    auto iv = Data::Factory();
     auto saved = output->Encrypt(
-        *master_secret,
-        iv,
+        master_secret->Bytes(),
         reason,
         encrypted,
         true,

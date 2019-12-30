@@ -29,7 +29,6 @@ public:
 
 private:
     Server& server_;
-    const PasswordPrompt& reason_;
     std::string version_;
 
     MainFile() = delete;

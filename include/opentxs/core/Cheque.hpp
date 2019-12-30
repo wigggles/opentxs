@@ -110,9 +110,7 @@ protected:
     OTIdentifier m_REMITTER_ACCT_ID;
     bool m_bHasRemitter{false};
 
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 private:  // Private prevents erroneous use by other classes.
     friend api::implementation::Factory;

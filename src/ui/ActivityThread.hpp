@@ -127,7 +127,6 @@ private:
         const ActivityThreadSortKey& index,
         const CustomData& custom) const noexcept final;
     bool send_cheque(
-        const PasswordPrompt& reason,
         const Amount amount,
         const Identifier& sourceAccount,
         const std::string& memo) const noexcept;

@@ -300,7 +300,6 @@ std::string ActivityThread::GetDraft() const noexcept
 
 void ActivityThread::init_contact() noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     participants_future_.get();
 
     if (1 != participants_.size()) {
@@ -311,7 +310,7 @@ void ActivityThread::init_contact() noexcept
         return;
     }
 
-    auto contact = api_.Contacts().Contact(*participants_.cbegin(), reason);
+    auto contact = api_.Contacts().Contact(*participants_.cbegin());
     Lock lock(contact_lock_);
     contact_ = contact;
     lock.unlock();
@@ -358,7 +357,6 @@ bool ActivityThread::Pay(
     const std::string& memo,
     const PaymentType type) const noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt("Sending a payment");
     const auto& unitID = api_.Storage().AccountContract(sourceAccount);
 
     if (unitID->empty()) {
@@ -370,7 +368,7 @@ bool ActivityThread::Pay(
     }
 
     try {
-        const auto contract = api_.Wallet().UnitDefinition(unitID, reason);
+        const auto contract = api_.Wallet().UnitDefinition(unitID);
         auto value = Amount{0};
         const auto converted =
             contract->StringToAmountLocale(value, amount, "", "");
@@ -399,8 +397,6 @@ bool ActivityThread::Pay(
     const std::string& memo,
     const PaymentType type) const noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt("Sending a payment");
-
     if (0 >= amount) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid amount: (")(amount)(")")
             .Flush();
@@ -410,7 +406,7 @@ bool ActivityThread::Pay(
 
     switch (type) {
         case PaymentType::Cheque: {
-            return send_cheque(reason, amount, sourceAccount, memo);
+            return send_cheque(amount, sourceAccount, memo);
         }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported payment type: (")(
@@ -525,7 +521,6 @@ bool ActivityThread::same(
 }
 
 bool ActivityThread::send_cheque(
-    const PasswordPrompt& reason,
     const Amount amount,
     const Identifier& sourceAccount,
     const std::string& memo) const noexcept
@@ -552,7 +547,7 @@ bool ActivityThread::send_cheque(
 
     try {
         const auto contract = api_.Wallet().UnitDefinition(
-            api_.Storage().AccountContract(sourceAccount), reason);
+            api_.Storage().AccountContract(sourceAccount));
         contract->FormatAmountLocale(amount, displayAmount, ",", ".");
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(

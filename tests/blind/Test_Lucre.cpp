@@ -41,8 +41,8 @@ public:
     {
         if (false == init_) { init(); }
 
-        alice_ = api_.Wallet().Nym(alice_nym_id_, reason_);
-        bob_ = api_.Wallet().Nym(bob_nym_id_, reason_);
+        alice_ = api_.Wallet().Nym(alice_nym_id_);
+        bob_ = api_.Wallet().Nym(bob_nym_id_);
     }
 
     void init()

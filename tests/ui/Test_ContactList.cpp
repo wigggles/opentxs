@@ -226,7 +226,7 @@ TEST_F(Test_ContactList, Contact_List)
 {
     ASSERT_EQ(false, nym_id_->empty());
     ASSERT_EQ(nym_id_->str(), ALICE_NYM_ID);
-    ASSERT_EQ(true, bob_payment_code_->VerifyInternally());
+    ASSERT_EQ(true, bob_payment_code_->Valid());
 
     while (GetCounter(contact_widget_id_) < 2) { ; }
 

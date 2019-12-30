@@ -57,10 +57,8 @@ TEST_F(Test_CreateNymHD, TestNym_DeterministicIDs)
 
 TEST_F(Test_CreateNymHD, TestNym_ABCD)
 {
-    const auto NymA =
-        client_.Wallet().Nym(identifier::Nym::Factory(Alice), reason_);
-    const auto NymB =
-        client_.Wallet().Nym(identifier::Nym::Factory(Bob), reason_);
+    const auto NymA = client_.Wallet().Nym(identifier::Nym::Factory(Alice));
+    const auto NymB = client_.Wallet().Nym(identifier::Nym::Factory(Bob));
     const auto NymC = client_.Wallet().Nym(reason_, "Charly", {SeedA_, 1});
     const auto NymD = client_.Wallet().Nym(reason_, "Dave", {SeedB_, 1});
 

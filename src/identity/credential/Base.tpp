@@ -41,8 +41,7 @@ template identity::credential::internal::Secondary* Factory::Credential(
     const identity::credential::internal::Primary&,
     const proto::Credential&,
     const proto::KeyMode,
-    const proto::CredentialRole,
-    const opentxs::PasswordPrompt&);
+    const proto::CredentialRole);
 template identity::credential::internal::Contact* Factory::Credential(
     const api::internal::Core&,
     identity::internal::Authority&,
@@ -50,8 +49,7 @@ template identity::credential::internal::Contact* Factory::Credential(
     const identity::credential::internal::Primary&,
     const proto::Credential&,
     const proto::KeyMode,
-    const proto::CredentialRole,
-    const opentxs::PasswordPrompt&);
+    const proto::CredentialRole);
 template identity::credential::internal::Verification* Factory::Credential(
     const api::internal::Core&,
     identity::internal::Authority&,
@@ -59,8 +57,7 @@ template identity::credential::internal::Verification* Factory::Credential(
     const identity::credential::internal::Primary&,
     const proto::Credential&,
     const proto::KeyMode,
-    const proto::CredentialRole,
-    const opentxs::PasswordPrompt&);
+    const proto::CredentialRole);
 
 template <typename C>
 struct deserialize_credential {
@@ -90,11 +87,10 @@ struct deserialize_credential<identity::credential::internal::Contact> {
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& serialized,
-        const opentxs::PasswordPrompt& reason)
+        const proto::Credential& serialized)
     {
         return opentxs::Factory::ContactCredential(
-            api, parent, source, master, serialized, reason);
+            api, parent, source, master, serialized);
     }
 };
 template <>
@@ -104,11 +100,10 @@ struct deserialize_credential<identity::credential::internal::Secondary> {
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& serialized,
-        const opentxs::PasswordPrompt& reason)
+        const proto::Credential& serialized)
     {
         return opentxs::Factory::SecondaryCredential(
-            api, parent, source, master, serialized, reason);
+            api, parent, source, master, serialized);
     }
 };
 template <>
@@ -118,11 +113,10 @@ struct deserialize_credential<identity::credential::internal::Verification> {
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& serialized,
-        const opentxs::PasswordPrompt& reason)
+        const proto::Credential& serialized)
     {
         return opentxs::Factory::VerificationCredential(
-            api, parent, source, master, serialized, reason);
+            api, parent, source, master, serialized);
     }
 };
 template <>
@@ -206,8 +200,7 @@ C* Factory::Credential(
     const identity::credential::internal::Primary& master,
     const proto::Credential& serialized,
     const proto::KeyMode mode,
-    const proto::CredentialRole role,
-    const opentxs::PasswordPrompt& reason)
+    const proto::CredentialRole role)
 {
     // This check allows all constructors to assume inputs are well-formed
     if (!proto::Validate(serialized, VERBOSE, mode, role)) {
@@ -219,13 +212,13 @@ C* Factory::Credential(
     }
 
     std::unique_ptr<C> output{deserialize_credential<C>::Get(
-        api, parent, source, master, serialized, reason)};
+        api, parent, source, master, serialized)};
 
     if (false == bool(output)) { return nullptr; }
 
     if (output->Role() != serialized.role()) { return nullptr; }
 
-    if (false == output->Validate(reason)) { return nullptr; }
+    if (false == output->Validate()) { return nullptr; }
 
     return output.release();
 }

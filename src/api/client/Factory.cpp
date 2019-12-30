@@ -42,60 +42,54 @@ Factory::Factory(const api::client::internal::Manager& client)
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     const Nym_p& senderNym,
-    const std::string& message,
-    const opentxs::PasswordPrompt& reason) const
+    const std::string& message) const
 {
     return std::unique_ptr<opentxs::PeerObject>{
-        opentxs::Factory::PeerObject(client_, senderNym, message, reason)};
+        opentxs::Factory::PeerObject(client_, senderNym, message)};
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     const Nym_p& senderNym,
     const std::string& payment,
-    const bool isPayment,
-    const opentxs::PasswordPrompt& reason) const
+    const bool isPayment) const
 {
-    return std::unique_ptr<opentxs::PeerObject>{opentxs::Factory::PeerObject(
-        client_, senderNym, payment, isPayment, reason)};
+    return std::unique_ptr<opentxs::PeerObject>{
+        opentxs::Factory::PeerObject(client_, senderNym, payment, isPayment)};
 }
 
 #if OT_CASH
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     const Nym_p& senderNym,
-    const std::shared_ptr<blind::Purse> purse,
-    const opentxs::PasswordPrompt& reason) const
+    const std::shared_ptr<blind::Purse> purse) const
 {
     return std::unique_ptr<opentxs::PeerObject>{
-        opentxs::Factory::PeerObject(client_, senderNym, purse, reason)};
+        opentxs::Factory::PeerObject(client_, senderNym, purse)};
 }
 #endif
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     const OTPeerRequest request,
     const OTPeerReply reply,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason) const
+    const VersionNumber version) const
 {
     return std::unique_ptr<opentxs::PeerObject>{
-        opentxs::Factory::PeerObject(client_, request, reply, version, reason)};
+        opentxs::Factory::PeerObject(client_, request, reply, version)};
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     const OTPeerRequest request,
-    const VersionNumber version,
-    const opentxs::PasswordPrompt& reason) const
+    const VersionNumber version) const
 {
     return std::unique_ptr<opentxs::PeerObject>{
-        opentxs::Factory::PeerObject(client_, request, version, reason)};
+        opentxs::Factory::PeerObject(client_, request, version)};
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
     const Nym_p& signerNym,
-    const proto::PeerObject& serialized,
-    const opentxs::PasswordPrompt& reason) const
+    const proto::PeerObject& serialized) const
 {
     return std::unique_ptr<opentxs::PeerObject>{opentxs::Factory::PeerObject(
-        client_.Contacts(), client_, signerNym, serialized, reason)};
+        client_.Contacts(), client_, signerNym, serialized)};
 }
 
 std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(

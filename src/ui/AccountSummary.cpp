@@ -169,7 +169,6 @@ AccountSummarySortKey AccountSummary::extract_key(
     const identifier::Nym& nymID,
     const identifier::Nym& issuerID) noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt(__FUNCTION__);
     AccountSummarySortKey output{false, "opentxs notary"};
     auto& [state, name] = output;
 
@@ -177,12 +176,12 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (false == bool(issuer)) { return output; }
 
-    const auto serverID = issuer->PrimaryServer(reason);
+    const auto serverID = issuer->PrimaryServer();
 
     if (serverID->empty()) { return output; }
 
     try {
-        const auto server = api_.Wallet().Server(serverID, reason);
+        const auto server = api_.Wallet().Server(serverID);
         name = server->Alias();
         const auto& serverNymID = server->Nym()->ID();
         eLock lock(shared_lock_);

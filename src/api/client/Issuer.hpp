@@ -12,8 +12,7 @@ namespace opentxs::api::client::implementation
 class Issuer final : virtual public opentxs::api::client::Issuer, Lockable
 {
 public:
-    std::string toString(const PasswordPrompt& reason) const final;
-    //  operator std::string() const final;
+    std::string toString() const final;
 
     std::set<OTIdentifier> AccountList(
         const proto::ContactItemType type,
@@ -34,7 +33,7 @@ public:
     const identifier::Nym& LocalNymID() const final { return nym_id_; }
     bool Paired() const final;
     const std::string& PairingCode() const final;
-    OTServerID PrimaryServer(const PasswordPrompt& reason) const final;
+    OTServerID PrimaryServer() const final;
     std::set<proto::PeerRequestType> RequestTypes() const final;
     proto::Issuer Serialize() const final;
     bool StoreSecretComplete() const final;

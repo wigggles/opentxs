@@ -39,6 +39,8 @@
 
 namespace opentxs
 {
+using ReturnType = blind::implementation::Purse;
+
 blind::Purse* Factory::Purse(
     const api::internal::Core& api,
     const opentxs::ServerContext& context,
@@ -68,18 +70,41 @@ blind::Purse* Factory::Purse(
     const Amount totalValue,
     const opentxs::PasswordPrompt& reason)
 {
-    auto* output =
-        new blind::implementation::Purse(api, nym.ID(), server, type, mint);
+    auto pEnvelope = std::make_unique<OTEnvelope>(api.Factory().Envelope());
+
+    OT_ASSERT(pEnvelope);
+
+    auto& envelope = pEnvelope->get();
+    auto pSecondaryPassword = std::make_unique<OTPassword>();
+
+    OT_ASSERT(pSecondaryPassword);
+
+    auto& secondaryPassword = *pSecondaryPassword;
+    secondaryPassword.randomizeMemory(32);
+    auto password = api.Factory().PasswordPrompt(reason);
+    password->SetPassword(secondaryPassword);
+    auto pSecondaryKey =
+        std::make_unique<OTSymmetricKey>(api.Symmetric().Key(password));
+
+    OT_ASSERT(pSecondaryKey);
+
+    auto locked = envelope.Seal(nym, secondaryPassword.Bytes(), reason);
+
+    if (false == locked) { return nullptr; }
+
+    auto output = std::make_unique<ReturnType>(
+        api,
+        nym.ID(),
+        server,
+        type,
+        mint,
+        std::move(pSecondaryPassword),
+        std::move(pSecondaryKey),
+        std::move(pEnvelope));
 
     if (nullptr == output) { return nullptr; }
 
     auto& purse = *output;
-    auto locked = nym.Lock(
-        purse.secondary_key_password_,
-        purse.secondary_->get(),
-        *purse.secondary_password_);
-
-    if (false == locked) { return nullptr; }
 
     locked = purse.AddNym(serverNym, reason);
     locked = purse.AddNym(nym, reason);
@@ -91,7 +116,7 @@ blind::Purse* Factory::Purse(
 
     if (false == generated) { return nullptr; }
 
-    return output;
+    return output.release();
 }
 
 blind::Purse* Factory::Purse(
@@ -160,9 +185,10 @@ Purse::Purse(
     const Time validTo,
     const std::vector<OTToken>& tokens,
     const std::shared_ptr<OTSymmetricKey> primary,
-    const std::vector<proto::SessionKey>& primaryPasswords,
-    const std::shared_ptr<OTSymmetricKey> secondary,
-    const std::shared_ptr<proto::Ciphertext> secondaryPassword)
+    const std::vector<proto::Envelope>& primaryPasswords,
+    const std::shared_ptr<const OTSymmetricKey> secondaryKey,
+    const std::shared_ptr<const OTEnvelope> secondaryEncrypted,
+    const std::shared_ptr<const OTPassword> secondaryKeyPassword)
     : blind::Purse()
     , api_(api)
     , version_(version)
@@ -178,9 +204,11 @@ Purse::Purse(
     , primary_key_password_()
     , primary_(primary)
     , primary_passwords_(primaryPasswords)
-    , secondary_key_password_()
-    , secondary_(secondary)
-    , secondary_password_(secondaryPassword)
+    , secondary_key_password_(
+          secondaryKeyPassword ? OTPassword{*secondaryKeyPassword}
+                               : OTPassword{})
+    , secondary_(std::move(secondaryKey))
+    , secondary_password_(std::move(secondaryEncrypted))
 {
 }
 
@@ -199,7 +227,8 @@ Purse::Purse(const Purse& rhs)
           rhs.primary_,
           rhs.primary_passwords_,
           rhs.secondary_,
-          rhs.secondary_password_)
+          rhs.secondary_password_,
+          nullptr)
 {
 }
 
@@ -208,7 +237,10 @@ Purse::Purse(
     const identifier::Nym& owner,
     const identifier::Server& server,
     const proto::CashType type,
-    const Mint& mint)
+    const Mint& mint,
+    std::unique_ptr<OTPassword> secondaryKeyPassword,
+    std::unique_ptr<const OTSymmetricKey> secondaryKey,
+    std::unique_ptr<const OTEnvelope> secondaryEncrypted)
     : Purse(
           api,
           OT_PURSE_VERSION,
@@ -222,13 +254,12 @@ Purse::Purse(
           {},
           nullptr,
           {},
-          nullptr,
-          std::make_shared<proto::Ciphertext>())
+          std::move(secondaryKey),
+          std::move(secondaryEncrypted),
+          std::move(secondaryKeyPassword))
 {
     auto primary = generate_key(primary_key_password_);
-    auto secondary = generate_key(secondary_key_password_);
     primary_.reset(new OTSymmetricKey(std::move(primary)));
-    secondary_.reset(new OTSymmetricKey(std::move(secondary)));
     unlocked_ = true;
 
     OT_ASSERT(primary_);
@@ -255,6 +286,7 @@ Purse::Purse(
           nullptr,
           {},
           nullptr,
+          nullptr,
           nullptr)
 {
     auto primary = generate_key(primary_key_password_);
@@ -278,7 +310,8 @@ Purse::Purse(const api::internal::Core& api, const proto::Purse& in)
           {},
           nullptr,
           get_passwords(in),
-          nullptr,
+          deserialize_secondary_key(api, in),
+          deserialize_secondary_password(api, in),
           nullptr)
 {
     auto primary =
@@ -288,30 +321,7 @@ Purse::Purse(const api::internal::Core& api, const proto::Purse& in)
     OT_ASSERT(primary_);
 
     for (const auto& serialized : in.token()) {
-        tokens_.emplace_back(Factory::Token(api_, *this, serialized));
-    }
-
-    switch (state_) {
-        case proto::PURSETYPE_REQUEST:
-        case proto::PURSETYPE_ISSUE: {
-            auto secondary = api.Symmetric().Key(
-                in.secondarykey(), proto::SMODE_CHACHA20POLY1305);
-            secondary_.reset(new OTSymmetricKey(std::move(secondary)));
-
-            OT_ASSERT(secondary_);
-
-            secondary_password_ =
-                std::make_shared<proto::Ciphertext>(in.secondarypassword());
-
-            OT_ASSERT(secondary_password_);
-        } break;
-        case proto::PURSETYPE_NORMAL: {
-        } break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse state").Flush();
-
-            throw std::runtime_error("invalid purse state");
-        }
+        tokens_.emplace_back(Factory::Token(api_, *this, serialized).release());
     }
 }
 
@@ -330,7 +340,8 @@ Purse::Purse(const api::internal::Core& api, const Purse& owner)
           nullptr,
           {},
           owner.secondary_,
-          owner.secondary_password_)
+          owner.secondary_password_,
+          nullptr)
 {
     auto primary = generate_key(primary_key_password_);
     primary_.reset(new OTSymmetricKey(std::move(primary)));
@@ -356,10 +367,11 @@ bool Purse::AddNym(const identity::Nym& nym, const PasswordPrompt& reason)
         return false;
     }
 
-    const auto sealed =
-        nym.Seal(primary_key_password_, primary_->get(), sessionKey, reason);
+    auto envelope = api_.Factory().Envelope();
 
-    if (false == sealed) {
+    if (envelope->Seal(nym, primary_key_password_.Bytes(), reason)) {
+        sessionKey = envelope->Serialize();
+    } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to add nym").Flush();
         primary_passwords_.pop_back();
 
@@ -373,6 +385,72 @@ void Purse::apply_times(const Token& token)
 {
     latest_valid_from_ = std::max(latest_valid_from_, token.ValidFrom());
     earliest_valid_to_ = std::min(earliest_valid_to_, token.ValidTo());
+}
+
+auto Purse::deserialize_secondary_key(
+    const api::internal::Core& api,
+    const proto::Purse& in) noexcept(false)
+    -> std::unique_ptr<const OTSymmetricKey>
+{
+    switch (in.state()) {
+        case proto::PURSETYPE_REQUEST:
+        case proto::PURSETYPE_ISSUE: {
+            auto output = std::make_unique<OTSymmetricKey>(api.Symmetric().Key(
+                in.secondarykey(), proto::SMODE_CHACHA20POLY1305));
+
+            if (false == bool(output)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Invalid serialized secondary key")
+                    .Flush();
+
+                throw std::runtime_error("Invalid serialized secondary key");
+            }
+
+            return std::move(output);
+        }
+        case proto::PURSETYPE_NORMAL: {
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse state").Flush();
+
+            throw std::runtime_error("invalid purse state");
+        }
+    }
+
+    return {};
+}
+
+auto Purse::deserialize_secondary_password(
+    const api::internal::Core& api,
+    const proto::Purse& in) noexcept(false) -> std::unique_ptr<const OTEnvelope>
+{
+    switch (in.state()) {
+        case proto::PURSETYPE_REQUEST:
+        case proto::PURSETYPE_ISSUE: {
+            auto output = std::make_unique<OTEnvelope>(
+                api.Factory().Envelope(in.secondarypassword()));
+
+            if (false == bool(output)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Invalid serialized secondary password")
+                    .Flush();
+
+                throw std::runtime_error(
+                    "Invalid serialized secondary password");
+            }
+
+            return std::move(output);
+        }
+        case proto::PURSETYPE_NORMAL: {
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse state").Flush();
+
+            throw std::runtime_error("invalid purse state");
+        }
+    }
+
+    return {};
 }
 
 OTSymmetricKey Purse::generate_key(OTPassword& password) const
@@ -396,35 +474,35 @@ bool Purse::GeneratePrototokens(
     Amount tokenAmount{mint.GetLargestDenomination(workingAmount)};
 
     while (tokenAmount > 0) {
-        workingAmount -= tokenAmount;
-        std::shared_ptr<Token> pToken{Factory::Token(
-            api_,
-            owner,
-            mint,
-            tokenAmount,
-            *this,
-            primary_key_password_,
-            secondary_key_password_)};
+        try {
+            workingAmount -= tokenAmount;
+            std::shared_ptr<Token> pToken{
+                Factory::Token(api_, owner, mint, tokenAmount, *this, reason)};
 
-        if (false == bool(pToken)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed to generate prototoken")
-                .Flush();
+            if (false == bool(pToken)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to generate prototoken")
+                    .Flush();
 
-            return {};
+                return {};
+            }
+
+            if (false == Push(pToken, reason)) { return false; }
+
+            tokenAmount = mint.GetLargestDenomination(workingAmount);
+        } catch (const std::exception& e) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(":")(e.what()).Flush();
+
+            return false;
         }
-
-        if (false == Push(pToken, reason)) { return false; }
-
-        tokenAmount = mint.GetLargestDenomination(workingAmount);
     }
 
     return total_value_ == amount;
 }
 
-std::vector<proto::SessionKey> Purse::get_passwords(const proto::Purse& in)
+std::vector<proto::Envelope> Purse::get_passwords(const proto::Purse& in)
 {
-    std::vector<proto::SessionKey> output;
+    auto output = std::vector<proto::Envelope>{};
 
     for (const auto& password : in.primarypassword()) {
         output.emplace_back(password);
@@ -433,7 +511,7 @@ std::vector<proto::SessionKey> Purse::get_passwords(const proto::Purse& in)
     return output;
 }
 
-crypto::key::Symmetric& Purse::PrimaryKey()
+crypto::key::Symmetric& Purse::PrimaryKey(PasswordPrompt& password)
 {
     if (false == bool(primary_)) { throw std::out_of_range("No primary key"); }
 
@@ -442,6 +520,8 @@ crypto::key::Symmetric& Purse::PrimaryKey()
     }
 
     if (false == unlocked_) { throw std::out_of_range("Purse is locked"); }
+
+    password.SetPassword(primary_key_password_);
 
     return primary_->get();
 }
@@ -491,8 +571,9 @@ bool Purse::Process(
 
     if (processed) {
         state_ = proto::PURSETYPE_NORMAL;
-        secondary_password_.reset();
-        secondary_.reset();
+        const_cast<std::shared_ptr<const OTEnvelope>&>(secondary_password_)
+            .reset();
+        const_cast<std::shared_ptr<const OTSymmetricKey>&>(secondary_).reset();
         secondary_key_password_ = OTPassword{};
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to process token").Flush();
@@ -502,10 +583,10 @@ bool Purse::Process(
 }
 
 bool Purse::Push(
-    std::shared_ptr<Token> pToken,
+    std::shared_ptr<Token> original,
     const opentxs::PasswordPrompt& reason)
 {
-    if (false == bool(pToken)) {
+    if (false == bool(original)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid token").Flush();
 
         return false;
@@ -523,7 +604,17 @@ bool Purse::Push(
         return false;
     }
 
-    auto& token = *pToken;
+    auto copy = Factory::Token(*original, *this);
+
+    OT_ASSERT(copy);
+
+    auto& token = *copy;
+
+    if (false == token.ChangeOwner(original->Owner(), *this, reason)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to encrypt token").Flush();
+
+        return false;
+    }
 
     switch (token.State()) {
         case proto::TOKENSTATE_BLINDED:
@@ -536,13 +627,7 @@ bool Purse::Push(
         }
     }
 
-    if (false == token.ChangeOwner(primary_->get(), reason)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to encrypt token").Flush();
-
-        return false;
-    }
-
-    tokens_.emplace(tokens_.begin(), token);
+    tokens_.emplace(tokens_.begin(), copy.release());
 
     return true;
 }
@@ -556,7 +641,9 @@ void Purse::recalculate_times()
     for (const auto& token : tokens_) { apply_times(token); }
 }
 
-crypto::key::Symmetric& Purse::SecondaryKey(const identity::Nym& owner)
+auto Purse::SecondaryKey(
+    const identity::Nym& owner,
+    PasswordPrompt& passwordOut) -> const crypto::key::Symmetric&
 {
     if (false == bool(secondary_)) {
         throw std::out_of_range("No secondary key");
@@ -566,12 +653,25 @@ crypto::key::Symmetric& Purse::SecondaryKey(const identity::Nym& owner)
         throw std::out_of_range("No secondary key password");
     }
 
-    const auto unlocked = owner.Unlock(
-        *secondary_password_, *secondary_, secondary_key_password_);
+    auto& secondaryKey = secondary_->get();
+    const auto& envelope = secondary_password_->get();
+    const auto decrypted = envelope.Open(
+        owner,
+        secondary_key_password_.WriteInto(OTPassword::Mode::Mem),
+        passwordOut);
 
-    if (false == unlocked) { throw std::out_of_range("Failed to unlock key"); }
+    if (false == decrypted) {
+        throw std::out_of_range("Failed to decrypt key password");
+    }
 
-    return secondary_->get();
+    passwordOut.SetPassword(secondary_key_password_);
+    const auto unlocked = secondaryKey.Unlock(passwordOut);
+
+    if (false == unlocked) {
+        throw std::out_of_range("Failed to unlock key password");
+    }
+
+    return secondaryKey;
 }
 
 proto::Purse Purse::Serialize() const
@@ -617,7 +717,8 @@ proto::Purse Purse::Serialize() const
                 throw std::runtime_error("missing secondary password");
             }
 
-            *output.mutable_secondarypassword() = *secondary_password_;
+            *output.mutable_secondarypassword() =
+                secondary_password_->get().Serialize();
         } break;
         case proto::PURSETYPE_NORMAL: {
         } break;
@@ -645,14 +746,34 @@ bool Purse::Unlock(
         return false;
     }
 
+    const auto primary = *primary_;
     OTPassword password{};
 
     for (const auto& sessionKey : primary_passwords_) {
-        unlocked_ = nym.Open(sessionKey, primary_->get(), password, reason);
+        try {
+            const auto envelope = api_.Factory().Envelope(sessionKey);
+            const auto opened = envelope->Open(
+                nym, password.WriteInto(OTPassword::Mode::Mem), reason);
 
-        if (unlocked_) {
-            primary_key_password_ = password;
-            break;
+            if (opened) {
+                auto unlocker =
+                    api_.Factory().PasswordPrompt(reason.GetDisplayString());
+                unlocker->SetPassword(password);
+                unlocked_ = primary->Unlock(unlocker);
+
+                if (unlocked_) {
+                    primary_key_password_ = password;
+                    break;
+                } else {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Decrypted password does not unlock the primary key")
+                        .Flush();
+                }
+            }
+        } catch (...) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid session key").Flush();
+
+            continue;
         }
     }
 

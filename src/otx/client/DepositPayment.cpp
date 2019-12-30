@@ -38,7 +38,6 @@ DepositPayment::DepositPayment(
 
 bool DepositPayment::deposit()
 {
-    auto reason = parent_.api().Factory().PasswordPrompt(__FUNCTION__);
     bool error{false};
     bool repeat{true};
     auto& [unitID, accountID, pPayment] = payment_;
@@ -60,7 +59,7 @@ bool DepositPayment::deposit()
             }
         } break;
         case Depositability::NO_ACCOUNT: {
-            accountID = get_account_id(reason, unitID);
+            accountID = get_account_id(unitID);
 
             if (accountID->empty()) {
                 error = true;
@@ -125,7 +124,6 @@ exit:
 }
 
 OTIdentifier DepositPayment::get_account_id(
-    const PasswordPrompt& reason,
     const identifier::UnitDefinition& unit)
 {
     Lock lock(payment_tasks_.GetAccountLock(unit));
@@ -142,7 +140,7 @@ OTIdentifier DepositPayment::get_account_id(
     if (1 == accounts.size()) { return *accounts.begin(); }
 
     try {
-        parent_.api().Wallet().UnitDefinition(unit, reason);
+        parent_.api().Wallet().UnitDefinition(unit);
     } catch (...) {
         LogTrace(OT_METHOD)(__FUNCTION__)(": Downloading unit definition")
             .Flush();

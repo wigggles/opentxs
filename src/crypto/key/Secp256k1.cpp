@@ -33,11 +33,18 @@ namespace opentxs
 crypto::key::Secp256k1* Factory::Secp256k1Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& input,
-    const opentxs::PasswordPrompt& reason)
+    const proto::AsymmetricKey& input)
 {
-    return new crypto::key::implementation::Secp256k1(
-        api, ecdsa, input, reason);
+    try {
+
+        return new crypto::key::implementation::Secp256k1(api, ecdsa, input);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(
+            ": Failed to generate key: ")(e.what())
+            .Flush();
+
+        return nullptr;
+    }
 }
 
 crypto::key::Secp256k1* Factory::Secp256k1Key(
@@ -96,9 +103,8 @@ namespace opentxs::crypto::key::implementation
 Secp256k1::Secp256k1(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
-    const proto::AsymmetricKey& serializedKey,
-    const opentxs::PasswordPrompt& reason) noexcept
-    : ot_super(api, ecdsa, serializedKey, reason)
+    const proto::AsymmetricKey& serializedKey) noexcept(false)
+    : ot_super(api, ecdsa, serializedKey)
 {
 }
 
@@ -124,7 +130,7 @@ Secp256k1::Secp256k1(
     const proto::KeyRole role,
     const VersionNumber version,
     key::Symmetric& sessionKey,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const opentxs::PasswordPrompt& reason) noexcept(false)
     : ot_super(
           api,
           ecdsa,

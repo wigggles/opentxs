@@ -117,7 +117,7 @@ auto Reply::FinalizeContract(Reply& contract, const PasswordPrompt& reason)
 
     if (!contract.update_signature(lock, reason)) { return false; }
 
-    return contract.validate(lock, reason);
+    return contract.validate(lock);
 }
 
 auto Reply::Finish(Reply& contract, const PasswordPrompt& reason) -> bool
@@ -236,13 +236,12 @@ auto Reply::update_signature(const Lock& lock, const PasswordPrompt& reason)
     return success;
 }
 
-auto Reply::validate(const Lock& lock, const PasswordPrompt& reason) const
-    -> bool
+auto Reply::validate(const Lock& lock) const -> bool
 {
     bool validNym = false;
 
     if (nym_) {
-        validNym = nym_->VerifyPseudonym(reason);
+        validNym = nym_->VerifyPseudonym();
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing nym.").Flush();
 
@@ -272,7 +271,7 @@ auto Reply::validate(const Lock& lock, const PasswordPrompt& reason) const
     bool validSig = false;
     auto& signature = *signatures_.cbegin();
 
-    if (signature) { validSig = verify_signature(lock, *signature, reason); }
+    if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (!validSig) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature.").Flush();
@@ -283,15 +282,14 @@ auto Reply::validate(const Lock& lock, const PasswordPrompt& reason) const
 
 auto Reply::verify_signature(
     const Lock& lock,
-    const proto::Signature& signature,
-    const PasswordPrompt& reason) const -> bool
+    const proto::Signature& signature) const -> bool
 {
-    if (!Signable::verify_signature(lock, signature, reason)) { return false; }
+    if (!Signable::verify_signature(lock, signature)) { return false; }
 
     auto serialized = SigVersion(lock);
     auto& sigProto = *serialized.mutable_signature();
     sigProto.CopyFrom(signature);
 
-    return nym_->Verify(serialized, sigProto, reason);
+    return nym_->Verify(serialized, sigProto);
 }
 }  // namespace opentxs::contract::peer::implementation

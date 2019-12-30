@@ -67,9 +67,7 @@ public:
         const std::int64_t nDenom10,
         const std::size_t keySize,
         const PasswordPrompt& reason) = 0;
-    OPENTXS_EXPORT virtual bool LoadMint(
-        const PasswordPrompt& reason,
-        const char* szAppend = nullptr) = 0;
+    OPENTXS_EXPORT virtual bool LoadMint(const char* szAppend = nullptr) = 0;
     OPENTXS_EXPORT virtual void Release_Mint() = 0;
     OPENTXS_EXPORT virtual void ReleaseDenominations() = 0;
     OPENTXS_EXPORT virtual bool SaveMint(const char* szAppend = nullptr) = 0;
@@ -81,8 +79,7 @@ public:
         blind::Token& token,
         const PasswordPrompt& reason) = 0;
     OPENTXS_EXPORT virtual bool VerifyMint(
-        const identity::Nym& theOperator,
-        const PasswordPrompt& reason) = 0;
+        const identity::Nym& theOperator) = 0;
     OPENTXS_EXPORT virtual bool VerifyToken(
         const identity::Nym& notary,
         const blind::Token& token,

@@ -8,6 +8,7 @@
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/crypto/key/HD.hpp"
 
 #include "internal/api/client/Client.hpp"
@@ -45,8 +46,7 @@ BalanceNode::Element::Element(
     const Bip32Index index,
     const std::string label,
     const OTIdentifier contact,
-    std::unique_ptr<opentxs::crypto::key::EllipticCurve> key,
-    const opentxs::PasswordPrompt& reason) noexcept(false)
+    std::unique_ptr<opentxs::crypto::key::EllipticCurve> key) noexcept(false)
     : parent_(parent)
     , api_(api)
     , chain_(chain)
@@ -56,7 +56,7 @@ BalanceNode::Element::Element(
     , index_(index)
     , label_(label)
     , contact_(contact)
-    , pkey_(key->asPublic(reason))
+    , pkey_(key->asPublicEC())
     , key_(*pkey_)
 {
     if (false == bool(key_)) { throw std::runtime_error("No key provided"); }
@@ -68,8 +68,7 @@ BalanceNode::Element::Element(
     const opentxs::blockchain::Type chain,
     const Subchain subchain,
     const Bip32Index index,
-    std::unique_ptr<opentxs::crypto::key::HD> key,
-    const opentxs::PasswordPrompt& reason) noexcept(false)
+    std::unique_ptr<opentxs::crypto::key::HD> key) noexcept(false)
     : Element(
           parent,
           api,
@@ -79,8 +78,7 @@ BalanceNode::Element::Element(
           index,
           "",
           Identifier::Factory(),
-          std::move(key),
-          reason)
+          std::move(key))
 {
 }
 
@@ -89,8 +87,7 @@ BalanceNode::Element::Element(
     const client::internal::Blockchain& api,
     const opentxs::blockchain::Type chain,
     const Subchain subchain,
-    const SerializedType& address,
-    const opentxs::PasswordPrompt& reason) noexcept(false)
+    const SerializedType& address) noexcept(false)
     : Element(
           parent,
           api,
@@ -100,16 +97,15 @@ BalanceNode::Element::Element(
           address.index(),
           address.label(),
           Identifier::Factory(address.contact()),
-          instantiate(api.API(), address.key(), reason),
-          reason)
+          instantiate(api.API(), address.key()))
 {
 }
 
-std::string BalanceNode::Element::Address(
-    const AddressStyle format,
-    const PasswordPrompt& reason) const noexcept
+std::string BalanceNode::Element::Address(const AddressStyle format) const
+    noexcept
 {
-    return api_.CalculateAddress(chain_, format, key_.PublicKey(reason));
+    return api_.CalculateAddress(
+        chain_, format, api_.API().Factory().Data(key_.PublicKey()));
 }
 
 OTIdentifier BalanceNode::Element::Contact() const noexcept
@@ -123,8 +119,7 @@ std::set<OTData> BalanceNode::Element::Elements() const noexcept
 {
     auto output = std::set<OTData>{};
     Lock lock(lock_);
-    auto pubkey = Data::Factory();
-    key_.GetKey(pubkey);
+    auto pubkey = api_.API().Factory().Data(key_.PublicKey());
 
     try {
         output.emplace(api_.PubkeyHash(chain_, pubkey));
@@ -145,10 +140,9 @@ std::set<std::string> BalanceNode::Element::IncomingTransactions() const
 std::unique_ptr<opentxs::crypto::key::EllipticCurve> BalanceNode::Element::
     instantiate(
         const api::internal::Core& api,
-        const proto::AsymmetricKey& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept(false)
+        const proto::AsymmetricKey& serialized) noexcept(false)
 {
-    auto output = api.Asymmetric().InstantiateECKey(serialized, reason);
+    auto output = api.Asymmetric().InstantiateECKey(serialized);
 
     if (false == bool(output)) {
         throw std::runtime_error("Failed to construct key");
@@ -156,7 +150,7 @@ std::unique_ptr<opentxs::crypto::key::EllipticCurve> BalanceNode::Element::
 
     if (false == bool(*output)) { throw std::runtime_error("Wrong key type"); }
 
-    return output->asPublic(reason);
+    return output->asPublicEC();
 }
 
 ECKey BalanceNode::Element::Key() const noexcept
@@ -173,10 +167,9 @@ std::string BalanceNode::Element::Label() const noexcept
     return label_;
 }
 
-OTData BalanceNode::Element::PubkeyHash(const PasswordPrompt& reason) const
-    noexcept
+OTData BalanceNode::Element::PubkeyHash() const noexcept
 {
-    const auto key = key_.PublicKey(reason);
+    const auto key = api_.API().Factory().Data(key_.PublicKey());
 
     return api_.PubkeyHash(chain_, key);
 }

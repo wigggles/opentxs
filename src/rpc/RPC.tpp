@@ -57,7 +57,6 @@ void RPC::evaluate_transaction_reply(
     const api::client::internal::Manager& client,
     const Message& reply,
     T& output,
-    const PasswordPrompt& reason,
     const proto::RPCResponseCode code) const
 {
     bool success{true};
@@ -74,7 +73,7 @@ void RPC::evaluate_transaction_reply(
             sLedger->Exists()) {
             if (auto ledger{
                     client.Factory().Ledger(nymID, accountID, notaryID)};
-                ledger->LoadContractFromString(sLedger, reason)) {
+                ledger->LoadContractFromString(sLedger)) {
                 if (ledger->GetTransactionCount() > 0) {
                     for (const auto& [key, value] :
                          ledger->GetTransactionMap()) {

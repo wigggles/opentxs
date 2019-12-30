@@ -385,7 +385,7 @@ bool Identifier::CalculateDigest(const String& strInput, const ID type)
     type_ = type;
 
     return Context().Crypto().Hash().Digest(
-        IDToHashType(type_), strInput, *this);
+        IDToHashType(type_), strInput.Bytes(), WriteInto());
 }
 
 bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
@@ -393,7 +393,7 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
     type_ = type;
 
     return Context().Crypto().Hash().Digest(
-        IDToHashType(type_), dataInput, *this);
+        IDToHashType(type_), dataInput.Bytes(), WriteInto());
 }
 
 Identifier* Identifier::clone() const

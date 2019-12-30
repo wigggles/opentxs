@@ -111,33 +111,23 @@ Contacts::ContactNameMap Contacts::build_name_map(
 
 void Contacts::check_identifiers(
     const Identifier& inputNymID,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     const PaymentCode& paymentCode,
-#endif
     bool& haveNymID,
     bool& havePaymentCode,
     identifier::Nym& outputNymID) const
 {
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    if (paymentCode.VerifyInternally()) { havePaymentCode = true; }
-#else
-    havePaymentCode = false;
-#endif
+    if (paymentCode.Valid()) { havePaymentCode = true; }
 
     if (false == inputNymID.empty()) {
         haveNymID = true;
         outputNymID.Assign(inputNymID);
-    }
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    else if (havePaymentCode) {
+    } else if (havePaymentCode) {
         haveNymID = true;
         outputNymID.Assign(paymentCode.ID());
     }
-#endif
 }
 
 std::shared_ptr<const opentxs::Contact> Contacts::contact(
-    const PasswordPrompt& reason,
     const rLock& lock,
     const Identifier& id) const
 {
@@ -145,7 +135,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::contact(
         throw std::runtime_error("lock error");
     }
 
-    const auto it = obtain_contact(reason, lock, id);
+    const auto it = obtain_contact(lock, id);
 
     if (contact_map_.end() != it) { return it->second.second; }
 
@@ -191,12 +181,11 @@ std::shared_ptr<const opentxs::Contact> Contacts::contact(
 }
 
 std::shared_ptr<const opentxs::Contact> Contacts::Contact(
-    const Identifier& id,
-    const PasswordPrompt& reason) const
+    const Identifier& id) const
 {
     rLock lock(lock_);
 
-    return contact(reason, lock, id);
+    return contact(lock, id);
 }
 
 OTIdentifier Contacts::ContactID(const identifier::Nym& nymID) const
@@ -219,7 +208,7 @@ std::string Contacts::ContactName(const Identifier& contactID) const
     return it->second;
 }
 
-void Contacts::import_contacts(const rLock& lock, const PasswordPrompt& reason)
+void Contacts::import_contacts(const rLock& lock)
 {
     auto nyms = api_.Wallet().NymList();
 
@@ -228,7 +217,7 @@ void Contacts::import_contacts(const rLock& lock, const PasswordPrompt& reason)
         const auto contactID = api_.Storage().ContactOwnerNym(nymID->str());
 
         if (contactID.empty()) {
-            const auto nym = api_.Wallet().Nym(nymID, reason);
+            const auto nym = api_.Wallet().Nym(nymID);
 
             if (false == bool(nym)) {
                 throw std::runtime_error("Unable to load nym");
@@ -239,20 +228,8 @@ void Contacts::import_contacts(const rLock& lock, const PasswordPrompt& reason)
                 case proto::CITEMTYPE_ORGANIZATION:
                 case proto::CITEMTYPE_BUSINESS:
                 case proto::CITEMTYPE_GOVERNMENT: {
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto code = api_.Factory().PaymentCode(
-                        nym->PaymentCode(reason), reason);
-#endif
-                    new_contact(
-                        lock,
-                        reason,
-                        nym->Alias(),
-                        nymID
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                        ,
-                        code
-#endif
-                    );
+                    auto code = api_.Factory().PaymentCode(nym->PaymentCode());
+                    new_contact(lock, nym->Alias(), nymID, code);
                 } break;
                 case proto::CITEMTYPE_ERROR:
                 case proto::CITEMTYPE_SERVER:
@@ -263,13 +240,13 @@ void Contacts::import_contacts(const rLock& lock, const PasswordPrompt& reason)
     }
 }
 
-void Contacts::init_nym_map(const PasswordPrompt& reason, const rLock& lock)
+void Contacts::init_nym_map(const rLock& lock)
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Upgrading indices.").Flush();
 
     for (const auto& it : api_.Storage().ContactList()) {
         const auto& contactID = Identifier::Factory(it.first);
-        auto loaded = load_contact(reason, lock, contactID);
+        auto loaded = load_contact(lock, contactID);
 
         if (contact_map_.end() == loaded) {
 
@@ -294,16 +271,13 @@ void Contacts::init_nym_map(const PasswordPrompt& reason, const rLock& lock)
 
         const auto nyms = contact->Nyms();
 
-        for (const auto& nym : nyms) {
-            update_nym_map(reason, lock, nym, *contact);
-        }
+        for (const auto& nym : nyms) { update_nym_map(lock, nym, *contact); }
     }
 
     api_.Storage().ContactSaveIndices();
 }
 
 Contacts::ContactMap::iterator Contacts::load_contact(
-    const PasswordPrompt& reason,
     const rLock& lock,
     const Identifier& id) const
 {
@@ -324,7 +298,7 @@ Contacts::ContactMap::iterator Contacts::load_contact(
     OT_ASSERT(serialized);
 
     std::unique_ptr<opentxs::Contact> contact(
-        new opentxs::Contact(reason, api_, *serialized));
+        new opentxs::Contact(api_, *serialized));
 
     if (false == bool(contact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -339,11 +313,10 @@ Contacts::ContactMap::iterator Contacts::load_contact(
 
 std::shared_ptr<const opentxs::Contact> Contacts::Merge(
     const Identifier& parent,
-    const Identifier& child,
-    const PasswordPrompt& reason) const
+    const Identifier& child) const
 {
     rLock lock(lock_);
-    auto childContact = contact(reason, lock, child);
+    auto childContact = contact(lock, child);
 
     if (false == bool(childContact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Child contact ")(child)(
@@ -363,7 +336,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::Merge(
         return {};
     }
 
-    auto parentContact = contact(reason, lock, parent);
+    auto parentContact = contact(lock, parent);
 
     if (false == bool(parentContact)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Parent contact ")(parent)(
@@ -416,7 +389,6 @@ std::shared_ptr<const opentxs::Contact> Contacts::Merge(
 }
 
 std::unique_ptr<Editor<opentxs::Contact>> Contacts::mutable_contact(
-    const PasswordPrompt& reason,
     const rLock& lock,
     const Identifier& id) const
 {
@@ -428,12 +400,12 @@ std::unique_ptr<Editor<opentxs::Contact>> Contacts::mutable_contact(
 
     auto it = contact_map_.find(id);
 
-    if (contact_map_.end() == it) { it = load_contact(reason, lock, id); }
+    if (contact_map_.end() == it) { it = load_contact(lock, id); }
 
     if (contact_map_.end() == it) { return {}; }
 
     std::function<void(opentxs::Contact*)> callback =
-        [&](opentxs::Contact* in) -> void { this->save(reason, in); };
+        [&](opentxs::Contact* in) -> void { this->save(in); };
     output.reset(
         new Editor<opentxs::Contact>(it->second.second.get(), callback));
 
@@ -441,11 +413,10 @@ std::unique_ptr<Editor<opentxs::Contact>> Contacts::mutable_contact(
 }
 
 std::unique_ptr<Editor<opentxs::Contact>> Contacts::mutable_Contact(
-    const Identifier& id,
-    const PasswordPrompt& reason) const
+    const Identifier& id) const
 {
     rLock lock(lock_);
-    auto output = mutable_contact(reason, lock, id);
+    auto output = mutable_contact(lock, id);
     lock.unlock();
 
     return output;
@@ -453,14 +424,9 @@ std::unique_ptr<Editor<opentxs::Contact>> Contacts::mutable_Contact(
 
 std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
     const rLock& lock,
-    const PasswordPrompt& reason,
     const std::string& label,
-    const identifier::Nym& nymID
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    ,
-    const PaymentCode& code
-#endif
-) const
+    const identifier::Nym& nymID,
+    const PaymentCode& code) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -469,14 +435,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
     bool haveNymID{false};
     bool havePaymentCode{false};
     auto inputNymID = identifier::Nym::Factory();
-    check_identifiers(
-        nymID,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        code,
-#endif
-        haveNymID,
-        havePaymentCode,
-        inputNymID);
+    check_identifiers(nymID, code, haveNymID, havePaymentCode, inputNymID);
 
     if (haveNymID) {
         const auto contactID =
@@ -485,13 +444,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
         if (false == contactID.empty()) {
 
             return update_existing_contact(
-                reason,
-                lock,
-                label,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                code,
-#endif
-                Identifier::Factory(contactID));
+                lock, label, code, Identifier::Factory(contactID));
         }
     }
 
@@ -501,14 +454,14 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
 
     OTIdentifier contactID = newContact->ID();
     newContact.reset();
-    auto output = mutable_contact(reason, lock, contactID);
+    auto output = mutable_contact(lock, contactID);
 
     if (false == bool(output)) { return {}; }
 
     auto& mContact = output->get();
 
     if (false == inputNymID->empty()) {
-        auto nym = api_.Wallet().Nym(inputNymID, reason);
+        auto nym = api_.Wallet().Nym(inputNymID);
 
         if (nym) {
             mContact.AddNym(nym, true);
@@ -516,16 +469,14 @@ std::shared_ptr<const opentxs::Contact> Contacts::new_contact(
             mContact.AddNym(inputNymID, true);
         }
 
-        update_nym_map(reason, lock, inputNymID, mContact, true);
+        update_nym_map(lock, inputNymID, mContact, true);
     }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    if (code.VerifyInternally()) { mContact.AddPaymentCode(code, true); }
-#endif
+    if (code.Valid()) { mContact.AddPaymentCode(code, true); }
 
     output.reset();
 
-    return contact(reason, lock, contactID);
+    return contact(lock, contactID);
 }
 
 std::shared_ptr<const opentxs::Contact> Contacts::NewContact(
@@ -538,42 +489,25 @@ std::shared_ptr<const opentxs::Contact> Contacts::NewContact(
 
 std::shared_ptr<const opentxs::Contact> Contacts::NewContact(
     const std::string& label,
-    const identifier::Nym& nymID
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    ,
-    const PaymentCode& paymentCode
-#endif
-    ,
-    const PasswordPrompt& reason) const
+    const identifier::Nym& nymID,
+    const PaymentCode& paymentCode) const
 {
     rLock lock(lock_);
 
-    return new_contact(
-        lock,
-        reason,
-        label,
-        nymID
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        ,
-        paymentCode
-#endif
-    );
+    return new_contact(lock, label, nymID, paymentCode);
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 std::shared_ptr<const opentxs::Contact> Contacts::NewContactFromAddress(
     const std::string& address,
     const std::string& label,
-    const PasswordPrompt& reason,
     const proto::ContactItemType currency) const
 {
     rLock lock(lock_);
 
     const auto existingID = address_to_contact(lock, address, currency);
 
-    if (false == existingID->empty()) {
-        return contact(reason, lock, existingID);
-    }
+    if (false == existingID->empty()) { return contact(lock, existingID); }
 
     auto newContact = contact(lock, label);
 
@@ -604,9 +538,7 @@ std::shared_ptr<const opentxs::Contact> Contacts::NewContactFromAddress(
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
-OTIdentifier Contacts::NymToContact(
-    const identifier::Nym& nymID,
-    const PasswordPrompt& reason) const
+OTIdentifier Contacts::NymToContact(const identifier::Nym& nymID) const
 {
     const auto contactID = ContactID(nymID);
 
@@ -614,27 +546,15 @@ OTIdentifier Contacts::NymToContact(
 
     // Contact does not yet exist. Create it.
     std::string label{""};
-    auto nym = api_.Wallet().Nym(nymID, reason);
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = api_.Factory().PaymentCode("", reason);
-#endif
+    auto nym = api_.Wallet().Nym(nymID);
+    auto code = api_.Factory().PaymentCode("");
 
     if (nym) {
         label = nym->Claims().Name();
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        code = api_.Factory().PaymentCode(nym->PaymentCode(reason), reason);
-#endif
+        code = api_.Factory().PaymentCode(nym->PaymentCode());
     }
 
-    const auto contact = NewContact(
-        label,
-        nymID
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        ,
-        code
-#endif
-        ,
-        reason);
+    const auto contact = NewContact(label, nymID, code);
 
     if (contact) { return Identifier::Factory(contact->ID()); }
 
@@ -642,7 +562,6 @@ OTIdentifier Contacts::NymToContact(
 }
 
 Contacts::ContactMap::iterator Contacts::obtain_contact(
-    const PasswordPrompt& reason,
     const rLock& lock,
     const Identifier& id) const
 {
@@ -654,13 +573,11 @@ Contacts::ContactMap::iterator Contacts::obtain_contact(
 
     if (contact_map_.end() != it) { return it; }
 
-    return load_contact(reason, lock, id);
+    return load_contact(lock, id);
 }
 
-void Contacts::refresh_indices(
-    const PasswordPrompt& reason,
-    const rLock& lock,
-    opentxs::Contact& contact) const
+void Contacts::refresh_indices(const rLock& lock, opentxs::Contact& contact)
+    const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -669,7 +586,7 @@ void Contacts::refresh_indices(
     const auto nyms = contact.Nyms();
 
     for (const auto& nymid : nyms) {
-        update_nym_map(reason, lock, nymid, contact, true);
+        update_nym_map(lock, nymid, contact, true);
     }
 
     const auto& id = contact.ID();
@@ -678,8 +595,7 @@ void Contacts::refresh_indices(
     publisher_->Send(rawID);
 }
 
-void Contacts::save(const PasswordPrompt& reason, opentxs::Contact* contact)
-    const
+void Contacts::save(opentxs::Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
 
@@ -704,13 +620,13 @@ void Contacts::save(const PasswordPrompt& reason, opentxs::Contact* contact)
     }
 
     rLock lock(lock_);
-    refresh_indices(reason, lock, *contact);
+    refresh_indices(lock, *contact);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     api_.Blockchain().UpdateTransactions(changed);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }
 
-void Contacts::start(const PasswordPrompt& reason)
+void Contacts::start()
 {
     const auto level = api_.Storage().ContactUpgradeLevel();
 
@@ -718,8 +634,8 @@ void Contacts::start(const PasswordPrompt& reason)
         case 0:
         case 1: {
             rLock lock(lock_);
-            init_nym_map(reason, lock);
-            import_contacts(lock, reason);
+            init_nym_map(lock);
+            import_contacts(lock);
             [[fallthrough]];
         }
         case 2:
@@ -729,10 +645,9 @@ void Contacts::start(const PasswordPrompt& reason)
 }
 
 std::shared_ptr<const opentxs::Contact> Contacts::Update(
-    const proto::Nym& serialized,
-    const PasswordPrompt& reason) const
+    const proto::Nym& serialized) const
 {
-    auto nym = api_.Wallet().Nym(serialized, reason);
+    auto nym = api_.Wallet().Nym(serialized);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym.").Flush();
@@ -765,29 +680,17 @@ std::shared_ptr<const opentxs::Contact> Contacts::Update(
             " is not associated with a contact. Creating a new contact named ")(
             label)
             .Flush();
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        auto code =
-            api_.Factory().PaymentCode(nym->PaymentCode(reason), reason);
-#endif
-        return new_contact(
-            lock,
-            reason,
-            label,
-            nymID
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-            ,
-            code
-#endif
-        );
+        auto code = api_.Factory().PaymentCode(nym->PaymentCode());
+        return new_contact(lock, label, nymID, code);
     }
 
     {
-        auto contact = mutable_contact(reason, lock, contactID);
-        contact->get().Update(serialized, reason);
+        auto contact = mutable_contact(lock, contactID);
+        contact->get().Update(serialized);
         contact.reset();
     }
 
-    auto contact = obtain_contact(reason, lock, contactID);
+    auto contact = obtain_contact(lock, contactID);
 
     OT_ASSERT(contact_map_.end() != contact);
 
@@ -801,19 +704,16 @@ std::shared_ptr<const opentxs::Contact> Contacts::Update(
 }
 
 std::shared_ptr<const opentxs::Contact> Contacts::update_existing_contact(
-    const PasswordPrompt& reason,
     const rLock& lock,
     const std::string& label,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     const PaymentCode& code,
-#endif
     const Identifier& contactID) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
     }
 
-    auto it = obtain_contact(reason, lock, contactID);
+    auto it = obtain_contact(lock, contactID);
 
     OT_ASSERT(contact_map_.end() != it);
 
@@ -829,16 +729,13 @@ std::shared_ptr<const opentxs::Contact> Contacts::update_existing_contact(
         contact->SetLabel(label);
     }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     contact->AddPaymentCode(code, true);
-#endif
-    save(reason, contact.get());
+    save(contact.get());
 
     return contact;
 }
 
 void Contacts::update_nym_map(
-    const PasswordPrompt& reason,
     const rLock& lock,
     const identifier::Nym& nymID,
     opentxs::Contact& contact,
@@ -857,7 +754,7 @@ void Contacts::update_nym_map(
 
     if (exists && (false == same)) {
         if (replace) {
-            auto it = load_contact(reason, lock, contactID);
+            auto it = load_contact(lock, contactID);
 
             if (contact_map_.end() != it) {
 

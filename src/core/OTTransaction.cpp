@@ -437,9 +437,7 @@ void OTTransaction::SetClosingNum(std::int64_t lClosingNum)
 //
 // This overrides from OTTransactionType::VerifyAccount()
 //
-bool OTTransaction::VerifyAccount(
-    const identity::Nym& theNym,
-    const PasswordPrompt& reason)
+bool OTTransaction::VerifyAccount(const identity::Nym& theNym)
 {
     Ledger* pParent = const_cast<Ledger*>(m_pParent);
 
@@ -453,13 +451,13 @@ bool OTTransaction::VerifyAccount(
     // todo security audit:
     else if (
         IsAbbreviated() && (pParent != nullptr) &&
-        !pParent->VerifySignature(theNym, reason)) {
+        !pParent->VerifySignature(theNym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error verifying signature on parent ledger "
             "for abbreviated transaction receipt.")
             .Flush();
         return false;
-    } else if (!IsAbbreviated() && (false == VerifySignature(theNym, reason))) {
+    } else if (!IsAbbreviated() && (false == VerifySignature(theNym))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error verifying signature.")
             .Flush();
         return false;
@@ -571,8 +569,7 @@ bool OTTransaction::HarvestOpeningNumber(
     bool bReplyWasSuccess,        // false until positively asserted.
     bool bReplyWasFailure,        // false until positively asserted.
     bool bTransactionWasSuccess,  // false until positively asserted.
-    bool bTransactionWasFailure,
-    const PasswordPrompt& reason)  // false until positively asserted.
+    bool bTransactionWasFailure)  // false until positively asserted.
 {
     bool bSuccess = false;
 
@@ -943,11 +940,8 @@ bool OTTransaction::HarvestOpeningNumber(
                     class _getRecipientOpeningNum
                     {
                     public:
-                        _getRecipientOpeningNum(
-                            const api::internal::Core& core,
-                            const PasswordPrompt& reason)
+                        _getRecipientOpeningNum(const api::internal::Core& core)
                             : api_(core)
-                            , reason_(reason)
                         {
                         }
                         std::int64_t Run(OTTransaction& theTransaction)
@@ -964,7 +958,7 @@ bool OTTransaction::HarvestOpeningNumber(
 
                                 if (strPaymentPlan->Exists() &&
                                     thePlan->LoadContractFromString(
-                                        strPaymentPlan, reason_))
+                                        strPaymentPlan))
                                     return thePlan->GetRecipientOpeningNum();
                                 else
                                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -984,7 +978,6 @@ bool OTTransaction::HarvestOpeningNumber(
 
                     private:
                         const api::internal::Core& api_;
-                        const PasswordPrompt& reason_;
                     };  // class _getRecipientOpeningNum
 
                     // If the server reply message was unambiguously a FAIL,
@@ -992,8 +985,7 @@ bool OTTransaction::HarvestOpeningNumber(
                     // transaction therefore never even had a chance to run.)
                     //
                     if (bReplyWasFailure && !bHarvestingForRetry) {
-                        _getRecipientOpeningNum getRecipientOpeningNum(
-                            api_, reason);
+                        _getRecipientOpeningNum getRecipientOpeningNum(api_);
                         const std::int64_t lRecipientOpeningNum =
                             getRecipientOpeningNum.Run(*this);
 
@@ -1042,7 +1034,7 @@ bool OTTransaction::HarvestOpeningNumber(
                             // DEFINITELY STILL GOOD.
                             //
                             _getRecipientOpeningNum getRecipientOpeningNum(
-                                api_, reason);
+                                api_);
                             const std::int64_t lRecipientOpeningNum =
                                 getRecipientOpeningNum.Run(*this);
 
@@ -1105,7 +1097,7 @@ bool OTTransaction::HarvestOpeningNumber(
                     // If we failed to load the smart contract...
                     if (!strSmartContract->Exists() ||
                         (false == theSmartContract->LoadContractFromString(
-                                      strSmartContract, reason))) {
+                                      strSmartContract))) {
                         LogOutput(OT_METHOD)(__FUNCTION__)(
                             ": Error: "
                             "Unable to load "
@@ -1176,8 +1168,7 @@ bool OTTransaction::HarvestClosingNumbers(
     bool bReplyWasSuccess,        // false until positively asserted.
     bool bReplyWasFailure,        // false until positively asserted.
     bool bTransactionWasSuccess,  // false until positively asserted.
-    bool bTransactionWasFailure,
-    const PasswordPrompt& reason)  // false until positively asserted.
+    bool bTransactionWasFailure)  // false until positively asserted.
 {
     bool bSuccess = false;
 
@@ -1226,7 +1217,7 @@ bool OTTransaction::HarvestClosingNumbers(
                     // First load the Trade up...
                     const bool bLoadContractFromString =
                         (strTrade->Exists() &&
-                         theTrade->LoadContractFromString(strTrade, reason));
+                         theTrade->LoadContractFromString(strTrade));
 
                     // If failed to load the trade...
                     if (!bLoadContractFromString) {
@@ -1340,8 +1331,7 @@ bool OTTransaction::HarvestClosingNumbers(
                     // First load the payment plan up...
                     const bool bLoadContractFromString =
                         (strPaymentPlan->Exists() &&
-                         thePlan->LoadContractFromString(
-                             strPaymentPlan, reason));
+                         thePlan->LoadContractFromString(strPaymentPlan));
 
                     // If failed to load the payment plan from string...
                     if (!bLoadContractFromString) {
@@ -1453,7 +1443,7 @@ bool OTTransaction::HarvestClosingNumbers(
                     // If we failed to load the smart contract...
                     if (!strSmartContract->Exists() ||
                         (false == theSmartContract->LoadContractFromString(
-                                      strSmartContract, reason))) {
+                                      strSmartContract))) {
                         LogOutput(OT_METHOD)(__FUNCTION__)(
                             ": Error: "
                             "Unable to load "
@@ -1764,7 +1754,7 @@ bool OTTransaction::VerifyBalanceReceipt(
     }
 
     auto strTransaction = String::Factory(strFileContents.c_str());
-    const auto pContents{api_.Factory().Transaction(strTransaction, reason)};
+    const auto pContents{api_.Factory().Transaction(strTransaction)};
 
     if (false == bool(pContents)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1774,7 +1764,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             .Flush();
 
         return false;
-    } else if (!pContents->VerifySignature(SERVER_NYM, reason)) {
+    } else if (!pContents->VerifySignature(SERVER_NYM)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to verify "
             "signature on transaction statement: ")(szFolder1name)(
@@ -1837,8 +1827,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                 .Flush();
 
             return false;
-        } else if (!pResponseTransactionItem->VerifySignature(
-                       SERVER_NYM, reason)) {
+        } else if (!pResponseTransactionItem->VerifySignature(SERVER_NYM)) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Unable to verify signature on atTransactionStatement "
                 "item.")
@@ -1864,8 +1853,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                 .Item(
                     strBalanceItem,
                     GetRealNotaryID(),
-                    pResponseTransactionItem->GetReferenceToNum(),
-                    reason)
+                    pResponseTransactionItem->GetReferenceToNum())
                 .release());
 
         if (false == bool(pTransactionItem)) {
@@ -1884,7 +1872,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                 .Flush();
 
             return false;
-        } else if (!pTransactionItem->VerifySignature(THE_NYM, reason)) {
+        } else if (!pTransactionItem->VerifySignature(THE_NYM)) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Unable to verify signature on transactionStatement item "
                 "in.")
@@ -1895,7 +1883,7 @@ bool OTTransaction::VerifyBalanceReceipt(
         pItemWithIssuedList = pTransactionItem.get();
     }
 
-    auto account = api_.Wallet().Account(GetRealAccountID(), reason);
+    auto account = api_.Wallet().Account(GetRealAccountID());
 
     if (false == bool(account)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -1905,8 +1893,8 @@ bool OTTransaction::VerifyBalanceReceipt(
         return false;
     }
 
-    std::unique_ptr<Ledger> pInbox(account.get().LoadInbox(THE_NYM, reason));
-    std::unique_ptr<Ledger> pOutbox(account.get().LoadOutbox(THE_NYM, reason));
+    std::unique_ptr<Ledger> pInbox(account.get().LoadInbox(THE_NYM));
+    std::unique_ptr<Ledger> pOutbox(account.get().LoadOutbox(THE_NYM));
 
     if ((!pInbox) || (!pOutbox)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -1931,7 +1919,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             .Flush();
 
         return false;
-    } else if (!pResponseBalanceItem->VerifySignature(SERVER_NYM, reason)) {
+    } else if (!pResponseBalanceItem->VerifySignature(SERVER_NYM)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Unable to verify signature on atBalanceStatement item.")
             .Flush();
@@ -1956,8 +1944,7 @@ bool OTTransaction::VerifyBalanceReceipt(
                            .Item(
                                strBalanceItem,
                                GetRealNotaryID(),
-                               pResponseBalanceItem->GetReferenceToNum(),
-                               reason)
+                               pResponseBalanceItem->GetReferenceToNum())
                            .release());
 
     if (false == bool(pBalanceItem)) {
@@ -1974,7 +1961,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             .Flush();
 
         return false;
-    } else if (!pBalanceItem->VerifySignature(THE_NYM, reason)) {
+    } else if (!pBalanceItem->VerifySignature(THE_NYM)) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
             ": Unable to verify signature on balanceStatement item.")
             .Flush();
@@ -2233,8 +2220,8 @@ bool OTTransaction::VerifyBalanceReceipt(
             // We didn't find the transaction that was expected to be in the
             // outbox. (A pending.) Therefore maybe it is now a transfer receipt
             // in the Inbox. We allow for this case.
-            pTransaction = pInbox->GetTransferReceipt(
-                pSubItem->GetNumberOfOrigin(reason), reason);
+            pTransaction =
+                pInbox->GetTransferReceipt(pSubItem->GetNumberOfOrigin());
 
             if (false != bool(pTransaction)) {
                 lTempTransactionNum = pTransaction->GetTransactionNum();
@@ -2640,13 +2627,13 @@ bool OTTransaction::VerifyBalanceReceipt(
                 return false;
             }
 
-            if (pSubItem->GetNumberOfOrigin(reason) !=
-                pTransaction->GetNumberOfOrigin(reason)) {
+            if (pSubItem->GetNumberOfOrigin() !=
+                pTransaction->GetNumberOfOrigin()) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(": Inbox transaction (")(
                     pSubItem->GetTransactionNum())(
                     ") mismatch Reference Num: ")(
-                    pSubItem->GetNumberOfOrigin(reason))(", expected ")(
-                    pTransaction->GetNumberOfOrigin(reason))(".")
+                    pSubItem->GetNumberOfOrigin())(", expected ")(
+                    pTransaction->GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -2765,7 +2752,7 @@ bool OTTransaction::VerifyBalanceReceipt(
             case transactionType::transferReceipt:
             case transactionType::chequeReceipt:
             case transactionType::voucherReceipt: {
-                lIssuedNum = pTransaction->GetNumberOfOrigin(reason);
+                lIssuedNum = pTransaction->GetNumberOfOrigin();
             } break;
             // ANY cron-related receipts should go here...
             case transactionType::marketReceipt:
@@ -3179,9 +3166,7 @@ bool OTTransaction::SaveBoxReceipt(Ledger& theLedger)
     return SaveBoxReceipt(lLedgerType);
 }
 
-bool OTTransaction::VerifyBoxReceipt(
-    OTTransaction& theFullVersion,
-    const PasswordPrompt& reason)
+bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 {
     if (!m_bIsAbbreviated || theFullVersion.IsAbbreviated()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -3229,12 +3214,11 @@ bool OTTransaction::VerifyBoxReceipt(
     }
 
     // THE "IN REFERENCE TO" NUMBER (DISPLAY VERSION)
-    if (GetAbbrevInRefDisplay() !=
-        theFullVersion.GetReferenceNumForDisplay(reason)) {
+    if (GetAbbrevInRefDisplay() != theFullVersion.GetReferenceNumForDisplay()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failure: The purported 'full version' of the transaction "
             "passed, GetReferenceNumForDisplay() (")(
-            theFullVersion.GetReferenceNumForDisplay(reason))(
+            theFullVersion.GetReferenceNumForDisplay())(
             ") fails to match the GetAbbrevInRefDisplay (")(
             GetAbbrevInRefDisplay())(") on this.")
             .Flush();
@@ -3280,12 +3264,12 @@ bool OTTransaction::VerifyItems(
 
         if (NYM_ID != pItem->GetNymID()) return false;
 
-        if (!pItem->VerifySignature(theNym, reason))  // NO need to call
-                                                      // VerifyAccount since
-                                                      // VerifyContractID is
-                                                      // ALREADY called and now
-                                                      // here's
-                                                      // VerifySignature().
+        if (!pItem->VerifySignature(theNym))  // NO need to call
+                                              // VerifyAccount since
+                                              // VerifyContractID is
+                                              // ALREADY called and now
+                                              // here's
+                                              // VerifySignature().
             return false;
     }
 
@@ -3909,9 +3893,7 @@ const char* OTTransaction::GetTypeString() const
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t OTTransaction::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const auto strNodeName = String::Factory(xml->getNodeName());
 
@@ -4201,7 +4183,7 @@ std::int32_t OTTransaction::ProcessXMLNode(
             // If we're able to successfully base64-decode the string and load
             // it up as
             // a transaction, then add it to the ledger's list of transactions
-            if (!pItem->LoadContractFromString(strData, reason)) {
+            if (!pItem->LoadContractFromString(strData)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     "ERROR: OTTransaction failed loading item from "
                     "string: ")(strData->Exists() ? strData->Get() : " ")(".")
@@ -4521,7 +4503,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(
     pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
     pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
@@ -4613,7 +4595,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(
     pTag->add_attribute("displayValue", std::to_string(lDisplayValue));
     pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
@@ -4835,7 +4817,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(
 
     pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if ((transactionType::finalReceipt == m_Type) ||
@@ -4958,7 +4940,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(
     pTag->add_attribute("receiptHash", strHash->Get());
     pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
@@ -5075,7 +5057,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(
 
     pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     parent.add_tag(pTag);
@@ -5233,7 +5215,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(
 
     pTag->add_attribute("transactionNum", std::to_string(GetTransactionNum()));
     pTag->add_attribute(
-        "inRefDisplay", std::to_string(GetReferenceNumForDisplay(reason)));
+        "inRefDisplay", std::to_string(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", std::to_string(GetReferenceToNum()));
 
     if ((transactionType::finalReceipt == m_Type) ||
@@ -5355,7 +5337,7 @@ void OTTransaction::ProduceInboxReportItem(
             GetTransactionNum());  // Just making sure these both get set.
         pReportItem->SetReferenceToNum(GetReferenceToNum());  // Especially this
                                                               // one.
-        pReportItem->SetNumberOfOrigin(GetNumberOfOrigin(reason));
+        pReportItem->SetNumberOfOrigin(GetNumberOfOrigin());
 
         // The "closing transaction number" is only used on finalReceipts and
         // basketReceipts.
@@ -5435,7 +5417,7 @@ void OTTransaction::ProduceOutboxReportItem(
             GetTransactionNum());  // Just making sure these both get set.
         pReportItem->SetReferenceToNum(GetReferenceToNum());  // Especially this
                                                               // one.
-        pReportItem->SetNumberOfOrigin(GetNumberOfOrigin(reason));
+        pReportItem->SetNumberOfOrigin(GetNumberOfOrigin());
 
         theBalanceItem.AddItem(std::shared_ptr<Item>(
             pReportItem.release()));  // Now theBalanceItem will handle
@@ -5507,8 +5489,7 @@ std::int64_t OTTransaction::GetReceiptAmount(const PasswordPrompt& reason)
                                     .Item(
                                         strReference,
                                         GetPurportedNotaryID(),
-                                        GetReferenceToNum(),
-                                        reason)
+                                        GetReferenceToNum())
                                     .release());
 
             break;
@@ -5551,7 +5532,7 @@ std::int64_t OTTransaction::GetReceiptAmount(const PasswordPrompt& reason)
             // object.
             pOriginalItem->GetAttachment(strAttachment);
             bool bLoadContractFromString =
-                theCheque->LoadContractFromString(strAttachment, reason);
+                theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
                 auto strCheque = String::Factory(*theCheque);
@@ -5679,7 +5660,7 @@ std::int64_t OTTransaction::GetReceiptAmount(const PasswordPrompt& reason)
 
 // Need to know the transaction number of the ORIGINAL transaction? Call this.
 // virtual
-std::int64_t OTTransaction::GetNumberOfOrigin(const PasswordPrompt& reason)
+std::int64_t OTTransaction::GetNumberOfOrigin()
 {
 
     if (0 == m_lNumberOfOrigin) {
@@ -5717,13 +5698,13 @@ std::int64_t OTTransaction::GetNumberOfOrigin(const PasswordPrompt& reason)
             }
         }
 
-        CalculateNumberOfOrigin(reason);
+        CalculateNumberOfOrigin();
     }
 
     return m_lNumberOfOrigin;
 }
 
-void OTTransaction::CalculateNumberOfOrigin(const PasswordPrompt& reason)
+void OTTransaction::CalculateNumberOfOrigin()
 {
     OT_ASSERT(!IsAbbreviated());
 
@@ -5815,10 +5796,7 @@ void OTTransaction::CalculateNumberOfOrigin(const PasswordPrompt& reason)
             // as its transaction number.
             //
             auto pOriginalItem{api_.Factory().Item(
-                strReference,
-                GetPurportedNotaryID(),
-                GetReferenceToNum(),
-                reason)};
+                strReference, GetPurportedNotaryID(), GetReferenceToNum())};
 
             OT_ASSERT(nullptr != pOriginalItem);
 
@@ -5834,7 +5812,7 @@ void OTTransaction::CalculateNumberOfOrigin(const PasswordPrompt& reason)
                 return;
             }
 
-            SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin(reason));
+            SetNumberOfOrigin(pOriginalItem->GetNumberOfOrigin());
         } break;
 
         case transactionType::processInbox:  // process inbox transaction    //
@@ -5921,8 +5899,7 @@ void OTTransaction::CalculateNumberOfOrigin(const PasswordPrompt& reason)
 /// that his receipt is in reference to the original market offer, so he can
 /// line up his receipts with his offers. What else does he care?
 ///
-std::int64_t OTTransaction::GetReferenceNumForDisplay(
-    const PasswordPrompt& reason)
+std::int64_t OTTransaction::GetReferenceNumForDisplay()
 {
     if (IsAbbreviated()) return GetAbbrevInRefDisplay();
 
@@ -5970,7 +5947,7 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay(
             auto strRef = String::Factory();
             GetReferenceString(strRef);
             if (strRef->Exists()) {
-                const auto pCronItem{api_.Factory().CronItem(strRef, reason)};
+                const auto pCronItem{api_.Factory().CronItem(strRef)};
 
                 if (false != bool(pCronItem)) {
                     lReferenceNum = pCronItem->GetTransactionNum();
@@ -6004,7 +5981,7 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay(
         case transactionType::transferReceipt:
         case transactionType::chequeReceipt:
         case transactionType::voucherReceipt:
-            lReferenceNum = GetNumberOfOrigin(reason);
+            lReferenceNum = GetNumberOfOrigin();
             break;
 
         default
@@ -6056,9 +6033,7 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay(
 // 4. pItem1->SetAttachment(strOffer);
 //
 
-bool OTTransaction::GetSenderNymIDForDisplay(
-    Identifier& theReturnID,
-    const PasswordPrompt& reason)
+bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6094,8 +6069,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
                 return false;
             }
 
-            const auto pCronItem{
-                api_.Factory().CronItem(strUpdatedCronItem, reason)};
+            const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6125,7 +6099,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to load Cron Item. Should never happen. "
                     "Receipt: ")(GetTransactionNum())(". Origin: ")(
-                    GetNumberOfOrigin(reason))(".")
+                    GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -6148,8 +6122,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
                 return false;
             }
 
-            const auto pCronItem{
-                api_.Factory().CronItem(strUpdatedCronItem, reason)};
+            const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6170,7 +6143,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to load Cron Item. Should never happen. "
                     "Receipt: ")(GetTransactionNum())(". Origin: ")(
-                    GetNumberOfOrigin(reason))(".")
+                    GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -6208,7 +6181,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
             auto theSentMsg{api_.Factory().Message()};
 
             if (strReference->Exists() &&
-                theSentMsg->LoadContractFromString(strReference, reason)) {
+                theSentMsg->LoadContractFromString(strReference)) {
                 // All we need is this message itself. We aren't going to
                 // decrypt the payload, we're just going to grab the
                 // sender/receiver data from the msg.
@@ -6233,8 +6206,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
                                     .Item(
                                         strReference,
                                         GetPurportedNotaryID(),
-                                        GetReferenceToNum(),
-                                        reason)
+                                        GetReferenceToNum())
                                     .release());
 
             break;
@@ -6277,7 +6249,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
             // object.
             pOriginalItem->GetAttachment(strAttachment);
             bool bLoadContractFromString =
-                theCheque->LoadContractFromString(strAttachment, reason);
+                theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
                 auto strCheque = String::Factory(*theCheque);
@@ -6314,9 +6286,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(
     return bSuccess;
 }
 
-bool OTTransaction::GetRecipientNymIDForDisplay(
-    Identifier& theReturnID,
-    const PasswordPrompt& reason)
+bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6350,8 +6320,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                 return false;
             }
 
-            const auto pCronItem{
-                api_.Factory().CronItem(strUpdatedCronItem, reason)};
+            const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6384,7 +6353,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to load Cron Item. Should never happen. "
                     "Receipt: ")(GetTransactionNum())(". Origin: ")(
-                    GetNumberOfOrigin(reason))(".")
+                    GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -6405,8 +6374,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                 return false;
             }
 
-            const auto pCronItem{
-                api_.Factory().CronItem(strUpdatedCronItem, reason)};
+            const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6427,7 +6395,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to load Cron Item. Should never happen. "
                     "Receipt: ")(GetTransactionNum())("  Origin: ")(
-                    GetNumberOfOrigin(reason))(".")
+                    GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -6463,7 +6431,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
             OT_ASSERT(false != bool(theSentMsg));
 
             if (strReference->Exists() &&
-                theSentMsg->LoadContractFromString(strReference, reason)) {
+                theSentMsg->LoadContractFromString(strReference)) {
                 // All we need is this message itself. We aren't going to
                 // decrypt the payload, we're just going to grab the
                 // sender/receiver data from the msg.
@@ -6488,8 +6456,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
                                     .Item(
                                         strReference,
                                         GetPurportedNotaryID(),
-                                        GetReferenceToNum(),
-                                        reason)
+                                        GetReferenceToNum())
                                     .release());
 
         } break;
@@ -6545,7 +6512,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
             // object.
             pOriginalItem->GetAttachment(strAttachment);
             bool bLoadContractFromString =
-                theCheque->LoadContractFromString(strAttachment, reason);
+                theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
                 auto strCheque = String::Factory(*theCheque);
@@ -6574,9 +6541,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(
     return bSuccess;
 }
 
-bool OTTransaction::GetSenderAcctIDForDisplay(
-    Identifier& theReturnID,
-    const PasswordPrompt& reason)
+bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6602,8 +6567,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(
                     "paymentReceipt transaction.")
                     .Flush();
 
-            const auto pCronItem{
-                api_.Factory().CronItem(strUpdatedCronItem, reason)};
+            const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6623,7 +6587,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to load Cron Item. Should never happen. "
                     "Receipt: ")(GetTransactionNum())(". Origin: ")(
-                    GetNumberOfOrigin(reason))(".")
+                    GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -6641,8 +6605,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(
                                     .Item(
                                         strReference,
                                         GetPurportedNotaryID(),
-                                        GetReferenceToNum(),
-                                        reason)
+                                        GetReferenceToNum())
                                     .release());
 
             break;
@@ -6684,7 +6647,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(
             // object.
             pOriginalItem->GetAttachment(strAttachment);
             bool bLoadContractFromString =
-                theCheque->LoadContractFromString(strAttachment, reason);
+                theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
                 auto strCheque = String::Factory(*theCheque);
@@ -6722,9 +6685,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(
     return bSuccess;
 }
 
-bool OTTransaction::GetRecipientAcctIDForDisplay(
-    Identifier& theReturnID,
-    const PasswordPrompt& reason)
+bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
 {
     if (IsAbbreviated()) return false;
 
@@ -6748,8 +6709,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(
                     "paymentReceipt transaction.")
                     .Flush();
 
-            const auto pCronItem{
-                api_.Factory().CronItem(strUpdatedCronItem, reason)};
+            const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6771,7 +6731,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to load Cron Item. Should never happen. "
                     "Receipt: ")(GetTransactionNum())(". Origin: ")(
-                    GetNumberOfOrigin(reason))(".")
+                    GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -6784,8 +6744,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(
                                     .Item(
                                         strReference,
                                         GetPurportedNotaryID(),
-                                        GetReferenceToNum(),
-                                        reason)
+                                        GetReferenceToNum())
                                     .release());
 
             break;
@@ -6856,7 +6815,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(
     return bSuccess;
 }
 
-bool OTTransaction::GetMemo(String& strMemo, const PasswordPrompt& reason)
+bool OTTransaction::GetMemo(String& strMemo)
 {
     if (IsAbbreviated()) return false;
 
@@ -6880,8 +6839,7 @@ bool OTTransaction::GetMemo(String& strMemo, const PasswordPrompt& reason)
                     "paymentReceipt transaction.")
                     .Flush();
 
-            const auto pCronItem{
-                api_.Factory().CronItem(strUpdatedCronItem, reason)};
+            const auto pCronItem{api_.Factory().CronItem(strUpdatedCronItem)};
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6904,7 +6862,7 @@ bool OTTransaction::GetMemo(String& strMemo, const PasswordPrompt& reason)
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Unable to load Cron Item. Should never happen. "
                     "Receipt: ")(GetTransactionNum())(". Origin: ")(
-                    GetNumberOfOrigin(reason))(".")
+                    GetNumberOfOrigin())(".")
                     .Flush();
                 return false;
             }
@@ -6917,8 +6875,7 @@ bool OTTransaction::GetMemo(String& strMemo, const PasswordPrompt& reason)
                                     .Item(
                                         strReference,
                                         GetPurportedNotaryID(),
-                                        GetReferenceToNum(),
-                                        reason)
+                                        GetReferenceToNum())
                                     .release());
 
             break;
@@ -6963,7 +6920,7 @@ bool OTTransaction::GetMemo(String& strMemo, const PasswordPrompt& reason)
                 pOriginalItem->GetAttachment(strCheque);
 
                 if (!((strCheque->GetLength() > 2) &&
-                      theCheque->LoadContractFromString(strCheque, reason))) {
+                      theCheque->LoadContractFromString(strCheque))) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Error loading cheque or voucher from string: ")(
                         strCheque)(".")

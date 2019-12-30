@@ -16,7 +16,7 @@ public:
     OTArmored Armored(const std::string& input) const final;
     OTArmored Armored(const opentxs::Data& input) const final;
     OTArmored Armored(const opentxs::String& input) const final;
-    OTArmored Armored(const opentxs::OTEnvelope& input) const final;
+    OTArmored Armored(const opentxs::crypto::Envelope& input) const final;
     OTArmored Armored(const ProtobufType& input) const final;
     OTString Armored(const ProtobufType& input, const std::string& header)
         const final;
@@ -30,8 +30,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version) const final;
     OTAsymmetricKey AsymmetricKey(
-        const proto::AsymmetricKey& serialized,
-        const opentxs::PasswordPrompt& reason) const final;
+        const proto::AsymmetricKey& serialized) const final;
     OTBailmentNotice BailmentNotice(
         const Nym_p& nym,
         const identifier::Nym& recipientID,
@@ -43,8 +42,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTBailmentNotice BailmentNotice(
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerRequest& serialized) const noexcept(false) final;
     OTBailmentReply BailmentReply(
         const Nym_p& nym,
         const identifier::Nym& initiator,
@@ -54,8 +52,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTBailmentReply BailmentReply(
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerReply& serialized) const noexcept(false) final;
     OTBailmentRequest BailmentRequest(
         const Nym_p& nym,
         const identifier::Nym& recipient,
@@ -64,8 +61,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTBailmentRequest BailmentRequest(
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerRequest& serialized) const noexcept(false) final;
     std::unique_ptr<opentxs::Basket> Basket() const final;
     std::unique_ptr<opentxs::Basket> Basket(
         std::int32_t nCount,
@@ -81,8 +77,7 @@ public:
         const VersionNumber version) const noexcept(false) final;
     OTBasketContract BasketContract(
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::UnitDefinition serialized) const noexcept(false) final;
     std::unique_ptr<OTPassword> BinarySecret() const final;
 #if OT_BLOCKCHAIN
     OTBlockchainAddress BlockchainAddress(
@@ -105,8 +100,7 @@ public:
         const blockchain::block::Height height) const final;
 #endif  // OT_BLOCKCHAIN
     std::unique_ptr<opentxs::Cheque> Cheque(
-        const OTTransaction& receipt,
-        const opentxs::PasswordPrompt& reason) const final;
+        const OTTransaction& receipt) const final;
     std::unique_ptr<opentxs::Cheque> Cheque() const final;
     std::unique_ptr<opentxs::Cheque> Cheque(
         const identifier::Server& NOTARY_ID,
@@ -124,8 +118,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTConnectionReply ConnectionReply(
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerReply& serialized) const noexcept(false) final;
     OTConnectionRequest ConnectionRequest(
         const Nym_p& nym,
         const identifier::Nym& recipient,
@@ -134,15 +127,11 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTConnectionRequest ConnectionRequest(
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerRequest& serialized) const noexcept(false) final;
     std::unique_ptr<opentxs::Contract> Contract(
-        const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const final;
+        const String& strCronItem) const final;
     std::unique_ptr<OTCron> Cron() const override;
-    std::unique_ptr<OTCronItem> CronItem(
-        const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const final;
+    std::unique_ptr<OTCronItem> CronItem(const String& strCronItem) const final;
     OTCurrencyContract CurrencyContract(
         const Nym_p& nym,
         const std::string& shortname,
@@ -157,8 +146,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTCurrencyContract CurrencyContract(
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::UnitDefinition serialized) const noexcept(false) final;
     OTData Data() const final;
     OTData Data(const opentxs::Armored& input) const final;
     OTData Data(const ProtobufType& input) const final;
@@ -168,17 +156,21 @@ public:
     OTData Data(const std::string input, const StringStyle mode) const final;
     OTData Data(const std::vector<unsigned char>& input) const final;
     OTData Data(const std::vector<std::byte>& input) const final;
+    OTData Data(ReadView input) const final;
+    OTEnvelope Envelope() const noexcept final;
+    OTEnvelope Envelope(const opentxs::Armored& ciphertext) const
+        noexcept(false) final;
+    OTEnvelope Envelope(
+        const opentxs::crypto::Envelope::SerializedType& serialized) const
+        noexcept(false) final;
     OTIdentifier Identifier() const final;
     OTIdentifier Identifier(const std::string& serialized) const final;
     OTIdentifier Identifier(const opentxs::String& serialized) const final;
     OTIdentifier Identifier(const opentxs::Contract& contract) const final;
     OTIdentifier Identifier(const opentxs::Item& item) const final;
+    std::unique_ptr<opentxs::Item> Item(const String& serialized) const final;
     std::unique_ptr<opentxs::Item> Item(
-        const String& serialized,
-        const opentxs::PasswordPrompt& reason) const final;
-    std::unique_ptr<opentxs::Item> Item(
-        const std::string& serialized,
-        const opentxs::PasswordPrompt& reason) const final;
+        const std::string& serialized) const final;
     std::unique_ptr<opentxs::Item> Item(
         const identifier::Nym& theNymID,
         const opentxs::Item& theOwner) const final;
@@ -193,8 +185,7 @@ public:
     std::unique_ptr<opentxs::Item> Item(
         const String& strItem,
         const identifier::Server& theNotaryID,
-        std::int64_t lTransactionNumber,
-        const opentxs::PasswordPrompt& reason) const final;
+        std::int64_t lTransactionNumber) const final;
     std::unique_ptr<opentxs::Item> Item(
         const OTTransaction& theOwner,
         itemType theType,
@@ -206,11 +197,8 @@ public:
         const opentxs::PasswordPrompt& reason) const final;
     OTKeypair Keypair(
         const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey,
-        const opentxs::PasswordPrompt& reason) const final;
-    OTKeypair Keypair(
-        const proto::AsymmetricKey& serializedPubkey,
-        const opentxs::PasswordPrompt& reason) const final;
+        const proto::AsymmetricKey& serializedPrivkey) const final;
+    OTKeypair Keypair(const proto::AsymmetricKey& serializedPubkey) const final;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     OTKeypair Keypair(
         const std::string& fingerprint,
@@ -271,8 +259,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTOutbailmentReply OutbailmentReply(
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerReply& serialized) const noexcept(false) final;
     OTOutbailmentRequest OutbailmentRequest(
         const Nym_p& nym,
         const identifier::Nym& recipientID,
@@ -283,21 +270,22 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTOutbailmentRequest OutbailmentRequest(
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerRequest& serialized) const noexcept(false) final;
     OTPasswordPrompt PasswordPrompt(const std::string& text) const final;
+    OTPasswordPrompt PasswordPrompt(
+        const opentxs::PasswordPrompt& rhs) const final
+    {
+        return PasswordPrompt(rhs.GetDisplayString());
+    }
     std::unique_ptr<OTPayment> Payment() const final;
     std::unique_ptr<OTPayment> Payment(const String& strPayment) const final;
     std::unique_ptr<OTPayment> Payment(
         const opentxs::Contract& contract,
         const opentxs::PasswordPrompt& reason) const final;
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    OTPaymentCode PaymentCode(
-        const std::string& base58,
-        const opentxs::PasswordPrompt& reason) const final;
-    OTPaymentCode PaymentCode(
-        const proto::PaymentCode& serialized,
-        const opentxs::PasswordPrompt& reason) const final;
+    OTPaymentCode PaymentCode(const std::string& base58) const noexcept final;
+    OTPaymentCode PaymentCode(const proto::PaymentCode& serialized) const
+        noexcept final;
+#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OTPaymentCode PaymentCode(
         const std::string& seed,
         const Bip32Index nym,
@@ -305,8 +293,8 @@ public:
         const opentxs::PasswordPrompt& reason,
         const bool bitmessage,
         const std::uint8_t bitmessageVersion,
-        const std::uint8_t bitmessageStream) const final;
-#endif
+        const std::uint8_t bitmessageStream) const noexcept final;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     std::unique_ptr<OTPaymentPlan> PaymentPlan() const final;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
         const identifier::Server& NOTARY_ID,
@@ -320,46 +308,37 @@ public:
         const identifier::Nym& RECIPIENT_NYM_ID) const final;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::string& message,
-        const opentxs::PasswordPrompt& reason) const override;
+        const std::string& message) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment,
-        const opentxs::PasswordPrompt& reason) const override;
+        const bool isPayment) const override;
 #if OT_CASH
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse,
-        const opentxs::PasswordPrompt& reason) const override;
+        const std::shared_ptr<blind::Purse> purse) const override;
 #endif
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const OTPeerRequest request,
         const OTPeerReply reply,
-        const VersionNumber version,
-        const opentxs::PasswordPrompt& reason) const override;
+        const VersionNumber version) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const OTPeerRequest request,
-        const VersionNumber version,
-        const opentxs::PasswordPrompt& reason) const override;
+        const VersionNumber version) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& signerNym,
-        const proto::PeerObject& serialized,
-        const opentxs::PasswordPrompt& reason) const override;
+        const proto::PeerObject& serialized) const override;
     std::unique_ptr<opentxs::PeerObject> PeerObject(
         const Nym_p& recipientNym,
         const opentxs::Armored& encrypted,
         const opentxs::PasswordPrompt& reason) const override;
     OTPeerReply PeerReply() const noexcept final;
-    OTPeerReply PeerReply(
-        const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+    OTPeerReply PeerReply(const Nym_p& nym, const proto::PeerReply& serialized)
+        const noexcept(false) final;
     OTPeerRequest PeerRequest() const noexcept final;
     OTPeerRequest PeerRequest(
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerRequest& serialized) const noexcept(false) final;
     OTZMQPipeline Pipeline(
         std::function<void(opentxs::network::zeromq::Message&)> callback)
         const final;
@@ -390,11 +369,9 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTReplyAcknowledgement ReplyAcknowledgement(
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerReply& serialized) const noexcept(false) final;
     std::unique_ptr<OTScriptable> Scriptable(
-        const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const final;
+        const String& strCronItem) const final;
     OTSecurityContract SecurityContract(
         const Nym_p& nym,
         const std::string& shortname,
@@ -406,8 +383,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTSecurityContract SecurityContract(
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::UnitDefinition serialized) const noexcept(false) final;
     OTServerContract ServerContract() const noexcept(false) final;
     OTServerID ServerID() const final;
     OTServerID ServerID(const std::string& serialized) const final;
@@ -435,8 +411,7 @@ public:
         const opentxs::PasswordPrompt& reason) const noexcept(false) final;
     OTStoreSecret StoreSecret(
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::PeerRequest& serialized) const noexcept(false) final;
     const api::crypto::Symmetric& Symmetric() const final { return symmetric_; }
     OTSymmetricKey SymmetricKey() const final;
     OTSymmetricKey SymmetricKey(
@@ -466,8 +441,7 @@ public:
         const identifier::UnitDefinition& currencyId,
         const opentxs::Identifier& currencyAcctId) const final;
     std::unique_ptr<OTTransactionType> Transaction(
-        const String& strCronItem,
-        const opentxs::PasswordPrompt& reason) const final;
+        const String& strCronItem) const final;
     std::unique_ptr<OTTransaction> Transaction(
         const opentxs::Ledger& theOwner) const final;
     std::unique_ptr<OTTransaction> Transaction(
@@ -517,8 +491,7 @@ public:
     OTUnitDefinition UnitDefinition() const noexcept final;
     OTUnitDefinition UnitDefinition(
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) const noexcept(false) final;
+        const proto::UnitDefinition serialized) const noexcept(false) final;
 
     ~Factory() override = default;
 
@@ -533,6 +506,11 @@ protected:
 
 private:
     friend opentxs::Factory;
+
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    auto instantiate_secp256k1(const ReadView key) const noexcept
+        -> std::unique_ptr<opentxs::crypto::key::Secp256k1>;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
     Factory() = delete;
     Factory(const Factory&) = delete;

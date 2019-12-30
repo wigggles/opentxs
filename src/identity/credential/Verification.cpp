@@ -64,8 +64,7 @@ identity::credential::internal::Verification* Factory::VerificationCredential(
     identity::internal::Authority& parent,
     const identity::Source& source,
     const identity::credential::internal::Primary& master,
-    const proto::Credential& serialized,
-    [[maybe_unused]] const opentxs::PasswordPrompt& reason)
+    const proto::Credential& serialized)
 {
     try {
 
@@ -189,16 +188,14 @@ std::shared_ptr<Base::SerializedType> Verification::serialize(
     return serializedCredential;
 }
 
-bool Verification::verify_internally(
-    const Lock& lock,
-    const opentxs::PasswordPrompt& reason) const
+bool Verification::verify_internally(const Lock& lock) const
 {
     // Perform common Credential verifications
-    if (!Base::verify_internally(lock, reason)) { return false; }
+    if (!Base::verify_internally(lock)) { return false; }
 
     for (auto& nym : data_.internal().identity()) {
         for (auto& claim : nym.verification()) {
-            bool valid = parent_.Verify(claim, reason);
+            bool valid = parent_.Verify(claim);
 
             if (!valid) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(

@@ -44,10 +44,12 @@ auto Factory::Hash(
 
 namespace opentxs::api::crypto::implementation
 {
+using Provider = opentxs::crypto::HashingProvider;
+
 Hash::Hash(
     const api::crypto::Encode& encode,
-    const opentxs::crypto::HashingProvider& ssl,
-    const opentxs::crypto::HashingProvider& sodium,
+    const Provider& ssl,
+    const Provider& sodium,
     const opentxs::crypto::Pbkdf2& pbkdf2,
     const opentxs::crypto::Ripemd160& ripe) noexcept
     : encode_(encode)
@@ -58,183 +60,153 @@ Hash::Hash(
 {
 }
 
-bool Hash::Allocate(const proto::HashType hashType, OTPassword& input) noexcept
+auto Hash::allocate(
+    const proto::HashType type,
+    const AllocateOutput destination) noexcept -> WritableView
 {
-    return input.randomizeMemory(
-        opentxs::crypto::HashingProvider::HashSize(hashType));
+    if (false == bool(destination)) { return {}; }
+
+    return destination(Provider::HashSize(type));
 }
 
-bool Hash::Allocate(const proto::HashType hashType, Data& input) noexcept
-{
-    return input.Randomize(
-        opentxs::crypto::HashingProvider::HashSize(hashType));
-}
-
-bool Hash::Digest(
-    const proto::HashType hashType,
-    const OTPassword& data,
-    OTPassword& digest) const noexcept
-{
-    if (false == Allocate(hashType, digest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
-            .Flush();
-
-        return false;
-    }
-
-    if (false == data.isMemory()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong OTPassword mode.").Flush();
-
-        return false;
-    }
-
-    return Digest(
-        hashType,
-        static_cast<const std::uint8_t*>(data.getMemory()),
-        data.getMemorySize(),
-        static_cast<std::uint8_t*>(digest.getMemoryWritable()));
-}
-
-bool Hash::Digest(
-    const proto::HashType hashType,
-    const Data& data,
-    Data& digest) const noexcept
-{
-    if (false == Allocate(hashType, digest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
-            .Flush();
-
-        return false;
-    }
-
-    return Digest(
-        hashType,
-        static_cast<const std::uint8_t*>(data.data()),
-        data.size(),
-        static_cast<std::uint8_t*>(digest.data()));
-}
-
-bool Hash::Digest(
-    const proto::HashType hashType,
-    const String& data,
-    Data& digest) const noexcept
-{
-    if (false == Allocate(hashType, digest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
-            .Flush();
-
-        return false;
-    }
-
-    return Digest(
-        hashType,
-        reinterpret_cast<const std::uint8_t*>(data.Get()),
-        data.GetLength(),
-        static_cast<std::uint8_t*>(digest.data()));
-}
-
-bool Hash::Digest(
-    const proto::HashType hashType,
-    const opentxs::network::zeromq::Frame& data,
-    Data& digest) const noexcept
-{
-    if (false == Allocate(hashType, digest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
-            .Flush();
-
-        return false;
-    }
-
-    return Digest(
-        hashType,
-        static_cast<const std::uint8_t*>(data.data()),
-        data.size(),
-        static_cast<std::uint8_t*>(digest.data()));
-}
-
-bool Hash::Digest(
-    const proto::HashType hashType,
-    const std::string& data,
-    Data& digest) const noexcept
-{
-    if (false == Allocate(hashType, digest)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
-            .Flush();
-
-        return false;
-    }
-
-    return Digest(
-        hashType,
-        reinterpret_cast<const std::uint8_t*>(data.c_str()),
-        data.size(),
-        static_cast<std::uint8_t*>(digest.data()));
-}
-
-bool Hash::Digest(
-    const proto::HashType hashType,
-    const void* data,
+auto Hash::bitcoin_hash_160(
+    const void* input,
     const std::size_t size,
-    Data& digest) const noexcept
+    void* output) const noexcept -> bool
 {
-    if (false == Allocate(hashType, digest)) {
+    auto temp = space(Provider::HashSize(proto::HASHTYPE_SHA256));
+
+    if (false == digest(proto::HASHTYPE_SHA256, input, size, temp.data())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to calculate intermediate hash.")
+            .Flush();
+
+        return false;
+    }
+
+    return digest(proto::HASHTYPE_RIPEMD160, temp.data(), temp.size(), output);
+}
+
+auto Hash::Digest(
+    const proto::HashType type,
+    const ReadView data,
+    const AllocateOutput destination) const noexcept -> bool
+{
+    auto view = allocate(type, destination);
+
+    if (false == view.valid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
             .Flush();
 
         return false;
     }
 
-    return Digest(
-        hashType,
-        static_cast<const std::uint8_t*>(data),
-        size,
-        static_cast<std::uint8_t*>(digest.data()));
+    return digest(type, data.data(), data.size(), view);
 }
 
-bool Hash::Digest(
-    const std::uint32_t type,
-    const std::string& data,
-    std::string& encodedDigest) const noexcept
+auto Hash::Digest(
+    const proto::HashType type,
+    const opentxs::network::zeromq::Frame& data,
+    const AllocateOutput destination) const noexcept -> bool
 {
-    proto::HashType hashType = static_cast<proto::HashType>(type);
-    auto result = Data::Factory();
+    auto view = allocate(type, destination);
 
-    if (false == Allocate(hashType, result)) {
+    if (false == view.valid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
             .Flush();
 
         return false;
     }
 
-    const bool success = Digest(
-        hashType,
-        reinterpret_cast<const std::uint8_t*>(data.c_str()),
-        data.size(),
-        static_cast<std::uint8_t*>(const_cast<void*>(result->data())));
-
-    if (success) { encodedDigest.assign(encode_.IdentifierEncode(result)); }
-
-    return success;
+    return digest(type, data.data(), data.size(), view);
 }
 
-bool Hash::Digest(
-    const proto::HashType hashType,
-    const std::uint8_t* input,
-    const size_t inputSize,
-    std::uint8_t* output) const noexcept
+auto Hash::Digest(
+    const std::uint32_t hash,
+    const ReadView data,
+    const AllocateOutput destination) const noexcept -> bool
 {
-    switch (hashType) {
-        case (proto::HASHTYPE_SHA256):
-        case (proto::HASHTYPE_SHA512): {
-            return SHA2().Digest(hashType, input, inputSize, output);
+    if (false == bool(destination)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    const auto type = static_cast<proto::HashType>(hash);
+    auto temp =
+        Data::Factory();  // FIXME IdentifierEncode should accept ReadView
+    auto view = allocate(type, temp->WriteInto());
+
+    if (false == view.valid()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate temp space")
+            .Flush();
+
+        return false;
+    }
+
+    if (digest(type, data.data(), data.size(), view)) {
+        const auto encoded = encode_.IdentifierEncode(temp);
+        auto output = destination(encoded.size());
+
+        if (false == output.valid(encoded.size())) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Unable to allocate encoded output space")
+                .Flush();
+
+            return false;
         }
-        case (proto::HASHTYPE_BLAKE2B160):
-        case (proto::HASHTYPE_BLAKE2B256):
-        case (proto::HASHTYPE_BLAKE2B512): {
-            return Sodium().Digest(hashType, input, inputSize, output);
+
+        std::memcpy(output, encoded.data(), output);
+
+        return true;
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate digest")
+            .Flush();
+
+        return false;
+    }
+}
+
+auto Hash::digest(
+    const proto::HashType type,
+    const void* input,
+    const std::size_t size,
+    void* output) const noexcept -> bool
+{
+    switch (type) {
+        case proto::HASHTYPE_SHA1:
+        case proto::HASHTYPE_SHA256:
+        case proto::HASHTYPE_SHA512: {
+            return ssl_.Digest(
+                type,
+                static_cast<const std::uint8_t*>(input),
+                size,
+                static_cast<std::uint8_t*>(output));
         }
-        case (proto::HASHTYPE_RIMEMD160): {
-            return ripe_.RIPEMD160(input, inputSize, output);
+        case proto::HASHTYPE_BLAKE2B160:
+        case proto::HASHTYPE_BLAKE2B256:
+        case proto::HASHTYPE_BLAKE2B512: {
+            return sodium_.Digest(
+                type,
+                static_cast<const std::uint8_t*>(input),
+                size,
+                static_cast<std::uint8_t*>(output));
+        }
+        case proto::HASHTYPE_RIPEMD160: {
+            return ripe_.RIPEMD160(
+                static_cast<const std::uint8_t*>(input),
+                size,
+                static_cast<std::uint8_t*>(output));
+        }
+        case proto::HASHTYPE_SHA256D: {
+            return sha_256_double(input, size, output);
+        }
+        case proto::HASHTYPE_SHA256DC: {
+            return sha_256_double_checksum(input, size, output);
+        }
+        case proto::HASHTYPE_BITCOIN: {
+            return bitcoin_hash_160(input, size, output);
         }
         default: {
         }
@@ -245,13 +217,14 @@ bool Hash::Digest(
     return false;
 }
 
-bool Hash::HMAC(
-    const proto::HashType hashType,
+auto Hash::HMAC(
+    const proto::HashType type,
     const OTPassword& key,
     const Data& data,
-    OTPassword& digest) const noexcept
+    OTPassword& digest) const noexcept -> bool
 {
-    if (false == Allocate(hashType, digest)) {
+    if (false ==
+        allocate(type, digest.WriteInto(OTPassword::Mode::Mem)).valid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
             .Flush();
 
@@ -265,7 +238,7 @@ bool Hash::HMAC(
     }
 
     return HMAC(
-        hashType,
+        type,
         static_cast<const std::uint8_t*>(data.data()),
         data.size(),
         static_cast<const std::uint8_t*>(key.getMemory()),
@@ -273,25 +246,23 @@ bool Hash::HMAC(
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));
 }
 
-bool Hash::HMAC(
-    const proto::HashType hashType,
+auto Hash::HMAC(
+    const proto::HashType type,
     const std::uint8_t* input,
-    const size_t inputSize,
+    const std::size_t size,
     const std::uint8_t* key,
-    const size_t keySize,
-    std::uint8_t* output) const noexcept
+    const std::size_t keySize,
+    std::uint8_t* output) const noexcept -> bool
 {
-    switch (hashType) {
+    switch (type) {
         case (proto::HASHTYPE_SHA256):
         case (proto::HASHTYPE_SHA512): {
-            return SHA2().HMAC(
-                hashType, input, inputSize, key, keySize, output);
+            return ssl_.HMAC(type, input, size, key, keySize, output);
         }
         case (proto::HASHTYPE_BLAKE2B160):
         case (proto::HASHTYPE_BLAKE2B256):
         case (proto::HASHTYPE_BLAKE2B512): {
-            return Sodium().HMAC(
-                hashType, input, inputSize, key, keySize, output);
+            return sodium_.HMAC(type, input, size, key, keySize, output);
         }
         default: {
         }
@@ -302,21 +273,21 @@ bool Hash::HMAC(
     return false;
 }
 
-void Hash::MurmurHash3_32(
+auto Hash::MurmurHash3_32(
     const std::uint32_t& key,
     const Data& data,
-    std::uint32_t& output) const noexcept
+    std::uint32_t& output) const noexcept -> void
 {
     MurmurHash3_x86_32(data.data(), data.size(), key, &output);
 }
 
-bool Hash::PKCS5_PBKDF2_HMAC(
+auto Hash::PKCS5_PBKDF2_HMAC(
     const Data& input,
     const Data& salt,
     const std::size_t iterations,
-    const proto::HashType hashType,
+    const proto::HashType type,
     const std::size_t bytes,
-    Data& output) const noexcept
+    Data& output) const noexcept -> bool
 {
     output.SetSize(bytes);
 
@@ -326,18 +297,18 @@ bool Hash::PKCS5_PBKDF2_HMAC(
         salt.data(),
         salt.size(),
         iterations,
-        hashType,
+        type,
         bytes,
         output.data());
 }
 
-bool Hash::PKCS5_PBKDF2_HMAC(
+auto Hash::PKCS5_PBKDF2_HMAC(
     const OTPassword& input,
     const Data& salt,
     const std::size_t iterations,
-    const proto::HashType hashType,
+    const proto::HashType type,
     const std::size_t bytes,
-    Data& output) const noexcept
+    Data& output) const noexcept -> bool
 {
     output.SetSize(bytes);
 
@@ -347,18 +318,18 @@ bool Hash::PKCS5_PBKDF2_HMAC(
         salt.data(),
         salt.size(),
         iterations,
-        hashType,
+        type,
         bytes,
         output.data());
 }
 
-bool Hash::PKCS5_PBKDF2_HMAC(
+auto Hash::PKCS5_PBKDF2_HMAC(
     const std::string& input,
     const Data& salt,
     const std::size_t iterations,
-    const proto::HashType hashType,
+    const proto::HashType type,
     const std::size_t bytes,
-    Data& output) const noexcept
+    Data& output) const noexcept -> bool
 {
     output.SetSize(bytes);
 
@@ -368,17 +339,55 @@ bool Hash::PKCS5_PBKDF2_HMAC(
         salt.data(),
         salt.size(),
         iterations,
-        hashType,
+        type,
         bytes,
         output.data());
 }
 
-bool Hash::SipHash(
+auto Hash::sha_256_double(
+    const void* input,
+    const std::size_t size,
+    void* output) const noexcept -> bool
+{
+    auto temp = space(Provider::HashSize(proto::HASHTYPE_SHA256));
+
+    if (false == digest(proto::HASHTYPE_SHA256, input, size, temp.data())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to calculate intermediate hash.")
+            .Flush();
+
+        return false;
+    }
+
+    return digest(proto::HASHTYPE_SHA256, temp.data(), temp.size(), output);
+}
+
+auto Hash::sha_256_double_checksum(
+    const void* input,
+    const std::size_t size,
+    void* output) const noexcept -> bool
+{
+    auto temp = space(Provider::HashSize(proto::HASHTYPE_SHA256));
+
+    if (false == sha_256_double(input, size, temp.data())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to calculate intermediate hash.")
+            .Flush();
+
+        return false;
+    }
+
+    std::memcpy(output, temp.data(), 4);
+
+    return true;
+}
+
+auto Hash::SipHash(
     const OTPassword& key,
     const Data& data,
     std::uint64_t& output,
     const int c,
-    const int d) const noexcept
+    const int d) const noexcept -> bool
 {
     const bool validKey =
         16 == (key.isMemory() ? key.getMemorySize() : key.getPasswordSize());

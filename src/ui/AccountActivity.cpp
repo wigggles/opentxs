@@ -473,15 +473,14 @@ void AccountActivity::process_workflow(
 
 void AccountActivity::startup() noexcept
 {
-    auto reason = api_.Factory().PasswordPrompt("Loading account activity");
-    auto account = api_.Wallet().Account(account_id_, reason);
+    auto account = api_.Wallet().Account(account_id_);
 
     if (account) {
         balance_.store(account.get().GetBalance());
         UpdateNotify();
         eLock lock(shared_lock_);
         contract_ = api_.Wallet().UnitDefinition(
-            api_.Storage().AccountContract(account_id_), reason);
+            api_.Storage().AccountContract(account_id_));
     }
 
     account.Release();

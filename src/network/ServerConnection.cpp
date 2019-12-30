@@ -84,9 +84,7 @@ ServerConnection::ServerConnection(
     , thread_()
     , callback_(zeromq::ListenCallback::Factory(
           [=](const zeromq::Message& in) -> void {
-              auto reason = this->api_.Factory().PasswordPrompt(
-                  "Process incoming message");
-              this->process_incoming(in, reason);
+              this->process_incoming(in);
           }))
     , registration_socket_(zmq.Context().DealerSocket(
           callback_,
@@ -266,14 +264,12 @@ std::chrono::time_point<std::chrono::system_clock> ServerConnection::
     return std::chrono::system_clock::now() + zmq_.SendTimeout();
 }
 
-void ServerConnection::process_incoming(
-    const proto::ServerReply& in,
-    const PasswordPrompt& reason)
+void ServerConnection::process_incoming(const proto::ServerReply& in)
 {
     try {
-        auto message = otx::Reply::Factory(api_, in, reason);
+        auto message = otx::Reply::Factory(api_, in);
 
-        if (false == message->Validate(reason)) {
+        if (false == message->Validate()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid push notification.")
                 .Flush();
 
@@ -287,9 +283,7 @@ void ServerConnection::process_incoming(
     }
 }
 
-void ServerConnection::process_incoming(
-    const zeromq::Message& in,
-    const PasswordPrompt& reason)
+void ServerConnection::process_incoming(const zeromq::Message& in)
 {
     if (status_->On()) { publish(); }
 
@@ -313,7 +307,7 @@ void ServerConnection::process_incoming(
         const auto [isProto, reply] = check_for_protobuf(frame);
 
         if (isProto) {
-            process_incoming(reply, reason);
+            process_incoming(reply);
 
             return;
         }
@@ -493,8 +487,7 @@ NetworkReplyMessage ServerConnection::Send(
     armored->Set(std::string(frame).c_str());
     auto serialized = String::Factory();
     armored->GetString(serialized);
-    const auto loaded =
-        replymessage->LoadContractFromString(serialized, reason);
+    const auto loaded = replymessage->LoadContractFromString(serialized);
 
     if (loaded) {
         reply.reset(replymessage.release());

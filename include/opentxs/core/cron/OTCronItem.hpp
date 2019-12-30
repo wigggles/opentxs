@@ -83,13 +83,11 @@ public:
 
     OPENTXS_EXPORT static std::unique_ptr<OTCronItem> LoadCronReceipt(
         const api::internal::Core& api,
-        const TransactionNumber& lTransactionNum,
-        const PasswordPrompt& reason);  // Server-side only.
+        const TransactionNumber& lTransactionNum);  // Server-side only.
     OPENTXS_EXPORT static std::unique_ptr<OTCronItem> LoadActiveCronReceipt(
         const api::internal::Core& api,
         const TransactionNumber& lTransactionNum,
-        const identifier::Server& notaryID,
-        const PasswordPrompt& reason);  // Client-side only.
+        const identifier::Server& notaryID);  // Client-side only.
     OPENTXS_EXPORT static bool EraseActiveCronReceipt(
         const api::internal::Core& api,
         const std::string& dataFolder,
@@ -179,9 +177,7 @@ public:
     virtual std::int64_t GetOpeningNumber(
         const identifier::Nym& theNymID) const;
     virtual std::int64_t GetClosingNumber(const Identifier& theAcctID) const;
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 protected:
     std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for

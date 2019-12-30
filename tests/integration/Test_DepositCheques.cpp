@@ -68,9 +68,7 @@ public:
               Context().StartServer(OTTestEnvironment::test_args_, 0, true))
         , issuer_client_(
               Context().StartClient(OTTestEnvironment::test_args_, 2))
-        , server_contract_(server_1_.Wallet().Server(
-              server_1_.ID(),
-              server_1_.Factory().PasswordPrompt(__FUNCTION__)))
+        , server_contract_(server_1_.Wallet().Server(server_1_.ID()))
     {
 #if OT_CASH
         server_1_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
@@ -85,7 +83,7 @@ public:
     {
         auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
         auto clientVersion =
-            client.Wallet().Server(server_contract_->PublicContract(), reason);
+            client.Wallet().Server(server_contract_->PublicContract());
         client.OTX().SetIntroductionServer(clientVersion);
     }
 
@@ -174,7 +172,7 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_TRUE(bobScopeSet);
     EXPECT_TRUE(issuerScopeSet);
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     alice_payment_code_ =
         alice_client_.Factory().PaymentCode(SeedA_, 0, 1, reasonA)->asBase58();
     bob_payment_code_ =
@@ -205,7 +203,7 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(issuer.PaymentCode(proto::CITEMTYPE_BCH).empty());
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
     alice.Release();
     bob.Release();
@@ -232,51 +230,30 @@ TEST_F(Test_DepositCheques, introduction_server)
 
 TEST_F(Test_DepositCheques, add_contacts)
 {
-    auto reasonA = alice_client_.Factory().PasswordPrompt(__FUNCTION__);
-    auto reasonB = bob_client_.Factory().PasswordPrompt(__FUNCTION__);
-    auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
     const auto aliceBob = alice_client_.Contacts().NewContact(
         BOB,
         bob_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        alice_client_.Factory().PaymentCode(bob_payment_code_, reasonA),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonA);
+        alice_client_.Factory().PaymentCode(bob_payment_code_));
     const auto aliceIssuer = alice_client_.Contacts().NewContact(
         ISSUER,
         issuer_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        alice_client_.Factory().PaymentCode(issuer_payment_code_, reasonA),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonA);
+        alice_client_.Factory().PaymentCode(issuer_payment_code_));
     const auto bobAlice = bob_client_.Contacts().NewContact(
         ALEX,
         alice_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        bob_client_.Factory().PaymentCode(alice_payment_code_, reasonB),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonB);
+        bob_client_.Factory().PaymentCode(alice_payment_code_));
     const auto bobIssuer = bob_client_.Contacts().NewContact(
         ISSUER,
         issuer_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        bob_client_.Factory().PaymentCode(issuer_payment_code_, reasonB),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonB);
+        bob_client_.Factory().PaymentCode(issuer_payment_code_));
     const auto issuerAlice = issuer_client_.Contacts().NewContact(
         ALEX,
         alice_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        issuer_client_.Factory().PaymentCode(alice_payment_code_, reasonI),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonI);
+        issuer_client_.Factory().PaymentCode(alice_payment_code_));
     const auto issuerBob = issuer_client_.Contacts().NewContact(
         BOB,
         bob_nym_id_,
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        issuer_client_.Factory().PaymentCode(bob_payment_code_, reasonI),
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        reasonI);
+        issuer_client_.Factory().PaymentCode(bob_payment_code_));
 
     ASSERT_TRUE(aliceBob);
     ASSERT_TRUE(aliceIssuer);
@@ -293,24 +270,18 @@ TEST_F(Test_DepositCheques, add_contacts)
     contact_id_issuer_bob_ = issuerAlice->ID();
 
     EXPECT_TRUE(alice_client_.Wallet().Nym(
-        bob_client_.Wallet().Nym(bob_nym_id_, reasonB)->asPublicNym(),
-        reasonB));
+        bob_client_.Wallet().Nym(bob_nym_id_)->asPublicNym()));
 
     EXPECT_TRUE(alice_client_.Wallet().Nym(
-        issuer_client_.Wallet().Nym(issuer_nym_id_, reasonI)->asPublicNym(),
-        reasonI));
+        issuer_client_.Wallet().Nym(issuer_nym_id_)->asPublicNym()));
     EXPECT_TRUE(bob_client_.Wallet().Nym(
-        alice_client_.Wallet().Nym(alice_nym_id_, reasonA)->asPublicNym(),
-        reasonA));
+        alice_client_.Wallet().Nym(alice_nym_id_)->asPublicNym()));
     EXPECT_TRUE(bob_client_.Wallet().Nym(
-        issuer_client_.Wallet().Nym(issuer_nym_id_, reasonB)->asPublicNym(),
-        reasonB));
+        issuer_client_.Wallet().Nym(issuer_nym_id_)->asPublicNym()));
     EXPECT_TRUE(issuer_client_.Wallet().Nym(
-        alice_client_.Wallet().Nym(alice_nym_id_, reasonA)->asPublicNym(),
-        reasonA));
+        alice_client_.Wallet().Nym(alice_nym_id_)->asPublicNym()));
     EXPECT_TRUE(issuer_client_.Wallet().Nym(
-        bob_client_.Wallet().Nym(bob_nym_id_, reasonB)->asPublicNym(),
-        reasonB));
+        bob_client_.Wallet().Nym(bob_nym_id_)->asPublicNym()));
 }
 
 TEST_F(Test_DepositCheques, issue_dollars)
@@ -394,7 +365,6 @@ TEST_F(Test_DepositCheques, accept_cheque_alice)
 
 TEST_F(Test_DepositCheques, process_inbox_issuer)
 {
-    auto reasonI = issuer_client_.Factory().PasswordPrompt(__FUNCTION__);
     auto task = issuer_client_.OTX().ProcessInbox(
         issuer_nym_id_, server_1_.ID(), issuer_account_id_);
     auto& [id, future] = task;
@@ -406,8 +376,7 @@ TEST_F(Test_DepositCheques, process_inbox_issuer)
     EXPECT_EQ(proto::LASTREPLYSTATUS_MESSAGESUCCESS, status);
     ASSERT_TRUE(message);
 
-    const auto account =
-        issuer_client_.Wallet().Account(issuer_account_id_, reasonI);
+    const auto account = issuer_client_.Wallet().Account(issuer_account_id_);
 
     EXPECT_EQ(-1 * CHEQUE_AMOUNT_1, account.get().GetBalance());
 }

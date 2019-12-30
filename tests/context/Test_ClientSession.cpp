@@ -29,8 +29,7 @@ TEST(ClientSession, restart)
     const auto& otx = ot::InitContext(OTLowLevelTestEnvironment::test_args_);
     const auto& client = otx.StartClient({}, 0);
     const auto reason = client.Factory().PasswordPrompt(__FUNCTION__);
-    const auto nym =
-        client.Wallet().Nym(client.Factory().NymID(nym_id_), reason);
+    const auto nym = client.Wallet().Nym(client.Factory().NymID(nym_id_));
 
     ASSERT_TRUE(nym);
     EXPECT_EQ(nym_id_, nym->ID().str());
@@ -52,7 +51,7 @@ TEST(ClientSession, introduction_server)
     EXPECT_FALSE(server_id_.empty());
 
     {
-        const auto contract = server.Wallet().Server(serverID, reasonS);
+        const auto contract = server.Wallet().Server(serverID);
         const auto id = client.OTX().SetIntroductionServer(contract);
 
         EXPECT_EQ(serverID, id);

@@ -7,9 +7,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
-#endif
 #include "opentxs/core/String.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -28,8 +26,7 @@ public:
     std::shared_ptr<proto::NymIDSource> Serialize() const noexcept final;
     bool Verify(
         const proto::Credential& master,
-        const proto::Signature& sourceSignature,
-        const PasswordPrompt& reason) const noexcept final;
+        const proto::Signature& sourceSignature) const noexcept final;
     bool Sign(
         const identity::credential::Primary& credential,
         proto::Signature& sig,
@@ -44,23 +41,17 @@ private:
 
     proto::SourceType type_;
     OTAsymmetricKey pubkey_;
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     OTPaymentCode payment_code_;
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     VersionNumber version_;
 
     static OTAsymmetricKey deserialize_pubkey(
         const api::Factory& factory,
         const proto::SourceType type,
-        const proto::NymIDSource& serialized,
-        const PasswordPrompt& reason);
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        const proto::NymIDSource& serialized);
     static OTPaymentCode deserialize_paymentcode(
         const api::Factory& factory,
         const proto::SourceType type,
-        const proto::NymIDSource& serialized,
-        const PasswordPrompt& reason);
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        const proto::NymIDSource& serialized);
     static std::unique_ptr<proto::AsymmetricKey> extract_key(
         const proto::Credential& credential,
         const proto::KeyRole role);
@@ -69,18 +60,13 @@ private:
 
     Source(
         const api::Factory& factory,
-        const proto::NymIDSource& serializedSource,
-        const PasswordPrompt& reason) noexcept;
+        const proto::NymIDSource& serializedSource) noexcept;
     Source(
         const api::Factory& factory,
-        const NymParameters& nymParameters,
-        const PasswordPrompt& reason) noexcept(false);
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        const NymParameters& nymParameters) noexcept(false);
     Source(const api::Factory& factory, const PaymentCode& source) noexcept;
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    Source(const Source& rhs, const PasswordPrompt& reason) noexcept;
+    Source(const Source& rhs) noexcept;
     Source() = delete;
-    Source(const Source&) = delete;
     Source(Source&&) = delete;
     Source& operator=(const Source&);
     Source& operator=(Source&&);

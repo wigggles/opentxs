@@ -28,6 +28,8 @@ public:
     OPENTXS_EXPORT virtual const crypto::key::Keypair& GetKeypair(
         const proto::AsymmetricKeyType type,
         const proto::KeyRole role) const = 0;
+    OPENTXS_EXPORT virtual const crypto::key::Keypair& GetKeypair(
+        const proto::KeyRole role) const = 0;
     OPENTXS_EXPORT virtual std::int32_t GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
         const opentxs::Signature& theSignature,
@@ -38,7 +40,7 @@ public:
         proto::Signature& signature,
         const PasswordPrompt& reason,
         proto::KeyRole key = proto::KEYROLE_SIGN,
-        const proto::HashType hash = proto::HASHTYPE_BLAKE2B256) const = 0;
+        const proto::HashType hash = proto::HASHTYPE_ERROR) const = 0;
 
     OPENTXS_EXPORT ~Key() override = default;
 

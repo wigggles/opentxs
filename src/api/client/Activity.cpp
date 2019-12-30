@@ -166,8 +166,7 @@ bool Activity::AddPaymentEvent(
 Activity::ChequeData Activity::Cheque(
     const identifier::Nym& nym,
     [[maybe_unused]] const std::string& id,
-    const std::string& workflowID,
-    const PasswordPrompt& reason) const
+    const std::string& workflowID) const
 {
     auto output = ChequeData{nullptr, api_.Factory().UnitDefinition()};
     auto& [cheque, contract] = output;
@@ -207,8 +206,7 @@ Activity::ChequeData Activity::Cheque(
 
     OT_ASSERT(workflow)
 
-    auto instantiated =
-        client::Workflow::InstantiateCheque(api_, *workflow, reason);
+    auto instantiated = client::Workflow::InstantiateCheque(api_, *workflow);
     cheque.reset(std::get<1>(instantiated).release());
 
     OT_ASSERT(cheque)
@@ -216,7 +214,7 @@ Activity::ChequeData Activity::Cheque(
     const auto& unit = cheque->GetInstrumentDefinitionID();
 
     try {
-        contract = api_.Wallet().UnitDefinition(unit, reason);
+        contract = api_.Wallet().UnitDefinition(unit);
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load unit definition contract.")
@@ -229,8 +227,7 @@ Activity::ChequeData Activity::Cheque(
 Activity::TransferData Activity::Transfer(
     const identifier::Nym& nym,
     [[maybe_unused]] const std::string& id,
-    const std::string& workflowID,
-    const PasswordPrompt& reason) const
+    const std::string& workflowID) const
 {
     auto output = TransferData{nullptr, api_.Factory().UnitDefinition()};
     auto& [transfer, contract] = output;
@@ -268,8 +265,7 @@ Activity::TransferData Activity::Transfer(
 
     OT_ASSERT(workflow)
 
-    auto instantiated =
-        client::Workflow::InstantiateTransfer(api_, *workflow, reason);
+    auto instantiated = client::Workflow::InstantiateTransfer(api_, *workflow);
     transfer.reset(std::get<1>(instantiated).release());
 
     OT_ASSERT(transfer)
@@ -294,7 +290,7 @@ Activity::TransferData Activity::Transfer(
     }
 
     try {
-        contract = api_.Wallet().UnitDefinition(unit, reason);
+        contract = api_.Wallet().UnitDefinition(unit);
     } catch (...) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to load unit definition contract.")
@@ -348,8 +344,7 @@ bool Activity::MoveIncomingBlockchainTransaction(
 std::unique_ptr<Message> Activity::Mail(
     const identifier::Nym& nym,
     const Identifier& id,
-    const StorageBox& box,
-    const PasswordPrompt& reason) const
+    const StorageBox& box) const
 {
     std::string raw, alias;
     const bool loaded =
@@ -374,8 +369,7 @@ std::unique_ptr<Message> Activity::Mail(
 
     OT_ASSERT(output);
 
-    if (false ==
-        output->LoadContractFromString(String::Factory(raw.c_str()), reason)) {
+    if (false == output->LoadContractFromString(String::Factory(raw.c_str()))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deserialize message ")(
             id)
             .Flush();
@@ -408,7 +402,7 @@ std::string Activity::Mail(
         participantNymID = mail.m_strNymID2->Get();
     }
 
-    const auto contact = nym_to_contact(reason, participantNymID);
+    const auto contact = nym_to_contact(participantNymID);
 
     OT_ASSERT(contact);
 
@@ -521,7 +515,7 @@ bool Activity::MarkUnread(
     return api_.Storage().SetReadState(nym, thread, item, true);
 }
 
-void Activity::MigrateLegacyThreads(const PasswordPrompt& reason) const
+void Activity::MigrateLegacyThreads() const
 {
     eLock lock(shared_lock_);
     std::set<std::string> contacts{};
@@ -555,18 +549,11 @@ void Activity::MigrateLegacyThreads(const PasswordPrompt& reason) const
                 const auto nymCount = thread->participant().size();
 
                 if (1 == nymCount) {
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto paymentCode = api_.Factory().PaymentCode("", reason);
-#endif
+                    auto paymentCode = api_.Factory().PaymentCode("");
                     auto newContact = contact_.NewContact(
                         "",
-                        identifier::Nym::Factory(originalThreadID)
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                            ,
-                        paymentCode
-#endif
-                        ,
-                        reason);
+                        identifier::Nym::Factory(originalThreadID),
+                        paymentCode);
 
                     OT_ASSERT(newContact);
 
@@ -583,20 +570,18 @@ void Activity::MigrateLegacyThreads(const PasswordPrompt& reason) const
 }
 
 std::shared_ptr<const Contact> Activity::nym_to_contact(
-    const PasswordPrompt& reason,
     const std::string& id) const
 {
     const auto nymID = identifier::Nym::Factory(id);
-    const auto contactID = contact_.NymToContact(nymID, reason);
+    const auto contactID = contact_.NymToContact(nymID);
 
-    return contact_.Contact(contactID, reason);
+    return contact_.Contact(contactID);
 }
 
 std::shared_ptr<const std::string> Activity::PaymentText(
     const identifier::Nym& nym,
     const std::string& id,
-    const std::string& workflowID,
-    const PasswordPrompt& reason) const
+    const std::string& workflowID) const
 {
     std::shared_ptr<std::string> output;
     auto [type, state] =
@@ -647,7 +632,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            auto chequeData = Cheque(nym, id, workflowID, reason);
+            auto chequeData = Cheque(nym, id, workflowID);
             const auto& [cheque, contract] = chequeData;
 
             OT_ASSERT(cheque)
@@ -668,7 +653,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
-            auto transferData = Transfer(nym, id, workflowID, reason);
+            auto transferData = Transfer(nym, id, workflowID);
             const auto& [transfer, contract] = transferData;
 
             OT_ASSERT(transfer)
@@ -702,7 +687,7 @@ void Activity::preload(
     const Identifier& id,
     const StorageBox box) const
 {
-    const auto message = Mail(nymID, id, box, reason);
+    const auto message = Mail(nymID, id, box);
 
     if (!message) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load message ")(id)
@@ -711,7 +696,7 @@ void Activity::preload(
         return;
     }
 
-    auto nym = api_.Wallet().Nym(nymID, reason);
+    auto nym = api_.Wallet().Nym(nymID);
 
     if (false == bool(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load recipent nym.")
@@ -864,10 +849,8 @@ std::string Activity::ThreadPublisher(const identifier::Nym& nym) const
     return endpoint;
 }
 
-ObjectList Activity::Threads(
-    const identifier::Nym& nym,
-    const PasswordPrompt& reason,
-    const bool unreadOnly) const
+ObjectList Activity::Threads(const identifier::Nym& nym, const bool unreadOnly)
+    const
 {
     const std::string nymID = nym.str();
     auto output = api_.Storage().ThreadList(nymID, unreadOnly);
@@ -877,8 +860,7 @@ ObjectList Activity::Threads(
         auto& label = it.second;
 
         if (label.empty()) {
-            auto contact =
-                contact_.Contact(Identifier::Factory(threadID), reason);
+            auto contact = contact_.Contact(Identifier::Factory(threadID));
 
             if (contact) {
                 const auto& name = contact->Label();

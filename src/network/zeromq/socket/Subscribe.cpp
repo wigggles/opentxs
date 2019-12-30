@@ -68,7 +68,12 @@ void Subscribe::process_incoming(const Lock& lock, Message& message) noexcept
     LogDetail(OT_METHOD)(__FUNCTION__)(
         ": Incoming messaged received. Triggering callback.")
         .Flush();
-    callback_.Process(message);
+    try {
+        callback_.Process(message);
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Callback failed").Flush();
+    }
+
     LogDetail(OT_METHOD)(__FUNCTION__)(" Done.").Flush();
 }
 

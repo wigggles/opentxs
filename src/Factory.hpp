@@ -16,14 +16,13 @@ public:
     static opentxs::Armored* Armored();
     static opentxs::Armored* Armored(const opentxs::Data& input);
     static opentxs::Armored* Armored(const opentxs::String& input);
-    static opentxs::Armored* Armored(const opentxs::OTEnvelope& input);
+    static opentxs::Armored* Armored(const opentxs::crypto::Envelope& input);
     static identity::internal::Authority* Authority(
         const api::internal::Core& api,
         const identity::Nym& parent,
         const identity::Source& source,
         const proto::KeyMode mode,
-        const proto::Authority& serialized,
-        const opentxs::PasswordPrompt& reason);
+        const proto::Authority& serialized);
     static identity::internal::Authority* Authority(
         const api::internal::Core& api,
         const identity::Nym& parent,
@@ -55,7 +54,6 @@ public:
 #endif
     );
     static ui::implementation::AccountListRowInternal* AccountListItem(
-        const opentxs::PasswordPrompt& reason,
         const ui::implementation::AccountListInternalInterface& parent,
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
@@ -77,7 +75,6 @@ public:
 #endif
     );
     static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
-        const opentxs::PasswordPrompt& reason,
         const ui::implementation::IssuerItemInternalInterface& parent,
         const api::client::internal::Manager& api,
         const network::zeromq::socket::Publish& publisher,
@@ -153,8 +150,7 @@ public:
     static auto BailmentNotice(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::BailmentNotice>;
     static auto BailmentReply(
         const api::internal::Core& api,
@@ -168,8 +164,7 @@ public:
     static auto BailmentReply(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerReply& serialized) noexcept
         -> std::shared_ptr<contract::peer::reply::Bailment>;
     static auto BailmentRequest(
         const api::internal::Core& api,
@@ -182,8 +177,7 @@ public:
     static auto BailmentRequest(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::Bailment>;
     static auto BasketContract(
         const api::internal::Core& api,
@@ -199,8 +193,7 @@ public:
     static auto BasketContract(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Basket>;
     static crypto::Bitcoin* Bitcoin(const api::Crypto& crypto);
     static auto Bip39(const api::Crypto& api) noexcept
@@ -717,8 +710,7 @@ public:
     static auto ConnectionReply(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerReply& serialized) noexcept
         -> std::shared_ptr<contract::peer::reply::Connection>;
     static auto ConnectionRequest(
         const api::internal::Core& api,
@@ -731,8 +723,7 @@ public:
     static auto ConnectionRequest(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::Connection>;
     static identity::credential::internal::Contact* ContactCredential(
         const api::internal::Core& api,
@@ -747,8 +738,7 @@ public:
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& credential,
-        const opentxs::PasswordPrompt& reason);
+        const proto::Credential& credential);
     static api::client::internal::Contacts* ContactAPI(
         const api::client::internal::Manager& api);
     static ui::implementation::ContactListRowInternal* ContactListItem(
@@ -837,8 +827,7 @@ public:
         const identity::credential::internal::Primary& master,
         const proto::Credential& serialized,
         const proto::KeyMode mode,
-        const proto::CredentialRole role,
-        const opentxs::PasswordPrompt& reason);
+        const proto::CredentialRole role);
     static api::Crypto* Crypto(const api::Settings& settings);
     static api::crypto::Config* CryptoConfig(const api::Settings& settings);
     static auto CurrencyContract(
@@ -858,8 +847,7 @@ public:
     static auto CurrencyContract(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Currency>;
     static network::zeromq::socket::Dealer* DealerSocket(
         const network::zeromq::Context& context,
@@ -878,8 +866,7 @@ public:
     static crypto::key::Ed25519* Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey,
-        const opentxs::PasswordPrompt& reason);
+        const proto::AsymmetricKey& serializedKey);
     static crypto::key::Ed25519* Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -904,6 +891,12 @@ public:
     static api::Endpoints* Endpoints(
         const network::zeromq::Context& zmq,
         const int instance);
+    static auto Envelope(const api::internal::Core& api) noexcept
+        -> std::unique_ptr<crypto::Envelope>;
+    static auto Envelope(
+        const api::internal::Core& api,
+        const proto::Envelope& serialized) noexcept(false)
+        -> std::unique_ptr<crypto::Envelope>;
     static api::internal::Factory* FactoryAPIClient(
         const api::client::internal::Manager& api);
     static api::internal::Factory* FactoryAPIServer(
@@ -973,22 +966,13 @@ public:
         const bool qt
 #endif
     );
-    static crypto::key::Keypair* Keypair();
-    static crypto::key::Keypair* Keypair(
+    static auto Keypair() noexcept -> std::unique_ptr<crypto::key::Keypair>;
+    static auto Keypair(
         const api::internal::Core& api,
-        const NymParameters& nymParameters,
-        const VersionNumber version,
         const proto::KeyRole role,
-        const opentxs::PasswordPrompt& reason);
-    static crypto::key::Keypair* Keypair(
-        const api::internal::Core& api,
-        const proto::AsymmetricKey& serializedPubkey,
-        const proto::AsymmetricKey& serializedPrivkey,
-        const opentxs::PasswordPrompt& reason);
-    static crypto::key::Keypair* Keypair(
-        const api::internal::Core& api,
-        const proto::AsymmetricKey& serializedPubkey,
-        const opentxs::PasswordPrompt& reason);
+        std::unique_ptr<crypto::key::Asymmetric> publicKey,
+        std::unique_ptr<crypto::key::Asymmetric> privateKey) noexcept(false)
+        -> std::unique_ptr<crypto::key::Keypair>;
     static api::Legacy* Legacy(const std::string& home);
     static api::internal::Log* Log(
         const network::zeromq::Context& zmq,
@@ -1052,8 +1036,7 @@ public:
     static auto NoticeAcknowledgement(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerReply& serialized) noexcept
         -> std::shared_ptr<contract::peer::reply::Acknowledgement>;
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT static auto NumericHash(const blockchain::block::Hash& hash)
@@ -1071,8 +1054,7 @@ public:
     OPENTXS_EXPORT static auto Nym(
         const api::internal::Core& api,
         const proto::Nym& serialized,
-        const std::string& alias,
-        const opentxs::PasswordPrompt& reason) -> identity::internal::Nym*;
+        const std::string& alias) -> identity::internal::Nym*;
     static internal::NymFile* NymFile(
         const api::internal::Core& core,
         Nym_p targetNym,
@@ -1083,8 +1065,7 @@ public:
         const opentxs::PasswordPrompt& reason);
     static identity::Source* NymIDSource(
         const api::internal::Core& api,
-        const proto::NymIDSource& serialized,
-        const opentxs::PasswordPrompt& reason);
+        const proto::NymIDSource& serialized);
     static crypto::OpenSSL* OpenSSL(const api::Crypto& crypto);
     OPENTXS_EXPORT static auto Operation(
         const api::client::internal::Manager& api,
@@ -1104,8 +1085,7 @@ public:
     static auto OutBailmentReply(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerReply& serialized) noexcept
         -> std::shared_ptr<contract::peer::reply::Outbailment>;
     static auto OutbailmentRequest(
         const api::internal::Core& api,
@@ -1120,8 +1100,7 @@ public:
     static auto OutbailmentRequest(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::Outbailment>;
     static api::client::OTX* OTX(
         const Flag& running,
@@ -1168,25 +1147,19 @@ public:
     static ui::PayableListQt* PayableListQtModel(
         ui::implementation::PayableList& parent);
 #endif
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    static opentxs::PaymentCode* PaymentCode(
+    static auto PaymentCode(
         const api::internal::Core& api,
-        const std::string& base58,
-        const opentxs::PasswordPrompt& reason);
-    static opentxs::PaymentCode* PaymentCode(
-        const api::internal::Core& api,
-        const proto::PaymentCode& serialized,
-        const opentxs::PasswordPrompt& reason);
-    static opentxs::PaymentCode* PaymentCode(
-        const api::internal::Core& api,
-        const std::string& seed,
-        const Bip32Index nym,
         const std::uint8_t version,
-        const opentxs::PasswordPrompt& reason,
-        const bool bitmessage = false,
-        const std::uint8_t bitmessageVersion = 0,
-        const std::uint8_t bitmessageStream = 0);
+        const bool hasBitmessage,
+        const ReadView pubkey,
+        const ReadView chaincode,
+        const std::uint8_t bitmessageVersion,
+        const std::uint8_t bitmessageStream
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        ,
+        std::unique_ptr<crypto::key::Secp256k1> key
 #endif
+        ) noexcept -> std::unique_ptr<opentxs::PaymentCode>;
     static ui::implementation::ActivityThreadRowInternal* PaymentItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::internal::Manager& api,
@@ -1198,38 +1171,32 @@ public:
     static opentxs::PeerObject* PeerObject(
         const api::internal::Core& api,
         const Nym_p& senderNym,
-        const std::string& message,
-        const opentxs::PasswordPrompt& reason);
+        const std::string& message);
     static opentxs::PeerObject* PeerObject(
         const api::internal::Core& api,
         const Nym_p& senderNym,
         const std::string& payment,
-        const bool isPayment,
-        const opentxs::PasswordPrompt& reason);
+        const bool isPayment);
 #if OT_CASH
     static opentxs::PeerObject* PeerObject(
         const api::internal::Core& api,
         const Nym_p& senderNym,
-        const std::shared_ptr<blind::Purse> purse,
-        const opentxs::PasswordPrompt& reason);
+        const std::shared_ptr<blind::Purse> purse);
 #endif
     static opentxs::PeerObject* PeerObject(
         const api::internal::Core& api,
         const OTPeerRequest request,
         const OTPeerReply reply,
-        const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
+        const VersionNumber version);
     static opentxs::PeerObject* PeerObject(
         const api::internal::Core& api,
         const OTPeerRequest request,
-        const VersionNumber version,
-        const opentxs::PasswordPrompt& reason);
+        const VersionNumber version);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
         const api::internal::Core& api,
         const Nym_p& signerNym,
-        const proto::PeerObject& serialized,
-        const opentxs::PasswordPrompt& reason);
+        const proto::PeerObject& serialized);
     static opentxs::PeerObject* PeerObject(
         const api::client::Contacts& contacts,
         const api::internal::Core& api,
@@ -1241,16 +1208,14 @@ public:
     static auto PeerReply(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerReply& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerReply& serialized) noexcept
         -> std::shared_ptr<contract::peer::Reply>;
     static auto PeerRequest(const api::Core& api) noexcept
         -> std::shared_ptr<contract::peer::Request>;
     static auto PeerRequest(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::Request>;
     static ui::implementation::ActivityThreadRowInternal* PendingSend(
         const ui::implementation::ActivityThreadInternalInterface& parent,
@@ -1276,8 +1241,7 @@ public:
         const api::internal::Core& api,
         identity::internal::Authority& parent,
         const identity::Source& source,
-        const proto::Credential& credential,
-        const opentxs::PasswordPrompt& reason);
+        const proto::Credential& credential);
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
         const api::client::internal::Manager& api,
@@ -1375,14 +1339,19 @@ public:
         const network::zeromq::Context& context);
     static rpc::internal::RPC* RPC(const api::Context& native);
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    static crypto::key::RSA* RSAKey(
+    static auto RSAKey(
         const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
-        const proto::AsymmetricKey& serializedKey);
-    static crypto::key::RSA* RSAKey(
+        const proto::AsymmetricKey& input) noexcept
+        -> std::unique_ptr<crypto::key::RSA>;
+    static auto RSAKey(
         const api::internal::Core& api,
         const crypto::AsymmetricProvider& engine,
-        const proto::KeyRole role);
+        const proto::KeyRole input,
+        const VersionNumber version,
+        const NymParameters& options,
+        const opentxs::PasswordPrompt& reason) noexcept
+        -> std::unique_ptr<crypto::key::RSA>;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
     static network::zeromq::socket::Router* RouterSocket(
         const network::zeromq::Context& context,
@@ -1401,8 +1370,7 @@ public:
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& credential,
-        const opentxs::PasswordPrompt& reason);
+        const proto::Credential& credential);
 #if OT_CRYPTO_USING_LIBSECP256K1
     static crypto::Secp256k1* Secp256k1(
         const api::Crypto& crypto,
@@ -1412,8 +1380,7 @@ public:
     static crypto::key::Secp256k1* Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
-        const proto::AsymmetricKey& serializedKey,
-        const opentxs::PasswordPrompt& reason);
+        const proto::AsymmetricKey& serializedKey);
     static crypto::key::Secp256k1* Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -1448,8 +1415,7 @@ public:
     static auto SecurityContract(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::unit::Security>;
     static api::client::ServerAction* ServerAction(
         const api::client::internal::Manager& api,
@@ -1484,8 +1450,7 @@ public:
     static auto ServerContract(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::ServerContract& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::ServerContract& serialized) noexcept
         -> std::unique_ptr<contract::Server>;
     static api::server::Manager* ServerManager(
         const api::internal::Context& parent,
@@ -1571,8 +1536,7 @@ public:
     static auto StoreSecret(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::PeerRequest& serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::PeerRequest& serialized) noexcept
         -> std::shared_ptr<contract::peer::request::StoreSecret>;
     static network::zeromq::socket::Subscribe* SubscribeSocket(
         const network::zeromq::Context& context,
@@ -1602,18 +1566,21 @@ public:
         const OTPassword& raw,
         const opentxs::PasswordPrompt& reason);
 #if OT_CASH
-    static blind::Token* Token(
+    static auto Token(const blind::Token& token, blind::Purse& purse) noexcept
+        -> std::unique_ptr<blind::Token>;
+    static auto Token(
         const api::internal::Core& api,
         blind::Purse& purse,
-        const proto::Token& serialized);
-    static blind::Token* Token(
+        const proto::Token& serialized) noexcept(false)
+        -> std::unique_ptr<blind::Token>;
+    static auto Token(
         const api::internal::Core& api,
         const identity::Nym& owner,
         const blind::Mint& mint,
         const std::uint64_t value,
         blind::Purse& purse,
-        const OTPassword& primaryPassword,
-        const OTPassword& secondaryPassword);
+        const opentxs::PasswordPrompt& reason) noexcept(false)
+        -> std::unique_ptr<blind::Token>;
 #endif
 #if OT_CRYPTO_USING_TREZOR
     OPENTXS_EXPORT static auto Trezor(const api::Crypto& crypto)
@@ -1632,8 +1599,7 @@ public:
     static auto UnitDefinition(
         const api::internal::Core& api,
         const Nym_p& nym,
-        const proto::UnitDefinition serialized,
-        const opentxs::PasswordPrompt& reason) noexcept
+        const proto::UnitDefinition serialized) noexcept
         -> std::shared_ptr<contract::Unit>;
     static identity::credential::internal::Verification* VerificationCredential(
         const api::internal::Core& api,
@@ -1648,8 +1614,7 @@ public:
         identity::internal::Authority& parent,
         const identity::Source& source,
         const identity::credential::internal::Primary& master,
-        const proto::Credential& credential,
-        const opentxs::PasswordPrompt& reason);
+        const proto::Credential& credential);
     static identity::wot::verification::internal::Group* VerificationGroup(
         identity::wot::verification::internal::Set& parent,
         const VersionNumber version,

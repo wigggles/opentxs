@@ -7,10 +7,17 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/Bytes.hpp"
+
 namespace opentxs::crypto::sodium
 {
 auto ExpandSeed(
-    const OTPassword& seed,
-    OTPassword& privateKey,
-    Data& publicKey) noexcept -> bool;
+    const ReadView seed,
+    const AllocateOutput privateKey,
+    const AllocateOutput publicKey) noexcept -> bool;
+auto ToCurveKeypair(
+    const ReadView edPrivate,
+    const ReadView edPublic,
+    const AllocateOutput curvePrivate,
+    const AllocateOutput curvePublic) noexcept -> bool;
 }  // namespace opentxs::crypto::sodium

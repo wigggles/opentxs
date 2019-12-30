@@ -41,13 +41,11 @@
             primary,
             active);
     }
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     std::string PaymentCode(const int currency) const
     {
         return $self->PaymentCode(
             static_cast<opentxs::proto::ContactItemType>(currency));
     }
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     std::string SocialMediaProfiles(
         const int type,
         bool active = true) const
@@ -88,7 +86,6 @@
             active,
             reason);
     }
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddPaymentCode(
         const std::string& code,
         const int currency,
@@ -103,7 +100,6 @@
             active,
             reason);
     }
-#endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddSocialMediaProfile(
         const std::string& value,
         const int type,
@@ -216,14 +212,12 @@ public:
         const bool primary,
         const bool active,
         const PasswordPrompt& reason);
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     OPENTXS_EXPORT bool AddPaymentCode(
         const std::string& code,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active,
         const PasswordPrompt& reason);
-#endif
     OPENTXS_EXPORT bool AddPhoneNumber(
         const std::string& value,
         const bool primary,

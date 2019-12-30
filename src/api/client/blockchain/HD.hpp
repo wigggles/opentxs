@@ -36,15 +36,13 @@ private:
         const internal::BalanceNode& parent,
         const client::internal::Blockchain& api,
         const opentxs::blockchain::Type chain,
-        const SerializedType& in,
-        const PasswordPrompt& reason) noexcept(false);
+        const SerializedType& in) noexcept(false);
     static std::vector<Activity> extract_incoming(const SerializedType& in);
     static AddressMap extract_internal(
         const internal::BalanceNode& parent,
         const client::internal::Blockchain& api,
         const opentxs::blockchain::Type chain,
-        const SerializedType& in,
-        const PasswordPrompt& reason) noexcept(false);
+        const SerializedType& in) noexcept(false);
     static std::vector<Activity> extract_outgoing(const SerializedType& in);
 
     bool check_activity(

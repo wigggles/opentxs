@@ -38,8 +38,7 @@ private:
 
     static Nym_p extract_nym(
         const api::internal::Core& api,
-        const proto::ServerReply serialized,
-        const PasswordPrompt& reason);
+        const proto::ServerReply serialized);
 
     Reply* clone() const noexcept final { return new Reply(*this); }
     OTIdentifier GetID(const Lock& lock) const final;
@@ -49,11 +48,9 @@ private:
     OTData Serialize() const final;
     proto::ServerReply signature_version(const Lock& lock) const;
     bool update_signature(const Lock& lock, const PasswordPrompt& reason) final;
-    bool validate(const Lock& lock, const PasswordPrompt& reason) const final;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const final;
+    bool validate(const Lock& lock) const final;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const final;
 
     Reply(
         const api::internal::Core& api,
@@ -64,10 +61,7 @@ private:
         const RequestNumber number,
         const bool success,
         std::shared_ptr<const proto::OTXPush>&& push);
-    Reply(
-        const api::internal::Core& api,
-        const proto::ServerReply serialized,
-        const PasswordPrompt& reason);
+    Reply(const api::internal::Core& api, const proto::ServerReply serialized);
     Reply() = delete;
     Reply(const Reply& rhs);
     Reply(Reply&& rhs) = delete;

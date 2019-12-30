@@ -167,7 +167,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
     Ledger& nymbox,
     Identifier& nymboxHash) const
 {
-    if (false == nymbox.LoadNymbox(reason_)) {
+    if (false == nymbox.LoadNymbox()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading nymbox.").Flush();
 
         return false;
@@ -176,9 +176,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
     bool success = true;
     success &= nymbox.VerifyContractID();
 
-    if (success) {
-        success &= nymbox.VerifySignature(server_.GetServerNym(), reason_);
-    }
+    if (success) { success &= nymbox.VerifySignature(server_.GetServerNym()); }
 
     if (false == success) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error veryfying nymbox.").Flush();
@@ -262,8 +260,8 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
 
     OT_ASSERT(nymbox);
 
-    if (nymbox->LoadNymbox(reason_) &&
-        nymbox->VerifySignature(server_.GetServerNym(), reason_)) {
+    if (nymbox->LoadNymbox() &&
+        nymbox->VerifySignature(server_.GetServerNym())) {
         bool bIsDirtyNymbox = false;
 
         for (auto& it : numlist_ack_reply) {
@@ -342,7 +340,7 @@ bool UserCommandProcessor::check_client_nym(ReplyMessage& reply) const
     const auto& msgIn = reply.Original();
     const auto& nym = reply.Context().RemoteNym();
 
-    if (false == msgIn.VerifySignature(nym, reason_)) {
+    if (false == msgIn.VerifySignature(nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Unable to verify message signature.")
             .Flush();
@@ -384,13 +382,13 @@ bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
 
     const auto serialized =
         proto::StringToProto<proto::AsymmetricKey>(msgIn.m_strNymPublicKey);
-    auto nymAuthentKey = manager_.Factory().AsymmetricKey(serialized, reason_);
+    auto nymAuthentKey = manager_.Factory().AsymmetricKey(serialized);
 
     if (false == bool(nymAuthentKey.get())) { return false; }
 
     // Not all contracts are signed with the authentication key, but messages
     // are.
-    if (!msgIn.VerifyWithKey(nymAuthentKey, reason_)) {
+    if (!msgIn.VerifyWithKey(nymAuthentKey)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Signature verification failed!")
             .Flush();
 
@@ -520,8 +518,7 @@ bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
     reply.SetSuccess(true);
-    auto nym = server_.API().Wallet().Nym(
-        identifier::Nym::Factory(targetNym), reason_);
+    auto nym = server_.API().Wallet().Nym(identifier::Nym::Factory(targetNym));
 
     if (nym) {
         reply.SetPayload(manager_.Factory().Data(nym->asPublicNym()));
@@ -569,9 +566,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
         return false;
     }
 
-    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(serverNym, reason_));
-    std::unique_ptr<Ledger> outbox(
-        account.get().LoadOutbox(serverNym, reason_));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(serverNym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(serverNym));
 
     if (false == bool(inbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -612,8 +608,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     const auto& contractID = account.get().GetInstrumentDefinitionID();
 
     try {
-        const auto contract =
-            server_.API().Wallet().UnitDefinition(contractID, reason_);
+        const auto contract = server_.API().Wallet().UnitDefinition(contractID);
 
         if (contract->Type() == proto::UNITTYPE_SECURITY) {
             if (false == contract->EraseAccountRecord(
@@ -639,7 +634,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     auto& theAccountSet = nymfile.get().GetSetAssetAccounts();
     theAccountSet.erase(String::Factory(accountID)->Get());
     account.Release();
-    server_.API().Wallet().DeleteAccount(accountID, reason_);
+    server_.API().Wallet().DeleteAccount(accountID);
     reply.DropToNymbox(false);
 
     return true;
@@ -863,7 +858,7 @@ bool UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
         return false;
     }
 
-    box->LoadBoxReceipt(number, reason_);
+    box->LoadBoxReceipt(number);
     // The above call will replace transaction, inside box, with the full
     // version (instead of the abbreviated version) of that transaction, meaning
     // that the transaction pointer is now a bad pointer, if that call was
@@ -908,7 +903,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         // try everything
         try {
             const auto unitDefiniton =
-                server_.API().Wallet().UnitDefinition(unitID, reason_);
+                server_.API().Wallet().UnitDefinition(unitID);
             serialized =
                 manager_.Factory().Data(unitDefiniton->PublicContract());
             reply.SetPayload(serialized);
@@ -917,8 +912,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         }
 
         try {
-            const auto server =
-                server_.API().Wallet().Server(serverID, reason_);
+            const auto server = server_.API().Wallet().Server(serverID);
             serialized = manager_.Factory().Data(server->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
@@ -927,7 +921,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         } catch (...) {
         }
     } else if (ContractType::nym == static_cast<ContractType>(msgIn.enum_)) {
-        auto contract = server_.API().Wallet().Nym(nymID, reason_);
+        auto contract = server_.API().Wallet().Nym(nymID);
 
         if (contract) {
             serialized = manager_.Factory().Data(contract->asPublicNym());
@@ -936,8 +930,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         }
     } else if (ContractType::server == static_cast<ContractType>(msgIn.enum_)) {
         try {
-            const auto contract =
-                server_.API().Wallet().Server(serverID, reason_);
+            const auto contract = server_.API().Wallet().Server(serverID);
             serialized = manager_.Factory().Data(contract->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
@@ -947,8 +940,7 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         }
     } else if (ContractType::unit == static_cast<ContractType>(msgIn.enum_)) {
         try {
-            const auto contract =
-                server_.API().Wallet().UnitDefinition(unitID, reason_);
+            const auto contract = server_.API().Wallet().UnitDefinition(unitID);
             serialized = manager_.Factory().Data(contract->PublicContract());
             reply.SetPayload(serialized);
             reply.SetBool(true);
@@ -1321,7 +1313,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
 
         try {
             server_.API().Wallet().UnitDefinition(
-                identifier::UnitDefinition::Factory(subcontractID), reason_);
+                identifier::UnitDefinition::Factory(subcontractID));
         } catch (...) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Missing subcurrency ")(
                 subcontractID)(".")
@@ -1379,8 +1371,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     }
 
     try {
-        const auto contract =
-            server_.API().Wallet().UnitDefinition(serialized, reason_);
+        const auto contract = server_.API().Wallet().UnitDefinition(serialized);
         const auto contractID = identifier::UnitDefinition::Factory(
             contract->ID()->str());  // TODO conversion
         reply.SetInstrumentDefinitionID(String::Factory(contractID));
@@ -1474,8 +1465,8 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
         return false;
     }
 
-    if (false == input->LoadLedgerFromString(
-                     String::Factory(msgIn.m_ascPayload), reason_)) {
+    if (false ==
+        input->LoadLedgerFromString(String::Factory(msgIn.m_ascPayload))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load input ledger.")
             .Flush();
 
@@ -1578,8 +1569,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    if (false == input->LoadLedgerFromString(
-                     String::Factory(msgIn.m_ascPayload), reason_)) {
+    if (false ==
+        input->LoadLedgerFromString(String::Factory(msgIn.m_ascPayload))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load input ledger.")
             .Flush();
 
@@ -1667,9 +1658,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
 
     auto& responseTransaction = *pResponseTrans;
     bool transactionSuccess{false};
-    std::unique_ptr<Ledger> pInbox(account.get().LoadInbox(serverNym, reason_));
-    std::unique_ptr<Ledger> pOutbox(
-        account.get().LoadOutbox(serverNym, reason_));
+    std::unique_ptr<Ledger> pInbox(account.get().LoadInbox(serverNym));
+    std::unique_ptr<Ledger> pOutbox(account.get().LoadOutbox(serverNym));
 
     if (false == bool(pInbox) || false == bool(pOutbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1750,8 +1740,8 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
         return false;
     }
 
-    if (false == input->LoadLedgerFromString(
-                     String::Factory(msgIn.m_ascPayload), reason_)) {
+    if (false ==
+        input->LoadLedgerFromString(String::Factory(msgIn.m_ascPayload))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load input ledger.")
             .Flush();
 
@@ -1844,7 +1834,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         if (0 == status.compare("exists")) {
             try {
                 server_.API().Wallet().UnitDefinition(
-                    identifier::UnitDefinition::Factory(unitID), reason_);
+                    identifier::UnitDefinition::Factory(unitID));
 
                 newMap[unitID] = "true";
             } catch (...) {
@@ -1891,7 +1881,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     try {
         const auto contract = server_.API().Wallet().UnitDefinition(
-            account.get().GetInstrumentDefinitionID(), reason_);
+            account.get().GetInstrumentDefinitionID());
 
         if (contract->Type() == proto::UNITTYPE_SECURITY) {
             // The instrument definition keeps a list of all accounts for that
@@ -1921,13 +1911,13 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     OT_ASSERT(outbox);
     OT_ASSERT(inbox);
 
-    bool inboxLoaded = inbox->LoadInbox(reason_);
-    bool outboxLoaded = outbox->LoadOutbox(reason_);
+    bool inboxLoaded = inbox->LoadInbox();
+    bool outboxLoaded = outbox->LoadOutbox();
 
     // ...or generate them otherwise...
 
     if (inboxLoaded) {
-        inboxLoaded = inbox->VerifyAccount(serverNym, reason_);
+        inboxLoaded = inbox->VerifyAccount(serverNym);
     } else {
         inboxLoaded = inbox->CreateLedger(
             nymID, accountID, serverID, ledgerType::inbox, true);
@@ -1945,7 +1935,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     }
 
     if (true == outboxLoaded) {
-        outboxLoaded = outbox->VerifyAccount(serverNym, reason_);
+        outboxLoaded = outbox->VerifyAccount(serverNym);
     } else {
         outboxLoaded = outbox->CreateLedger(
             nymID, accountID, serverID, ledgerType::outbox, true);
@@ -2003,13 +1993,13 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
         case (ContractType::nym): {
             const auto nym =
                 proto::Factory<proto::Nym>(Data::Factory(msgIn.m_ascPayload));
-            reply.SetSuccess(bool(server_.API().Wallet().Nym(nym, reason_)));
+            reply.SetSuccess(bool(server_.API().Wallet().Nym(nym)));
         } break;
         case (ContractType::server): {
             const auto server = proto::Factory<proto::ServerContract>(
                 Data::Factory(msgIn.m_ascPayload));
             try {
-                server_.API().Wallet().Server(server, reason_);
+                server_.API().Wallet().Server(server);
                 reply.SetSuccess(true);
             } catch (const std::exception& e) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
@@ -2020,8 +2010,7 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
             try {
                 server_.API().Wallet().UnitDefinition(
                     proto::Factory<proto::UnitDefinition>(
-                        Data::Factory(msgIn.m_ascPayload)),
-                    reason_);
+                        Data::Factory(msgIn.m_ascPayload)));
                 reply.SetSuccess(true);
             } catch (const std::exception& e) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
@@ -2051,7 +2040,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     // Make sure the contract isn't already available on this server.
     try {
-        server_.API().Wallet().UnitDefinition(contractID, reason_);
+        server_.API().Wallet().UnitDefinition(contractID);
         LogOutput(OT_METHOD)(__FUNCTION__)(": Instrument definition ")(
             contractID)(" already exists.")
             .Flush();
@@ -2070,8 +2059,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     }
 
     try {
-        const auto contract =
-            server_.API().Wallet().UnitDefinition(serialized, reason_);
+        const auto contract = server_.API().Wallet().UnitDefinition(serialized);
 
         if (contract->ID() != contractID) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": ID mismatch.").Flush();
@@ -2138,7 +2126,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     auto serialized = proto::Factory<proto::Nym>(
         Data::Factory(reply.Original().m_ascPayload));
-    auto sender_nym = server_.API().Wallet().Nym(serialized, reason_);
+    auto sender_nym = server_.API().Wallet().Nym(serialized);
 
     if (false == bool(sender_nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid nym: ")(msgIn.m_strNymID)(
@@ -2150,7 +2138,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     LogDebug(OT_METHOD)(__FUNCTION__)(": Nym verified!").Flush();
 
-    if (false == msgIn.VerifySignature(*sender_nym, reason_)) {
+    if (false == msgIn.VerifySignature(*sender_nym)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature ")(
             sender_nym->ID())(".")
             .Flush();
@@ -2479,8 +2467,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
         return {};
     }
 
-    if (false == nymbox->GenerateLedger(
-                     nymID, server, ledgerType::nymbox, reason_, true)) {
+    if (false ==
+        nymbox->GenerateLedger(nymID, server, ledgerType::nymbox, true)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to generate nymbox for ")(
             nymID)(".")
             .Flush();
@@ -2520,12 +2508,12 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
 
     OT_ASSERT(theNymbox);
 
-    bool bSuccessLoadingNymbox = theNymbox->LoadNymbox(reason_);
+    bool bSuccessLoadingNymbox = theNymbox->LoadNymbox();
 
     if (true == bSuccessLoadingNymbox) {
         bSuccessLoadingNymbox =
             (theNymbox->VerifyContractID() &&
-             theNymbox->VerifySignature(serverNym, reason_));
+             theNymbox->VerifySignature(serverNym));
     }
 
     if (!bSuccessLoadingNymbox) {
@@ -2674,7 +2662,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
         return {};
     }
 
-    if (false == inbox->LoadInbox(reason_)) {
+    if (false == inbox->LoadInbox()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load inbox for ")(
             nymID)(".")
             .Flush();
@@ -2713,7 +2701,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
         return {};
     }
 
-    if (false == nymbox->LoadNymbox(reason_)) {
+    if (false == nymbox->LoadNymbox()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load nymbox for ")(
             nymID)(".")
             .Flush();
@@ -2763,7 +2751,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
         return {};
     }
 
-    if (false == outbox->LoadOutbox(reason_)) {
+    if (false == outbox->LoadOutbox()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load outbox for ")(
             nymID)(".")
             .Flush();
@@ -3071,7 +3059,7 @@ bool UserCommandProcessor::verify_box(
     }
 
     if (full) {
-        if (false == box.VerifyAccount(nym, reason_)) {
+        if (false == box.VerifyAccount(nym)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to verify box for ")(
                 ownerID)(".")
                 .Flush();
@@ -3079,7 +3067,7 @@ bool UserCommandProcessor::verify_box(
             return false;
         }
     } else {
-        if (false == box.VerifySignature(nym, reason_)) {
+        if (false == box.VerifySignature(nym)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Unable to verify signature for ")(ownerID)(".")
                 .Flush();
@@ -3101,6 +3089,6 @@ bool UserCommandProcessor::verify_transaction(
 
     if (false == transaction->VerifyContractID()) { return false; }
 
-    return transaction->VerifySignature(signer, reason_);
+    return transaction->VerifySignature(signer);
 }
 }  // namespace opentxs::server

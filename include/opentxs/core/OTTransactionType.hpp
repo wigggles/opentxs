@@ -104,9 +104,7 @@ public:
     // This calls VerifyContractID() as well as VerifySignature()
     // Use this instead of Contract::VerifyContract, which expects/uses a
     // pubkey from inside the contract.
-    virtual bool VerifyAccount(
-        const identity::Nym& theNym,
-        const PasswordPrompt& reason);
+    virtual bool VerifyAccount(const identity::Nym& theNym);
 
     void InitTransactionType();
     void Release() override;
@@ -116,24 +114,16 @@ public:
     OPENTXS_EXPORT std::int64_t GetTransactionNum() const;
     void SetTransactionNum(std::int64_t lTransactionNum);
 
-    OPENTXS_EXPORT virtual void CalculateNumberOfOrigin(
-        const PasswordPrompt& reason);  // Calculates number of
-                                        // origin.
-    OPENTXS_EXPORT virtual std::int64_t GetNumberOfOrigin(
-        const PasswordPrompt& reason);  // Calculates IF
-                                        // NECESSARY.
+    OPENTXS_EXPORT virtual void CalculateNumberOfOrigin();
+    OPENTXS_EXPORT virtual std::int64_t GetNumberOfOrigin();
 
     OPENTXS_EXPORT std::int64_t GetRawNumberOfOrigin() const;  // Gets WITHOUT
                                                                // calculating.
 
     OPENTXS_EXPORT void SetNumberOfOrigin(std::int64_t lTransactionNum);
-    OPENTXS_EXPORT void SetNumberOfOrigin(
-        OTTransactionType& setFrom,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
 
-    OPENTXS_EXPORT bool VerifyNumberOfOrigin(
-        OTTransactionType& compareTo,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
     // --------------------------------------------------------
     originType GetOriginType() const;  // NOTE: used for GUI display purposes
                                        // only.

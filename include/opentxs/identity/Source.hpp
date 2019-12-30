@@ -27,8 +27,7 @@ public:
         noexcept = 0;
     OPENTXS_EXPORT virtual bool Verify(
         const proto::Credential& master,
-        const proto::Signature& sourceSignature,
-        const PasswordPrompt& reason) const noexcept = 0;
+        const proto::Signature& sourceSignature) const noexcept = 0;
     OPENTXS_EXPORT virtual bool Sign(
         const identity::credential::Primary& credential,
         proto::Signature& sig,

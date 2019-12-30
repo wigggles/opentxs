@@ -7,6 +7,9 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Log.hpp"
+#include "opentxs/Bytes.hpp"
+
 #include <array>
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -64,4 +67,32 @@ blockchain::Type Translate(const proto::ContactItemType type) noexcept
     }
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+
+auto reader(const Space& in) noexcept -> ReadView
+{
+    return {reinterpret_cast<const char*>(in.data()), in.size()};
+}
+auto space(const std::size_t size) noexcept -> Space
+{
+    auto output = Space{};
+    output.assign(size, std::byte{51});
+
+    return output;
+}
+auto writer(std::string& in) noexcept -> AllocateOutput
+{
+    return [&in](const auto size) -> WritableView {
+        in.resize(size, 51);
+
+        return {in.data(), in.size()};
+    };
+}
+auto writer(Space& in) noexcept -> AllocateOutput
+{
+    return [&in](const auto size) -> WritableView {
+        in.resize(size, std::byte{51});
+
+        return {in.data(), in.size()};
+    };
+}
 }  // namespace opentxs

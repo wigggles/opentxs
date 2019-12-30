@@ -73,8 +73,7 @@ auto Factory::ConnectionReply(
 auto Factory::ConnectionReply(
     const api::internal::Core& api,
     const Nym_p& nym,
-    const proto::PeerReply& serialized,
-    const opentxs::PasswordPrompt& reason) noexcept
+    const proto::PeerReply& serialized) noexcept
     -> std::shared_ptr<contract::peer::reply::Connection>
 {
     if (false == proto::Validate(serialized, VERBOSE)) {
@@ -93,7 +92,7 @@ auto Factory::ConnectionReply(
         auto& contract = *output;
         Lock lock(contract.lock_);
 
-        if (false == contract.validate(lock, reason)) {
+        if (false == contract.validate(lock)) {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid reply.")
                 .Flush();
 

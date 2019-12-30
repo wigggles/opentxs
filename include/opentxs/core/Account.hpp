@@ -89,11 +89,9 @@ public:
     // For accounts used by smart contracts, to stash funds while running.
     OPENTXS_EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
     OPENTXS_EXPORT std::unique_ptr<Ledger> LoadInbox(
-        const identity::Nym& nym,
-        const PasswordPrompt& reason) const;
+        const identity::Nym& nym) const;
     OPENTXS_EXPORT std::unique_ptr<Ledger> LoadOutbox(
-        const identity::Nym& nym,
-        const PasswordPrompt& reason) const;
+        const identity::Nym& nym) const;
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
     OPENTXS_EXPORT bool VerifyOwner(const identity::Nym& candidate) const;
@@ -105,12 +103,8 @@ public:
     // Credit a certain amount from the account (presumably the same amount is
     // being subtracted somewhere)
     OPENTXS_EXPORT bool Credit(const Amount amount);
-    OPENTXS_EXPORT bool GetInboxHash(
-        Identifier& output,
-        const PasswordPrompt& reason);
-    OPENTXS_EXPORT bool GetOutboxHash(
-        Identifier& output,
-        const PasswordPrompt& reason);
+    OPENTXS_EXPORT bool GetInboxHash(Identifier& output);
+    OPENTXS_EXPORT bool GetOutboxHash(Identifier& output);
     OPENTXS_EXPORT bool InitBoxes(
         const identity::Nym& signer,
         const PasswordPrompt& reason);
@@ -169,8 +163,7 @@ private:
     static Account* LoadExistingAccount(
         const api::internal::Core& api,
         const Identifier& accountId,
-        const identifier::Server& notaryID,
-        const PasswordPrompt& reason);
+        const identifier::Server& notaryID);
 
     bool SaveContractWallet(Tag& parent) const override;
 
@@ -189,14 +182,10 @@ private:
         std::int64_t stashTransNum = 0);
     void InitAccount();
     // overriding this so I can set filename automatically inside based on ID.
-    bool LoadContract(const PasswordPrompt& reason) override;
-    bool LoadContractFromString(
-        const String& theStr,
-        const PasswordPrompt& reason) override;
+    bool LoadContract() override;
+    bool LoadContractFromString(const String& theStr) override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void Release() override;
     void Release_Account();
     // generates filename based on accounts path and account ID. Saves to the

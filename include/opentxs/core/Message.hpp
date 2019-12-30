@@ -72,9 +72,7 @@ private:
 class Message final : public Contract
 {
 protected:
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) final;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) final;
 
     void UpdateContents(const PasswordPrompt& reason) final;
 
@@ -120,18 +118,16 @@ public:
         const identity::Nym& theNym,
         const PasswordPrompt& reason) final;
     OPENTXS_EXPORT bool VerifySignature(
-        const identity::Nym& theNym,
-        const PasswordPrompt& reason) const final;
+        const identity::Nym& theNym) const final;
 
     OPENTXS_EXPORT bool HarvestTransactionNumbers(
         ServerContext& context,
-        bool bHarvestingForRetry,     // false until positively asserted.
-        bool bReplyWasSuccess,        // false until positively asserted.
-        bool bReplyWasFailure,        // false until positively asserted.
-        bool bTransactionWasSuccess,  // false until positively asserted.
-        bool bTransactionWasFailure,
-        const PasswordPrompt& reason) const;  // false until positively
-                                              // asserted.
+        bool bHarvestingForRetry,            // false until positively asserted.
+        bool bReplyWasSuccess,               // false until positively asserted.
+        bool bReplyWasFailure,               // false until positively asserted.
+        bool bTransactionWasSuccess,         // false until positively asserted.
+        bool bTransactionWasFailure) const;  // false until positively
+                                             // asserted.
 
     // So the message can get the list of numbers from the Nym, before sending,
     // that should be listed as acknowledged that the server reply has already

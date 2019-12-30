@@ -61,8 +61,12 @@ bool OpenDHT::Init() const
                 static_cast<unsigned short>(listenPort),
                 dht::crypto::generateIdentity(),
                 true);
-        } catch (dht::DhtException& e) {
+        } catch (const std::exception& e) {
             std::cout << e.what() << std::endl;
+
+            return false;
+        } catch (...) {
+            std::cout << "opendht error" << std::endl;
 
             return false;
         }
@@ -74,8 +78,12 @@ bool OpenDHT::Init() const
         node_->bootstrap(
             config_->bootstrap_url_.c_str(), config_->bootstrap_port_.c_str());
         ready_->On();
-    } catch (std::invalid_argument& e) {
+    } catch (const std::exception& e) {
         std::cout << e.what() << std::endl;
+
+        return false;
+    } catch (...) {
+        std::cout << "opendht error" << std::endl;
 
         return false;
     }
@@ -92,22 +100,28 @@ void OpenDHT::Insert(
         if (!Init()) { return; }
     }
 
-    dht::InfoHash infoHash = dht::InfoHash::get(
-        reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
+    try {
+        dht::InfoHash infoHash = dht::InfoHash::get(
+            reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
 
-    std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
-        reinterpret_cast<const std::uint8_t*>(value.c_str()), value.size());
+        std::shared_ptr<dht::Value> pValue = std::make_shared<dht::Value>(
+            reinterpret_cast<const std::uint8_t*>(value.c_str()), value.size());
 
-    if (!pValue) { return; }
+        if (!pValue) { return; }
 
-    if (value.size() > dht::MAX_VALUE_SIZE) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error: data size exceeds DHT limits.")
-            .Flush();
-        return;
+        if (value.size() > dht::MAX_VALUE_SIZE) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Error: data size exceeds DHT limits.")
+                .Flush();
+            return;
+        }
+
+        node_->put(infoHash, pValue, cb);
+    } catch (const std::exception& e) {
+        std::cout << e.what() << std::endl;
+    } catch (...) {
+        std::cout << "opendht error" << std::endl;
     }
-
-    node_->put(infoHash, pValue, cb);
 }
 
 void OpenDHT::Retrieve(
@@ -119,29 +133,36 @@ void OpenDHT::Retrieve(
         if (!Init()) { return; }
     }
 
-    // The OpenDHT get method wants a lambda function that accepts an
-    // OpenDHT-specific type as an argument. I don't consumers of this class
-    // to need to include OpenDHT headers. Solution: this lambda performs
-    // the translation
-    dht::GetCallback cb(
-        [vcb](const std::vector<std::shared_ptr<dht::Value>> results) -> bool {
-            DhtResults input;
+    try {
+        // The OpenDHT get method wants a lambda function that accepts an
+        // OpenDHT-specific type as an argument. I don't consumers of this class
+        // to need to include OpenDHT headers. Solution: this lambda performs
+        // the translation
+        dht::GetCallback cb(
+            [vcb](const std::vector<std::shared_ptr<dht::Value>> results)
+                -> bool {
+                DhtResults input;
 
-            for (const auto& it : results) {
-                if (nullptr == it) { continue; }
+                for (const auto& it : results) {
+                    if (nullptr == it) { continue; }
 
-                input.emplace(
-                    input.end(),
-                    new std::string(it->data.begin(), it->data.end()));
-            }
+                    input.emplace(
+                        input.end(),
+                        new std::string(it->data.begin(), it->data.end()));
+                }
 
-            return vcb(input);
-        });
+                return vcb(input);
+            });
 
-    dht::InfoHash infoHash = dht::InfoHash::get(
-        reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
+        dht::InfoHash infoHash = dht::InfoHash::get(
+            reinterpret_cast<const std::uint8_t*>(key.c_str()), key.size());
 
-    node_->get(infoHash, cb, dcb, dht::Value::AllFilter());
+        node_->get(infoHash, cb, dcb, dht::Value::AllFilter());
+    } catch (const std::exception& e) {
+        std::cout << e.what() << std::endl;
+    } catch (...) {
+        std::cout << "opendht error" << std::endl;
+    }
 }
 
 OpenDHT::~OpenDHT()

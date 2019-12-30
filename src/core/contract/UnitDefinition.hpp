@@ -87,8 +87,7 @@ protected:
 
     virtual SerializedType IDVersion(const Lock& lock) const;
     virtual SerializedType SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock, const PasswordPrompt& reason)
-        const override;
+    bool validate(const Lock& lock) const override;
 
     bool update_signature(const Lock& lock, const PasswordPrompt& reason)
         override;
@@ -116,10 +115,8 @@ private:
 
     SerializedType contract(const Lock& lock) const;
     OTIdentifier GetID(const Lock& lock) const override;
-    bool verify_signature(
-        const Lock& lock,
-        const proto::Signature& signature,
-        const PasswordPrompt& reason) const override;
+    bool verify_signature(const Lock& lock, const proto::Signature& signature)
+        const override;
 
     Unit(Unit&&) = delete;
     Unit& operator=(const Unit&) = delete;

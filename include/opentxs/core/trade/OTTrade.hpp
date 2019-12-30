@@ -162,8 +162,7 @@ public:
     //
     bool VerifyNymAsAgent(
         const identity::Nym& nym,
-        const identity::Nym& signerNym,
-        const PasswordPrompt& reason) const override;
+        const identity::Nym& signerNym) const override;
 
     bool VerifyNymAsAgentForAccount(
         const identity::Nym& nym,
@@ -174,9 +173,7 @@ public:
     void Release() override;
     std::int64_t GetClosingNumber(const Identifier& acctId) const override;
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(
-        irr::io::IrrXMLReader*& xml,
-        const PasswordPrompt& reason) override;
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents(const PasswordPrompt& reason)
         override;  // Before transmission or

@@ -127,14 +127,13 @@ bool NymFile::CompareID(const identifier::Nym& rhs) const
 bool NymFile::DeserializeNymFile(
     const String& strNym,
     bool& converted,
-    const PasswordPrompt& reason,
     String::Map* pMapCredentials,
     const OTPassword* pImportPassword)
 {
     sLock lock(shared_lock_);
 
     return deserialize_nymfile(
-        lock, strNym, converted, pMapCredentials, reason, pImportPassword);
+        lock, strNym, converted, pMapCredentials, pImportPassword);
 }
 
 template <typename T>
@@ -143,7 +142,6 @@ bool NymFile::deserialize_nymfile(
     const String& strNym,
     bool& converted,
     String::Map* pMapCredentials,
-    const PasswordPrompt& reason,
     const OTPassword* pImportPassword)
 {
     OT_ASSERT(verify_lock(lock));
@@ -307,7 +305,7 @@ bool NymFile::deserialize_nymfile(
                                     OT_ASSERT(false != bool(pMessage));
 
                                     if (pMessage->LoadContractFromString(
-                                            strMessage, reason)) {
+                                            strMessage)) {
                                         std::shared_ptr<Message> message{
                                             pMessage.release()};
                                         m_dequeOutpayments.push_back(message);
@@ -495,7 +493,7 @@ bool NymFile::load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
     auto theNymFile =
         api_.Factory().SignedFile(String::Factory(api_.Legacy().Nym()), nymID);
 
-    if (!theNymFile->LoadFile(reason)) {
+    if (!theNymFile->LoadFile()) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Failed loading a signed nymfile: ")(nymID)
             .Flush();
@@ -519,7 +517,7 @@ bool NymFile::load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
 
     const auto& publicSignKey = signer_nym_->GetPublicSignKey();
 
-    if (!theNymFile->VerifyWithKey(publicSignKey, reason)) {
+    if (!theNymFile->VerifyWithKey(publicSignKey)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed verifying signature on nymfile: ")(nymID)(
             ". Signer Nym ID: ")(signer_nym_->ID())(".")
@@ -542,7 +540,7 @@ bool NymFile::load_signed_nymfile(const T& lock, const PasswordPrompt& reason)
 
     bool converted = false;
     const bool loaded = deserialize_nymfile(
-        lock, theNymFile->GetFilePayload(), converted, nullptr, reason);
+        lock, theNymFile->GetFilePayload(), converted, nullptr);
 
     if (!loaded) { return false; }
 

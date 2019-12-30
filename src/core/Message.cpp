@@ -312,12 +312,11 @@ std::string Message::ReplyCommand(const MessageType type)
 
 bool Message::HarvestTransactionNumbers(
     ServerContext& context,
-    bool bHarvestingForRetry,     // false until positively asserted.
-    bool bReplyWasSuccess,        // false until positively asserted.
-    bool bReplyWasFailure,        // false until positively asserted.
-    bool bTransactionWasSuccess,  // false until positively asserted.
-    bool bTransactionWasFailure,
-    const PasswordPrompt& reason) const  // false until positively asserted.
+    bool bHarvestingForRetry,           // false until positively asserted.
+    bool bReplyWasSuccess,              // false until positively asserted.
+    bool bReplyWasFailure,              // false until positively asserted.
+    bool bTransactionWasSuccess,        // false until positively asserted.
+    bool bTransactionWasFailure) const  // false until positively asserted.
 {
 
     const auto MSG_NYM_ID = identifier::Nym::Factory(m_strNymID);
@@ -335,8 +334,7 @@ bool Message::HarvestTransactionNumbers(
                      // load a messsage
                      // ledger from *this.
 
-    if (!strLedger->Exists() ||
-        !theLedger->LoadLedgerFromString(strLedger, reason)) {
+    if (!strLedger->Exists() || !theLedger->LoadLedgerFromString(strLedger)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR: Failed trying to load message ledger: ")(strLedger)(".")
             .Flush();
@@ -392,8 +390,7 @@ bool Message::HarvestTransactionNumbers(
             bReplyWasSuccess,
             bReplyWasFailure,
             bTransactionWasSuccess,
-            bTransactionWasFailure,
-            reason);
+            bTransactionWasFailure);
 
         // We grab the closing numbers no matter what (whether message
         // succeeded or failed.)
@@ -410,8 +407,7 @@ bool Message::HarvestTransactionNumbers(
             bReplyWasSuccess,
             bReplyWasFailure,
             bTransactionWasSuccess,
-            bTransactionWasFailure,
-            reason);
+            bTransactionWasFailure);
     }
 
     return true;
@@ -503,9 +499,7 @@ bool Message::updateContentsByType(Tag& parent)
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
-std::int32_t Message::ProcessXMLNode(
-    irr::io::IrrXMLReader*& xml,
-    const PasswordPrompt& reason)
+std::int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -640,9 +634,7 @@ bool Message::SignContract(
 }
 
 // virtual (Contract)
-bool Message::VerifySignature(
-    const identity::Nym& theNym,
-    const PasswordPrompt& reason) const
+bool Message::VerifySignature(const identity::Nym& theNym) const
 {
     // Messages, unlike many contracts, use the authentication key instead of
     // the signing key. This is because signing keys are meant for signing
@@ -657,7 +649,7 @@ bool Message::VerifySignature(
     // probably be
     // the same way. (Maybe it already is, by the time you are reading this.)
     //
-    return VerifySigAuthent(theNym, reason);
+    return VerifySigAuthent(theNym);
 }
 
 // Unlike other contracts, which do not change over time, and thus calculate

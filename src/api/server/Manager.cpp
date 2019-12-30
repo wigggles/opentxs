@@ -594,13 +594,13 @@ std::shared_ptr<blind::Mint> Manager::verify_mint(
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    if (false == mint->LoadMint(reason_, seriesID.c_str())) {
+    if (false == mint->LoadMint(seriesID.c_str())) {
         UpdateMint(Factory().UnitID(unitID));
 
         return {};
     }
 
-    if (false == mint->VerifyMint(server_.GetServerNym(), reason_)) {
+    if (false == mint->VerifyMint(server_.GetServerNym())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mint for ")(unitID)
             .Flush();
 

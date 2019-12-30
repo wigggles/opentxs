@@ -189,10 +189,8 @@ auto LMDB::Delete(const Table table, MDB_txn* parent) const noexcept -> bool
     return cleanup.success_;
 }
 
-auto LMDB::Delete(
-    const Table table,
-    const std::string_view index,
-    MDB_txn* parent) const noexcept -> bool
+auto LMDB::Delete(const Table table, const ReadView index, MDB_txn* parent)
+    const noexcept -> bool
 {
     struct Cleanup {
         bool success_;
@@ -243,8 +241,8 @@ auto LMDB::Delete(
 
 auto LMDB::Delete(
     const Table table,
-    const std::string_view index,
-    const std::string_view data,
+    const ReadView index,
+    const ReadView data,
     MDB_txn* parent) const noexcept -> bool
 {
     struct Cleanup {
@@ -351,8 +349,8 @@ auto LMDB::init_tables(const TablesToInit init) noexcept -> void
     }
 }
 
-auto LMDB::Exists(const Table table, const std::string_view index) const
-    noexcept -> bool
+auto LMDB::Exists(const Table table, const ReadView index) const noexcept
+    -> bool
 {
     struct Cleanup {
         bool success_;
@@ -414,7 +412,7 @@ auto LMDB::Exists(const Table table, const std::string_view index) const
 
 auto LMDB::Load(
     const Table table,
-    const std::string_view index,
+    const ReadView index,
     const Callback cb,
     const Mode multiple) const noexcept -> bool
 {
@@ -507,15 +505,15 @@ auto LMDB::Load(
 {
     return Load(
         table,
-        std::string_view{reinterpret_cast<const char*>(&index), sizeof(index)},
+        ReadView{reinterpret_cast<const char*>(&index), sizeof(index)},
         cb,
         mode);
 }
 
 auto LMDB::Queue(
     const Table table,
-    const std::string_view key,
-    const std::string_view value,
+    const ReadView key,
+    const ReadView value,
     const Mode mode) const noexcept -> bool
 {
     OT_ASSERT(static_cast<std::size_t>(table) < db_.size());
@@ -616,8 +614,8 @@ auto LMDB::Read(const Table table, const ReadCallback cb, const Dir dir) const
 
 auto LMDB::Store(
     const Table table,
-    const std::string_view index,
-    const std::string_view data,
+    const ReadView index,
+    const ReadView data,
     MDB_txn* parent,
     const Flags flags) const noexcept -> Result
 {
@@ -677,13 +675,13 @@ auto LMDB::Store(
 auto LMDB::Store(
     const Table table,
     const std::size_t index,
-    const std::string_view data,
+    const ReadView data,
     MDB_txn* parent,
     const Flags flags) const noexcept -> Result
 {
     return Store(
         table,
-        std::string_view{reinterpret_cast<const char*>(&index), sizeof(index)},
+        ReadView{reinterpret_cast<const char*>(&index), sizeof(index)},
         data,
         parent,
         flags);

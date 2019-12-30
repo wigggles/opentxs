@@ -172,7 +172,7 @@ void Notary::cancel_cheque(
         return;
     }
 
-    if (false == cheque.VerifySignature(context.RemoteNym(), reason_)) {
+    if (false == cheque.VerifySignature(context.RemoteNym())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid cheque signature.")
             .Flush();
 
@@ -324,7 +324,7 @@ void Notary::deposit_cheque(
 
             OT_ASSERT(senderInbox);
 
-            const auto inboxLoaded = senderInbox->LoadInbox(reason_);
+            const auto inboxLoaded = senderInbox->LoadInbox();
 
             if (false == inboxLoaded) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -334,8 +334,7 @@ void Notary::deposit_cheque(
                 return;
             }
 
-            if (false ==
-                senderInbox->VerifyAccount(server_.GetServerNym(), reason_)) {
+            if (false == senderInbox->VerifyAccount(server_.GetServerNym())) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed to verify sender inbox.")
                     .Flush();
@@ -355,7 +354,7 @@ void Notary::deposit_cheque(
 
             OT_ASSERT(senderOutbox);
 
-            const auto outboxLoaded = senderOutbox->LoadOutbox(reason_);
+            const auto outboxLoaded = senderOutbox->LoadOutbox();
 
             if (false == outboxLoaded) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -365,8 +364,7 @@ void Notary::deposit_cheque(
                 return;
             }
 
-            if (false ==
-                senderOutbox->VerifyAccount(server_.GetServerNym(), reason_)) {
+            if (false == senderOutbox->VerifyAccount(server_.GetServerNym())) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed to verify sender outbox.")
                     .Flush();
@@ -496,7 +494,7 @@ void Notary::deposit_cheque(
         return;
     }
 
-    if (false == cheque.VerifySignature(senderContext.RemoteNym(), reason_)) {
+    if (false == cheque.VerifySignature(senderContext.RemoteNym())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature on cheque.")
             .Flush();
 
@@ -631,7 +629,7 @@ std::unique_ptr<Cheque> Notary::extract_cheque(
 
     OT_ASSERT(cheque);
 
-    bool loadedCheque = cheque->LoadContractFromString(serialized, reason_);
+    bool loadedCheque = cheque->LoadContractFromString(serialized);
 
     if (false == loadedCheque) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load cheque.").Flush();
@@ -776,7 +774,7 @@ void Notary::NotarizeTransfer(
             pItem->GetTransactionNum());  // This response item is IN RESPONSE
                                           // to
                                           // pItem and its Owner Transaction.
-        pResponseItem->SetNumberOfOrigin(*pItem, reason_);
+        pResponseItem->SetNumberOfOrigin(*pItem);
 
         pResponseBalanceItem->SetReferenceString(
             strBalanceItem);  // the response item carries a copy of what it's
@@ -785,7 +783,7 @@ void Notary::NotarizeTransfer(
             pItem->GetTransactionNum());  // This response item is IN RESPONSE
                                           // to
                                           // pItem and its Owner Transaction.
-        pResponseBalanceItem->SetNumberOfOrigin(*pItem, reason_);
+        pResponseBalanceItem->SetNumberOfOrigin(*pItem);
 
         // Set the ID on the To Account based on what the transaction request
         // said. (So we can load it up.)
@@ -885,19 +883,19 @@ void Notary::NotarizeTransfer(
 
             OT_ASSERT(recipientInbox);
 
-            bool bSuccessLoadingInbox = recipientInbox->LoadInbox(reason_);
+            bool bSuccessLoadingInbox = recipientInbox->LoadInbox();
 
             // Needed for push notifications
             {
-                bSuccessLoadingInbox &= recipientOutbox->LoadOutbox(reason_);
+                bSuccessLoadingInbox &= recipientOutbox->LoadOutbox();
 
                 if (bSuccessLoadingInbox) {
-                    bSuccessLoadingInbox &= recipientOutbox->VerifyAccount(
-                        server_.GetServerNym(), reason_);
+                    bSuccessLoadingInbox &=
+                        recipientOutbox->VerifyAccount(server_.GetServerNym());
                 }
             }
 
-            bool bSuccessLoadingOutbox = theFromOutbox->LoadOutbox(reason_);
+            bool bSuccessLoadingOutbox = theFromOutbox->LoadOutbox();
             // ...or generate them otherwise...
 
             // NOTE:
@@ -923,8 +921,8 @@ void Notary::NotarizeTransfer(
             // basically fits the bill.
 
             if (true == bSuccessLoadingInbox) {
-                bSuccessLoadingInbox = recipientInbox->VerifyAccount(
-                    server_.GetServerNym(), reason_);
+                bSuccessLoadingInbox =
+                    recipientInbox->VerifyAccount(server_.GetServerNym());
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Error loading 'to' inbox.")
@@ -932,8 +930,8 @@ void Notary::NotarizeTransfer(
             }
 
             if (true == bSuccessLoadingOutbox) {
-                bSuccessLoadingOutbox = theFromOutbox->VerifyAccount(
-                    server_.GetServerNym(), reason_);
+                bSuccessLoadingOutbox =
+                    theFromOutbox->VerifyAccount(server_.GetServerNym());
             } else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading 'from' "
                                                    "outbox.")
@@ -995,18 +993,18 @@ void Notary::NotarizeTransfer(
                 pTEMPOutboxTransaction->SetReferenceString(strInReferenceTo);
                 pTEMPOutboxTransaction->SetReferenceToNum(
                     pItem->GetTransactionNum());
-                pTEMPOutboxTransaction->SetNumberOfOrigin(*pItem, reason_);
+                pTEMPOutboxTransaction->SetNumberOfOrigin(*pItem);
                 // the new transactions store a record of the item they're
                 // referring to.
                 pOutboxTransaction->SetReferenceString(strInReferenceTo);
                 pOutboxTransaction->SetReferenceToNum(
                     pItem->GetTransactionNum());
-                pOutboxTransaction->SetNumberOfOrigin(*pItem, reason_);
+                pOutboxTransaction->SetNumberOfOrigin(*pItem);
 
                 // todo put these two together in a method.
                 inboxTransaction->SetReferenceString(strInReferenceTo);
                 inboxTransaction->SetReferenceToNum(pItem->GetTransactionNum());
-                inboxTransaction->SetNumberOfOrigin(*pItem, reason_);
+                inboxTransaction->SetNumberOfOrigin(*pItem);
 
                 // Now we have created 2 new transactions from the server to the
                 // users' boxes
@@ -1417,8 +1415,7 @@ void Notary::NotarizeWithdrawal(
                 manager_.Factory().Cheque(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
 
             bool bLoadContractFromString =
-                theVoucherRequest->LoadContractFromString(
-                    strVoucherRequest, reason_);
+                theVoucherRequest->LoadContractFromString(strVoucherRequest);
 
             if (!bLoadContractFromString) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1870,8 +1867,7 @@ void Notary::NotarizePayDividend(
         pItem->GetAttachment(strVoucherRequest);
         pItem->GetNote(strItemNote);
         const bool bLoadContractFromString =
-            theVoucherRequest->LoadContractFromString(
-                strVoucherRequest, reason_);
+            theVoucherRequest->LoadContractFromString(strVoucherRequest);
 
         if (!bLoadContractFromString) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1903,7 +1899,7 @@ void Notary::NotarizePayDividend(
                 const Identifier& SHARES_INSTRUMENT_DEFINITION_ID =
                     theVoucherRequest->GetInstrumentDefinitionID();
                 auto pSharesContract = manager_.Wallet().UnitDefinition(
-                    theVoucherRequest->GetInstrumentDefinitionID(), reason_);
+                    theVoucherRequest->GetInstrumentDefinitionID());
                 auto sharesIssuerAccount = manager_.Wallet().mutable_Account(
                     SHARES_ISSUER_ACCT_ID, reason_);
                 const auto& purportedID = context.RemoteNym().ID();
@@ -1922,7 +1918,7 @@ void Notary::NotarizePayDividend(
                         ": ERROR only the issuer (")(strNymID)(
                         ") of contract ")(strSharesType)(") may pay dividends.")
                         .Flush();
-                } else if (!pSharesContract->Validate(reason_)) {
+                } else if (!pSharesContract->Validate()) {
                     const auto strSharesType =
                         String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1951,7 +1947,7 @@ void Notary::NotarizePayDividend(
                         "payout): ")(strSharesType)
                         .Flush();
                 } else if (!sharesIssuerAccount.get().VerifyAccount(
-                               server_.GetServerNym(), reason_)) {
+                               server_.GetServerNym())) {
                     const auto strIssuerAcctID =
                         String::Factory(SHARES_ISSUER_ACCT_ID);
                     LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -2767,8 +2763,7 @@ void Notary::NotarizePaymentPlan(
             OT_ASSERT(nullptr != pPlan);
 
             // If we failed to load the plan...
-            if ((false ==
-                 pPlan->LoadContractFromString(strPaymentPlan, reason_))) {
+            if ((false == pPlan->LoadContractFromString(strPaymentPlan))) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR loading payment plan from string: ")(
                     strPaymentPlan)
@@ -2919,8 +2914,8 @@ void Notary::NotarizePaymentPlan(
                             "cancellation.")
                             .Flush();
                     } else if (
-                        !bCancelling && !pPlan->VerifyAgreement(
-                                            rContext.get(), context, reason_)) {
+                        !bCancelling &&
+                        !pPlan->VerifyAgreement(rContext.get(), context)) {
                         LogOutput(OT_METHOD)(__FUNCTION__)(
                             ": ERROR verifying Sender and Recipient on Payment "
                             "Plan (against merchant and customer copies.)")
@@ -2930,8 +2925,8 @@ void Notary::NotarizePaymentPlan(
                     // We only have it here now in cases of cancellation (where
                     // VerifyAgreement isn't called.)
                     else if (
-                        bCancelling && !pPlan->VerifySignature(
-                                           *rContext.get().Nym(), reason_)) {
+                        bCancelling &&
+                        !pPlan->VerifySignature(*rContext.get().Nym())) {
                         LogNormal(OT_METHOD)(__FUNCTION__)(
                             ": ERROR verifying Recipient's signature on "
                             "Payment Plan.")
@@ -3034,7 +3029,7 @@ void Notary::NotarizePaymentPlan(
                             // VerifyContractID
                             // was already called in LoadExistingAccount().
                             else if (!pRecipientAcct->VerifySignature(
-                                         server_.GetServerNym(), reason_)) {
+                                         server_.GetServerNym())) {
                                 LogOutput(OT_METHOD)(__FUNCTION__)(
                                     ": ERROR verifying signature on the "
                                     "Recipient account.")
@@ -3280,9 +3275,9 @@ void Notary::NotarizePaymentPlan(
     }
 
     std::unique_ptr<Ledger> pInbox(
-        theDepositorAccount.get().LoadInbox(server_.GetServerNym(), reason_));
+        theDepositorAccount.get().LoadInbox(server_.GetServerNym()));
     std::unique_ptr<Ledger> pOutbox(
-        theDepositorAccount.get().LoadOutbox(server_.GetServerNym(), reason_));
+        theDepositorAccount.get().LoadOutbox(server_.GetServerNym()));
 
     theDepositorAccount.get().GetIdentifier(accountHash);
     AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
@@ -3420,8 +3415,7 @@ void Notary::NotarizeSmartContract(
             OT_ASSERT(false != bool(pContract));
 
             // If we failed to load the smart contract...
-            if ((false ==
-                 pContract->LoadContractFromString(strContract, reason_))) {
+            if ((false == pContract->LoadContractFromString(strContract))) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR loading smart contract from string: ")(strContract)
                     .Flush();
@@ -3605,7 +3599,7 @@ void Notary::NotarizeSmartContract(
                 */
                 else if (
                     bCancelling &&
-                    !pContract->VerifySignature(context.RemoteNym(), reason_)) {
+                    !pContract->VerifySignature(context.RemoteNym())) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": Failed verifying canceler signature while canceling "
                         "smart contract.")
@@ -4033,9 +4027,9 @@ void Notary::NotarizeSmartContract(
     }
 
     std::unique_ptr<Ledger> pInbox(
-        theActivatingAccount.get().LoadInbox(server_.GetServerNym(), reason_));
+        theActivatingAccount.get().LoadInbox(server_.GetServerNym()));
     std::unique_ptr<Ledger> pOutbox(
-        theActivatingAccount.get().LoadOutbox(server_.GetServerNym(), reason_));
+        theActivatingAccount.get().LoadOutbox(server_.GetServerNym()));
 
     theActivatingAccount.get().GetIdentifier(accountHash);
     AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
@@ -4210,8 +4204,7 @@ void Notary::NotarizeCancelCronItem(
                     (pCronItem->CanRemoveItemFromCron(context))) {
                     bSuccess = server_.Cron().RemoveCronItem(
                         pCronItem->GetTransactionNum(),
-                        manager_.Wallet().Nym(
-                            context.RemoteNym().ID(), reason_),
+                        manager_.Wallet().Nym(context.RemoteNym().ID()),
                         reason_);
                 }
 
@@ -4257,9 +4250,9 @@ void Notary::NotarizeCancelCronItem(
     }
 
     std::unique_ptr<Ledger> pInbox(
-        theAssetAccount.get().LoadInbox(server_.GetServerNym(), reason_));
+        theAssetAccount.get().LoadInbox(server_.GetServerNym()));
     std::unique_ptr<Ledger> pOutbox(
-        theAssetAccount.get().LoadOutbox(server_.GetServerNym(), reason_));
+        theAssetAccount.get().LoadOutbox(server_.GetServerNym()));
 
     theAssetAccount.get().GetIdentifier(accountHash);
     AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
@@ -4418,9 +4411,8 @@ void Notary::NotarizeExchangeBasket(
                     .Flush();
             } else if (
                 !strBasket->Exists() ||
-                !theRequestBasket->LoadContractFromString(strBasket, reason_) ||
-                !theRequestBasket->VerifySignature(
-                    context.RemoteNym(), reason_)) {
+                !theRequestBasket->LoadContractFromString(strBasket) ||
+                !theRequestBasket->VerifySignature(context.RemoteNym())) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Expected verifiable basket object to be attached to "
                     "exchangeBasket item.")
@@ -4451,7 +4443,7 @@ void Notary::NotarizeExchangeBasket(
                 // I call VerifySignature here since VerifyContractID was
                 // already called in LoadExistingAccount().
                 else if (!basketAccount.get().VerifySignature(
-                             server_.GetServerNym(), reason_)) {
+                             server_.GetServerNym())) {
                     LogOutput(OT_METHOD)(__FUNCTION__)(
                         ": ERROR verifying signature on the basket account")
                         .Flush();
@@ -4459,7 +4451,7 @@ void Notary::NotarizeExchangeBasket(
                     try {
                         // Now we get a pointer to its asset contract...
                         const auto basket = manager_.Wallet().BasketContract(
-                            BASKET_CONTRACT_ID, reason_);
+                            BASKET_CONTRACT_ID);
                         // Now let's load up the actual basket, from the actual
                         // asset contract.
                         std::int64_t currencies = basket->Currencies().size();
@@ -4599,8 +4591,7 @@ void Notary::NotarizeExchangeBasket(
                                         //
                                         auto pSubInbox =
                                             tempUserAccount.get().LoadInbox(
-                                                server_.GetServerNym(),
-                                                reason_);
+                                                server_.GetServerNym());
 
                                         if (false == bool(pSubInbox)) {
                                             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -4827,8 +4818,7 @@ void Notary::NotarizeExchangeBasket(
                                                 // ledger.
 
                                                 pInboxTransaction
-                                                    ->SetNumberOfOrigin(
-                                                        *pItem, reason_);
+                                                    ->SetNumberOfOrigin(*pItem);
 
                                                 // The "exchangeBasket request"
                                                 // Item is saved as the "In
@@ -5037,7 +5027,7 @@ void Notary::NotarizeExchangeBasket(
                                                          // ledger.
 
                                         pInboxTransaction->SetNumberOfOrigin(
-                                            *pItem, reason_);
+                                            *pItem);
 
                                         // The exchangeBasket request Item is
                                         // saved as a "in reference to" field,
@@ -5193,7 +5183,7 @@ void Notary::NotarizeExchangeBasket(
                                 .Flush();
                         }
                     } catch (...) {
-                        // FIXME
+                        // TODO handle error
                     }
                 }  // pBasket exists and signature verifies
             }      // theRequestBasket loaded properly.
@@ -5359,7 +5349,7 @@ void Notary::NotarizeMarketOffer(
             // First load the Trade up (from the string that was passed in
             // on the transaction item.)
             bool bLoadContractFromString =
-                pTrade->LoadContractFromString(strTrade, reason_);
+                pTrade->LoadContractFromString(strTrade);
 
             // If failed to load the trade...
             if (!bLoadContractFromString) {
@@ -5413,12 +5403,12 @@ void Notary::NotarizeMarketOffer(
             // I call VerifySignature here since VerifyContractID was
             // already called in LoadExistingAccount().
             else if (!currencyAccount.get().VerifySignature(
-                         server_.GetServerNym(), reason_)) {
+                         server_.GetServerNym())) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(
                     ": ERROR verifying signature on the Currency "
                     "account in Notary::NotarizeMarketOffer.")
                     .Flush();
-            } else if (!pTrade->VerifySignature(context.RemoteNym(), reason_)) {
+            } else if (!pTrade->VerifySignature(context.RemoteNym())) {
                 LogNormal(OT_METHOD)(__FUNCTION__)(
                     ": ERROR verifying signature on the Trade in "
                     "Notary::NotarizeMarketOffer")
@@ -5502,14 +5492,14 @@ void Notary::NotarizeMarketOffer(
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR getting offer string from trade: ")(strTrade)
                     .Flush();
-            } else if (!theOffer->LoadContractFromString(strOffer, reason_)) {
+            } else if (!theOffer->LoadContractFromString(strOffer)) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR loading offer from string: ")(strTrade)
                     .Flush();
             }
             // ...And then we use that same Nym to verify the signature on
             // the offer.
-            else if (!theOffer->VerifySignature(context.RemoteNym(), reason_)) {
+            else if (!theOffer->VerifySignature(context.RemoteNym())) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR verifying offer signature")
                     .Flush();
@@ -5618,9 +5608,9 @@ void Notary::NotarizeMarketOffer(
     }
 
     std::unique_ptr<Ledger> pInbox(
-        theAssetAccount.get().LoadInbox(server_.GetServerNym(), reason_));
+        theAssetAccount.get().LoadInbox(server_.GetServerNym()));
     std::unique_ptr<Ledger> pOutbox(
-        theAssetAccount.get().LoadOutbox(server_.GetServerNym(), reason_));
+        theAssetAccount.get().LoadOutbox(server_.GetServerNym()));
 
     theAssetAccount.get().GetIdentifier(accountHash);
     AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
@@ -5679,10 +5669,8 @@ void Notary::NotarizeTransaction(
     const auto strIDNym = String::Factory(NYM_ID);
     auto theFromAccount = manager_.Wallet().mutable_Account(
         tranIn.GetPurportedAccountID(), reason_);
-    std::unique_ptr<Ledger> pInbox(
-        theFromAccount.get().LoadInbox(serverNym, reason_));
-    std::unique_ptr<Ledger> pOutbox(
-        theFromAccount.get().LoadOutbox(serverNym, reason_));
+    std::unique_ptr<Ledger> pInbox(theFromAccount.get().LoadInbox(serverNym));
+    std::unique_ptr<Ledger> pOutbox(theFromAccount.get().LoadOutbox(serverNym));
 
     if (false == bool(pInbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5760,7 +5748,7 @@ void Notary::NotarizeTransaction(
             .Flush();
     }
     // Make sure I, the server, have signed this file.
-    else if (!theFromAccount.get().VerifySignature(serverNym, reason_)) {
+    else if (!theFromAccount.get().VerifySignature(serverNym)) {
         const auto idAcct =
             server_.API().Factory().Identifier(theFromAccount.get());
         const auto strIDAcct = String::Factory(idAcct);
@@ -6128,11 +6116,11 @@ bool Notary::NotarizeProcessNymbox(
     OT_ASSERT(false != bool(theNymbox));
 
     auto strNymID = String::Factory(NYM_ID);
-    bool bSuccessLoadingNymbox = theNymbox->LoadNymbox(reason_);
+    bool bSuccessLoadingNymbox = theNymbox->LoadNymbox();
 
     if (true == bSuccessLoadingNymbox) {
         bSuccessLoadingNymbox =
-            theNymbox->VerifyAccount(server_.GetServerNym(), reason_);
+            theNymbox->VerifyAccount(server_.GetServerNym());
     }
 
     pResponseBalanceItem.reset(manager_.Factory()
@@ -6827,7 +6815,7 @@ void Notary::NotarizeProcessInbox(
     pResponseBalanceItem->SetReferenceString(strBalanceItem);
     // This response item is IN RESPONSE to processInbox's balance agreement
     pResponseBalanceItem->SetReferenceToNum(pBalanceItem->GetTransactionNum());
-    pResponseBalanceItem->SetNumberOfOrigin(*pBalanceItem, reason_);
+    pResponseBalanceItem->SetNumberOfOrigin(*pBalanceItem);
 
     // This transaction accepts various incoming pending transfers. So when
     // it's all done, my balance will be higher. AND pending inbox items
@@ -7073,8 +7061,7 @@ void Notary::NotarizeProcessInbox(
                 auto pOriginalItem{manager_.Factory().Item(
                     strOriginalItem,
                     NOTARY_ID,
-                    serverTransaction.GetReferenceToNum(),
-                    reason_)};
+                    serverTransaction.GetReferenceToNum())};
 
                 if (false != bool(pOriginalItem)) {
                     // If pOriginalItem is acceptPending, that means the
@@ -7114,9 +7101,9 @@ void Notary::NotarizeProcessInbox(
 
                         OT_ASSERT(false != bool(theCheque));
 
-                        if (false == ((strCheque->GetLength() > 2) &&
-                                      theCheque->LoadContractFromString(
-                                          strCheque, reason_))) {
+                        if (false ==
+                            ((strCheque->GetLength() > 2) &&
+                             theCheque->LoadContractFromString(strCheque))) {
                             LogOutput(OT_METHOD)(__FUNCTION__)(
                                 ": ERROR loading cheque from string: ")(
                                 strCheque)
@@ -7158,8 +7145,7 @@ void Notary::NotarizeProcessInbox(
                     // outoing original transfer.)
                     else if (
                         itemType::acceptPending == pOriginalItem->GetType()) {
-                        const auto number =
-                            pOriginalItem->GetNumberOfOrigin(reason_);
+                        const auto number = pOriginalItem->GetNumberOfOrigin();
                         // IF it's actually there on theNym, then schedule
                         // it for removal. (Otherwise we'd end up improperly
                         // re-adding it.)
@@ -7398,7 +7384,7 @@ void Notary::NotarizeProcessInbox(
                                 // to.
         pResponseItem->SetReferenceToNum(
             pProcessInboxItem->GetTransactionNum());
-        pResponseItem->SetNumberOfOrigin(*pProcessInboxItem, reason_);
+        pResponseItem->SetNumberOfOrigin(*pProcessInboxItem);
 
         processInboxResponse.AddItem(pResponseItem);  // the Transaction's
                                                       // destructor will
@@ -7420,12 +7406,11 @@ void Notary::NotarizeProcessInbox(
 
         std::shared_ptr<OTTransaction> pServerTransaction = nullptr;
 
-        if (!theInbox->LoadInbox(reason_)) {
+        if (!theInbox->LoadInbox()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error loading inbox during processInbox.")
                 .Flush();
-        } else if (
-            false == theInbox->VerifyAccount(server_.GetServerNym(), reason_)) {
+        } else if (false == theInbox->VerifyAccount(server_.GetServerNym())) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Error verifying inbox during processInbox.")
                 .Flush();
@@ -7608,8 +7593,7 @@ void Notary::NotarizeProcessInbox(
             auto pOriginalItem{manager_.Factory().Item(
                 strOriginalItem,
                 NOTARY_ID,
-                pServerTransaction->GetReferenceToNum(),
-                reason_)};
+                pServerTransaction->GetReferenceToNum())};
 
             if (false != bool(pOriginalItem)) {
 
@@ -7765,10 +7749,8 @@ void Notary::NotarizeProcessInbox(
                     OT_ASSERT(false != bool(theFromOutbox));
                     OT_ASSERT(false != bool(theFromInbox));
 
-                    bool bSuccessLoadingInbox =
-                        theFromInbox->LoadInbox(reason_);
-                    bool bSuccessLoadingOutbox =
-                        theFromOutbox->LoadOutbox(reason_);
+                    bool bSuccessLoadingInbox = theFromInbox->LoadInbox();
+                    bool bSuccessLoadingOutbox = theFromOutbox->LoadOutbox();
 
                     // THE FROM INBOX -- We are adding an item
                     // here (acceptance of transfer),
@@ -7776,8 +7758,8 @@ void Notary::NotarizeProcessInbox(
                     // to, so we can add that record to it.
 
                     if (true == bSuccessLoadingInbox)
-                        bSuccessLoadingInbox = theFromInbox->VerifyAccount(
-                            server_.GetServerNym(), reason_);
+                        bSuccessLoadingInbox =
+                            theFromInbox->VerifyAccount(server_.GetServerNym());
                     else
                         LogOutput(OT_METHOD)(__FUNCTION__)(
                             ": ERROR missing 'from' "
@@ -7791,7 +7773,7 @@ void Notary::NotarizeProcessInbox(
 
                     if (true == bSuccessLoadingOutbox)
                         bSuccessLoadingOutbox = theFromOutbox->VerifyAccount(
-                            server_.GetServerNym(), reason_);
+                            server_.GetServerNym());
                     else  // If it does not already exist, that
                         // is an error condition. For now, log
                         // and fail.
@@ -7852,7 +7834,7 @@ void Notary::NotarizeProcessInbox(
                         // TODO? Decisions....
 
                         pInboxTransaction->SetNumberOfOrigin(
-                            *pProcessInboxItem, reason_);
+                            *pProcessInboxItem);
 
                         // Now we have created a new transaction
                         // from the server to the sender's inbox

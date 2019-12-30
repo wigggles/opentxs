@@ -10,11 +10,11 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Context.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/Envelope.hpp"
 #include "opentxs/OT.hpp"
 
 #include <sys/types.h>
@@ -97,7 +97,7 @@ opentxs::Armored* Factory::Armored(const String& input)
     return new implementation::Armored(input);
 }
 
-opentxs::Armored* Factory::Armored(const OTEnvelope& input)
+opentxs::Armored* Factory::Armored(const crypto::Envelope& input)
 {
     return new implementation::Armored(input);
 }
@@ -127,10 +127,10 @@ Armored::Armored(const Data& theValue)
 
 // assumes envelope contains encrypted data; grabs that data in base64-form onto
 // *this.
-Armored::Armored(const OTEnvelope& theEnvelope)
+Armored::Armored(const crypto::Envelope& theEnvelope)
     : Armored()
 {
-    theEnvelope.GetCiphertext(*this);
+    theEnvelope.Armored(*this);
 }
 
 // Copies (already encoded)
@@ -458,7 +458,7 @@ bool Armored::LoadFromString(
 }
 
 // Base64-encode
-bool Armored::SetData(const Data& theData, bool bLineBreaks)
+bool Armored::SetData(const Data& theData, bool)
 {
     Release();
 
