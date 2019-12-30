@@ -148,28 +148,22 @@ TEST_F(Test_Hash, HMAC_SHA2)
         const auto dataPassword = ot::Data::Factory(key, ot::Data::Mode::Hex);
         const auto expected256 = ot::Data::Factory(sha256, ot::Data::Mode::Hex);
         const auto expected512 = ot::Data::Factory(sha512, ot::Data::Mode::Hex);
-        auto password = ot::OTPassword{};
-        auto output256 = ot::OTPassword{};
-        auto output512 = ot::OTPassword{};
-        password.setMemory(dataPassword->data(), dataPassword->size());
-
-        ASSERT_TRUE(password.isMemory());
+        auto output256 = ot::Data::Factory();
+        auto output512 = ot::Data::Factory();
 
         EXPECT_TRUE(crypto_.Hash().HMAC(
-            ot::proto::HASHTYPE_SHA256, password, data, output256));
+            ot::proto::HASHTYPE_SHA256,
+            dataPassword->Bytes(),
+            data->Bytes(),
+            output256->WriteInto()));
         EXPECT_TRUE(crypto_.Hash().HMAC(
-            ot::proto::HASHTYPE_SHA512, password, data, output512));
+            ot::proto::HASHTYPE_SHA512,
+            dataPassword->Bytes(),
+            data->Bytes(),
+            output512->WriteInto()));
 
-        ASSERT_TRUE(output256.isMemory());
-        ASSERT_TRUE(output512.isMemory());
-
-        const auto data256 =
-            ot::Data::Factory(output256.getMemory(), output256.getMemorySize());
-        const auto data512 =
-            ot::Data::Factory(output512.getMemory(), output512.getMemorySize());
-
-        EXPECT_EQ(data256, expected256);
-        EXPECT_EQ(data512, expected512);
+        EXPECT_EQ(output256, expected256);
+        EXPECT_EQ(output512, expected512);
     }
 }
 }  // namespace

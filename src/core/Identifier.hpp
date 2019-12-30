@@ -35,10 +35,7 @@ public:
     std::string str() const final;
     const ID& Type() const final { return type_; }
 
-    bool CalculateDigest(
-        const opentxs::Data& dataInput,
-        const ID type = DefaultType) final;
-    bool CalculateDigest(const String& strInput, const ID type = DefaultType)
+    bool CalculateDigest(const ReadView bytes, const ID type = DefaultType)
         final;
     void SetString(const std::string& encoded) final;
     void SetString(const String& encoded) final;

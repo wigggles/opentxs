@@ -143,10 +143,8 @@ auto Context::calculate_id(
     auto preimage = api.Factory().Data();
     preimage->Assign(client->ID());
     preimage.get() += server->ID();
-    auto output = api.Factory().Identifier();
-    output->CalculateDigest(preimage);
 
-    return output;
+    return api.Factory().Identifier(preimage->Bytes());
 }
 
 bool Context::consume_available(

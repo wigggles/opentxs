@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Data.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -104,13 +105,8 @@ public:
     OPENTXS_EXPORT virtual const ID& Type() const = 0;
 
     OPENTXS_EXPORT virtual bool CalculateDigest(
-        const Data& input,
+        const ReadView bytes,
         const ID type = ID::blake2b) = 0;
-#ifndef SWIG
-    OPENTXS_EXPORT virtual bool CalculateDigest(
-        const String& input,
-        const ID type = ID::blake2b) = 0;
-#endif
     OPENTXS_EXPORT virtual void SetString(const std::string& encoded) = 0;
 #ifndef SWIG
     OPENTXS_EXPORT virtual void SetString(const String& encoded) = 0;

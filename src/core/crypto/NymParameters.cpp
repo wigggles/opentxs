@@ -47,7 +47,7 @@ NymParameters::NymParameters(
               : proto::SOURCEPROOFTYPE_SELF_SIGNATURE)
     , contact_data_(nullptr)
     , verification_set_(nullptr)
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     , entropy_(nullptr)
     , seed_("")
     , nym_(0)
@@ -55,7 +55,7 @@ NymParameters::NymParameters(
     , cred_index_(0)
     , default_(true)
     , use_auto_index_(true)
-#else  // OT_CRYPTO_SUPPORTED_KEY_HD
+#else  // OT_CRYPTO_WITH_BIP32
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     , nBits_(1024)
@@ -85,11 +85,11 @@ NymParameters::NymParameters(
     [[maybe_unused]] const int index) noexcept
     : NymParameters()
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     if (0 < seedID.size()) { SetSeed(seedID); }
 
     if (index >= 0) { SetNym(static_cast<Bip32Index>(index)); }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 }
 
 NymParameters::NymParameters(const NymParameters& rhs) noexcept
@@ -97,7 +97,7 @@ NymParameters::NymParameters(const NymParameters& rhs) noexcept
 {
     contact_data_ = rhs.contact_data_;
     verification_set_ = rhs.verification_set_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 
     if (rhs.entropy_) { entropy_.reset(new OTPassword(*rhs.entropy_)); }
 
@@ -151,36 +151,36 @@ auto NymParameters::credentialType() const -> proto::CredentialType
     return credentialType_;
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::CredIndex() const -> Bip32Index { return cred_index_; }
 auto NymParameters::Credset() const -> Bip32Index { return credset_; }
 auto NymParameters::Default() const -> bool { return default_; }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 auto NymParameters::DHParams() const -> ReadView { return reader(params_); }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::Entropy() const -> const std::unique_ptr<OTPassword>&
 {
     return entropy_;
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 auto NymParameters::keySize() const -> std::int32_t { return nBits_; }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::Nym() const -> Bip32Index { return nym_; }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 auto NymParameters::nymParameterType() const -> NymParameterType
 {
     return nymType_;
 }
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::Seed() const -> std::string { return seed_; }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 auto NymParameters::SourceProofType() const -> proto::SourceProofType
 {
     return sourceProofType_;
@@ -189,9 +189,9 @@ auto NymParameters::SourceType() const -> proto::SourceType
 {
     return sourceType_;
 }
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::UseAutoIndex() const -> bool { return use_auto_index_; }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 auto NymParameters::VerificationSet() const
     -> std::shared_ptr<proto::VerificationSet>
 {
@@ -204,7 +204,7 @@ auto NymParameters::SetContactData(const proto::ContactData& contactData)
     contact_data_.reset(new proto::ContactData(contactData));
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::SetCredIndex(const Bip32Index path) -> void
 {
     cred_index_ = path;
@@ -214,7 +214,7 @@ auto NymParameters::SetCredset(const Bip32Index path) -> void
     credset_ = path;
 }
 auto NymParameters::SetDefault(const bool in) -> void { default_ = in; }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 auto NymParameters::SetDHParams(const ReadView bytes) -> void
@@ -226,12 +226,12 @@ auto NymParameters::SetDHParams(const ReadView bytes) -> void
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::SetEntropy(const OTPassword& entropy) -> void
 {
     entropy_.reset(new OTPassword(entropy));
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 auto NymParameters::setKeySize(std::int32_t keySize) -> void
@@ -240,7 +240,7 @@ auto NymParameters::setKeySize(std::int32_t keySize) -> void
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::SetNym(const Bip32Index path) -> void
 {
     nym_ = path;
@@ -248,11 +248,11 @@ auto NymParameters::SetNym(const Bip32Index path) -> void
 }
 #endif
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::SetSeed(const std::string& seed) -> void { seed_ = seed; }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 auto NymParameters::SetUseAutoIndex(const bool use) -> void
 {
     use_auto_index_ = use;

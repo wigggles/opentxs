@@ -37,22 +37,6 @@ target_include_directories(
 )
 set_property(TARGET opentxs-crypto-library PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-if(TREZORCRYPTO_EXPORT)
-  add_library(
-    opentxs-crypto-library-trezor OBJECT
-    Trezor.cpp Trezor.hpp
-    "${opentxs_SOURCE_DIR}/include/opentxs/crypto/library/Trezor.hpp"
-  )
-  target_include_directories(
-    opentxs-crypto-library-trezor SYSTEM
-    PRIVATE "${opentxs_SOURCE_DIR}/deps/trezor/crypto"
-  )
-  set_property(
-    TARGET opentxs-crypto-library-trezor
-    PROPERTY POSITION_INDEPENDENT_CODE 1
-  )
-endif()
-
 if(LIBSECP256K1_EXPORT)
   add_library(
     opentxs-crypto-library-libsecp256k1 OBJECT

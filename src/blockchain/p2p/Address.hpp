@@ -62,6 +62,7 @@ private:
     std::set<Service> services_;
 
     static OTIdentifier calculate_id(
+        const api::internal::Core& api,
         const Data& bytes,
         const std::uint16_t port) noexcept;
 

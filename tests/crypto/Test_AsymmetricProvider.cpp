@@ -28,16 +28,16 @@ public:
         Data::Factory(plaintext_string_2_.data(), plaintext_string_2_.size())};
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     OTAsymmetricKey ed_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     OTAsymmetricKey ed_hd_;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     const crypto::AsymmetricProvider& ed25519_;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OTAsymmetricKey secp_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     OTAsymmetricKey secp_hd_;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     const crypto::AsymmetricProvider& secp256k1_;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -54,16 +54,16 @@ public:
               ""))
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         , ed_(get_key(client_, EcdsaCurve::ed25519))
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
         , ed_hd_(get_hd_key(client_, fingerprint_, EcdsaCurve::ed25519))
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
         , ed25519_(client_.Crypto().ED25519())
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         , secp_(get_key(client_, EcdsaCurve::secp256k1))
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
         , secp_hd_(get_hd_key(client_, fingerprint_, EcdsaCurve::secp256k1))
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
         , secp256k1_(client_.Crypto().SECP256K1())
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -73,7 +73,7 @@ public:
     {
     }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     static OTAsymmetricKey get_hd_key(
         const ot::api::client::Manager& api,
         const std::string& fingerprint,
@@ -98,7 +98,7 @@ public:
                     reason)
                 .release()};
     }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     [[maybe_unused]] static OTAsymmetricKey get_key(
         const ot::api::client::Manager& api,
         const EcdsaCurve curve)
@@ -182,13 +182,13 @@ TEST_F(Test_Signatures, RSA_supported_hashes)
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 TEST_F(Test_Signatures, Ed25519_unsupported_hash)
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     EXPECT_FALSE(test_signature(plaintext_1, ed25519_, ed_hd_, sha256_));
     EXPECT_FALSE(test_signature(plaintext_1, ed25519_, ed_hd_, sha512_));
     EXPECT_FALSE(test_signature(plaintext_1, ed25519_, ed_hd_, ripemd160_));
     EXPECT_FALSE(test_signature(plaintext_1, ed25519_, ed_hd_, blake160_));
     EXPECT_FALSE(test_signature(plaintext_1, ed25519_, ed_hd_, blake512_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
     EXPECT_FALSE(test_signature(plaintext_1, ed25519_, ed_, sha256_));
     EXPECT_FALSE(test_signature(plaintext_1, ed25519_, ed_, sha512_));
@@ -199,17 +199,17 @@ TEST_F(Test_Signatures, Ed25519_unsupported_hash)
 
 TEST_F(Test_Signatures, Ed25519_detect_invalid_signature)
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(bad_signature(ed25519_, ed_hd_, blake256_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(bad_signature(ed25519_, ed_, blake256_));
 }
 
 TEST_F(Test_Signatures, Ed25519_supported_hashes)
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(test_signature(plaintext_1, ed25519_, ed_hd_, blake256_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(test_signature(plaintext_1, ed25519_, ed_, blake256_));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -217,14 +217,14 @@ TEST_F(Test_Signatures, Ed25519_supported_hashes)
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 TEST_F(Test_Signatures, Secp256k1_detect_invalid_signature)
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(bad_signature(secp256k1_, secp_hd_, sha256_));
     EXPECT_TRUE(bad_signature(secp256k1_, secp_hd_, sha512_));
     EXPECT_TRUE(bad_signature(secp256k1_, secp_hd_, blake160_));
     EXPECT_TRUE(bad_signature(secp256k1_, secp_hd_, blake256_));
     EXPECT_TRUE(bad_signature(secp256k1_, secp_hd_, blake512_));
     EXPECT_TRUE(bad_signature(secp256k1_, secp_hd_, ripemd160_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(bad_signature(secp256k1_, secp_, sha256_));
     EXPECT_TRUE(bad_signature(secp256k1_, secp_, sha512_));
     EXPECT_TRUE(bad_signature(secp256k1_, secp_, blake160_));
@@ -235,14 +235,14 @@ TEST_F(Test_Signatures, Secp256k1_detect_invalid_signature)
 
 TEST_F(Test_Signatures, Secp256k1_supported_hashes)
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_hd_, sha256_));
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_hd_, sha512_));
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_hd_, blake160_));
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_hd_, blake256_));
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_hd_, blake512_));
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_hd_, ripemd160_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_, sha256_));
     EXPECT_TRUE(test_signature(plaintext_1, secp256k1_, secp_, sha512_));

@@ -18,8 +18,10 @@
 
 #include "Deterministic.hpp"
 
+#if OT_CRYPTO_WITH_BIP32
 #define OT_METHOD                                                              \
     "opentxs::api::client::blockchain::implementation::Deterministic::"
+#endif  // OT_CRYPTO_WITH_BIP32
 
 namespace opentxs::api::client::blockchain::implementation
 {
@@ -34,7 +36,9 @@ Deterministic::Deterministic(
     IndexMap used) noexcept
     : BalanceNode(parent, type, id, unspent, spent)
     , path_(path)
+#if OT_CRYPTO_WITH_BIP32
     , key_(instantiate_key(api_, const_cast<proto::HDPath&>(path_)))
+#endif  // OT_CRYPTO_WITH_BIP32
     , generated_(generated)
     , used_(used)
 {
@@ -54,6 +58,7 @@ std::optional<Bip32Index> Deterministic::bump(
     }
 }
 
+#if OT_CRYPTO_WITH_BIP32
 void Deterministic::check_lookahead(
     const Lock& lock,
     const Subchain type,
@@ -85,7 +90,9 @@ std::optional<Bip32Index> Deterministic::GenerateNext(
         return {};
     }
 }
+#endif  // OT_CRYPTO_WITH_BIP32
 
+#if OT_CRYPTO_WITH_BIP32
 HDKey Deterministic::instantiate_key(
     const api::internal::Core& api,
     proto::HDPath& path)
@@ -110,6 +117,7 @@ HDKey Deterministic::instantiate_key(
 
     return std::move(pKey);
 }
+#endif  // OT_CRYPTO_WITH_BIP32
 
 std::optional<Bip32Index> Deterministic::LastGenerated(
     const Subchain type) const noexcept
@@ -141,6 +149,7 @@ std::optional<Bip32Index> Deterministic::LastUsed(const Subchain type) const
     }
 }
 
+#if OT_CRYPTO_WITH_BIP32
 bool Deterministic::need_lookahead(const Lock& lock, const Subchain type) const
     noexcept
 {
@@ -206,4 +215,5 @@ std::optional<Bip32Index> Deterministic::use_next(
         return {};
     }
 }
+#endif  // OT_CRYPTO_WITH_BIP32
 }  // namespace opentxs::api::client::blockchain::implementation

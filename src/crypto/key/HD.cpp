@@ -21,9 +21,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/Proto.hpp"
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include "crypto/key/EllipticCurve.hpp"
-
 #include "HD.hpp"
 
 #define OT_METHOD "opentxs::crypto::key::implementation::HD::"
@@ -32,7 +29,7 @@ namespace opentxs::crypto::key
 {
 auto HD::CalculateFingerprint(
     const api::crypto::Hash& hash,
-    const Data& key) noexcept -> Bip32Fingerprint
+    const ReadView key) noexcept -> Bip32Fingerprint
 {
     auto output = Bip32Fingerprint{0};
     auto digest = Data::Factory();
@@ -44,7 +41,7 @@ auto HD::CalculateFingerprint(
     }
 
     const auto hashed =
-        hash.Digest(proto::HASHTYPE_BITCOIN, key.Bytes(), digest->WriteInto());
+        hash.Digest(proto::HASHTYPE_BITCOIN, key, digest->WriteInto());
 
     if (false == hashed) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -99,7 +96,7 @@ HD::HD(
 {
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 HD::HD(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
@@ -131,7 +128,7 @@ HD::HD(
     OT_ASSERT(path_);
     OT_ASSERT(chain_code_);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 HD::HD(const HD& rhs) noexcept
     : EllipticCurve(rhs)
@@ -195,8 +192,7 @@ auto HD::erase_private_data() -> void
 
 auto HD::Fingerprint() const noexcept -> Bip32Fingerprint
 {
-    return CalculateFingerprint(
-        api_.Crypto().Hash(), api_.Factory().Data(PublicKey()));
+    return CalculateFingerprint(api_.Crypto().Hash(), PublicKey());
 }
 
 auto HD::get_params() const noexcept -> std::tuple<bool, Bip32Depth, Bip32Index>
@@ -334,4 +330,3 @@ auto HD::Xpub(const PasswordPrompt& reason) const noexcept -> std::string
         api_.Factory().Data(PublicKey()));
 }
 }  // namespace opentxs::crypto::key::implementation
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD

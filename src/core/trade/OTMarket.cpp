@@ -931,7 +931,7 @@ void OTMarket::GetIdentifier(Identifier& theIdentifier) const
         strCurrency->Get(),
         lScale);
 
-    theIdentifier.CalculateDigest(strTemp);
+    theIdentifier.CalculateDigest(strTemp->Bytes());
 }
 
 // returns 0 if there are no bids. Otherwise returns the value of the highest

@@ -9,7 +9,7 @@ using namespace opentxs;
 
 namespace
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 class Test_CreateNymHD : public ::testing::Test
 {
 public:
@@ -210,5 +210,5 @@ TEST_F(Test_CreateNymHD, TestNym_NegativeIndex)
 
     ASSERT_NE(nym1Index, nym2Index);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 }  // namespace

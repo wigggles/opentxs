@@ -8,7 +8,6 @@
 
 #include <opentxs/Forward.hpp>
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/blockchain/BalanceList.hpp>
 #include <opentxs/api/client/blockchain/BalanceNode.hpp>
 #include <opentxs/api/client/blockchain/BalanceTree.hpp>
@@ -17,11 +16,8 @@
 #include <opentxs/api/client/blockchain/HD.hpp>
 #include <opentxs/api/client/blockchain/Imported.hpp>
 #include <opentxs/api/client/blockchain/PaymentCode.hpp>
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Activity.hpp>
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Blockchain.hpp>
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Contacts.hpp>
 #include <opentxs/api/client/Issuer.hpp>
 #include <opentxs/api/client/Manager.hpp>
@@ -127,9 +123,7 @@
 #include <opentxs/crypto/key/Ed25519.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include <opentxs/crypto/key/EllipticCurve.hpp>
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/crypto/key/HD.hpp>
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/crypto/key/Keypair.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include <opentxs/crypto/key/RSA.hpp>

@@ -86,7 +86,6 @@ enum class Bip32Child : Bip32Index {
     HARDENED = 0x80000000,
 };
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace crypto
 {
 namespace key
@@ -214,7 +213,6 @@ using ChainHeight = std::int64_t;
 using HDIndex = std::uint32_t;
 #endif  // OT_BLOCKCHAIN
 }  // namespace blockchain
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 namespace identity
 {

@@ -116,7 +116,7 @@ TEST_F(Test_PaymentCode, primary_paycodes)
         nymData_3.PaymentCode(currency_2).c_str());  // not primary nor active
                                                      // defaults to primary
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     auto nym0 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
     auto nym1 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_1));
     auto nym2 = client_.Wallet().Nym(identifier::Nym::Factory(nymID_2));
@@ -126,7 +126,7 @@ TEST_F(Test_PaymentCode, primary_paycodes)
     EXPECT_STREQ(nym1->PaymentCode().c_str(), paycode_1.c_str());
     EXPECT_STREQ(nym2->PaymentCode().c_str(), paycode_2.c_str());
     EXPECT_STREQ(nym3->PaymentCode().c_str(), paycode_3.c_str());
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 }
 
 /* Test: by setting primary = true it resets best payment code
@@ -243,7 +243,7 @@ TEST_F(Test_PaymentCode, factory)
 
     EXPECT_STREQ(paycode_1.c_str(), factory_2b->asBase58().c_str());
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     // Factory 3: std:
     auto path = proto::HDPath{};
     const auto nym = client_.Wallet().Nym(identifier::Nym::Factory(nymID_0));
@@ -260,10 +260,10 @@ TEST_F(Test_PaymentCode, factory)
         fingerprint, 1, 1, reason_);  // seed, nym, paycode version
 
     EXPECT_STREQ(paycode_1.c_str(), factory_3b->asBase58().c_str());
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 /* Test: factory method with nym has private key
  */
 TEST_F(Test_PaymentCode, factory_seed_nym)
@@ -285,7 +285,7 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
 
     ASSERT_TRUE(privatekey);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
 TEST_F(Test_PaymentCode, nymid)
 {

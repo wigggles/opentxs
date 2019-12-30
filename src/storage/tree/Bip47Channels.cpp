@@ -64,7 +64,7 @@ void Bip47Channels::calculate_id(
     preimage += Data::Factory(
         data.remotepaymentcode().data(), data.remotepaymentcode().size());
     channelID.Release();
-    channelID.CalculateDigest(preimage);
+    channelID.CalculateDigest(preimage->Bytes());
 }
 
 proto::ContactItemType Bip47Channels::Chain(const Identifier& channelID) const

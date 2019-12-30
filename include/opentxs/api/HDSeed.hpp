@@ -8,9 +8,11 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_WITH_BIP32
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/HD.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -29,19 +31,19 @@ class HDSeed
 public:
     using Path = std::vector<Bip32Index>;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::crypto::key::HD>
     AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
         const Bip32Index index,
         const PasswordPrompt& reason) const = 0;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::string Bip32Root(
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const = 0;
     OPENTXS_EXPORT virtual std::string DefaultSeed() const = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
         std::string& fingerprint,
         const EcdsaCurve& curve,
@@ -60,7 +62,7 @@ public:
     OPENTXS_EXPORT virtual OTSymmetricKey GetStorageKey(
         std::string& seed,
         const PasswordPrompt& reason) const = 0;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::string ImportRaw(
         const OTPassword& entropy,
         const PasswordPrompt& reason) const = 0;
@@ -98,5 +100,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-#endif  // OT_CRYPTO_WITH_BIP32
 #endif

@@ -65,9 +65,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/PasswordPrompt.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/HD.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/ext/OTPayment.hpp"
@@ -846,6 +844,21 @@ OTIdentifier Factory::Identifier(const opentxs::Item& item) const
     return Identifier::Factory(item);
 }
 
+OTIdentifier Factory::Identifier(const ReadView bytes) const
+{
+    auto output = this->Identifier();
+    output->CalculateDigest(bytes);
+
+    return output;
+}
+
+OTIdentifier Factory::Identifier(const ProtobufType& proto) const
+{
+    const auto bytes = Data(proto);
+
+    return Identifier(bytes->Bytes());
+}
+
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 auto Factory::instantiate_secp256k1(const ReadView key) const noexcept
     -> std::unique_ptr<opentxs::crypto::key::Secp256k1>
@@ -1096,7 +1109,7 @@ OTKeypair Factory::Keypair(const proto::AsymmetricKey& serializedPubkey) const
     }
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 OTKeypair Factory::Keypair(
     const std::string& fingerprint,
     const Bip32Index nym,
@@ -1160,7 +1173,7 @@ OTKeypair Factory::Keypair(
         return OTKeypair{opentxs::Factory::Keypair().release()};
     }
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     const opentxs::Identifier& theAccountID,
@@ -1322,7 +1335,7 @@ OTNymID Factory::NymIDFromPaymentCode(const std::string& input) const
 
     if (81 != bytes->size()) { return output; }
 
-    if (bytes->Extract(65, key, 3)) { output->CalculateDigest(key); }
+    if (bytes->Extract(65, key, 3)) { output->CalculateDigest(key->Bytes()); }
 
     return output;
 }
@@ -1511,7 +1524,7 @@ auto Factory::PaymentCode(const proto::PaymentCode& serialized) const noexcept
     };
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 auto Factory::PaymentCode(
     const std::string& seed,
     const Bip32Index nym,
@@ -1546,7 +1559,7 @@ auto Factory::PaymentCode(
                              std::move(pKey))
                              .release()};
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
 std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan() const
 {

@@ -25,12 +25,10 @@ namespace opentxs::storage
 class Nym final : public Node
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::set<std::string> BlockchainAccountList(
         const proto::ContactItemType type) const;
     proto::ContactItemType BlockchainAccountType(
         const std::string& accountID) const;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     const storage::Bip47Channels& Bip47Channels() const;
     const storage::Contexts& Contexts() const;
@@ -47,9 +45,7 @@ public:
     const PeerRequests& SentRequestBox() const;
     const storage::Threads& Threads() const;
     const storage::PaymentWorkflows& PaymentWorkflows() const;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     const storage::Txos& TXOs() const { return *txos(); }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     Editor<storage::Bip47Channels> mutable_Bip47Channels();
     Editor<storage::Contexts> mutable_Contexts();
@@ -66,17 +62,13 @@ public:
     Editor<PeerRequests> mutable_SentRequestBox();
     Editor<storage::Threads> mutable_Threads();
     Editor<storage::PaymentWorkflows> mutable_PaymentWorkflows();
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     Editor<storage::Txos> mutable_TXOs();
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     std::string Alias() const;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         const std::string& id,
         std::shared_ptr<proto::HDAccount>& output,
         const bool checking) const;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Load(
         std::shared_ptr<proto::Nym>& output,
         std::string& alias,
@@ -89,9 +81,7 @@ public:
     bool Migrate(const opentxs::api::storage::Driver& to) const final;
 
     bool SetAlias(const std::string& alias);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(const proto::ContactItemType type, const proto::HDAccount& data);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     bool Store(
         const proto::Nym& data,
         const std::string& alias,
@@ -152,14 +142,12 @@ private:
     mutable std::mutex contexts_lock_;
     mutable std::unique_ptr<storage::Contexts> contexts_;
     std::string contexts_root_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     mutable std::mutex blockchain_lock_;
     std::map<proto::ContactItemType, std::set<std::string>>
         blockchain_account_types_{};
     std::map<std::string, proto::ContactItemType> blockchain_account_index_;
     std::map<std::string, std::shared_ptr<proto::HDAccount>>
         blockchain_accounts_{};
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     std::string issuers_root_;
     mutable std::mutex issuers_lock_;
     mutable std::unique_ptr<storage::Issuers> issuers_;
@@ -167,11 +155,9 @@ private:
     mutable std::mutex workflows_lock_;
     mutable std::unique_ptr<storage::PaymentWorkflows> workflows_;
     std::map<PurseID, std::string> purse_id_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     mutable std::mutex txo_lock_;
     mutable std::unique_ptr<storage::Txos> txo_;
     std::string txo_root_;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     template <typename T, typename... Args>
     T* construct(
@@ -195,12 +181,10 @@ private:
     storage::Contexts* contexts() const;
     storage::Issuers* issuers() const;
     storage::PaymentWorkflows* workflows() const;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     storage::Txos* txos() const
     {
         return construct<storage::Txos>(txo_lock_, txo_, txo_root_);
     }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     template <typename T>
     Editor<T> editor(

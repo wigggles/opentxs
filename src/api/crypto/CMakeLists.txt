@@ -40,6 +40,7 @@ target_include_directories(
   opentxs-api-crypto SYSTEM
   PRIVATE "${opentxs_SOURCE_DIR}/deps/"
 )
+target_link_libraries(opentxs-api-crypto PRIVATE Boost::headers)
 set_property(TARGET opentxs-api-crypto PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 install(

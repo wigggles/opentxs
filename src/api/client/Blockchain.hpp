@@ -5,7 +5,6 @@
 
 #pragma once
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace opentxs::api::client::implementation
 {
 class Blockchain final : virtual public internal::Blockchain
@@ -210,4 +209,3 @@ private:
     Blockchain& operator=(Blockchain&&) = delete;
 };
 }  // namespace opentxs::api::client::implementation
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD

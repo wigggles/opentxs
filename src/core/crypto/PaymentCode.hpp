@@ -92,12 +92,12 @@ public:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     VersionNumber Version() const noexcept final { return version_; }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     bool AddPrivateKeys(
         std::string& seed,
         const Bip32Index index,
         const PasswordPrompt& reason) noexcept final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     PaymentCode(
         const api::internal::Core& api,

@@ -7,13 +7,10 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/HD.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Keypair.hpp"
 
 #include "crypto/library/AsymmetricProviderNull.hpp"
@@ -178,7 +175,6 @@ public:
     ~NullEC() override = default;
 };
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 class NullHD : virtual public key::HD, public NullEC
 {
 public:
@@ -197,15 +193,9 @@ public:
 private:
     NullHD* clone() const noexcept override { return new NullHD; }
 };
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-class NullSecp256k1 final : virtual public key::Secp256k1,
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-                            public NullHD
-#else
-                            public NullEC
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+class NullSecp256k1 final : virtual public key::Secp256k1, public NullHD
 {
 public:
     NullSecp256k1() = default;

@@ -172,7 +172,7 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_TRUE(bobScopeSet);
     EXPECT_TRUE(issuerScopeSet);
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     alice_payment_code_ =
         alice_client_.Factory().PaymentCode(SeedA_, 0, 1, reasonA)->asBase58();
     bob_payment_code_ =
@@ -203,7 +203,7 @@ TEST_F(Test_DepositCheques, payment_codes)
     EXPECT_FALSE(alice.PaymentCode(proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(bob.PaymentCode(proto::CITEMTYPE_BCH).empty());
     EXPECT_FALSE(issuer.PaymentCode(proto::CITEMTYPE_BCH).empty());
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     alice.Release();
     bob.Release();

@@ -153,7 +153,7 @@ auto PaymentCode::operator==(const proto::PaymentCode& rhs) const noexcept
     return (LHData == RHData);
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 auto PaymentCode::AddPrivateKeys(
     std::string& seed,
     const Bip32Index index,
@@ -192,7 +192,7 @@ auto PaymentCode::AddPrivateKeys(
 
     return true;
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
 auto PaymentCode::asBase58() const noexcept -> std::string
 {
@@ -239,7 +239,7 @@ auto PaymentCode::calculate_id(
     std::memcpy(
         it, code.data(), std::min(code.size(), std::size_t{chain_code_size_}));
 
-    output->CalculateDigest(preimage);
+    output->CalculateDigest(preimage->Bytes());
 
     return output;
 }

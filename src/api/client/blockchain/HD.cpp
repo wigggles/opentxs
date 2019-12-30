@@ -95,8 +95,10 @@ HD::HD(
         throw std::runtime_error("Account already exists");
     }
 
+#if OT_CRYPTO_WITH_BIP32
     check_lookahead(lock, Subchain::Internal, reason);
     check_lookahead(lock, Subchain::External, reason);
+#endif  // OT_CRYPTO_WITH_BIP32
 
     if (false == save(lock)) {
         throw std::runtime_error("Failed to save new account");
@@ -189,6 +191,7 @@ bool HD::check_activity(
         const auto blank = api_.Factory().Identifier();
         const auto empty = std::string{};
 
+#if OT_CRYPTO_WITH_BIP32
         for (auto i{currentExternal}; i < targetExternal; ++i) {
             use_next(lock, Subchain::External, reason, blank, empty);
         }
@@ -196,6 +199,7 @@ bool HD::check_activity(
         for (auto i{currentInternal}; i < targetInternal; ++i) {
             use_next(lock, Subchain::Internal, reason, blank, empty);
         }
+#endif  // OT_CRYPTO_WITH_BIP32
 
         OT_ASSERT(targetExternal < used_.at(Subchain::External));
         OT_ASSERT(targetInternal < used_.at(Subchain::Internal));
@@ -267,6 +271,7 @@ std::vector<Activity> HD::extract_outgoing(const SerializedType& in)
     return output;
 }
 
+#if OT_CRYPTO_WITH_BIP32
 Bip32Index HD::generate_next(
     const Lock& lock,
     const Subchain type,
@@ -309,6 +314,7 @@ Bip32Index HD::generate_next(
 
     return index++;
 }
+#endif  // OT_CRYPTO_WITH_BIP32
 
 ECKey HD::Key(const Subchain type, const Bip32Index index) const noexcept
 {

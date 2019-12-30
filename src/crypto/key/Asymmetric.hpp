@@ -148,7 +148,6 @@ protected:
         const Identifier& credential,
         const PasswordPrompt& reason,
         std::uint32_t& tag) const noexcept -> bool;
-    bool get_public_key(String& strKey) const noexcept;
 
     virtual void erase_private_data();
 

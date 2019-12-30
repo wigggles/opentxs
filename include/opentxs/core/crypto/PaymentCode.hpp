@@ -52,12 +52,12 @@ public:
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     OPENTXS_EXPORT virtual VersionNumber Version() const noexcept = 0;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual bool AddPrivateKeys(
         std::string& seed,
         const Bip32Index index,
         const PasswordPrompt& reason) noexcept = 0;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
 
     OPENTXS_EXPORT virtual ~PaymentCode() = default;
 

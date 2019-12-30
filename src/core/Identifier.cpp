@@ -279,7 +279,7 @@ OTIdentifier Identifier::Random()
 
     OT_ASSERT(32 == nonce->size());
 
-    output->CalculateDigest(nonce);
+    output->CalculateDigest(nonce->Bytes());
 
     OT_ASSERT(false == output->empty());
 
@@ -341,7 +341,7 @@ Identifier::Identifier(
     const proto::HDPath& path)
     : ot_super()
 {
-    CalculateDigest(path_to_data(type, path), DefaultType);
+    CalculateDigest(path_to_data(type, path)->Bytes(), DefaultType);
 }
 
 bool Identifier::operator==(const opentxs::Identifier& s2) const
@@ -380,20 +380,12 @@ bool Identifier::operator>=(const opentxs::Identifier& s2) const
     return ots1->operator>=(ots2);
 }
 
-bool Identifier::CalculateDigest(const String& strInput, const ID type)
+bool Identifier::CalculateDigest(const ReadView bytes, const ID type)
 {
     type_ = type;
 
     return Context().Crypto().Hash().Digest(
-        IDToHashType(type_), strInput.Bytes(), WriteInto());
-}
-
-bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
-{
-    type_ = type;
-
-    return Context().Crypto().Hash().Digest(
-        IDToHashType(type_), dataInput.Bytes(), WriteInto());
+        IDToHashType(type_), bytes, WriteInto());
 }
 
 Identifier* Identifier::clone() const
@@ -407,7 +399,7 @@ Identifier* Identifier::contract_contents_to_identifier(const Contract& in)
 
     OT_ASSERT(nullptr != output);
 
-    output->CalculateDigest(String::Factory(in));
+    output->CalculateDigest(String::Factory(in)->Bytes());
 
     return output;
 }

@@ -9,12 +9,7 @@
 
 namespace opentxs::crypto::key::implementation
 {
-class Ed25519 final : virtual public key::Ed25519,
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-                      public implementation::HD
-#else
-                      public implementation::EllipticCurve
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+class Ed25519 final : virtual public key::Ed25519, public HD
 {
 public:
     NymParameterType CreateType() const final
@@ -32,7 +27,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version,
         const PasswordPrompt& reason) noexcept(false);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     Ed25519(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -45,7 +40,7 @@ public:
         const VersionNumber version,
         key::Symmetric& sessionKey,
         const PasswordPrompt& reason) noexcept(false);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     Ed25519(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -54,11 +49,7 @@ public:
     ~Ed25519() final = default;
 
 private:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     using ot_super = HD;
-#else
-    using ot_super = EllipticCurve;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     Ed25519* clone() const noexcept final { return new Ed25519(*this); }
     Ed25519* clone_ec() const noexcept final { return clone(); }

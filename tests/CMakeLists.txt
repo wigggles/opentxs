@@ -39,9 +39,7 @@ function(add_opentx_low_level_test target_name file_name)
   add_opentx_test_target("${target_name}" "${cxx-sources}")
 endfunction()
 
-if(OT_CRYPTO_SUPPORTED_KEY_HD)
-  add_subdirectory(blockchain)
-endif()
+add_subdirectory(blockchain)
 
 if(OT_CASH_EXPORT)
   add_subdirectory(blind)

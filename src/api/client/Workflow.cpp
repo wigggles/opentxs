@@ -396,7 +396,7 @@ OTIdentifier Workflow::UUID(
     OTData preimage{notary};
     preimage->Concatenate(&number, sizeof(number));
     auto output = Identifier::Factory();
-    output->CalculateDigest(preimage);
+    output->CalculateDigest(preimage->Bytes());
     LogTrace(output).Flush();
 
     return output;

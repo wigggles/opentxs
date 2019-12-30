@@ -36,7 +36,7 @@ extern "C" {
 
 #include "Secp256k1.hpp"
 
-#define OT_METHOD "opentxs::Secp256k1::"
+#define OT_METHOD "opentxs::crypto::implementation::Secp256k1::"
 
 namespace opentxs
 {
@@ -69,8 +69,9 @@ bool Secp256k1::RandomKeypair(
 {
     if (nullptr == context_) { return false; }
 
-    if (false == bool(privateKey) || false == bool(publicKey)) {
-        LogOutput(__FUNCTION__)(": Invalid output allocator").Flush();
+    if (false == bool(privateKey)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
 
         return false;
     }
@@ -103,7 +104,8 @@ bool Secp256k1::RandomKeypair(
     auto prv = privateKey(PrivateKeySize);
 
     if (false == prv.valid(PrivateKeySize)) {
-        LogOutput(__FUNCTION__)(": Failed to allocate space for private key")
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to allocate space for private key")
             .Flush();
 
         return false;
@@ -111,17 +113,82 @@ bool Secp256k1::RandomKeypair(
 
     std::memcpy(prv, temp.getMemory(), prv);
 
+    return ScalarMultiplyBase({prv.as<const char>(), prv.size()}, publicKey);
+}
+
+bool Secp256k1::ScalarAdd(
+    const ReadView lhs,
+    const ReadView rhs,
+    const AllocateOutput result) const noexcept
+{
+    if (false == bool(result)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    if (PrivateKeySize != lhs.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid lhs scalar").Flush();
+
+        return false;
+    }
+
+    if (PrivateKeySize != rhs.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid rhs scalar").Flush();
+
+        return false;
+    }
+
+    auto key = result(PrivateKeySize);
+
+    if (false == key.valid(PrivateKeySize)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to allocate space for result")
+            .Flush();
+
+        return false;
+    }
+
+    std::memcpy(key.data(), lhs.data(), lhs.size());
+
+    return 1 == ::secp256k1_ec_privkey_tweak_add(
+                    context_,
+                    key.as<unsigned char>(),
+                    reinterpret_cast<const unsigned char*>(rhs.data()));
+}
+
+auto Secp256k1::ScalarMultiplyBase(
+    const ReadView scalar,
+    const AllocateOutput result) const noexcept -> bool
+{
+    if (false == bool(result)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    if (PrivateKeySize != scalar.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid scalar").Flush();
+
+        return false;
+    }
+
     auto key = secp256k1_pubkey{};
     const auto created =
         1 == ::secp256k1_ec_pubkey_create(
-                 context_, &key, prv.as<const unsigned char>());
+                 context_,
+                 &key,
+                 reinterpret_cast<const unsigned char*>(scalar.data()));
 
     if (1 != created) { return false; }
 
-    auto pub = publicKey(PublicKeySize);
+    auto pub = result(PublicKeySize);
 
     if (false == pub.valid(PublicKeySize)) {
-        LogOutput(__FUNCTION__)(": Failed to allocate space for public key")
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to allocate space for public key")
             .Flush();
 
         return false;

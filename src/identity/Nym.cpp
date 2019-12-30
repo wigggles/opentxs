@@ -977,7 +977,7 @@ NymParameters Nym::normalize(
     auto output{in};
 
     if (proto::CREDTYPE_HD == in.credentialType()) {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
         output.SetCredset(0);
         Bip32Index nymIndex = 0;
         std::string fingerprint = in.Seed();

@@ -2237,7 +2237,7 @@ void OTScriptable::CalculateContractID(Identifier& newID) const
 
     xmlUnsigned->Concatenate("%s", str_result.c_str());
 
-    newID.CalculateDigest(xmlUnsigned);
+    newID.CalculateDigest(xmlUnsigned->Bytes());
 }
 
 std::string vectorToString(const std::vector<std::int64_t>& v)

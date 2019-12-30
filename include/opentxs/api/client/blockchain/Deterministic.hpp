@@ -26,9 +26,11 @@ namespace blockchain
 class Deterministic : virtual public BalanceNode
 {
 public:
+#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::optional<Bip32Index> GenerateNext(
         const Subchain type,
         const PasswordPrompt& reason) const noexcept = 0;
+#endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual ECKey Key(
         const Subchain type,
         const Bip32Index index) const noexcept = 0;
@@ -37,6 +39,7 @@ public:
     OPENTXS_EXPORT virtual std::optional<Bip32Index> LastUsed(
         const Subchain type) const noexcept = 0;
     OPENTXS_EXPORT virtual proto::HDPath Path() const noexcept = 0;
+#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual HDKey RootNode(const PasswordPrompt& reason) const
         noexcept = 0;
     OPENTXS_EXPORT virtual std::optional<Bip32Index> UseNext(
@@ -44,6 +47,7 @@ public:
         const PasswordPrompt& reason,
         const Identifier& contact = Identifier::Factory(),
         const std::string& label = {}) const noexcept = 0;
+#endif  // OT_CRYPTO_WITH_BIP32
 
     OPENTXS_EXPORT ~Deterministic() override = default;
 

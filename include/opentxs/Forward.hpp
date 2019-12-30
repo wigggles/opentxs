@@ -21,7 +21,6 @@ namespace api
 {
 namespace client
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace blockchain
 {
 class BalanceList;
@@ -33,7 +32,6 @@ class HD;
 class Imported;
 class PaymentCode;
 }  // namespace blockchain
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 class Activity;
 class Blockchain;
@@ -186,9 +184,7 @@ class Ed25519;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 class EllipticCurve;
 class Keypair;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 class HD;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 class RSA;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -214,9 +210,6 @@ class Secp256k1;
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 class Sodium;
 class SymmetricProvider;
-#if OT_CRYPTO_USING_TREZOR
-class Trezor;
-#endif  // OT_CRYPTO_USING_TREZOR
 }  // namespace crypto
 
 namespace identifier

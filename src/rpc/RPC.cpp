@@ -1706,7 +1706,7 @@ void RPC::queue_task(
 
     const auto taskIDStr = String::Factory(taskID);
     auto taskIDCompat = Identifier::Factory();
-    taskIDCompat->CalculateDigest(taskIDStr);
+    taskIDCompat->CalculateDigest(taskIDStr->Bytes());
     add_output_task(output, taskIDCompat->str());
     add_output_status(output, proto::RPCRESPONSE_QUEUED);
 }
@@ -2008,7 +2008,7 @@ void RPC::task_handler(const zmq::Message& in)
     task.set_version(TASKCOMPLETE_VERSION);
     const auto taskIDStr = String::Factory(taskID);
     auto taskIDCompat = Identifier::Factory();
-    taskIDCompat->CalculateDigest(taskIDStr);
+    taskIDCompat->CalculateDigest(taskIDStr->Bytes());
     task.set_id(taskIDCompat->str());
     task.set_result(success);
 

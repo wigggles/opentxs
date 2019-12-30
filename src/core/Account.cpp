@@ -212,7 +212,7 @@ bool Account::ConsensusHash(
 
     theOutput.Release();
 
-    bool bCalcDigest = theOutput.CalculateDigest(preimage);
+    bool bCalcDigest = theOutput.CalculateDigest(preimage->Bytes());
 
     if (false == bCalcDigest) {
         theOutput.Release();
@@ -703,7 +703,7 @@ bool Account::GenerateNewAccount(
     // Next we calculate that binary object into a message digest (an
     // OTIdentifier).
     auto newID = api_.Factory().Identifier();
-    if (!newID->CalculateDigest(payload)) {
+    if (!newID->CalculateDigest(payload->Bytes())) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error generating new account ID.")
             .Flush();
         return false;

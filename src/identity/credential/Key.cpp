@@ -18,9 +18,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/HD.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -371,7 +369,7 @@ OTKeypair Key::new_key(
             return api.Factory().Keypair(revised, version, role, reason);
         }
         case proto::CREDTYPE_HD:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
         {
             const auto curve = crypto::AsymmetricProvider::KeyTypeToCurve(
                 params.AsymmetricKeyType());
@@ -389,7 +387,7 @@ OTKeypair Key::new_key(
                 role,
                 reason);
         }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
         case proto::CREDTYPE_ERROR:
         default: {
             throw std::runtime_error("Unsupported credential type");

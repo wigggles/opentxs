@@ -95,10 +95,7 @@ std::string Verification::VerificationID(
     const api::internal::Core& api,
     const proto::Verification& item)
 {
-    auto id = Identifier::Factory();
-    id->CalculateDigest(api.Factory().Data(item));
-
-    return String::Factory(id)->Get();
+    return api.Factory().Identifier(item)->str();
 }
 }  // namespace opentxs::identity::credential
 

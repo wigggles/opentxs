@@ -602,7 +602,7 @@ bool Ledger::CalculateHash(Identifier& theOutput) const
 {
     theOutput.Release();
 
-    bool bCalcDigest = theOutput.CalculateDigest(m_xmlUnsigned);
+    bool bCalcDigest = theOutput.CalculateDigest(m_xmlUnsigned->Bytes());
 
     if (false == bCalcDigest) {
         theOutput.Release();

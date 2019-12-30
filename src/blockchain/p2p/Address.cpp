@@ -64,7 +64,7 @@ Address::Address(
     const Time lastConnected,
     const std::set<Service>& services) noexcept(false)
     : api_(api)
-    , id_(calculate_id(bytes, port))
+    , id_(calculate_id(api, bytes, port))
     , protocol_(protocol)
     , network_(network)
     , bytes_(bytes)
@@ -124,15 +124,14 @@ Address::Address(const Address& rhs) noexcept
 }
 
 OTIdentifier Address::calculate_id(
+    const api::internal::Core& api,
     const Data& bytes,
     const std::uint16_t port) noexcept
 {
     OTData preimage(bytes);
     preimage->Concatenate(&port, sizeof(port));
-    auto output = Identifier::Factory();
-    output->CalculateDigest(preimage);
 
-    return output;
+    return api.Factory().Identifier(preimage->Bytes());
 }
 
 std::string Address::Display() const noexcept

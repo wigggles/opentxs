@@ -225,6 +225,10 @@ public:
         const opentxs::Contract& contract) const = 0;
     OPENTXS_EXPORT virtual OTIdentifier Identifier(
         const opentxs::Item& item) const = 0;
+    OPENTXS_EXPORT virtual OTIdentifier Identifier(
+        const ReadView bytes) const = 0;
+    OPENTXS_EXPORT virtual OTIdentifier Identifier(
+        const ProtobufType& proto) const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::Item> Item(
         const String& serialized) const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::Item> Item(
@@ -258,7 +262,7 @@ public:
         const proto::AsymmetricKey& serializedPrivkey) const = 0;
     OPENTXS_EXPORT virtual OTKeypair Keypair(
         const proto::AsymmetricKey& serializedPubkey) const = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual OTKeypair Keypair(
         const std::string& fingerprint,
         const Bip32Index nym,
@@ -267,7 +271,7 @@ public:
         const EcdsaCurve& curve,
         const proto::KeyRole role,
         const opentxs::PasswordPrompt& reason) const = 0;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,
         const identifier::Server& theNotaryID) const = 0;
@@ -352,7 +356,7 @@ public:
         const std::string& base58) const noexcept = 0;
     OPENTXS_EXPORT virtual OTPaymentCode PaymentCode(
         const proto::PaymentCode& serialized) const noexcept = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual OTPaymentCode PaymentCode(
         const std::string& seed,
         const Bip32Index nym,
@@ -361,7 +365,7 @@ public:
         const bool bitmessage = false,
         const std::uint8_t bitmessageVersion = 0,
         const std::uint8_t bitmessageStream = 0) const noexcept = 0;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual std::unique_ptr<OTPaymentPlan> PaymentPlan()
         const = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<OTPaymentPlan> PaymentPlan(

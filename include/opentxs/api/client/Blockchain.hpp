@@ -10,7 +10,6 @@
 
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -98,5 +97,4 @@ private:
 }  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif  // OPENTXS_API_CLIENT_BLOCKCHAIN_HPP

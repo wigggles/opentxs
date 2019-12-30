@@ -71,6 +71,7 @@ using Space = std::vector<std::byte>;
 using Digest = std::function<
     bool(const std::uint32_t, const ReadView, const AllocateOutput)>;
 
+OPENTXS_EXPORT auto reader(const WritableView& in) noexcept -> ReadView;
 OPENTXS_EXPORT auto reader(const Space& in) noexcept -> ReadView;
 OPENTXS_EXPORT auto space(const std::size_t size) noexcept -> Space;
 OPENTXS_EXPORT auto writer(std::string& in) noexcept -> AllocateOutput;

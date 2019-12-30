@@ -40,9 +40,7 @@ public:
     const opentxs::crypto::EcdsaProvider& SECP256K1() const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     const opentxs::crypto::SymmetricProvider& Sodium() const final;
-#if OT_CRYPTO_WITH_BIP32
     const opentxs::crypto::Bip32& BIP32() const final;
-#endif  // OT_CRYPTO_WITH_BIP32
     const opentxs::crypto::Bip39& BIP39() const final;
 
     ~Crypto() final;
@@ -51,9 +49,6 @@ private:
     friend opentxs::Factory;
 
     std::unique_ptr<api::crypto::Config> config_;
-#if OT_CRYPTO_USING_TREZOR
-    std::unique_ptr<opentxs::crypto::Trezor> trezor_;
-#endif  // OT_CRYPTO_USING_TREZOR
     std::unique_ptr<opentxs::crypto::Sodium> sodium_;
 #if OT_CRYPTO_USING_OPENSSL
     std::unique_ptr<opentxs::crypto::OpenSSL> ssl_;
@@ -64,9 +59,8 @@ private:
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
     std::unique_ptr<opentxs::crypto::Bip39> bip39_p_;
     const opentxs::crypto::Ripemd160& ripemd160_;
-#if OT_CRYPTO_WITH_BIP32
+    std::unique_ptr<opentxs::crypto::Bip32> bip32_p_;
     const opentxs::crypto::Bip32& bip32_;
-#endif  // OT_CRYPTO_WITH_BIP32
     const opentxs::crypto::Bip39& bip39_;
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     const opentxs::crypto::EcdsaProvider& secp256k1_;

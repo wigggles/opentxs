@@ -6,9 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/client/Blockchain.hpp"
-#endif
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/OTX.hpp"
@@ -85,14 +83,12 @@ Manager::Manager(
     , zeromq_(opentxs::Factory::ZMQ(*this, running_))
     , contacts_(opentxs::Factory::ContactAPI(*this))
     , activity_(opentxs::Factory::Activity(*this, *contacts_))
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     , blockchain_(opentxs::Factory::BlockchainAPI(
           *this,
           *activity_,
           *contacts_,
           parent_.Legacy(),
           dataFolder))
-#endif
     , workflow_(opentxs::Factory::Workflow(*this, *activity_, *contacts_))
     , ot_api_(new OT_API(
           *this,
@@ -134,9 +130,7 @@ Manager::Manager(
     OT_ASSERT(zeromq_);
     OT_ASSERT(contacts_);
     OT_ASSERT(activity_);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     OT_ASSERT(blockchain_);
-#endif
     OT_ASSERT(workflow_);
     OT_ASSERT(ot_api_);
     OT_ASSERT(otapi_exec_);
@@ -161,14 +155,12 @@ const api::client::Activity& Manager::Activity() const
     return *activity_;
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 const api::client::Blockchain& Manager::Blockchain() const
 {
     OT_ASSERT(blockchain_)
 
     return *blockchain_;
 }
-#endif
 
 void Manager::Cleanup()
 {
@@ -181,9 +173,7 @@ void Manager::Cleanup()
     otapi_exec_.reset();
     ot_api_.reset();
     workflow_.reset();
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     blockchain_.reset();
-#endif
     activity_.reset();
     contacts_.reset();
     zeromq_.reset();

@@ -13,10 +13,6 @@ public:
     const ot::api::client::Manager& client_;
     ot::OTPasswordPrompt reason_;
     const ot::api::Crypto& crypto_;
-#if OT_CRYPTO_USING_TREZOR
-    const std::unique_ptr<ot::crypto::Trezor> trezor_{
-        ot::Factory::Trezor(crypto_)};
-#endif
     const std::map<std::string, std::string> base_58_{
         {"", ""},
         {"00010966776006953D5567439E5E39F86A0D273BEE",
@@ -408,7 +404,7 @@ public:
         return true;
     }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     std::unique_ptr<ot::OTPassword> get_seed(const std::string& hex) const
     {
         auto data = ot::Data::Factory();
@@ -428,10 +424,9 @@ public:
             EXPECT_TRUE(data->DecodeHex(node));
 
             const ot::OTPassword seed{data->data(), data->size()};
-            const auto seedID =
-                library.SeedToFingerprint(ot::EcdsaCurve::secp256k1, seed);
-            const auto serialized = library.DeriveKey(
-                crypto_.Hash(), ot::EcdsaCurve::secp256k1, seed, {});
+            const auto seedID = library.SeedID(seed.Bytes())->str();
+            const auto serialized =
+                library.DeriveKey(ot::EcdsaCurve::secp256k1, seed, {});
             auto pKey = client_.Asymmetric().InstantiateKey(
                 ot::proto::AKEYTYPE_SECP256K1,
                 seedID,
@@ -550,10 +545,9 @@ public:
                 const auto& [rawPath, expectPub, expectPrv] = testCase;
                 const auto pSeed = get_seed(hex);
                 const auto& seed = *pSeed;
-                const auto seedID =
-                    library.SeedToFingerprint(ot::EcdsaCurve::secp256k1, seed);
-                const auto serialized = library.DeriveKey(
-                    crypto_.Hash(), ot::EcdsaCurve::secp256k1, seed, rawPath);
+                const auto seedID = library.SeedID(seed.Bytes())->str();
+                const auto serialized =
+                    library.DeriveKey(ot::EcdsaCurve::secp256k1, seed, rawPath);
                 auto pKey = client_.Asymmetric().InstantiateKey(
                     ot::proto::AKEYTYPE_SECP256K1,
                     seedID,
@@ -580,6 +574,7 @@ public:
 
         return true;
     }
+#endif
 
     bool test_bip39(const ot::crypto::Bip32& library)
     {
@@ -617,7 +612,6 @@ public:
 
         return true;
     }
-#endif
 };
 
 TEST_F(Test_Bitcoin_Providers, Common)
@@ -625,19 +619,10 @@ TEST_F(Test_Bitcoin_Providers, Common)
     EXPECT_TRUE(test_base58_encode());
     EXPECT_TRUE(test_base58_decode());
     EXPECT_TRUE(test_ripemd160());
+    EXPECT_TRUE(test_bip39(crypto_.BIP32()));
+#if OT_CRYPTO_WITH_BIP32
+    EXPECT_TRUE(test_bip32_seed(crypto_.BIP32()));
+    EXPECT_TRUE(test_bip32_child_key(crypto_.BIP32()));
+#endif  // OT_CRYPTO_WITH_BIP32
 }
-
-#if OT_CRYPTO_USING_TREZOR
-TEST_F(Test_Bitcoin_Providers, Trezor)
-{
-    EXPECT_TRUE(test_base58_encode());
-    EXPECT_TRUE(test_base58_decode());
-    EXPECT_TRUE(test_ripemd160());
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    EXPECT_TRUE(test_bip39(*trezor_));
-    EXPECT_TRUE(test_bip32_seed(*trezor_));
-    EXPECT_TRUE(test_bip32_child_key(*trezor_));
-#endif
-}
-#endif  // OT_CRYPTO_USING_TREZOR
 }  // namespace
