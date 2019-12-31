@@ -25,9 +25,7 @@
 #include <functional>
 
 #define CURRENT_VERSION 9
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #define BLOCKCHAIN_INDEX_VERSION 1
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #define STORAGE_PURSE_VERSION 1
 
 #define OT_METHOD "opentxs::storage::Nym::"
@@ -113,12 +111,10 @@ Nym::Nym(
     , contexts_lock_()
     , contexts_(nullptr)
     , contexts_root_(Node::BLANK_HASH)
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     , blockchain_lock_()
     , blockchain_account_types_()
     , blockchain_account_index_()
     , blockchain_accounts_()
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     , issuers_root_(Node::BLANK_HASH)
     , issuers_lock_()
     , issuers_(nullptr)
@@ -126,14 +122,9 @@ Nym::Nym(
     , workflows_lock_()
     , workflows_(nullptr)
     , purse_id_()
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     , txo_lock_{}
     , txo_{nullptr}
-    , txo_root_
-{
-    Node::BLANK_HASH
-}
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+    , txo_root_{Node::BLANK_HASH}
 {
     if (check_hash(hash)) {
         init(hash);
@@ -151,7 +142,6 @@ storage::Bip47Channels* Nym::bip47() const
 
 const storage::Bip47Channels& Nym::Bip47Channels() const { return *bip47(); }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::set<std::string> Nym::BlockchainAccountList(
     const proto::ContactItemType type) const
 {
@@ -177,7 +167,6 @@ proto::ContactItemType Nym::BlockchainAccountType(
         return proto::CITEMTYPE_ERROR;
     }
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 template <typename T, typename... Args>
 T* Nym::construct(
@@ -328,7 +317,6 @@ void Nym::init(const std::string& hash)
         contexts_root_ = Node::BLANK_HASH;
     }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     // Fields added in version 4
     for (const auto& it : serialized->blockchainaccountindex()) {
         const auto& id = it.id();
@@ -345,7 +333,6 @@ void Nym::init(const std::string& hash)
         blockchain_accounts_.emplace(
             id, std::make_shared<proto::HDAccount>(account));
     }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     // Fields added in version 5
     issuers_root_ = normalize_hash(serialized->issuers());
@@ -365,10 +352,8 @@ void Nym::init(const std::string& hash)
         purse_id_.emplace(std::move(id), pHash);
     }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     // Fields added in version 9
     txo_root_ = normalize_hash(serialized->txo().hash());
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }
 
 storage::Issuers* Nym::issuers() const
@@ -378,7 +363,6 @@ storage::Issuers* Nym::issuers() const
 
 const storage::Issuers& Nym::Issuers() const { return *issuers(); }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Nym::Load(
     const std::string& id,
     std::shared_ptr<proto::HDAccount>& output,
@@ -401,7 +385,6 @@ bool Nym::Load(
 
     return bool(output);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Nym::Load(
     std::shared_ptr<proto::Nym>& output,
@@ -489,9 +472,7 @@ bool Nym::Migrate(const opentxs::api::storage::Driver& to) const
     output &= issuers()->Migrate(to);
     output &= workflows()->Migrate(to);
     output &= bip47()->Migrate(to);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     output &= txos()->Migrate(to);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     output &= migrate(root_, to);
 
     return output;
@@ -599,12 +580,10 @@ Editor<storage::PaymentWorkflows> Nym::mutable_PaymentWorkflows()
         workflows_root_, workflows_lock_, &Nym::workflows);
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 Editor<storage::Txos> Nym::mutable_TXOs()
 {
     return editor<storage::Txos>(txo_root_, txo_lock_, &Nym::txos);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 const storage::PaymentWorkflows& Nym::PaymentWorkflows() const
 {
@@ -746,7 +725,6 @@ proto::StorageNym Nym::serialize() const
     set_hash(version_, nymid_, threads_root_, *serialized.mutable_threads());
     set_hash(version_, nymid_, contexts_root_, *serialized.mutable_contexts());
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     for (const auto& it : blockchain_account_types_) {
         const auto& chainType = it.first;
         const auto& accountSet = it.second;
@@ -763,7 +741,6 @@ proto::StorageNym Nym::serialize() const
         const auto& account = *it.second;
         *serialized.add_hdaccount() = account;
     }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     serialized.set_issuers(issuers_root_);
     serialized.set_paymentworkflow(workflows_root_);
@@ -778,9 +755,7 @@ proto::StorageNym Nym::serialize() const
         set_hash(purse.version(), unit->str(), hash, *purse.mutable_purse());
     }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     set_hash(version_, nymid_, txo_root_, *serialized.mutable_txo());
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     return serialized;
 }
@@ -794,7 +769,6 @@ bool Nym::SetAlias(const std::string& alias)
     return true;
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 bool Nym::Store(const proto::ContactItemType type, const proto::HDAccount& data)
 {
     const auto& accountID = data.id();
@@ -837,7 +811,6 @@ bool Nym::Store(const proto::ContactItemType type, const proto::HDAccount& data)
 
     return save(writeLock);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 bool Nym::Store(
     const proto::Nym& data,

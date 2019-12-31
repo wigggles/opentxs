@@ -42,11 +42,9 @@ struct Core;
 class Contact
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     using AddressStyle = api::client::blockchain::AddressStyle;
     using BlockchainType = blockchain::Type;
     using BlockchainAddress = std::tuple<OTData, AddressStyle, BlockchainType>;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     OPENTXS_EXPORT static std::shared_ptr<ContactItem> Best(
         const ContactGroup& group);
@@ -71,9 +69,7 @@ public:
     OPENTXS_EXPORT std::string BestPhoneNumber() const;
     OPENTXS_EXPORT std::string BestSocialMediaProfile(
         const proto::ContactItemType type) const;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT std::vector<BlockchainAddress> BlockchainAddresses() const;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT std::shared_ptr<ContactData> Data() const;
     OPENTXS_EXPORT std::string EmailAddresses(bool active = true) const;
     OPENTXS_EXPORT const Identifier& ID() const;
@@ -94,7 +90,6 @@ public:
     SocialMediaProfileTypes() const;
     OPENTXS_EXPORT proto::ContactItemType Type() const;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT bool AddBlockchainAddress(
         const std::string& address,
         const proto::ContactItemType currency = proto::CITEMTYPE_UNKNOWN);
@@ -102,7 +97,6 @@ public:
         const api::client::blockchain::AddressStyle& style,
         const blockchain::Type chain,
         const opentxs::Data& bytes);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT bool AddEmail(
         const std::string& value,
         const bool primary,
@@ -149,13 +143,11 @@ private:
         const VersionNumber in,
         const VersionNumber targetVersion);
     static OTIdentifier generate_id(const api::internal::Core& api);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     static BlockchainAddress translate(
         const api::client::internal::Manager& api,
         const proto::ContactItemType chain,
         const std::string& value,
         const std::string& subtype) noexcept(false);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     std::shared_ptr<ContactGroup> payment_codes(
         const Lock& lock,

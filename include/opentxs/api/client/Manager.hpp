@@ -22,10 +22,8 @@ class Manager : virtual public api::Core
 {
 public:
     OPENTXS_EXPORT virtual const api::client::Activity& Activity() const = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     OPENTXS_EXPORT virtual const api::client::Blockchain& Blockchain()
         const = 0;
-#endif
     OPENTXS_EXPORT virtual const api::client::Contacts& Contacts() const = 0;
     OPENTXS_EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;

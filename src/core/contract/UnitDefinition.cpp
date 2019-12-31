@@ -692,10 +692,7 @@ auto Unit::GetID(const Lock& lock) const -> OTIdentifier
 auto Unit::GetID(const api::internal::Core& api, const SerializedType& contract)
     -> OTIdentifier
 {
-    auto id = Identifier::Factory();
-    id->CalculateDigest(api.Factory().Data(contract));
-
-    return id;
+    return api.Factory().Identifier(contract);
 }
 
 auto Unit::IDVersion(const Lock& lock) const -> SerializedType

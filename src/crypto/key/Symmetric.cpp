@@ -598,15 +598,13 @@ OTIdentifier Symmetric::ID(const opentxs::PasswordPrompt& reason) const
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to unlock master key.")
                 .Flush();
 
-            return Identifier::Factory();
+            return api_.Factory().Identifier();
         }
     }
 
-    auto output = Identifier::Factory();
-    output->CalculateDigest(
-        Data::Factory(plain->getMemory(), plain->getMemorySize()));
+    OT_ASSERT(plain);
 
-    return output;
+    return api_.Factory().Identifier(plain->Bytes());
 }
 
 bool Symmetric::RawKey(

@@ -13,9 +13,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
-#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/HDSeed.hpp"
-#endif
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -90,8 +88,7 @@ Core::Core(
     const int instance,
     const bool dhtDefault,
     std::unique_ptr<api::internal::Factory> factory)
-    : api::internal::Core()
-    , Scheduler(parent, running)
+    : Scheduler(parent, running)
     , StorageParent(running, args, crypto, config, parent.Legacy(), dataFolder)
     , factory_p_(std::move(factory))
     , factory_(*factory_p_)
@@ -100,7 +97,6 @@ Core::Core(
     , symmetric_(factory_.Symmetric())
     , instance_(instance)
     , endpoints_(opentxs::Factory::Endpoints(zmq_context_, instance_))
-#if OT_CRYPTO_WITH_BIP32
     , seeds_(opentxs::Factory::HDSeed(
           factory_,
           asymmetric_,
@@ -108,7 +104,6 @@ Core::Core(
           *storage_,
           crypto_.BIP32(),
           crypto_.BIP39()))
-#endif
     , wallet_(nullptr)
     , dht_(opentxs::Factory::Dht(
           dhtDefault,
@@ -134,9 +129,7 @@ Core::Core(
     , timeout_thread_running_(false)
 {
     OT_ASSERT(endpoints_);
-#if OT_CRYPTO_WITH_BIP32
     OT_ASSERT(seeds_);
-#endif  // OT_CRYPTO_WITH_BIP32
     OT_ASSERT(dht_);
 
     if (master_secret_) {
@@ -161,9 +154,7 @@ void Core::cleanup()
 {
     dht_.reset();
     wallet_.reset();
-#if OT_CRYPTO_WITH_BIP32
     seeds_.reset();
-#endif
     endpoints_.reset();
     factory_p_.reset();
 
@@ -304,14 +295,12 @@ const opentxs::crypto::key::Symmetric& Core::MasterKey(
     return master_key_;
 }
 
-#if OT_CRYPTO_WITH_BIP32
 const api::HDSeed& Core::Seeds() const
 {
     OT_ASSERT(seeds_);
 
     return *seeds_;
 }
-#endif  // OT_CRYPTO_WITH_BIP32
 
 void Core::SetMasterKeyTimeout(const std::chrono::seconds& timeout) const
 {

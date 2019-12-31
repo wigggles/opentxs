@@ -202,38 +202,15 @@ auto Asymmetric::CalculateHash(
     return output;
 }
 
-auto Asymmetric::CalculateID(Identifier& theOutput) const noexcept -> bool
+auto Asymmetric::CalculateID(Identifier& output) const noexcept -> bool
 {
-    theOutput.Release();
-
     if (false == HasPublic()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Missing public key").Flush();
 
         return false;
     }
 
-    // FIXME Identifier::CalculateDigest should accept ReadView
-
-    auto strPublicKey = String::Factory();
-    bool bGotPublicKey = get_public_key(strPublicKey);
-
-    if (!bGotPublicKey) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Error getting public key.")
-            .Flush();
-        return false;
-    }
-
-    bool bSuccessCalculateDigest = theOutput.CalculateDigest(strPublicKey);
-
-    if (!bSuccessCalculateDigest) {
-        theOutput.Release();
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error calculating digest of public key.")
-            .Flush();
-        return false;
-    }
-
-    return true;
+    return output.CalculateDigest(PublicKey());
 }
 
 auto Asymmetric::CalculateTag(
@@ -436,7 +413,10 @@ auto Asymmetric::get_tag(
     }
 
     if (false == api_.Crypto().Hash().HMAC(
-                     proto::HASHTYPE_SHA256, password, credential, hashed)) {
+                     proto::HASHTYPE_SHA256,
+                     password.Bytes(),
+                     credential.Bytes(),
+                     hashed.WriteInto(OTPassword::Mode::Mem))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash shared secret")
             .Flush();
 
@@ -447,14 +427,6 @@ auto Asymmetric::get_tag(
     OT_ASSERT(hashed.getMemorySize() >= sizeof(tag));
 
     return nullptr != std::memcpy(&tag, hashed.getMemory(), sizeof(tag));
-}
-
-auto Asymmetric::get_public_key(String& strKey) const noexcept -> bool
-{
-    strKey.reset();
-    strKey.Set(api_.Crypto().Encode().DataEncode(key_.get()).c_str());
-
-    return true;
 }
 
 auto Asymmetric::hasCapability(const NymCapability& capability) const noexcept

@@ -168,11 +168,7 @@ proto::ServerReply Reply::full_version(const Lock& lock) const
 
 OTIdentifier Reply::GetID(const Lock& lock) const
 {
-    auto contract = id_version(lock);
-    auto id = Identifier::Factory();
-    id->CalculateDigest(api_.Factory().Data(contract));
-
-    return id;
+    return api_.Factory().Identifier(id_version(lock));
 }
 
 proto::ServerReply Reply::id_version(const Lock& lock) const

@@ -18,12 +18,6 @@
 
 #include "internal/api/Api.hpp"
 
-#if OT_CRYPTO_USING_TREZOR
-extern "C" {
-#include <trezor/crypto/rand.h>
-}
-#endif  // OT_CRYPTO_USING_TREZOR
-
 #include <atomic>
 #include <cstdint>
 #include <map>
@@ -31,21 +25,6 @@ extern "C" {
 #include <string>
 
 #include "opentxs/OT.hpp"
-
-#if OT_CRYPTO_USING_TREZOR
-extern "C" {
-uint32_t random32(void)
-{
-    uint32_t output{0};
-    const auto done = opentxs::Context().Crypto().Util().RandomizeMemory(
-        &output, sizeof(output));
-
-    OT_ASSERT(done)
-
-    return output;
-}
-}
-#endif  // OT_CRYPTO_USING_TREZOR
 
 namespace opentxs
 {

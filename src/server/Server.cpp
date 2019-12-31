@@ -198,7 +198,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     if (1 > name.size()) { name = defaultName; }
 
     auto nymParameters = NymParameters{};
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     nymParameters.SetSeed(seed);
     nymParameters.SetNym(0);
     nymParameters.SetDefault(false);
@@ -438,7 +438,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         SERVER_CONTRACT_FILE)(" in the server data directory.")
         .Flush();
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     const std::string defaultFingerprint = manager_.Storage().DefaultSeed();
     const std::string words =
         manager_.Seeds().Words(reason_, defaultFingerprint);

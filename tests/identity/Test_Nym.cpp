@@ -219,7 +219,7 @@ TEST_F(Test_Nym, secp256k1_hd_bip47)
 }
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 TEST_F(Test_Nym, secp256k1_hd_self_signed)
 {
     EXPECT_TRUE(test_nym(
@@ -227,7 +227,7 @@ TEST_F(Test_Nym, secp256k1_hd_self_signed)
         ot::proto::CREDTYPE_HD,
         ot::proto::SOURCETYPE_PUBKEY));
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_Nym, secp256k1_legacy_bip47)
@@ -259,7 +259,7 @@ TEST_F(Test_Nym, ed25519_hd_bip47)
 }
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 TEST_F(Test_Nym, ed25519_hd_self_signed)
 {
     EXPECT_TRUE(test_nym(
@@ -267,7 +267,7 @@ TEST_F(Test_Nym, ed25519_hd_self_signed)
         ot::proto::CREDTYPE_HD,
         ot::proto::SOURCETYPE_PUBKEY));
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 TEST_F(Test_Nym, ed25519_legacy_bip47)

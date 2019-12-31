@@ -28,9 +28,7 @@ public:
     OPENTXS_EXPORT virtual const network::Dht& DHT() const = 0;
     OPENTXS_EXPORT virtual const api::Factory& Factory() const = 0;
     OPENTXS_EXPORT virtual int Instance() const = 0;
-#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual const api::HDSeed& Seeds() const = 0;
-#endif
     OPENTXS_EXPORT virtual void SetMasterKeyTimeout(
         const std::chrono::seconds& timeout) const = 0;
     OPENTXS_EXPORT virtual const storage::Storage& Storage() const = 0;

@@ -46,9 +46,7 @@ public:
     std::mutex& Lock() const final { return master_key_lock_; }
     const opentxs::crypto::key::Symmetric& MasterKey(
         const opentxs::Lock& lock) const final;
-#if OT_CRYPTO_WITH_BIP32
     const api::HDSeed& Seeds() const final;
-#endif
     void SetMasterKeyTimeout(const std::chrono::seconds& timeout) const final;
     const api::storage::Storage& Storage() const final;
     const api::crypto::Symmetric& Symmetric() const final { return symmetric_; }
@@ -68,9 +66,7 @@ protected:
     const api::crypto::Symmetric& symmetric_;
     const int instance_{0};
     std::unique_ptr<api::Endpoints> endpoints_;
-#if OT_CRYPTO_WITH_BIP32
     std::unique_ptr<api::HDSeed> seeds_;
-#endif
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::Dht> dht_;
     mutable std::mutex master_key_lock_;

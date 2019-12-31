@@ -7,7 +7,6 @@
 
 #include "Internal.hpp"
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -1074,4 +1073,3 @@ bool Blockchain::validate_nym(const identifier::Nym& nymID) const noexcept
     return false;
 }
 }  // namespace opentxs::api::client::implementation
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD

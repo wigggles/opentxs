@@ -50,10 +50,12 @@ private:
         const std::vector<Activity>& unspent,
         std::set<OTIdentifier>& contacts,
         const PasswordPrompt& reason) const noexcept final;
+#if OT_CRYPTO_WITH_BIP32
     Bip32Index generate_next(
         const Lock& lock,
         const Subchain type,
         const PasswordPrompt& reason) const noexcept(false) final;
+#endif  // OT_CRYPTO_WITH_BIP32
     internal::BalanceElement& mutable_element(
         const Lock& lock,
         const Subchain type,

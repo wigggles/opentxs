@@ -240,7 +240,7 @@ std::string Authority::AddChildKeyCredential(
 {
     auto output = api_.Factory().Identifier();
     NymParameters revisedParameters{nymParameters};
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     revisedParameters.SetCredIndex(index_++);
 #endif
     std::unique_ptr<credential::internal::Secondary> child{
@@ -469,7 +469,7 @@ auto Authority::create_key_credential(
     auto& [id, pChild] = output;
 
     auto revised{parameters};
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     revised.SetCredIndex(index++);
 #endif
     pChild.reset(opentxs::Factory::Credential<credential::internal::Secondary>(
@@ -501,7 +501,7 @@ std::unique_ptr<credential::internal::Primary> Authority::create_master(
     const Bip32Index index,
     const opentxs::PasswordPrompt& reason) noexcept(false)
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     if (0 != index) {
         throw std::runtime_error(
             "The master credential must be the first credential created");

@@ -45,7 +45,7 @@ identity::Source* Factory::NymIDSource(
 
     switch (params.SourceType()) {
         case proto::SOURCETYPE_BIP47: {
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
             OT_ASSERT(PaymentCode::DefaultVersion <= 256);
 
             const auto paymentCode = api.Factory().PaymentCode(
@@ -61,7 +61,7 @@ identity::Source* Factory::NymIDSource(
                 .Flush();
 
             return nullptr;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
         }
         case proto::SOURCETYPE_PUBKEY:
             switch (params.credentialType()) {
@@ -73,7 +73,7 @@ identity::Source* Factory::NymIDSource(
                         reason);
                 } break;
                 case proto::CREDTYPE_HD:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
                 {
                     const auto curve =
                         crypto::AsymmetricProvider::KeyTypeToCurve(
@@ -92,7 +92,7 @@ identity::Source* Factory::NymIDSource(
                         proto::KEYROLE_SIGN,
                         reason);
                 } break;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
                 case proto::CREDTYPE_ERROR:
                 default: {
                     throw std::runtime_error("Unsupported credential type");
@@ -239,12 +239,10 @@ std::unique_ptr<proto::AsymmetricKey> Source::extract_key(
 OTNymID Source::NymID() const noexcept
 {
     auto nymID = factory_.NymID();
-    auto dataVersion = Data::Factory();
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY: {
-            dataVersion = asData();
-            nymID->CalculateDigest(dataVersion);
+            nymID->CalculateDigest(asData()->Bytes());
 
         } break;
         case proto::SOURCETYPE_BIP47: {

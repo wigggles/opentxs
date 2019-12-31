@@ -21,10 +21,7 @@
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #endif
 
-#include "crypto/key/EllipticCurve.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "crypto/key/HD.hpp"
-#endif
 
 #include "Secp256k1.hpp"
 
@@ -67,7 +64,7 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
     }
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 crypto::key::Secp256k1* Factory::Secp256k1Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
@@ -95,7 +92,7 @@ crypto::key::Secp256k1* Factory::Secp256k1Key(
         sessionKey,
         reason);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
@@ -118,7 +115,7 @@ Secp256k1::Secp256k1(
 {
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 Secp256k1::Secp256k1(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
@@ -146,7 +143,7 @@ Secp256k1::Secp256k1(
           reason)
 {
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 Secp256k1::Secp256k1(const Secp256k1& rhs) noexcept
     : key::Secp256k1()

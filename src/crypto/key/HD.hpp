@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "EllipticCurve.hpp"
+
 namespace opentxs::crypto::key::implementation
 {
 class HD : virtual public key::HD, public EllipticCurve
@@ -33,7 +35,7 @@ protected:
        const VersionNumber version,
        const PasswordPrompt& reason)
     noexcept(false);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     HD(const api::internal::Core& api,
        const crypto::EcdsaProvider& ecdsa,
        const proto::AsymmetricKeyType keyType,
@@ -47,7 +49,7 @@ protected:
        key::Symmetric& sessionKey,
        const PasswordPrompt& reason)
     noexcept(false);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     HD(const HD&) noexcept;
 
 private:

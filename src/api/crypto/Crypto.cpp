@@ -23,14 +23,10 @@
 #endif
 #include "opentxs/crypto/library/Ripemd160.hpp"
 #include "opentxs/crypto/library/Sodium.hpp"
-#if OT_CRYPTO_USING_TREZOR
-#include "opentxs/crypto/library/Trezor.hpp"
-#endif
-#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
-#endif
 #include "opentxs/crypto/Bip39.hpp"
 
+#include "crypto/Bip32.hpp"
 #include "internal/api/crypto/Crypto.hpp"
 
 #include <functional>
@@ -60,9 +56,6 @@ namespace opentxs::api::implementation
 {
 Crypto::Crypto(const api::Settings& settings)
     : config_(opentxs::Factory::CryptoConfig(settings))
-#if OT_CRYPTO_USING_TREZOR
-    , trezor_(opentxs::Factory::Trezor(*this))
-#endif
     , sodium_(opentxs::Factory::Sodium(*this))
 #if OT_CRYPTO_USING_OPENSSL
     , ssl_(opentxs::Factory::OpenSSL(*this))
@@ -73,11 +66,8 @@ Crypto::Crypto(const api::Settings& settings)
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
     , bip39_p_(opentxs::Factory::Bip39(*this))
     , ripemd160_(*ssl_)
-#if OT_CRYPTO_USING_TREZOR
-#if OT_CRYPTO_WITH_BIP32
-    , bip32_(*trezor_)
-#endif  // OT_CRYPTO_WITH_BIP32
-#endif  // OT_CRYPTO_USING_TREZOR
+    , bip32_p_(std::make_unique<opentxs::crypto::implementation::Bip32>(*this))
+    , bip32_(*bip32_p_)
     , bip39_(*bip39_p_)
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -88,9 +78,7 @@ Crypto::Crypto(const api::Settings& settings)
     , hash_(
           opentxs::Factory::Hash(*encode_, *ssl_, *sodium_, *ssl_, ripemd160_))
 {
-#if OT_CRYPTO_USING_TREZOR
-    OT_ASSERT(trezor_)
-#endif
+    OT_ASSERT(bip32_p_)
     OT_ASSERT(sodium_)
 #if OT_CRYPTO_USING_OPENSSL
     OT_ASSERT(ssl_)
@@ -102,9 +90,7 @@ Crypto::Crypto(const api::Settings& settings)
     Init();
 }
 
-#if OT_CRYPTO_WITH_BIP32
 const opentxs::crypto::Bip32& Crypto::BIP32() const { return bip32_; }
-#endif
 
 const opentxs::crypto::Bip39& Crypto::BIP39() const { return bip39_; }
 
@@ -116,9 +102,7 @@ void Crypto::Cleanup()
     secp256k1_p_.reset();
 #endif
     sodium_.reset();
-#if OT_CRYPTO_USING_TREZOR
-    trezor_.reset();
-#endif
+    bip32_p_.reset();
     config_.reset();
 }
 

@@ -168,6 +168,8 @@ public:
     OTIdentifier Identifier(const opentxs::String& serialized) const final;
     OTIdentifier Identifier(const opentxs::Contract& contract) const final;
     OTIdentifier Identifier(const opentxs::Item& item) const final;
+    OTIdentifier Identifier(const ReadView bytes) const final;
+    OTIdentifier Identifier(const ProtobufType& proto) const final;
     std::unique_ptr<opentxs::Item> Item(const String& serialized) const final;
     std::unique_ptr<opentxs::Item> Item(
         const std::string& serialized) const final;
@@ -199,7 +201,7 @@ public:
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey) const final;
     OTKeypair Keypair(const proto::AsymmetricKey& serializedPubkey) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     OTKeypair Keypair(
         const std::string& fingerprint,
         const Bip32Index nym,
@@ -208,7 +210,7 @@ public:
         const EcdsaCurve& curve,
         const proto::KeyRole role,
         const opentxs::PasswordPrompt& reason) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     std::unique_ptr<opentxs::Ledger> Ledger(
         const opentxs::Identifier& theAccountID,
         const identifier::Server& theNotaryID) const final;
@@ -285,7 +287,7 @@ public:
     OTPaymentCode PaymentCode(const std::string& base58) const noexcept final;
     OTPaymentCode PaymentCode(const proto::PaymentCode& serialized) const
         noexcept final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     OTPaymentCode PaymentCode(
         const std::string& seed,
         const Bip32Index nym,
@@ -294,7 +296,7 @@ public:
         const bool bitmessage,
         const std::uint8_t bitmessageVersion,
         const std::uint8_t bitmessageStream) const noexcept final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD && OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1 && OT_CRYPTO_WITH_BIP32
     std::unique_ptr<OTPaymentPlan> PaymentPlan() const final;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
         const identifier::Server& NOTARY_ID,

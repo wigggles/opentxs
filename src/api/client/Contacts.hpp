@@ -12,12 +12,10 @@ namespace opentxs::api::client::implementation
 class Contacts final : public client::internal::Contacts
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     OTIdentifier BlockchainAddressToContact(
         const std::string& address,
         const proto::ContactItemType currency =
             proto::CITEMTYPE_BTC) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<const opentxs::Contact> Contact(
         const Identifier& id) const final;
     OTIdentifier ContactID(const identifier::Nym& nymID) const final;
@@ -34,12 +32,10 @@ public:
         const std::string& label,
         const identifier::Nym& nymID,
         const PaymentCode& paymentCode) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<const opentxs::Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
         const proto::ContactItemType currency) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     OTIdentifier NymToContact(const identifier::Nym& nymID) const final;
     std::shared_ptr<const opentxs::Contact> Update(
         const proto::Nym& nym) const final;
@@ -73,12 +69,10 @@ private:
     // takes ownership
     ContactMap::iterator add_contact(const rLock& lock, class Contact* contact)
         const;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     OTIdentifier address_to_contact(
         const rLock& lock,
         const std::string& address,
         const proto::ContactItemType currency) const;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
     std::shared_ptr<const opentxs::Contact> contact(
         const rLock& lock,
         const std::string& label) const;

@@ -7,7 +7,6 @@
 
 #include "Internal.hpp"
 
-#if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/crypto/Asymmetric.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -75,7 +74,7 @@ HDSeed::HDSeed(
     OT_ASSERT(text_secret_.isPassword());
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 std::unique_ptr<opentxs::crypto::key::HD> HDSeed::AccountChildKey(
     const proto::HDPath& rootPath,
     const BIP44Chain internal,
@@ -93,7 +92,7 @@ std::unique_ptr<opentxs::crypto::key::HD> HDSeed::AccountChildKey(
 
     return GetHDKey(fingerprint, EcdsaCurve::secp256k1, path, reason);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 std::string HDSeed::Bip32Root(
     const PasswordPrompt& reason,
@@ -181,7 +180,7 @@ bool HDSeed::decrypt_seed(
 
 std::string HDSeed::DefaultSeed() const { return storage_.DefaultSeed(); }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 std::unique_ptr<opentxs::crypto::key::HD> HDSeed::GetHDKey(
     std::string& fingerprint,
     const EcdsaCurve& curve,
@@ -244,7 +243,7 @@ OTSymmetricKey HDSeed::GetStorageKey(
 
     return symmetric_.Key(keySource);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 std::string HDSeed::ImportRaw(
     const OTPassword& entropy,
@@ -351,9 +350,7 @@ std::string HDSeed::save_seed(
 
     OT_ASSERT(0 < seed.getMemorySize());
 
-    // the fingerprint is used as the identifier of the seed for indexing
-    // purposes. Always use the secp256k1 version for this.
-    auto fingerprint = bip32_.SeedToFingerprint(EcdsaCurve::secp256k1, seed);
+    auto fingerprint{bip32_.SeedID(seed.Bytes())->str()};
     auto key = symmetric_.Key(reason, DEFAULT_ENCRYPTION_MODE);
 
     OT_ASSERT(key.get());
@@ -551,4 +548,3 @@ std::string HDSeed::Words(
     return words.getPassword();
 }
 }  // namespace opentxs::api::implementation
-#endif  // OT_CRYPTO_WITH_BIP32

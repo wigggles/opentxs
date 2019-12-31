@@ -357,6 +357,80 @@ std::size_t Sodium::SaltSize(const proto::SymmetricKeyType type) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
+bool Sodium::ScalarAdd(
+    const ReadView lhs,
+    const ReadView rhs,
+    const AllocateOutput result) const noexcept
+{
+    if (false == bool(result)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    if (crypto_core_ed25519_SCALARBYTES != lhs.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid lhs scalar").Flush();
+
+        return false;
+    }
+
+    if (crypto_core_ed25519_SCALARBYTES != rhs.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid rhs scalar").Flush();
+
+        return false;
+    }
+
+    auto key = result(crypto_core_ed25519_SCALARBYTES);
+
+    if (false == key.valid(crypto_core_ed25519_SCALARBYTES)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to allocate space for result")
+            .Flush();
+
+        return false;
+    }
+
+    ::crypto_core_ed25519_scalar_add(
+        key.as<unsigned char>(),
+        reinterpret_cast<const unsigned char*>(lhs.data()),
+        reinterpret_cast<const unsigned char*>(rhs.data()));
+
+    return true;
+}
+
+auto Sodium::ScalarMultiplyBase(
+    const ReadView scalar,
+    const AllocateOutput result) const noexcept -> bool
+{
+    if (false == bool(result)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    if (crypto_scalarmult_ed25519_SCALARBYTES != scalar.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid scalar").Flush();
+
+        return false;
+    }
+
+    auto pub = result(crypto_scalarmult_ed25519_BYTES);
+
+    if (false == pub.valid(crypto_scalarmult_ed25519_BYTES)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to allocate space for public key")
+            .Flush();
+
+        return false;
+    }
+
+    return 0 == ::crypto_scalarmult_ed25519_base(
+                    pub.as<unsigned char>(),
+                    reinterpret_cast<const unsigned char*>(scalar.data()));
+}
+
 auto Sodium::SharedSecret(
     const key::Asymmetric& publicKey,
     const key::Asymmetric& privateKey,

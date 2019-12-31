@@ -19,6 +19,12 @@ public:
         const proto::KeyRole role,
         const NymParameters& options,
         const AllocateOutput params) const noexcept final;
+    bool ScalarAdd(
+        const ReadView lhs,
+        const ReadView rhs,
+        const AllocateOutput result) const noexcept final;
+    bool ScalarMultiplyBase(const ReadView scalar, const AllocateOutput result)
+        const noexcept final;
     bool SharedSecret(
         const key::Asymmetric& publicKey,
         const key::Asymmetric& privateKey,

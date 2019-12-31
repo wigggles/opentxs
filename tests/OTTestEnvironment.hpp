@@ -8,7 +8,6 @@
 #include <opentxs/opentxs.hpp>
 
 #include "core/StateMachine.hpp"
-#include "opentxs/crypto/library/Trezor.hpp"
 #include "internal/api/client/Client.hpp"
 #include "internal/api/server/Server.hpp"
 #if OT_BLOCKCHAIN

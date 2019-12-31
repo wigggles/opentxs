@@ -47,7 +47,7 @@ protected:
         const proto::KeyRole role,
         const VersionNumber version,
         const PasswordPrompt& reason) noexcept(false);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     EllipticCurve(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -58,7 +58,7 @@ protected:
         const VersionNumber version,
         key::Symmetric& sessionKey,
         const PasswordPrompt& reason) noexcept(false);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     EllipticCurve(const EllipticCurve&) noexcept;
 
 private:

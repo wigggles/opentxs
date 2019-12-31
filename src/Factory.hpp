@@ -607,7 +607,6 @@ public:
         const blockchain::block::Height height,
         const bool relay);
 #endif  // OT_BLOCKCHAIN
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::Blockchain* BlockchainAPI(
         const api::client::internal::Manager& api,
         const api::client::Activity& activity,
@@ -633,7 +632,6 @@ public:
         const api::client::blockchain::internal::BalanceTree& parent,
         const proto::HDAccount& serialized,
         Identifier& id);
-#endif
 #if OT_BLOCKCHAIN
     static blockchain::p2p::internal::Address* BlockchainAddress(
         const api::internal::Core& api,
@@ -873,7 +871,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     static crypto::key::Ed25519* Ed25519Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -885,7 +883,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     static api::crypto::Encode* Encode(const api::Crypto& crypto);
     static api::Endpoints* Endpoints(
@@ -929,7 +927,6 @@ public:
         const crypto::Pbkdf2& pbkdf2,
         const crypto::Ripemd160& ripe) noexcept
         -> std::unique_ptr<api::crypto::Hash>;
-#if OT_CRYPTO_WITH_BIP32
     static api::HDSeed* HDSeed(
         const api::Factory& factory,
         const api::crypto::Asymmetric& asymmetric,
@@ -937,7 +934,6 @@ public:
         const api::storage::Storage& storage,
         const crypto::Bip32& bip32,
         const crypto::Bip39& bip39);
-#endif
 #if OT_BLOCKCHAIN
     static blockchain::client::internal::HeaderOracle* HeaderOracle(
         const api::internal::Core& api,
@@ -1387,7 +1383,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     static crypto::key::Secp256k1* Secp256k1Key(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -1399,7 +1395,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version,
         const opentxs::PasswordPrompt& reason);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     static auto SecurityContract(
         const api::internal::Core& api,
@@ -1582,10 +1578,6 @@ public:
         const opentxs::PasswordPrompt& reason) noexcept(false)
         -> std::unique_ptr<blind::Token>;
 #endif
-#if OT_CRYPTO_USING_TREZOR
-    OPENTXS_EXPORT static auto Trezor(const api::Crypto& crypto)
-        -> crypto::Trezor*;
-#endif  // OT_CRYPTO_USING_TREZOR
     static api::client::UI* UI(
         const api::client::internal::Manager& api,
         const Flag& running

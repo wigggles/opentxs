@@ -47,7 +47,6 @@ namespace api
 {
 namespace client
 {
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace blockchain
 {
 #if OT_BLOCKCHAIN
@@ -71,7 +70,6 @@ struct Imported;
 struct PaymentCode;
 }  // namespace internal
 }  // namespace blockchain
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 namespace implementation
 {
@@ -624,15 +622,11 @@ class LowLevelKeyGenerator;
 class OpenSSL;
 #endif
 class StorageConfig;
-#if OT_CRYPTO_USING_TREZOR
-class TrezorCrypto;
-#endif
 
 bool operator==(
     const opentxs::ProtobufType& lhs,
     const opentxs::ProtobufType& rhs) noexcept;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 template <typename I>
 struct HDIndex {
     Bip32Index value_{};
@@ -652,7 +646,6 @@ struct HDIndex {
 
 template <typename Bip43Purpose>
 HDIndex(const Bip43Purpose, const Bip32Child)->HDIndex<Bip43Purpose>;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 template <typename T>
 struct make_blank {
@@ -677,10 +670,8 @@ std::map<Value, Key> reverse_map(const std::map<Key, Value>& map) noexcept
     return output;
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 proto::ContactItemType Translate(const blockchain::Type type) noexcept;
 blockchain::Type Translate(const proto::ContactItemType type) noexcept;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 }  // namespace opentxs
 
 #include "Factory.hpp"

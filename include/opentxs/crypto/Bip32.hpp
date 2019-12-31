@@ -8,7 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/Bytes.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -31,11 +32,12 @@ public:
     using Key =
         std::tuple<OTPassword, OTPassword, OTData, Path, Bip32Fingerprint>;
 
+#if OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual Key DeriveKey(
-        const api::crypto::Hash& hash,
         const EcdsaCurve& curve,
         const OTPassword& seed,
         const Path& path) const = 0;
+#endif  // OT_CRYPTO_WITH_BIP32
     OPENTXS_EXPORT virtual bool DeserializePrivate(
         const std::string& serialized,
         Bip32Network& network,
@@ -52,9 +54,8 @@ public:
         Bip32Index& index,
         Data& chainCode,
         Data& key) const = 0;
-    OPENTXS_EXPORT virtual std::string SeedToFingerprint(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const = 0;
+    OPENTXS_EXPORT virtual OTIdentifier SeedID(
+        const ReadView entropy) const = 0;
     OPENTXS_EXPORT virtual std::string SerializePrivate(
         const Bip32Network network,
         const Bip32Depth depth,
@@ -74,5 +75,4 @@ public:
 };
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OT_CRYPTO_WITH_BIP32
 #endif

@@ -166,7 +166,7 @@ auto Item::calculate_id(
     preimage.get() += nym;
     auto output = api.Factory().Identifier();
 
-    if (false == output->CalculateDigest(preimage)) {
+    if (false == output->CalculateDigest(preimage->Bytes())) {
         throw std::runtime_error("Unable to calculate ID");
     }
 

@@ -154,18 +154,11 @@ OTIdentifier Base::GetID(const Lock& lock) const
 
     auto idVersion = serialize(lock, AS_PUBLIC, WITHOUT_SIGNATURES);
 
+    OT_ASSERT(idVersion);
+
     if (idVersion->has_id()) { idVersion->clear_id(); }
 
-    auto serializedData = api_.Factory().Data(*idVersion);
-    auto id = Identifier::Factory();
-
-    if (!id->CalculateDigest(serializedData)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error calculating credential digest.")
-            .Flush();
-    }
-
-    return id;
+    return api_.Factory().Identifier(*idVersion);
 }
 
 void Base::init(

@@ -90,7 +90,7 @@ EllipticCurve::EllipticCurve(
     }
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 EllipticCurve::EllipticCurve(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
@@ -119,7 +119,7 @@ EllipticCurve::EllipticCurve(
         throw std::runtime_error("Failed to instantiate encrypted_key_");
     }
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 EllipticCurve::EllipticCurve(const EllipticCurve& rhs) noexcept
     : Asymmetric(rhs)

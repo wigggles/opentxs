@@ -37,9 +37,9 @@ public:
         const AllocateOutput encodedDestination) const noexcept = 0;
     OPENTXS_EXPORT virtual bool HMAC(
         const proto::HashType hashType,
-        const OTPassword& key,
-        const Data& data,
-        OTPassword& digest) const noexcept = 0;
+        const ReadView key,
+        const ReadView& data,
+        const AllocateOutput digest) const noexcept = 0;
     OPENTXS_EXPORT virtual void MurmurHash3_32(
         const std::uint32_t& key,
         const Data& data,

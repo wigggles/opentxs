@@ -9,12 +9,7 @@
 
 namespace opentxs::crypto::key::implementation
 {
-class Secp256k1 final : virtual public key::Secp256k1,
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-                        public implementation::HD
-#else
-                        public implementation::EllipticCurve
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+class Secp256k1 final : virtual public key::Secp256k1, public HD
 {
 public:
     NymParameterType CreateType() const final
@@ -32,7 +27,7 @@ public:
         const proto::KeyRole role,
         const VersionNumber version,
         const PasswordPrompt& reason) noexcept(false);
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     Secp256k1(
         const api::internal::Core& api,
         const crypto::EcdsaProvider& ecdsa,
@@ -45,16 +40,12 @@ public:
         const VersionNumber version,
         key::Symmetric& sessionKey,
         const PasswordPrompt& reason) noexcept(false);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
     ~Secp256k1() final = default;
 
 private:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     using ot_super = HD;
-#else
-    using ot_super = EllipticCurve;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
     Secp256k1* clone() const noexcept final { return new Secp256k1(*this); }
     Secp256k1* clone_ec() const noexcept final { return clone(); }

@@ -219,31 +219,26 @@ auto Hash::digest(
 
 auto Hash::HMAC(
     const proto::HashType type,
-    const OTPassword& key,
-    const Data& data,
-    OTPassword& digest) const noexcept -> bool
+    const ReadView key,
+    const ReadView& data,
+    const AllocateOutput digest) const noexcept -> bool
 {
-    if (false ==
-        allocate(type, digest.WriteInto(OTPassword::Mode::Mem)).valid()) {
+    auto output = allocate(type, digest);
+
+    if (false == output.valid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to allocate output space.")
             .Flush();
 
         return false;
     }
 
-    if (false == key.isMemory()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong OTPassword mode.").Flush();
-
-        return false;
-    }
-
     return HMAC(
         type,
-        static_cast<const std::uint8_t*>(data.data()),
+        reinterpret_cast<const std::uint8_t*>(data.data()),
         data.size(),
-        static_cast<const std::uint8_t*>(key.getMemory()),
-        key.getMemorySize(),
-        static_cast<std::uint8_t*>(digest.getMemoryWritable()));
+        reinterpret_cast<const std::uint8_t*>(key.data()),
+        key.size(),
+        output.as<std::uint8_t>());
 }
 
 auto Hash::HMAC(

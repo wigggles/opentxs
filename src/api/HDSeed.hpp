@@ -10,18 +10,18 @@ namespace opentxs::api::implementation
 class HDSeed final : public api::HDSeed
 {
 public:
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     std::unique_ptr<opentxs::crypto::key::HD> AccountChildKey(
         const proto::HDPath& path,
         const BIP44Chain internal,
         const Bip32Index index,
         const PasswordPrompt& reason) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     std::string Bip32Root(
         const PasswordPrompt& reason,
         const std::string& fingerprint = "") const final;
     std::string DefaultSeed() const final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     std::unique_ptr<opentxs::crypto::key::HD> GetHDKey(
         std::string& fingerprint,
         const EcdsaCurve& curve,
@@ -39,7 +39,7 @@ public:
     OTSymmetricKey GetStorageKey(
         std::string& seed,
         const PasswordPrompt& reason) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     std::string ImportRaw(
         const OTPassword& entropy,
         const PasswordPrompt& reason) const final;

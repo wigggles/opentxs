@@ -28,14 +28,6 @@ add_subdirectory(storage)
 add_subdirectory(ui)
 add_subdirectory(util)
 
-if(TREZORCRYPTO_EXPORT)
-  set(trezor $<TARGET_OBJECTS:TrezorCrypto>)
-  set(trezor-wrapper $<TARGET_OBJECTS:opentxs-crypto-library-trezor>)
-else()
-  set(trezor "")
-  set(trezor-wrapper "")
-endif()
-
 if(LIBSECP256K1_EXPORT)
   set(
     libsecp256k1-wrapper
@@ -76,17 +68,12 @@ else()
   set(lucre "")
 endif()
 
-if(HD_EXPORT)
-  set(hd $<TARGET_OBJECTS:opentxs-api-client-blockchain>)
-else()
-  set(hd "")
-endif()
-
 set(
   object-deps
   $<TARGET_OBJECTS:base64>
   $<TARGET_OBJECTS:external-hashes>
   $<TARGET_OBJECTS:irrxml>
+  $<TARGET_OBJECTS:opentxs-api-client-blockchain>
   $<TARGET_OBJECTS:opentxs-api-client>
   $<TARGET_OBJECTS:opentxs-api-crypto-base58>
   $<TARGET_OBJECTS:opentxs-api-crypto>
@@ -133,12 +120,9 @@ set(
   $<TARGET_OBJECTS:opentxs-util>
   $<TARGET_OBJECTS:otprotob>
   ${blind}
-  ${hd}
   ${libsecp256k1-wrapper}
   ${lucre}
   ${openssl-wrapper}
-  ${trezor-wrapper}
-  ${trezor}
 )
 
 set(

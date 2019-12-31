@@ -14,9 +14,7 @@ class Manager final : opentxs::api::client::internal::Manager,
 {
 public:
     const api::client::Activity& Activity() const final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     const api::client::Blockchain& Blockchain() const final;
-#endif
     const api::client::Contacts& Contacts() const final;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const final;
     using Core::Lock;
@@ -42,9 +40,7 @@ private:
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<api::client::internal::Contacts> contacts_;
     std::unique_ptr<api::client::internal::Activity> activity_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::client::Blockchain> blockchain_;
-#endif
     std::unique_ptr<api::client::Workflow> workflow_;
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;

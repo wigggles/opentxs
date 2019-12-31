@@ -13,8 +13,8 @@ class Asymmetric final : virtual public api::crypto::internal::Asymmetric
 {
 public:
     ECKey InstantiateECKey(const proto::AsymmetricKey& serialized) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
     HDKey InstantiateHDKey(const proto::AsymmetricKey& serialized) const final;
+#if OT_CRYPTO_WITH_BIP32
     HDKey InstantiateKey(
         const proto::AsymmetricKeyType type,
         const std::string& seedID,
@@ -22,9 +22,9 @@ public:
         const PasswordPrompt& reason,
         const proto::KeyRole role,
         const VersionNumber version) const final;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     Key InstantiateKey(const proto::AsymmetricKey& serialized) const final;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     HDKey NewHDKey(
         const std::string& seedID,
         const OTPassword& seed,
@@ -43,7 +43,7 @@ public:
         const VersionNumber version =
             opentxs::crypto::key::Secp256k1::DefaultVersion) const final;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     Key NewKey(
         const NymParameters& params,
         const PasswordPrompt& reason,
@@ -62,13 +62,13 @@ private:
 
     const api::internal::Core& api_;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     static proto::HDPath serialize_path(
         const std::string& seedID,
         const opentxs::crypto::Bip32::Path& children);
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
     template <typename ReturnType, typename NullType>
     auto instantiate_hd_key(
         const proto::AsymmetricKeyType type,
@@ -78,7 +78,7 @@ private:
         const proto::KeyRole role,
         const VersionNumber version) const noexcept
         -> std::unique_ptr<ReturnType>;
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
     template <typename ReturnType, typename NullType>
     auto instantiate_serialized_key(const proto::AsymmetricKey& serialized)
         const noexcept -> std::unique_ptr<ReturnType>;

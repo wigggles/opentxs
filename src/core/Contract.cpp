@@ -267,7 +267,7 @@ void Contract::CalculateContractID(Identifier& newID) const
 
     auto strTemp = String::Factory(str_Trim2.c_str());
 
-    if (!newID.CalculateDigest(strTemp))
+    if (!newID.CalculateDigest(strTemp->Bytes()))
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Error calculating Contract digest.")
             .Flush();

@@ -9,11 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/HD.hpp"
-#else
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 
 namespace opentxs
 {
@@ -21,12 +17,7 @@ namespace crypto
 {
 namespace key
 {
-class Ed25519 :
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    virtual public HD
-#else
-    virtual public EllipticCurve
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+class Ed25519 : virtual public HD
 {
 public:
     OPENTXS_EXPORT ~Ed25519() override = default;

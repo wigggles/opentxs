@@ -216,10 +216,7 @@ auto Server::extract_endpoints(const proto::ServerContract& serialized) noexcept
 
 OTIdentifier Server::GetID(const Lock& lock) const
 {
-    auto contract = IDVersion(lock);
-    auto id = Identifier::Factory();
-    id->CalculateDigest(api_.Factory().Data(contract));
-    return id;
+    return api_.Factory().Identifier(IDVersion(lock));
 }
 
 bool Server::ConnectInfo(

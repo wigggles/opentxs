@@ -5,6 +5,7 @@
 
 #include "OTTestEnvironment.hpp"
 
+#if OT_CRYPTO_WITH_BIP32
 namespace ot = opentxs;
 
 namespace
@@ -1790,3 +1791,4 @@ TEST_F(Test_BlockchainAPI, Assign_External_Address)
     EXPECT_TRUE(transaction_state_7());
 }
 }  // namespace
+#endif  // OT_CRYPTO_WITH_BIP32

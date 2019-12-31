@@ -24,9 +24,9 @@ public:
         const AllocateOutput destination) const noexcept final;
     bool HMAC(
         const proto::HashType hashType,
-        const OTPassword& key,
-        const Data& data,
-        OTPassword& digest) const noexcept final;
+        const ReadView key,
+        const ReadView& data,
+        const AllocateOutput digest) const noexcept final;
     void MurmurHash3_32(
         const std::uint32_t& key,
         const Data& data,

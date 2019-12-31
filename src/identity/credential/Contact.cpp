@@ -126,10 +126,7 @@ OTIdentifier Contact::ClaimID(
     const api::internal::Core& api,
     const proto::Claim& preimage)
 {
-    auto output = Identifier::Factory();
-    output->CalculateDigest(api.Factory().Data(preimage));
-
-    return output;
+    return api.Factory().Identifier(preimage);
 }
 
 // static

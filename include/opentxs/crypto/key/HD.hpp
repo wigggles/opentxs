@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/Bytes.hpp"
 
@@ -27,7 +26,7 @@ class HD : virtual public EllipticCurve
 public:
     OPENTXS_EXPORT static Bip32Fingerprint CalculateFingerprint(
         const api::crypto::Hash& hash,
-        const Data& pubkey) noexcept;
+        const ReadView pubkey) noexcept;
 
     OPENTXS_EXPORT virtual ReadView Chaincode(
         const PasswordPrompt& reason) const noexcept = 0;
@@ -52,5 +51,4 @@ private:
 }  // namespace key
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif

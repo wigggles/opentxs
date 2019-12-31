@@ -12,6 +12,7 @@ set(
   Bip39.cpp
   bip39_word_list.cpp
   Envelope.cpp
+  HDNode.cpp
 )
 set(
   cxx-install-headers
@@ -25,6 +26,7 @@ set(
   Bip32.hpp
   Bip39.hpp
   Envelope.hpp
+  HDNode.hpp
 )
 
 add_library(opentxs-crypto OBJECT ${cxx-sources} ${cxx-headers})

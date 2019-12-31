@@ -18,10 +18,7 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/Sodium.hpp"
 
-#include "crypto/key/EllipticCurve.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "crypto/key/HD.hpp"
-#endif
 #include "util/Sodium.hpp"
 
 #include "Ed25519.hpp"
@@ -65,7 +62,7 @@ crypto::key::Ed25519* Factory::Ed25519Key(
     }
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 crypto::key::Ed25519* Factory::Ed25519Key(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
@@ -93,7 +90,7 @@ crypto::key::Ed25519* Factory::Ed25519Key(
         sessionKey,
         reason);
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 }  // namespace opentxs
 
 namespace opentxs::crypto::key::implementation
@@ -116,7 +113,7 @@ Ed25519::Ed25519(
 {
 }
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
+#if OT_CRYPTO_WITH_BIP32
 Ed25519::Ed25519(
     const api::internal::Core& api,
     const crypto::EcdsaProvider& ecdsa,
@@ -144,7 +141,7 @@ Ed25519::Ed25519(
           reason)
 {
 }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#endif  // OT_CRYPTO_WITH_BIP32
 
 Ed25519::Ed25519(const Ed25519& rhs) noexcept
     : key::Ed25519()

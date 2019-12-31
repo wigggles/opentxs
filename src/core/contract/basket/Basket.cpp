@@ -367,7 +367,7 @@ void Basket::CalculateContractID(Identifier& newID) const
     // do this on a copy since we don't want to modify this basket
     auto xmlUnsigned = StringXML::Factory();
     GenerateContents(xmlUnsigned, true);
-    newID.CalculateDigest(xmlUnsigned);
+    newID.CalculateDigest(xmlUnsigned->Bytes());
 }
 
 void Basket::Release_Basket()
