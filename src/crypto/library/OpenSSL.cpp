@@ -69,14 +69,22 @@ OpenSSL::OpenSSL(const api::Crypto& crypto)
 {
 }
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fl
 OpenSSL::BIO::BIO(const BIO_METHOD* type) noexcept
+#else
+OpenSSL::BIO::BIO(BIO_METHOD* type) noexcept
+#endif
     : bio_(::BIO_new(type), ::BIO_free)
 {
     OT_ASSERT(bio_);
 }
 
 OpenSSL::MD::MD() noexcept
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fl
     : md_(::EVP_MD_CTX_new(), ::EVP_MD_CTX_free)
+#else
+    : md_(std::make_unique<::EVP_MD_CTX>())
+#endif
     , hash_(nullptr)
     , key_(nullptr, ::EVP_PKEY_free)
 {

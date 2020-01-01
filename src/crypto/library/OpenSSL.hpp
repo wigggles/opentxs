@@ -31,8 +31,12 @@ using OpenSSL_EVP_PKEY =
     std::unique_ptr<::EVP_PKEY, decltype(&::EVP_PKEY_free)>;
 using OpenSSL_EVP_PKEY_CTX =
     std::unique_ptr<::EVP_PKEY_CTX, decltype(&::EVP_PKEY_CTX_free)>;
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fl
 using OpenSSL_EVP_MD_CTX =
     std::unique_ptr<::EVP_MD_CTX, decltype(&::EVP_MD_CTX_free)>;
+#else
+using OpenSSL_EVP_MD_CTX = std::unique_ptr<::EVP_MD_CTX>;
+#endif
 using OpenSSL_RSA = std::unique_ptr<::RSA, decltype(&::RSA_free)>;
 }  // namespace opentxs::crypto
 
@@ -111,7 +115,11 @@ private:
         auto Export(const AllocateOutput output) noexcept -> bool;
         auto Import(const ReadView input) noexcept -> bool;
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fl
         BIO(const BIO_METHOD* type = ::BIO_s_mem()) noexcept;
+#else
+        BIO(BIO_METHOD* type = ::BIO_s_mem()) noexcept;
+#endif
 
     private:
         OpenSSL_BIO bio_;
