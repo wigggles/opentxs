@@ -34,6 +34,7 @@
 #define SERVER_REPLY_RECEIVED_ENDPOINT "reply/received"
 #define SERVER_REQUEST_SENT_ENDPOINT "request/sent"
 #define SERVER_UPDATE_ENDPOINT "serverupdate"
+#define SHUTDOWN "shutdown"
 #define TASK_COMPLETE_ENDPOINT "taskcomplete/"
 #define THREAD_UPDATE_ENDPOINT "threadupdate/"
 #define WIDGET_UPDATE_ENDPOINT "ui/widgetupdate"
@@ -55,7 +56,7 @@ namespace opentxs::api::implementation
 {
 Endpoints::Endpoints(
     const opentxs::network::zeromq::Context& zmq,
-    const int instance)
+    const int instance) noexcept
     : zmq_(zmq)
     , instance_(instance)
 {
@@ -63,7 +64,7 @@ Endpoints::Endpoints(
 
 std::string Endpoints::build_inproc_path(
     const std::string& path,
-    const int version) const
+    const int version) const noexcept
 {
     return zmq_.BuildEndpoint(path, instance_, version);
 }
@@ -71,131 +72,136 @@ std::string Endpoints::build_inproc_path(
 std::string Endpoints::build_inproc_path(
     const std::string& path,
     const int version,
-    const std::string& suffix) const
+    const std::string& suffix) const noexcept
 {
     return zmq_.BuildEndpoint(path, instance_, version, suffix);
 }
 
-std::string Endpoints::AccountUpdate() const
+std::string Endpoints::AccountUpdate() const noexcept
 {
     return build_inproc_path(ACCOUNT_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::ConnectionStatus() const
+std::string Endpoints::ConnectionStatus() const noexcept
 {
     return build_inproc_path(CONNECTION_STATUS_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::ContactUpdate() const
+std::string Endpoints::ContactUpdate() const noexcept
 {
     return build_inproc_path(CONTACT_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::DhtRequestNym() const
+std::string Endpoints::DhtRequestNym() const noexcept
 {
     return build_inproc_path(DHT_NYM_REQUEST_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::DhtRequestServer() const
+std::string Endpoints::DhtRequestServer() const noexcept
 {
     return build_inproc_path(DHT_SERVER_REQUEST_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::DhtRequestUnit() const
+std::string Endpoints::DhtRequestUnit() const noexcept
 {
     return build_inproc_path(DHT_UNIT_REQUEST_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::FindNym() const
+std::string Endpoints::FindNym() const noexcept
 {
     return build_inproc_path(FIND_NYM_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::FindServer() const
+std::string Endpoints::FindServer() const noexcept
 {
     return build_inproc_path(FIND_SERVER_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::FindUnitDefinition() const
+std::string Endpoints::FindUnitDefinition() const noexcept
 {
     return build_inproc_path(FIND_UNIT_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::InternalProcessPushNotification() const
+std::string Endpoints::InternalProcessPushNotification() const noexcept
 {
     return build_inproc_path(
         INTERNAL_PROCESS_PUSH_NOTIFICATION_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::InternalPushNotification() const
+std::string Endpoints::InternalPushNotification() const noexcept
 {
     return build_inproc_path(
         INTERNAL_PUSH_NOTIFICATION_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::IssuerUpdate() const
+std::string Endpoints::IssuerUpdate() const noexcept
 {
     return build_inproc_path(ISSUER_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::NymDownload() const
+std::string Endpoints::NymDownload() const noexcept
 {
     return build_inproc_path(NYM_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::PairEvent() const
+std::string Endpoints::PairEvent() const noexcept
 {
     return build_inproc_path(PAIR_EVENT_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::PeerReplyUpdate() const
+std::string Endpoints::PeerReplyUpdate() const noexcept
 {
     return build_inproc_path(PEER_REPLY_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::PeerRequestUpdate() const
+std::string Endpoints::PeerRequestUpdate() const noexcept
 {
     return build_inproc_path(PEER_REQUEST_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::PendingBailment() const
+std::string Endpoints::PendingBailment() const noexcept
 {
     return build_inproc_path(PENDING_BAILMENT_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::ServerReplyReceived() const
+std::string Endpoints::ServerReplyReceived() const noexcept
 {
     return build_inproc_path(
         SERVER_REPLY_RECEIVED_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::ServerRequestSent() const
+std::string Endpoints::ServerRequestSent() const noexcept
 {
     return build_inproc_path(SERVER_REQUEST_SENT_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::ServerUpdate() const
+std::string Endpoints::ServerUpdate() const noexcept
 {
     return build_inproc_path(SERVER_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::TaskComplete() const
+std::string Endpoints::Shutdown() const noexcept
+{
+    return build_inproc_path(SHUTDOWN, ENDPOINT_VERSION_1);
+}
+
+std::string Endpoints::TaskComplete() const noexcept
 {
     return build_inproc_path(TASK_COMPLETE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::ThreadUpdate(const std::string& thread) const
+std::string Endpoints::ThreadUpdate(const std::string& thread) const noexcept
 {
     return build_inproc_path(
         THREAD_UPDATE_ENDPOINT, ENDPOINT_VERSION_1, thread);
 }
 
-std::string Endpoints::WidgetUpdate() const
+std::string Endpoints::WidgetUpdate() const noexcept
 {
     return build_inproc_path(WIDGET_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
-std::string Endpoints::WorkflowAccountUpdate() const
+std::string Endpoints::WorkflowAccountUpdate() const noexcept
 {
     return build_inproc_path(
         WORKFLOW_ACCOUNT_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);

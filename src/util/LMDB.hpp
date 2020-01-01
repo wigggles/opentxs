@@ -70,6 +70,11 @@ public:
         MDB_txn* parent = nullptr) const noexcept;
     bool Delete(
         const Table table,
+        const std::size_t key,
+        const ReadView value,
+        MDB_txn* parent = nullptr) const noexcept;
+    bool Delete(
+        const Table table,
         const ReadView key,
         const ReadView value,
         MDB_txn* parent = nullptr) const noexcept;

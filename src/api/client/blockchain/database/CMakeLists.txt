@@ -12,6 +12,10 @@ target_include_directories(
   opentxs-api-client-blockchain-database SYSTEM
   PRIVATE ${LMDB_INCLUDE_DIR}
 )
+target_link_libraries(
+  opentxs-api-client-blockchain-database
+  PRIVATE Boost::headers
+)
 set_property(
   TARGET opentxs-api-client-blockchain-database
   PROPERTY POSITION_INDEPENDENT_CODE 1

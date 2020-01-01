@@ -118,10 +118,14 @@ auto Context::Z85ToRaw(
 namespace opentxs::network::zeromq::implementation
 {
 Context::Context() noexcept
-    : context_(zmq_ctx_new())
+    : context_(::zmq_ctx_new())
 {
     OT_ASSERT(nullptr != context_);
-    OT_ASSERT(1 == zmq_has("curve"));
+    OT_ASSERT(1 == ::zmq_has("curve"));
+
+    auto init = ::zmq_ctx_set(context_, ZMQ_MAX_SOCKETS, 16384);
+
+    OT_ASSERT(0 == init);
 }
 
 Context::operator void*() const noexcept

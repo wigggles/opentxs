@@ -345,7 +345,22 @@ OTBlockchainAddress Factory::BlockchainAddress(
     const std::set<blockchain::p2p::Service>& services) const
 {
     return OTBlockchainAddress{opentxs::Factory::BlockchainAddress(
-        api_, protocol, network, bytes, port, chain, lastConnected, services)};
+                                   api_,
+                                   protocol,
+                                   network,
+                                   bytes,
+                                   port,
+                                   chain,
+                                   lastConnected,
+                                   services)
+                                   .release()};
+}
+
+OTBlockchainAddress Factory::BlockchainAddress(
+    const blockchain::p2p::Address::SerializedType& serialized) const
+{
+    return OTBlockchainAddress{
+        opentxs::Factory::BlockchainAddress(api_, serialized).release()};
 }
 
 std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(

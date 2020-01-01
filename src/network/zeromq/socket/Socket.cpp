@@ -43,7 +43,7 @@ Socket::Socket(
     , direction_(direction)
     , socket_(zmq_socket(context, types_.at(type)))
     , linger_(0)
-    , send_timeout_(-1)
+    , send_timeout_(0)
     , receive_timeout_(-1)
     , endpoint_lock_()
     , endpoints_()
@@ -324,5 +324,11 @@ bool Socket::start(const Lock& lock, const std::string& endpoint) const noexcept
     }
 }
 
-SocketType Socket::Type() const noexcept { return type_; }
+Socket::~Socket()
+{
+    if (nullptr != socket_) {
+        zmq_close(socket_);
+        socket_ = nullptr;
+    }
+}
 }  // namespace opentxs::network::zeromq::socket::implementation

@@ -9,11 +9,14 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
 #include "internal/api/Api.hpp"
@@ -29,12 +32,15 @@
 
 #define OT_METHOD "opentxs::blockchain::p2p::implementation::Peer::"
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs::blockchain::p2p::implementation
 {
 Peer::Peer(
     const api::internal::Core& api,
     const client::internal::Network& network,
     const client::internal::PeerManager& manager,
+    const std::string& shutdown,
     const int id,
     const std::size_t headerSize,
     const std::size_t bodySize,
@@ -73,7 +79,17 @@ Peer::Peer(
     , send_promises_()
     , activity_()
     , state_(State::Handshake)
+    , heartbeat_callback_(
+          zmq::ListenCallback::Factory([this](auto&) { Trigger(); }))
+    , heartbeat_(api.ZeroMQ().SubscribeSocket(heartbeat_callback_))
+    , shutdown_(
+          api.ZeroMQ(),
+          {api.Endpoints().Shutdown(), shutdown},
+          [this](auto& promise) { this->shutdown(promise); })
 {
+    auto listening = heartbeat_->Start(manager.Endpoint(Task::Heartbeat));
+
+    OT_ASSERT(listening);
 }
 
 Peer::Activity::Activity() noexcept
@@ -324,16 +340,24 @@ void Peer::disconnect() noexcept { manager_.Disconnect(id_); }
 
 void Peer::handshake() noexcept
 {
+    static const auto limit = std::chrono::seconds(15);
+    static const auto wait = std::chrono::milliseconds(10);
     start_handshake();
-    auto handshakeDone{handshake_};
+    auto disconnect{true};
+    auto done{handshake_};
+    const auto start = Clock::now();
 
     try {
-        const auto status = handshakeDone.wait_for(std::chrono::seconds(10));
-
-        if (std::future_status::ready != status) { disconnect(); }
+        while (running_.get() && (limit > (Clock::now() - start))) {
+            if (std::future_status::ready == done.wait_for(wait)) {
+                disconnect = false;
+                break;
+            }
+        }
     } catch (...) {
-        disconnect();
     }
+
+    if (disconnect) { this->disconnect(); }
 }
 
 void Peer::init() noexcept
@@ -464,7 +488,7 @@ Peer::SendStatus Peer::send(OTData in) noexcept
 {
     try {
         if (false == connected_.get()) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
                 ": Unable to send to disconnected peer")
                 .Flush();
 
@@ -487,33 +511,47 @@ Peer::SendStatus Peer::send(OTData in) noexcept
     }
 }
 
-void Peer::Heartbeat() const noexcept
+std::shared_future<void> Peer::Shutdown() noexcept
 {
-    if (false == running_.get()) { return; }
+    shutdown_.Close();
 
-    Trigger();
+    if (running_.get()) { shutdown(shutdown_.promise_); }
+
+    return shutdown_.future_;
 }
 
-void Peer::Shutdown() noexcept
+void Peer::shutdown(std::promise<void>& promise) noexcept
 {
-    if (false == running_->Off()) { return; }
+    running_->Off();
+    Stop().get();
 
     try {
         socket_.shutdown(tcp::socket::shutdown_both);
     } catch (...) {
     }
 
-    Stop().get();
-    break_promises();
+    heartbeat_->Close();
     cfilter_worker_.Stop();
-    process_->Close();
+    header_worker_.Stop();
     send_->Close();
-    socket_.close();
+    process_->Close();
     break_promises();
+
+    try {
+        socket_.close();
+    } catch (...) {
+    }
+
+    Sleep(std::chrono::milliseconds(100));
 
     if (State::Handshake != state_.load()) { update_address_activity(); }
 
-    LogNormal("Disconnected from ")(address_.Display()).Flush();
+    LogVerbose("Disconnected from ")(address_.Display()).Flush();
+
+    try {
+        promise.set_value();
+    } catch (...) {
+    }
 }
 
 bool Peer::state_machine() noexcept
@@ -623,5 +661,9 @@ void Peer::update_address_services(
     manager_.Database().AddOrUpdate(address_.UpdateServices(services));
 }
 
-Peer::~Peer() { Shutdown(); }
+Peer::~Peer()
+{
+    Shutdown().get();
+    shutdown_.Close();
+}
 }  // namespace opentxs::blockchain::p2p::implementation

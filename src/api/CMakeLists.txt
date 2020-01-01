@@ -23,6 +23,7 @@ set(
   Settings.cpp
   StorageParent.cpp
   Wallet.cpp
+  ZMQ.cpp
 )
 set(
   cxx-install-headers
@@ -53,6 +54,7 @@ set(
   Settings.hpp
   StorageParent.hpp
   Wallet.hpp
+  ZMQ.hpp
 )
 
 add_library(opentxs-api OBJECT ${cxx-sources} ${cxx-headers})

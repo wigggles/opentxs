@@ -55,7 +55,9 @@
 #include "Scheduler.hpp"
 
 #ifndef _WIN32
+extern "C" {
 #include <sys/resource.h>
+}
 #endif  // _WIN32
 
 #include <algorithm>
@@ -294,16 +296,40 @@ void Context::init_pid(const Lock& lock) const
 #ifndef _WIN32
 void Context::Init_Rlimit() noexcept
 {
-    auto limit = ::rlimit{};
-    limit.rlim_cur = 16384;
-    limit.rlim_max = 16384;
+    auto original = ::rlimit{};
+    auto desired = ::rlimit{};
+    auto result = ::rlimit{};
+    desired.rlim_cur = 16384;
+    desired.rlim_max = 16384;
 
-    if (0 != setrlimit(RLIMIT_NOFILE, &limit)) {
+    if (0 != ::getrlimit(RLIMIT_NOFILE, &original)) {
+        LogNormal("Failed to query resource limits").Flush();
+
+        return;
+    }
+
+    LogVerbose("Current open files limit: ")(original.rlim_cur)(" / ")(
+        original.rlim_max)
+        .Flush();
+
+    if (0 != ::setrlimit(RLIMIT_NOFILE, &desired)) {
         LogNormal("Failed to set open file limit to 16384. You must increase "
                   "this user account's resource limits via the method "
                   "appropriate for your operating system.")
             .Flush();
+
+        return;
     }
+
+    if (0 != ::getrlimit(RLIMIT_NOFILE, &result)) {
+        LogNormal("Failed to query resource limits").Flush();
+
+        return;
+    }
+
+    LogVerbose("Adjusted open files limit: ")(result.rlim_cur)(" / ")(
+        result.rlim_max)
+        .Flush();
 }
 #endif  // _WIN32
 

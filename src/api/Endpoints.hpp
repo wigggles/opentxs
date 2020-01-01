@@ -10,30 +10,31 @@ namespace opentxs::api::implementation
 class Endpoints final : public opentxs::api::Endpoints
 {
 public:
-    std::string AccountUpdate() const final;
-    std::string ConnectionStatus() const final;
-    std::string ContactUpdate() const final;
-    std::string DhtRequestNym() const final;
-    std::string DhtRequestServer() const final;
-    std::string DhtRequestUnit() const final;
-    std::string FindNym() const final;
-    std::string FindServer() const final;
-    std::string FindUnitDefinition() const final;
-    std::string InternalProcessPushNotification() const final;
-    std::string InternalPushNotification() const final;
-    std::string IssuerUpdate() const final;
-    std::string NymDownload() const final;
-    std::string PairEvent() const final;
-    std::string PeerReplyUpdate() const final;
-    std::string PeerRequestUpdate() const final;
-    std::string PendingBailment() const final;
-    std::string ServerReplyReceived() const final;
-    std::string ServerRequestSent() const final;
-    std::string ServerUpdate() const final;
-    std::string TaskComplete() const final;
-    std::string ThreadUpdate(const std::string& thread) const final;
-    std::string WidgetUpdate() const final;
-    std::string WorkflowAccountUpdate() const final;
+    std::string AccountUpdate() const noexcept final;
+    std::string ConnectionStatus() const noexcept final;
+    std::string ContactUpdate() const noexcept final;
+    std::string DhtRequestNym() const noexcept final;
+    std::string DhtRequestServer() const noexcept final;
+    std::string DhtRequestUnit() const noexcept final;
+    std::string FindNym() const noexcept final;
+    std::string FindServer() const noexcept final;
+    std::string FindUnitDefinition() const noexcept final;
+    std::string InternalProcessPushNotification() const noexcept final;
+    std::string InternalPushNotification() const noexcept final;
+    std::string IssuerUpdate() const noexcept final;
+    std::string NymDownload() const noexcept final;
+    std::string PairEvent() const noexcept final;
+    std::string PeerReplyUpdate() const noexcept final;
+    std::string PeerRequestUpdate() const noexcept final;
+    std::string PendingBailment() const noexcept final;
+    std::string ServerReplyReceived() const noexcept final;
+    std::string ServerRequestSent() const noexcept final;
+    std::string ServerUpdate() const noexcept final;
+    std::string Shutdown() const noexcept final;
+    std::string TaskComplete() const noexcept final;
+    std::string ThreadUpdate(const std::string& thread) const noexcept final;
+    std::string WidgetUpdate() const noexcept final;
+    std::string WorkflowAccountUpdate() const noexcept final;
 
     ~Endpoints() final = default;
 
@@ -44,13 +45,15 @@ private:
     const int instance_;
 
     std::string build_inproc_path(const std::string& path, const int version)
-        const;
+        const noexcept;
     std::string build_inproc_path(
         const std::string& path,
         const int version,
-        const std::string& suffix) const;
+        const std::string& suffix) const noexcept;
 
-    Endpoints(const opentxs::network::zeromq::Context& zmq, const int instance);
+    Endpoints(
+        const opentxs::network::zeromq::Context& zmq,
+        const int instance) noexcept;
     Endpoints() = delete;
     Endpoints(const Endpoints&) = delete;
     Endpoints(Endpoints&&) = delete;

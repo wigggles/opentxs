@@ -24,7 +24,8 @@ private:
         const api::internal::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const Type type,
-        const std::string& seednode);
+        const std::string& seednode,
+        const std::string& shutdown);
     Network() = delete;
     Network(const Network&) = delete;
     Network(Network&&) = delete;

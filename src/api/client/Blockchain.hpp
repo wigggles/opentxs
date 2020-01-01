@@ -77,7 +77,7 @@ public:
     bool UpdateTransactions(const std::map<OTData, OTIdentifier>& changed) const
         noexcept final;
 
-    ~Blockchain() final = default;
+    ~Blockchain() final;
 
 private:
     enum class Prefix {

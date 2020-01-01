@@ -48,7 +48,8 @@ blockchain::p2p::internal::Peer* Factory::BitcoinP2PPeerLegacy(
     const blockchain::client::internal::PeerManager& manager,
     const int id,
     std::unique_ptr<blockchain::p2p::internal::Address> address,
-    boost::asio::io_context& context)
+    boost::asio::io_context& context,
+    const std::string& shutdown)
 {
     namespace p2p = blockchain::p2p;
     using ReturnType = p2p::bitcoin::implementation::Peer;
@@ -75,7 +76,7 @@ blockchain::p2p::internal::Peer* Factory::BitcoinP2PPeerLegacy(
     }
 
     return new ReturnType(
-        api, network, manager, id, std::move(address), context);
+        api, network, manager, shutdown, id, std::move(address), context);
 }
 }  // namespace opentxs
 
@@ -122,6 +123,7 @@ Peer::Peer(
     const api::internal::Core& api,
     const client::internal::Network& network,
     const client::internal::PeerManager& manager,
+    const std::string& shutdown,
     const int id,
     std::unique_ptr<internal::Address> address,
     boost::asio::io_context& context,
@@ -132,6 +134,7 @@ Peer::Peer(
           api,
           network,
           manager,
+          shutdown,
           id,
           HeaderType::Size(),
           MessageType::MaxPayload(),
@@ -241,17 +244,19 @@ void Peer::process_addr(
 
     const auto& message = *pMessage;
     download_peers_.Bump();
+    using DB = blockchain::client::internal::PeerDatabase;
+    auto peers = std::vector<DB::Address>{};
 
     for (const auto& address : message) {
-        if (false == running_.get()) { return; }
-
         auto pAddress = address.clone_internal();
 
         OT_ASSERT(pAddress);
 
         pAddress->SetLastConnected({});
-        manager_.Database().AddOrUpdate(std::move(pAddress));
+        peers.emplace_back(std::move(pAddress));
     }
+
+    manager_.Database().Import(std::move(peers));
 }
 
 void Peer::process_block(

@@ -71,7 +71,8 @@ Database::Database(
     const client::internal::Network& network,
     const Common& common,
     const blockchain::Type type) noexcept
-    : common_(common)
+    : chain_(type)
+    , common_(common)
     , lmdb_(
           table_names_,
           common.AllocateStorageFolder(
@@ -85,7 +86,6 @@ Database::Database(
           0)
     , filters_(api)
     , headers_(api, network, common_, lmdb_, type)
-    , peers_()
 {
     init_db();
 }
@@ -113,16 +113,6 @@ Database::Headers::Headers(
     import_genesis(type);
 
     OT_ASSERT(HeaderExists(best().second));
-}
-
-Database::Peers::Peers() noexcept
-    : lock_()
-    , addresses_()
-    , protocols_()
-    , services_()
-    , networks_()
-    , last_connected_()
-{
 }
 
 auto Database::Filters::CurrentTip(const filter::Type type) const noexcept
@@ -642,123 +632,6 @@ auto Database::Headers::TryLoadHeader(const block::Hash& hash) const noexcept
     } catch (...) {
         return {};
     }
-}
-
-auto Database::Peers::Find(
-    const Protocol protocol,
-    const std::set<Type> onNetworks,
-    const std::set<Service> withServices) const noexcept -> Database::Address
-{
-    Lock lock(lock_);
-
-    try {
-        std::set<OTIdentifier> candidates{};
-        const auto& protocolSet = protocols_.at(protocol);
-
-        if (protocolSet.empty()) { return {}; }
-
-        for (const auto& network : onNetworks) {
-            try {
-                for (const auto& id : networks_.at(network)) {
-                    if (1 == protocolSet.count(id)) { candidates.emplace(id); }
-                }
-            } catch (...) {
-            }
-        }
-
-        if (candidates.empty()) { return {}; }
-
-        std::set<OTIdentifier> haveServices{};
-
-        if (withServices.empty()) {
-            haveServices = candidates;
-        } else {
-            for (const auto& id : candidates) {
-                bool haveAllServices{true};
-
-                for (const auto& service : withServices) {
-                    try {
-                        if (0 == services_.at(service).count(id)) {
-                            haveAllServices = false;
-                            break;
-                        }
-                    } catch (...) {
-                        haveAllServices = false;
-                        break;
-                    }
-                }
-
-                if (haveAllServices) { haveServices.emplace(id); }
-            }
-        }
-
-        if (haveServices.empty()) { return {}; }
-
-        std::vector<OTIdentifier> output;
-        const std::size_t count{1};
-        std::sample(
-            haveServices.begin(),
-            haveServices.end(),
-            std::back_inserter(output),
-            count,
-            std::mt19937{std::random_device{}()});
-
-        OT_ASSERT(count == output.size());
-
-        return addresses_.at(output.front())->clone_internal();
-    } catch (...) {
-        return {};
-    }
-}
-
-auto Database::Peers::Insert(Address pAddress) noexcept -> bool
-{
-    if (false == bool(pAddress)) { return false; }
-
-    Lock lock(lock_);
-    auto it = addresses_.find(pAddress->ID());
-    std::set<Service> oldServices{};
-    bool newAddress{false};
-
-    if (addresses_.end() == it) {
-        newAddress = true;
-        auto [it2, added] =
-            addresses_.emplace(pAddress->ID(), std::move(pAddress));
-        it = it2;
-    } else {
-        oldServices = pAddress->Services();
-        it->second.reset(pAddress.release());
-    }
-
-    OT_ASSERT(it->second);
-
-    const auto& address = *it->second;
-    const auto& id = address.ID();
-    const auto newServices{address.Services()};
-
-    if (newAddress) {
-        protocols_[address.Style()].emplace(id);
-        networks_[address.Type()].emplace(id);
-        last_connected_[address.LastConnected()].emplace(id);
-
-        for (const auto& service : newServices) {
-            services_[service].emplace(id);
-        }
-    } else {
-        for (const auto& service : oldServices) {
-            if (0 == newServices.count(service)) {
-                services_[service].erase(id);
-            }
-        }
-
-        if (auto it = last_connected_.find(address.PreviousLastConnected());
-            last_connected_.end() != it) {
-            it->second.erase(address.ID());
-            last_connected_[address.LastConnected()].emplace(id);
-        }
-    }
-
-    return true;
 }
 
 auto Database::init_db() noexcept -> void

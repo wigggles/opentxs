@@ -12,12 +12,14 @@
 
 #include "StorageParent.hpp"
 #include "Scheduler.hpp"
+#include "ZMQ.hpp"
 
 #include <mutex>
 
 namespace opentxs::api::implementation
 {
 class Core : virtual public api::internal::Core,
+             public ZMQ,
              public Scheduler,
              public api::implementation::StorageParent
 {
@@ -30,7 +32,7 @@ public:
     const api::Crypto& Crypto() const final { return crypto_; }
     const std::string& DataFolder() const final { return data_folder_; }
     const api::network::Dht& DHT() const final;
-    const api::Endpoints& Endpoints() const final;
+    const api::Endpoints& Endpoints() const final { return endpoints_; }
     const api::Factory& Factory() const final { return factory_; }
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const final;
     bool GetSecret(
@@ -61,11 +63,8 @@ public:
 protected:
     std::unique_ptr<api::internal::Factory> factory_p_;
     const api::internal::Factory& factory_;
-    const opentxs::network::zeromq::Context& zmq_context_;
     const api::crypto::internal::Asymmetric& asymmetric_;
     const api::crypto::Symmetric& symmetric_;
-    const int instance_{0};
-    std::unique_ptr<api::Endpoints> endpoints_;
     std::unique_ptr<api::HDSeed> seeds_;
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::Dht> dht_;

@@ -38,6 +38,7 @@ set(
   OTTransaction.cpp
   OTTransactionType.cpp
   PasswordPrompt.cpp
+  Shutdown.cpp
   StateMachine.cpp
   String.cpp
   StringXML.cpp
@@ -83,6 +84,7 @@ set(
   "Flag.hpp"
   "Identifier.hpp"
   "NymFile.hpp"
+  "Shutdown.hpp"
   "StateMachine.hpp"
   "String.hpp"
   "StringXML.hpp"

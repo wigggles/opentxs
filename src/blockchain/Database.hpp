@@ -12,7 +12,7 @@ class Database final : virtual public internal::Database
 public:
     bool AddOrUpdate(Address address) const noexcept final
     {
-        return peers_.Insert(std::move(address));
+        return common_.AddOrUpdate(std::move(address));
     }
     bool ApplyUpdate(const client::UpdateTransaction& update) const
         noexcept final
@@ -46,7 +46,7 @@ public:
         const std::set<Type> onNetworks,
         const std::set<Service> withServices) const noexcept final
     {
-        return peers_.Find(protocol, onNetworks, withServices);
+        return common_.Find(chain_, protocol, onNetworks, withServices);
     }
     bool HasDisconnectedChildren(const block::Hash& hash) const noexcept final
     {
@@ -64,6 +64,10 @@ public:
     bool HeaderExists(const block::Hash& hash) const noexcept final
     {
         return headers_.HeaderExists(hash);
+    }
+    bool Import(std::vector<Address> peers) const noexcept final
+    {
+        return common_.Import(std::move(peers));
     }
     bool IsSibling(const block::Hash& hash) const noexcept final
     {
@@ -194,30 +198,6 @@ private:
             noexcept;
     };
 
-    struct Peers {
-        using AddressMap = std::map<OTIdentifier, Address>;
-        using ProtocolIndexMap = std::map<Protocol, std::set<OTIdentifier>>;
-        using ServiceIndexMap = std::map<Service, std::set<OTIdentifier>>;
-        using TypeIndexMap = std::map<Type, std::set<OTIdentifier>>;
-        using LastIndexMap = std::map<Time, std::set<OTIdentifier>>;
-
-        mutable std::mutex lock_;
-        AddressMap addresses_;
-        ProtocolIndexMap protocols_;
-        ServiceIndexMap services_;
-        TypeIndexMap networks_;
-        LastIndexMap last_connected_;
-
-        Address Find(
-            const Protocol protocol,
-            const std::set<Type> onNetworks,
-            const std::set<Service> withServices) const noexcept;
-
-        bool Insert(Address) noexcept;
-
-        Peers() noexcept;
-    };
-
     enum Table {
         Config = 0,
         BlockHeaderMetadata = 1,
@@ -237,11 +217,11 @@ private:
     static const std::size_t db_version_;
     static const opentxs::storage::lmdb::TableNames table_names_;
 
+    const blockchain::Type chain_;
     const Common& common_;
     opentxs::storage::lmdb::LMDB lmdb_;
     mutable Filters filters_;
     mutable Headers headers_;
-    mutable Peers peers_;
 
     void init_db() noexcept;
 

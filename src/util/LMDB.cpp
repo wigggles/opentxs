@@ -241,6 +241,19 @@ auto LMDB::Delete(const Table table, const ReadView index, MDB_txn* parent)
 
 auto LMDB::Delete(
     const Table table,
+    const std::size_t index,
+    const ReadView data,
+    MDB_txn* parent) const noexcept -> bool
+{
+    return Delete(
+        table,
+        ReadView{reinterpret_cast<const char*>(&index), sizeof(index)},
+        data,
+        parent);
+}
+
+auto LMDB::Delete(
+    const Table table,
     const ReadView index,
     const ReadView data,
     MDB_txn* parent) const noexcept -> bool
@@ -587,17 +600,8 @@ auto LMDB::Read(const Table table, const ReadCallback cb, const Dir dir) const
     auto value = MDB_val{};
     cleanup.success_ = 0 == ::mdb_cursor_get(cursor, &key, &value, start);
 
-    if (cleanup.success_) {
-        if (0 == ::mdb_cursor_get(cursor, &key, &value, MDB_GET_CURRENT)) {
-            again =
-                cb({static_cast<char*>(key.mv_data), key.mv_size},
-                   {static_cast<char*>(value.mv_data), value.mv_size});
-        } else {
-
-            return false;
-        }
-
-        while (again && 0 == ::mdb_cursor_get(cursor, &key, &value, next)) {
+    try {
+        if (cleanup.success_) {
             if (0 == ::mdb_cursor_get(cursor, &key, &value, MDB_GET_CURRENT)) {
                 again =
                     cb({static_cast<char*>(key.mv_data), key.mv_size},
@@ -606,7 +610,23 @@ auto LMDB::Read(const Table table, const ReadCallback cb, const Dir dir) const
 
                 return false;
             }
+
+            while (again && 0 == ::mdb_cursor_get(cursor, &key, &value, next)) {
+                if (0 ==
+                    ::mdb_cursor_get(cursor, &key, &value, MDB_GET_CURRENT)) {
+                    again =
+                        cb({static_cast<char*>(key.mv_data), key.mv_size},
+                           {static_cast<char*>(value.mv_data), value.mv_size});
+                } else {
+
+                    return false;
+                }
+            }
         }
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return false;
     }
 
     return cleanup.success_;

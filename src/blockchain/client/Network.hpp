@@ -8,12 +8,18 @@
 #include "Internal.hpp"
 
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
+#include "core/Shutdown.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 
 #include <atomic>
+
+namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::blockchain::client::implementation
 {
@@ -66,15 +72,16 @@ public:
     bool Connect() noexcept final;
     bool Disconnect() noexcept final;
     internal::HeaderOracle& HeaderOracle() noexcept final { return header_; }
-    bool Shutdown() noexcept final;
+    std::shared_future<void> Shutdown() noexcept final;
 
     ~Network() override;
 
 private:
+    opentxs::internal::ShutdownSender shutdown_sender_;
     std::unique_ptr<blockchain::internal::Database> database_p_;
-    std::unique_ptr<internal::FilterOracle> filter_p_;
     std::unique_ptr<internal::HeaderOracle> header_p_;
     std::unique_ptr<internal::PeerManager> peer_p_;
+    std::unique_ptr<internal::FilterOracle> filter_p_;
     std::unique_ptr<internal::Wallet> wallet_p_;
 
 protected:
@@ -93,7 +100,8 @@ protected:
         const api::internal::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const Type type,
-        const std::string& seednode) noexcept;
+        const std::string& seednode,
+        const std::string& shutdown) noexcept;
 
 private:
     mutable std::atomic<block::Height> local_chain_height_;
@@ -101,12 +109,16 @@ private:
     OTFlag processing_headers_;
     OTZMQPipeline new_headers_;
     OTZMQPipeline new_filters_;
+    opentxs::internal::ShutdownReceiver shutdown_;
+
+    static auto shutdown_endpoint() noexcept -> std::string;
 
     virtual std::unique_ptr<block::Header> instantiate_header(
         const network::zeromq::Frame& payload) const noexcept = 0;
 
     void process_filter(network::zeromq::Message& in) noexcept;
     void process_header(network::zeromq::Message& in) noexcept;
+    void shutdown(std::promise<void>& promise) noexcept;
     bool state_machine() noexcept;
 
     Network() = delete;

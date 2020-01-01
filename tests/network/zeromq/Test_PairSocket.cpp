@@ -23,7 +23,7 @@ public:
 
     OTZMQPairSocket* pairSocket_;
 
-    void pairSocketThread(const std::string& msg);
+    void pairSocketThread(const std::string& msg, std::promise<void>* promise);
 
     Test_PairSocket()
         : context_(Context().ZMQ())
@@ -36,10 +36,30 @@ public:
     Test_PairSocket& operator=(Test_PairSocket&&) = delete;
 };
 
-void Test_PairSocket::pairSocketThread(const std::string& message)
+void Test_PairSocket::pairSocketThread(
+    const std::string& message,
+    std::promise<void>* promise)
 {
-    bool callbackFinished = false;
+    struct Cleanup {
+        Cleanup(std::promise<void>& promise)
+            : promise_(promise)
+        {
+        }
 
+        ~Cleanup()
+        {
+            try {
+                promise_.set_value();
+            } catch (...) {
+            }
+        }
+
+    private:
+        std::promise<void>& promise_;
+    };
+
+    auto cleanup = Cleanup(*promise);
+    bool callbackFinished = false;
     auto listenCallback = network::zeromq::ListenCallback::Factory(
         [&callbackFinished, &message](network::zeromq::Message& msg) -> void {
             EXPECT_EQ(1, msg.size());
@@ -51,7 +71,6 @@ void Test_PairSocket::pairSocketThread(const std::string& message)
         });
 
     ASSERT_NE(nullptr, &listenCallback.get());
-
     ASSERT_NE(nullptr, pairSocket_);
 
     auto pairSocket = context_.PairSocket(listenCallback, *pairSocket_);
@@ -59,6 +78,7 @@ void Test_PairSocket::pairSocketThread(const std::string& message)
     ASSERT_NE(nullptr, &pairSocket.get());
     ASSERT_EQ(SocketType::Pair, pairSocket->Type());
 
+    promise->set_value();
     auto end = std::time(nullptr) + 15;
     while (!callbackFinished && std::time(nullptr) < end) {
         Sleep(std::chrono::milliseconds(100));
@@ -290,15 +310,16 @@ TEST_F(Test_PairSocket, PairSocket_Send_Separate_Thread)
 {
     auto pairSocket =
         context_.PairSocket(network::zeromq::ListenCallback::Factory());
-
     pairSocket_ = &pairSocket;
+    auto promise = std::promise<void>{};
+    auto future = promise.get_future();
 
     ASSERT_NE(nullptr, &pairSocket.get());
     ASSERT_EQ(SocketType::Pair, pairSocket->Type());
 
     std::thread pairSocketThread1(
-        &Test_PairSocket::pairSocketThread, this, testMessage_);
-
+        &Test_PairSocket::pairSocketThread, this, testMessage_, &promise);
+    future.get();
     auto sent = pairSocket->Send(testMessage_);
 
     ASSERT_TRUE(sent);

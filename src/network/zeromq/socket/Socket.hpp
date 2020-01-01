@@ -42,7 +42,7 @@ public:
         void* socket,
         zeromq::Message& message) noexcept;
 
-    SocketType Type() const noexcept final;
+    SocketType Type() const noexcept final { return type_; }
 
     operator void*() const noexcept final;
 
@@ -57,12 +57,12 @@ public:
 
     Socket& get() { return *this; }
 
-    ~Socket() override = default;
+    ~Socket() override;
 
 protected:
     const zeromq::Context& context_;
     const Socket::Direction direction_;
-    mutable void* socket_{nullptr};
+    mutable void* socket_;
     mutable std::atomic<int> linger_{0};
     mutable std::atomic<int> send_timeout_{-1};
     mutable std::atomic<int> receive_timeout_{-1};

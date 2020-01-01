@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <set>
 
@@ -23,12 +24,15 @@ namespace p2p
 class Address
 {
 public:
+    using SerializedType = proto::BlockchainPeerAddress;
+
     OPENTXS_EXPORT virtual OTData Bytes() const noexcept = 0;
     OPENTXS_EXPORT virtual blockchain::Type Chain() const noexcept = 0;
     OPENTXS_EXPORT virtual std::string Display() const noexcept = 0;
     OPENTXS_EXPORT virtual const Identifier& ID() const noexcept = 0;
     OPENTXS_EXPORT virtual Time LastConnected() const noexcept = 0;
     OPENTXS_EXPORT virtual std::uint16_t Port() const noexcept = 0;
+    OPENTXS_EXPORT virtual SerializedType Serialize() const noexcept = 0;
     OPENTXS_EXPORT virtual std::set<Service> Services() const noexcept = 0;
     OPENTXS_EXPORT virtual Protocol Style() const noexcept = 0;
     OPENTXS_EXPORT virtual Network Type() const noexcept = 0;

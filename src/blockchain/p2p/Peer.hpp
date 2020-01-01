@@ -15,6 +15,7 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
+#include "core/Shutdown.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 
@@ -41,8 +42,7 @@ public:
     OTIdentifier AddressID() const noexcept final { return address_.ID(); }
     ConnectionStatus Connected() const noexcept final { return connected_; }
     Handshake HandshakeComplete() const noexcept final { return handshake_; }
-    void Heartbeat() const noexcept final;
-    void Shutdown() noexcept final;
+    std::shared_future<void> Shutdown() noexcept final;
 
     ~Peer() override;
 
@@ -138,6 +138,7 @@ protected:
         const api::internal::Core& api,
         const client::internal::Network& network,
         const client::internal::PeerManager& manager,
+        const std::string& shutdown,
         const int id,
         const std::size_t headerSize,
         const std::size_t bodySize,
@@ -190,6 +191,9 @@ private:
     SendPromises send_promises_;
     Activity activity_;
     mutable std::atomic<State> state_;
+    const OTZMQListenCallback heartbeat_callback_;
+    const OTZMQSubscribeSocket heartbeat_;
+    opentxs::internal::ShutdownReceiver shutdown_;
 
     static OTData make_buffer(const std::size_t size) noexcept;
     static tcp::endpoint make_endpoint(
@@ -215,6 +219,7 @@ private:
     void receive_header(const boost::system::error_code& error) noexcept;
     virtual void request_cfilter(zmq::Message& message) noexcept = 0;
     void run() noexcept;
+    void shutdown(std::promise<void>& promise) noexcept;
     virtual void start_handshake() noexcept = 0;
     void transmit(zmq::Message& message) noexcept;
     void update_address_activity() noexcept;

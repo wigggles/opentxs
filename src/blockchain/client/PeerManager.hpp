@@ -34,9 +34,10 @@ public:
         const block::Height start,
         const block::Hash& stop) const noexcept final;
     void RequestHeaders() const noexcept final;
-    void Shutdown() noexcept final;
+    std::shared_future<void> Shutdown() noexcept final;
 
     void init() noexcept final;
+    void Run() noexcept final { Trigger(); }
 
     ~PeerManager() final;
 
@@ -66,20 +67,23 @@ private:
 
     private:
         using EndpointMap = std::map<Task, std::string>;
-        using SocketMap = std::map<Task, zmq::socket::Push*>;
+        using SocketMap = std::map<Task, zmq::socket::Sender*>;
 
         OTZMQPushSocket getheaders_;
         OTZMQPushSocket getcfilters_;
+        OTZMQPublishSocket heartbeat_;
         const EndpointMap endpoint_map_;
         const SocketMap socket_map_;
 
-        void listen(const Task type, const zmq::socket::Push& socket) noexcept;
+        void listen(
+            const Task type,
+            const zmq::socket::Sender& socket) noexcept;
 
         Jobs() = delete;
     };
 
     struct Peers {
-        std::size_t Count() const noexcept;
+        std::size_t Count() const noexcept { return count_.load(); }
         void Heartbeat() const noexcept;
 
         bool AddPeer(const p2p::Address& address) noexcept;
@@ -92,6 +96,9 @@ private:
             const internal::Network& network,
             const internal::PeerDatabase& database,
             const internal::PeerManager& parent,
+            const Flag& running,
+            Jobs& jobs,
+            const std::string& shutdown,
             const Type chain,
             const std::string& seednode,
             boost::asio::io_context& context) noexcept;
@@ -99,12 +106,14 @@ private:
     private:
         using Endpoint = std::unique_ptr<p2p::internal::Address>;
         using Peer = std::unique_ptr<p2p::internal::Peer>;
-        using DyingPeer = std::pair<Time, Peer>;
 
         const api::internal::Core& api_;
         const internal::Network& network_;
         const internal::PeerDatabase& database_;
         const internal::PeerManager& parent_;
+        const Flag& running_;
+        Jobs& jobs_;
+        const std::string& shutdown_endpoint_;
         const Type chain_;
         const OTData default_peer_;
         boost::asio::io_context& context_;
@@ -112,10 +121,10 @@ private:
         mutable std::mutex queue_lock_;
         std::atomic<int> next_id_;
         std::atomic<std::size_t> minimum_peers_;
-        std::queue<int> disconnect_peers_;
+        std::vector<int> disconnect_peers_;
         std::map<int, Peer> peers_;
         std::map<OTIdentifier, int> active_;
-        std::queue<DyingPeer> dying_peers_;
+        std::atomic<std::size_t> count_;
 
         static OTData set_default_peer(const std::string node) noexcept;
 
@@ -125,16 +134,18 @@ private:
         p2p::internal::Peer* peer_factory(
             Endpoint endpoint,
             const int id) noexcept;
-        void purge() noexcept;
     };
 
     const api::internal::Core& api_;
     const internal::PeerDatabase& database_;
     OTFlag running_;
     mutable IO io_context_;
-    mutable Peers peers_;
     mutable Jobs jobs_;
+    mutable Peers peers_;
     int heartbeat_task_;
+    opentxs::internal::ShutdownReceiver shutdown_;
+
+    void shutdown(std::promise<void>& promise) noexcept;
 
     bool state_machine() noexcept;
 
@@ -143,7 +154,8 @@ private:
         const internal::Network& network,
         const internal::PeerDatabase& database,
         const Type chain,
-        const std::string& seednode) noexcept;
+        const std::string& seednode,
+        const std::string& shutdown) noexcept;
     PeerManager() = delete;
     PeerManager(const PeerManager&) = delete;
     PeerManager(PeerManager&&) = delete;
