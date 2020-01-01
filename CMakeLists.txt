@@ -6,7 +6,23 @@
 cmake_minimum_required(VERSION 3.14)
 project(opentxs)
 list(APPEND CMAKE_MODULE_PATH "${${PROJECT_NAME}_SOURCE_DIR}/cmake")
+
+if(APPLE)
+  set(basePoint @loader_path)
+else()
+  set(basePoint $ORIGIN)
+endif()
+
 include(open-transactions-common)
+
+file(
+  RELATIVE_PATH
+  relDir
+  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
+  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
+)
+
+set(CMAKE_INSTALL_RPATH ${basePoint} ${basePoint}/${relDir})
 
 # -----------------------------------------------------------------------------
 # Setup
