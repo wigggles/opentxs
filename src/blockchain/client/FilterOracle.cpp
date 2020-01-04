@@ -8,17 +8,21 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "core/Shutdown.hpp"
 #include "core/StateMachine.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
@@ -34,11 +38,12 @@ namespace opentxs
 blockchain::client::internal::FilterOracle* Factory::BlockchainFilterOracle(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
-    const blockchain::client::internal::FilterDatabase& database)
+    const blockchain::client::internal::FilterDatabase& database,
+    const std::string& shutdown)
 {
     using ReturnType = blockchain::client::implementation::FilterOracle;
 
-    return new ReturnType(api, network, database);
+    return new ReturnType(api, network, database, shutdown);
 }
 }  // namespace opentxs
 
@@ -49,7 +54,8 @@ const std::chrono::seconds FilterOracle::RequestQueue::limit_{10};
 FilterOracle::FilterOracle(
     const api::internal::Core& api,
     const internal::Network& network,
-    const internal::FilterDatabase& database) noexcept
+    const internal::FilterDatabase& database,
+    const std::string& shutdown) noexcept
     : internal::FilterOracle()
     , StateMachine(std::bind(&FilterOracle::state_machine, this))
     , api_(api)
@@ -58,9 +64,13 @@ FilterOracle::FilterOracle(
     , running_(Flag::Factory(true))
     , lock_()
     , requests_(api_)
-    , new_filters_(api_.ZeroMQ().Pipeline(api_, [this](auto& in) {
-        process_cfilter(in);
-    }))
+    , new_filters_(api_.ZeroMQ().Pipeline(
+          api_,
+          [this](auto& in) { process_cfilter(in); }))
+    , shutdown_(
+          api.ZeroMQ(),
+          {api.Endpoints().Shutdown(), shutdown},
+          [this](auto& promise) { this->shutdown(promise); })
 {
 }
 
@@ -237,11 +247,25 @@ void FilterOracle::process_cfilter(const zmq::Message& in) noexcept
     Trigger();
 }
 
-void FilterOracle::Shutdown() noexcept
+std::shared_future<void> FilterOracle::Shutdown() noexcept
+{
+    shutdown_.Close();
+
+    if (running_.get()) { shutdown(shutdown_.promise_); }
+
+    return shutdown_.future_;
+}
+
+void FilterOracle::shutdown(std::promise<void>& promise) noexcept
 {
     running_->Off();
     Stop().get();
     new_filters_->Close();
+
+    try {
+        promise.set_value();
+    } catch (...) {
+    }
 }
 
 bool FilterOracle::state_machine() noexcept
@@ -330,5 +354,9 @@ bool FilterOracle::state_machine() noexcept
     return repeat;
 }
 
-FilterOracle::~FilterOracle() { Shutdown(); }
+FilterOracle::~FilterOracle()
+{
+    Shutdown().get();
+    shutdown_.Close();
+}
 }  // namespace opentxs::blockchain::client::implementation

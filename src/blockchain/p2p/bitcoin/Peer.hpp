@@ -151,6 +151,7 @@ private:
         const api::internal::Core& api,
         const client::internal::Network& network,
         const client::internal::PeerManager& manager,
+        const std::string& shutdown,
         const int id,
         std::unique_ptr<internal::Address> address,
         boost::asio::io_context& context,

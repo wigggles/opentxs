@@ -938,7 +938,7 @@ bool Blockchain::Start(const Chain type, const std::string& seednode) const
             auto [it, added] = networks_.emplace(
                 type,
                 opentxs::Factory::BlockchainNetworkBitcoin(
-                    api_, *this, type, seednode));
+                    api_, *this, type, seednode, ""));
 
             return it->second->Connect();
         }
@@ -1071,5 +1071,16 @@ bool Blockchain::validate_nym(const identifier::Nym& nymID) const noexcept
     }
 
     return false;
+}
+
+Blockchain::~Blockchain()
+{
+#if OT_BLOCKCHAIN
+    LogVerbose("Shutting down ")(networks_.size())(" blockchain clients")
+        .Flush();
+    for (auto& [chain, network] : networks_) { network->Shutdown().get(); }
+
+    networks_.clear();
+#endif  // OT_BLOCKCHAIN
 }
 }  // namespace opentxs::api::client::implementation

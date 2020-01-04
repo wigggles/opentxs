@@ -177,7 +177,6 @@ TEST_F(Test_PublishSubscribe, Publish_1_Subscribe_2)
     callbackCount_ = 2;
 
     auto publishSocket = context_.PublishSocket();
-    ;
 
     ASSERT_NE(nullptr, &publishSocket.get());
     ASSERT_EQ(SocketType::Publish, publishSocket->Type());

@@ -11,6 +11,7 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/Bytes.hpp"
 
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
@@ -21,7 +22,9 @@
 
 namespace opentxs
 {
-blockchain::p2p::internal::Address* Factory::BlockchainAddress(
+using ReturnType = blockchain::p2p::implementation::Address;
+
+auto Factory::BlockchainAddress(
     const api::internal::Core& api,
     const blockchain::p2p::Protocol protocol,
     const blockchain::p2p::Network network,
@@ -29,48 +32,75 @@ blockchain::p2p::internal::Address* Factory::BlockchainAddress(
     const std::uint16_t port,
     const blockchain::Type chain,
     const Time lastConnected,
-    const std::set<blockchain::p2p::Service>& services)
+    const std::set<blockchain::p2p::Service>& services) noexcept
+    -> std::unique_ptr<blockchain::p2p::internal::Address>
 {
-    using ReturnType = blockchain::p2p::implementation::Address;
-
     try {
-        return new ReturnType(
+        return std::make_unique<ReturnType>(
             api,
+            ReturnType::DefaultVersion,
             protocol,
             network,
-            bytes,
+            bytes.Bytes(),
             port,
             chain,
             lastConnected,
             services);
-    } catch (...) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Invalid bytes")
-            .Flush();
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
-        return nullptr;
+        return {};
+    }
+}
+
+auto Factory::BlockchainAddress(
+    const api::internal::Core& api,
+    const proto::BlockchainPeerAddress serialized) noexcept
+    -> std::unique_ptr<blockchain::p2p::internal::Address>
+{
+    try {
+        return std::make_unique<ReturnType>(
+            api,
+            serialized.version(),
+            static_cast<blockchain::p2p::Protocol>(serialized.protocol()),
+            static_cast<blockchain::p2p::Network>(serialized.network()),
+            serialized.address(),
+            static_cast<std::uint16_t>(serialized.port()),
+            static_cast<blockchain::Type>(serialized.chain()),
+            Clock::from_time_t(serialized.time()),
+            ReturnType::instantiate_services(serialized));
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
     }
 }
 }  // namespace opentxs
 
 namespace opentxs::blockchain::p2p::implementation
 {
+const VersionNumber Address::DefaultVersion{1};
+
 Address::Address(
     const api::internal::Core& api,
+    const VersionNumber version,
     const Protocol protocol,
     const Network network,
-    const Data& bytes,
+    const ReadView bytes,
     const std::uint16_t port,
     const blockchain::Type chain,
     const Time lastConnected,
     const std::set<Service>& services) noexcept(false)
     : api_(api)
-    , id_(calculate_id(api, bytes, port))
+    , version_(version)
+    , id_(calculate_id(api, version, protocol, network, bytes, port, chain))
     , protocol_(protocol)
     , network_(network)
-    , bytes_(bytes)
+    , bytes_(api.Factory().Data(bytes))
     , port_(port)
     , chain_(chain)
     , previous_last_connected_(lastConnected)
+    , previous_services_(services)
     , last_connected_(lastConnected)
     , services_(services)
 {
@@ -111,6 +141,7 @@ Address::Address(
 
 Address::Address(const Address& rhs) noexcept
     : api_(rhs.api_)
+    , version_(rhs.version_)
     , id_(rhs.id_)
     , protocol_(rhs.protocol_)
     , network_(rhs.network_)
@@ -118,23 +149,35 @@ Address::Address(const Address& rhs) noexcept
     , port_(rhs.port_)
     , chain_(rhs.chain_)
     , previous_last_connected_(rhs.previous_last_connected_)
+    , previous_services_(rhs.previous_services_)
     , last_connected_(rhs.last_connected_)
     , services_(rhs.services_)
 {
 }
 
-OTIdentifier Address::calculate_id(
+auto Address::calculate_id(
     const api::internal::Core& api,
-    const Data& bytes,
-    const std::uint16_t port) noexcept
+    const VersionNumber version,
+    const Protocol protocol,
+    const Network network,
+    const ReadView bytes,
+    const std::uint16_t port,
+    const blockchain::Type chain) noexcept -> OTIdentifier
 {
-    OTData preimage(bytes);
-    preimage->Concatenate(&port, sizeof(port));
+    const auto serialized = serialize(
+        version,
+        protocol,
+        network,
+        bytes,
+        port,
+        chain,
+        Clock::from_time_t(0),
+        {});
 
-    return api.Factory().Identifier(preimage->Bytes());
+    return api.Factory().Identifier(serialized);
 }
 
-std::string Address::Display() const noexcept
+auto Address::Display() const noexcept -> std::string
 {
     std::string output{};
 
@@ -168,5 +211,59 @@ std::string Address::Display() const noexcept
     }
 
     return output + ":" + std::to_string(port_);
+}
+
+auto Address::instantiate_services(const SerializedType& serialized) noexcept
+    -> std::set<Service>
+{
+    auto output = std::set<Service>{};
+
+    for (const auto& service : serialized.service()) {
+        output.emplace(static_cast<Service>(service));
+    }
+
+    return output;
+}
+
+auto Address::serialize(
+    const VersionNumber version,
+    const Protocol protocol,
+    const Network network,
+    const ReadView bytes,
+    const std::uint16_t port,
+    const blockchain::Type chain,
+    const Time time,
+    const std::set<Service>& services) noexcept -> SerializedType
+{
+    auto output = SerializedType{};
+    output.set_version(version);
+    output.set_protocol(static_cast<std::uint8_t>(protocol));
+    output.set_network(static_cast<std::uint8_t>(network));
+    output.set_chain(static_cast<std::uint32_t>(chain));
+    output.set_address(bytes.data(), bytes.size());
+    output.set_port(port);
+    output.set_time(Clock::to_time_t(time));
+
+    for (const auto& service : services) {
+        output.add_service(static_cast<std::uint8_t>(service));
+    }
+
+    return output;
+}
+
+auto Address::Serialize() const noexcept -> SerializedType
+{
+    auto output = serialize(
+        version_,
+        protocol_,
+        network_,
+        bytes_->Bytes(),
+        port_,
+        chain_,
+        last_connected_,
+        services_);
+    output.set_id(id_->str());
+
+    return output;
 }
 }  // namespace opentxs::blockchain::p2p::implementation

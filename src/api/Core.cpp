@@ -11,7 +11,6 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -88,15 +87,13 @@ Core::Core(
     const int instance,
     const bool dhtDefault,
     std::unique_ptr<api::internal::Factory> factory)
-    : Scheduler(parent, running)
+    : ZMQ(zmq, instance)
+    , Scheduler(parent, running)
     , StorageParent(running, args, crypto, config, parent.Legacy(), dataFolder)
     , factory_p_(std::move(factory))
     , factory_(*factory_p_)
-    , zmq_context_(zmq)
     , asymmetric_(factory_.Asymmetric())
     , symmetric_(factory_.Symmetric())
-    , instance_(instance)
-    , endpoints_(opentxs::Factory::Endpoints(zmq_context_, instance_))
     , seeds_(opentxs::Factory::HDSeed(
           factory_,
           asymmetric_,
@@ -128,7 +125,6 @@ Core::Core(
     , last_activity_()
     , timeout_thread_running_(false)
 {
-    OT_ASSERT(endpoints_);
     OT_ASSERT(seeds_);
     OT_ASSERT(dht_);
 
@@ -152,10 +148,10 @@ void Core::bump_password_timer(const opentxs::Lock& lock) const
 
 void Core::cleanup()
 {
+    shutdown_sender_.Activate();
     dht_.reset();
     wallet_.reset();
     seeds_.reset();
-    endpoints_.reset();
     factory_p_.reset();
 
     if (password_timeout_.joinable()) { password_timeout_.join(); }
@@ -166,13 +162,6 @@ const api::network::Dht& Core::DHT() const
     OT_ASSERT(dht_)
 
     return *dht_;
-}
-
-const api::Endpoints& Core::Endpoints() const
-{
-    OT_ASSERT(endpoints_)
-
-    return *endpoints_;
 }
 
 const api::internal::Core& Core::get_api(const PasswordPrompt& reason) noexcept

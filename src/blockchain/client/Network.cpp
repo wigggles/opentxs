@@ -6,8 +6,10 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/socket/Sender.tpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -26,21 +28,28 @@ Network::Network(
     const api::internal::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const Type type,
-    const std::string& seednode) noexcept
+    const std::string& seednode,
+    const std::string& shutdown) noexcept
     : StateMachine(std::bind(&Network::state_machine, this))
+    , shutdown_sender_(api.ZeroMQ(), shutdown_endpoint())
     , database_p_(Factory::BlockchainDatabase(
           api,
           *this,
           blockchain.BlockchainDB(),
           type))
-    , filter_p_(Factory::BlockchainFilterOracle(api, *this, *database_p_))
     , header_p_(Factory::HeaderOracle(api, *this, *database_p_, type))
     , peer_p_(Factory::BlockchainPeerManager(
           api,
           *this,
           *database_p_,
           type,
-          seednode))
+          seednode,
+          shutdown_sender_.endpoint_))
+    , filter_p_(Factory::BlockchainFilterOracle(
+          api,
+          *this,
+          *database_p_,
+          shutdown_sender_.endpoint_))
     , wallet_p_()
     , api_(api)
     , chain_(type)
@@ -56,17 +65,19 @@ Network::Network(
           api_,
           api_.ZeroMQ(),
           [this](auto& in) { this->process_header(in); }))
-    , new_filters_(Factory::Pipeline(api_, api_.ZeroMQ(), [this](auto& in) {
-        this->process_filter(in);
-    }))
+    , new_filters_(Factory::Pipeline(
+          api_,
+          api_.ZeroMQ(),
+          [this](auto& in) { this->process_filter(in); }))
+    , shutdown_(
+          api.ZeroMQ(),
+          {api.Endpoints().Shutdown()},
+          [this](auto& promise) { this->shutdown(promise); })
 {
     OT_ASSERT(database_p_);
     OT_ASSERT(filter_p_);
     OT_ASSERT(header_p_);
     OT_ASSERT(peer_p_);
-
-    filters_.Start();
-    api_.Schedule(std::chrono::seconds(30), [this]() { Trigger(); });
 }
 
 auto Network::AddPeer(const p2p::Address& address) const noexcept -> bool
@@ -107,6 +118,22 @@ auto Network::GetPeerCount() const noexcept -> std::size_t
 void Network::init() noexcept
 {
     local_chain_height_.store(header_.BestChain().first);
+    peer_.init();
+    filters_.Start();
+    api_.Schedule(std::chrono::seconds(30), [this]() { Trigger(); });
+    Trigger();
+
+    {
+        const auto best = database_.CurrentBest();
+
+        OT_ASSERT(best);
+
+        const auto position = best->Position();
+        LogNormal(blockchain::internal::DisplayString(chain_))(
+            " chain initialized with best hash ")(position.second->asHex())(
+            " at height ")(position.first)
+            .Flush();
+    }
 }
 
 void Network::process_filter(network::zeromq::Message& in) noexcept
@@ -209,21 +236,41 @@ std::string Network::SendToPaymentCode(
     return {};
 }
 
-bool Network::Shutdown() noexcept
+std::shared_future<void> Network::Shutdown() noexcept
+{
+    shutdown_.Close();
+
+    if (running_.get()) { shutdown(shutdown_.promise_); }
+
+    return shutdown_.future_;
+}
+
+void Network::shutdown(std::promise<void>& promise) noexcept
 {
     running_->Off();
+    shutdown_sender_.Activate();
+    Stop().get();
+    peer_.Shutdown().get();
+    filters_.Shutdown().get();
     new_filters_->Close();
     new_headers_->Close();
-    Stop().get();
-    peer_.Shutdown();
-    filters_.Shutdown();
+    shutdown_sender_.Close();
 
-    return true;
+    try {
+        promise.set_value();
+    } catch (...) {
+    }
+}
+
+auto Network::shutdown_endpoint() noexcept -> std::string
+{
+    return std::string{"inproc://"} + Identifier::Random()->str();
 }
 
 bool Network::state_machine() noexcept
 {
     filters_.CheckBlocks();
+    peer_.Run();
 
     if (false == IsSynchronized()) {
         if (false == processing_headers_.get()) { peer_.RequestHeaders(); }
@@ -256,5 +303,9 @@ void Network::UpdateLocalHeight(const block::Position position) const noexcept
     Trigger();
 }
 
-Network::~Network() { Shutdown(); }
+Network::~Network()
+{
+    Shutdown().get();
+    shutdown_.Close();
+}
 }  // namespace opentxs::blockchain::client::implementation

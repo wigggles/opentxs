@@ -15,6 +15,7 @@
 
 #include "internal/core/Core.hpp"
 
+#include <future>
 #include <map>
 #include <memory>
 #include <set>
@@ -79,7 +80,7 @@ struct FilterOracle {
     virtual void CheckBlocks() const noexcept = 0;
 
     virtual void Start() noexcept = 0;
-    virtual void Shutdown() noexcept = 0;
+    virtual std::shared_future<void> Shutdown() noexcept = 0;
 
     virtual ~FilterOracle() = default;
 };
@@ -131,7 +132,7 @@ struct Network : virtual public opentxs::blockchain::Network {
         noexcept = 0;
 
     virtual client::HeaderOracle& HeaderOracle() noexcept = 0;
-    virtual bool Shutdown() noexcept = 0;
+    virtual std::shared_future<void> Shutdown() noexcept = 0;
 
     virtual ~Network() = default;
 };
@@ -147,6 +148,7 @@ struct PeerDatabase {
         const Protocol protocol,
         const std::set<Type> onNetworks,
         const std::set<Service> withServices) const noexcept = 0;
+    virtual bool Import(std::vector<Address> peers) const noexcept = 0;
 
     virtual ~PeerDatabase() = default;
 };
@@ -155,6 +157,7 @@ struct PeerManager {
     enum class Task {
         Getheaders,
         Getcfilters,
+        Heartbeat,
     };
 
     virtual bool AddPeer(const p2p::Address& address) const noexcept = 0;
@@ -170,7 +173,8 @@ struct PeerManager {
     virtual void RequestHeaders() const noexcept = 0;
 
     virtual void init() noexcept = 0;
-    virtual void Shutdown() noexcept = 0;
+    virtual void Run() noexcept = 0;
+    virtual std::shared_future<void> Shutdown() noexcept = 0;
 
     virtual ~PeerManager() = default;
 };

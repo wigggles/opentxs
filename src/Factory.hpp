@@ -513,7 +513,8 @@ public:
         const blockchain::client::internal::PeerManager& manager,
         const int id,
         std::unique_ptr<blockchain::p2p::internal::Address> address,
-        boost::asio::io_context& context);
+        boost::asio::io_context& context,
+        const std::string& shutdown);
     static blockchain::p2p::bitcoin::message::internal::Ping* BitcoinP2PPing(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> header,
@@ -633,7 +634,7 @@ public:
         const proto::HDAccount& serialized,
         Identifier& id);
 #if OT_BLOCKCHAIN
-    static blockchain::p2p::internal::Address* BlockchainAddress(
+    static auto BlockchainAddress(
         const api::internal::Core& api,
         const blockchain::p2p::Protocol protocol,
         const blockchain::p2p::Network network,
@@ -641,7 +642,12 @@ public:
         const std::uint16_t port,
         const blockchain::Type chain,
         const Time lastConnected,
-        const std::set<blockchain::p2p::Service>& services);
+        const std::set<blockchain::p2p::Service>& services) noexcept
+        -> std::unique_ptr<blockchain::p2p::internal::Address>;
+    static auto BlockchainAddress(
+        const api::internal::Core& api,
+        const proto::BlockchainPeerAddress serialized) noexcept
+        -> std::unique_ptr<blockchain::p2p::internal::Address>;
     static blockchain::internal::Database* BlockchainDatabase(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
@@ -650,18 +656,21 @@ public:
     static blockchain::client::internal::FilterOracle* BlockchainFilterOracle(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
-        const blockchain::client::internal::FilterDatabase& database);
+        const blockchain::client::internal::FilterDatabase& database,
+        const std::string& shutdown);
     OPENTXS_EXPORT static auto BlockchainNetworkBitcoin(
         const api::internal::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const blockchain::Type type,
-        const std::string& seednode) -> blockchain::client::internal::Network*;
+        const std::string& seednode,
+        const std::string& shutdown) -> blockchain::client::internal::Network*;
     static blockchain::client::internal::PeerManager* BlockchainPeerManager(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const blockchain::client::internal::PeerDatabase& database,
         const blockchain::Type type,
-        const std::string& seednode);
+        const std::string& seednode,
+        const std::string& shutdown);
     OPENTXS_EXPORT static auto BloomFilter(
         const api::internal::Core& api,
         const std::uint32_t tweak,

@@ -20,7 +20,7 @@ public:
     void CheckBlocks() const noexcept final;
 
     void Start() noexcept;
-    void Shutdown() noexcept;
+    std::shared_future<void> Shutdown() noexcept final;
 
     ~FilterOracle() final;
 
@@ -55,6 +55,7 @@ private:
     mutable std::mutex lock_;
     mutable RequestQueue requests_;
     OTZMQPipeline new_filters_;
+    opentxs::internal::ShutdownReceiver shutdown_;
 
     bool have_all_filters(
         const filter::Type type,
@@ -62,12 +63,14 @@ private:
         const block::Hash& block) const noexcept;
 
     void process_cfilter(const zmq::Message& in) noexcept;
+    void shutdown(std::promise<void>& promise) noexcept;
     bool state_machine() noexcept;
 
     FilterOracle(
         const api::internal::Core& api,
         const internal::Network& network,
-        const internal::FilterDatabase& database) noexcept;
+        const internal::FilterDatabase& database,
+        const std::string& shutdown) noexcept;
     FilterOracle() = delete;
     FilterOracle(const FilterOracle&) = delete;
     FilterOracle(FilterOracle&&) = delete;
