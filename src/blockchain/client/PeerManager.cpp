@@ -38,6 +38,7 @@
 #include <memory>
 #include <optional>
 #include <queue>
+#include <random>
 #include <thread>
 
 #include "PeerManager.hpp"
@@ -70,6 +71,35 @@ const std::map<Type, std::uint16_t> PeerManager::default_port_map_{
     {Type::BitcoinCash_testnet3, 18333},
     {Type::Ethereum_frontier, 30303},
     {Type::Ethereum_ropsten, 30303},
+};
+const std::map<Type, std::vector<std::string>> PeerManager::dns_seeds_{
+    {Type::Bitcoin,
+     {"seed.bitcoin.sipa.be",
+      "dnsseed.bluematt.me",
+      "dnsseed.bitcoin.dashjr.org",
+      "seed.bitcoinstats.com",
+      "seed.bitcoin.jonasschnelli.ch",
+      "seed.btc.petertodd.org",
+      "seed.bitcoin.sprovoost.nl",
+      "dnsseed.emzy.de"}},
+    {Type::Bitcoin_testnet3,
+     {"testnet-seed.bitcoin.jonasschnelli.ch",
+      "seed.tbtc.petertodd.org",
+      "seed.testnet.bitcoin.sprovoost.nl",
+      "testnet-seed.bluematt.me"}},
+    {Type::BitcoinCash,
+     {"seed.bitcoinabc.org",
+      "seed-abc.bitcoinforks.org",
+      "btccash-seeder.bitcoinunlimited.info",
+      "seed.bitprim.org",
+      "seed.deadalnix.me",
+      "seed.bchd.cash"}},
+    {Type::BitcoinCash_testnet3,
+     {"testnet-seed.bitcoinabc.org",
+      "testnet-seed-abc.bitcoinforks.org",
+      "testnet-seed.bitprim.org",
+      "testnet-seed.deadalnix.me",
+      "testnet-seed.bchd.cash"}},
 };
 const std::map<Type, p2p::Protocol> PeerManager::protocol_map_{
     {Type::Unknown, p2p::Protocol::bitcoin},
@@ -164,8 +194,10 @@ PeerManager::Peers::Peers(
     , jobs_(jobs)
     , shutdown_endpoint_(shutdown)
     , chain_(chain)
-    , default_peer_(set_default_peer(seednode))
+    , localhost_peer_(api.Factory().Data("0x7f000001", StringStyle::Hex))
+    , default_peer_(set_default_peer(seednode, localhost_peer_))
     , context_(context)
+    , resolver_(context_)
     , lock_()
     , queue_lock_()
     , next_id_(0)
@@ -186,18 +218,19 @@ PeerManager::Peers::Peers(
         {})});
 }
 
-void PeerManager::IO::Shutdown() noexcept
+auto PeerManager::IO::Shutdown() noexcept -> void
 {
     work_.reset();
     thread_pool_.join_all();
 }
 
-void PeerManager::Jobs::Dispatch(const Task type, zmq::Message& work) noexcept
+auto PeerManager::Jobs::Dispatch(const Task type, zmq::Message& work) noexcept
+    -> void
 {
     socket_map_.at(type)->Send(work);
 }
 
-std::string PeerManager::Jobs::Endpoint(const Task type) const noexcept
+auto PeerManager::Jobs::Endpoint(const Task type) const noexcept -> std::string
 {
     try {
 
@@ -208,9 +241,9 @@ std::string PeerManager::Jobs::Endpoint(const Task type) const noexcept
     }
 }
 
-void PeerManager::Jobs::listen(
+auto PeerManager::Jobs::listen(
     const Task type,
-    const zmq::socket::Sender& socket) noexcept
+    const zmq::socket::Sender& socket) noexcept -> void
 {
     auto& map = const_cast<EndpointMap&>(endpoint_map_);
     auto [it, added] = map.emplace(
@@ -225,12 +258,13 @@ void PeerManager::Jobs::listen(
     OT_ASSERT(listen);
 }
 
-void PeerManager::Jobs::Shutdown() noexcept
+auto PeerManager::Jobs::Shutdown() noexcept -> void
 {
     for (auto [type, socket] : socket_map_) { socket->Close(); }
 }
 
-void PeerManager::Peers::add_peer(const Lock& lock, Endpoint endpoint) noexcept
+auto PeerManager::Peers::add_peer(const Lock& lock, Endpoint endpoint) noexcept
+    -> void
 {
     OT_ASSERT(endpoint);
 
@@ -252,7 +286,7 @@ void PeerManager::Peers::add_peer(const Lock& lock, Endpoint endpoint) noexcept
     }
 }
 
-bool PeerManager::Peers::AddPeer(const p2p::Address& address) noexcept
+auto PeerManager::Peers::AddPeer(const p2p::Address& address) noexcept -> bool
 {
     if (false == running_) { return false; }
 
@@ -276,12 +310,109 @@ bool PeerManager::Peers::AddPeer(const p2p::Address& address) noexcept
     return true;
 }
 
-PeerManager::Peers::Endpoint PeerManager::Peers::get_peer() const noexcept
+auto PeerManager::Peers::get_default_peer() const noexcept -> Endpoint
+{
+    if (localhost_peer_.get() == default_peer_) { return {}; }
+
+    return Endpoint{opentxs::Factory().BlockchainAddress(
+        api_,
+        protocol_map_.at(chain_),
+        p2p::Network::ipv4,
+        default_peer_,
+        default_port_map_.at(chain_),
+        chain_,
+        Time{},
+        {})};
+}
+
+auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
+{
+    try {
+        const auto& dns = dns_seeds_.at(chain_);
+        auto seeds = std::vector<std::string>{};
+        const auto count = std::size_t{1};
+        std::sample(
+            std::begin(dns),
+            std::end(dns),
+            std::back_inserter(seeds),
+            count,
+            std::mt19937{std::random_device{}()});
+
+        if (0 == seeds.size()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": No dns seeds available")
+                .Flush();
+
+            return {};
+        }
+
+        const auto& seed = *seeds.cbegin();
+        const auto port = default_port_map_.at(chain_);
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Using DNS seed: ")(seed).Flush();
+        const auto results = resolver_.resolve(
+            seed, std::to_string(port), Resolver::query::numeric_service);
+
+        for (const auto& result : results) {
+            const auto address = result.endpoint().address();
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Found address: ")(
+                address.to_string())
+                .Flush();
+
+            if (address.is_v4()) {
+                const auto bytes = address.to_v4().to_bytes();
+
+                return Endpoint{opentxs::Factory().BlockchainAddress(
+                    api_,
+                    protocol_map_.at(chain_),
+                    p2p::Network::ipv4,
+                    api_.Factory().Data(
+                        ReadView{reinterpret_cast<const char*>(bytes.data()),
+                                 bytes.size()}),
+                    port,
+                    chain_,
+                    Time{},
+                    {})};
+            } else if (address.is_v6()) {
+                const auto bytes = address.to_v6().to_bytes();
+
+                return Endpoint{opentxs::Factory().BlockchainAddress(
+                    api_,
+                    protocol_map_.at(chain_),
+                    p2p::Network::ipv6,
+                    api_.Factory().Data(
+                        ReadView{reinterpret_cast<const char*>(bytes.data()),
+                                 bytes.size()}),
+                    port,
+                    chain_,
+                    Time{},
+                    {})};
+            }
+        }
+
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": No addresses found").Flush();
+
+        return {};
+    } catch (const boost::system::system_error& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No dns seeds defined").Flush();
+
+        return {};
+    }
+}
+
+auto PeerManager::Peers::get_fallback_peer(const p2p::Protocol protocol) const
+    noexcept -> Endpoint
+{
+    return database_.Get(
+        protocol, {p2p::Network::ipv4, p2p::Network::ipv6}, {});
+}
+
+auto PeerManager::Peers::get_peer() const noexcept -> Endpoint
 {
     const auto protocol = protocol_map_.at(chain_);
-
-    auto pAddress =
-        database_.Get(protocol, {p2p::Network::ipv4, p2p::Network::ipv6}, {});
+    auto pAddress = get_default_peer();
 
     if (pAddress) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
@@ -289,32 +420,56 @@ PeerManager::Peers::Endpoint PeerManager::Peers::get_peer() const noexcept
             .Flush();
 
         return pAddress;
-    } else {
+    }
+
+    pAddress = get_preferred_peer(protocol);
+
+    if (pAddress) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(
-            ": Attempting to connect to fallback peer")
+            ": Attempting to connect to peer: ")(pAddress->Display())
             .Flush();
 
-        return Endpoint{opentxs::Factory().BlockchainAddress(
-            api_,
-            protocol,
-            p2p::Network::ipv4,
-            default_peer_,
-            default_port_map_.at(chain_),
-            chain_,
-            Time{},
-            {})};
+        return pAddress;
     }
+
+    pAddress = get_dns_peer();
+
+    if (pAddress) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Attempting to connect to peer: ")(pAddress->Display())
+            .Flush();
+
+        return pAddress;
+    }
+
+    pAddress = get_fallback_peer(protocol);
+
+    OT_ASSERT(pAddress);
+
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Attempting to connect to peer: ")(
+        pAddress->Display())
+        .Flush();
+
+    return pAddress;
 }
 
-void PeerManager::Peers::Heartbeat() const noexcept
+auto PeerManager::Peers::get_preferred_peer(const p2p::Protocol protocol) const
+    noexcept -> Endpoint
+{
+    return database_.Get(
+        protocol,
+        {p2p::Network::ipv4, p2p::Network::ipv6},
+        {p2p::Service::CompactFilters});
+}
+
+auto PeerManager::Peers::Heartbeat() const noexcept -> void
 {
     auto message = api_.ZeroMQ().Message();
     jobs_.Dispatch(Task::Heartbeat, message);
 }
 
-p2p::internal::Peer* PeerManager::Peers::peer_factory(
-    Endpoint endpoint,
-    const int id) noexcept
+auto PeerManager::Peers::peer_factory(Endpoint endpoint, const int id) noexcept
+    -> p2p::internal::Peer*
 {
     switch (chain_) {
         case Type::Bitcoin:
@@ -336,7 +491,9 @@ p2p::internal::Peer* PeerManager::Peers::peer_factory(
     }
 }
 
-OTData PeerManager::Peers::set_default_peer(const std::string node) noexcept
+auto PeerManager::Peers::set_default_peer(
+    const std::string node,
+    const Data& localhost) noexcept -> OTData
 {
     if (false == node.empty()) {
         try {
@@ -347,10 +504,10 @@ OTData PeerManager::Peers::set_default_peer(const std::string node) noexcept
         }
     }
 
-    return Data::Factory("0x7f000001", Data::Mode::Hex);
+    return localhost;
 }
 
-void PeerManager::Peers::QueueDisconnect(const int id) noexcept
+auto PeerManager::Peers::QueueDisconnect(const int id) noexcept -> void
 {
     if (false == running_) { return; }
 
@@ -358,7 +515,7 @@ void PeerManager::Peers::QueueDisconnect(const int id) noexcept
     disconnect_peers_.emplace_back(id);
 }
 
-bool PeerManager::Peers::Run() noexcept
+auto PeerManager::Peers::Run() noexcept -> bool
 {
     auto disconnect = std::vector<int>{};
 
@@ -396,7 +553,7 @@ bool PeerManager::Peers::Run() noexcept
     return target > peers_.size();
 }
 
-void PeerManager::Peers::Shutdown() noexcept
+auto PeerManager::Peers::Shutdown() noexcept -> void
 {
     OT_ASSERT(false == running_);
 
@@ -415,7 +572,7 @@ void PeerManager::Peers::Shutdown() noexcept
     disconnect_peers_.clear();
 }
 
-bool PeerManager::AddPeer(const p2p::Address& address) const noexcept
+auto PeerManager::AddPeer(const p2p::Address& address) const noexcept -> bool
 {
     if (false == running_.get()) { return false; }
 
@@ -425,30 +582,30 @@ bool PeerManager::AddPeer(const p2p::Address& address) const noexcept
     return output;
 }
 
-bool PeerManager::Connect() noexcept
+auto PeerManager::Connect() noexcept -> bool
 {
     if (false == running_.get()) { return false; }
 
     return Trigger();
 }
 
-void PeerManager::Disconnect(const int id) const noexcept
+auto PeerManager::Disconnect(const int id) const noexcept -> void
 {
     peers_.QueueDisconnect(id);
     Trigger();
 }
 
-void PeerManager::init() noexcept
+auto PeerManager::init() noexcept -> void
 {
     heartbeat_task_ = api_.Schedule(
         std::chrono::seconds(1), [this]() -> void { this->Heartbeat(); });
     Trigger();
 }
 
-void PeerManager::RequestFilters(
+auto PeerManager::RequestFilters(
     const filter::Type type,
     const block::Height start,
-    const block::Hash& stop) const noexcept
+    const block::Hash& stop) const noexcept -> void
 {
     if (false == running_.get()) { return; }
 
@@ -461,7 +618,7 @@ void PeerManager::RequestFilters(
     jobs_.Dispatch(Task::Getcfilters, work);
 }
 
-void PeerManager::RequestHeaders() const noexcept
+auto PeerManager::RequestHeaders() const noexcept -> void
 {
     if (false == running_.get()) { return; }
 
@@ -471,7 +628,7 @@ void PeerManager::RequestHeaders() const noexcept
     jobs_.Dispatch(Task::Getheaders, work);
 }
 
-std::shared_future<void> PeerManager::Shutdown() noexcept
+auto PeerManager::Shutdown() noexcept -> std::shared_future<void>
 {
     shutdown_.Close();
 
@@ -480,7 +637,7 @@ std::shared_future<void> PeerManager::Shutdown() noexcept
     return shutdown_.future_;
 }
 
-void PeerManager::shutdown(std::promise<void>& promise) noexcept
+auto PeerManager::shutdown(std::promise<void>& promise) noexcept -> void
 {
     running_->Off();
     api_.Cancel(heartbeat_task_);
@@ -494,7 +651,7 @@ void PeerManager::shutdown(std::promise<void>& promise) noexcept
     }
 }
 
-bool PeerManager::state_machine() noexcept { return peers_.Run(); }
+auto PeerManager::state_machine() noexcept -> bool { return peers_.Run(); }
 
 PeerManager::~PeerManager()
 {

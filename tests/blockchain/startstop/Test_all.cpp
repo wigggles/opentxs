@@ -11,14 +11,19 @@ TEST_F(Test_StartStop, init_opentxs) {}
 
 TEST_F(Test_StartStop, all)
 {
-    EXPECT_TRUE(api_.Blockchain().Start(b::Type::Bitcoin));
-    EXPECT_TRUE(api_.Blockchain().Start(b::Type::Bitcoin_testnet3));
-    EXPECT_TRUE(api_.Blockchain().Start(b::Type::BitcoinCash));
-    EXPECT_TRUE(api_.Blockchain().Start(b::Type::BitcoinCash_testnet3));
-    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Ethereum_frontier));
-    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Ethereum_ropsten));
-    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Litecoin));
-    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Litecoin_testnet4));
+    EXPECT_TRUE(api_.Blockchain().Start(b::Type::Bitcoin, "127.0.0.2"));
+    EXPECT_TRUE(
+        api_.Blockchain().Start(b::Type::Bitcoin_testnet3, "127.0.0.2"));
+    EXPECT_TRUE(api_.Blockchain().Start(b::Type::BitcoinCash, "127.0.0.2"));
+    EXPECT_TRUE(
+        api_.Blockchain().Start(b::Type::BitcoinCash_testnet3, "127.0.0.2"));
+    EXPECT_FALSE(
+        api_.Blockchain().Start(b::Type::Ethereum_frontier, "127.0.0.2"));
+    EXPECT_FALSE(
+        api_.Blockchain().Start(b::Type::Ethereum_ropsten, "127.0.0.2"));
+    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Litecoin, "127.0.0.2"));
+    EXPECT_FALSE(
+        api_.Blockchain().Start(b::Type::Litecoin_testnet4, "127.0.0.2"));
     EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Litecoin_testnet4));
     EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Litecoin));
     EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Ethereum_ropsten));
