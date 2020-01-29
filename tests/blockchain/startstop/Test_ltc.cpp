@@ -11,7 +11,7 @@ TEST_F(Test_StartStop, init_opentxs) {}
 
 TEST_F(Test_StartStop, ltc)
 {
-    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Litecoin));
+    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Litecoin, "127.0.0.2"));
     EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Litecoin));
 }
 }  // namespace

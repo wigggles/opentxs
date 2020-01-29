@@ -14,6 +14,7 @@ class PeerManager final : virtual public internal::PeerManager,
 {
 public:
     static const std::map<Type, std::uint16_t> default_port_map_;
+    static const std::map<Type, std::vector<std::string>> dns_seeds_;
     static const std::map<Type, p2p::Protocol> protocol_map_;
 
     bool AddPeer(const p2p::Address& address) const noexcept final;
@@ -106,6 +107,7 @@ private:
     private:
         using Endpoint = std::unique_ptr<p2p::internal::Address>;
         using Peer = std::unique_ptr<p2p::internal::Peer>;
+        using Resolver = boost::asio::ip::tcp::resolver;
 
         const api::internal::Core& api_;
         const internal::Network& network_;
@@ -115,8 +117,10 @@ private:
         Jobs& jobs_;
         const std::string& shutdown_endpoint_;
         const Type chain_;
+        const OTData localhost_peer_;
         const OTData default_peer_;
         boost::asio::io_context& context_;
+        mutable Resolver resolver_;
         mutable std::mutex lock_;
         mutable std::mutex queue_lock_;
         std::atomic<int> next_id_;
@@ -126,9 +130,16 @@ private:
         std::map<OTIdentifier, int> active_;
         std::atomic<std::size_t> count_;
 
-        static OTData set_default_peer(const std::string node) noexcept;
+        static OTData set_default_peer(
+            const std::string node,
+            const Data& localhost) noexcept;
 
+        Endpoint get_default_peer() const noexcept;
+        Endpoint get_dns_peer() const noexcept;
+        Endpoint get_fallback_peer(const p2p::Protocol protocol) const noexcept;
         Endpoint get_peer() const noexcept;
+        Endpoint get_preferred_peer(const p2p::Protocol protocol) const
+            noexcept;
 
         void add_peer(const Lock& lock, Endpoint endpoint) noexcept;
         p2p::internal::Peer* peer_factory(

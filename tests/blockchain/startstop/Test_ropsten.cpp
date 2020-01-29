@@ -11,7 +11,8 @@ TEST_F(Test_StartStop, init_opentxs) {}
 
 TEST_F(Test_StartStop, ropsten)
 {
-    EXPECT_FALSE(api_.Blockchain().Start(b::Type::Ethereum_ropsten));
+    EXPECT_FALSE(
+        api_.Blockchain().Start(b::Type::Ethereum_ropsten, "127.0.0.2"));
     EXPECT_FALSE(api_.Blockchain().Stop(b::Type::Ethereum_ropsten));
 }
 }  // namespace

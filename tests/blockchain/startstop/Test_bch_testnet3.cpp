@@ -11,7 +11,8 @@ TEST_F(Test_StartStop, init_opentxs) {}
 
 TEST_F(Test_StartStop, bch_testnet3)
 {
-    EXPECT_TRUE(api_.Blockchain().Start(b::Type::BitcoinCash_testnet3));
+    EXPECT_TRUE(
+        api_.Blockchain().Start(b::Type::BitcoinCash_testnet3, "127.0.0.2"));
     EXPECT_TRUE(api_.Blockchain().Stop(b::Type::BitcoinCash_testnet3));
 }
 }  // namespace
