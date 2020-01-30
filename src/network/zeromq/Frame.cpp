@@ -39,7 +39,7 @@ network::zeromq::Frame* Factory::ZMQFrame(const ProtobufType& data)
 
 namespace opentxs::network::zeromq::implementation
 {
-Frame::Frame()
+Frame::Frame() noexcept
     : zeromq::Frame()
     , message_()
 {
@@ -48,7 +48,7 @@ Frame::Frame()
     OT_ASSERT(0 == init);
 }
 
-Frame::Frame(const std::size_t bytes)
+Frame::Frame(const std::size_t bytes) noexcept
     : Frame()
 {
     const auto init = zmq_msg_init_size(&message_, bytes);
@@ -56,35 +56,34 @@ Frame::Frame(const std::size_t bytes)
     OT_ASSERT(0 == init);
 }
 
-Frame::Frame(const ProtobufType& input)
+Frame::Frame(const ProtobufType& input) noexcept
     : Frame(input.ByteSize())
 {
     input.SerializeToArray(zmq_msg_data(&message_), zmq_msg_size(&message_));
 }
 
-Frame::Frame(const void* data, const std::size_t bytes)
+Frame::Frame(const void* data, const std::size_t bytes) noexcept
     : Frame(bytes)
 {
     std::memcpy(zmq_msg_data(&message_), data, zmq_msg_size(&message_));
 }
 
-Frame::operator zmq_msg_t*() { return &message_; }
-
-Frame::operator std::string() const
+Frame::operator std::string() const noexcept
 {
-    std::string output(static_cast<const char*>(data()), size());
-
-    return output;
+    return std::string{Bytes()};
+    ;
 }
 
-Frame* Frame::clone() const
+auto Frame::Bytes() const noexcept -> ReadView
+{
+    return ReadView{static_cast<const char*>(zmq_msg_data(&message_)),
+                    zmq_msg_size(&message_)};
+}
+
+auto Frame::clone() const noexcept -> Frame*
 {
     return new Frame(zmq_msg_data(&message_), zmq_msg_size(&message_));
 }
-
-const void* Frame::data() const { return zmq_msg_data(&message_); }
-
-std::size_t Frame::size() const { return zmq_msg_size(&message_); }
 
 Frame::~Frame() { zmq_msg_close(&message_); }
 }  // namespace opentxs::network::zeromq::implementation

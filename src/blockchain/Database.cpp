@@ -7,6 +7,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
@@ -66,6 +68,40 @@ const opentxs::storage::lmdb::TableNames Database::table_names_{
     {BlockHeaderDisconnected, "disconnected_block_headers"},
 };
 
+const std::map<
+    blockchain::Type,
+    std::map<filter::Type, std::pair<std::string, std::string>>>
+    Database::Filters::genesis_filters_{
+        {blockchain::Type::Bitcoin,
+         {
+             {filter::Type::Basic,
+              {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
+               "2",
+               "017fa880"}},
+         }},
+        {blockchain::Type::BitcoinCash,
+         {
+             {filter::Type::Basic,
+              {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
+               "2",
+               "017fa880"}},
+         }},
+        {blockchain::Type::Bitcoin_testnet3,
+         {
+             {filter::Type::Basic,
+              {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
+               "1",
+               "019dfca8"}},
+         }},
+        {blockchain::Type::BitcoinCash_testnet3,
+         {
+             {filter::Type::Basic,
+              {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
+               "1",
+               "019dfca8"}},
+         }},
+    };
+
 Database::Database(
     const api::internal::Core& api,
     const client::internal::Network& network,
@@ -84,18 +120,46 @@ Database::Database(
            {BlockHeaderSiblings, 0},
            {BlockHeaderDisconnected, MDB_DUPSORT}},
           0)
-    , filters_(api)
+    , filters_(api, type)
     , headers_(api, network, common_, lmdb_, type)
 {
     init_db();
 }
 
-Database::Filters::Filters(const api::Core& api) noexcept
+Database::Filters::Filters(
+    const api::internal::Core& api,
+    const blockchain::Type chain) noexcept
     : api_(api)
     , lock_()
     , tip_()
+    , header_tip_()
     , filters_()
+    , headers_()
 {
+    const auto pBlock = opentxs::Factory::GenesisBlockHeader(api_, chain);
+
+    OT_ASSERT(pBlock);
+
+    const auto& block = *pBlock;
+    const auto& hash = block.Hash();
+    const auto& genesis = genesis_filters_.at(chain).at(filter::Type::Basic);
+    auto header = api_.Factory().Data(genesis.first, StringStyle::Hex);
+    const auto bytes = api_.Factory().Data(genesis.second, StringStyle::Hex);
+    auto gcs = std::unique_ptr<blockchain::internal::GCS>{Factory::GCS(
+        api_,
+        19,
+        784931,
+        blockchain::internal::BlockHashToFilterKey(hash.Bytes()),
+        1,
+        bytes)};
+
+    OT_ASSERT(gcs);
+
+    filters_[filter::Type::Basic].emplace(hash, std::move(gcs));
+    headers_[filter::Type::Basic].emplace(
+        hash, HeaderData{std::move(header), api_.Factory().Data()});
+    tip_.emplace(filter::Type::Basic, block.Position());
+    header_tip_.emplace(filter::Type::Basic, block.Position());
 }
 
 Database::Headers::Headers(
@@ -113,6 +177,20 @@ Database::Headers::Headers(
     import_genesis(type);
 
     OT_ASSERT(HeaderExists(best().second));
+}
+
+auto Database::Filters::CurrentHeaderTip(const filter::Type type) const noexcept
+    -> block::Position
+{
+    Lock lock(lock_);
+
+    try {
+
+        return header_tip_.at(type);
+    } catch (...) {
+
+        return make_blank<block::Position>::value(api_);
+    }
 }
 
 auto Database::Filters::CurrentTip(const filter::Type type) const noexcept
@@ -144,6 +222,69 @@ auto Database::Filters::HaveFilter(
     }
 }
 
+auto Database::Filters::HaveFilterHeader(
+    const filter::Type type,
+    const block::Hash& block) const noexcept -> bool
+{
+    Lock lock(lock_);
+
+    try {
+
+        return 0 < headers_.at(type).count(block);
+    } catch (...) {
+
+        return false;
+    }
+}
+
+auto Database::Filters::LoadFilterHash(
+    const filter::Type type,
+    const ReadView block) const noexcept -> Hash
+{
+    const auto hash = api_.Factory().Data(block);
+    Lock lock(lock_);
+
+    try {
+
+        return headers_.at(type).at(hash).second;
+    } catch (...) {
+
+        return api_.Factory().Data();
+    }
+}
+
+auto Database::Filters::LoadFilterHeader(
+    const filter::Type type,
+    const ReadView block) const noexcept -> Hash
+{
+    const auto hash = api_.Factory().Data(block);
+    Lock lock(lock_);
+
+    try {
+
+        return headers_.at(type).at(hash).first;
+    } catch (...) {
+
+        return api_.Factory().Data();
+    }
+}
+
+auto Database::Filters::SetHeaderTip(
+    const filter::Type type,
+    const block::Position position) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto it = header_tip_.find(type);
+
+    if (header_tip_.end() == it) {
+        header_tip_.emplace(type, position);
+    } else {
+        it->second = position;
+    }
+
+    return true;
+}
+
 auto Database::Filters::SetTip(
     const filter::Type type,
     const block::Position position) const noexcept -> bool
@@ -160,17 +301,39 @@ auto Database::Filters::SetTip(
     return true;
 }
 
-auto Database::Filters::StoreFilter(
+auto Database::Filters::StoreHeaders(
     const filter::Type type,
-    const block::Hash& block,
-    std::unique_ptr<const blockchain::internal::GCS> filter) const noexcept
-    -> bool
+    const ReadView previous,
+    const std::vector<Header> headers) const noexcept -> bool
+{
+    Lock lock(lock_);
+    auto& map = headers_[type];
+
+    for (const auto& [block, header, hash] : headers) {
+        map.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(std::move(block)),
+            std::forward_as_tuple(
+                std::move(header), api_.Factory().Data(hash)));
+    }
+
+    return true;
+}
+
+auto Database::Filters::StoreFilters(
+    const filter::Type type,
+    std::vector<Filter> filters) const noexcept -> bool
 {
     Lock lock(lock_);
     auto& map = filters_[type];
-    map.emplace(block, std::move(filter));
 
-    return 0 < map.count(block);
+    for (auto& [block, filter] : filters) {
+        if (false == bool(filter)) { return false; }
+
+        map.emplace(api_.Factory().Data(block), std::move(filter));
+    }
+
+    return true;
 }
 
 auto Database::Headers::ApplyUpdate(

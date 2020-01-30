@@ -69,6 +69,10 @@ Network::Network(
           api_,
           api_.ZeroMQ(),
           [this](auto& in) { this->process_filter(in); }))
+    , new_filter_headers_(Factory::Pipeline(
+          api_,
+          api_.ZeroMQ(),
+          [this](auto& in) { this->process_cfheader(in); }))
     , shutdown_(
           api.ZeroMQ(),
           {api.Endpoints().Shutdown()},
@@ -94,14 +98,15 @@ auto Network::Connect() noexcept -> bool
     return peer_.Connect();
 }
 
-bool Network::Disconnect() noexcept
+auto Network::Disconnect() noexcept -> bool
 {
     // TODO
 
     return false;
 }
 
-ChainHeight Network::GetConfirmations(const std::string& txid) const noexcept
+auto Network::GetConfirmations(const std::string& txid) const noexcept
+    -> ChainHeight
 {
     // TODO
 
@@ -115,7 +120,7 @@ auto Network::GetPeerCount() const noexcept -> std::size_t
     return peer_.GetPeerCount();
 }
 
-void Network::init() noexcept
+auto Network::init() noexcept -> void
 {
     local_chain_height_.store(header_.BestChain().first);
     peer_.init();
@@ -136,7 +141,40 @@ void Network::init() noexcept
     }
 }
 
-void Network::process_filter(network::zeromq::Message& in) noexcept
+auto Network::process_cfheader(network::zeromq::Message& in) noexcept -> void
+{
+    if (false == running_.get()) { return; }
+
+    const auto header = in.Header();
+    const auto body = in.Body();
+
+    if (3 != header.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        return;
+    }
+
+    if (0 == body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+        return;
+    }
+
+    auto hashes = std::vector<ReadView>{};
+
+    for (const auto& frame : body) {
+        hashes.emplace_back(
+            ReadView{static_cast<const char*>(frame.data()), frame.size()});
+    }
+
+    filters_.AddHeaders(
+        header.at(0).as<filter::Type>(),
+        header.at(1).Bytes(),
+        header.at(2).Bytes(),
+        std::move(hashes));
+}
+
+auto Network::process_filter(network::zeromq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
@@ -154,7 +192,7 @@ void Network::process_filter(network::zeromq::Message& in) noexcept
         Data::Factory(body.at(2)));
 }
 
-void Network::process_header(network::zeromq::Message& in) noexcept
+auto Network::process_header(network::zeromq::Message& in) noexcept -> void
 {
     struct Cleanup {
         Cleanup(Flag& flag)
@@ -206,37 +244,49 @@ void Network::process_header(network::zeromq::Message& in) noexcept
     Trigger();
 }
 
-void Network::RequestFilters(
+auto Network::RequestFilterHeaders(
     const filter::Type type,
     const block::Height start,
-    const block::Hash& stop) const noexcept
+    const block::Hash& stop) const noexcept -> void
+{
+    if (false == running_.get()) { return; }
+
+    peer_.RequestFilterHeaders(type, start, stop);
+}
+
+auto Network::RequestFilters(
+    const filter::Type type,
+    const block::Height start,
+    const block::Hash& stop) const noexcept -> void
 {
     if (false == running_.get()) { return; }
 
     peer_.RequestFilters(type, start, stop);
 }
 
-std::string Network::SendToAddress(
+auto Network::SendToAddress(
     const std::string& address,
     const Amount amount,
     const api::client::blockchain::BalanceTree& source) const noexcept
+    -> std::string
 {
     // TODO
 
     return {};
 }
 
-std::string Network::SendToPaymentCode(
+auto Network::SendToPaymentCode(
     const std::string& address,
     const Amount amount,
     const api::client::blockchain::PaymentCode& source) const noexcept
+    -> std::string
 {
     // TODO
 
     return {};
 }
 
-std::shared_future<void> Network::Shutdown() noexcept
+auto Network::Shutdown() noexcept -> std::shared_future<void>
 {
     shutdown_.Close();
 
@@ -245,13 +295,14 @@ std::shared_future<void> Network::Shutdown() noexcept
     return shutdown_.future_;
 }
 
-void Network::shutdown(std::promise<void>& promise) noexcept
+auto Network::shutdown(std::promise<void>& promise) noexcept -> void
 {
     running_->Off();
     shutdown_sender_.Activate();
     Stop().get();
     peer_.Shutdown().get();
     filters_.Shutdown().get();
+    new_filter_headers_->Close();
     new_filters_->Close();
     new_headers_->Close();
     shutdown_sender_.Close();
@@ -267,7 +318,7 @@ auto Network::shutdown_endpoint() noexcept -> std::string
     return std::string{"inproc://"} + Identifier::Random()->str();
 }
 
-bool Network::state_machine() noexcept
+auto Network::state_machine() noexcept -> bool
 {
     filters_.CheckBlocks();
     peer_.Run();
@@ -283,7 +334,7 @@ bool Network::state_machine() noexcept
     return false;
 }
 
-void Network::UpdateHeight(const block::Height height) const noexcept
+auto Network::UpdateHeight(const block::Height height) const noexcept -> void
 {
     if (false == running_.get()) { return; }
 
@@ -291,13 +342,15 @@ void Network::UpdateHeight(const block::Height height) const noexcept
     Trigger();
 }
 
-void Network::UpdateLocalHeight(const block::Position position) const noexcept
+auto Network::UpdateLocalHeight(const block::Position position) const noexcept
+    -> void
 {
     if (false == running_.get()) { return; }
 
     const auto& [height, hash] = position;
     LogNormal(blockchain::internal::DisplayString(chain_))(
-        " chain updated to hash ")(hash->asHex())(" at height ")(height)
+        " block header chain updated to hash ")(hash->asHex())(" at height ")(
+        height)
         .Flush();
     local_chain_height_.store(height);
     Trigger();

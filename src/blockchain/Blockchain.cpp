@@ -7,6 +7,10 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
@@ -248,7 +252,7 @@ SerializedBloomFilter::SerializedBloomFilter() noexcept
     static_assert(9 == sizeof(SerializedBloomFilter));
 }
 
-std::string DisplayString(const Type type) noexcept
+auto DisplayString(const Type type) noexcept -> std::string
 {
     switch (type) {
         case Type::Unknown: {
@@ -276,6 +280,72 @@ std::string DisplayString(const Type type) noexcept
             return std::to_string(static_cast<std::uint32_t>(type));
         }
     }
+}
+
+auto BlockHashToFilterKey(const ReadView hash) noexcept
+    -> std::array<std::byte, 16>
+{
+    auto output = std::array<std::byte, 16>{};
+
+    if (nullptr != hash.data()) {
+        std::memcpy(
+            output.data(), hash.data(), std::min(output.size(), hash.size()));
+    }
+
+    return output;
+}
+
+auto FilterHashToHeader(
+    const api::Core& api,
+    const ReadView hash,
+    const ReadView previous) noexcept -> OTData
+{
+    static const auto blank = api.Factory().Data(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        StringStyle::Hex);
+    auto preimage = api.Factory().Data(hash);
+    auto output = api.Factory().Data();
+
+    if (0 == previous.size()) {
+        preimage->Concatenate(blank->data(), blank->size());
+    } else {
+        preimage->Concatenate(previous.data(), previous.size());
+    }
+
+    api.Crypto().Hash().Digest(
+        proto::HASHTYPE_SHA256D, preimage->Bytes(), output->WriteInto());
+
+    return output;
+}
+
+auto FilterToHash(const api::Core& api, const ReadView filter) noexcept
+    -> OTData
+{
+    auto output = api.Factory().Data();
+    api.Crypto().Hash().Digest(
+        proto::HASHTYPE_SHA256D, filter, output->WriteInto());
+
+    return output;
+}
+
+auto FilterToHeader(
+    const api::Core& api,
+    const ReadView filter,
+    const ReadView previous) noexcept -> OTData
+{
+    return FilterHashToHeader(
+        api, FilterToHash(api, filter)->Bytes(), previous);
+}
+
+auto Grind(const std::function<void()> function) noexcept -> void
+{
+    auto threads = std::vector<std::thread>{};
+
+    for (auto i = unsigned{}; i < std::thread::hardware_concurrency(); ++i) {
+        threads.emplace_back(function);
+    }
+
+    for (auto& thread : threads) { thread.join(); }
 }
 }  // namespace opentxs::blockchain::internal
 

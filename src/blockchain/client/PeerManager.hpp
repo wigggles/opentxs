@@ -30,6 +30,10 @@ public:
     }
     std::size_t GetPeerCount() const noexcept final { return peers_.Count(); }
     void Heartbeat() const noexcept { peers_.Heartbeat(); }
+    void RequestFilterHeaders(
+        const filter::Type type,
+        const block::Height start,
+        const block::Hash& stop) const noexcept final;
     void RequestFilters(
         const filter::Type type,
         const block::Height start,
@@ -71,6 +75,7 @@ private:
         using SocketMap = std::map<Task, zmq::socket::Sender*>;
 
         OTZMQPushSocket getheaders_;
+        OTZMQPushSocket getcfheaders_;
         OTZMQPushSocket getcfilters_;
         OTZMQPublishSocket heartbeat_;
         const EndpointMap endpoint_map_;

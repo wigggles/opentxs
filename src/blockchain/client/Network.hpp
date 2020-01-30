@@ -29,6 +29,10 @@ class Network : virtual public internal::Network,
 public:
     bool AddPeer(const p2p::Address& address) const noexcept final;
     Type Chain() const noexcept final { return chain_; }
+    const network::zeromq::Pipeline& FilterHeaderPipeline() const noexcept final
+    {
+        return new_filter_headers_;
+    }
     const network::zeromq::Pipeline& FilterPipeline() const noexcept final
     {
         return new_filters_;
@@ -52,6 +56,10 @@ public:
     {
         return local_chain_height_.load() >= remote_chain_height_.load();
     }
+    void RequestFilterHeaders(
+        const filter::Type type,
+        const block::Height start,
+        const block::Hash& stop) const noexcept final;
     void RequestFilters(
         const filter::Type type,
         const block::Height start,
@@ -109,6 +117,7 @@ private:
     OTFlag processing_headers_;
     OTZMQPipeline new_headers_;
     OTZMQPipeline new_filters_;
+    OTZMQPipeline new_filter_headers_;
     opentxs::internal::ShutdownReceiver shutdown_;
 
     static auto shutdown_endpoint() noexcept -> std::string;
@@ -116,6 +125,7 @@ private:
     virtual std::unique_ptr<block::Header> instantiate_header(
         const network::zeromq::Frame& payload) const noexcept = 0;
 
+    void process_cfheader(network::zeromq::Message& in) noexcept;
     void process_filter(network::zeromq::Message& in) noexcept;
     void process_header(network::zeromq::Message& in) noexcept;
     void shutdown(std::promise<void>& promise) noexcept;

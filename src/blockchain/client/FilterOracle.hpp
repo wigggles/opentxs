@@ -17,6 +17,11 @@ public:
         const filter::Type type,
         const block::Hash& block,
         const Data& filter) const noexcept final;
+    void AddHeaders(
+        const filter::Type type,
+        const ReadView stopBlock,
+        const ReadView previousHeader,
+        const std::vector<ReadView> hashes) const noexcept final;
     void CheckBlocks() const noexcept final;
 
     void Start() noexcept;
@@ -26,6 +31,70 @@ public:
 
 private:
     friend opentxs::Factory;
+
+    enum class Work : std::uint8_t {
+        cfilter = 0,
+        cfheader = 1,
+    };
+
+    struct Cleanup {
+        operator bool() { return repeat_; }
+
+        void Off() { repeat_ = false; }
+        void On() { repeat_ = true; }
+
+        Cleanup(std::mutex& lock)
+            : rate_limit_(10)
+            , lock_(lock)
+            , repeat_(true)
+        {
+        }
+
+        ~Cleanup()
+        {
+            lock_.unlock();
+
+            if (repeat_) { Sleep(rate_limit_); }
+        }
+
+    private:
+        const std::chrono::milliseconds rate_limit_;
+        Lock lock_;
+        bool repeat_;
+    };
+
+    struct FilterQueue {
+        using Filters = std::vector<internal::FilterDatabase::Filter>;
+
+        auto AddFilter(
+            const block::Height height,
+            const block::Hash& hash,
+            std::unique_ptr<const blockchain::internal::GCS> filter) noexcept
+            -> void;
+        // WARNING the lifetime of the objects added to filters ends the
+        // next time Queue is executed
+        auto Flush(Filters& filters) noexcept -> block::Position;
+        auto IsFull() noexcept -> bool;
+        auto IsRunning() noexcept -> bool;
+        auto Queue(
+            const block::Height startHeight,
+            const block::Hash& stopHash,
+            const client::HeaderOracle& headers) noexcept -> void;
+
+        FilterQueue(const api::Core& api) noexcept;
+
+    private:
+        using Pointer = std::unique_ptr<const blockchain::internal::GCS>;
+        using FilterData = std::pair<block::pHash, Pointer>;
+
+        static const std::chrono::seconds timeout_;
+
+        bool running_;
+        std::size_t queued_;
+        std::vector<FilterData> filters_;
+        Time last_received_;
+        block::Position target_;
+    };
 
     struct RequestQueue {
         bool IsRunning(const block::Hash& block) const noexcept;
@@ -53,15 +122,21 @@ private:
     const internal::FilterDatabase& database_;
     OTFlag running_;
     mutable std::mutex lock_;
-    mutable RequestQueue requests_;
-    OTZMQPipeline new_filters_;
+    mutable RequestQueue header_requests_;
+    FilterQueue outstanding_filters_;
+    OTZMQPipeline pipeline_;
     opentxs::internal::ShutdownReceiver shutdown_;
 
-    bool have_all_filters(
+    void check_filters(
         const filter::Type type,
-        const block::Position checkpoint,
-        const block::Hash& block) const noexcept;
-
+        const block::Height maxRequests,
+        Cleanup& repeat) noexcept;
+    void check_headers(
+        const filter::Type type,
+        const block::Height maxRequests,
+        Cleanup& repeat) noexcept;
+    void pipeline(const zmq::Message& in) noexcept;
+    void process_cfheader(const zmq::Message& in) noexcept;
     void process_cfilter(const zmq::Message& in) noexcept;
     void shutdown(std::promise<void>& promise) noexcept;
     bool state_machine() noexcept;

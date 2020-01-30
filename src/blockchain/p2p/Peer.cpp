@@ -62,6 +62,7 @@ Peer::Peer(
     , outgoing_handshake_(false)
     , incoming_handshake_(false)
     , header_worker_(api, [this](auto& in) { request_headers(); })
+    , cfheader_worker_(api, [this](auto& in) { request_cfheaders(in); })
     , cfilter_worker_(api, [this](auto& in) { request_cfilter(in); })
     , id_(id)
     , context_(context)
@@ -128,70 +129,70 @@ Peer::Worker::Worker(
 {
 }
 
-void Peer::Activity::Bump() noexcept
+auto Peer::Activity::Bump() noexcept -> void
 {
     Lock lock(lock_);
     activity_ = Clock::now();
 }
 
-Time Peer::Activity::get() const noexcept
+auto Peer::Activity::get() const noexcept -> Time
 {
     Lock lock(lock_);
 
     return activity_;
 }
 
-OTData Peer::Address::Bytes() const noexcept
+auto Peer::Address::Bytes() const noexcept -> OTData
 {
     Lock lock(lock_);
 
     return address_->Bytes();
 }
 
-blockchain::Type Peer::Address::Chain() const noexcept
+auto Peer::Address::Chain() const noexcept -> blockchain::Type
 {
     Lock lock(lock_);
 
     return address_->Chain();
 }
 
-std::string Peer::Address::Display() const noexcept
+auto Peer::Address::Display() const noexcept -> std::string
 {
     Lock lock(lock_);
 
     return address_->Display();
 }
 
-OTIdentifier Peer::Address::ID() const noexcept
+auto Peer::Address::ID() const noexcept -> OTIdentifier
 {
     Lock lock(lock_);
 
     return address_->ID();
 }
 
-std::uint16_t Peer::Address::Port() const noexcept
+auto Peer::Address::Port() const noexcept -> std::uint16_t
 {
     Lock lock(lock_);
 
     return address_->Port();
 }
 
-std::set<Service> Peer::Address::Services() const noexcept
+auto Peer::Address::Services() const noexcept -> std::set<Service>
 {
     Lock lock(lock_);
 
     return address_->Services();
 }
 
-Network Peer::Address::Type() const noexcept
+auto Peer::Address::Type() const noexcept -> Network
 {
     Lock lock(lock_);
 
     return address_->Type();
 }
 
-Peer::Address::pointer Peer::Address::UpdateServices(
-    const std::set<p2p::Service>& services) noexcept
+auto Peer::Address::UpdateServices(
+    const std::set<p2p::Service>& services) noexcept -> pointer
 {
     Lock lock(lock_);
     address_->SetServices(services);
@@ -199,7 +200,7 @@ Peer::Address::pointer Peer::Address::UpdateServices(
     return address_->clone_internal();
 }
 
-Peer::Address::pointer Peer::Address::UpdateTime(const Time& time) noexcept
+auto Peer::Address::UpdateTime(const Time& time) noexcept -> pointer
 {
     Lock lock(lock_);
     address_->SetLastConnected(time);
@@ -207,27 +208,27 @@ Peer::Address::pointer Peer::Address::UpdateTime(const Time& time) noexcept
     return address_->clone_internal();
 }
 
-void Peer::DownloadPeers::Bump() noexcept
+auto Peer::DownloadPeers::Bump() noexcept -> void
 {
     Lock lock(lock_);
     downloaded_ = Clock::now();
 }
 
-Time Peer::DownloadPeers::get() const noexcept
+auto Peer::DownloadPeers::get() const noexcept -> Time
 {
     Lock lock(lock_);
 
     return downloaded_;
 }
 
-void Peer::SendPromises::Break()
+auto Peer::SendPromises::Break() -> void
 {
     Lock lock(lock_);
 
     for (auto& [id, promise] : map_) { promise = {}; }
 }
 
-std::pair<std::future<bool>, int> Peer::SendPromises::NewPromise()
+auto Peer::SendPromises::NewPromise() -> std::pair<std::future<bool>, int>
 {
     Lock lock(lock_);
     auto [it, added] = map_.emplace(++counter_, std::promise<bool>());
@@ -237,7 +238,7 @@ std::pair<std::future<bool>, int> Peer::SendPromises::NewPromise()
     return {it->second.get_future(), it->first};
 }
 
-void Peer::SendPromises::SetPromise(const int promise, const bool value)
+auto Peer::SendPromises::SetPromise(const int promise, const bool value) -> void
 {
     Lock lock(lock_);
 
@@ -253,7 +254,7 @@ void Peer::SendPromises::SetPromise(const int promise, const bool value)
     }
 }
 
-void Peer::break_promises() noexcept
+auto Peer::break_promises() noexcept -> void
 {
     handshake_promise_ = {};
     connection_promise_ = {};
@@ -261,7 +262,7 @@ void Peer::break_promises() noexcept
     send_promises_.Break();
 }
 
-void Peer::check_activity() noexcept
+auto Peer::check_activity() noexcept -> void
 {
     const auto interval = Clock::now() - activity_.get();
     const bool disconnect =
@@ -276,7 +277,7 @@ void Peer::check_activity() noexcept
     }
 }
 
-void Peer::check_download_peers() noexcept
+auto Peer::check_download_peers() noexcept -> void
 {
     const auto interval = Clock::now() - download_peers_.get();
     const bool download =
@@ -286,7 +287,7 @@ void Peer::check_download_peers() noexcept
     if (download) { request_addresses(); }
 }
 
-void Peer::check_handshake() noexcept
+auto Peer::check_handshake() noexcept -> void
 {
     if (outgoing_handshake_ && incoming_handshake_) {
         try {
@@ -310,7 +311,7 @@ void Peer::check_handshake() noexcept
     }
 }
 
-void Peer::connect() noexcept
+auto Peer::connect() noexcept -> void
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Connecting to ")(
         endpoint_.address().to_string())(":")(endpoint_.port())
@@ -320,7 +321,8 @@ void Peer::connect() noexcept
         std::bind(&Peer::connect_handler, this, std::placeholders::_1));
 }
 
-void Peer::connect_handler(const boost::system::error_code& error) noexcept
+auto Peer::connect_handler(const boost::system::error_code& error) noexcept
+    -> void
 {
     if (error) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
@@ -336,9 +338,9 @@ void Peer::connect_handler(const boost::system::error_code& error) noexcept
     }
 }
 
-void Peer::disconnect() noexcept { manager_.Disconnect(id_); }
+auto Peer::disconnect() noexcept -> void { manager_.Disconnect(id_); }
 
-void Peer::handshake() noexcept
+auto Peer::handshake() noexcept -> void
 {
     static const auto limit = std::chrono::seconds(15);
     static const auto wait = std::chrono::milliseconds(10);
@@ -360,19 +362,19 @@ void Peer::handshake() noexcept
     if (disconnect) { this->disconnect(); }
 }
 
-void Peer::init() noexcept
+auto Peer::init() noexcept -> void
 {
     Trigger();
     connect();
 }
 
-void Peer::init_send_promise() noexcept
+auto Peer::init_send_promise() noexcept -> void
 {
     send_promise_ = SendPromise{};
     send_future_ = send_promise_.get_future();
 }
 
-OTData Peer::make_buffer(const std::size_t size) noexcept
+auto Peer::make_buffer(const std::size_t size) noexcept -> OTData
 {
     auto output = Data::Factory();
     output->SetSize(size);
@@ -380,10 +382,10 @@ OTData Peer::make_buffer(const std::size_t size) noexcept
     return output;
 }
 
-tcp::endpoint Peer::make_endpoint(
+auto Peer::make_endpoint(
     const Network type,
     const Data& raw,
-    const std::uint16_t port) noexcept
+    const std::uint16_t port) noexcept -> tcp::endpoint
 {
     ip::address_v6 output{};
 
@@ -415,7 +417,7 @@ tcp::endpoint Peer::make_endpoint(
     return ip::tcp::endpoint(output, port);
 }
 
-void Peer::read_body() noexcept
+auto Peer::read_body() noexcept -> void
 {
     if (running_.get()) {
         asio::async_read(
@@ -425,7 +427,7 @@ void Peer::read_body() noexcept
     }
 }
 
-void Peer::read_header() noexcept
+auto Peer::read_header() noexcept -> void
 {
     if (running_.get()) {
         asio::async_read(
@@ -435,7 +437,7 @@ void Peer::read_header() noexcept
     }
 }
 
-void Peer::receive_body(const boost::system::error_code& error) noexcept
+auto Peer::receive_body(const boost::system::error_code& error) noexcept -> void
 {
     if (error) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
@@ -455,7 +457,8 @@ void Peer::receive_body(const boost::system::error_code& error) noexcept
     run();
 }
 
-void Peer::receive_header(const boost::system::error_code& error) noexcept
+auto Peer::receive_header(const boost::system::error_code& error) noexcept
+    -> void
 {
     if (error) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(error.message()).Flush();
@@ -479,12 +482,12 @@ void Peer::receive_header(const boost::system::error_code& error) noexcept
     }
 }
 
-void Peer::run() noexcept
+auto Peer::run() noexcept -> void
 {
     if (running_.get()) { read_header(); }
 }
 
-Peer::SendStatus Peer::send(OTData in) noexcept
+auto Peer::send(OTData in) noexcept -> SendStatus
 {
     try {
         if (false == connected_.get()) {
@@ -511,7 +514,7 @@ Peer::SendStatus Peer::send(OTData in) noexcept
     }
 }
 
-std::shared_future<void> Peer::Shutdown() noexcept
+auto Peer::Shutdown() noexcept -> std::shared_future<void>
 {
     shutdown_.Close();
 
@@ -520,7 +523,7 @@ std::shared_future<void> Peer::Shutdown() noexcept
     return shutdown_.future_;
 }
 
-void Peer::shutdown(std::promise<void>& promise) noexcept
+auto Peer::shutdown(std::promise<void>& promise) noexcept -> void
 {
     running_->Off();
     Stop().get();
@@ -554,7 +557,7 @@ void Peer::shutdown(std::promise<void>& promise) noexcept
     }
 }
 
-bool Peer::state_machine() noexcept
+auto Peer::state_machine() noexcept -> bool
 {
     switch (state_.load()) {
         case State::Handshake: {
@@ -572,7 +575,7 @@ bool Peer::state_machine() noexcept
     return false;
 }
 
-void Peer::transmit(zmq::Message& message) noexcept
+auto Peer::transmit(zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
@@ -650,20 +653,20 @@ void Peer::transmit(zmq::Message& message) noexcept
     }
 }
 
-void Peer::update_address_activity() noexcept
+auto Peer::update_address_activity() noexcept -> void
 {
     manager_.Database().AddOrUpdate(address_.UpdateTime(activity_.get()));
 }
 
-void Peer::update_address_services(
-    const std::set<p2p::Service>& services) noexcept
+auto Peer::update_address_services(
+    const std::set<p2p::Service>& services) noexcept -> void
 {
     manager_.Database().AddOrUpdate(address_.UpdateServices(services));
 }
 
 Peer::~Peer()
 {
-    Shutdown().get();
+    Shutdown().wait_for(std::chrono::seconds(1));
     shutdown_.Close();
 }
 }  // namespace opentxs::blockchain::p2p::implementation

@@ -33,7 +33,12 @@ public:
     {
         return headers_.CurrentCheckpoint();
     }
-    block::Position CurrentTip(const filter::Type type) const noexcept final
+    block::Position FilterHeaderTip(const filter::Type type) const
+        noexcept final
+    {
+        return filters_.CurrentHeaderTip(type);
+    }
+    block::Position FilterTip(const filter::Type type) const noexcept final
     {
         return filters_.CurrentTip(type);
     }
@@ -61,6 +66,11 @@ public:
     {
         return filters_.HaveFilter(type, block);
     }
+    bool HaveFilterHeader(const filter::Type type, const block::Hash& block)
+        const noexcept final
+    {
+        return filters_.HaveFilterHeader(type, block);
+    }
     bool HeaderExists(const block::Hash& hash) const noexcept final
     {
         return headers_.HeaderExists(hash);
@@ -73,6 +83,16 @@ public:
     {
         return headers_.IsSibling(hash);
     }
+    Hash LoadFilterHash(const filter::Type type, const ReadView block) const
+        noexcept final
+    {
+        return filters_.LoadFilterHash(type, block);
+    }
+    Hash LoadFilterHeader(const filter::Type type, const ReadView block) const
+        noexcept final
+    {
+        return filters_.LoadFilterHeader(type, block);
+    }
     // Throws std::out_of_range if the header does not exist
     std::unique_ptr<block::Header> LoadHeader(const block::Hash& hash) const
         noexcept(false) final
@@ -83,8 +103,14 @@ public:
     {
         return headers_.RecentHashes();
     }
-    bool SetTip(const filter::Type type, const block::Position position) const
-        noexcept final
+    bool SetFilterHeaderTip(
+        const filter::Type type,
+        const block::Position position) const noexcept final
+    {
+        return filters_.SetHeaderTip(type, position);
+    }
+    bool SetFilterTip(const filter::Type type, const block::Position position)
+        const noexcept final
     {
         return filters_.SetTip(type, position);
     }
@@ -92,13 +118,17 @@ public:
     {
         return headers_.SiblingHashes();
     }
-    bool StoreFilter(
-        const filter::Type type,
-        const block::Hash& block,
-        std::unique_ptr<const blockchain::internal::GCS> filter) const
-        noexcept final
+    bool StoreFilters(const filter::Type type, std::vector<Filter> filters)
+        const noexcept final
     {
-        return filters_.StoreFilter(type, block, std::move(filter));
+        return filters_.StoreFilters(type, std::move(filters));
+    }
+    bool StoreFilterHeaders(
+        const filter::Type type,
+        const ReadView previous,
+        const std::vector<Header> headers) const noexcept final
+    {
+        return filters_.StoreHeaders(type, previous, std::move(headers));
     }
     // Returns null pointer if the header does not exist
     std::unique_ptr<block::Header> TryLoadHeader(const block::Hash& hash) const
@@ -115,29 +145,52 @@ private:
     friend opentxs::Factory;
 
     struct Filters {
+        block::Position CurrentHeaderTip(const filter::Type type) const
+            noexcept;
         block::Position CurrentTip(const filter::Type type) const noexcept;
         bool HaveFilter(const filter::Type type, const block::Hash& block) const
             noexcept;
+        bool HaveFilterHeader(const filter::Type type, const block::Hash& block)
+            const noexcept;
+        Hash LoadFilterHash(const filter::Type type, const ReadView block) const
+            noexcept;
+        Hash LoadFilterHeader(const filter::Type type, const ReadView block)
+            const noexcept;
+        bool SetHeaderTip(
+            const filter::Type type,
+            const block::Position position) const noexcept;
         bool SetTip(const filter::Type type, const block::Position position)
             const noexcept;
-        bool StoreFilter(
+        bool StoreHeaders(
             const filter::Type type,
-            const block::Hash& block,
-            std::unique_ptr<const blockchain::internal::GCS> filter) const
-            noexcept;
+            const ReadView previous,
+            const std::vector<Header> headers) const noexcept;
+        bool StoreFilters(const filter::Type type, std::vector<Filter> filters)
+            const noexcept;
 
-        Filters(const api::Core& api) noexcept;
+        Filters(
+            const api::internal::Core& api,
+            const blockchain::Type chain) noexcept;
 
     private:
-        const api::Core& api_;
+        using FilterHeader = block::pHash;
+        using FilterHash = block::pHash;
+        using HeaderData = std::pair<FilterHeader, FilterHash>;
+        using HeaderMap = std::map<block::pHash, HeaderData>;
+        using FilterMap = std::
+            map<block::pHash, std::shared_ptr<const blockchain::internal::GCS>>;
+
+        static const std::map<
+            blockchain::Type,
+            std::map<filter::Type, std::pair<std::string, std::string>>>
+            genesis_filters_;
+
+        const api::internal::Core& api_;
         mutable std::mutex lock_;
         mutable std::map<filter::Type, block::Position> tip_;
-        mutable std::map<
-            filter::Type,
-            std::map<
-                block::pHash,
-                std::shared_ptr<const blockchain::internal::GCS>>>
-            filters_;
+        mutable std::map<filter::Type, block::Position> header_tip_;
+        mutable std::map<filter::Type, FilterMap> filters_;
+        mutable std::map<filter::Type, HeaderMap> headers_;
     };
 
     struct Headers {
