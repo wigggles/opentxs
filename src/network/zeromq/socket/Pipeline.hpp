@@ -15,7 +15,11 @@ public:
     bool Close() const noexcept final;
     const zeromq::Context& Context() const noexcept final
     {
-        return push_->Context();
+        return sender_->Context();
+    }
+    bool Start(const std::string& endpoint) const noexcept
+    {
+        return receiver_->Start(endpoint);
     }
 
     ~Pipeline();
@@ -23,14 +27,14 @@ public:
 private:
     friend opentxs::Factory;
 
+    OTZMQPushSocket sender_;
     OTZMQListenCallback callback_;
-    OTZMQPullSocket pull_;
-    OTZMQPushSocket push_;
+    OTZMQSubscribeSocket receiver_;
 
     Pipeline* clone() const noexcept final { return nullptr; }
     bool push(zeromq::Message& data) const noexcept final
     {
-        return push_->Send(data);
+        return sender_->Send(data);
     }
 
     Pipeline(

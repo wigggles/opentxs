@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/Proto.tpp"
@@ -48,7 +49,7 @@ Network::Network(
 }
 
 std::unique_ptr<block::Header> Network::instantiate_header(
-    const network::zeromq::Frame& payload) const noexcept
+    const ReadView payload) const noexcept
 {
     using Type = block::Header::SerializedType;
 

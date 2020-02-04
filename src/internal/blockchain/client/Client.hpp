@@ -11,17 +11,26 @@
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/Network.hpp"
+#include "opentxs/network/zeromq/socket/Router.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/Bytes.hpp"
 #endif  // OT_BLOCKCHAIN
 
 #include "internal/core/Core.hpp"
 
+#include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
+
 #include <future>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <tuple>
 #include <vector>
+
+namespace zmq = opentxs::network::zeromq;
 
 #if OT_BLOCKCHAIN
 namespace opentxs
@@ -142,27 +151,77 @@ struct HeaderDatabase {
     virtual ~HeaderDatabase() = default;
 };
 
+struct IO {
+    using tcp = boost::asio::ip::tcp;
+
+    operator boost::asio::io_context&() const noexcept { return context_; }
+
+    auto Connect(
+        const Space& id,
+        const tcp::endpoint& endpoint,
+        tcp::socket& socket) const noexcept -> void;
+    auto Receive(
+        const Space& id,
+        const OTZMQWorkType type,
+        const std::size_t bytes,
+        tcp::socket& socket) const noexcept -> void;
+
+    auto AddNetwork() noexcept -> void;
+    auto Shutdown() noexcept -> void;
+
+    IO(const api::Core& api) noexcept;
+    ~IO();
+
+private:
+    const api::Core& api_;
+    mutable std::mutex lock_;
+    OTZMQListenCallback cb_;
+    OTZMQRouterSocket socket_;
+    mutable int next_buffer_;
+    mutable std::map<int, Space> buffers_;
+    mutable boost::asio::io_context context_;
+    std::unique_ptr<boost::asio::io_context::work> work_;
+    boost::thread_group thread_pool_;
+
+    auto clear_buffer(const int id) const noexcept -> void;
+    auto get_buffer(const std::size_t bytes) const noexcept
+        -> std::pair<int, WritableView>;
+
+    auto callback(zmq::Message& in) noexcept -> void;
+
+    IO() = delete;
+    IO(const IO&) = delete;
+    IO(IO&&) = delete;
+    IO& operator=(const IO&) = delete;
+    IO& operator=(IO&&) = delete;
+};
+
 struct Network : virtual public opentxs::blockchain::Network {
+    enum class Task : OTZMQWorkType {
+        SubmitBlockHeader = 0,
+        SubmitFilterHeader = 1,
+        SubmitFilter = 2,
+        StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+    };
+
     virtual Type Chain() const noexcept = 0;
-    virtual const network::zeromq::Pipeline& FilterHeaderPipeline() const
-        noexcept = 0;
-    virtual const network::zeromq::Pipeline& FilterPipeline() const
-        noexcept = 0;
     virtual const client::HeaderOracle& HeaderOracle() const noexcept = 0;
-    virtual const network::zeromq::Pipeline& HeaderPipeline() const
-        noexcept = 0;
     virtual bool IsSynchronized() const noexcept = 0;
     virtual void RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
         const block::Hash& stop) const noexcept = 0;
+    virtual const network::zeromq::socket::Publish& Reorg() const noexcept = 0;
     virtual void RequestFilters(
         const filter::Type type,
         const block::Height start,
         const block::Hash& stop) const noexcept = 0;
+    virtual void Submit(network::zeromq::Message& work) const noexcept = 0;
     virtual void UpdateHeight(const block::Height height) const noexcept = 0;
     virtual void UpdateLocalHeight(const block::Position position) const
         noexcept = 0;
+    virtual OTZMQMessage Work(const Task type) const noexcept = 0;
 
     virtual client::HeaderOracle& HeaderOracle() noexcept = 0;
     virtual std::shared_future<void> Shutdown() noexcept = 0;
@@ -187,11 +246,20 @@ struct PeerDatabase {
 };
 
 struct PeerManager {
-    enum class Task {
-        Getheaders,
-        Getcfheaders,
-        Getcfilters,
-        Heartbeat,
+    enum class Task : OTZMQWorkType {
+        Getheaders = 0,
+        Getcfheaders = 1,
+        Getcfilters = 2,
+        Heartbeat = 3,
+        Body = 126,
+        Header = 127,
+        Connect = OT_ZMQ_CONNECT_SIGNAL,
+        Disconnect = OT_ZMQ_DISCONNECT_SIGNAL,
+        ReceiveMessage = OT_ZMQ_RECEIVE_SIGNAL,
+        SendMessage = OT_ZMQ_SEND_SIGNAL,
+        Register = OT_ZMQ_REGISTER_SIGNAL,
+        StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
 
     virtual bool AddPeer(const p2p::Address& address) const noexcept = 0;

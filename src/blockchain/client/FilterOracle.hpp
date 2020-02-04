@@ -10,7 +10,7 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::blockchain::client::implementation
 {
 class FilterOracle final : virtual public internal::FilterOracle,
-                           public opentxs::internal::StateMachine
+                           public Executor<FilterOracle>
 {
 public:
     void AddFilter(
@@ -25,41 +25,51 @@ public:
     void CheckBlocks() const noexcept final;
 
     void Start() noexcept;
-    std::shared_future<void> Shutdown() noexcept final;
+    std::shared_future<void> Shutdown() noexcept final
+    {
+        return stop_executor();
+    }
+
+    FilterOracle(
+        const api::internal::Core& api,
+        const internal::Network& network,
+        const internal::FilterDatabase& database,
+        const blockchain::Type type,
+        const std::string& shutdown) noexcept;
 
     ~FilterOracle() final;
 
 private:
     friend opentxs::Factory;
+    friend Executor<FilterOracle>;
 
-    enum class Work : std::uint8_t {
+    enum class Work : OTZMQWorkType {
         cfilter = 0,
         cfheader = 1,
+        reorg = OT_ZMQ_REORG_SIGNAL,
+        statemachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
 
     struct Cleanup {
         operator bool() { return repeat_; }
 
-        void Off() { repeat_ = false; }
-        void On() { repeat_ = true; }
+        auto Off() -> void { repeat_ = false; }
+        auto On() -> void { repeat_ = true; }
 
-        Cleanup(std::mutex& lock)
+        Cleanup()
             : rate_limit_(10)
-            , lock_(lock)
             , repeat_(true)
         {
         }
 
         ~Cleanup()
         {
-            lock_.unlock();
-
             if (repeat_) { Sleep(rate_limit_); }
         }
 
     private:
         const std::chrono::milliseconds rate_limit_;
-        Lock lock_;
         bool repeat_;
     };
 
@@ -80,6 +90,7 @@ private:
             const block::Height startHeight,
             const block::Hash& stopHash,
             const client::HeaderOracle& headers) noexcept -> void;
+        auto Reset() noexcept -> void;
 
         FilterQueue(const api::Core& api) noexcept;
 
@@ -89,6 +100,7 @@ private:
 
         static const std::chrono::seconds timeout_;
 
+        const api::Core& api_;
         bool running_;
         std::size_t queued_;
         std::vector<FilterData> filters_;
@@ -97,11 +109,10 @@ private:
     };
 
     struct RequestQueue {
-        bool IsRunning(const block::Hash& block) const noexcept;
-        std::size_t size() const noexcept;
-
-        void Finish(const block::Hash& block) noexcept;
-        void Start(const block::Hash& hash) noexcept;
+        auto Finish(const block::Hash& block) noexcept -> void;
+        auto IsRunning(const block::Hash& block) noexcept -> bool;
+        auto Reset() noexcept -> void { hashes_.clear(); }
+        auto Start(const block::Hash& hash) noexcept -> void;
 
         RequestQueue(const api::Core& api) noexcept;
 
@@ -110,42 +121,32 @@ private:
 
         static const std::chrono::seconds limit_;
 
-        void prune(const Lock& lock) const noexcept;
+        auto prune() const noexcept -> void;
 
-        mutable std::mutex lock_;
-        mutable block::Position highest_;
         mutable std::map<block::pHash, Time> hashes_;
     };
 
-    const api::internal::Core& api_;
     const internal::Network& network_;
     const internal::FilterDatabase& database_;
-    OTFlag running_;
-    mutable std::mutex lock_;
-    mutable RequestQueue header_requests_;
+    const filter::Type default_type_;
+    RequestQueue header_requests_;
     FilterQueue outstanding_filters_;
-    OTZMQPipeline pipeline_;
-    opentxs::internal::ShutdownReceiver shutdown_;
 
-    void check_filters(
+    auto check_filters(
         const filter::Type type,
         const block::Height maxRequests,
-        Cleanup& repeat) noexcept;
-    void check_headers(
+        Cleanup& repeat) noexcept -> void;
+    auto check_headers(
         const filter::Type type,
         const block::Height maxRequests,
-        Cleanup& repeat) noexcept;
-    void pipeline(const zmq::Message& in) noexcept;
-    void process_cfheader(const zmq::Message& in) noexcept;
-    void process_cfilter(const zmq::Message& in) noexcept;
-    void shutdown(std::promise<void>& promise) noexcept;
-    bool state_machine() noexcept;
+        Cleanup& repeat) noexcept -> void;
+    auto pipeline(const zmq::Message& in) noexcept -> void;
+    auto process_cfheader(const zmq::Message& in) noexcept -> void;
+    auto process_cfilter(const zmq::Message& in) noexcept -> void;
+    auto process_reorg(const zmq::Message& in) noexcept -> void;
+    auto request() noexcept -> bool;
+    auto shutdown(std::promise<void>& promise) noexcept -> void;
 
-    FilterOracle(
-        const api::internal::Core& api,
-        const internal::Network& network,
-        const internal::FilterDatabase& database,
-        const std::string& shutdown) noexcept;
     FilterOracle() = delete;
     FilterOracle(const FilterOracle&) = delete;
     FilterOracle(FilterOracle&&) = delete;

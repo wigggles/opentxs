@@ -32,6 +32,12 @@ public:
         std::vector<std::unique_ptr<block::Header>>&) noexcept final;
     bool DeleteCheckpoint() noexcept final;
 
+    HeaderOracle(
+        const api::internal::Core& api,
+        const internal::Network& network,
+        const internal::HeaderDatabase& database,
+        const blockchain::Type type) noexcept;
+
     ~HeaderOracle() final = default;
 
 private:
@@ -104,11 +110,6 @@ private:
         UpdateTransaction& update,
         block::Header& child) noexcept(false);
 
-    HeaderOracle(
-        const api::internal::Core& api,
-        const internal::Network& network,
-        const internal::HeaderDatabase& database,
-        const blockchain::Type type) noexcept;
     HeaderOracle() = delete;
     HeaderOracle(const HeaderOracle&) = delete;
     HeaderOracle(HeaderOracle&&) = delete;

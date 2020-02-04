@@ -29,15 +29,16 @@
 
 namespace opentxs
 {
-blockchain::client::internal::HeaderOracle* Factory::HeaderOracle(
+auto Factory::HeaderOracle(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::HeaderDatabase& database,
-    const blockchain::Type type)
+    const blockchain::Type type) noexcept
+    -> std::unique_ptr<blockchain::client::internal::HeaderOracle>
 {
     using ReturnType = blockchain::client::implementation::HeaderOracle;
 
-    return new ReturnType(api, network, database, type);
+    return std::make_unique<ReturnType>(api, network, database, type);
 }
 }  // namespace opentxs
 

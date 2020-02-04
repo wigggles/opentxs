@@ -22,6 +22,39 @@ private:
         void (Peer::*)(std::unique_ptr<HeaderType>, const zmq::Frame&);
     using Nonce = bitcoin::Nonce;
 
+    struct Request {
+    public:
+        auto Finish() noexcept -> void
+        {
+            try {
+                promise_.set_value();
+            } catch (...) {
+            }
+        }
+
+        auto Running() noexcept -> bool
+        {
+            static const auto limit = std::chrono::seconds(10);
+
+            if ((Clock::now() - start_) > limit) { return false; }
+
+            return std::future_status::timeout ==
+                   future_.wait_for(std::chrono::milliseconds(1));
+        }
+
+        auto Start() noexcept -> void
+        {
+            promise_ = {};
+            future_ = promise_.get_future();
+            start_ = Clock::now();
+        }
+
+    private:
+        std::promise<void> promise_{};
+        std::future<void> future_{};
+        Time start_{};
+    };
+
     static const std::map<Command, CommandFunction> command_map_;
     static const ProtocolVersion default_protocol_version_{70015};
     static const std::string user_agent_;
@@ -32,6 +65,7 @@ private:
     const Magic magic_;
     const std::set<p2p::Service> local_services_;
     std::atomic<bool> relay_;
+    Request get_headers_;
 
     static std::set<p2p::Service> get_local_services(
         const ProtocolVersion version,
@@ -39,7 +73,8 @@ private:
         const std::set<p2p::Service>& input) noexcept;
     static Nonce nonce(const api::internal::Core& api) noexcept;
 
-    void get_body_size() noexcept final;
+    std::size_t get_body_size(const zmq::Frame& header) const noexcept final;
+
     void ping() noexcept final;
     void pong() noexcept final;
     void process_message(const zmq::Message& message) noexcept final;
@@ -152,10 +187,10 @@ private:
         const api::internal::Core& api,
         const client::internal::Network& network,
         const client::internal::PeerManager& manager,
+        const blockchain::client::internal::IO& io,
         const std::string& shutdown,
         const int id,
         std::unique_ptr<internal::Address> address,
-        boost::asio::io_context& context,
         const bool relay = true,
         const std::set<p2p::Service>& localServices = {},
         const ProtocolVersion protocol = 0) noexcept;

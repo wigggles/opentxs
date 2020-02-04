@@ -81,7 +81,7 @@ void Root::cleanup() const
 void Root::collect_garbage(const opentxs::api::storage::Driver* to) const
 {
     Lock lock(write_lock_);
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Beginning garbage collection.")
+    LogTrace(OT_METHOD)(__FUNCTION__)(": Beginning garbage collection.")
         .Flush();
     const auto resume = gc_resume_->Set(false);
     bool oldLocation = false;
@@ -120,8 +120,7 @@ void Root::collect_garbage(const opentxs::api::storage::Driver* to) const
     driver_.StoreRoot(true, root_);
     lock.unlock();
     gcLock.unlock();
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Finished garbage collection.")
-        .Flush();
+    LogTrace(OT_METHOD)(__FUNCTION__)(": Finished garbage collection.").Flush();
 }
 
 void Root::init(const std::string& hash)

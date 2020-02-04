@@ -306,62 +306,6 @@ auto LMDB::Delete(
     return cleanup.success_;
 }
 
-auto LMDB::init_db(const Table table, const std::size_t flags) noexcept
-    -> MDB_dbi
-{
-    MDB_txn* transaction{nullptr};
-    auto status = (0 == ::mdb_txn_begin(env_, nullptr, 0, &transaction));
-
-    OT_ASSERT(status);
-    OT_ASSERT(nullptr != transaction);
-
-    auto output = MDB_dbi{};
-    status =
-        0 ==
-        ::mdb_dbi_open(
-            transaction, names_.at(table).c_str(), MDB_CREATE | flags, &output);
-
-    OT_ASSERT(status);
-
-    ::mdb_txn_commit(transaction);
-
-    return output;
-}
-
-auto LMDB::init_environment(
-    const std::string& folder,
-    const std::size_t tables,
-    const Flags flags) noexcept -> void
-{
-    bool set = 0 == ::mdb_env_create(&env_);
-
-    OT_ASSERT(set);
-    OT_ASSERT(nullptr != env_);
-
-    set = 0 == ::mdb_env_set_mapsize(env_, OT_LMDB_SIZE);
-
-    OT_ASSERT(set);
-
-    set = 0 == ::mdb_env_set_maxdbs(env_, tables);
-
-    OT_ASSERT(set);
-
-    set = 0 == ::mdb_env_set_maxreaders(env_, 1024u);
-
-    OT_ASSERT(set);
-
-    set = 0 == ::mdb_env_open(env_, folder.c_str(), flags, 0664);
-
-    OT_ASSERT(set);
-}
-
-auto LMDB::init_tables(const TablesToInit init) noexcept -> void
-{
-    for (const auto& [table, flags] : init) {
-        db_[table] = init_db(table, flags);
-    }
-}
-
 auto LMDB::Exists(const Table table, const ReadView index) const noexcept
     -> bool
 {
@@ -421,6 +365,62 @@ auto LMDB::Exists(const Table table, const ReadView index) const noexcept
     cleanup.success_ = 0 == ::mdb_cursor_get(cursor, &key, &value, MDB_SET);
 
     return cleanup.success_;
+}
+
+auto LMDB::init_db(const Table table, const std::size_t flags) noexcept
+    -> MDB_dbi
+{
+    MDB_txn* transaction{nullptr};
+    auto status = (0 == ::mdb_txn_begin(env_, nullptr, 0, &transaction));
+
+    OT_ASSERT(status);
+    OT_ASSERT(nullptr != transaction);
+
+    auto output = MDB_dbi{};
+    status =
+        0 ==
+        ::mdb_dbi_open(
+            transaction, names_.at(table).c_str(), MDB_CREATE | flags, &output);
+
+    OT_ASSERT(status);
+
+    ::mdb_txn_commit(transaction);
+
+    return output;
+}
+
+auto LMDB::init_environment(
+    const std::string& folder,
+    const std::size_t tables,
+    const Flags flags) noexcept -> void
+{
+    bool set = 0 == ::mdb_env_create(&env_);
+
+    OT_ASSERT(set);
+    OT_ASSERT(nullptr != env_);
+
+    set = 0 == ::mdb_env_set_mapsize(env_, OT_LMDB_SIZE);
+
+    OT_ASSERT(set);
+
+    set = 0 == ::mdb_env_set_maxdbs(env_, tables);
+
+    OT_ASSERT(set);
+
+    set = 0 == ::mdb_env_set_maxreaders(env_, 1024u);
+
+    OT_ASSERT(set);
+
+    set = 0 == ::mdb_env_open(env_, folder.c_str(), flags, 0664);
+
+    OT_ASSERT(set);
+}
+
+auto LMDB::init_tables(const TablesToInit init) noexcept -> void
+{
+    for (const auto& [table, flags] : init) {
+        db_[table] = init_db(table, flags);
+    }
 }
 
 auto LMDB::Load(
@@ -670,6 +670,7 @@ auto LMDB::Store(
     auto output = Result{false, MDB_LAST_ERRCODE};
     auto& [success, code] = output;
     MDB_txn* transaction{nullptr};
+    auto cleanup = Cleanup{transaction};
     code = ::mdb_txn_begin(env_, parent, 0, &transaction);
 
     if (0 != code) {
@@ -681,7 +682,6 @@ auto LMDB::Store(
 
     OT_ASSERT(nullptr != transaction);
 
-    auto cleanup = Cleanup{transaction};
     const auto database = db_.at(table);
     auto key = MDB_val{index.size(), const_cast<char*>(index.data())};
     auto value = MDB_val{data.size(), const_cast<char*>(data.data())};
@@ -705,6 +705,102 @@ auto LMDB::Store(
         data,
         parent,
         flags);
+}
+
+auto LMDB::StoreOrUpdate(
+    const Table table,
+    const ReadView index,
+    const UpdateCallback cb,
+    MDB_txn* parent,
+    const Flags flags) const noexcept -> Result
+{
+    struct Cleanup {
+        bool success_;
+
+        Cleanup(MDB_txn*& transaction, MDB_cursor*& cursor)
+            : success_(false)
+            , transaction_(transaction)
+            , cursor_(cursor)
+        {
+        }
+
+        ~Cleanup()
+        {
+            if (nullptr != cursor_) {
+                ::mdb_cursor_close(cursor_);
+                cursor_ = nullptr;
+            }
+
+            if (nullptr != transaction_) {
+                if (success_) {
+                    ::mdb_txn_commit(transaction_);
+                } else {
+                    ::mdb_txn_abort(transaction_);
+                }
+
+                transaction_ = nullptr;
+            }
+        }
+
+    private:
+        MDB_txn*& transaction_;
+        MDB_cursor*& cursor_;
+    };
+
+    OT_ASSERT(static_cast<std::size_t>(table) < db_.size());
+
+    auto output = Result{false, MDB_LAST_ERRCODE};
+
+    if (false == bool(cb)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid callback").Flush();
+
+        return output;
+    }
+
+    auto& [success, code] = output;
+    MDB_cursor* cursor{nullptr};
+    MDB_txn* transaction{nullptr};
+    auto cleanup = Cleanup{transaction, cursor};
+    code = ::mdb_txn_begin(env_, parent, 0, &transaction);
+
+    if (0 != code) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to start transaction")
+            .Flush();
+
+        return output;
+    }
+
+    OT_ASSERT(nullptr != transaction);
+
+    const auto database = db_.at(table);
+
+    if (0 != ::mdb_cursor_open(transaction, database, &cursor)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to get cursor").Flush();
+
+        return output;
+    }
+
+    auto key = MDB_val{index.size(), const_cast<char*>(index.data())};
+    auto value = MDB_val{};
+    const auto exists =
+        0 == ::mdb_cursor_get(cursor, &key, &value, MDB_SET_KEY);
+    const auto previous =
+        exists
+            ? ReadView{static_cast<const char*>(value.mv_data), value.mv_size}
+            : ReadView{};
+
+    try {
+        const auto bytes = cb(previous);
+        auto value =
+            MDB_val{bytes.size(), const_cast<std::byte*>(bytes.data())};
+        code = ::mdb_put(transaction, database, &key, &value, flags);
+        success = 0 == code;
+        cleanup.success_ = success;
+    } catch (const std::exception& e) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
+    }
+
+    return output;
 }
 
 auto LMDB::TransactionRO() const noexcept(false) -> Transaction

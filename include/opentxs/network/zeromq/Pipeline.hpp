@@ -32,12 +32,14 @@ class Pipeline
 {
 public:
     OPENTXS_EXPORT virtual bool Close() const noexcept = 0;
+    OPENTXS_EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
     template <typename Input>
     OPENTXS_EXPORT bool Push(const Input& data) const noexcept
     {
         return push(Context().Message(data));
     }
-    OPENTXS_EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Start(const std::string& endpoint) const
+        noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Pipeline() = default;
 

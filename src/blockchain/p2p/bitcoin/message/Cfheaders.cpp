@@ -36,6 +36,7 @@ blockchain::p2p::bitcoin::message::internal::Cfheaders* Factory::
         return nullptr;
     }
 
+    const auto& header = *pHeader;
     ReturnType::BitcoinFormat raw;
     auto expectedSize = sizeof(raw);
 
@@ -93,7 +94,7 @@ blockchain::p2p::bitcoin::message::internal::Cfheaders* Factory::
     return new ReturnType(
         api,
         std::move(pHeader),
-        raw.Type(),
+        raw.Type(header.Network()),
         raw.Stop(),
         raw.Previous(),
         headers);
@@ -151,7 +152,7 @@ Cfheaders::Cfheaders(
 OTData Cfheaders::payload() const noexcept
 {
     try {
-        BitcoinFormat raw(type_, stop_, previous_);
+        BitcoinFormat raw(header().Network(), type_, stop_, previous_);
         auto output = Data::Factory(&raw, sizeof(raw));
         const auto size = CompactSize(payload_.size()).Encode();
         output->Concatenate(size.data(), size.size());

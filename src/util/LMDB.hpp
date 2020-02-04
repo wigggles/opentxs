@@ -36,6 +36,7 @@ using Result = std::pair<bool, int>;
 using Table = int;
 using TablesToInit = std::vector<std::pair<Table, std::size_t>>;
 using TableNames = std::map<Table, const std::string>;
+using UpdateCallback = std::function<Space(const ReadView data)>;
 
 class LMDB
 {
@@ -106,6 +107,12 @@ public:
         const Table table,
         const std::size_t key,
         const ReadView value,
+        MDB_txn* parent = nullptr,
+        const Flags flags = 0) const noexcept;
+    Result StoreOrUpdate(
+        const Table table,
+        const ReadView key,
+        const UpdateCallback cb,
         MDB_txn* parent = nullptr,
         const Flags flags = 0) const noexcept;
     Transaction TransactionRO() const noexcept(false);

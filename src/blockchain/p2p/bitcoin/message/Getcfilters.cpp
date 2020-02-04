@@ -36,6 +36,7 @@ blockchain::p2p::bitcoin::message::internal::Getcfilters* Factory::
         return nullptr;
     }
 
+    const auto& header = *pHeader;
     ReturnType::BitcoinFormat raw;
     auto expectedSize = sizeof(raw);
 
@@ -51,7 +52,11 @@ blockchain::p2p::bitcoin::message::internal::Getcfilters* Factory::
     it += sizeof(raw);
 
     return new ReturnType(
-        api, std::move(pHeader), raw.Type(), raw.Start(), raw.Stop());
+        api,
+        std::move(pHeader),
+        raw.Type(header.Network()),
+        raw.Start(),
+        raw.Stop());
 }
 
 blockchain::p2p::bitcoin::message::internal::Getcfilters* Factory::
@@ -101,7 +106,7 @@ Getcfilters::Getcfilters(
 OTData Getcfilters::payload() const noexcept
 {
     try {
-        BitcoinFormat raw(type_, start_, stop_);
+        BitcoinFormat raw(header().Network(), type_, start_, stop_);
         auto output = Data::Factory(&raw, sizeof(raw));
 
         return output;

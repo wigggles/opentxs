@@ -13,6 +13,7 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <list>
 #include <set>
 #include <map>
@@ -145,10 +146,13 @@ using Version = std::int32_t;
 
 namespace filter
 {
-enum class Type : std::uint8_t {
-    Basic = 0,
-    Undefined = 1,
-    Unknown = 255,
+using TypeEnum = std::uint32_t;
+
+enum class Type : TypeEnum {
+    Basic_BIP158 = 0,
+    Basic_BCHVariant = 1,
+    Extended_opentxs = 88,
+    Unknown = std::numeric_limits<TypeEnum>::max(),
 };
 }  // namespace filter
 

@@ -21,6 +21,8 @@ add_opentx_test(unittests-opentxs-network-zeromq-publish Test_PublishSocket.cpp)
 add_opentx_test(unittests-opentxs-network-zeromq-publishsubscribe
                 Test_PublishSubscribe.cpp)
 add_opentx_test(unittests-opentxs-network-zeromq-pushpull Test_PushPull.cpp)
+add_opentx_test(unittests-opentxs-network-zeromq-pushsubscribe
+                Test_PushSubscribe.cpp)
 add_opentx_test(unittests-opentxs-network-zeromq-reply Test_ReplySocket.cpp)
 add_opentx_test(unittests-opentxs-network-zeromq-replycallback
                 Test_ReplyCallback.cpp)

@@ -151,7 +151,7 @@ OTData MessageProcessor::get_connection(
     const network::zeromq::Message& incoming)
 {
     auto output = Data::Factory();
-    const auto& header = incoming.Header();
+    const auto header = incoming.Header();
 
     if (0 < header.size()) {
         const auto& frame = header.at(0);

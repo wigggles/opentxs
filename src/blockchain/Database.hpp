@@ -10,6 +10,8 @@ namespace opentxs::blockchain::implementation
 class Database final : virtual public internal::Database
 {
 public:
+    using Common = api::client::blockchain::database::implementation::Database;
+
     bool AddOrUpdate(Address address) const noexcept final
     {
         return common_.AddOrUpdate(std::move(address));
@@ -137,11 +139,15 @@ public:
         return headers_.TryLoadHeader(hash);
     }
 
+    Database(
+        const api::internal::Core& api,
+        const client::internal::Network& network,
+        const Common& common,
+        const blockchain::Type type) noexcept;
+
     ~Database() = default;
 
 private:
-    using Common = api::client::blockchain::database::implementation::Database;
-
     friend opentxs::Factory;
 
     struct Filters {
@@ -149,9 +155,15 @@ private:
             noexcept;
         block::Position CurrentTip(const filter::Type type) const noexcept;
         bool HaveFilter(const filter::Type type, const block::Hash& block) const
-            noexcept;
+            noexcept
+        {
+            return common_.HaveFilter(type, block.Bytes());
+        }
         bool HaveFilterHeader(const filter::Type type, const block::Hash& block)
-            const noexcept;
+            const noexcept
+        {
+            return common_.HaveFilterHeader(type, block.Bytes());
+        }
         Hash LoadFilterHash(const filter::Type type, const ReadView block) const
             noexcept;
         Hash LoadFilterHeader(const filter::Type type, const ReadView block)
@@ -164,33 +176,35 @@ private:
         bool StoreHeaders(
             const filter::Type type,
             const ReadView previous,
-            const std::vector<Header> headers) const noexcept;
+            const std::vector<Header> headers) const noexcept
+        {
+            return common_.StoreFilterHeaders(type, headers);
+        }
         bool StoreFilters(const filter::Type type, std::vector<Filter> filters)
-            const noexcept;
+            const noexcept
+        {
+            return common_.StoreFilters(type, filters);
+        }
 
         Filters(
             const api::internal::Core& api,
+            const Common& common,
+            const opentxs::storage::lmdb::LMDB& lmdb,
             const blockchain::Type chain) noexcept;
 
     private:
-        using FilterHeader = block::pHash;
-        using FilterHash = block::pHash;
-        using HeaderData = std::pair<FilterHeader, FilterHash>;
-        using HeaderMap = std::map<block::pHash, HeaderData>;
-        using FilterMap = std::
-            map<block::pHash, std::shared_ptr<const blockchain::internal::GCS>>;
-
         static const std::map<
             blockchain::Type,
             std::map<filter::Type, std::pair<std::string, std::string>>>
             genesis_filters_;
 
         const api::internal::Core& api_;
+        const Common& common_;
+        const opentxs::storage::lmdb::LMDB& lmdb_;
+        const block::Position blank_position_;
         mutable std::mutex lock_;
-        mutable std::map<filter::Type, block::Position> tip_;
-        mutable std::map<filter::Type, block::Position> header_tip_;
-        mutable std::map<filter::Type, FilterMap> filters_;
-        mutable std::map<filter::Type, HeaderMap> headers_;
+
+        auto import_genesis(const blockchain::Type type) const noexcept -> void;
     };
 
     struct Headers {
@@ -258,6 +272,8 @@ private:
         ChainData = 3,
         BlockHeaderSiblings = 4,
         BlockHeaderDisconnected = 5,
+        BlockFilterBest = 6,
+        BlockFilterHeaderBest = 7,
     };
 
     enum class Key : std::size_t {
@@ -278,11 +294,6 @@ private:
 
     void init_db() noexcept;
 
-    Database(
-        const api::internal::Core& api,
-        const client::internal::Network& network,
-        const Common& common,
-        const blockchain::Type type) noexcept;
     Database() = delete;
     Database(const Database&) = delete;
     Database(Database&&) = delete;

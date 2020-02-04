@@ -14,7 +14,8 @@
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
 #include "core/Shutdown.hpp"
-#include "core/StateMachine.hpp"
+#include "core/Executor.hpp"
+#include "internal/api/client/Client.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 
 #include <atomic>
@@ -23,20 +24,11 @@ namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::blockchain::client::implementation
 {
-class Network : virtual public internal::Network,
-                public opentxs::internal::StateMachine
+class Network : virtual public internal::Network, public Executor<Network>
 {
 public:
     bool AddPeer(const p2p::Address& address) const noexcept final;
     Type Chain() const noexcept final { return chain_; }
-    const network::zeromq::Pipeline& FilterHeaderPipeline() const noexcept final
-    {
-        return new_filter_headers_;
-    }
-    const network::zeromq::Pipeline& FilterPipeline() const noexcept final
-    {
-        return new_filters_;
-    }
     ChainHeight GetConfirmations(const std::string& txid) const noexcept final;
     ChainHeight GetHeight() const noexcept final
     {
@@ -48,13 +40,13 @@ public:
     {
         return header_;
     }
-    const network::zeromq::Pipeline& HeaderPipeline() const noexcept final
-    {
-        return new_headers_;
-    }
     bool IsSynchronized() const noexcept final
     {
         return local_chain_height_.load() >= remote_chain_height_.load();
+    }
+    const network::zeromq::socket::Publish& Reorg() const noexcept final
+    {
+        return parent_.Reorg();
     }
     void RequestFilterHeaders(
         const filter::Type type,
@@ -74,13 +66,18 @@ public:
         const Amount amount,
         const api::client::blockchain::PaymentCode& source) const
         noexcept final;
+    void Submit(network::zeromq::Message& work) const noexcept final;
     void UpdateHeight(const block::Height height) const noexcept final;
     void UpdateLocalHeight(const block::Position position) const noexcept final;
+    OTZMQMessage Work(const Task type) const noexcept final;
 
     bool Connect() noexcept final;
     bool Disconnect() noexcept final;
     internal::HeaderOracle& HeaderOracle() noexcept final { return header_; }
-    std::shared_future<void> Shutdown() noexcept final;
+    std::shared_future<void> Shutdown() noexcept final
+    {
+        return stop_executor();
+    }
 
     ~Network() override;
 
@@ -93,13 +90,11 @@ private:
     std::unique_ptr<internal::Wallet> wallet_p_;
 
 protected:
-    const api::internal::Core& api_;
     const Type chain_;
     blockchain::internal::Database& database_;
     internal::FilterOracle& filters_;
     internal::HeaderOracle& header_;
     internal::PeerManager& peer_;
-    OTFlag running_;
 
     // NOTE call init in every final constructor body
     void init() noexcept;
@@ -112,24 +107,25 @@ protected:
         const std::string& shutdown) noexcept;
 
 private:
+    friend Executor<Network>;
+
+    const api::client::internal::Blockchain& parent_;
     mutable std::atomic<block::Height> local_chain_height_;
     mutable std::atomic<block::Height> remote_chain_height_;
     OTFlag processing_headers_;
-    OTZMQPipeline new_headers_;
-    OTZMQPipeline new_filters_;
-    OTZMQPipeline new_filter_headers_;
-    opentxs::internal::ShutdownReceiver shutdown_;
+    int task_id_;
 
     static auto shutdown_endpoint() noexcept -> std::string;
 
     virtual std::unique_ptr<block::Header> instantiate_header(
-        const network::zeromq::Frame& payload) const noexcept = 0;
+        const ReadView payload) const noexcept = 0;
 
-    void process_cfheader(network::zeromq::Message& in) noexcept;
-    void process_filter(network::zeromq::Message& in) noexcept;
-    void process_header(network::zeromq::Message& in) noexcept;
-    void shutdown(std::promise<void>& promise) noexcept;
-    bool state_machine() noexcept;
+    auto pipeline(zmq::Message& in) noexcept -> void;
+    auto process_cfheader(zmq::Message& in) noexcept -> void;
+    auto process_filter(zmq::Message& in) noexcept -> void;
+    auto process_header(zmq::Message& in) noexcept -> void;
+    auto process_state_machine() noexcept -> void;
+    auto shutdown(std::promise<void>& promise) noexcept -> void;
 
     Network() = delete;
     Network(const Network&) = delete;

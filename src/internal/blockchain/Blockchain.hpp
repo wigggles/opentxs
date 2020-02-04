@@ -101,6 +101,11 @@ struct Database : virtual public client::internal::FilterDatabase,
     virtual ~Database() = default;
 };
 
+auto DefaultFilter(const Type type) noexcept -> filter::Type;
+auto Deserialize(const Type chain, const std::uint8_t type) noexcept
+    -> filter::Type;
+auto Deserialize(const api::Core& api, const ReadView bytes) noexcept
+    -> block::Position;
 auto DisplayString(const Type type) noexcept -> std::string;
 OPENTXS_EXPORT auto BlockHashToFilterKey(const ReadView hash) noexcept
     -> std::array<std::byte, 16>;
@@ -117,4 +122,7 @@ OPENTXS_EXPORT auto FilterToHeader(
     const ReadView previous = {}) noexcept -> OTData;
 OPENTXS_EXPORT auto Grind(const std::function<void()> function) noexcept
     -> void;
+auto Serialize(const Type chain, const filter::Type type) noexcept(false)
+    -> std::uint8_t;
+auto Serialize(const block::Position& position) noexcept -> Space;
 }  // namespace opentxs::blockchain::internal

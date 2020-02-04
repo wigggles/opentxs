@@ -11,6 +11,7 @@ class Endpoints final : public opentxs::api::Endpoints
 {
 public:
     std::string AccountUpdate() const noexcept final;
+    std::string BlockchainReorg() const noexcept final;
     std::string ConnectionStatus() const noexcept final;
     std::string ContactUpdate() const noexcept final;
     std::string DhtRequestNym() const noexcept final;
@@ -19,6 +20,7 @@ public:
     std::string FindNym() const noexcept final;
     std::string FindServer() const noexcept final;
     std::string FindUnitDefinition() const noexcept final;
+    std::string InternalBlockchainAsioContext() const noexcept final;
     std::string InternalProcessPushNotification() const noexcept final;
     std::string InternalPushNotification() const noexcept final;
     std::string IssuerUpdate() const noexcept final;

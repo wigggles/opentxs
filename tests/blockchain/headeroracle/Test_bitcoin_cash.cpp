@@ -58,7 +58,7 @@ TEST_F(Test_HeaderOracle, receive_bch)
             dynamic_cast<const ot::api::client::internal::Blockchain&>(
                 api_.Blockchain()),
             b::Type::BitcoinCash,
-            "",
+            "do not init peers",
             "inproc://empty"));
 
     ASSERT_TRUE(network);

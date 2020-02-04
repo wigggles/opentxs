@@ -11,7 +11,7 @@ class Network final : public client::implementation::Network
 {
 public:
     std::unique_ptr<block::Header> instantiate_header(
-        const network::zeromq::Frame& payload) const noexcept final;
+        const ReadView payload) const noexcept final;
 
     ~Network() final;
 

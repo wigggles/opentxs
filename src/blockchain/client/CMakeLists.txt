@@ -7,6 +7,7 @@ add_subdirectory(bitcoin)
 
 set(
   cxx-sources
+  Client.cpp
   FilterOracle.cpp
   HeaderOracle.cpp
   Network.cpp

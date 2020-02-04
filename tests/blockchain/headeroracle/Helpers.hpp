@@ -249,7 +249,7 @@ public:
               dynamic_cast<const ot::api::client::internal::Blockchain&>(
                   api_.Blockchain()),
               type_,
-              "",
+              "do not init peers",
               "inproc://empty"))
         , header_oracle_(network_->HeaderOracle())
         , test_blocks_()

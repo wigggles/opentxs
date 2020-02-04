@@ -68,9 +68,17 @@ struct Blockchain : virtual public api::client::Blockchain {
         const Data& pubkey) const noexcept = 0;
     virtual const api::client::Contacts& Contacts() const noexcept = 0;
     virtual const TxoDB& DB() const noexcept = 0;
+#if OT_BLOCKCHAIN
+    virtual const opentxs::blockchain::client::internal::IO& IO() const
+        noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     virtual OTData PubkeyHash(
         const opentxs::blockchain::Type chain,
         const Data& pubkey) const noexcept(false) = 0;
+#if OT_BLOCKCHAIN
+    virtual const opentxs::network::zeromq::socket::Publish& Reorg() const
+        noexcept = 0;
+#endif  // OT_BLOCKCHAIN
 
     virtual ~Blockchain() = default;
 };

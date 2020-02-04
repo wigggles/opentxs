@@ -37,6 +37,7 @@ blockchain::p2p::bitcoin::message::internal::Getcfcheckpt* Factory::
         return nullptr;
     }
 
+    const auto& header = *pHeader;
     ReturnType::BitcoinFormat raw;
     auto expectedSize = sizeof(raw);
 
@@ -51,7 +52,8 @@ blockchain::p2p::bitcoin::message::internal::Getcfcheckpt* Factory::
     std::memcpy(reinterpret_cast<std::byte*>(&raw), it, sizeof(raw));
     it += sizeof(raw);
 
-    return new ReturnType(api, std::move(pHeader), raw.Type(), raw.Hash());
+    return new ReturnType(
+        api, std::move(pHeader), raw.Type(header.Network()), raw.Hash());
 }
 
 blockchain::p2p::bitcoin::message::internal::Getcfcheckpt* Factory::
@@ -96,7 +98,7 @@ Getcfcheckpt::Getcfcheckpt(
 OTData Getcfcheckpt::payload() const noexcept
 {
     try {
-        BitcoinFormat raw(type_, stop_);
+        BitcoinFormat raw(header().Network(), type_, stop_);
         auto output = Data::Factory(&raw, sizeof(raw));
 
         return output;

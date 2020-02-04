@@ -72,7 +72,7 @@ public:
 
     void chris_rename_notary(const ot::network::zeromq::Message& in)
     {
-        const auto& body = in.Body();
+        const auto body = in.Body();
 
         EXPECT_EQ(1, body.size());
 
@@ -97,7 +97,7 @@ public:
 
     void issuer_peer_request(const ot::network::zeromq::Message& in)
     {
-        const auto& body = in.Body();
+        const auto body = in.Body();
 
         EXPECT_EQ(2, body.size());
 
