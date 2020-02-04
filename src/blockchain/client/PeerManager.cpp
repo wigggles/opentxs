@@ -159,18 +159,22 @@ PeerManager::IO::IO() noexcept
 
 PeerManager::Jobs::Jobs(const api::internal::Core& api) noexcept
     : getheaders_(api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
+    , getcfheaders_(
+          api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , getcfilters_(
           api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , heartbeat_(api.ZeroMQ().PublishSocket())
     , endpoint_map_()
     , socket_map_({
           {Task::Getheaders, &getheaders_.get()},
+          {Task::Getcfheaders, &getcfheaders_.get()},
           {Task::Getcfilters, &getcfilters_.get()},
           {Task::Heartbeat, &heartbeat_.get()},
       })
 {
     // NOTE endpoint_map_ should never be modified after construction
     listen(Task::Getheaders, getheaders_);
+    listen(Task::Getcfheaders, getcfheaders_);
     listen(Task::Getcfilters, getcfilters_);
     listen(Task::Heartbeat, heartbeat_);
 }
@@ -356,11 +360,11 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
             LogVerbose(OT_METHOD)(__FUNCTION__)(": Found address: ")(
                 address.to_string())
                 .Flush();
+            auto output = Endpoint{};
 
             if (address.is_v4()) {
                 const auto bytes = address.to_v4().to_bytes();
-
-                return Endpoint{opentxs::Factory().BlockchainAddress(
+                output = opentxs::Factory().BlockchainAddress(
                     api_,
                     protocol_map_.at(chain_),
                     p2p::Network::ipv4,
@@ -370,11 +374,10 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
                     port,
                     chain_,
                     Time{},
-                    {})};
+                    {});
             } else if (address.is_v6()) {
                 const auto bytes = address.to_v6().to_bytes();
-
-                return Endpoint{opentxs::Factory().BlockchainAddress(
+                output = opentxs::Factory().BlockchainAddress(
                     api_,
                     protocol_map_.at(chain_),
                     p2p::Network::ipv6,
@@ -384,7 +387,13 @@ auto PeerManager::Peers::get_dns_peer() const noexcept -> Endpoint
                     port,
                     chain_,
                     Time{},
-                    {})};
+                    {});
+            }
+
+            if (output) {
+                database_.AddOrUpdate(output->clone_internal());
+
+                return output;
             }
         }
 
@@ -562,7 +571,7 @@ auto PeerManager::Peers::Shutdown() noexcept -> void
     std::lock(peerLock, queueLock);
 
     for (auto& [id, peer] : peers_) {
-        peer->Shutdown().get();
+        peer->Shutdown().wait_for(std::chrono::seconds(1));
         peer.reset();
     }
 
@@ -600,6 +609,22 @@ auto PeerManager::init() noexcept -> void
     heartbeat_task_ = api_.Schedule(
         std::chrono::seconds(1), [this]() -> void { this->Heartbeat(); });
     Trigger();
+}
+
+auto PeerManager::RequestFilterHeaders(
+    const filter::Type type,
+    const block::Height start,
+    const block::Hash& stop) const noexcept -> void
+{
+    if (false == running_.get()) { return; }
+
+    if (0 == peers_.Count()) { return; }
+
+    auto work = zmq::Message::Factory();
+    work->AddFrame(Data::Factory(&type, sizeof(type)));
+    work->AddFrame(Data::Factory(&start, sizeof(start)));
+    work->AddFrame(stop);
+    jobs_.Dispatch(Task::Getcfheaders, work);
 }
 
 auto PeerManager::RequestFilters(

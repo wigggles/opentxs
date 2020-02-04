@@ -16,12 +16,13 @@ namespace opentxs::network::zeromq::implementation
 class Frame final : virtual public zeromq::Frame
 {
 public:
-    operator std::string() const final;
+    operator std::string() const noexcept final;
 
-    const void* data() const final;
-    std::size_t size() const final;
+    ReadView Bytes() const noexcept final;
+    const void* data() const noexcept final { return zmq_msg_data(&message_); }
+    std::size_t size() const noexcept final { return zmq_msg_size(&message_); }
 
-    operator zmq_msg_t*() final;
+    operator zmq_msg_t*() noexcept final { return &message_; }
 
     ~Frame() final;
 
@@ -31,12 +32,12 @@ private:
 
     mutable zmq_msg_t message_;
 
-    Frame* clone() const final;
+    Frame* clone() const noexcept final;
 
-    Frame();
-    explicit Frame(const ProtobufType& input);
-    explicit Frame(const std::size_t bytes);
-    Frame(const void* data, const std::size_t bytes);
+    Frame() noexcept;
+    explicit Frame(const ProtobufType& input) noexcept;
+    explicit Frame(const std::size_t bytes) noexcept;
+    Frame(const void* data, const std::size_t bytes) noexcept;
     Frame(const Frame&) = delete;
     Frame(Frame&&) = delete;
     Frame& operator=(Frame&&) = delete;

@@ -118,6 +118,7 @@ protected:
     bool outgoing_handshake_;
     bool incoming_handshake_;
     Worker header_worker_;
+    Worker cfheader_worker_;
     Worker cfilter_worker_;
 
     void check_handshake() noexcept;
@@ -217,6 +218,7 @@ private:
     void read_header() noexcept;
     void receive_body(const boost::system::error_code& error) noexcept;
     void receive_header(const boost::system::error_code& error) noexcept;
+    virtual void request_cfheaders(zmq::Message& message) noexcept = 0;
     virtual void request_cfilter(zmq::Message& message) noexcept = 0;
     void run() noexcept;
     void shutdown(std::promise<void>& promise) noexcept;

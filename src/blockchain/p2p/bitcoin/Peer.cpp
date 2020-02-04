@@ -42,14 +42,14 @@
 
 namespace opentxs
 {
-blockchain::p2p::internal::Peer* Factory::BitcoinP2PPeerLegacy(
+auto Factory::BitcoinP2PPeerLegacy(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::PeerManager& manager,
     const int id,
     std::unique_ptr<blockchain::p2p::internal::Address> address,
     boost::asio::io_context& context,
-    const std::string& shutdown)
+    const std::string& shutdown) -> blockchain::p2p::internal::Peer*
 {
     namespace p2p = blockchain::p2p;
     using ReturnType = p2p::bitcoin::implementation::Peer;
@@ -150,7 +150,7 @@ Peer::Peer(
     init();
 }
 
-void Peer::get_body_size() noexcept
+auto Peer::get_body_size() noexcept -> void
 {
     OT_ASSERT(HeaderType::Size() == header_->size());
 
@@ -162,10 +162,10 @@ void Peer::get_body_size() noexcept
     }
 }
 
-std::set<p2p::Service> Peer::get_local_services(
+auto Peer::get_local_services(
     const ProtocolVersion version,
     const blockchain::Type network,
-    const std::set<p2p::Service>& input) noexcept
+    const std::set<p2p::Service>& input) noexcept -> std::set<p2p::Service>
 {
     auto output{input};
 
@@ -180,7 +180,7 @@ std::set<p2p::Service> Peer::get_local_services(
     return output;
 }
 
-Peer::Nonce Peer::nonce(const api::internal::Core& api) noexcept
+auto Peer::nonce(const api::internal::Core& api) noexcept -> Nonce
 {
     Nonce output{0};
     const auto random =
@@ -191,7 +191,7 @@ Peer::Nonce Peer::nonce(const api::internal::Core& api) noexcept
     return output;
 }
 
-void Peer::ping() noexcept
+auto Peer::ping() noexcept -> void
 {
     std::unique_ptr<Message> pPing{
         Factory::BitcoinP2PPing(api_, chain_, nonce_)};
@@ -207,7 +207,7 @@ void Peer::ping() noexcept
     send(ping.Encode());
 }
 
-void Peer::pong() noexcept
+auto Peer::pong() noexcept -> void
 {
     std::unique_ptr<Message> pPong{
         Factory::BitcoinP2PPong(api_, chain_, nonce_)};
@@ -223,9 +223,9 @@ void Peer::pong() noexcept
     send(pong.Encode());
 }
 
-void Peer::process_addr(
+auto Peer::process_addr(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Addr> pMessage{
         Factory::BitcoinP2PAddr(
@@ -259,9 +259,9 @@ void Peer::process_addr(
     manager_.Database().Import(std::move(peers));
 }
 
-void Peer::process_block(
+auto Peer::process_block(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Block> pMessage{
         Factory::BitcoinP2PBlock(
@@ -281,9 +281,9 @@ void Peer::process_block(
     // TODO
 }
 
-void Peer::process_blocktxn(
+auto Peer::process_blocktxn(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Blocktxn> pMessage{
         Factory::BitcoinP2PBlocktxn(
@@ -303,9 +303,9 @@ void Peer::process_blocktxn(
     // TODO
 }
 
-void Peer::process_cfcheckpt(
+auto Peer::process_cfcheckpt(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Cfcheckpt> pMessage{
         Factory::BitcoinP2PCfcheckpt(
@@ -325,11 +325,11 @@ void Peer::process_cfcheckpt(
     // TODO
 }
 
-void Peer::process_cfheaders(
+auto Peer::process_cfheaders(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
-    const std::unique_ptr<message::internal::Cfheaders> pMessage{
+    const auto pMessage = std::unique_ptr<message::internal::Cfheaders>{
         Factory::BitcoinP2PCfheaders(
             api_,
             std::move(header),
@@ -344,12 +344,22 @@ void Peer::process_cfheaders(
         return;
     }
 
-    // TODO
+    const auto& message = *pMessage;
+    const auto type = message.Type();
+    auto work = zmq::Message::Factory();
+    work->AddFrame(Data::Factory(&type, sizeof(type)));
+    work->AddFrame(message.Stop());
+    work->AddFrame(message.Previous());
+    work->AddFrame();
+
+    for (const auto& header : message) { work->AddFrame(header); }
+
+    network_.FilterHeaderPipeline().Push(work);
 }
 
-void Peer::process_cfilter(
+auto Peer::process_cfilter(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Cfilter> pMessage{
         Factory::BitcoinP2PCfilter(
@@ -375,9 +385,9 @@ void Peer::process_cfilter(
     network_.FilterPipeline().Push(work);
 }
 
-void Peer::process_cmpctblock(
+auto Peer::process_cmpctblock(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Cmpctblock> pMessage{
         Factory::BitcoinP2PCmpctblock(
@@ -397,9 +407,9 @@ void Peer::process_cmpctblock(
     // TODO
 }
 
-void Peer::process_feefilter(
+auto Peer::process_feefilter(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Feefilter> pMessage{
         Factory::BitcoinP2PFeefilter(
@@ -419,9 +429,9 @@ void Peer::process_feefilter(
     // TODO
 }
 
-void Peer::process_filteradd(
+auto Peer::process_filteradd(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Filteradd> pMessage{
         Factory::BitcoinP2PFilteradd(
@@ -441,9 +451,9 @@ void Peer::process_filteradd(
     // TODO
 }
 
-void Peer::process_filterclear(
+auto Peer::process_filterclear(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Filterclear> pMessage{
         Factory::BitcoinP2PFilterclear(api_, std::move(header))};
@@ -458,9 +468,9 @@ void Peer::process_filterclear(
     // TODO
 }
 
-void Peer::process_filterload(
+auto Peer::process_filterload(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Filterload> pMessage{
         Factory::BitcoinP2PFilterload(
@@ -480,9 +490,9 @@ void Peer::process_filterload(
     // TODO
 }
 
-void Peer::process_getaddr(
+auto Peer::process_getaddr(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Getaddr> pMessage{
         Factory::BitcoinP2PGetaddr(api_, std::move(header))};
@@ -497,9 +507,9 @@ void Peer::process_getaddr(
     // TODO
 }
 
-void Peer::process_getblocks(
+auto Peer::process_getblocks(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Getblocks> pMessage{
         Factory::BitcoinP2PGetblocks(
@@ -519,9 +529,9 @@ void Peer::process_getblocks(
     // TODO
 }
 
-void Peer::process_getblocktxn(
+auto Peer::process_getblocktxn(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Getblocktxn> pMessage{
         Factory::BitcoinP2PGetblocktxn(
@@ -541,9 +551,9 @@ void Peer::process_getblocktxn(
     // TODO
 }
 
-void Peer::process_getcfcheckpt(
+auto Peer::process_getcfcheckpt(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Getcfcheckpt> pMessage{
         Factory::BitcoinP2PGetcfcheckpt(
@@ -563,9 +573,9 @@ void Peer::process_getcfcheckpt(
     // TODO
 }
 
-void Peer::process_getcfheaders(
+auto Peer::process_getcfheaders(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Getcfheaders> pMessage{
         Factory::BitcoinP2PGetcfheaders(
@@ -585,9 +595,9 @@ void Peer::process_getcfheaders(
     // TODO
 }
 
-void Peer::process_getcfilters(
+auto Peer::process_getcfilters(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Getcfilters> pMessage{
         Factory::BitcoinP2PGetcfilters(
@@ -607,9 +617,9 @@ void Peer::process_getcfilters(
     // TODO
 }
 
-void Peer::process_getdata(
+auto Peer::process_getdata(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Getdata> pMessage{
         Factory::BitcoinP2PGetdata(
@@ -629,9 +639,9 @@ void Peer::process_getdata(
     // TODO
 }
 
-void Peer::process_getheaders(
+auto Peer::process_getheaders(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Getheaders> pMessage{
         Factory::BitcoinP2PGetheaders(
@@ -651,9 +661,9 @@ void Peer::process_getheaders(
     // TODO
 }
 
-void Peer::process_headers(
+auto Peer::process_headers(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Headers> pMessage{
         Factory::BitcoinP2PHeaders(
@@ -692,9 +702,9 @@ void Peer::process_headers(
     }
 }
 
-void Peer::process_inv(
+auto Peer::process_inv(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Inv> pMessage{
         Factory::BitcoinP2PInv(
@@ -732,9 +742,9 @@ void Peer::process_inv(
     }
 }
 
-void Peer::process_mempool(
+auto Peer::process_mempool(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Mempool> pMessage{
         Factory::BitcoinP2PMempool(api_, std::move(header))};
@@ -749,9 +759,9 @@ void Peer::process_mempool(
     // TODO
 }
 
-void Peer::process_merkleblock(
+auto Peer::process_merkleblock(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Merkleblock> pMessage{
         Factory::BitcoinP2PMerkleblock(
@@ -771,7 +781,7 @@ void Peer::process_merkleblock(
     // TODO
 }
 
-void Peer::process_message(const zmq::Message& message) noexcept
+auto Peer::process_message(const zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
@@ -836,9 +846,9 @@ void Peer::process_message(const zmq::Message& message) noexcept
     }
 }
 
-void Peer::process_notfound(
+auto Peer::process_notfound(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Notfound> pMessage{
         Factory::BitcoinP2PNotfound(
@@ -858,9 +868,9 @@ void Peer::process_notfound(
     // TODO
 }
 
-void Peer::process_ping(
+auto Peer::process_ping(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Ping> pMessage{
         Factory::BitcoinP2PPing(
@@ -884,9 +894,9 @@ void Peer::process_ping(
     pong();
 }
 
-void Peer::process_pong(
+auto Peer::process_pong(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Pong> pMessage{
         Factory::BitcoinP2PPong(
@@ -908,9 +918,9 @@ void Peer::process_pong(
     if (message.Nonce() == nonce_) { disconnect(); }
 }
 
-void Peer::process_reject(
+auto Peer::process_reject(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Reject> pMessage{Factory::BitcoinP2PReject(
         api_,
@@ -929,9 +939,9 @@ void Peer::process_reject(
     // TODO
 }
 
-void Peer::process_sendcmpct(
+auto Peer::process_sendcmpct(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Sendcmpct> pMessage{
         Factory::BitcoinP2PSendcmpct(
@@ -951,9 +961,9 @@ void Peer::process_sendcmpct(
     // TODO
 }
 
-void Peer::process_sendheaders(
+auto Peer::process_sendheaders(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Sendheaders> pMessage{
         Factory::BitcoinP2PSendheaders(api_, std::move(header))};
@@ -968,9 +978,9 @@ void Peer::process_sendheaders(
     // TODO
 }
 
-void Peer::process_tx(
+auto Peer::process_tx(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::Tx> pMessage{Factory::BitcoinP2PTx(
         api_,
@@ -989,9 +999,9 @@ void Peer::process_tx(
     // TODO
 }
 
-void Peer::process_verack(
+auto Peer::process_verack(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Verack> pMessage{
         Factory::BitcoinP2PVerack(api_, std::move(header))};
@@ -1007,9 +1017,9 @@ void Peer::process_verack(
     check_handshake();
 }
 
-void Peer::process_version(
+auto Peer::process_version(
     std::unique_ptr<HeaderType> header,
-    const zmq::Frame& payload)
+    const zmq::Frame& payload) -> void
 {
     const std::unique_ptr<message::internal::Version> pVersion{
         Factory::BitcoinP2PVersion(
@@ -1046,6 +1056,7 @@ void Peer::process_version(
     }
 
     if (1 == services.count(p2p::Service::CompactFilters)) {
+        cfheader_worker_.Start(manager_.Endpoint(Task::Getcfheaders));
         cfilter_worker_.Start(manager_.Endpoint(Task::Getcfilters));
     }
 
@@ -1064,7 +1075,7 @@ void Peer::process_version(
     check_handshake();
 }
 
-void Peer::request_addresses() noexcept
+auto Peer::request_addresses() noexcept -> void
 {
     std::unique_ptr<Message> pMessage{Factory::BitcoinP2PGetaddr(api_, chain_)};
 
@@ -1079,7 +1090,7 @@ void Peer::request_addresses() noexcept
     send(message.Encode());
 }
 
-void Peer::request_cfilter(zmq::Message& in) noexcept
+auto Peer::request_cfheaders(zmq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
@@ -1092,7 +1103,43 @@ void Peer::request_cfilter(zmq::Message& in) noexcept
     }
 
     try {
-        std::unique_ptr<Message> pMessage{Factory::BitcoinP2PGetcfilters(
+        auto pMessage =
+            std::unique_ptr<Message>{Factory::BitcoinP2PGetcfheaders(
+                api_,
+                chain_,
+                body.at(0).as<filter::Type>(),
+                body.at(1).as<block::Height>(),
+                Data::Factory(body.at(2)))};
+
+        if (false == bool(pMessage)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to construct getcfheaders")
+                .Flush();
+
+            return;
+        }
+
+        const auto& message = *pMessage;
+        send(message.Encode());
+    } catch (...) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid parameters").Flush();
+    }
+}
+
+auto Peer::request_cfilter(zmq::Message& in) noexcept -> void
+{
+    if (false == running_.get()) { return; }
+
+    const auto& body = in.Body();
+
+    if (3 > body.size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
+
+        return;
+    }
+
+    try {
+        auto pMessage = std::unique_ptr<Message>{Factory::BitcoinP2PGetcfilters(
             api_,
             chain_,
             body.at(0).as<filter::Type>(),
@@ -1114,12 +1161,12 @@ void Peer::request_cfilter(zmq::Message& in) noexcept
     }
 }
 
-void Peer::request_headers() noexcept
+auto Peer::request_headers() noexcept -> void
 {
     request_headers(api_.Factory().Data());
 }
 
-void Peer::request_headers(const block::Hash& hash) noexcept
+auto Peer::request_headers(const block::Hash& hash) noexcept -> void
 {
     std::unique_ptr<Message> pMessage{Factory::BitcoinP2PGetheaders(
         api_,
@@ -1139,7 +1186,7 @@ void Peer::request_headers(const block::Hash& hash) noexcept
     send(message.Encode());
 }
 
-void Peer::start_handshake() noexcept
+auto Peer::start_handshake() noexcept -> void
 {
     try {
         const auto status = Connected().wait_for(std::chrono::seconds(5));

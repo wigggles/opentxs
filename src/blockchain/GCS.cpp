@@ -118,7 +118,7 @@ GCS::GCS(
     , false_positive_rate_(fpRate)
     , key_(key)
     , filter_elements_(filterElementCount)
-    , filter_((filter))
+    , filter_(filter)
 {
     if (16 != key_->size()) {
         throw std::runtime_error(
@@ -141,12 +141,12 @@ GCS::GCS(
 {
 }
 
-OTData GCS::build_gcs(
+auto GCS::build_gcs(
     const api::internal::Core& api,
     const std::uint32_t bits,
     const std::uint32_t fpRate,
     const Data& key,
-    const std::vector<OTData>& elements) noexcept
+    const std::vector<OTData>& elements) noexcept -> OTData
 {
     auto output = Data::Factory();
 
@@ -168,7 +168,7 @@ OTData GCS::build_gcs(
     return output;
 }
 
-OTData GCS::Encode() const noexcept
+auto GCS::Encode() const noexcept -> OTData
 {
     const auto bytes = bitcoin::CompactSize(filter_elements_).Encode();
     auto output = Data::Factory(bytes.data(), bytes.size());
@@ -177,7 +177,7 @@ OTData GCS::Encode() const noexcept
     return output;
 }
 
-std::uint64_t GCS::golomb_decode(BitReader& stream) const noexcept
+auto GCS::golomb_decode(BitReader& stream) const noexcept -> std::uint64_t
 {
     std::uint64_t quotient{0};
 
@@ -189,10 +189,10 @@ std::uint64_t GCS::golomb_decode(BitReader& stream) const noexcept
     return return_value;
 }
 
-void GCS::golomb_encode(
+auto GCS::golomb_encode(
     const std::uint32_t bits,
     BitWriter& stream,
-    std::uint64_t value) noexcept
+    std::uint64_t value) noexcept -> void
 {
     // With Golomb-Rice, a value is split into a Quotient and Remainder modulo
     // 2^P, which are encoded separately.
@@ -214,11 +214,16 @@ void GCS::golomb_encode(
     stream.write(bits, remainder);
 }
 
-std::uint64_t GCS::hash_to_range(
+auto GCS::Hash() const noexcept -> OTData
+{
+    return internal::FilterToHash(api_, Encode()->Bytes());
+}
+
+auto GCS::hash_to_range(
     const api::internal::Core& api,
     const Data& key,
     const std::uint64_t maxRange,
-    const Data& item) noexcept
+    const Data& item) noexcept -> std::uint64_t
 {
     /*
      The items are first passed through the pseudorandom function SipHash, which
@@ -262,8 +267,8 @@ std::uint64_t GCS::hash_to_range(
     return return64;
 }
 
-std::uint64_t GCS::hash_to_range(const Data& item, const std::uint64_t maxRange)
-    const noexcept
+auto GCS::hash_to_range(const Data& item, const std::uint64_t maxRange) const
+    noexcept -> std::uint64_t
 {
     return hash_to_range(api_, key_, maxRange, item);
 }
@@ -275,12 +280,12 @@ std::uint64_t GCS::hash_to_range(const Data& item, const std::uint64_t maxRange)
  F is maxRange, which is N * M, that is, elementCount * fpRate.
  P is the bit length of the remainder code. It's the bits_ member variable.
  */
-std::set<std::uint64_t> GCS::hashed_set_construct(
+auto GCS::hashed_set_construct(
     const api::internal::Core& api,
     const std::uint32_t fpRate,
     const std::size_t elementCount,
     const Data& key,
-    const std::vector<OTData>& elements) noexcept
+    const std::vector<OTData>& elements) noexcept -> std::set<std::uint64_t>
 {
     // Original spec says: let F = N * M
     //  matches other items with probability 1/M for some integer parameter M
@@ -298,14 +303,14 @@ std::set<std::uint64_t> GCS::hashed_set_construct(
     return set_items;
 }
 
-std::set<std::uint64_t> GCS::hashed_set_construct(
-    const std::vector<OTData>& elements) const noexcept
+auto GCS::hashed_set_construct(const std::vector<OTData>& elements) const
+    noexcept -> std::set<std::uint64_t>
 {
     return hashed_set_construct(
         api_, false_positive_rate_, filter_elements_, key_, elements);
 }
 
-proto::GCS GCS::Serialize() const noexcept
+auto GCS::Serialize() const noexcept -> proto::GCS
 {
     proto::GCS output{};
     output.set_version(version_);
@@ -318,10 +323,10 @@ proto::GCS GCS::Serialize() const noexcept
     return output;
 }
 
-std::uint64_t GCS::siphash(
+auto GCS::siphash(
     const api::internal::Core& api,
     const Data& key,
-    const Data& item) noexcept
+    const Data& item) noexcept -> std::uint64_t
 {
     auto output = std::uint64_t{};
     auto pPassword = api.Factory().BinarySecret();
@@ -341,12 +346,12 @@ std::uint64_t GCS::siphash(
     return 0;
 }
 
-std::uint64_t GCS::siphash(const Data& item) const noexcept
+auto GCS::siphash(const Data& item) const noexcept -> std::uint64_t
 {
     return siphash(api_, key_, item);
 }
 
-bool GCS::Test(const Data& target) const noexcept
+auto GCS::Test(const Data& target) const noexcept -> bool
 {
     const std::uint64_t max_range = filter_elements_ * false_positive_rate_;
     auto target_hash = hash_to_range(target, max_range);
@@ -365,7 +370,7 @@ bool GCS::Test(const Data& target) const noexcept
     return false;
 }
 
-bool GCS::Test(const std::vector<OTData>& targets) const noexcept
+auto GCS::Test(const std::vector<OTData>& targets) const noexcept -> bool
 {
     auto target_hashes_set = hashed_set_construct(targets);
     std::vector<std::uint64_t> target_hashes;

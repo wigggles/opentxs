@@ -44,6 +44,10 @@ private:
 
     using Candidates = std::vector<Candidate>;
 
+    static const std::
+        map<blockchain::Type, std::pair<block::Height, std::string>>
+            checkpoints_;
+
     const api::internal::Core& api_;
     const internal::Network& network_;
     const internal::HeaderDatabase& database_;

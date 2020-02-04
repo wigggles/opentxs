@@ -11,6 +11,7 @@
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/Network.hpp"
+#include "opentxs/Bytes.hpp"
 #endif  // OT_BLOCKCHAIN
 
 #include "internal/core/Core.hpp"
@@ -57,17 +58,38 @@ namespace opentxs::blockchain::client::internal
 {
 #if OT_BLOCKCHAIN
 struct FilterDatabase {
-    virtual block::Position CurrentTip(const filter::Type type) const
+    using Hash = block::pHash;
+    /// block hash, filter header, filter hash
+    using Header = std::tuple<block::pHash, block::pHash, ReadView>;
+    using Filter =
+        std::pair<ReadView, std::unique_ptr<const blockchain::internal::GCS>>;
+
+    virtual block::Position FilterHeaderTip(const filter::Type type) const
+        noexcept = 0;
+    virtual block::Position FilterTip(const filter::Type type) const
         noexcept = 0;
     virtual bool HaveFilter(const filter::Type type, const block::Hash& block)
         const noexcept = 0;
-    virtual bool SetTip(const filter::Type type, const block::Position position)
-        const noexcept = 0;
-    virtual bool StoreFilter(
+    virtual bool HaveFilterHeader(
         const filter::Type type,
-        const block::Hash& block,
-        std::unique_ptr<const blockchain::internal::GCS> filter) const
-        noexcept = 0;
+        const block::Hash& block) const noexcept = 0;
+    virtual Hash LoadFilterHash(const filter::Type type, const ReadView block)
+        const noexcept = 0;
+    virtual Hash LoadFilterHeader(const filter::Type type, const ReadView block)
+        const noexcept = 0;
+    virtual bool SetFilterHeaderTip(
+        const filter::Type type,
+        const block::Position position) const noexcept = 0;
+    virtual bool SetFilterTip(
+        const filter::Type type,
+        const block::Position position) const noexcept = 0;
+    virtual bool StoreFilters(
+        const filter::Type type,
+        std::vector<Filter> filters) const noexcept = 0;
+    virtual bool StoreFilterHeaders(
+        const filter::Type type,
+        const ReadView previous,
+        const std::vector<Header> headers) const noexcept = 0;
 
     virtual ~FilterDatabase() = default;
 };
@@ -77,6 +99,11 @@ struct FilterOracle {
         const filter::Type type,
         const block::Hash& block,
         const Data& filter) const noexcept = 0;
+    virtual void AddHeaders(
+        const filter::Type type,
+        const ReadView stopBlock,
+        const ReadView previousHeader,
+        const std::vector<ReadView> hashes) const noexcept = 0;
     virtual void CheckBlocks() const noexcept = 0;
 
     virtual void Start() noexcept = 0;
@@ -117,12 +144,18 @@ struct HeaderDatabase {
 
 struct Network : virtual public opentxs::blockchain::Network {
     virtual Type Chain() const noexcept = 0;
+    virtual const network::zeromq::Pipeline& FilterHeaderPipeline() const
+        noexcept = 0;
     virtual const network::zeromq::Pipeline& FilterPipeline() const
         noexcept = 0;
     virtual const client::HeaderOracle& HeaderOracle() const noexcept = 0;
     virtual const network::zeromq::Pipeline& HeaderPipeline() const
         noexcept = 0;
     virtual bool IsSynchronized() const noexcept = 0;
+    virtual void RequestFilterHeaders(
+        const filter::Type type,
+        const block::Height start,
+        const block::Hash& stop) const noexcept = 0;
     virtual void RequestFilters(
         const filter::Type type,
         const block::Height start,
@@ -156,6 +189,7 @@ struct PeerDatabase {
 struct PeerManager {
     enum class Task {
         Getheaders,
+        Getcfheaders,
         Getcfilters,
         Heartbeat,
     };
@@ -166,6 +200,10 @@ struct PeerManager {
     virtual void Disconnect(const int id) const noexcept = 0;
     virtual std::string Endpoint(const Task type) const noexcept = 0;
     virtual std::size_t GetPeerCount() const noexcept = 0;
+    virtual void RequestFilterHeaders(
+        const filter::Type type,
+        const block::Height start,
+        const block::Hash& stop) const noexcept = 0;
     virtual void RequestFilters(
         const filter::Type type,
         const block::Height start,

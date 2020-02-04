@@ -36,7 +36,7 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
         return nullptr;
     }
 
-    ReturnType::BitcoinFormat raw;
+    auto raw = ReturnType::BitcoinFormat{};
     auto expectedSize = sizeof(raw);
 
     if (expectedSize > size) {
@@ -49,8 +49,8 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
 
     auto* it{static_cast<const std::byte*>(payload)};
     std::memcpy(reinterpret_cast<std::byte*>(&raw), it, sizeof(raw));
-    it += sizeof(raw);
-    expectedSize += sizeof(std::byte);
+    std::advance(it, sizeof(raw));
+    expectedSize += 1;
 
     if (expectedSize > size) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(
@@ -60,8 +60,8 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
         return nullptr;
     }
 
-    std::size_t filterSize{0};
-    const bool haveSize = blockchain::bitcoin::DecodeCompactSizeFromPayload(
+    auto filterSize = std::size_t{0};
+    const auto haveSize = blockchain::bitcoin::DecodeCompactSizeFromPayload(
         it, expectedSize, size, filterSize);
 
     if (false == haveSize) {
@@ -78,10 +78,10 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
         return nullptr;
     }
 
-    std::size_t csBytes{0};
-    std::size_t elementCount{0};
-
-    const bool haveElementCount =
+    expectedSize += 1;
+    auto elementCount = std::size_t{0};
+    auto csBytes = std::size_t{0};
+    const auto haveElementCount =
         blockchain::bitcoin::DecodeCompactSizeFromPayload(
             it, expectedSize, size, elementCount, csBytes);
 
@@ -92,22 +92,18 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
     }
 
     const auto filterType = raw.Type();
-    const auto blockHash = raw.Hash();
-    auto key = std::array<std::byte, 16>{};
-
-    OT_ASSERT(key.size() <= blockHash->size());
-
-    std::memcpy(key.data(), blockHash->data(), key.size());
-    std::unique_ptr<blockchain::internal::GCS> gcs{};
+    const auto dataSize = filterSize - (1 + csBytes);
+    auto gcs = std::unique_ptr<blockchain::internal::GCS>{};
+    auto bytes = Data::Factory(it, dataSize);
 
     try {
         gcs.reset(Factory::GCS(
             api,
             ReturnType::gcs_bits_.at(filterType),
             ReturnType::gcs_fp_rate_.at(filterType),
-            key,
+            blockchain::internal::BlockHashToFilterKey(raw.Hash()->Bytes()),
             elementCount,
-            Data::Factory(it, (filterSize - csBytes))));
+            std::move(bytes)));
     } catch (...) {
         LogOutput(__FUNCTION__)(": Unknown filter type").Flush();
 

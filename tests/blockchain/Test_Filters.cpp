@@ -119,4 +119,91 @@ TEST_F(Test_Filters, gcs)
     EXPECT_TRUE(gcs.Test(includedElements));
     EXPECT_FALSE(gcs.Test(excludedElements));
 }
+
+TEST_F(Test_Filters, bip158_headers)
+{
+    namespace bc = ot::blockchain::internal;
+
+    const auto filter_0 =
+        api_.Factory().Data("0x019dfca8", ot::StringStyle::Hex);
+    const auto filter_1 =
+        api_.Factory().Data("0x015d5000", ot::StringStyle::Hex);
+    const auto filter_2 =
+        api_.Factory().Data("0x0174a170", ot::StringStyle::Hex);
+    const auto filter_3 =
+        api_.Factory().Data("0x016cf7a0", ot::StringStyle::Hex);
+    const auto blank = api_.Factory().Data(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        ot::StringStyle::Hex);
+    const auto expected_0 = api_.Factory().Data(
+        "0x50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb779455821",
+        ot::StringStyle::Hex);
+    const auto expected_1 = api_.Factory().Data(
+        "0xe14fc288fdbf3c8d84f31bfc45892e44a0f152e82c0ddd1a5b749da513acbdd7",
+        ot::StringStyle::Hex);
+    const auto expected_2 = api_.Factory().Data(
+        "0xf06c381b7d46b1f8df603de51f25fda128dff8cbe8f204357e5e2bef11fd6a18",
+        ot::StringStyle::Hex);
+    const auto expected_3 = api_.Factory().Data(
+        "0x2a9d721212af044cec24f188631cff7b516fb1576a31d2b67c25b75adfaa638d",
+        ot::StringStyle::Hex);
+    auto previous = blank->Bytes();
+    auto hash = bc::FilterToHash(api_, filter_0->Bytes());
+    auto calculated_a = bc::FilterHashToHeader(api_, hash->Bytes(), previous);
+    auto calculated_b = bc::FilterToHeader(api_, filter_0->Bytes(), previous);
+
+    EXPECT_EQ(calculated_a.get(), calculated_b.get());
+    EXPECT_EQ(calculated_a.get(), expected_0.get());
+
+    previous = expected_0->Bytes();
+    hash = bc::FilterToHash(api_, filter_1->Bytes());
+    calculated_a = bc::FilterHashToHeader(api_, hash->Bytes(), previous);
+    calculated_b = bc::FilterToHeader(api_, filter_1->Bytes(), previous);
+
+    EXPECT_EQ(calculated_a.get(), calculated_b.get());
+    EXPECT_EQ(calculated_a.get(), expected_1.get());
+
+    previous = expected_1->Bytes();
+    hash = bc::FilterToHash(api_, filter_2->Bytes());
+    calculated_a = bc::FilterHashToHeader(api_, hash->Bytes(), previous);
+    calculated_b = bc::FilterToHeader(api_, filter_2->Bytes(), previous);
+
+    EXPECT_EQ(calculated_a.get(), calculated_b.get());
+    EXPECT_EQ(calculated_a.get(), expected_2.get());
+
+    previous = expected_2->Bytes();
+    hash = bc::FilterToHash(api_, filter_3->Bytes());
+    calculated_a = bc::FilterHashToHeader(api_, hash->Bytes(), previous);
+    calculated_b = bc::FilterToHeader(api_, filter_3->Bytes(), previous);
+
+    EXPECT_EQ(calculated_a.get(), calculated_b.get());
+    EXPECT_EQ(calculated_a.get(), expected_3.get());
+}
+
+TEST_F(Test_Filters, hash)
+{
+    namespace bc = ot::blockchain::internal;
+
+    const auto& block_0 =
+        ot::blockchain::client::HeaderOracle::GenesisBlockHash(
+            ot::blockchain::Type::Bitcoin_testnet3);
+    const auto preimage =
+        api_.Factory().Data("0x019dfca8", ot::StringStyle::Hex);
+    const auto filter_0 = api_.Factory().Data("0x9dfca8", ot::StringStyle::Hex);
+    auto pGcs = std::unique_ptr<bc::GCS>{ot::Factory::GCS(
+        api_,
+        19,
+        784931,
+        bc::BlockHashToFilterKey(block_0.Bytes()),
+        1,
+        filter_0)};
+
+    ASSERT_TRUE(pGcs);
+
+    const auto& gcs = *pGcs;
+    const auto hash_a = gcs.Hash();
+    const auto hash_b = bc::FilterToHash(api_, preimage->Bytes());
+
+    EXPECT_EQ(hash_a.get(), hash_b.get());
+}
 }  // namespace

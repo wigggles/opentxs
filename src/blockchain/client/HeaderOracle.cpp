@@ -79,6 +79,16 @@ auto HeaderOracle::GenesisBlockHash(const blockchain::Type type)
 
 namespace opentxs::blockchain::client::implementation
 {
+const std::map<blockchain::Type, std::pair<block::Height, std::string>>
+    HeaderOracle::checkpoints_{
+        {blockchain::Type::BitcoinCash,
+         {609136,
+          "b1c55b4f69aa2e3209c91ae413c355c65aacfa07b28bb4000000000000000000"}},
+        {blockchain::Type::BitcoinCash_testnet3,
+         {1341712,
+          "5ba3af2992073940ed9e5a9d9eef9194bbfba905d92b202eea44fcff00000000"}},
+    };
+
 HeaderOracle::HeaderOracle(
     const api::internal::Core& api,
     const internal::Network& network,

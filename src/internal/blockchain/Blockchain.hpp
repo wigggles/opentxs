@@ -7,12 +7,14 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Data.hpp"
 #include "opentxs/Proto.hpp"
 
 #include "internal/blockchain/client/Client.hpp"
 
 #include <boost/endian/buffers.hpp>
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <tuple>
@@ -72,6 +74,7 @@ private:
 
 struct GCS {
     virtual OTData Encode() const noexcept = 0;
+    virtual OTData Hash() const noexcept = 0;
     virtual proto::GCS Serialize() const noexcept = 0;
     virtual bool Test(const Data& target) const noexcept = 0;
     virtual bool Test(const std::vector<OTData>& targets) const noexcept = 0;
@@ -98,5 +101,20 @@ struct Database : virtual public client::internal::FilterDatabase,
     virtual ~Database() = default;
 };
 
-std::string DisplayString(const Type type) noexcept;
+auto DisplayString(const Type type) noexcept -> std::string;
+OPENTXS_EXPORT auto BlockHashToFilterKey(const ReadView hash) noexcept
+    -> std::array<std::byte, 16>;
+OPENTXS_EXPORT auto FilterHashToHeader(
+    const api::Core& api,
+    const ReadView hash,
+    const ReadView previous = {}) noexcept -> OTData;
+OPENTXS_EXPORT auto FilterToHash(
+    const api::Core& api,
+    const ReadView filter) noexcept -> OTData;
+OPENTXS_EXPORT auto FilterToHeader(
+    const api::Core& api,
+    const ReadView filter,
+    const ReadView previous = {}) noexcept -> OTData;
+OPENTXS_EXPORT auto Grind(const std::function<void()> function) noexcept
+    -> void;
 }  // namespace opentxs::blockchain::internal

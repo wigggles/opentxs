@@ -11,6 +11,7 @@ class GCS final : virtual public internal::GCS
 {
 public:
     OTData Encode() const noexcept final;
+    OTData Hash() const noexcept final;
     proto::GCS Serialize() const noexcept final;
     bool Test(const Data& target) const noexcept final;
     bool Test(const std::vector<OTData>& targets) const noexcept final;

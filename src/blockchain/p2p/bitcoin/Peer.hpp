@@ -44,6 +44,7 @@ private:
     void pong() noexcept final;
     void process_message(const zmq::Message& message) noexcept final;
     void request_addresses() noexcept final;
+    void request_cfheaders(zmq::Message& message) noexcept final;
     void request_cfilter(zmq::Message& message) noexcept final;
     using p2p::implementation::Peer::request_headers;
     void request_headers() noexcept final;
