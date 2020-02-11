@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -72,7 +72,7 @@ public:
 
     void chris_rename_notary(const ot::network::zeromq::Message& in)
     {
-        const auto& body = in.Body();
+        const auto body = in.Body();
 
         EXPECT_EQ(1, body.size());
 
@@ -97,7 +97,7 @@ public:
 
     void issuer_peer_request(const ot::network::zeromq::Message& in)
     {
-        const auto& body = in.Body();
+        const auto body = in.Body();
 
         EXPECT_EQ(2, body.size());
 

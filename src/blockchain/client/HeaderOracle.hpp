@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -31,6 +31,12 @@ public:
     bool AddHeaders(
         std::vector<std::unique_ptr<block::Header>>&) noexcept final;
     bool DeleteCheckpoint() noexcept final;
+
+    HeaderOracle(
+        const api::internal::Core& api,
+        const internal::Network& network,
+        const internal::HeaderDatabase& database,
+        const blockchain::Type type) noexcept;
 
     ~HeaderOracle() final = default;
 
@@ -104,11 +110,6 @@ private:
         UpdateTransaction& update,
         block::Header& child) noexcept(false);
 
-    HeaderOracle(
-        const api::internal::Core& api,
-        const internal::Network& network,
-        const internal::HeaderDatabase& database,
-        const blockchain::Type type) noexcept;
     HeaderOracle() = delete;
     HeaderOracle(const HeaderOracle&) = delete;
     HeaderOracle(HeaderOracle&&) = delete;

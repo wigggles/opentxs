@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -11,9 +11,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/network/zeromq/socket/Pull.hpp"
 #include "opentxs/network/zeromq/socket/Push.hpp"
 #include "opentxs/network/zeromq/socket/Sender.tpp"
+#include "opentxs/network/zeromq/socket/Subscribe.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
 
@@ -44,21 +44,21 @@ Pipeline::Pipeline(
     const api::internal::Core& api,
     const zeromq::Context& context,
     std::function<void(zeromq::Message&)> callback) noexcept
-    : callback_(ListenCallback::Factory(callback))
-    , pull_(context.PullSocket(callback_, Socket::Direction::Bind))
-    , push_(context.PushSocket(Socket::Direction::Connect))
+    : sender_(context.PushSocket(Socket::Direction::Bind))
+    , callback_(ListenCallback::Factory(callback))
+    , receiver_(context.SubscribeSocket(callback_))
 {
     const auto endpoint = std::string("inproc://opentxs/") +
                           api.Crypto().Encode().Nonce(32)->Get();
-    auto started = pull_->Start(endpoint);
-    started &= push_->Start(endpoint);
+    auto started = receiver_->Start(endpoint);
+    started &= sender_->Start(endpoint);
 
     OT_ASSERT(started);
 }
 
 bool Pipeline::Close() const noexcept
 {
-    return push_->Close() && pull_->Close();
+    return sender_->Close() && receiver_->Close();
 }
 
 Pipeline::~Pipeline() { Close(); }

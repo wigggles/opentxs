@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -13,6 +13,7 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <list>
 #include <set>
 #include <map>
@@ -145,10 +146,13 @@ using Version = std::int32_t;
 
 namespace filter
 {
-enum class Type : std::uint8_t {
-    Basic = 0,
-    Undefined = 1,
-    Unknown = 255,
+using TypeEnum = std::uint32_t;
+
+enum class Type : TypeEnum {
+    Basic_BIP158 = 0,
+    Basic_BCHVariant = 1,
+    Extended_opentxs = 88,
+    Unknown = std::numeric_limits<TypeEnum>::max(),
 };
 }  // namespace filter
 

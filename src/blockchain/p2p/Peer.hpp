@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,12 +10,12 @@
 #include "opentxs/blockchain/p2p/Peer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
-#include "opentxs/network/zeromq/socket/Pull.hpp"
-#include "opentxs/network/zeromq/socket/Push.hpp"
+#include "opentxs/network/zeromq/socket/Dealer.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Pipeline.hpp"
+#include "opentxs/Bytes.hpp"
 
-#include "core/Shutdown.hpp"
+#include "core/Executor.hpp"
 #include "internal/blockchain/client/Client.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
 
@@ -33,8 +33,7 @@ namespace opentxs::blockchain::p2p::implementation
 {
 using tcp = asio::ip::tcp;
 
-class Peer : virtual public internal::Peer,
-             public opentxs::internal::StateMachine
+class Peer : virtual public internal::Peer, public Executor<Peer>
 {
 public:
     using SendStatus = std::future<bool>;
@@ -81,49 +80,35 @@ protected:
         DownloadPeers() noexcept;
 
     private:
-        mutable std::mutex lock_;
         Time downloaded_;
     };
 
-    struct Worker {
-        void Start(const std::string& endpoint) noexcept
-        {
-            socket_->Start(endpoint);
-        }
-        void Stop() noexcept { socket_->Close(); }
+    struct Subscriptions {
+        using value_type = std::vector<Task>;
 
-        Worker(
-            const api::internal::Core& api,
-            zmq::ListenCallback::ReceiveCallback callback) noexcept;
-        ~Worker() { Stop(); }
+        auto Push(value_type& tasks) noexcept -> void;
+        auto Pop() noexcept -> value_type;
 
     private:
-        OTZMQListenCallback callback_;
-        OTZMQPullSocket socket_;
-
-        Worker() = delete;
+        std::mutex lock_{};
+        value_type tasks_{};
     };
 
-    const api::internal::Core& api_;
     const client::internal::Network& network_;
     const client::internal::PeerManager& manager_;
     const tcp::endpoint endpoint_;
-    OTFlag running_;
     SendPromise send_promise_;
     SendFuture send_future_;
     Address address_;
     DownloadPeers download_peers_;
     OTData header_;
-    std::size_t body_bytes_;
     bool outgoing_handshake_;
     bool incoming_handshake_;
-    Worker header_worker_;
-    Worker cfheader_worker_;
-    Worker cfilter_worker_;
+    Subscriptions subscribe_;
 
     void check_handshake() noexcept;
     void disconnect() noexcept;
-    auto local_endpoint() noexcept { return socket_.local_endpoint(); }
+    auto local_endpoint() noexcept -> tcp::socket::endpoint_type;
     // NOTE call init in every final child class constructor
     void init() noexcept;
     virtual void ping() noexcept = 0;
@@ -139,14 +124,16 @@ protected:
         const api::internal::Core& api,
         const client::internal::Network& network,
         const client::internal::PeerManager& manager,
-        const std::string& shutdown,
+        const blockchain::client::internal::IO& io,
         const int id,
+        const std::string& shutdown,
         const std::size_t headerSize,
         const std::size_t bodySize,
-        std::unique_ptr<internal::Address> address,
-        boost::asio::io_context& context) noexcept;
+        std::unique_ptr<internal::Address> address) noexcept;
 
 private:
+    friend Executor<Peer>;
+
     enum class State : std::uint8_t {
         Handshake,
         Run,
@@ -178,13 +165,14 @@ private:
         std::map<int, std::promise<bool>> map_;
     };
 
+    const std::size_t header_bytes_;
     const int id_;
-    boost::asio::io_context& context_;
+    const Space connection_id_;
+    const std::string shutdown_endpoint_;
+    const blockchain::client::internal::IO& context_;
     tcp::socket socket_;
-    OTZMQPipeline send_;
-    OTZMQPipeline process_;
-    OTData incoming_body_;
     OTData outgoing_message_;
+    std::promise<void> connection_id_promise_;
     std::promise<bool> connection_promise_;
     std::shared_future<bool> connected_;
     std::promise<void> handshake_promise_;
@@ -192,9 +180,8 @@ private:
     SendPromises send_promises_;
     Activity activity_;
     mutable std::atomic<State> state_;
-    const OTZMQListenCallback heartbeat_callback_;
-    const OTZMQSubscribeSocket heartbeat_;
-    opentxs::internal::ShutdownReceiver shutdown_;
+    OTZMQListenCallback cb_;
+    OTZMQDealerSocket dealer_;
 
     static OTData make_buffer(const std::size_t size) noexcept;
     static tcp::endpoint make_endpoint(
@@ -203,26 +190,25 @@ private:
         const std::uint16_t port) noexcept;
 
     Time get_activity() const noexcept;
+    virtual std::size_t get_body_size(const zmq::Frame& header) const
+        noexcept = 0;
 
     void break_promises() noexcept;
     void check_activity() noexcept;
     void check_download_peers() noexcept;
     void connect() noexcept;
-    void connect_handler(const boost::system::error_code& error) noexcept;
-    // This function must set body_bytes_ based on header_
-    virtual void get_body_size() noexcept = 0;
     void handshake() noexcept;
     void init_send_promise() noexcept;
+    void pipeline(zmq::Message& message) noexcept;
+    void pipeline_d(zmq::Message& message) noexcept;
     virtual void process_message(const zmq::Message& message) noexcept = 0;
-    void read_body() noexcept;
-    void read_header() noexcept;
-    void receive_body(const boost::system::error_code& error) noexcept;
-    void receive_header(const boost::system::error_code& error) noexcept;
+    void process_state_machine() noexcept;
     virtual void request_cfheaders(zmq::Message& message) noexcept = 0;
     virtual void request_cfilter(zmq::Message& message) noexcept = 0;
     void run() noexcept;
     void shutdown(std::promise<void>& promise) noexcept;
     virtual void start_handshake() noexcept = 0;
+    void subscribe_work() noexcept;
     void transmit(zmq::Message& message) noexcept;
     void update_address_activity() noexcept;
 

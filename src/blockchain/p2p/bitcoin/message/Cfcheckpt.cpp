@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -37,6 +37,7 @@ blockchain::p2p::bitcoin::message::internal::Cfcheckpt* Factory::
         return nullptr;
     }
 
+    const auto& header = *pHeader;
     ReturnType::BitcoinFormat raw;
     auto expectedSize = sizeof(raw);
 
@@ -92,7 +93,11 @@ blockchain::p2p::bitcoin::message::internal::Cfcheckpt* Factory::
     }
 
     return new ReturnType(
-        api, std::move(pHeader), raw.Type(), raw.Hash(), headers);
+        api,
+        std::move(pHeader),
+        raw.Type(header.Network()),
+        raw.Hash(),
+        headers);
 }
 
 blockchain::p2p::bitcoin::message::internal::Cfcheckpt* Factory::
@@ -142,7 +147,7 @@ Cfcheckpt::Cfcheckpt(
 OTData Cfcheckpt::payload() const noexcept
 {
     try {
-        BitcoinFormat raw(type_, stop_);
+        BitcoinFormat raw(header().Network(), type_, stop_);
         auto output = Data::Factory(&raw, sizeof(raw));
         const auto size = CompactSize(payload_.size()).Encode();
         output->Concatenate(size.data(), size.size());

@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -28,9 +28,10 @@ struct FilterPrefixBasic {
     HashField hash_;
 
     filter::pHash Hash() const noexcept;
-    filter::Type Type() const noexcept;
+    filter::Type Type(const blockchain::Type chain) const noexcept;
 
     FilterPrefixBasic(
+        const blockchain::Type chain,
         const filter::Type type,
         const filter::Hash& hash) noexcept(false);
     FilterPrefixBasic() noexcept;
@@ -42,9 +43,10 @@ struct FilterPrefixChained {
 
     filter::pHash Previous() const noexcept;
     filter::pHash Stop() const noexcept;
-    filter::Type Type() const noexcept;
+    filter::Type Type(const blockchain::Type chain) const noexcept;
 
     FilterPrefixChained(
+        const blockchain::Type chain,
         const filter::Type type,
         const filter::Hash& stop,
         const filter::Hash& prefix) noexcept(false);
@@ -57,17 +59,16 @@ struct FilterRequest {
 
     block::Height Start() const noexcept;
     filter::pHash Stop() const noexcept;
-    filter::Type Type() const noexcept;
+    filter::Type Type(const blockchain::Type chain) const noexcept;
 
     FilterRequest(
+        const blockchain::Type chain,
         const filter::Type type,
         const block::Height start,
         const filter::Hash& stop) noexcept(false);
     FilterRequest() noexcept;
 };
 
-filter::Type DeserializeClientFilterType(const std::uint8_t type) noexcept;
-std::uint8_t SerializeClientFilterType(const filter::Type type) noexcept;
 bool VerifyChecksum(
     const api::internal::Core& api,
     const Header& header,

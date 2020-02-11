@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -31,15 +31,16 @@
 #define MESSAGE_SUCCESS_TRUE 1
 #define FIRST_REQUEST_NUMBER 1
 
-#if OT_BLOCKCHAIN
-namespace boost
-{
-namespace asio
-{
-class io_context;
-}  // namespace asio
-}  // namespace boost
-#endif  // OT_BLOCKCHAIN
+#define OT_ZMQ_CONNECT_SIGNAL 248
+#define OT_ZMQ_DISCONNECT_SIGNAL 249
+#define OT_ZMQ_RECEIVE_SIGNAL 250
+#define OT_ZMQ_SEND_SIGNAL 251
+#define OT_ZMQ_REGISTER_SIGNAL 252
+#define OT_ZMQ_REORG_SIGNAL 253
+#define OT_ZMQ_STATE_MACHINE_SIGNAL 254
+#define OT_ZMQ_SHUTDOWN_SIGNAL 255
+
+using OTZMQWorkType = std::uint8_t;
 
 namespace opentxs
 {
@@ -190,6 +191,7 @@ struct FilterDatabase;
 struct FilterOracle;
 struct HeaderDatabase;
 struct HeaderOracle;
+struct IO;
 struct Network;
 struct PeerDatabase;
 struct PeerManager;
@@ -670,8 +672,8 @@ std::map<Value, Key> reverse_map(const std::map<Key, Value>& map) noexcept
     return output;
 }
 
-proto::ContactItemType Translate(const blockchain::Type type) noexcept;
-blockchain::Type Translate(const proto::ContactItemType type) noexcept;
+auto Translate(const blockchain::Type type) noexcept -> proto::ContactItemType;
+auto Translate(const proto::ContactItemType type) noexcept -> blockchain::Type;
 }  // namespace opentxs
 
 #include "Factory.hpp"

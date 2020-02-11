@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,6 +10,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -19,6 +20,7 @@
 
 #include "api/client/blockchain/database/Database.hpp"
 #include "blockchain/client/UpdateTransaction.hpp"
+#include "core/Executor.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/block/Block.hpp"
 #include "internal/blockchain/p2p/P2P.hpp"
@@ -38,15 +40,16 @@
 
 namespace opentxs
 {
-blockchain::internal::Database* Factory::BlockchainDatabase(
+auto Factory::BlockchainDatabase(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const api::client::blockchain::database::implementation::Database& common,
-    const blockchain::Type type)
+    const blockchain::Type type) noexcept
+    -> std::unique_ptr<blockchain::internal::Database>
 {
     using ReturnType = blockchain::implementation::Database;
 
-    return new ReturnType(api, network, common, type);
+    return std::make_unique<ReturnType>(api, network, common, type);
 }
 }  // namespace opentxs
 
@@ -66,6 +69,8 @@ const opentxs::storage::lmdb::TableNames Database::table_names_{
     {ChainData, "block_header_data"},
     {BlockHeaderSiblings, "block_siblings"},
     {BlockHeaderDisconnected, "disconnected_block_headers"},
+    {BlockFilterBest, "filter_tips"},
+    {BlockFilterHeaderBest, "filter_header_tips"},
 };
 
 const std::map<
@@ -74,28 +79,28 @@ const std::map<
     Database::Filters::genesis_filters_{
         {blockchain::Type::Bitcoin,
          {
-             {filter::Type::Basic,
+             {filter::Type::Basic_BIP158,
               {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
                "2",
                "017fa880"}},
          }},
         {blockchain::Type::BitcoinCash,
          {
-             {filter::Type::Basic,
+             {filter::Type::Basic_BCHVariant,
               {"9f3c30f0c37fb977cf3e1a3173c631e8ff119ad3088b6f5b2bced0802139c20"
                "2",
                "017fa880"}},
          }},
         {blockchain::Type::Bitcoin_testnet3,
          {
-             {filter::Type::Basic,
+             {filter::Type::Basic_BIP158,
               {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
                "1",
                "019dfca8"}},
          }},
         {blockchain::Type::BitcoinCash_testnet3,
          {
-             {filter::Type::Basic,
+             {filter::Type::Basic_BCHVariant,
               {"50b781aed7b7129012a6d20e2d040027937f3affaee573779908ebb77945582"
                "1",
                "019dfca8"}},
@@ -118,9 +123,11 @@ Database::Database(
            {BlockHeaderBest, MDB_INTEGERKEY},
            {ChainData, MDB_INTEGERKEY},
            {BlockHeaderSiblings, 0},
-           {BlockHeaderDisconnected, MDB_DUPSORT}},
+           {BlockHeaderDisconnected, MDB_DUPSORT},
+           {BlockFilterBest, MDB_INTEGERKEY},
+           {BlockFilterHeaderBest, MDB_INTEGERKEY}},
           0)
-    , filters_(api, type)
+    , filters_(api, common_, lmdb_, type)
     , headers_(api, network, common_, lmdb_, type)
 {
     init_db();
@@ -128,38 +135,16 @@ Database::Database(
 
 Database::Filters::Filters(
     const api::internal::Core& api,
+    const Common& common,
+    const opentxs::storage::lmdb::LMDB& lmdb,
     const blockchain::Type chain) noexcept
     : api_(api)
+    , common_(common)
+    , lmdb_(lmdb)
+    , blank_position_(make_blank<block::Position>::value(api))
     , lock_()
-    , tip_()
-    , header_tip_()
-    , filters_()
-    , headers_()
 {
-    const auto pBlock = opentxs::Factory::GenesisBlockHeader(api_, chain);
-
-    OT_ASSERT(pBlock);
-
-    const auto& block = *pBlock;
-    const auto& hash = block.Hash();
-    const auto& genesis = genesis_filters_.at(chain).at(filter::Type::Basic);
-    auto header = api_.Factory().Data(genesis.first, StringStyle::Hex);
-    const auto bytes = api_.Factory().Data(genesis.second, StringStyle::Hex);
-    auto gcs = std::unique_ptr<blockchain::internal::GCS>{Factory::GCS(
-        api_,
-        19,
-        784931,
-        blockchain::internal::BlockHashToFilterKey(hash.Bytes()),
-        1,
-        bytes)};
-
-    OT_ASSERT(gcs);
-
-    filters_[filter::Type::Basic].emplace(hash, std::move(gcs));
-    headers_[filter::Type::Basic].emplace(
-        hash, HeaderData{std::move(header), api_.Factory().Data()});
-    tip_.emplace(filter::Type::Basic, block.Position());
-    header_tip_.emplace(filter::Type::Basic, block.Position());
+    import_genesis(chain);
 }
 
 Database::Headers::Headers(
@@ -182,58 +167,83 @@ Database::Headers::Headers(
 auto Database::Filters::CurrentHeaderTip(const filter::Type type) const noexcept
     -> block::Position
 {
-    Lock lock(lock_);
+    auto output{blank_position_};
+    auto cb = [this, &output](const auto in) {
+        output = blockchain::internal::Deserialize(api_, in);
+    };
+    lmdb_.Load(
+        Table::BlockFilterHeaderBest, static_cast<std::size_t>(type), cb);
 
-    try {
-
-        return header_tip_.at(type);
-    } catch (...) {
-
-        return make_blank<block::Position>::value(api_);
-    }
+    return output;
 }
 
 auto Database::Filters::CurrentTip(const filter::Type type) const noexcept
     -> block::Position
 {
-    Lock lock(lock_);
+    auto output{blank_position_};
+    auto cb = [this, &output](const auto in) {
+        output = blockchain::internal::Deserialize(api_, in);
+    };
+    lmdb_.Load(Table::BlockFilterBest, static_cast<std::size_t>(type), cb);
 
-    try {
-
-        return tip_.at(type);
-    } catch (...) {
-
-        return make_blank<block::Position>::value(api_);
-    }
+    return output;
 }
 
-auto Database::Filters::HaveFilter(
-    const filter::Type type,
-    const block::Hash& block) const noexcept -> bool
+auto Database::Filters::import_genesis(const blockchain::Type chain) const
+    noexcept -> void
 {
-    Lock lock(lock_);
+    const auto style{blockchain::internal::DefaultFilter(chain)};
+    const auto needHeader =
+        blank_position_.first == CurrentHeaderTip(style).first;
+    const auto needFilter = blank_position_.first == CurrentTip(style).first;
 
-    try {
+    if (false == (needHeader || needFilter)) { return; }
 
-        return 0 < filters_.at(type).count(block);
-    } catch (...) {
+    const auto pBlock = opentxs::Factory::GenesisBlockHeader(api_, chain);
 
-        return false;
+    OT_ASSERT(pBlock);
+
+    const auto& block = *pBlock;
+    const auto& blockHash = block.Hash();
+    const auto& genesis = genesis_filters_.at(chain).at(style);
+    const auto bytes = api_.Factory().Data(genesis.second, StringStyle::Hex);
+    auto gcs = std::unique_ptr<const blockchain::internal::GCS>{Factory::GCS(
+        api_,
+        19,
+        784931,
+        blockchain::internal::BlockHashToFilterKey(blockHash.Bytes()),
+        1,
+        bytes)};
+
+    OT_ASSERT(gcs);
+
+    const auto filterHash = gcs->Hash();
+    auto success{false};
+
+    if (needHeader) {
+        auto header = api_.Factory().Data(genesis.first, StringStyle::Hex);
+        auto headers = std::vector<client::internal::FilterDatabase::Header>{
+            {blockHash, std::move(header), filterHash->Bytes()}};
+        success = common_.StoreFilterHeaders(style, headers);
+
+        OT_ASSERT(success);
+
+        success = SetHeaderTip(style, block.Position());
+
+        OT_ASSERT(success);
     }
-}
 
-auto Database::Filters::HaveFilterHeader(
-    const filter::Type type,
-    const block::Hash& block) const noexcept -> bool
-{
-    Lock lock(lock_);
+    if (needFilter) {
+        auto filters = std::vector<client::internal::FilterDatabase::Filter>{};
+        filters.emplace_back(blockHash.Bytes(), std::move(gcs));
 
-    try {
+        success = common_.StoreFilters(style, filters);
 
-        return 0 < headers_.at(type).count(block);
-    } catch (...) {
+        OT_ASSERT(success);
 
-        return false;
+        success = SetTip(style, block.Position());
+
+        OT_ASSERT(success);
     }
 }
 
@@ -241,99 +251,52 @@ auto Database::Filters::LoadFilterHash(
     const filter::Type type,
     const ReadView block) const noexcept -> Hash
 {
-    const auto hash = api_.Factory().Data(block);
-    Lock lock(lock_);
+    auto output = api_.Factory().Data();
 
-    try {
+    if (common_.LoadFilterHash(type, block, output->WriteInto())) {
 
-        return headers_.at(type).at(hash).second;
-    } catch (...) {
-
-        return api_.Factory().Data();
+        return output;
     }
+
+    return api_.Factory().Data();
 }
 
 auto Database::Filters::LoadFilterHeader(
     const filter::Type type,
     const ReadView block) const noexcept -> Hash
 {
-    const auto hash = api_.Factory().Data(block);
-    Lock lock(lock_);
+    auto output = api_.Factory().Data();
 
-    try {
+    if (common_.LoadFilterHeader(type, block, output->WriteInto())) {
 
-        return headers_.at(type).at(hash).first;
-    } catch (...) {
-
-        return api_.Factory().Data();
+        return output;
     }
+
+    return api_.Factory().Data();
 }
 
 auto Database::Filters::SetHeaderTip(
     const filter::Type type,
     const block::Position position) const noexcept -> bool
 {
-    Lock lock(lock_);
-    auto it = header_tip_.find(type);
-
-    if (header_tip_.end() == it) {
-        header_tip_.emplace(type, position);
-    } else {
-        it->second = position;
-    }
-
-    return true;
+    return lmdb_
+        .Store(
+            Table::BlockFilterHeaderBest,
+            static_cast<std::size_t>(type),
+            reader(blockchain::internal::Serialize(position)))
+        .first;
 }
 
 auto Database::Filters::SetTip(
     const filter::Type type,
     const block::Position position) const noexcept -> bool
 {
-    Lock lock(lock_);
-    auto it = tip_.find(type);
-
-    if (tip_.end() == it) {
-        tip_.emplace(type, position);
-    } else {
-        it->second = position;
-    }
-
-    return true;
-}
-
-auto Database::Filters::StoreHeaders(
-    const filter::Type type,
-    const ReadView previous,
-    const std::vector<Header> headers) const noexcept -> bool
-{
-    Lock lock(lock_);
-    auto& map = headers_[type];
-
-    for (const auto& [block, header, hash] : headers) {
-        map.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(std::move(block)),
-            std::forward_as_tuple(
-                std::move(header), api_.Factory().Data(hash)));
-    }
-
-    return true;
-}
-
-auto Database::Filters::StoreFilters(
-    const filter::Type type,
-    std::vector<Filter> filters) const noexcept -> bool
-{
-    Lock lock(lock_);
-    auto& map = filters_[type];
-
-    for (auto& [block, filter] : filters) {
-        if (false == bool(filter)) { return false; }
-
-        map.emplace(api_.Factory().Data(block), std::move(filter));
-    }
-
-    return true;
+    return lmdb_
+        .Store(
+            Table::BlockFilterBest,
+            static_cast<std::size_t>(type),
+            reader(blockchain::internal::Serialize(position)))
+        .first;
 }
 
 auto Database::Headers::ApplyUpdate(
@@ -483,12 +446,16 @@ auto Database::Headers::ApplyUpdate(
     parentTxn.Finalize(true);
 
     if (update.HaveReorg()) {
-        LogVerbose("Blockchain reorg detected. Last common ancestor is ")(
-            update.ReorgParent().second->asHex())(" at height ")(
-            update.ReorgParent().first)
+        const auto [height, hash] = update.ReorgParent();
+        const auto bytes = hash->Bytes();
+        LogNormal("Blockchain reorg detected. Last common ancestor is ")(
+            hash->asHex())(" at height ")(height)
             .Flush();
-
-        // TODO broadcast reorg signal
+        auto work = MakeWork(api_, OTZMQWorkType{OT_ZMQ_REORG_SIGNAL});
+        work->AddFrame(network_.Chain());
+        work->AddFrame(bytes.data(), bytes.size());
+        work->AddFrame(height);
+        network_.Reorg().Send(work);
     }
 
     network_.UpdateLocalHeight(best(lock));

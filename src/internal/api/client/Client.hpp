@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -68,9 +68,17 @@ struct Blockchain : virtual public api::client::Blockchain {
         const Data& pubkey) const noexcept = 0;
     virtual const api::client::Contacts& Contacts() const noexcept = 0;
     virtual const TxoDB& DB() const noexcept = 0;
+#if OT_BLOCKCHAIN
+    virtual const opentxs::blockchain::client::internal::IO& IO() const
+        noexcept = 0;
+#endif  // OT_BLOCKCHAIN
     virtual OTData PubkeyHash(
         const opentxs::blockchain::Type chain,
         const Data& pubkey) const noexcept(false) = 0;
+#if OT_BLOCKCHAIN
+    virtual const opentxs::network::zeromq::socket::Publish& Reorg() const
+        noexcept = 0;
+#endif  // OT_BLOCKCHAIN
 
     virtual ~Blockchain() = default;
 };

@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,6 +12,9 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Core.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/api/Endpoints.hpp"
+#endif  // OT_BLOCKCHAIN
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -22,8 +25,12 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
-#endif
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/Bip32.hpp"
+#if OT_BLOCKCHAIN
+#include "opentxs/network/zeromq/socket/Publish.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#endif  // OT_BLOCKCHAIN
 
 #if OT_BLOCKCHAIN
 #include "api/client/blockchain/database/Database.hpp"
@@ -104,11 +111,18 @@ Blockchain::Blockchain(
     , balance_lists_(*this)
     , txo_db_(*this)
 #if OT_BLOCKCHAIN
+    , io_(api)
     , db_(api, legacy, dataFolder)
+    , reorg_(api_.ZeroMQ().PublishSocket())
     , networks_()
 #endif  // OT_BLOCKCHAIN
 {
     // WARNING: do not access api_.Wallet() during construction
+#if OT_BLOCKCHAIN
+    auto listen = reorg_->Start(api_.Endpoints().BlockchainReorg());
+
+    OT_ASSERT(listen);
+#endif  // OT_BLOCKCHAIN
 }
 
 Blockchain::Txo::Txo(api::client::internal::Blockchain& parent)
@@ -1081,6 +1095,7 @@ Blockchain::~Blockchain()
     for (auto& [chain, network] : networks_) { network->Shutdown().get(); }
 
     networks_.clear();
+    io_.Shutdown();
 #endif  // OT_BLOCKCHAIN
 }
 }  // namespace opentxs::api::client::implementation

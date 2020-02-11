@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -36,6 +36,7 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
         return nullptr;
     }
 
+    const auto& header = *pHeader;
     auto raw = ReturnType::BitcoinFormat{};
     auto expectedSize = sizeof(raw);
 
@@ -91,7 +92,7 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
         return nullptr;
     }
 
-    const auto filterType = raw.Type();
+    const auto filterType = raw.Type(header.Network());
     const auto dataSize = filterSize - (1 + csBytes);
     auto gcs = std::unique_ptr<blockchain::internal::GCS>{};
     auto bytes = Data::Factory(it, dataSize);
@@ -111,7 +112,11 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
     }
 
     return new ReturnType(
-        api, std::move(pHeader), raw.Type(), raw.Hash(), std::move(gcs));
+        api,
+        std::move(pHeader),
+        raw.Type(header.Network()),
+        raw.Hash(),
+        std::move(gcs));
 }
 
 blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
@@ -132,10 +137,14 @@ blockchain::p2p::bitcoin::message::internal::Cfilter* Factory::
 namespace opentxs::blockchain::p2p::bitcoin::message::implementation
 {
 const std::map<filter::Type, std::uint32_t> Cfilter::gcs_bits_{
-    {filter::Type::Basic, 19},
+    {filter::Type::Basic_BIP158, 19},
+    {filter::Type::Basic_BCHVariant, 19},
+    {filter::Type::Extended_opentxs, 19},
 };
 const std::map<filter::Type, std::uint32_t> Cfilter::gcs_fp_rate_{
-    {filter::Type::Basic, 784931},
+    {filter::Type::Basic_BIP158, 784931},
+    {filter::Type::Basic_BCHVariant, 784931},
+    {filter::Type::Extended_opentxs, 784931},
 };
 
 Cfilter::Cfilter(
@@ -171,7 +180,7 @@ Cfilter::Cfilter(
 OTData Cfilter::payload() const noexcept
 {
     try {
-        BitcoinFormat raw(type_, hash_);
+        BitcoinFormat raw(header().Network(), type_, hash_);
         auto output = Data::Factory(&raw, sizeof(raw));
         auto bytes = filter_->Encode();
         const auto size = CompactSize(bytes->size()).Encode();

@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -295,6 +295,60 @@ auto BlockHashToFilterKey(const ReadView hash) noexcept
     return output;
 }
 
+auto DefaultFilter(const Type type) noexcept -> filter::Type
+{
+    switch (type) {
+        case Type::BitcoinCash:
+        case Type::BitcoinCash_testnet3: {
+            return filter::Type::Basic_BCHVariant;
+        }
+        default: {
+            return filter::Type::Basic_BIP158;
+        }
+    }
+}
+
+auto Deserialize(const Type chain, const std::uint8_t type) noexcept
+    -> filter::Type
+{
+    switch (type) {
+        case 0: {
+            return DefaultFilter(chain);
+        };
+        case 88: {
+            return filter::Type::Extended_opentxs;
+        }
+        default: {
+            return filter::Type::Unknown;
+        }
+    }
+}
+
+auto Deserialize(const api::Core& api, const ReadView in) noexcept
+    -> block::Position
+{
+    auto output = make_blank<block::Position>::value(api);
+
+    if ((nullptr == in.data()) || (0 == in.size())) { return output; }
+
+    if (in.size() < sizeof(output.first)) { return output; }
+
+    const auto size = in.size() - sizeof(output.first);
+    auto it = reinterpret_cast<const std::byte*>(in.data());
+    std::memcpy(&output.first, it, sizeof(output.first));
+
+    if (0 < size) {
+        std::advance(it, sizeof(output.first));
+        auto bytes = output.second->WriteInto()(size);
+
+        if (false == bytes.valid(size)) { return output; }
+
+        std::memcpy(bytes, it, bytes);
+    }
+
+    return output;
+}
+
 auto FilterHashToHeader(
     const api::Core& api,
     const ReadView hash,
@@ -347,6 +401,59 @@ auto Grind(const std::function<void()> function) noexcept -> void
 
     for (auto& thread : threads) { thread.join(); }
 }
+
+auto Serialize(const Type chain, const filter::Type type) noexcept(false)
+    -> std::uint8_t
+{
+    static const auto map =
+        std::map<Type, std::map<filter::Type, std::uint8_t>>{
+            {Type::Bitcoin,
+             {
+                 {filter::Type::Basic_BIP158, 0x0},
+                 {filter::Type::Extended_opentxs, 0x58},
+             }},
+            {Type::Bitcoin_testnet3,
+             {
+                 {filter::Type::Basic_BIP158, 0x0},
+                 {filter::Type::Extended_opentxs, 0x58},
+             }},
+            {Type::BitcoinCash,
+             {
+                 {filter::Type::Basic_BCHVariant, 0x0},
+                 {filter::Type::Extended_opentxs, 0x58},
+             }},
+            {Type::BitcoinCash_testnet3,
+             {
+                 {filter::Type::Basic_BCHVariant, 0x0},
+                 {filter::Type::Extended_opentxs, 0x58},
+             }},
+            {Type::Ethereum_frontier, {}},
+            {Type::Ethereum_ropsten, {}},
+            {Type::Litecoin,
+             {
+                 {filter::Type::Basic_BIP158, 0x0},
+                 {filter::Type::Extended_opentxs, 0x58},
+             }},
+            {Type::Litecoin_testnet4,
+             {
+                 {filter::Type::Basic_BIP158, 0x0},
+                 {filter::Type::Extended_opentxs, 0x58},
+             }},
+        };
+
+    return map.at(chain).at(type);
+}
+
+auto Serialize(const block::Position& in) noexcept -> Space
+{
+    auto output = space(sizeof(in.first) + in.second->size());
+    auto it = output.data();
+    std::memcpy(it, &in.first, sizeof(in.first));
+    std::advance(it, sizeof(in.first));
+    std::memcpy(it, in.second->data(), in.second->size());
+
+    return output;
+}
 }  // namespace opentxs::blockchain::internal
 
 namespace opentxs::blockchain::p2p
@@ -368,7 +475,7 @@ const std::map<Service, std::string> service_name_map_{
     {Service::XThinner, "XThinner"},
 };
 
-std::string DisplayService(const Service service) noexcept
+auto DisplayService(const Service service) noexcept -> std::string
 {
     try {
 

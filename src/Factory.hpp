@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -511,9 +511,9 @@ public:
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const blockchain::client::internal::PeerManager& manager,
+        const blockchain::client::internal::IO& io,
         const int id,
         std::unique_ptr<blockchain::p2p::internal::Address> address,
-        boost::asio::io_context& context,
         const std::string& shutdown);
     static blockchain::p2p::bitcoin::message::internal::Ping* BitcoinP2PPing(
         const api::internal::Core& api,
@@ -648,29 +648,34 @@ public:
         const api::internal::Core& api,
         const proto::BlockchainPeerAddress serialized) noexcept
         -> std::unique_ptr<blockchain::p2p::internal::Address>;
-    static blockchain::internal::Database* BlockchainDatabase(
+    static auto BlockchainDatabase(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const api::client::blockchain::database::implementation::Database& db,
-        const blockchain::Type type);
-    static blockchain::client::internal::FilterOracle* BlockchainFilterOracle(
+        const blockchain::Type type) noexcept
+        -> std::unique_ptr<blockchain::internal::Database>;
+    static auto BlockchainFilterOracle(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const blockchain::client::internal::FilterDatabase& database,
-        const std::string& shutdown);
+        const blockchain::Type type,
+        const std::string& shutdown) noexcept
+        -> std::unique_ptr<blockchain::client::internal::FilterOracle>;
     OPENTXS_EXPORT static auto BlockchainNetworkBitcoin(
         const api::internal::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const blockchain::Type type,
         const std::string& seednode,
         const std::string& shutdown) -> blockchain::client::internal::Network*;
-    static blockchain::client::internal::PeerManager* BlockchainPeerManager(
+    static auto BlockchainPeerManager(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const blockchain::client::internal::PeerDatabase& database,
+        const blockchain::client::internal::IO& io,
         const blockchain::Type type,
         const std::string& seednode,
-        const std::string& shutdown);
+        const std::string& shutdown) noexcept
+        -> std::unique_ptr<blockchain::client::internal::PeerManager>;
     OPENTXS_EXPORT static auto BloomFilter(
         const api::internal::Core& api,
         const std::uint32_t tweak,
@@ -944,11 +949,12 @@ public:
         const crypto::Bip32& bip32,
         const crypto::Bip39& bip39);
 #if OT_BLOCKCHAIN
-    static blockchain::client::internal::HeaderOracle* HeaderOracle(
+    static auto HeaderOracle(
         const api::internal::Core& api,
         const blockchain::client::internal::Network& network,
         const blockchain::client::internal::HeaderDatabase& database,
-        const blockchain::Type type);
+        const blockchain::Type type) noexcept
+        -> std::unique_ptr<blockchain::client::internal::HeaderOracle>;
 #endif  // OT_BLOCKCHAIN
     static api::client::Issuer* Issuer(
         const api::Wallet& wallet,

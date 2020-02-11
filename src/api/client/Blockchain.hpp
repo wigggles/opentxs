@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -55,12 +55,23 @@ public:
     const blockchain::HD& HDSubaccount(
         const identifier::Nym& nymID,
         const Identifier& accountID) const noexcept(false) final;
+#if OT_BLOCKCHAIN
+    const opentxs::blockchain::client::internal::IO& IO() const noexcept final
+    {
+        return io_;
+    }
+#endif  // OT_BLOCKCHAIN
     OTIdentifier NewHDSubaccount(
         const identifier::Nym& nymID,
         const BlockchainAccountType standard,
         const Chain chain,
         const PasswordPrompt& reason) const noexcept final;
 #if OT_BLOCKCHAIN
+    const opentxs::network::zeromq::socket::Publish& Reorg() const
+        noexcept final
+    {
+        return reorg_;
+    }
     bool Start(const Chain type, const std::string& seednode) const
         noexcept final;
     bool Stop(const Chain type) const noexcept final;
@@ -154,7 +165,9 @@ private:
     mutable BalanceLists balance_lists_;
     mutable Txo txo_db_;
 #if OT_BLOCKCHAIN
+    opentxs::blockchain::client::internal::IO io_;
     blockchain::database::implementation::Database db_;
+    OTZMQPublishSocket reorg_;
     mutable std::map<
         Chain,
         std::unique_ptr<opentxs::blockchain::client::internal::Network>>

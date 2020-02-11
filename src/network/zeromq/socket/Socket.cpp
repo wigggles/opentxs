@@ -1,11 +1,10 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -81,10 +80,8 @@ bool Socket::apply_timeouts(const Lock& lock) const noexcept
     auto set = zmq_setsockopt(socket_, ZMQ_LINGER, &linger_, sizeof(linger_));
 
     if (0 != set) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set ZMQ_LINGER.")
-            .Flush();
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(zmq_strerror(zmq_errno()))
-            .Flush();
+        std::cerr << "Failed to set ZMQ_LINGER\n";
+        std::cerr << zmq_strerror(zmq_errno()) << '\n';
 
         return false;
     }
@@ -93,10 +90,8 @@ bool Socket::apply_timeouts(const Lock& lock) const noexcept
         socket_, ZMQ_SNDTIMEO, &send_timeout_, sizeof(send_timeout_));
 
     if (0 != set) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set ZMQ_SNDTIMEO.")
-            .Flush();
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(zmq_strerror(zmq_errno()))
-            .Flush();
+        std::cerr << "Failed to set ZMQ_SNDTIMEO\n";
+        std::cerr << zmq_strerror(zmq_errno()) << '\n';
 
         return false;
     }
@@ -105,10 +100,8 @@ bool Socket::apply_timeouts(const Lock& lock) const noexcept
         socket_, ZMQ_RCVTIMEO, &receive_timeout_, sizeof(receive_timeout_));
 
     if (0 != set) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to set ZMQ_RCVTIMEO.")
-            .Flush();
-        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(zmq_strerror(zmq_errno()))
-            .Flush();
+        std::cerr << "Failed to set ZMQ_RCVTIMEO\n";
+        std::cerr << zmq_strerror(zmq_errno()) << '\n';
 
         return false;
     }
@@ -230,9 +223,8 @@ bool Socket::send_message(
     }
 
     if (false == sent) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Send error: ")(
-            zmq_strerror(zmq_errno()))(".")
-            .Flush();
+        std::cerr << OT_METHOD << __FUNCTION__
+                  << ": Send error: " << zmq_strerror(zmq_errno()) << '\n';
     }
 
     return sent;

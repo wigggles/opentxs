@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -32,12 +32,14 @@ class Pipeline
 {
 public:
     OPENTXS_EXPORT virtual bool Close() const noexcept = 0;
+    OPENTXS_EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
     template <typename Input>
     OPENTXS_EXPORT bool Push(const Input& data) const noexcept
     {
         return push(Context().Message(data));
     }
-    OPENTXS_EXPORT virtual const zeromq::Context& Context() const noexcept = 0;
+    OPENTXS_EXPORT virtual bool Start(const std::string& endpoint) const
+        noexcept = 0;
 
     OPENTXS_EXPORT virtual ~Pipeline() = default;
 

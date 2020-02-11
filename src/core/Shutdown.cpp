@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -21,6 +21,7 @@ ShutdownSender::ShutdownSender(
     const network::zeromq::Context& zmq,
     const std::string endpoint) noexcept
     : endpoint_(endpoint)
+    , zmq_(zmq)
     , socket_(zmq.PublishSocket())
 {
     auto init = socket_->SetTimeouts(
@@ -35,7 +36,14 @@ ShutdownSender::ShutdownSender(
     OT_ASSERT(init);
 }
 
-auto ShutdownSender::Activate() const noexcept -> void { socket_->Send(""); }
+auto ShutdownSender::Activate() const noexcept -> void
+{
+    auto message = zmq_.Message();
+    message->AddFrame(OTZMQWorkType{OT_ZMQ_SHUTDOWN_SIGNAL});
+    message->AddFrame();
+    message->AddFrame("shutdown");
+    socket_->Send(message);
+}
 
 auto ShutdownSender::Close() noexcept -> void { socket_->Close(); }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -14,6 +14,8 @@
 #include "opentxs/api/client/blockchain/HD.hpp"
 #include "opentxs/api/client/blockchain/Imported.hpp"
 #include "opentxs/api/client/blockchain/PaymentCode.hpp"
+
+#include "internal/blockchain/client/Client.hpp"
 
 #include <optional>
 
@@ -49,6 +51,42 @@ struct less<COIN> {
     }
 };
 }  // namespace std
+
+#if OT_BLOCKCHAIN
+namespace opentxs::api::client::blockchain
+{
+using Address = opentxs::blockchain::p2p::internal::Address;
+using Address_p = std::unique_ptr<Address>;
+using Chain = opentxs::blockchain::Type;
+using FilterData =
+    opentxs::blockchain::client::internal::FilterDatabase::Filter;
+using FilterHash = opentxs::blockchain::client::internal::FilterDatabase::Hash;
+using FilterHeader =
+    opentxs::blockchain::client::internal::FilterDatabase::Header;
+using FilterType = opentxs::blockchain::filter::Type;
+using Position = opentxs::blockchain::block::Position;
+using Protocol = opentxs::blockchain::p2p::Protocol;
+using Service = opentxs::blockchain::p2p::Service;
+using Type = opentxs::blockchain::p2p::Network;
+using UpdatedHeader = opentxs::blockchain::client::UpdatedHeader;
+
+enum Table {
+    BlockHeaders = 0,
+    PeerDetails = 1,
+    PeerChainIndex = 2,
+    PeerProtocolIndex = 3,
+    PeerServiceIndex = 4,
+    PeerNetworkIndex = 5,
+    PeerConnectedIndex = 6,
+    FiltersBasic = 7,
+    FiltersBCH = 8,
+    FiltersOpentxs = 9,
+    FilterHeadersBasic = 10,
+    FilterHeadersBCH = 11,
+    FilterHeadersOpentxs = 12,
+};
+}  // namespace opentxs::api::client::blockchain
+#endif  // OT_BLOCKCHAIN
 
 namespace opentxs::api::client::blockchain::internal
 {

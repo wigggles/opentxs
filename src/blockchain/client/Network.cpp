@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -15,7 +15,6 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
-#include "internal/api/client/Client.hpp"
 #include "internal/api/Api.hpp"
 
 #include "Network.hpp"
@@ -30,7 +29,7 @@ Network::Network(
     const Type type,
     const std::string& seednode,
     const std::string& shutdown) noexcept
-    : StateMachine(std::bind(&Network::state_machine, this))
+    : Executor(api)
     , shutdown_sender_(api.ZeroMQ(), shutdown_endpoint())
     , database_p_(Factory::BlockchainDatabase(
           api,
@@ -42,6 +41,7 @@ Network::Network(
           api,
           *this,
           *database_p_,
+          blockchain.IO(),
           type,
           seednode,
           shutdown_sender_.endpoint_))
@@ -49,39 +49,26 @@ Network::Network(
           api,
           *this,
           *database_p_,
+          type,
           shutdown_sender_.endpoint_))
     , wallet_p_()
-    , api_(api)
     , chain_(type)
     , database_(*database_p_)
     , filters_(*filter_p_)
     , header_(*header_p_)
     , peer_(*peer_p_)
-    , running_(Flag::Factory(true))
+    , parent_(blockchain)
     , local_chain_height_(0)
     , remote_chain_height_(0)
     , processing_headers_(Flag::Factory(false))
-    , new_headers_(Factory::Pipeline(
-          api_,
-          api_.ZeroMQ(),
-          [this](auto& in) { this->process_header(in); }))
-    , new_filters_(Factory::Pipeline(
-          api_,
-          api_.ZeroMQ(),
-          [this](auto& in) { this->process_filter(in); }))
-    , new_filter_headers_(Factory::Pipeline(
-          api_,
-          api_.ZeroMQ(),
-          [this](auto& in) { this->process_cfheader(in); }))
-    , shutdown_(
-          api.ZeroMQ(),
-          {api.Endpoints().Shutdown()},
-          [this](auto& promise) { this->shutdown(promise); })
+    , task_id_(-1)
 {
     OT_ASSERT(database_p_);
     OT_ASSERT(filter_p_);
     OT_ASSERT(header_p_);
     OT_ASSERT(peer_p_);
+
+    init_executor({});
 }
 
 auto Network::AddPeer(const p2p::Address& address) const noexcept -> bool
@@ -123,10 +110,6 @@ auto Network::GetPeerCount() const noexcept -> std::size_t
 auto Network::init() noexcept -> void
 {
     local_chain_height_.store(header_.BestChain().first);
-    peer_.init();
-    filters_.Start();
-    api_.Schedule(std::chrono::seconds(30), [this]() { Trigger(); });
-    Trigger();
 
     {
         const auto best = database_.CurrentBest();
@@ -139,46 +122,88 @@ auto Network::init() noexcept -> void
             " at height ")(position.first)
             .Flush();
     }
+
+    peer_.init();
+    filters_.Start();
+    task_id_ = api_.Schedule(std::chrono::seconds(30), [this]() { Trigger(); });
+    Trigger();
+}
+
+auto Network::pipeline(zmq::Message& in) noexcept -> void
+{
+    if (false == running_.get()) { return; }
+
+    const auto header = in.Header();
+
+    OT_ASSERT(0 < header.size());
+
+    switch (header.at(0).as<Task>()) {
+        case Task::SubmitBlockHeader: {
+            process_header(in);
+        } break;
+        case Task::SubmitFilterHeader: {
+            process_cfheader(in);
+        } break;
+        case Task::SubmitFilter: {
+            process_filter(in);
+        } break;
+        case Task::StateMachine: {
+            process_state_machine();
+        } break;
+        case Task::Shutdown: {
+            shutdown(shutdown_promise_);
+        } break;
+        default: {
+            OT_FAIL;
+        }
+    }
 }
 
 auto Network::process_cfheader(network::zeromq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto header = in.Header();
-    const auto body = in.Body();
-
-    if (3 != header.size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
-
-        return;
-    }
-
-    if (0 == body.size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
-
-        return;
-    }
-
+    auto type = filter::Type{};
+    auto stopBlock = ReadView{};
+    auto previousHeader = ReadView{};
     auto hashes = std::vector<ReadView>{};
 
-    for (const auto& frame : body) {
-        hashes.emplace_back(
-            ReadView{static_cast<const char*>(frame.data()), frame.size()});
+    {
+        auto counter{0};
+        const auto body = in.Body();
+
+        if (body.size() < 3) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+            return;
+        }
+
+        for (const auto& frame : in.Body()) {
+            switch (++counter) {
+                case 1: {
+                    type = frame.as<filter::Type>();
+                } break;
+                case 2: {
+                    stopBlock = frame.Bytes();
+                } break;
+                case 3: {
+                    previousHeader = frame.Bytes();
+                } break;
+                default: {
+                    hashes.emplace_back(frame.Bytes());
+                }
+            }
+        }
     }
 
-    filters_.AddHeaders(
-        header.at(0).as<filter::Type>(),
-        header.at(1).Bytes(),
-        header.at(2).Bytes(),
-        std::move(hashes));
+    filters_.AddHeaders(type, stopBlock, previousHeader, std::move(hashes));
 }
 
 auto Network::process_filter(network::zeromq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto& body = in.Body();
+    const auto body = in.Body();
 
     if (3 != body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
@@ -210,31 +235,39 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
     if (false == running_.get()) { return; }
 
     auto cleanup = Cleanup(processing_headers_);
-    const auto& header = in.Header();
-    const auto& body = in.Body();
-
-    if (1 > header.size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid header").Flush();
-
-        return;
-    }
-
-    if (1 > body.size()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
-
-        return;
-    }
-
     using Promise = std::promise<void>;
-    auto pPromise = std::unique_ptr<Promise>{
-        reinterpret_cast<Promise*>(header.at(0).as<std::uintptr_t>())};
+    auto pPromise = std::unique_ptr<Promise>{};
+    auto input = std::vector<ReadView>{};
+
+    {
+        auto counter{0};
+        const auto body = in.Body();
+
+        if (body.size() < 2) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
+
+            return;
+        }
+
+        for (const auto& frame : in.Body()) {
+            switch (++counter) {
+                case 1: {
+                    pPromise.reset(
+                        reinterpret_cast<Promise*>(frame.as<std::uintptr_t>()));
+                } break;
+                default: {
+                    input.emplace_back(frame.Bytes());
+                }
+            }
+        }
+    }
 
     OT_ASSERT(pPromise);
 
     auto& promise = *pPromise;
     auto headers = std::vector<std::unique_ptr<block::Header>>{};
 
-    for (const auto& header : body) {
+    for (const auto& header : input) {
         headers.emplace_back(instantiate_header(header));
     }
 
@@ -242,6 +275,25 @@ auto Network::process_header(network::zeromq::Message& in) noexcept -> void
     processing_headers_->Off();
     promise.set_value();
     Trigger();
+}
+
+auto Network::process_state_machine() noexcept -> void
+{
+    filters_.CheckBlocks();
+    peer_.Run();
+
+    try {
+        if (IsSynchronized()) {
+            state_machine_.set_value(false);
+        } else {
+            if (false == processing_headers_.get()) { peer_.RequestHeaders(); }
+
+            Sleep(std::chrono::milliseconds(20));
+
+            state_machine_.set_value(true);
+        }
+    } catch (...) {
+    }
 }
 
 auto Network::RequestFilterHeaders(
@@ -286,30 +338,24 @@ auto Network::SendToPaymentCode(
     return {};
 }
 
-auto Network::Shutdown() noexcept -> std::shared_future<void>
-{
-    shutdown_.Close();
-
-    if (running_.get()) { shutdown(shutdown_.promise_); }
-
-    return shutdown_.future_;
-}
-
 auto Network::shutdown(std::promise<void>& promise) noexcept -> void
 {
-    running_->Off();
-    shutdown_sender_.Activate();
-    Stop().get();
-    peer_.Shutdown().get();
-    filters_.Shutdown().get();
-    new_filter_headers_->Close();
-    new_filters_->Close();
-    new_headers_->Close();
-    shutdown_sender_.Close();
+    if (running_->Off()) {
+        try {
+            state_machine_.set_value(false);
+        } catch (...) {
+        }
 
-    try {
-        promise.set_value();
-    } catch (...) {
+        api_.Cancel(task_id_);
+        shutdown_sender_.Activate();
+        peer_.Shutdown().get();
+        filters_.Shutdown().get();
+        shutdown_sender_.Close();
+
+        try {
+            promise.set_value();
+        } catch (...) {
+        }
     }
 }
 
@@ -318,20 +364,11 @@ auto Network::shutdown_endpoint() noexcept -> std::string
     return std::string{"inproc://"} + Identifier::Random()->str();
 }
 
-auto Network::state_machine() noexcept -> bool
+auto Network::Submit(network::zeromq::Message& work) const noexcept -> void
 {
-    filters_.CheckBlocks();
-    peer_.Run();
+    if (false == running_.get()) { return; }
 
-    if (false == IsSynchronized()) {
-        if (false == processing_headers_.get()) { peer_.RequestHeaders(); }
-
-        Sleep(std::chrono::milliseconds(20));
-
-        return true;
-    }
-
-    return false;
+    pipeline_->Push(work);
 }
 
 auto Network::UpdateHeight(const block::Height height) const noexcept -> void
@@ -356,9 +393,13 @@ auto Network::UpdateLocalHeight(const block::Position position) const noexcept
     Trigger();
 }
 
-Network::~Network()
+auto Network::Work(const Task type) const noexcept -> OTZMQMessage
 {
-    Shutdown().get();
-    shutdown_.Close();
+    auto output = api_.ZeroMQ().Message(type);
+    output->AddFrame();
+
+    return output;
 }
+
+Network::~Network() { Shutdown().get(); }
 }  // namespace opentxs::blockchain::client::implementation

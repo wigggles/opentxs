@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,29 +16,15 @@
 #include "blockchain/p2p/bitcoin/Header.hpp"
 #include "internal/api/Api.hpp"
 #include "internal/blockchain/p2p/bitcoin/message/Message.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 
 namespace opentxs::blockchain::p2p::bitcoin::message
 {
-const std::map<filter::Type, std::uint8_t> filter_type_map_{
-    {filter::Type::Basic, 0},
-    {filter::Type::Undefined, 1},
-};
-const std::map<std::uint8_t, filter::Type> filter_type_reverse_map_{
-    reverse_map(filter_type_map_)};
-
-filter::Type DeserializeClientFilterType(const std::uint8_t type) noexcept
-{
-    try {
-        return filter_type_reverse_map_.at(type);
-    } catch (...) {
-        return filter::Type::Unknown;
-    }
-}
-
 FilterPrefixBasic::FilterPrefixBasic(
+    const blockchain::Type chain,
     const filter::Type type,
     const filter::Hash& hash) noexcept(false)
-    : type_(SerializeClientFilterType(type))
+    : type_(blockchain::internal::Serialize(chain, type))
     , hash_()
 {
     static_assert(33 == sizeof(FilterPrefixBasic));
@@ -62,16 +48,18 @@ filter::pHash FilterPrefixBasic::Hash() const noexcept
     return Data::Factory(hash_.data(), hash_.size());
 }
 
-filter::Type FilterPrefixBasic::Type() const noexcept
+filter::Type FilterPrefixBasic::Type(const blockchain::Type chain) const
+    noexcept
 {
-    return DeserializeClientFilterType(type_.value());
+    return blockchain::internal::Deserialize(chain, type_.value());
 }
 
 FilterPrefixChained::FilterPrefixChained(
+    const blockchain::Type chain,
     const filter::Type type,
     const filter::Hash& hash,
     const filter::Hash& previous) noexcept(false)
-    : type_(SerializeClientFilterType(type))
+    : type_(blockchain::internal::Serialize(chain, type))
     , hash_()
     , previous_()
 {
@@ -107,16 +95,18 @@ filter::pHash FilterPrefixChained::Stop() const noexcept
     return Data::Factory(hash_.data(), hash_.size());
 }
 
-filter::Type FilterPrefixChained::Type() const noexcept
+filter::Type FilterPrefixChained::Type(const blockchain::Type chain) const
+    noexcept
 {
-    return DeserializeClientFilterType(type_.value());
+    return blockchain::internal::Deserialize(chain, type_.value());
 }
 
 FilterRequest::FilterRequest(
+    const blockchain::Type chain,
     const filter::Type type,
     const block::Height start,
     const filter::Hash& stop) noexcept(false)
-    : type_(SerializeClientFilterType(type))
+    : type_(blockchain::internal::Serialize(chain, type))
     , start_(start)
     , stop_()
 {
@@ -144,14 +134,9 @@ filter::pHash FilterRequest::Stop() const noexcept
     return Data::Factory(stop_.data(), stop_.size());
 }
 
-filter::Type FilterRequest::Type() const noexcept
+filter::Type FilterRequest::Type(const blockchain::Type chain) const noexcept
 {
-    return DeserializeClientFilterType(type_.value());
-}
-
-std::uint8_t SerializeClientFilterType(const filter::Type type) noexcept
-{
-    return filter_type_map_.at(type);
+    return blockchain::internal::Deserialize(chain, type_.value());
 }
 
 bool VerifyChecksum(

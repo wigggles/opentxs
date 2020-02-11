@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -151,7 +151,7 @@ OTData MessageProcessor::get_connection(
     const network::zeromq::Message& incoming)
 {
     auto output = Data::Factory();
-    const auto& header = incoming.Header();
+    const auto header = incoming.Header();
 
     if (0 < header.size()) {
         const auto& frame = header.at(0);

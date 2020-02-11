@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -10,6 +10,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
@@ -46,9 +47,9 @@ auto Factory::BitcoinP2PPeerLegacy(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::PeerManager& manager,
+    const blockchain::client::internal::IO& io,
     const int id,
     std::unique_ptr<blockchain::p2p::internal::Address> address,
-    boost::asio::io_context& context,
     const std::string& shutdown) -> blockchain::p2p::internal::Peer*
 {
     namespace p2p = blockchain::p2p;
@@ -76,7 +77,7 @@ auto Factory::BitcoinP2PPeerLegacy(
     }
 
     return new ReturnType(
-        api, network, manager, shutdown, id, std::move(address), context);
+        api, network, manager, io, shutdown, id, std::move(address));
 }
 }  // namespace opentxs
 
@@ -123,10 +124,10 @@ Peer::Peer(
     const api::internal::Core& api,
     const client::internal::Network& network,
     const client::internal::PeerManager& manager,
+    const blockchain::client::internal::IO& io,
     const std::string& shutdown,
     const int id,
     std::unique_ptr<internal::Address> address,
-    boost::asio::io_context& context,
     const bool relay,
     const std::set<p2p::Service>& localServices,
     const ProtocolVersion protocol) noexcept
@@ -134,31 +135,34 @@ Peer::Peer(
           api,
           network,
           manager,
-          shutdown,
+          io,
           id,
+          shutdown,
           HeaderType::Size(),
           MessageType::MaxPayload(),
-          std::move(address),
-          context)
+          std::move(address))
     , chain_(address_.Chain())
     , protocol_((0 == protocol) ? default_protocol_version_ : protocol)
     , nonce_(nonce(api_))
     , magic_(GetMagic(chain_))
     , local_services_(get_local_services(protocol_, chain_, localServices))
     , relay_(relay)
+    , get_headers_()
 {
     init();
 }
 
-auto Peer::get_body_size() noexcept -> void
+auto Peer::get_body_size(const zmq::Frame& header) const noexcept -> std::size_t
 {
-    OT_ASSERT(HeaderType::Size() == header_->size());
+    OT_ASSERT(HeaderType::Size() == header.size());
 
     try {
-        HeaderType::BitcoinFormat header{header_};
-        body_bytes_ = header.PayloadSize();
+        auto raw = HeaderType::BitcoinFormat{header};
+
+        return raw.PayloadSize();
     } catch (...) {
-        body_bytes_ = 0;
+
+        return 0;
     }
 }
 
@@ -346,15 +350,15 @@ auto Peer::process_cfheaders(
 
     const auto& message = *pMessage;
     const auto type = message.Type();
-    auto work = zmq::Message::Factory();
-    work->AddFrame(Data::Factory(&type, sizeof(type)));
+    using Task = client::internal::Network::Task;
+    auto work = network_.Work(Task::SubmitFilterHeader);
+    work->AddFrame(type);
     work->AddFrame(message.Stop());
     work->AddFrame(message.Previous());
-    work->AddFrame();
 
     for (const auto& header : message) { work->AddFrame(header); }
 
-    network_.FilterHeaderPipeline().Push(work);
+    network_.Submit(work);
 }
 
 auto Peer::process_cfilter(
@@ -378,11 +382,12 @@ auto Peer::process_cfilter(
 
     const auto& message = *pMessage;
     const auto type = message.Type();
-    auto work = zmq::Message::Factory();
-    work->AddFrame(Data::Factory(&type, sizeof(type)));
+    using Task = client::internal::Network::Task;
+    auto work = network_.Work(Task::SubmitFilter);
+    work->AddFrame(type);
     work->AddFrame(message.Hash());
     work->AddFrame(message.Filter()->Serialize());
-    network_.FilterPipeline().Push(work);
+    network_.Submit(work);
 }
 
 auto Peer::process_cmpctblock(
@@ -665,8 +670,9 @@ auto Peer::process_headers(
     std::unique_ptr<HeaderType> header,
     const zmq::Frame& payload) -> void
 {
-    const std::unique_ptr<message::internal::Headers> pMessage{
-        Factory::BitcoinP2PHeaders(
+    get_headers_.Finish();
+    const auto pMessage =
+        std::unique_ptr<message::internal::Headers>{Factory::BitcoinP2PHeaders(
             api_,
             std::move(header),
             protocol_.load(),
@@ -688,16 +694,16 @@ auto Peer::process_headers(
     auto future = promise->get_future();
     auto pointer = reinterpret_cast<std::uintptr_t>(promise);
     const auto& message = *pMessage;
-    auto zmq = api_.ZeroMQ().Message();
-    zmq->AddFrame(pointer);
-    zmq->AddFrame();
+    using Task = client::internal::Network::Task;
+    auto work = network_.Work(Task::SubmitBlockHeader);
+    work->AddFrame(pointer);
 
-    for (const auto& header : message) { zmq->AddFrame(header.Serialize()); }
+    for (const auto& header : message) { work->AddFrame(header.Serialize()); }
 
-    network_.HeaderPipeline().Push(zmq);
+    network_.Submit(work);
 
     if (std::future_status::ready ==
-        future.wait_for(std::chrono::seconds(30))) {
+        future.wait_for(std::chrono::seconds(10))) {
         if (false == network_.IsSynchronized()) { request_headers(); }
     }
 }
@@ -785,7 +791,7 @@ auto Peer::process_message(const zmq::Message& message) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto& body = message.Body();
+    const auto body = message.Body();
 
     if (2 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message").Flush();
@@ -1050,16 +1056,6 @@ auto Peer::process_version(
         return;
     }
 
-    if ((1 == services.count(p2p::Service::Network)) ||
-        (1 == services.count(p2p::Service::Limited))) {
-        header_worker_.Start(manager_.Endpoint(Task::Getheaders));
-    }
-
-    if (1 == services.count(p2p::Service::CompactFilters)) {
-        cfheader_worker_.Start(manager_.Endpoint(Task::Getcfheaders));
-        cfilter_worker_.Start(manager_.Endpoint(Task::Getcfilters));
-    }
-
     std::unique_ptr<Message> pVerack{Factory::BitcoinP2PVerack(api_, chain_)};
 
     if (false == bool(pVerack)) {
@@ -1073,6 +1069,20 @@ auto Peer::process_version(
     send(verack.Encode());
     outgoing_handshake_ = true;
     check_handshake();
+    auto subscribe = Subscriptions::value_type{};
+
+    if ((1 == services.count(p2p::Service::Network)) ||
+        (1 == services.count(p2p::Service::Limited))) {
+        subscribe.emplace_back(Task::Getheaders);
+    }
+
+    if (1 == services.count(p2p::Service::CompactFilters)) {
+        subscribe.emplace_back(Task::Getcfheaders);
+        subscribe.emplace_back(Task::Getcfilters);
+    }
+
+    subscribe_.Push(subscribe);
+    Trigger();
 }
 
 auto Peer::request_addresses() noexcept -> void
@@ -1094,7 +1104,7 @@ auto Peer::request_cfheaders(zmq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto& body = in.Body();
+    const auto body = in.Body();
 
     if (3 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
@@ -1130,7 +1140,7 @@ auto Peer::request_cfilter(zmq::Message& in) noexcept -> void
 {
     if (false == running_.get()) { return; }
 
-    const auto& body = in.Body();
+    const auto body = in.Body();
 
     if (3 > body.size()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid work").Flush();
@@ -1168,7 +1178,9 @@ auto Peer::request_headers() noexcept -> void
 
 auto Peer::request_headers(const block::Hash& hash) noexcept -> void
 {
-    std::unique_ptr<Message> pMessage{Factory::BitcoinP2PGetheaders(
+    if (get_headers_.Running()) { return; }
+
+    auto pMessage = std::unique_ptr<Message>{Factory::BitcoinP2PGetheaders(
         api_,
         chain_,
         protocol_.load(),
@@ -1184,6 +1196,7 @@ auto Peer::request_headers(const block::Hash& hash) noexcept -> void
 
     const auto& message = *pMessage;
     send(message.Encode());
+    get_headers_.Start();
 }
 
 auto Peer::start_handshake() noexcept -> void

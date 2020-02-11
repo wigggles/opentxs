@@ -1,4 +1,4 @@
-// Copyright (c) 2010-2019 The Open-Transactions developers
+// Copyright (c) 2010-2020 The Open-Transactions developers
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -35,6 +35,20 @@ public:
      *  This endpoint is active for all session types.
      */
     OPENTXS_EXPORT virtual std::string AccountUpdate() const noexcept = 0;
+
+    /** Blockchain reorg notifications
+     *
+     *  A subscribe socket can connect to this endpoint to be notified when
+     *  any active blockchain detects a chain reorg
+     *
+     *  Messages bodies consist of three frames.
+     *   * The first frame contains the chain type
+     *   * The second frame contains the height of the common parent block
+     *   * The second frame contains the hash of the common parent block
+     *
+     *  This endpoint is active for client sessions only.
+     */
+    OPENTXS_EXPORT virtual std::string BlockchainReorg() const noexcept = 0;
 
     /** Connection state notifications
      *
@@ -165,19 +179,22 @@ public:
      */
     OPENTXS_EXPORT virtual std::string FindUnitDefinition() const noexcept = 0;
 
+    /** Communication between blockchain peers and boost::asio context
+     *
+     */
+    virtual std::string InternalBlockchainAsioContext() const noexcept = 0;
+
     /** Push notification processing
      *
      *  This socket is for use by the Sync and ServerConnection classes only
      */
-    OPENTXS_EXPORT virtual std::string InternalProcessPushNotification() const
-        noexcept = 0;
+    virtual std::string InternalProcessPushNotification() const noexcept = 0;
 
     /** Push notification initiation
      *
      *  This socket is for use by the Server and MessageProcessor classes only
      */
-    OPENTXS_EXPORT virtual std::string InternalPushNotification() const
-        noexcept = 0;
+    virtual std::string InternalPushNotification() const noexcept = 0;
 
     /** Issuer update notifications
      *
