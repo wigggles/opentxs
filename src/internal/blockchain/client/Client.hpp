@@ -8,12 +8,14 @@
 #include "Internal.hpp"
 
 #if OT_BLOCKCHAIN
+#include "opentxs/blockchain/client/BlockOracle.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/blockchain/Network.hpp"
 #include "opentxs/network/zeromq/socket/Router.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/Bytes.hpp"
 #endif  // OT_BLOCKCHAIN
 
@@ -66,6 +68,22 @@ using DisconnectedList = std::multimap<block::pHash, block::pHash>;
 namespace opentxs::blockchain::client::internal
 {
 #if OT_BLOCKCHAIN
+struct BlockOracle : virtual public opentxs::blockchain::client::BlockOracle {
+    enum class Task : OTZMQWorkType {
+        ProcessBlock = 0,
+        StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
+        Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
+    };
+
+    virtual auto SubmitBlock(const zmq::Frame& in) const noexcept -> void = 0;
+
+    virtual auto Init() noexcept -> void = 0;
+    virtual auto Run() noexcept -> void = 0;
+    virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
+
+    ~BlockOracle() override = default;
+};
+
 struct FilterDatabase {
     using Hash = block::pHash;
     /// block hash, filter header, filter hash
@@ -73,50 +91,48 @@ struct FilterDatabase {
     using Filter =
         std::pair<ReadView, std::unique_ptr<const blockchain::internal::GCS>>;
 
-    virtual block::Position FilterHeaderTip(const filter::Type type) const
-        noexcept = 0;
-    virtual block::Position FilterTip(const filter::Type type) const
-        noexcept = 0;
-    virtual bool HaveFilter(const filter::Type type, const block::Hash& block)
-        const noexcept = 0;
-    virtual bool HaveFilterHeader(
+    virtual auto FilterHeaderTip(const filter::Type type) const noexcept
+        -> block::Position = 0;
+    virtual auto FilterTip(const filter::Type type) const noexcept
+        -> block::Position = 0;
+    virtual auto HaveFilter(const filter::Type type, const block::Hash& block)
+        const noexcept -> bool = 0;
+    virtual auto HaveFilterHeader(
         const filter::Type type,
-        const block::Hash& block) const noexcept = 0;
-    virtual Hash LoadFilterHash(const filter::Type type, const ReadView block)
-        const noexcept = 0;
-    virtual Hash LoadFilterHeader(const filter::Type type, const ReadView block)
-        const noexcept = 0;
-    virtual bool SetFilterHeaderTip(
+        const block::Hash& block) const noexcept -> bool = 0;
+    virtual auto LoadFilter(const filter::Type type, const ReadView block) const
+        noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
+    virtual auto LoadFilterHash(const filter::Type type, const ReadView block)
+        const noexcept -> Hash = 0;
+    virtual auto LoadFilterHeader(const filter::Type type, const ReadView block)
+        const noexcept -> Hash = 0;
+    virtual auto SetFilterHeaderTip(
         const filter::Type type,
-        const block::Position position) const noexcept = 0;
-    virtual bool SetFilterTip(
+        const block::Position position) const noexcept -> bool = 0;
+    virtual auto SetFilterTip(
         const filter::Type type,
-        const block::Position position) const noexcept = 0;
-    virtual bool StoreFilters(
+        const block::Position position) const noexcept -> bool = 0;
+    virtual auto StoreFilters(
         const filter::Type type,
-        std::vector<Filter> filters) const noexcept = 0;
-    virtual bool StoreFilterHeaders(
+        std::vector<Filter> filters) const noexcept -> bool = 0;
+    virtual auto StoreFilterHeaders(
         const filter::Type type,
         const ReadView previous,
-        const std::vector<Header> headers) const noexcept = 0;
+        const std::vector<Header> headers) const noexcept -> bool = 0;
 
     virtual ~FilterDatabase() = default;
 };
 
 struct FilterOracle {
-    virtual void AddFilter(
-        const filter::Type type,
-        const block::Hash& block,
-        const Data& filter) const noexcept = 0;
-    virtual void AddHeaders(
-        const filter::Type type,
-        const ReadView stopBlock,
-        const ReadView previousHeader,
-        const std::vector<ReadView> hashes) const noexcept = 0;
-    virtual void CheckBlocks() const noexcept = 0;
+    virtual auto AddFilter(zmq::Message& work) const noexcept -> void = 0;
+    virtual auto AddHeaders(zmq::Message& work) const noexcept -> void = 0;
+    virtual auto CheckBlocks() const noexcept -> void = 0;
+    virtual auto DefaultType() const noexcept -> filter::Type = 0;
+    virtual auto LoadFilter(const filter::Type type, const block::Hash& block)
+        const noexcept -> std::unique_ptr<const blockchain::internal::GCS> = 0;
 
-    virtual void Start() noexcept = 0;
-    virtual std::shared_future<void> Shutdown() noexcept = 0;
+    virtual auto Start() noexcept -> void = 0;
+    virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     virtual ~FilterOracle() = default;
 };
@@ -201,30 +217,43 @@ struct Network : virtual public opentxs::blockchain::Network {
         SubmitBlockHeader = 0,
         SubmitFilterHeader = 1,
         SubmitFilter = 2,
+        SubmitBlock = 3,
         StateMachine = OT_ZMQ_STATE_MACHINE_SIGNAL,
         Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
 
-    virtual Type Chain() const noexcept = 0;
-    virtual const client::HeaderOracle& HeaderOracle() const noexcept = 0;
-    virtual bool IsSynchronized() const noexcept = 0;
-    virtual void RequestFilterHeaders(
+    virtual auto API() const noexcept -> const api::internal::Core& = 0;
+    virtual auto BlockOracle() const noexcept
+        -> const internal::BlockOracle& = 0;
+    virtual auto Chain() const noexcept -> Type = 0;
+    virtual auto DB() const noexcept -> blockchain::internal::Database& = 0;
+    virtual auto FilterOracle() const noexcept
+        -> const internal::FilterOracle& = 0;
+    virtual auto HeaderOracle() const noexcept
+        -> const internal::HeaderOracle& = 0;
+    virtual auto IsSynchronized() const noexcept -> bool = 0;
+    virtual auto Reorg() const noexcept
+        -> const network::zeromq::socket::Publish& = 0;
+    virtual auto RequestBlock(const block::Hash& block) const noexcept
+        -> bool = 0;
+    virtual auto RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
-        const block::Hash& stop) const noexcept = 0;
-    virtual const network::zeromq::socket::Publish& Reorg() const noexcept = 0;
-    virtual void RequestFilters(
+        const block::Hash& stop) const noexcept -> bool = 0;
+    virtual auto RequestFilters(
         const filter::Type type,
         const block::Height start,
-        const block::Hash& stop) const noexcept = 0;
-    virtual void Submit(network::zeromq::Message& work) const noexcept = 0;
-    virtual void UpdateHeight(const block::Height height) const noexcept = 0;
-    virtual void UpdateLocalHeight(const block::Position position) const
-        noexcept = 0;
-    virtual OTZMQMessage Work(const Task type) const noexcept = 0;
+        const block::Hash& stop) const noexcept -> bool = 0;
+    virtual auto Submit(network::zeromq::Message& work) const noexcept
+        -> void = 0;
+    virtual auto UpdateHeight(const block::Height height) const noexcept
+        -> void = 0;
+    virtual auto UpdateLocalHeight(const block::Position position) const
+        noexcept -> void = 0;
+    virtual auto Work(const Task type) const noexcept -> OTZMQMessage = 0;
 
-    virtual client::HeaderOracle& HeaderOracle() noexcept = 0;
-    virtual std::shared_future<void> Shutdown() noexcept = 0;
+    virtual auto HeaderOracle() noexcept -> client::HeaderOracle& = 0;
+    virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     virtual ~Network() = default;
 };
@@ -251,6 +280,7 @@ struct PeerManager {
         Getcfheaders = 1,
         Getcfilters = 2,
         Heartbeat = 3,
+        Getblock = 4,
         Body = 126,
         Header = 127,
         Connect = OT_ZMQ_CONNECT_SIGNAL,
@@ -262,31 +292,139 @@ struct PeerManager {
         Shutdown = OT_ZMQ_SHUTDOWN_SIGNAL,
     };
 
-    virtual bool AddPeer(const p2p::Address& address) const noexcept = 0;
-    virtual bool Connect() noexcept = 0;
-    virtual const PeerDatabase& Database() const noexcept = 0;
-    virtual void Disconnect(const int id) const noexcept = 0;
-    virtual std::string Endpoint(const Task type) const noexcept = 0;
-    virtual std::size_t GetPeerCount() const noexcept = 0;
-    virtual void RequestFilterHeaders(
+    virtual auto AddPeer(const p2p::Address& address) const noexcept
+        -> bool = 0;
+    virtual auto Connect() noexcept -> bool = 0;
+    virtual auto Database() const noexcept -> const PeerDatabase& = 0;
+    virtual auto Disconnect(const int id) const noexcept -> void = 0;
+    virtual auto Endpoint(const Task type) const noexcept -> std::string = 0;
+    virtual auto GetPeerCount() const noexcept -> std::size_t = 0;
+    virtual auto RequestBlock(const block::Hash& block) const noexcept
+        -> bool = 0;
+    virtual auto RequestFilterHeaders(
         const filter::Type type,
         const block::Height start,
-        const block::Hash& stop) const noexcept = 0;
-    virtual void RequestFilters(
+        const block::Hash& stop) const noexcept -> bool = 0;
+    virtual auto RequestFilters(
         const filter::Type type,
         const block::Height start,
-        const block::Hash& stop) const noexcept = 0;
-    virtual void RequestHeaders() const noexcept = 0;
+        const block::Hash& stop) const noexcept -> bool = 0;
+    virtual auto RequestHeaders() const noexcept -> bool = 0;
 
-    virtual void init() noexcept = 0;
-    virtual void Run() noexcept = 0;
-    virtual std::shared_future<void> Shutdown() noexcept = 0;
+    virtual auto init() noexcept -> void = 0;
+    virtual auto Run() noexcept -> void = 0;
+    virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
 
     virtual ~PeerManager() = default;
 };
-#endif  // OT_BLOCKCHAIN
+
+struct ThreadPool {
+    using Future = std::shared_future<void>;
+
+    enum class Work : OTZMQWorkType {
+        Wallet = 0,
+    };
+
+    virtual auto Endpoint() const noexcept -> std::string = 0;
+    virtual auto Reset(const Type chain) const noexcept -> void = 0;
+    virtual auto Stop(const Type chain) const noexcept -> Future = 0;
+
+    virtual ~ThreadPool() = default;
+};
 
 struct Wallet {
+    enum class Task : OTZMQWorkType {
+        index = 0,
+        scan = 1,
+        process = 2,
+    };
+
+    static auto ProcessTask(const zmq::Message& task) noexcept -> void;
+
+    virtual auto Init() noexcept -> void = 0;
+    virtual auto Run() noexcept -> void = 0;
+    virtual auto Shutdown() noexcept -> std::shared_future<void> = 0;
+
     virtual ~Wallet() = default;
 };
+
+struct WalletDatabase {
+    using FilterType = filter::Type;
+    using NodeID = Identifier;
+    using pNodeID = OTIdentifier;
+    using Subchain = api::client::blockchain::Subchain;
+    using SubchainID = std::pair<Subchain, pNodeID>;
+    using ElementID = std::pair<Bip32Index, SubchainID>;
+    using ElementMap = std::map<Bip32Index, std::vector<Space>>;
+    using Pattern = std::pair<ElementID, Space>;
+    using Patterns = std::vector<Pattern>;
+    using MatchingIndices = std::vector<Bip32Index>;
+
+    static const VersionNumber DefaultIndexVersion;
+
+    virtual auto GetPatterns(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const VersionNumber version = DefaultIndexVersion) const noexcept
+        -> Patterns = 0;
+    virtual auto GetUntestedPatterns(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const ReadView blockID,
+        const VersionNumber version = DefaultIndexVersion) const noexcept
+        -> Patterns = 0;
+    virtual auto SubchainAddElements(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const ElementMap& elements,
+        const VersionNumber version = DefaultIndexVersion) const noexcept
+        -> bool = 0;
+    virtual auto SubchainDropIndex(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const VersionNumber version) const noexcept -> bool = 0;
+    virtual auto SubchainIndexVersion(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type) const noexcept -> VersionNumber = 0;
+    virtual auto SubchainLastIndexed(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const VersionNumber version = DefaultIndexVersion) const noexcept
+        -> std::optional<Bip32Index> = 0;
+    virtual auto SubchainMatchBlock(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const MatchingIndices& indices,
+        const ReadView blockID,
+        const VersionNumber version = DefaultIndexVersion) const noexcept
+        -> bool = 0;
+    virtual auto SubchainLastProcessed(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type) const noexcept -> block::Position = 0;
+    virtual auto SubchainLastScanned(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type) const noexcept -> block::Position = 0;
+    virtual auto SubchainSetLastProcessed(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const block::Position& position) const noexcept -> bool = 0;
+    virtual auto SubchainSetLastScanned(
+        const NodeID& balanceNode,
+        const Subchain subchain,
+        const FilterType type,
+        const block::Position& position) const noexcept -> bool = 0;
+
+    virtual ~WalletDatabase() = default;
+};
+#endif  // OT_BLOCKCHAIN
 }  // namespace opentxs::blockchain::client::internal

@@ -161,6 +161,12 @@ OTZMQDealerSocket Context::DealerSocket(
         Factory::DealerSocket(*this, static_cast<bool>(direction), callback)};
 }
 
+OTZMQFrame Context::Frame(const void* input, const std::size_t size) const
+    noexcept
+{
+    return OTZMQFrame{Factory::ZMQFrame(input, size)};
+}
+
 OTZMQMessage Context::Message() const noexcept
 {
     return OTZMQMessage{Factory::ZMQMessage()};

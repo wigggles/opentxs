@@ -53,8 +53,8 @@ public:
         const std::size_t bytes,
         Data& output) const noexcept final;
     bool SipHash(
-        const OTPassword& key,
-        const Data& data,
+        const ReadView key,
+        const ReadView data,
         std::uint64_t& output,
         const int c,
         const int d) const noexcept final;

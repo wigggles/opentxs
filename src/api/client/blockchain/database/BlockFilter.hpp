@@ -24,6 +24,8 @@ public:
         noexcept -> bool;
     auto HaveFilterHeader(const FilterType type, const ReadView blockHash) const
         noexcept -> bool;
+    auto LoadFilter(const FilterType type, const ReadView blockHash) const
+        noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>;
     auto LoadFilterHash(
         const FilterType type,
         const ReadView blockHash,
@@ -48,6 +50,7 @@ private:
     static const std::uint32_t blockchain_filter_version_{1};
     static const std::uint32_t blockchain_filters_version_{1};
 
+    const api::internal::Core& api_;
     opentxs::storage::lmdb::LMDB& lmdb_;
 
     static auto translate_filter(const FilterType type) noexcept(false)

@@ -10,77 +10,63 @@ namespace opentxs::blockchain::implementation
 class GCS final : virtual public internal::GCS
 {
 public:
-    OTData Encode() const noexcept final;
-    OTData Hash() const noexcept final;
-    proto::GCS Serialize() const noexcept final;
-    bool Test(const Data& target) const noexcept final;
-    bool Test(const std::vector<OTData>& targets) const noexcept final;
+    auto Compressed() const noexcept -> Space final;
+    auto ElementCount() const noexcept -> std::uint32_t final { return count_; }
+    auto Encode() const noexcept -> OTData final;
+    auto Hash() const noexcept -> OTData final;
+    auto Match(const Targets&) const noexcept -> Matches final;
+    auto Serialize() const noexcept -> proto::GCS final;
+    auto Test(const Data& target) const noexcept -> bool final;
+    auto Test(const ReadView target) const noexcept -> bool final;
+    auto Test(const std::vector<OTData>& targets) const noexcept -> bool final;
+    auto Test(const std::vector<Space>& targets) const noexcept -> bool final;
+
+    GCS(const api::internal::Core& api,
+        const std::uint8_t bits,
+        const std::uint32_t fpRate,
+        const std::uint32_t filterElementCount,
+        const ReadView key,
+        const ReadView encoded)
+    noexcept(false);
+    GCS(const api::internal::Core& api,
+        const std::uint8_t bits,
+        const std::uint32_t fpRate,
+        const ReadView key,
+        const std::vector<OTData>& elements)
+    noexcept(false);
 
     ~GCS() final = default;
 
 private:
     friend opentxs::Factory;
 
-    using BitReader = internal::BitReader;
-    using BitWriter = internal::BitWriter;
-
-    static const int siphash_c_{2};
-    static const int siphash_d_{4};
+    using Elements = std::vector<std::uint64_t>;
 
     const VersionNumber version_;
     const api::internal::Core& api_;
-    const std::uint32_t bits_;
+    const std::uint8_t bits_;
     const std::uint32_t false_positive_rate_;
+    const std::uint32_t count_;
+    const std::optional<Elements> elements_;
+    const OTData compressed_;
     const OTData key_;
-    const std::size_t filter_elements_;
-    const OTData filter_;
 
-    static OTData build_gcs(
-        const api::internal::Core& api,
-        const std::uint32_t bits,
-        const std::uint32_t fpRate,
-        const Data& key,
-        const std::vector<OTData>& elements) noexcept;
-    static void golomb_encode(
-        const std::uint32_t bits,
-        BitWriter& stream,
-        std::uint64_t delta) noexcept;
-    static std::uint64_t hash_to_range(
-        const api::internal::Core& api,
-        const Data& key,
-        const std::uint64_t maxRange,
-        const Data& item) noexcept;
-    static std::set<std::uint64_t> hashed_set_construct(
-        const api::internal::Core& api,
-        const std::uint32_t fpRate,
-        const std::size_t elementCount,
-        const Data& key,
-        const std::vector<OTData>& elements) noexcept;
-    static std::uint64_t siphash(
-        const api::internal::Core& api,
-        const Data& key,
-        const Data& item) noexcept;
+    static auto transform(const std::vector<OTData>& in) noexcept
+        -> std::vector<ReadView>;
+    static auto transform(const std::vector<Space>& in) noexcept
+        -> std::vector<ReadView>;
 
-    std::uint64_t golomb_decode(BitReader& stream) const noexcept;
-    std::uint64_t siphash(const Data& item) const noexcept;
-    std::uint64_t hash_to_range(const Data& item, const std::uint64_t maxRange)
-        const noexcept;
-    std::set<std::uint64_t> hashed_set_construct(
-        const std::vector<OTData>& elements) const noexcept;
+    auto decompress() const noexcept -> const Elements&;
+    auto hashed_set_construct(const std::vector<OTData>& elements) const
+        noexcept -> std::vector<std::uint64_t>;
+    auto hashed_set_construct(const std::vector<Space>& elements) const noexcept
+        -> std::vector<std::uint64_t>;
+    auto hashed_set_construct(const std::vector<ReadView>& elements) const
+        noexcept -> std::vector<std::uint64_t>;
+    auto test(const std::vector<std::uint64_t>& targetHashes) const noexcept
+        -> bool;
+    auto hash_to_range(const ReadView in) const noexcept -> std::uint64_t;
 
-    GCS(const api::internal::Core& api,
-        const std::uint32_t bits,
-        const std::uint32_t fpRate,
-        const Data& key,
-        const std::size_t filterElementCount,
-        const Data& filter)
-    noexcept(false);
-    GCS(const api::internal::Core& api,
-        const std::uint32_t bits,
-        const std::uint32_t fpRate,
-        const Data& key,
-        const std::vector<OTData>& elements)
-    noexcept(false);
     GCS() = delete;
     GCS(const GCS&) = delete;
     GCS(GCS&&) = delete;

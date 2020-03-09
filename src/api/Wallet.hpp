@@ -293,6 +293,7 @@ private:
     OTZMQPublishSocket account_publisher_;
     OTZMQPublishSocket issuer_publisher_;
     OTZMQPublishSocket nym_publisher_;
+    OTZMQPublishSocket nym_created_publisher_;
     OTZMQPublishSocket server_publisher_;
     OTZMQPublishSocket peer_reply_publisher_;
     OTZMQPublishSocket peer_request_publisher_;

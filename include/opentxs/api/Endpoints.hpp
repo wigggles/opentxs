@@ -184,6 +184,17 @@ public:
      */
     virtual std::string InternalBlockchainAsioContext() const noexcept = 0;
 
+    /** Notification of blockchain block filter updates
+     *
+     */
+    virtual std::string InternalBlockchainFilterUpdated(
+        const opentxs::blockchain::Type chain) const noexcept = 0;
+
+    /** Load balancing thread pool shared by all blockchains
+     *
+     */
+    virtual std::string InternalBlockchainThreadPool() const noexcept = 0;
+
     /** Push notification processing
      *
      *  This socket is for use by the Sync and ServerConnection classes only
@@ -207,6 +218,18 @@ public:
      *  This endpoint is active for client sessions only.
      */
     OPENTXS_EXPORT virtual std::string IssuerUpdate() const noexcept = 0;
+
+    /** Nym created notifications
+     *
+     *  A subscribe socket can connect to this endpoint to be notified when
+     *  a new nym is created
+     *
+     *  Messages bodies consist of one frame.
+     *   * The frame contains the nym ID as a serialized string
+     *
+     *  This endpoint is active for all session types.
+     */
+    OPENTXS_EXPORT virtual std::string NymCreated() const noexcept = 0;
 
     /** Nym update notifications
      *

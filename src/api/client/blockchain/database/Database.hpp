@@ -12,6 +12,7 @@
 
 #include "internal/api/client/blockchain/Blockchain.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 #include "util/LMDB.hpp"
 #include "BlockFilter.hpp"
 #include "BlockHeaders.hpp"
@@ -59,6 +60,11 @@ public:
         noexcept(false) -> proto::BlockchainBlockHeader
     {
         return headers_.LoadBlockHeader(hash);
+    }
+    auto LoadFilter(const FilterType type, const ReadView blockHash) const
+        noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>
+    {
+        return filters_.LoadFilter(type, blockHash);
     }
     auto LoadFilterHash(
         const FilterType type,

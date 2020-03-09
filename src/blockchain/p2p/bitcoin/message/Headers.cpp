@@ -75,8 +75,8 @@ blockchain::p2p::bitcoin::message::internal::Headers* Factory::
                 return nullptr;
             }
 
-            std::unique_ptr<blockchain::block::bitcoin::Header> pHeader{
-                Factory::BitcoinBlockHeader(api, Data::Factory(it, 80))};
+            auto pHeader = Factory::BitcoinBlockHeader(
+                api, ReadView{reinterpret_cast<const char*>(it), 80});
 
             OT_ASSERT(pHeader);
 

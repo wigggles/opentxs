@@ -391,8 +391,7 @@ std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
 {
     switch (type) {
         case blockchain::Type::Bitcoin: {
-            return std::unique_ptr<blockchain::block::Header>(
-                opentxs::Factory::BitcoinBlockHeader(api_, raw));
+            return opentxs::Factory::BitcoinBlockHeader(api_, raw.Bytes());
         }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(

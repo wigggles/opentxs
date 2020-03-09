@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/Proto.tpp"
 
 #include "internal/blockchain/Blockchain.hpp"
 
@@ -17,9 +18,10 @@
 namespace opentxs::api::client::blockchain::database::implementation
 {
 BlockFilter::BlockFilter(
-    [[maybe_unused]] const api::internal::Core& api,
+    const api::internal::Core& api,
     opentxs::storage::lmdb::LMDB& lmdb) noexcept(false)
-    : lmdb_(lmdb)
+    : api_(api)
+    , lmdb_(lmdb)
 {
 }
 
@@ -44,6 +46,24 @@ auto BlockFilter::HaveFilterHeader(
 
         return false;
     }
+}
+
+auto BlockFilter::LoadFilter(const FilterType type, const ReadView blockHash)
+    const noexcept -> std::unique_ptr<const opentxs::blockchain::internal::GCS>
+{
+    auto output = std::unique_ptr<const opentxs::blockchain::internal::GCS>{};
+    auto cb = [this, &output](const auto in) {
+        if ((nullptr == in.data()) || (0 == in.size())) { return; }
+
+        output = opentxs::Factory::GCS(api_, proto::Factory<proto::GCS>(in));
+    };
+
+    try {
+        lmdb_.Load(translate_filter(type), blockHash, cb);
+    } catch (...) {
+    }
+
+    return output;
 }
 
 auto BlockFilter::LoadFilterHash(

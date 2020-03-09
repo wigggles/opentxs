@@ -7,16 +7,20 @@ add_subdirectory(bitcoin)
 
 set(
   cxx-sources
+  BlockOracle.cpp
   Client.cpp
   FilterOracle.cpp
+  HDStateData.cpp
   HeaderOracle.cpp
   Network.cpp
   PeerManager.cpp
   UpdateTransaction.cpp
+  Wallet.cpp
 )
 
 set(
   cxx-install-headers
+  "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/client/BlockOracle.hpp"
   "${opentxs_SOURCE_DIR}/include/opentxs/blockchain/client/HeaderOracle.hpp"
 )
 
@@ -24,11 +28,14 @@ set(
   cxx-headers
   ${cxx-install-headers}
   "${opentxs_SOURCE_DIR}/src/internal/blockchain/client/Client.hpp"
+  BlockOracle.hpp
   FilterOracle.hpp
+  HDStateData.hpp
   HeaderOracle.hpp
   Network.hpp
   PeerManager.hpp
   UpdateTransaction.hpp
+  Wallet.hpp
 )
 
 add_library(opentxs-blockchain-client OBJECT ${cxx-sources} ${cxx-headers})

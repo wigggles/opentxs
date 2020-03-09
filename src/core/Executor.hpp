@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
@@ -113,7 +114,7 @@ private:
 
         while (running_.get()) {
             if (std::future_status::ready ==
-                future.wait_for(std::chrono::milliseconds(10))) {
+                future.wait_for(std::chrono::milliseconds(1))) {
                 return future.get();
             }
         }

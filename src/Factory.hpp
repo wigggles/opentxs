@@ -199,17 +199,25 @@ public:
     static auto Bip39(const api::Crypto& api) noexcept
         -> std::unique_ptr<crypto::Bip39>;
 #if OT_BLOCKCHAIN
-    static blockchain::block::bitcoin::internal::Header* BitcoinBlockHeader(
+    static auto BitcoinBlock(
         const api::internal::Core& api,
-        const proto::BlockchainBlockHeader& serialized);
-    static blockchain::block::bitcoin::internal::Header* BitcoinBlockHeader(
+        const blockchain::Type chain,
+        const ReadView in) noexcept
+        -> std::shared_ptr<blockchain::block::bitcoin::Block>;
+    static auto BitcoinBlockHeader(
         const api::internal::Core& api,
-        const Data& raw);
-    static blockchain::block::bitcoin::internal::Header* BitcoinBlockHeader(
+        const proto::BlockchainBlockHeader& serialized) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
+    static auto BitcoinBlockHeader(
+        const api::internal::Core& api,
+        const ReadView bytes) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
+    static auto BitcoinBlockHeader(
         const api::internal::Core& api,
         const blockchain::block::Hash& hash,
         const blockchain::block::Hash& parent,
-        const blockchain::block::Height height);
+        const blockchain::block::Height height) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
     static blockchain::p2p::bitcoin::message::internal::Addr* BitcoinP2PAddr(
         const api::internal::Core& api,
         std::unique_ptr<blockchain::p2p::bitcoin::Header> pHeader,
@@ -607,6 +615,13 @@ public:
         const std::string& userAgent,
         const blockchain::block::Height height,
         const bool relay);
+    static auto BitcoinTransaction(
+        const api::internal::Core& api,
+        const blockchain::Type chain,
+        const bool isGeneration,
+        Space&& txid,
+        blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
+        -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
 #endif  // OT_BLOCKCHAIN
     static api::client::Blockchain* BlockchainAPI(
         const api::client::internal::Manager& api,
@@ -676,6 +691,19 @@ public:
         const std::string& seednode,
         const std::string& shutdown) noexcept
         -> std::unique_ptr<blockchain::client::internal::PeerManager>;
+    OPENTXS_EXPORT static auto BlockchainWallet(
+        const api::internal::Core& api,
+        const api::client::internal::Blockchain& blockchain,
+        const blockchain::client::internal::Network& parent,
+        const blockchain::Type chain,
+        const std::string& shutdown)
+        -> std::unique_ptr<blockchain::client::internal::Wallet>;
+    static auto BlockOracle(
+        const api::internal::Core& api,
+        const blockchain::client::internal::Network& network,
+        const blockchain::Type type,
+        const std::string& shutdown) noexcept
+        -> std::unique_ptr<blockchain::client::internal::BlockOracle>;
     OPENTXS_EXPORT static auto BloomFilter(
         const api::internal::Core& api,
         const std::uint32_t tweak,
@@ -916,23 +944,27 @@ public:
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT static auto GCS(
         const api::internal::Core& api,
-        const std::uint32_t bits,
+        const std::uint8_t bits,
         const std::uint32_t fpRate,
-        const std::array<std::byte, 16>& key,
-        const std::vector<OTData>& elements) -> blockchain::internal::GCS*;
+        const ReadView key,
+        const std::vector<OTData>& elements) noexcept
+        -> std::unique_ptr<blockchain::internal::GCS>;
     OPENTXS_EXPORT static auto GCS(
         const api::internal::Core& api,
-        const proto::GCS& serialized) -> blockchain::internal::GCS*;
+        const proto::GCS& serialized) noexcept
+        -> std::unique_ptr<blockchain::internal::GCS>;
     OPENTXS_EXPORT static auto GCS(
         const api::internal::Core& api,
-        const std::uint32_t bits,
+        const std::uint8_t bits,
         const std::uint32_t fpRate,
-        const std::array<std::byte, 16>& key,
-        const std::size_t filterElementCount,
-        const Data& filter) -> blockchain::internal::GCS*;
+        const ReadView key,
+        const std::uint32_t filterElementCount,
+        const ReadView filter) noexcept
+        -> std::unique_ptr<blockchain::internal::GCS>;
     OPENTXS_EXPORT static auto GenesisBlockHeader(
         const api::internal::Core& api,
-        const blockchain::Type type) -> blockchain::block::Header*;
+        const blockchain::Type type) noexcept
+        -> std::unique_ptr<blockchain::block::Header>;
 #endif  // OT_BLOCKCHAIN
     static auto Hash(
         const api::crypto::Encode& encode,

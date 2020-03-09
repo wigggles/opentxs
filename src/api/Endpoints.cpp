@@ -16,7 +16,9 @@
 
 #define ACCOUNT_UPDATE_ENDPOINT "accountupdate"
 #define BLOCKCHAIN_ASIO_ENDPOINT "blockchain/asio"
+#define BLOCKCHAIN_FILTER_UPDATED "blockchain/filter/"
 #define BLOCKCHAIN_REORG_ENDPOINT "blockchain/reorg"
+#define BLOCKCHAIN_THREAD_POOL_ENDPOINT "blockchain/thread_pool"
 #define CONNECTION_STATUS_ENDPOINT "connectionstatus"
 #define CONTACT_UPDATE_ENDPOINT "contactupdate"
 #define DHT_NYM_REQUEST_ENDPOINT "dht/requestnym"
@@ -28,6 +30,7 @@
 #define INTERNAL_PROCESS_PUSH_NOTIFICATION_ENDPOINT "client/receivenotification"
 #define INTERNAL_PUSH_NOTIFICATION_ENDPOINT "server/sendnotification"
 #define ISSUER_UPDATE_ENDPOINT "issuerupdate"
+#define NYM_CREATED_ENDPOINT "nymcreated"
 #define NYM_UPDATE_ENDPOINT "nymupdate"
 #define PAIR_EVENT_ENDPOINT "pairevent"
 #define PEER_REPLY_UPDATE_ENDPOINT "peerreplyupdate"
@@ -132,6 +135,21 @@ auto Endpoints::InternalBlockchainAsioContext() const noexcept -> std::string
     return build_inproc_path(BLOCKCHAIN_ASIO_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
+auto Endpoints::InternalBlockchainFilterUpdated(
+    const opentxs::blockchain::Type chain) const noexcept -> std::string
+{
+    auto path = std::string{BLOCKCHAIN_FILTER_UPDATED} +
+                std::to_string(static_cast<std::uint32_t>(chain));
+
+    return build_inproc_path(path, ENDPOINT_VERSION_1);
+}
+
+auto Endpoints::InternalBlockchainThreadPool() const noexcept -> std::string
+{
+    return build_inproc_path(
+        BLOCKCHAIN_THREAD_POOL_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
 auto Endpoints::InternalProcessPushNotification() const noexcept -> std::string
 {
     return build_inproc_path(
@@ -147,6 +165,11 @@ auto Endpoints::InternalPushNotification() const noexcept -> std::string
 auto Endpoints::IssuerUpdate() const noexcept -> std::string
 {
     return build_inproc_path(ISSUER_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+auto Endpoints::NymCreated() const noexcept -> std::string
+{
+    return build_inproc_path(NYM_CREATED_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
 auto Endpoints::NymDownload() const noexcept -> std::string

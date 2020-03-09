@@ -66,8 +66,8 @@ public:
         const std::size_t bytes,
         Data& output) const noexcept = 0;
     OPENTXS_EXPORT virtual bool SipHash(
-        const OTPassword& key,
-        const Data& data,
+        const ReadView key,
+        const ReadView data,
         std::uint64_t& output,
         const int c = 2,
         const int d = 4) const noexcept = 0;

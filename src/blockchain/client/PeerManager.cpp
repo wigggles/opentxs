@@ -75,32 +75,40 @@ const std::map<Type, std::uint16_t> PeerManager::default_port_map_{
 };
 const std::map<Type, std::vector<std::string>> PeerManager::dns_seeds_{
     {Type::Bitcoin,
-     {"seed.bitcoin.sipa.be",
-      "dnsseed.bluematt.me",
-      "dnsseed.bitcoin.dashjr.org",
-      "seed.bitcoinstats.com",
-      "seed.bitcoin.jonasschnelli.ch",
-      "seed.btc.petertodd.org",
-      "seed.bitcoin.sprovoost.nl",
-      "dnsseed.emzy.de"}},
+     {
+         "seed.bitcoin.sipa.be",
+         "dnsseed.bluematt.me",
+         "dnsseed.bitcoin.dashjr.org",
+         "seed.bitcoinstats.com",
+         "seed.bitcoin.jonasschnelli.ch",
+         "seed.btc.petertodd.org",
+         "seed.bitcoin.sprovoost.nl",
+         "dnsseed.emzy.de",
+     }},
     {Type::Bitcoin_testnet3,
-     {"testnet-seed.bitcoin.jonasschnelli.ch",
-      "seed.tbtc.petertodd.org",
-      "seed.testnet.bitcoin.sprovoost.nl",
-      "testnet-seed.bluematt.me"}},
+     {
+         "testnet-seed.bitcoin.jonasschnelli.ch",
+         "seed.tbtc.petertodd.org",
+         "seed.testnet.bitcoin.sprovoost.nl",
+         "testnet-seed.bluematt.me",
+     }},
     {Type::BitcoinCash,
-     {"seed.bitcoinabc.org",
-      "seed-abc.bitcoinforks.org",
-      "btccash-seeder.bitcoinunlimited.info",
-      "seed.bitprim.org",
-      "seed.deadalnix.me",
-      "seed.bchd.cash"}},
+     {
+         "seed.bitcoinabc.org",
+         "seed-abc.bitcoinforks.org",
+         "btccash-seeder.bitcoinunlimited.info",
+         "seed.deadalnix.me",
+         "seed.bchd.cash",
+         "dnsseed.electroncash.de",
+     }},
     {Type::BitcoinCash_testnet3,
-     {"testnet-seed.bitcoinabc.org",
-      "testnet-seed-abc.bitcoinforks.org",
-      "testnet-seed.bitprim.org",
-      "testnet-seed.deadalnix.me",
-      "testnet-seed.bchd.cash"}},
+     {
+         "testnet-seed.bitcoinabc.org",
+         "testnet-seed-abc.bitcoinforks.org",
+         "testnet-seed.bitprim.org",
+         "testnet-seed.deadalnix.me",
+         "testnet-seed.bchd.cash",
+     }},
 };
 const std::map<Type, p2p::Protocol> PeerManager::protocol_map_{
     {Type::Unknown, p2p::Protocol::bitcoin},
@@ -148,12 +156,14 @@ PeerManager::Jobs::Jobs(const api::internal::Core& api) noexcept
     , getcfilters_(
           api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , heartbeat_(api.ZeroMQ().PublishSocket())
+    , getblock_(api.ZeroMQ().PushSocket(zmq::socket::Socket::Direction::Bind))
     , endpoint_map_()
     , socket_map_({
           {Task::Getheaders, &getheaders_.get()},
           {Task::Getcfheaders, &getcfheaders_.get()},
           {Task::Getcfilters, &getcfilters_.get()},
           {Task::Heartbeat, &heartbeat_.get()},
+          {Task::Getblock, &getblock_.get()},
       })
 {
     // NOTE endpoint_map_ should never be modified after construction
@@ -161,6 +171,7 @@ PeerManager::Jobs::Jobs(const api::internal::Core& api) noexcept
     listen(Task::Getcfheaders, getcfheaders_);
     listen(Task::Getcfilters, getcfilters_);
     listen(Task::Heartbeat, heartbeat_);
+    listen(Task::Getblock, getblock_);
 }
 
 PeerManager::Peers::Peers(
@@ -660,45 +671,64 @@ auto PeerManager::pipeline(zmq::Message& message) noexcept -> void
     }
 }
 
+auto PeerManager::RequestBlock(const block::Hash& block) const noexcept -> bool
+{
+    if (false == running_.get()) { return false; }
+
+    if (0 == peers_.Count()) { return false; }
+
+    auto work = jobs_.Work(Task::Getblock);
+    work->AddFrame(block);
+    jobs_.Dispatch(work);
+
+    return true;
+}
+
 auto PeerManager::RequestFilterHeaders(
     const filter::Type type,
     const block::Height start,
-    const block::Hash& stop) const noexcept -> void
+    const block::Hash& stop) const noexcept -> bool
 {
-    if (false == running_.get()) { return; }
+    if (false == running_.get()) { return false; }
 
-    if (0 == peers_.Count()) { return; }
+    if (0 == peers_.Count()) { return false; }
 
     auto work = jobs_.Work(Task::Getcfheaders);
     work->AddFrame(type);
     work->AddFrame(start);
     work->AddFrame(stop);
     jobs_.Dispatch(work);
+
+    return true;
 }
 
 auto PeerManager::RequestFilters(
     const filter::Type type,
     const block::Height start,
-    const block::Hash& stop) const noexcept -> void
+    const block::Hash& stop) const noexcept -> bool
 {
-    if (false == running_.get()) { return; }
+    if (false == running_.get()) { return false; }
 
-    if (0 == peers_.Count()) { return; }
+    if (0 == peers_.Count()) { return false; }
 
     auto work = jobs_.Work(Task::Getcfilters);
     work->AddFrame(type);
     work->AddFrame(start);
     work->AddFrame(stop);
     jobs_.Dispatch(work);
+
+    return true;
 }
 
-auto PeerManager::RequestHeaders() const noexcept -> void
+auto PeerManager::RequestHeaders() const noexcept -> bool
 {
-    if (false == running_.get()) { return; }
+    if (false == running_.get()) { return false; }
 
-    if (0 == peers_.Count()) { return; }
+    if (0 == peers_.Count()) { return false; }
 
     jobs_.Dispatch(Task::Getheaders);
+
+    return true;
 }
 
 auto PeerManager::shutdown(std::promise<void>& promise) noexcept -> void

@@ -18,9 +18,15 @@ class Frame final : virtual public zeromq::Frame
 public:
     operator std::string() const noexcept final;
 
-    ReadView Bytes() const noexcept final;
-    const void* data() const noexcept final { return zmq_msg_data(&message_); }
-    std::size_t size() const noexcept final { return zmq_msg_size(&message_); }
+    auto Bytes() const noexcept -> ReadView final;
+    auto data() const noexcept -> const void* final
+    {
+        return zmq_msg_data(&message_);
+    }
+    auto size() const noexcept -> std::size_t final
+    {
+        return zmq_msg_size(&message_);
+    }
 
     operator zmq_msg_t*() noexcept final { return &message_; }
 

@@ -122,6 +122,7 @@ enum class Subchain : std::uint8_t {
     External = 2,
     Incoming = 3,
     Outgoing = 4,
+    None = 255,
 };
 
 /// transaction id, output index

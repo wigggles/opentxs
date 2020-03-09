@@ -31,6 +31,8 @@
 #define MESSAGE_SUCCESS_TRUE 1
 #define FIRST_REQUEST_NUMBER 1
 
+#define OT_ZMQ_NEW_FILTER_SIGNAL 246
+#define OT_ZMQ_NEW_NYM_SIGNAL 247
 #define OT_ZMQ_CONNECT_SIGNAL 248
 #define OT_ZMQ_DISCONNECT_SIGNAL 249
 #define OT_ZMQ_RECEIVE_SIGNAL 250
@@ -169,6 +171,10 @@ namespace blockchain
 namespace bitcoin
 {
 class CompactSize;
+struct EncodedInput;
+struct EncodedOutpoint;
+struct EncodedOutput;
+struct EncodedTransaction;
 class Inventory;
 }  // namespace bitcoin
 
@@ -187,6 +193,7 @@ namespace client
 {
 namespace internal
 {
+struct BlockOracle;
 struct FilterDatabase;
 struct FilterOracle;
 struct HeaderDatabase;
@@ -195,6 +202,7 @@ struct IO;
 struct Network;
 struct PeerDatabase;
 struct PeerManager;
+struct ThreadPool;
 struct Wallet;
 }  // namespace internal
 

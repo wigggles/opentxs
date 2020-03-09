@@ -12,35 +12,39 @@ namespace opentxs::network::zeromq::implementation
 class Message : virtual public zeromq::Message
 {
 public:
-    const Frame& at(const std::size_t index) const final;
-    FrameIterator begin() const final;
-    const FrameSection Body() const final;
-    const Frame& Body_at(const std::size_t index) const final;
-    FrameIterator Body_begin() const final;
-    FrameIterator Body_end() const final;
-    FrameIterator end() const final;
-    const FrameSection Header() const final;
-    const Frame& Header_at(const std::size_t index) const final;
-    FrameIterator Header_begin() const final;
-    FrameIterator Header_end() const final;
-    std::size_t size() const final;
+    auto at(const std::size_t index) const -> const Frame& final;
+    auto begin() const -> FrameIterator final;
+    auto Body() const -> const FrameSection final;
+    auto Body_at(const std::size_t index) const -> const Frame& final;
+    auto Body_begin() const -> FrameIterator final;
+    auto Body_end() const -> FrameIterator final;
+    auto end() const -> FrameIterator final;
+    auto Header() const -> const FrameSection final;
+    auto Header_at(const std::size_t index) const -> const Frame& final;
+    auto Header_begin() const -> FrameIterator final;
+    auto Header_end() const -> FrameIterator final;
+    auto size() const -> std::size_t final;
 
-    Frame& AddFrame() final;
-    Frame& AddFrame(const ProtobufType& input) final;
-    Frame& AddFrame(const void* input, const std::size_t size) final;
-    Frame& at(const std::size_t index) final;
+    auto AddFrame() -> Frame& final;
+    auto AddFrame(const ProtobufType& input) -> Frame& final;
+    auto AddFrame(const void* input, const std::size_t size) -> Frame& final;
+    auto at(const std::size_t index) -> Frame& final;
 
-    void EnsureDelimiter() final;
-    void PrependEmptyFrame() final;
+    auto Body() -> FrameSection final;
+    auto EnsureDelimiter() -> void final;
+    auto Header() -> FrameSection final;
+    auto PrependEmptyFrame() -> void final;
+    auto Replace(const std::size_t index, OTZMQFrame&& frame) -> Frame& final;
 
     ~Message() override = default;
 
 protected:
     std::vector<OTZMQFrame> messages_{};
 
-    std::size_t body_position() const;
+    auto body_position() const -> std::size_t;
 
-    bool set_field(const std::size_t position, const zeromq::Frame& input);
+    auto set_field(const std::size_t position, const zeromq::Frame& input)
+        -> bool;
 
     Message();
     Message(const Message& rhs);
@@ -49,9 +53,9 @@ private:
     friend opentxs::Factory;
     friend network::zeromq::Message;
 
-    Message* clone() const override { return new Message(*this); }
-    bool hasDivider() const;
-    std::size_t findDivider() const;
+    auto clone() const -> Message* override { return new Message(*this); }
+    auto hasDivider() const -> bool;
+    auto findDivider() const -> std::size_t;
 
     Message(Message&&) = delete;
     Message& operator=(const Message&) = delete;

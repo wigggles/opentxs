@@ -13,22 +13,24 @@ class FilterOracle final : virtual public internal::FilterOracle,
                            public Executor<FilterOracle>
 {
 public:
-    void AddFilter(
-        const filter::Type type,
-        const block::Hash& block,
-        const Data& filter) const noexcept final;
-    void AddHeaders(
-        const filter::Type type,
-        const ReadView stopBlock,
-        const ReadView previousHeader,
-        const std::vector<ReadView> hashes) const noexcept final;
-    void CheckBlocks() const noexcept final;
+    auto AddFilter(zmq::Message& work) const noexcept -> void final;
+    auto AddHeaders(zmq::Message& work) const noexcept -> void final;
+    auto CheckBlocks() const noexcept -> void final;
+    auto DefaultType() const noexcept -> filter::Type final
+    {
+        return default_type_;
+    }
+    auto LoadFilter(const filter::Type type, const block::Hash& block) const
+        noexcept -> std::unique_ptr<const blockchain::internal::GCS> final
+    {
+        return database_.LoadFilter(type, block.Bytes());
+    }
 
-    void Start() noexcept;
-    std::shared_future<void> Shutdown() noexcept final
+    auto Shutdown() noexcept -> std::shared_future<void> final
     {
         return stop_executor();
     }
+    auto Start() noexcept -> void;
 
     FilterOracle(
         const api::internal::Core& api,
@@ -74,6 +76,8 @@ private:
     };
 
     struct FilterQueue {
+        bool error_;
+
         using Filters = std::vector<internal::FilterDatabase::Filter>;
 
         auto AddFilter(
@@ -131,6 +135,9 @@ private:
     const filter::Type default_type_;
     RequestQueue header_requests_;
     FilterQueue outstanding_filters_;
+    OTZMQPublishSocket socket_;
+    std::promise<void> init_promise_;
+    std::shared_future<void> init_;
 
     auto check_filters(
         const filter::Type type,

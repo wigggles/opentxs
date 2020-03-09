@@ -5,7 +5,6 @@
 
 set(
   cxx-sources
-  Block.cpp
   Input.cpp
   Output.cpp
   Transaction.cpp
@@ -15,7 +14,6 @@ set(
 
 set(
   cxx-headers
-  Block.hpp
   Input.hpp
   Output.hpp
   Transaction.hpp

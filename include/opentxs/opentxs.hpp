@@ -55,8 +55,11 @@
 #include <opentxs/client/ServerAction.hpp>
 #include <opentxs/client/SwigWrap.hpp>
 #if OT_BLOCKCHAIN
+#include <opentxs/blockchain/block/bitcoin/Block.hpp>
 #include <opentxs/blockchain/block/bitcoin/Header.hpp>
+#include <opentxs/blockchain/block/Block.hpp>
 #include <opentxs/blockchain/block/Header.hpp>
+#include <opentxs/blockchain/client/BlockOracle.hpp>
 #include <opentxs/blockchain/client/HeaderOracle.hpp>
 #include <opentxs/blockchain/p2p/Address.hpp>
 #include <opentxs/blockchain/p2p/Peer.hpp>

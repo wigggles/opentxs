@@ -250,13 +250,14 @@ auto Hash::HMAC(
     std::uint8_t* output) const noexcept -> bool
 {
     switch (type) {
-        case (proto::HASHTYPE_SHA256):
-        case (proto::HASHTYPE_SHA512): {
+        case proto::HASHTYPE_SHA256:
+        case proto::HASHTYPE_SHA512: {
             return ssl_.HMAC(type, input, size, key, keySize, output);
         }
-        case (proto::HASHTYPE_BLAKE2B160):
-        case (proto::HASHTYPE_BLAKE2B256):
-        case (proto::HASHTYPE_BLAKE2B512): {
+        case proto::HASHTYPE_BLAKE2B160:
+        case proto::HASHTYPE_BLAKE2B256:
+        case proto::HASHTYPE_BLAKE2B512:
+        case proto::HASHTYPE_SIPHASH24: {
             return sodium_.HMAC(type, input, size, key, keySize, output);
         }
         default: {
@@ -378,14 +379,13 @@ auto Hash::sha_256_double_checksum(
 }
 
 auto Hash::SipHash(
-    const OTPassword& key,
-    const Data& data,
+    const ReadView key,
+    const ReadView data,
     std::uint64_t& output,
     const int c,
     const int d) const noexcept -> bool
 {
-    const bool validKey =
-        16 == (key.isMemory() ? key.getMemorySize() : key.getPasswordSize());
+    const bool validKey = 16 == key.size();
 
     if (false == validKey) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key size").Flush();
@@ -405,13 +405,12 @@ auto Hash::SipHash(
         return false;
     }
 
-    ::SipHash hasher{const_cast<char*>(static_cast<const char*>(
-                         key.isMemory() ? key.getMemory() : key.getPassword())),
-                     c,
-                     d};
+    auto hasher = ::SipHash{const_cast<char*>(key.data()), c, d};
+    auto it = data.data();
 
-    for (const auto& byte : data) {
-        hasher.update(std::to_integer<char>(byte));
+    for (auto i = std::size_t{0}; i < data.size(); ++i) {
+        hasher.update(*it);
+        std::advance(it, 1);
     }
 
     output = hasher.digest();

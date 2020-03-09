@@ -21,11 +21,26 @@
 
 #define BITMASK(n) ((1 << (n)) - 1)
 
+namespace opentxs::blockchain
+{
+auto SupportedChains() noexcept -> const std::set<Type>&
+{
+    static const auto output = std::set<Type>{
+        Type::Bitcoin,
+        Type::Bitcoin_testnet3,
+        Type::BitcoinCash,
+        Type::BitcoinCash_testnet3,
+    };
+
+    return output;
+}
+}  // namespace opentxs::blockchain
+
 namespace opentxs::blockchain::internal
 {
-BitReader::BitReader(const Data& input_data)
-    : raw_data_(Data::Factory(input_data))
-    , data_(static_cast<std::uint8_t*>(raw_data_->data()))
+BitReader::BitReader(const Space& bytes)
+    : raw_data_(Data::Factory(bytes))
+    , data_(reinterpret_cast<std::uint8_t*>(raw_data_->data()))
     , len_(raw_data_->size())
     , accum_(0)
     , n_(0)
@@ -34,8 +49,8 @@ BitReader::BitReader(const Data& input_data)
 
 BitReader::BitReader(std::uint8_t* data, int len)
     : raw_data_(Data::Factory(data, len))
-    , data_(data)
-    , len_(len)
+    , data_(reinterpret_cast<std::uint8_t*>(raw_data_->data()))
+    , len_(raw_data_->size())
     , accum_(0)
     , n_(0)
 {
@@ -125,7 +140,7 @@ std::uint64_t BitReader::read(std::size_t nbits)
 }
 
 // output will contain the result after flush.
-BitWriter::BitWriter(Data& output)
+BitWriter::BitWriter(Space& output)
     : output_(output)
     , accum_(0)
     , n_(0)
@@ -143,7 +158,7 @@ void BitWriter::flush()
         auto result{static_cast<std::uint8_t>(accum_ & BITMASK(n_))};
         result <<= (8 - n_);
 
-        output_.Concatenate(&result, sizeof(result));
+        output_.emplace_back(std::byte{result});
 
         // Since we read all the n_ bits out of accum_, we set both back to
         // 0.
@@ -219,7 +234,7 @@ void BitWriter::write(std::size_t nbits, std::uint64_t value)
             std::uint8_t result = (accum_ >> (n_ - 8)) & BITMASK(8);
 
             // result is then concatenated to output_.
-            output_.Concatenate(&result, sizeof(result));
+            output_.emplace_back(std::byte{result});
             // n_ (the number of bits containing data in accum_) is
             // decremented by 8, so from 19 to 11.
             n_ -= 8;
@@ -282,17 +297,11 @@ auto DisplayString(const Type type) noexcept -> std::string
     }
 }
 
-auto BlockHashToFilterKey(const ReadView hash) noexcept
-    -> std::array<std::byte, 16>
+auto BlockHashToFilterKey(const ReadView hash) noexcept(false) -> ReadView
 {
-    auto output = std::array<std::byte, 16>{};
+    if (16 > hash.size()) { throw std::runtime_error("Hash too short"); }
 
-    if (nullptr != hash.data()) {
-        std::memcpy(
-            output.data(), hash.data(), std::min(output.size(), hash.size()));
-    }
-
-    return output;
+    return ReadView{hash.data(), 16};
 }
 
 auto DefaultFilter(const Type type) noexcept -> filter::Type
