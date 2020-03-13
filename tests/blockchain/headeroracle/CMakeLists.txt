@@ -41,8 +41,12 @@ add_opentx_test(
 )
 add_opentx_test(unittests-opentxs-blockchain-headeroracle-delete_checkpoint
                 Test_delete_checkpoint.cpp)
-add_opentx_test(unittests-opentxs-blockchain-headeroracle-random
-                Test_random.cpp)
+
+if(NOT ANDROID)
+  add_opentx_test(unittests-opentxs-blockchain-headeroracle-random
+                  Test_random.cpp)
+endif()
+
 add_opentx_test(
   unittests-opentxs-blockchain-headeroracle-receive_headers_out_of_order
   Test_receive_headers_out_of_order.cpp

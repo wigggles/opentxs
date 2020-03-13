@@ -65,8 +65,25 @@ endif()
 if(NOT MSVC)
   target_compile_options(
     ${MOD_NAME}
-    PRIVATE -Wno-error -Wno-old-style-cast -Wno-zero-as-null-pointer-constant
+    PRIVATE
+      -Wno-cast-qual
+      -Wno-effc++
+      -Wno-error
+      -Wno-missing-declarations
+      -Wno-old-style-cast
+      -Wno-strict-aliasing
+      -Wno-unused-macros
+      -Wno-zero-as-null-pointer-constant
   )
+
+  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+    target_compile_options(
+      ${MOD_NAME}
+      PRIVATE
+        -Wno-deprecated-dynamic-exception-spec -Wno-missing-noreturn
+        -Wno-used-but-marked-unused
+    )
+  endif()
 endif()
 
 set_target_properties(

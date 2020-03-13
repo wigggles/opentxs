@@ -286,10 +286,14 @@ GCS::GCS(
           api_.Factory().Data(reader(gcs::GolombEncode(bits_, *elements_))))
     , key_(api_.Factory().Data(key))
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-type-limit-compare"
+    // std::size_t might be 32 bit
     if (std::numeric_limits<std::uint32_t>::max() < elements.size()) {
         throw std::runtime_error(
             "Too many elements: " + std::to_string(elements.size()));
     }
+#pragma GCC diagnostic pop
 
     if (16u != key_->size()) {
         throw std::runtime_error(

@@ -38,25 +38,23 @@ class Message
 public:
     OPENTXS_EXPORT static Pimpl<Message> Factory();
 
-    OPENTXS_EXPORT virtual auto at(const std::size_t index) const
-        -> const Frame& = 0;
-    OPENTXS_EXPORT virtual auto begin() const -> FrameIterator = 0;
-    OPENTXS_EXPORT virtual auto Body() const -> const FrameSection = 0;
-    OPENTXS_EXPORT virtual auto Body_at(const std::size_t index) const
-        -> const Frame& = 0;
-    OPENTXS_EXPORT virtual auto Body_begin() const -> FrameIterator = 0;
-    OPENTXS_EXPORT virtual auto Body_end() const -> FrameIterator = 0;
-    OPENTXS_EXPORT virtual auto end() const -> FrameIterator = 0;
-    OPENTXS_EXPORT virtual auto Header() const -> const FrameSection = 0;
-    OPENTXS_EXPORT virtual auto Header_at(const std::size_t index) const
-        -> const Frame& = 0;
-    OPENTXS_EXPORT virtual auto Header_begin() const -> FrameIterator = 0;
-    OPENTXS_EXPORT virtual auto Header_end() const -> FrameIterator = 0;
-    OPENTXS_EXPORT virtual auto size() const -> std::size_t = 0;
+    OPENTXS_EXPORT virtual const Frame& at(const std::size_t index) const = 0;
+    OPENTXS_EXPORT virtual FrameIterator begin() const = 0;
+    OPENTXS_EXPORT virtual const FrameSection Body() const = 0;
+    OPENTXS_EXPORT virtual const Frame& Body_at(
+        const std::size_t index) const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Body_begin() const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Body_end() const = 0;
+    OPENTXS_EXPORT virtual FrameIterator end() const = 0;
+    OPENTXS_EXPORT virtual const FrameSection Header() const = 0;
+    OPENTXS_EXPORT virtual const Frame& Header_at(
+        const std::size_t index) const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Header_begin() const = 0;
+    OPENTXS_EXPORT virtual FrameIterator Header_end() const = 0;
+    OPENTXS_EXPORT virtual std::size_t size() const = 0;
 
-    OPENTXS_EXPORT virtual auto AddFrame() -> Frame& = 0;
-    OPENTXS_EXPORT virtual auto AddFrame(const ProtobufType& input)
-        -> Frame& = 0;
+    OPENTXS_EXPORT virtual Frame& AddFrame() = 0;
+    OPENTXS_EXPORT virtual Frame& AddFrame(const ProtobufType& input) = 0;
 #ifndef SWIG
     template <
         typename Input,
@@ -82,18 +80,18 @@ public:
     {
         return AddFrame(input.get());
     }
-#endif
     OPENTXS_EXPORT virtual auto AddFrame(
         const void* input,
         const std::size_t size) -> Frame& = 0;
-    OPENTXS_EXPORT virtual auto at(const std::size_t index) -> Frame& = 0;
-    OPENTXS_EXPORT virtual auto Body() -> FrameSection = 0;
-    OPENTXS_EXPORT virtual auto EnsureDelimiter() -> void = 0;
-    OPENTXS_EXPORT virtual auto Header() -> FrameSection = 0;
-    OPENTXS_EXPORT virtual auto PrependEmptyFrame() -> void = 0;
-    OPENTXS_EXPORT virtual auto Replace(
+#endif
+    OPENTXS_EXPORT virtual Frame& at(const std::size_t index) = 0;
+    OPENTXS_EXPORT virtual FrameSection Body() = 0;
+    OPENTXS_EXPORT virtual void EnsureDelimiter() = 0;
+    OPENTXS_EXPORT virtual FrameSection Header() = 0;
+    OPENTXS_EXPORT virtual void PrependEmptyFrame() = 0;
+    OPENTXS_EXPORT virtual Frame& Replace(
         const std::size_t index,
-        OTZMQFrame&& frame) -> Frame& = 0;
+        OTZMQFrame&& frame) = 0;
 
     OPENTXS_EXPORT virtual ~Message() = default;
 
@@ -106,7 +104,7 @@ private:
 #ifdef _WIN32
 public:
 #endif
-    OPENTXS_EXPORT virtual auto clone() const -> Message* = 0;
+    OPENTXS_EXPORT virtual Message* clone() const = 0;
 #ifdef _WIN32
 private:
 #endif

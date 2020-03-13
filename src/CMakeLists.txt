@@ -6,10 +6,10 @@
 add_subdirectory(api)
 
 if(OT_CASH_EXPORT)
-  set(blind $<TARGET_OBJECTS:opentxs-blind>)
   add_subdirectory(blind)
+  set(object-deps $<TARGET_OBJECTS:opentxs-blind>)
 else()
-  set(blind "")
+  set(object-deps "")
 endif()
 
 add_subdirectory(client)
@@ -29,100 +29,86 @@ add_subdirectory(ui)
 add_subdirectory(util)
 
 if(LIBSECP256K1_EXPORT)
-  set(
-    libsecp256k1-wrapper
-    $<TARGET_OBJECTS:opentxs-crypto-library-libsecp256k1>
-  )
-else()
-  set(libsecp256k1-wrapper "")
+  list(APPEND object-deps $<TARGET_OBJECTS:opentxs-crypto-library-libsecp256k1>)
 endif()
 
 if(OPENSSL_EXPORT)
-  set(openssl-wrapper $<TARGET_OBJECTS:opentxs-crypto-library-openssl>)
-else()
-  set(openssl-wrapper "")
+  list(APPEND object-deps $<TARGET_OBJECTS:opentxs-crypto-library-openssl>)
 endif()
 
 if(OT_BLOCKCHAIN_EXPORT)
-  set(
-    blockchain
-    $<TARGET_OBJECTS:opentxs-api-client-blockchain-database>
-    $<TARGET_OBJECTS:opentxs-blockchain-bitcoin>
-    $<TARGET_OBJECTS:opentxs-blockchain-block-bitcoin>
-    $<TARGET_OBJECTS:opentxs-blockchain-block>
-    $<TARGET_OBJECTS:opentxs-blockchain-client-bitcoin>
-    $<TARGET_OBJECTS:opentxs-blockchain-client>
-    $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin-message>
-    $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin>
-    $<TARGET_OBJECTS:opentxs-blockchain-p2p>
-    $<TARGET_OBJECTS:opentxs-blockchain>
-  )
   add_subdirectory(blockchain)
-else()
-  set(blockchain "")
+  list(
+    APPEND
+      object-deps
+      $<TARGET_OBJECTS:opentxs-api-client-blockchain-database>
+      $<TARGET_OBJECTS:opentxs-blockchain-bitcoin>
+      $<TARGET_OBJECTS:opentxs-blockchain-block-bitcoin>
+      $<TARGET_OBJECTS:opentxs-blockchain-block>
+      $<TARGET_OBJECTS:opentxs-blockchain-client-bitcoin>
+      $<TARGET_OBJECTS:opentxs-blockchain-client>
+      $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin-message>
+      $<TARGET_OBJECTS:opentxs-blockchain-p2p-bitcoin>
+      $<TARGET_OBJECTS:opentxs-blockchain-p2p>
+      $<TARGET_OBJECTS:opentxs-blockchain>
+  )
 endif()
 
 if(CASH_LUCRE_EXPORT)
-  set(lucre $<TARGET_OBJECTS:lucre>)
-else()
-  set(lucre "")
+  list(APPEND object-deps $<TARGET_OBJECTS:lucre>)
 endif()
 
-set(
-  object-deps
-  $<TARGET_OBJECTS:base64>
-  $<TARGET_OBJECTS:external-hashes>
-  $<TARGET_OBJECTS:irrxml>
-  $<TARGET_OBJECTS:opentxs-api-client-blockchain>
-  $<TARGET_OBJECTS:opentxs-api-client>
-  $<TARGET_OBJECTS:opentxs-api-crypto-base58>
-  $<TARGET_OBJECTS:opentxs-api-crypto>
-  $<TARGET_OBJECTS:opentxs-api-network>
-  $<TARGET_OBJECTS:opentxs-api-server>
-  $<TARGET_OBJECTS:opentxs-api-storage>
-  $<TARGET_OBJECTS:opentxs-api>
-  ${blockchain}
-  $<TARGET_OBJECTS:opentxs-client>
-  $<TARGET_OBJECTS:opentxs-consensus>
-  $<TARGET_OBJECTS:opentxs-contact>
-  $<TARGET_OBJECTS:opentxs-core-contract-basket>
-  $<TARGET_OBJECTS:opentxs-core-contract-peer>
-  $<TARGET_OBJECTS:opentxs-core-contract>
-  $<TARGET_OBJECTS:opentxs-core-crypto>
-  $<TARGET_OBJECTS:opentxs-core-transaction>
-  $<TARGET_OBJECTS:opentxs-core-util>
-  $<TARGET_OBJECTS:opentxs-core>
-  $<TARGET_OBJECTS:opentxs-cron>
-  $<TARGET_OBJECTS:opentxs-crypto-key>
-  $<TARGET_OBJECTS:opentxs-crypto-library>
-  $<TARGET_OBJECTS:opentxs-crypto>
-  $<TARGET_OBJECTS:opentxs-ext>
-  $<TARGET_OBJECTS:opentxs-identity-wot-verification>
-  $<TARGET_OBJECTS:opentxs-identity-credential>
-  $<TARGET_OBJECTS:opentxs-identity>
-  $<TARGET_OBJECTS:opentxs-iterator>
-  $<TARGET_OBJECTS:opentxs-network-zeromq-curve>
-  $<TARGET_OBJECTS:opentxs-network-zeromq-socket>
-  $<TARGET_OBJECTS:opentxs-network-zeromq-zap>
-  $<TARGET_OBJECTS:opentxs-network-zeromq>
-  $<TARGET_OBJECTS:opentxs-network>
-  $<TARGET_OBJECTS:opentxs-otx-client>
-  $<TARGET_OBJECTS:opentxs-otx>
-  $<TARGET_OBJECTS:opentxs-recurring>
-  $<TARGET_OBJECTS:opentxs-rpc>
-  $<TARGET_OBJECTS:opentxs-script>
-  $<TARGET_OBJECTS:opentxs-server>
-  $<TARGET_OBJECTS:opentxs-storage-drivers>
-  $<TARGET_OBJECTS:opentxs-storage-tree>
-  $<TARGET_OBJECTS:opentxs-storage>
-  $<TARGET_OBJECTS:opentxs-trade>
-  $<TARGET_OBJECTS:opentxs-ui>
-  $<TARGET_OBJECTS:opentxs-util>
-  $<TARGET_OBJECTS:otprotob>
-  ${blind}
-  ${libsecp256k1-wrapper}
-  ${lucre}
-  ${openssl-wrapper}
+list(
+  APPEND
+    object-deps
+    $<TARGET_OBJECTS:base64>
+    $<TARGET_OBJECTS:external-hashes>
+    $<TARGET_OBJECTS:irrxml>
+    $<TARGET_OBJECTS:opentxs-api-client-blockchain>
+    $<TARGET_OBJECTS:opentxs-api-client>
+    $<TARGET_OBJECTS:opentxs-api-crypto-base58>
+    $<TARGET_OBJECTS:opentxs-api-crypto>
+    $<TARGET_OBJECTS:opentxs-api-network>
+    $<TARGET_OBJECTS:opentxs-api-server>
+    $<TARGET_OBJECTS:opentxs-api-storage>
+    $<TARGET_OBJECTS:opentxs-api>
+    $<TARGET_OBJECTS:opentxs-client>
+    $<TARGET_OBJECTS:opentxs-consensus>
+    $<TARGET_OBJECTS:opentxs-contact>
+    $<TARGET_OBJECTS:opentxs-core-contract-basket>
+    $<TARGET_OBJECTS:opentxs-core-contract-peer>
+    $<TARGET_OBJECTS:opentxs-core-contract>
+    $<TARGET_OBJECTS:opentxs-core-crypto>
+    $<TARGET_OBJECTS:opentxs-core-transaction>
+    $<TARGET_OBJECTS:opentxs-core-util>
+    $<TARGET_OBJECTS:opentxs-core>
+    $<TARGET_OBJECTS:opentxs-cron>
+    $<TARGET_OBJECTS:opentxs-crypto-key>
+    $<TARGET_OBJECTS:opentxs-crypto-library>
+    $<TARGET_OBJECTS:opentxs-crypto>
+    $<TARGET_OBJECTS:opentxs-ext>
+    $<TARGET_OBJECTS:opentxs-identity-wot-verification>
+    $<TARGET_OBJECTS:opentxs-identity-credential>
+    $<TARGET_OBJECTS:opentxs-identity>
+    $<TARGET_OBJECTS:opentxs-iterator>
+    $<TARGET_OBJECTS:opentxs-network-zeromq-curve>
+    $<TARGET_OBJECTS:opentxs-network-zeromq-socket>
+    $<TARGET_OBJECTS:opentxs-network-zeromq-zap>
+    $<TARGET_OBJECTS:opentxs-network-zeromq>
+    $<TARGET_OBJECTS:opentxs-network>
+    $<TARGET_OBJECTS:opentxs-otx-client>
+    $<TARGET_OBJECTS:opentxs-otx>
+    $<TARGET_OBJECTS:opentxs-recurring>
+    $<TARGET_OBJECTS:opentxs-rpc>
+    $<TARGET_OBJECTS:opentxs-script>
+    $<TARGET_OBJECTS:opentxs-server>
+    $<TARGET_OBJECTS:opentxs-storage-drivers>
+    $<TARGET_OBJECTS:opentxs-storage-tree>
+    $<TARGET_OBJECTS:opentxs-storage>
+    $<TARGET_OBJECTS:opentxs-trade>
+    $<TARGET_OBJECTS:opentxs-ui>
+    $<TARGET_OBJECTS:opentxs-util>
+    $<TARGET_OBJECTS:otprotob>
 )
 
 set(
@@ -168,6 +154,7 @@ target_link_libraries(
     ZLIB::ZLIB
     Boost::system
     Boost::filesystem
+    protobuf::libprotobuf-lite
 )
 
 if(Boost_stacktrace_basic_FOUND)
@@ -182,7 +169,7 @@ if(OT_USE_VCPKG_TARGETS)
   target_link_libraries(opentxs PRIVATE unofficial-sodium::sodium)
   target_link_libraries(opentxs PRIVATE libzmq libzmq-static)
 else()
-  target_link_libraries(opentxs PRIVATE sodium)
+  target_link_libraries(opentxs PRIVATE ${SODIUM_LIBRARIES})
   target_link_libraries(opentxs PRIVATE ${ZMQ_LIBRARIES})
 endif()
 
@@ -234,7 +221,7 @@ set_target_properties(
   opentxs
   PROPERTIES
     VERSION
-    "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}"
+    "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}"
     SOVERSION
     1
 )
@@ -253,6 +240,58 @@ install(
   EXPORT opentxs-targets
   COMPONENT main
 )
+
+if(ANDROID)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_SUFFIX)
+  get_target_property(Boost_filesystem_LIBRARY Boost::filesystem
+                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+  get_target_property(Boost_stacktrace_basic_LIBRARY Boost::stacktrace_basic
+                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+  get_target_property(Boost_system_LIBRARY Boost::system
+                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+  get_target_property(Boost_thread_LIBRARY Boost::thread
+                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+  get_target_property(opentxs-proto_LIBRARY libopentxs-proto
+                      IMPORTED_LOCATION_${BUILD_TYPE_SUFFIX})
+
+  install(
+    FILES
+      "${Boost_filesystem_LIBRARY}"
+      "${Boost_stacktrace_basic_LIBRARY}"
+      "${Boost_system_LIBRARY}"
+      "${Boost_thread_LIBRARY}"
+      "${SODIUM_LIBRARIES}"
+      "${ZMQ_LIBRARIES}"
+      "${Protobuf_LITE_LIBRARIES}"
+      "${opentxs-proto_LIBRARY}"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT main
+  )
+
+  if(LMDB_EXPORT)
+    install(
+      FILES "${LMDB_LIBRARIES}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif()
+
+  if(OPENSSL_EXPORT)
+    install(
+      FILES "${OPENSSL_CRYPTO_LIBRARY}" "${OPENSSL_SSL_LIBRARY}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif()
+
+  if(LIBSECP256K1_EXPORT)
+    install(
+      FILES "${LIBSECP256K1_LIBRARY}"
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT main
+    )
+  endif()
+endif()
 
 install(
   FILES
