@@ -1,0 +1,47 @@
+name: Android
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        docker: [v2]
+        platform: [ubuntu-18.04, ubuntu-latest]
+        include:
+          - platform: ubuntu-latest
+            binding: qt
+          - platform: ubuntu-18.04
+            binding: java
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: 'recursive'
+    - name: Setup build environment
+      run: |
+        docker pull opentransactions/android:${{ matrix.docker }}
+    - name: Build arm64
+      run: |
+        mkdir -p /tmp/opentxs-for-android/arm64
+        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/arm64,dst=/home/output -i opentransactions/android:${{ matrix.docker }} arm64 ${{ matrix.binding }}
+    - name: Build arm
+      run: |
+        mkdir -p /tmp/opentxs-for-android/arm
+        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/arm,dst=/home/output -i opentransactions/android:${{ matrix.docker }} arm ${{ matrix.binding }}
+    - name: Build x64
+      run: |
+        mkdir -p /tmp/opentxs-for-android/x64
+        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/x64,dst=/home/output -i opentransactions/android:${{ matrix.docker }} x64 ${{ matrix.binding }}
+    - name: Build x86
+      run: |
+        mkdir -p /tmp/opentxs-for-android/x86
+        docker run --read-only --tmpfs /tmp/build:rw,nosuid,size=2g --mount type=bind,src=${{ github.workspace }},dst=/home/src --mount type=bind,src=/tmp/opentxs-for-android/x86,dst=/home/output -i opentransactions/android:${{ matrix.docker }} x86 ${{ matrix.binding }}
+    - name: Package artifacts
+      run: |
+        cd /tmp
+        zip -r opentxs-for-android.zip opentxs-for-android/
+    - uses: actions/upload-artifact@v1
+      with:
+        name: opentxs-for-android_${{ matrix.binding }}.zip
+        path: /tmp/opentxs-for-android.zip
