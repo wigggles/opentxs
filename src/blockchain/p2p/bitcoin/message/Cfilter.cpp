@@ -92,11 +92,15 @@ auto Factory::BitcoinP2PCfilter(
         return nullptr;
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-type-limit-compare"
+    // std::size_t might be 32 bit
     if (std::numeric_limits<std::uint32_t>::max() < elementCount) {
         LogOutput(__FUNCTION__)(": Too many elements").Flush();
 
         return nullptr;
     }
+#pragma GCC diagnostic pop
 
     const auto filterType = raw.Type(header.Network());
     const auto dataSize = filterSize - (1 + csBytes);

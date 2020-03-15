@@ -12,10 +12,57 @@ function(add_opentx_test_target target_name cxx-sources)
     ${target_name}
     opentxs::libopentxs
     ${GTEST_LIBRARY}
-    ${ZMQ_LIBRARIES}
+    Threads::Threads
+    ZLIB::ZLIB
+    Boost::system
     Boost::filesystem
+    protobuf::libprotobuf-lite
   )
-  target_include_directories(${target_name} PRIVATE ${ZMQ_INCLUDE_DIRS})
+
+  if(LIB_ANDROID_LOG)
+    target_link_libraries(${target_name} ${LIB_ANDROID_LOG})
+  endif()
+
+  if(Boost_stacktrace_basic_FOUND)
+    target_link_libraries(${target_name} Boost::stacktrace_basic)
+  endif()
+
+  if(OT_BLOCKCHAIN_EXPORT)
+    target_link_libraries(${target_name} Boost::thread)
+  endif()
+
+  if(OT_USE_VCPKG_TARGETS)
+    target_link_libraries(${target_name} unofficial-sodium::sodium)
+    target_link_libraries(${target_name} libzmq libzmq-static)
+  else()
+    target_link_libraries(${target_name} ${SODIUM_LIBRARIES})
+    target_link_libraries(${target_name} ${ZMQ_LIBRARIES})
+  endif()
+
+  if(DHT_EXPORT)
+    target_link_libraries(${target_name} opendht ${GNUTLS_LIBRARIES})
+  endif()
+
+  if(FS_EXPORT)
+    target_link_libraries(${target_name} Boost::iostreams)
+  endif()
+
+  if(SQLITE_EXPORT)
+    target_link_libraries(${target_name} SQLite::SQLite3)
+  endif()
+
+  if(LMDB_EXPORT)
+    target_link_libraries(${target_name} ${LMDB_LIBRARIES})
+  endif()
+
+  if(OPENSSL_EXPORT)
+    target_link_libraries(${target_name} OpenSSL::Crypto OpenSSL::SSL)
+  endif()
+
+  if(LIBSECP256K1_EXPORT)
+    target_link_libraries(${target_name} ${LIBSECP256K1_LIBRARY})
+  endif()
+
   set_target_properties(
     ${target_name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests

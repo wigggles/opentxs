@@ -102,6 +102,9 @@ auto Factory::BitcoinBlockHeader(
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
+const VersionNumber Header::local_data_version_{1};
+const VersionNumber Header::subversion_default_{1};
+
 Header::Header(
     const api::internal::Core& api,
     const VersionNumber subversion,

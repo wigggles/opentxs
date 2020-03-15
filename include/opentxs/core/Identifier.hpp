@@ -132,6 +132,7 @@ private:
 };
 }  // namespace opentxs
 
+#ifndef SWIG
 namespace std
 {
 template <>
@@ -141,4 +142,5 @@ struct less<opentxs::OTIdentifier> {
         const opentxs::OTIdentifier& rhs) const;
 };
 }  // namespace std
+#endif
 #endif

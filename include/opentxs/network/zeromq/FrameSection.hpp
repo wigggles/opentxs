@@ -29,18 +29,19 @@ public:
     using reference = Frame&;
     using iterator_category = std::forward_iterator_tag;
 
-    OPENTXS_EXPORT auto at(const std::size_t index) const -> const Frame&;
-    OPENTXS_EXPORT auto begin() const -> FrameIterator;
-    OPENTXS_EXPORT auto end() const -> FrameIterator;
-    OPENTXS_EXPORT auto size() const -> std::size_t;
+    OPENTXS_EXPORT const Frame& at(const std::size_t index) const;
+    OPENTXS_EXPORT FrameIterator begin() const;
+    OPENTXS_EXPORT FrameIterator end() const;
+    OPENTXS_EXPORT std::size_t size() const;
 
-    OPENTXS_EXPORT auto Replace(const std::size_t index, OTZMQFrame&& frame)
-        -> Frame&;
+    OPENTXS_EXPORT Frame& Replace(const std::size_t index, OTZMQFrame&& frame);
 
+#ifndef SWIG
     OPENTXS_EXPORT FrameSection(
         const Message* parent,
         std::size_t position,
         std::size_t size);
+#endif
     OPENTXS_EXPORT FrameSection(const FrameSection&);
 
     OPENTXS_EXPORT ~FrameSection() = default;

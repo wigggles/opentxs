@@ -31,7 +31,7 @@ public:
         BitcoinFormat() noexcept;
     };
 
-    static const VersionNumber local_data_version_{1};
+    static const VersionNumber local_data_version_;
 
     std::unique_ptr<block::Header> clone() const noexcept final;
     OTData Encode() const noexcept final;
@@ -70,7 +70,7 @@ private:
     friend opentxs::Factory;
     using ot_super = block::implementation::Header;
 
-    static const VersionNumber subversion_default_{1};
+    static const VersionNumber subversion_default_;
 
     const VersionNumber subversion_;
     const std::int32_t block_version_;
