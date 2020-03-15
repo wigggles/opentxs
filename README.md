@@ -1,7 +1,8 @@
 ## Open-Transactions Library Project
 
-[![License](http://img.shields.io/:License-MPLv2-yellow.svg)](LICENSE)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
+[![Android](https://github.com/justusranvier/opentxs/workflows/Android/badge.svg)](https://github.com/Open-Transactions/opentxs/actions)
 
 The Open-Transactions project is a collaborative effort to develop a robust,
 commercial-grade, fully-featured, free-software toolkit implementing the OTX
