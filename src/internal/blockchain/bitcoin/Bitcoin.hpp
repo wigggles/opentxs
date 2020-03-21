@@ -46,6 +46,11 @@ bool DecodeCompactSizeFromPayload(
     const std::byte*& input,
     std::size_t& expectedSize,
     const std::size_t size,
+    CompactSize& output) noexcept;
+bool DecodeCompactSizeFromPayload(
+    const std::byte*& input,
+    std::size_t& expectedSize,
+    const std::size_t size,
     std::size_t& output,
     std::size_t& csExtraBytes) noexcept;
 
@@ -56,19 +61,32 @@ struct EncodedOutpoint {
 
 struct EncodedInput {
     EncodedOutpoint outpoint_{};
+    CompactSize cs_{};
     Space script_{};
     be::little_uint32_buf_t sequence_{};
+
+    auto size() const noexcept -> std::size_t;
 };
 
 struct EncodedOutput {
     be::little_int64_buf_t value_{};
+    CompactSize cs_{};
     Space script_{};
+
+    auto size() const noexcept -> std::size_t;
 };
 
 struct EncodedTransaction {
     be::little_int32_buf_t version_{};
+    CompactSize input_count_{};
     std::vector<EncodedInput> inputs_{};
+    CompactSize output_count_{};
     std::vector<EncodedOutput> outputs_{};
     be::little_uint32_buf_t lock_time_{};
+
+    OPENTXS_EXPORT static auto Deserialize(const ReadView bytes) noexcept(false)
+        -> EncodedTransaction;
+
+    auto size() const noexcept -> std::size_t;
 };
 }  // namespace opentxs::blockchain::bitcoin

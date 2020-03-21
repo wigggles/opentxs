@@ -73,129 +73,21 @@ auto Factory::BitcoinBlock(
 
         if (0 == transactionCount) { throw std::runtime_error("Empty block"); }
 
-        auto transactions =
-            std::vector<std::pair<bb::EncodedTransaction, Space>>{};
+        using Encoded = std::pair<bb::EncodedTransaction, Space>;
+        auto transactions = std::vector<Encoded>{};
 
         while (transactions.size() < transactionCount) {
-            auto& data = transactions.emplace_back();
-            auto& [transaction, txid] = data;
-            auto& [version, inputs, outputs, locktime] = transaction;
-            auto inCount = std::size_t{0};
-            auto outCount = std::size_t{0};
             auto start{it};
             auto end{start};
-            expectedSize += sizeof(version);
-
-            if (in.size() < expectedSize) {
-                throw std::runtime_error("Partial transaction (version)");
-            }
-
-            std::memcpy(static_cast<void*>(&version), it, sizeof(version));
-            std::advance(it, sizeof(version));
-            expectedSize += 1;
-
-            if (in.size() < expectedSize) {
-                throw std::runtime_error("Partial transaction (txin count)");
-            }
-
-            if (false == bb::DecodeCompactSizeFromPayload(
-                             it, expectedSize, in.size(), inCount)) {
-                throw std::runtime_error("Failed to decode txin count");
-            }
-
-            if (0 == inCount) {
-                throw std::runtime_error("Invalid transaction (no inputs)");
-            }
-
-            while (inputs.size() < inCount) {
-                auto& input = inputs.emplace_back();
-                auto& [outpoint, script, sequence] = input;
-                auto scriptBytes = std::size_t{0};
-                expectedSize += sizeof(outpoint);
-
-                if (in.size() < expectedSize) {
-                    throw std::runtime_error("Partial input (outpoint)");
-                }
-
-                std::memcpy(
-                    static_cast<void*>(&outpoint), it, sizeof(outpoint));
-                std::advance(it, sizeof(outpoint));
-                expectedSize += 1;
-
-                if (in.size() < expectedSize) {
-                    throw std::runtime_error("Partial input (script size)");
-                }
-
-                if (false == bb::DecodeCompactSizeFromPayload(
-                                 it, expectedSize, in.size(), scriptBytes)) {
-                    throw std::runtime_error(
-                        "Failed to decode input script bytes");
-                }
-
-                script.assign(it, it + scriptBytes);
-                std::advance(it, scriptBytes);
-                expectedSize += sizeof(sequence);
-
-                if (in.size() < expectedSize) {
-                    throw std::runtime_error("Partial input (sequence)");
-                }
-
-                std::memcpy(
-                    static_cast<void*>(&sequence), it, sizeof(sequence));
-                std::advance(it, sizeof(sequence));
-            }
-
-            expectedSize += 1;
-
-            if (in.size() < expectedSize) {
-                throw std::runtime_error("Partial transaction (txout count)");
-            }
-
-            if (false == bb::DecodeCompactSizeFromPayload(
-                             it, expectedSize, in.size(), outCount)) {
-                throw std::runtime_error("Failed to decode txout count");
-            }
-
-            if (0 == outCount) {
-                throw std::runtime_error("Invalid transaction (no outputs)");
-            }
-
-            while (outputs.size() < outCount) {
-                auto& output = outputs.emplace_back();
-                auto& [value, script] = output;
-                auto scriptBytes = std::size_t{0};
-                expectedSize += sizeof(value);
-
-                if (in.size() < expectedSize) {
-                    throw std::runtime_error("Partial output (value)");
-                }
-
-                std::memcpy(static_cast<void*>(&value), it, sizeof(value));
-                std::advance(it, sizeof(value));
-                expectedSize += 1;
-
-                if (in.size() < expectedSize) {
-                    throw std::runtime_error("Partial output (script size)");
-                }
-
-                if (false == bb::DecodeCompactSizeFromPayload(
-                                 it, expectedSize, in.size(), scriptBytes)) {
-                    throw std::runtime_error(
-                        "Failed to decode output script bytes");
-                }
-
-                script.assign(it, it + scriptBytes);
-                std::advance(it, scriptBytes);
-            }
-
-            expectedSize += sizeof(locktime);
-
-            if (in.size() < expectedSize) {
-                throw std::runtime_error("Partial transaction (lock time)");
-            }
-
-            std::memcpy(static_cast<void*>(&locktime), it, sizeof(locktime));
-            std::advance(it, sizeof(locktime));
+            auto& data = transactions.emplace_back(
+                Encoded{bb::EncodedTransaction::Deserialize(
+                            ReadView{reinterpret_cast<const char*>(it),
+                                     in.size() - expectedSize}),
+                        Space{}});
+            auto& [transaction, txid] = data;
+            const auto txBytes = transaction.size();
+            std::advance(it, txBytes);
+            expectedSize += txBytes;
             end = it;
             const auto gotTxid = api.Crypto().Hash().Digest(
                 proto::HASHTYPE_SHA256D,  // TODO stop hardcoding
@@ -268,7 +160,7 @@ auto Block::FindMatches(
                         output.emplace_back(api_.Factory().Data(txid), id);
                     }
                 } else {
-                    for (const auto& [outpoint, script, sequence] :
+                    for (const auto& [outpoint, cs, script, sequence] :
                          transaction.inputs_) {
                         if (element.size() != sizeof(outpoint)) { continue; }
 
@@ -286,7 +178,7 @@ auto Block::FindMatches(
         }
 
         if (0 < scripts.size()) {
-            for (const auto& [value, script] : transaction.outputs_) {
+            for (const auto& [value, cs, script] : transaction.outputs_) {
                 for (const auto& [id, element] : scripts) {
                     if (element.size() != script.size()) { continue; }
 

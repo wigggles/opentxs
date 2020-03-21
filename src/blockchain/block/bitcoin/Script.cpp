@@ -1,0 +1,804 @@
+// Copyright (c) 2010-2020 The Open-Transactions developers
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#include "stdafx.hpp"
+
+#include "Internal.hpp"
+
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include <boost/endian/buffers.hpp>
+
+#include <map>
+#include <numeric>
+#include <vector>
+
+#include "Script.hpp"
+
+namespace be = boost::endian;
+
+#define OT_METHOD                                                              \
+    "opentxs::blockchain::block::bitcoin::implementation::Script::"
+
+namespace opentxs
+{
+using ReturnType = blockchain::block::bitcoin::implementation::Script;
+
+auto Factory::BitcoinScript(
+    const ReadView bytes,
+    const bool outputScript,
+    const bool coinbase) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::Script>
+{
+    const auto role = outputScript ? ReturnType::Position::Output
+                                   : (coinbase ? ReturnType::Position::Coinbase
+                                               : ReturnType::Position::Input);
+    auto elements = blockchain::block::bitcoin::ScriptElements{};
+
+    if ((nullptr == bytes.data()) || (0 == bytes.size())) {
+
+        if (ReturnType::Position::Input == role) {
+
+            return std::make_unique<ReturnType>(
+                role, std::move(elements), bytes.size());
+        } else {
+            LogOutput("opentxs::Factory::")(__FUNCTION__)(": Empty input")
+                .Flush();
+
+            return {};
+        }
+    }
+
+    elements.reserve(bytes.size());
+    auto it = reinterpret_cast<const std::byte*>(bytes.data());
+    auto read = std::size_t{0};
+    const auto target = bytes.size();
+
+    try {
+        while (read < target) {
+            auto& element = elements.emplace_back();
+            auto& [opcode, size, data] = element;
+            opcode = ReturnType::decode(*it);
+            read += 1;
+            std::advance(it, 1);
+            const auto direct = ReturnType::is_direct_push(opcode);
+
+            if (direct.has_value()) {
+                const auto& pushSize = direct.value();
+
+                if ((read + pushSize) > target) {
+                    LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                        ": Incomplete direct data push")
+                        .Flush();
+
+                    return {};
+                }
+
+                data = space(pushSize);
+                std::memcpy(data.value().data(), it, pushSize);
+                read += pushSize;
+                std::advance(it, pushSize);
+
+                continue;
+            }
+
+            const auto push = ReturnType::is_push(opcode);
+
+            if (push.has_value()) {
+                const auto& sizeBytes = push.value();
+
+                OT_ASSERT(0 < sizeBytes);
+                OT_ASSERT(5 > sizeBytes);
+
+                if ((read + sizeBytes) > target) {
+                    LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                        ": Incomplete data push")
+                        .Flush();
+
+                    return {};
+                }
+
+                size = space(sizeBytes);
+                std::memcpy(size.value().data(), it, sizeBytes);
+                read += sizeBytes;
+                std::advance(it, sizeBytes);
+                auto buf = be::little_uint32_buf_t{};
+                std::memcpy(
+                    static_cast<void*>(&buf), size.value().data(), sizeBytes);
+                const auto pushSize = std::size_t{buf.value()};
+
+                if ((read + pushSize) > target) {
+                    LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                        ": Data push bytes missing")
+                        .Flush();
+
+                    return {};
+                }
+
+                data = space(pushSize);
+                std::memcpy(data.value().data(), it, pushSize);
+                read += pushSize;
+                std::advance(it, pushSize);
+
+                continue;
+            }
+        }
+    } catch (...) {
+        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": Unknown opcode")
+            .Flush();
+
+        return {};
+    }
+
+    elements.shrink_to_fit();
+
+    return std::make_unique<ReturnType>(
+        role, std::move(elements), bytes.size());
+}
+
+auto Factory::BitcoinScript(
+    blockchain::block::bitcoin::ScriptElements&& elements,
+    const bool outputScript,
+    const bool coinbase) noexcept
+    -> std::unique_ptr<blockchain::block::bitcoin::Script>
+{
+    if (false == ReturnType::validate(elements)) { return {}; }
+
+    const auto role = outputScript ? ReturnType::Position::Output
+                                   : (coinbase ? ReturnType::Position::Coinbase
+                                               : ReturnType::Position::Input);
+
+    if ((0 == elements.size()) && (ReturnType::Position::Input != role)) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Empty input").Flush();
+
+        return {};
+    }
+
+    elements.shrink_to_fit();
+
+    return std::make_unique<ReturnType>(role, std::move(elements));
+}
+}  // namespace opentxs
+
+namespace opentxs::blockchain::block::bitcoin::implementation
+{
+Script::Script(
+    const Position role,
+    ScriptElements&& elements,
+    std::optional<std::size_t> size) noexcept
+    : role_(role)
+    , elements_(std::move(elements))
+    , type_(get_type(role_, elements_))
+    , size_(size)
+{
+}
+
+auto Script::bytes(const value_type& element) noexcept -> std::size_t
+{
+    const auto& [opcode, bytes, data] = element;
+
+    return sizeof(opcode) + (bytes.has_value() ? bytes.value().size() : 0u) +
+           (data.has_value() ? data.value().size() : 0u);
+}
+
+auto Script::bytes(const ScriptElements& script) noexcept -> std::size_t
+{
+    return std::accumulate(
+        std::begin(script),
+        std::end(script),
+        std::size_t{0},
+        [](const std::size_t& lhs, const value_type& rhs) -> std::size_t {
+            return lhs + bytes(rhs);
+        });
+}
+
+auto Script::CalculateSize() const noexcept -> std::size_t
+{
+    if (false == size_.has_value()) { size_ = bytes(elements_); }
+
+    return size_.value();
+}
+
+auto Script::decode(const std::byte in) noexcept(false) -> OP
+{
+    static const auto map = std::map<std::uint8_t, OP>{
+        {static_cast<std::uint8_t>(OP::ZERO), OP::ZERO},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_1), OP::PUSHDATA_1},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_2), OP::PUSHDATA_2},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_3), OP::PUSHDATA_3},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_4), OP::PUSHDATA_4},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_5), OP::PUSHDATA_5},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_6), OP::PUSHDATA_6},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_7), OP::PUSHDATA_7},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_8), OP::PUSHDATA_8},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_9), OP::PUSHDATA_9},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_10), OP::PUSHDATA_10},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_11), OP::PUSHDATA_11},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_12), OP::PUSHDATA_12},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_13), OP::PUSHDATA_13},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_14), OP::PUSHDATA_14},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_15), OP::PUSHDATA_15},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_16), OP::PUSHDATA_16},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_17), OP::PUSHDATA_17},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_18), OP::PUSHDATA_18},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_19), OP::PUSHDATA_19},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_20), OP::PUSHDATA_20},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_21), OP::PUSHDATA_21},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_22), OP::PUSHDATA_22},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_23), OP::PUSHDATA_23},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_24), OP::PUSHDATA_24},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_25), OP::PUSHDATA_25},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_26), OP::PUSHDATA_26},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_27), OP::PUSHDATA_27},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_28), OP::PUSHDATA_28},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_29), OP::PUSHDATA_29},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_30), OP::PUSHDATA_30},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_31), OP::PUSHDATA_31},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_32), OP::PUSHDATA_32},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_33), OP::PUSHDATA_33},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_34), OP::PUSHDATA_34},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_35), OP::PUSHDATA_35},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_36), OP::PUSHDATA_36},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_37), OP::PUSHDATA_37},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_38), OP::PUSHDATA_38},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_39), OP::PUSHDATA_39},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_40), OP::PUSHDATA_40},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_41), OP::PUSHDATA_41},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_42), OP::PUSHDATA_42},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_43), OP::PUSHDATA_43},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_44), OP::PUSHDATA_44},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_45), OP::PUSHDATA_45},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_46), OP::PUSHDATA_46},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_47), OP::PUSHDATA_47},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_48), OP::PUSHDATA_48},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_49), OP::PUSHDATA_49},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_50), OP::PUSHDATA_50},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_51), OP::PUSHDATA_51},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_52), OP::PUSHDATA_52},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_53), OP::PUSHDATA_53},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_54), OP::PUSHDATA_54},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_55), OP::PUSHDATA_55},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_56), OP::PUSHDATA_56},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_57), OP::PUSHDATA_57},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_58), OP::PUSHDATA_58},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_59), OP::PUSHDATA_59},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_60), OP::PUSHDATA_60},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_61), OP::PUSHDATA_61},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_62), OP::PUSHDATA_62},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_63), OP::PUSHDATA_63},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_64), OP::PUSHDATA_64},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_65), OP::PUSHDATA_65},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_66), OP::PUSHDATA_66},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_67), OP::PUSHDATA_67},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_68), OP::PUSHDATA_68},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_69), OP::PUSHDATA_69},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_70), OP::PUSHDATA_70},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_71), OP::PUSHDATA_71},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_72), OP::PUSHDATA_72},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_73), OP::PUSHDATA_73},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_74), OP::PUSHDATA_74},
+        {static_cast<std::uint8_t>(OP::PUSHDATA_75), OP::PUSHDATA_75},
+        {static_cast<std::uint8_t>(OP::PUSHDATA1), OP::PUSHDATA1},
+        {static_cast<std::uint8_t>(OP::PUSHDATA2), OP::PUSHDATA2},
+        {static_cast<std::uint8_t>(OP::PUSHDATA4), OP::PUSHDATA4},
+        {static_cast<std::uint8_t>(OP::ONE_NEGATE), OP::ONE_NEGATE},
+        {static_cast<std::uint8_t>(OP::RESERVED), OP::RESERVED},
+        {static_cast<std::uint8_t>(OP::ONE), OP::ONE},
+        {static_cast<std::uint8_t>(OP::TWO), OP::TWO},
+        {static_cast<std::uint8_t>(OP::THREE), OP::THREE},
+        {static_cast<std::uint8_t>(OP::FOUR), OP::FOUR},
+        {static_cast<std::uint8_t>(OP::FIVE), OP::FIVE},
+        {static_cast<std::uint8_t>(OP::SIX), OP::SIX},
+        {static_cast<std::uint8_t>(OP::SEVEN), OP::SEVEN},
+        {static_cast<std::uint8_t>(OP::EIGHT), OP::EIGHT},
+        {static_cast<std::uint8_t>(OP::NINE), OP::NINE},
+        {static_cast<std::uint8_t>(OP::TEN), OP::TEN},
+        {static_cast<std::uint8_t>(OP::ELEVEN), OP::ELEVEN},
+        {static_cast<std::uint8_t>(OP::TWELVE), OP::TWELVE},
+        {static_cast<std::uint8_t>(OP::THIRTEEN), OP::THIRTEEN},
+        {static_cast<std::uint8_t>(OP::FOURTEEN), OP::FOURTEEN},
+        {static_cast<std::uint8_t>(OP::FIFTEEN), OP::FIFTEEN},
+        {static_cast<std::uint8_t>(OP::SIXTEEN), OP::SIXTEEN},
+        {static_cast<std::uint8_t>(OP::NOP), OP::NOP},
+        {static_cast<std::uint8_t>(OP::VER), OP::VER},
+        {static_cast<std::uint8_t>(OP::IF), OP::IF},
+        {static_cast<std::uint8_t>(OP::NOTIF), OP::NOTIF},
+        {static_cast<std::uint8_t>(OP::VERIF), OP::VERIF},
+        {static_cast<std::uint8_t>(OP::VERNOTIF), OP::VERNOTIF},
+        {static_cast<std::uint8_t>(OP::ELSE), OP::ELSE},
+        {static_cast<std::uint8_t>(OP::ENDIF), OP::ENDIF},
+        {static_cast<std::uint8_t>(OP::VERIFY), OP::VERIFY},
+        {static_cast<std::uint8_t>(OP::RETURN), OP::RETURN},
+        {static_cast<std::uint8_t>(OP::TOALTSTACK), OP::TOALTSTACK},
+        {static_cast<std::uint8_t>(OP::FROMALTSTACK), OP::FROMALTSTACK},
+        {static_cast<std::uint8_t>(OP::TWO_DROP), OP::TWO_DROP},
+        {static_cast<std::uint8_t>(OP::TWO_DUP), OP::TWO_DUP},
+        {static_cast<std::uint8_t>(OP::THREE_DUP), OP::THREE_DUP},
+        {static_cast<std::uint8_t>(OP::TWO_OVER), OP::TWO_OVER},
+        {static_cast<std::uint8_t>(OP::TWO_ROT), OP::TWO_ROT},
+        {static_cast<std::uint8_t>(OP::TWO_SWAP), OP::TWO_SWAP},
+        {static_cast<std::uint8_t>(OP::IFDUP), OP::IFDUP},
+        {static_cast<std::uint8_t>(OP::DEPTH), OP::DEPTH},
+        {static_cast<std::uint8_t>(OP::DROP), OP::DROP},
+        {static_cast<std::uint8_t>(OP::DUP), OP::DUP},
+        {static_cast<std::uint8_t>(OP::NIP), OP::NIP},
+        {static_cast<std::uint8_t>(OP::OVER), OP::OVER},
+        {static_cast<std::uint8_t>(OP::PICK), OP::PICK},
+        {static_cast<std::uint8_t>(OP::ROLL), OP::ROLL},
+        {static_cast<std::uint8_t>(OP::ROT), OP::ROT},
+        {static_cast<std::uint8_t>(OP::SWAP), OP::SWAP},
+        {static_cast<std::uint8_t>(OP::TUCK), OP::TUCK},
+        {static_cast<std::uint8_t>(OP::CAT), OP::CAT},
+        {static_cast<std::uint8_t>(OP::SUBSTR), OP::SUBSTR},
+        {static_cast<std::uint8_t>(OP::LEFT), OP::LEFT},
+        {static_cast<std::uint8_t>(OP::RIGHT), OP::RIGHT},
+        {static_cast<std::uint8_t>(OP::SIZE), OP::SIZE},
+        {static_cast<std::uint8_t>(OP::INVERT), OP::INVERT},
+        {static_cast<std::uint8_t>(OP::AND), OP::AND},
+        {static_cast<std::uint8_t>(OP::OR), OP::OR},
+        {static_cast<std::uint8_t>(OP::XOR), OP::XOR},
+        {static_cast<std::uint8_t>(OP::EQUAL), OP::EQUAL},
+        {static_cast<std::uint8_t>(OP::EQUALVERIFY), OP::EQUALVERIFY},
+        {static_cast<std::uint8_t>(OP::RESERVED1), OP::RESERVED1},
+        {static_cast<std::uint8_t>(OP::RESERVED2), OP::RESERVED2},
+        {static_cast<std::uint8_t>(OP::ONE_ADD), OP::ONE_ADD},
+        {static_cast<std::uint8_t>(OP::ONE_SUB), OP::ONE_SUB},
+        {static_cast<std::uint8_t>(OP::TWO_MUL), OP::TWO_MUL},
+        {static_cast<std::uint8_t>(OP::TWO_DIV), OP::TWO_DIV},
+        {static_cast<std::uint8_t>(OP::NEGATE), OP::NEGATE},
+        {static_cast<std::uint8_t>(OP::ABS), OP::ABS},
+        {static_cast<std::uint8_t>(OP::NOT), OP::NOT},
+        {static_cast<std::uint8_t>(OP::ZERO_NOTEQUAL), OP::ZERO_NOTEQUAL},
+        {static_cast<std::uint8_t>(OP::ADD), OP::ADD},
+        {static_cast<std::uint8_t>(OP::SUB), OP::SUB},
+        {static_cast<std::uint8_t>(OP::MUL), OP::MUL},
+        {static_cast<std::uint8_t>(OP::DIV), OP::DIV},
+        {static_cast<std::uint8_t>(OP::MOD), OP::MOD},
+        {static_cast<std::uint8_t>(OP::LSHIFT), OP::LSHIFT},
+        {static_cast<std::uint8_t>(OP::RSHIFT), OP::RSHIFT},
+        {static_cast<std::uint8_t>(OP::BOOLAND), OP::BOOLAND},
+        {static_cast<std::uint8_t>(OP::BOOLOR), OP::BOOLOR},
+        {static_cast<std::uint8_t>(OP::NUMEQUAL), OP::NUMEQUAL},
+        {static_cast<std::uint8_t>(OP::NUMEQUALVERIFY), OP::NUMEQUALVERIFY},
+        {static_cast<std::uint8_t>(OP::NUMNOTEQUAL), OP::NUMNOTEQUAL},
+        {static_cast<std::uint8_t>(OP::LESSTHAN), OP::LESSTHAN},
+        {static_cast<std::uint8_t>(OP::GREATERTHAN), OP::GREATERTHAN},
+        {static_cast<std::uint8_t>(OP::LESSTHANOREQUAL), OP::LESSTHANOREQUAL},
+        {static_cast<std::uint8_t>(OP::GREATERTHANOREQUAL),
+         OP::GREATERTHANOREQUAL},
+        {static_cast<std::uint8_t>(OP::MIN), OP::MIN},
+        {static_cast<std::uint8_t>(OP::MAX), OP::MAX},
+        {static_cast<std::uint8_t>(OP::WITHIN), OP::WITHIN},
+        {static_cast<std::uint8_t>(OP::RIPEMD160), OP::RIPEMD160},
+        {static_cast<std::uint8_t>(OP::SHA1), OP::SHA1},
+        {static_cast<std::uint8_t>(OP::SHA256), OP::SHA256},
+        {static_cast<std::uint8_t>(OP::HASH160), OP::HASH160},
+        {static_cast<std::uint8_t>(OP::HASH256), OP::HASH256},
+        {static_cast<std::uint8_t>(OP::CODESEPARATOR), OP::CODESEPARATOR},
+        {static_cast<std::uint8_t>(OP::CHECKSIG), OP::CHECKSIG},
+        {static_cast<std::uint8_t>(OP::CHECKSIGVERIFY), OP::CHECKSIGVERIFY},
+        {static_cast<std::uint8_t>(OP::CHECKMULTISIG), OP::CHECKMULTISIG},
+        {static_cast<std::uint8_t>(OP::CHECKMULTISIGVERIFY),
+         OP::CHECKMULTISIGVERIFY},
+        {static_cast<std::uint8_t>(OP::NOP1), OP::NOP1},
+        {static_cast<std::uint8_t>(OP::NOP2), OP::NOP2},
+        {static_cast<std::uint8_t>(OP::NOP3), OP::NOP3},
+        {static_cast<std::uint8_t>(OP::NOP4), OP::NOP4},
+        {static_cast<std::uint8_t>(OP::NOP5), OP::NOP5},
+        {static_cast<std::uint8_t>(OP::NOP6), OP::NOP6},
+        {static_cast<std::uint8_t>(OP::NOP7), OP::NOP7},
+        {static_cast<std::uint8_t>(OP::NOP8), OP::NOP8},
+        {static_cast<std::uint8_t>(OP::NOP9), OP::NOP9},
+        {static_cast<std::uint8_t>(OP::NOP10), OP::NOP10},
+        {static_cast<std::uint8_t>(OP::PUBKEYHASH), OP::PUBKEYHASH},
+        {static_cast<std::uint8_t>(OP::PUBKEY), OP::PUBKEY},
+        {static_cast<std::uint8_t>(OP::INVALIDOPCODE), OP::INVALIDOPCODE},
+    };
+
+    return map.at(std::to_integer<std::uint8_t>(in));
+}
+
+auto Script::evaluate_data(const ScriptElements& script) noexcept -> Pattern
+{
+    OT_ASSERT(2 <= script.size());
+
+    for (auto i = std::size_t{1}; i < script.size(); ++i) {
+        if (false == is_data_push(script.at(i))) { return Pattern::Custom; }
+    }
+
+    return Pattern::NullData;
+}
+
+auto Script::evaluate_multisig(const ScriptElements& script) noexcept -> Pattern
+{
+    OT_ASSERT(4 <= script.size());
+
+    auto it = script.crbegin();
+    std::advance(it, 1);
+    const auto n = to_number(std::get<0>(*it));
+
+    if (0u == n) { return Pattern::Malformed; }
+    if ((3u + n) > script.size()) { return Pattern::Malformed; }
+
+    for (auto i = std::uint8_t{0}; i < n; ++i) {
+        std::advance(it, 1);
+
+        if (false == is_public_key(*it)) { return Pattern::Malformed; }
+    }
+
+    std::advance(it, 1);
+    const auto m = to_number(std::get<0>(*it));
+
+    if ((0u == m) || (m > n)) { return Pattern::Malformed; }
+
+    if ((3u + n) < script.size()) { return Pattern::Custom; }
+
+    return Pattern::PayToMultisig;
+}
+
+auto Script::evaluate_pubkey(const ScriptElements& script) noexcept -> Pattern
+{
+    OT_ASSERT(2 == script.size());
+
+    if (is_public_key(script.at(0))) { return Pattern::PayToPubkey; }
+
+    return Pattern::Custom;
+}
+
+auto Script::evaluate_pubkey_hash(const ScriptElements& script) noexcept
+    -> Pattern
+{
+    OT_ASSERT(5 == script.size());
+
+    auto it = script.cbegin();
+
+    if (OP::DUP != std::get<0>(*it)) { return Pattern::Custom; }
+
+    std::advance(it, 1);
+
+    if (OP::HASH160 != std::get<0>(*it)) { return Pattern::Custom; }
+
+    std::advance(it, 1);
+
+    if (false == is_hash160(*it)) { return Pattern::Custom; }
+
+    std::advance(it, 1);
+
+    if (OP::EQUALVERIFY != std::get<0>(*it)) { return Pattern::Custom; }
+
+    return Pattern::PayToPubkeyHash;
+}
+
+auto Script::evaluate_script_hash(const ScriptElements& script) noexcept
+    -> Pattern
+{
+    OT_ASSERT(3 == script.size());
+
+    auto it = script.cbegin();
+
+    if (OP::HASH160 != std::get<0>(*it)) { return Pattern::Custom; }
+
+    std::advance(it, 1);
+
+    if (false == is_hash160(*it)) { return Pattern::Custom; }
+    if (OP::PUSHDATA_20 != std::get<0>(*it)) { return Pattern::Custom; }
+
+    return Pattern::PayToScriptHash;
+}
+
+auto Script::first_opcode(const ScriptElements& script) noexcept -> OP
+{
+    return std::get<0>(*script.cbegin());
+}
+
+auto Script::get_data(const std::size_t position) const noexcept(false)
+    -> ReadView
+{
+    auto& data = std::get<2>(elements_.at(position));
+
+    if (false == data.has_value()) {
+        throw std::out_of_range("No data at specified script position");
+    }
+
+    return reader(data.value());
+}
+
+auto Script::get_opcode(const std::size_t position) const noexcept(false) -> OP
+{
+    return std::get<0>(elements_.at(position));
+}
+
+auto Script::get_type(
+    const Position role,
+    const ScriptElements& script) noexcept -> Pattern
+{
+    if (0 == script.size()) { return Pattern::Empty; }
+
+    switch (role) {
+        case Position::Coinbase: {
+
+            return Pattern::Coinbase;
+        }
+        case Position::Input: {
+
+            return Pattern::Input;
+        }
+        case Position::Output: {
+            if (potential_pubkey_hash(script)) {
+                return evaluate_pubkey_hash(script);
+            } else if (potential_script_hash(script)) {
+                return evaluate_script_hash(script);
+            } else if (potential_data(script)) {
+                return evaluate_data(script);
+            } else if (potential_pubkey(script)) {
+                return evaluate_pubkey(script);
+            } else if (potential_multisig(script)) {
+                return evaluate_multisig(script);
+            } else {
+                return Pattern::Custom;
+            }
+        }
+        default: {
+            OT_FAIL;
+        }
+    }
+}
+
+auto Script::is_data_push(const value_type& element) noexcept -> bool
+{
+    return validate(element, true);
+}
+
+auto Script::is_direct_push(const OP opcode) noexcept(false)
+    -> std::optional<std::size_t>
+{
+    const auto value = static_cast<std::uint8_t>(opcode);
+
+    if ((0 < value) && (76 > value)) { return value; }
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+    return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+}
+
+auto Script::is_push(const OP opcode) noexcept(false)
+    -> std::optional<std::size_t>
+{
+    const auto value = static_cast<std::uint8_t>(opcode);
+
+    if ((75 < value) && (79 > value)) {
+        return std::size_t{1u << (value - 76u)};
+    }
+
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+    return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+}
+
+auto Script::is_hash160(const value_type& element) noexcept -> bool
+{
+    if (false == is_data_push(element)) { return false; }
+
+    return 20 == std::get<2>(element)->size();
+}
+
+auto Script::is_public_key(const value_type& element) noexcept -> bool
+{
+    if (false == is_data_push(element)) { return false; }
+
+    const auto size = std::get<2>(element)->size();
+
+    return (33 == size) || (65 == size);
+}
+
+auto Script::last_opcode(const ScriptElements& script) noexcept -> OP
+{
+    return std::get<0>(*script.crbegin());
+}
+
+auto Script::M() const noexcept -> std::optional<std::uint8_t>
+{
+    if (Pattern::PayToMultisig != type_) { return {}; }
+
+    return to_number(get_opcode(0));
+}
+
+auto Script::MultisigPubkey(const std::size_t position) const noexcept
+    -> std::optional<ReadView>
+{
+    if (Pattern::PayToMultisig != type_) { return {}; }
+
+    const auto index = std::size_t{position + 1u};
+
+    if (index > N()) { return {}; }
+
+    return get_data(index);
+}
+
+auto Script::N() const noexcept -> std::optional<std::uint8_t>
+{
+    if (Pattern::PayToMultisig != type_) { return {}; }
+
+    return to_number(get_opcode(elements_.size() - 2));
+}
+
+auto Script::potential_data(const ScriptElements& script) noexcept -> bool
+{
+    return (OP::RETURN == first_opcode(script)) && (2 <= script.size());
+}
+
+auto Script::potential_multisig(const ScriptElements& script) noexcept -> bool
+{
+    return (OP::CHECKMULTISIG == last_opcode(script)) && (4 <= script.size());
+}
+
+auto Script::potential_pubkey(const ScriptElements& script) noexcept -> bool
+{
+    return (OP::CHECKSIG == last_opcode(script)) && (2 == script.size());
+}
+
+auto Script::potential_pubkey_hash(const ScriptElements& script) noexcept
+    -> bool
+{
+    return (OP::CHECKSIG == last_opcode(script)) && (5 == script.size());
+}
+
+auto Script::potential_script_hash(const ScriptElements& script) noexcept
+    -> bool
+{
+    return (OP::HASH160 == first_opcode(script)) &&
+           (OP::EQUAL == last_opcode(script)) && (3 == script.size());
+}
+
+auto Script::Pubkey() const noexcept -> std::optional<ReadView>
+{
+    if (Pattern::PayToPubkey != type_) { return {}; }
+
+    return get_data(0);
+}
+
+auto Script::PubkeyHash() const noexcept -> std::optional<ReadView>
+{
+    if (Pattern::PayToPubkeyHash != type_) { return {}; }
+
+    return get_data(2);
+}
+
+auto Script::ScriptHash() const noexcept -> std::optional<ReadView>
+{
+    if (Pattern::PayToScriptHash != type_) { return {}; }
+
+    return get_data(1);
+}
+
+auto Script::Serialize(const AllocateOutput destination) const noexcept -> bool
+{
+    if (!destination) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    const auto size = CalculateSize();
+    auto output = destination(size);
+
+    if (false == output.valid(size)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output bytes")
+            .Flush();
+
+        return false;
+    }
+
+    auto it = static_cast<std::byte*>(output.data());
+
+    for (const auto& element : elements_) {
+        const auto& [opcode, bytes, data] = element;
+        std::memcpy(static_cast<void*>(it), &opcode, sizeof(opcode));
+        std::advance(it, sizeof(opcode));
+
+        if (bytes.has_value()) {
+            const auto& value = bytes.value();
+            std::memcpy(static_cast<void*>(it), value.data(), value.size());
+            std::advance(it, value.size());
+        }
+
+        if (data.has_value()) {
+            const auto& value = data.value();
+            std::memcpy(static_cast<void*>(it), value.data(), value.size());
+            std::advance(it, value.size());
+        }
+    }
+
+    return true;
+}
+
+auto Script::to_number(const OP opcode) noexcept -> std::uint8_t
+{
+    if ((OP::ONE <= opcode) && (OP::SIXTEEN >= opcode)) {
+
+        return static_cast<std::uint8_t>(opcode) -
+               static_cast<std::uint8_t>(OP::ONE) + 1u;
+    }
+
+    return 0;
+}
+
+auto Script::validate(const ScriptElements& elements) noexcept -> bool
+{
+    for (const auto& element : elements) {
+        if (false == validate(element, false)) { return false; }
+    }
+
+    return true;
+}
+
+auto Script::validate(
+    const ScriptElement& element,
+    const bool checkForData) noexcept -> bool
+{
+    const auto& [opcode, bytes, data] = element;
+
+    if (auto size = is_direct_push(opcode); size.has_value()) {
+        if (bytes.has_value()) { return false; }
+        if (false == data.has_value()) { return false; }
+        if (size != data.value().size()) { return false; }
+
+        return true;
+    } else if (auto push = is_push(opcode); push.has_value()) {
+        if (false == bytes.has_value()) { return false; }
+        if (false == data.has_value()) { return false; }
+
+        auto size = std::size_t{};
+        const auto& pushBytes = push.value();
+
+        if (pushBytes != bytes->size()) { return false; }
+
+        switch (pushBytes) {
+            case 1:
+            case 2:
+            case 4: {
+                auto buf = be::little_uint32_buf_t{};
+                std::memcpy(
+                    static_cast<void*>(&buf), bytes.value().data(), pushBytes);
+                size = buf.value();
+            } break;
+            default: {
+                OT_FAIL;
+            }
+        }
+
+        if (size != data.value().size()) { return false; }
+
+        return true;
+    } else {
+
+        return !checkForData;
+    }
+}
+
+auto Script::Value(const std::size_t position) const noexcept
+    -> std::optional<ReadView>
+{
+    if (Pattern::NullData != type_) { return {}; }
+
+    const auto index = position + 1u;
+
+    if (index > elements_.size()) { return {}; }
+
+    return get_data(index);
+}
+}  // namespace opentxs::blockchain::block::bitcoin::implementation

@@ -57,6 +57,12 @@
 #if OT_BLOCKCHAIN
 #include <opentxs/blockchain/block/bitcoin/Block.hpp>
 #include <opentxs/blockchain/block/bitcoin/Header.hpp>
+#include <opentxs/blockchain/block/bitcoin/Input.hpp>
+#include <opentxs/blockchain/block/bitcoin/Inputs.hpp>
+#include <opentxs/blockchain/block/bitcoin/Output.hpp>
+#include <opentxs/blockchain/block/bitcoin/Outputs.hpp>
+#include <opentxs/blockchain/block/bitcoin/Script.hpp>
+#include <opentxs/blockchain/block/bitcoin/Transaction.hpp>
 #include <opentxs/blockchain/block/Block.hpp>
 #include <opentxs/blockchain/block/Header.hpp>
 #include <opentxs/blockchain/client/BlockOracle.hpp>

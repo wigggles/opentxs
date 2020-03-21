@@ -109,6 +109,12 @@ namespace bitcoin
 {
 class Block;
 class Header;
+class Input;
+class Inputs;
+struct Outpoint;
+class Output;
+class Outputs;
+class Script;
 class Transaction;
 }  // namespace bitcoin
 
