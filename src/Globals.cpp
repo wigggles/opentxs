@@ -64,6 +64,21 @@ blockchain::Type Translate(const proto::ContactItemType type) noexcept
     }
 }
 
+auto preallocated(const std::size_t size, void* out) noexcept -> AllocateOutput
+{
+    return [=](const auto in) -> WritableView {
+        if (in <= size) {
+
+            return {out, in};
+        } else {
+            LogOutput("preallocated(): Requested ")(in)(" bytes but only ")(
+                size)(" are available")
+                .Flush();
+
+            return {nullptr, 0};
+        }
+    };
+}
 auto reader(const Space& in) noexcept -> ReadView
 {
     return {reinterpret_cast<const char*>(in.data()), in.size()};

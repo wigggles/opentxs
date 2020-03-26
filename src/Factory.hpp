@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "opentxs/blockchain/Blockchain.hpp"
 #include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 
@@ -615,13 +616,57 @@ public:
         const std::string& userAgent,
         const blockchain::block::Height height,
         const bool relay);
-    static auto BitcoinTransaction(
+    OPENTXS_EXPORT static auto BitcoinScript(
+        const ReadView bytes,
+        const bool outputScript = true,
+        const bool isGeneration = false) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Script>;
+    OPENTXS_EXPORT static auto BitcoinScript(
+        blockchain::block::bitcoin::ScriptElements&& elements,
+        const bool outputScript = true,
+        const bool isGeneration = false) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Script>;
+    OPENTXS_EXPORT static auto BitcoinTransaction(
         const api::internal::Core& api,
         const blockchain::Type chain,
         const bool isGeneration,
-        Space&& txid,
+        const ReadView txid,
         blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
         -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
+    OPENTXS_EXPORT static auto BitcoinTransaction(
+        const api::internal::Core& api,
+        const bool isGeneration,
+        const proto::BlockchainTransaction& serialized) noexcept
+        -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
+    OPENTXS_EXPORT static auto BitcoinTransactionInput(
+        const ReadView outpoint,
+        const blockchain::bitcoin::CompactSize& cs,
+        const ReadView script,
+        const ReadView sequence,
+        const bool isGeneration) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Input>;
+    OPENTXS_EXPORT static auto BitcoinTransactionInput(
+        const proto::BlockchainTransactionInput,
+        const bool isGeneration) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Input>;
+    static auto BitcoinTransactionInputs(
+        std::vector<std::unique_ptr<blockchain::block::bitcoin::Input>>&&
+            inputs,
+        std::optional<std::size_t> size = {}) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Inputs>;
+    OPENTXS_EXPORT static auto BitcoinTransactionOutput(
+        const std::int64_t value,
+        const blockchain::bitcoin::CompactSize& cs,
+        const ReadView script) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Output>;
+    OPENTXS_EXPORT static auto BitcoinTransactionOutput(
+        const proto::BlockchainTransactionOutput) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Output>;
+    static auto BitcoinTransactionOutputs(
+        std::vector<std::unique_ptr<blockchain::block::bitcoin::Output>>&&
+            outputs,
+        std::optional<std::size_t> size = {}) noexcept
+        -> std::unique_ptr<blockchain::block::bitcoin::Outputs>;
 #endif  // OT_BLOCKCHAIN
     static api::client::Blockchain* BlockchainAPI(
         const api::client::internal::Manager& api,

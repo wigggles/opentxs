@@ -41,69 +41,65 @@ bool DecodeCompactSizeFromPayload(
     const std::size_t size,
     std::size_t& output) noexcept
 {
-    std::size_t notUsed{};
+    auto cs = CompactSize{};
+    auto ret = DecodeCompactSizeFromPayload(it, expected, size, cs);
+    output = cs.Value();
 
-    return DecodeCompactSizeFromPayload(it, expected, size, output, notUsed);
+    return ret;
+}
+
+bool DecodeCompactSizeFromPayload(
+    const std::byte*& it,
+    std::size_t& expected,
+    const std::size_t size,
+    std::size_t& output,
+    std::size_t& csExtraBytes) noexcept
+{
+    auto cs = CompactSize{};
+    auto ret = DecodeCompactSizeFromPayload(it, expected, size, cs);
+    output = cs.Value();
+    csExtraBytes = cs.Size() - 1;
+
+    return ret;
 }
 
 bool DecodeCompactSizeFromPayload(
     const std::byte*& it,
     std::size_t& expectedSize,
     const std::size_t size,
-    std::size_t& output,
-    std::size_t& csBytes) noexcept
+    CompactSize& output) noexcept
 {
-    std::size_t csValue{0};
-    output = csValue;  // zero
-
     if (std::byte{0} == *it) {
-        it += 1;  // This compact size contains a zero.
+        output = CompactSize{0};
+        std::advance(it, 1);
     } else {
-        {
-            const auto max =
-                std::uint64_t{std::numeric_limits<std::size_t>::max()};
-            const auto lhs = std::uint64_t{csBytes};
-            const auto rhs = CompactSize::CalculateSize(*it);
+        auto csExtraBytes = CompactSize::CalculateSize(*it);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wtautological-type-limit-compare"
-            // std::size_t might be 32 bit
-            if (max < rhs) {
-                LogOutput("opentxs::blockchain::bitcoin::")(__FUNCTION__)(
-                    ": Size too big")
-                    .Flush();
+        // std::size_t might be 32 bit
+        if (sizeof(std::size_t) < csExtraBytes) {
+            LogOutput("opentxs::blockchain::bitcoin::")(__FUNCTION__)(
+                ": Size too big")
+                .Flush();
 
-                return false;
-            }
+            return false;
+        }
 #pragma GCC diagnostic pop
 
-            csBytes = static_cast<std::size_t>(rhs);
-
-            if ((max - lhs) < rhs) {
-                LogOutput("opentxs::blockchain::bitcoin::")(__FUNCTION__)(
-                    ": overflow")
-                    .Flush();
-
-                return false;
-            }
-
-            expectedSize += csBytes;
-        }
+        expectedSize += csExtraBytes;
 
         if (expectedSize > size) { return false; }
 
-        if (0 == csBytes) {
-            csValue = std::to_integer<std::uint8_t>(*it);
-            it += 1;
+        if (0 == csExtraBytes) {
+            output = CompactSize{std::to_integer<std::uint8_t>(*it)};
+            std::advance(it, 1);
         } else {
-            it += 1;
-            CompactSize::Bytes bytes{it, it + csBytes};
-            csValue = CompactSize(bytes).Value();
-            it += csBytes;
+            std::advance(it, 1);
+            output = CompactSize(Space{it, it + csExtraBytes}).Value();
+            std::advance(it, csExtraBytes);
         }
     }
-
-    output = csValue;
 
     return true;
 }
@@ -208,6 +204,24 @@ std::vector<std::byte> CompactSize::Encode() const noexcept
     }
 
     return output;
+}
+
+std::size_t CompactSize::Size() const noexcept
+{
+    if (data_ <= OT_COMPACT_SIZE_THRESHOLD_1) {
+        return 1;
+    } else if (data_ <= OT_COMPACT_SIZE_THRESHOLD_3) {
+        return 3;
+    } else if (data_ <= OT_COMPACT_SIZE_THRESHOLD_5) {
+        return 5;
+    } else {
+        return 9;
+    }
+}
+
+std::size_t CompactSize::Total() const noexcept
+{
+    return Size() + static_cast<std::size_t>(data_);
 }
 
 std::uint64_t CompactSize::Value() const noexcept { return data_; }

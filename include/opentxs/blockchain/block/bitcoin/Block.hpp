@@ -22,11 +22,6 @@ namespace bitcoin
 class Block : virtual public block::Block
 {
 public:
-    struct Outpoint {
-        block::pHash txid_;
-        std::uint32_t output_;
-    };
-
     ~Block() override = default;
 
 protected:

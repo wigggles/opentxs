@@ -16,4 +16,8 @@ if(OT_BLOCKCHAIN_EXPORT)
   add_opentx_test(unittests-opentxs-blockchain-filters Test_Filters.cpp)
   add_opentx_test(unittests-opentxs-blockchain-hash Test_NumericHash.cpp)
   add_opentx_test(unittests-opentxs-blockchain-message Test_Message.cpp)
+  add_opentx_test(unittests-opentxs-blockchain-script-bitcoin
+                  Test_BitcoinScript.cpp)
+  add_opentx_test(unittests-opentxs-blockchain-transaction-bitcoin
+                  Test_BitcoinTransaction.cpp)
 endif()

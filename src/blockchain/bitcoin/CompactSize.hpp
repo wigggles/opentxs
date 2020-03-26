@@ -23,6 +23,10 @@ public:
         const std::byte first) noexcept;
 
     OPENTXS_EXPORT Bytes Encode() const noexcept;
+    // Number of bytes the CompactSize will occupy
+    OPENTXS_EXPORT std::size_t Size() const noexcept;
+    // Number of bytes the CompactSize and associated data will occupy
+    OPENTXS_EXPORT std::size_t Total() const noexcept;
     OPENTXS_EXPORT std::uint64_t Value() const noexcept;
 
     // Initial marker byte should be omitted
