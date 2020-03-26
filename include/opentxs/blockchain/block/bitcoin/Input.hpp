@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -34,8 +36,20 @@ struct Outpoint {
 class Input
 {
 public:
+    using FilterType = Transaction::FilterType;
+    using Patterns = Transaction::Patterns;
+    using Match = Transaction::Match;
+    using Matches = Transaction::Matches;
+
     OPENTXS_EXPORT virtual auto CalculateSize(
         const bool normalized = false) const noexcept -> std::size_t = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
+        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto FindMatches(
+        const ReadView txid,
+        const FilterType type,
+        const Patterns& txos,
+        const Patterns& elements) const noexcept -> Matches = 0;
     OPENTXS_EXPORT virtual auto PreviousOutput() const noexcept
         -> const Outpoint& = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)

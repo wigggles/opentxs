@@ -26,6 +26,12 @@ public:
         return const_iterator(this, outputs_.size());
     }
     auto end() const noexcept -> const_iterator final { return cend(); }
+    auto ExtractElements(const filter::Type style) const noexcept
+        -> std::vector<Space> final;
+    auto FindMatches(
+        const ReadView txid,
+        const FilterType type,
+        const Patterns& elements) const noexcept -> Matches final;
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
     auto Serialize(proto::BlockchainTransaction& destination) const noexcept

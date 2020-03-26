@@ -76,6 +76,7 @@ OPENTXS_EXPORT auto preallocated(const std::size_t size, void* out) noexcept
 OPENTXS_EXPORT auto reader(const WritableView& in) noexcept -> ReadView;
 OPENTXS_EXPORT auto reader(const Space& in) noexcept -> ReadView;
 OPENTXS_EXPORT auto space(const std::size_t size) noexcept -> Space;
+OPENTXS_EXPORT auto space(const ReadView bytes) noexcept -> Space;
 OPENTXS_EXPORT auto writer(std::string& in) noexcept -> AllocateOutput;
 OPENTXS_EXPORT auto writer(Space& in) noexcept -> AllocateOutput;
 }  // namespace opentxs

@@ -7,12 +7,18 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
 #include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Bytes.hpp"
 
 #include "blockchain/bitcoin/CompactSize.hpp"
+#include "internal/blockchain/block/Block.hpp"
 
 #include "Output.hpp"
 
@@ -24,16 +30,25 @@ namespace opentxs
 using ReturnType = blockchain::block::bitcoin::implementation::Output;
 
 auto Factory::BitcoinTransactionOutput(
+    const api::Core& api,
+    const std::uint32_t index,
     const std::int64_t value,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Output>
 {
-    return std::make_unique<ReturnType>(
-        value, sizeof(value) + cs.Total(), script);
+    try {
+        return std::make_unique<ReturnType>(
+            api, index, value, sizeof(value) + cs.Total(), script);
+    } catch (const std::exception& e) {
+        LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
 }
 
 auto Factory::BitcoinTransactionOutput(
+    const api::Core& api,
     const proto::BlockchainTransactionOutput in) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Output>
 {
@@ -42,7 +57,12 @@ auto Factory::BitcoinTransactionOutput(
         auto cs = blockchain::bitcoin::CompactSize(in.script().size());
 
         return std::make_unique<ReturnType>(
-            value, sizeof(value) + cs.Total(), in.script(), in.version());
+            api,
+            in.index(),
+            value,
+            sizeof(value) + cs.Total(),
+            in.script(),
+            in.version());
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -56,11 +76,15 @@ namespace opentxs::blockchain::block::bitcoin::implementation
 const VersionNumber Output::default_version_{1};
 
 Output::Output(
+    const api::Core& api,
     const VersionNumber version,
+    const std::uint32_t index,
     const std::int64_t value,
     std::unique_ptr<const bitcoin::Script> script,
     std::optional<std::size_t> size) noexcept(false)
-    : serialize_version_(version)
+    : api_(api)
+    , serialize_version_(version)
+    , index_(index)
     , value_(value)
     , script_(std::move(script))
     , size_(size)
@@ -72,21 +96,17 @@ Output::Output(
     if (0 > value_) { throw std::runtime_error("Invalid output value"); }
 }
 
-Output::Output(const std::int64_t value, ScriptElements&& in) noexcept(false)
-    : Output(
-          default_version_,
-          value,
-          opentxs::Factory::BitcoinScript(std::move(in), true, false))
-{
-}
-
 Output::Output(
+    const api::Core& api,
+    const std::uint32_t index,
     const std::int64_t value,
     const std::size_t size,
     const ReadView in,
     const VersionNumber version) noexcept(false)
     : Output(
+          api,
           version,
+          index,
           value,
           opentxs::Factory::BitcoinScript(in, true, false),
           size)
@@ -102,6 +122,18 @@ auto Output::CalculateSize() const noexcept -> std::size_t
     }
 
     return size_.value();
+}
+
+auto Output::ExtractElements(const filter::Type style) const noexcept
+    -> std::vector<Space>
+{
+    auto output = script_->ExtractElements(style);
+
+    if (filter::Type::Extended_opentxs == style) {
+        // TODO add created outpoint
+    }
+
+    return output;
 }
 
 auto Output::Serialize(const AllocateOutput destination) const noexcept
@@ -162,14 +194,13 @@ auto Output::Serialize(const AllocateOutput destination) const noexcept
     }
 }
 
-auto Output::Serialize(
-    const std::uint32_t index,
-    proto::BlockchainTransactionOutput& out) const noexcept -> bool
+auto Output::Serialize(proto::BlockchainTransactionOutput& out) const noexcept
+    -> bool
 {
     OT_ASSERT(0 <= value_);
 
     out.set_version(std::max(default_version_, serialize_version_));
-    out.set_index(index);
+    out.set_index(index_);
     out.set_value(value_);
 
     if (false == script_->Serialize(writer(*out.mutable_script()))) {

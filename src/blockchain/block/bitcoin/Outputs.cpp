@@ -13,6 +13,7 @@
 
 #include "blockchain/bitcoin/CompactSize.hpp"
 
+#include <algorithm>
 #include <numeric>
 #include <optional>
 #include <vector>
@@ -71,6 +72,46 @@ auto Outputs::CalculateSize() const noexcept -> std::size_t
     }
 
     return size_.value();
+}
+
+auto Outputs::ExtractElements(const filter::Type style) const noexcept
+    -> std::vector<Space>
+{
+    auto output = std::vector<Space>{};
+    LogTrace(OT_METHOD)(__FUNCTION__)(": processing ")(size())(" outputs")
+        .Flush();
+
+    for (const auto& txout : *this) {
+        auto temp = txout.ExtractElements(style);
+        output.insert(
+            output.end(),
+            std::make_move_iterator(temp.begin()),
+            std::make_move_iterator(temp.end()));
+    }
+
+    LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(
+        " elements")
+        .Flush();
+
+    return output;
+}
+
+auto Outputs::FindMatches(
+    const ReadView txid,
+    const FilterType type,
+    const Patterns& patterns) const noexcept -> Matches
+{
+    auto output = Matches{};
+
+    for (const auto& txout : *this) {
+        auto temp = txout.FindMatches(txid, type, patterns);
+        output.insert(
+            output.end(),
+            std::make_move_iterator(temp.begin()),
+            std::make_move_iterator(temp.end()));
+    }
+
+    return output;
 }
 
 auto Outputs::Serialize(const AllocateOutput destination) const noexcept
@@ -140,16 +181,12 @@ auto Outputs::Serialize(const AllocateOutput destination) const noexcept
 auto Outputs::Serialize(proto::BlockchainTransaction& destination) const
     noexcept -> bool
 {
-    auto index = std::uint32_t{0};
-
     for (const auto& output : outputs_) {
         OT_ASSERT(output);
 
         auto& out = *destination.add_output();
 
-        if (false == output->Serialize(index, out)) { return false; }
-
-        ++index;
+        if (false == output->Serialize(out)) { return false; }
     }
 
     return true;

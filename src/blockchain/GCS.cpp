@@ -10,12 +10,12 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include "blockchain/bitcoin/CompactSize.hpp"
-#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 
 #include <boost/endian/buffers.hpp>
@@ -43,7 +43,7 @@ constexpr auto bitmask(const std::uint64_t n) -> std::uint64_t
 }
 
 auto Factory::GCS(
-    const api::internal::Core& api,
+    const api::Core& api,
     const std::uint8_t bits,
     const std::uint32_t fpRate,
     const ReadView key,
@@ -53,7 +53,15 @@ auto Factory::GCS(
     using ReturnType = blockchain::implementation::GCS;
 
     try {
-        return std::make_unique<ReturnType>(api, bits, fpRate, key, elements);
+        auto effective = std::vector<ReadView>{};
+
+        for (const auto& element : elements) {
+            if (element->empty()) { continue; }
+
+            effective.emplace_back(element->Bytes());
+        }
+
+        return std::make_unique<ReturnType>(api, bits, fpRate, key, effective);
     } catch (const std::exception& e) {
         LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())
             .Flush();
@@ -62,7 +70,7 @@ auto Factory::GCS(
     }
 }
 
-auto Factory::GCS(const api::internal::Core& api, const proto::GCS& in) noexcept
+auto Factory::GCS(const api::Core& api, const proto::GCS& in) noexcept
     -> std::unique_ptr<blockchain::internal::GCS>
 {
     using ReturnType = blockchain::implementation::GCS;
@@ -79,7 +87,7 @@ auto Factory::GCS(const api::internal::Core& api, const proto::GCS& in) noexcept
 }
 
 auto Factory::GCS(
-    const api::internal::Core& api,
+    const api::Core& api,
     const std::uint8_t bits,
     const std::uint32_t fpRate,
     const ReadView key,
@@ -244,7 +252,7 @@ auto HashedSetConstruct(
 namespace opentxs::blockchain::implementation
 {
 GCS::GCS(
-    const api::internal::Core& api,
+    const api::Core& api,
     const std::uint8_t bits,
     const std::uint32_t fpRate,
     const std::uint32_t filterElementCount,
@@ -266,11 +274,11 @@ GCS::GCS(
 }
 
 GCS::GCS(
-    const api::internal::Core& api,
+    const api::Core& api,
     const std::uint8_t bits,
     const std::uint32_t fpRate,
     const ReadView key,
-    const std::vector<OTData>& elements) noexcept(false)
+    const std::vector<ReadView>& elements) noexcept(false)
     : version_(1)
     , api_(api)
     , bits_(bits)
@@ -281,7 +289,7 @@ GCS::GCS(
           key,
           static_cast<std::uint32_t>(elements.size()),
           false_positive_rate_,
-          transform(elements)))
+          elements))
     , compressed_(
           api_.Factory().Data(reader(gcs::GolombEncode(bits_, *elements_))))
     , key_(api_.Factory().Data(key))

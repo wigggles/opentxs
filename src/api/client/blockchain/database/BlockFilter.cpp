@@ -8,6 +8,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.tpp"
 
+#include "internal/api/Api.hpp"
 #include "internal/blockchain/Blockchain.hpp"
 
 #include "BlockFilter.hpp"

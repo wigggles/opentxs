@@ -127,6 +127,33 @@ public:
         const proto::UnitDefinition serialized) const noexcept(false) = 0;
     OPENTXS_EXPORT virtual std::unique_ptr<OTPassword> BinarySecret() const = 0;
 #if OT_BLOCKCHAIN
+    OPENTXS_EXPORT virtual auto BitcoinBlock(
+        const blockchain::Type chain,
+        const ReadView bytes) const noexcept
+        -> std::shared_ptr<const blockchain::block::bitcoin::Block> = 0;
+    OPENTXS_EXPORT virtual auto BitcoinScriptNullData(
+        const blockchain::Type chain,
+        const std::vector<ReadView>& data) const noexcept
+        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+    OPENTXS_EXPORT virtual auto BitcoinScriptP2MS(
+        const blockchain::Type chain,
+        const std::uint8_t M,
+        const std::uint8_t N,
+        const std::vector<const opentxs::crypto::key::EllipticCurve*>&
+            publicKeys) const noexcept
+        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+    OPENTXS_EXPORT virtual auto BitcoinScriptP2PK(
+        const blockchain::Type chain,
+        const opentxs::crypto::key::EllipticCurve& publicKey) const noexcept
+        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+    OPENTXS_EXPORT virtual auto BitcoinScriptP2PKH(
+        const blockchain::Type chain,
+        const opentxs::crypto::key::EllipticCurve& publicKey) const noexcept
+        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
+    OPENTXS_EXPORT virtual auto BitcoinScriptP2SH(
+        const blockchain::Type chain,
+        const blockchain::block::bitcoin::Script& script) const noexcept
+        -> std::unique_ptr<const blockchain::block::bitcoin::Script> = 0;
     OPENTXS_EXPORT virtual OTBlockchainAddress BlockchainAddress(
         const blockchain::p2p::Protocol protocol,
         const blockchain::p2p::Network network,

@@ -23,6 +23,76 @@
 
 namespace opentxs::blockchain
 {
+auto BlockHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        default: {
+            return api.Crypto().Hash().Digest(
+                proto::HASHTYPE_SHA256D, input, output);
+        }
+    }
+}
+
+auto FilterHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        default: {
+            return api.Crypto().Hash().Digest(
+                proto::HASHTYPE_SHA256D, input, output);
+        }
+    }
+}
+
+auto P2PMessageHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        default: {
+            return api.Crypto().Hash().Digest(
+                proto::HASHTYPE_SHA256DC, input, output);
+        }
+    }
+}
+
+auto PubkeyHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        default: {
+            return api.Crypto().Hash().Digest(
+                proto::HASHTYPE_BITCOIN, input, output);
+        }
+    }
+}
+
+auto ScriptHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        default: {
+            return api.Crypto().Hash().Digest(
+                proto::HASHTYPE_BITCOIN, input, output);
+        }
+    }
+}
+
 auto SupportedChains() noexcept -> const std::set<Type>&
 {
     static const auto output = std::set<Type>{
@@ -33,6 +103,20 @@ auto SupportedChains() noexcept -> const std::set<Type>&
     };
 
     return output;
+}
+
+auto TransactionHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool
+{
+    switch (chain) {
+        default: {
+            return api.Crypto().Hash().Digest(
+                proto::HASHTYPE_SHA256D, input, output);
+        }
+    }
 }
 }  // namespace opentxs::blockchain
 
@@ -375,8 +459,7 @@ auto FilterHashToHeader(
         preimage->Concatenate(previous.data(), previous.size());
     }
 
-    api.Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256D, preimage->Bytes(), output->WriteInto());
+    FilterHash(api, Type::Bitcoin, preimage->Bytes(), output->WriteInto());
 
     return output;
 }
@@ -385,8 +468,7 @@ auto FilterToHash(const api::Core& api, const ReadView filter) noexcept
     -> OTData
 {
     auto output = api.Factory().Data();
-    api.Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256D, filter, output->WriteInto());
+    FilterHash(api, Type::Bitcoin, filter, output->WriteInto());
 
     return output;
 }

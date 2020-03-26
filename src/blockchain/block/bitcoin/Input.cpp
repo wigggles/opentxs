@@ -12,9 +12,11 @@
 #include "opentxs/core/Log.hpp"
 
 #include "blockchain/bitcoin/CompactSize.hpp"
+#include "internal/blockchain/block/Block.hpp"
 
 #include <boost/endian/buffers.hpp>
 
+#include <algorithm>
 #include <limits>
 #include <optional>
 
@@ -29,6 +31,7 @@ namespace opentxs
 using ReturnType = blockchain::block::bitcoin::implementation::Input;
 
 auto Factory::BitcoinTransactionInput(
+    const api::Core& api,
     const ReadView outpoint,
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script,
@@ -45,12 +48,23 @@ auto Factory::BitcoinTransactionInput(
 
         std::memcpy(static_cast<void*>(&buf), sequence.data(), sequence.size());
 
-        return std::make_unique<ReturnType>(
-            buf.value(),
-            blockchain::block::bitcoin::Outpoint{outpoint},
-            opentxs::Factory::BitcoinScript(script, false, coinbase),
-            ReturnType::default_version_,
-            outpoint.size() + cs.Total() + sequence.size());
+        if (coinbase) {
+            return std::make_unique<ReturnType>(
+                api,
+                buf.value(),
+                blockchain::block::bitcoin::Outpoint{outpoint},
+                script,
+                ReturnType::default_version_,
+                outpoint.size() + cs.Total() + sequence.size());
+        } else {
+            return std::make_unique<ReturnType>(
+                api,
+                buf.value(),
+                blockchain::block::bitcoin::Outpoint{outpoint},
+                opentxs::Factory::BitcoinScript(script, false, false),
+                ReturnType::default_version_,
+                outpoint.size() + cs.Total() + sequence.size());
+        }
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -59,6 +73,7 @@ auto Factory::BitcoinTransactionInput(
 }
 
 auto Factory::BitcoinTransactionInput(
+    const api::Core& api,
     const proto::BlockchainTransactionInput in,
     const bool coinbase) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Input>
@@ -66,12 +81,25 @@ auto Factory::BitcoinTransactionInput(
     const auto& outpoint = in.previous();
 
     try {
-        return std::make_unique<ReturnType>(
-            in.sequence(),
-            blockchain::block::bitcoin::Outpoint{
-                outpoint.txid(), static_cast<std::uint32_t>(outpoint.index())},
-            opentxs::Factory::BitcoinScript(in.script(), false, coinbase),
-            in.version());
+        if (coinbase) {
+            return std::make_unique<ReturnType>(
+                api,
+                in.sequence(),
+                blockchain::block::bitcoin::Outpoint{
+                    outpoint.txid(),
+                    static_cast<std::uint32_t>(outpoint.index())},
+                in.script(),
+                in.version());
+        } else {
+            return std::make_unique<ReturnType>(
+                api,
+                in.sequence(),
+                blockchain::block::bitcoin::Outpoint{
+                    outpoint.txid(),
+                    static_cast<std::uint32_t>(outpoint.index())},
+                opentxs::Factory::BitcoinScript(in.script(), false, coinbase),
+                in.version());
+        }
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -133,14 +161,18 @@ const VersionNumber Input::default_version_{1};
 const VersionNumber Input::outpoint_version_{1};
 
 Input::Input(
+    const api::Core& api,
     const std::uint32_t sequence,
     Outpoint&& previous,
     std::unique_ptr<const bitcoin::Script> script,
+    Space&& coinbase,
     const VersionNumber version,
     std::optional<std::size_t> size) noexcept(false)
-    : serialize_version_(version)
+    : api_(api)
+    , serialize_version_(version)
     , previous_(std::move(previous))
     , script_(std::move(script))
+    , coinbase_(std::move(coinbase))
     , sequence_(sequence)
     , size_(size)
     , normalized_size_()
@@ -148,6 +180,44 @@ Input::Input(
     if (false == bool(script_)) {
         throw std::runtime_error("Invalid input script");
     }
+}
+
+Input::Input(
+    const api::Core& api,
+    const std::uint32_t sequence,
+    Outpoint&& previous,
+    std::unique_ptr<const bitcoin::Script> script,
+    const VersionNumber version,
+    std::optional<std::size_t> size) noexcept(false)
+    : Input(
+          api,
+          sequence,
+          std::move(previous),
+          std::move(script),
+          Space{},
+          version,
+          size)
+{
+}
+
+Input::Input(
+    const api::Core& api,
+    const std::uint32_t sequence,
+    Outpoint&& previous,
+    const ReadView coinbase,
+    const VersionNumber version,
+    std::optional<std::size_t> size) noexcept(false)
+    : Input(
+          api,
+          sequence,
+          std::move(previous),
+          Factory::BitcoinScript(ScriptElements{}, false, true),
+          Space{reinterpret_cast<const std::byte*>(coinbase.data()),
+                reinterpret_cast<const std::byte*>(coinbase.data()) +
+                    coinbase.size()},
+          version,
+          size)
+{
 }
 
 auto Input::CalculateSize(const bool normalized) const noexcept -> std::size_t
@@ -162,6 +232,59 @@ auto Input::CalculateSize(const bool normalized) const noexcept -> std::size_t
     }
 
     return output.value();
+}
+
+auto Input::ExtractElements(const filter::Type style) const noexcept
+    -> std::vector<Space>
+{
+    auto output = std::vector<Space>{};
+
+    switch (style) {
+        case filter::Type::Extended_opentxs: {
+            LogTrace(OT_METHOD)(__FUNCTION__)(": processing input script")
+                .Flush();
+            output = script_->ExtractElements(style);
+            [[fallthrough]];
+        }
+        case filter::Type::Basic_BCHVariant: {
+            LogTrace(OT_METHOD)(__FUNCTION__)(": processing consumed outpoint")
+                .Flush();
+            auto it = reinterpret_cast<const std::byte*>(&previous_);
+            output.emplace_back(it, it + sizeof(previous_));
+        } break;
+        case filter::Type::Basic_BIP158:
+        default: {
+            LogTrace(OT_METHOD)(__FUNCTION__)(": skipping input").Flush();
+        }
+    }
+
+    LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(
+        " elements")
+        .Flush();
+
+    return output;
+}
+
+auto Input::FindMatches(
+    const ReadView txid,
+    const FilterType type,
+    const Patterns& txos,
+    const Patterns& patterns) const noexcept -> Matches
+{
+    auto output = SetIntersection(api_, txid, patterns, ExtractElements(type));
+
+    if (0 < txos.size()) {
+        auto outpoint = std::vector<Space>{};
+        auto it = reinterpret_cast<const std::byte*>(&previous_);
+        outpoint.emplace_back(it, it + sizeof(previous_));
+        auto temp = SetIntersection(api_, txid, txos, outpoint);
+        output.insert(
+            output.end(),
+            std::make_move_iterator(temp.begin()),
+            std::make_move_iterator(temp.end()));
+    }
+
+    return output;
 }
 
 auto Input::serialize(const AllocateOutput destination, const bool normalized)

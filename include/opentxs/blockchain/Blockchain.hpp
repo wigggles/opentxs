@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Data.hpp"
+#include "opentxs/Bytes.hpp"
 
 #include <set>
 #include <tuple>
@@ -21,7 +22,37 @@ namespace blockchain
 using Hash = Data;
 using pHash = OTData;
 
+OPENTXS_EXPORT auto BlockHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
+OPENTXS_EXPORT auto FilterHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
+OPENTXS_EXPORT auto P2PMessageHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
+OPENTXS_EXPORT auto PubkeyHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
+OPENTXS_EXPORT auto ScriptHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
 OPENTXS_EXPORT auto SupportedChains() noexcept -> const std::set<Type>&;
+OPENTXS_EXPORT auto TransactionHash(
+    const api::Core& api,
+    const Type chain,
+    const ReadView input,
+    const AllocateOutput output) noexcept -> bool;
 
 namespace block
 {
@@ -223,10 +254,16 @@ enum class OP : std::uint8_t {
     CHECKSEQUENCEVERIFY = NOP3,
 };
 
-using ScriptData = Space;
-using ScriptPushBytes = Space;
-using ScriptElement =
-    std::tuple<OP, std::optional<ScriptPushBytes>, std::optional<ScriptData>>;
+struct ScriptElement {
+    using ScriptData = Space;
+    using ScriptPushBytes = Space;
+    using InvalidOpcode = std::byte;
+
+    OP opcode_{};
+    std::optional<InvalidOpcode> invalid_{};
+    std::optional<ScriptPushBytes> bytes_{};
+    std::optional<ScriptData> data_{};
+};
 using ScriptElements = std::vector<ScriptElement>;
 }  // namespace bitcoin
 

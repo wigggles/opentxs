@@ -227,8 +227,8 @@ OTData Message::Encode() const
 OTData Message::calculate_checksum(const Data& payload) const noexcept
 {
     auto output = Data::Factory();
-    api_.Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256DC, payload.Bytes(), output->WriteInto());
+    P2PMessageHash(
+        api_, header_->Network(), payload.Bytes(), output->WriteInto());
 
     return output;
 }

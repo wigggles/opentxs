@@ -58,6 +58,8 @@ public:
     OPENTXS_EXPORT virtual auto cbegin() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto cend() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto end() const noexcept -> const_iterator = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
+        noexcept -> std::vector<Space> = 0;
     /// Value only present for Multisig patterns
     OPENTXS_EXPORT virtual auto M() const noexcept
         -> std::optional<std::uint8_t> = 0;
@@ -73,6 +75,9 @@ public:
     /// Value only present for PayToPubkeyHash patterns
     OPENTXS_EXPORT virtual auto PubkeyHash() const noexcept
         -> std::optional<ReadView> = 0;
+    /// Value only present for input scripts which spend PayToScriptHash outputs
+    OPENTXS_EXPORT virtual auto RedeemScript() const noexcept
+        -> std::unique_ptr<Script> = 0;
     OPENTXS_EXPORT virtual auto Role() const noexcept -> Position = 0;
     /// Value only present for PayToScriptHash patterns
     OPENTXS_EXPORT virtual auto ScriptHash() const noexcept

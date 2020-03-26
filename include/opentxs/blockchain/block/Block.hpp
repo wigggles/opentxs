@@ -35,10 +35,12 @@ public:
     using Match = std::pair<pTxid, ElementID>;
     using Matches = std::vector<Match>;
 
+    OPENTXS_EXPORT virtual auto ExtractElements(const FilterType style) const
+        noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(
         const FilterType type,
-        const Patterns& outpoints,
-        const Patterns& scripts) const noexcept -> Matches = 0;
+        const Patterns& txos,
+        const Patterns& elements) const noexcept -> Matches = 0;
     OPENTXS_EXPORT virtual auto Header() const noexcept
         -> const block::Header& = 0;
     OPENTXS_EXPORT virtual auto ID() const noexcept -> const block::Hash& = 0;

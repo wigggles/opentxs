@@ -161,3 +161,7 @@ auto Serialize(const Type chain, const filter::Type type) noexcept(false)
     -> std::uint8_t;
 auto Serialize(const block::Position& position) noexcept -> Space;
 }  // namespace opentxs::blockchain::internal
+
+namespace opentxs::blockchain::script
+{
+}  // namespace opentxs::blockchain::script

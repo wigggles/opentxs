@@ -36,7 +36,7 @@ auto Factory::GenesisBlockHeader(
         case blockchain::Type::Bitcoin_testnet3:
         case blockchain::Type::BitcoinCash_testnet3: {
             return BitcoinBlockHeader(
-                api, ReturnType::genesis_blocks_.at(type)->Bytes());
+                api, type, ReturnType::genesis_blocks_.at(type)->Bytes());
         }
         default: {
             LogOutput("opentxs::Factory::")(__FUNCTION__)(

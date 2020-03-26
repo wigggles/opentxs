@@ -47,6 +47,7 @@ auto Factory::BitcoinBlockHeader(
 
 auto Factory::BitcoinBlockHeader(
     const api::internal::Core& api,
+    const blockchain::Type chain,
     const ReadView raw) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>
 {
@@ -77,8 +78,9 @@ auto Factory::BitcoinBlockHeader(
 
     return std::make_unique<ReturnType>(
         api,
+        chain,
         ReturnType::subversion_default_,
-        ReturnType::calculate_hash(api, raw),
+        ReturnType::calculate_hash(api, chain, raw),
         serialized.version_.value(),
         Data::Factory(serialized.previous_.data(), serialized.previous_.size()),
         Data::Factory(serialized.merkle_.data(), serialized.merkle_.size()),
@@ -89,6 +91,7 @@ auto Factory::BitcoinBlockHeader(
 
 auto Factory::BitcoinBlockHeader(
     const api::internal::Core& api,
+    const blockchain::Type chain,
     const blockchain::block::Hash& hash,
     const blockchain::block::Hash& parent,
     const blockchain::block::Height height) noexcept
@@ -96,7 +99,7 @@ auto Factory::BitcoinBlockHeader(
 {
     using ReturnType = blockchain::block::bitcoin::implementation::Header;
 
-    return std::make_unique<ReturnType>(api, hash, parent, height);
+    return std::make_unique<ReturnType>(api, chain, hash, parent, height);
 }
 }  // namespace opentxs
 
@@ -107,6 +110,7 @@ const VersionNumber Header::subversion_default_{1};
 
 Header::Header(
     const api::internal::Core& api,
+    const blockchain::Type chain,
     const VersionNumber subversion,
     const block::Hash& hash,
     const std::int32_t version,
@@ -118,7 +122,7 @@ Header::Header(
     : bitcoin::Header()
     , ot_super(
           api,
-          blockchain::Type::Bitcoin,
+          chain,
           hash,
           previous,
           make_blank<block::Height>::value(api),
@@ -134,17 +138,12 @@ Header::Header(
 
 Header::Header(
     const api::internal::Core& api,
+    const blockchain::Type chain,
     const block::Hash& hash,
     const block::Hash& parentHash,
     const block::Height height) noexcept
     : bitcoin::Header()
-    , ot_super(
-          api,
-          blockchain::Type::Bitcoin,
-          hash,
-          parentHash,
-          height,
-          minimum_work())
+    , ot_super(api, chain, hash, parentHash, height, minimum_work())
     , subversion_(subversion_default_)
     , block_version_(0)
     , merkle_root_(hash)
@@ -229,11 +228,11 @@ Header::BitcoinFormat::BitcoinFormat(
 
 block::pHash Header::calculate_hash(
     const api::internal::Core& api,
+    const blockchain::Type chain,
     const ReadView serialized)
 {
-    auto output = Data::Factory();
-    api.Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256D, serialized, output->WriteInto());
+    auto output = api.Factory().Data();
+    BlockHash(api, chain, serialized, output->WriteInto());
 
     return output;
 }
@@ -257,6 +256,7 @@ block::pHash Header::calculate_hash(
 
     return calculate_hash(
         api,
+        static_cast<blockchain::Type>(serialized.type()),
         ReadView(
             reinterpret_cast<const char*>(&bitcoinFormat),
             sizeof(bitcoinFormat)));

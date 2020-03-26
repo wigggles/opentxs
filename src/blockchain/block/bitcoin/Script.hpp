@@ -33,12 +33,16 @@ public:
         return const_iterator(this, elements_.size());
     }
     auto end() const noexcept -> const_iterator final { return cend(); }
+    auto ExtractElements(const filter::Type style) const noexcept
+        -> std::vector<Space> final;
     auto M() const noexcept -> std::optional<std::uint8_t> final;
     auto MultisigPubkey(const std::size_t position) const noexcept
         -> std::optional<ReadView> final;
     auto N() const noexcept -> std::optional<std::uint8_t> final;
     auto Pubkey() const noexcept -> std::optional<ReadView> final;
     auto PubkeyHash() const noexcept -> std::optional<ReadView> final;
+    auto RedeemScript() const noexcept
+        -> std::unique_ptr<bitcoin::Script> final;
     auto Role() const noexcept -> Position final { return role_; }
     auto ScriptHash() const noexcept -> std::optional<ReadView> final;
     auto Serialize(const AllocateOutput destination) const noexcept

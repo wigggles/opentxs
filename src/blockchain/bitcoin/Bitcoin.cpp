@@ -52,10 +52,6 @@ auto EncodedTransaction::Deserialize(const ReadView in) noexcept(false)
         throw std::runtime_error("Failed to decode txin count");
     }
 
-    if (0 == inCount.Value()) {
-        throw std::runtime_error("Invalid transaction (no inputs)");
-    }
-
     while (inputs.size() < inCount.Value()) {
         auto& input = inputs.emplace_back();
         auto& [outpoint, scriptBytes, script, sequence] = input;
@@ -105,10 +101,6 @@ auto EncodedTransaction::Deserialize(const ReadView in) noexcept(false)
     if (false == bb::DecodeCompactSizeFromPayload(
                      it, expectedSize, in.size(), outCount)) {
         throw std::runtime_error("Failed to decode txout count");
-    }
-
-    if (0 == outCount.Value()) {
-        throw std::runtime_error("Invalid transaction (no outputs)");
     }
 
     while (outputs.size() < outCount.Value()) {
