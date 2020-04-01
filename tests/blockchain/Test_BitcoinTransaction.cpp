@@ -106,9 +106,8 @@ TEST_F(Test_BitcoinTransaction, serialization)
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
-        tx_id_->Bytes(),
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
-            tx_bytes_->Bytes()));
+            api_, ot::blockchain::Type::Bitcoin, tx_bytes_->Bytes()));
 
     ASSERT_TRUE(transaction);
     EXPECT_EQ(tx_id_.get(), transaction->ID());
@@ -434,16 +433,14 @@ TEST_F(Test_BitcoinTransaction, normalized_id)
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
-        tx_id_->Bytes(),
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
-            tx_bytes_->Bytes()));
+            api_, ot::blockchain::Type::Bitcoin, tx_bytes_->Bytes()));
     const auto transaction2 = ot::Factory::BitcoinTransaction(
         api_,
         ot::blockchain::Type::Bitcoin,
         false,
-        tx_id_->Bytes(),
         ot::blockchain::bitcoin::EncodedTransaction::Deserialize(
-            mutated_bytes_->Bytes()));
+            api_, ot::blockchain::Type::Bitcoin, mutated_bytes_->Bytes()));
 
     ASSERT_TRUE(transaction1);
     ASSERT_TRUE(transaction2);

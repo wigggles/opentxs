@@ -61,6 +61,10 @@ auto Factory::GCS(
             effective.emplace_back(element->Bytes());
         }
 
+        std::sort(effective.begin(), effective.end());
+        effective.erase(
+            std::unique(effective.begin(), effective.end()), effective.end());
+
         return std::make_unique<ReturnType>(api, bits, fpRate, key, effective);
     } catch (const std::exception& e) {
         LogVerbose("opentxs::Factory::GCS::")(__FUNCTION__)(": ")(e.what())

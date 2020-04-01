@@ -633,7 +633,6 @@ public:
         const api::Core& api,
         const blockchain::Type chain,
         const bool isGeneration,
-        const ReadView txid,
         blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
         -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
     OPENTXS_EXPORT static auto BitcoinTransaction(
@@ -647,7 +646,8 @@ public:
         const blockchain::bitcoin::CompactSize& cs,
         const ReadView script,
         const ReadView sequence,
-        const bool isGeneration) noexcept
+        const bool isGeneration,
+        std::vector<Space>&& witness) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Input>;
     OPENTXS_EXPORT static auto BitcoinTransactionInput(
         const api::Core& api,

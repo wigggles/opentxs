@@ -36,7 +36,8 @@ auto Factory::BitcoinTransactionInput(
     const blockchain::bitcoin::CompactSize& cs,
     const ReadView script,
     const ReadView sequence,
-    const bool coinbase) noexcept
+    const bool coinbase,
+    std::vector<Space>&& witness) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Input>
 {
     try {
@@ -53,6 +54,7 @@ auto Factory::BitcoinTransactionInput(
                 api,
                 buf.value(),
                 blockchain::block::bitcoin::Outpoint{outpoint},
+                std::move(witness),
                 script,
                 ReturnType::default_version_,
                 outpoint.size() + cs.Total() + sequence.size());
@@ -61,6 +63,7 @@ auto Factory::BitcoinTransactionInput(
                 api,
                 buf.value(),
                 blockchain::block::bitcoin::Outpoint{outpoint},
+                std::move(witness),
                 opentxs::Factory::BitcoinScript(script, false, false),
                 ReturnType::default_version_,
                 outpoint.size() + cs.Total() + sequence.size());
@@ -79,6 +82,12 @@ auto Factory::BitcoinTransactionInput(
     -> std::unique_ptr<blockchain::block::bitcoin::Input>
 {
     const auto& outpoint = in.previous();
+    auto witness = std::vector<Space>{};
+
+    for (const auto& bytes : in.witness().item()) {
+        const auto it = reinterpret_cast<const std::byte*>(bytes.data());
+        witness.emplace_back(it, it + bytes.size());
+    }
 
     try {
         if (coinbase) {
@@ -88,6 +97,7 @@ auto Factory::BitcoinTransactionInput(
                 blockchain::block::bitcoin::Outpoint{
                     outpoint.txid(),
                     static_cast<std::uint32_t>(outpoint.index())},
+                std::move(witness),
                 in.script(),
                 in.version());
         } else {
@@ -97,6 +107,7 @@ auto Factory::BitcoinTransactionInput(
                 blockchain::block::bitcoin::Outpoint{
                     outpoint.txid(),
                     static_cast<std::uint32_t>(outpoint.index())},
+                std::move(witness),
                 opentxs::Factory::BitcoinScript(in.script(), false, coinbase),
                 in.version());
         }
@@ -164,6 +175,7 @@ Input::Input(
     const api::Core& api,
     const std::uint32_t sequence,
     Outpoint&& previous,
+    std::vector<Space>&& witness,
     std::unique_ptr<const bitcoin::Script> script,
     Space&& coinbase,
     const VersionNumber version,
@@ -171,6 +183,7 @@ Input::Input(
     : api_(api)
     , serialize_version_(version)
     , previous_(std::move(previous))
+    , witness_(std::move(witness))
     , script_(std::move(script))
     , coinbase_(std::move(coinbase))
     , sequence_(sequence)
@@ -186,6 +199,7 @@ Input::Input(
     const api::Core& api,
     const std::uint32_t sequence,
     Outpoint&& previous,
+    std::vector<Space>&& witness,
     std::unique_ptr<const bitcoin::Script> script,
     const VersionNumber version,
     std::optional<std::size_t> size) noexcept(false)
@@ -193,6 +207,7 @@ Input::Input(
           api,
           sequence,
           std::move(previous),
+          std::move(witness),
           std::move(script),
           Space{},
           version,
@@ -204,6 +219,7 @@ Input::Input(
     const api::Core& api,
     const std::uint32_t sequence,
     Outpoint&& previous,
+    std::vector<Space>&& witness,
     const ReadView coinbase,
     const VersionNumber version,
     std::optional<std::size_t> size) noexcept(false)
@@ -211,6 +227,7 @@ Input::Input(
           api,
           sequence,
           std::move(previous),
+          std::move(witness),
           Factory::BitcoinScript(ScriptElements{}, false, true),
           Space{reinterpret_cast<const std::byte*>(coinbase.data()),
                 reinterpret_cast<const std::byte*>(coinbase.data()) +
@@ -244,6 +261,31 @@ auto Input::ExtractElements(const filter::Type style) const noexcept
             LogTrace(OT_METHOD)(__FUNCTION__)(": processing input script")
                 .Flush();
             output = script_->ExtractElements(style);
+
+            for (const auto& data : witness_) {
+                auto it{data.data()};
+
+                switch (data.size()) {
+                    case 65: {
+                        std::advance(it, 1);
+                        [[fallthrough]];
+                    }
+                    case 64: {
+                        output.emplace_back(it, it + 32);
+                        std::advance(it, 32);
+                        output.emplace_back(it, it + 32);
+                        [[fallthrough]];
+                    }
+                    case 33:
+                    case 32:
+                    case 20: {
+                        output.emplace_back(data.cbegin(), data.cend());
+                    } break;
+                    default: {
+                    }
+                }
+            }
+
             [[fallthrough]];
         }
         case filter::Type::Basic_BCHVariant: {

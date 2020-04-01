@@ -44,11 +44,13 @@ public:
     OPENTXS_EXPORT virtual auto Locktime() const noexcept -> std::uint32_t = 0;
     OPENTXS_EXPORT virtual auto Outputs() const noexcept
         -> const bitcoin::Outputs& = 0;
+    OPENTXS_EXPORT virtual auto SegwitFlag() const noexcept -> std::byte = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize() const noexcept
         -> std::optional<proto::BlockchainTransaction> = 0;
     OPENTXS_EXPORT virtual auto Version() const noexcept -> std::int32_t = 0;
+    OPENTXS_EXPORT virtual auto WTXID() const noexcept -> const Txid& = 0;
 
     virtual ~Transaction() = default;
 

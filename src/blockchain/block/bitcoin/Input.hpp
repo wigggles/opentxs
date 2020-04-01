@@ -38,11 +38,16 @@ public:
         return *script_;
     }
     auto Sequence() const noexcept -> std::uint32_t final { return sequence_; }
+    auto Witness() const noexcept -> const std::vector<Space>& final
+    {
+        return witness_;
+    }
 
     Input(
         const api::Core& api,
         const std::uint32_t sequence,
         Outpoint&& previous,
+        std::vector<Space>&& witness,
         std::unique_ptr<const bitcoin::Script> script,
         const VersionNumber version,
         std::optional<std::size_t> size = {}) noexcept(false);
@@ -50,6 +55,7 @@ public:
         const api::Core& api,
         const std::uint32_t sequence,
         Outpoint&& previous,
+        std::vector<Space>&& witness,
         const ReadView coinbase,
         const VersionNumber version,
         std::optional<std::size_t> size = {}) noexcept(false);
@@ -61,6 +67,7 @@ private:
     const api::Core& api_;
     const VersionNumber serialize_version_;
     const Outpoint previous_;
+    const std::vector<Space> witness_;
     const std::unique_ptr<const bitcoin::Script> script_;
     const Space coinbase_;
     const std::uint32_t sequence_;
@@ -74,6 +81,7 @@ private:
         const api::Core& api,
         const std::uint32_t sequence,
         Outpoint&& previous,
+        std::vector<Space>&& witness,
         std::unique_ptr<const bitcoin::Script> script,
         Space&& coinbase,
         const VersionNumber version,
