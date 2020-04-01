@@ -154,8 +154,11 @@ bool VerifyChecksum(
             if (0 == payload.size()) {
                 checksum = Data::Factory("0x5df6e0e2", Data::Mode::Hex);
             } else {
-                api.Crypto().Hash().Digest(
-                    proto::HASHTYPE_SHA256DC, payload, checksum->WriteInto());
+                P2PMessageHash(
+                    api,
+                    header.Network(),
+                    payload.Bytes(),
+                    checksum->WriteInto());
             }
         } break;
         default: {

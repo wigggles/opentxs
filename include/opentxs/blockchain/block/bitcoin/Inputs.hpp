@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/iterator/Bidirectional.hpp"
 
 #include <cstdint>
@@ -26,6 +27,10 @@ public:
     using value_type = Input;
     using const_iterator =
         opentxs::iterator::Bidirectional<const Inputs, const value_type>;
+    using FilterType = Transaction::FilterType;
+    using Patterns = Transaction::Patterns;
+    using Match = Transaction::Match;
+    using Matches = Transaction::Matches;
 
     OPENTXS_EXPORT virtual auto at(const std::size_t position) const
         noexcept(false) -> const value_type& = 0;
@@ -35,6 +40,13 @@ public:
     OPENTXS_EXPORT virtual auto cbegin() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto cend() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto end() const noexcept -> const_iterator = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
+        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto FindMatches(
+        const ReadView txid,
+        const FilterType type,
+        const Patterns& txos,
+        const Patterns& elements) const noexcept -> Matches = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize(

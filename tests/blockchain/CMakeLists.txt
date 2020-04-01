@@ -12,6 +12,8 @@ add_opentx_test(unittests-opentxs-blockchain-api Test_BlockchainAPI.cpp)
 
 if(OT_BLOCKCHAIN_EXPORT)
   add_opentx_test(unittests-opentxs-blockchain-blockheader Test_BlockHeader.cpp)
+  add_opentx_test(unittests-opentxs-blockchain-blocks-bitcoin
+                  Test_BitcoinBlocks.cpp)
   add_opentx_test(unittests-opentxs-blockchain-compactsize Test_CompactSize.cpp)
   add_opentx_test(unittests-opentxs-blockchain-filters Test_Filters.cpp)
   add_opentx_test(unittests-opentxs-blockchain-hash Test_NumericHash.cpp)

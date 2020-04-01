@@ -8,9 +8,23 @@
 #include "Internal.hpp"
 
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
+#include "opentxs/blockchain/block/Block.hpp"
+#include "opentxs/blockchain/Blockchain.hpp"
+
+namespace opentxs::blockchain::block
+{
+auto SetIntersection(
+    const api::Core& api,
+    const ReadView txid,
+    const Block::Patterns& patterns,
+    const std::vector<Space>& compare) noexcept -> Block::Matches;
+}  // namespace opentxs::blockchain::block
 
 namespace opentxs::blockchain::block::bitcoin::internal
 {
+auto Opcode(const OP opcode) noexcept(false) -> ScriptElement;
+auto PushData(const ReadView data) noexcept(false) -> ScriptElement;
+
 struct Header : virtual public bitcoin::Header {
 };
 }  // namespace opentxs::blockchain::block::bitcoin::internal

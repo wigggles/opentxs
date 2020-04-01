@@ -21,6 +21,7 @@
 #endif
 #if OT_BLOCKCHAIN
 #include "opentxs/blockchain/block/bitcoin/Header.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/p2p/Address.hpp"
 #endif  // OT_BLOCKCHAIN
@@ -335,6 +336,146 @@ auto Factory::BasketContract(
 }
 
 #if OT_BLOCKCHAIN
+auto Factory::BitcoinBlock(const blockchain::Type chain, const ReadView bytes)
+    const noexcept -> std::shared_ptr<const blockchain::block::bitcoin::Block>
+{
+    return opentxs::Factory::BitcoinBlock(api_, chain, bytes);
+}
+
+auto Factory::BitcoinScriptNullData(
+    const blockchain::Type chain,
+    const std::vector<ReadView>& data) const noexcept
+    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+{
+    namespace b = opentxs::blockchain;
+    namespace bb = opentxs::blockchain::block::bitcoin;
+
+    auto elements = bb::ScriptElements{};
+    elements.emplace_back(bb::internal::Opcode(bb::OP::RETURN));
+
+    for (const auto& element : data) {
+        elements.emplace_back(bb::internal::PushData(element));
+    }
+
+    return opentxs::Factory::BitcoinScript(std::move(elements));
+}
+
+auto Factory::BitcoinScriptP2MS(
+    const blockchain::Type chain,
+    const std::uint8_t M,
+    const std::uint8_t N,
+    const std::vector<const opentxs::crypto::key::EllipticCurve*>& publicKeys)
+    const noexcept -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+{
+    namespace b = opentxs::blockchain;
+    namespace bb = opentxs::blockchain::block::bitcoin;
+
+    if ((0u == M) || (16u < M)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid M").Flush();
+
+        return {};
+    }
+
+    if ((0u == N) || (16u < N)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid N").Flush();
+
+        return {};
+    }
+
+    auto elements = bb::ScriptElements{};
+    elements.emplace_back(bb::internal::Opcode(static_cast<bb::OP>(M + 80)));
+
+    for (const auto& pKey : publicKeys) {
+        if (nullptr == pKey) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid key").Flush();
+
+            return {};
+        }
+
+        const auto& key = *pKey;
+        elements.emplace_back(bb::internal::PushData(key.PublicKey()));
+    }
+
+    elements.emplace_back(bb::internal::Opcode(static_cast<bb::OP>(N + 80)));
+    elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKMULTISIG));
+
+    return opentxs::Factory::BitcoinScript(std::move(elements));
+}
+
+auto Factory::BitcoinScriptP2PK(
+    const blockchain::Type chain,
+    const opentxs::crypto::key::EllipticCurve& key) const noexcept
+    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+{
+    namespace bb = opentxs::blockchain::block::bitcoin;
+
+    auto elements = bb::ScriptElements{};
+    elements.emplace_back(bb::internal::PushData(key.PublicKey()));
+    elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKSIG));
+
+    return opentxs::Factory::BitcoinScript(std::move(elements));
+}
+
+auto Factory::BitcoinScriptP2PKH(
+    const blockchain::Type chain,
+    const opentxs::crypto::key::EllipticCurve& key) const noexcept
+    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+{
+    namespace b = opentxs::blockchain;
+    namespace bb = opentxs::blockchain::block::bitcoin;
+
+    auto hash = Space{};
+
+    if (false == b::PubkeyHash(api_, chain, key.PublicKey(), writer(hash))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate pubkey hash")
+            .Flush();
+
+        return {};
+    }
+
+    auto elements = bb::ScriptElements{};
+    elements.emplace_back(bb::internal::Opcode(bb::OP::DUP));
+    elements.emplace_back(bb::internal::Opcode(bb::OP::HASH160));
+    elements.emplace_back(bb::internal::PushData(reader(hash)));
+    elements.emplace_back(bb::internal::Opcode(bb::OP::EQUALVERIFY));
+    elements.emplace_back(bb::internal::Opcode(bb::OP::CHECKSIG));
+
+    return opentxs::Factory::BitcoinScript(std::move(elements));
+}
+
+auto Factory::BitcoinScriptP2SH(
+    const blockchain::Type chain,
+    const blockchain::block::bitcoin::Script& script) const noexcept
+    -> std::unique_ptr<const blockchain::block::bitcoin::Script>
+{
+    namespace b = opentxs::blockchain;
+    namespace bb = opentxs::blockchain::block::bitcoin;
+
+    auto bytes = Space{};
+    auto hash = Space{};
+
+    if (false == script.Serialize(writer(bytes))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize script")
+            .Flush();
+
+        return {};
+    }
+
+    if (false == b::ScriptHash(api_, chain, reader(bytes), writer(hash))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate script hash")
+            .Flush();
+
+        return {};
+    }
+
+    auto elements = bb::ScriptElements{};
+    elements.emplace_back(bb::internal::Opcode(bb::OP::HASH160));
+    elements.emplace_back(bb::internal::PushData(reader(hash)));
+    elements.emplace_back(bb::internal::Opcode(bb::OP::EQUAL));
+
+    return opentxs::Factory::BitcoinScript(std::move(elements));
+}
+
 OTBlockchainAddress Factory::BlockchainAddress(
     const blockchain::p2p::Protocol protocol,
     const blockchain::p2p::Network network,
@@ -371,7 +512,10 @@ std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
     const auto type(static_cast<blockchain::Type>(serialized.type()));
 
     switch (type) {
-        case blockchain::Type::Bitcoin: {
+        case blockchain::Type::Bitcoin:
+        case blockchain::Type::Bitcoin_testnet3:
+        case blockchain::Type::BitcoinCash:
+        case blockchain::Type::BitcoinCash_testnet3: {
             return std::unique_ptr<blockchain::block::Header>(
                 opentxs::Factory::BitcoinBlockHeader(api_, serialized));
         }
@@ -390,8 +534,12 @@ std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
     const opentxs::Data& raw) const
 {
     switch (type) {
-        case blockchain::Type::Bitcoin: {
-            return opentxs::Factory::BitcoinBlockHeader(api_, raw.Bytes());
+        case blockchain::Type::Bitcoin:
+        case blockchain::Type::Bitcoin_testnet3:
+        case blockchain::Type::BitcoinCash:
+        case blockchain::Type::BitcoinCash_testnet3: {
+            return opentxs::Factory::BitcoinBlockHeader(
+                api_, type, raw.Bytes());
         }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(
@@ -410,10 +558,13 @@ std::unique_ptr<blockchain::block::Header> Factory::BlockHeader(
     const blockchain::block::Height height) const
 {
     switch (type) {
-        case blockchain::Type::Bitcoin: {
+        case blockchain::Type::Bitcoin:
+        case blockchain::Type::Bitcoin_testnet3:
+        case blockchain::Type::BitcoinCash:
+        case blockchain::Type::BitcoinCash_testnet3: {
             return std::unique_ptr<blockchain::block::Header>(
                 opentxs::Factory::BitcoinBlockHeader(
-                    api_, hash, parent, height));
+                    api_, type, hash, parent, height));
         }
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported type (")(

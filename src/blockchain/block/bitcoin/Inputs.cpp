@@ -13,6 +13,7 @@
 
 #include "blockchain/bitcoin/CompactSize.hpp"
 
+#include <algorithm>
 #include <numeric>
 
 #include "Inputs.hpp"
@@ -70,6 +71,47 @@ auto Inputs::CalculateSize(const bool normalized) const noexcept -> std::size_t
     }
 
     return output.value();
+}
+
+auto Inputs::ExtractElements(const filter::Type style) const noexcept
+    -> std::vector<Space>
+{
+    auto output = std::vector<Space>{};
+    LogTrace(OT_METHOD)(__FUNCTION__)(": processing ")(size())(" inputs")
+        .Flush();
+
+    for (const auto& txin : *this) {
+        auto temp = txin.ExtractElements(style);
+        output.insert(
+            output.end(),
+            std::make_move_iterator(temp.begin()),
+            std::make_move_iterator(temp.end()));
+    }
+
+    LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(
+        " elements")
+        .Flush();
+
+    return output;
+}
+
+auto Inputs::FindMatches(
+    const ReadView txid,
+    const FilterType type,
+    const Patterns& txos,
+    const Patterns& patterns) const noexcept -> Matches
+{
+    auto output = Matches{};
+
+    for (const auto& txin : *this) {
+        auto temp = txin.FindMatches(txid, type, txos, patterns);
+        output.insert(
+            output.end(),
+            std::make_move_iterator(temp.begin()),
+            std::make_move_iterator(temp.end()));
+    }
+
+    return output;
 }
 
 auto Inputs::serialize(const AllocateOutput destination, const bool normalize)

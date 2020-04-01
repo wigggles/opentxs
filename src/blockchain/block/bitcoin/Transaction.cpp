@@ -5,6 +5,7 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
 #include "opentxs/blockchain/block/bitcoin/Input.hpp"
@@ -15,7 +16,6 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
-#include "api/Core.hpp"
 #include "blockchain/bitcoin/CompactSize.hpp"
 #include "internal/blockchain/bitcoin/Bitcoin.hpp"
 
@@ -35,7 +35,7 @@ namespace opentxs
 using ReturnType = blockchain::block::bitcoin::implementation::Transaction;
 
 auto Factory::BitcoinTransaction(
-    const api::internal::Core& api,
+    const api::Core& api,
     const blockchain::Type chain,
     const bool isGeneration,
     const ReadView txid,
@@ -55,6 +55,7 @@ auto Factory::BitcoinTransaction(
                 const auto& seq = input.sequence_;
                 instantiatedInputs.emplace_back(
                     Factory::BitcoinTransactionInput(
+                        api,
                         ReadView{reinterpret_cast<const char*>(&op),
                                  sizeof(op)},
                         input.cs_,
@@ -77,10 +78,13 @@ auto Factory::BitcoinTransaction(
             std::vector<std::unique_ptr<blockchain::block::bitcoin::Output>>{};
         {
             instantiatedOutputs.reserve(parsed.outputs_.size());
+            auto counter = std::uint32_t{0};
 
             for (const auto& output : parsed.outputs_) {
                 instantiatedOutputs.emplace_back(
                     Factory::BitcoinTransactionOutput(
+                        api,
+                        counter++,
                         output.value_.value(),
                         output.cs_,
                         reader(output.script_)));
@@ -96,7 +100,7 @@ auto Factory::BitcoinTransaction(
         auto outputs =
             std::unique_ptr<const blockchain::block::bitcoin::Outputs>{};
 
-        return std::make_unique<ReturnType>(
+        return std::make_shared<ReturnType>(
             api,
             ReturnType::default_version_,
             chain,
@@ -115,7 +119,7 @@ auto Factory::BitcoinTransaction(
 }
 
 auto Factory::BitcoinTransaction(
-    const api::internal::Core& api,
+    const api::Core& api,
     const bool isGeneration,
     const proto::BlockchainTransaction& in) noexcept
     -> std::shared_ptr<blockchain::block::bitcoin::Transaction>
@@ -134,7 +138,7 @@ auto Factory::BitcoinTransaction(
                 map.emplace(
                     index,
                     Factory::BitcoinTransactionInput(
-                        input, (0u == index) && isGeneration));
+                        api, input, (0u == index) && isGeneration));
             }
 
             std::transform(
@@ -152,7 +156,8 @@ auto Factory::BitcoinTransaction(
 
             for (const auto& output : in.output()) {
                 const auto index = output.index();
-                map.emplace(index, Factory::BitcoinTransactionOutput(output));
+                map.emplace(
+                    index, Factory::BitcoinTransactionOutput(api, output));
             }
 
             std::transform(
@@ -160,7 +165,7 @@ auto Factory::BitcoinTransaction(
                 ](auto& in) -> auto { return std::move(in.second); });
         }
 
-        return std::make_unique<ReturnType>(
+        return std::make_shared<ReturnType>(
             api,
             in.version(),
             Translate(in.chain()),
@@ -182,7 +187,7 @@ namespace opentxs::blockchain::block::bitcoin::implementation
 const VersionNumber Transaction::default_version_{1};
 
 Transaction::Transaction(
-    const api::internal::Core& api,
+    const api::Core& api,
     const VersionNumber serializeVersion,
     const blockchain::Type chain,
     const std::int32_t version,
@@ -236,6 +241,43 @@ auto Transaction::IDNormalized() const noexcept -> const Identifier&
     }
 
     return normalized_id_.value();
+}
+
+auto Transaction::ExtractElements(const filter::Type style) const noexcept
+    -> std::vector<Space>
+{
+    auto output = inputs_->ExtractElements(style);
+    LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(
+        " input elements")
+        .Flush();
+    auto temp = outputs_->ExtractElements(style);
+    LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(temp.size())(
+        " output elements")
+        .Flush();
+    output.insert(
+        output.end(),
+        std::make_move_iterator(temp.begin()),
+        std::make_move_iterator(temp.end()));
+    LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(
+        " total elements")
+        .Flush();
+
+    return output;
+}
+
+auto Transaction::FindMatches(
+    const FilterType style,
+    const Patterns& txos,
+    const Patterns& elements) const noexcept -> Matches
+{
+    auto output = inputs_->FindMatches(txid_->Bytes(), style, txos, elements);
+    auto temp = outputs_->FindMatches(txid_->Bytes(), style, elements);
+    output.insert(
+        output.end(),
+        std::make_move_iterator(temp.begin()),
+        std::make_move_iterator(temp.end()));
+
+    return output;
 }
 
 auto Transaction::serialize(

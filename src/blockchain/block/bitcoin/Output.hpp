@@ -11,19 +11,28 @@ class Output final : public bitcoin::Output
 {
 public:
     auto CalculateSize() const noexcept -> std::size_t final;
+    auto ExtractElements(const filter::Type style) const noexcept
+        -> std::vector<Space> final;
+    auto FindMatches(
+        const ReadView txid,
+        const FilterType type,
+        const Patterns& patterns) const noexcept -> Matches final
+    {
+        return SetIntersection(api_, txid, patterns, ExtractElements(type));
+    }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t>;
-    auto Serialize(
-        const std::uint32_t index,
-        proto::BlockchainTransactionOutput& destination) const noexcept -> bool;
+    auto Serialize(proto::BlockchainTransactionOutput& destination) const
+        noexcept -> bool;
     auto Script() const noexcept -> const bitcoin::Script& final
     {
         return *script_;
     }
     auto Value() const noexcept -> std::int64_t final { return value_; }
 
-    Output(const std::int64_t value, ScriptElements&& script) noexcept(false);
     Output(
+        const api::Core& api,
+        const std::uint32_t index,
         const std::int64_t value,
         const std::size_t size,
         const ReadView script,
@@ -33,13 +42,17 @@ public:
 private:
     static const VersionNumber default_version_;
 
+    const api::Core& api_;
     const VersionNumber serialize_version_;
+    const std::uint32_t index_;
     const std::int64_t value_;
     const std::unique_ptr<const bitcoin::Script> script_;
     mutable std::optional<std::size_t> size_;
 
     Output(
+        const api::Core& api,
         const VersionNumber version,
+        const std::uint32_t index,
         const std::int64_t value,
         std::unique_ptr<const bitcoin::Script> script,
         std::optional<std::size_t> size = {}) noexcept(false);

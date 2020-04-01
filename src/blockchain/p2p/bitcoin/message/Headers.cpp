@@ -40,6 +40,7 @@ blockchain::p2p::bitcoin::message::internal::Headers* Factory::
         return nullptr;
     }
 
+    const auto& header = *pHeader;
     auto expectedSize = sizeof(std::byte);
 
     if (expectedSize > size) {
@@ -76,7 +77,9 @@ blockchain::p2p::bitcoin::message::internal::Headers* Factory::
             }
 
             auto pHeader = Factory::BitcoinBlockHeader(
-                api, ReadView{reinterpret_cast<const char*>(it), 80});
+                api,
+                header.Network(),
+                ReadView{reinterpret_cast<const char*>(it), 80});
 
             OT_ASSERT(pHeader);
 

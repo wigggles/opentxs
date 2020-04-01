@@ -29,27 +29,19 @@ using ReturnType = blockchain::block::bitcoin::implementation::Script;
 
 auto Factory::BitcoinScript(
     const ReadView bytes,
-    const bool outputScript,
-    const bool coinbase) noexcept
+    const bool isOutput,
+    const bool isCoinbase,
+    const bool allowInvalidOpcodes) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Script>
 {
-    const auto role = outputScript ? ReturnType::Position::Output
-                                   : (coinbase ? ReturnType::Position::Coinbase
-                                               : ReturnType::Position::Input);
+    const auto role = isOutput ? ReturnType::Position::Output
+                               : (isCoinbase ? ReturnType::Position::Coinbase
+                                             : ReturnType::Position::Input);
     auto elements = blockchain::block::bitcoin::ScriptElements{};
 
-    if ((nullptr == bytes.data()) || (0 == bytes.size())) {
-
-        if (ReturnType::Position::Input == role) {
-
-            return std::make_unique<ReturnType>(
-                role, std::move(elements), bytes.size());
-        } else {
-            LogOutput("opentxs::Factory::")(__FUNCTION__)(": Empty input")
-                .Flush();
-
-            return {};
-        }
+    if ((nullptr == bytes.data()) || (0 == bytes.size()) ||
+        (ReturnType::Position::Coinbase == role)) {
+        return std::make_unique<ReturnType>(role, std::move(elements), 0);
     }
 
     elements.reserve(bytes.size());
@@ -60,16 +52,31 @@ auto Factory::BitcoinScript(
     try {
         while (read < target) {
             auto& element = elements.emplace_back();
-            auto& [opcode, size, data] = element;
-            opcode = ReturnType::decode(*it);
+            auto& [opcode, invalid, size, data] = element;
+
+            try {
+                opcode = ReturnType::decode(*it);
+            } catch (...) {
+                if (allowInvalidOpcodes) {
+                    opcode = blockchain::block::bitcoin::OP::INVALIDOPCODE;
+                    invalid = *it;
+                } else {
+                    throw;
+                }
+            }
+
             read += 1;
             std::advance(it, 1);
             const auto direct = ReturnType::is_direct_push(opcode);
 
             if (direct.has_value()) {
                 const auto& pushSize = direct.value();
+                const auto remaining = target - read;
+                const auto effectiveSize = allowInvalidOpcodes
+                                               ? std::min(pushSize, remaining)
+                                               : pushSize;
 
-                if ((read + pushSize) > target) {
+                if ((read + effectiveSize) > target) {
                     LogVerbose("opentxs::Factory::")(__FUNCTION__)(
                         ": Incomplete direct data push")
                         .Flush();
@@ -77,10 +84,10 @@ auto Factory::BitcoinScript(
                     return {};
                 }
 
-                data = space(pushSize);
-                std::memcpy(data.value().data(), it, pushSize);
-                read += pushSize;
-                std::advance(it, pushSize);
+                data = space(effectiveSize);
+                std::memcpy(data.value().data(), it, effectiveSize);
+                read += effectiveSize;
+                std::advance(it, effectiveSize);
 
                 continue;
             }
@@ -88,40 +95,57 @@ auto Factory::BitcoinScript(
             const auto push = ReturnType::is_push(opcode);
 
             if (push.has_value()) {
-                const auto& sizeBytes = push.value();
-
-                OT_ASSERT(0 < sizeBytes);
-                OT_ASSERT(5 > sizeBytes);
-
-                if ((read + sizeBytes) > target) {
-                    LogVerbose("opentxs::Factory::")(__FUNCTION__)(
-                        ": Incomplete data push")
-                        .Flush();
-
-                    return {};
-                }
-
-                size = space(sizeBytes);
-                std::memcpy(size.value().data(), it, sizeBytes);
-                read += sizeBytes;
-                std::advance(it, sizeBytes);
                 auto buf = be::little_uint32_buf_t{};
-                std::memcpy(
-                    static_cast<void*>(&buf), size.value().data(), sizeBytes);
-                const auto pushSize = std::size_t{buf.value()};
 
-                if ((read + pushSize) > target) {
-                    LogVerbose("opentxs::Factory::")(__FUNCTION__)(
-                        ": Data push bytes missing")
-                        .Flush();
+                {
+                    const auto& sizeBytes = push.value();
 
-                    return {};
+                    OT_ASSERT(0 < sizeBytes);
+                    OT_ASSERT(5 > sizeBytes);
+
+                    const auto remaining = target - read;
+                    const auto effectiveSize =
+                        allowInvalidOpcodes ? std::min(sizeBytes, remaining)
+                                            : sizeBytes;
+
+                    if ((read + effectiveSize) > target) {
+                        LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                            ": Incomplete data push")
+                            .Flush();
+
+                        return {};
+                    }
+
+                    size = space(effectiveSize);
+                    std::memcpy(size.value().data(), it, effectiveSize);
+                    read += effectiveSize;
+                    std::advance(it, effectiveSize);
+                    std::memcpy(
+                        static_cast<void*>(&buf),
+                        size.value().data(),
+                        effectiveSize);
                 }
 
-                data = space(pushSize);
-                std::memcpy(data.value().data(), it, pushSize);
-                read += pushSize;
-                std::advance(it, pushSize);
+                {
+                    const auto pushSize = std::size_t{buf.value()};
+                    const auto remaining = target - read;
+                    const auto effectiveSize =
+                        allowInvalidOpcodes ? std::min(pushSize, remaining)
+                                            : pushSize;
+
+                    if ((read + effectiveSize) > target) {
+                        LogVerbose("opentxs::Factory::")(__FUNCTION__)(
+                            ": Data push bytes missing")
+                            .Flush();
+
+                        return {};
+                    }
+
+                    data = space(effectiveSize);
+                    std::memcpy(data.value().data(), it, effectiveSize);
+                    read += effectiveSize;
+                    std::advance(it, effectiveSize);
+                }
 
                 continue;
             }
@@ -135,24 +159,35 @@ auto Factory::BitcoinScript(
 
     elements.shrink_to_fit();
 
-    return std::make_unique<ReturnType>(
-        role, std::move(elements), bytes.size());
+    try {
+        return std::make_unique<ReturnType>(
+            role, std::move(elements), bytes.size());
+    } catch (const std::exception& e) {
+        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
+
+        return {};
+    }
 }
 
 auto Factory::BitcoinScript(
     blockchain::block::bitcoin::ScriptElements&& elements,
-    const bool outputScript,
-    const bool coinbase) noexcept
+    const bool isOutput,
+    const bool isCoinbase) noexcept
     -> std::unique_ptr<blockchain::block::bitcoin::Script>
 {
-    if (false == ReturnType::validate(elements)) { return {}; }
+    if (false == ReturnType::validate(elements)) {
+        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": Invalid elements")
+            .Flush();
 
-    const auto role = outputScript ? ReturnType::Position::Output
-                                   : (coinbase ? ReturnType::Position::Coinbase
-                                               : ReturnType::Position::Input);
+        return {};
+    }
 
-    if ((0 == elements.size()) && (ReturnType::Position::Input != role)) {
-        LogOutput("opentxs::Factory::")(__FUNCTION__)(": Empty input").Flush();
+    const auto role = isOutput ? ReturnType::Position::Output
+                               : (isCoinbase ? ReturnType::Position::Coinbase
+                                             : ReturnType::Position::Input);
+
+    if ((0 == elements.size()) && (ReturnType::Position::Output == role)) {
+        LogVerbose("opentxs::Factory::")(__FUNCTION__)(": Empty input").Flush();
 
         return {};
     }
@@ -178,9 +213,10 @@ Script::Script(
 
 auto Script::bytes(const value_type& element) noexcept -> std::size_t
 {
-    const auto& [opcode, bytes, data] = element;
+    const auto& [opcode, invalid, bytes, data] = element;
 
-    return sizeof(opcode) + (bytes.has_value() ? bytes.value().size() : 0u) +
+    return (invalid.has_value() ? sizeof(invalid.value()) : sizeof(opcode)) +
+           (bytes.has_value() ? bytes.value().size() : 0u) +
            (data.has_value() ? data.value().size() : 0u);
 }
 
@@ -418,7 +454,7 @@ auto Script::evaluate_multisig(const ScriptElements& script) noexcept -> Pattern
 
     auto it = script.crbegin();
     std::advance(it, 1);
-    const auto n = to_number(std::get<0>(*it));
+    const auto n = to_number(it->opcode_);
 
     if (0u == n) { return Pattern::Malformed; }
     if ((3u + n) > script.size()) { return Pattern::Malformed; }
@@ -430,7 +466,7 @@ auto Script::evaluate_multisig(const ScriptElements& script) noexcept -> Pattern
     }
 
     std::advance(it, 1);
-    const auto m = to_number(std::get<0>(*it));
+    const auto m = to_number(it->opcode_);
 
     if ((0u == m) || (m > n)) { return Pattern::Malformed; }
 
@@ -455,11 +491,11 @@ auto Script::evaluate_pubkey_hash(const ScriptElements& script) noexcept
 
     auto it = script.cbegin();
 
-    if (OP::DUP != std::get<0>(*it)) { return Pattern::Custom; }
+    if (OP::DUP != it->opcode_) { return Pattern::Custom; }
 
     std::advance(it, 1);
 
-    if (OP::HASH160 != std::get<0>(*it)) { return Pattern::Custom; }
+    if (OP::HASH160 != it->opcode_) { return Pattern::Custom; }
 
     std::advance(it, 1);
 
@@ -467,7 +503,7 @@ auto Script::evaluate_pubkey_hash(const ScriptElements& script) noexcept
 
     std::advance(it, 1);
 
-    if (OP::EQUALVERIFY != std::get<0>(*it)) { return Pattern::Custom; }
+    if (OP::EQUALVERIFY != it->opcode_) { return Pattern::Custom; }
 
     return Pattern::PayToPubkeyHash;
 }
@@ -479,25 +515,100 @@ auto Script::evaluate_script_hash(const ScriptElements& script) noexcept
 
     auto it = script.cbegin();
 
-    if (OP::HASH160 != std::get<0>(*it)) { return Pattern::Custom; }
+    if (OP::HASH160 != it->opcode_) { return Pattern::Custom; }
 
     std::advance(it, 1);
 
     if (false == is_hash160(*it)) { return Pattern::Custom; }
-    if (OP::PUSHDATA_20 != std::get<0>(*it)) { return Pattern::Custom; }
+    if (OP::PUSHDATA_20 != it->opcode_) { return Pattern::Custom; }
 
     return Pattern::PayToScriptHash;
 }
 
+auto Script::ExtractElements(const filter::Type style) const noexcept
+    -> std::vector<Space>
+{
+    if (0 == elements_.size()) {
+        LogTrace(OT_METHOD)(__FUNCTION__)(": skipping empty script").Flush();
+
+        return {};
+    }
+
+    auto output = std::vector<Space>{};
+
+    switch (style) {
+        case filter::Type::Extended_opentxs: {
+            LogTrace(OT_METHOD)(__FUNCTION__)(": processing data pushes")
+                .Flush();
+
+            for (const auto& element : *this) {
+                if (is_data_push(element)) {
+                    const auto& data = element.data_.value();
+                    auto it{data.data()};
+
+                    switch (data.size()) {
+                        case 65: {
+                            std::advance(it, 1);
+                            [[fallthrough]];
+                        }
+                        case 64: {
+                            output.emplace_back(it, it + 32);
+                            std::advance(it, 32);
+                            output.emplace_back(it, it + 32);
+                            [[fallthrough]];
+                        }
+                        case 33:
+                        case 32:
+                        case 20: {
+                            output.emplace_back(data.cbegin(), data.cend());
+                        } break;
+                        default: {
+                        }
+                    }
+                }
+            }
+
+            if (const auto subscript = RedeemScript(); subscript) {
+                auto temp = subscript->ExtractElements(style);
+                output.insert(
+                    output.end(),
+                    std::make_move_iterator(temp.begin()),
+                    std::make_move_iterator(temp.end()));
+            }
+        } break;
+        case filter::Type::Basic_BIP158:
+        case filter::Type::Basic_BCHVariant:
+        default: {
+            if (OP::RETURN == elements_.at(0).opcode_) {
+                LogTrace(OT_METHOD)(__FUNCTION__)(": skipping null data script")
+                    .Flush();
+
+                return {};
+            }
+
+            LogTrace(OT_METHOD)(__FUNCTION__)(": processing serialized script")
+                .Flush();
+            auto& script = output.emplace_back();
+            Serialize(writer(script));
+        }
+    }
+
+    LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(
+        " elements")
+        .Flush();
+
+    return output;
+}
+
 auto Script::first_opcode(const ScriptElements& script) noexcept -> OP
 {
-    return std::get<0>(*script.cbegin());
+    return script.cbegin()->opcode_;
 }
 
 auto Script::get_data(const std::size_t position) const noexcept(false)
     -> ReadView
 {
-    auto& data = std::get<2>(elements_.at(position));
+    auto& data = elements_.at(position).data_;
 
     if (false == data.has_value()) {
         throw std::out_of_range("No data at specified script position");
@@ -508,7 +619,7 @@ auto Script::get_data(const std::size_t position) const noexcept(false)
 
 auto Script::get_opcode(const std::size_t position) const noexcept(false) -> OP
 {
-    return std::get<0>(elements_.at(position));
+    return elements_.at(position).opcode_;
 }
 
 auto Script::get_type(
@@ -592,21 +703,21 @@ auto Script::is_hash160(const value_type& element) noexcept -> bool
 {
     if (false == is_data_push(element)) { return false; }
 
-    return 20 == std::get<2>(element)->size();
+    return 20 == element.data_->size();
 }
 
 auto Script::is_public_key(const value_type& element) noexcept -> bool
 {
     if (false == is_data_push(element)) { return false; }
 
-    const auto size = std::get<2>(element)->size();
+    const auto size = element.data_->size();
 
     return (33 == size) || (65 == size);
 }
 
 auto Script::last_opcode(const ScriptElements& script) noexcept -> OP
 {
-    return std::get<0>(*script.crbegin());
+    return script.crbegin()->opcode_;
 }
 
 auto Script::M() const noexcept -> std::optional<std::uint8_t>
@@ -677,6 +788,19 @@ auto Script::PubkeyHash() const noexcept -> std::optional<ReadView>
     return get_data(2);
 }
 
+auto Script::RedeemScript() const noexcept -> std::unique_ptr<bitcoin::Script>
+{
+    if (Position::Input != role_) { return {}; }
+    if (1 < elements_.size()) { return {}; }
+
+    const auto& element = *elements_.crbegin();
+
+    if (false == is_data_push(element)) { return {}; }
+
+    return opentxs::Factory::BitcoinScript(
+        reader(element.data_.value()), false, false, false);
+}
+
 auto Script::ScriptHash() const noexcept -> std::optional<ReadView>
 {
     if (Pattern::PayToScriptHash != type_) { return {}; }
@@ -694,6 +818,9 @@ auto Script::Serialize(const AllocateOutput destination) const noexcept -> bool
     }
 
     const auto size = CalculateSize();
+
+    if (0 == size) { return true; }
+
     auto output = destination(size);
 
     if (false == output.valid(size)) {
@@ -706,9 +833,16 @@ auto Script::Serialize(const AllocateOutput destination) const noexcept -> bool
     auto it = static_cast<std::byte*>(output.data());
 
     for (const auto& element : elements_) {
-        const auto& [opcode, bytes, data] = element;
-        std::memcpy(static_cast<void*>(it), &opcode, sizeof(opcode));
-        std::advance(it, sizeof(opcode));
+        const auto& [opcode, invalid, bytes, data] = element;
+
+        if (invalid.has_value()) {
+            const auto& code = invalid.value();
+            std::memcpy(static_cast<void*>(it), &code, sizeof(code));
+            std::advance(it, sizeof(code));
+        } else {
+            std::memcpy(static_cast<void*>(it), &opcode, sizeof(opcode));
+            std::advance(it, sizeof(opcode));
+        }
 
         if (bytes.has_value()) {
             const auto& value = bytes.value();
@@ -750,7 +884,9 @@ auto Script::validate(
     const ScriptElement& element,
     const bool checkForData) noexcept -> bool
 {
-    const auto& [opcode, bytes, data] = element;
+    const auto& [opcode, invalid, bytes, data] = element;
+
+    if (invalid.has_value()) { return !checkForData; }
 
     if (auto size = is_direct_push(opcode); size.has_value()) {
         if (bytes.has_value()) { return false; }

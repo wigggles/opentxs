@@ -47,6 +47,7 @@ public:
 
     Header(
         const api::internal::Core& api,
+        const blockchain::Type chain,
         const VersionNumber subversion,
         const block::Hash& hash,
         const std::int32_t version,
@@ -57,6 +58,7 @@ public:
         const std::uint32_t nonce) noexcept;
     Header(
         const api::internal::Core& api,
+        const blockchain::Type chain,
         const block::Hash& hash,
         const block::Hash& parentHash,
         const block::Height height) noexcept;
@@ -81,6 +83,7 @@ private:
 
     static block::pHash calculate_hash(
         const api::internal::Core& api,
+        const blockchain::Type chain,
         const ReadView serialized);
     static block::pHash calculate_hash(
         const api::internal::Core& api,

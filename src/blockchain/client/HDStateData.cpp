@@ -6,7 +6,9 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Blockchain.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
+#include "opentxs/blockchain/block/bitcoin/Script.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
@@ -81,46 +83,40 @@ auto HDStateData::index_element(
         pubkeyHash->asHex())
         .Flush();
     auto& list = output[index];
+    auto scripts = std::vector<std::unique_ptr<const block::bitcoin::Script>>{};
+    const auto& p2pk =
+        scripts.emplace_back(network_.API().Factory().BitcoinScriptP2PK(
+            network_.Chain(), *input.Key()));
+    const auto& p2pkh =
+        scripts.emplace_back(network_.API().Factory().BitcoinScriptP2PKH(
+            network_.Chain(), *input.Key()));
+    const auto& p2sh_p2pk = scripts.emplace_back(
+        network_.API().Factory().BitcoinScriptP2SH(network_.Chain(), *p2pk));
+    const auto& p2sh_p2pkh = scripts.emplace_back(
+        network_.API().Factory().BitcoinScriptP2SH(network_.Chain(), *p2pkh));
+
+    OT_ASSERT(p2pk);
+    OT_ASSERT(p2pkh);
+    OT_ASSERT(p2sh_p2pk);
+    OT_ASSERT(p2sh_p2pkh);
 
     switch (type) {
+        case filter::Type::Extended_opentxs: {
+            OT_ASSERT(p2pk->Pubkey().has_value());
+            OT_ASSERT(p2pkh->PubkeyHash().has_value());
+            OT_ASSERT(p2sh_p2pk->ScriptHash().has_value());
+            OT_ASSERT(p2sh_p2pkh->ScriptHash().has_value());
+
+            list.emplace_back(space(p2pk->Pubkey().value()));
+            list.emplace_back(space(p2pkh->PubkeyHash().value()));
+            list.emplace_back(space(p2sh_p2pk->ScriptHash().value()));
+            list.emplace_back(space(p2sh_p2pkh->ScriptHash().value()));
+        } break;
         case filter::Type::Basic_BIP158:
         case filter::Type::Basic_BCHVariant:
         default: {
-            // TODO fix all this hardcoding
-            {
-                OT_ASSERT(20 == pubkeyHash->size());
-
-                auto script = Space{};
-                script.reserve(25);
-                script.emplace_back(std::byte{0x76});  // OP_DUP
-                script.emplace_back(std::byte{0xa9});  // OP_HASH160
-                script.emplace_back(std::byte{0x14});  // OP_PUSHDATA(20)
-
-                for (const auto& byte : pubkeyHash.get()) {
-                    script.emplace_back(byte);
-                }
-
-                script.emplace_back(std::byte{0x88});  // OP_EQUALVERIFY
-                script.emplace_back(std::byte{0xac});  // OP_CHECKSIG
-                list.emplace_back(script);
-            }
-            {
-                const auto bytes = input.Key()->PublicKey();
-                auto it = reinterpret_cast<const std::byte*>(bytes.data());
-
-                OT_ASSERT(33 == bytes.size());
-
-                auto script = Space{};
-                script.reserve(35);
-                script.emplace_back(std::byte{0x21});  // OP_PUSHDATA(33)
-
-                for (auto i = std::size_t{0}; i < bytes.size(); ++i) {
-                    script.emplace_back(*it);
-                    std::advance(it, 1);
-                }
-
-                script.emplace_back(std::byte{0xac});  // OP_CHECKSIG
-                list.emplace_back(script);
+            for (const auto& script : scripts) {
+                script->Serialize(writer(list.emplace_back()));
             }
         }
     }
@@ -204,8 +200,8 @@ auto HDStateData::process() noexcept -> void
         node_.ID(), subchain_, filter_type_, tested, blockHash.Bytes());
 
     if (0 < confirmed.size()) {
+        // Re-scan the last 1000 blocks
         const auto& oracle = network_.HeaderOracle();
-        // TODO blocks should have an accessor for their headers
         const auto pHeader = oracle.LoadHeader(blockHash);
 
         OT_ASSERT(pHeader);
@@ -258,7 +254,7 @@ auto HDStateData::scan() noexcept -> void
         const auto size{matches.size()};
 
         if (0 < matches.size()) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": GCS for block ")(
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": GCS for block ")(
                 blockHash->asHex())(" at height ")(i)(
                 " matches at least one of the ")(patterns.size())(
                 " target elements for this subchain")
@@ -273,7 +269,7 @@ auto HDStateData::scan() noexcept -> void
                 std::back_inserter(patterns),
                 [](const auto& in) { return reader(in.second); });
             matches = filter.Match(patterns);
-            LogOutput(OT_METHOD)(__FUNCTION__)(": ")(matches.size())(" of ")(
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(matches.size())(" of ")(
                 size)(" matches are new")
                 .Flush();
 

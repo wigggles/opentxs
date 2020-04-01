@@ -10,6 +10,10 @@
 
 #include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
+#include "opentxs/iterator/Bidirectional.hpp"
+
+#include <cstdint>
+#include <memory>
 
 namespace opentxs
 {
@@ -22,6 +26,20 @@ namespace bitcoin
 class Block : virtual public block::Block
 {
 public:
+    using value_type = std::shared_ptr<const Transaction>;
+    using const_iterator =
+        opentxs::iterator::Bidirectional<const Block, const value_type>;
+
+    OPENTXS_EXPORT virtual auto at(const std::size_t index) const noexcept
+        -> value_type = 0;
+    OPENTXS_EXPORT virtual auto at(const ReadView txid) const noexcept
+        -> value_type = 0;
+    OPENTXS_EXPORT virtual auto begin() const noexcept -> const_iterator = 0;
+    OPENTXS_EXPORT virtual auto cbegin() const noexcept -> const_iterator = 0;
+    OPENTXS_EXPORT virtual auto cend() const noexcept -> const_iterator = 0;
+    OPENTXS_EXPORT virtual auto end() const noexcept -> const_iterator = 0;
+    OPENTXS_EXPORT virtual auto size() const noexcept -> std::size_t = 0;
+
     ~Block() override = default;
 
 protected:

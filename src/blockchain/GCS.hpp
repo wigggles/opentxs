@@ -21,18 +21,18 @@ public:
     auto Test(const std::vector<OTData>& targets) const noexcept -> bool final;
     auto Test(const std::vector<Space>& targets) const noexcept -> bool final;
 
-    GCS(const api::internal::Core& api,
+    GCS(const api::Core& api,
         const std::uint8_t bits,
         const std::uint32_t fpRate,
         const std::uint32_t filterElementCount,
         const ReadView key,
         const ReadView encoded)
     noexcept(false);
-    GCS(const api::internal::Core& api,
+    GCS(const api::Core& api,
         const std::uint8_t bits,
         const std::uint32_t fpRate,
         const ReadView key,
-        const std::vector<OTData>& elements)
+        const std::vector<ReadView>& elements)
     noexcept(false);
 
     ~GCS() final = default;
@@ -43,7 +43,7 @@ private:
     using Elements = std::vector<std::uint64_t>;
 
     const VersionNumber version_;
-    const api::internal::Core& api_;
+    const api::Core& api_;
     const std::uint8_t bits_;
     const std::uint32_t false_positive_rate_;
     const std::uint32_t count_;

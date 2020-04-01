@@ -12,6 +12,12 @@ class Transaction final : public bitcoin::Transaction
 public:
     static const VersionNumber default_version_;
 
+    auto ExtractElements(const filter::Type style) const noexcept
+        -> std::vector<Space> final;
+    auto FindMatches(
+        const FilterType type,
+        const Patterns& txos,
+        const Patterns& elements) const noexcept -> Matches final;
     auto ID() const noexcept -> const Txid& final { return txid_; }
     auto IDNormalized() const noexcept -> const Identifier&;
     auto Inputs() const noexcept -> const bitcoin::Inputs& final
@@ -30,7 +36,7 @@ public:
     auto Version() const noexcept -> std::int32_t final { return version_; }
 
     Transaction(
-        const api::internal::Core& api,
+        const api::Core& api,
         const VersionNumber serializeVersion,
         const blockchain::Type chain,
         const std::int32_t version,
@@ -41,7 +47,7 @@ public:
     ~Transaction() final = default;
 
 private:
-    const api::internal::Core& api_;
+    const api::Core& api_;
     const blockchain::Type chain_;
     const VersionNumber serialize_version_;
     const std::int32_t version_;

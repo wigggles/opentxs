@@ -211,10 +211,12 @@ public:
         -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
     static auto BitcoinBlockHeader(
         const api::internal::Core& api,
+        const blockchain::Type chain,
         const ReadView bytes) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::internal::Header>;
     static auto BitcoinBlockHeader(
         const api::internal::Core& api,
+        const blockchain::Type chain,
         const blockchain::block::Hash& hash,
         const blockchain::block::Hash& parent,
         const blockchain::block::Height height) noexcept
@@ -619,7 +621,8 @@ public:
     OPENTXS_EXPORT static auto BitcoinScript(
         const ReadView bytes,
         const bool outputScript = true,
-        const bool isGeneration = false) noexcept
+        const bool isGeneration = false,
+        const bool allowInvalidOpcodes = true) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Script>;
     OPENTXS_EXPORT static auto BitcoinScript(
         blockchain::block::bitcoin::ScriptElements&& elements,
@@ -627,18 +630,19 @@ public:
         const bool isGeneration = false) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Script>;
     OPENTXS_EXPORT static auto BitcoinTransaction(
-        const api::internal::Core& api,
+        const api::Core& api,
         const blockchain::Type chain,
         const bool isGeneration,
         const ReadView txid,
         blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
         -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
     OPENTXS_EXPORT static auto BitcoinTransaction(
-        const api::internal::Core& api,
+        const api::Core& api,
         const bool isGeneration,
         const proto::BlockchainTransaction& serialized) noexcept
         -> std::shared_ptr<blockchain::block::bitcoin::Transaction>;
     OPENTXS_EXPORT static auto BitcoinTransactionInput(
+        const api::Core& api,
         const ReadView outpoint,
         const blockchain::bitcoin::CompactSize& cs,
         const ReadView script,
@@ -646,6 +650,7 @@ public:
         const bool isGeneration) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Input>;
     OPENTXS_EXPORT static auto BitcoinTransactionInput(
+        const api::Core& api,
         const proto::BlockchainTransactionInput,
         const bool isGeneration) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Input>;
@@ -655,11 +660,14 @@ public:
         std::optional<std::size_t> size = {}) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Inputs>;
     OPENTXS_EXPORT static auto BitcoinTransactionOutput(
+        const api::Core& api,
+        const std::uint32_t index,
         const std::int64_t value,
         const blockchain::bitcoin::CompactSize& cs,
         const ReadView script) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Output>;
     OPENTXS_EXPORT static auto BitcoinTransactionOutput(
+        const api::Core& api,
         const proto::BlockchainTransactionOutput) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Output>;
     static auto BitcoinTransactionOutputs(
@@ -988,18 +996,18 @@ public:
         const api::server::internal::Manager& api);
 #if OT_BLOCKCHAIN
     OPENTXS_EXPORT static auto GCS(
-        const api::internal::Core& api,
+        const api::Core& api,
         const std::uint8_t bits,
         const std::uint32_t fpRate,
         const ReadView key,
         const std::vector<OTData>& elements) noexcept
         -> std::unique_ptr<blockchain::internal::GCS>;
     OPENTXS_EXPORT static auto GCS(
-        const api::internal::Core& api,
+        const api::Core& api,
         const proto::GCS& serialized) noexcept
         -> std::unique_ptr<blockchain::internal::GCS>;
     OPENTXS_EXPORT static auto GCS(
-        const api::internal::Core& api,
+        const api::Core& api,
         const std::uint8_t bits,
         const std::uint32_t fpRate,
         const ReadView key,

@@ -12,22 +12,41 @@ namespace opentxs::blockchain::block::bitcoin::implementation
 class Block final : public bitcoin::Block, public block::implementation::Block
 {
 public:
+    using TxidIndex = std::vector<Space>;
+    using TransactionMap = std::map<ReadView, value_type>;
+
+    auto at(const std::size_t index) const noexcept -> value_type final;
+    auto at(const ReadView txid) const noexcept -> value_type final;
+    auto begin() const noexcept -> const_iterator final { return cbegin(); }
+    auto cbegin() const noexcept -> const_iterator final
+    {
+        return const_iterator(this, 0);
+    }
+    auto cend() const noexcept -> const_iterator final
+    {
+        return const_iterator(this, index_.size());
+    }
+    auto end() const noexcept -> const_iterator final { return cend(); }
+    auto ExtractElements(const FilterType style) const noexcept
+        -> std::vector<Space> final;
     auto FindMatches(
         const FilterType type,
         const Patterns& outpoints,
         const Patterns& scripts) const noexcept -> Matches final;
+    auto size() const noexcept -> std::size_t final { return index_.size(); }
 
     Block(
         const api::internal::Core& api,
         const blockchain::Type chain,
         std::unique_ptr<const internal::Header> header,
-        std::vector<std::pair<bb::EncodedTransaction, Space>>&&
-            parsed) noexcept(false);
+        TxidIndex&& index,
+        TransactionMap&& transactions) noexcept(false);
 
 private:
     const std::unique_ptr<const internal::Header> header_p_;
-    std::vector<std::pair<bb::EncodedTransaction, Space>> transactions_;
     const internal::Header& header_;
+    const TxidIndex index_;
+    const TransactionMap transactions_;
 
     Block() = delete;
     Block(const Block&) = delete;

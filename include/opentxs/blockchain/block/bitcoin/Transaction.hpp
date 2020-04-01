@@ -8,6 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/blockchain/block/Block.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
 
 #include <cstdint>
@@ -24,6 +25,17 @@ namespace bitcoin
 class Transaction
 {
 public:
+    using FilterType = block::Block::FilterType;
+    using Patterns = block::Block::Patterns;
+    using Match = block::Block::Match;
+    using Matches = block::Block::Matches;
+
+    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
+        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto FindMatches(
+        const FilterType type,
+        const Patterns& txos,
+        const Patterns& elements) const noexcept -> Matches = 0;
     OPENTXS_EXPORT virtual auto ID() const noexcept -> const Txid& = 0;
     OPENTXS_EXPORT virtual auto IDNormalized() const noexcept
         -> const Identifier& = 0;

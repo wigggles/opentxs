@@ -8,8 +8,11 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
+
 #include <cstdint>
 #include <optional>
+#include <vector>
 
 namespace opentxs
 {
@@ -22,12 +25,22 @@ namespace bitcoin
 class Output
 {
 public:
+    using FilterType = Transaction::FilterType;
+    using Patterns = Transaction::Patterns;
+    using Match = Transaction::Match;
+    using Matches = Transaction::Matches;
+
     OPENTXS_EXPORT virtual auto CalculateSize() const noexcept
         -> std::size_t = 0;
+    OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
+        noexcept -> std::vector<Space> = 0;
+    OPENTXS_EXPORT virtual auto FindMatches(
+        const ReadView txid,
+        const FilterType type,
+        const Patterns& elements) const noexcept -> Matches = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize(
-        const std::uint32_t index,
         proto::BlockchainTransactionOutput& destination) const noexcept
         -> bool = 0;
     OPENTXS_EXPORT virtual auto Script() const noexcept

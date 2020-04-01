@@ -94,6 +94,14 @@ auto space(const std::size_t size) noexcept -> Space
 
     return output;
 }
+auto space(const ReadView bytes) noexcept -> Space
+{
+    if ((nullptr == bytes.data()) || (0 == bytes.size())) { return {}; }
+
+    auto it = reinterpret_cast<const std::byte*>(bytes.data());
+
+    return {it, it + bytes.size()};
+}
 auto writer(std::string& in) noexcept -> AllocateOutput
 {
     return [&in](const auto size) -> WritableView {
