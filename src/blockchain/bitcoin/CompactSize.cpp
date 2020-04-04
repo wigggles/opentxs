@@ -36,7 +36,7 @@ namespace be = boost::endian;
 namespace opentxs::blockchain::bitcoin
 {
 bool DecodeCompactSizeFromPayload(
-    const std::byte*& it,
+    ByteIterator& it,
     std::size_t& expected,
     const std::size_t size,
     std::size_t& output) noexcept
@@ -49,7 +49,7 @@ bool DecodeCompactSizeFromPayload(
 }
 
 bool DecodeCompactSizeFromPayload(
-    const std::byte*& it,
+    ByteIterator& it,
     std::size_t& expected,
     const std::size_t size,
     std::size_t& output,
@@ -64,7 +64,7 @@ bool DecodeCompactSizeFromPayload(
 }
 
 bool DecodeCompactSizeFromPayload(
-    const std::byte*& it,
+    ByteIterator& it,
     std::size_t& expectedSize,
     const std::size_t size,
     CompactSize& output) noexcept

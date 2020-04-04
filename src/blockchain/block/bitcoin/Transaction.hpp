@@ -29,19 +29,23 @@ public:
     {
         return *outputs_;
     }
+    auto SegwitFlag() const noexcept -> std::byte final { return segwit_flag_; }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
     auto Serialize() const noexcept
         -> std::optional<proto::BlockchainTransaction> final;
     auto Version() const noexcept -> std::int32_t final { return version_; }
+    auto WTXID() const noexcept -> const Txid& final { return wtxid_; }
 
     Transaction(
         const api::Core& api,
         const VersionNumber serializeVersion,
         const blockchain::Type chain,
         const std::int32_t version,
+        const std::byte segwit,
         const std::uint32_t lockTime,
         const pTxid&& txid,
+        const pTxid&& wtxid,
         std::unique_ptr<const bitcoin::Inputs> inputs,
         std::unique_ptr<const bitcoin::Outputs> outputs) noexcept(false);
     ~Transaction() final = default;
@@ -51,8 +55,10 @@ private:
     const blockchain::Type chain_;
     const VersionNumber serialize_version_;
     const std::int32_t version_;
+    const std::byte segwit_flag_;
     const std::uint32_t lock_time_;
     const pTxid txid_;
+    const pTxid wtxid_;
     const std::unique_ptr<const bitcoin::Inputs> inputs_;
     const std::unique_ptr<const bitcoin::Outputs> outputs_;
     mutable std::optional<OTIdentifier> normalized_id_;

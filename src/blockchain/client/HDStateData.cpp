@@ -84,6 +84,8 @@ auto HDStateData::index_element(
         .Flush();
     auto& list = output[index];
     auto scripts = std::vector<std::unique_ptr<const block::bitcoin::Script>>{};
+    scripts.reserve(4);  // WARNING keep this number up to date if new scripts
+                         // are added
     const auto& p2pk =
         scripts.emplace_back(network_.API().Factory().BitcoinScriptP2PK(
             network_.Chain(), *input.Key()));

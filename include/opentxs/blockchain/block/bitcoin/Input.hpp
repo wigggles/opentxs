@@ -13,6 +13,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 namespace opentxs
 {
@@ -64,6 +65,8 @@ public:
     OPENTXS_EXPORT virtual auto Script() const noexcept
         -> const bitcoin::Script& = 0;
     OPENTXS_EXPORT virtual auto Sequence() const noexcept -> std::uint32_t = 0;
+    OPENTXS_EXPORT virtual auto Witness() const noexcept
+        -> const std::vector<Space>& = 0;
 
     virtual ~Input() = default;
 

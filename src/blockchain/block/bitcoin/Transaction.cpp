@@ -38,7 +38,6 @@ auto Factory::BitcoinTransaction(
     const api::Core& api,
     const blockchain::Type chain,
     const bool isGeneration,
-    const ReadView txid,
     blockchain::bitcoin::EncodedTransaction&& parsed) noexcept
     -> std::shared_ptr<blockchain::block::bitcoin::Transaction>
 {
@@ -48,11 +47,23 @@ auto Factory::BitcoinTransaction(
             std::vector<std::unique_ptr<blockchain::block::bitcoin::Input>>{};
         {
             auto counter = int{0};
-            instantiatedInputs.reserve(parsed.inputs_.size());
+            const auto& inputs = parsed.inputs_;
+            instantiatedInputs.reserve(inputs.size());
 
-            for (const auto& input : parsed.inputs_) {
+            for (auto i{0u}; i < inputs.size(); ++i) {
+                const auto& input = inputs.at(i);
                 const auto& op = input.outpoint_;
                 const auto& seq = input.sequence_;
+                auto witness = std::vector<Space>{};
+
+                if (0 < parsed.witnesses_.size()) {
+                    const auto& encodedWitness = parsed.witnesses_.at(i);
+
+                    for (const auto& [cs, bytes] : encodedWitness.items_) {
+                        witness.emplace_back(bytes);
+                    }
+                }
+
                 instantiatedInputs.emplace_back(
                     Factory::BitcoinTransactionInput(
                         api,
@@ -62,13 +73,13 @@ auto Factory::BitcoinTransaction(
                         reader(input.script_),
                         ReadView{reinterpret_cast<const char*>(&seq),
                                  sizeof(seq)},
-                        isGeneration && (0 == counter)));
+                        isGeneration && (0 == counter),
+                        std::move(witness)));
                 ++counter;
                 inputBytes += input.size();
             }
 
-            const auto cs =
-                blockchain::bitcoin::CompactSize{parsed.inputs_.size()};
+            const auto cs = blockchain::bitcoin::CompactSize{inputs.size()};
             inputBytes += cs.Size();
             instantiatedInputs.shrink_to_fit();
         }
@@ -105,8 +116,10 @@ auto Factory::BitcoinTransaction(
             ReturnType::default_version_,
             chain,
             parsed.version_.value(),
+            parsed.segwit_flag_.value_or(std::byte{0x0}),
             parsed.lock_time_.value(),
-            api.Factory().Data(txid),
+            api.Factory().Data(parsed.txid_),
+            api.Factory().Data(parsed.wtxid_),
             opentxs::Factory::BitcoinTransactionInputs(
                 std::move(instantiatedInputs), inputBytes),
             opentxs::Factory::BitcoinTransactionOutputs(
@@ -170,8 +183,10 @@ auto Factory::BitcoinTransaction(
             in.version(),
             Translate(in.chain()),
             static_cast<std::int32_t>(in.txversion()),
+            std::byte{static_cast<std::uint8_t>(in.segwit_flag())},
             in.locktime(),
             api.Factory().Data(in.txid(), StringStyle::Raw),
+            api.Factory().Data(in.txid(), StringStyle::Raw),  // FIXME
             opentxs::Factory::BitcoinTransactionInputs(std::move(inputs)),
             opentxs::Factory::BitcoinTransactionOutputs(std::move(outputs)));
     } catch (const std::exception& e) {
@@ -191,16 +206,20 @@ Transaction::Transaction(
     const VersionNumber serializeVersion,
     const blockchain::Type chain,
     const std::int32_t version,
+    const std::byte segwit,
     const std::uint32_t lockTime,
     const pTxid&& txid,
+    const pTxid&& wtxid,
     std::unique_ptr<const bitcoin::Inputs> inputs,
     std::unique_ptr<const bitcoin::Outputs> outputs) noexcept(false)
     : api_(api)
     , chain_(chain)
     , serialize_version_(serializeVersion)
     , version_(version)
+    , segwit_flag_(segwit)
     , lock_time_(lockTime)
     , txid_(std::move(txid))
+    , wtxid_(std::move(wtxid))
     , inputs_(std::move(inputs))
     , outputs_(std::move(outputs))
     , normalized_id_()

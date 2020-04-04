@@ -87,34 +87,19 @@ auto Factory::BitcoinBlock(
         auto transactions = ReturnType::TransactionMap{};
 
         while (transactions.size() < transactionCount) {
-            auto start{it};
-            auto end{start};
-            auto data = bb::EncodedTransaction::Deserialize(ReadView{
-                reinterpret_cast<const char*>(it), in.size() - expectedSize});
+            auto data = bb::EncodedTransaction::Deserialize(
+                api,
+                chain,
+                ReadView{reinterpret_cast<const char*>(it),
+                         in.size() - expectedSize});
             const auto txBytes = data.size();
             std::advance(it, txBytes);
             expectedSize += txBytes;
-            end = it;
-            auto& txid = index.emplace_back();
-            const auto gotTxid = TransactionHash(
-                api,
-                chain,
-                ReadView{reinterpret_cast<const char*>(start),
-                         static_cast<std::size_t>(std::distance(start, end))},
-                writer(txid));
-
-            if (false == gotTxid) {
-                throw std::runtime_error("Failed to calculate txid");
-            }
-
+            auto& txid = index.emplace_back(data.txid_);
             transactions.emplace(
                 reader(txid),
                 BitcoinTransaction(
-                    api,
-                    chain,
-                    (0 == ++counter),
-                    reader(txid),
-                    std::move(data)));
+                    api, chain, (0 == ++counter), std::move(data)));
         }
 
         return std::make_shared<ReturnType>(
@@ -285,12 +270,6 @@ auto Block::ExtractElements(const FilterType style) const noexcept
             output.end(),
             std::make_move_iterator(temp.begin()),
             std::make_move_iterator(temp.end()));
-    }
-
-    if (FilterType::Extended_opentxs == style) {
-        // TODO determine if this is correct for other filter types
-        std::sort(output.begin(), output.end());
-        output.erase(std::unique(output.begin(), output.end()), output.end());
     }
 
     LogTrace(OT_METHOD)(__FUNCTION__)(": extracted ")(output.size())(

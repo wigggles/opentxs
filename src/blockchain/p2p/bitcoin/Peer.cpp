@@ -173,12 +173,17 @@ auto Peer::get_local_services(
 {
     auto output{input};
 
-    if (blockchain::Type::BitcoinCash == network) {
-        output.emplace(p2p::Service::BitcoinCash);
-    }
-
-    if (blockchain::Type::BitcoinCash_testnet3 == network) {
-        output.emplace(p2p::Service::BitcoinCash);
+    switch (network) {
+        case blockchain::Type::Bitcoin:
+        case blockchain::Type::Bitcoin_testnet3: {
+            output.emplace(p2p::Service::Witness);
+        } break;
+        case blockchain::Type::BitcoinCash:
+        case blockchain::Type::BitcoinCash_testnet3: {
+            output.emplace(p2p::Service::BitcoinCash);
+        } break;
+        default: {
+        }
     }
 
     return output;
