@@ -29,6 +29,7 @@ public:
     using Patterns = block::Block::Patterns;
     using Match = block::Block::Match;
     using Matches = block::Block::Matches;
+    using SerializeType = proto::BlockchainTransaction;
 
     OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
         noexcept -> std::vector<Space> = 0;
@@ -42,13 +43,15 @@ public:
     OPENTXS_EXPORT virtual auto Inputs() const noexcept
         -> const bitcoin::Inputs& = 0;
     OPENTXS_EXPORT virtual auto Locktime() const noexcept -> std::uint32_t = 0;
+    OPENTXS_EXPORT virtual auto MergeMetadata(const SerializeType& rhs) const
+        noexcept -> void = 0;
     OPENTXS_EXPORT virtual auto Outputs() const noexcept
         -> const bitcoin::Outputs& = 0;
     OPENTXS_EXPORT virtual auto SegwitFlag() const noexcept -> std::byte = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
     OPENTXS_EXPORT virtual auto Serialize() const noexcept
-        -> std::optional<proto::BlockchainTransaction> = 0;
+        -> std::optional<SerializeType> = 0;
     OPENTXS_EXPORT virtual auto Version() const noexcept -> std::int32_t = 0;
     OPENTXS_EXPORT virtual auto WTXID() const noexcept -> const Txid& = 0;
 

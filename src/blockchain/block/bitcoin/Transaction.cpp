@@ -299,6 +299,11 @@ auto Transaction::FindMatches(
     return output;
 }
 
+auto Transaction::MergeMetadata(const SerializeType& rhs) const noexcept -> void
+{
+    // TODO
+}
+
 auto Transaction::serialize(
     const AllocateOutput destination,
     const bool normalize) const noexcept -> std::optional<std::size_t>
@@ -388,10 +393,9 @@ auto Transaction::Serialize(const AllocateOutput destination) const noexcept
     return serialize(destination, false);
 }
 
-auto Transaction::Serialize() const noexcept
-    -> std::optional<proto::BlockchainTransaction>
+auto Transaction::Serialize() const noexcept -> std::optional<SerializeType>
 {
-    auto output = proto::BlockchainTransaction{};
+    auto output = SerializeType{};
     output.set_version(std::max(default_version_, serialize_version_));
     output.set_chain(Translate(chain_));
     output.set_txid(txid_->str());

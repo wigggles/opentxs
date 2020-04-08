@@ -12,6 +12,15 @@ class Database final : virtual public internal::Database
 public:
     using Common = api::client::blockchain::database::implementation::Database;
 
+    auto AddConfirmedTransaction(
+        const block::Position& block,
+        const std::vector<std::uint32_t> outputIndices,
+        const block::bitcoin::Transaction& transaction) const noexcept
+        -> bool final
+    {
+        return wallet_.AddConfirmedTransaction(
+            block, outputIndices, transaction);
+    }
     auto AddOrUpdate(Address address) const noexcept -> bool final
     {
         return common_.AddOrUpdate(std::move(address));
@@ -56,6 +65,10 @@ public:
     {
         return common_.Find(chain_, protocol, onNetworks, withServices);
     }
+    auto GetBalance() const noexcept -> BalanceData final
+    {
+        return wallet_.GetBalance();
+    }
     auto GetPatterns(
         const NodeID& balanceNode,
         const Subchain subchain,
@@ -63,6 +76,10 @@ public:
         const VersionNumber version) const noexcept -> Patterns final
     {
         return wallet_.GetPatterns(balanceNode, subchain, type, version);
+    }
+    auto GetUnspentOutputs() const noexcept -> std::vector<UTXO> final
+    {
+        return wallet_.GetUnspentOutputs();
     }
     auto GetUntestedPatterns(
         const NodeID& balanceNode,
@@ -375,11 +392,18 @@ private:
     };
 
     struct Wallet {
+        auto AddConfirmedTransaction(
+            const block::Position& block,
+            const std::vector<std::uint32_t> outputIndices,
+            const block::bitcoin::Transaction& transaction) const noexcept
+            -> bool;
+        auto GetBalance() const noexcept -> BalanceData;
         auto GetPatterns(
             const NodeID& balanceNode,
             const Subchain subchain,
             const FilterType type,
             const VersionNumber version) const noexcept -> Patterns;
+        auto GetUnspentOutputs() const noexcept -> std::vector<UTXO>;
         auto GetUntestedPatterns(
             const NodeID& balanceNode,
             const Subchain subchain,
@@ -448,6 +472,17 @@ private:
         using VersionIndex = std::map<OTIdentifier, VersionNumber>;
         using PositionMap = std::map<OTIdentifier, block::Position>;
         using MatchIndex = std::map<block::pHash, IDSet>;
+        using OutputMap = std::map<
+            block::bitcoin::Outpoint,
+            std::pair<block::Height, proto::BlockchainTransactionOutput>>;
+        using OutputStateMap =
+            std::map<block::Height, std::vector<block::bitcoin::Outpoint>>;
+        using TransactionMap =
+            std::map<block::pTxid, proto::BlockchainTransaction>;
+        using TransactionBlockMap =
+            std::map<block::pTxid, std::vector<block::pHash>>;
+        using BlockTransactionMap =
+            std::map<block::pHash, std::vector<block::pTxid>>;
 
         const api::Core& api_;
         mutable std::mutex lock_;
@@ -458,6 +493,16 @@ private:
         mutable PositionMap subchain_last_scanned_;
         mutable PositionMap subchain_last_processed_;
         mutable MatchIndex match_index_;
+        mutable OutputMap outputs_;
+        mutable OutputStateMap unconfirmed_new_;
+        mutable OutputStateMap confirmed_new_;
+        mutable OutputStateMap unconfirmed_spend_;
+        mutable OutputStateMap confirmed_spend_;
+        mutable OutputStateMap orphaned_new_;
+        mutable OutputStateMap orphaned_spend_;
+        mutable TransactionMap transactions_;
+        mutable TransactionBlockMap tx_to_block_;
+        mutable BlockTransactionMap block_to_tx_;
 
         auto get_patterns(
             const Lock& lock,
@@ -465,6 +510,8 @@ private:
             const Subchain subchain,
             const FilterType type,
             const VersionNumber version) const noexcept(false) -> const IDSet&;
+        auto get_unspent_outputs(const Lock& lock) const noexcept
+            -> std::vector<UTXO>;
         template <typename PatternList>
         auto load_patterns(
             const Lock& lock,
@@ -488,8 +535,26 @@ private:
             return output;
         }
 
+        auto add_transaction(
+            const Lock& lock,
+            const block::Hash& block,
+            const block::bitcoin::Transaction& transaction) const noexcept
+            -> bool;
+        auto change_state(
+            const Lock& lock,
+            const block::bitcoin::Outpoint& id,
+            const block::Height originalHeight,
+            const block::Height newHeight,
+            OutputStateMap& to) const noexcept -> bool;
+        auto find_output(const Lock& lock, const block::bitcoin::Outpoint& id)
+            const noexcept -> std::optional<OutputMap::iterator>;
         auto pattern_id(const SubchainID& subchain, const Bip32Index index)
             const noexcept -> pPatternID;
+        auto remove_state(
+            const Lock& lock,
+            const block::bitcoin::Outpoint& id,
+            const block::Height height,
+            OutputStateMap& from) const noexcept -> bool;
         auto subchain_version_index(
             const NodeID& balanceNode,
             const Subchain subchain,

@@ -15,8 +15,8 @@ public:
     using TxidIndex = std::vector<Space>;
     using TransactionMap = std::map<ReadView, value_type>;
 
-    auto at(const std::size_t index) const noexcept -> value_type final;
-    auto at(const ReadView txid) const noexcept -> value_type final;
+    auto at(const std::size_t index) const noexcept -> const value_type& final;
+    auto at(const ReadView txid) const noexcept -> const value_type& final;
     auto begin() const noexcept -> const_iterator final { return cbegin(); }
     auto cbegin() const noexcept -> const_iterator final
     {
@@ -43,6 +43,8 @@ public:
         TransactionMap&& transactions) noexcept(false);
 
 private:
+    static const value_type null_tx_;
+
     const std::unique_ptr<const internal::Header> header_p_;
     const internal::Header& header_;
     const TxidIndex index_;

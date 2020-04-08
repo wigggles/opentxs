@@ -27,6 +27,14 @@ struct Outpoint {
     std::array<std::byte, 32> txid_{};
     std::array<std::byte, 4> index_{};
 
+    auto operator<(const Outpoint& rhs) const noexcept -> bool;
+    auto operator<=(const Outpoint& rhs) const noexcept -> bool;
+    auto operator>(const Outpoint& rhs) const noexcept -> bool;
+    auto operator>=(const Outpoint& rhs) const noexcept -> bool;
+    auto operator==(const Outpoint& rhs) const noexcept -> bool;
+    auto operator!=(const Outpoint& rhs) const noexcept -> bool;
+
+    auto Bytes() const noexcept -> ReadView;
     auto Txid() const noexcept -> ReadView;
     auto Index() const noexcept -> std::uint32_t;
 

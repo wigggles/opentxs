@@ -203,6 +203,8 @@ auto PushData(const ReadView in) noexcept(false) -> ScriptElement
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
+const Block::value_type Block::null_tx_{};
+
 Block::Block(
     const api::internal::Core& api,
     const blockchain::Type chain,
@@ -226,7 +228,7 @@ Block::Block(
     }
 }
 
-auto Block::at(const std::size_t index) const noexcept -> value_type
+auto Block::at(const std::size_t index) const noexcept -> const value_type&
 {
     try {
         if (index_.size() <= index) {
@@ -237,11 +239,11 @@ auto Block::at(const std::size_t index) const noexcept -> value_type
     } catch (const std::exception& e) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": ")(e.what()).Flush();
 
-        return {};
+        return null_tx_;
     }
 }
 
-auto Block::at(const ReadView txid) const noexcept -> value_type
+auto Block::at(const ReadView txid) const noexcept -> const value_type&
 {
     try {
 
@@ -252,7 +254,7 @@ auto Block::at(const ReadView txid) const noexcept -> value_type
             header_.Hash().asHex())
             .Flush();
 
-        return {};
+        return null_tx_;
     }
 }
 
@@ -296,9 +298,7 @@ auto Block::FindMatches(
             std::make_move_iterator(temp.end()));
     }
 
-    std::sort(std::begin(output), std::end(output));
-    output.erase(
-        std::unique(std::begin(output), std::end(output)), std::end(output));
+    dedup(output);
 
     return output;
 }

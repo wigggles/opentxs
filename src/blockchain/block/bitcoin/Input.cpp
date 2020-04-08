@@ -17,6 +17,7 @@
 #include <boost/endian/buffers.hpp>
 
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <optional>
 
@@ -147,6 +148,41 @@ Outpoint::Outpoint(const ReadView txid, const std::uint32_t index) noexcept(
 
     std::memcpy(static_cast<void*>(txid_.data()), txid.data(), txid_.size());
     std::memcpy(static_cast<void*>(index_.data()), &buf, index_.size());
+}
+
+auto Outpoint::Bytes() const noexcept -> ReadView
+{
+    return ReadView{reinterpret_cast<const char*>(this), sizeof(*this)};
+}
+
+auto Outpoint::operator<(const Outpoint& rhs) const noexcept -> bool
+{
+    return 0 > std::memcmp(this, &rhs, sizeof(*this));
+}
+
+auto Outpoint::operator<=(const Outpoint& rhs) const noexcept -> bool
+{
+    return 0 >= std::memcmp(this, &rhs, sizeof(*this));
+}
+
+auto Outpoint::operator>(const Outpoint& rhs) const noexcept -> bool
+{
+    return 0 < std::memcmp(this, &rhs, sizeof(*this));
+}
+
+auto Outpoint::operator>=(const Outpoint& rhs) const noexcept -> bool
+{
+    return 0 <= std::memcmp(this, &rhs, sizeof(*this));
+}
+
+auto Outpoint::operator==(const Outpoint& rhs) const noexcept -> bool
+{
+    return 0 == std::memcmp(this, &rhs, sizeof(*this));
+}
+
+auto Outpoint::operator!=(const Outpoint& rhs) const noexcept -> bool
+{
+    return 0 != std::memcmp(this, &rhs, sizeof(*this));
 }
 
 auto Outpoint::Index() const noexcept -> std::uint32_t
