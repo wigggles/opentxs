@@ -25,6 +25,7 @@ public:
         return *inputs_;
     }
     auto Locktime() const noexcept -> std::uint32_t final { return lock_time_; }
+    auto MergeMetadata(const SerializeType& rhs) const noexcept -> void final;
     auto Outputs() const noexcept -> const bitcoin::Outputs& final
     {
         return *outputs_;
@@ -32,8 +33,7 @@ public:
     auto SegwitFlag() const noexcept -> std::byte final { return segwit_flag_; }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t> final;
-    auto Serialize() const noexcept
-        -> std::optional<proto::BlockchainTransaction> final;
+    auto Serialize() const noexcept -> std::optional<SerializeType> final;
     auto Version() const noexcept -> std::int32_t final { return version_; }
     auto WTXID() const noexcept -> const Txid& final { return wtxid_; }
 

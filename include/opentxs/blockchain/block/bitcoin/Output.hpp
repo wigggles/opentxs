@@ -25,10 +25,13 @@ namespace bitcoin
 class Output
 {
 public:
+    using ContactID = OTIdentifier;
     using FilterType = Transaction::FilterType;
     using Patterns = Transaction::Patterns;
     using Match = Transaction::Match;
     using Matches = Transaction::Matches;
+    using KeyID = api::client::blockchain::Key;
+    using SerializeType = proto::BlockchainTransactionOutput;
 
     OPENTXS_EXPORT virtual auto CalculateSize() const noexcept
         -> std::size_t = 0;
@@ -38,11 +41,15 @@ public:
         const ReadView txid,
         const FilterType type,
         const Patterns& elements) const noexcept -> Matches = 0;
+    OPENTXS_EXPORT virtual auto Keys() const noexcept -> std::vector<KeyID> = 0;
+    OPENTXS_EXPORT virtual auto MergeMetadata(const SerializeType& rhs) const
+        noexcept -> void = 0;
+    OPENTXS_EXPORT virtual auto Payee() const noexcept -> ContactID = 0;
+    OPENTXS_EXPORT virtual auto Payer() const noexcept -> ContactID = 0;
     OPENTXS_EXPORT virtual auto Serialize(const AllocateOutput destination)
         const noexcept -> std::optional<std::size_t> = 0;
-    OPENTXS_EXPORT virtual auto Serialize(
-        proto::BlockchainTransactionOutput& destination) const noexcept
-        -> bool = 0;
+    OPENTXS_EXPORT virtual auto Serialize(SerializeType& destination) const
+        noexcept -> bool = 0;
     OPENTXS_EXPORT virtual auto Script() const noexcept
         -> const bitcoin::Script& = 0;
     OPENTXS_EXPORT virtual auto Value() const noexcept -> std::int64_t = 0;

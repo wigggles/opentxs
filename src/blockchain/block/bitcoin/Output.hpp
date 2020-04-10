@@ -16,14 +16,14 @@ public:
     auto FindMatches(
         const ReadView txid,
         const FilterType type,
-        const Patterns& patterns) const noexcept -> Matches final
-    {
-        return SetIntersection(api_, txid, patterns, ExtractElements(type));
-    }
+        const Patterns& patterns) const noexcept -> Matches final;
+    auto Keys() const noexcept -> std::vector<KeyID> final { return keys_; }
+    auto MergeMetadata(const SerializeType& rhs) const noexcept -> void final;
+    auto Payee() const noexcept -> ContactID final { return payee_; }
+    auto Payer() const noexcept -> ContactID final { return payer_; }
     auto Serialize(const AllocateOutput destination) const noexcept
         -> std::optional<std::size_t>;
-    auto Serialize(proto::BlockchainTransactionOutput& destination) const
-        noexcept -> bool;
+    auto Serialize(SerializeType& destination) const noexcept -> bool;
     auto Script() const noexcept -> const bitcoin::Script& final
     {
         return *script_;
@@ -48,6 +48,9 @@ private:
     const std::int64_t value_;
     const std::unique_ptr<const bitcoin::Script> script_;
     mutable std::optional<std::size_t> size_;
+    mutable OTIdentifier payee_;
+    mutable OTIdentifier payer_;
+    mutable std::vector<KeyID> keys_;
 
     Output(
         const api::Core& api,

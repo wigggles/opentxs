@@ -28,6 +28,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <tuple>
 #include <vector>
@@ -359,15 +360,28 @@ struct WalletDatabase {
     using Pattern = std::pair<ElementID, Space>;
     using Patterns = std::vector<Pattern>;
     using MatchingIndices = std::vector<Bip32Index>;
+    using UTXO = std::pair<
+        blockchain::block::bitcoin::Outpoint,
+        proto::BlockchainTransactionOutput>;
+    using ConfirmedBalance = std::uint64_t;
+    using UnconfirmedBalance = std::uint64_t;
+    using BalanceData = std::pair<ConfirmedBalance, UnconfirmedBalance>;
 
     static const VersionNumber DefaultIndexVersion;
 
+    virtual auto AddConfirmedTransaction(
+        const block::Position& block,
+        const std::vector<std::uint32_t> outputIndices,
+        const block::bitcoin::Transaction& transaction) const noexcept
+        -> bool = 0;
+    virtual auto GetBalance() const noexcept -> BalanceData = 0;
     virtual auto GetPatterns(
         const NodeID& balanceNode,
         const Subchain subchain,
         const FilterType type,
         const VersionNumber version = DefaultIndexVersion) const noexcept
         -> Patterns = 0;
+    virtual auto GetUnspentOutputs() const noexcept -> std::vector<UTXO> = 0;
     virtual auto GetUntestedPatterns(
         const NodeID& balanceNode,
         const Subchain subchain,

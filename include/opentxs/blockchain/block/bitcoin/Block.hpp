@@ -31,9 +31,9 @@ public:
         opentxs::iterator::Bidirectional<const Block, const value_type>;
 
     OPENTXS_EXPORT virtual auto at(const std::size_t index) const noexcept
-        -> value_type = 0;
+        -> const value_type& = 0;
     OPENTXS_EXPORT virtual auto at(const ReadView txid) const noexcept
-        -> value_type = 0;
+        -> const value_type& = 0;
     OPENTXS_EXPORT virtual auto begin() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto cbegin() const noexcept -> const_iterator = 0;
     OPENTXS_EXPORT virtual auto cend() const noexcept -> const_iterator = 0;

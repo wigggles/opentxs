@@ -8,7 +8,12 @@
 #include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/blockchain/block/bitcoin/Block.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Output.hpp"
 #include "opentxs/blockchain/block/bitcoin/Script.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
@@ -55,6 +60,40 @@ HDStateData::HDStateData(HDStateData&& rhs) noexcept
     , outstanding_blocks_(std::move(rhs.outstanding_blocks_))
     , process_block_queue_(std::move(rhs.process_block_queue_))
 {
+}
+
+auto HDStateData::get_targets(
+    const internal::WalletDatabase::Patterns& keys,
+    const std::vector<internal::WalletDatabase::UTXO>& unspent) const noexcept
+    -> blockchain::internal::GCS::Targets
+{
+    auto output = blockchain::internal::GCS::Targets{};
+    std::transform(
+        std::begin(keys),
+        std::end(keys),
+        std::back_inserter(output),
+        [](const auto& in) { return reader(in.second); });
+
+    switch (filter_type_) {
+        case filter::Type::Basic_BIP158: {
+            std::transform(
+                std::begin(unspent),
+                std::end(unspent),
+                std::back_inserter(output),
+                [](const auto& in) { return in.second.script(); });
+        } break;
+        case filter::Type::Basic_BCHVariant:
+        case filter::Type::Extended_opentxs:
+        default: {
+            std::transform(
+                std::begin(unspent),
+                std::end(unspent),
+                std::back_inserter(output),
+                [](const auto& in) { return in.first.Bytes(); });
+        }
+    }
+
+    return output;
 }
 
 auto HDStateData::index() noexcept -> void
@@ -188,27 +227,27 @@ auto HDStateData::process() noexcept -> void
     }
 
     const auto confirmed = block.FindMatches(filter_type_, {}, potential);
+    const auto& oracle = network_.HeaderOracle();
+    const auto pHeader = oracle.LoadHeader(blockHash);
 
-    // TODO increment keys on account
+    OT_ASSERT(pHeader);
 
+    const auto& header = *pHeader;
+    update_utxos(block, header.Position(), confirmed);
+    const auto [balance, unconfirmed] = db_.GetBalance();
     LogOutput("opentxs::blockchain::client::internal::")(__FUNCTION__)(
         ": block ")(blockHash.asHex())(" processed in ")(
         std::chrono::duration_cast<std::chrono::milliseconds>(
             Clock::now() - start)
             .count())(" milliseconds. ")(confirmed.size())(" of ")(
-        potential.size())(" potential matches confirmed.")
+        potential.size())(" potential matches confirmed. Wallet balance is: ")(
+        unconfirmed)(" (")(balance)(" confirmed)")
         .Flush();
     db_.SubchainMatchBlock(
         node_.ID(), subchain_, filter_type_, tested, blockHash.Bytes());
 
     if (0 < confirmed.size()) {
         // Re-scan the last 1000 blocks
-        const auto& oracle = network_.HeaderOracle();
-        const auto pHeader = oracle.LoadHeader(blockHash);
-
-        OT_ASSERT(pHeader);
-
-        const auto& header = *pHeader;
         const auto height = std::max(header.Height() - 1000, block::Height{0});
         last_scanned_ = block::Position{height, oracle.BestHash(height)};
     }
@@ -231,7 +270,8 @@ auto HDStateData::scan() noexcept -> void
 
     if (first.second->empty()) { return; }  // Reorg occured while processing
 
-    auto elements = db_.GetPatterns(node_.ID(), subchain_, filter_type_);
+    const auto elements = db_.GetPatterns(node_.ID(), subchain_, filter_type_);
+    const auto utxos = db_.GetUnspentOutputs();
     auto highestTested = last_scanned_.value_or(
         make_blank<block::Position>::value(network_.API()));
     auto atLeastOnce{false};
@@ -246,12 +286,7 @@ auto HDStateData::scan() noexcept -> void
         highestTested.first = i;
         highestTested.second = blockHash;
         const auto& filter = *pFilter;
-        auto patterns = blockchain::internal::GCS::Targets{};
-        std::transform(
-            std::begin(elements),
-            std::end(elements),
-            std::back_inserter(patterns),
-            [](const auto& in) { return reader(in.second); });
+        auto patterns = get_targets(elements, utxos);
         auto matches = filter.Match(patterns);
         const auto size{matches.size()};
 
@@ -261,15 +296,9 @@ auto HDStateData::scan() noexcept -> void
                 " matches at least one of the ")(patterns.size())(
                 " target elements for this subchain")
                 .Flush();
-            patterns.clear();
-            matches.clear();
-            auto retest = db_.GetUntestedPatterns(
+            const auto retest = db_.GetUntestedPatterns(
                 node_.ID(), subchain_, filter_type_, blockHash->Bytes());
-            std::transform(
-                std::begin(retest),
-                std::end(retest),
-                std::back_inserter(patterns),
-                [](const auto& in) { return reader(in.second); });
+            patterns = get_targets(retest, utxos);
             matches = filter.Match(patterns);
             LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(matches.size())(" of ")(
                 size)(" matches are new")
@@ -294,6 +323,99 @@ auto HDStateData::scan() noexcept -> void
         LogVerbose(OT_METHOD)(__FUNCTION__)(
             ": Missing filter for block at height ")(startHeight)
             .Flush();
+    }
+}
+
+auto HDStateData::update_utxos(
+    const block::bitcoin::Block& block,
+    const block::Position& position,
+    const block::Block::Matches matches) noexcept -> void
+{
+    auto transactions = std::map<
+        block::pTxid,
+        std::pair<
+            std::vector<Bip32Index>,
+            const block::bitcoin::Transaction*>>{};
+
+    for (const auto& [txid, elementID] : matches) {
+        const auto& [index, subchainID] = elementID;
+        const auto& [subchain, accountID] = subchainID;
+        const auto& element = node_.BalanceElement(subchain, index);
+        const auto& pTransaction = block.at(txid->Bytes());
+
+        OT_ASSERT(pTransaction);
+
+        auto& arg = transactions[txid];
+        auto& [outputs, pTX] = arg;
+        const auto& transaction = *pTransaction;
+        auto i = Bip32Index{0};
+
+        for (const auto& output : transaction.Outputs()) {
+            const auto& script = output.Script();
+
+            switch (script.Type()) {
+                case block::bitcoin::Script::Pattern::PayToPubkey: {
+                    const auto pKey = element.Key();
+
+                    OT_ASSERT(pKey);
+                    OT_ASSERT(script.Pubkey().has_value());
+
+                    const auto& key = *pKey;
+
+                    if (key.PublicKey() == script.Pubkey().value()) {
+                        outputs.emplace_back(i);
+
+                        if (nullptr == pTX) { pTX = pTransaction.get(); }
+                    }
+
+                    // TODO mark key as used
+                } break;
+                case block::bitcoin::Script::Pattern::PayToPubkeyHash: {
+                    const auto hash = element.PubkeyHash();
+
+                    OT_ASSERT(script.PubkeyHash().has_value());
+
+                    if (hash->Bytes() == script.PubkeyHash().value()) {
+                        outputs.emplace_back(i);
+
+                        if (nullptr == pTX) { pTX = pTransaction.get(); }
+                    }
+
+                    // TODO mark key as used
+                } break;
+                case block::bitcoin::Script::Pattern::PayToScriptHash:
+                case block::bitcoin::Script::Pattern::PayToMultisig:
+                default: {
+                }
+            };
+
+            ++i;
+        }
+    }
+
+    auto unspent = std::set<blockchain::block::bitcoin::Outpoint>{};
+
+    for (const auto& utxo : db_.GetUnspentOutputs()) {
+        unspent.insert(utxo.first);
+    }
+
+    for (const auto& transaction : block) {
+        OT_ASSERT(transaction);
+
+        for (const auto& input : transaction->Inputs()) {
+            if (0 < unspent.count(input.PreviousOutput())) {
+                auto& pTx = transactions[transaction->ID()].second;
+
+                if (nullptr == pTx) { pTx = transaction.get(); }
+            }
+        }
+    }
+
+    for (const auto& [txid, data] : transactions) {
+        auto& [outputs, pTX] = data;
+        auto updated = db_.AddConfirmedTransaction(position, outputs, *pTX);
+
+        OT_ASSERT(updated);  // TODO handle database errors
     }
 }
 }  // namespace opentxs::blockchain::client::implementation

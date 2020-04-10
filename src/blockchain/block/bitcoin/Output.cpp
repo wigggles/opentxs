@@ -88,6 +88,9 @@ Output::Output(
     , value_(value)
     , script_(std::move(script))
     , size_(size)
+    , payee_(api_.Factory().Identifier())
+    , payer_(api_.Factory().Identifier())
+    , keys_()
 {
     if (false == bool(script_)) {
         throw std::runtime_error("Invalid output script");
@@ -127,13 +130,22 @@ auto Output::CalculateSize() const noexcept -> std::size_t
 auto Output::ExtractElements(const filter::Type style) const noexcept
     -> std::vector<Space>
 {
-    auto output = script_->ExtractElements(style);
+    return script_->ExtractElements(style);
+}
 
-    if (filter::Type::Extended_opentxs == style) {
-        // TODO add created outpoint
-    }
+auto Output::FindMatches(
+    const ReadView txid,
+    const FilterType type,
+    const Patterns& patterns) const noexcept -> Matches
+{
+    // TODO set payee_, payer_, and keys_ based on match results
 
-    return output;
+    return SetIntersection(api_, txid, patterns, ExtractElements(type));
+}
+
+auto Output::MergeMetadata(const SerializeType& rhs) const noexcept -> void
+{
+    // TODO proto::BlockchainTransactionOutput does not yet have correct fields
 }
 
 auto Output::Serialize(const AllocateOutput destination) const noexcept
@@ -194,8 +206,7 @@ auto Output::Serialize(const AllocateOutput destination) const noexcept
     }
 }
 
-auto Output::Serialize(proto::BlockchainTransactionOutput& out) const noexcept
-    -> bool
+auto Output::Serialize(SerializeType& out) const noexcept -> bool
 {
     OT_ASSERT(0 <= value_);
 
@@ -207,7 +218,7 @@ auto Output::Serialize(proto::BlockchainTransactionOutput& out) const noexcept
         return false;
     }
 
-    /* TODO
+    /* TODO these fields must be changed
     oneof destination
     {
         BlockchainWalletKey key = 5;

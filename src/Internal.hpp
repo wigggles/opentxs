@@ -15,6 +15,8 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
+#include <algorithm>
+
 #define PAYMENT_CODE_VERSION 1
 #define PEER_MESSAGE_VERSION 2
 #define PEER_PAYMENT_VERSION 5
@@ -636,6 +638,13 @@ class StorageConfig;
 bool operator==(
     const opentxs::ProtobufType& lhs,
     const opentxs::ProtobufType& rhs) noexcept;
+
+template <typename T>
+void dedup(std::vector<T>& vector) noexcept
+{
+    std::sort(vector.begin(), vector.end());
+    vector.erase(std::unique(vector.begin(), vector.end()), vector.end());
+}
 
 template <typename I>
 struct HDIndex {

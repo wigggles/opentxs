@@ -10,6 +10,7 @@
 #include "opentxs/api/client/blockchain/HD.hpp"
 
 #include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 
 #include <atomic>
 #include <map>
@@ -50,11 +51,19 @@ struct HDStateData {
     HDStateData(HDStateData&&) noexcept;
 
 private:
+    auto get_targets(
+        const internal::WalletDatabase::Patterns& keys,
+        const std::vector<internal::WalletDatabase::UTXO>& unspent) const
+        noexcept -> blockchain::internal::GCS::Targets;
     auto index_element(
         const filter::Type type,
         const api::client::blockchain::BalanceNode::Element& input,
         const Bip32Index index,
         WalletDatabase::ElementMap& output) noexcept -> void;
+    auto update_utxos(
+        const block::bitcoin::Block& block,
+        const block::Position& position,
+        const block::Block::Matches matches) noexcept -> void;
 
     HDStateData() = delete;
 };

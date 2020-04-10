@@ -11,6 +11,11 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
+#include "opentxs/blockchain/block/bitcoin/Input.hpp"
+#include "opentxs/blockchain/block/bitcoin/Inputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Output.hpp"
+#include "opentxs/blockchain/block/bitcoin/Outputs.hpp"
+#include "opentxs/blockchain/block/bitcoin/Transaction.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
 #include "opentxs/blockchain/client/HeaderOracle.hpp"
 #include "opentxs/blockchain/Blockchain.hpp"
@@ -182,6 +187,16 @@ Database::Wallet::Wallet(const api::Core& api) noexcept
     , subchain_last_scanned_()
     , subchain_last_processed_()
     , match_index_()
+    , outputs_()
+    , unconfirmed_new_()
+    , confirmed_new_()
+    , unconfirmed_spend_()
+    , confirmed_spend_()
+    , orphaned_new_()
+    , orphaned_spend_()
+    , transactions_()
+    , tx_to_block_()
+    , block_to_tx_()
 {
 }
 
@@ -785,6 +800,176 @@ auto Database::Headers::TryLoadHeader(const block::Hash& hash) const noexcept
     }
 }
 
+auto Database::Wallet::add_transaction(
+    const Lock& lock,
+    const block::Hash& block,
+    const block::bitcoin::Transaction& transaction) const noexcept -> bool
+{
+    if (auto it = transactions_.find(transaction.ID());
+        transactions_.end() != it) {
+        auto& serialized = it->second;
+        transaction.MergeMetadata(serialized);
+        auto updated = transaction.Serialize();
+
+        OT_ASSERT(updated.has_value());
+
+        serialized = std::move(updated.value());
+    } else {
+        auto serialized = transaction.Serialize();
+
+        OT_ASSERT(serialized.has_value());
+
+        transactions_.emplace(transaction.ID(), std::move(serialized.value()));
+    }
+
+    {
+        auto& index = tx_to_block_[transaction.ID()];
+        index.emplace_back(block);
+        dedup(index);
+    }
+
+    {
+        auto& index = block_to_tx_[block];
+        index.emplace_back(transaction.ID());
+        dedup(index);
+    }
+
+    return true;
+}
+
+auto Database::Wallet::AddConfirmedTransaction(
+    const block::Position& block,
+    const std::vector<std::uint32_t> outputIndices,
+    const block::bitcoin::Transaction& transaction) const noexcept -> bool
+{
+    Lock lock(lock_);
+    const auto& [height, blockHash] = block;
+
+    if (false == add_transaction(lock, blockHash, transaction)) {
+        LogOutput(__FUNCTION__)(": Error adding transaction to database")
+            .Flush();
+
+        return false;
+    }
+
+    for (const auto& input : transaction.Inputs()) {
+        const auto& outpoint = input.PreviousOutput();
+
+        if (auto out = find_output(lock, outpoint); out.has_value()) {
+            auto& lastHeight = out.value()->second.first;
+
+            if (false ==
+                change_state(
+                    lock, outpoint, lastHeight, height, confirmed_spend_)) {
+                LogOutput(__FUNCTION__)(
+                    ": Error updating consumed output state")
+                    .Flush();
+
+                return false;
+            }
+
+            lastHeight = height;
+        }
+
+        // NOTE consider the case of parallel chain scanning where one
+        // transaction spends inputs that belong to two different subchains.
+        // The first subchain to find the transaction will recognize the inputs
+        // belonging to itself but might miss the inputs belonging to the other
+        // subchain if the other subchain's scanning process has not yet
+        // discovered those outputs.
+        // This is fine. The other scanning process will parse this transaction
+        // again and at that point all inputs will be recognized. The only
+        // impact is that net balance change of the transaction will
+        // underestimated temporarily until scanning is complete for all
+        // subchains.
+    }
+
+    for (const auto index : outputIndices) {
+        const auto outpoint =
+            block::bitcoin::Outpoint{transaction.ID().Bytes(), index};
+
+        if (auto out = find_output(lock, outpoint); out.has_value()) {
+            auto& lastHeight = out.value()->second.first;
+
+            if (false ==
+                change_state(
+                    lock, outpoint, lastHeight, height, confirmed_new_)) {
+                LogOutput(__FUNCTION__)(": Error updating created output state")
+                    .Flush();
+
+                return false;
+            }
+
+            lastHeight = height;
+        } else {
+            const auto& output = transaction.Outputs().at(index);
+            auto serialized = block::bitcoin::Output::SerializeType{};
+            output.Serialize(serialized);
+            outputs_.emplace(
+                std::piecewise_construct,
+                std::forward_as_tuple(outpoint),
+                std::forward_as_tuple(height, std::move(serialized)));
+            auto& map = confirmed_new_[height];
+            map.emplace_back(outpoint);
+            dedup(map);
+        }
+    }
+
+    return true;
+}
+
+auto Database::Wallet::change_state(
+    const Lock& lock,
+    const block::bitcoin::Outpoint& id,
+    const block::Height originalHeight,
+    const block::Height newHeight,
+    OutputStateMap& to) const noexcept -> bool
+{
+    auto in = std::vector<OutputStateMap*>{};
+
+    if (&to != &unconfirmed_new_) { in.emplace_back(&unconfirmed_new_); }
+
+    if (&to != &confirmed_new_) { in.emplace_back(&confirmed_new_); }
+
+    if (&to != &unconfirmed_spend_) { in.emplace_back(&unconfirmed_spend_); }
+
+    if (&to != &confirmed_spend_) { in.emplace_back(&confirmed_spend_); }
+
+    if (&to != &orphaned_new_) { in.emplace_back(&orphaned_new_); }
+
+    if (&to != &orphaned_spend_) { in.emplace_back(&orphaned_spend_); }
+
+    for (auto& from : in) {
+        if (false == remove_state(lock, id, originalHeight, *from)) {
+            LogOutput(__FUNCTION__)(": Error updating output state").Flush();
+
+            return false;
+        }
+    }
+
+    auto& map = to[newHeight];
+    map.emplace_back(id);
+    dedup(map);
+
+    return true;
+}
+
+auto Database::Wallet::find_output(
+    const Lock& lock,
+    const block::bitcoin::Outpoint& id) const noexcept
+    -> std::optional<OutputMap::iterator>
+{
+    auto result = outputs_.find(id);
+
+    if (outputs_.end() == result) {
+
+        return {};
+    } else {
+
+        return result;
+    }
+}
+
 auto Database::Wallet::get_patterns(
     const Lock& lock,
     const NodeID& balanceNode,
@@ -794,6 +979,36 @@ auto Database::Wallet::get_patterns(
 {
     return subchain_pattern_index_.at(
         subchain_id(balanceNode, subchain, type, version));
+}
+
+auto Database::Wallet::GetBalance() const noexcept -> BalanceData
+{
+    Lock lock(lock_);
+    auto output = BalanceData{};
+    auto& [confirmed, unconfirmed] = output;
+    auto cb = [this](const auto previous, const auto& in) -> auto
+    {
+        const auto& outpoints = in.second;
+        auto cb = [this](const auto previous, const auto& in) -> auto
+        {
+            return previous + outputs_.at(in).second.value();
+        };
+
+        return std::accumulate(
+            std::begin(outpoints), std::end(outpoints), previous, cb);
+    };
+    confirmed = std::accumulate(
+        std::begin(confirmed_new_),
+        std::end(confirmed_new_),
+        std::uint64_t{0},
+        cb);
+    unconfirmed = std::accumulate(
+        std::begin(unconfirmed_new_),
+        std::end(unconfirmed_new_),
+        confirmed,
+        cb);
+
+    return output;
 }
 
 auto Database::Wallet::GetPatterns(
@@ -813,6 +1028,41 @@ auto Database::Wallet::GetPatterns(
 
         return {};
     }
+}
+
+auto Database::Wallet::GetUnspentOutputs() const noexcept -> std::vector<UTXO>
+{
+    Lock lock(lock_);
+
+    return get_unspent_outputs(lock);
+}
+
+auto Database::Wallet::get_unspent_outputs(const Lock& lock) const noexcept
+    -> std::vector<UTXO>
+{
+    auto retrieve = std::vector<block::bitcoin::Outpoint>{};
+
+    for (const auto& [height, outpoints] : unconfirmed_new_) {
+        retrieve.insert(retrieve.end(), outpoints.begin(), outpoints.end());
+    }
+
+    for (const auto& [height, outpoints] : confirmed_new_) {
+        retrieve.insert(retrieve.end(), outpoints.begin(), outpoints.end());
+    }
+
+    for (const auto& [height, outpoints] : unconfirmed_spend_) {
+        retrieve.insert(retrieve.end(), outpoints.begin(), outpoints.end());
+    }
+
+    dedup(retrieve);
+    auto output = std::vector<UTXO>{};
+
+    for (const auto& outpoint : retrieve) {
+        const auto& [height, txout] = outputs_.at(outpoint);
+        output.emplace_back(outpoint, txout);
+    }
+
+    return output;
 }
 
 auto Database::Wallet::GetUntestedPatterns(
@@ -860,6 +1110,31 @@ auto Database::Wallet::pattern_id(
     output->CalculateDigest(preimage->Bytes());
 
     return output;
+}
+
+auto Database::Wallet::remove_state(
+    const Lock& lock,
+    const block::bitcoin::Outpoint& id,
+    const block::Height height,
+    OutputStateMap& from) const noexcept -> bool
+{
+    auto pSource = from.find(height);
+
+    if (from.end() == pSource) { return true; }
+
+    auto& sourceMap = pSource->second;
+
+    for (auto i{sourceMap.begin()}; i != sourceMap.end();) {
+        if (id == *i) {
+            i = sourceMap.erase(i);
+        } else {
+            ++i;
+        }
+    }
+
+    if (sourceMap.empty()) { from.erase(pSource); }
+
+    return true;
 }
 
 auto Database::Wallet::SubchainAddElements(
