@@ -88,7 +88,8 @@ Manager::Manager(
           *activity_,
           *contacts_,
           parent_.Legacy(),
-          dataFolder))
+          dataFolder,
+          args_))
     , workflow_(opentxs::Factory::Workflow(*this, *activity_, *contacts_))
     , ot_api_(new OT_API(
           *this,

@@ -276,14 +276,10 @@ std::unique_ptr<block::Header> Header::clone() const noexcept
 
 OTData Header::Encode() const noexcept
 {
-    BitcoinFormat raw{block_version_,
-                      parent_hash_->str(),
-                      merkle_root_->str(),
-                      static_cast<std::uint32_t>(Clock::to_time_t(timestamp_)),
-                      nbits_,
-                      nonce_};
+    auto output = api_.Factory().Data();
+    Serialize(output->WriteInto());
 
-    return Data::Factory(&raw, sizeof(raw));
+    return output;
 }
 
 Header::SerializedType Header::Serialize() const noexcept
@@ -299,6 +295,37 @@ Header::SerializedType Header::Serialize() const noexcept
     bitcoin.set_nonce(nonce_);
 
     return output;
+}
+
+auto Header::Serialize(const AllocateOutput destination) const noexcept -> bool
+{
+    const auto raw =
+        BitcoinFormat{block_version_,
+                      parent_hash_->str(),
+                      merkle_root_->str(),
+                      static_cast<std::uint32_t>(Clock::to_time_t(timestamp_)),
+                      nbits_,
+                      nonce_};
+
+    if (false == bool(destination)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    const auto out = destination(sizeof(raw));
+
+    if (false == out.valid(sizeof(raw))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output")
+            .Flush();
+
+        return false;
+    }
+
+    std::memcpy(out.data(), &raw, sizeof(raw));
+
+    return true;
 }
 
 OTNumericHash Header::Target() const noexcept

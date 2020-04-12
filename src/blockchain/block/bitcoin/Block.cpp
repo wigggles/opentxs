@@ -25,7 +25,9 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
+#include <numeric>
 #include <stdexcept>
+#include <tuple>
 #include <vector>
 
 #include "Block.hpp"
@@ -52,20 +54,22 @@ auto Factory::BitcoinBlock(
         }
 
         auto it = reinterpret_cast<const std::byte*>(in.data());
-        auto expectedSize = std::size_t{80};
+        auto expectedSize = std::size_t{ReturnType::header_bytes_};
 
         if (in.size() < expectedSize) {
             throw std::runtime_error("Block size too short (header)");
         }
 
         auto pHeader = BitcoinBlockHeader(
-            api, chain, {reinterpret_cast<const char*>(it), 80});
+            api,
+            chain,
+            {reinterpret_cast<const char*>(it), ReturnType::header_bytes_});
 
         if (false == bool(pHeader)) {
             throw std::runtime_error("Invalid block header");
         }
 
-        std::advance(it, 80);
+        std::advance(it, ReturnType::header_bytes_);
         expectedSize += 1;
 
         if (in.size() < expectedSize) {
@@ -203,6 +207,7 @@ auto PushData(const ReadView in) noexcept(false) -> ScriptElement
 
 namespace opentxs::blockchain::block::bitcoin::implementation
 {
+const std::size_t Block::header_bytes_{80};
 const Block::value_type Block::null_tx_{};
 
 Block::Block(
@@ -258,6 +263,24 @@ auto Block::at(const ReadView txid) const noexcept -> const value_type&
     }
 }
 
+auto Block::calculate_size() const noexcept
+    -> std::pair<std::size_t, blockchain::bitcoin::CompactSize>
+{
+    auto output = std::pair<std::size_t, blockchain::bitcoin::CompactSize>{
+        0, bb::CompactSize(transactions_.size())};
+    auto& [bytes, cs] = output;
+    auto cb = [](const auto& previous, const auto& in) -> std::size_t {
+        return previous + in.second->CalculateSize();
+    };
+    bytes = std::accumulate(
+        std::begin(transactions_),
+        std::end(transactions_),
+        header_bytes_ + cs.Size(),
+        cb);
+
+    return output;
+}
+
 auto Block::ExtractElements(const FilterType style) const noexcept
     -> std::vector<Space>
 {
@@ -301,5 +324,87 @@ auto Block::FindMatches(
     dedup(output);
 
     return output;
+}
+
+auto Block::Serialize(AllocateOutput bytes) const noexcept -> bool
+{
+    if (false == bool(bytes)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    const auto [size, txCount] = calculate_size();
+    const auto out = bytes(size);
+
+    if (false == out.valid(size)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output")
+            .Flush();
+
+        return false;
+    }
+
+    LogInsane(OT_METHOD)(__FUNCTION__)(": Serializing ")(txCount.Value())(
+        " transactions into ")(size)(" bytes.")
+        .Flush();
+    auto remaining{size};
+    auto it = static_cast<std::byte*>(out.data());
+
+    if (false == header_.Serialize(preallocated(remaining, it))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize header")
+            .Flush();
+
+        return false;
+    }
+
+    remaining -= header_bytes_;
+    std::advance(it, header_bytes_);
+
+    if (false == txCount.Encode(preallocated(remaining, it))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to serialize transaction count")
+            .Flush();
+
+        return false;
+    }
+
+    remaining -= txCount.Size();
+    std::advance(it, txCount.Size());
+
+    for (const auto& txid : index_) {
+        try {
+            const auto& pTX = transactions_.at(reader(txid));
+
+            OT_ASSERT(pTX);
+
+            const auto& tx = *pTX;
+            const auto encoded = tx.Serialize(preallocated(remaining, it));
+
+            if (false == encoded.has_value()) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": failed to serialize transaction ")(tx.ID().asHex())
+                    .Flush();
+
+                return false;
+            }
+
+            remaining -= encoded.value();
+            std::advance(it, encoded.value());
+        } catch (...) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": missing transaction").Flush();
+
+            return false;
+        }
+    }
+
+    if (0 != remaining) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Extra bytes: ")(remaining)
+            .Flush();
+
+        return false;
+    }
+
+    return true;
 }
 }  // namespace opentxs::blockchain::block::bitcoin::implementation

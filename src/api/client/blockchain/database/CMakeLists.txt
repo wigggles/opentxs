@@ -7,6 +7,7 @@ set(
   cxx-sources
   BlockFilter.cpp
   BlockHeaders.cpp
+  Blocks.cpp
   Database.cpp
   Peers.cpp
 )
@@ -14,6 +15,7 @@ set(
   cxx-headers
   BlockFilter.hpp
   BlockHeaders.hpp
+  Blocks.hpp
   Database.hpp
   Peers.hpp
 )
@@ -24,11 +26,20 @@ target_include_directories(
   opentxs-api-client-blockchain-database SYSTEM
   PRIVATE ${LMDB_INCLUDE_DIR}
 )
-target_link_libraries(
-  opentxs-api-client-blockchain-database
-  PRIVATE Boost::headers
-)
+
+if(OPENTXS_BLOCK_STORAGE_ENABLED)
+  target_link_libraries(
+    opentxs-api-client-blockchain-database
+    PUBLIC Boost::iostreams
+    PRIVATE Boost::headers Boost::filesystem
+  )
+endif()
 set_property(
   TARGET opentxs-api-client-blockchain-database
   PROPERTY POSITION_INDEPENDENT_CODE 1
+)
+
+target_compile_definitions(
+  opentxs-api-client-blockchain-database PRIVATE
+  OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY=${OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY}
 )

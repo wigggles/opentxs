@@ -26,6 +26,7 @@
 
 #define OPENTXS_ARG_BACKUP_DIRECTORY "backupdirectory"
 #define OPENTXS_ARG_BINDIP "bindip"
+#define OPENTXS_ARG_BLOCK_STORAGE_LEVEL "blockstoragelevel"
 #define OPENTXS_ARG_COMMANDPORT "commandport"
 #define OPENTXS_ARG_EEP "eep"
 #define OPENTXS_ARG_ENCRYPTED_DIRECTORY "encrypteddirectory"

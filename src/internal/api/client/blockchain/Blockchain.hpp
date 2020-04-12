@@ -84,6 +84,8 @@ enum Table {
     FilterHeadersBasic = 10,
     FilterHeadersBCH = 11,
     FilterHeadersOpentxs = 12,
+    Config = 13,
+    BlockIndex = 14,
 };
 }  // namespace opentxs::api::client::blockchain
 #endif  // OT_BLOCKCHAIN

@@ -12,6 +12,10 @@ class Transaction final : public bitcoin::Transaction
 public:
     static const VersionNumber default_version_;
 
+    auto CalculateSize() const noexcept -> std::size_t final
+    {
+        return calculate_size(false);
+    }
     auto ExtractElements(const filter::Type style) const noexcept
         -> std::vector<Space> final;
     auto FindMatches(
@@ -65,7 +69,13 @@ private:
     mutable std::optional<std::size_t> size_;
     mutable std::optional<std::size_t> normalized_size_;
 
+    static auto calculate_witness_size(const Space& witness) noexcept
+        -> std::size_t;
+    static auto calculate_witness_size(const std::vector<Space>&) noexcept
+        -> std::size_t;
+
     auto calculate_size(const bool normalize) const noexcept -> std::size_t;
+    auto calculate_witness_size() const noexcept -> std::size_t;
     auto serialize(const AllocateOutput destination, const bool normalize) const
         noexcept -> std::optional<std::size_t>;
 

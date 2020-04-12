@@ -65,15 +65,18 @@
 
 namespace opentxs
 {
-api::client::Blockchain* Factory::BlockchainAPI(
+auto Factory::BlockchainAPI(
     const api::client::internal::Manager& api,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     const api::Legacy& legacy,
-    const std::string& dataFolder)
+    const std::string& dataFolder,
+    const ArgList& args) noexcept -> std::unique_ptr<api::client::Blockchain>
 {
-    return new api::client::implementation::Blockchain(
-        api, activity, contacts, legacy, dataFolder);
+    using ReturnType = api::client::implementation::Blockchain;
+
+    return std::make_unique<ReturnType>(
+        api, activity, contacts, legacy, dataFolder, args);
 }
 }  // namespace opentxs
 
@@ -107,7 +110,8 @@ Blockchain::Blockchain(
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     [[maybe_unused]] const api::Legacy& legacy,
-    [[maybe_unused]] const std::string& dataFolder) noexcept
+    [[maybe_unused]] const std::string& dataFolder,
+    [[maybe_unused]] const ArgList& args) noexcept
     : api_(api)
     , activity_(activity)
     , contacts_(contacts)
@@ -118,7 +122,7 @@ Blockchain::Blockchain(
 #if OT_BLOCKCHAIN
     , thread_pool_(api)
     , io_(api)
-    , db_(api, legacy, dataFolder)
+    , db_(api, legacy, dataFolder, args)
     , reorg_(api_.ZeroMQ().PublishSocket())
     , networks_()
 #endif  // OT_BLOCKCHAIN

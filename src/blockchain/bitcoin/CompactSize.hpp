@@ -23,6 +23,7 @@ public:
         const std::byte first) noexcept;
 
     OPENTXS_EXPORT Bytes Encode() const noexcept;
+    OPENTXS_EXPORT bool Encode(AllocateOutput destination) const noexcept;
     // Number of bytes the CompactSize will occupy
     OPENTXS_EXPORT std::size_t Size() const noexcept;
     // Number of bytes the CompactSize and associated data will occupy
@@ -52,8 +53,8 @@ private:
     std::uint64_t data_;
 
     template <typename SizeType>
-    void convert_to_raw(Bytes& output) const noexcept;
+    auto convert_to_raw(AllocateOutput output) const noexcept -> bool;
     template <typename SizeType>
-    void convert_from_raw(const Bytes& bytes) noexcept;
+    auto convert_from_raw(const Bytes& bytes) noexcept -> void;
 };
 }  // namespace opentxs::blockchain::bitcoin

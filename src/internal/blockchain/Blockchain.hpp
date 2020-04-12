@@ -128,7 +128,8 @@ struct SerializedBloomFilter {
     SerializedBloomFilter() noexcept;
 };
 
-struct Database : virtual public client::internal::FilterDatabase,
+struct Database : virtual public client::internal::BlockDatabase,
+                  virtual public client::internal::FilterDatabase,
                   virtual public client::internal::HeaderDatabase,
                   virtual public client::internal::PeerDatabase,
                   virtual public client::internal::WalletDatabase {

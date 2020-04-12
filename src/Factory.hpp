@@ -676,12 +676,14 @@ public:
         std::optional<std::size_t> size = {}) noexcept
         -> std::unique_ptr<blockchain::block::bitcoin::Outputs>;
 #endif  // OT_BLOCKCHAIN
-    static api::client::Blockchain* BlockchainAPI(
+    static auto BlockchainAPI(
         const api::client::internal::Manager& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts,
         const api::Legacy& legacy,
-        const std::string& dataFolder);
+        const std::string& dataFolder,
+        const ArgList& args) noexcept
+        -> std::unique_ptr<api::client::Blockchain>;
     static api::client::blockchain::internal::BalanceList*
     BlockchainBalanceList(
         const api::client::internal::Blockchain& parent,

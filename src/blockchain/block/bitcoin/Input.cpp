@@ -229,6 +229,10 @@ Input::Input(
     if (false == bool(script_)) {
         throw std::runtime_error("Invalid input script");
     }
+
+    if ((0 < coinbase_.size()) && (0 < script_->size())) {
+        throw std::runtime_error("Input has both script and coinbase");
+    }
 }
 
 Input::Input(
@@ -278,8 +282,9 @@ auto Input::CalculateSize(const bool normalized) const noexcept -> std::size_t
     auto& output = normalized ? normalized_size_ : size_;
 
     if (false == output.has_value()) {
-        const auto cs =
-            blockchain::bitcoin::CompactSize(script_->CalculateSize());
+        const auto data = (0 < coinbase_.size()) ? coinbase_.size()
+                                                 : script_->CalculateSize();
+        const auto cs = blockchain::bitcoin::CompactSize(data);
         output = sizeof(previous_) + (normalized ? 1 : cs.Total()) +
                  sizeof(sequence_);
     }
@@ -400,25 +405,32 @@ auto Input::serialize(const AllocateOutput destination, const bool normalized)
     auto it = static_cast<std::byte*>(output.data());
     std::memcpy(static_cast<void*>(it), &previous_, sizeof(previous_));
     std::advance(it, sizeof(previous_));
-    const auto cs =
-        normalized ? blockchain::bitcoin::CompactSize(0)
-                   : blockchain::bitcoin::CompactSize(script_->CalculateSize());
+    const auto isCoinbase{0 < coinbase_.size()};
+    const auto cs = normalized ? blockchain::bitcoin::CompactSize(0)
+                               : blockchain::bitcoin::CompactSize(
+                                     isCoinbase ? coinbase_.size()
+                                                : script_->CalculateSize());
     const auto csData = cs.Encode();
     std::memcpy(static_cast<void*>(it), csData.data(), csData.size());
     std::advance(it, csData.size());
 
     if (false == normalized) {
-        if (false == script_->Serialize(preallocated(cs.Value(), it))) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize script")
-                .Flush();
+        if (isCoinbase) {
+            std::memcpy(it, coinbase_.data(), coinbase_.size());
+        } else {
+            if (false == script_->Serialize(preallocated(cs.Value(), it))) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to serialize script")
+                    .Flush();
 #ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
-            return {};
+                return {};
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop
 #endif
+            }
         }
 
         std::advance(it, cs.Value());

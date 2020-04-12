@@ -151,17 +151,31 @@ void CompactSize::convert_from_raw(const std::vector<std::byte>& bytes) noexcept
 }
 
 template <typename SizeType>
-void CompactSize::convert_to_raw(std::vector<std::byte>& output) const noexcept
+auto CompactSize::convert_to_raw(AllocateOutput output) const noexcept -> bool
 {
     OT_ASSERT(std::numeric_limits<SizeType>::max() >= data_);
 
+    if (false == bool(output)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    const auto out = output(sizeof(SizeType));
+
+    if (false == out.valid(sizeof(SizeType))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output")
+            .Flush();
+
+        return false;
+    }
+
     auto value{static_cast<SizeType>(data_)};
     be::native_to_little_inplace(value);
-    const auto bytes = Data::Factory(&value, sizeof(value));
+    std::memcpy(out.data(), &value, sizeof(value));
 
-    OT_ASSERT(sizeof(SizeType) == bytes->size());
-
-    for (const auto& byte : bytes.get()) { output.emplace_back(byte); }
+    return true;
 }
 
 bool CompactSize::Decode(const std::vector<std::byte>& bytes) noexcept
@@ -188,22 +202,53 @@ bool CompactSize::Decode(const std::vector<std::byte>& bytes) noexcept
 
 std::vector<std::byte> CompactSize::Encode() const noexcept
 {
-    std::vector<std::byte> output{};
-
-    if (data_ <= OT_COMPACT_SIZE_THRESHOLD_1) {
-        convert_to_raw<std::uint8_t>(output);
-    } else if (data_ <= OT_COMPACT_SIZE_THRESHOLD_3) {
-        output.emplace_back(std::byte(OT_COMPACT_SIZE_PREFIX_3));
-        convert_to_raw<std::uint16_t>(output);
-    } else if (data_ <= OT_COMPACT_SIZE_THRESHOLD_5) {
-        output.emplace_back(std::byte(OT_COMPACT_SIZE_PREFIX_5));
-        convert_to_raw<std::uint32_t>(output);
-    } else {
-        output.emplace_back(std::byte(OT_COMPACT_SIZE_PREFIX_9));
-        convert_to_raw<std::uint64_t>(output);
-    }
+    auto output = Space{};
+    Encode(writer(output));
 
     return output;
+}
+
+bool CompactSize::Encode(AllocateOutput destination) const noexcept
+{
+    if (false == bool(destination)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid output allocator")
+            .Flush();
+
+        return false;
+    }
+
+    auto size = Size();
+    const auto out = destination(size);
+
+    if (false == out.valid(size)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate output")
+            .Flush();
+
+        return false;
+    }
+
+    auto it = static_cast<std::byte*>(out.data());
+
+    if (data_ <= OT_COMPACT_SIZE_THRESHOLD_1) {
+        convert_to_raw<std::uint8_t>(preallocated(size, it));
+    } else if (data_ <= OT_COMPACT_SIZE_THRESHOLD_3) {
+        *it = std::byte{OT_COMPACT_SIZE_PREFIX_3};
+        std::advance(it, 1);
+        size -= 1;
+        convert_to_raw<std::uint16_t>(preallocated(size, it));
+    } else if (data_ <= OT_COMPACT_SIZE_THRESHOLD_5) {
+        *it = std::byte{std::byte(OT_COMPACT_SIZE_PREFIX_5)};
+        std::advance(it, 1);
+        size -= 1;
+        convert_to_raw<std::uint32_t>(preallocated(size, it));
+    } else {
+        *it = std::byte{std::byte(OT_COMPACT_SIZE_PREFIX_9)};
+        std::advance(it, 1);
+        size -= 1;
+        convert_to_raw<std::uint64_t>(preallocated(size, it));
+    }
+
+    return true;
 }
 
 std::size_t CompactSize::Size() const noexcept
