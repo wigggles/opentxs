@@ -16,6 +16,7 @@
 #include "util/LMDB.hpp"
 #include "BlockFilter.hpp"
 #include "BlockHeaders.hpp"
+#include "Blocks.hpp"
 #include "Peers.hpp"
 
 namespace opentxs::api::client::blockchain::database::implementation
@@ -23,17 +24,28 @@ namespace opentxs::api::client::blockchain::database::implementation
 class Database final
 {
 public:
+    enum class Key : std::size_t {
+        BlockStoragePolicy = 0,
+        NextBlockAddress = 1,
+    };
+
+    using BlockHash = opentxs::blockchain::block::Hash;
+
     auto AddOrUpdate(Address_p address) const noexcept -> bool
     {
         return peers_.Insert(std::move(address));
     }
     auto AllocateStorageFolder(const std::string& dir) const noexcept
         -> std::string;
-    auto BlockHeaderExists(const opentxs::blockchain::block::Hash& hash) const
-        noexcept -> bool
+    auto BlockHeaderExists(const BlockHash& hash) const noexcept -> bool
     {
         return headers_.BlockHeaderExists(hash);
     }
+    auto BlockExists(const BlockHash& block) const noexcept -> bool;
+    auto BlockLoad(const BlockHash& block) const noexcept -> ReadView;
+    auto BlockPolicy() const noexcept -> BlockStorage { return block_policy_; }
+    auto BlockStore(const BlockHash& block, const ReadView bytes) const noexcept
+        -> bool;
     auto Find(
         const Chain chain,
         const Protocol protocol,
@@ -56,8 +68,8 @@ public:
     {
         return peers_.Import(std::move(peers));
     }
-    auto LoadBlockHeader(const opentxs::blockchain::block::Hash& hash) const
-        noexcept(false) -> proto::BlockchainBlockHeader
+    auto LoadBlockHeader(const BlockHash& hash) const noexcept(false)
+        -> proto::BlockchainBlockHeader
     {
         return headers_.LoadBlockHeader(hash);
     }
@@ -104,7 +116,8 @@ public:
     Database(
         const api::internal::Core& api,
         const api::Legacy& legacy,
-        const std::string& dataFolder) noexcept(false);
+        const std::string& dataFolder,
+        const ArgList& args) noexcept(false);
 
 private:
     static const opentxs::storage::lmdb::TableNames table_names_;
@@ -112,11 +125,28 @@ private:
     const api::internal::Core& api_;
     const OTString blockchain_path_;
     const OTString common_path_;
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    const OTString blocks_path_;
+#endif  // OPENTXS_BLOCK_STORAGE_ENABLED
     opentxs::storage::lmdb::LMDB lmdb_;
+    const BlockStorage block_policy_;
     mutable BlockHeader headers_;
     mutable Peers peers_;
     mutable BlockFilter filters_;
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    mutable Blocks blocks_;
+#endif  // OPENTXS_BLOCK_STORAGE_ENABLED
 
+    static auto block_storage_enabled() noexcept -> bool;
+    static auto block_storage_level(
+        const ArgList& args,
+        opentxs::storage::lmdb::LMDB& db) noexcept -> BlockStorage;
+    static auto block_storage_level_arg(const ArgList& args) noexcept
+        -> std::optional<BlockStorage>;
+    static auto block_storage_level_configured(
+        opentxs::storage::lmdb::LMDB& db) noexcept
+        -> std::optional<BlockStorage>;
+    static auto block_storage_level_default() noexcept -> BlockStorage;
     static auto init_folder(
         const api::Legacy& legacy,
         const String& parent,

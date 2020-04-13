@@ -139,11 +139,22 @@ Database::Database(
            {BlockFilterBest, MDB_INTEGERKEY},
            {BlockFilterHeaderBest, MDB_INTEGERKEY}},
           0)
+    , blocks_(api, common_, type)
     , filters_(api, common_, lmdb_, type)
     , headers_(api, network, common_, lmdb_, type)
     , wallet_(api)
 {
     init_db();
+}
+
+Database::Blocks::Blocks(
+    const api::internal::Core& api,
+    const Common& common,
+    const blockchain::Type type) noexcept
+    : api_(api)
+    , common_(common)
+    , chain_(type)
+{
 }
 
 Database::Filters::Filters(
@@ -198,6 +209,36 @@ Database::Wallet::Wallet(const api::Core& api) noexcept
     , tx_to_block_()
     , block_to_tx_()
 {
+}
+
+auto Database::Blocks::LoadBitcoin(const block::Hash& block) const noexcept
+    -> std::shared_ptr<const block::bitcoin::Block>
+{
+    const auto bytes = common_.BlockLoad(block);
+
+    if ((nullptr == bytes.data()) || (0 == bytes.size())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Block ")(block.asHex())(
+            " not found ")
+            .Flush();
+
+        return {};
+    }
+
+    return Factory::BitcoinBlock(api_, chain_, bytes);
+}
+
+auto Database::Blocks::Store(const block::Block& block) const noexcept -> bool
+{
+    auto bytes = Space{};
+
+    if (false == block.Serialize(writer(bytes))) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize block")
+            .Flush();
+
+        return false;
+    }
+
+    return common_.BlockStore(block.ID(), reader(bytes));
 }
 
 auto Database::Filters::CurrentHeaderTip(const filter::Type type) const noexcept

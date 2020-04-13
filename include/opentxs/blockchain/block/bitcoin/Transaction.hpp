@@ -31,6 +31,8 @@ public:
     using Matches = block::Block::Matches;
     using SerializeType = proto::BlockchainTransaction;
 
+    OPENTXS_EXPORT virtual auto CalculateSize() const noexcept
+        -> std::size_t = 0;
     OPENTXS_EXPORT virtual auto ExtractElements(const filter::Type style) const
         noexcept -> std::vector<Space> = 0;
     OPENTXS_EXPORT virtual auto FindMatches(

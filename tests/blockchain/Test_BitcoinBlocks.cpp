@@ -127,4 +127,21 @@ TEST_F(Test_BitcoinBlock, bip158)
         EXPECT_EQ(vector.FilterHeader(api_).get(), header);
     }
 }
+
+TEST_F(Test_BitcoinBlock, serialization)
+{
+    for (const auto& vector : bip_158_vectors_) {
+        const auto raw = vector.Block(api_);
+        const auto pBlock = api_.Factory().BitcoinBlock(
+            ot::blockchain::Type::Bitcoin_testnet3, raw->Bytes());
+
+        ASSERT_TRUE(pBlock);
+
+        const auto& block = *pBlock;
+        auto serialized = api_.Factory().Data();
+
+        EXPECT_TRUE(block.Serialize(serialized->WriteInto()));
+        EXPECT_EQ(raw.get(), serialized);
+    }
+}
 }  // namespace

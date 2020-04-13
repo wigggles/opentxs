@@ -36,6 +36,24 @@ public:
     {
         return headers_.BestBlock(position);
     }
+    auto BlockExists(const block::Hash& block) const noexcept -> bool final
+    {
+        return common_.BlockExists(block);
+    }
+    auto BlockLoadBitcoin(const block::Hash& block) const noexcept
+        -> std::shared_ptr<const block::bitcoin::Block> final
+    {
+        return blocks_.LoadBitcoin(block);
+    }
+    auto BlockPolicy() const noexcept
+        -> api::client::blockchain::BlockStorage final
+    {
+        return common_.BlockPolicy();
+    }
+    auto BlockStore(const block::Block& block) const noexcept -> bool final
+    {
+        return blocks_.Store(block);
+    }
     auto CurrentBest() const noexcept -> std::unique_ptr<block::Header> final
     {
         return headers_.CurrentBest();
@@ -269,6 +287,22 @@ public:
 
 private:
     friend opentxs::Factory;
+
+    struct Blocks {
+        auto LoadBitcoin(const block::Hash& block) const noexcept
+            -> std::shared_ptr<const block::bitcoin::Block>;
+        auto Store(const block::Block& block) const noexcept -> bool;
+
+        Blocks(
+            const api::internal::Core& api,
+            const Common& common,
+            const blockchain::Type type) noexcept;
+
+    private:
+        const api::internal::Core& api_;
+        const Common& common_;
+        const blockchain::Type chain_;
+    };
 
     struct Filters {
         auto CurrentHeaderTip(const filter::Type type) const noexcept
@@ -590,6 +624,7 @@ private:
     const blockchain::Type chain_;
     const Common& common_;
     opentxs::storage::lmdb::LMDB lmdb_;
+    mutable Blocks blocks_;
     mutable Filters filters_;
     mutable Headers headers_;
     mutable Wallet wallet_;

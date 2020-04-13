@@ -52,6 +52,15 @@ struct make_blank<blockchain::block::Position> {
 };
 }  // namespace opentxs
 
+namespace opentxs::api::client::blockchain
+{
+enum class BlockStorage : std::uint8_t {
+    None = 0,
+    Cache = 1,
+    All = 2,
+};
+}  // namespace opentxs::api::client::blockchain
+
 namespace opentxs::blockchain::client
 {
 // parent hash, child hash
@@ -69,6 +78,19 @@ using DisconnectedList = std::multimap<block::pHash, block::pHash>;
 namespace opentxs::blockchain::client::internal
 {
 #if OT_BLOCKCHAIN
+struct BlockDatabase {
+    virtual auto BlockExists(const block::Hash& block) const noexcept
+        -> bool = 0;
+    virtual auto BlockLoadBitcoin(const block::Hash& block) const noexcept
+        -> std::shared_ptr<const block::bitcoin::Block> = 0;
+    virtual auto BlockPolicy() const noexcept
+        -> api::client::blockchain::BlockStorage = 0;
+    virtual auto BlockStore(const block::Block& block) const noexcept
+        -> bool = 0;
+
+    virtual ~BlockDatabase() = default;
+};
+
 struct BlockOracle : virtual public opentxs::blockchain::client::BlockOracle {
     enum class Task : OTZMQWorkType {
         ProcessBlock = 0,

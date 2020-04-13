@@ -41,6 +41,8 @@ public:
     }
     std::uint32_t Nonce() const noexcept final { return nonce_; }
     SerializedType Serialize() const noexcept final;
+    auto Serialize(const AllocateOutput destination) const noexcept
+        -> bool final;
     OTNumericHash Target() const noexcept final;
     Time Timestamp() const noexcept final { return timestamp_; }
     std::uint32_t Version() const noexcept final { return block_version_; }

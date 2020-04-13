@@ -104,6 +104,14 @@ public:
     bool UpdateTransactions(const std::map<OTData, OTIdentifier>& changed) const
         noexcept final;
 
+    Blockchain(
+        const api::client::internal::Manager& api,
+        const api::client::Activity& activity,
+        const api::client::Contacts& contacts,
+        const api::Legacy& legacy,
+        const std::string& dataFolder,
+        const ArgList& args) noexcept;
+
     ~Blockchain() final;
 
 private:
@@ -300,12 +308,6 @@ private:
         const TransactionContactMap& transactions) const noexcept;
     bool validate_nym(const identifier::Nym& nymID) const noexcept;
 
-    Blockchain(
-        const api::client::internal::Manager& api,
-        const api::client::Activity& activity,
-        const api::client::Contacts& contacts,
-        const api::Legacy& legacy,
-        const std::string& dataFolder) noexcept;
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;

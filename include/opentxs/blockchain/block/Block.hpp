@@ -44,6 +44,8 @@ public:
     OPENTXS_EXPORT virtual auto Header() const noexcept
         -> const block::Header& = 0;
     OPENTXS_EXPORT virtual auto ID() const noexcept -> const block::Hash& = 0;
+    OPENTXS_EXPORT virtual auto Serialize(AllocateOutput bytes) const noexcept
+        -> bool = 0;
 
     virtual ~Block() = default;
 

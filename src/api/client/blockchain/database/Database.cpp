@@ -16,6 +16,12 @@
 
 namespace opentxs::api::client::blockchain::database::implementation
 {
+template <typename Input>
+ReadView tsv(const Input& in) noexcept
+{
+    return {reinterpret_cast<const char*>(&in), sizeof(in)};
+}
+
 const opentxs::storage::lmdb::TableNames Database::table_names_{
     {BlockHeaders, "block_headers"},
     {PeerDetails, "peers"},
@@ -30,16 +36,22 @@ const opentxs::storage::lmdb::TableNames Database::table_names_{
     {FilterHeadersBasic, "block_filter_headers_basic"},
     {FilterHeadersBCH, "block_filter_headers_bch"},
     {FilterHeadersOpentxs, "block_filter_headers_opentxs"},
+    {Config, "config"},
+    {BlockIndex, "blocks"},
 };
 
 Database::Database(
     const api::internal::Core& api,
     const api::Legacy& legacy,
-    const std::string& dataFolder) noexcept(false)
+    const std::string& dataFolder,
+    const ArgList& args) noexcept(false)
     : api_(api)
     , blockchain_path_(init_storage_path(legacy, dataFolder))
     , common_path_(
           init_folder(legacy, blockchain_path_, String::Factory("common")))
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    , blocks_path_(init_folder(legacy, common_path_, String::Factory("blocks")))
+#endif  // OPENTXS_BLOCK_STORAGE_ENABLED
     , lmdb_(
           table_names_,
           common_path_->Get(),
@@ -57,10 +69,16 @@ Database::Database(
               {FilterHeadersBasic, 0},
               {FilterHeadersBCH, 0},
               {FilterHeadersOpentxs, 0},
+              {Config, MDB_INTEGERKEY},
+              {BlockIndex, 0},
           })
+    , block_policy_(block_storage_level(args, lmdb_))
     , headers_(api, lmdb_)
     , peers_(api, lmdb_)
     , filters_(api, lmdb_)
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    , blocks_(lmdb_, blocks_path_->Get())
+#endif  // OPENTXS_BLOCK_STORAGE_ENABLED
 {
 }
 
@@ -69,6 +87,118 @@ auto Database::AllocateStorageFolder(const std::string& dir) const noexcept
 {
     return init_folder(api_.Legacy(), blockchain_path_, String::Factory(dir))
         ->Get();
+}
+
+auto Database::block_storage_enabled() noexcept -> bool
+{
+    return 1 == OPENTXS_BLOCK_STORAGE_ENABLED;
+}
+
+auto Database::block_storage_level(
+    const ArgList& args,
+    opentxs::storage::lmdb::LMDB& lmdb) noexcept -> BlockStorage
+{
+    if (false == block_storage_enabled()) { return BlockStorage::None; }
+
+    auto output = block_storage_level_default();
+    const auto arg = block_storage_level_arg(args);
+
+    if (arg.has_value()) { output = arg.value(); }
+
+    const auto db = block_storage_level_configured(lmdb);
+
+    if (db.has_value()) { output = std::max(output, db.value()); }
+
+    if ((false == db.has_value()) || (output != db.value())) {
+        lmdb.Store(Config, tsv(Key::BlockStoragePolicy), tsv(output));
+    }
+
+    return output;
+}
+
+auto Database::block_storage_level_arg(const ArgList& args) noexcept
+    -> std::optional<BlockStorage>
+{
+    try {
+        const auto& arg = args.at(OPENTXS_ARG_BLOCK_STORAGE_LEVEL);
+
+        if (0 == arg.size()) { return BlockStorage::None; }
+
+        switch (std::stoi(*arg.cbegin())) {
+            case 2: {
+                return BlockStorage::All;
+            }
+            case 1: {
+                return BlockStorage::Cache;
+            }
+            default: {
+                return BlockStorage::None;
+            }
+        }
+    } catch (...) {
+        return {};
+    }
+}
+
+auto Database::block_storage_level_configured(
+    opentxs::storage::lmdb::LMDB& db) noexcept -> std::optional<BlockStorage>
+{
+    if (false == db.Exists(Config, tsv(Key::BlockStoragePolicy))) { return {}; }
+
+    auto output{BlockStorage::None};
+    auto cb = [&output](const auto in) {
+        if (sizeof(output) != in.size()) { return; }
+
+        std::memcpy(&output, in.data(), in.size());
+    };
+
+    if (false == db.Load(Config, tsv(Key::BlockStoragePolicy), cb)) {
+        return {};
+    }
+
+    return output;
+}
+
+auto Database::block_storage_level_default() noexcept -> BlockStorage
+{
+    if (2 == OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY) {
+
+        return BlockStorage::All;
+    } else if (1 == OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY) {
+
+        return BlockStorage::Cache;
+    } else {
+
+        return BlockStorage::None;
+    }
+}
+
+auto Database::BlockExists(const BlockHash& block) const noexcept -> bool
+{
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    return blocks_.Exists(block);
+#else
+    return false;
+#endif
+}
+
+auto Database::BlockLoad(const BlockHash& block) const noexcept -> ReadView
+{
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    return blocks_.Load(block);
+#else
+    return {};
+#endif
+}
+
+auto Database::BlockStore(const BlockHash& block, const ReadView bytes) const
+    noexcept -> bool
+{
+#if OPENTXS_BLOCK_STORAGE_ENABLED
+    return blocks_.Store(block, bytes);
+#else
+    return false;
+#endif
 }
 
 auto Database::init_folder(

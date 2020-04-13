@@ -17,6 +17,7 @@
 
 #include "core/Executor.hpp"
 #include "internal/blockchain/client/Client.hpp"
+#include "internal/blockchain/Blockchain.hpp"
 
 #include <deque>
 #include <map>
@@ -89,6 +90,12 @@ auto BlockOracle::Cache::ReceiveBlock(const zmq::Frame& in) const noexcept
 
     Lock lock{lock_};
     auto& block = *pBlock;
+    const auto& db = network_.DB();
+
+    if (api::client::blockchain::BlockStorage::None != db.BlockPolicy()) {
+        db.BlockStore(block);
+    }
+
     const auto& id = block.ID();
     auto pending = pending_.find(id);
 
@@ -101,7 +108,7 @@ auto BlockOracle::Cache::ReceiveBlock(const zmq::Frame& in) const noexcept
     }
 
     auto& [time, promise, future, queued] = pending->second;
-    promise.set_value(pBlock);
+    promise.set_value(std::move(pBlock));
     completed_.emplace_back(id, std::move(future));
     pending_.erase(pending);
     LogVerbose(OT_METHOD)("Cache::")(__FUNCTION__)(": Cached block ")(
@@ -133,6 +140,15 @@ auto BlockOracle::Cache::Request(const block::Hash& block) const noexcept
 
             return future;
         }
+    }
+
+    const auto& db = network_.DB();
+
+    if (auto pBlock = db.BlockLoadBitcoin(block); bool(pBlock)) {
+        auto promise = Promise{};
+        promise.set_value(std::move(pBlock));
+
+        return completed_.emplace_back(block, promise.get_future()).second;
     }
 
     auto& [time, promise, future, queued] = pending_[block];

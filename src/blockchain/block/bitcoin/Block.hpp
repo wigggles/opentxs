@@ -15,6 +15,8 @@ public:
     using TxidIndex = std::vector<Space>;
     using TransactionMap = std::map<ReadView, value_type>;
 
+    static const std::size_t header_bytes_;
+
     auto at(const std::size_t index) const noexcept -> const value_type& final;
     auto at(const ReadView txid) const noexcept -> const value_type& final;
     auto begin() const noexcept -> const_iterator final { return cbegin(); }
@@ -33,6 +35,7 @@ public:
         const FilterType type,
         const Patterns& outpoints,
         const Patterns& scripts) const noexcept -> Matches final;
+    auto Serialize(AllocateOutput bytes) const noexcept -> bool final;
     auto size() const noexcept -> std::size_t final { return index_.size(); }
 
     Block(
@@ -49,6 +52,9 @@ private:
     const internal::Header& header_;
     const TxidIndex index_;
     const TransactionMap transactions_;
+
+    auto calculate_size() const noexcept
+        -> std::pair<std::size_t, blockchain::bitcoin::CompactSize>;
 
     Block() = delete;
     Block(const Block&) = delete;

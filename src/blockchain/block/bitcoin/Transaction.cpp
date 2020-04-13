@@ -22,6 +22,7 @@
 #include <boost/endian/buffers.hpp>
 
 #include <algorithm>
+#include <numeric>
 
 #include "Transaction.hpp"
 
@@ -186,7 +187,7 @@ auto Factory::BitcoinTransaction(
             std::byte{static_cast<std::uint8_t>(in.segwit_flag())},
             in.locktime(),
             api.Factory().Data(in.txid(), StringStyle::Raw),
-            api.Factory().Data(in.txid(), StringStyle::Raw),  // FIXME
+            api.Factory().Data(in.wtxid(), StringStyle::Raw),
             opentxs::Factory::BitcoinTransactionInputs(std::move(inputs)),
             opentxs::Factory::BitcoinTransactionOutputs(std::move(outputs)));
     } catch (const std::exception& e) {
@@ -237,13 +238,48 @@ auto Transaction::calculate_size(const bool normalize) const noexcept
     -> std::size_t
 {
     auto& output = normalize ? normalized_size_ : size_;
+    const bool isSegwit =
+        (false == normalize) && (std::byte{0x00} != segwit_flag_);
 
     if (false == output.has_value()) {
         output = sizeof(version_) + inputs_->CalculateSize(normalize) +
-                 outputs_->CalculateSize() + sizeof(lock_time_);
+                 outputs_->CalculateSize() +
+                 (isSegwit ? calculate_witness_size() : std::size_t{0}) +
+                 sizeof(lock_time_);
     }
 
     return output.value();
+}
+
+auto Transaction::calculate_witness_size(const Space& in) noexcept
+    -> std::size_t
+{
+    return blockchain::bitcoin::CompactSize{in.size()}.Total();
+}
+
+auto Transaction::calculate_witness_size(const std::vector<Space>& in) noexcept
+    -> std::size_t
+{
+    const auto cs = blockchain::bitcoin::CompactSize{in.size()};
+
+    return std::accumulate(
+        std::begin(in),
+        std::end(in),
+        cs.Size(),
+        [](const auto& previous, const auto& input) -> std::size_t {
+            return previous + calculate_witness_size(input);
+        });
+}
+
+auto Transaction::calculate_witness_size() const noexcept -> std::size_t
+{
+    return std::accumulate(
+        std::begin(*inputs_),
+        std::end(*inputs_),
+        std::size_t{2},  // NOTE: marker byte and segwit flag byte
+        [](const auto& previous, const auto& input) -> std::size_t {
+            return previous + calculate_witness_size(input.Witness());
+        });
 }
 
 auto Transaction::IDNormalized() const noexcept -> const Identifier&
@@ -341,9 +377,68 @@ auto Transaction::serialize(
     const auto lockTime = be::little_uint32_buf_t{lock_time_};
     auto remaining{output.size()};
     auto it = static_cast<std::byte*>(output.data());
+
+    if (remaining < sizeof(version)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to serialize version. Need at least ")(sizeof(version))(
+            " bytes but only have ")(remaining)
+            .Flush();
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+        return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+    }
+
     std::memcpy(static_cast<void*>(it), &version, sizeof(version));
     std::advance(it, sizeof(version));
     remaining -= sizeof(version);
+    const bool isSegwit =
+        (false == normalize) && (std::byte{0x00} != segwit_flag_);
+
+    if (isSegwit) {
+        if (remaining < sizeof(std::byte)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to serialize marker byte. Need at least ")(
+                sizeof(std::byte))(" bytes but only have ")(remaining)
+                .Flush();
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+            return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+        }
+
+        *it = std::byte{0x00};
+        std::advance(it, sizeof(std::byte));
+        remaining -= sizeof(std::byte);
+
+        if (remaining < sizeof(segwit_flag_)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to serialize segwit flag. Need at least ")(
+                sizeof(segwit_flag_))(" bytes but only have ")(remaining)
+                .Flush();
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+            return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+        }
+
+        *it = segwit_flag_;
+        std::advance(it, sizeof(segwit_flag_));
+        remaining -= sizeof(segwit_flag_);
+    }
+
     const auto inputs =
         normalize ? inputs_->SerializeNormalized(preallocated(remaining, it))
                   : inputs_->Serialize(preallocated(remaining, it));
@@ -382,7 +477,90 @@ auto Transaction::serialize(
 #endif
     }
 
+    if (isSegwit) {
+        for (const auto& input : *inputs_) {
+            const auto& witness = input.Witness();
+            const auto pushCount =
+                blockchain::bitcoin::CompactSize{witness.size()};
+
+            if (false == pushCount.Encode(preallocated(remaining, it))) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to serialize push count")
+                    .Flush();
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+                return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+            }
+
+            std::advance(it, pushCount.Size());
+            remaining -= pushCount.Size();
+
+            for (const auto& push : witness) {
+                const auto pushSize =
+                    blockchain::bitcoin::CompactSize{push.size()};
+
+                if (false == pushSize.Encode(preallocated(remaining, it))) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Failed to serialize push size")
+                        .Flush();
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+                    return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+                }
+
+                std::advance(it, pushSize.Size());
+                remaining -= pushSize.Size();
+
+                if (remaining < push.size()) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Failed to serialize witness push. Need at least ")(
+                        push.size())(" bytes but only have ")(remaining)
+                        .Flush();
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+                    return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+                }
+
+                std::memcpy(it, push.data(), push.size());
+                std::advance(it, push.size());
+                remaining -= push.size();
+            }
+        }
+    }
+
+    if (remaining != sizeof(lockTime)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to serialize lock time. Need exactly ")(sizeof(lockTime))(
+            " bytes but have ")(remaining)
+            .Flush();
+#ifndef _MSC_VER
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+        return {};
+#ifndef _MSC_VER
+#pragma GCC diagnostic pop
+#endif
+    }
+
     std::memcpy(static_cast<void*>(it), &lockTime, sizeof(lockTime));
+    std::advance(it, sizeof(lockTime));
+    remaining -= sizeof(lockTime);
 
     return size;
 }

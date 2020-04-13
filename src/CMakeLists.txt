@@ -189,8 +189,8 @@ if(DHT_EXPORT)
   target_link_libraries(opentxs PRIVATE opendht ${GNUTLS_LIBRARIES})
 endif()
 
-if(FS_EXPORT)
-  target_link_libraries(opentxs PRIVATE Boost::iostreams)
+if(FS_EXPORT OR OPENTXS_BLOCK_STORAGE_ENABLED)
+  target_link_libraries(opentxs PUBLIC Boost::iostreams)
 endif()
 
 if(SQLITE_EXPORT)

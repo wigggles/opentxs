@@ -162,7 +162,24 @@ find_package(
 )
 
 if(OT_WITH_BLOCKCHAIN)
+  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+    if(ANDROID)
+      set(OPENTXS_BLOCK_STORAGE_ENABLED 0)
+      set(OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY 0)
+    else()
+      set(OPENTXS_BLOCK_STORAGE_ENABLED 1)
+      set(OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY 1)
+    endif()
+  else()
+    set(OPENTXS_BLOCK_STORAGE_ENABLED 0)
+    set(OPENTXS_DEFAULT_BLOCK_STORAGE_POLICY 0)
+  endif()
+
   find_package(Boost REQUIRED thread)
+
+  if(OPENTXS_BLOCK_STORAGE_ENABLED)
+    find_package(Boost REQUIRED iostreams)
+  endif()
 endif()
 
 if(OT_USE_VCPKG_TARGETS)
@@ -341,6 +358,12 @@ if(OT_WITH_BLOCKCHAIN)
   set(OT_BLOCKCHAIN_EXPORT 1)
 else()
   set(OT_BLOCKCHAIN_EXPORT 0)
+endif()
+
+if(OPENTXS_BLOCK_STORAGE_ENABLED)
+  add_definitions(-DOPENTXS_BLOCK_STORAGE_ENABLED=1)
+else()
+  add_definitions(-DOPENTXS_BLOCK_STORAGE_ENABLED=0)
 endif()
 
 if(OT_CASH_USING_LUCRE)
