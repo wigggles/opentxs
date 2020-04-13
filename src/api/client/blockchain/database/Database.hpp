@@ -42,10 +42,10 @@ public:
         return headers_.BlockHeaderExists(hash);
     }
     auto BlockExists(const BlockHash& block) const noexcept -> bool;
-    auto BlockLoad(const BlockHash& block) const noexcept -> ReadView;
+    auto BlockLoad(const BlockHash& block) const noexcept -> BlockReader;
     auto BlockPolicy() const noexcept -> BlockStorage { return block_policy_; }
-    auto BlockStore(const BlockHash& block, const ReadView bytes) const noexcept
-        -> bool;
+    auto BlockStore(const BlockHash& block, const std::size_t bytes) const
+        noexcept -> BlockWriter;
     auto Find(
         const Chain chain,
         const Protocol protocol,

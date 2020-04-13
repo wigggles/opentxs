@@ -67,6 +67,7 @@ Blocks::Blocks(
     , next_position_(load_position(lmdb_))
     , files_(init_files(path_prefix_, next_position_))
     , lock_()
+    , block_locks_()
 {
     static_assert(sizeof(std::uint64_t) == sizeof(std::size_t));
     static_assert(1 == get_file_count(0));
@@ -184,7 +185,7 @@ auto Blocks::init_files(
     return output;
 }
 
-auto Blocks::Load(const Hash& block) const noexcept -> ReadView
+auto Blocks::Load(const Hash& block) const noexcept -> BlockReader
 {
     Lock lock(lock_);
     auto index = IndexData{};
@@ -206,7 +207,9 @@ auto Blocks::Load(const Hash& block) const noexcept -> ReadView
     const auto [file, offset] = get_offset(index.position_);
     check_file(lock, file);
 
-    return ReadView{files_.at(file).const_data() + offset, index.size_};
+    return BlockReader{
+        ReadView{files_.at(file).const_data() + offset, index.size_},
+        block_locks_[block]};
 }
 
 auto Blocks::load_position([
@@ -231,14 +234,15 @@ auto Blocks::load_position([
     return output;
 }
 
-auto Blocks::Store(const Hash& block, const ReadView in) const noexcept -> bool
+auto Blocks::Store(const Hash& block, const std::size_t bytes) const noexcept
+    -> BlockWriter
 {
-    if ((nullptr == in.data()) || (0 == in.size())) {
+    if (0 == bytes) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Block ")(block.asHex())(
-            " invalid bytes")
+            " invalid block size")
             .Flush();
 
-        return false;
+        return {};
     }
 
     Lock lock(lock_);
@@ -249,14 +253,14 @@ auto Blocks::Store(const Hash& block, const ReadView in) const noexcept -> bool
         std::memcpy(static_cast<void*>(&index), in.data(), in.size());
     };
     lmdb_.Load(Table::BlockIndex, block.Bytes(), cb);
-    const auto replace = in.size() == index.size_;
+    const auto replace = bytes == index.size_;
 
     if (replace) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Replacing existing block ")(
             block.asHex())
             .Flush();
     } else {
-        index.size_ = in.size();
+        index.size_ = bytes;
         index.position_ = next_position_;
 
         {
@@ -279,11 +283,13 @@ auto Blocks::Store(const Hash& block, const ReadView in) const noexcept -> bool
 
     const auto [file, offset] = get_offset(index.position_);
     check_file(lock, file);
-    std::memcpy(files_.at(file).data() + offset, in.data(), in.size());
+    auto output =
+        BlockWriter{WritableView{files_.at(file).data() + offset, bytes},
+                    block_locks_[block]};
 
-    if (replace) { return true; }
+    if (replace) { return output; }
 
-    const auto nextPosition = index.position_ + in.size();
+    const auto nextPosition = index.position_ + bytes;
     auto tx = lmdb_.TransactionRW();
     auto result = lmdb_.Store(Table::BlockIndex, block.Bytes(), tsv(index), tx);
 
@@ -292,7 +298,7 @@ auto Blocks::Store(const Hash& block, const ReadView in) const noexcept -> bool
             ": Failed to update index for block ")(block.asHex())
             .Flush();
 
-        return false;
+        return {};
     }
 
     result =
@@ -302,17 +308,17 @@ auto Blocks::Store(const Hash& block, const ReadView in) const noexcept -> bool
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to next write position")
             .Flush();
 
-        return false;
+        return {};
     }
 
     if (tx.Finalize(true)) {
         next_position_ = nextPosition;
 
-        return true;
+        return output;
     } else {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Database update error").Flush();
 
-        return false;
+        return {};
     }
 }
 }  // namespace opentxs::api::client::blockchain::database::implementation

@@ -12,6 +12,8 @@ namespace opentxs::blockchain::block::bitcoin::implementation
 class Block final : public bitcoin::Block, public block::implementation::Block
 {
 public:
+    using CalculatedSize =
+        std::pair<std::size_t, blockchain::bitcoin::CompactSize>;
     using TxidIndex = std::vector<Space>;
     using TransactionMap = std::map<ReadView, value_type>;
 
@@ -20,6 +22,10 @@ public:
     auto at(const std::size_t index) const noexcept -> const value_type& final;
     auto at(const ReadView txid) const noexcept -> const value_type& final;
     auto begin() const noexcept -> const_iterator final { return cbegin(); }
+    auto CalculateSize() const noexcept -> std::size_t final
+    {
+        return calculate_size().first;
+    }
     auto cbegin() const noexcept -> const_iterator final
     {
         return const_iterator(this, 0);
@@ -43,7 +49,8 @@ public:
         const blockchain::Type chain,
         std::unique_ptr<const internal::Header> header,
         TxidIndex&& index,
-        TransactionMap&& transactions) noexcept(false);
+        TransactionMap&& transactions,
+        std::optional<CalculatedSize>&& size = {}) noexcept(false);
 
 private:
     static const value_type null_tx_;
@@ -52,9 +59,9 @@ private:
     const internal::Header& header_;
     const TxidIndex index_;
     const TransactionMap transactions_;
+    mutable std::optional<CalculatedSize> size_;
 
-    auto calculate_size() const noexcept
-        -> std::pair<std::size_t, blockchain::bitcoin::CompactSize>;
+    auto calculate_size() const noexcept -> CalculatedSize;
 
     Block() = delete;
     Block(const Block&) = delete;

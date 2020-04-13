@@ -216,7 +216,7 @@ auto Database::Blocks::LoadBitcoin(const block::Hash& block) const noexcept
 {
     const auto bytes = common_.BlockLoad(block);
 
-    if ((nullptr == bytes.data()) || (0 == bytes.size())) {
+    if (false == bytes.valid()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Block ")(block.asHex())(
             " not found ")
             .Flush();
@@ -224,21 +224,31 @@ auto Database::Blocks::LoadBitcoin(const block::Hash& block) const noexcept
         return {};
     }
 
-    return Factory::BitcoinBlock(api_, chain_, bytes);
+    return Factory::BitcoinBlock(api_, chain_, bytes.get());
 }
 
 auto Database::Blocks::Store(const block::Block& block) const noexcept -> bool
 {
-    auto bytes = Space{};
+    const auto size = block.CalculateSize();
+    auto writer = common_.BlockStore(block.ID(), size);
 
-    if (false == block.Serialize(writer(bytes))) {
+    if (false == writer.get().valid(size)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to allocate storage for block")
+            .Flush();
+
+        return false;
+    }
+
+    if (false ==
+        block.Serialize(preallocated(writer.size(), writer.get().data()))) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to serialize block")
             .Flush();
 
         return false;
     }
 
-    return common_.BlockStore(block.ID(), reader(bytes));
+    return true;
 }
 
 auto Database::Filters::CurrentHeaderTip(const filter::Type type) const noexcept

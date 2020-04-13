@@ -54,6 +54,9 @@ struct make_blank<blockchain::block::Position> {
 
 namespace opentxs::api::client::blockchain
 {
+using BlockReader = ProtectedView<ReadView, std::shared_mutex, sLock>;
+using BlockWriter = ProtectedView<WritableView, std::shared_mutex, eLock>;
+
 enum class BlockStorage : std::uint8_t {
     None = 0,
     Cache = 1,
