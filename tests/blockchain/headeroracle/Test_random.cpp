@@ -6,6 +6,7 @@
 #include "Helpers.hpp"
 
 #include <algorithm>
+#include <random>
 
 std::vector<std::unique_ptr<bb::Header>> headers_{};
 
@@ -23,7 +24,8 @@ TEST_F(Test_HeaderOracle, stage_headers)
         headers_.emplace_back(std::move(pHeader));
     }
 
-    std::random_shuffle(headers_.begin(), headers_.end());
+    std::shuffle(
+        headers_.begin(), headers_.end(), std::mt19937(std::random_device()()));
 }
 
 TEST_F(Test_HeaderOracle, receive)

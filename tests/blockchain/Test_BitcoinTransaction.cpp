@@ -111,8 +111,8 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
     ASSERT_TRUE(transaction);
     EXPECT_EQ(tx_id_.get(), transaction->ID());
-    EXPECT_EQ(0, transaction->Locktime());
-    EXPECT_EQ(1, transaction->Version());
+    EXPECT_EQ(transaction->Locktime(), 0);
+    EXPECT_EQ(transaction->Version(), 1);
 
     {
         const auto& inputs = transaction->Inputs();
@@ -124,11 +124,11 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
             ASSERT_EQ(sizeof(input1.PreviousOutput()), outpoint_1_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     &input1.PreviousOutput(),
                     outpoint_1_->data(),
-                    outpoint_1_->size()));
+                    outpoint_1_->size()),
+                0);
 
             const auto& script1 = input1.Script();
 
@@ -144,10 +144,10 @@ TEST_F(Test_BitcoinTransaction, serialization)
             EXPECT_TRUE(script1.Serialize(ot::writer(bytes1)));
             ASSERT_EQ(bytes1.size(), in_script_1_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
-                    bytes1.data(), in_script_1_->data(), in_script_1_->size()));
-            EXPECT_EQ(4294967295u, input1.Sequence());
+                    bytes1.data(), in_script_1_->data(), in_script_1_->size()),
+                0);
+            EXPECT_EQ(input1.Sequence(), 4294967295u);
         }
 
         {
@@ -155,11 +155,11 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
             ASSERT_EQ(sizeof(input2.PreviousOutput()), outpoint_2_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     &input2.PreviousOutput(),
                     outpoint_2_->data(),
-                    outpoint_2_->size()));
+                    outpoint_2_->size()),
+                0);
 
             const auto& script2 = input2.Script();
 
@@ -175,9 +175,9 @@ TEST_F(Test_BitcoinTransaction, serialization)
             EXPECT_TRUE(script2.Serialize(ot::writer(bytes2)));
             ASSERT_EQ(bytes2.size(), in_script_2_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
-                    bytes2.data(), in_script_2_->data(), in_script_2_->size()));
+                    bytes2.data(), in_script_2_->data(), in_script_2_->size()),
+                0);
             EXPECT_EQ(4294967295u, input2.Sequence());
         }
 
@@ -186,11 +186,11 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
             ASSERT_EQ(sizeof(input3.PreviousOutput()), outpoint_3_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     &input3.PreviousOutput(),
                     outpoint_3_->data(),
-                    outpoint_3_->size()));
+                    outpoint_3_->size()),
+                0);
 
             const auto& script3 = input3.Script();
 
@@ -206,9 +206,9 @@ TEST_F(Test_BitcoinTransaction, serialization)
             EXPECT_TRUE(script3.Serialize(ot::writer(bytes3)));
             ASSERT_EQ(bytes3.size(), in_script_3_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
-                    bytes3.data(), in_script_3_->data(), in_script_3_->size()));
+                    bytes3.data(), in_script_3_->data(), in_script_3_->size()),
+                0);
             EXPECT_EQ(4294967295u, input3.Sequence());
         }
     }
@@ -267,8 +267,8 @@ TEST_F(Test_BitcoinTransaction, serialization)
         ot::Factory::BitcoinTransaction(api_, false, serialized.value());
 
     ASSERT_TRUE(transaction2);
-    EXPECT_EQ(0, transaction2->Locktime());
-    EXPECT_EQ(1, transaction2->Version());
+    EXPECT_EQ(transaction2->Locktime(), 0);
+    EXPECT_EQ(transaction2->Version(), 1);
 
     {
         const auto& inputs = transaction2->Inputs();
@@ -280,11 +280,11 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
             ASSERT_EQ(sizeof(input1.PreviousOutput()), outpoint_1_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     &input1.PreviousOutput(),
                     outpoint_1_->data(),
-                    outpoint_1_->size()));
+                    outpoint_1_->size()),
+                0);
 
             const auto& script1 = input1.Script();
 
@@ -300,9 +300,9 @@ TEST_F(Test_BitcoinTransaction, serialization)
             EXPECT_TRUE(script1.Serialize(ot::writer(bytes1)));
             ASSERT_EQ(bytes1.size(), in_script_1_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
-                    bytes1.data(), in_script_1_->data(), in_script_1_->size()));
+                    bytes1.data(), in_script_1_->data(), in_script_1_->size()),
+                0);
             EXPECT_EQ(4294967295u, input1.Sequence());
         }
 
@@ -311,11 +311,11 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
             ASSERT_EQ(sizeof(input2.PreviousOutput()), outpoint_2_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     &input2.PreviousOutput(),
                     outpoint_2_->data(),
-                    outpoint_2_->size()));
+                    outpoint_2_->size()),
+                0);
 
             const auto& script2 = input2.Script();
 
@@ -331,9 +331,9 @@ TEST_F(Test_BitcoinTransaction, serialization)
             EXPECT_TRUE(script2.Serialize(ot::writer(bytes2)));
             ASSERT_EQ(bytes2.size(), in_script_2_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
-                    bytes2.data(), in_script_2_->data(), in_script_2_->size()));
+                    bytes2.data(), in_script_2_->data(), in_script_2_->size()),
+                0);
             EXPECT_EQ(4294967295u, input2.Sequence());
         }
 
@@ -342,11 +342,11 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
             ASSERT_EQ(sizeof(input3.PreviousOutput()), outpoint_3_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     &input3.PreviousOutput(),
                     outpoint_3_->data(),
-                    outpoint_3_->size()));
+                    outpoint_3_->size()),
+                0);
 
             const auto& script3 = input3.Script();
 
@@ -362,9 +362,9 @@ TEST_F(Test_BitcoinTransaction, serialization)
             EXPECT_TRUE(script3.Serialize(ot::writer(bytes3)));
             ASSERT_EQ(bytes3.size(), in_script_3_->size());
             EXPECT_EQ(
-                0,
                 std::memcmp(
-                    bytes3.data(), in_script_3_->data(), in_script_3_->size()));
+                    bytes3.data(), in_script_3_->data(), in_script_3_->size()),
+                0);
             EXPECT_EQ(4294967295u, input3.Sequence());
         }
     }
@@ -414,7 +414,7 @@ TEST_F(Test_BitcoinTransaction, serialization)
 
         ASSERT_EQ(bytes.size(), tx_bytes_->size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), tx_bytes_->data(), tx_bytes_->size()));
+            std::memcmp(bytes.data(), tx_bytes_->data(), tx_bytes_->size()), 0);
     }
 
     {
@@ -423,7 +423,7 @@ TEST_F(Test_BitcoinTransaction, serialization)
         ASSERT_TRUE(transaction2->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), tx_bytes_->size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), tx_bytes_->data(), tx_bytes_->size()));
+            std::memcmp(bytes.data(), tx_bytes_->data(), tx_bytes_->size()), 0);
     }
 }
 

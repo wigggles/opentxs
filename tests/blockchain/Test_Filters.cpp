@@ -256,16 +256,16 @@ TEST_F(Test_Filters, bitstreams)
 
         auto reader = ot::blockchain::internal::BitReader{result};
 
-        EXPECT_EQ(1, reader.read(1));
-        EXPECT_EQ(0, reader.read(1));
-        EXPECT_EQ(1, reader.read(1));
-        EXPECT_EQ(1, reader.read(1));
-        EXPECT_EQ(1, reader.read(1));
-        EXPECT_EQ(0, reader.read(1));
-        EXPECT_EQ(0, reader.read(1));
-        EXPECT_EQ(1, reader.read(1));
-        EXPECT_EQ(0, reader.read(1));
-        EXPECT_EQ(1, reader.read(1));
+        EXPECT_EQ(reader.read(1), 1);
+        EXPECT_EQ(reader.read(1), 0);
+        EXPECT_EQ(reader.read(1), 1);
+        EXPECT_EQ(reader.read(1), 1);
+        EXPECT_EQ(reader.read(1), 1);
+        EXPECT_EQ(reader.read(1), 0);
+        EXPECT_EQ(reader.read(1), 0);
+        EXPECT_EQ(reader.read(1), 1);
+        EXPECT_EQ(reader.read(1), 0);
+        EXPECT_EQ(reader.read(1), 1);
     }
 
     {
@@ -295,11 +295,11 @@ TEST_F(Test_Filters, bitstreams)
         writer.flush();
         auto intReader = ot::blockchain::internal::BitReader{result};
 
-        EXPECT_EQ(1, intReader.read(1));
-        EXPECT_EQ(1, intReader.read(1));
-        EXPECT_EQ(1, intReader.read(1));
-        EXPECT_EQ(0, intReader.read(1));
-        EXPECT_EQ(498577u, intReader.read(19u));
+        EXPECT_EQ(intReader.read(1), 1);
+        EXPECT_EQ(intReader.read(1), 1);
+        EXPECT_EQ(intReader.read(1), 1);
+        EXPECT_EQ(intReader.read(1), 0);
+        EXPECT_EQ(intReader.read(19u), 498577u);
     }
 }
 
