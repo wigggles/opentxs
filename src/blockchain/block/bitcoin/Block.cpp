@@ -26,6 +26,7 @@
 #include <cstring>
 #include <map>
 #include <numeric>
+#include <optional>
 #include <stdexcept>
 #include <tuple>
 #include <vector>
@@ -77,12 +78,16 @@ auto Factory::BitcoinBlock(
                 "Block size too short (transaction count)");
         }
 
-        auto transactionCount = std::size_t{};
+        auto sizeData =
+            ReturnType::CalculatedSize{in.size(), bb::CompactSize{}};
+        auto& [size, txCount] = sizeData;
 
         if (false == bb::DecodeCompactSizeFromPayload(
-                         it, expectedSize, in.size(), transactionCount)) {
+                         it, expectedSize, in.size(), txCount)) {
             throw std::runtime_error("Failed to decode transaction count");
         }
+
+        const auto& transactionCount = txCount.Value();
 
         if (0 == transactionCount) { throw std::runtime_error("Empty block"); }
 
@@ -111,7 +116,8 @@ auto Factory::BitcoinBlock(
             chain,
             std::move(pHeader),
             std::move(index),
-            std::move(transactions));
+            std::move(transactions),
+            std::move(sizeData));
     } catch (const std::exception& e) {
         LogOutput("opentxs::Factory::")(__FUNCTION__)(": ")(e.what()).Flush();
 
@@ -215,12 +221,14 @@ Block::Block(
     const blockchain::Type chain,
     std::unique_ptr<const internal::Header> header,
     TxidIndex&& index,
-    TransactionMap&& transactions) noexcept(false)
+    TransactionMap&& transactions,
+    std::optional<CalculatedSize>&& size) noexcept(false)
     : block::implementation::Block(api, *header)
     , header_p_(std::move(header))
     , header_(*header_p_)
     , index_(std::move(index))
     , transactions_(std::move(transactions))
+    , size_(std::move(size))
 {
     if (false == bool(header_p_)) {
         throw std::runtime_error("Invalid header");
@@ -263,22 +271,22 @@ auto Block::at(const ReadView txid) const noexcept -> const value_type&
     }
 }
 
-auto Block::calculate_size() const noexcept
-    -> std::pair<std::size_t, blockchain::bitcoin::CompactSize>
+auto Block::calculate_size() const noexcept -> CalculatedSize
 {
-    auto output = std::pair<std::size_t, blockchain::bitcoin::CompactSize>{
-        0, bb::CompactSize(transactions_.size())};
-    auto& [bytes, cs] = output;
-    auto cb = [](const auto& previous, const auto& in) -> std::size_t {
-        return previous + in.second->CalculateSize();
-    };
-    bytes = std::accumulate(
-        std::begin(transactions_),
-        std::end(transactions_),
-        header_bytes_ + cs.Size(),
-        cb);
+    if (false == size_.has_value()) {
+        size_ = CalculatedSize{0, bb::CompactSize(transactions_.size())};
+        auto& [bytes, cs] = size_.value();
+        auto cb = [](const auto& previous, const auto& in) -> std::size_t {
+            return previous + in.second->CalculateSize();
+        };
+        bytes = std::accumulate(
+            std::begin(transactions_),
+            std::end(transactions_),
+            header_bytes_ + cs.Size(),
+            cb);
+    }
 
-    return output;
+    return size_.value();
 }
 
 auto Block::ExtractElements(const FilterType style) const noexcept

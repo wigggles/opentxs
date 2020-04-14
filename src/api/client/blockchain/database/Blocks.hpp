@@ -14,6 +14,7 @@
 
 #include <boost/iostreams/device/mapped_file.hpp>
 
+#include <map>
 #include <mutex>
 #include <vector>
 
@@ -23,10 +24,12 @@ class Blocks
 {
 public:
     using Hash = opentxs::blockchain::block::Hash;
+    using pHash = opentxs::blockchain::block::pHash;
 
     auto Exists(const Hash& block) const noexcept -> bool;
-    auto Load(const Hash& block) const noexcept -> ReadView;
-    auto Store(const Hash& block, const ReadView bytes) const noexcept -> bool;
+    auto Load(const Hash& block) const noexcept -> BlockReader;
+    auto Store(const Hash& block, const std::size_t bytes) const noexcept
+        -> BlockWriter;
 
     Blocks(
         opentxs::storage::lmdb::LMDB& lmdb,
@@ -49,6 +52,7 @@ private:
     mutable MemoryPosition next_position_;
     mutable std::vector<boost::iostreams::mapped_file> files_;
     mutable std::mutex lock_;
+    mutable std::map<pHash, std::shared_mutex> block_locks_;
 
     static auto calculate_file_name(
         const std::string& prefix,

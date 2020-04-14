@@ -182,22 +182,22 @@ auto Database::BlockExists(const BlockHash& block) const noexcept -> bool
 #endif
 }
 
-auto Database::BlockLoad(const BlockHash& block) const noexcept -> ReadView
+auto Database::BlockLoad(const BlockHash& block) const noexcept -> BlockReader
 {
 #if OPENTXS_BLOCK_STORAGE_ENABLED
     return blocks_.Load(block);
 #else
-    return {};
+    return BlockReader{};
 #endif
 }
 
-auto Database::BlockStore(const BlockHash& block, const ReadView bytes) const
-    noexcept -> bool
+auto Database::BlockStore(const BlockHash& block, const std::size_t bytes) const
+    noexcept -> BlockWriter
 {
 #if OPENTXS_BLOCK_STORAGE_ENABLED
     return blocks_.Store(block, bytes);
 #else
-    return false;
+    return {};
 #endif
 }
 
