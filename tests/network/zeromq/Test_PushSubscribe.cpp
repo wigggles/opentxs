@@ -123,9 +123,9 @@ TEST_F(Test_PushSubscribe, Push_Publish_Subscribe)
     ASSERT_TRUE(receiver3->Start(endpoint_1_));
     ASSERT_TRUE(receiver3->Start(endpoint_2_));
 
-    ASSERT_EQ(0, counter_1_.load());
-    ASSERT_EQ(0, counter_2_.load());
-    ASSERT_EQ(0, counter_3_.load());
+    ASSERT_EQ(counter_1_.load(), 0);
+    ASSERT_EQ(counter_2_.load(), 0);
+    ASSERT_EQ(counter_3_.load(), 0);
 
     // All receivers should get the message
     ASSERT_TRUE(sender1->Send(message1));

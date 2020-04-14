@@ -155,10 +155,10 @@ const std::vector<b::OP> vector_1_{
     b::OP::INVALIDOPCODE,
 };
 const std::vector<b::OP> vector_2_{
-    b::OP::FALSE,
+    b::OP::False,
     b::OP::ONE_NEGATE,
     b::OP::RESERVED,
-    b::OP::TRUE,
+    b::OP::True,
     b::OP::TWO,
     b::OP::THREE,
     b::OP::FOUR,
@@ -878,19 +878,19 @@ TEST(Test_BitcoinScript, opcodes_general)
 
     EXPECT_EQ(expected_1_.size(), serialized1.size());
     EXPECT_EQ(
-        0,
         std::memcmp(
             expected_1_.data(),
             serialized1.data(),
-            std::min(expected_1_.size(), serialized1.size())));
+            std::min(expected_1_.size(), serialized1.size())),
+        0);
 
     EXPECT_EQ(expected_1_.size(), serialized2.size());
     EXPECT_EQ(
-        0,
         std::memcmp(
             expected_1_.data(),
             serialized2.data(),
-            std::min(expected_1_.size(), serialized2.size())));
+            std::min(expected_1_.size(), serialized2.size())),
+        0);
 }
 
 TEST(Test_BitcoinScript, opcodes_push_inline)
@@ -1414,18 +1414,18 @@ TEST(Test_BitcoinScript, p2pk)
 
         if (65 == script->Pubkey().value().size()) {
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     script->Pubkey().value().data(),
                     uncompressed_pubkey_1_.data(),
-                    uncompressed_pubkey_1_.size()));
+                    uncompressed_pubkey_1_.size()),
+                0);
         } else if (33 == script->Pubkey().value().size()) {
             EXPECT_EQ(
-                0,
                 std::memcmp(
                     script->Pubkey().value().data(),
                     compressed_pubkey_1_.data(),
-                    compressed_pubkey_1_.size()));
+                    compressed_pubkey_1_.size()),
+                0);
         } else {
             EXPECT_TRUE(false);
         }
@@ -1465,7 +1465,7 @@ TEST(Test_BitcoinScript, p2pk)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 
     for (const auto& serialized : p2pk_bad_) {
@@ -1480,7 +1480,7 @@ TEST(Test_BitcoinScript, p2pk)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 }
 
@@ -1499,11 +1499,11 @@ TEST(Test_BitcoinScript, p2pkh)
         ASSERT_TRUE(script->PubkeyHash());
         ASSERT_EQ(hash_160_.size(), script->PubkeyHash().value().size());
         EXPECT_EQ(
-            0,
             std::memcmp(
                 script->PubkeyHash().value().data(),
                 hash_160_.data(),
-                hash_160_.size()));
+                hash_160_.size()),
+            0);
         EXPECT_EQ(Script::Position::Output, script->Role());
         ASSERT_FALSE(script->ScriptHash());
         ASSERT_EQ(5, script->size());
@@ -1553,7 +1553,7 @@ TEST(Test_BitcoinScript, p2pkh)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 
     for (const auto& serialized : p2pkh_bad_) {
@@ -1568,7 +1568,7 @@ TEST(Test_BitcoinScript, p2pkh)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 }
 
@@ -1589,11 +1589,11 @@ TEST(Test_BitcoinScript, p2sh)
         ASSERT_TRUE(script->ScriptHash());
         ASSERT_EQ(hash_160_.size(), script->ScriptHash().value().size());
         EXPECT_EQ(
-            0,
             std::memcmp(
                 script->ScriptHash().value().data(),
                 hash_160_.data(),
-                hash_160_.size()));
+                hash_160_.size()),
+            0);
         ASSERT_EQ(3, script->size());
         EXPECT_FALSE(script->Value(0));
 
@@ -1626,7 +1626,7 @@ TEST(Test_BitcoinScript, p2sh)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 
     for (const auto& serialized : p2sh_bad_) {
@@ -1641,7 +1641,7 @@ TEST(Test_BitcoinScript, p2sh)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 }
 
@@ -1693,7 +1693,7 @@ TEST(Test_BitcoinScript, null_data)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 
     for (const auto& serialized : data_bad_) {
@@ -1708,7 +1708,7 @@ TEST(Test_BitcoinScript, null_data)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 }
 
@@ -1727,31 +1727,31 @@ TEST(Test_BitcoinScript, multisig)
             uncompressed_pubkey_1_.size(),
             script->MultisigPubkey(0).value().size());
         EXPECT_EQ(
-            0,
             std::memcmp(
                 script->MultisigPubkey(0).value().data(),
                 uncompressed_pubkey_1_.data(),
-                uncompressed_pubkey_1_.size()));
+                uncompressed_pubkey_1_.size()),
+            0);
         ASSERT_TRUE(script->MultisigPubkey(1));
         ASSERT_EQ(
             compressed_pubkey_1_.size(),
             script->MultisigPubkey(1).value().size());
         EXPECT_EQ(
-            0,
             std::memcmp(
                 script->MultisigPubkey(1).value().data(),
                 compressed_pubkey_1_.data(),
-                compressed_pubkey_1_.size()));
+                compressed_pubkey_1_.size()),
+            0);
         ASSERT_TRUE(script->MultisigPubkey(2));
         ASSERT_EQ(
             compressed_pubkey_2_.size(),
             script->MultisigPubkey(2).value().size());
         EXPECT_EQ(
-            0,
             std::memcmp(
                 script->MultisigPubkey(2).value().data(),
                 compressed_pubkey_2_.data(),
-                compressed_pubkey_2_.size()));
+                compressed_pubkey_2_.size()),
+            0);
         ASSERT_TRUE(script->N());
         EXPECT_EQ(3, script->N().value());
         EXPECT_FALSE(script->Pubkey());
@@ -1811,7 +1811,7 @@ TEST(Test_BitcoinScript, multisig)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 
     for (const auto& serialized : multisig_bad_) {
@@ -1826,7 +1826,7 @@ TEST(Test_BitcoinScript, multisig)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 
     for (const auto& serialized : multisig_malformed_) {
@@ -1841,7 +1841,7 @@ TEST(Test_BitcoinScript, multisig)
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 }
 
@@ -1860,21 +1860,21 @@ TEST(Test_BitcoinScript, input)
         ASSERT_TRUE(sig.data_.has_value());
         ASSERT_EQ(sig.data_->size(), sig_1_.size());
         EXPECT_EQ(
-            0, std::memcmp(sig.data_->data(), sig_1_.data(), sig_1_.size()));
+            std::memcmp(sig.data_->data(), sig_1_.data(), sig_1_.size()), 0);
 
         const auto& key = script->at(1);
 
         ASSERT_TRUE(key.data_.has_value());
         ASSERT_EQ(key.data_->size(), key_1_.size());
         EXPECT_EQ(
-            0, std::memcmp(key.data_->data(), key_1_.data(), key_1_.size()));
+            std::memcmp(key.data_->data(), key_1_.data(), key_1_.size()), 0);
 
         auto bytes = ot::Space{};
 
         EXPECT_TRUE(script->Serialize(ot::writer(bytes)));
         ASSERT_EQ(bytes.size(), serialized.size());
         EXPECT_EQ(
-            0, std::memcmp(bytes.data(), serialized.data(), serialized.size()));
+            std::memcmp(bytes.data(), serialized.data(), serialized.size()), 0);
     }
 }
 }  // namespace

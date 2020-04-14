@@ -248,8 +248,8 @@ enum class OP : std::uint8_t {
     PUBKEYHASH = 253,
     PUBKEY = 254,
     INVALIDOPCODE = 255,
-    FALSE = ZERO,
-    TRUE = ONE,
+    False = ZERO,  // FALSE has a pre-existing macro on some platforms.
+    True = ONE,
     CHECKLOCKTIMEVERIFY = NOP2,
     CHECKSEQUENCEVERIFY = NOP3,
 };
