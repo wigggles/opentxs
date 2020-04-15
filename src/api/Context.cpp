@@ -299,8 +299,8 @@ void Context::Init_Rlimit() noexcept
     auto original = ::rlimit{};
     auto desired = ::rlimit{};
     auto result = ::rlimit{};
-    desired.rlim_cur = 16384;
-    desired.rlim_max = 16384;
+    desired.rlim_cur = 32768;
+    desired.rlim_max = 32768;
 
     if (0 != ::getrlimit(RLIMIT_NOFILE, &original)) {
         LogNormal("Failed to query resource limits").Flush();
