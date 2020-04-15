@@ -313,7 +313,7 @@ void Context::Init_Rlimit() noexcept
         .Flush();
 
     if (0 != ::setrlimit(RLIMIT_NOFILE, &desired)) {
-        LogNormal("Failed to set open file limit to 16384. You must increase "
+        LogNormal("Failed to set open file limit to 32768. You must increase "
                   "this user account's resource limits via the method "
                   "appropriate for your operating system.")
             .Flush();
