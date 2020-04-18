@@ -5,6 +5,15 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <set>
+#include <stdexcept>
+
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/verify/PaymentEvent.hpp"
+#include "opentxs/protobuf/verify/VerifyWorkflows.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "payment event"

@@ -165,11 +165,13 @@ OPENTXS_EXPORT auto FilterToHeader(
     const api::Core& api,
     const ReadView filter,
     const ReadView previous = {}) noexcept -> OTData;
+auto Format(const Type chain, const Amount) noexcept -> std::string;
 OPENTXS_EXPORT auto Grind(const std::function<void()> function) noexcept
     -> void;
 auto Serialize(const Type chain, const filter::Type type) noexcept(false)
     -> std::uint8_t;
 auto Serialize(const block::Position& position) noexcept -> Space;
+auto Ticker(const Type chain) noexcept -> std::string;
 }  // namespace opentxs::blockchain::internal
 
 namespace opentxs::blockchain::script

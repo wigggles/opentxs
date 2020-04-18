@@ -39,8 +39,13 @@ ReadView tsv(const Input& in) noexcept
 constexpr auto KiB_ = std::size_t{1024u};
 constexpr auto MiB_ = std::size_t{1024u * KiB_};
 constexpr auto GiB_ = std::size_t{1024u * MiB_};
-constexpr auto TiB_ = std::size_t{1024u * GiB_};
-constexpr auto target_file_size_ = std::size_t{8u * TiB_};
+[[maybe_unused]] constexpr auto TiB_ = std::size_t{1024u * GiB_};
+constexpr auto target_file_size_ =
+#if OT_VALGRIND
+    std::size_t{4u * GiB_};
+#else
+    std::size_t{8u * TiB_};
+#endif  // OT_VALGRIND
 
 constexpr auto get_file_count(const std::size_t bytes) noexcept -> std::size_t
 {

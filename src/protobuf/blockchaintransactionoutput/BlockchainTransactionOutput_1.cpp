@@ -5,6 +5,9 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/BlockchainTransactionOutput.hpp"
+#include "opentxs/protobuf/verify/VerifyBlockchain.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "blockchain transaction output"

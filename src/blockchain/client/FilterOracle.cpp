@@ -36,9 +36,9 @@
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::FilterOracle::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockchainFilterOracle(
+auto BlockchainFilterOracle(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::client::internal::FilterDatabase& database,
@@ -50,7 +50,7 @@ auto Factory::BlockchainFilterOracle(
 
     return std::make_unique<ReturnType>(api, network, database, type, shutdown);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::implementation
 {

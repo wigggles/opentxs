@@ -5,7 +5,11 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <string>
+
 #include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/verify/StorageBlockchainAccountList.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage blockchain account list"

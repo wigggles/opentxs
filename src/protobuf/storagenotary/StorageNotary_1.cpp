@@ -5,6 +5,9 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/StorageNotary.hpp"
+#include "opentxs/protobuf/verify/VerifyStorage.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "notary storage index"

@@ -13,7 +13,6 @@
 #include <utility>
 #include <vector>
 
-#include "Factory.hpp"
 #include "internal/api/Api.hpp"
 #include "opentxs/Pimpl.hpp"
 #include "opentxs/blockchain/block/Header.hpp"
@@ -39,13 +38,14 @@ Network::Network(
     const std::string& shutdown) noexcept
     : Executor(api)
     , shutdown_sender_(api.ZeroMQ(), shutdown_endpoint())
-    , database_p_(Factory::BlockchainDatabase(
+    , database_p_(factory::BlockchainDatabase(
           api,
+          blockchain,
           *this,
           blockchain.BlockchainDB(),
           type))
-    , header_p_(Factory::HeaderOracle(api, *this, *database_p_, type))
-    , peer_p_(Factory::BlockchainPeerManager(
+    , header_p_(factory::HeaderOracle(api, *this, *database_p_, type))
+    , peer_p_(factory::BlockchainPeerManager(
           api,
           *this,
           *database_p_,
@@ -54,14 +54,14 @@ Network::Network(
           seednode,
           shutdown_sender_.endpoint_))
     , block_p_(
-          Factory::BlockOracle(api, *this, type, shutdown_sender_.endpoint_))
-    , filter_p_(Factory::BlockchainFilterOracle(
+          factory::BlockOracle(api, *this, type, shutdown_sender_.endpoint_))
+    , filter_p_(factory::BlockchainFilterOracle(
           api,
           *this,
           *database_p_,
           type,
           shutdown_sender_.endpoint_))
-    , wallet_p_(Factory::BlockchainWallet(
+    , wallet_p_(factory::BlockchainWallet(
           api,
           blockchain,
           *this,

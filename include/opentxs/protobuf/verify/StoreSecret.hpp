@@ -14,18 +14,10 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT bool CheckProto_1(
-    const StoreSecret& request,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const StoreSecret& request,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_3(
-    const StoreSecret& request,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_4(
-    const StoreSecret& request,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_1(const StoreSecret& request, const bool silent);
+OPENTXS_EXPORT bool CheckProto_2(const StoreSecret& request, const bool silent);
+OPENTXS_EXPORT bool CheckProto_3(const StoreSecret& request, const bool silent);
+OPENTXS_EXPORT bool CheckProto_4(const StoreSecret& request, const bool silent);
 OPENTXS_EXPORT bool CheckProto_5(const StoreSecret&, const bool);
 OPENTXS_EXPORT bool CheckProto_6(const StoreSecret&, const bool);
 OPENTXS_EXPORT bool CheckProto_7(const StoreSecret&, const bool);

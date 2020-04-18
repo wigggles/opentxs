@@ -15,25 +15,18 @@ namespace opentxs
 namespace proto
 {
 OPENTXS_EXPORT const VersionMap& BasketParamsAllowedBasketItem() noexcept;
-OPENTXS_EXPORT const VersionMap&
-IssuerAllowedPeerRequestHistory() noexcept;
+OPENTXS_EXPORT const VersionMap& IssuerAllowedPeerRequestHistory() noexcept;
 OPENTXS_EXPORT const VersionMap& IssuerAllowedUnitAccountMap() noexcept;
 OPENTXS_EXPORT const VersionMap&
 PeerRequestHistoryAllowedPeerRequestWorkflow() noexcept;
-OPENTXS_EXPORT const VersionMap&
-ServerContractAllowedListenAddress() noexcept;
+OPENTXS_EXPORT const VersionMap& ServerContractAllowedListenAddress() noexcept;
 OPENTXS_EXPORT const VersionMap& ServerContractAllowedNym() noexcept;
-OPENTXS_EXPORT const VersionMap&
-ServerContractAllowedSignature() noexcept;
-OPENTXS_EXPORT const VersionMap&
-UnitDefinitionAllowedBasketParams() noexcept;
-OPENTXS_EXPORT const VersionMap&
-UnitDefinitionAllowedCurrencyParams() noexcept;
+OPENTXS_EXPORT const VersionMap& ServerContractAllowedSignature() noexcept;
+OPENTXS_EXPORT const VersionMap& UnitDefinitionAllowedBasketParams() noexcept;
+OPENTXS_EXPORT const VersionMap& UnitDefinitionAllowedCurrencyParams() noexcept;
 OPENTXS_EXPORT const VersionMap& UnitDefinitionAllowedNym() noexcept;
-OPENTXS_EXPORT const VersionMap&
-UnitDefinitionAllowedSecurityParams() noexcept;
-OPENTXS_EXPORT const VersionMap&
-UnitDefinitionAllowedSignature() noexcept;
+OPENTXS_EXPORT const VersionMap& UnitDefinitionAllowedSecurityParams() noexcept;
+OPENTXS_EXPORT const VersionMap& UnitDefinitionAllowedSignature() noexcept;
 }  // namespace proto
 }  // namespace opentxs
 #endif  // OPENTXS_PROTOBUF_VERIFYCONTRACTS_HPP

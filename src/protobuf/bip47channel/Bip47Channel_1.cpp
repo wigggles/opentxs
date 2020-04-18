@@ -5,6 +5,11 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/verify/Bip47Channel.hpp"
+#include "opentxs/protobuf/verify/VerifyBlockchain.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "bip47 channel"

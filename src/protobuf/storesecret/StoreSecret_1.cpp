@@ -5,6 +5,8 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/StoreSecret.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "StoreSecret"

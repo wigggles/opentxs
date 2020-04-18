@@ -80,6 +80,11 @@ class Network : virtual public internal::Network, public Executor<Network>
 {
 public:
     auto AddPeer(const p2p::Address& address) const noexcept -> bool final;
+    auto Blockchain() const noexcept
+        -> const api::client::internal::Blockchain& final
+    {
+        return blockchain_;
+    }
     auto BlockOracle() const noexcept -> const internal::BlockOracle& final
     {
         return *block_p_;
@@ -92,6 +97,10 @@ public:
     auto DB() const noexcept -> blockchain::internal::Database& final
     {
         return *database_p_;
+    }
+    auto GetBalance() const noexcept -> Balance final
+    {
+        return database_.GetBalance();
     }
     auto GetConfirmations(const std::string& txid) const noexcept
         -> ChainHeight final;

@@ -36,12 +36,10 @@ namespace opentxs
 namespace proto
 {
 OPENTXS_EXPORT const VersionMap& ContactAllowedContactData() noexcept;
-OPENTXS_EXPORT const VersionMap&
-ContactDataAllowedContactSection() noexcept;
+OPENTXS_EXPORT const VersionMap& ContactDataAllowedContactSection() noexcept;
 OPENTXS_EXPORT const VersionMap& ContactSectionAllowedItem() noexcept;
 OPENTXS_EXPORT const VersionMap& VerificationAllowedSignature() noexcept;
-OPENTXS_EXPORT const VersionMap&
-VerificationGroupAllowedIdentity() noexcept;
+OPENTXS_EXPORT const VersionMap& VerificationGroupAllowedIdentity() noexcept;
 OPENTXS_EXPORT const VersionMap&
 VerificationIdentityAllowedVerification() noexcept;
 OPENTXS_EXPORT const VersionMap& VerificationOfferAllowedClaim() noexcept;

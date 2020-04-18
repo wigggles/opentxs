@@ -14,31 +14,25 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT const VersionMap&
-AsymmetricKeyAllowedCiphertext() noexcept;
+OPENTXS_EXPORT const VersionMap& AsymmetricKeyAllowedCiphertext() noexcept;
 OPENTXS_EXPORT const VersionMap& AsymmetricKeyAllowedHDPath() noexcept;
 OPENTXS_EXPORT const VersionMap& AuthorityAllowedCredential() noexcept;
 OPENTXS_EXPORT const VersionMap& CiphertextAllowedSymmetricKey() noexcept;
 OPENTXS_EXPORT const VersionMap& CredentialAllowedChildParams() noexcept;
 OPENTXS_EXPORT const VersionMap& CredentialAllowedContactData() noexcept;
-OPENTXS_EXPORT const VersionMap&
-CredentialAllowedKeyCredential() noexcept;
+OPENTXS_EXPORT const VersionMap& CredentialAllowedKeyCredential() noexcept;
 OPENTXS_EXPORT const VersionMap& CredentialAllowedMasterParams() noexcept;
 OPENTXS_EXPORT const VersionMap& CredentialAllowedSignatures() noexcept;
 OPENTXS_EXPORT const VersionMap& CredentialAllowedVerification() noexcept;
 OPENTXS_EXPORT const VersionMap& EnvelopeAllowedAsymmetricKey() noexcept;
 OPENTXS_EXPORT const VersionMap& EnvelopeAllowedCiphertext() noexcept;
 OPENTXS_EXPORT const VersionMap& EnvelopeAllowedTaggedKey() noexcept;
-OPENTXS_EXPORT const VersionMap&
-KeyCredentialAllowedAsymmetricKey() noexcept;
-OPENTXS_EXPORT const VersionMap&
-MasterParamsAllowedNymIDSource() noexcept;
-OPENTXS_EXPORT const VersionMap&
-MasterParamsAllowedSourceProof() noexcept;
+OPENTXS_EXPORT const VersionMap& KeyCredentialAllowedAsymmetricKey() noexcept;
+OPENTXS_EXPORT const VersionMap& MasterParamsAllowedNymIDSource() noexcept;
+OPENTXS_EXPORT const VersionMap& MasterParamsAllowedSourceProof() noexcept;
 OPENTXS_EXPORT const VersionMap& NymAllowedAuthority() noexcept;
 OPENTXS_EXPORT const VersionMap& NymAllowedNymIDSource() noexcept;
-OPENTXS_EXPORT const VersionMap&
-NymIDSourceAllowedAsymmetricKey() noexcept;
+OPENTXS_EXPORT const VersionMap& NymIDSourceAllowedAsymmetricKey() noexcept;
 OPENTXS_EXPORT const VersionMap& NymIDSourceAllowedPaymentCode() noexcept;
 OPENTXS_EXPORT const VersionMap& SeedAllowedCiphertext() noexcept;
 OPENTXS_EXPORT const VersionMap& SymmetricKeyAllowedCiphertext() noexcept;

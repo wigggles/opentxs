@@ -5,6 +5,9 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/TaggedKey.hpp"
+#include "opentxs/protobuf/verify/VerifyCredentials.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "envelope"

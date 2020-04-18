@@ -5,6 +5,9 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/verify/StorageBip47ChannelList.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage bip47 channel list"

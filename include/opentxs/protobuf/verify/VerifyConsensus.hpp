@@ -20,8 +20,7 @@ namespace proto
 OPENTXS_EXPORT const VersionMap& ContextAllowedServer() noexcept;
 OPENTXS_EXPORT const VersionMap& ContextAllowedClient() noexcept;
 OPENTXS_EXPORT const VersionMap& ContextAllowedSignature() noexcept;
-OPENTXS_EXPORT const VersionMap&
-ServerContextAllowedPendingCommand() noexcept;
+OPENTXS_EXPORT const VersionMap& ServerContextAllowedPendingCommand() noexcept;
 OPENTXS_EXPORT const std::map<std::uint32_t, std::set<int>>&
 ServerContextAllowedState() noexcept;
 OPENTXS_EXPORT const std::map<std::uint32_t, std::set<int>>&

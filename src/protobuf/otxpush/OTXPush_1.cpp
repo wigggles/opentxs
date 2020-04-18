@@ -5,6 +5,8 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/verify/OTXPush.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "otx push"

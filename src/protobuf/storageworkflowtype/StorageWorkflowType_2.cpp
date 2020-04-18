@@ -5,6 +5,10 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
+
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/verify/StorageWorkflowType.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage workflow type index"

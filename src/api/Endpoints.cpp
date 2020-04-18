@@ -16,6 +16,7 @@
 
 #define ACCOUNT_UPDATE_ENDPOINT "accountupdate"
 #define BLOCKCHAIN_ASIO_ENDPOINT "blockchain/asio"
+#define BLOCKCHAIN_BALANCE_ENDPOINT "blockchain/balance"
 #define BLOCKCHAIN_FILTER_UPDATED "blockchain/filter/"
 #define BLOCKCHAIN_REORG_ENDPOINT "blockchain/reorg"
 #define BLOCKCHAIN_THREAD_POOL_ENDPOINT "blockchain/thread_pool"
@@ -83,6 +84,11 @@ auto Endpoints::build_inproc_path(
 auto Endpoints::AccountUpdate() const noexcept -> std::string
 {
     return build_inproc_path(ACCOUNT_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+auto Endpoints::BlockchainBalance() const noexcept -> std::string
+{
+    return build_inproc_path(BLOCKCHAIN_BALANCE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
 auto Endpoints::BlockchainReorg() const noexcept -> std::string

@@ -9,26 +9,29 @@
 
 #include "Factory.hpp"
 #include "internal/blockchain/block/Block.hpp"
+#include "internal/blockchain/client/Client.hpp"
 #include "opentxs/Proto.tpp"
 #include "opentxs/blockchain/block/Header.hpp"
 
 // #define OT_METHOD
 // "opentxs::blockchain::client::bitcoin::implementation::Network::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-blockchain::client::internal::Network* Factory::BlockchainNetworkBitcoin(
+auto BlockchainNetworkBitcoin(
     const api::internal::Core& api,
     const api::client::internal::Blockchain& blockchain,
     const blockchain::Type type,
     const std::string& seednode,
-    const std::string& shutdown)
+    const std::string& shutdown) noexcept
+    -> std::unique_ptr<blockchain::client::internal::Network>
 {
     using ReturnType = blockchain::client::bitcoin::implementation::Network;
 
-    return new ReturnType{api, blockchain, type, seednode, shutdown};
+    return std::make_unique<ReturnType>(
+        api, blockchain, type, seednode, shutdown);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::bitcoin::implementation
 {

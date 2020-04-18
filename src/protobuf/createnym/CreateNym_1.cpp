@@ -5,6 +5,12 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <set>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/verify/CreateNym.hpp"
+#include "opentxs/protobuf/verify/VerifyRPC.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "create nym"

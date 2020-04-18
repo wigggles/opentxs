@@ -5,6 +5,7 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/verify/BlockchainBlockLocalData.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "blockchain block header local data"

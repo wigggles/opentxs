@@ -51,10 +51,10 @@ AccountListItem::AccountListItem(
     : AccountListItemRow(parent, api, publisher, rowID, true)
     , type_(AccountType::Custodial)
     , unit_(sortKey.first)
-    , balance_(extract_custom<Amount>(custom, 0))
-    , contract_(load_unit(api_, extract_custom<OTUnitID>(custom, 1)))
+    , balance_(extract_custom<Amount>(custom, 1))
+    , contract_(load_unit(api_, extract_custom<OTUnitID>(custom, 2)))
     , notary_(load_server(api_, api.Factory().ServerID(sortKey.second)))
-    , name_(extract_custom<std::string>(custom, 2))
+    , name_(extract_custom<std::string>(custom, 3))
 {
 }
 

@@ -44,6 +44,14 @@ namespace internal
 struct Core;
 }  // namespace internal
 
+namespace client
+{
+namespace internal
+{
+struct Blockchain;
+}  // namespace internal
+}  // namespace client
+
 class Core;
 }  // namespace api
 
@@ -153,7 +161,7 @@ public:
     {
         return common_.Find(chain_, protocol, onNetworks, withServices);
     }
-    auto GetBalance() const noexcept -> BalanceData final
+    auto GetBalance() const noexcept -> Balance final
     {
         return wallet_.GetBalance();
     }
@@ -349,6 +357,7 @@ public:
 
     Database(
         const api::internal::Core& api,
+        const api::client::internal::Blockchain& blockchain,
         const client::internal::Network& network,
         const Common& common,
         const blockchain::Type type) noexcept;
@@ -501,7 +510,7 @@ private:
             const std::vector<std::uint32_t> outputIndices,
             const block::bitcoin::Transaction& transaction) const noexcept
             -> bool;
-        auto GetBalance() const noexcept -> BalanceData;
+        auto GetBalance() const noexcept -> Balance;
         auto GetPatterns(
             const NodeID& balanceNode,
             const Subchain subchain,
@@ -561,7 +570,10 @@ private:
             const FilterType type,
             const block::Position& position) const noexcept -> bool;
 
-        Wallet(const api::Core& api) noexcept;
+        Wallet(
+            const api::Core& api,
+            const api::client::internal::Blockchain& blockchain,
+            const blockchain::Type chain) noexcept;
 
     private:
         using SubchainID = Identifier;
@@ -589,6 +601,8 @@ private:
             std::map<block::pHash, std::vector<block::pTxid>>;
 
         const api::Core& api_;
+        const api::client::internal::Blockchain& blockchain_;
+        const blockchain::Type chain_;
         mutable std::mutex lock_;
         mutable PatternMap patterns_;
         mutable SubchainPatternIndex subchain_pattern_index_;
@@ -608,6 +622,7 @@ private:
         mutable TransactionBlockMap tx_to_block_;
         mutable BlockTransactionMap block_to_tx_;
 
+        auto get_balance(const Lock& lock) const noexcept -> Balance;
         auto get_patterns(
             const Lock& lock,
             const NodeID& balanceNode,

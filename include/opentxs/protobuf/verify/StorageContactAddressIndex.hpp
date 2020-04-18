@@ -17,30 +17,14 @@ namespace proto
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageContactAddressIndex& list,
     const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const StorageContactAddressIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_3(
-    const StorageContactAddressIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_4(
-    const StorageContactAddressIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_5(
-    const StorageContactAddressIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_6(
-    const StorageContactAddressIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_7(
-    const StorageContactAddressIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_8(
-    const StorageContactAddressIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_9(
-    const StorageContactAddressIndex&,
-    const bool);
+OPENTXS_EXPORT bool CheckProto_2(const StorageContactAddressIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_3(const StorageContactAddressIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_4(const StorageContactAddressIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_5(const StorageContactAddressIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_6(const StorageContactAddressIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_7(const StorageContactAddressIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_8(const StorageContactAddressIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_9(const StorageContactAddressIndex&, const bool);
 OPENTXS_EXPORT bool CheckProto_10(
     const StorageContactAddressIndex&,
     const bool);

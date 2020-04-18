@@ -5,6 +5,12 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <map>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/ConsensusEnums.pb.h"
+#include "opentxs/protobuf/verify/ServerContext.hpp"
+#include "opentxs/protobuf/verify/VerifyConsensus.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "server context"

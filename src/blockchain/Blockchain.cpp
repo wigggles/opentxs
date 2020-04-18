@@ -491,6 +491,26 @@ auto FilterToHeader(
         api, FilterToHash(api, filter)->Bytes(), previous);
 }
 
+auto Format(const Type chain, const Amount amount) noexcept -> std::string
+{
+    static const auto map = std::map<Type, unsigned int>{
+        {Type::Bitcoin, 1e8},
+        {Type::Bitcoin_testnet3, 1e8},
+        {Type::BitcoinCash, 1e8},
+        {Type::BitcoinCash_testnet3, 1e8},
+    };
+
+    try {
+        return std::to_string(
+                   static_cast<double>(amount) /
+                   static_cast<double>(map.at(chain))) +
+               ' ' + Ticker(chain);
+    } catch (...) {
+
+        return {};
+    }
+}
+
 auto Grind(const std::function<void()> function) noexcept -> void
 {
     auto threads = std::vector<std::thread>{};
@@ -553,6 +573,24 @@ auto Serialize(const block::Position& in) noexcept -> Space
     std::memcpy(it, in.second->data(), in.second->size());
 
     return output;
+}
+
+auto Ticker(const Type chain) noexcept -> std::string
+{
+    static const auto map = std::map<Type, std::string>{
+        {Type::Bitcoin, "BTC"},
+        {Type::Bitcoin_testnet3, "tnBTC"},
+        {Type::BitcoinCash, "BCH"},
+        {Type::BitcoinCash_testnet3, "tnBCH"},
+    };
+
+    try {
+
+        return map.at(chain);
+    } catch (...) {
+
+        return {};
+    }
 }
 }  // namespace opentxs::blockchain::internal
 

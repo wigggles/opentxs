@@ -14,9 +14,7 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT bool CheckProto_1(
-    const EquityParams& params,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_1(const EquityParams& params, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const EquityParams&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const EquityParams&, const bool);
 OPENTXS_EXPORT bool CheckProto_4(const EquityParams&, const bool);

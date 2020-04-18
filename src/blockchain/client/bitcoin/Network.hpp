@@ -37,8 +37,6 @@ namespace block
 class Header;
 }  // namespace block
 }  // namespace blockchain
-
-class Factory;
 }  // namespace opentxs
 
 namespace opentxs::blockchain::client::bitcoin::implementation
@@ -49,19 +47,17 @@ public:
     std::unique_ptr<block::Header> instantiate_header(
         const ReadView payload) const noexcept final;
 
-    ~Network() final;
-
-private:
-    friend opentxs::Factory;
-
-    using ot_super = client::implementation::Network;
-
     Network(
         const api::internal::Core& api,
         const api::client::internal::Blockchain& blockchain,
         const Type type,
         const std::string& seednode,
         const std::string& shutdown);
+    ~Network() final;
+
+private:
+    using ot_super = client::implementation::Network;
+
     Network() = delete;
     Network(const Network&) = delete;
     Network(Network&&) = delete;

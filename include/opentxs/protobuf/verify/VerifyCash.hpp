@@ -14,8 +14,7 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT const VersionMap&
-LucreTokenDataAllowedCiphertext() noexcept;
+OPENTXS_EXPORT const VersionMap& LucreTokenDataAllowedCiphertext() noexcept;
 OPENTXS_EXPORT const VersionMap& PurseAllowedCiphertext() noexcept;
 OPENTXS_EXPORT const VersionMap& PurseAllowedEnvelope() noexcept;
 OPENTXS_EXPORT const VersionMap& PurseAllowedSymmetricKey() noexcept;

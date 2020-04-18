@@ -53,7 +53,7 @@ TEST_F(Test_HeaderOracle, receive_btc)
 TEST_F(Test_HeaderOracle, receive_bch)
 {
     auto network = std::unique_ptr<bc::internal::Network>(
-        ot::Factory::BlockchainNetworkBitcoin(
+        ot::factory::BlockchainNetworkBitcoin(
             api_,
             dynamic_cast<const ot::api::client::internal::Blockchain&>(
                 api_.Blockchain()),

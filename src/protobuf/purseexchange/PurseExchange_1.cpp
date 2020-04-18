@@ -5,7 +5,13 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/Contact.hpp"
+#include <cstdint>
+#include <string>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/verify/PurseExchange.hpp"
+#include "opentxs/protobuf/verify/VerifyCash.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "purse exchange"

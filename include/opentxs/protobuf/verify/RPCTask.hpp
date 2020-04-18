@@ -23,39 +23,17 @@ OPENTXS_EXPORT bool CheckProto_6(const RPCTask& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_7(const RPCTask& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_8(const RPCTask& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_9(const RPCTask& input, const bool silent);
-OPENTXS_EXPORT bool CheckProto_10(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_11(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_12(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_13(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_14(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_15(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_16(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_17(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_18(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_19(
-    const RPCTask& input,
-    const bool silent);
-OPENTXS_EXPORT bool CheckProto_20(
-    const RPCTask& input,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_10(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_11(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_12(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_13(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_14(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_15(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_16(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_17(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_18(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_19(const RPCTask& input, const bool silent);
+OPENTXS_EXPORT bool CheckProto_20(const RPCTask& input, const bool silent);
 }  // namespace proto
 }  // namespace opentxs
 

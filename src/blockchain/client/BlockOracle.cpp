@@ -40,9 +40,9 @@ struct Core;
 
 #define OT_METHOD "opentxs::blockchain::client::implementation::BlockOracle::"
 
-namespace opentxs
+namespace opentxs::factory
 {
-auto Factory::BlockOracle(
+auto BlockOracle(
     const api::internal::Core& api,
     const blockchain::client::internal::Network& network,
     const blockchain::Type type,
@@ -53,7 +53,7 @@ auto Factory::BlockOracle(
 
     return std::make_unique<ReturnType>(api, network, type, shutdown);
 }
-}  // namespace opentxs
+}  // namespace opentxs::factory
 
 namespace opentxs::blockchain::client::implementation
 {

@@ -5,6 +5,12 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <string>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/PeerEnums.pb.h"
+#include "opentxs/protobuf/verify/PeerObject.hpp"
+#include "opentxs/protobuf/verify/VerifyPeer.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "peer object"

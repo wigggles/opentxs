@@ -6,7 +6,14 @@
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
 #include <chrono>
+#include <cstdint>
+#include <set>
+#include <string>
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/CashEnums.pb.h"
+#include "opentxs/protobuf/verify/Purse.hpp"
+#include "opentxs/protobuf/verify/VerifyCash.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "purse"

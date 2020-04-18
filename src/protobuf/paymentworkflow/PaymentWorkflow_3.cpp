@@ -5,6 +5,20 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
+#include <iosfwd>
+#include <map>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
+#include "opentxs/protobuf/verify/PaymentEvent.hpp"
+#include "opentxs/protobuf/verify/PaymentWorkflow.hpp"
+#include "opentxs/protobuf/verify/VerifyWorkflows.hpp"
 #include "protobuf/Check.hpp"
 
 #define BAD_EVENTS(a, b)                                                       \

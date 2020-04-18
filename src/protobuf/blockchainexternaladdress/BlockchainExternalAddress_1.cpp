@@ -5,6 +5,11 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <iosfwd>
+#include <string>
+
+#include "opentxs/protobuf/BlockchainEnums.pb.h"
+#include "opentxs/protobuf/verify/BlockchainExternalAddress.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "blockchain external address"

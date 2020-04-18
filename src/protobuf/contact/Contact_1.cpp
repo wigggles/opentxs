@@ -5,6 +5,15 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Check.hpp"
+#include "opentxs/protobuf/verify/Contact.hpp"
+#include "opentxs/protobuf/verify/ContactData.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "contact"

@@ -5,6 +5,10 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/OTXEnums.pb.h"
+#include "opentxs/protobuf/verify/ServerReply.hpp"
+#include "opentxs/protobuf/verify/VerifyOTX.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "server reply"

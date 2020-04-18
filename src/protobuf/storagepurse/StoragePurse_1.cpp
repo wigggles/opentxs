@@ -5,7 +5,9 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
-#include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/verify/StoragePurse.hpp"
+#include "opentxs/protobuf/verify/VerifyStorage.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "storage purse"

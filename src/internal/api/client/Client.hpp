@@ -82,6 +82,9 @@ struct Blockchain : virtual public api::client::Blockchain {
         -> const opentxs::network::zeromq::socket::Publish& = 0;
     virtual auto ThreadPool() const noexcept
         -> const opentxs::blockchain::client::internal::ThreadPool& = 0;
+    virtual auto UpdateBalance(
+        const opentxs::blockchain::Type chain,
+        const opentxs::blockchain::Balance balance) const noexcept -> void = 0;
 #endif  // OT_BLOCKCHAIN
 
     virtual ~Blockchain() = default;

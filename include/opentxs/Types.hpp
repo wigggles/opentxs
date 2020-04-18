@@ -220,6 +220,9 @@ enum class BloomUpdateFlag : std::uint8_t { None = 0, All = 1, PubkeyOnly = 2 };
 using Amount = std::uint64_t;
 using ChainHeight = std::int64_t;
 using HDIndex = std::uint32_t;
+using ConfirmedBalance = Amount;
+using UnconfirmedBalance = Amount;
+using Balance = std::pair<ConfirmedBalance, UnconfirmedBalance>;
 #endif  // OT_BLOCKCHAIN
 }  // namespace blockchain
 

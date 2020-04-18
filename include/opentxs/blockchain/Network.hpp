@@ -15,23 +15,27 @@ namespace blockchain
 class Network
 {
 public:
-    virtual bool AddPeer(const p2p::Address& address) const noexcept = 0;
-    virtual ChainHeight GetConfirmations(const std::string& txid) const
-        noexcept = 0;
-    virtual ChainHeight GetHeight() const noexcept = 0;
-    virtual std::size_t GetPeerCount() const noexcept = 0;
-    virtual Type GetType() const noexcept = 0;
-    virtual std::string SendToAddress(
+    virtual auto AddPeer(const p2p::Address& address) const noexcept
+        -> bool = 0;
+    virtual auto GetBalance() const noexcept -> Balance = 0;
+    virtual auto GetConfirmations(const std::string& txid) const noexcept
+        -> ChainHeight = 0;
+    virtual auto GetHeight() const noexcept -> ChainHeight = 0;
+    virtual auto GetPeerCount() const noexcept -> std::size_t = 0;
+    virtual auto GetType() const noexcept -> Type = 0;
+    virtual auto SendToAddress(
         const std::string& address,
         const Amount amount,
-        const api::client::blockchain::BalanceTree& source) const noexcept = 0;
-    virtual std::string SendToPaymentCode(
+        const api::client::blockchain::BalanceTree& source) const noexcept
+        -> std::string = 0;
+    virtual auto SendToPaymentCode(
         const std::string& address,
         const Amount amount,
-        const api::client::blockchain::PaymentCode& source) const noexcept = 0;
+        const api::client::blockchain::PaymentCode& source) const noexcept
+        -> std::string = 0;
 
-    virtual bool Connect() noexcept = 0;
-    virtual bool Disconnect() noexcept = 0;
+    virtual auto Connect() noexcept -> bool = 0;
+    virtual auto Disconnect() noexcept -> bool = 0;
 
     virtual ~Network() = default;
 

@@ -14,9 +14,7 @@ namespace opentxs
 {
 namespace proto
 {
-OPENTXS_EXPORT bool CheckProto_1(
-    const Bip47Channel& input,
-    const bool silent);
+OPENTXS_EXPORT bool CheckProto_1(const Bip47Channel& input, const bool silent);
 OPENTXS_EXPORT bool CheckProto_2(const Bip47Channel&, const bool);
 OPENTXS_EXPORT bool CheckProto_3(const Bip47Channel&, const bool);
 OPENTXS_EXPORT bool CheckProto_4(const Bip47Channel&, const bool);

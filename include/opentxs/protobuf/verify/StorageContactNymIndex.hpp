@@ -17,63 +17,25 @@ namespace proto
 OPENTXS_EXPORT bool CheckProto_1(
     const StorageContactNymIndex& list,
     const bool silent);
-OPENTXS_EXPORT bool CheckProto_2(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_3(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_4(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_5(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_6(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_7(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_8(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_9(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_10(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_11(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_12(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_13(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_14(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_15(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_16(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_17(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_18(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_19(
-    const StorageContactNymIndex&,
-    const bool);
-OPENTXS_EXPORT bool CheckProto_20(
-    const StorageContactNymIndex&,
-    const bool);
+OPENTXS_EXPORT bool CheckProto_2(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_3(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_4(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_5(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_6(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_7(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_8(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_9(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_10(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_11(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_12(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_13(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_14(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_15(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_16(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_17(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_18(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_19(const StorageContactNymIndex&, const bool);
+OPENTXS_EXPORT bool CheckProto_20(const StorageContactNymIndex&, const bool);
 }  // namespace proto
 }  // namespace opentxs
 

@@ -42,8 +42,7 @@ using RelationshipReciprocity = std::map<ContactItemType, ContactItemType>;
 OPENTXS_EXPORT const ContactSectionMap& AllowedSectionNames() noexcept;
 OPENTXS_EXPORT const ContactItemMap& AllowedItemTypes() noexcept;
 OPENTXS_EXPORT const ItemAttributeMap& AllowedItemAttributes() noexcept;
-OPENTXS_EXPORT const std::set<ContactSectionName>&
-AllowedSubtypes() noexcept;
+OPENTXS_EXPORT const std::set<ContactSectionName>& AllowedSubtypes() noexcept;
 OPENTXS_EXPORT const EnumTranslation& ContactSectionNames() noexcept;
 OPENTXS_EXPORT const EnumTranslation& ContactItemTypes() noexcept;
 OPENTXS_EXPORT const EnumTranslation& ContactItemAttributes() noexcept;

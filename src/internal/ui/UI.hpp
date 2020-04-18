@@ -5,10 +5,22 @@
 
 #pragma once
 
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#include "opentxs/Types.hpp"
+#include "opentxs/Version.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/protobuf/ContactEnums.pb.h"
+#include "opentxs/protobuf/PaymentWorkflowEnums.pb.h"
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/AccountList.hpp"
 #include "opentxs/ui/AccountListItem.hpp"
@@ -26,6 +38,8 @@
 #include "opentxs/ui/ContactSection.hpp"
 #include "opentxs/ui/ContactSubsection.hpp"
 #include "opentxs/ui/IssuerItem.hpp"
+#include "opentxs/ui/List.hpp"
+#include "opentxs/ui/ListRow.hpp"
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
@@ -33,6 +47,57 @@
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/ProfileSection.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
+#include "opentxs/ui/Widget.hpp"
+
+namespace opentxs
+{
+namespace api
+{
+namespace client
+{
+namespace internal
+{
+struct Manager;
+}  // namespace internal
+}  // namespace client
+}  // namespace api
+
+namespace identifier
+{
+class Server;
+class UnitDefinition;
+}  // namespace identifier
+
+namespace network
+{
+namespace zeromq
+{
+namespace socket
+{
+class Publish;
+}  // namespace socket
+}  // namespace zeromq
+}  // namespace network
+
+namespace ui
+{
+namespace implementation
+{
+class AccountActivity;
+class AccountList;
+class AccountSummary;
+class ActivitySummary;
+class ActivityThread;
+class Contact;
+class ContactList;
+class MessagableList;
+class PayableList;
+class Profile;
+}  // namespace implementation
+}  // namespace ui
+
+class Flag;
+}  // namespace opentxs
 
 namespace opentxs::ui::internal
 {
@@ -79,6 +144,19 @@ struct ProfileItem;
 struct ProfileSection;
 struct ProfileSubsection;
 }  // namespace opentxs::ui::internal
+
+#if OT_BLOCKCHAIN
+namespace opentxs::ui
+{
+auto AccountID(const api::Core& api, const blockchain::Type chain) noexcept
+    -> const Identifier&;
+auto AccountName(const blockchain::Type chain) noexcept -> std::string;
+auto NotaryID(const api::Core& api, const blockchain::Type chain) noexcept
+    -> const identifier::Server&;
+auto UnitID(const api::Core& api, const blockchain::Type chain) noexcept
+    -> const identifier::UnitDefinition&;
+}  // namespace opentxs::ui
+#endif  // OT_BLOCKCHAIN
 
 namespace opentxs::ui::implementation
 {
@@ -240,6 +318,9 @@ using ProfileSubsectionSortKey = int;
 
 namespace opentxs
 {
+template <typename T>
+struct make_blank;
+
 template <>
 struct make_blank<ui::implementation::AccountActivityRowID> {
     static ui::implementation::AccountActivityRowID value(const api::Core& api)
@@ -985,6 +1066,16 @@ auto ActivityThreadModel(
 auto ActivityThreadQtModel(ui::implementation::ActivityThread& parent) noexcept
     -> std::unique_ptr<ui::ActivityThreadQt>;
 #endif
+#if OT_BLOCKCHAIN
+auto BlockchainAccountListItem(
+    const ui::implementation::AccountListInternalInterface& parent,
+    const api::client::internal::Manager& api,
+    const network::zeromq::socket::Publish& publisher,
+    const ui::implementation::AccountListRowID& rowID,
+    const ui::implementation::AccountListSortKey& sortKey,
+    const ui::implementation::CustomData& custom) noexcept
+    -> std::shared_ptr<ui::implementation::AccountListRowInternal>;
+#endif  // OT_BLOCKCHAIN
 auto BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const api::client::internal::Manager& api,

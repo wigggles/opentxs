@@ -5,6 +5,7 @@
 
 set(
   cxx-sources
+  Cleanup.cpp
   LMDB.cpp
   PIDFile.cpp
   Signals.cpp
@@ -18,9 +19,10 @@ set(
 set(
   cxx-headers
   ${cxx-install-headers}
-  LMDB.cpp
+  Cleanup.hpp
+  LMDB.hpp
   PIDFile.hpp
-  Sodium.cpp
+  Sodium.hpp
 )
 
 add_library(opentxs-util OBJECT ${cxx-sources} ${cxx-headers})

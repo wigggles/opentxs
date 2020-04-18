@@ -5,6 +5,9 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <string>
+
+#include "opentxs/protobuf/verify/ChildCredentialParameters.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "child parameters"

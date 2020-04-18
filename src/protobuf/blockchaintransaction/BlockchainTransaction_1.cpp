@@ -5,9 +5,20 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include <cstdint>
 #include <limits>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/Check.hpp"
 #include "opentxs/protobuf/Contact.hpp"
+#include "opentxs/protobuf/verify/BlockchainTransaction.hpp"
+#include "opentxs/protobuf/verify/BlockchainTransactionInput.hpp"
+#include "opentxs/protobuf/verify/BlockchainTransactionOutput.hpp"
+#include "opentxs/protobuf/verify/VerifyBlockchain.hpp"
+#include "opentxs/protobuf/verify/VerifyContacts.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "blockchain transaction"

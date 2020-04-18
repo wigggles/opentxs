@@ -5,6 +5,10 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/Basic.hpp"
+#include "opentxs/protobuf/RPCEnums.pb.h"
+#include "opentxs/protobuf/verify/RPCPush.hpp"
+#include "opentxs/protobuf/verify/VerifyRPC.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "RPC push"

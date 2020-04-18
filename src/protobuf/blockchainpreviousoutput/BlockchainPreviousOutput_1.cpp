@@ -5,6 +5,7 @@
 
 #include "opentxs/Proto.hpp"  // IWYU pragma: associated
 
+#include "opentxs/protobuf/verify/BlockchainPreviousOutput.hpp"
 #include "protobuf/Check.hpp"
 
 #define PROTO_NAME "blockchain previous output"
